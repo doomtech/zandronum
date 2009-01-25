@@ -98,7 +98,7 @@ void P_SetPsprite (player_t *player, int position, FState *state)
 		psp->state = state;
 
 		if (sv_fastweapons >= 2 && position == ps_weapon)
-			psp->tics = (state->Action == NULL) ? 0 : 1;
+			psp->tics = state->ActionFunc == NULL? 0 : 1;
 		else if (sv_fastweapons)
 			psp->tics = 1;		// great for producing decals :)
 		else
@@ -113,25 +113,17 @@ void P_SetPsprite (player_t *player, int position, FState *state)
 			psp->sy = state->GetMisc2()<<FRACBITS;
 		}
 
-		if (state->GetAction())
-		{ 
-			// The parameterized action functions need access to the current state and
-			// if a function is supposed to work with both actors and weapons
-			// there is no real means to get to it reliably so I store it in a global variable here.
-			// Yes, I know this is truly awful but it is the only method I can think of 
-			// that does not involve changing stuff throughout the code. 
-			// Of course this should be rewritten ASAP.
-			CallingState = state;
-			// Call action routine.
-			if (player->mo != NULL)
+		if (player->mo != NULL)
+		{
+			if (state->CallAction(player->mo))
 			{
-				state->GetAction() (player->mo);
-			}
-			if (!psp->state)
-			{
-				break;
+				if (!psp->state)
+				{
+					break;
+				}
 			}
 		}
+
 		state = psp->state->GetNextState();
 	} while (!psp->tics); // An initial state of 0 could cycle through.
 }
@@ -398,9 +390,9 @@ void P_BobWeapon (player_t *player, pspdef_t *psp, fixed_t *x, fixed_t *y)
 //
 //---------------------------------------------------------------------------
 
-void A_WeaponReady(AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_WeaponReady)
 {
-	player_t *player = actor->player;
+	player_t *player = self->player;
 	AWeapon *weapon;
 
 	if (NULL == player)
@@ -416,10 +408,10 @@ void A_WeaponReady(AActor *actor)
 	}
 
 	// Change player from attack state
-	if (actor->InStateSequence(actor->state, actor->MissileState) ||
-		actor->InStateSequence(actor->state, actor->MeleeState))
+	if (self->InStateSequence(self->state, self->MissileState) ||
+		self->InStateSequence(self->state, self->MeleeState))
 	{
-		static_cast<APlayerPawn *>(actor)->PlayIdle ();
+		static_cast<APlayerPawn *>(self)->PlayIdle ();
 	}
 
 	// Play ready sound, if any.
@@ -427,11 +419,11 @@ void A_WeaponReady(AActor *actor)
 	{
 		if (!(weapon->WeaponFlags & WIF_READYSNDHALF) || pr_wpnreadysnd() < 128)
 		{
-			S_Sound (actor, CHAN_WEAPON, weapon->ReadySound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_WEAPON, weapon->ReadySound, 1, ATTN_NORM);
 
 			// [BC] If we're the server, tell other clients to play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( weapon->ReadySound ), 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->ReadySound ), 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 
@@ -498,9 +490,9 @@ void P_CheckWeaponFire (player_t *player)
 //
 //---------------------------------------------------------------------------
 
-void A_ReFire (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_ReFire)
 {
-	player_t *player = actor->player;
+	player_t *player = self->player;
 
 	if (NULL == player)
 	{
@@ -528,9 +520,9 @@ void A_ReFire (AActor *actor)
 	}
 }
 
-void A_ClearReFire(AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_ClearReFire)
 {
-	player_t *player = actor->player;
+	player_t *player = self->player;
 
 	if (NULL != player)
 	{
@@ -548,12 +540,12 @@ void A_ClearReFire(AActor *actor)
 //
 //---------------------------------------------------------------------------
 
-void A_CheckReload (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_CheckReload)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		actor->player->ReadyWeapon->CheckAmmo (
-			actor->player->ReadyWeapon->bAltFire ? AWeapon::AltFire
+		self->player->ReadyWeapon->CheckAmmo (
+			self->player->ReadyWeapon->bAltFire ? AWeapon::AltFire
 			: AWeapon::PrimaryFire, true);
 	}
 }
@@ -564,9 +556,9 @@ void A_CheckReload (AActor *actor)
 //
 //---------------------------------------------------------------------------
 
-void A_Lower (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_Lower)
 {
-	player_t *player = actor->player;
+	player_t *player = self->player;
 	pspdef_t *psp;
 
 	if (NULL == player)
@@ -619,13 +611,13 @@ void A_Lower (AActor *actor)
 //
 //---------------------------------------------------------------------------
 
-void A_Raise (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 {
-	if (actor == NULL)
+	if (self == NULL)
 	{
 		return;
 	}
-	player_t *player = actor->player;
+	player_t *player = self->player;
 	pspdef_t *psp;
 
 	if (NULL == player)
@@ -682,9 +674,9 @@ void A_Raise (AActor *actor)
 //
 // A_GunFlash
 //
-void A_GunFlash (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_GunFlash)
 {
-	player_t *player = actor->player;
+	player_t *player = self->player;
 
 	if (NULL == player)
 	{
@@ -764,37 +756,38 @@ void P_GunShot (AActor *mo, bool accurate, const PClass *pufftype, angle_t pitch
 	P_LineAttack (mo, angle, PLAYERMISSILERANGE, pitch, damage, NAME_None, pufftype);
 }
 
-void A_Light0 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_Light0)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		actor->player->extralight = 0;
+		self->player->extralight = 0;
 	}
 }
 
-void A_Light1 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_Light1)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		actor->player->extralight = 1;
+		self->player->extralight = 1;
 	}
 }
 
-void A_Light2 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AInventory, A_Light2)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		actor->player->extralight = 2;
+		self->player->extralight = 2;
 	}
 }
 
-void A_Light (AActor *actor)
+DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_Light)
 {
-	int index=CheckIndex(1, &CallingState);
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_INT(light, 0);
 
-	if (actor->player != NULL && index > 0)
+	if (self->player != NULL)
 	{
-		actor->player->extralight = clamp<int>(EvalExpressionI (StateParameters[index], actor), 0, 20);
+		self->player->extralight = clamp<int>(light, 0, 20);
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "gi.h"
 #include "a_sharedglobal.h"
 #include "a_strifeglobal.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"
@@ -20,7 +21,7 @@ static FRandom pr_shootgun ("ShootGun");
 //
 //============================================================================
 
-void A_ShootGun (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_ShootGun)
 {
 	int pitch;
 
@@ -80,7 +81,7 @@ bool ATeleporterBeacon::Use (bool pickup)
 	}
 }
 
-void A_Beacon (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Beacon)
 {
 	AActor *owner = self->target;
 	AActor *rebel;

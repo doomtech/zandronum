@@ -87,15 +87,15 @@ struct GLSectorPlane
 		angle = sec->GetAngle(ceiling);
 		if (ceiling)
 		{
-			texture = sec->ceilingpic;
+			texture = sec->GetTexture(sector_t::ceiling);
 			plane = sec->ceilingplane;
-			texheight = sec->ceilingtexz;
+			texheight = sec->GetPlaneTexZ(sector_t::ceiling);
 		}
 		else
 		{
-			texture = sec->floorpic;
+			texture = sec->GetTexture(sector_t::floor);
 			plane = sec->floorplane;
-			texheight = sec->floortexz;
+			texheight = sec->GetPlaneTexZ(sector_t::floor);
 		}
 	}
 };

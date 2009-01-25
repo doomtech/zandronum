@@ -266,7 +266,6 @@ enum
 	MF4_LOOKALLAROUND	= 0x00010000,	// Monster has eyes in the back of its head
 	MF4_STANDSTILL		= 0x00020000,	// Monster should not chase targets unless attacked?
 	MF4_SPECTRAL		= 0x00040000,
-	MF4_FIRERESIST		= 0x00080000,	// Actor takes half damage from fire
 	MF4_NOSPLASHALERT	= 0x00100000,	// Splashes don't alert this monster
 	MF4_SYNCHRONIZED	= 0x00200000,	// For actors spawned at load-time only: Do not randomize tics
 	MF4_NOTARGETSWITCH	= 0x00400000,	// monster never switches target until current one is dead
@@ -587,9 +586,6 @@ public:
 
 	// Called when actor dies
 	virtual void Die (AActor *source, AActor *inflictor);
-
-	// Called by A_Explode to find out how much damage to do
-	virtual void GetExplodeParms (int &damage, int &dist, bool &hurtSource);
 
 	// Perform some special damage action. Returns the amount of damage to do.
 	// Returning -1 signals the damage routine to exit immediately

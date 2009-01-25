@@ -111,9 +111,7 @@ IMPLEMENT_CLASS (AFakeInventory)
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
-void A_ScreamAndUnblock (AActor *);
-void A_ActiveAndUnblock (AActor *);
-void A_ActiveSound (AActor *);
+PSymbolActionFunction *FindGlobalActionFunction(const char *name);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
@@ -257,6 +255,10 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 	info->GameFilter = 0x80;
 	MakeStateDefines(parent->ActorInfo->StateList);
 
+	// There isn't a single WAD out there which uses game filters with old style
+	// decorations so this may as well be disabled. Without this option is is much
+	// easier to detect incorrect declarations 
+#if 0
 	sc.MustGetString ();
 	while (!sc.Compare ("{"))
 	{
@@ -308,6 +310,10 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 	{
 		info->GameFilter &= ~0x80;
 	}
+#else
+	info->GameFilter = GAME_Any;
+	sc.MustGetStringName("{");
+#endif
 
 	states.Clear ();
 	memset (&extra, 0, sizeof(extra));
@@ -378,24 +384,24 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 			{
 				if (extra.bExplosive)
 				{
-					info->OwnedStates[extra.DeathStart].Action = A_ExplodeParms;
+					info->OwnedStates[extra.DeathStart].SetAction(FindGlobalActionFunction("A_Explode"));
 				}
 			}
 			else
 			{
 				// The first frame plays the death sound and
 				// the second frame makes it nonsolid.
-				info->OwnedStates[extra.DeathStart].Action= A_Scream;
+				info->OwnedStates[extra.DeathStart].SetAction(FindGlobalActionFunction("A_Scream"));
 				if (extra.bSolidOnDeath)
 				{
 				}
 				else if (extra.DeathStart + 1 < extra.DeathEnd)
 				{
-					info->OwnedStates[extra.DeathStart+1].Action = A_NoBlocking;
+					info->OwnedStates[extra.DeathStart+1].SetAction(FindGlobalActionFunction("A_NoBlocking"));
 				}
 				else
 				{
-					info->OwnedStates[extra.DeathStart].Action = A_ScreamAndUnblock;
+					info->OwnedStates[extra.DeathStart].SetAction(FindGlobalActionFunction("A_ScreamAndUnblock"));
 				}
 
 				if (extra.DeathHeight == 0) extra.DeathHeight = ((AActor*)(type->Defaults))->height;
@@ -423,17 +429,17 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 
 			// The first frame plays the burn sound and
 			// the second frame makes it nonsolid.
-			info->OwnedStates[extra.FireDeathStart].Action = A_ActiveSound;
+			info->OwnedStates[extra.FireDeathStart].SetAction(FindGlobalActionFunction("A_ActiveSound"));
 			if (extra.bSolidOnBurn)
 			{
 			}
 			else if (extra.FireDeathStart + 1 < extra.FireDeathEnd)
 			{
-				info->OwnedStates[extra.FireDeathStart+1].Action = A_NoBlocking;
+				info->OwnedStates[extra.FireDeathStart+1].SetAction(FindGlobalActionFunction("A_NoBlocking"));
 			}
 			else
 			{
-				info->OwnedStates[extra.FireDeathStart].Action = A_ActiveAndUnblock;
+				info->OwnedStates[extra.FireDeathStart].SetAction(FindGlobalActionFunction("A_ActiveAndUnblock"));
 			}
 
 			if (extra.BurnHeight == 0) extra.BurnHeight = ((AActor*)(type->Defaults))->height;
@@ -453,13 +459,13 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 			info->OwnedStates[i].NextState = &info->OwnedStates[info->NumOwnedStates-1];
 			info->OwnedStates[i].Tics = 5;
 			info->OwnedStates[i].Misc1 = 0;
-			info->OwnedStates[i].Action = A_FreezeDeath;
+			info->OwnedStates[i].SetAction(FindGlobalActionFunction("A_FreezeDeath"));
 
 			i = info->NumOwnedStates - 1;
 			info->OwnedStates[i].NextState = &info->OwnedStates[i];
 			info->OwnedStates[i].Tics = 1;
 			info->OwnedStates[i].Misc1 = 0;
-			info->OwnedStates[i].Action = A_FreezeDeathChunks;
+			info->OwnedStates[i].SetAction(FindGlobalActionFunction("A_FreezeDeathChunks"));
 			AddState("Ice", &info->OwnedStates[extra.IceDeathStart]);
 		}
 		else if (extra.bGenericIceDeath)
@@ -876,40 +882,3 @@ static void ParseSpriteFrames (FActorInfo *info, TArray<FState> &states, FScanne
 	}
 }
 
-//===========================================================================
-//
-// A_ScreamAndUnblock
-//
-//===========================================================================
-
-void A_ScreamAndUnblock (AActor *actor)
-{
-	A_Scream (actor);
-	A_NoBlocking (actor);
-}
-
-//===========================================================================
-//
-// A_ActiveAndUnblock
-//
-//===========================================================================
-
-void A_ActiveAndUnblock (AActor *actor)
-{
-	A_ActiveSound (actor);
-	A_NoBlocking (actor);
-}
-
-//===========================================================================
-//
-// A_ActiveSound
-//
-//===========================================================================
-
-void A_ActiveSound (AActor *actor)
-{
-	if (actor->ActiveSound)
-	{
-		S_Sound (actor, CHAN_VOICE, actor->ActiveSound, 1, ATTN_NORM);
-	}
-}

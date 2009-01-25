@@ -246,27 +246,27 @@ FTextureID DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor
 	{
 		RenderFlags |= RF_RELMID;
 		if (line->flags & ML_DONTPEGBOTTOM)
-			Z -= front->floortexz;
+			Z -= front->GetPlaneTexZ(sector_t::floor);
 		else
-			Z -= front->ceilingtexz;
+			Z -= front->GetPlaneTexZ(sector_t::ceiling);
 		tex = wall->GetTexture(side_t::mid);
 	}
 	else if (back->floorplane.ZatPoint (x, y) >= Z)
 	{
 		RenderFlags |= RF_RELLOWER|RF_CLIPLOWER;
 		if (line->flags & ML_DONTPEGBOTTOM)
-			Z -= front->ceilingtexz;
+			Z -= front->GetPlaneTexZ(sector_t::ceiling);
 		else
-			Z -= back->floortexz;
+			Z -= back->GetPlaneTexZ(sector_t::floor);
 		tex = wall->GetTexture(side_t::bottom);
 	}
 	else if (back->ceilingplane.ZatPoint (x, y) <= Z)
 	{
 		RenderFlags |= RF_RELUPPER|RF_CLIPUPPER;
 		if (line->flags & ML_DONTPEGTOP)
-			Z -= front->ceilingtexz;
+			Z -= front->GetPlaneTexZ(sector_t::ceiling);
 		else
-			Z -= back->ceilingtexz;
+			Z -= back->GetPlaneTexZ(sector_t::ceiling);
 		tex = wall->GetTexture(side_t::top);
 	}
 	else if (ffloor) // this is a 3d-floor segment - do this only if we know which one!
@@ -274,9 +274,9 @@ FTextureID DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor
 		Sector=ffloor->model;
 		RenderFlags |= RF_RELMID|RF_CLIPMID;
 		if (line->flags & ML_DONTPEGBOTTOM)
-			Z -= Sector->floortexz;
+			Z -= Sector->GetPlaneTexZ(sector_t::floor);
 		else
-			Z -= Sector->ceilingtexz;
+			Z -= Sector->GetPlaneTexZ(sector_t::ceiling);
 
 		if (ffloor->flags & FF_UPPERTEXTURE)
 		{
@@ -324,29 +324,29 @@ fixed_t DBaseDecal::GetRealZ (const side_t *wall) const
 	case RF_RELUPPER:
 		if (curline->linedef->flags & ML_DONTPEGTOP)
 		{
-			return Z + front->ceilingtexz;
+			return Z + front->GetPlaneTexZ(sector_t::ceiling);
 		}
 		else
 		{
-			return Z + back->ceilingtexz;
+			return Z + back->GetPlaneTexZ(sector_t::ceiling);
 		}
 	case RF_RELLOWER:
 		if (curline->linedef->flags & ML_DONTPEGBOTTOM)
 		{
-			return Z + front->ceilingtexz;
+			return Z + front->GetPlaneTexZ(sector_t::ceiling);
 		}
 		else
 		{
-			return Z + back->floortexz;
+			return Z + back->GetPlaneTexZ(sector_t::floor);
 		}
 	case RF_RELMID:
 		if (curline->linedef->flags & ML_DONTPEGBOTTOM)
 		{
-			return Z + front->floortexz;
+			return Z + front->GetPlaneTexZ(sector_t::floor);
 		}
 		else
 		{
-			return Z + front->ceilingtexz;
+			return Z + front->GetPlaneTexZ(sector_t::ceiling);
 		}
 	}
 }

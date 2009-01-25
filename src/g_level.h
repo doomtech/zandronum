@@ -123,8 +123,10 @@
 #define LEVEL_RAILINGHACK			UCONST64(0x20000000000000)	// but UDMF requires them to be separate to have more control
 #define LEVEL_DUMMYSWITCHES			UCONST64(0x40000000000000)
 #define LEVEL_HEXENHACK				UCONST64(0x80000000000000)	// Level was defined in a Hexen style MAPINFO
-#define	LEVEL_NOBOTNODES			UCONST64(0x100000000000000)	// [BC] Level does not use bot nodes.
 
+#define LEVEL_SMOOTHLIGHTING		UCONST64(0x100000000000000)	// Level uses the smooth lighting feature.
+
+#define	LEVEL_NOBOTNODES			UCONST64(0x200000000000000)	// [BC] Level does not use bot nodes.
 
 struct acsdefered_s;
 

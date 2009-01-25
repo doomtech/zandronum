@@ -8,6 +8,7 @@
 #include "a_strifeglobal.h"
 #include "c_console.h"
 #include "gstrings.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "network.h"
 #include "cl_demo.h"
@@ -20,35 +21,12 @@ AActor *P_SpawnSubMissile (AActor *source, const PClass *type, AActor *target);
 
 //============================================================================
 
-// [CW] Slightly modified to return the new actor.
-AActor *GenericSpectreSpawn (AActor *actor, const char *type)
+DEFINE_ACTION_FUNCTION(AActor, A_SpectreChunkSmall)
 {
-	AActor *spectre = Spawn (type, actor->x, actor->y, actor->z, ALLOW_REPLACE);
-	if (spectre != NULL)
-	{
-		spectre->momz = pr_spectrespawn() << 9;
-	}
-
-	// [CW]
-	return ( spectre );
-}
-
-void A_SpawnSpectre4 (AActor *actor)
-{
-	// [CW] Clients may not do this.
+	// [BB] Clients may not do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
-	// [CW]
-	AActor *pActor = GenericSpectreSpawn (actor, "AlienSpectre4");
-
-	// [CW] Tell clients to spawn the actor.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SpawnThing( pActor );
-}
-
-void A_SpectreChunkSmall (AActor *self)
-{
 	AActor *foo = Spawn("AlienChunkSmall", self->x, self->y, self->z + 10*FRACUNIT, ALLOW_REPLACE);
 
 	if (foo != NULL)
@@ -62,11 +40,19 @@ void A_SpectreChunkSmall (AActor *self)
 		foo->momy = (t - (pr_spectrechunk() & 7)) << FRACBITS;
 
 		foo->momz = (pr_spectrechunk() & 15) << FRACBITS;
+
+		// [BB] Tell clients to spawn the actor.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( foo );
 	}
 }
 
-void A_SpectreChunkLarge (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SpectreChunkLarge)
 {
+	// [BB] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	AActor *foo = Spawn("AlienChunkLarge", self->x, self->y, self->z + 10*FRACUNIT, ALLOW_REPLACE);
 
 	if (foo != NULL)
@@ -80,11 +66,15 @@ void A_SpectreChunkLarge (AActor *self)
 		foo->momy = (t - (pr_spectrechunk() & 15)) << FRACBITS;
 
 		foo->momz = (pr_spectrechunk() & 7) << FRACBITS;
+
+		// [BB] Tell clients to spawn the actor.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( foo );
 	}
 
 }
 
-void A_Spectre3Attack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Spectre3Attack)
 {
 	if (self->target == NULL)
 		return;
@@ -109,14 +99,14 @@ void A_Spectre3Attack (AActor *self)
 	self->angle -= ANGLE_180 / 20 * 10;
 }
 
-void A_AlienSpectreDeath (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_AlienSpectreDeath)
 {
 	AActor *player;
 	char voc[32];
 	int log;
 	int i;
 
-	A_NoBlocking (self);	// [RH] Need this for Sigil rewarding
+	CALL_ACTION(A_NoBlocking, self); // [RH] Need this for Sigil rewarding
 	if (!CheckBossDeath (self))
 	{
 		return;

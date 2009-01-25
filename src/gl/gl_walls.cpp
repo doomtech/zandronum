@@ -460,15 +460,15 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 	lightlist_t * light;
 
 	// ZDoom doesn't support slopes in a horizon sector so I won't either!
-	ztop[1]=ztop[0]=TO_MAP(fs->ceilingtexz);
-	zbottom[1]=zbottom[0]=TO_MAP(fs->floortexz);
+	ztop[1]=ztop[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::ceiling));
+	zbottom[1]=zbottom[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::floor));
 
-	if (viewz<fs->ceilingtexz)
+	if (viewz<fs->GetPlaneTexZ(sector_t::ceiling))
 	{
-		if (viewz>fs->floortexz)
+		if (viewz>fs->GetPlaneTexZ(sector_t::floor))
 			zbottom[1]=zbottom[0]=TO_MAP(viewz);
 
-		if (fs->ceilingpic==skyflatnum)
+		if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
 		{
 			SkyTexture(fs->sky, fs->CeilingSkyBox, true);
 		}
@@ -483,7 +483,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->ceilingplane, true);
 
-				if(!(fs->CeilingFlags&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::ceiling)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
 				hi.colormap.LightColor = (*light->p_extra_colormap)->Color;
 			}
 
@@ -494,10 +494,10 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 		ztop[1]=ztop[0]=zbottom[0];
 	}
 
-	if (viewz>fs->floortexz)
+	if (viewz>fs->GetPlaneTexZ(sector_t::floor))
 	{
-		zbottom[1]=zbottom[0]=TO_MAP(fs->floortexz);
-		if (fs->floorpic==skyflatnum)
+		zbottom[1]=zbottom[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::floor));
+		if (fs->GetTexture(sector_t::floor)==skyflatnum)
 		{
 			SkyTexture(fs->sky, fs->FloorSkyBox, false);
 		}
@@ -512,7 +512,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->floorplane, false);
 
-				if(!(fs->FloorFlags&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::floor)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
 				hi.colormap.LightColor = (*light->p_extra_colormap)->Color;
 			}
 
@@ -733,12 +733,12 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
-			texturebottom=max(realfront->floortexz,realback->floortexz)+rowoffset;
+			texturebottom=max(realfront->GetPlaneTexZ(sector_t::floor),realback->GetPlaneTexZ(sector_t::floor))+rowoffset;
 			texturetop=texturebottom+(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 		else
 		{
-			texturetop=min(realfront->ceilingtexz,realback->ceilingtexz)+rowoffset;
+			texturetop=min(realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling))+rowoffset;
 			texturebottom=texturetop-(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 	}
@@ -767,7 +767,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			topright=max(bch2,fch2);
 		}
 		else if ((bch1>fch1 || bch2>fch2) && 
-				 (seg->frontsector->ceilingpic!=skyflatnum || seg->backsector->ceilingpic==skyflatnum)) 
+				 (seg->frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum)) 
 				 // (!((bch1<=fch1 && bch2<=fch2) || (bch1>=fch1 && bch2>=fch2)))
 		{
 			// Use the higher plane and let the geometry clip the extruding part
@@ -1436,17 +1436,12 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 
 	lightlevel = seg->sidedef->GetLightLevel(true, frontsector->lightlevel);
+
 	if (lightlevel<255 && gl_fakecontrast && !(flags&GLWF_FOGGY))
 	{
-		if (seg->sidedef->Flags & WALLF_AUTOCONTRAST)
-		{
-			rellight = (seg->linedef->dx==0? level.WallVertLight : seg->linedef->dy==0 ? level.WallHorizLight : 0);
-		}
-		else if (!(seg->sidedef->Flags & WALLF_ABSLIGHTING))
-		{
-			rellight = seg->sidedef->Light<<1;
-		}
-		else rellight = 0;
+		// In GL it's preferable to use the relative light for fake contrast instead of
+		// altering the base light level which is also used to set fog density.
+		rellight = seg->sidedef->GetLightLevel(false, frontsector->lightlevel) - lightlevel;
 	}
 	else rellight=0;
 
@@ -1454,8 +1449,8 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	RenderStyle=STYLE_Normal;
 	gltexture=NULL;
 
-	topflat=frontsector->ceilingpic;	// for glowing textures. These must be saved because
-	bottomflat=frontsector->floorpic;	// the sector passed here might be a temporary copy.
+	topflat=frontsector->GetTexture(sector_t::ceiling);	// for glowing textures. These must be saved because
+	bottomflat=frontsector->GetTexture(sector_t::floor);	// the sector passed here might be a temporary copy.
 
 	// Save a little time (up to 0.3 ms per frame ;) )
 	if (frontsector->floorplane.a | frontsector->floorplane.b)
@@ -1467,7 +1462,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 	else
 	{
-		ffh1 = ffh2 = frontsector->floortexz; 
+		ffh1 = ffh2 = frontsector->GetPlaneTexZ(sector_t::floor); 
 		zfloor[0] = zfloor[1] = TO_MAP(ffh2);
 	}
 
@@ -1480,7 +1475,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 	else
 	{
-		fch1 = fch2 = frontsector->ceilingtexz;
+		fch1 = fch2 = frontsector->GetPlaneTexZ(sector_t::ceiling);
 		zceil[0] = zceil[1] = TO_MAP(fch2);
 	}
 
@@ -1503,7 +1498,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		if (!gltexture) return;
 
 		DoTexture(RENDERWALL_M1S,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
-						  realfront->ceilingtexz,realfront->floortexz,	// must come from the original!
+						  realfront->GetPlaneTexZ(sector_t::ceiling),realfront->GetPlaneTexZ(sector_t::floor),	// must come from the original!
 						  fch1,fch2,ffh1,ffh2,0);
 	}
 	else /* twosided */
@@ -1521,7 +1516,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		}
 		else
 		{
-			bfh1 = bfh2 = backsector->floortexz; 
+			bfh1 = bfh2 = backsector->GetPlaneTexZ(sector_t::floor); 
 		}
 
 		if (backsector->ceilingplane.a | backsector->ceilingplane.b)
@@ -1531,17 +1526,17 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		}
 		else
 		{
-			bch1 = bch2 = backsector->ceilingtexz;
+			bch1 = bch2 = backsector->GetPlaneTexZ(sector_t::ceiling);
 		}
 
 		SkyTop(seg,frontsector,backsector,v1,v2);
 		SkyBottom(seg,frontsector,backsector,v1,v2);
 		
 		// upper texture
-		if (frontsector->ceilingpic!=skyflatnum || backsector->ceilingpic!=skyflatnum)
+		if (frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum)
 		{
 			fixed_t bch1a=bch1, bch2a=bch2;
-			if (frontsector->floorpic!=skyflatnum || backsector->floorpic!=skyflatnum)
+			if (frontsector->GetTexture(sector_t::floor)!=skyflatnum || backsector->GetTexture(sector_t::floor)!=skyflatnum)
 			{
 				// the back sector's floor obstructs part of this wall				
 				if (ffh1>bch1 && ffh2>bch2) 
@@ -1557,19 +1552,19 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_TOP,seg,(seg->linedef->flags & (ML_DONTPEGTOP))==0,
-						realfront->ceilingtexz,realback->ceilingtexz,
+						realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling),
 						fch1,fch2,bch1a,bch2a,0);
 				}
 				else if ((frontsector->ceilingplane.a | frontsector->ceilingplane.b | 
 						 backsector->ceilingplane.a | backsector->ceilingplane.b) && 
-						frontsector->ceilingpic!=skyflatnum &&
-						backsector->ceilingpic!=skyflatnum)
+						frontsector->GetTexture(sector_t::ceiling)!=skyflatnum &&
+						backsector->GetTexture(sector_t::ceiling)!=skyflatnum)
 				{
-					gltexture=FGLTexture::ValidateTexture(frontsector->ceilingpic);
+					gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::ceiling));
 					if (gltexture)
 					{
 						DoTexture(RENDERWALL_TOP,seg,(seg->linedef->flags & (ML_DONTPEGTOP))==0,
-							realfront->ceilingtexz,realback->ceilingtexz,
+							realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling),
 							fch1,fch2,bch1a,bch2a,0);
 					}
 				}
@@ -1587,7 +1582,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		bool drawfogboundary=((frontsector->ColorMap->Fade&0xffffff)!=0 && 
 							(backsector->ColorMap->Fade&0xffffff)==0 &&
 							!gl_fixedcolormap &&
-							(frontsector->ceilingpic!=skyflatnum || backsector->ceilingpic!=skyflatnum));
+							(frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum));
 
 		gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::mid));
 		if (gltexture || drawfogboundary)
@@ -1600,10 +1595,10 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 			DoFFloorBlocks(seg,frontsector,backsector, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}
 		
-		if (1)//!((frontsector->floorpic==skyflatnum) && (backsector->floorpic==skyflatnum)))
+		if (1)//!((frontsector->GetTexture(sector_t::floor)==skyflatnum) && (backsector->GetTexture(sector_t::floor)==skyflatnum)))
 		{
 			/* bottom texture */
-			if (frontsector->ceilingpic!=skyflatnum || backsector->ceilingpic!=skyflatnum)
+			if (frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum)
 			{
 				// the back sector's ceiling obstructs part of this wall				
 				if (fch1<bfh1 && fch2<bfh2)
@@ -1619,29 +1614,29 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
-						realback->floortexz,realfront->floortexz,
+						realback->GetPlaneTexZ(sector_t::floor),realfront->GetPlaneTexZ(sector_t::floor),
 						bfh1,bfh2,ffh1,ffh2,
-						frontsector->ceilingpic==skyflatnum && backsector->ceilingpic==skyflatnum ?
-							realfront->floortexz-realback->ceilingtexz : 
-							realfront->floortexz-realfront->ceilingtexz);
+						frontsector->GetTexture(sector_t::ceiling)==skyflatnum && backsector->GetTexture(sector_t::ceiling)==skyflatnum ?
+							realfront->GetPlaneTexZ(sector_t::floor)-realback->GetPlaneTexZ(sector_t::ceiling) : 
+							realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
 				}
 				else if ((frontsector->floorplane.a | frontsector->floorplane.b | 
 						backsector->floorplane.a | backsector->floorplane.b) && 
-						frontsector->floorpic!=skyflatnum &&
-						backsector->floorpic!=skyflatnum)
+						frontsector->GetTexture(sector_t::floor)!=skyflatnum &&
+						backsector->GetTexture(sector_t::floor)!=skyflatnum)
 				{
-					// render it anyway with the sector's floorpic. With a background sky
+					// render it anyway with the sector's GetTexture(sector_t::floor). With a background sky
 					// there are ugly holes otherwise and slopes are simply not precise enough
 					// to mach in any case.
-					gltexture=FGLTexture::ValidateTexture(frontsector->floorpic);
+					gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::floor));
 					if (gltexture)
 					{
 						DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
-							realback->floortexz,realfront->floortexz,
-							bfh1,bfh2,ffh1,ffh2, realfront->floortexz-realfront->ceilingtexz);
+							realback->GetPlaneTexZ(sector_t::floor),realfront->GetPlaneTexZ(sector_t::floor),
+							bfh1,bfh2,ffh1,ffh2, realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
 					}
 				}
-				else if (backsector->floorpic!=skyflatnum)
+				else if (backsector->GetTexture(sector_t::floor)!=skyflatnum)
 				{
 					gl_drawinfo->AddLowerMissingTexture(seg, bfh1);
 				}
@@ -1657,10 +1652,10 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 //==========================================================================
 void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 {
-	if (frontsector->floorpic==skyflatnum) return;
+	if (frontsector->GetTexture(sector_t::floor)==skyflatnum) return;
 
-	fixed_t ffh = frontsector->floortexz; 
-	fixed_t bfh = backsector->floortexz; 
+	fixed_t ffh = frontsector->GetPlaneTexZ(sector_t::floor); 
+	fixed_t bfh = backsector->GetPlaneTexZ(sector_t::floor); 
 	if (bfh>ffh)
 	{
 		this->seg=seg;
@@ -1688,12 +1683,12 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		RenderStyle=STYLE_Normal;
 		Colormap=frontsector->ColorMap;
 
-		topflat=frontsector->ceilingpic;	// for glowing textures
-		bottomflat=frontsector->floorpic;
+		topflat=frontsector->GetTexture(sector_t::ceiling);	// for glowing textures
+		bottomflat=frontsector->GetTexture(sector_t::floor);
 
 		zfloor[0] = zfloor[1] = TO_MAP(ffh);
 
-		gltexture=FGLTexture::ValidateTexture(frontsector->floorpic);
+		gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::floor));
 
 		if (gltexture) 
 		{

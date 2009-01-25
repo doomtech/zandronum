@@ -5,6 +5,7 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "thingdef/thingdef.h"
 
 // Tome of power ------------------------------------------------------------
 
@@ -43,12 +44,16 @@ bool AArtiTomeOfPower::Use (bool pickup)
 
 // Time bomb ----------------------------------------------------------------
 
-void A_TimeBomb(AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_TimeBomb)
 {
 	self->z += 32*FRACUNIT;
 	self->RenderStyle = STYLE_Add;
 	self->alpha = FRACUNIT;
-	A_Explode(self);
+	P_RadiusAttack (self, self->target, 128, 128, self->DamageType, true);
+	if (self->z <= self->floorz + (128<<FRACBITS))
+	{
+		P_HitFloor (self);
+	}
 }
 
 class AArtiTimeBomb : public AInventory

@@ -54,38 +54,18 @@
 #include "a_sharedglobal.h"
 #include "s_sound.h"
 #include "i_system.h"
+#include "autosegs.h"
 
 TArray<int> StateParameters;
 TArray<FName> JumpParameters;
+static TArray<AFuncDesc> AFTable;
+static TArray<FState> StateArray;
 
 //==========================================================================
 //
 // Action functions
 //
 //==========================================================================
-
-
-
-#define FROM_THINGDEF
-// Prototype the code pointers
-#define WEAPON(x)	void A_##x(AActor*);	
-#define ACTOR(x)	void A_##x(AActor*);
-#include "codepointers.h"
-#include "d_dehackedactions.h"
-
-AFuncDesc AFTable[] =
-{
-#define WEAPON(x)	{ "A_" #x, A_##x },
-#define ACTOR(x)	{ "A_" #x, A_##x },
-#include "codepointers.h"
-#include "d_dehackedactions.h"
-	{ "A_Fall", A_NoBlocking },
-	{ "A_BasicAttack", A_ComboAttack },
-	{ "A_Explode", A_ExplodeParms }
-};
-
-
-static TArray<FState> StateArray;
 
 //==========================================================================
 //
@@ -103,11 +83,18 @@ AFuncDesc * FindFunction(const char * string)
 
 	if (!funcsorted) 
 	{
-		qsort(AFTable, countof(AFTable), sizeof(AFTable[0]), funccmp);
+		TAutoSegIterator<AFuncDesc *, &ARegHead, &ARegTail> probe;
+
+		while (++probe != NULL)
+		{
+			AFTable.Push(*probe);
+		}
+		AFTable.ShrinkToFit();
+		qsort(&AFTable[0], AFTable.Size(), sizeof(AFTable[0]), funccmp);
 		funcsorted=true;
 	}
 
-	int min = 0, max = countof(AFTable)-1;
+	int min = 0, max = AFTable.Size()-1;
 
 	while (min <= max)
 	{
@@ -129,6 +116,21 @@ AFuncDesc * FindFunction(const char * string)
 	return NULL;
 }
 
+
+//==========================================================================
+//
+// Find an action function in AActor's table
+//
+//==========================================================================
+
+PSymbolActionFunction *FindGlobalActionFunction(const char *name)
+{
+	PSymbol *sym = RUNTIME_CLASS(AActor)->Symbols.FindSymbol(name, false);
+	if (sym != NULL && sym->SymbolType == SYM_ActionFunction)
+		return static_cast<PSymbolActionFunction*>(sym);
+	else
+		return NULL;
+}
 
 //==========================================================================
 //
@@ -365,6 +367,24 @@ void MakeStateDefines(const FStateLabels *list)
 	MakeStateList(list, StateLabels);
 }
 
+void AddStateDefines(const FStateLabels *list)
+{
+	if (list != NULL) for(int i=0;i<list->NumLabels;i++)
+	{
+		if (list->Labels[i].Children == NULL)
+		{
+			if (!FindStateLabelInList(StateLabels, list->Labels[i].Label, false))
+			{
+				FStateDefine def;
+
+				def.Label = list->Labels[i].Label;
+				def.State = list->Labels[i].State;
+				StateLabels.Push(def);
+			}
+		}
+	}
+}
+
 //==========================================================================
 //
 // PrepareStateParameters
@@ -401,7 +421,12 @@ bool DoActionSpecials(FScanner &sc, FState & state, bool multistate, int * state
 
 		int paramindex=PrepareStateParameters(&state, 6);
 
-		StateParameters[paramindex]=special;
+		// The function expects the special to be passed as expression so we
+		// have to convert it.
+		specname.Format("%d", special);
+		FScanner sc2;
+		sc2.OpenMem("", (char*)specname.GetChars(), int(specname.Len()));
+		StateParameters[paramindex] = ParseExpression(sc2, false, bag.Info->Class);
 
 		// Make this consistent with all other parameter parsing
 		if (sc.CheckToken('('))
@@ -424,7 +449,8 @@ bool DoActionSpecials(FScanner &sc, FState & state, bool multistate, int * state
 		{
 			sc.ScriptError ("Too many arguments to %s", specname.GetChars());
 		}
-		state.Action = A_CallSpecial;
+
+		state.SetAction(FindGlobalActionFunction("A_CallSpecial"), false);
 		return true;
 	}
 	return false;
@@ -502,7 +528,7 @@ int ParseStates(FScanner &sc, FActorInfo * actor, AActor * defaults, Baggage &ba
 	FState * laststate = NULL;
 	intptr_t lastlabel = -1;
 	int minrequiredstate = -1;
-	int spriteindex;
+	int spriteindex = 0;
 	char lastsprite[5]="";
 
 	sc.MustGetStringName ("{");
@@ -660,7 +686,7 @@ do_stop:
 				if (sym != NULL && sym->SymbolType == SYM_ActionFunction)
 				{
 					PSymbolActionFunction *afd = static_cast<PSymbolActionFunction *>(sym);
-					state.Action = afd->Function;
+					state.SetAction(afd, false);
 					if (!afd->Arguments.IsEmpty())
 					{
 						const char *params = afd->Arguments.GetChars();
@@ -674,171 +700,51 @@ do_stop:
 						}
 						else
 						{
-							if (!sc.CheckString("(")) goto endofstate;
+							if (!sc.CheckString("(")) 
+							{
+								state.ParameterIndex = afd->defaultparameterindex+1;
+								goto endofstate;
+							}
 						}
 						
 						int paramindex = PrepareStateParameters(&state, numparams);
 						int paramstart = paramindex;
 						bool varargs = params[numparams - 1] == '+';
 
+
 						if (varargs)
 						{
 							StateParameters[paramindex++] = 0;
 						}
+						else if (afd->defaultparameterindex > -1)
+						{
+							memcpy(&StateParameters[paramindex], &StateParameters[afd->defaultparameterindex],
+								afd->Arguments.Len() * sizeof (StateParameters[0]));
+						}
 
 						while (*params)
 						{
-							switch(*params)
+							if ((*params == 'l' || *params == 'L') && sc.CheckNumber())
 							{
-							case 'I':
-							case 'i':		// Integer
-								sc.MustGetNumber();
-								v = sc.Number;
-								break;
-
-							case 'F':
-							case 'f':		// Fixed point
-								sc.MustGetFloat();
-								v = fixed_t(sc.Float*FRACUNIT);
-								break;
-
-
-							case 'S':
-							case 's':		// Sound name
-								sc.MustGetString();
-								v = S_FindSound(sc.String);
-								break;
-
-							case 'M':
-							case 'm':		// Actor name
-							case 'T':
-							case 't':		// String
-								sc.SetEscape(true);
-								sc.MustGetString();
-								sc.SetEscape(false);
-								v = (int)(sc.String[0] ? FName(sc.String) : NAME_None);
-								break;
-
-							case 'L':
-							case 'l':		// Jump label
-
-								if (sc.CheckNumber())
+								// Special case: State label as an offset
+								if (sc.Number > 0 && strlen(statestring)>0)
 								{
-									if (sc.Number > 0 && strlen(statestring)>0)
-									{
-										sc.ScriptError("You cannot use state jumps commands with a jump offset on multistate definitions\n");
-									}
-
-									v=sc.Number;
-									if (v<0)
-									{
-										sc.ScriptError("Negative jump offsets are not allowed");
-									}
-
-									{
-										int minreq=count+v;
-										if (minreq>minrequiredstate) minrequiredstate=minreq;
-									}
-								}
-								else
-								{
-									if (JumpParameters.Size()==0) JumpParameters.Push(NAME_None);
-
-									v = -(int)JumpParameters.Size();
-									// This forces quotation marks around the state name.
-									sc.MustGetToken(TK_StringConst);
-									if (sc.String[0] == 0 || sc.Compare("None"))
-									{
-										v = 0;	// an empty string means 'no state'.
-										break;
-									}
-									FString statestring = sc.String; // ParseStateString(sc);
-									const PClass *stype=NULL;
-									int scope = statestring.IndexOf("::");
-									if (scope >= 0)
-									{
-										FName scopename = FName(statestring, scope, false);
-										if (scopename == NAME_Super)
-										{
-											// Super refers to the direct superclass
-											scopename = actor->Class->ParentClass->TypeName;
-										}
-										JumpParameters.Push(scopename);
-										statestring = statestring.Right(statestring.Len()-scope-2);
-
-										stype = PClass::FindClass (scopename);
-										if (stype == NULL)
-										{
-											sc.ScriptError ("%s is an unknown class.", scopename.GetChars());
-										}
-										if (!stype->IsDescendantOf (RUNTIME_CLASS(AActor)))
-										{
-											sc.ScriptError ("%s is not an actor class, so it has no states.", stype->TypeName.GetChars());
-										}
-										if (!stype->IsAncestorOf (actor->Class))
-										{
-											sc.ScriptError ("%s is not derived from %s so cannot access its states.",
-												actor->Class->TypeName.GetChars(), stype->TypeName.GetChars());
-										}
-									}
-									else
-									{
-										// No class name is stored. This allows 'virtual' jumps to
-										// labels in subclasses.
-										// It also means that the validity of the given state cannot
-										// be checked here.
-										JumpParameters.Push(NAME_None);
-									}
-									TArray<FName> names;
-									MakeStateNameList(statestring, &names);
-
-									if (stype != NULL)
-									{
-										if (!stype->ActorInfo->FindState(names.Size(), &names[0]))
-										{
-											sc.ScriptError("Jump to unknown state '%s' in class '%s'",
-												statestring.GetChars(), stype->TypeName.GetChars());
-										}
-									}
-									JumpParameters.Push((ENamedName)names.Size());
-									for(unsigned i=0;i<names.Size();i++)
-									{
-										JumpParameters.Push(names[i]);
-									}
-									// No offsets here. The point of jumping to labels is to avoid such things!
+									sc.ScriptError("You cannot use state jumps commands with a jump offset on multistate definitions\n");
 								}
 
-								break;
-
-							case 'C':
-							case 'c':		// Color
-								sc.MustGetString ();
-								if (sc.Compare("none"))
+								v=sc.Number;
+								if (v<0)
 								{
-									v = -1;
+									sc.ScriptError("Negative jump offsets are not allowed");
 								}
-								else
-								{
-									int c = V_GetColor (NULL, sc.String);
-									// 0 needs to be the default so we have to mark the color.
-									v = MAKEARGB(1, RPART(c), GPART(c), BPART(c));
-								}
-								break;
 
-							case 'X':
-							case 'x':
-								v = ParseExpression (sc, false, bag.Info->Class);
-								break;
-
-							case 'Y':
-							case 'y':
-								v = ParseExpression (sc, true, bag.Info->Class);
-								break;
-
-							default:
-								assert(false);
-								v = -1;
-								break;
+								int minreq=count+v;
+								if (minreq>minrequiredstate) minrequiredstate=minreq;
+							}
+							else
+							{
+								// Use the generic parameter parser for everything else
+								v = ParseParameter(sc, bag.Info->Class, *params, false);
 							}
 							StateParameters[paramindex++] = v;
 							params++;

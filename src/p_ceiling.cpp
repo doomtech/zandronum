@@ -143,7 +143,7 @@ void DCeiling::Tick ()
 				m_Sector->special = m_NewSpecial;
 				// fall through
 			case genCeilingChg:
-				m_Sector->ceilingpic = m_Texture;
+				m_Sector->SetTexture(sector_t::ceiling, m_Texture);
 				// fall through
 			default:
 
@@ -212,7 +212,7 @@ void DCeiling::Tick ()
 				m_Sector->special = m_NewSpecial;
 				// fall through
 			case genCeilingChg:
-				m_Sector->ceilingpic = m_Texture;
+				m_Sector->SetTexture(sector_t::ceiling, m_Texture);
 				// fall through
 			default:
 
@@ -589,7 +589,7 @@ manual_ceiling:
 					sec->FindModelCeilingSector (targheight);
 				if (modelsec != NULL)
 				{
-					ceiling->m_Texture = modelsec->ceilingpic;
+					ceiling->m_Texture = modelsec->GetTexture(sector_t::ceiling);
 					switch (change & 3)
 					{
 						case 1:		// type is zeroed
@@ -608,7 +608,7 @@ manual_ceiling:
 			}
 			else if (line)	// else if a trigger model change
 			{
-				ceiling->m_Texture = line->frontsector->ceilingpic;
+				ceiling->m_Texture = line->frontsector->GetTexture(sector_t::ceiling);
 				switch (change & 3)
 				{
 					case 1:		// type is zeroed

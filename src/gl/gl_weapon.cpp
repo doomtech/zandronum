@@ -177,7 +177,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		// calculate light level for weapon sprites
 		lightlevel = fakesec->lightlevel;
 
-		lightlevel = gl_CheckSpriteGlow(viewsector->floorpic, lightlevel, playermo->z-playermo->floorz);
+		lightlevel = gl_CheckSpriteGlow(viewsector->GetTexture(sector_t::floor), lightlevel, playermo->z-playermo->floorz);
 
 		// calculate colormap for weapon sprites
 		if (viewsector->e->XFloor.ffloors.Size() && !gl_nocoloredspritelighting)

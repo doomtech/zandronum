@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -26,7 +27,7 @@ extern void AdjustPlayerAngle (AActor *pmo, AActor *linetarget);
 //
 //============================================================================
 
-void A_FHammerAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_FHammerAttack)
 {
 	angle_t angle;
 	int damage;
@@ -36,7 +37,7 @@ void A_FHammerAttack (AActor *actor)
 	player_t *player;
 	AActor *linetarget;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
@@ -154,12 +155,12 @@ hammerdone:
 //
 //============================================================================
 
-void A_FHammerThrow (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_FHammerThrow)
 {
 	AActor *mo;
 	player_t *player;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
@@ -191,13 +192,13 @@ void A_FHammerThrow (AActor *actor)
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		mo = P_SpawnPlayerMissile( player->mo, PClass::FindClass ("HammerMissile"), actor->angle + ( ANGLE_45 / 3 )); 
+		mo = P_SpawnPlayerMissile( player->mo, PClass::FindClass ("HammerMissile"), self->angle + ( ANGLE_45 / 3 )); 
 		if ( mo )
 		{
 			mo->special1 = 0;
 		}	
 
-		mo = P_SpawnPlayerMissile( player->mo, PClass::FindClass ("HammerMissile"), actor->angle - ( ANGLE_45 / 3 )); 
+		mo = P_SpawnPlayerMissile( player->mo, PClass::FindClass ("HammerMissile"), self->angle - ( ANGLE_45 / 3 )); 
 		if ( mo )
 		{
 			mo->special1 = 0;

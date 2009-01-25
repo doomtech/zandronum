@@ -23,8 +23,6 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
-** 5. Full disclosure of the entire project's source code, except for third
-**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -535,204 +533,6 @@ void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int 
 
 //===========================================================================
 //
-// FWarpTexture::CopyTrueColorPixels
-//
-// Since the base texture can be anything the warping must be done in
-// true color
-//
-//===========================================================================
-
-int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, FCopyInfo *inf)
-{
-	int buf_pitch = bmp->GetPitch();
-	int buf_width = bmp->GetWidth();
-	int buf_height = bmp->GetHeight();
-
-	if (gl_warp_shader || gl_glsl_renderer || rotate != 0 || inf != NULL || Width > 256 || Height > 256)
-	{
-		return SourcePic->CopyTrueColorPixels(bmp, xx, yy, rotate, inf);
-	}
-
-	FGLBitmap inb;
-
-	if (!inb.Create(Width, Height))
-		return false;
-
-	DWORD * in = (DWORD *)inb.GetPixels();
-	DWORD * out;
-	bool direct;
-	
-	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
-	gltex->createWarped = true;
-	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
-	{
-		out = (DWORD*)bmp->GetPixels();
-		direct=true;
-	}
-	else
-	{
-		out = new DWORD[Width*Height];
-		direct=false;
-	}
-
-	GenTime = r_FrameTime;
-	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(DWORD));
-	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
-
-	static DWORD linebuffer[256];	// anything larger will bring down performance so it is excluded above.
-	DWORD timebase = DWORD(r_FrameTime*Speed*23/28);
-	int xsize = Width;
-	int ysize = Height;
-	int xmask = xsize - 1;
-	int ymask = ysize - 1;
-	int ds_xbits;
-	int i,x;
-
-	for(ds_xbits=-1,i=Width; i; i>>=1, ds_xbits++);
-
-	for (x = xsize-1; x >= 0; x--)
-	{
-		int yt, yf = (finesine[(timebase+(x+17)*128)&FINEMASK]>>13) & ymask;
-		const DWORD *source = in + x;
-		DWORD *dest = out + x;
-		for (yt = ysize; yt; yt--, yf = (yf+1)&ymask, dest += xsize)
-		{
-			*dest = *(source+(yf<<ds_xbits));
-		}
-	}
-	timebase = DWORD(r_FrameTime*Speed*32/28);
-	int y;
-	for (y = ysize-1; y >= 0; y--)
-	{
-		int xt, xf = (finesine[(timebase+y*128)&FINEMASK]>>13) & xmask;
-		DWORD *source = out + (y<<ds_xbits);
-		DWORD *dest = linebuffer;
-		for (xt = xsize; xt; xt--, xf = (xf+1)&xmask)
-		{
-			*dest++ = *(source+xf);
-		}
-		memcpy (out+y*xsize, linebuffer, xsize*sizeof(DWORD));
-	}
-
-	if (!direct)
-	{
-		// Negative offsets cannot occur here.
-		if (xx<0) xx=0;
-		if (yy<0) yy=0;
-
-		DWORD * targ = ((DWORD*)bmp->GetPixels()) + xx + yy*buf_width;
-		int linelen=MIN<int>(Width, buf_width-xx);
-		int linecount=MIN<int>(Height, buf_height-yy);
-
-		for(i=0;i<linecount;i++)
-		{
-			memcpy(targ, &out[Width*i], linelen*sizeof(DWORD));
-			targ+=buf_width;
-		}
-		delete [] out;
-	}
-	GenTime=r_FrameTime;
-	return ret;
-}
-
-//===========================================================================
-//
-// FWarpTexture::CopyTrueColorPixels
-//
-// Since the base texture can be anything the warping must be done in
-// true color
-//
-//===========================================================================
-
-int FWarp2Texture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, FCopyInfo *inf)
-{
-	int buf_pitch = bmp->GetPitch();
-	int buf_width = bmp->GetWidth();
-	int buf_height = bmp->GetHeight();
-
-	if (gl_warp_shader || gl_glsl_renderer || rotate != 0 || inf != NULL || Width > 256 || Height > 256)
-	{
-		return SourcePic->CopyTrueColorPixels(bmp, xx, yy, rotate, inf);
-	}
-
-	FGLBitmap inb;
-
-	if (!inb.Create(Width, Height))
-		return false;
-
-	DWORD * in = (DWORD *)inb.GetPixels();
-	DWORD * out;
-	bool direct;
-	
-	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
-	gltex->createWarped = true;
-	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
-	{
-		out = (DWORD*)bmp->GetPixels();
-		direct=true;
-	}
-	else
-	{
-		out = new DWORD[Width*Height];
-		direct=false;
-	}
-
-	GenTime = r_FrameTime;
-	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(DWORD));
-	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
-
-	int xsize = Width;
-	int ysize = Height;
-	int xmask = xsize - 1;
-	int ymask = ysize - 1;
-	int ybits;
-	int x, y;
-	int i;
-
-	for(ybits=-1,i=ysize; i; i>>=1, ybits++);
-
-	DWORD timebase = (r_FrameTime * Speed * 40 / 28);
-	for (x = xsize-1; x >= 0; x--)
-	{
-		for (y = ysize-1; y >= 0; y--)
-		{
-			int xt = (x + 128
-				+ ((finesine[(y*128 + timebase*5 + 900) & 8191]*2)>>FRACBITS)
-				+ ((finesine[(x*256 + timebase*4 + 300) & 8191]*2)>>FRACBITS)) & xmask;
-			int yt = (y + 128
-				+ ((finesine[(y*128 + timebase*3 + 700) & 8191]*2)>>FRACBITS)
-				+ ((finesine[(x*256 + timebase*4 + 1200) & 8191]*2)>>FRACBITS)) & ymask;
-			const DWORD *source = in + (xt << ybits) + yt;
-			DWORD *dest = out + (x << ybits) + y;
-			*dest = *source;
-		}
-	}
-
-	if (!direct)
-	{
-		// This can only happen for sprites so
-		// negative offsets cannot occur here.
-		if (xx<0) xx=0;
-		if (yy<0) yy=0;
-
-		DWORD * targ = ((DWORD*)bmp->GetPixels()) + xx + yy*buf_width;
-		int linelen=MIN<int>(Width, buf_width-xx);
-		int linecount=MIN<int>(Height, buf_height-yy);
-
-		for(i=0;i<linecount;i++)
-		{
-			memcpy(targ, &out[Width*i], linelen*sizeof(DWORD));
-			targ+=buf_pitch/4;
-		}
-		delete [] out;
-	}
-	GenTime=r_FrameTime;
-	return ret;
-}
-
-
-//===========================================================================
-//
 // Camera texture rendering
 //
 //===========================================================================
@@ -893,7 +693,7 @@ FGLTexture::FGLTexture(FTexture * tx)
 	if ((gl.flags & RFL_GLSL) && tx->UseBasePalette() && HasGlobalBrightmap &&
 		tx->UseType != FTexture::TEX_Autopage && tx->UseType != FTexture::TEX_Decal &&
 		tx->UseType != FTexture::TEX_MiscPatch && tx->UseType != FTexture::TEX_FontChar &&
-		tex->bm_info.Brightmap == NULL
+		tex->bm_info.Brightmap == NULL && tx->bWarped == 0
 		) 
 	{
 		tex->bm_info.Brightmap = new FBrightmapTexture(tx);
@@ -1179,6 +979,83 @@ void FGLTexture::Clean(bool all)
 }
 
 //===========================================================================
+//
+// FGLTexture::WarpBuffer
+//
+//===========================================================================
+
+BYTE *FGLTexture::WarpBuffer(BYTE *buffer, int Width, int Height, int warp)
+{
+	DWORD *in = (DWORD*)buffer;
+	DWORD *out = (DWORD*)new BYTE[4*Width*Height];
+	float Speed = static_cast<FWarpTexture*>(tex)->GetSpeed();
+
+	static_cast<FWarpTexture*>(tex)->GenTime = r_FrameTime;
+
+	static DWORD linebuffer[256];	// anything larger will bring down performance so it is excluded above.
+	DWORD timebase = DWORD(r_FrameTime*Speed*23/28);
+	int xsize = Width;
+	int ysize = Height;
+	int xmask = xsize - 1;
+	int ymask = ysize - 1;
+	int ds_xbits;
+	int i,x;
+
+	if (warp == 1)
+	{
+		for(ds_xbits=-1,i=Width; i; i>>=1, ds_xbits++);
+
+		for (x = xsize-1; x >= 0; x--)
+		{
+			int yt, yf = (finesine[(timebase+(x+17)*128)&FINEMASK]>>13) & ymask;
+			const DWORD *source = in + x;
+			DWORD *dest = out + x;
+			for (yt = ysize; yt; yt--, yf = (yf+1)&ymask, dest += xsize)
+			{
+				*dest = *(source+(yf<<ds_xbits));
+			}
+		}
+		timebase = DWORD(r_FrameTime*Speed*32/28);
+		int y;
+		for (y = ysize-1; y >= 0; y--)
+		{
+			int xt, xf = (finesine[(timebase+y*128)&FINEMASK]>>13) & xmask;
+			DWORD *source = out + (y<<ds_xbits);
+			DWORD *dest = linebuffer;
+			for (xt = xsize; xt; xt--, xf = (xf+1)&xmask)
+			{
+				*dest++ = *(source+xf);
+			}
+			memcpy (out+y*xsize, linebuffer, xsize*sizeof(DWORD));
+		}
+	}
+	else
+	{
+		int ybits;
+		for(ybits=-1,i=ysize; i; i>>=1, ybits++);
+
+		DWORD timebase = (r_FrameTime * Speed * 40 / 28);
+		for (x = xsize-1; x >= 0; x--)
+		{
+			for (int y = ysize-1; y >= 0; y--)
+			{
+				int xt = (x + 128
+					+ ((finesine[(y*128 + timebase*5 + 900) & 8191]*2)>>FRACBITS)
+					+ ((finesine[(x*256 + timebase*4 + 300) & 8191]*2)>>FRACBITS)) & xmask;
+				int yt = (y + 128
+					+ ((finesine[(y*128 + timebase*3 + 700) & 8191]*2)>>FRACBITS)
+					+ ((finesine[(x*256 + timebase*4 + 1200) & 8191]*2)>>FRACBITS)) & ymask;
+				const DWORD *source = in + (xt << ybits) + yt;
+				DWORD *dest = out + (x << ybits) + y;
+				*dest = *source;
+			}
+		}
+	}
+	delete [] buffer;
+	return (BYTE*)out;
+}
+
+//===========================================================================
 // 
 //	Initializes the buffer for the texture data
 //
@@ -1241,6 +1118,12 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
 		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+	}
+
+	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && W <= 256 && H <= 256)
+	{
+		buffer = WarpBuffer(buffer, W, H, tex->bWarped);
+		createWarped = true;
 	}
 
 	// [BB] Potentially upsample the buffer.

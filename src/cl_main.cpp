@@ -3399,7 +3399,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			FState	*pDeadState;
 			FState	*pBaseState;
 
-			A_NoBlocking( pOldActor );
+			CALL_ACTION(A_NoBlocking, pOldActor);
 
 			// Put him in the last frame of his death state.
 			pDeadState = pOldActor->FindState(NAME_Death);
@@ -6354,7 +6354,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	A_NoBlocking( pActor );	// [RH] Use this instead of A_PainDie
+	CALL_ACTION(A_NoBlocking, pActor );	// [RH] Use this instead of A_PainDie
 
 	// Do some other stuff done in AActor::Die.
 	pActor->flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SKULLFLY|MF_NOGRAVITY);
@@ -7945,7 +7945,7 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 	P_ChangeSector( pSector, false, -lDelta, 0, false );
 
 	// Finally, adjust textures.
-	pSector->floortexz += pSector->floorplane.HeightDiff( lLastPos );
+	pSector->SetPlaneTexZ(sector_t::floor, pSector->GetPlaneTexZ(sector_t::floor) + pSector->floorplane.HeightDiff( lLastPos ) );
 }
 
 //*****************************************************************************
@@ -7984,7 +7984,7 @@ static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
 	pSector->ceilingplane.ChangeHeight( lDelta );
 
 	// Finally, adjust textures.
-	pSector->ceilingtexz += pSector->ceilingplane.HeightDiff( lLastPos );
+	pSector->SetPlaneTexZ(sector_t::ceiling, pSector->GetPlaneTexZ(sector_t::ceiling) + pSector->ceilingplane.HeightDiff( lLastPos ) );
 }
 
 //*****************************************************************************
@@ -8196,10 +8196,10 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	}
 
 	flatLump = TexMan.GetTexture( szCeilingFlatName, FTexture::TEX_Flat );
-	pSector->ceilingpic = flatLump;
+	pSector->SetTexture(sector_t::ceiling, flatLump);
 
 	flatLump = TexMan.GetTexture( pszFloorFlatName, FTexture::TEX_Flat );
-	pSector->floorpic = flatLump;
+	pSector->SetTexture(sector_t::floor, flatLump);
 }
 
 //*****************************************************************************

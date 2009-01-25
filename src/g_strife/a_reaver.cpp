@@ -5,12 +5,14 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "a_strifeglobal.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
 
 static FRandom pr_reaverattack ("ReaverAttack");
 
-void A_ReaverRanged (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_ReaverRanged)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

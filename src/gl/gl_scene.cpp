@@ -75,10 +75,10 @@ extern int viewpitch;
  
 int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
 int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
-cycle_t RenderWall,SetupWall,ClipWall;
-cycle_t RenderFlat,SetupFlat;
-cycle_t RenderSprite,SetupSprite;
-cycle_t All, Finish, PortalAll;
+glcycle_t RenderWall,SetupWall,ClipWall;
+glcycle_t RenderFlat,SetupFlat;
+glcycle_t RenderSprite,SetupSprite;
+glcycle_t All, Finish, PortalAll;
 int vertexcount, flatvertices, flatprimitives;
 int palette_brightness;
 long gl_frameMS;
@@ -86,8 +86,8 @@ int gl_spriteindex;
 float gl_sky1pos, gl_sky2pos;
 int gl_lightcount;
 
-cycle_t ProcessAll;
-cycle_t RenderAll;
+glcycle_t ProcessAll;
+glcycle_t RenderAll;
 
 extern UniqueList<GLSkyInfo> UniqueSkies;
 extern UniqueList<GLHorizonInfo> UniqueHorizons;
@@ -1034,9 +1034,9 @@ ADD_STAT(rendertimes)
 	if (t-lasttime>1000) 
 	{
 		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f - F: Render=%2.2f, Setup=%2.2f - S: Render=%2.2f, Setup=%2.2f - All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
-		RenderWall.Time(), SetupWall.Time(), ClipWall.Time(), RenderFlat.Time(), SetupFlat.Time(),
-		RenderSprite.Time(), SetupSprite.Time(), All.Time() + Finish.Time(), RenderAll.Time(),
-		ProcessAll.Time(), PortalAll.Time(), Finish.Time());
+		RenderWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
+		RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
+		ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
 		lasttime=t;
 	}
 	return buff;
@@ -1057,4 +1057,3 @@ ADD_STAT(lightstats)
 		iter_dlight, draw_dlight, iter_dlightf, draw_dlightf );
 	return out;
 }
-

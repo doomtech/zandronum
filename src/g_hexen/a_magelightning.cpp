@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -23,14 +24,8 @@ static FRandom pr_zap ("LightningZap");
 static FRandom pr_zapf ("LightningZapF");
 static FRandom pr_hit ("LightningHit");
 
-void A_LightningReady (AActor *actor);
-void A_MLightningAttack (AActor *actor);
-
-void A_LightningClip (AActor *);
-void A_LightningZap (AActor *);
-void A_ZapMimic (AActor *);
-void A_LastZap (AActor *);
-void A_LightningRemove (AActor *);
+DECLARE_ACTION(A_LightningClip)
+DECLARE_ACTION(A_LightningZap)
 
 // Lightning ----------------------------------------------------------------
 
@@ -131,16 +126,16 @@ int ALightningZap::SpecialMissileHit (AActor *thing)
 //
 //============================================================================
 
-void A_LightningReady (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_LightningReady)
 {
-	A_WeaponReady (actor);
+	CALL_ACTION(A_WeaponReady, self);
 	if (pr_lightningready() < 160)
 	{
-		S_Sound (actor, CHAN_WEAPON, "MageLightningReady", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, "MageLightningReady", 1, ATTN_NORM);
 
 		// [BC] If we're the server, play sound for clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageLightningReady", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "MageLightningReady", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 }
 
@@ -150,61 +145,61 @@ void A_LightningReady (AActor *actor)
 //
 //============================================================================
 
-void A_LightningClip (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_LightningClip)
 {
 	AActor *cMo;
 	AActor *target = NULL;
 	int zigZag;
 
-	if (actor->flags3 & MF3_FLOORHUGGER)
+	if (self->flags3 & MF3_FLOORHUGGER)
 	{
-		if (actor->lastenemy == NULL)
+		if (self->lastenemy == NULL)
 		{
 			return;
 		}
-		actor->z = actor->floorz;
-		target = actor->lastenemy->tracer;
+		self->z = self->floorz;
+		target = self->lastenemy->tracer;
 	}
-	else if (actor->flags3 & MF3_CEILINGHUGGER)
+	else if (self->flags3 & MF3_CEILINGHUGGER)
 	{
-		actor->z = actor->ceilingz-actor->height;
-		target = actor->tracer;
+		self->z = self->ceilingz-self->height;
+		target = self->tracer;
 	}
-	if (actor->flags3 & MF3_FLOORHUGGER)
+	if (self->flags3 & MF3_FLOORHUGGER)
 	{ // floor lightning zig-zags, and forces the ceiling lightning to mimic
-		cMo = actor->lastenemy;
+		cMo = self->lastenemy;
 		zigZag = pr_lightningclip();
-		if((zigZag > 128 && actor->special1 < 2) || actor->special1 < -2)
+		if((zigZag > 128 && self->special1 < 2) || self->special1 < -2)
 		{
-			P_ThrustMobj(actor, actor->angle+ANG90, ZAGSPEED);
+			P_ThrustMobj(self, self->angle+ANG90, ZAGSPEED);
 			if(cMo)
 			{
-				P_ThrustMobj(cMo, actor->angle+ANG90, ZAGSPEED);
+				P_ThrustMobj(cMo, self->angle+ANG90, ZAGSPEED);
 			}
-			actor->special1++;
+			self->special1++;
 		}
 		else
 		{
-			P_ThrustMobj(actor, actor->angle-ANG90, ZAGSPEED);
+			P_ThrustMobj(self, self->angle-ANG90, ZAGSPEED);
 			if(cMo)
 			{
 				P_ThrustMobj(cMo, cMo->angle-ANG90, ZAGSPEED);
 			}
-			actor->special1--;
+			self->special1--;
 		}
 	}
 	if(target)
 	{
 		if(target->health <= 0)
 		{
-			P_ExplodeMissile(actor, NULL, NULL);
+			P_ExplodeMissile(self, NULL, NULL);
 		}
 		else
 		{
-			actor->angle = R_PointToAngle2(actor->x, actor->y, target->x, target->y);
-			actor->momx = 0;
-			actor->momy = 0;
-			P_ThrustMobj (actor, actor->angle, actor->Speed>>1);
+			self->angle = R_PointToAngle2(self->x, self->y, target->x, target->y);
+			self->momx = 0;
+			self->momy = 0;
+			P_ThrustMobj (self, self->angle, self->Speed>>1);
 		}
 	}
 }
@@ -216,20 +211,20 @@ void A_LightningClip (AActor *actor)
 //
 //============================================================================
 
-void A_LightningZap (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_LightningZap)
 {
 	AActor *mo;
 	fixed_t deltaZ;
 
-	A_LightningClip(actor);
+	CALL_ACTION(A_LightningClip, self);
 
-	actor->health -= 8;
-	if (actor->health <= 0)
+	self->health -= 8;
+	if (self->health <= 0)
 	{
-		actor->SetState (actor->FindState(NAME_Death));
+		self->SetState (self->FindState(NAME_Death));
 		return;
 	}
-	if (actor->flags3 & MF3_FLOORHUGGER)
+	if (self->flags3 & MF3_FLOORHUGGER)
 	{
 		deltaZ = 10*FRACUNIT;
 	}
@@ -237,16 +232,16 @@ void A_LightningZap (AActor *actor)
 	{
 		deltaZ = -10*FRACUNIT;
 	}
-	mo = Spawn<ALightningZap> (actor->x+((pr_zap()-128)*actor->radius/256), 
-		actor->y+((pr_zap()-128)*actor->radius/256), 
-		actor->z+deltaZ, ALLOW_REPLACE);
+	mo = Spawn<ALightningZap> (self->x+((pr_zap()-128)*self->radius/256), 
+		self->y+((pr_zap()-128)*self->radius/256), 
+		self->z+deltaZ, ALLOW_REPLACE);
 	if (mo)
 	{
-		mo->lastenemy = actor;
-		mo->momx = actor->momx;
-		mo->momy = actor->momy;
-		mo->target = actor->target;
-		if (actor->flags3 & MF3_FLOORHUGGER)
+		mo->lastenemy = self;
+		mo->momx = self->momx;
+		mo->momy = self->momy;
+		mo->target = self->target;
+		if (self->flags3 & MF3_FLOORHUGGER)
 		{
 			mo->momz = 20*FRACUNIT;
 		}
@@ -255,85 +250,10 @@ void A_LightningZap (AActor *actor)
 			mo->momz = -20*FRACUNIT;
 		}
 	}
-	if ((actor->flags3 & MF3_FLOORHUGGER) && pr_zapf() < 160)
+	if ((self->flags3 & MF3_FLOORHUGGER) && pr_zapf() < 160)
 	{
-		S_Sound (actor, CHAN_BODY, "MageLightningContinuous", 1, ATTN_NORM);
+		S_Sound (self, CHAN_BODY, "MageLightningContinuous", 1, ATTN_NORM);
 	}
-}
-
-//============================================================================
-//
-// A_MLightningAttack2
-//
-//============================================================================
-
-void A_MLightningAttack2 (AActor *actor)
-{
-	AActor *fmo, *cmo;
-
-	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
-		return;
-	}
-
-	fmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningFloor"));
-	cmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningCeiling"));
-	if (fmo)
-	{
-		fmo->special1 = 0;
-		fmo->lastenemy = cmo;
-		A_LightningZap (fmo);	
-	}
-	if (cmo)
-	{
-		cmo->tracer = NULL;
-		cmo->lastenemy = fmo;
-		A_LightningZap (cmo);	
-	}
-
-	// [BC] Apply spread.
-	if (( actor->player ) &&
-		( actor->player->cheats & CF_SPREAD ))
-	{
-		fmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningFloor"), actor->angle + ( ANGLE_45 / 3 ));
-		cmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningCeiling"), actor->angle + ( ANGLE_45 / 3 ));
-		if (fmo)
-		{
-			fmo->special1 = 0;
-			fmo->lastenemy = cmo;
-			A_LightningZap (fmo);	
-		}
-		if (cmo)
-		{
-			cmo->tracer = NULL;
-			cmo->lastenemy = fmo;
-			A_LightningZap (cmo);	
-		}
-
-		fmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningFloor"), actor->angle - ( ANGLE_45 / 3 ));
-		cmo = P_SpawnPlayerMissile (actor, PClass::FindClass ("LightningCeiling"), actor->angle - ( ANGLE_45 / 3 ));
-		if (fmo)
-		{
-			fmo->special1 = 0;
-			fmo->lastenemy = cmo;
-			A_LightningZap (fmo);	
-		}
-		if (cmo)
-		{
-			cmo->tracer = NULL;
-			cmo->lastenemy = fmo;
-			A_LightningZap (cmo);	
-		}
-	}
-
-	S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
-
-	// [BC] If we're the server, play sound for clients.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageLightningFire", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -342,12 +262,77 @@ void A_MLightningAttack2 (AActor *actor)
 //
 //============================================================================
 
-void A_MLightningAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MLightningAttack)
 {
-	A_MLightningAttack2(actor);
-	if (actor->player != NULL)
+	AActor *fmo, *cmo;
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
-		AWeapon *weapon = actor->player->ReadyWeapon;
+		S_Sound (self, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
+		return;
+	}
+
+	fmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningFloor"));
+	cmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningCeiling"));
+	if (fmo)
+	{
+		fmo->special1 = 0;
+		fmo->lastenemy = cmo;
+		CALL_ACTION(A_LightningZap, fmo);	
+	}
+	if (cmo)
+	{
+		cmo->tracer = NULL;
+		cmo->lastenemy = fmo;
+		CALL_ACTION(A_LightningZap, cmo);	
+	}
+
+	// [BC] Apply spread.
+	if (( self->player ) &&
+		( self->player->cheats & CF_SPREAD ))
+	{
+		fmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningFloor"), self->angle + ( ANGLE_45 / 3 ));
+		cmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningCeiling"), self->angle + ( ANGLE_45 / 3 ));
+		if (fmo)
+		{
+			fmo->special1 = 0;
+			fmo->lastenemy = cmo;
+			CALL_ACTION(A_LightningZap, fmo);	
+		}
+		if (cmo)
+		{
+			cmo->tracer = NULL;
+			cmo->lastenemy = fmo;
+			CALL_ACTION(A_LightningZap, cmo);	
+		}
+
+		fmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningFloor"), self->angle - ( ANGLE_45 / 3 ));
+		cmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningCeiling"), self->angle - ( ANGLE_45 / 3 ));
+		if (fmo)
+		{
+			fmo->special1 = 0;
+			fmo->lastenemy = cmo;
+			CALL_ACTION(A_LightningZap, fmo);	
+		}
+		if (cmo)
+		{
+			cmo->tracer = NULL;
+			cmo->lastenemy = fmo;
+			CALL_ACTION(A_LightningZap, cmo);	
+		}
+	}
+
+	S_Sound (self, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play sound for clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "MageLightningFire", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+
+	if (self->player != NULL)
+	{
+		AWeapon *weapon = self->player->ReadyWeapon;
 		if (weapon != NULL)
 		{
 			weapon->DepleteAmmo (weapon->bAltFire);
@@ -361,21 +346,21 @@ void A_MLightningAttack (AActor *actor)
 //
 //============================================================================
 
-void A_ZapMimic (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_ZapMimic)
 {
 	AActor *mo;
 
-	mo = actor->lastenemy;
+	mo = self->lastenemy;
 	if (mo)
 	{
 		if (mo->state >= mo->FindState(NAME_Death))
 		{
-			P_ExplodeMissile (actor, NULL, NULL);
+			P_ExplodeMissile (self, NULL, NULL);
 		}
 		else
 		{
-			actor->momx = mo->momx;
-			actor->momy = mo->momy;
+			self->momx = mo->momx;
+			self->momy = mo->momy;
 		}
 	}
 }
@@ -386,14 +371,14 @@ void A_ZapMimic (AActor *actor)
 //
 //============================================================================
 
-void A_LastZap (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_LastZap)
 {
 	AActor *mo;
 
-	mo = Spawn<ALightningZap> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+	mo = Spawn<ALightningZap> (self->x, self->y, self->z, ALLOW_REPLACE);
 	if (mo)
 	{
-		mo->SetState (mo->FindState ("Death"));
+		mo->SetState (mo->FindState (NAME_Death));
 		mo->momz = 40*FRACUNIT;
 		mo->Damage = 0;
 	}
@@ -405,11 +390,11 @@ void A_LastZap (AActor *actor)
 //
 //============================================================================
 
-void A_LightningRemove (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_LightningRemove)
 {
 	AActor *mo;
 
-	mo = actor->lastenemy;
+	mo = self->lastenemy;
 	if (mo)
 	{
 		mo->lastenemy = NULL;

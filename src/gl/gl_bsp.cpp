@@ -94,7 +94,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	}
 	else
 	{
-		fs_ceilingheight2=fs_ceilingheight1=frontsector->ceilingtexz;
+		fs_ceilingheight2=fs_ceilingheight1=frontsector->GetPlaneTexZ(sector_t::ceiling);
 	}
 
 	if (frontsector->floorplane.a | frontsector->floorplane.b)
@@ -104,7 +104,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	}
 	else
 	{
-		fs_floorheight2=fs_floorheight1=frontsector->floortexz;
+		fs_floorheight2=fs_floorheight1=frontsector->GetPlaneTexZ(sector_t::floor);
 	}
 	
 	if (backsector->ceilingplane.a | backsector->ceilingplane.b)
@@ -114,7 +114,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	}
 	else
 	{
-		bs_ceilingheight2=bs_ceilingheight1=backsector->ceilingtexz;
+		bs_ceilingheight2=bs_ceilingheight1=backsector->GetPlaneTexZ(sector_t::ceiling);
 	}
 
 	if (backsector->floorplane.a | backsector->floorplane.b)
@@ -124,7 +124,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	}
 	else
 	{
-		bs_floorheight2=bs_floorheight1=backsector->floortexz;
+		bs_floorheight2=bs_floorheight1=backsector->GetPlaneTexZ(sector_t::floor);
 	}
 
 	// now check for closed sectors!
@@ -132,7 +132,8 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	{
 		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
-		if (backsector->ceilingpic==skyflatnum && frontsector->ceilingpic==skyflatnum) return false;
+		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
+			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
 		return true;
 	}
 
@@ -142,7 +143,8 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 
 		// properly render skies (consider door "open" if both floors are sky):
-		if (backsector->ceilingpic==skyflatnum && frontsector->ceilingpic==skyflatnum) return false;
+		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
+			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
 		return true;
 	}
 
@@ -159,8 +161,10 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 			if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 		}
-		if (backsector->ceilingpic==skyflatnum && frontsector->ceilingpic==skyflatnum) return false;
-		if (backsector->floorpic==skyflatnum && frontsector->floorpic==skyflatnum) return false;
+		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
+			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
+		if (backsector->GetTexture(sector_t::floor)==skyflatnum && frontsector->GetTexture(sector_t::floor)
+			==skyflatnum) return false;
 		return true;
 	}
 	return false;

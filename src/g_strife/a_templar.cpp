@@ -5,12 +5,13 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+#include "thingdef/thingdef.h"
 // [CW] New include.
 #include "sv_commands.h"
 
 static FRandom pr_templar ("Templar");
 
-void A_TemplarAttack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_TemplarAttack)
 {
 	int damage;
 	angle_t angle;

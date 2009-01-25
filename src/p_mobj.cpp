@@ -563,17 +563,8 @@ bool AActor::SetState (FState *newstate)
 			}
 		}
 
-		if (newstate->GetAction())
+		if (newstate->CallAction(this))
 		{
-			// The parameterized action functions need access to the current state and
-			// if a function is supposed to work with both actors and weapons
-			// there is no real means to get to it reliably so I store it in a global variable here.
-			// Yes, I know this is truly awful but it is the only method I can think of 
-			// that does not involve changing stuff throughout the code. 
-			// Of course this should be rewritten ASAP.
-			CallingState = newstate;
-			newstate->GetAction() (this);
-
 			// Check whether the called action function resulted in destroying the actor
 			if (ObjectFlags & OF_EuthanizeMe)
 				return false;
@@ -1970,7 +1961,7 @@ explode:
 				// explode a missile
 				if (tm.ceilingline &&
 					tm.ceilingline->backsector &&
-					tm.ceilingline->backsector->ceilingpic == skyflatnum &&
+					tm.ceilingline->backsector->GetTexture(sector_t::ceiling) == skyflatnum &&
 					mo->z >= tm.ceilingline->backsector->ceilingplane.ZatPoint (mo->x, mo->y) && //killough
 					!(mo->flags3 & MF3_SKYEXPLODE))
 				{
@@ -2541,7 +2532,7 @@ void P_ZMovement (AActor *mo)
 		{
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
-			if (( mo->flags & MF_MISSILE ) && ( mo->Sector->floorpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ))
+			if (( mo->flags & MF_MISSILE ) && ( mo->Sector->GetTexture(sector_t::floor) == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ))
 			{
 				// Player didn't strike another player with this missile.
 				if ( mo->target && mo->target->player )
@@ -2596,7 +2587,7 @@ void P_ZMovement (AActor *mo)
 			}
 
 			// [BC] Apply spring pads.
-			if ( mo->floorsector->FloorFlags & SECF_SPRINGPAD )
+			if ( mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
 			{
 				mo->momz = -mo->momz;
 				mo->z = mo->floorz;
@@ -3017,10 +3008,6 @@ void AActor::RemoveFromHash ()
 angle_t AActor::AngleIncrements ()
 {
 	return ANGLE_45;
-}
-
-void AActor::GetExplodeParms (int &damage, int &dist, bool &hurtSource)
-{
 }
 
 //==========================================================================
@@ -3867,18 +3854,6 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 
 //==========================================================================
 //
-// A_GenericFreezeDeath
-//
-//==========================================================================
-
-void A_GenericFreezeDeath (AActor *actor)
-{
-	actor->Translation = TRANSLATION(TRANSLATION_Standard, 7);
-	A_FreezeDeath (actor);
-}
-
-//==========================================================================
-//
 //*****************************************************************************
 //
 void ACTOR_ClearNetIDList( void )
@@ -3987,9 +3962,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		actor->floorz = actor->Sector->floorplane.ZatPoint (ix, iy);
 		actor->ceilingz = actor->Sector->ceilingplane.ZatPoint (ix, iy);
 		actor->floorsector = actor->Sector;
-		actor->floorpic = actor->floorsector->floorpic;
+		actor->floorpic = actor->floorsector->GetTexture(sector_t::floor);
 		actor->ceilingsector = actor->Sector;
-		actor->ceilingpic = actor->ceilingsector->ceilingpic;
+		actor->ceilingpic = actor->ceilingsector->GetTexture(sector_t::ceiling);
 		// Check if there's something solid to stand on between the current position and the
 		// current sector's floor.
 		P_FindFloorCeiling(actor, true);
@@ -4003,9 +3978,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		actor->floorz = FIXED_MIN;
 		actor->dropoffz = FIXED_MIN;
 		actor->ceilingz = FIXED_MAX;
-		actor->floorpic = actor->Sector->floorpic;
+		actor->floorpic = actor->Sector->GetTexture(sector_t::floor);
 		actor->floorsector = actor->Sector;
-		actor->ceilingpic = actor->Sector->ceilingpic;
+		actor->ceilingpic = actor->Sector->GetTexture(sector_t::ceiling);
 		actor->ceilingsector = actor->Sector;
 	}
 
@@ -4347,7 +4322,7 @@ void AActor::AdjustFloorClip ()
 			 m->m_sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) &&
 			m->m_sector->floorplane.ZatPoint (x, y) == z)
 		{
-			fixed_t clip = Terrains[TerrainTypes[m->m_sector->floorpic]].FootClip;
+			fixed_t clip = Terrains[TerrainTypes[m->m_sector->GetTexture(sector_t::floor)]].FootClip;
 			if (clip < shallowestclip)
 			{
 				shallowestclip = clip;
@@ -5469,7 +5444,7 @@ int P_GetThingFloorType (AActor *thing)
 	}
 	else
 	{
-		return TerrainTypes[thing->Sector->floorpic];
+		return TerrainTypes[thing->Sector->GetTexture(sector_t::floor)];
 	}
 }
 
@@ -5531,11 +5506,11 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 		(sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) ||
 		!(sec->heightsec->MoreFlags & SECF_CLIPFAKEPLANES))
 	{
-		terrainnum = TerrainTypes[sec->floorpic];
+		terrainnum = TerrainTypes[sec->GetTexture(sector_t::floor)];
 	}
 	else
 	{
-		terrainnum = TerrainTypes[sec->heightsec->floorpic];
+		terrainnum = TerrainTypes[sec->heightsec->GetTexture(sector_t::floor)];
 	}
 foundone:
 	

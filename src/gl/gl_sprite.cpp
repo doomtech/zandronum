@@ -549,11 +549,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		(!gl_brightmap_shader || !gltexture || !gltexture->tex->bm_info.bBrightmapDisablesFullbright) &&
 		 (thing->renderflags & RF_FULLBRIGHT);
 
-	lightlevel=fullbright? 255 : rendersector->ceilingpic == skyflatnum ? 
+	lightlevel=fullbright? 255 : rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
 			GetCeilingLight(rendersector) : GetFloorLight(rendersector); //rendersector->lightlevel;
 	foglevel = rendersector->lightlevel;
 
-	lightlevel = (byte)gl_CheckSpriteGlow(rendersector->floorpic, lightlevel, thingz-thing->floorz);
+	lightlevel = (byte)gl_CheckSpriteGlow(rendersector->GetTexture(sector_t::floor), lightlevel, thingz-thing->floorz);
 
 	// colormap stuff is a little more complicated here...
 	if (gl_fixedcolormap) 

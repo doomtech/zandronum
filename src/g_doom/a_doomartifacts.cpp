@@ -62,16 +62,16 @@ protected:
 	ULONG	ulPowerupFlags;
 };
 
-void A_RandomPowerupFrame( AActor *pActor )
+DEFINE_ACTION_FUNCTION(AActor, A_RandomPowerupFrame)
 {
 	ULONG	ulFrame;
 	ARandomPowerup	*pRandomPowerup;
 
-	pRandomPowerup = static_cast<ARandomPowerup *>( pActor );
+	pRandomPowerup = static_cast<ARandomPowerup *>( self );
 
-	ulFrame = (ULONG)( pActor->state - pActor->SpawnState );
+	ulFrame = (ULONG)( self->state - self->SpawnState );
 	if ( pRandomPowerup->IsFrameAllowed( ulFrame ) == false )
-		pActor->SetState( pActor->state->NextState );
+		self->SetState( self->state->NextState );
 	else
 		pRandomPowerup->ulCurrentFrame = ulFrame;
 }

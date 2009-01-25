@@ -2009,12 +2009,8 @@ void DLevelScript::ChangeFlat (int tag, int name, bool floorOrCeiling)
 
 	while ((secnum = P_FindSectorFromTag (tag, secnum)) >= 0)
 	{
-		if (floorOrCeiling == false)
-		{
-			if (sectors[secnum].floorpic != flat)
-			{
-				sectors[secnum].floorpic = flat;
-				sectors[secnum].AdjustFloorClip ();
+		int pos = floorOrCeiling? sector_t::ceiling : sector_t::floor;
+		sectors[secnum].SetTexture(pos, flat);
 
 				// [BC] Update clients about this flat change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2022,11 +2018,6 @@ void DLevelScript::ChangeFlat (int tag, int name, bool floorOrCeiling)
 
 				// [BC] Also, mark this sector as having its flat changed.
 				sectors[secnum].bFlatChange = true;
-			}
-		}
-		else
-		{
-			sectors[secnum].ceilingpic = flat;
 
 			// [BC] Update clients about this flat change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2034,7 +2025,6 @@ void DLevelScript::ChangeFlat (int tag, int name, bool floorOrCeiling)
 
 			// [BC] Also, mark this sector as having its flat changed.
 			sectors[secnum].bFlatChange = true;
-		}
 	}
 }
 
@@ -2156,8 +2146,10 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 		{
 			sector_t *sec = &sectors[i];
 
-			if (!(flags & NOT_FLOOR) && sec->floorpic == picnum1)		sec->floorpic = picnum2;
-			if (!(flags & NOT_CEILING) && sec->ceilingpic == picnum1)	sec->ceilingpic = picnum2;
+			if (!(flags & NOT_FLOOR) && sec->GetTexture(sector_t::floor) == picnum1) 
+				sec->SetTexture(sector_t::floor, picnum2);
+			if (!(flags & NOT_CEILING) && sec->GetTexture(sector_t::ceiling) == picnum1)	
+				sec->SetTexture(sector_t::ceiling, picnum2);
 		}
 	}
 }
@@ -5886,7 +5878,7 @@ int DLevelScript::RunScript ()
 			if (actor != NULL)
 			{
 				FTexture *tex = TexMan.FindTexture(FBehavior::StaticLookupString(STACK(1)));
-				STACK(2) = (tex == TexMan[actor->Sector->ceilingpic]);
+				STACK(2) = (tex == TexMan[actor->Sector->GetTexture(sector_t::ceiling)]);
 			}
 			else STACK(2)=0;
 			sp--;
@@ -5899,7 +5891,7 @@ int DLevelScript::RunScript ()
 			if (actor != NULL)
 			{
 				FTexture *tex = TexMan.FindTexture(FBehavior::StaticLookupString(STACK(1)));
-				STACK(2) = (tex == TexMan[actor->Sector->floorpic]);
+				STACK(2) = (tex == TexMan[actor->Sector->GetTexture(sector_t::floor)]);
 			}
 			else STACK(2)=0;
 			sp--;

@@ -4,6 +4,7 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -11,7 +12,7 @@
 static FRandom pr_stalker ("Stalker");
 
 
-void A_StalkerChaseDecide (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StalkerChaseDecide)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -38,7 +39,7 @@ void A_StalkerChaseDecide (AActor *self)
 	}
 }
 
-void A_StalkerLookInit (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StalkerLookInit)
 {
 	FState *state;
 
@@ -72,13 +73,13 @@ void A_StalkerLookInit (AActor *self)
 	}
 }
 
-void A_StalkerDrop (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StalkerDrop)
 {
 	self->flags5 &= ~MF5_NOVERTICALMELEERANGE;
 	self->flags &= ~MF_NOGRAVITY;
 }
 
-void A_StalkerAttack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StalkerAttack)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -108,7 +109,7 @@ void A_StalkerAttack (AActor *self)
 	}
 }
 
-void A_StalkerWalk (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StalkerWalk)
 {
 	S_Sound (self, CHAN_BODY, "stalker/walk", 1, ATTN_NORM);
 	A_Chase (self);

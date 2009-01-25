@@ -6,6 +6,7 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "p_terrain.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "sv_commands.h"
 #include "cl_demo.h"
@@ -23,10 +24,10 @@ static FRandom pr_delaygib ("DelayGib");
 //
 //============================================================================
 
-void A_SerpentUnHide (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentUnHide)
 {
-	actor->renderflags &= ~RF_INVISIBLE;
-	actor->floorclip = 24*FRACUNIT;
+	self->renderflags &= ~RF_INVISIBLE;
+	self->floorclip = 24*FRACUNIT;
 }
 
 //============================================================================
@@ -35,10 +36,10 @@ void A_SerpentUnHide (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentHide (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentHide)
 {
-	actor->renderflags |= RF_INVISIBLE;
-	actor->floorclip = 0;
+	self->renderflags |= RF_INVISIBLE;
+	self->floorclip = 0;
 }
 
 //============================================================================
@@ -48,9 +49,9 @@ void A_SerpentHide (AActor *actor)
 // Raises the hump above the surface by raising the floorclip level
 //============================================================================
 
-void A_SerpentRaiseHump (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentRaiseHump)
 {
-	actor->floorclip -= 4*FRACUNIT;
+	self->floorclip -= 4*FRACUNIT;
 }
 
 //============================================================================
@@ -59,9 +60,9 @@ void A_SerpentRaiseHump (AActor *actor)
 // 
 //============================================================================
 
-void A_SerpentLowerHump (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentLowerHump)
 {
-	actor->floorclip += 4*FRACUNIT;
+	self->floorclip += 4*FRACUNIT;
 }
 
 //============================================================================
@@ -72,7 +73,7 @@ void A_SerpentLowerHump (AActor *actor)
 //			to missile attack
 //============================================================================
 
-void A_SerpentHumpDecide (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentHumpDecide)
 {
 	// [BB] This is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -81,7 +82,7 @@ void A_SerpentHumpDecide (AActor *actor)
 		return;
 	}
 
-	if (actor->MissileState != NULL)
+	if (self->MissileState != NULL)
 	{
 		if (pr_serpenthump() > 30)
 		{
@@ -91,9 +92,9 @@ void A_SerpentHumpDecide (AActor *actor)
 		{ // Missile attack
 			// [BB] If we're the server, set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
+				SERVERCOMMANDS_SetThingState( self, STATE_MELEE );
 
-			actor->SetState (actor->MeleeState);
+			self->SetState (self->MeleeState);
 			return;
 		}
 	}
@@ -101,27 +102,27 @@ void A_SerpentHumpDecide (AActor *actor)
 	{
 		return;
 	}
-	if (!actor->CheckMeleeRange ())
+	if (!self->CheckMeleeRange ())
 	{ // The hump shouldn't occur when within melee range
-		if (actor->MissileState != NULL && pr_serpenthump() < 128)
+		if (self->MissileState != NULL && pr_serpenthump() < 128)
 		{
 			// [BB] If we're the server, set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
+				SERVERCOMMANDS_SetThingState( self, STATE_MELEE );
 
-			actor->SetState (actor->MeleeState);
+			self->SetState (self->MeleeState);
 		}
 		else
 		{	
 			// [BB] If we're the server, set the thing's state and play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingFrame( actor, actor->FindState ("Hump") );
-				SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "SerpentActive", 1, ATTN_NORM );
+				SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Hump") );
+				SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "SerpentActive", 1, ATTN_NORM );
 			}
 
-			actor->SetState (actor->FindState ("Hump"));
-			S_Sound (actor, CHAN_BODY, "SerpentActive", 1, ATTN_NORM);
+			self->SetState (self->FindState ("Hump"));
+			S_Sound (self, CHAN_BODY, "SerpentActive", 1, ATTN_NORM);
 		}
 	}
 }
@@ -132,7 +133,7 @@ void A_SerpentHumpDecide (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentCheckForAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentCheckForAttack)
 {
 	// [BB] This is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -141,47 +142,47 @@ void A_SerpentCheckForAttack (AActor *actor)
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 	{
 		return;
 	}
-	if (actor->MissileState != NULL)
+	if (self->MissileState != NULL)
 	{
-		if (!actor->CheckMeleeRange ())
+		if (!self->CheckMeleeRange ())
 		{
 			// [BB] If we're the server, set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( actor, actor->FindState ("Attack") );
+				SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Attack") );
 
-			actor->SetState (actor->FindState ("Attack"));
+			self->SetState (self->FindState ("Attack"));
 			return;
 		}
 	}
-	if (P_CheckMeleeRange2 (actor))
+	if (P_CheckMeleeRange2 (self))
 	{
 		// [BB] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, actor->FindState ("Walk") );
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Walk") );
 
-		actor->SetState (actor->FindState ("Walk"));
+		self->SetState (self->FindState ("Walk"));
 	}
-	else if (actor->CheckMeleeRange ())
+	else if (self->CheckMeleeRange ())
 	{
 		if (pr_serpentattack() < 32)
 		{
 			// [BB] If we're the server, set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( actor, actor->FindState ("Walk") );
+				SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Walk") );
 
-			actor->SetState (actor->FindState ("Walk"));
+			self->SetState (self->FindState ("Walk"));
 		}
 		else
 		{
 			// [BB] If we're the server, set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( actor, actor->FindState ("Attack") );
+				SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Attack") );
 
-			actor->SetState (actor->FindState ("Attack"));
+			self->SetState (self->FindState ("Attack"));
 		}
 	}
 }
@@ -192,7 +193,7 @@ void A_SerpentCheckForAttack (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentChooseAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentChooseAttack)
 {
 	// [BB] This is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -201,17 +202,17 @@ void A_SerpentChooseAttack (AActor *actor)
 		return;
 	}
 
-	if (!actor->target || actor->CheckMeleeRange())
+	if (!self->target || self->CheckMeleeRange())
 	{
 		return;
 	}
-	if (actor->MissileState != NULL)
+	if (self->MissileState != NULL)
 	{
 		// [BB] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
+			SERVERCOMMANDS_SetThingState( self, STATE_MISSILE );
 
-		actor->SetState (actor->MissileState);
+		self->SetState (self->MissileState);
 	}
 }
 	
@@ -221,7 +222,7 @@ void A_SerpentChooseAttack (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentMeleeAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentMeleeAttack)
 {
 	// [BB] This is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -230,24 +231,24 @@ void A_SerpentMeleeAttack (AActor *actor)
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 	{
 		return;
 	}
-	if (actor->CheckMeleeRange ())
+	if (self->CheckMeleeRange ())
 	{
 		int damage = pr_serpentmeattack.HitDice (5);
-		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
-		P_TraceBleed (damage, actor->target, actor);
-		S_Sound (actor, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (damage, self->target, self);
+		S_Sound (self, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM);
 
 		// [BB] If we're the server, tell the clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM );
 	}
 	if (pr_serpentmeattack() < 96)
 	{
-		A_SerpentCheckForAttack (actor);
+		CALL_ACTION(A_SerpentCheckForAttack, self);
 	}
 }
 
@@ -257,7 +258,7 @@ void A_SerpentMeleeAttack (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentSpawnGibs (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentSpawnGibs)
 {
 	AActor *mo;
 	static const char *GibTypes[] =
@@ -270,9 +271,9 @@ void A_SerpentSpawnGibs (AActor *actor)
 	for (int i = countof(GibTypes)-1; i >= 0; --i)
 	{
 		mo = Spawn (GibTypes[i],
-			actor->x+((pr_serpentgibs()-128)<<12), 
-			actor->y+((pr_serpentgibs()-128)<<12),
-			actor->floorz+FRACUNIT, ALLOW_REPLACE);
+			self->x+((pr_serpentgibs()-128)<<12), 
+			self->y+((pr_serpentgibs()-128)<<12),
+			self->floorz+FRACUNIT, ALLOW_REPLACE);
 		if (mo)
 		{
 			mo->momx = (pr_serpentgibs()-128)<<6;
@@ -288,9 +289,9 @@ void A_SerpentSpawnGibs (AActor *actor)
 //
 //============================================================================
 
-void A_FloatGib (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_FloatGib)
 {
-	actor->floorclip -= FRACUNIT;
+	self->floorclip -= FRACUNIT;
 }
 
 //============================================================================
@@ -299,9 +300,9 @@ void A_FloatGib (AActor *actor)
 //
 //============================================================================
 
-void A_SinkGib (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SinkGib)
 {
-	actor->floorclip += FRACUNIT;
+	self->floorclip += FRACUNIT;
 }
 
 //============================================================================
@@ -310,9 +311,9 @@ void A_SinkGib (AActor *actor)
 //
 //============================================================================
 
-void A_DelayGib (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_DelayGib)
 {
-	actor->tics -= pr_delaygib()>>2;
+	self->tics -= pr_delaygib()>>2;
 }
 
 //============================================================================
@@ -321,18 +322,18 @@ void A_DelayGib (AActor *actor)
 //
 //============================================================================
 
-void A_SerpentHeadCheck (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SerpentHeadCheck)
 {
-	if (actor->z <= actor->floorz)
+	if (self->z <= self->floorz)
 	{
-		if (Terrains[P_GetThingFloorType(actor)].IsLiquid)
+		if (Terrains[P_GetThingFloorType(self)].IsLiquid)
 		{
-			P_HitFloor (actor);
-			actor->SetState (NULL);
+			P_HitFloor (self);
+			self->SetState (NULL);
 		}
 		else
 		{
-			actor->SetState (actor->FindState(NAME_Death));
+			self->SetState (self->FindState(NAME_Death));
 		}
 	}
 }

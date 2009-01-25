@@ -7,6 +7,7 @@
 #include "a_hexenglobal.h"
 #include "gstrings.h"
 #include "a_weaponpiece.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
@@ -22,15 +23,6 @@ static FRandom pr_holyseek ("CHolySeek");
 static FRandom pr_checkscream ("CCheckScream");
 static FRandom pr_spiritslam ("CHolySlam");
 static FRandom pr_wraithvergedrop ("WraithvergeDrop");
-
-void A_CHolyAttack2 (AActor *);
-void A_CHolyTail (AActor *);
-void A_CHolySeek (AActor *);
-void A_CHolyCheckScream (AActor *);
-void A_DropWraithvergePieces (AActor *);
-
-void A_CHolyAttack (AActor *);
-void A_CHolyPalette (AActor *);
 
 void SpawnSpiritTail (AActor *spirit);
 
@@ -187,40 +179,12 @@ bool AHolySpirit::IsOkayToAttack (AActor *link)
 
 //============================================================================
 //
-// A_CHolyAttack3
-//
-// 	Spawns the spirits
-//============================================================================
-
-void A_CHolyAttack3 (AActor *actor)
-{
-	// [BB] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	AActor * missile = P_SpawnMissileZ (actor, actor->z + 40*FRACUNIT, actor->target, PClass::FindClass ("HolyMissile"));
-	if (missile != NULL) missile->tracer = NULL;	// No initial target
-	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
-
-	// [BB] Tell the clients to spawn the missile and play the sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		if ( missile ) SERVERCOMMANDS_SpawnMissile( missile );
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM );
-	}
-}
-
-//============================================================================
-//
 // A_CHolyAttack2 
 //
 // 	Spawns the spirits
 //============================================================================
 
-void A_CHolyAttack2 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolyAttack2)
 {
 	int j;
 	int i;
@@ -228,7 +192,7 @@ void A_CHolyAttack2 (AActor *actor)
 
 	for (j = 0; j < 4; j++)
 	{
-		mo = Spawn<AHolySpirit> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+		mo = Spawn<AHolySpirit> (self->x, self->y, self->z, ALLOW_REPLACE);
 		if (!mo)
 		{
 			continue;
@@ -249,19 +213,19 @@ void A_CHolyAttack2 (AActor *actor)
 				mo->special2 = ((32+(i&7))<<16)+32+(pr_holyatk2()&7);
 				break;
 		}
-		mo->z = actor->z;
-		mo->angle = actor->angle+(ANGLE_45+ANGLE_45/2)-ANGLE_45*j;
+		mo->z = self->z;
+		mo->angle = self->angle+(ANGLE_45+ANGLE_45/2)-ANGLE_45*j;
 		P_ThrustMobj(mo, mo->angle, mo->Speed);
-		mo->target = actor->target;
+		mo->target = self->target;
 		mo->args[0] = 10; // initial turn value
 		mo->args[1] = 0; // initial look angle
 		if (deathmatch)
 		{ // Ghosts last slightly less longer in DeathMatch
 			mo->health = 85;
 		}
-		if (actor->tracer)
+		if (self->tracer)
 		{
-			mo->tracer = actor->tracer;
+			mo->tracer = self->tracer;
 			mo->flags |= MF_NOCLIP|MF_SKULLFLY;
 			mo->flags &= ~MF_MISSILE;
 		}
@@ -297,16 +261,16 @@ void SpawnSpiritTail (AActor *spirit)
 //
 //============================================================================
 
-void A_CHolyAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolyAttack)
 {
 	player_t *player;
 	AActor *linetarget;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
-	ACWeapWraithverge *weapon = static_cast<ACWeapWraithverge *> (actor->player->ReadyWeapon);
+	ACWeapWraithverge *weapon = static_cast<ACWeapWraithverge *> (self->player->ReadyWeapon);
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
@@ -318,27 +282,27 @@ void A_CHolyAttack (AActor *actor)
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		weapon->CHolyCount = 3;
-		S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
 		return;
 	}
 
-	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle, &linetarget);
+	AActor * missile = P_SpawnPlayerMissile (self, 0,0,0, PClass::FindClass ("HolyMissile"), self->angle, &linetarget);
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle + ( ANGLE_45 / 3 ), &linetarget);
+		missile = P_SpawnPlayerMissile (self, 0,0,0, PClass::FindClass ("HolyMissile"), self->angle + ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 
-		missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle - ( ANGLE_45 / 3 ), &linetarget);
+		missile = P_SpawnPlayerMissile (self, 0,0,0, PClass::FindClass ("HolyMissile"), self->angle - ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 	}
 
 	weapon->CHolyCount = 3;
-	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play this sound to clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -351,11 +315,11 @@ void A_CHolyAttack (AActor *actor)
 //
 //============================================================================
 
-void A_CHolyPalette (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolyPalette)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		ACWeapWraithverge *weapon = static_cast<ACWeapWraithverge *> (actor->player->ReadyWeapon);
+		ACWeapWraithverge *weapon = static_cast<ACWeapWraithverge *> (self->player->ReadyWeapon);
 		if (weapon != NULL && weapon->CHolyCount != 0)
 		{
 			weapon->CHolyCount--;
@@ -434,26 +398,26 @@ static void CHolyTailRemove (AActor *actor)
 //
 //============================================================================
 
-void A_CHolyTail (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolyTail)
 {
 	AActor *parent;
 
-	parent = actor->target;
+	parent = self->target;
 
 	if (parent == NULL || parent->health <= 0)	// better check for health than current state - it's safer!
 	{ // Ghost removed, so remove all tail parts
-		CHolyTailRemove (actor);
+		CHolyTailRemove (self);
 		return;
 	}
 	else
 	{
-		if (P_TryMove (actor,
+		if (P_TryMove (self,
 			parent->x - 14*finecosine[parent->angle>>ANGLETOFINESHIFT],
 			parent->y - 14*finesine[parent->angle>>ANGLETOFINESHIFT], true))
 		{
-			actor->z = parent->z-5*FRACUNIT;
+			self->z = parent->z-5*FRACUNIT;
 		}
-		CHolyTailFollow (actor, 10*FRACUNIT);
+		CHolyTailFollow (self, 10*FRACUNIT);
 	}
 }
 
@@ -591,28 +555,28 @@ static void CHolyWeave (AActor *actor)
 //
 //============================================================================
 
-void A_CHolySeek (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolySeek)
 {
-	actor->health--;
-	if (actor->health <= 0)
+	self->health--;
+	if (self->health <= 0)
 	{
-		actor->momx >>= 2;
-		actor->momy >>= 2;
-		actor->momz = 0;
-		actor->SetState (actor->FindState(NAME_Death));
-		actor->tics -= pr_holyseek()&3;
+		self->momx >>= 2;
+		self->momy >>= 2;
+		self->momz = 0;
+		self->SetState (self->FindState(NAME_Death));
+		self->tics -= pr_holyseek()&3;
 		return;
 	}
-	if (actor->tracer)
+	if (self->tracer)
 	{
-		CHolySeekerMissile (actor, actor->args[0]*ANGLE_1,
-			actor->args[0]*ANGLE_1*2);
+		CHolySeekerMissile (self, self->args[0]*ANGLE_1,
+			self->args[0]*ANGLE_1*2);
 		if (!((level.time+7)&15))
 		{
-			actor->args[0] = 5+(pr_holyseek()/20);
+			self->args[0] = 5+(pr_holyseek()/20);
 		}
 	}
-	CHolyWeave (actor);
+	CHolyWeave (self);
 }
 
 //============================================================================
@@ -621,16 +585,16 @@ void A_CHolySeek (AActor *actor)
 //
 //============================================================================
 
-void A_CHolyCheckScream (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CHolyCheckScream)
 {
-	A_CHolySeek (actor);
+	CALL_ACTION(A_CHolySeek, self);
 	if (pr_checkscream() < 20)
 	{
-		S_Sound (actor, CHAN_VOICE, "SpiritActive", 1, ATTN_NORM);
+		S_Sound (self, CHAN_VOICE, "SpiritActive", 1, ATTN_NORM);
 	}
-	if (!actor->tracer)
+	if (!self->tracer)
 	{
-		CHolyFindTarget(actor);
+		CHolyFindTarget(self);
 	}
 }
 
@@ -641,10 +605,26 @@ void A_CHolyCheckScream (AActor *actor)
 //
 //============================================================================
 
-void A_ClericAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_ClericAttack)
 {
-	extern void A_CHolyAttack3 (AActor *actor);
+	// [BB] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
-	if (!actor->target) return;
-	A_CHolyAttack3 (actor);
+	if (!self->target) return;
+
+	AActor * missile = P_SpawnMissileZ (self, self->z + 40*FRACUNIT, self->target, PClass::FindClass ("HolyMissile"));
+	if (missile != NULL) missile->tracer = NULL;	// No initial target
+	S_Sound (self, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
+
+	// [BB] Tell the clients to spawn the missile and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if ( missile ) SERVERCOMMANDS_SpawnMissile( missile );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM );
+	}
 }
+

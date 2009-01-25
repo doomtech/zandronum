@@ -7,6 +7,7 @@
 #include "a_hexenglobal.h"
 #include "gstrings.h"
 #include "a_weaponpiece.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
@@ -183,52 +184,52 @@ void MStaffSpawn (AActor *pmo, angle_t angle)
 //
 //============================================================================
 
-void A_MStaffAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MStaffAttack)
 {
 	angle_t angle;
 	player_t *player;
 	AActor *linetarget;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
 
-	AMWeapBloodscourge *weapon = static_cast<AMWeapBloodscourge *> (actor->player->ReadyWeapon);
+	AMWeapBloodscourge *weapon = static_cast<AMWeapBloodscourge *> (self->player->ReadyWeapon);
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
 	}
-	angle = actor->angle;
+	angle = self->angle;
 	
 	// [RH] Let's try and actually track what the player aimed at
-	P_AimLineAttack (actor, angle, PLAYERMISSILERANGE, &linetarget, ANGLE_1*32);
+	P_AimLineAttack (self, angle, PLAYERMISSILERANGE, &linetarget, ANGLE_1*32);
 	if (linetarget == NULL)
 	{
-		BlockCheckLine.x = actor->x;
-		BlockCheckLine.y = actor->y;
+		BlockCheckLine.x = self->x;
+		BlockCheckLine.y = self->y;
 		BlockCheckLine.dx = -finesine[angle >> ANGLETOFINESHIFT];
 		BlockCheckLine.dy = -finecosine[angle >> ANGLETOFINESHIFT];
-		linetarget = P_BlockmapSearch (actor, 10, FrontBlockCheck);
+		linetarget = P_BlockmapSearch (self, 10, FrontBlockCheck);
 	}
-	MStaffSpawn (actor, angle);
-	MStaffSpawn (actor, angle-ANGLE_1*5);
-	MStaffSpawn (actor, angle+ANGLE_1*5);
+	MStaffSpawn (self, angle);
+	MStaffSpawn (self, angle-ANGLE_1*5);
+	MStaffSpawn (self, angle+ANGLE_1*5);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		MStaffSpawn (actor, angle + ( ANGLE_45 / 3 ));
-		MStaffSpawn (actor, angle-ANGLE_1*5 + ( ANGLE_45 / 3 ));
-		MStaffSpawn (actor, angle+ANGLE_1*5 + ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle + ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle-ANGLE_1*5 + ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle+ANGLE_1*5 + ( ANGLE_45 / 3 ));
 
-		MStaffSpawn (actor, angle - ( ANGLE_45 / 3 ));
-		MStaffSpawn (actor, angle-ANGLE_1*5 - ( ANGLE_45 / 3 ));
-		MStaffSpawn (actor, angle+ANGLE_1*5 - ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle - ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle-ANGLE_1*5 - ( ANGLE_45 / 3 ));
+		MStaffSpawn (self, angle+ANGLE_1*5 - ( ANGLE_45 / 3 ));
 	}
 
-	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
 	weapon->MStaffCount = 3;
 }
 
@@ -238,11 +239,11 @@ void A_MStaffAttack (AActor *actor)
 //
 //============================================================================
 
-void A_MStaffPalette (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MStaffPalette)
 {
-	if (actor->player != NULL)
+	if (self->player != NULL)
 	{
-		AMWeapBloodscourge *weapon = static_cast<AMWeapBloodscourge *> (actor->player->ReadyWeapon);
+		AMWeapBloodscourge *weapon = static_cast<AMWeapBloodscourge *> (self->player->ReadyWeapon);
 		if (weapon != NULL && weapon->MStaffCount != 0)
 		{
 			weapon->MStaffCount--;
@@ -256,13 +257,13 @@ void A_MStaffPalette (AActor *actor)
 //
 //============================================================================
 
-void A_MStaffTrack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MStaffTrack)
 {
-	if ((actor->tracer == 0) && (pr_mstafftrack()<50))
+	if ((self->tracer == 0) && (pr_mstafftrack()<50))
 	{
-		actor->tracer = P_RoughMonsterSearch (actor, 10);
+		self->tracer = P_RoughMonsterSearch (self, 10);
 	}
-	P_SeekerMissile (actor, ANGLE_1*2, ANGLE_1*10);
+	P_SeekerMissile (self, ANGLE_1*2, ANGLE_1*10);
 }
 
 //============================================================================
@@ -320,7 +321,7 @@ void MStaffSpawn2 (AActor *actor, angle_t angle)
 //
 //============================================================================
 
-void A_MageAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MageAttack)
 {
 	// [BB] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -330,17 +331,17 @@ void A_MageAttack (AActor *actor)
 	}
 
 
-	if (!actor->target) return;
+	if (!self->target) return;
 
 	angle_t angle;
-	angle = actor->angle;
-	MStaffSpawn2 (actor, angle);
-	MStaffSpawn2 (actor, angle-ANGLE_1*5);
-	MStaffSpawn2 (actor, angle+ANGLE_1*5);
-	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
+	angle = self->angle;
+	MStaffSpawn2 (self, angle);
+	MStaffSpawn2 (self, angle-ANGLE_1*5);
+	MStaffSpawn2 (self, angle+ANGLE_1*5);
+	S_Sound (self, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
 
 	// [BB] If we're the server, tell the clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM );
 }
 

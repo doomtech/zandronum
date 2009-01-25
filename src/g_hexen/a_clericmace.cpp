@@ -2,6 +2,7 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
 
 extern void AdjustPlayerAngle (AActor *pmo, AActor *linetarget);
 
@@ -13,7 +14,7 @@ static FRandom pr_atk ("CMaceAttack");
 //
 //===========================================================================
 
-void A_CMaceAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CMaceAttack)
 {
 	angle_t angle;
 	int damage;
@@ -22,7 +23,7 @@ void A_CMaceAttack (AActor *actor)
 	player_t *player;
 	AActor *linetarget;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}

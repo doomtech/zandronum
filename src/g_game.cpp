@@ -3209,7 +3209,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( sectors[ulIdx].bCeilingHeightChange )
 		{
 			sectors[ulIdx].ceilingplane = sectors[ulIdx].SavedCeilingPlane;
-			sectors[ulIdx].ceilingtexz = sectors[ulIdx].SavedCeilingTexZ;
+			sectors[ulIdx].SetPlaneTexZ(sector_t::ceiling, sectors[ulIdx].SavedCeilingTexZ);
 			sectors[ulIdx].bCeilingHeightChange = false;
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3228,7 +3228,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( sectors[ulIdx].bFloorHeightChange )
 		{
 			sectors[ulIdx].floorplane = sectors[ulIdx].SavedFloorPlane;
-			sectors[ulIdx].floortexz = sectors[ulIdx].SavedFloorTexZ;
+			sectors[ulIdx].SetPlaneTexZ(sector_t::floor, sectors[ulIdx].SavedFloorTexZ);
 			sectors[ulIdx].bFloorHeightChange = false;
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3237,8 +3237,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 		if ( sectors[ulIdx].bFlatChange )
 		{
-			sectors[ulIdx].floorpic = sectors[ulIdx].SavedFloorPic;
-			sectors[ulIdx].ceilingpic = sectors[ulIdx].SavedCeilingPic;
+			sectors[ulIdx].SetTexture(sector_t::floor, sectors[ulIdx].SavedFloorPic);
+			sectors[ulIdx].SetTexture(sector_t::ceiling, sectors[ulIdx].SavedCeilingPic);
 			sectors[ulIdx].bFlatChange = false;
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )

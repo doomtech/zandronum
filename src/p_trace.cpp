@@ -122,7 +122,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 					if (bf<ff_top)
 					{
 						sector->floorplane=*rover->top.plane;
-						sector->floorpic=*rover->top.texture;
+						sector->SetTexture(sector_t::floor, *rover->top.texture, false);
 						bf=ff_top;
 					}
 				}
@@ -132,7 +132,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 					if (bc>ff_bottom)
 					{
 						sector->ceilingplane=*rover->bottom.plane;
-						sector->ceilingpic=*rover->bottom.texture;
+						sector->SetTexture(sector_t::ceiling, *rover->bottom.texture, false);
 						bc=ff_bottom;
 					}
 				}
@@ -335,7 +335,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 								if (bf<ff_top)
 								{
 									entersector->floorplane=*rover->top.plane;
-									entersector->floorpic=*rover->top.texture;
+									entersector->SetTexture(sector_t::floor, *rover->top.texture, false);
 									bf=ff_top;
 								}
 							}
@@ -345,7 +345,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 								if (bc>ff_bottom)
 								{
 									entersector->ceilingplane=*rover->bottom.plane;
-									entersector->ceilingpic=*rover->bottom.texture;
+									entersector->SetTexture(sector_t::ceiling, *rover->bottom.texture, false);
 									bc=ff_bottom;
 								}
 							}
@@ -586,7 +586,7 @@ static bool EditTraceResult (DWORD flags, FTraceResults &res)
 	{ // Throw away sky hits
 		if (res.HitType == TRACE_HitFloor)
 		{
-			if (res.Sector->floorpic == skyflatnum)
+			if (res.Sector->GetTexture(sector_t::floor) == skyflatnum)
 			{
 				res.HitType = TRACE_HitNone;
 				return false;
@@ -594,7 +594,7 @@ static bool EditTraceResult (DWORD flags, FTraceResults &res)
 		}
 		else if (res.HitType == TRACE_HitCeiling)
 		{
-			if (res.Sector->ceilingpic == skyflatnum)
+			if (res.Sector->GetTexture(sector_t::ceiling) == skyflatnum)
 			{
 				res.HitType = TRACE_HitNone;
 				return false;
@@ -603,8 +603,8 @@ static bool EditTraceResult (DWORD flags, FTraceResults &res)
 		else if (res.HitType == TRACE_HitWall)
 		{
 			if (res.Tier == TIER_Upper &&
-				res.Line->frontsector->ceilingpic == skyflatnum &&
-				res.Line->backsector->ceilingpic == skyflatnum)
+				res.Line->frontsector->GetTexture(sector_t::ceiling) == skyflatnum &&
+				res.Line->backsector->GetTexture(sector_t::ceiling) == skyflatnum)
 			{
 				res.HitType = TRACE_HitNone;
 				return false;

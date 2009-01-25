@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "a_action.h"
 #include "gstrings.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "sv_commands.h"
 #include "cl_demo.h"
@@ -18,10 +19,10 @@ static FRandom pr_wizatk3 ("WizAtk3");
 //
 //----------------------------------------------------------------------------
 
-void A_GhostOff (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_GhostOff)
 {
-	actor->RenderStyle = STYLE_Normal;
-	actor->flags3 &= ~MF3_GHOST;
+	self->RenderStyle = STYLE_Normal;
+	self->flags3 &= ~MF3_GHOST;
 }
 
 //----------------------------------------------------------------------------
@@ -30,10 +31,10 @@ void A_GhostOff (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_WizAtk1 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_WizAtk1)
 {
-	A_FaceTarget (actor);
-	A_GhostOff (actor);
+	A_FaceTarget (self);
+	CALL_ACTION(A_GhostOff, self);
 }
 
 //----------------------------------------------------------------------------
@@ -42,12 +43,12 @@ void A_WizAtk1 (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_WizAtk2 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_WizAtk2)
 {
-	A_FaceTarget (actor);
-	actor->alpha = HR_SHADOW;
-	actor->RenderStyle = STYLE_Translucent;
-	actor->flags3 |= MF3_GHOST;
+	A_FaceTarget (self);
+	self->alpha = HR_SHADOW;
+	self->RenderStyle = STYLE_Translucent;
+	self->flags3 |= MF3_GHOST;
 }
 
 //----------------------------------------------------------------------------
@@ -56,11 +57,11 @@ void A_WizAtk2 (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_WizAtk3 (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_WizAtk3)
 {
 	AActor *mo;
 
-	A_GhostOff (actor);
+	CALL_ACTION(A_GhostOff, self);
 
 	// [BB] This is server-side, the client only needs to run A_GhostOff.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -69,29 +70,29 @@ void A_WizAtk3 (AActor *actor)
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 	{
 		return;
 	}
-	S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 
 	// [BB] If we're the server, tell the clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( actor->AttackSound ), 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
-	if (actor->CheckMeleeRange())
+	if (self->CheckMeleeRange())
 	{
 		int damage = pr_wizatk3.HitDice (4);
-		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
-		P_TraceBleed (damage, actor->target, actor);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (damage, self->target, self);
 		return;
 	}
 	const PClass *fx = PClass::FindClass("WizardFX1");
-	mo = P_SpawnMissile (actor, actor->target, fx);
+	mo = P_SpawnMissile (self, self->target, fx);
 	if (mo != NULL)
 	{
-		AActor *missile1 = P_SpawnMissileAngle(actor, fx, mo->angle-(ANG45/8), mo->momz);
-		AActor *missile2 = P_SpawnMissileAngle(actor, fx, mo->angle+(ANG45/8), mo->momz);
+		AActor *missile1 = P_SpawnMissileAngle(self, fx, mo->angle-(ANG45/8), mo->momz);
+		AActor *missile2 = P_SpawnMissileAngle(self, fx, mo->angle+(ANG45/8), mo->momz);
 
 		// [BB] If we're the server, tell the clients to spawn the missiles.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

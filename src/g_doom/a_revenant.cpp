@@ -8,6 +8,8 @@
 #include "gstrings.h"
 #include "a_action.h"
 #include "a_doomglobal.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 
 static FRandom pr_tracer ("Tracer");
@@ -16,7 +18,7 @@ static FRandom pr_skelfist ("SkelFist");
 //
 // A_SkelMissile
 //
-void A_SkelMissile (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SkelMissile)
 {		
 	AActor *missile;
 		
@@ -48,7 +50,7 @@ void A_SkelMissile (AActor *self)
 
 #define TRACEANGLE (0xc000000)
 
-void A_Tracer (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 {
 	angle_t exact;
 	fixed_t dist;
@@ -146,7 +148,7 @@ void A_Tracer (AActor *self)
 }
 
 
-void A_SkelWhoosh (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SkelWhoosh)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -165,7 +167,7 @@ void A_SkelWhoosh (AActor *self)
 		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/swing", 1, ATTN_NORM );
 }
 
-void A_SkelFist (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SkelFist)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

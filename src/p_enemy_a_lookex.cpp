@@ -715,46 +715,43 @@ enum LO_Flags
 	LOF_FULLVOLSEESOUND = 16,
 };
 
-void A_LookEx (AActor *actor)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
 {
-	int index=CheckIndex(6, &CallingState);
-	if (index<0) return;
+	ACTION_PARAM_START(6);
+	ACTION_PARAM_INT(flags, 0);
+	ACTION_PARAM_FIXED(minseedist, 1);
+	ACTION_PARAM_FIXED(maxseedist, 2);
+	ACTION_PARAM_FIXED(maxheardist, 3);
+	ACTION_PARAM_ANGLE(fov, 4);
+	ACTION_PARAM_STATE(i_state, 5);
 
-	int flags = EvalExpressionI (StateParameters[index], actor);
-	//if ((flags & LOF_NOSIGHTCHECK) && (flags & LOF_NOSOUNDCHECK)) return; // [KS] Can't see and can't hear so it'd be redundant to continue with a check we know would be false.
-	//But it can still be used to make an actor leave to a goal without waking up immediately under certain conditions.
-
-	fixed_t minseedist = fixed_t(EvalExpressionF (StateParameters[index+1], actor) * FRACUNIT);
-	fixed_t maxseedist = fixed_t(EvalExpressionF (StateParameters[index+2], actor) * FRACUNIT);
-	fixed_t maxheardist = fixed_t(EvalExpressionF (StateParameters[index+3], actor) * FRACUNIT);
-	angle_t fov = angle_t(EvalExpressionF (StateParameters[index+4], actor) * ANGLE_1);
-	FState *seestate = P_GetState(actor, CallingState, StateParameters[index+5]);
+	FState *seestate = P_GetState(self, CallingState, i_state);
 
 	AActor *targ = NULL; // Shuts up gcc
 	fixed_t dist;
 
 	// [RH] Set goal now if appropriate
-	if (actor->special == Thing_SetGoal && actor->args[0] == 0) 
+	if (self->special == Thing_SetGoal && self->args[0] == 0) 
 	{
-		NActorIterator iterator (NAME_PatrolPoint, actor->args[1]);
-		actor->special = 0;
-		actor->goal = iterator.Next ();
-		actor->reactiontime = actor->args[2] * TICRATE + level.maptime;
-		if (actor->args[3] == 0) actor->flags5 &=~ MF5_CHASEGOAL;
-		else actor->flags5 |= MF5_CHASEGOAL;
+		NActorIterator iterator (NAME_PatrolPoint, self->args[1]);
+		self->special = 0;
+		self->goal = iterator.Next ();
+		self->reactiontime = self->args[2] * TICRATE + level.maptime;
+		if (self->args[3] == 0) self->flags5 &=~ MF5_CHASEGOAL;
+		else self->flags5 |= MF5_CHASEGOAL;
 	}
 
-	actor->threshold = 0;		// any shot will wake up
+	self->threshold = 0;		// any shot will wake up
 
-	if (actor->TIDtoHate != 0)
+	if (self->TIDtoHate != 0)
 	{
-		targ = actor->target;
+		targ = self->target;
 	}
 	else
 	{
 		if (!(flags & LOF_NOSOUNDCHECK))
 		{
-			targ = actor->LastHeard;
+			targ = self->LastHeard;
 			if (targ != NULL)
 			{
 				// [RH] If the soundtarget is dead, don't chase it
@@ -764,14 +761,14 @@ void A_LookEx (AActor *actor)
 				}
 				else
 				{
-					dist = P_AproxDistance (targ->x - actor->x,
-											targ->y - actor->y);
+					dist = P_AproxDistance (targ->x - self->x,
+											targ->y - self->y);
 
 					// [KS] If the target is too far away, don't respond to the sound.
 					if (maxheardist && dist > maxheardist)
 					{
 						targ = NULL;
-						actor->LastHeard = NULL;
+						self->LastHeard = NULL;
 					}
 				}
 			}
@@ -784,57 +781,57 @@ void A_LookEx (AActor *actor)
 	}
 
 	// [RH] Andy Baker's stealth monsters
-	if (actor->flags & MF_STEALTH)
+	if (self->flags & MF_STEALTH)
 	{
-		actor->visdir = -1;
+		self->visdir = -1;
 	}
 
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
-		if (actor->IsFriend (targ))	// be a little more precise!
+		if (self->IsFriend (targ))	// be a little more precise!
 		{
-			if (!(actor->flags4 & MF4_STANDSTILL))
+			if (!(self->flags4 & MF4_STANDSTILL))
 			{
 				if (!(flags & LOF_NOSIGHTCHECK))
 				{
 					// If we find a valid target here, the wandering logic should *not*
 					// be activated! If would cause the seestate to be set twice.
-					if (P_NewLookPlayers(actor, fov, minseedist, maxseedist, !(flags & LOF_DONTCHASEGOAL)))
+					if (P_NewLookPlayers(self, fov, minseedist, maxseedist, !(flags & LOF_DONTCHASEGOAL)))
 						goto seeyou;
 				}
 
-				// Let the actor wander around aimlessly looking for a fight
-				if (actor->SeeState != NULL)
+				// Let the self wander around aimlessly looking for a fight
+				if (self->SeeState != NULL)
 				{
-					if (!(actor->flags & MF_INCHASE))
+					if (!(self->flags & MF_INCHASE))
 					{
 						if (seestate)
 						{
-							actor->SetState (seestate);
+							self->SetState (seestate);
 						}
 						else
 						{
-							actor->SetState (actor->SeeState);
+							self->SetState (self->SeeState);
 						}
 					}
 				}
 				else
 				{
-					A_Wander (actor);
+					CALL_ACTION(A_Wander, self);
 				}
 			}
 		}
 		else
 		{
-			actor->target = targ; //We already have a target?
+			self->target = targ; //We already have a target?
 
 			if (targ != NULL)
 			{
-				if (actor->flags & MF_AMBUSH)
+				if (self->flags & MF_AMBUSH)
 				{
-					dist = P_AproxDistance (targ->x - actor->x,
-											targ->y - actor->y);
-					if (P_CheckSight (actor, actor->target, 2) &&
+					dist = P_AproxDistance (targ->x - self->x,
+											targ->y - self->y);
+					if (P_CheckSight (self, self->target, 2) &&
 						(!minseedist || dist > minseedist) &&
 						(!maxseedist || dist < maxseedist))
 					{
@@ -849,7 +846,7 @@ void A_LookEx (AActor *actor)
 
 	if (!(flags & LOF_NOSIGHTCHECK))
 	{
-		if (!P_NewLookPlayers(actor, fov, minseedist, maxseedist, !(flags & LOF_DONTCHASEGOAL)))
+		if (!P_NewLookPlayers(self, fov, minseedist, maxseedist, !(flags & LOF_DONTCHASEGOAL)))
 			return;
 	}
 	else
@@ -860,32 +857,32 @@ void A_LookEx (AActor *actor)
 	// go into chase state
   seeyou:
 	// [RH] Don't start chasing after a goal if it isn't time yet.
-	if (actor->target == actor->goal)
+	if (self->target == self->goal)
 	{
-		if (actor->reactiontime > level.maptime)
-			actor->target = NULL;
+		if (self->reactiontime > level.maptime)
+			self->target = NULL;
 	}
-	else if (actor->SeeSound && !(flags & LOF_NOSEESOUND))
+	else if (self->SeeSound && !(flags & LOF_NOSEESOUND))
 	{
 		if (flags & LOF_FULLVOLSEESOUND)
 		{ // full volume
-			S_Sound (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NONE);
 		}
 		else
 		{
-			S_Sound (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NORM);
 		}
 	}
 
-	if (actor->target && !(actor->flags & MF_INCHASE))
+	if (self->target && !(self->flags & MF_INCHASE))
 	{
 		if (seestate)
 		{
-			actor->SetState (seestate);
+			self->SetState (seestate);
 		}
 		else
 		{
-			actor->SetState (actor->SeeState);
+			self->SetState (self->SeeState);
 		}
 	}
 }

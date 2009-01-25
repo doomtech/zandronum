@@ -1722,7 +1722,7 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 // Stay in state until a player is sighted.
 // [RH] Will also leave state to move to goal.
 //
-void A_Look (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Look)
 {
 	AActor *targ;
 
@@ -1731,35 +1731,35 @@ void A_Look (AActor *actor)
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		// [RH] Andy Baker's stealth monsters
-		if (actor->flags & MF_STEALTH)
+		if (self->flags & MF_STEALTH)
 		{
-			actor->visdir = -1;
+			self->visdir = -1;
 		}
 
 		return;
 	}
 
 	// [RH] Set goal now if appropriate
-	if (actor->special == Thing_SetGoal && actor->args[0] == 0) 
+	if (self->special == Thing_SetGoal && self->args[0] == 0) 
 	{
-		NActorIterator iterator (NAME_PatrolPoint, actor->args[1]);
-		actor->special = 0;
-		actor->goal = iterator.Next ();
-		actor->reactiontime = actor->args[2] * TICRATE + level.maptime;
-		if (actor->args[3] == 0) actor->flags5 &=~ MF5_CHASEGOAL;
-		else actor->flags5 |= MF5_CHASEGOAL;
+		NActorIterator iterator (NAME_PatrolPoint, self->args[1]);
+		self->special = 0;
+		self->goal = iterator.Next ();
+		self->reactiontime = self->args[2] * TICRATE + level.maptime;
+		if (self->args[3] == 0) self->flags5 &=~ MF5_CHASEGOAL;
+		else self->flags5 |= MF5_CHASEGOAL;
 	}
 
-	actor->threshold = 0;		// any shot will wake up
+	self->threshold = 0;		// any shot will wake up
 
-	if (actor->TIDtoHate != 0)
+	if (self->TIDtoHate != 0)
 	{
-		targ = actor->target;
+		targ = self->target;
 	}
 	else
 	{
-		targ = (i_compatflags & COMPATF_SOUNDTARGET || actor->flags & MF_NOSECTOR)? 
-			actor->Sector->SoundTarget : actor->LastHeard;
+		targ = (i_compatflags & COMPATF_SOUNDTARGET || self->flags & MF_NOSECTOR)? 
+			self->Sector->SoundTarget : self->LastHeard;
 
 		// [RH] If the soundtarget is dead, don't chase it
 		if (targ != NULL && targ->health <= 0)
@@ -1774,44 +1774,44 @@ void A_Look (AActor *actor)
 	}
 
 	// [RH] Andy Baker's stealth monsters
-	if (actor->flags & MF_STEALTH)
+	if (self->flags & MF_STEALTH)
 	{
-		actor->visdir = -1;
+		self->visdir = -1;
 	}
 
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
-		if (actor->IsFriend (targ))	// be a little more precise!
+		if (self->IsFriend (targ))	// be a little more precise!
 		{
 			// If we find a valid target here, the wandering logic should *not*
 			// be activated! If would cause the seestate to be set twice.
-			if (P_LookForPlayers (actor, actor->flags4 & MF4_LOOKALLAROUND))
+			if (P_LookForPlayers (self, self->flags4 & MF4_LOOKALLAROUND))
 				goto seeyou;
 
-			// Let the actor wander around aimlessly looking for a fight
-			if (actor->SeeState != NULL)
+			// Let the self wander around aimlessly looking for a fight
+			if (self->SeeState != NULL)
 			{
-				if (!(actor->flags & MF_INCHASE))
+				if (!(self->flags & MF_INCHASE))
 				{
 					// [BC] Tell clients to set the thing's state.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+						SERVERCOMMANDS_SetThingState( self, STATE_SEE );
 
-					actor->SetState (actor->SeeState);
+					self->SetState (self->SeeState);
 				}
 			}
 			else
 			{
-				A_Wander (actor);
+				CALL_ACTION(A_Wander, self);
 			}
 		}
 		else
 		{
-			actor->target = targ;
+			self->target = targ;
 
-			if (actor->flags & MF_AMBUSH)
+			if (self->flags & MF_AMBUSH)
 			{
-				if (P_CheckSight (actor, actor->target, 2))
+				if (P_CheckSight (self, self->target, 2))
 					goto seeyou;
 			}
 			else
@@ -1820,44 +1820,44 @@ void A_Look (AActor *actor)
 	}
 		
 		
-	if (!P_LookForPlayers (actor, actor->flags4 & MF4_LOOKALLAROUND))
+	if (!P_LookForPlayers (self, self->flags4 & MF4_LOOKALLAROUND))
 		return;
 				
 	// go into chase state
   seeyou:
 	// [RH] Don't start chasing after a goal if it isn't time yet.
-	if (actor->target == actor->goal)
+	if (self->target == self->goal)
 	{
-		if (actor->reactiontime > level.maptime)
-			actor->target = NULL;
+		if (self->reactiontime > level.maptime)
+			self->target = NULL;
 	}
-	else if (actor->SeeSound)
+	else if (self->SeeSound)
 	{
-		if (actor->flags2 & MF2_BOSS)
+		if (self->flags2 & MF2_BOSS)
 		{ // full volume
-			S_Sound (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NONE);
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_NONE );
+				SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, S_GetName( self->SeeSound ), 1, ATTN_NONE );
 		}
 		else
 		{
-			S_Sound (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NORM);
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, S_GetName( self->SeeSound ), 1, ATTN_NORM );
 		}
 	}
 
-	if (actor->target && !(actor->flags & MF_INCHASE))
+	if (self->target && !(self->flags & MF_INCHASE))
 	{
 		// [BC] If we are the server, tell clients about the state change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
 
-		actor->SetState (actor->SeeState);
+		self->SetState (self->SeeState);
 	}
 }
 
@@ -1867,7 +1867,7 @@ void A_Look (AActor *actor)
 // A_Wander
 //
 //==========================================================================
-void A_Wander (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Wander)
 {
 	// [RH] Strife probably clears this flag somewhere, but I couldn't find where.
 	// This seems as good a place as any.
@@ -1919,7 +1919,7 @@ void A_Wander (AActor *self)
 // A_Look2
 //
 //==========================================================================
-void A_Look2 (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Look2)
 {
 	AActor *targ;
 
@@ -2130,10 +2130,10 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		{
 			if (actor->flags & MF_FRIENDLY)
 			{
-				A_Look (actor);
+				CALL_ACTION(A_Look, actor);
 				if (actor->target == NULL)
 				{
-					if (!dontmove) A_Wander (actor);
+					if (!dontmove) CALL_ACTION(A_Wander, actor);
 					actor->flags &= ~MF_INCHASE;
 					return;
 				}
@@ -2588,48 +2588,58 @@ enum ChaseFlags
 	CHF_DONTMOVE = 16,
 };
 
-void A_Chase (AActor *actor)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Chase)
 {
-	int index=CheckIndex(3, &CallingState);
-	if (index>=0)
-	{
-		int flags = EvalExpressionI (StateParameters[index+2], actor);
-		if (flags & CHF_RESURRECT && P_CheckForResurrection(actor, false)) return;
+	ACTION_PARAM_START(3);
+	ACTION_PARAM_STATE(i_melee, 0);
+	ACTION_PARAM_STATE(i_missile, 1);
+	ACTION_PARAM_INT(flags, 2);
 
-		FState *melee = P_GetState(actor, CallingState, StateParameters[index]);
-		FState *missile = P_GetState(actor, CallingState, StateParameters[index+1]);
+	if (i_melee != INT_MIN)
+	{
+		FState *melee = P_GetState(self, CallingState, i_melee);
+		FState *missile = P_GetState(self, CallingState, i_missile);
+
+		if (flags & CHF_RESURRECT && P_CheckForResurrection(self, false)) return;
 		
-		A_DoChase(actor, !!(flags&CHF_FASTCHASE), melee, missile, !(flags&CHF_NOPLAYACTIVE), 
+		A_DoChase(self, !!(flags&CHF_FASTCHASE), melee, missile, !(flags&CHF_NOPLAYACTIVE), 
 					!!(flags&CHF_NIGHTMAREFAST), !!(flags&CHF_DONTMOVE));
 	}
 	else // this is the old default A_Chase
 	{
-		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
+		A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
 	}
 }
 
-void A_FastChase (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_FastChase)
 {
-	A_DoChase (actor, true, actor->MeleeState, actor->MissileState, true, true, false);
+	A_DoChase (self, true, self->MeleeState, self->MissileState, true, true, false);
 }
 
-void A_VileChase (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_VileChase)
 {
-	if (!P_CheckForResurrection(actor, true))
-		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
+	if (!P_CheckForResurrection(self, true))
+		A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
 }
 
-void A_ExtChase(AActor * self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ExtChase)
 {
+	ACTION_PARAM_START(4);
+	ACTION_PARAM_BOOL(domelee, 0);
+	ACTION_PARAM_BOOL(domissile, 1);
+	ACTION_PARAM_BOOL(playactive, 2);
+	ACTION_PARAM_BOOL(nightmarefast, 3);
+
 	// Now that A_Chase can handle state label parameters, this function has become rather useless...
-	int index=CheckIndex(4, &CallingState);
-	if (index<0) return;
-
 	A_DoChase(self, false,
-		EvalExpressionI (StateParameters[index], self) ? self->MeleeState:NULL,
-		EvalExpressionI (StateParameters[index+1], self) ? self->MissileState:NULL,
-		EvalExpressionN (StateParameters[index+2], self),
-		!!EvalExpressionI (StateParameters[index+3], self), false);
+		domelee ? self->MeleeState:NULL, domissile ? self->MissileState:NULL,
+		playactive, nightmarefast, false);
+}
+
+// for internal use
+void A_Chase(AActor *self)
+{
+	A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
 }
 
 //=============================================================================
@@ -2637,44 +2647,48 @@ void A_ExtChase(AActor * self)
 // A_FaceTarget
 //
 //=============================================================================
-void A_FaceTarget (AActor *actor)
+void A_FaceTarget(AActor *self)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		// [RH] Andy Baker's stealth monsters
-		if (actor->flags & MF_STEALTH)
+		if (self->flags & MF_STEALTH)
 		{
-			actor->visdir = 1;
+			self->visdir = 1;
 		}
 
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 		return;
 
 	// [RH] Andy Baker's stealth monsters
-	if (actor->flags & MF_STEALTH)
+	if (self->flags & MF_STEALTH)
 	{
-		actor->visdir = 1;
+		self->visdir = 1;
 	}
 
-	actor->flags &= ~MF_AMBUSH;
-	actor->angle = R_PointToAngle2 (actor->x, actor->y,
-									actor->target->x, actor->target->y);
+	self->flags &= ~MF_AMBUSH;
+	self->angle = R_PointToAngle2 (self->x, self->y,
+									self->target->x, self->target->y);
 	
-	if (actor->target->flags & MF_SHADOW)
+	if (self->target->flags & MF_SHADOW)
     {
-		actor->angle += pr_facetarget.Random2() << 21;
+		self->angle += pr_facetarget.Random2() << 21;
     }
 
 	// [BC] Update the thing's angle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingAngle( actor );
+		SERVERCOMMANDS_SetThingAngle( self );
 }
 
+DEFINE_ACTION_FUNCTION(AActor, A_FaceTarget)
+{
+	A_FaceTarget(self);
+}
 
 //===========================================================================
 //
@@ -2683,93 +2697,118 @@ void A_FaceTarget (AActor *actor)
 // New function to let monsters shoot a railgun
 //
 //===========================================================================
-void A_MonsterRail (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MonsterRail)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		// [RH] Andy Baker's stealth monsters
-		if (actor->flags & MF_STEALTH)
+		if (self->flags & MF_STEALTH)
 		{
-			actor->visdir = 1;
+			self->visdir = 1;
 		}
 
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 		return;
 
 	// [RH] Andy Baker's stealth monsters
-	if (actor->flags & MF_STEALTH)
+	if (self->flags & MF_STEALTH)
 	{
-		actor->visdir = 1;
+		self->visdir = 1;
 	}
 
-	actor->flags &= ~MF_AMBUSH;
+	self->flags &= ~MF_AMBUSH;
 		
-	actor->angle = R_PointToAngle2 (actor->x,
-									actor->y,
-									actor->target->x,
-									actor->target->y);
+	self->angle = R_PointToAngle2 (self->x,
+									self->y,
+									self->target->x,
+									self->target->y);
 
-	actor->pitch = P_AimLineAttack (actor, actor->angle, MISSILERANGE);
+	self->pitch = P_AimLineAttack (self, self->angle, MISSILERANGE);
 
 	// Let the aim trail behind the player
-	actor->angle = R_PointToAngle2 (actor->x,
-									actor->y,
-									actor->target->x - actor->target->momx * 3,
-									actor->target->y - actor->target->momy * 3);
+	self->angle = R_PointToAngle2 (self->x,
+									self->y,
+									self->target->x - self->target->momx * 3,
+									self->target->y - self->target->momy * 3);
 
-	if (actor->target->flags & MF_SHADOW)
+	if (self->target->flags & MF_SHADOW)
     {
-		actor->angle += pr_railface.Random2() << 21;
+		self->angle += pr_railface.Random2() << 21;
     }
 
 	// [BC] Set the thing's angle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingAngle( actor );
+		SERVERCOMMANDS_SetThingAngle( self );
 
-	P_RailAttack (actor, actor->GetMissileDamage (0, 1), 0);
+	P_RailAttack (self, self->GetMissileDamage (0, 1), 0);
 }
 
-void A_Scream (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Scream)
 {
-	if (actor->DeathSound)
+	if (self->DeathSound)
 	{
 		// Check for bosses.
-		if (actor->flags2 & MF2_BOSS)
+		if (self->flags2 & MF2_BOSS)
 		{
 			// full volume
-			S_Sound (actor, CHAN_VOICE, actor->DeathSound, 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, self->DeathSound, 1, ATTN_NONE);
 		}
 		else
 		{
-			S_Sound (actor, CHAN_VOICE, actor->DeathSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_VOICE, self->DeathSound, 1, ATTN_NORM);
 		}
 	}
 }
 
-void A_XScream (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_XScream)
 {
-	if (actor->player)
-		S_Sound (actor, CHAN_VOICE, "*gibbed", 1, ATTN_NORM);
+	if (self->player)
+		S_Sound (self, CHAN_VOICE, "*gibbed", 1, ATTN_NORM);
 	else
-		S_Sound (actor, CHAN_VOICE, "misc/gibbed", 1, ATTN_NORM);
+		S_Sound (self, CHAN_VOICE, "misc/gibbed", 1, ATTN_NORM);
 }
 
-// Strife's version of A_XScrem
-void A_XXScream (AActor *actor)
+//===========================================================================
+//
+// A_ScreamAndUnblock
+//
+//===========================================================================
+
+DEFINE_ACTION_FUNCTION(AActor, A_ScreamAndUnblock)
 {
-	if (!(actor->flags & MF_NOBLOOD) || actor->DeathSound == 0)
+	CALL_ACTION(A_Scream, self);
+	CALL_ACTION(A_NoBlocking, self);
+}
+
+//===========================================================================
+//
+// A_ActiveSound
+//
+//===========================================================================
+
+DEFINE_ACTION_FUNCTION(AActor, A_ActiveSound)
+{
+	if (self->ActiveSound)
 	{
-		A_XScream (actor);
+		S_Sound (self, CHAN_VOICE, self->ActiveSound, 1, ATTN_NORM);
 	}
-	else
-	{
-		S_Sound (actor, CHAN_VOICE, actor->DeathSound, 1, ATTN_NORM);
-	}
+}
+
+//===========================================================================
+//
+// A_ActiveAndUnblock
+//
+//===========================================================================
+
+DEFINE_ACTION_FUNCTION(AActor, A_ActiveAndUnblock)
+{
+	CALL_ACTION(A_ActiveSound, self);
+	CALL_ACTION(A_NoBlocking, self);
 }
 
 //---------------------------------------------------------------------------
@@ -2914,35 +2953,35 @@ void P_TossItem (AActor *item)
 	}
 }
 
-void A_Pain (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Pain)
 {
 	// [RH] Vary player pain sounds depending on health (ala Quake2)
-	if (actor->player && actor->player->morphTics == 0)
+	if (self->player && self->player->morphTics == 0)
 	{
 		const char *pain_amount;
 		FSoundID sfx_id;
 
-		if (actor->health < 25)
+		if (self->health < 25)
 			pain_amount = "*pain25";
-		else if (actor->health < 50)
+		else if (self->health < 50)
 			pain_amount = "*pain50";
-		else if (actor->health < 75)
+		else if (self->health < 75)
 			pain_amount = "*pain75";
 		else
 			pain_amount = "*pain100";
 
 		// Try for damage-specific sounds first.
-		if (actor->player->LastDamageType != NAME_None)
+		if (self->player->LastDamageType != NAME_None)
 		{
 			FString pain_sound = pain_amount;
 			pain_sound += '-';
-			pain_sound += actor->player->LastDamageType;
+			pain_sound += self->player->LastDamageType;
 			sfx_id = pain_sound;
 			if (sfx_id == 0)
 			{
 				// Try again without a specific pain amount.
 				pain_sound = "*pain-";
-				pain_sound += actor->player->LastDamageType;
+				pain_sound += self->player->LastDamageType;
 				sfx_id = pain_sound;
 			}
 		}
@@ -2951,19 +2990,19 @@ void A_Pain (AActor *actor)
 			sfx_id = pain_amount;
 		}
 
-		S_Sound (actor, CHAN_VOICE, sfx_id, 1, ATTN_NORM);
+		S_Sound (self, CHAN_VOICE, sfx_id, 1, ATTN_NORM);
 	}
-	else if (actor->PainSound)
+	else if (self->PainSound)
 	{
-		S_Sound (actor, CHAN_VOICE, actor->PainSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_VOICE, self->PainSound, 1, ATTN_NORM);
 	}
 }
 
 // killough 11/98: kill an object
-void A_Die (AActor *actor)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Die)
 {
-	ENamedName name;
-	
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_NAME(damagetype, 0);
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -2971,17 +3010,8 @@ void A_Die (AActor *actor)
 		return;
 	}
 
-	int index=CheckIndex(1, &CallingState);
-	if (index<0)
-	{
-		name = NAME_None;
-	}
-	else
-	{
-		name = ENamedName(StateParameters[index]);
-	}
 
-	P_DamageMobj (actor, NULL, NULL, actor->health, name);
+	P_DamageMobj (self, NULL, NULL, self->health, damagetype);
 }
 
 //
@@ -2989,7 +3019,7 @@ void A_Die (AActor *actor)
 // killough 8/9/98: same as A_Explode, except that the damage is variable
 //
 
-void A_Detonate (AActor *mo)
+DEFINE_ACTION_FUNCTION(AActor, A_Detonate)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -2998,55 +3028,21 @@ void A_Detonate (AActor *mo)
 		return;
 	}
 
-	int damage = mo->GetMissileDamage (0, 1);
-	P_RadiusAttack (mo, mo->target, damage, damage, mo->DamageType, true);
-	if (mo->z <= mo->floorz + (damage << FRACBITS))
+	int damage = self->GetMissileDamage (0, 1);
+	P_RadiusAttack (self, self->target, damage, damage, self->DamageType, true);
+	if (self->z <= self->floorz + (damage << FRACBITS))
 	{
-		P_HitFloor (mo);
+		P_HitFloor (self);
 	}
 
 	// [BC] If this explosion originated from a player, and it hit something, give the player
 	// credit for it.
-	if (( mo->target ) && ( mo->target->player ))
+	if (( self->target ) && ( self->target->player ))
 	{
-		if ( mo->target->player->bStruckPlayer )
-			PLAYER_StruckPlayer( mo->target->player );
+		if ( self->target->player->bStruckPlayer )
+			PLAYER_StruckPlayer( self->target->player );
 		else
-			mo->target->player->ulConsecutiveHits = 0;
-	}
-}
-
-//
-// A_Explode
-//
-void A_Explode (AActor *thing)
-{
-	int damage = 128;
-	int distance = 128;
-	bool hurtSource = true;
-
-	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	thing->GetExplodeParms (damage, distance, hurtSource);
-	P_RadiusAttack (thing, thing->target, damage, distance, thing->DamageType, hurtSource);
-	if (thing->z <= thing->floorz + (distance<<FRACBITS))
-	{
-		P_HitFloor (thing);
-	}
-
-	// [BC] If this explosion originated from a player, and it hit something, give the player
-	// credit for it.
-	if (( thing->target ) && ( thing->target->player ))
-	{
-		if ( thing->target->player->bStruckPlayer )
-			PLAYER_StruckPlayer( thing->target->player );
-		else
-			thing->target->player->ulConsecutiveHits = 0;
+			self->target->player->ulConsecutiveHits = 0;
 	}
 }
 
@@ -3084,9 +3080,9 @@ bool CheckBossDeath (AActor *actor)
 // A_BossDeath
 // Possibly trigger special effects if on a boss level
 //
-void A_BossDeath (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 {
-	FName mytype = actor->GetClass()->TypeName;
+	FName mytype = self->GetClass()->TypeName;
 
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -3096,7 +3092,7 @@ void A_BossDeath (AActor *actor)
 	}
 
 	// Ugh...
-	FName type = actor->GetClass()->ActorInfo->GetReplacee()->Class->TypeName;
+	FName type = self->GetClass()->ActorInfo->GetReplacee()->Class->TypeName;
 	
 	// Do generic special death actions first
 	bool checked = false;
@@ -3105,13 +3101,13 @@ void A_BossDeath (AActor *actor)
 	{
 		if (type == sa->Type || mytype == sa->Type)
 		{
-			if (!checked && !CheckBossDeath(actor))
+			if (!checked && !CheckBossDeath(self))
 			{
 				return;
 			}
 			checked = true;
 
-			LineSpecials[sa->Action](NULL, actor, false, 
+			LineSpecials[sa->Action](NULL, self, false, 
 				sa->Args[0], sa->Args[1], sa->Args[2], sa->Args[3], sa->Args[4]);
 		}
 		sa = sa->Next;
@@ -3142,7 +3138,7 @@ void A_BossDeath (AActor *actor)
 	else
 		return;
 
-	if (!CheckBossDeath (actor))
+	if (!CheckBossDeath (self))
 	{
 		return;
 	}
@@ -3266,7 +3262,7 @@ bool A_RaiseMobj (AActor *actor, fixed_t speed)
 	return done;		// Reached target height
 }
 
-void A_ClassBossHealth (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_ClassBossHealth)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -3278,10 +3274,10 @@ void A_ClassBossHealth (AActor *actor)
 	// [BC] Teamgame, too.
 	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && (( deathmatch || teamgame ) == false ))		// co-op only
 	{
-		if (!actor->special1)
+		if (!self->special1)
 		{
-			actor->health *= 5;
-			actor->special1 = true;   // has been initialized
+			self->health *= 5;
+			self->special1 = true;   // has been initialized
 		}
 	}
 }

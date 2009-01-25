@@ -70,7 +70,7 @@ void ACustomBridge::BeginPlay ()
 //		target		pointer to center mobj
 //		angle		angle of ball
 
-void A_BridgeOrbit (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BridgeOrbit)
 {
 	if (self->target == NULL)
 	{ // Don't crash if somebody spawned this into the world
@@ -100,25 +100,16 @@ void A_BridgeOrbit (AActor *self)
 }
 
 
-static const PClass *GetBallType()
-{
-	const PClass *balltype = NULL;
-	int index=CheckIndex(1, NULL);
-	if (index>=0) 
-	{
-		balltype = PClass::FindClass((ENamedName)StateParameters[index]);
-	}
-	if (balltype == NULL) balltype = PClass::FindClass("BridgeBall");
-	return balltype;
-}
-
-
-
-void A_BridgeInit (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BridgeInit)
 {
 	angle_t startangle;
 	AActor *ball;
 	fixed_t cx, cy, cz;
+
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(balltype, 0);
+
+	if (balltype == NULL) balltype = PClass::FindClass("BridgeBall");
 
 	cx = self->x;
 	cy = self->y;
@@ -128,13 +119,13 @@ void A_BridgeInit (AActor *self)
 
 	// Spawn triad into world -- may be more than a triad now.
 	int ballcount = self->args[2]==0 ? 3 : self->args[2];
-	const PClass *balltype = GetBallType();
+
 	for (int i = 0; i < ballcount; i++)
 	{
 		ball = Spawn(balltype, cx, cy, cz, ALLOW_REPLACE);
 		ball->angle = startangle + (ANGLE_45/32) * (256/ballcount) * i;
 		ball->target = self;
-		A_BridgeOrbit(ball);
+		CALL_ACTION(A_BridgeOrbit, ball);
 	}
 }
 

@@ -17,13 +17,13 @@ static FRandom pr_brainscream ("BrainScream");
 static FRandom pr_brainexplode ("BrainExplode");
 static FRandom pr_spawnfly ("SpawnFly");
 
-void A_BrainAwake (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BrainAwake)
 {
 	// killough 3/26/98: only generates sound now
 	S_Sound (self, CHAN_VOICE, "brain/sight", 1, ATTN_NONE);
 }
 
-void A_BrainPain (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BrainPain)
 {
 	S_Sound (self, CHAN_VOICE, "brain/pain", 1, ATTN_NONE);
 }
@@ -52,7 +52,7 @@ static void BrainishExplosion (fixed_t x, fixed_t y, fixed_t z)
 	}
 }
 
-void A_BrainScream (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BrainScream)
 {
 	fixed_t x;
 		
@@ -64,14 +64,14 @@ void A_BrainScream (AActor *self)
 	S_Sound (self, CHAN_VOICE, "brain/death", 1, ATTN_NONE);
 }
 
-void A_BrainExplode (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BrainExplode)
 {
 	fixed_t x = self->x + pr_brainexplode.Random2()*2048;
 	fixed_t z = 128 + pr_brainexplode()*2*FRACUNIT;
 	BrainishExplosion (x, self->y, z);
 }
 
-void A_BrainDie (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BrainDie)
 {
 	// [RH] If noexit, then don't end the level.
 	// [BC] teamgame
@@ -81,11 +81,12 @@ void A_BrainDie (AActor *self)
 	G_ExitLevel (0, false);
 }
 
-void A_BrainSpit (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BrainSpit)
 {
 	DSpotState *state = DSpotState::GetSpotState();
 	AActor *targ;
 	AActor *spit;
+	bool isdefault = false;
 
 	// [BC] Brain spitting is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -94,15 +95,19 @@ void A_BrainSpit (AActor *self)
 		return;
 	}
 
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(spawntype, 0);
+
 	// shoot a cube at current target
 	targ = state->GetNextInList(PClass::FindClass("BossTarget"), G_SkillProperty(SKILLP_EasyBossBrain));
 
 	if (targ != NULL)
 	{
-		const PClass *spawntype = NULL;
-		int index = CheckIndex (1, NULL);
-		if (index >= 0) spawntype = PClass::FindClass ((ENamedName)StateParameters[index]);
-		if (spawntype == NULL) spawntype = PClass::FindClass("SpawnShot");
+		if (spawntype == NULL) 
+		{
+			spawntype = PClass::FindClass("SpawnShot");
+			isdefault = true;
+		}
 
 		// spawn brain missile
 		spit = P_SpawnMissile (self, targ, spawntype);
@@ -133,7 +138,7 @@ void A_BrainSpit (AActor *self)
 				SERVERCOMMANDS_SpawnMissile( spit );
 		}
 
-		if (index >= 0)
+		if (!isdefault)
 		{
 			S_Sound(self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NONE);
 
@@ -153,7 +158,7 @@ void A_BrainSpit (AActor *self)
 	}
 }
 
-void A_SpawnFly (AActor *self)
+static void SpawnFly(AActor *self, const PClass *spawntype, FSoundID sound)
 {
 	AActor *newmobj;
 	AActor *fog = NULL;
@@ -174,22 +179,10 @@ void A_SpawnFly (AActor *self)
 	targ = self->target;
 
 
-	const PClass *spawntype = NULL;
-	int index = CheckIndex (1, NULL);
-		// First spawn teleport fire.
-	if (index >= 0) 
+	if (spawntype != NULL)
 	{
-		spawntype = PClass::FindClass ((ENamedName)StateParameters[index]);
-		if (spawntype != NULL) 
-		{
-			fog = Spawn (spawntype, targ->x, targ->y, targ->z, ALLOW_REPLACE);
-			if (fog != NULL) S_Sound (fog, CHAN_BODY, fog->SeeSound, 1, ATTN_NORM);
-		}
-	}
-	else
-	{
-		fog = Spawn("SpawnFire", targ->x, targ->y, targ->z, ALLOW_REPLACE);
-		if (fog != NULL) S_Sound (fog, CHAN_BODY, "brain/spawn", 1, ATTN_NORM);
+		fog = Spawn (spawntype, targ->x, targ->y, targ->z, ALLOW_REPLACE);
+		if (fog != NULL) S_Sound (fog, CHAN_BODY, sound, 1, ATTN_NORM);
 	}
 
 	// [BC] If we're the server, spawn the fire, and tell clients to play the sound.
@@ -295,9 +288,28 @@ void A_SpawnFly (AActor *self)
 	self->Destroy ();
 }
 
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnFly)
+{
+	FSoundID sound;
+
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(spawntype, 0);
+
+	if (spawntype != NULL) 
+	{
+		sound = GetDefaultByType(spawntype)->SeeSound;
+	}
+	else
+	{
+		spawntype = PClass::FindClass ("SpawnFire");
+		sound = "brain/spawn";
+	}
+	SpawnFly(self, spawntype, sound);
+}
+
 // travelling cube sound
-void A_SpawnSound (AActor *self)	
+DEFINE_ACTION_FUNCTION(AActor, A_SpawnSound)
 {
 	S_Sound (self, CHAN_BODY, "brain/cube", 1, ATTN_IDLE);
-	A_SpawnFly (self);
+	SpawnFly(self, PClass::FindClass("SpawnFire"), "brain/spawn");
 }

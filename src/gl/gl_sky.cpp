@@ -183,7 +183,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 //==========================================================================
 void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 {
-	bool ceilingsky = fs->ceilingpic==skyflatnum || (fs->CeilingSkyBox && fs->CeilingSkyBox->bAlways);
+	bool ceilingsky = fs->GetTexture(sector_t::ceiling)==skyflatnum || (fs->CeilingSkyBox && fs->CeilingSkyBox->bAlways);
 	if (ceilingsky || fs->ceiling_reflect)
 	{
 		ztop[0]=ztop[1]=32768.0f;
@@ -192,7 +192,7 @@ void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 		if (ceilingsky)	SkyTexture(fs->sky,fs->CeilingSkyBox, true);
 		else MirrorPlane(&fs->ceilingplane, true);
 	}
-	bool floorsky = fs->floorpic==skyflatnum || (fs->FloorSkyBox && fs->FloorSkyBox->bAlways);
+	bool floorsky = fs->GetTexture(sector_t::floor)==skyflatnum || (fs->FloorSkyBox && fs->FloorSkyBox->bAlways);
 	if (floorsky || fs->floor_reflect)
 	{
 		ztop[0]=zfloor[0];
@@ -211,10 +211,10 @@ void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 //==========================================================================
 void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2)
 {
-	if (fs->ceilingpic==skyflatnum)
+	if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
 	{
 		if ((bs->special&0xff) == NoSkyDraw) return;
-		if (bs->ceilingpic==skyflatnum) 
+		if (bs->GetTexture(sector_t::ceiling)==skyflatnum) 
 		{
 			// if the back sector is closed the sky must be drawn!
 			if (bs->ceilingplane.ZatPoint(v1) > bs->floorplane.ZatPoint(v1) ||
@@ -223,7 +223,7 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 
 			// one more check for some ugly transparent door hacks
 			if (bs->floorplane.a==0 && bs->floorplane.b==0 && fs->floorplane.a==0 && fs->floorplane.b==0 &&
-				bs->floortexz==fs->floortexz+FRACUNIT)
+				bs->GetPlaneTexZ(sector_t::floor)==fs->GetPlaneTexZ(sector_t::floor)+FRACUNIT)
 			{
 				FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 				if (!tex || tex->UseType==FTexture::TEX_Null) return;
@@ -233,7 +233,7 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 		ztop[0]=ztop[1]=32768.0f;
 
 		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
-		if (/*tex && tex->UseType!=FTexture::TEX_Null &&*/ bs->ceilingpic != skyflatnum)
+		if (/*tex && tex->UseType!=FTexture::TEX_Null &&*/ bs->GetTexture(sector_t::ceiling) != skyflatnum)
 
 		{
 			zbottom[0]=zceil[0];
@@ -274,7 +274,7 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 //==========================================================================
 void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2)
 {
-	if (fs->floorpic==skyflatnum)
+	if (fs->GetTexture(sector_t::floor)==skyflatnum)
 	{
 		if ((bs->special&0xff) == NoSkyDraw) return;
 		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
@@ -282,7 +282,7 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 		// For lower skies the normal logic only applies to walls with no lower texture!
 		if (tex->UseType==FTexture::TEX_Null)
 		{
-			if (bs->floorpic==skyflatnum)
+			if (bs->GetTexture(sector_t::floor)==skyflatnum)
 			{
 				// if the back sector is closed the sky must be drawn!
 				if (bs->ceilingplane.ZatPoint(v1) > bs->floorplane.ZatPoint(v1) ||
@@ -298,7 +298,7 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 		}
 		zbottom[0]=zbottom[1]=-32768.0f;
 
-		if ((tex && tex->UseType!=FTexture::TEX_Null) || bs->floorpic!=skyflatnum)
+		if ((tex && tex->UseType!=FTexture::TEX_Null) || bs->GetTexture(sector_t::floor)!=skyflatnum)
 		{
 			ztop[0]=zfloor[0];
 			ztop[1]=zfloor[1];

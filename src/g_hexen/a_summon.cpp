@@ -6,6 +6,8 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "ravenshared.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -58,7 +60,7 @@ bool AArtiDarkServant::Use (bool pickup)
 //
 //============================================================================
 
-void A_Summon (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Summon)
 {
 	AMinotaurFriend *mo;
 
@@ -69,13 +71,13 @@ void A_Summon (AActor *actor)
 		return;
 	}
 
-	mo = Spawn<AMinotaurFriend> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+	mo = Spawn<AMinotaurFriend> (self->x, self->y, self->z, ALLOW_REPLACE);
 	if (mo)
 	{
-		if (P_TestMobjLocation(mo) == false || !actor->tracer)
+		if (P_TestMobjLocation(mo) == false || !self->tracer)
 		{ // Didn't fit - change back to artifact
 			mo->Destroy ();
-			AActor *arti = Spawn<AArtiDarkServant> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+			AActor *arti = Spawn<AArtiDarkServant> (self->x, self->y, self->z, ALLOW_REPLACE);
 			if (arti)
 			{
 				arti->flags |= MF_DROPPED;
@@ -92,33 +94,34 @@ void A_Summon (AActor *actor)
 			SERVERCOMMANDS_SpawnThing( mo );
 
 		mo->StartTime = level.maptime;
-		if (actor->tracer->flags & MF_CORPSE)
+		if (self->tracer->flags & MF_CORPSE)
 		{	// Master dead
 			mo->tracer = NULL;		// No master
 		}
 		else
 		{
-			mo->tracer = actor->tracer;		// Pointer to master
+			mo->tracer = self->tracer;		// Pointer to master
 			AInventory *power = Spawn<APowerMinotaur> (0, 0, 0, NO_REPLACE);
-			power->TryPickup (actor->tracer);
-			if (actor->tracer->player != NULL)
+			power->TryPickup (self->tracer);
+			if (self->tracer->player != NULL)
 			{
-				mo->FriendPlayer = int(actor->tracer->player - players + 1);
+				mo->FriendPlayer = int(self->tracer->player - players + 1);
 			}
 		}
 
 		// Make smoke puff
 		// [BC]
 		AActor	*pSmoke;
-		pSmoke = Spawn ("MinotaurSmoke", actor->x, actor->y, actor->z, ALLOW_REPLACE);
-		S_Sound (actor, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
+		pSmoke = Spawn ("MinotaurSmoke", self->x, self->y, self->z, ALLOW_REPLACE);
+		S_Sound (self, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
+
 				
 		// [BC] If we're the server, spawn the smoke, and play the active sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if ( pSmoke )
 				SERVERCOMMANDS_SpawnThing( pSmoke );
-			SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( mo->ActiveSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, S_GetName( mo->ActiveSound ), 1, ATTN_NORM );
 		}
 	}
 }

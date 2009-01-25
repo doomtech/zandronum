@@ -195,7 +195,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				}
 				else
 				{
-					m_Sector->floortexz += move;
+					m_Sector->ChangePlaneTexZ(sector_t::floor, move);
 					m_Sector->AdjustFloorClip ();
 				}
 				return pastdest;
@@ -216,7 +216,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				}
 				else
 				{
-					m_Sector->floortexz += m_Sector->floorplane.HeightDiff (lastpos);
+					m_Sector->ChangePlaneTexZ(sector_t::floor, m_Sector->floorplane.HeightDiff (lastpos));
 					m_Sector->AdjustFloorClip ();
 				}
 			}
@@ -253,7 +253,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				}
 				else
 				{
-					m_Sector->floortexz += move;
+					m_Sector->ChangePlaneTexZ(sector_t::floor, move);
 					m_Sector->AdjustFloorClip ();
 				}
 				return pastdest;
@@ -270,7 +270,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				{
 					if (crush >= 0 && !hexencrush)
 					{
-						m_Sector->floortexz += m_Sector->floorplane.HeightDiff (lastpos);
+						m_Sector->ChangePlaneTexZ(sector_t::floor, m_Sector->floorplane.HeightDiff (lastpos));
 						m_Sector->AdjustFloorClip ();
 						return crushed;
 					}
@@ -279,7 +279,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 					MoveAttached(crush, -speed, 0, false);
 					return crushed;
 				}
-				m_Sector->floortexz += m_Sector->floorplane.HeightDiff (lastpos);
+				m_Sector->ChangePlaneTexZ(sector_t::floor, m_Sector->floorplane.HeightDiff (lastpos));
 				m_Sector->AdjustFloorClip ();
 			}
 			break;
@@ -320,7 +320,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				}
 				else
 				{
-					m_Sector->ceilingtexz += move;
+					m_Sector->ChangePlaneTexZ(sector_t::ceiling, move);
 				}
 				return pastdest;
 			}
@@ -336,7 +336,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				{
 					if (crush >= 0 && !hexencrush)
 					{
-						m_Sector->ceilingtexz += m_Sector->ceilingplane.HeightDiff (lastpos);
+						m_Sector->ChangePlaneTexZ(sector_t::ceiling, m_Sector->ceilingplane.HeightDiff (lastpos));
 						return crushed;
 					}
 					m_Sector->ceilingplane.d = lastpos;
@@ -344,7 +344,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 					MoveAttached(crush, speed, 1, false);
 					return crushed;
 				}
-				m_Sector->ceilingtexz += m_Sector->ceilingplane.HeightDiff (lastpos);
+				m_Sector->ChangePlaneTexZ(sector_t::ceiling, m_Sector->ceilingplane.HeightDiff (lastpos));
 			}
 			break;
 												
@@ -368,7 +368,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 				}
 				else
 				{
-					m_Sector->ceilingtexz += move;
+					m_Sector->ChangePlaneTexZ(sector_t::ceiling, move);
 				}
 				return pastdest;
 			}
@@ -386,7 +386,7 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 					MoveAttached(crush, -speed, 1, false);
 					return crushed;
 				}
-				m_Sector->ceilingtexz += m_Sector->ceilingplane.HeightDiff (lastpos);
+				m_Sector->ChangePlaneTexZ(sector_t::ceiling, m_Sector->ceilingplane.HeightDiff (lastpos));
 			}
 			break;
 		}

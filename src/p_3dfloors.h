@@ -42,8 +42,8 @@ struct F3DFloor
 	struct planeref
 	{
 		secplane_t *	plane;
-		FTextureID *	texture;
-		fixed_t *		texheight;
+		const FTextureID *	texture;
+		const fixed_t *		texheight;
 		sector_t *		model;
 		bool			isceiling;
 	};

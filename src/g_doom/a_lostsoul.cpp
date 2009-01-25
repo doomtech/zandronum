@@ -21,12 +21,11 @@
 //
 #define SKULLSPEED (20*FRACUNIT)
 
-void A_SkullAttack (AActor *self)
+void A_SkullAttack(AActor *self, fixed_t speed)
 {
 	AActor *dest;
 	angle_t an;
 	int dist;
-	int n;
 
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -38,14 +37,6 @@ void A_SkullAttack (AActor *self)
 	if (!self->target)
 		return;
 				
-	int index = CheckIndex (1, NULL);
-	if (index >= 0) 
-	{
-		n = FLOAT2FIXED(EvalExpressionF (StateParameters[index], self));
-		if (n == 0) n = SKULLSPEED;
-	}
-	else n = SKULLSPEED;
-
 	dest = self->target;		
 	self->flags |= MF_SKULLFLY;
 
@@ -61,10 +52,10 @@ void A_SkullAttack (AActor *self)
 
 	A_FaceTarget (self);
 	an = self->angle >> ANGLETOFINESHIFT;
-	self->momx = FixedMul (n, finecosine[an]);
-	self->momy = FixedMul (n, finesine[an]);
+	self->momx = FixedMul (speed, finecosine[an]);
+	self->momy = FixedMul (speed, finesine[an]);
 	dist = P_AproxDistance (dest->x - self->x, dest->y - self->y);
-	dist = dist / n;
+	dist = dist / speed;
 	
 	if (dist < 1)
 		dist = 1;
@@ -73,6 +64,15 @@ void A_SkullAttack (AActor *self)
 	// [BC] Update the lost soul's momentum.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+}
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullAttack)
+{
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_FIXED(n, 0);
+
+	if (n <= 0) n = SKULLSPEED;
+	A_SkullAttack(self, n);
 }
 
 //==========================================================================

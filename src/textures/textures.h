@@ -147,6 +147,7 @@ public:
 	int CopyTrueColorTranslated(FBitmap *bmp, int x, int y, int rotate, FRemapTable *remap, FCopyInfo *inf = NULL);
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return -1; }
+	virtual FTexture *GetRedirect(bool wantwarped);
 
 	virtual void Unload () = 0;
 
@@ -250,11 +251,33 @@ public:
 			Brightmap = NULL;
 		}
 	};
+	struct MiscGLInfo
+	{
+		PalEntry GlowColor;
+		PalEntry FloorSkyColor;
+		PalEntry CeilingSkyColor;
+		bool bGlowing;
+		bool bSkybox;
+		bool bSkyColorDone;
+
+		MiscGLInfo()
+		{
+			bGlowing = false;
+			GlowColor = 0;
+			bSkybox = false;
+			FloorSkyColor = 0;
+			CeilingSkyColor = 0;
+			bSkyColorDone = false;
+		}
+	};
+
+	bool IsGlowing() const { return gl_info.bGlowing; }
 
 	virtual void PrecacheGL();
 	virtual void UncacheGL();
 	virtual bool IsSkybox() const { return false; }
 	FBrightmapInfo bm_info;
+	MiscGLInfo gl_info;
 };
 
 // Texture manager

@@ -3,10 +3,54 @@
 
 #include "stats.h"
 
-extern cycle_t RenderWall,SetupWall,ClipWall;
-extern cycle_t RenderFlat,SetupFlat;
-extern cycle_t RenderSprite,SetupSprite;
-extern cycle_t All, Finish, PortalAll;
+class glcycle_t
+{
+public:
+	glcycle_t &operator= (const glcycle_t &o)
+	{
+		Counter = o.Counter;
+		return *this;
+	}
+
+	void Reset()
+	{
+		Counter = 0;
+	}
+	
+	void Clock()
+	{
+		// Not using QueryPerformanceCounter directly, so we don't need
+		// to pull in the Windows headers for every single file that
+		// wants to do some profiling.
+		//long long time = QueryPerfCounter();
+		//Counter -= time;
+	}
+	
+	void Unclock()
+	{
+		//long long time = QueryPerfCounter();
+		//Counter += time;
+	}
+	
+	double Time()
+	{
+		return 0; //Counter * GLPerfToSec;
+	}
+	
+	double TimeMS()
+	{
+		return 0; //Counter * GLPerfToMillisec;
+	}
+
+private:
+	long long Counter;
+};
+
+
+extern glcycle_t RenderWall,SetupWall,ClipWall;
+extern glcycle_t RenderFlat,SetupFlat;
+extern glcycle_t RenderSprite,SetupSprite;
+extern glcycle_t All, Finish, PortalAll;
 extern int vertexcount, flatvertices, flatprimitives;
 
 

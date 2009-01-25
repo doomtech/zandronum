@@ -100,6 +100,7 @@ enum
 	DEPF_SHORTMISSILERANGE,
 	DEPF_PICKUPFLASH,
 	DEPF_QUARTERGRAVITY,
+	DEPF_FIRERESIST,
 };
 
 static flagdef ActorFlags[]=
@@ -208,7 +209,6 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF4, LOOKALLAROUND, AActor, flags4),
 	DEFINE_FLAG(MF4, STANDSTILL, AActor, flags4),
 	DEFINE_FLAG(MF4, SPECTRAL, AActor, flags4),
-	DEFINE_FLAG(MF4, FIRERESIST, AActor, flags4),
 	DEFINE_FLAG(MF4, NOSPLASHALERT, AActor, flags4),
 	DEFINE_FLAG(MF4, SYNCHRONIZED, AActor, flags4),
 	DEFINE_FLAG(MF4, NOTARGETSWITCH, AActor, flags4),
@@ -284,7 +284,9 @@ static flagdef ActorFlags[]=
 	DEFINE_DEPRECATED_FLAG(SHORTMISSILERANGE),
 	DEFINE_DEPRECATED_FLAG(LONGMELEERANGE),
 	DEFINE_DEPRECATED_FLAG(QUARTERGRAVITY),
-	// [BB] ST supports ALLOWCLIENTSPAWN.
+	DEFINE_DEPRECATED_FLAG(FIRERESIST),
+	// [BB] ST supports NONETID and ALLOWCLIENTSPAWN.
+	//DEFINE_DUMMY_FLAG(NONETID),
 	//DEFINE_DUMMY_FLAG(ALLOWCLIENTSPAWN),
 };
 
@@ -457,6 +459,9 @@ static void HandleDeprecatedFlags(AActor *defaults, bool set, int index)
 	case DEPF_QUARTERGRAVITY:
 		defaults->gravity = set? FRACUNIT/4 : FRACUNIT;
 		break;
+	case DEPF_FIRERESIST:
+		if (set) defaults->GetClass()->ActorInfo->DamageFactors->Insert("Fire", 0.5);
+		else defaults->GetClass()->ActorInfo->DamageFactors->Remove("Fire");
 	case DEPF_PICKUPFLASH:
 		if (set)
 		{
@@ -479,11 +484,11 @@ static void HandleDeprecatedFlags(AActor *defaults, bool set, int index)
 // This cannot be placed in thingdef_codeptr because it needs the flag table
 //
 //===========================================================================
-void A_ChangeFlag(AActor * self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 {
-	int index=CheckIndex(2);
-	const char * flagname = FName((ENamedName)StateParameters[index]).GetChars();	
-	int expression = EvalExpressionI (StateParameters[index+1], self);
+	ACTION_PARAM_START(2);
+	ACTION_PARAM_STRING(flagname, 0);
+	ACTION_PARAM_BOOL(expression, 1);
 
 	const char *dot = strchr (flagname, '.');
 	flagdef *fd;
@@ -502,7 +507,7 @@ void A_ChangeFlag(AActor * self)
 	{
 		if (fd->structoffset == -1)
 		{
-			HandleDeprecatedFlags(self, !!expression, fd->flagbit);
+			HandleDeprecatedFlags(self, expression, fd->flagbit);
 		}
 		else
 		{
@@ -2225,6 +2230,7 @@ static void PowerupColor (FScanner &sc, APowerupGiver *defaults, Baggage &bag)
 	else
 	{
 		sc.ScriptError("\"%s\" requires an actor of type \"Powerup\"\n", sc.String);
+		return;
 	}
 
 	if (sc.CheckNumber())
@@ -2283,6 +2289,7 @@ static void PowerupDuration (FScanner &sc, APowerupGiver *defaults, Baggage &bag
 {
 	int *pEffectTics;
 
+
 	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(APowerup)))
 	{
 		pEffectTics = &((APowerup*)defaults)->EffectTics;
@@ -2294,10 +2301,11 @@ static void PowerupDuration (FScanner &sc, APowerupGiver *defaults, Baggage &bag
 	else
 	{
 		sc.ScriptError("\"%s\" requires an actor of type \"Powerup\"\n", sc.String);
+		return;
 	}
 
 	sc.MustGetNumber();
-	*pEffectTics = sc.Number>=0? sc.Number : -sc.Number*TICRATE;
+	*pEffectTics = (sc.Number >= 0) ? sc.Number : -sc.Number * TICRATE;
 }
 
 //==========================================================================

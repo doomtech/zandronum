@@ -6,20 +6,22 @@
 #include "a_doomglobal.h"
 #include "gstrings.h"
 #include "a_action.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 
 //
 // PIT_VileCheck
 // Detect a corpse that could be raised.
 //
-void A_Fire (AActor *self);
+DECLARE_ACTION(A_Fire)
 
 
 
 //
 // A_VileStart
 //
-void A_VileStart (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_VileStart)
 {
 	S_Sound (self, CHAN_VOICE, "vile/start", 1, ATTN_NORM);
 }
@@ -29,19 +31,19 @@ void A_VileStart (AActor *self)
 // A_Fire
 // Keep fire in front of player unless out of sight
 //
-void A_StartFire (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_StartFire)
 {
 	S_Sound (self, CHAN_BODY, "vile/firestrt", 1, ATTN_NORM);
-	A_Fire (self);
+	CALL_ACTION(A_Fire, self);
 }
 
-void A_FireCrackle (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_FireCrackle)
 {
 	S_Sound (self, CHAN_BODY, "vile/firecrkl", 1, ATTN_NORM);
-	A_Fire (self);
+	CALL_ACTION(A_Fire, self);
 }
 
-void A_Fire (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Fire)
 {
 	AActor *dest;
 	angle_t an;
@@ -78,7 +80,7 @@ void A_Fire (AActor *self)
 // A_VileTarget
 // Spawn the hellfire
 //
-void A_VileTarget (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_VileTarget)
 {
 	AActor *fog;
 		
@@ -89,22 +91,22 @@ void A_VileTarget (AActor *actor)
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 		return;
 
-	A_FaceTarget (actor);
+	A_FaceTarget (self);
 
-	fog = Spawn ("ArchvileFire", actor->target->x, actor->target->y,
-		actor->target->z, ALLOW_REPLACE);
+	fog = Spawn ("ArchvileFire", self->target->x, self->target->y,
+		self->target->z, ALLOW_REPLACE);
 	
 	// [BC] If we're the server, tell clients to spawn the thing.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnThing( fog );
 
-	actor->tracer = fog;
-	fog->target = actor;
-	fog->tracer = actor->target;
-	A_Fire (fog);
+	self->tracer = fog;
+	fog->target = self;
+	fog->tracer = self->target;
+	CALL_ACTION(A_Fire, fog);
 }
 
 
@@ -113,7 +115,7 @@ void A_VileTarget (AActor *actor)
 //
 // A_VileAttack
 //
-void A_VileAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_VileAttack)
 {		
 	AActor *fire;
 	int an;
@@ -125,38 +127,38 @@ void A_VileAttack (AActor *actor)
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 		return;
 	
-	A_FaceTarget (actor);
+	A_FaceTarget (self);
 
-	if (!P_CheckSight (actor, actor->target, 0) )
+	if (!P_CheckSight (self, self->target, 0) )
 		return;
 
-	S_Sound (actor, CHAN_WEAPON, "vile/stop", 1, ATTN_NORM);
-	P_DamageMobj (actor->target, actor, actor, 20, NAME_None);
-	P_TraceBleed (20, actor->target);
-	actor->target->momz = 1000 * FRACUNIT / actor->target->Mass;
+	S_Sound (self, CHAN_WEAPON, "vile/stop", 1, ATTN_NORM);
+	P_DamageMobj (self->target, self, self, 20, NAME_None);
+	P_TraceBleed (20, self->target);
+	self->target->momz = 1000 * FRACUNIT / self->target->Mass;
 		
 	// [BC] Tell clients to play the arch-vile sound on their end.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "vile/stop", 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "vile/stop", 1, ATTN_NORM );
 
-	an = actor->angle >> ANGLETOFINESHIFT;
+	an = self->angle >> ANGLETOFINESHIFT;
 
-	fire = actor->tracer;
+	fire = self->tracer;
 
 	if (!fire)
 		return;
 				
 	// move the fire between the vile and the player
-	fire->SetOrigin (actor->target->x - FixedMul (24*FRACUNIT, finecosine[an]),
-					 actor->target->y - FixedMul (24*FRACUNIT, finesine[an]),
-					 actor->target->z);
+	fire->SetOrigin (self->target->x - FixedMul (24*FRACUNIT, finecosine[an]),
+					 self->target->y - FixedMul (24*FRACUNIT, finesine[an]),
+					 self->target->z);
 	
 	// [BC] Tell clients of the fire update.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( fire, CM_X|CM_Y|CM_Z );
 
-	P_RadiusAttack (fire, actor, 70, 70, NAME_Fire, false);
+	P_RadiusAttack (fire, self, 70, 70, NAME_Fire, false);
 }

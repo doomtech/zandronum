@@ -8,6 +8,7 @@
 #include "a_sharedglobal.h"
 #include "gstrings.h"
 #include "a_specialspot.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -26,10 +27,10 @@ static FRandom pr_bluespark ("BlueSpark");
 //
 //----------------------------------------------------------------------------
 
-void A_Sor1Pain (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Sor1Pain)
 {
-	actor->special1 = 20; // Number of steps to walk fast
-	A_Pain (actor);
+	self->special1 = 20; // Number of steps to walk fast
+	CALL_ACTION(A_Pain, self);
 }
 
 //----------------------------------------------------------------------------
@@ -38,14 +39,14 @@ void A_Sor1Pain (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Sor1Chase (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Sor1Chase)
 {
-	if (actor->special1)
+	if (self->special1)
 	{
-		actor->special1--;
-		actor->tics -= 3;
+		self->special1--;
+		self->tics -= 3;
 	}
-	A_Chase(actor);
+	A_Chase(self);
 }
 
 //----------------------------------------------------------------------------
@@ -56,7 +57,7 @@ void A_Sor1Chase (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Srcr1Attack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Srcr1Attack)
 {
 	AActor *mo;
 	fixed_t momz;
@@ -66,27 +67,27 @@ void A_Srcr1Attack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NORM);
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 	{
 		return;
 	}
-	S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
-	if (actor->CheckMeleeRange ())
+	S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NORM);
+	if (self->CheckMeleeRange ())
 	{
 		int damage = pr_scrc1atk.HitDice (8);
-		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
-		P_TraceBleed (damage, actor->target, actor);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (damage, self->target, self);
 		return;
 	}
 
 	const PClass *fx = PClass::FindClass("SorcererFX1");
-	if (actor->health > (actor->GetDefault()->health/3)*2)
+	if (self->health > (self->GetDefault()->health/3)*2)
 	{ // Spit one fireball
-		mo = P_SpawnMissileZ (actor, actor->z + 48*FRACUNIT, actor->target, fx );
+		mo = P_SpawnMissileZ (self, self->z + 48*FRACUNIT, self->target, fx );
 
 		// [BC] Spawn this to clients.
 		if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -94,7 +95,7 @@ void A_Srcr1Attack (AActor *actor)
 	}
 	else
 	{ // Spit three fireballs
-		mo = P_SpawnMissileZ (actor, actor->z + 48*FRACUNIT, actor->target, fx);
+		mo = P_SpawnMissileZ (self, self->z + 48*FRACUNIT, self->target, fx);
 		if (mo != NULL)
 		{
 			momz = mo->momz;
@@ -104,28 +105,28 @@ void A_Srcr1Attack (AActor *actor)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnMissile( mo );
 
-			mo = P_SpawnMissileAngleZ (actor, actor->z + 48*FRACUNIT, fx, angle-ANGLE_1*3, momz);
+			mo = P_SpawnMissileAngleZ (self, self->z + 48*FRACUNIT, fx, angle-ANGLE_1*3, momz);
 			
 			// [BC] Spawn this to clients.
 			if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 				SERVERCOMMANDS_SpawnMissile( mo );
 
-			mo = P_SpawnMissileAngleZ (actor, actor->z + 48*FRACUNIT, fx, angle+ANGLE_1*3, momz);
+			mo = P_SpawnMissileAngleZ (self, self->z + 48*FRACUNIT, fx, angle+ANGLE_1*3, momz);
 
 			// [BC] Spawn this to clients.
 			if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 				SERVERCOMMANDS_SpawnMissile( mo );
 		}
-		if (actor->health < actor->GetDefault()->health/3)
+		if (self->health < self->GetDefault()->health/3)
 		{ // Maybe attack again
-			if (actor->special1)
+			if (self->special1)
 			{ // Just attacked, so don't attack again
-				actor->special1 = 0;
+				self->special1 = 0;
 			}
 			else
 			{ // Set state to attack again
-				actor->special1 = 1;
-				actor->SetState (actor->FindState("Missile2"));
+				self->special1 = 1;
+				self->SetState (self->FindState("Missile2"));
 			}
 		}
 	}
@@ -137,11 +138,11 @@ void A_Srcr1Attack (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_SorcererRise (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_SorcererRise)
 {
 	AActor *mo;
 
-	actor->flags &= ~MF_SOLID;
+	self->flags &= ~MF_SOLID;
 
 	// [BC] Let the server spawn this in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -150,10 +151,10 @@ void A_SorcererRise (AActor *actor)
 		return;
 	}
 
-	mo = Spawn("Sorcerer2", actor->x, actor->y, actor->z, ALLOW_REPLACE);
+	mo = Spawn("Sorcerer2", self->x, self->y, self->z, ALLOW_REPLACE);
 	mo->SetState (mo->FindState("Rise"));
-	mo->angle = actor->angle;
-	mo->CopyFriendliness (actor, true);
+	mo->angle = self->angle;
+	mo->CopyFriendliness (self, true);
 
 	// [BC] If we're the server, spawn the sorcerer for clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -217,7 +218,7 @@ void P_DSparilTeleport (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Srcr2Decide (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Srcr2Decide)
 {
 
 	static const int chance[] =
@@ -232,7 +233,7 @@ void A_Srcr2Decide (AActor *actor)
 		return;
 	}
 
-	unsigned int chanceindex = actor->health / (actor->GetDefault()->health/8);
+	unsigned int chanceindex = self->health / (self->GetDefault()->health/8);
 	if (chanceindex >= countof(chance))
 	{
 		chanceindex = countof(chance) - 1;
@@ -240,7 +241,7 @@ void A_Srcr2Decide (AActor *actor)
 
 	if (pr_s2d() < chance[chanceindex])
 	{
-		P_DSparilTeleport (actor);
+		P_DSparilTeleport (self);
 	}
 }
 
@@ -250,7 +251,7 @@ void A_Srcr2Decide (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Srcr2Attack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Srcr2Attack)
 {
 	// [BC]
 	AActor	*mo;
@@ -260,36 +261,36 @@ void A_Srcr2Attack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
+		S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NONE);
 		return;
 	}
 
-	if (!actor->target)
+	if (!self->target)
 	{
 		return;
 	}
-	S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
-	if (actor->CheckMeleeRange())
+	S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NONE);
+	if (self->CheckMeleeRange())
 	{
 		int damage = pr_s2a.HitDice (20);
-		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
-		P_TraceBleed (damage, actor->target, actor);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (damage, self->target, self);
 		return;
 	}
-	chance = actor->health < actor->GetDefault()->health/2 ? 96 : 48;
+	chance = self->health < self->GetDefault()->health/2 ? 96 : 48;
 	if (pr_s2a() < chance)
 	{ // Wizard spawners
 
 		const PClass *fx = PClass::FindClass("Sorcerer2FX2");
 		if (fx)
 		{
-			mo = P_SpawnMissileAngle (actor, fx, actor->angle-ANG45, FRACUNIT/2);
+			mo = P_SpawnMissileAngle (self, fx, self->angle-ANG45, FRACUNIT/2);
 
 			// [BC]
 			if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 				SERVERCOMMANDS_SpawnMissile( mo );
 
-			mo = P_SpawnMissileAngle (actor, fx, actor->angle+ANG45, FRACUNIT/2);
+			mo = P_SpawnMissileAngle (self, fx, self->angle+ANG45, FRACUNIT/2);
 
 			// [BC]
 			if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -298,7 +299,7 @@ void A_Srcr2Attack (AActor *actor)
 	}
 	else
 	{ // Blue bolt
-		mo = P_SpawnMissile (actor, actor->target, PClass::FindClass("Sorcerer2FX1"));
+		mo = P_SpawnMissile (self, self->target, PClass::FindClass("Sorcerer2FX1"));
 		
 		// [BC]
 		if (( mo ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -313,7 +314,7 @@ void A_Srcr2Attack (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_BlueSpark (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_BlueSpark)
 {
 	int i;
 	AActor *mo;
@@ -327,7 +328,7 @@ void A_BlueSpark (AActor *actor)
 
 	for (i = 0; i < 2; i++)
 	{
-		mo = Spawn("Sorcerer2FXSpark", actor->x, actor->y, actor->z, ALLOW_REPLACE);
+		mo = Spawn("Sorcerer2FXSpark", self->x, self->y, self->z, ALLOW_REPLACE);
 		mo->momx = pr_bluespark.Random2() << 9;
 		mo->momy = pr_bluespark.Random2() << 9;
 		mo->momz = FRACUNIT + (pr_bluespark()<<8);
@@ -344,7 +345,7 @@ void A_BlueSpark (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_GenWizard (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_GenWizard)
 {
 	AActor *mo;
 
@@ -355,7 +356,7 @@ void A_GenWizard (AActor *actor)
 		return;
 	}
 
-	mo = Spawn("Wizard", actor->x, actor->y, actor->z, ALLOW_REPLACE);
+	mo = Spawn("Wizard", self->x, self->y, self->z, ALLOW_REPLACE);
 	if (mo != NULL)
 	{
 		mo->z -= mo->GetDefault()->height/2;
@@ -366,19 +367,19 @@ void A_GenWizard (AActor *actor)
 		}
 		else
 		{ // [RH] Make the new wizards inherit D'Sparil's target
-			mo->CopyFriendliness (actor->target, true);
+			mo->CopyFriendliness (self->target, true);
 
-			actor->momx = actor->momy = actor->momz = 0;
-			actor->SetState (actor->FindState(NAME_Death));
-			actor->flags &= ~MF_MISSILE;
-			mo->master = actor->target;
+			self->momx = self->momy = self->momz = 0;
+			self->SetState (self->FindState(NAME_Death));
+			self->flags &= ~MF_MISSILE;
+			mo->master = self->target;
 
 			// [BC]
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( mo );
 
 			// Heretic did not offset it by TELEFOGHEIGHT, so I won't either.
-			mo = Spawn<ATeleportFog> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+			mo = Spawn<ATeleportFog> (self->x, self->y, self->z, ALLOW_REPLACE);
 
 			// [BC]
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -393,9 +394,9 @@ void A_GenWizard (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Sor2DthInit (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Sor2DthInit)
 {
-	actor->special1 = 7; // Animation loop counter
+	self->special1 = 7; // Animation loop counter
 	P_Massacre (); // Kill monsters early
 }
 
@@ -405,11 +406,11 @@ void A_Sor2DthInit (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_Sor2DthLoop (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_Sor2DthLoop)
 {
-	if (--actor->special1)
+	if (--self->special1)
 	{ // Need to loop
-		actor->SetState (actor->FindState("DeathLoop"));
+		self->SetState (self->FindState("DeathLoop"));
 	}
 }
 

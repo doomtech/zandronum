@@ -4,6 +4,7 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -11,7 +12,7 @@
 
 static FRandom pr_inq ("Inquisitor");
 
-void A_InquisitorWalk (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_InquisitorWalk)
 {
 	S_Sound (self, CHAN_BODY, "inquisitor/walk", 1, ATTN_NORM);
 	A_Chase (self);
@@ -26,7 +27,7 @@ bool InquisitorCheckDistance (AActor *self)
 	return false;
 }
 
-void A_InquisitorDecide (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_InquisitorDecide)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -60,7 +61,7 @@ void A_InquisitorDecide (AActor *self)
 	}
 }
 
-void A_InquisitorAttack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_InquisitorAttack)
 {
 	AActor *proj;
 
@@ -100,7 +101,7 @@ void A_InquisitorAttack (AActor *self)
 	self->z -= 32*FRACBITS;
 }
 
-void A_InquisitorJump (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_InquisitorJump)
 {
 	fixed_t dist;
 	fixed_t speed;
@@ -143,7 +144,7 @@ void A_InquisitorJump (AActor *self)
 	}
 }
 
-void A_InquisitorCheckLand (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_InquisitorCheckLand)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -175,7 +176,7 @@ void A_InquisitorCheckLand (AActor *self)
 
 }
 
-void A_TossArm (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_TossArm)
 {
 	AActor *foo = Spawn("InquisitorArm", self->x, self->y, self->z + 24*FRACUNIT, ALLOW_REPLACE);
 	foo->angle = self->angle - ANGLE_90 + (pr_inq.Random2() << 22);

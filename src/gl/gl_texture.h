@@ -140,6 +140,7 @@ private:
 	bool bHasColorkey;		// only for hires
 	GL_RECT * areas;
 	GLShader * Shader;
+	bool ShaderSet;
 
 	short LeftOffset[2];
 	short TopOffset[2];
@@ -159,6 +160,7 @@ private:
 	int CheckExternalFile(bool & hascolorkey);
 	unsigned char * LoadHiresTexture(int *width, int *height, int cm);
 
+	BYTE *WarpBuffer(BYTE *buffer, int Width, int Height, int warp);
 
 	void CheckForAlpha(const unsigned char * buffer);
 

@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -113,7 +114,7 @@ void AMageWandMissile::Tick ()
 //
 //============================================================================
 
-void A_MWandAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_MWandAttack)
 {
 	AActor *mo;
 
@@ -121,23 +122,23 @@ void A_MWandAttack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
 		return;
 	}
 
-	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AMageWandMissile));
+	mo = P_SpawnPlayerMissile (self, RUNTIME_CLASS(AMageWandMissile));
 
 	// [BC] Apply spread.
-	if (( actor->player ) &&
-		( actor->player->cheats & CF_SPREAD ))
+	if (( self->player ) &&
+		( self->player->cheats & CF_SPREAD ))
 	{
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AMageWandMissile ), actor->angle + ( ANGLE_45 / 3 ));
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AMageWandMissile ), actor->angle - ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( AMageWandMissile ), self->angle + ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( AMageWandMissile ), self->angle - ( ANGLE_45 / 3 ));
 	}
 
-	S_Sound (actor, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageWandFire", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "MageWandFire", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 }

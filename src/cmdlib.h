@@ -41,9 +41,9 @@ void 	ForceExtension( char *pszPath, const char *pszExtension );
 FString	ExtractFilePath (const char *path);
 FString	ExtractFileBase (const char *path, bool keep_extension=false);
 
-int		ParseHex (char *str);
-int 	ParseNum (char *str);
-bool	IsNum (char *str);		// [RH] added
+int		ParseHex (const char *str);
+int 	ParseNum (const char *str);
+bool	IsNum (const char *str);		// [RH] added
 
 char	*copystring(const char *s);
 void	ReplaceString (char **ptr, const char *str);

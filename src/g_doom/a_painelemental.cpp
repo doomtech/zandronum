@@ -9,23 +9,20 @@
 #include "thingdef/thingdef.h"
 #include "cl_demo.h"
 
-void A_PainAttack (AActor *);
-void A_PainDie (AActor *);
+DECLARE_ACTION(A_SkullAttack)
 
-void A_SkullAttack (AActor *self);
-
-static const PClass *GetSpawnType()
+static const PClass *GetSpawnType(DECLARE_PARAMINFO)
 {
-	const PClass *spawntype = NULL;
-	int index=CheckIndex(1, NULL);
-	if (index>=0) 
-	{
-		spawntype = PClass::FindClass((ENamedName)StateParameters[index]);
-	}
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(spawntype, 0);
+
 	if (spawntype == NULL) spawntype = PClass::FindClass("LostSoul");
 	return spawntype;
 }
 
+
+#define SKULLSPEED (20*FRACUNIT)
+void A_SkullAttack(AActor *self, fixed_t speed);
 
 //
 // A_PainShootSkull
@@ -147,7 +144,7 @@ void A_PainShootSkull (AActor *self, angle_t angle, const PClass *spawntype)
 	// [RH] Lost souls hate the same things as their pain elementals
 	other->CopyFriendliness (self, true);
 
-	A_SkullAttack (other);
+	A_SkullAttack(other, SKULLSPEED);
 }
 
 
@@ -155,35 +152,35 @@ void A_PainShootSkull (AActor *self, angle_t angle, const PClass *spawntype)
 // A_PainAttack
 // Spawn a lost soul and launch it at the target
 // 
-void A_PainAttack (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PainAttack)
 {
 	if (!self->target)
 		return;
 
-	const PClass *spawntype = GetSpawnType();
+	const PClass *spawntype = GetSpawnType(PUSH_PARAMINFO);
 	A_FaceTarget (self);
 	A_PainShootSkull (self, self->angle, spawntype);
 }
 
-void A_DualPainAttack (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_DualPainAttack)
 {
 	if (!self->target)
 		return;
 
-	const PClass *spawntype = GetSpawnType();
+	const PClass *spawntype = GetSpawnType(PUSH_PARAMINFO);
 	A_FaceTarget (self);
 	A_PainShootSkull (self, self->angle + ANG45, spawntype);
 	A_PainShootSkull (self, self->angle - ANG45, spawntype);
 }
 
-void A_PainDie (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PainDie)
 {
 	if (self->target != NULL && self->IsFriend (self->target))
 	{ // And I thought you were my friend!
 		self->flags &= ~MF_FRIENDLY;
 	}
-	const PClass *spawntype = GetSpawnType();
-	A_NoBlocking (self);
+	const PClass *spawntype = GetSpawnType(PUSH_PARAMINFO);
+	CALL_ACTION(A_NoBlocking, self);
 	A_PainShootSkull (self, self->angle + ANG90, spawntype);
 	A_PainShootSkull (self, self->angle + ANG180, spawntype);
 	A_PainShootSkull (self, self->angle + ANG270, spawntype);

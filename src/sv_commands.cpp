@@ -4061,11 +4061,11 @@ void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( TexMan( sectors[ulSector].floorpic )->Name ) + (ULONG)strlen( TexMan( sectors[ulSector].ceilingpic )->Name ), true );
+		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name ) + (ULONG)strlen( TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFLAT );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].ceilingpic )->Name );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].floorpic )->Name );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name );
 	}
 }
 

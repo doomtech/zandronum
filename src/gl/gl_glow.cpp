@@ -52,10 +52,6 @@
 CVAR(Int, wallglowheight, 128, CVAR_ARCHIVE)
 CVAR(Float, wallglowfactor, 0.6f, CVAR_ARCHIVE)
 
-static TArray<bool> GlowingTextures;
-static TArray<PalEntry> GlowingColors;
-int MaxGlowingTexture;	// TexMan.NumTextures can't be used because it may change after allocating the arrays here.
-
 //===========================================================================
 // 
 //	Reads glow definitions from GLDEFS
@@ -63,15 +59,6 @@ int MaxGlowingTexture;	// TexMan.NumTextures can't be used because it may change
 //===========================================================================
 void gl_InitGlow(FScanner &sc)
 {
-	if (GlowingTextures.Size()==0)
-	{
-		MaxGlowingTexture=TexMan.NumTextures();
-		GlowingTextures.Resize(MaxGlowingTexture);
-		GlowingColors.Resize(MaxGlowingTexture);
-		memset(&GlowingColors[0], 0, sizeof(PalEntry)*MaxGlowingTexture);
-		memset(&GlowingTextures[0], 0, sizeof(bool)*MaxGlowingTexture);
-	}
-
 	sc.MustGetStringName("{");
 	while (!sc.CheckString("}"))
 	{
@@ -83,10 +70,8 @@ void gl_InitGlow(FScanner &sc)
 			{
 				sc.MustGetString();
 				FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
-				if (flump.isValid() && flump.GetIndex()<MaxGlowingTexture) 
-				{
-					GlowingTextures[flump.GetIndex()]=true;
-				}	 
+				FTexture *tex = TexMan[flump];
+				if (tex) tex->gl_info.bGlowing = true;
 			}
 		}
 
@@ -97,10 +82,8 @@ void gl_InitGlow(FScanner &sc)
 			{
 				sc.MustGetString();
 				FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
-				if (flump.isValid() && flump.GetIndex()<MaxGlowingTexture) 
-				{
-					GlowingTextures[flump.GetIndex()]=true;
-				}	 
+				FTexture *tex = TexMan[flump];
+				if (tex) tex->gl_info.bGlowing = true;
 			}
 		}
 	}
@@ -114,34 +97,27 @@ void gl_InitGlow(FScanner &sc)
 //===========================================================================
 void gl_GetGlowColor(FTextureID texno, float * data)
 {
-	if (texno.GetIndex()<MaxGlowingTexture)
+	FTexture *tex = TexMan[texno];
+	if (tex && tex->gl_info.bGlowing && tex->gl_info.GlowColor == 0)
 	{
-		if (GlowingColors[texno.GetIndex()].a==0)
+		FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+		if (gltex)
 		{
-			FGLTexture * tex = FGLTexture::ValidateTexture(texno);
-			if (tex)
-			{
-				int w, h;
-				unsigned char * buffer = tex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
+			int w, h;
+			unsigned char * buffer = gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
 
-				if (buffer)
-				{
-					GlowingColors[texno.GetIndex()]=averageColor((DWORD *) buffer, w*h, true);
-					delete buffer;
-					GlowingColors[texno.GetIndex()].a=1;	// mark as processed
-				}
+			if (buffer)
+			{
+				tex->gl_info.GlowColor = averageColor((DWORD *) buffer, w*h, true);
+				delete buffer;
 			}
 		}
-		data[0]=GlowingColors[texno.GetIndex()].r/255.0f;
-		data[1]=GlowingColors[texno.GetIndex()].g/255.0f;
-		data[2]=GlowingColors[texno.GetIndex()].b/255.0f;
+		if (tex->gl_info.GlowColor == 0) tex->gl_info.bGlowing = false;
 	}
-	else
-	{
-		data[0]=0;
-		data[1]=0;
-		data[2]=0;
-	}
+
+	data[0]=tex->gl_info.GlowColor.r/255.0f;
+	data[1]=tex->gl_info.GlowColor.g/255.0f;
+	data[2]=tex->gl_info.GlowColor.b/255.0f;
 }
 
 
@@ -152,8 +128,9 @@ void gl_GetGlowColor(FTextureID texno, float * data)
 //==========================================================================
 bool gl_isGlowingTexture(FTextureID texno)
 {
-	if (texno.isValid() && texno.GetIndex()<MaxGlowingTexture) return GlowingTextures[texno.GetIndex()];
-	return false;
+	FTexture *tex = TexMan[texno];
+	if (tex) return tex->IsGlowing();
+	else return false;
 }
 
 //==========================================================================

@@ -87,7 +87,7 @@ FTexture * FTexture::CreateTexture (int lumpnum, int usetype)
 		{ RawPageTexture_TryCreate,		TEX_MiscPatch },
 		{ FlatTexture_TryCreate,		TEX_Flat },
 		{ PatchTexture_TryCreate,		TEX_Any },
-		{ AutomapTexture_TryCreate,		TEX_Autopage },
+		{ AutomapTexture_TryCreate,		TEX_MiscPatch },
 	};
 
 	if (lumpnum == -1) return NULL;
@@ -513,6 +513,11 @@ int FTexture::CopyTrueColorTranslated(FBitmap *bmp, int x, int y, int rotate, FR
 bool FTexture::UseBasePalette() 
 { 
 	return true; 
+}
+
+FTexture *FTexture::GetRedirect(bool wantwarped)
+{
+	return this;
 }
 
 

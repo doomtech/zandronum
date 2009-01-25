@@ -6,17 +6,17 @@
 #include "p_enemy.h"
 #include "gstrings.h"
 #include "a_action.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "sv_commands.h"
 #include "network.h"
 
 static FRandom pr_troopattack ("TroopAttack");
 
-void A_TroopAttack (AActor *);
-
 //
 // A_TroopAttack
 //
-void A_TroopAttack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_TroopAttack)
 {
 	AActor	*pMissile;
 

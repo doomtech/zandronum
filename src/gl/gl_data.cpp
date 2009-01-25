@@ -131,9 +131,7 @@ void AdjustSpriteOffsets()
 					{
 						tex->LeftOffset=x;
 						tex->TopOffset=y;
-						FGLTexture *gltex = FGLTexture::ValidateTexture(tex);
-						gltex->LeftOffset[FGLTexture::GLUSE_PATCH]=x+1;
-						gltex->TopOffset[FGLTexture::GLUSE_PATCH]=y+1;
+						tex->KillNative();
 					}
 				}
 			}
@@ -532,7 +530,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 	P_Recalculate3DFloors(sector);
 	if (sector->subsectorcount==0) return;
 
-	sector->transdoorheight=sector->floortexz;
+	sector->transdoorheight=sector->GetPlaneTexZ(sector_t::floor);
 	sector->transdoor= !(sector->e->XFloor.ffloors.Size() || sector->heightsec || sector->floorplane.a || sector->floorplane.b);
 
 	if (sector->transdoor)
@@ -557,7 +555,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 
 				int side=sides[sector->lines[i]->sidenum[0]].sector==sec;
 
-				if (sector->floortexz!=sec->floortexz+FRACUNIT) 
+				if (sector->GetPlaneTexZ(sector_t::floor)!=sec->GetPlaneTexZ(sector_t::floor)+FRACUNIT) 
 				{
 					sector->transdoor=false;
 					return;
@@ -566,7 +564,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom).isValid()) nobtextures++;
 			}
 		}
-		if (selfref+notextures==sector->linecount || sector->ceilingpic==skyflatnum)
+		if (selfref+notextures==sector->linecount || sector->GetTexture(sector_t::ceiling)==skyflatnum)
 		{
 			sector->transdoor=false;
 			return;

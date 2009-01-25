@@ -25,6 +25,7 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "i_system.h"
+#include "thingdef/thingdef.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -87,7 +88,7 @@ extern void SpawnSpiritTail (AActor *spirit);
 //
 //============================================================================
 
-void A_KoraxChase (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KoraxChase)
 {
 	AActor *spot;
 
@@ -97,61 +98,61 @@ void A_KoraxChase (AActor *actor)
 	{
 		if (pr_koraxchase()<30)
 		{
-			S_Sound (actor, CHAN_VOICE, "KoraxActive", 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, "KoraxActive", 1, ATTN_NONE);
 		}
 		return;
 	}
 
-	if ((!actor->special2) && (actor->health <= (actor->GetDefault()->health/2)))
+	if ((!self->special2) && (self->health <= (self->GetDefault()->health/2)))
 	{
 		FActorIterator iterator (KORAX_FIRST_TELEPORT_TID);
 		spot = iterator.Next ();
 		if (spot != NULL)
 		{
-			P_Teleport (actor, spot->x, spot->y, ONFLOORZ, spot->angle, true, true, false);
+			P_Teleport (self, spot->x, spot->y, ONFLOORZ, spot->angle, true, true, false);
 		}
 
-		P_StartScript (actor, NULL, 249, NULL, 0, 0, 0, 0, 0, false);
-		actor->special2 = 1;	// Don't run again
+		P_StartScript (self, NULL, 249, NULL, 0, 0, 0, 0, 0, false);
+		self->special2 = 1;	// Don't run again
 
 		return;
 	}
 
-	if (!actor->target) return;
+	if (!self->target) return;
 	if (pr_koraxchase()<30)
 	{
 		// [BC] Set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
+			SERVERCOMMANDS_SetThingState( self, STATE_MISSILE );
 
-		actor->SetState (actor->MissileState);
+		self->SetState (self->MissileState);
 	}
 	else if (pr_koraxchase()<30)
 	{
-		S_Sound (actor, CHAN_VOICE, "KoraxActive", 1, ATTN_NONE);
+		S_Sound (self, CHAN_VOICE, "KoraxActive", 1, ATTN_NONE);
 	}
 
 	// Teleport away
-	if (actor->health < (actor->GetDefault()->health>>1))
+	if (self->health < (self->GetDefault()->health>>1))
 	{
 		if (pr_koraxchase()<10)
 		{
 			FActorIterator iterator (KORAX_TELEPORT_TID);
 
-			if (actor->tracer != NULL)
+			if (self->tracer != NULL)
 			{	// Find the previous teleport destination
 				do
 				{
 					spot = iterator.Next ();
-				} while (spot != NULL && spot != actor->tracer);
+				} while (spot != NULL && spot != self->tracer);
 			}
 
 			// Go to the next teleport destination
 			spot = iterator.Next ();
-			actor->tracer = spot;
+			self->tracer = spot;
 			if (spot)
 			{
-				P_Teleport (actor, spot->x, spot->y, ONFLOORZ, spot->angle, true, true, false);
+				P_Teleport (self, spot->x, spot->y, ONFLOORZ, spot->angle, true, true, false);
 			}
 		}
 	}
@@ -163,7 +164,7 @@ void A_KoraxChase (AActor *actor)
 //
 //============================================================================
 
-void A_KoraxBonePop (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KoraxBonePop)
 {
 	AActor *mo;
 	int i;
@@ -178,10 +179,10 @@ void A_KoraxBonePop (AActor *actor)
 	// Spawn 6 spirits equalangularly
 	for (i = 0; i < 6; ++i)
 	{
-		mo = P_SpawnMissileAngle (actor, PClass::FindClass("KoraxSpirit"), ANGLE_60*i, 5*FRACUNIT);
+		mo = P_SpawnMissileAngle (self, PClass::FindClass("KoraxSpirit"), ANGLE_60*i, 5*FRACUNIT);
 		if (mo)
 		{
-			KSpiritInit (mo, actor);
+			KSpiritInit (mo, self);
 
 			// [BC] Spawn the thing to clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -189,7 +190,7 @@ void A_KoraxBonePop (AActor *actor)
 		}
 	}
 
-	P_StartScript (actor, NULL, 255, NULL, 0, 0, 0, 0, false, false);		// Death script
+	P_StartScript (self, NULL, 255, NULL, 0, 0, 0, 0, false, false);		// Death script
 }
 
 //============================================================================
@@ -224,7 +225,7 @@ void KSpiritInit (AActor *spirit, AActor *korax)
 //
 //============================================================================
 
-void A_KoraxDecide (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KoraxDecide)
 {
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -237,17 +238,17 @@ void A_KoraxDecide (AActor *actor)
 	{
 		// [BC] Set the thing's frame.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, actor->FindState("Attack") );
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState("Attack") );
 
-		actor->SetState (actor->FindState("Attack"));
+		self->SetState (self->FindState("Attack"));
 	}
 	else
 	{
 		// [BC] Set the thing's frame.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, actor->FindState("Command") );
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState("Command") );
 
-		actor->SetState (actor->FindState("Command"));
+		self->SetState (self->FindState("Command"));
 	}
 }
 
@@ -257,7 +258,7 @@ void A_KoraxDecide (AActor *actor)
 //
 //============================================================================
 
-void A_KoraxMissile (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KoraxMissile)
 {
 	static const struct { const char *type, *sound; } choices[6] =
 	{
@@ -273,13 +274,13 @@ void A_KoraxMissile (AActor *actor)
 	int i;
 	const PClass *info;
 
-	S_Sound (actor, CHAN_VOICE, "KoraxAttack", 1, ATTN_NORM);
+	S_Sound (self, CHAN_VOICE, "KoraxAttack", 1, ATTN_NORM);
 
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_WEAPON, choices[type].sound, 1, ATTN_NONE);
+		S_Sound (self, CHAN_WEAPON, choices[type].sound, 1, ATTN_NONE);
 		return;
 	}
 
@@ -290,10 +291,10 @@ void A_KoraxMissile (AActor *actor)
 	}
 
 	// Fire all 6 missiles at once
-	S_Sound (actor, CHAN_WEAPON, choices[type].sound, 1, ATTN_NONE);
+	S_Sound (self, CHAN_WEAPON, choices[type].sound, 1, ATTN_NONE);
 	for (i = 0; i < 6; ++i)
 	{
-		KoraxFire (actor, info, i);
+		KoraxFire (self, info, i);
 	}
 }
 
@@ -305,7 +306,7 @@ void A_KoraxMissile (AActor *actor)
 //
 //============================================================================
 
-void A_KoraxCommand (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KoraxCommand)
 {
 	fixed_t x,y,z;
 	angle_t ang;
@@ -313,7 +314,7 @@ void A_KoraxCommand (AActor *actor)
 	// [BC]
 	AActor	*pBolt;
 
-	S_Sound (actor, CHAN_VOICE, "KoraxCommand", 1, ATTN_NORM);
+	S_Sound (self, CHAN_VOICE, "KoraxCommand", 1, ATTN_NORM);
 
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -323,10 +324,10 @@ void A_KoraxCommand (AActor *actor)
 	}
 
 	// Shoot stream of lightning to ceiling
-	ang = (actor->angle - ANGLE_90) >> ANGLETOFINESHIFT;
-	x = actor->x + KORAX_COMMAND_OFFSET * finecosine[ang];
-	y = actor->y + KORAX_COMMAND_OFFSET * finesine[ang];
-	z = actor->z + KORAX_COMMAND_HEIGHT*FRACUNIT;
+	ang = (self->angle - ANGLE_90) >> ANGLETOFINESHIFT;
+	x = self->x + KORAX_COMMAND_OFFSET * finecosine[ang];
+	y = self->y + KORAX_COMMAND_OFFSET * finesine[ang];
+	z = self->z + KORAX_COMMAND_HEIGHT*FRACUNIT;
 	pBolt = Spawn("KoraxBolt", x, y, z, ALLOW_REPLACE);
 
 	// [BC] Spawn the bolt to clients.
@@ -336,7 +337,7 @@ void A_KoraxCommand (AActor *actor)
 		SERVERCOMMANDS_SpawnThing( pBolt );
 	}
 
-	if (actor->health <= (actor->GetDefault()->health >> 1))
+	if (self->health <= (self->GetDefault()->health >> 1))
 	{
 		numcommands = 5;
 	}
@@ -345,7 +346,7 @@ void A_KoraxCommand (AActor *actor)
 		numcommands = 4;
 	}
 
-	P_StartScript (actor, NULL, 250+(pr_koraxcommand()%numcommands),
+	P_StartScript (self, NULL, 250+(pr_koraxcommand()%numcommands),
 		NULL, 0, 0, 0, 0, false, false);
 }
 
@@ -409,29 +410,29 @@ void KoraxFire (AActor *actor, const PClass *type, int arm)
 //
 //============================================================================
 
-void A_KSpiritWeave (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KSpiritWeave)
 {
 	fixed_t newX, newY;
 	int weaveXY, weaveZ;
 	int angle;
 
-	weaveXY = actor->special2>>16;
-	weaveZ = actor->special2&0xFFFF;
-	angle = (actor->angle+ANG90)>>ANGLETOFINESHIFT;
-	newX = actor->x-FixedMul(finecosine[angle], 
+	weaveXY = self->special2>>16;
+	weaveZ = self->special2&0xFFFF;
+	angle = (self->angle+ANG90)>>ANGLETOFINESHIFT;
+	newX = self->x-FixedMul(finecosine[angle], 
 		FloatBobOffsets[weaveXY]<<2);
-	newY = actor->y-FixedMul(finesine[angle],
+	newY = self->y-FixedMul(finesine[angle],
 		FloatBobOffsets[weaveXY]<<2);
 	weaveXY = (weaveXY+(pr_kspiritweave()%5))&63;
 	newX += FixedMul(finecosine[angle], 
 		FloatBobOffsets[weaveXY]<<2);
 	newY += FixedMul(finesine[angle], 
 		FloatBobOffsets[weaveXY]<<2);
-	P_TryMove(actor, newX, newY, true);
-	actor->z -= FloatBobOffsets[weaveZ]<<1;
+	P_TryMove(self, newX, newY, true);
+	self->z -= FloatBobOffsets[weaveZ]<<1;
 	weaveZ = (weaveZ+(pr_kspiritweave()%5))&63;
-	actor->z += FloatBobOffsets[weaveZ]<<1;	
-	actor->special2 = weaveZ+(weaveXY<<16);
+	self->z += FloatBobOffsets[weaveZ]<<1;	
+	self->special2 = weaveZ+(weaveXY<<16);
 }
 
 //============================================================================
@@ -522,7 +523,7 @@ void A_KSpiritSeeker (AActor *actor, angle_t thresh, angle_t turnMax)
 //
 //============================================================================
 
-void A_KSpiritRoam (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KSpiritRoam)
 {
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -530,35 +531,35 @@ void A_KSpiritRoam (AActor *actor)
 	{
 		if (pr_kspiritroam()<50)
 		{
-			S_Sound (actor, CHAN_VOICE, "SpiritActive", 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, "SpiritActive", 1, ATTN_NONE);
 		}
 
 		return;
 	}
 
-	if (actor->health-- <= 0)
+	if (self->health-- <= 0)
 	{
 		// [BC] Play the sound and set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM );
-			SERVERCOMMANDS_SetThingFrame( actor, actor->FindState("Death") );
+			SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM );
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState("Death") );
 		}
 
-		S_Sound (actor, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM);
-		actor->SetState (actor->FindState("Death"));
+		S_Sound (self, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM);
+		self->SetState (self->FindState("Death"));
 	}
 	else
 	{
-		if (actor->tracer)
+		if (self->tracer)
 		{
-			A_KSpiritSeeker (actor, actor->args[0]*ANGLE_1,
-							 actor->args[0]*ANGLE_1*2);
+			A_KSpiritSeeker (self, self->args[0]*ANGLE_1,
+							 self->args[0]*ANGLE_1*2);
 		}
-		A_KSpiritWeave (actor);
+		CALL_ACTION(A_KSpiritWeave, self);
 		if (pr_kspiritroam()<50)
 		{
-			S_Sound (actor, CHAN_VOICE, "SpiritActive", 1, ATTN_NONE);
+			S_Sound (self, CHAN_VOICE, "SpiritActive", 1, ATTN_NONE);
 		}
 	}
 }
@@ -569,7 +570,7 @@ void A_KSpiritRoam (AActor *actor)
 //
 //============================================================================
 
-void A_KBolt (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KBolt)
 {
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -579,13 +580,13 @@ void A_KBolt (AActor *actor)
 	}
 
 	// Countdown lifetime
-	if (actor->special1-- <= 0)
+	if (self->special1-- <= 0)
 	{
 		// [BC] Destroy the thing.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DestroyThing( actor );
+			SERVERCOMMANDS_DestroyThing( self );
 
-		actor->Destroy ();
+		self->Destroy ();
 	}
 }
 
@@ -595,7 +596,7 @@ void A_KBolt (AActor *actor)
 //
 //============================================================================
 
-void A_KBoltRaise (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_KBoltRaise)
 {
 	AActor *mo;
 	fixed_t z;
@@ -608,11 +609,11 @@ void A_KBoltRaise (AActor *actor)
 	}
 
 	// Spawn a child upward
-	z = actor->z + KORAX_BOLT_HEIGHT;
+	z = self->z + KORAX_BOLT_HEIGHT;
 
-	if ((z + KORAX_BOLT_HEIGHT) < actor->ceilingz)
+	if ((z + KORAX_BOLT_HEIGHT) < self->ceilingz)
 	{
-		mo = Spawn("KoraxBolt", actor->x, actor->y, z, ALLOW_REPLACE);
+		mo = Spawn("KoraxBolt", self->x, self->y, z, ALLOW_REPLACE);
 		if (mo)
 		{
 			mo->special1 = KORAX_BOLT_LIFETIME;

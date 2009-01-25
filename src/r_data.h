@@ -45,28 +45,26 @@ public:
 // A texture that returns a wiggly version of another texture.
 class FWarpTexture : public FTexture
 {
-	friend class FGLTexture;
 public:
 	FWarpTexture (FTexture *source);
 	~FWarpTexture ();
 
+	virtual int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate=0, FCopyInfo *inf = NULL);
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
 	bool CheckModified ();
 
-	// [OpenGL]
-	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf = NULL);
-	bool UseBasePalette() { return false; }
 	float GetSpeed() const { return Speed; }
 	int GetSourceLump() { return SourcePic->GetSourceLump(); }
 	void SetSpeed(float fac) { Speed = fac; }
+	FTexture *GetRedirect(bool wantwarped);
 
+	DWORD GenTime;
 protected:
 	FTexture *SourcePic;
 	BYTE *Pixels;
 	Span **Spans;
-	DWORD GenTime;
 	float Speed;
 
 	virtual void MakeTexture (DWORD time);
@@ -77,10 +75,6 @@ class FWarp2Texture : public FWarpTexture
 {
 public:
 	FWarp2Texture (FTexture *source);
-
-	// [OpenGL]
-	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf = NULL);
-	bool UseBasePalette() { return false; }
 
 protected:
 	void MakeTexture (DWORD time);

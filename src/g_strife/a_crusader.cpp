@@ -5,6 +5,7 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -18,7 +19,7 @@ bool Sys_1ed64 (AActor *self)
 	return false;
 }
 
-void A_CrusaderChoose (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_CrusaderChoose)
 {
 	// [BC]
 	AActor	*pMissile;
@@ -80,7 +81,7 @@ void A_CrusaderChoose (AActor *self)
 	}
 }
 
-void A_CrusaderSweepLeft (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepLeft)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -101,7 +102,7 @@ void A_CrusaderSweepLeft (AActor *self)
 	}
 }
 
-void A_CrusaderSweepRight (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepRight)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -122,7 +123,7 @@ void A_CrusaderSweepRight (AActor *self)
 	}
 }
 
-void A_CrusaderRefire (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_CrusaderRefire)
 {
 	if (self->target == NULL ||
 		self->target->health <= 0 ||
@@ -136,7 +137,7 @@ void A_CrusaderRefire (AActor *self)
 	}
 }
 
-void A_CrusaderDeath (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_CrusaderDeath)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

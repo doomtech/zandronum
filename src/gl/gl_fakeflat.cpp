@@ -64,7 +64,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 
 	if (in_area==area_above)
 	{
-		if (sec->heightsec->MoreFlags&SECF_FAKEFLOORONLY || sec->ceilingpic==skyflatnum) in_area=area_normal;
+		if (sec->heightsec->MoreFlags&SECF_FAKEFLOORONLY || sec->GetTexture(sector_t::ceiling)==skyflatnum) in_area=area_normal;
 	}
 
 	int diffTex = (sec->heightsec->MoreFlags & SECF_CLIPFAKEPLANES);
@@ -76,8 +76,8 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 	{
 		if (CopyPlaneIfValid (&dest->floorplane, &s->floorplane, &sec->ceilingplane))
 		{
-			dest->floorpic = s->floorpic;
-			dest->floortexz   = s->floortexz;
+			dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::floor), false);
+			dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::floor));
 		}
 		else if (s->MoreFlags & SECF_FAKEFLOORONLY)
 		{
@@ -87,10 +87,10 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 				if (!(s->MoreFlags & SECF_NOFAKELIGHT))
 				{
 					dest->lightlevel  = s->lightlevel;
-					dest->FloorLight = s->FloorLight;
-					dest->CeilingLight = s->CeilingLight;
-					dest->FloorFlags = s->FloorFlags;
-					dest->CeilingFlags = s->CeilingFlags;
+					dest->SetPlaneLight(sector_t::floor, s->GetPlaneLight(sector_t::floor));
+					dest->SetPlaneLight(sector_t::ceiling, s->GetPlaneLight(sector_t::ceiling));
+					dest->ChangeFlags(sector_t::floor, -1, s->GetFlags(sector_t::floor));
+					dest->ChangeFlags(sector_t::ceiling, -1, s->GetFlags(sector_t::ceiling));
 				}
 				return dest;
 			}
@@ -99,7 +99,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 	}
 	else
 	{
-		dest->floortexz   = s->floortexz;
+		dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::floor));
 		dest->floorplane   = s->floorplane;
 	}
 
@@ -109,88 +109,87 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 		{
 			if (CopyPlaneIfValid (&dest->ceilingplane, &s->ceilingplane, &sec->floorplane))
 			{
-				dest->ceilingpic = s->ceilingpic;
-				dest->ceilingtexz = s->ceilingtexz;
+				dest->SetTexture(sector_t::ceiling, s->GetTexture(sector_t::ceiling), false);
+				dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::ceiling));
 			}
 		}
 		else
 		{
 			dest->ceilingplane  = s->ceilingplane;
-			dest->ceilingtexz = s->ceilingtexz;
+			dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::ceiling));
 		}
 	}
 
 	if (in_area==area_below)
 	{
 		dest->ColorMap=s->ColorMap;
-		dest->floortexz = sec->floortexz;
-		dest->ceilingtexz = s->floortexz;
+		dest->SetPlaneTexZ(sector_t::floor, sec->GetPlaneTexZ(sector_t::floor));
+		dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::floor));
 		dest->floorplane=sec->floorplane;
 		dest->ceilingplane=s->floorplane;
 		dest->ceilingplane.FlipVert();
 
 		if (!back)
 		{
-			dest->floorpic = diffTex ? sec->floorpic : s->floorpic;
+			dest->SetTexture(sector_t::floor, diffTex ? sec->GetTexture(sector_t::floor) : s->GetTexture(sector_t::floor), false);
 			dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 
 			dest->ceilingplane		= s->floorplane;
 			
-			if (s->ceilingpic == skyflatnum) 
+			if (s->GetTexture(sector_t::ceiling) == skyflatnum) 
 			{
-				dest->ceilingpic    = dest->floorpic;
+				dest->SetTexture(sector_t::ceiling, dest->GetTexture(sector_t::floor), false);
 				//dest->floorplane			= dest->ceilingplane;
 				//dest->floorplane.FlipVert ();
 				//dest->floorplane.ChangeHeight (+1);
-				dest->ceilingpic			= dest->floorpic;
 				dest->planes[sector_t::ceiling].xform = dest->planes[sector_t::floor].xform;
 
 			} 
 			else 
 			{
-				dest->ceilingpic			= diffTex ? s->floorpic : s->ceilingpic;
+				dest->SetTexture(sector_t::ceiling, diffTex ? s->GetTexture(sector_t::floor) : s->GetTexture(sector_t::ceiling), false);
 				dest->planes[sector_t::ceiling].xform = s->planes[sector_t::ceiling].xform;
 			}
 			
 			if (!(s->MoreFlags & SECF_NOFAKELIGHT))
 			{
 				dest->lightlevel  = s->lightlevel;
-				dest->FloorLight = s->FloorLight;
-				dest->CeilingLight = s->CeilingLight;
-				dest->FloorFlags = s->FloorFlags;
-				dest->CeilingFlags = s->CeilingFlags;
+				dest->SetPlaneLight(sector_t::floor, s->GetPlaneLight(sector_t::floor));
+				dest->SetPlaneLight(sector_t::ceiling, s->GetPlaneLight(sector_t::ceiling));
+				dest->ChangeFlags(sector_t::floor, -1, s->GetFlags(sector_t::floor));
+				dest->ChangeFlags(sector_t::ceiling, -1, s->GetFlags(sector_t::ceiling));
 			}
 		}
 	}
 	else if (in_area==area_above)
 	{
 		dest->ColorMap=s->ColorMap;
-		dest->ceilingtexz = sec->ceilingtexz;
-		dest->floortexz   = s->ceilingtexz;
+		dest->SetPlaneTexZ(sector_t::ceiling, sec->GetPlaneTexZ(sector_t::ceiling));
+		dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::ceiling));
 		dest->ceilingplane= sec->ceilingplane;
 		dest->floorplane = s->ceilingplane;
 		dest->floorplane.FlipVert();
 
 		if (!back)
 		{
-			dest->ceilingpic = diffTex ? sec->ceilingpic : s->ceilingpic;
-			dest->floorpic			= s->ceilingpic;
+			dest->SetTexture(sector_t::ceiling, diffTex ? sec->GetTexture(sector_t::ceiling) : s->GetTexture(sector_t::ceiling), false);
+			dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::ceiling), false);
 			dest->planes[sector_t::ceiling].xform = dest->planes[sector_t::floor].xform = s->planes[sector_t::ceiling].xform;
 			
-			if (s->floorpic != skyflatnum)
+			if (s->GetTexture(sector_t::floor) != skyflatnum)
 			{
 				dest->ceilingplane	= sec->ceilingplane;
-				dest->floorpic		= s->floorpic;
+				dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::floor), false);
 				dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 			}
 			
 			if (!(s->MoreFlags & SECF_NOFAKELIGHT))
 			{
 				dest->lightlevel  = s->lightlevel;
-				dest->FloorLight = s->FloorLight;
-				dest->CeilingLight = s->CeilingLight;
-				dest->FloorFlags = s->FloorFlags;
-				dest->CeilingFlags = s->CeilingFlags;
+				dest->SetPlaneLight(sector_t::floor, s->GetPlaneLight(sector_t::floor));
+				dest->SetPlaneLight(sector_t::ceiling, s->GetPlaneLight(sector_t::ceiling));
+				dest->ChangeFlags(sector_t::floor, -1, s->GetFlags(sector_t::floor));
+				dest->ChangeFlags(sector_t::ceiling, -1, s->GetFlags(sector_t::ceiling));
 			}
 		}
 	}

@@ -10,6 +10,8 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -126,15 +128,15 @@ void ACFlameMissile::Tick ()
 //
 //============================================================================
 
-void A_CFlameAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CFlameAttack)
 {
 	player_t *player;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
-	AWeapon *weapon = actor->player->ReadyWeapon;
+	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
@@ -145,20 +147,20 @@ void A_CFlameAttack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 		return;
 	}
 
-	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACFlameMissile));
+	P_SpawnPlayerMissile (self, RUNTIME_CLASS(ACFlameMissile));
 	
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile( self, RUNTIME_CLASS(ACFlameMissile), self->angle + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile( self, RUNTIME_CLASS(ACFlameMissile), self->angle - ( ANGLE_45 / 3 ));
 	}
 
-	S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell other clients to make the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -171,13 +173,13 @@ void A_CFlameAttack (AActor *actor)
 //
 //============================================================================
 
-void A_CFlamePuff (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CFlamePuff)
 {
-	A_UnHideThing (actor);
-	actor->momx = 0;
-	actor->momy = 0;
-	actor->momz = 0;
-	S_Sound (actor, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
+	self->renderflags &= ~RF_INVISIBLE;
+	self->momx = 0;
+	self->momy = 0;
+	self->momz = 0;
+	S_Sound (self, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
 }
 
 //============================================================================
@@ -186,15 +188,15 @@ void A_CFlamePuff (AActor *actor)
 //
 //============================================================================
 
-void A_CFlameMissile (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CFlameMissile)
 {
 	int i;
 	int an, an90;
 	fixed_t dist;
 	AActor *mo;
 	
-	A_UnHideThing (actor);
-	S_Sound (actor, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
+	self->renderflags &= ~RF_INVISIBLE;
+	S_Sound (self, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
 
 	// [BC] Let the server handle this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -203,7 +205,7 @@ void A_CFlameMissile (AActor *actor)
 		return;
 	}
 
-	AActor *BlockingMobj = actor->BlockingMobj;
+	AActor *BlockingMobj = self->BlockingMobj;
 	if (BlockingMobj && BlockingMobj->flags&MF_SHOOTABLE)
 	{ // Hit something, so spawn the flame circle around the thing
 		dist = BlockingMobj->radius+18*FRACUNIT;
@@ -217,7 +219,7 @@ void A_CFlameMissile (AActor *actor)
 			if (mo)
 			{
 				mo->angle = an<<ANGLETOFINESHIFT;
-				mo->target = actor->target;
+				mo->target = self->target;
 				mo->momx = mo->special1 = FixedMul(FLAMESPEED, finecosine[an]);
 				mo->momy = mo->special2 = FixedMul(FLAMESPEED, finesine[an]);
 				mo->tics -= pr_missile()&3;
@@ -232,7 +234,7 @@ void A_CFlameMissile (AActor *actor)
 			if(mo)
 			{
 				mo->angle = ANG180+(an<<ANGLETOFINESHIFT);
-				mo->target = actor->target;
+				mo->target = self->target;
 				mo->momx = mo->special1 = FixedMul(-FLAMESPEED, finecosine[an]);
 				mo->momy = mo->special2 = FixedMul(-FLAMESPEED, finesine[an]);
 				mo->tics -= pr_missile()&3;
@@ -242,7 +244,7 @@ void A_CFlameMissile (AActor *actor)
 					SERVERCOMMANDS_SpawnThingExact( mo );
 			}
 		}
-		actor->SetState (actor->SpawnState);
+		self->SetState (self->SpawnState);
 	}
 }
 
@@ -252,12 +254,12 @@ void A_CFlameMissile (AActor *actor)
 //
 //============================================================================
 
-void A_CFlameRotate (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CFlameRotate)
 {
 	int an;
 
-	an = (actor->angle+ANG90)>>ANGLETOFINESHIFT;
-	actor->momx = actor->special1+FixedMul(FLAMEROTSPEED, finecosine[an]);
-	actor->momy = actor->special2+FixedMul(FLAMEROTSPEED, finesine[an]);
-	actor->angle += ANG90/15;
+	an = (self->angle+ANG90)>>ANGLETOFINESHIFT;
+	self->momx = self->special1+FixedMul(FLAMEROTSPEED, finecosine[an]);
+	self->momy = self->special2+FixedMul(FLAMEROTSPEED, finesine[an]);
+	self->angle += ANG90/15;
 }

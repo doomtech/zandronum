@@ -6,6 +6,7 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "doomdata.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -24,7 +25,7 @@
 //
 //============================================================================
 
-void A_HideDecepticon (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_HideDecepticon)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -46,7 +47,7 @@ void A_HideDecepticon (AActor *self)
 //
 //============================================================================
 
-void A_AcolyteDie (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_AcolyteDie)
 {
 	int i;
 
@@ -102,7 +103,7 @@ void A_AcolyteDie (AActor *self)
 //
 //============================================================================
 
-void A_BeShadowyFoe (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_BeShadowyFoe)
 {
 	self->RenderStyle = STYLE_Translucent;
 	self->alpha = HR_SHADOW;
@@ -115,11 +116,11 @@ void A_BeShadowyFoe (AActor *self)
 //
 //============================================================================
 
-void A_AcolyteBits (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_AcolyteBits)
 {
 	if (self->SpawnFlags & MTF_SHADOW)
 	{
-		A_BeShadowyFoe (self);
+		CALL_ACTION(A_BeShadowyFoe, self);
 	}
 	if (self->SpawnFlags & MTF_ALTSHADOW)
 	{

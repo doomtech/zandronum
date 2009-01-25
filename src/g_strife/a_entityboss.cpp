@@ -5,13 +5,14 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+#include "thingdef/thingdef.h"
 // [CW] New includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
 
 static FRandom pr_entity ("Entity");
 
-void A_SubEntityDeath (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SubEntityDeath)
 {
 	if (CheckBossDeath (self))
 	{
@@ -34,18 +35,18 @@ void A_SpectralMissile (AActor *self, const char *missilename)
 	}
 }
 
-void A_SpotLightning (AActor *);
-void A_Spectre3Attack (AActor *);
+DECLARE_ACTION(A_SpotLightning)
+DECLARE_ACTION(A_Spectre3Attack)
 
 
-void A_EntityAttack (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_EntityAttack)
 {
 	// Apparent Strife bug: Case 5 was unreachable because they used % 5 instead of % 6.
 	// I've fixed that by making case 1 duplicate it, since case 1 did nothing.
 	switch (pr_entity() % 5)
 	{
 	case 0:
-		A_SpotLightning(self);
+		CALL_ACTION(A_SpotLightning, self);
 		break;
 
 	case 2:
@@ -53,7 +54,7 @@ void A_EntityAttack (AActor *self)
 		break;
 
 	case 3:
-		A_Spectre3Attack (self);
+		CALL_ACTION(A_Spectre3Attack, self);
 		break;
 
 	case 4:
@@ -68,7 +69,7 @@ void A_EntityAttack (AActor *self)
 }
 
 
-void A_SpawnEntity (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_SpawnEntity)
 {
 	// [CW] Clients may not do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -88,7 +89,7 @@ void A_SpawnEntity (AActor *self)
 	}
 }
 
-void A_EntityDeath (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_EntityDeath)
 {
 	AActor *second;
 	fixed_t secondRadius = GetDefaultByName("EntitySecond")->radius * 2;

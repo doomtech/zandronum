@@ -10,18 +10,14 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
 static FRandom pr_staffcheck ("CStaffCheck");
 static FRandom pr_blink ("CStaffBlink");
-
-void A_CStaffInitBlink (AActor *actor);
-void A_CStaffCheckBlink (AActor *actor);
-void A_CStaffCheck (AActor *actor);
-void A_CStaffAttack (AActor *actor);
-void A_CStaffMissileSlither (AActor *);
 
 // Serpent Staff Missile ----------------------------------------------------
 
@@ -51,7 +47,7 @@ int ACStaffMissile::DoSpecialDamage (AActor *target, int damage)
 //
 //============================================================================
 
-void A_CStaffCheck (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 {
 	AActor *pmo;
 	int damage;
@@ -62,11 +58,11 @@ void A_CStaffCheck (AActor *actor)
 	player_t *player;
 	AActor *linetarget;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
-	AWeapon *weapon = actor->player->ReadyWeapon;
+	AWeapon *weapon = self->player->ReadyWeapon;
 
 	pmo = player->mo;
 	damage = 20+(pr_staffcheck()&15);
@@ -139,17 +135,17 @@ void A_CStaffCheck (AActor *actor)
 //
 //============================================================================
 
-void A_CStaffAttack (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 {
 	AActor *mo;
 	player_t *player;
 
-	if (NULL == (player = actor->player))
+	if (NULL == (player = self->player))
 	{
 		return;
 	}
 
-	AWeapon *weapon = actor->player->ReadyWeapon;
+	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
@@ -160,11 +156,11 @@ void A_CStaffAttack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 		return;
 	}
 
-	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACStaffMissile), actor->angle-(ANG45/15));
+	mo = P_SpawnPlayerMissile (self, RUNTIME_CLASS(ACStaffMissile), self->angle-(ANG45/15));
 	if (mo)
 	{
 		mo->special2 = 32;
@@ -173,7 +169,7 @@ void A_CStaffAttack (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingSpecial2( mo );
 	}
-	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACStaffMissile), actor->angle+(ANG45/15));
+	mo = P_SpawnPlayerMissile (self, RUNTIME_CLASS(ACStaffMissile), self->angle+(ANG45/15));
 	if (mo)
 	{
 		mo->special2 = 0;
@@ -182,7 +178,7 @@ void A_CStaffAttack (AActor *actor)
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle-(ANG45/15) + ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( ACStaffMissile ), self->angle-(ANG45/15) + ( ANGLE_45 / 3 ));
 		if (mo)
 		{
 			mo->special2 = 32;
@@ -191,13 +187,13 @@ void A_CStaffAttack (AActor *actor)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingSpecial2( mo );
 		}
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle+(ANG45/15) + ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( ACStaffMissile ), self->angle+(ANG45/15) + ( ANGLE_45 / 3 ));
 		if (mo)
 		{
 			mo->special2 = 0;
 		}
 
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle-(ANG45/15) - ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( ACStaffMissile ), self->angle-(ANG45/15) - ( ANGLE_45 / 3 ));
 		if (mo)
 		{
 			mo->special2 = 32;
@@ -206,14 +202,14 @@ void A_CStaffAttack (AActor *actor)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingSpecial2( mo );
 		}
-		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle+(ANG45/15) - ( ANGLE_45 / 3 ));
+		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( ACStaffMissile ), self->angle+(ANG45/15) - ( ANGLE_45 / 3 ));
 		if (mo)
 		{
 			mo->special2 = 0;
 		}
 	}
 
-	S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play the sound for clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -226,21 +222,21 @@ void A_CStaffAttack (AActor *actor)
 //
 //============================================================================
 
-void A_CStaffMissileSlither (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CStaffMissileSlither)
 {
 	fixed_t newX, newY;
 	int weaveXY;
 	int angle;
 
-	weaveXY = actor->special2;
-	angle = (actor->angle+ANG90)>>ANGLETOFINESHIFT;
-	newX = actor->x-FixedMul(finecosine[angle], FloatBobOffsets[weaveXY]);
-	newY = actor->y-FixedMul(finesine[angle], FloatBobOffsets[weaveXY]);
+	weaveXY = self->special2;
+	angle = (self->angle+ANG90)>>ANGLETOFINESHIFT;
+	newX = self->x-FixedMul(finecosine[angle], FloatBobOffsets[weaveXY]);
+	newY = self->y-FixedMul(finesine[angle], FloatBobOffsets[weaveXY]);
 	weaveXY = (weaveXY+3)&63;
 	newX += FixedMul(finecosine[angle], FloatBobOffsets[weaveXY]);
 	newY += FixedMul(finesine[angle], FloatBobOffsets[weaveXY]);
-	P_TryMove (actor, newX, newY, true);
-	actor->special2 = weaveXY;
+	P_TryMove (self, newX, newY, true);
+	self->special2 = weaveXY;
 }
 
 //============================================================================
@@ -249,9 +245,9 @@ void A_CStaffMissileSlither (AActor *actor)
 //
 //============================================================================
 
-void A_CStaffInitBlink (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CStaffInitBlink)
 {
-	actor->special1 = (pr_blink()>>1)+20;
+	self->special1 = (pr_blink()>>1)+20;
 }
 
 //============================================================================
@@ -260,15 +256,18 @@ void A_CStaffInitBlink (AActor *actor)
 //
 //============================================================================
 
-void A_CStaffCheckBlink (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheckBlink)
 {
-	if (!--actor->special1)
+	if (self->player && self->player->ReadyWeapon)
 	{
-		P_SetPsprite (actor->player, ps_weapon, actor->FindState ("Blink"));
-		actor->special1 = (pr_blink()+50)>>2;
-	}
-	else 
-	{
-		A_WeaponReady (actor);
+		if (!--self->special1)
+		{
+			P_SetPsprite (self->player, ps_weapon, self->player->ReadyWeapon->FindState ("Blink"));
+			self->special1 = (pr_blink()+50)>>2;
+		}
+		else 
+		{
+			CALL_ACTION(A_WeaponReady, self);
+		}
 	}
 }

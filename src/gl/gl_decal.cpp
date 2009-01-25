@@ -106,33 +106,33 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 		if (type!=RENDERWALL_TOP) return;
 		if (line->flags & ML_DONTPEGTOP)
 		{
-			zpos = actor->Z + frontSector->ceilingtexz;
+			zpos = actor->Z + frontSector->GetPlaneTexZ(sector_t::ceiling);
 		}
 		else
 		{
-			zpos = actor->Z + backSector->ceilingtexz;
+			zpos = actor->Z + backSector->GetPlaneTexZ(sector_t::ceiling);
 		}
 		break;
 	case RF_RELLOWER:
 		if (type!=RENDERWALL_BOTTOM) return;
 		if (line->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->Z + frontSector->ceilingtexz;
+			zpos = actor->Z + frontSector->GetPlaneTexZ(sector_t::ceiling);
 		}
 		else
 		{
-			zpos = actor->Z + backSector->floortexz;
+			zpos = actor->Z + backSector->GetPlaneTexZ(sector_t::floor);
 		}
 		break;
 	case RF_RELMID:
 		if (type==RENDERWALL_TOP || type==RENDERWALL_BOTTOM) return;
 		if (line->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->Z + frontSector->floortexz;
+			zpos = actor->Z + frontSector->GetPlaneTexZ(sector_t::floor);
 		}
 		else
 		{
-			zpos = actor->Z + frontSector->ceilingtexz;
+			zpos = actor->Z + frontSector->GetPlaneTexZ(sector_t::ceiling);
 		}
 	}
 	

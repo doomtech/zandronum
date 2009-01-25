@@ -8,6 +8,7 @@
 #include "gi.h"
 #include "doomstat.h"
 #include "gstrings.h"
+#include "thingdef/thingdef.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "gamemode.h"
@@ -15,27 +16,27 @@
 
 // The barrel of green goop ------------------------------------------------
 
-void A_BarrelDestroy (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_BarrelDestroy)
 {
 	// [BC] Just always destroy it in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		actor->Destroy( );
+		self->Destroy( );
 		return;
 	}
 
 	if ((dmflags2 & DF2_BARRELS_RESPAWN) &&
 		(deathmatch || alwaysapplydmflags))
 	{
-		actor->height = actor->GetDefault()->height;
-		actor->renderflags |= RF_INVISIBLE;
-		actor->flags &= ~MF_SOLID;
+		self->height = self->GetDefault()->height;
+		self->renderflags |= RF_INVISIBLE;
+		self->flags &= ~MF_SOLID;
 	}
 	else
 	{
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-		actor->HideOrDestroyIfSafe ();
+		self->HideOrDestroyIfSafe ();
 	}
 }
 

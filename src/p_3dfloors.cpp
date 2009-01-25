@@ -73,31 +73,31 @@ static void P_Add3DFloor(sector_t* sec, sector_t* sec2, line_t* master, int flag
 	if (!(flags&FF_THINFLOOR)) 
 	{
 		ffloor->bottom.plane = &sec2->floorplane;
-		ffloor->bottom.texture = &sec2->floorpic;
-		ffloor->bottom.texheight = &sec2->floortexz;
+		ffloor->bottom.texture = &sec2->planes[sector_t::floor].Texture;
+		ffloor->bottom.texheight = &sec2->planes[sector_t::floor].TexZ;
 		ffloor->bottom.isceiling = false;
 	}
 	else 
 	{
 		ffloor->bottom.plane = &sec2->ceilingplane;
-		ffloor->bottom.texture = &sec2->ceilingpic;
-		ffloor->bottom.texheight = &sec2->ceilingtexz;
+		ffloor->bottom.texture = &sec2->planes[sector_t::ceiling].Texture;
+		ffloor->bottom.texheight = &sec2->planes[sector_t::ceiling].TexZ;
 		ffloor->bottom.isceiling = true;
 	}
 	
 	if (!(flags&FF_FIX))
 	{
 		ffloor->top.plane = &sec2->ceilingplane;
-		ffloor->top.texture = &sec2->ceilingpic;
-		ffloor->top.texheight = &sec2->ceilingtexz;
+		ffloor->top.texture = &sec2->planes[sector_t::ceiling].Texture;
+		ffloor->top.texheight = &sec2->planes[sector_t::ceiling].TexZ;
 		ffloor->toplightlevel = &sec2->lightlevel;
 		ffloor->top.isceiling = true;
 	}
 	else	// FF_FIX is a special case to patch rendering holes
 	{
 		ffloor->top.plane = &sec->floorplane;
-		ffloor->top.texture = &sec2->floorpic;
-		ffloor->top.texheight = &sec2->floortexz;
+		ffloor->top.texture = &sec2->planes[sector_t::floor].Texture;
+		ffloor->top.texheight = &sec2->planes[sector_t::floor].TexZ;
 		ffloor->toplightlevel = &sec->lightlevel;
 		ffloor->top.isceiling = false;
 		ffloor->top.model = sec;

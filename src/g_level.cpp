@@ -313,6 +313,7 @@ static const char *MapInfoMapLevel[] =
 	"lightning",
 	"fadetable",
 	"evenlighting",
+	"smoothlighting",
 	"noautosequences",
 	"forcenoskystretch",
 	"allowfreelook",
@@ -464,6 +465,7 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_STARTLIGHTNING, 0 },
 	{ MITYPE_LUMPNAME,	lioffset(fadetable), 0 },
 	{ MITYPE_CLRBYTES,	lioffset(WallVertLight), lioffset(WallHorizLight) },
+	{ MITYPE_SETFLAG,	LEVEL_SMOOTHLIGHTING, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_SNDSEQTOTALCTRL, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_FORCENOSKYSTRETCH, 0 },
 	{ MITYPE_SCFLAGS,	LEVEL_FREELOOK_YES, ~LEVEL_FREELOOK_NO },
@@ -803,7 +805,7 @@ static void G_DoParseMapInfo (int lump)
 		case MITL_MAP:		// map <MAPNAME> <Nice Name>
 		  {
 			char maptemp[8];
-			char *mapname;
+			const char *mapname;
 
 			levelflags = defaultinfo.flags;
 			sc.MustGetString ();
@@ -1028,7 +1030,7 @@ static void ParseMapInfoLower (FScanner &sc,
 			EndSequence newSeq;
 			bool useseq = false;
 			char maptemp[8];
-			char *mapname;
+			const char *mapname;
 
 			sc.MustGetString ();
 			mapname = sc.String;

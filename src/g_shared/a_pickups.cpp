@@ -14,6 +14,7 @@
 #include "a_strifeglobal.h"
 #include "a_morph.h"
 #include "a_specialspot.h"
+#include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
@@ -306,25 +307,25 @@ bool P_GiveBody (AActor *actor, int num)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialThing1 (AActor *thing)
+DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialThing1)
 {
 	// [BC] Clients have their own version of this function.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		// Just go back into hiding until the server tells this item to respawn.
-		static_cast<AInventory *>( thing )->Hide( );
+		static_cast<AInventory *>( self )->Hide( );
 		return;
 	}
 
-	thing->renderflags &= ~RF_INVISIBLE;
-	if (static_cast<AInventory *>(thing)->DoRespawn ())
+	self->renderflags &= ~RF_INVISIBLE;
+	if (static_cast<AInventory *>(self)->DoRespawn ())
 	{
 		// [BC] Tell clients that this item has respawned.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_RespawnRavenThing( thing );
+			SERVERCOMMANDS_RespawnRavenThing( self );
 
-		S_Sound (thing, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE);
+		S_Sound (self, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE);
 	}
 }
 
@@ -334,14 +335,14 @@ void A_RestoreSpecialThing1 (AActor *thing)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialThing2 (AActor *thing)
+DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialThing2)
 {
-	thing->flags |= MF_SPECIAL;
-	if (!(thing->GetDefault()->flags & MF_NOGRAVITY))
+	self->flags |= MF_SPECIAL;
+	if (!(self->GetDefault()->flags & MF_NOGRAVITY))
 	{
-		thing->flags &= ~MF_NOGRAVITY;
+		self->flags &= ~MF_NOGRAVITY;
 	}
-	thing->SetState (thing->SpawnState);
+	self->SetState (self->SpawnState);
 }
 
 
@@ -351,7 +352,7 @@ void A_RestoreSpecialThing2 (AActor *thing)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialDoomThing (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialDoomThing)
 {
 	// [BC] Clients have their own version of this function.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -386,7 +387,7 @@ void A_RestoreSpecialDoomThing (AActor *self)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialPosition (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialPosition)
 {
 	// Move item back to its original location
 	fixed_t _x, _y;
@@ -943,6 +944,8 @@ void AInventory::Hide ()
 		}
 	}
 
+	assert(HideDoomishState != NULL || HideSpecialState != NULL);
+
 	if (HideSpecialState != NULL)
 	{
 		SetState (HideSpecialState);
@@ -953,11 +956,6 @@ void AInventory::Hide ()
 	{
 		SetState (HideDoomishState);
 		tics = 1050;
-	}
-	else
-	{
-		GoAwayAndDie();
-		return;
 	}
 	if (RespawnTics != 0)
 	{

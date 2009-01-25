@@ -6,13 +6,14 @@
 #include "a_action.h"
 #include "gstrings.h"
 #include "thingdef/thingdef.h"
+#include "thingdef/thingdef.h"
 
 static FRandom pr_bang4cloud ("Bang4Cloud");
 static FRandom pr_lightout ("LightOut");
 
 extern const PClass *QuestItemClasses[31];
 
-void A_Bang4Cloud (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Bang4Cloud)
 {
 	fixed_t spawnx, spawny;
 
@@ -24,13 +25,11 @@ void A_Bang4Cloud (AActor *self)
 
 // -------------------------------------------------------------------
 
-void A_GiveQuestItem (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_GiveQuestItem)
 {
-	int index=CheckIndex(1);
-	if (index<0) return;
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_INT(questitem, 0);
 
-	int questitem = EvalExpressionI (StateParameters[index], self);
-	
 	// Give one of these quest items to every player in the game
 	for (int i = 0; i < MAXPLAYERS; ++i)
 	{
@@ -57,7 +56,7 @@ void A_GiveQuestItem (AActor *self)
 
 // PowerCrystal -------------------------------------------------------------------
 
-void A_ExtraLightOff (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_ExtraLightOff)
 {
 	if (self->target != NULL && self->target->player != NULL)
 	{
@@ -65,7 +64,7 @@ void A_ExtraLightOff (AActor *self)
 	}
 }
 
-void A_Explode512 (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_Explode512)
 {
 	P_RadiusAttack (self, self->target, 512, 512, NAME_None, true);
 	if (self->target != NULL && self->target->player != NULL)
@@ -81,7 +80,7 @@ void A_Explode512 (AActor *self)
 	self->RenderStyle = STYLE_Add;
 }
 
-void A_LightGoesOut (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_LightGoesOut)
 {
 	AActor *foo;
 	sector_t *sec = self->Sector;

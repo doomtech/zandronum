@@ -155,8 +155,6 @@ void gl_ParseSkybox(FScanner &sc)
 CVAR (Int, gl_sky_detail, 16, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 EXTERN_CVAR (Bool, r_stretchsky)
 
-static TArray<PalEntry> SkyColors;
-unsigned MaxSkyTexture;	// TexMan.NumTextures can't be used because it may change after allocating the array here!
 extern int skyfog;
 
 //===========================================================================
@@ -168,43 +166,33 @@ static PalEntry SkyCapColor(FTextureID texno, bool bottom)
 {
 	PalEntry col;
 
-	if (SkyColors.Size()==0)
-	{
-		MaxSkyTexture=TexMan.NumTextures();
-		SkyColors.Resize(unsigned(MaxSkyTexture*2));	// once for top cap, once for bottom cap
-		memset(&SkyColors[0], 0, sizeof(PalEntry)*MaxSkyTexture);
-	}
+	FTexture *tex = TexMan[texno];
+	if (!tex) return 0;
 
-	if (texno.isValid() && texno.GetIndex()<MaxSkyTexture)
+	if (!tex->gl_info.bSkyColorDone)
 	{
-		if (SkyColors[texno.GetIndex()].a==0)
+		tex->gl_info.bSkyColorDone = true;
+
+		FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+		if (tex)
 		{
-			FGLTexture * tex = FGLTexture::ValidateTexture(texno);
-			if (tex)
-			{
-				int w;
-				int h;
-				unsigned char * buffer = tex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
+			int w;
+			int h;
+			unsigned char * buffer = gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
 
-				if (buffer)
+			if (buffer)
+			{
+				tex->gl_info.CeilingSkyColor = averageColor((DWORD *) buffer, w * MIN(30, h), false);
+				if (h>30)
 				{
-					SkyColors[texno.GetIndex()]=averageColor((DWORD *) buffer, w * MIN(30, h), false);
-					if (h>30)
-					{
-						SkyColors[texno.GetIndex()+MaxSkyTexture] = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, false);
-					}
-					else SkyColors[texno.GetIndex() + MaxSkyTexture] = SkyColors[texno.GetIndex()];
-					delete buffer;
-					SkyColors[texno.GetIndex()].a=1;	// mark as processed
+					tex->gl_info.FloorSkyColor = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, false);
 				}
+				else tex->gl_info.FloorSkyColor = tex->gl_info.CeilingSkyColor;
+				delete buffer;
 			}
 		}
-		return SkyColors[texno.GetIndex() + MaxSkyTexture*bottom];
 	}
-	else
-	{
-		return 0;
-	}
+	return bottom? tex->gl_info.FloorSkyColor : tex->gl_info.CeilingSkyColor;
 }
 
 

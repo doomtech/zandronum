@@ -2006,7 +2006,7 @@ void APlayerPawn::Destroy( void )
 //
 //===========================================================================
 
-void A_PlayerScream (AActor *self)
+DEFINE_ACTION_FUNCTION(AActor, A_PlayerScream)
 {
 	int sound = 0;
 	int chan = CHAN_VOICE;
@@ -2072,39 +2072,38 @@ void A_PlayerScream (AActor *self)
 //
 //----------------------------------------------------------------------------
 
-void A_SkullPop (AActor *actor)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullPop)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(spawntype, 0);
+
 	APlayerPawn *mo;
 	player_t *player;
 
 	// [GRB] Parameterized version
-	const PClass *spawntype = NULL;
-	int index = CheckIndex (1, NULL);
-	if (index >= 0)
-		spawntype = PClass::FindClass((ENamedName)StateParameters[index]);
 	if (!spawntype || !spawntype->IsDescendantOf (RUNTIME_CLASS (APlayerChunk)))
 	{
 		spawntype = PClass::FindClass("BloodySkull");
 		if (spawntype == NULL) return;
 	}
 
-	actor->flags &= ~MF_SOLID;
-	mo = (APlayerPawn *)Spawn (spawntype, actor->x, actor->y, actor->z + 48*FRACUNIT, NO_REPLACE);
-	//mo->target = actor;
+	self->flags &= ~MF_SOLID;
+	mo = (APlayerPawn *)Spawn (spawntype, self->x, self->y, self->z + 48*FRACUNIT, NO_REPLACE);
+	//mo->target = self;
 	mo->momx = pr_skullpop.Random2() << 9;
 	mo->momy = pr_skullpop.Random2() << 9;
 	mo->momz = 2*FRACUNIT + (pr_skullpop() << 6);
 	// Attach player mobj to bloody skull
-	player = actor->player;
-	actor->player = NULL;
-	mo->ObtainInventory (actor);
+	player = self->player;
+	self->player = NULL;
+	mo->ObtainInventory (self);
 	mo->player = player;
-	mo->health = actor->health;
-	mo->angle = actor->angle;
+	mo->health = self->health;
+	mo->angle = self->angle;
 	if (player != NULL)
 	{
 		player->mo = mo;
-		if (player->camera == actor)
+		if (player->camera == self)
 		{
 			player->camera = mo;
 		}
@@ -2122,11 +2121,11 @@ void A_SkullPop (AActor *actor)
 //
 //----------------------------------------------------------------------------
 
-void A_CheckPlayerDone (AActor *actor)
+DEFINE_ACTION_FUNCTION(AActor, A_CheckPlayerDone)
 {
-	if (actor->player == NULL)
+	if (self->player == NULL)
 	{
-		actor->Destroy ();
+		self->Destroy ();
 	}
 }
 
@@ -2551,7 +2550,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 				JumpMomz *= 2;
 
 			// [BC] If the player is standing on a spring pad, halve his jump velocity.
-			if ( player->mo->floorsector->FloorFlags & SECF_SPRINGPAD )
+			if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
 				JumpMomz /= 2;
 
 			// Set base jump ticks.
@@ -2565,7 +2564,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 				ulJumpTicks *= 2;
 
 			// [BC] Remove jump delay if the player is on a spring pad.
-			if ( player->mo->floorsector->FloorFlags & SECF_SPRINGPAD )
+			if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
 				ulJumpTicks = 0;
 
 			player->mo->momz += JumpMomz;

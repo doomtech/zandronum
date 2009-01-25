@@ -395,6 +395,10 @@ struct sector_t
 	struct splane
 	{
 		FTransform xform;
+		int Flags;
+		int Light;
+		FTextureID Texture;
+		fixed_t TexZ;
 	};
 
 
@@ -480,6 +484,53 @@ struct sector_t
 		planes[pos].xform.base_angle = o;
 	}
 
+	int GetFlags(int pos) const 
+	{
+		return planes[pos].Flags;
+	}
+
+	void ChangeFlags(int pos, int And, int Or)
+	{
+		planes[pos].Flags &= ~And;
+		planes[pos].Flags |= Or;
+	}
+
+	int GetPlaneLight(int pos) const 
+	{
+		return planes[pos].Light;
+	}
+
+	void SetPlaneLight(int pos, int level)
+	{
+		planes[pos].Light = level;
+	}
+
+	FTextureID GetTexture(int pos) const
+	{
+		return planes[pos].Texture;
+	}
+
+	void SetTexture(int pos, FTextureID tex, bool floorclip = true)
+	{
+		FTextureID old = planes[pos].Texture;
+		planes[pos].Texture = tex;
+		if (floorclip && pos == floor && tex != old) AdjustFloorClip();
+	}
+
+	fixed_t GetPlaneTexZ(int pos) const
+	{
+		return planes[pos].TexZ;
+	}
+
+	void SetPlaneTexZ(int pos, fixed_t val)
+	{
+		planes[pos].TexZ = val;
+	}
+
+	void ChangePlaneTexZ(int pos, fixed_t val)
+	{
+		planes[pos].TexZ += val;
+	}
 
 
 	// Member variables
@@ -488,14 +539,10 @@ struct sector_t
 
 	// [RH] store floor and ceiling planes instead of heights
 	secplane_t	floorplane, ceilingplane;
-	fixed_t		floortexz, ceilingtexz;	// [RH] used for wall texture mapping
 
 	// [RH] give floor and ceiling even more properties
 	FDynamicColormap *ColorMap;	// [RH] Per-sector colormap
 
-	BYTE		FloorLight, CeilingLight;
-	BYTE		FloorFlags, CeilingFlags;
-	FTextureID	floorpic, ceilingpic;
 	BYTE		lightlevel;
 
 	TObjPtr<AActor> SoundTarget;
@@ -651,7 +698,8 @@ enum
 {
 	WALLF_ABSLIGHTING	= 1,	// Light is absolute instead of relative
 	WALLF_NOAUTODECALS	= 2,	// Do not attach impact decals to this wall
-	WALLF_AUTOCONTRAST	= 4,	// Automatically handle fake contrast in side_t::GetLightLevel
+	WALLF_NOFAKECONTRAST = 4,	// Don't do fake contrast for this wall in side_t::GetLightLevel
+	WALLF_SMOOTHLIGHTING = 8,   // Similar to autocontrast but applies to all angles.
 };
 
 struct side_t

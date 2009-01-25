@@ -386,7 +386,7 @@ void ASpecialSpot::Destroy()
 // will build a list of all mace spots in the level and spawn a
 // mace. The rest of the spots will do nothing.
 
-void A_SpawnSingleItem (AActor *self)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnSingleItem)
 {
 	// [BC] The mace spawner object isn't an object that can be picked up, therefore it is
 	// spawned on the map for modes that do not have special objects. Therefore, we need
@@ -407,13 +407,11 @@ void A_SpawnSingleItem (AActor *self)
 	if (state != NULL) spot = state->GetRandomSpot(RUNTIME_TYPE(self), true);
 	if (spot == NULL) return;
 
-	int index=CheckIndex(4);
-	if (index<0) return;
-
-	ENamedName SpawnType = (ENamedName)StateParameters[index];
-	int fail_sp = EvalExpressionI (StateParameters[index+1], self);
-	int fail_co = EvalExpressionI (StateParameters[index+2], self);
-	int fail_dm = EvalExpressionI (StateParameters[index+3], self);
+	ACTION_PARAM_START(4);
+	ACTION_PARAM_CLASS(cls, 0);
+	ACTION_PARAM_INT(fail_sp, 1);
+	ACTION_PARAM_INT(fail_co, 2);
+	ACTION_PARAM_INT(fail_dm, 3);
 
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && pr_spawnmace() < fail_sp)
 	{ // Sometimes doesn't show up if not in deathmatch
@@ -429,7 +427,7 @@ void A_SpawnSingleItem (AActor *self)
 	{
 		return;
 	}
-	const PClass *cls = PClass::FindClass(SpawnType);
+
 	if (cls == NULL)
 	{
 		return;
