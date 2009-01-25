@@ -75,7 +75,7 @@ void A_PainShootSkull (AActor *self, angle_t angle, const PClass *spawntype)
 		{
 			// [BB] Don't count actors hidden by HideOrDestroyIfSafe().
 			AActor *actor = static_cast<AActor *> ( othink );
-			if ( actor && ( actor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideIndefinitely") ) )
+			if ( actor && ( actor->state == RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideIndefinitely") ) )
 				++count;
 
 			if (--count == 0)

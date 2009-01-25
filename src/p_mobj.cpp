@@ -674,7 +674,7 @@ void AActor::HideOrDestroyIfSafe ()
 		// [BB] The dormant flag stops removed invasion spawners from spawning things when hidden.
 		flags2 |= MF2_DORMANT;
 		flags &= ~MF_SOLID;
-		SetState( GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideIndefinitely") );
+		SetState( RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideIndefinitely") );
 	}
 	else
 		Destroy();

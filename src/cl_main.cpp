@@ -6633,7 +6633,7 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	pActor->renderflags &= ~RF_INVISIBLE;
 	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
 
-	pActor->SetState( GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideSpecial") + 3 );
+	pActor->SetState( RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideSpecial") + 3 );
 }
 
 //*****************************************************************************

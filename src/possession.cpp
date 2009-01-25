@@ -459,9 +459,9 @@ void POSSESSION_DoFight( void )
 				pActor->Destroy( );
 			}
 
-			if (( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideDoomish") ) ||	// S_HIDEDOOMISH
-				( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideSpecial") ) ||	// S_HIDESPECIAL
-				( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideIndefinitely") ))	// S_HIDEINDEFINITELY
+			if (( pActor->state == RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideDoomish") ) ||	// S_HIDEDOOMISH
+				( pActor->state == RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideSpecial") ) ||	// S_HIDESPECIAL
+				( pActor->state == RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideIndefinitely") ))	// S_HIDEINDEFINITELY
 			{
 				CLIENT_RestoreSpecialPosition( pActor );
 				CLIENT_RestoreSpecialDoomThing( pActor, false );
