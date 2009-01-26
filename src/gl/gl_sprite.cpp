@@ -271,7 +271,7 @@ inline void GLSprite::PutSprite(bool translucent)
 	{
 		list = GLDL_TRANSLUCENT;
 	}
-	else if (!gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)
+	else if ((!gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE) && !gl_glsl_renderer)
 	{
 		list = GLDL_FOGMASKED;
 	}

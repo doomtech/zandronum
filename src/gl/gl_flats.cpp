@@ -352,6 +352,8 @@ void GLFlat::Draw(int pass)
 //==========================================================================
 inline void GLFlat::PutFlat()
 {
+	int list;
+
 	if (gl_fixedcolormap) 
 	{
 		Colormap.GetFixedColormap();
@@ -368,30 +370,39 @@ inline void GLFlat::PutFlat()
 	}
 	else if (gltexture != NULL)
 	{
-		static DrawListType list_indices[2][2][2]={
-			{ { GLDL_PLAIN, GLDL_FOG      }, { GLDL_MASKED,      GLDL_FOGMASKED      } },
-			{ { GLDL_LIGHT, GLDL_LIGHTFOG }, { GLDL_LIGHTMASKED, GLDL_LIGHTFOGMASKED } }
-		};
-
-		bool light = gl_forcemultipass;
-		bool masked = gltexture->tex->bMasked && ((renderflags&SSRF_RENDER3DPLANES) || stack);
-
-		if (!gl_fixedcolormap)
+		if (!gl_glsl_renderer)
 		{
-			foggy = !gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE;
+			static DrawListType list_indices[2][2][2]={
+				{ { GLDL_PLAIN, GLDL_FOG      }, { GLDL_MASKED,      GLDL_FOGMASKED      } },
+				{ { GLDL_LIGHT, GLDL_LIGHTFOG }, { GLDL_LIGHTMASKED, GLDL_LIGHTFOGMASKED } }
+			};
 
-			if (gl_lights && gl_lightcount)	// Are lights touching this sector?
+			bool light = gl_forcemultipass;
+			bool masked = gltexture->tex->bMasked && ((renderflags&SSRF_RENDER3DPLANES) || stack);
+
+			if (!gl_fixedcolormap)
 			{
-				for(int i=0;i<sector->subsectorcount;i++) if (sector->subsectors[i]->lighthead[0] != NULL)
+				foggy = !gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE;
+
+				if (gl_lights && gl_lightcount)	// Are lights touching this sector?
 				{
-					light=true;
+					for(int i=0;i<sector->subsectorcount;i++) if (sector->subsectors[i]->lighthead[0] != NULL)
+					{
+						light=true;
+					}
 				}
 			}
-		}
-		else foggy = false;
+			else foggy = false;
 
-		int list = list_indices[light][masked][foggy];
-		if (list == GLDL_LIGHT && gltexture->tex->bm_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+			list = list_indices[light][masked][foggy];
+			if (list == GLDL_LIGHT && gltexture->tex->bm_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+		}
+		else
+		{
+			// The GLSL renderer only distinguishes between solid and masked geometry
+			bool masked = gltexture->tex->bMasked && ((renderflags&SSRF_RENDER3DPLANES) || stack);
+			list = masked? GLDL_MASKED : GLDL_PLAIN;
+		}
 		gl_drawinfo->drawlists[list].AddFlat (this);
 	}
 }

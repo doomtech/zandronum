@@ -49,6 +49,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_portal.h"
+#include "gl/glsl_state.h"
 
 
 EXTERN_CVAR (Float, transsouls)
@@ -190,15 +191,11 @@ void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float 
 		}
 		else if (gl_fixedcolormap>=CM_TORCH)
 		{
-			if (gl_enhanced_lightamp) 
-			{
-				int flicker=gl_fixedcolormap-CM_TORCH;
-				r=(0.8f+(7-flicker)/70.0f);
-				if (r>1.0f) r=1.0f;
-				g=r;
-				b=r*0.75f;
-			}
-			else r=g=b=1.0f;
+			int flicker=gl_fixedcolormap-CM_TORCH;
+			r=(0.8f+(7-flicker)/70.0f);
+			if (r>1.0f) r=1.0f;
+			b=g=r;
+			if (gl_enhanced_lightamp) b*=0.75f;
 		}
 		else r=g=b=1.0f;
 		return;
@@ -644,16 +641,58 @@ void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 		srcblend = GL_SRC_COLOR;
 	}
 
-	gl.BlendFunc(srcblend, dstblend);
 	gl.BlendEquation(blendequation);
-	gl_SetTextureMode(texturemode);
+	if (!gl_glsl_renderer)
+	{
+		gl.BlendFunc(srcblend, dstblend);
+		gl_SetTextureMode(texturemode);
+	}
+	else
+	{
+		glsl->SetBlend(srcblend, dstblend);
+		glsl->SetTextureMode(texturemode);
+	}
 }
+
+//==========================================================================
+//
+// Modifies the color values depending on the render style
+//
+//==========================================================================
+
+void gl_GetSpriteLighting(FRenderStyle style, AActor *thing, FColormap *cm, PalEntry &ThingColor)
+{
+	if (style.Flags & STYLEF_RedIsAlpha)
+	{
+		cm->LightColor.a = CM_SHADE;
+	}
+	if (style.Flags & STYLEF_ColorIsFixed)
+	{
+		if (style.Flags & STYLEF_InvertSource)
+		{
+			ThingColor = PalEntry(thing->fillcolor).InverseColor();
+		}
+		else
+		{
+			ThingColor = thing->fillcolor;
+		}
+	}
+
+	// This doesn't work like in the software renderer.
+	if (style.Flags & STYLEF_InvertSource)
+	{
+		int gray = (cm->LightColor.r*77 + cm->LightColor.r*143 + cm->LightColor.r*36)>>8;
+		cm->LightColor.r = cm->LightColor.g = cm->LightColor.b = gray;
+	}
+}
+
 
 //==========================================================================
 //
 // Sets render state to draw the given render style
 //
 //==========================================================================
+
 void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
 						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon)
 {

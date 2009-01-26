@@ -708,6 +708,45 @@ void GLDrawList::DoDraw(int pass, int i)
 //
 //
 //==========================================================================
+void GLDrawList::DoDrawGLSL(int pass, int i)
+{
+	switch(drawitems[i].rendertype)
+	{
+	case GLDIT_FLAT:
+		{
+			GLFlat * f=&flats[drawitems[i].index];
+			RenderFlat.Clock();
+			f->Draw(pass);
+			RenderFlat.Unclock();
+		}
+		break;
+
+	case GLDIT_WALL:
+		{
+			GLWall * w=&walls[drawitems[i].index];
+			RenderWall.Clock();
+			w->Draw(pass);
+			RenderWall.Unclock();
+		}
+		break;
+
+	case GLDIT_SPRITE:
+		{
+			GLSprite * s=&sprites[drawitems[i].index];
+			RenderSprite.Clock();
+			s->Draw(pass);
+			RenderSprite.Unclock();
+		}
+		break;
+	case GLDIT_POLY: break;
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
 void GLDrawList::DoDrawSorted(SortNode * head)
 {
 	do
@@ -723,6 +762,33 @@ void GLDrawList::DoDrawSorted(SortNode * head)
 			while (ehead)
 			{
 				DoDraw(GLPASS_TRANSLUCENT, ehead->itemindex);
+				ehead=ehead->equal;
+			}
+		}
+	}
+	while ((head=head->right));
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+void GLDrawList::DoDrawSortedGLSL(SortNode * head)
+{
+	do
+	{
+		if (head->left) 
+		{
+			DoDrawSorted(head->left);
+		}
+		DoDraw(GLPASS_TRANSLUCENT, head->itemindex);
+		if (head->equal)
+		{
+			SortNode * ehead=head->equal;
+			while (ehead)
+			{
+				DoDrawGLSL(GLPASS_TRANSLUCENT, ehead->itemindex);
 				ehead=ehead->equal;
 			}
 		}
@@ -752,7 +818,37 @@ void GLDrawList::DrawSorted()
 //
 //
 //==========================================================================
+void GLDrawList::DrawSortedGLSL()
+{
+	if (drawitems.Size()==0) return;
+
+	if (!sorted)
+	{
+		MakeSortList();
+		sorted=DoSort(SortNodes[SortNodeStart]);
+	}
+	DoDrawSortedGLSL(sorted);
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
 void GLDrawList::Draw(int pass)
+{
+	for(unsigned i=0;i<drawitems.Size();i++)
+	{
+		DoDraw(pass, i);
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+void GLDrawList::DrawGLSL(int pass)
 {
 	for(unsigned i=0;i<drawitems.Size();i++)
 	{

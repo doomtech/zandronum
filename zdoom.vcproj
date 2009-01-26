@@ -10225,6 +10225,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="glsl"
+				>
+				<File
+					RelativePath=".\src\gl\glsl_state.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\glsl_state.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="G15 Keyboard"
