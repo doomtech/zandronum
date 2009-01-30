@@ -47,6 +47,8 @@
 #include "r_things.h"
 #include "s_sound.h"
 #include "templates.h"
+#include "gi.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
 
@@ -59,7 +61,7 @@ CVAR (Int, cl_respawninvuleffect, 1, CVAR_ARCHIVE);
 static int grey1, grey2, grey3, grey4, red, red2, red3, red4, green, blue, yellow, black,
 		   red1, green1, blue1, yellow1, yellow2, yellow3, purple, purple1, purple2, purple3, white,
 		   rblue1, rblue2, rblue3, rblue4, orange, yorange, dred,  dred2,
-		   dred3, dred4, grey5, grey6, maroon1, maroon2, gold1, gold2, cyan1, cyan2, green2;
+		   dred3, dred4, grey5, grey6, maroon1, maroon2, blood1, blood2, gold1, gold2, cyan1, cyan2, green2;
 
 static const struct ColorList {
 	int *color;
@@ -119,7 +121,12 @@ void P_InitEffects ()
 		*(color->color) = ColorMatcher.Pick (color->r, color->g, color->b);
 		color++;
 	}
+
+	int kind = gameinfo.defaultbloodparticlecolor;
+	blood1 = ColorMatcher.Pick(RPART(kind), GPART(kind), BPART(kind));
+	blood2 = ColorMatcher.Pick(RPART(kind)/3, GPART(kind)/3, BPART(kind)/3);
 }
+
 
 void P_ThinkParticles ()
 {
@@ -395,8 +402,8 @@ void P_DrawSplash2 (int count, fixed_t x, fixed_t y, fixed_t z, angle_t angle, i
 	switch (kind)
 	{
 	case 0:		// Blood
-		color1 = red;
-		color2 = dred;
+		color1 = blood1;
+		color2 = blood2;
 		break;
 	case 1:		// Gunshot
 		color1 = grey3;

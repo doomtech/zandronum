@@ -133,7 +133,7 @@ BEGIN
     IDD_CRASHDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 401
+        RIGHTMARGIN, 408
         TOPMARGIN, 4
         BOTTOMMARGIN, 303
         HORZGUIDE, 49
@@ -151,7 +151,7 @@ BEGIN
     IDD_CRASHDETAILS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 384
+        RIGHTMARGIN, 392
         TOPMARGIN, 7
         HORZGUIDE, 76
     END
@@ -582,50 +582,41 @@ BEGIN
     PUSHBUTTON      "Select None",IDC_SELECTNONE,320,31,50,14
 END
 
-IDD_CRASHDIALOG DIALOGEX 0, 0, 405, 308
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
-    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_CRASHDIALOG DIALOGEX 0, 0, 415, 308
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
 CAPTION "Skulltag Very Fatal Error"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    CONTROL         "",IDC_CRASHTAB,"SysTabControl32",WS_TABSTOP,4,4,397,280
-    PUSHBUTTON      "&Send Error Report",IDYES,139,289,91,14,WS_DISABLED
-    PUSHBUTTON      "Save Report to Disk...",IDC_SAVEREPORT,235,289,91,14
-    PUSHBUTTON      "&Discard Report",IDNO,331,289,70,14
+    CONTROL         "",IDC_CRASHTAB,"SysTabControl32",WS_TABSTOP,4,4,404,280
+    PUSHBUTTON      "&Send Error Report",IDYES,146,289,91,14,WS_DISABLED
+    PUSHBUTTON      "Save Report to Disk...",IDC_SAVEREPORT,242,289,91,14
+    PUSHBUTTON      "&Discard Report",IDNO,338,289,70,14
 END
 
-IDD_CRASHOVERVIEW DIALOGEX 1, 13, 391, 264
-STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VISIBLE
+IDD_CRASHOVERVIEW DIALOGEX 1, 13, 400, 264
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_CRASHINFO,7,126,377,90,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_WANTRETURN | WS_VSCROLL
-    CONTROL         "",IDC_PLEASETELLUS,"RichEdit20A",0x804,7,50,377,54,
-                    WS_EX_TRANSPARENT
-    LTEXT           "(Optional) To help diagnose the cause of this error, please describe what you were doing when the error occured. If you were playing with custom wads, please also indicate where to obtain them:",
-                    IDC_STATIC,7,108,377,16,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_CRASHINFO,7,126,377,90,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    CONTROL         "",IDC_PLEASETELLUS,"RichEdit20A",ES_MULTILINE | ES_READONLY,7,50,377,54,WS_EX_TRANSPARENT
+    LTEXT           "(Optional) To help diagnose the cause of this error, please describe what you were doing when the error occured. If you were playing with custom wads, please also indicate where to obtain them:",IDC_STATIC,7,108,377,16,0,WS_EX_TRANSPARENT
     CONTROL         131,IDC_DEADGUYVIEWER,"Static",SS_BITMAP,345,7,23,26
-    CONTROL         "",IDC_CRASHHEADER,"RichEdit20A",0x884,18,13,306,25,
-                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_CRASHHEADER,"RichEdit20A",ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY,18,13,306,25,WS_EX_TRANSPARENT
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,42,407,1
     GROUPBOX        "Summary",IDC_STATIC,7,223,377,34
     LTEXT           "Static",IDC_CRASHSUMMARY,14,233,363,20
 END
 
-IDD_CRASHDETAILS DIALOGEX 0, 0, 391, 164
-STYLE DS_3DLOOK | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+IDD_CRASHDETAILS DIALOGEX 0, 0, 400, 164
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "The error report contains these files:",IDC_STATIC,7,5,
-                    119,8
-    LTEXT           "The selected file contains this information:",
-                    IDC_STATIC,7,74,136,8
-    RTEXT           "Static",IDC_CRASHFILESIZE,329,74,55,8
-    LISTBOX         IDC_CRASHFILES,7,15,377,53,LBS_NOINTEGRALHEIGHT | 
-                    WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_CRASHFILECONTENTS,"RichEdit20A",WS_BORDER | 
-                    WS_VSCROLL | WS_TABSTOP | 0x804,7,83,377,174
+    LTEXT           "The error report contains these files:",IDC_STATIC,7,5,119,8
+    LTEXT           "The selected file contains this information:",IDC_STATIC,7,74,136,8
+    RTEXT           "Static",IDC_CRASHFILESIZE,337,74,55,8
+    LISTBOX         IDC_CRASHFILES,7,15,385,53,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_CRASHFILECONTENTS,"RichEdit20A",ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | WS_TABSTOP,7,83,385,174
 END
 
 IDD_BOING DIALOGEX 0, 0, 187, 196

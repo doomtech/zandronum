@@ -1506,7 +1506,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 
 	//return;
-	if (!backsector || !(seg->linedef->flags&ML_TWOSIDED)) /* onesided */
+	if (!backsector || !(seg->linedef->flags&ML_TWOSIDED)) // one sided
 	{
 		// sector's sky
 		SkyNormal(frontsector,v1,v2);
@@ -1519,7 +1519,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 						  realfront->GetPlaneTexZ(sector_t::ceiling),realfront->GetPlaneTexZ(sector_t::floor),	// must come from the original!
 						  fch1,fch2,ffh1,ffh2,0);
 	}
-	else /* twosided */
+	else // two sided
 	{
 
 		fixed_t bch1;

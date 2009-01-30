@@ -333,7 +333,7 @@ void S_ResumeSound ();
 //
 // Updates music & sounds
 //
-void S_UpdateSounds (void *listener);
+void S_UpdateSounds (AActor *listener);
 
 void S_RestoreEvictedChannels();
 

@@ -42,6 +42,7 @@ struct cheatseq_t
 	bool (*Handler)(cheatseq_t *);
 };
 
+static bool CheatCheckList (event_t *ev, cheatseq_t *cheats, int numcheats);
 static bool CheatAddKey (cheatseq_t *cheat, BYTE key, bool *eat);
 static bool Cht_Generic (cheatseq_t *);
 static bool Cht_Music (cheatseq_t *);
@@ -153,6 +154,24 @@ static BYTE CheatStoneCold[] =	{ 's','t','o','n','e','c','o','l','d',255 };
 static BYTE CheatElvis[] =		{ 'e','l','v','i','s',255 };
 static BYTE CheatTopo[] =		{ 't','o','p','o',255 };
 
+//[BL] Graf will probably get rid of this
+static BYTE CheatJoelKoenigs[] =	{ 'j','o','e','l','k','o','e','n','i','g','s',255 };
+static BYTE CheatDavidBrus[] =		{ 'd','a','v','i','d','b','r','u','s',255 };
+static BYTE CheatScottHolman[] =	{ 's','c','o','t','t','h','o','l','m','a','n',255 };
+static BYTE CheatMikeKoenigs[] =	{ 'm','i','k','e','k','o','e','n','i','g','s',255 };
+static BYTE CheatCharlesJacobi[] =	{ 'c','h','a','r','l','e','s','j','a','c','o','b','i',255 };
+static BYTE CheatAndrewBenson[] =	{ 'a','n','d','r','e','w','b','e','n','s','o','n',255 };
+static BYTE CheatDeanHyers[] =		{ 'd','e','a','n','h','y','e','r','s',255 };
+static BYTE CheatMaryBregi[] =		{ 'm','a','r','y','b','r','e','g','i',255 };
+static BYTE CheatAllen[] =			{ 'a','l','l','e','n',255 };
+static BYTE CheatDigitalCafe[] =	{ 'd','i','g','i','t','a','l','c','a','f','e',255 };
+static BYTE CheatJoshuaStorms[] =	{ 'j','o','s','h','u','a','s','t','o','r','m','s',255 };
+static BYTE CheatLeeSnyder[] =		{ 'l','e','e','s','n','y','d','e','r',0,0,255 };
+static BYTE CheatKimHyers[] =		{ 'k','i','m','h','y','e','r','s',255 };
+static BYTE CheatShrrill[] =		{ 's','h','r','r','i','l','l',255 };
+
+static BYTE CheatTNTem[] =		{ 't','n','t','e','m',255 };
+
 static cheatseq_t DoomCheats[] =
 {
 	{ CheatMus,				0, 1, 0, {0,0},				Cht_Music },
@@ -246,7 +265,34 @@ static cheatseq_t StrifeCheats[] =
 	{ CheatLego,			0, 0, 0, {CHT_LEGO,0},		Cht_Generic },
 };
 
+static cheatseq_t ChexCheats[] =
+{
+	{ CheatMus,				0, 1, 0, {0,0},				Cht_Music },
+	{ CheatKimHyers,		0, 1, 0, {0,0},				Cht_MyPos },
+	{ CheatShrrill,			0, 0, 0, {0,0},				Cht_AutoMap },
+	{ CheatDavidBrus,		0, 0, 0, {CHT_IDDQD,0},		Cht_Generic },
+	{ CheatMikeKoenigs,		0, 0, 0, {CHT_IDKFA,0},		Cht_Generic },
+	{ CheatScottHolman,		0, 0, 0, {CHT_IDFA,0},		Cht_Generic },
+	{ CheatCharlesJacobi,	0, 0, 0, {CHT_NOCLIP,0},	Cht_Generic },
+	{ CheatAndrewBenson,	0, 0, 0, {CHT_BEHOLDV,0},	Cht_Generic },
+	{ CheatDeanHyers,		0, 0, 0, {CHT_BEHOLDS,0},	Cht_Generic },
+	{ CheatMaryBregi,		0, 0, 0, {CHT_BEHOLDI,0},	Cht_Generic },
+	{ CheatAllen,			0, 0, 0, {CHT_BEHOLDR,0},	Cht_Generic },
+	{ CheatDigitalCafe,		0, 0, 0, {CHT_BEHOLDA,0},	Cht_Generic },
+	{ CheatJoshuaStorms,	0, 0, 0, {CHT_BEHOLDL,0},	Cht_Generic },
+	{ CheatJoelKoenigs,		0, 0, 0, {CHT_CHAINSAW,0},	Cht_Generic },
+	{ CheatLeeSnyder,		0, 0, 0, {0,0},				Cht_ChangeLevel }
+};
+
+static cheatseq_t SpecialCheats[] =
+{
+	{ CheatTNTem,		0, 0, 0, {CHT_MASSACRE,0},	Cht_Generic }
+};
+
+
 extern bool CheckCheatmode ();
+
+CVAR(Bool, allcheats, false, CVAR_ARCHIVE)
 
 // Respond to keyboard input events, intercept cheats.
 // [RH] Cheats eat the last keypress used to trigger them
@@ -254,11 +300,10 @@ bool ST_Responder (event_t *ev)
 {
 	bool eat = false;
 
-	if (ev->type == EV_KeyDown)
+	if (!allcheats)
 	{
 		cheatseq_t *cheats;
 		int numcheats;
-		int i;
 
 		switch (gameinfo.gametype)
 		{
@@ -282,9 +327,37 @@ bool ST_Responder (event_t *ev)
 			numcheats = countof(StrifeCheats);
 			break;
 
+		case GAME_Chex:
+			cheats = ChexCheats;
+			numcheats = countof(ChexCheats);
+			break;
+
 		default:
 			return false;
 		}
+		return CheatCheckList(ev, cheats, numcheats);
+	}
+	else
+	{
+		static cheatseq_t *cheatlists[] = { DoomCheats, HereticCheats, HexenCheats, StrifeCheats, ChexCheats, SpecialCheats };
+		static int counts[] = { countof(DoomCheats), countof(HereticCheats), countof(HexenCheats), 
+								countof(StrifeCheats), countof(ChexCheats), countof(SpecialCheats) };
+
+		for (int i=0; i<countof(cheatlists); i++)
+		{
+			if (CheatCheckList(ev, cheatlists[i], counts[i])) return true;
+		}
+	}
+	return false;
+}
+
+static bool CheatCheckList (event_t *ev, cheatseq_t *cheats, int numcheats)
+{
+	bool eat = false;
+
+	if (ev->type == EV_KeyDown)
+	{
+		int i;
 
 		for (i = 0; i < numcheats; i++, cheats++)
 		{

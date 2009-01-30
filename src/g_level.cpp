@@ -644,41 +644,12 @@ void G_ParseMapInfo ()
 	atterm (G_UnloadMapInfo);
 
 	// Parse the default MAPINFO for the current game.
-	switch (gameinfo.gametype)
+	for(int i=0; i<2; i++)
 	{
-	case GAME_Doom:
-		G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/doomcommon.txt"));
-		switch (gamemission)
+		if (gameinfo.mapinfo[i] != NULL)
 		{
-		case doom:
-			G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/doom1.txt"));
-			break;
-		case pack_plut:
-			G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/plutonia.txt"));
-			break;
-		case pack_tnt:
-			G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/tnt.txt"));
-			break;
-		default:
-			G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/doom2.txt"));
-			break;
+			G_DoParseMapInfo(Wads.GetNumForFullName(gameinfo.mapinfo[i]));
 		}
-		break;
-
-	case GAME_Heretic:
-		G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/heretic.txt"));
-		break;
-
-	case GAME_Hexen:
-		G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/hexen.txt"));
-		break;
-
-	case GAME_Strife:
-		G_DoParseMapInfo (Wads.GetNumForFullName ("mapinfo/strife.txt"));
-		break;
-
-	default:
-		break;
 	}
 
 	// Parse any extra MAPINFOs.
@@ -1377,6 +1348,7 @@ static void ParseEpisodeInfo (FScanner &sc)
 	char key = 0;
 	bool noskill = false;
 	bool optional = false;
+	bool extended = false;
 	bool	bBotEpisode = false;
 	char	szBotSkillTitle[64];
 	bool	bBotSkillPicIsGFX = false;
@@ -1400,8 +1372,13 @@ static void ParseEpisodeInfo (FScanner &sc)
 	{
 		if (sc.Compare ("optional"))
 		{
-			// For M4 in Doom and M4 and M5 in Heretic
+			// For M4 in Doom
 			optional = true;
+		}
+		else if (sc.Compare ("extended"))
+		{
+			// For M4 and M5 in Heretic
+			extended = true;
 		}
 		else if (sc.Compare ("name"))
 		{
@@ -1451,6 +1428,12 @@ static void ParseEpisodeInfo (FScanner &sc)
 		}
 	}
 	while (sc.GetString ());
+
+	if (extended && !(gameinfo.flags & GI_MENUHACK_EXTENDED))
+	{ // If the episode is for the extended Heretic, but this is
+	  // not the extended Heretic, ignore it.
+		return;
+	}
 
 	if (optional && !remove)
 	{
@@ -1879,7 +1862,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		{
 			int cstype = SBarInfoScript->GetGameType();
 
-			if(cstype == GAME_Doom) //Did the user specify a "base"
+			if(cstype == GAME_Doom || cstype == GAME_Chex) //Did the user specify a "base"
 			{
 				StatusBar = CreateDoomStatusBar ();
 			}
@@ -1902,7 +1885,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		}
 		if (StatusBar == NULL)
 		{
-			if (gameinfo.gametype == GAME_Doom)
+			if (gameinfo.gametype & GAME_DoomChex)
 			{
 				StatusBar = CreateDoomStatusBar ();
 			}

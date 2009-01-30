@@ -2543,7 +2543,7 @@ void P_ZMovement (AActor *mo)
 			}
 
 			if ((mo->flags & MF_MISSILE) &&
-				(gameinfo.gametype != GAME_Doom || !(mo->flags & MF_NOCLIP)))
+				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 			{
 				mo->z = mo->floorz;
 				if (mo->flags2 & MF2_BOUNCETYPE)
@@ -2686,7 +2686,7 @@ void P_ZMovement (AActor *mo)
 				mo->momz = -mo->momz;
 			}
 			if (mo->flags & MF_MISSILE &&
-				(gameinfo.gametype != GAME_Doom || !(mo->flags & MF_NOCLIP)))
+				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 			{
 				if (mo->flags3 & MF3_CEILINGHUGGER)
 				{
@@ -5272,7 +5272,7 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 		th = Spawn (bloodcls, x, y, z, ALLOW_REPLACE);
 		th->momz = FRACUNIT*2;
 		th->angle = dir;
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			th->tics -= pr_spawnblood() & 3;
 
@@ -5286,7 +5286,7 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 		}
 		
 		// Moved out of the blood actor so that replacing blood is easier
-		if (gameinfo.gametype & GAME_DoomStrife)
+		if (gameinfo.gametype & GAME_DoomStrifeChex)
 		{
 			if (gameinfo.gametype == GAME_Strife)
 			{
@@ -6214,7 +6214,7 @@ void AActor::Crash()
 		if (crashstate == NULL)
 		{
 			int gibhealth = -abs(GetClass()->Meta.GetMetaInt (AMETA_GibHealth,
-				gameinfo.gametype == GAME_Doom ? -GetDefault()->health : -GetDefault()->health/2));
+				gameinfo.gametype & GAME_DoomChex ? -GetDefault()->health : -GetDefault()->health/2));
 
 			if (health < gibhealth)
 			{ // Extreme death

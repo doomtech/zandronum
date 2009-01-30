@@ -811,6 +811,8 @@ add_executable( zdoom WIN32
 	g_shared/st_hud.cpp #ST
 	${GL_SOURCES}
 	MD5/MD5Checksum.cpp #ST
+	gl/glsl_state.cpp
+	gl/glsl_draw.cpp
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp

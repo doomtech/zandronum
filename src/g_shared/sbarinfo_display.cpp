@@ -1670,7 +1670,7 @@ DBaseStatusBar *CreateStatusBar ()
 	{
 		int cstype = SBarInfoScript->GetGameType();
 
-		if(cstype == GAME_Doom) //Did the user specify a "base"
+		if(cstype == GAME_Doom || cstype == GAME_Chex) //Did the user specify a "base"
 		{
 			sbar = CreateDoomStatusBar ();
 		}
@@ -1693,7 +1693,7 @@ DBaseStatusBar *CreateStatusBar ()
 	}
 	if (sbar == NULL)
 	{
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			sbar = CreateDoomStatusBar ();
 		}

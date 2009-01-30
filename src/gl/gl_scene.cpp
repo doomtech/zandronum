@@ -833,8 +833,9 @@ static void gl_DrawBlend(sector_t * viewsector)
 		{
 			if (cnt > 175) cnt = 175; // too strong and it gets too opaque
 			
-			gl_AddBlend(1.0f, 0, 0, cnt/255.f,  blend);
-
+			gl_AddBlend (player->mo->RedDamageFade / 255, 
+				player->mo->GreenDamageFade / 255, 
+				player->mo->BlueDamageFade / 255, cnt / 255.f, blend);
 		}
 		
 		if (player->poisoncount)

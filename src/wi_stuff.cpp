@@ -72,8 +72,8 @@ CVAR (Bool, wi_noautostartmap, false, CVAR_ARCHIVE)
 void WI_loadData ();
 void WI_unloadData ();
 
-#define NEXTSTAGE		(gameinfo.gametype == GAME_Doom ? "weapons/rocklx" : "doors/dr1_clos")
-#define PASTSTATS		(gameinfo.gametype == GAME_Doom ? "weapons/shotgr" : "plats/pt1_stop")
+#define NEXTSTAGE		(gameinfo.gametype & GAME_DoomChex ? "weapons/rocklx" : "doors/dr1_clos")
+#define PASTSTATS		(gameinfo.gametype & GAME_DoomChex ? "weapons/shotgr" : "plats/pt1_stop")
 
 // GLOBAL LOCATIONS
 #define WI_TITLEY				2
@@ -444,6 +444,7 @@ void WI_LoadBackground(bool isenterpic)
 		lumpname = NULL;
 		switch(gameinfo.gametype)
 		{
+		case GAME_Chex:
 		case GAME_Doom:
 			if (gamemode != commercial)
 			{
@@ -828,14 +829,14 @@ static void WI_DrawCharPatch (FTexture *patch, int x, int y)
 	{
 		screen->DrawTexture (patch, x, y,
 			DTA_Clean, true,
-			DTA_ShadowAlpha, (gameinfo.gametype == GAME_Doom) ? 0 : FRACUNIT/2,
+			DTA_ShadowAlpha, (gameinfo.gametype & GAME_DoomChex) ? 0 : FRACUNIT/2,
 			TAG_DONE);
 	}
 	else
 	{
 		screen->DrawTexture (patch, x, y,
 			DTA_Clean, true,
-			DTA_ShadowAlpha, (gameinfo.gametype == GAME_Doom) ? 0 : FRACUNIT/2,
+			DTA_ShadowAlpha, (gameinfo.gametype & GAME_DoomChex) ? 0 : FRACUNIT/2,
 			DTA_Translation, BigFont->GetColorTranslation (CR_UNTRANSLATED),	// otherwise it doesn't look good in Strife!
 			TAG_DONE);
 	}
@@ -919,7 +920,7 @@ void WI_drawLF ()
 	if (y < NG_STATSY - screen->Font->GetHeight()*3/4)
 	{
 		// don't draw 'finished' if the level name is too high!
-		if (gameinfo.gametype == GAME_Doom) 
+		if (gameinfo.gametype & GAME_DoomChex) 
 		{
 			screen->DrawTexture(finished, 160 - finished->GetWidth()/2, y, DTA_Clean, true, TAG_DONE);
 		}
@@ -949,7 +950,7 @@ void WI_drawEL ()
 
 	// draw "entering"
 	// be careful with the added height so that it works for oversized 'entering' patches!
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
 		screen->DrawTexture(entering, (SCREENWIDTH - entering->GetWidth() * CleanXfac) / 2, y * CleanYfac, DTA_CleanNoMove, true, TAG_DONE);
 		y += entering->GetHeight() + screen->Font->GetHeight()/4;
@@ -2097,7 +2098,7 @@ void WI_drawNetgameStats ()
 	// [BC] In cooperative mode, just draw the scoreboard.
 	SCOREBOARD_RenderBoard( me );
 /*
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
 		// draw stat titles (top line)
 		screen->DrawTexture (kills, NG_STATSX+NG_SPACINGX-kills->GetWidth(), NG_STATSY, DTA_Clean, true, TAG_DONE);
@@ -2216,7 +2217,7 @@ void WI_updateStats ()
 {
 	WI_updateAnimatedBack ();
 
-	if ((gameinfo.gametype != GAME_Doom || acceleratestage)
+	if ((!(gameinfo.gametype & GAME_DoomChex) || acceleratestage)
 		&& sp_state != 10)
 	{
 		if (acceleratestage)
@@ -2235,7 +2236,7 @@ void WI_updateStats ()
 
 	if (sp_state == 2)
 	{
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			cnt_kills[0] += 2;
 
@@ -2251,7 +2252,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 4)
 	{
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			cnt_items[0] += 2;
 
@@ -2267,7 +2268,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 6)
 	{
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			cnt_secret[0] += 2;
 
@@ -2283,7 +2284,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 8)
 	{
-		if (gameinfo.gametype == GAME_Doom)
+		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			if (!(bcnt&3))
 				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
@@ -2341,7 +2342,7 @@ void WI_drawStats (void)
 	
 	WI_drawLF();
 	
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
 		screen->DrawTexture (kills, SP_STATSX, SP_STATSY, DTA_Clean, true, TAG_DONE);
 		WI_drawPercent (320 - SP_STATSX, SP_STATSY, cnt_kills[0], wbs->maxkills);
@@ -2560,7 +2561,7 @@ void WI_loadData(void)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
 		wiminus = TexMan["WIMINUS"];		// minus sign
 		percent = TexMan["WIPCNT"];		// percent sign

@@ -1091,7 +1091,7 @@ void M_NotifyNewSave (const char *file, const char *title, bool okForQuicksave)
 //
 void M_DrawLoad (void)
 {
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		FTexture *title = TexMan["M_LOADG"];
 		screen->DrawTexture (title,
@@ -1117,7 +1117,7 @@ void M_DrawLoad (void)
 //
 void M_DrawSaveLoadBorder (int x, int y, int len)
 {
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		int i;
 
@@ -1438,7 +1438,10 @@ void M_LoadGame (int choice)
 {
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		M_StartMessage (GStrings("LOADNET"), NULL, false);
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage (GStrings("CLOADNET"), NULL, false);
+		else
+			M_StartMessage (GStrings("LOADNET"), NULL, false);
 		return;
 	}
 		
@@ -1455,7 +1458,7 @@ void M_LoadGame (int choice)
 //
 void M_DrawSave()
 {
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		FTexture *title = TexMan["M_SAVEG"];
 		screen->DrawTexture (title,
@@ -1567,7 +1570,10 @@ void M_QuickSave ()
 		M_SaveGame (0);
 		return;
 	}
-	mysnprintf (tempstring, countof(tempstring), GStrings("QSPROMPT"), quickSaveSlot->Title);
+	if(gameinfo.gametype == GAME_Chex)
+		mysnprintf (tempstring, countof(tempstring), GStrings("CQSPROMPT"), quickSaveSlot->Title);
+	else
+		mysnprintf (tempstring, countof(tempstring), GStrings("QSPROMPT"), quickSaveSlot->Title);
 	strcpy (savegamestring, quickSaveSlot->Title);
 	M_StartMessage (tempstring, M_QuickSaveResponse, true);
 }
@@ -1591,7 +1597,10 @@ void M_QuickLoad ()
 {
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		M_StartMessage (GStrings("QLOADNET"), NULL, false);
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage (GStrings("CQLOADNET"), NULL, false);
+		else
+			M_StartMessage (GStrings("QLOADNET"), NULL, false);
 		return;
 	}
 		
@@ -1603,7 +1612,10 @@ void M_QuickLoad ()
 		M_LoadGame (0);
 		return;
 	}
-	mysnprintf (tempstring, countof(tempstring), GStrings("QLPROMPT"), quickSaveSlot->Title);
+	if(gameinfo.gametype == GAME_Chex)
+		mysnprintf (tempstring, countof(tempstring), GStrings("CQLPROMPT"), quickSaveSlot->Title);
+	else
+		mysnprintf (tempstring, countof(tempstring), GStrings("QLPROMPT"), quickSaveSlot->Title);
 	M_StartMessage (tempstring, M_QuickLoadResponse, true);
 }
 
@@ -1666,7 +1678,7 @@ void M_DrawReadThis ()
 //
 void M_DrawMainMenu (void)
 {
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
         screen->DrawTexture (TexMan["M_DOOM"], 94, 2, DTA_Clean, true, TAG_DONE);
 	}
@@ -1709,9 +1721,9 @@ void M_DrawHereticMainMenu ()
 //
 void M_DrawNewGame(void)
 {
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
-		screen->DrawTexture (TexMan[gameinfo.gametype == GAME_Doom ? "M_NEWG" : "M_NGAME"], 96, 14, DTA_Clean, true, TAG_DONE);
+		screen->DrawTexture (TexMan[gameinfo.gametype & GAME_DoomChex ? "M_NEWG" : "M_NGAME"], 96, 14, DTA_Clean, true, TAG_DONE);
 		screen->DrawTexture (TexMan["M_SKILL"], 54, 38, DTA_Clean, true, TAG_DONE);
 	}
 }
@@ -1736,7 +1748,10 @@ void M_NewGame(int choice)
 /*
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && !demoplayback)
 	{
-		M_StartMessage (GStrings("NEWGAME"), NULL, false);
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage (GStrings("CNEWGAME"), NULL, false);
+		else
+			M_StartMessage (GStrings("NEWGAME"), NULL, false);
 		return;
 	}
 */
@@ -1750,7 +1765,7 @@ void M_NewGame(int choice)
 	}
 
 	// Set up episode menu positioning
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		EpiDef.x = 48;
 		EpiDef.y = 63;
@@ -1853,7 +1868,7 @@ static void M_DrawClassMenu ()
 	if (ClassMenuDef.numitems > 4 && gameinfo.gametype & GAME_Raven)
 		tit_y = 2;
 	
-	screen->DrawText (gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+	screen->DrawText (gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
 		160 - BigFont->StringWidth (text)/2,
 		tit_y,
 		text, DTA_Clean, true, TAG_DONE);
@@ -1912,7 +1927,7 @@ static void DrawHexenSkillMenu()
 //
 void M_DrawEpisode ()
 {
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		screen->DrawTexture (TexMan["M_EPISOD"], 54, 38, DTA_Clean, true, TAG_DONE);
 	}
@@ -2050,6 +2065,10 @@ void M_Episode (int choice)
 			M_StartMessage(GStrings("SWSTRING"),NULL,false);
 			//M_SetupNextMenu(&ReadDef);
 		}
+		else if (gameinfo.gametype == GAME_Chex)
+		{
+			M_StartMessage(GStrings("CSWSTRING"),NULL,false);
+		}
 		else
 		{
 			showSharewareMessage = 3*TICRATE;
@@ -2081,7 +2100,10 @@ static void SCClass (int option)
 {
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		M_StartMessage (GStrings("NEWGAME"), NULL, false);
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage (GStrings("CNEWGAME"), NULL, false);
+		else
+			M_StartMessage (GStrings("NEWGAME"), NULL, false);
 		return;
 	}
 
@@ -2107,6 +2129,16 @@ static void SCClass (int option)
 // [GRB]
 static void M_ChooseClass (int choice)
 {
+	/* [BB] Skulltag does this a little differently from ZDoom.
+	if (netgame)
+	{
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage (GStrings("CNEWGAME"), NULL, false);
+		else
+			M_StartMessage (GStrings("NEWGAME"), NULL, false);
+		return;
+	}
+	*/
 	playerclass = (choice < ClassMenuDef.numitems-1) ? ClassMenuItems[choice].name : "Random";
 	// [BB] A client chooses the class and tells it to the server with the above line.
 	// Afterwards the client just joins.
@@ -2165,11 +2197,17 @@ void M_EndGame(int choice)
 		
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		M_StartMessage(GStrings("NETEND"),NULL,false);
+		if(gameinfo.gametype == GAME_Chex)
+			M_StartMessage(GStrings("CNETEND"),NULL,false);
+		else
+			M_StartMessage(GStrings("NETEND"),NULL,false);
 		return;
 	}
-		
-	M_StartMessage(GStrings("ENDGAME"),M_EndGameResponse,true);
+
+	if(gameinfo.gametype == GAME_Chex)
+		M_StartMessage(GStrings("CENDGAME"),M_EndGameResponse,true);
+	else
+		M_StartMessage(GStrings("ENDGAME"),M_EndGameResponse,true);
 }
 
 
@@ -2232,12 +2270,19 @@ void M_QuitGame (int choice)
 {
 	// We pick index 0 which is language sensitive,
 	//  or one at random, between 1 and maximum number.
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
-		int quitmsg = gametic % (gameinfo.gametype == GAME_Doom ? NUM_QUITDOOMMESSAGES : NUM_QUITSTRIFEMESSAGES - 1);
-		if (quitmsg != 0 || gameinfo.gametype == GAME_Strife)
+		int quitmsg = 0;
+		if (gameinfo.gametype == GAME_Doom)
+			quitmsg = gametic % NUM_QUITDOOMMESSAGES;
+		else if (gameinfo.gametype == GAME_Strife)
+			quitmsg = gametic % NUM_QUITSTRIFEMESSAGES - 1;
+		else //Chex quest has 2 messages but one is more likely to show
+			quitmsg = (gametic % NUM_QUITCHEXMESSAGES + 6) > NUM_QUITCHEXMESSAGES ? NUM_QUITCHEXMESSAGES - 1 : (gametic % NUM_QUITCHEXMESSAGES + 6);
+
+		if (quitmsg != 0 || gameinfo.gametype == GAME_Strife || gameinfo.gametype == GAME_Chex)
 		{
-			EndString.Format("QUITMSG%d", quitmsg + (gameinfo.gametype == GAME_Doom ? 0 : NUM_QUITDOOMMESSAGES + 1));
+			EndString.Format("QUITMSG%d", quitmsg + (gameinfo.gametype == GAME_Doom ? 0 : (gameinfo.gametype == GAME_Chex ? NUM_QUITDOOMMESSAGES + NUM_QUITSTRIFEMESSAGES : NUM_QUITDOOMMESSAGES + 1)));
 			EndString.Format("%s\n\n%s", GStrings(EndString), GStrings("DOSY"));
 		}
 		else
@@ -2360,7 +2405,7 @@ static void M_PlayerSetupDrawer ()
 	// [BC] Set the line height.
 	ulLineHeight = SmallFont->GetHeight( );
 
-	if (!(gameinfo.gametype & (GAME_Doom|GAME_Strife)))
+	if (!(gameinfo.gametype & (GAME_DoomStrifeChex)))
 	{
 		xo = 5;
 		yo = 5;
@@ -2378,7 +2423,7 @@ static void M_PlayerSetupDrawer ()
 /*
 	// Draw title
 	const char * text = GStrings("MNU_PLAYERSETUP");
-	screen->DrawText (gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+	screen->DrawText (gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
 		160 - BigFont->StringWidth (text)/2,
 		15,
 		text, DTA_Clean, true, TAG_DONE);
@@ -3562,7 +3607,7 @@ void M_Drawer ()
 						if (color == CR_UNTRANSLATED)
 						{
 							// The default DBIGFONT is white but Doom's default should be red.
-							if (gameinfo.gametype == GAME_Doom)
+							if (gameinfo.gametype & GAME_DoomChex)
 							{
 								color = CR_RED;
 							}
@@ -3594,12 +3639,12 @@ void M_Drawer ()
 						screen->SetFont (ConFont);
 						screen->DrawText (CR_RED, x - 16,
 							currentMenu->y + itemOn*LINEHEIGHT +
-							(!(gameinfo.gametype & (GAME_Doom|GAME_Strife)) ? 6 : -1), "\xd",
+							(!(gameinfo.gametype & (GAME_DoomStrifeChex)) ? 6 : -1), "\xd",
 							DTA_Clean, true, TAG_DONE);
 						screen->SetFont (SmallFont);
 					}
 				}
-				else*/ if (gameinfo.gametype == GAME_Doom)
+				else*/ if (gameinfo.gametype & GAME_DoomChex)
 				{
 					screen->DrawTexture (TexMan[skullName[whichSkull]],
 						x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
@@ -3758,7 +3803,7 @@ void M_Init (void)
 
 	atterm (M_Deinit);
 
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	if (gameinfo.gametype & (GAME_DoomStrifeChex))
 	{
 		TopLevelMenu = currentMenu = &MainDef;
 		if (gameinfo.gametype == GAME_Strife)
@@ -3789,10 +3834,10 @@ void M_Init (void)
 	lastSaveSlot = NULL;
 	strcpy (NewSaveNode.Title, "<New Save Game>");
 
-	underscore[0] = (gameinfo.gametype & (GAME_Doom|GAME_Strife)) ? '_' : '[';
+	underscore[0] = (gameinfo.gametype & (GAME_DoomStrifeChex)) ? '_' : '[';
 	underscore[1] = '\0';
 
-	if (gameinfo.gametype == GAME_Doom)
+	if (gameinfo.gametype & GAME_DoomChex)
 	{
 		LINEHEIGHT = 16;
 	}
@@ -3854,7 +3899,7 @@ void M_Init (void)
 			ClassMenuDef.numitems = 1;
 		}
 
-		if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+		if (gameinfo.gametype & (GAME_DoomStrifeChex))
 		{
 			ClassMenuDef.x = 48;
 			ClassMenuDef.y = 63;

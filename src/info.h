@@ -184,9 +184,12 @@ enum EGameType
 	GAME_Heretic = 2,
 	GAME_Hexen	 = 4,
 	GAME_Strife	 = 8,
+	GAME_Chex	 = 16,
 
-	GAME_Raven		= GAME_Heretic|GAME_Hexen,
-	GAME_DoomStrife	= GAME_Doom|GAME_Strife
+	GAME_Raven			= GAME_Heretic|GAME_Hexen,
+	GAME_DoomStrife		= GAME_Doom|GAME_Strife,
+	GAME_DoomChex		= GAME_Doom|GAME_Chex,
+	GAME_DoomStrifeChex	= GAME_Doom|GAME_Strife|GAME_Chex
 };
 #endif
 
@@ -229,7 +232,7 @@ public:
 	~FDoomEdMap();
 
 	const PClass *FindType (int doomednum) const;
-	void AddType (int doomednum, const PClass *type);
+	void AddType (int doomednum, const PClass *type, bool temporary = false);
 	void DelType (int doomednum);
 	void Empty ();
 
@@ -243,6 +246,7 @@ private:
 		FDoomEdEntry *HashNext;
 		const PClass *Type;
 		int DoomEdNum;
+		bool temp;
 	};
 
 	static FDoomEdEntry *DoomEdHash[DOOMED_HASHSIZE];

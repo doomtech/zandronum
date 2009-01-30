@@ -840,6 +840,12 @@ static int ParseMorphStyle (FScanner &sc)
 //==========================================================================
 static void ActorSkipSuper (FScanner &sc, AActor *defaults, Baggage &bag)
 {
+	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(AInventory)))
+	{
+		sc.ScriptMessage("'skip_super' in definition of inventory item igmored.\n");
+		return;
+	}
+
 	memcpy (defaults, GetDefault<AActor>(), sizeof(AActor));
 	if (bag.DropItemList != NULL)
 	{
@@ -874,6 +880,10 @@ static void ActorGame (FScanner &sc, AActor *defaults, Baggage &bag)
 	else if (sc.Compare ("Strife"))
 	{
 		bag.Info->GameFilter |= GAME_Strife;
+	}
+	else if (sc.Compare ("Chex"))
+	{
+		bag.Info->GameFilter |= GAME_Chex;
 	}
 	else if (sc.Compare ("Any"))
 	{
@@ -1981,8 +1991,8 @@ static void InventoryPickupAnnouncerEntry (FScanner &sc, AInventory *defaults, B
 static void InventoryPickupmsg (FScanner &sc, AInventory *defaults, Baggage &bag)
 {
 	// allow game specific pickup messages
-	const char * games[] = {"Doom", "Heretic", "Hexen", "Raven", "Strife", NULL};
-	int gamemode[]={GAME_Doom, GAME_Heretic, GAME_Hexen, GAME_Raven, GAME_Strife};
+	const char * games[] = {"Doom", "Heretic", "Hexen", "Raven", "Strife", "Chex", NULL};
+	int gamemode[]={GAME_Doom, GAME_Heretic, GAME_Hexen, GAME_Raven, GAME_Strife, GAME_Chex};
 
 	sc.MustGetString();
 	int game = sc.MatchString(games);
@@ -2613,8 +2623,6 @@ static void PlayerCrouchSprite (FScanner &sc, APlayerPawn *defaults, Baggage &ba
 //==========================================================================
 static void PlayerDmgScreenColor (FScanner &sc, APlayerPawn *defaults, Baggage &bag)
 {
-	defaults->HasDamageFade = true;
-
 	if (sc.CheckNumber ())
 	{
 		sc.MustGetNumber ();

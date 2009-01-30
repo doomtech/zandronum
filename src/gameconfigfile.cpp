@@ -240,7 +240,7 @@ void FGameConfigFile::DoGameSetup (const char *gamename)
 {
 	const char *key;
 	const char *value;
-	enum { Doom, Heretic, Hexen, Strife } game;
+	enum { Doom, Heretic, Hexen, Strife, Chex } game;
 
 	if (strcmp (gamename, "Heretic") == 0)
 		game = Heretic;
@@ -248,6 +248,8 @@ void FGameConfigFile::DoGameSetup (const char *gamename)
 		game = Hexen;
 	else if (strcmp (gamename, "Strife") == 0)
 		game = Strife;
+	else if (strcmp (gamename, "Chex") == 0)
+		game = Chex;
 	else
 		game = Doom;
 
@@ -713,6 +715,18 @@ void FGameConfigFile::SetupWeaponList (const char *gamename)
 		LocalWeapons.Slots[7].AddWeapon ("Mauler2");
 		LocalWeapons.Slots[7].AddWeapon ("Mauler");
 		LocalWeapons.Slots[8].AddWeapon ("Sigil");
+	}
+	else if (strcmp (gamename, "Chex") == 0)
+	{
+		LocalWeapons.Slots[1].AddWeapon ("Bootspoon");
+		LocalWeapons.Slots[1].AddWeapon ("SuperBootspork");
+		LocalWeapons.Slots[2].AddWeapon ("MiniZorcher");
+		LocalWeapons.Slots[3].AddWeapon ("LargeZorcher");
+		LocalWeapons.Slots[3].AddWeapon ("SuperLargeZorcher");
+		LocalWeapons.Slots[4].AddWeapon ("RapidZorcher");
+		LocalWeapons.Slots[5].AddWeapon ("ZorchPropulsor");
+		LocalWeapons.Slots[6].AddWeapon ("PhasingZorcher");
+		LocalWeapons.Slots[7].AddWeapon ("LAZDevice");
 	}
 	else // Doom
 	{

@@ -181,6 +181,9 @@ extern gameinfo_t HexenDKGameInfo;
 extern gameinfo_t StrifeGameInfo;
 extern gameinfo_t StrifeTeaserGameInfo;
 extern gameinfo_t StrifeTeaser2GameInfo;
+extern gameinfo_t ChexGameInfo;
+extern gameinfo_t PlutoniaGameInfo;
+extern gameinfo_t TNTGameInfo;
 
 extern int testingmode;
 extern bool setmodeneeded;
@@ -233,6 +236,7 @@ const IWADInfo IWADInfos[NUM_IWAD_TYPES] =
 	{ "Final Doom: Plutonia Experiment",		"Plutonia",	MAKERGB(168,0,0),		MAKERGB(168,168,168) },
 	{ "Hexen: Beyond Heretic",					NULL,		MAKERGB(240,240,240),	MAKERGB(107,44,24) },
 	{ "Hexen: Deathkings of the Dark Citadel",	"HexenDK",	MAKERGB(240,240,240),	MAKERGB(139,68,9) },
+	{ "Hexen: Demo Version",					"HexenDemo",MAKERGB(240,240,240),	MAKERGB(107,44,24) },
 	{ "DOOM 2: Hell on Earth",					"Doom2",	MAKERGB(168,0,0),		MAKERGB(168,168,168) },
 	{ "Heretic Shareware",						NULL,		MAKERGB(252,252,0),		MAKERGB(168,0,0) },
 	{ "Heretic: Shadow of the Serpent Riders",	NULL,		MAKERGB(252,252,0),		MAKERGB(168,0,0) },
@@ -244,6 +248,9 @@ const IWADInfo IWADInfos[NUM_IWAD_TYPES] =
 	{ "Strife: Teaser (Old Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
 	{ "Strife: Teaser (New Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
 	{ "Freedoom",								"Freedoom",	MAKERGB(50,84,67),		MAKERGB(198,220,209) },
+	{ "Freedoom \"Demo\"",						"Freedoom1",MAKERGB(50,84,67),		MAKERGB(198,220,209) },
+	{ "FreeDM",									"FreeDM",	MAKERGB(50,84,67),		MAKERGB(198,220,209) },
+	{ "Chex(R) Quest",							"Chex",		MAKERGB(255,255,0),		MAKERGB(0,192,0) },
 };
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -265,9 +272,14 @@ static const char *IWADNames[] =
 	"heretic1.wad",
 	"hexen.wad",
 	"hexdd.wad",
+	"hexendemo.wad",
+	"hexdemo.wad",
 	"strife1.wad",
 	"strife0.wad",
 	"freedoom.wad", // Freedoom.wad is distributed as Doom2.wad, but this allows to have both in the same directory.
+	"freedoom1.wad",
+	"freedm.wad",
+	"chex.wad",
 #ifdef unix
 	"DOOM2.WAD",    // Also look for all-uppercase names
 	"PLUTONIA.WAD",
@@ -278,9 +290,14 @@ static const char *IWADNames[] =
 	"HERETIC1.WAD",
 	"HEXEN.WAD",
 	"HEXDD.WAD",
+	"HEXENDEMO.WAD",
+	"HEXDEMO.WAD",
 	"STRIFE1.WAD",
 	"STRIFE0.WAD",
 	"FREEDOOM.WAD",
+	"FREEDOOM1.WAD",
+	"FREEDM.WAD",
+	"CHEX.WAD",
 #endif
 	NULL
 };
@@ -840,7 +857,7 @@ void D_Display ()
 		FTexture *tex;
 		int x;
 
-		tex = TexMan[gameinfo.gametype & (GAME_Doom|GAME_Strife) ? "M_PAUSE" : "PAUSED"];
+		tex = TexMan[gameinfo.gametype & (GAME_DoomStrifeChex) ? "M_PAUSE" : "PAUSED"];
 		x = (SCREENWIDTH - tex->GetWidth()*CleanXfac)/2 +
 			tex->LeftOffset*CleanXfac;
 		screen->DrawTexture (tex, x, 4, DTA_CleanNoMove, true, TAG_DONE);
@@ -1589,10 +1606,11 @@ static void SetIWAD (const char *iwadpath, EIWADType type)
 		const gameinfo_t *Info;
 		GameMission_t Mission;
 	} Datas[NUM_IWAD_TYPES] = {
-		{ commercial,	&CommercialGameInfo,	pack_tnt },		// Doom2TNT
-		{ commercial,	&CommercialGameInfo,	pack_plut },	// Doom2Plutonia
+		{ commercial,	&TNTGameInfo,			pack_tnt },		// Doom2TNT
+		{ commercial,	&PlutoniaGameInfo,		pack_plut },	// Doom2Plutonia
 		{ commercial,	&HexenGameInfo,			doom2 },		// Hexen
 		{ commercial,	&HexenDKGameInfo,		doom2 },		// HexenDK
+		{ commercial,	&HexenGameInfo,			doom2 },		// Hexen Demo
 		{ commercial,	&CommercialGameInfo,	doom2 },		// Doom2
 		{ shareware,	&HereticSWGameInfo,		doom },			// HereticShareware
 		{ retail,		&HereticGameInfo,		doom },			// HereticExtended
@@ -1604,6 +1622,9 @@ static void SetIWAD (const char *iwadpath, EIWADType type)
 		{ commercial,	&StrifeTeaserGameInfo,	doom2 },		// StrifeTeaser
 		{ commercial,	&StrifeTeaser2GameInfo,	doom2 },		// StrifeTeaser2
 		{ commercial,	&CommercialGameInfo,	doom2 },		// FreeDoom
+		{ shareware,	&SharewareGameInfo,		doom },			// FreeDoom1
+		{ commercial,	&CommercialGameInfo,	doom2 },		// FreeDM
+		{ registered,	&ChexGameInfo,			doom },			// Chex Quest
 	};
 
 	D_AddFile (iwadpath, false);	// [BC]
@@ -1636,8 +1657,9 @@ static EIWADType ScanIWAD (const char *iwad)
 	static const char checklumps[][8] =
 	{
 		"E1M1",
-		"E4M1",
+		"E4M2",
 		"MAP01",
+		"MAP40",
 		"MAP60",
 		"TITLE",
 		"REDTNT2",
@@ -1647,10 +1669,13 @@ static EIWADType ScanIWAD (const char *iwad)
 		"MAP33",
 		"INVCURS",
 		{ 'F','R','E','E','D','O','O','M' },
+		"W94_1",
+		{ 'P','O','S','S','H','0','M','0' },
 		"E2M1","E2M2","E2M3","E2M4","E2M5","E2M6","E2M7","E2M8","E2M9",
 		"E3M1","E3M2","E3M3","E3M4","E3M5","E3M6","E3M7","E3M8","E3M9",
 		"DPHOOF","BFGGA0","HEADA1","CYBRA1",
 		{ 'S','P','I','D','A','1','D','1' },
+
 	};
 #define NUM_CHECKLUMPS (sizeof(checklumps)/8)
 	enum
@@ -1658,6 +1683,7 @@ static EIWADType ScanIWAD (const char *iwad)
 		Check_e1m1,
 		Check_e4m1,
 		Check_map01,
+		Check_map40,
 		Check_map60,
 		Check_title,
 		Check_redtnt2,
@@ -1667,6 +1693,8 @@ static EIWADType ScanIWAD (const char *iwad)
 		Check_map33,
 		Check_invcurs,
 		Check_FreeDoom,
+		Check_W94_1,
+		Check_POSSH0M0,
 		Check_e2m1
 	};
 	int lumpsfound[NUM_CHECKLUMPS];
@@ -1732,11 +1760,27 @@ static EIWADType ScanIWAD (const char *iwad)
 		{
 			if (lumpsfound[Check_title])
 			{
-				return IWAD_Hexen;
+				if (lumpsfound[Check_map40])
+				{
+					return IWAD_Hexen;
+				}
+				else
+				{
+					return IWAD_HexenDemo;
+				}
 			}
 			else if (lumpsfound[Check_FreeDoom])
 			{
-				return IWAD_FreeDoom;
+				// Is there a 100% reliable way to tell FreeDoom and FreeDM
+				// apart based solely on the lump names?
+				if (strstr(iwad, "freedm.wad") || strstr(iwad, "FREEDM.WAD"))
+				{
+					return IWAD_FreeDM;
+				}
+				else
+				{
+					return IWAD_FreeDoom;
+				}
 			}
 			else
 			{
@@ -1770,14 +1814,28 @@ static EIWADType ScanIWAD (const char *iwad)
 			{
 				if (!lumpsfound[i])
 				{
-					return IWAD_DoomShareware;
+					if (lumpsfound[Check_FreeDoom])
+					{
+						return IWAD_FreeDoom1;
+					}
+					else
+					{
+						return IWAD_DoomShareware;
+					}
 				}
 			}
 			if (i == NUM_CHECKLUMPS)
 			{
 				if (lumpsfound[Check_e4m1])
 				{
-					return IWAD_UltimateDoom;
+					if (lumpsfound[Check_W94_1] && lumpsfound[Check_POSSH0M0])
+					{
+						return IWAD_ChexQuest;
+					}
+					else
+					{
+						return IWAD_UltimateDoom;
+					}
 				}
 				else
 				{

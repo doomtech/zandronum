@@ -1,3 +1,129 @@
+September 6, 2008  (Changes by Graf Zahl)
+- Changed listener structure to directly contain the sound environment instead
+  of getting it from the zone in the low level code.
+- Changed sound interface so that all references to game data like actors
+  and sectors are done in s_sound.cpp and not in fmodsound.cpp. Also removed
+  several 'sector' parameters because they were never used inside the sound code.
+
+September 5, 2008
+- Added the "extended" keyword for episode definitions to define episodes
+  that are only available in the extended version of Heretic.
+- Added hexendemo.wad and hexdemo.wad as aliases for the demo Hexen IWAD.
+- Added IWAD checks for freedoom1.wad and freedm.wad.
+- The garbage collector now has an opportunity to step each time individual
+  thinkers tick, not just once every game tick. This more closely follows
+  the original Lua behavior. This change was made because, in cases of
+  extremely large and frequent memory allocations, the collector may not run
+  fast enough if it only has a chance to execute once per tick.
+
+September 4, 2008
+- Fixed: The "same level" dmflag did not work.
+- Changed the nextlevel global var to an FString.
+- Implemented some more controllers for the OPL player:
+  * RPN select (controllers 100 and 101)
+  *  RPN 0 (pitch bend sensitivity)
+  * NPRN select (controllers 98 and 99)
+  * Data entry (controllers 6 and 38)
+  * All notes off (controller 123)
+  * All sounds off (controller 120)
+  * Reset controllers (controller 121)
+- Added pixel doubling and quadrupling for fullscreen DirectDraw modes.
+  The command line options -2 and -4 can be used to force them.
+
+September 4, 2008  (Changes by Graf Zahl)
+- Fixed: Red blood particles used too dark colors.
+- Fixed: The smoothlighting code in side_t::GetLightLevel relied on 
+  the global 'linedef' variable for automatic fake contrast although
+  this issue had already been fixed for the original code here.
+- Replaced static string buffers with FString in FONTDEFS parser.
+
+September 1, 2008  (Changes by Graf Zahl)
+- Added an 'allcheats' CVAR. This will enable all cheats from all
+  supported games in any game being played.
+- Changed Chex Quest DoomEdNum initilization so that all empty slots 
+  are filled with Doom actors if they exist.
+- Added missing spawn filters to Chex Quest items.
+- Gave the PlayerPawn base class a default damage fade color instead of
+  hacking it into the actor when actually used.
+- Fixed: The DamageFade color was not saved in savegames.
+
+August 30, 2008  (Changes by Graf Zahl)
+- Added Blzut3's patch for a real Chex Quest game mode.
+
+August 29, 2008  (Changes by Graf Zahl)
+- Fixed: SKIP_SUPER doesn't work for inventory items so it must be
+  disabled for them
+- Fixed: Chex Quest doesn't have a HELP2 screen so it must not be used
+  in the gameinfo.
+- Fixed: Default blood color is no longer red so P_DrawSplash2 must
+  get it from the gameinfo instead.
+- Added new French language texts by DoomKn1ght_.
+  
+August 26, 2008  (Changes by Graf Zahl)
+- Blood default color is set in the gameinfo now so that Chex Quest
+  can default to green instead of red.
+- Fixed: The version of CheckNumForFullName that checks for a specific
+  WAD did not work.
+- Moved MAPINFO names into gameinfo structure.
+- Added Chex Quest support. Credits go to fraggle for creating a 
+  Dehacked patch that does most of the work. The rest includes a new
+  MAPINFO and removal of the drop items from the monsters being used.
+
+August 23, 2008
+- Added Win64 support to the crash report generator. (Pity that Win32
+  cannot be as informative.)
+
+August 22, 2008  (Changes by Graf Zahl)
+- Added and fixed Boss death submission for random spawner.
+- Added functions to FActorInfo that can set the damage factors and
+  pain chances to reduce the chance of new errors when working with
+  these features.
+- Fixed: The handling of the deprecated FIRERESIST flag didn't work.
+  There were 3 problems:
+  * Actor defaults have no class information so HandleDeprecatedFlags
+    needs to be passed a pointer to the ActorInfo.
+  * The DamageFactors list is only created when needed so the code needs to
+    check if it already exists.
+  * damage factors are stored as fixed_t but this set a float.
+
+August 22, 2008
+- Fixed: Timidity::Renderer::reset_voices() must completely zero the
+  voices. Because this wasn't done, note_on() could try to access
+  the sample for a voice that had never been played yet and access
+  random memory. There may be other places where it's a problem, but
+  this is where I noticed it, by chance.
+
+August 21, 2008  (Changes by Graf Zahl)
+- Added a traditional Strife color set for the automap.
+
+August 21, 2008  (Changes by Graf Zahl)
+- Fixed: The conversion of the strings in wbstartstruct_t to FStrings
+  caused crashes when reloading the hub data.
+- Replaced WALLF_AUTOCONTRAST with WALLF_NOFAKECONTRAST so that the 
+  default setting for the flags is 0.
+- Added: doom2day's smoothlighting
+- Added: dontincrement argument to A_CheckForReload.
+- Fixed: The UDMF parser wrote class filter bits into SkillFilter.
+- Fixed: (SBARINFO patch) DrawInventoryBar has a missing argument in 
+  one of its drawgraphic calls.
+
+August 20, 2008 (Changes by Graf Zahl)
+- Added Gez's patch for Heretic's GIMME cheat.
+- Externalized some cheat strings.
+
+August 19, 2008 (Changes by Graf Zahl)
+- Added Gez's patch for removing MF4_FIRERESIST.
+
+August 18, 2008 (SBARINFO patch)
+- Fixed: DrawBar would not show.
+- Fixed: IsSelected took string constants instead of identifiers.
+
+August 16, 2008 (Changes by Graf Zahl)
+- Put more floor/ceiling properties in sector_t into a substructure and
+  added wrapper functions.
+- Fixed: A_Explode wants the distance parameter as an int, not a fixed_t.
+- some minor DECORATE fixes.
+
 August 14, 2008 (Changes by Graf Zahl)
 - Fixed: The count parameter of A_Jump is a constant, not an expression.
 - Fixed: A_Jump used a wrong index into the jump address table.

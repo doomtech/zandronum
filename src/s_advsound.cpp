@@ -1270,8 +1270,8 @@ static void S_AddSNDINFO (int lump)
 				}
 				break;
 
-			case SI_IfDoom:
-				if (gameinfo.gametype != GAME_Doom)
+			case SI_IfDoom: //also Chex
+				if (!(gameinfo.gametype & GAME_DoomChex))
 				{
 					skipToEndIf = true;
 				}

@@ -154,6 +154,11 @@ void SetupPlayerClasses ()
 		newclass.Type = PClass::FindClass (NAME_StrifePlayer);
 		PlayerClasses.Push (newclass);
 	}
+	else if (gameinfo.gametype == GAME_Chex)
+	{
+		newclass.Type = PClass::FindClass (NAME_ChexPlayer);
+		PlayerClasses.Push (newclass);
+	}
 }
 
 CCMD (clearplayerclasses)
@@ -469,7 +474,10 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< ScoreIcon
 		<< InvFirst
 		<< InvSel
-		<< MorphWeapon;
+		<< MorphWeapon
+		<< RedDamageFade
+		<< GreenDamageFade
+		<< BlueDamageFade;
 }
 
 //===========================================================================

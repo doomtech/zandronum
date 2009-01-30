@@ -961,12 +961,12 @@ int FWadCollection::CheckNumForFullName (const char *name, int wadnum)
 		return CheckNumForFullName (name);
 	}
 
-	i = FirstLumpIndex[MakeKey (name) % NumLumps];
+	i = FirstLumpIndex_FullName[MakeKey (name) % NumLumps];
 
-	while (i != NULL_INDEX &&
+	while (i != NULL_INDEX && 
 		(stricmp(name, LumpInfo[i].fullname) || LumpInfo[i].wadnum != wadnum))
 	{
-		i = NextLumpIndex[i];
+		i = NextLumpIndex_FullName[i];
 	}
 
 	return i != NULL_INDEX ? i : -1;
@@ -1420,7 +1420,7 @@ void FWadCollection::RenameSprites (int startlump)
 
 		// When not playing Doom rename all BLOD sprites to BLUD so that
 		// the same blood states can be used everywhere
-		if (gameinfo.gametype != GAME_Doom)
+		if (!(gameinfo.gametype & GAME_DoomChex))
 		{
 			if (*(DWORD *)LumpInfo[i].name == MAKE_ID('B', 'L', 'O', 'D'))
 			{

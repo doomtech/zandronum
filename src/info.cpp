@@ -254,6 +254,12 @@ void FActorInfo::RegisterIDs ()
 			DoomEdMap.AddType (DoomEdNum, Class);
 		}
 	}
+	// Fill out the list for Chex Quest with Doom's actors
+	if (gameinfo.gametype == GAME_Chex && DoomEdMap.FindType(DoomEdNum) == NULL &&
+		(GameFilter & GAME_Doom))
+	{
+		DoomEdMap.AddType (DoomEdNum, Class, true);
+	}
 }
 
 //==========================================================================
@@ -551,7 +557,7 @@ FDoomEdMap::~FDoomEdMap()
 	Empty();
 }
 
-void FDoomEdMap::AddType (int doomednum, const PClass *type)
+void FDoomEdMap::AddType (int doomednum, const PClass *type, bool temporary)
 {
 	unsigned int hash = (unsigned int)doomednum % DOOMED_HASHSIZE;
 	FDoomEdEntry *entry = DoomEdHash[hash];
@@ -566,11 +572,12 @@ void FDoomEdMap::AddType (int doomednum, const PClass *type)
 		entry->DoomEdNum = doomednum;
 		DoomEdHash[hash] = entry;
 	}
-	else
+	else if (!entry->temp)
 	{
 		Printf (PRINT_BOLD, "Warning: %s and %s both have doomednum %d.\n",
 			type->TypeName.GetChars(), entry->Type->TypeName.GetChars(), doomednum);
 	}
+	entry->temp = temporary;
 	entry->Type = type;
 }
 

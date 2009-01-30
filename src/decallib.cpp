@@ -45,6 +45,7 @@
 #include "r_draw.h"
 #include "a_sharedglobal.h"
 #include "r_translate.h"
+#include "gi.h"
 // [BC] New #includes.
 #include "g_game.h"
 
@@ -517,8 +518,15 @@ void FDecalLib::ParseDecal (FScanner &sc)
 
 		case DECAL_SHADE:
 			sc.MustGetString ();
+			if (!sc.Compare("BloodDefault"))
+			{
+				newdecal.ShadeColor = V_GetColor (NULL, sc.String);
+			}
+			else
+			{
+				newdecal.ShadeColor = gameinfo.defaultbloodcolor;
+			}
 			newdecal.RenderStyle = STYLE_Shaded;
-			newdecal.ShadeColor = V_GetColor (NULL, sc.String);
 			newdecal.ShadeColor |=
 				ColorMatcher.Pick (RPART(newdecal.ShadeColor),
 					GPART(newdecal.ShadeColor), BPART(newdecal.ShadeColor)) << 24;

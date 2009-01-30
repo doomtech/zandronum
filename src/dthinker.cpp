@@ -49,7 +49,7 @@ static cycle_t ThinkCycles;
 
 IMPLEMENT_CLASS (DThinker)
 
-static DThinker *NextToThink;
+DThinker *NextToThink;
 
 FThinkerList DThinker::Thinkers[MAX_STATNUM+2];
 FThinkerList DThinker::FreshThinkers[MAX_STATNUM+1];
@@ -471,6 +471,7 @@ int DThinker::TickThinkers (FThinkerList *list, FThinkerList *dest)
 			{
 				node->Tick ();
 			}
+			GC::CheckGC();
 		}
 		node = NextToThink;
 	}
