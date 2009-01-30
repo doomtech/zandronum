@@ -692,6 +692,8 @@ add_executable( zdoom WIN32
 	g_doom/a_cacodemon.cpp
 	g_doom/a_cyberdemon.cpp
 	g_doom/a_demon.cpp
+	g_doom/a_doomarmor.cpp #ST
+	g_doom/a_doomartifacts.cpp #ST
 	g_doom/a_doomimp.cpp
 	g_doom/a_doommisc.cpp
 	g_doom/a_doomweaps.cpp
@@ -791,6 +793,7 @@ add_executable( zdoom WIN32
 	g_shared/a_puzzleitems.cpp
 	g_shared/a_quake.cpp
 	g_shared/a_randomspawner.cpp
+	g_shared/a_returnzone.cpp #ST
 	g_shared/a_secrettrigger.cpp
 	g_shared/a_sectoraction.cpp
 	g_shared/a_setcolor.cpp
@@ -799,6 +802,7 @@ add_executable( zdoom WIN32
 	g_shared/a_soundsequence.cpp
 	g_shared/a_spark.cpp
 	g_shared/a_specialspot.cpp
+	g_shared/a_springpad.cpp #ST
 	g_shared/a_waterzone.cpp
 	g_shared/a_weaponpiece.cpp
 	g_shared/a_weapons.cpp
