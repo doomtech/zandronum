@@ -3,13 +3,61 @@
 #include "gl/gl_texture.h"
 
 #ifdef NO_GL
+// [BB] Having to declare dummy versions of all the dynamic lights is pretty awful...
 class ADynamicLight : public AActor
 {
-	DECLARE_STATELESS_ACTOR (ADynamicLight, AActor)
+	DECLARE_CLASS (ADynamicLight, AActor)
 };
 
-IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
-END_DEFAULTS
+class APointLight : public ADynamicLight
+{
+	DECLARE_CLASS (APointLight, ADynamicLight)
+};
+
+class APointLightPulse : public APointLight
+{
+   DECLARE_CLASS (APointLightPulse, APointLight)
+};
+
+class APointLightFlicker : public APointLight
+{
+   DECLARE_CLASS (APointLightFlicker, APointLight)
+};
+
+class APointLightFlickerRandom : public APointLight
+{
+   DECLARE_CLASS (APointLightFlickerRandom, APointLight)
+};
+
+class ASectorPointLight : public APointLight
+{
+   DECLARE_CLASS (ASectorPointLight, APointLight)
+};
+
+class AVavoomLight : public ADynamicLight
+{
+   DECLARE_CLASS (AVavoomLight, ADynamicLight)
+};
+
+class AVavoomLightWhite : public AVavoomLight
+{
+   DECLARE_CLASS (AVavoomLightWhite, AVavoomLight)
+};
+
+class AVavoomLightColor : public AVavoomLight
+{
+   DECLARE_CLASS (AVavoomLightColor, AVavoomLight)
+};
+
+IMPLEMENT_CLASS (ADynamicLight)
+IMPLEMENT_CLASS (APointLight)
+IMPLEMENT_CLASS (APointLightPulse)
+IMPLEMENT_CLASS (APointLightFlicker)
+IMPLEMENT_CLASS (ASectorPointLight)
+IMPLEMENT_CLASS (APointLightFlickerRandom)
+IMPLEMENT_CLASS (AVavoomLight)
+IMPLEMENT_CLASS (AVavoomLightWhite)
+IMPLEMENT_CLASS (AVavoomLightColor)
 
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
@@ -121,16 +169,6 @@ void gl_DrawTexture(FTexInfo*)
 
 void StartGLMenu (void)
 {
-}
-
-int FWarpTexture::CopyTrueColorPixels(FBitmap*, int, int, int, FCopyInfo*)
-{
-	return 0;
-}
-
-int FWarp2Texture::CopyTrueColorPixels(FBitmap*, int, int, int, FCopyInfo*)
-{
-	return 0;
 }
 
 void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
