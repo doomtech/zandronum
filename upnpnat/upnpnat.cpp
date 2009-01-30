@@ -13,6 +13,7 @@
 #endif
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #include "upnpnat.h"
 #include "xmlParser.h"
