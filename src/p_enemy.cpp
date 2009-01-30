@@ -928,7 +928,10 @@ void P_RandomChaseDir (AActor *actor)
 		}
 		else
 		{
-			if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
+			if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE )
+				// [BB] On the server it's possible that there are no players. In this case the
+				// for loop below would get stuck, so we may not enter it.
+				|| ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumPlayers() == 0 ) ) )
 			{
 				i = 0;
 			}
