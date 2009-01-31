@@ -776,7 +776,7 @@ void APlayerPawn::GiveDeathmatchInventory()
 			if (key->KeyNumber != 0)
 			{
 				key = static_cast<AKey *>(Spawn (PClass::m_Types[i], 0,0,0, NO_REPLACE));
-				if (!key->TryPickup (this))
+				if (!key->CallTryPickup (this))
 				{
 					key->Destroy ();
 				}
@@ -1203,7 +1203,7 @@ void APlayerPawn::GiveDefaultInventory ()
 					static_cast<AWeapon*>(item)->AmmoGive1 =
 					static_cast<AWeapon*>(item)->AmmoGive2 = 0;
 				}
-				if (!item->TryPickup(this))
+				if (!item->CallTryPickup(this))
 				{
 					item->Destroy ();
 					item = NULL;
@@ -3149,6 +3149,11 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		cmd = pCmd;
 	else
 		cmd = &player->cmd;
+
+	// Make unmodified copies for ACS's GetPlayerInput.
+	player->original_oldbuttons = player->original_cmd.buttons;
+	player->original_cmd = cmd->ucmd;
+
 	if ( GAME_GetEndLevelDelay( ))
 		memset( cmd, 0, sizeof( ticcmd_t ));
 
@@ -3196,7 +3201,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->pSkullBot->Tick( );
 
 	// Handle crouching
-	if (player->cmd.ucmd.buttons & BT_JUMP) player->cmd.ucmd.buttons &= ~BT_DUCK;
+	if (player->cmd.ucmd.buttons & BT_JUMP)
+	{
+		player->cmd.ucmd.buttons &= ~BT_CROUCH;
+	}
 	// [BC] Added a variable to allow people to use crouching if they REALLY want it, no
 	// matter how gay and retarded it is.
 	// [BC] Also, don't do this for clients other than ourself in client mode.
@@ -3210,9 +3218,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			
 				if (crouchdir==0)
 				{
-					crouchdir = (player->cmd.ucmd.buttons & BT_DUCK)? -1 : 1;
+					crouchdir = (player->cmd.ucmd.buttons & BT_CROUCH)? -1 : 1;
 				}
-				else if (player->cmd.ucmd.buttons & BT_DUCK)
+				else if (player->cmd.ucmd.buttons & BT_CROUCH)
 				{
 					player->crouching=0;
 				}
@@ -3692,12 +3700,15 @@ void player_t::Serialize (FArchive &arc)
 	arc << crouchfactor
 		<< crouching 
 		<< crouchdir
-		<< crouchviewdelta;
+		<< crouchviewdelta
+		<< original_cmd
+		<< original_oldbuttons;
 
 	if (arc.IsLoading ())
 	{
 		// If the player reloaded because they pressed +use after dying, we
 		// don't want +use to still be down after the game is loaded.
 		oldbuttons = ~0;
+		original_oldbuttons = ~0;
 	}
 }

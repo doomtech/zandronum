@@ -239,6 +239,8 @@ public:
 	APlayerPawn	*mo;
 	BYTE		playerstate;
 	ticcmd_t	cmd;
+	usercmd_t	original_cmd;
+	DWORD		original_oldbuttons;
 
 	userinfo_t	userinfo;				// [RH] who is this?
 	
@@ -259,8 +261,8 @@ public:
 
 	bool		centering;
 	BYTE		turnticks;
-	short		oldbuttons;
 	bool		attackdown;
+	DWORD		oldbuttons;
 	int			health;					// only used between levels, mo->health
 										// is used during levels
 

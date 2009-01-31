@@ -92,7 +92,7 @@ bool ATeamItem::ShouldRespawn( )
 //
 //===========================================================================
 
-bool ATeamItem::TryPickup( AActor *pToucher )
+bool ATeamItem::TryPickup( AActor *&pToucher )
 {
 	AInventory	*pCopy;
 	AInventory	*pInventory;

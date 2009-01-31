@@ -78,14 +78,13 @@ struct usercmd_s
 	short	dummy6;
 	short	dummy7;
 	short	dummy8;
-	short	yaw;			// left/right	// If you haven't guessed, I just
-	short	roll;			// tilt			// ripped these from Quake2's usercmd.
+	DWORD	buttons;
 	short	pitch;			// up/down
-	BYTE	buttons;
-	BYTE	pad;
-	short	upmove;
+	short	yaw;			// left/right
+	short	roll;			// "tilt"
 	short	forwardmove;
 	short	sidemove;
+	short	upmove;
 };
 typedef struct usercmd_s usercmd_t;
 
@@ -101,7 +100,7 @@ enum
 	UCMDF_FORWARDMOVE	= 0x08,
 	UCMDF_SIDEMOVE		= 0x10,
 	UCMDF_UPMOVE		= 0x20,
-	UCMDF_ROLL			= 0x40
+	UCMDF_ROLL			= 0x40,
 };
 
 // When changing the following enum, be sure to update Net_SkipCommand()

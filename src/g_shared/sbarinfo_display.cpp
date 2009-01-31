@@ -67,6 +67,7 @@ static FRandom pr_chainwiggle; //use the same method of chain wiggling as hereti
 EXTERN_CVAR(Int, fraglimit)
 EXTERN_CVAR(Int, screenblocks)
 EXTERN_CVAR(Bool, vid_fps)
+EXTERN_CVAR(Bool, hud_scale)
 
 enum
 {
@@ -1016,6 +1017,27 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 					}
 					cr = cx + cw;
 				}
+				// Fix the clipping for fullscreenoffsets.
+				if(block.fullScreenOffsets && y < 0)
+				{
+					cy = hud_scale ? SCREENHEIGHT + (cy*CleanYfac) : SCREENHEIGHT + cy;
+					cb = hud_scale ? SCREENHEIGHT + (cb*CleanYfac) : SCREENHEIGHT + cb;
+				}
+				else if(block.fullScreenOffsets && hud_scale)
+				{
+					cy *= CleanYfac;
+					cb *= CleanYfac;
+				}
+				if(block.fullScreenOffsets && x < 0)
+				{
+					cx = hud_scale ? SCREENWIDTH + (cx*CleanXfac) : SCREENWIDTH + cx;
+					cr = hud_scale ? SCREENWIDTH + (cr*CleanXfac) : SCREENWIDTH + cr;
+				}
+				else if(block.fullScreenOffsets && hud_scale)
+				{
+					cx *= CleanXfac;
+					cr *= CleanXfac;
+				}
 
 				// Draw background
 				if(cmd.special3 != 0)
@@ -1279,7 +1301,7 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 				}
 				break;
 			case SBARINFO_USESSECONDARYAMMO:
-				if((CPlayer->ReadyWeapon->AmmoType2 != NULL && !(cmd.flags & SBARINFOEVENT_NOT)) ||
+				if((CPlayer->ReadyWeapon->AmmoType2 != NULL && CPlayer->ReadyWeapon->AmmoType2 != CPlayer->ReadyWeapon->AmmoType1 && !(cmd.flags & SBARINFOEVENT_NOT)) ||
 					(CPlayer->ReadyWeapon->AmmoType2 == NULL && cmd.flags & SBARINFOEVENT_NOT))
 				{
 					doCommands(cmd.subBlock, xOffset, yOffset, alpha);

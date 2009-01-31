@@ -9380,7 +9380,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 			//else
 			//	pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
 		}
-		if ( pInventory->TryPickup( players[ulPlayer].mo ) == false )
+		if ( pInventory->CallTryPickup( players[ulPlayer].mo ) == false )
 		{
 			pInventory->Destroy( );
 			pInventory = NULL;

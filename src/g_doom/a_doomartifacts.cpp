@@ -137,7 +137,7 @@ bool ARandomPowerup::Use (bool pickup)
 	pItem = static_cast<AInventory *>( Spawn( pType, Owner->x, Owner->y, Owner->z, ALLOW_REPLACE ));
 	if ( pItem != NULL )
 	{
-		bReturnValue = pItem->TryPickup( Owner );
+		bReturnValue = pItem->CallTryPickup( Owner );
 		if ( bReturnValue )
 		{
 			// [BC] If the item has an announcer sound, play it.

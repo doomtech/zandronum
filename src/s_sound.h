@@ -27,6 +27,22 @@
 class AActor;
 class FScanner;
 
+// Default rolloff information.
+struct FRolloffInfo
+{
+	int RolloffType;
+	float MinDistance;
+	union { float MaxDistance; float RolloffFactor; };
+};
+
+struct SoundHandle
+{
+	void *data;
+
+	bool isValid() const { return data != NULL; }
+	void Clear() { data = NULL; }
+};
+
 //
 // SoundFX struct.
 //
@@ -34,7 +50,7 @@ struct sfxinfo_t
 {
 	// Next field is for use by the system sound interface.
 	// A non-null data means the sound has been loaded.
-	void	   *data;
+	SoundHandle	data;
 
 	FString		name;					// [RH] Sound name defined in SNDINFO
 	int 		lumpnum;				// lump number of sfx
@@ -56,13 +72,11 @@ struct sfxinfo_t
 	WORD		bUsed:1;
 	WORD		bSingular:1;
 	WORD		bTentative:1;
-	WORD		RolloffType:2;
 
 	unsigned int link;
 	enum { NO_LINK = 0xffffffff };
 
-	float		MinDistance;
-	union		{ float MaxDistance, RolloffFactor; };
+	FRolloffInfo	Rolloff;
 };
 
 // Rolloff types
@@ -158,10 +172,7 @@ public:
 
 FArchive &operator<<(FArchive &arc, FSoundID &sid);
 
-// Default rolloff information.
-extern int S_RolloffType;
-extern float S_MinDistance;
-extern float S_MaxDistanceOrRolloffFactor;
+extern FRolloffInfo S_Rolloff;
 extern BYTE *S_SoundCurve;
 extern int S_SoundCurveSize;
 
@@ -174,6 +185,7 @@ struct FSoundChan
 	FSoundChan	*NextChan;	// Next channel in this list.
 	FSoundChan **PrevChan;	// Previous channel in this list.
 	sfxinfo_t	*SfxInfo;	// Sound information.
+	FRolloffInfo Rolloff;	// Rolloff parameters (do not necessarily come from SfxInfo!)
 	QWORD_UNION	StartTime;	// Sound start time in DSP clocks.
 	FSoundID	SoundID;	// Sound ID of playing sound.
 	FSoundID	OrgID;		// Sound ID of sound used to start this channel.
@@ -357,6 +369,9 @@ int S_AddPlayerSound (const char *playerclass, const int gender, int refid, cons
 int S_AddPlayerSound (const char *playerclass, const int gender, int refid, int lumpnum, bool fromskin=false);
 int S_AddPlayerSoundExisting (const char *playerclass, const int gender, int refid, int aliasto, bool fromskin=false);
 void S_ShrinkPlayerSoundLists ();
+void S_UnloadSound (sfxinfo_t *sfx);
+sfxinfo_t *S_LoadSound(sfxinfo_t *sfx);
+unsigned int S_GetMSLength(FSoundID sound);
 
 // [BC]
 const char	*S_GetName( LONG lSoundID );

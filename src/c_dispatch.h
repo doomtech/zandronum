@@ -150,6 +150,8 @@ extern FButtonStatus Button_Mlook, Button_Klook, Button_Use, Button_AltAttack,
 	Button_Strafe, Button_LookDown, Button_LookUp, Button_Back,
 	Button_Forward, Button_Right, Button_Left, Button_MoveDown,
 	Button_MoveUp, Button_Jump, Button_ShowScores, Button_Crouch,
+	Button_Zoom, Button_Reload,
+	Button_User1, Button_User2, Button_User3, Button_User4,
 	Button_ShowMedals;	// [BC] New "show medals" button.
 extern bool ParsingKeyConf;
 

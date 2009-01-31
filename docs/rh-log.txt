@@ -1,4 +1,72 @@
+September 14, 2008  (Changes by Graf Zahl)
+- fixed: For Chex Quest some CVars were initialized to Heretic's default.
+- fixed pickup message for LargeZorchPack.
+
+September 13, 2008  (Changes by Graf Zahl)
+- Moved IF_ALWAYSPICKUP and GiveQuest into CallTryPickup so that they are
+  automatically used by all inventory classes.
+- The previous change made it necessary to replace all TryPickup calls with
+  another function that just calls TryPickup.
+- Fixed: AInventory::TryPickup can change the toucher so this must be reported
+  to subclasses calling the super function. Changed TryPickup to pass the
+  toucher pointer by reference.
+- Prefixed all names of CQ decorations with Chex after seeing some conflicts
+  with PWADs.
+- Removed Chex Quest actors that were just unaltered duplicates of Doom's.
+- Added detection for Chex Quest 3 IWAD.
+- Cleaned up M_QuitGame because the code was almost incomprehensible and I
+  wanted to add CQ3's new quit messages.
+- Added Chex Quest obituaries and a few other messages from CQ3.
+- Fixed: drawbar improperly clipped images when not in the top left quadrant.
+- Fixed: Crouching no longer worked due to a bug introduced by the
+  player input code.
+
+September 12, 2008
+- Added GetPlayerInput() for examining a player's inputs from ACS. Most
+  buttons are now passed across the network, and there are four new user
+  buttons specifically for use with this command. Also defined +zoom
+  and +reload for future implementation.
+
+September 11, 2008
+- Fixed: Hexen's fourth weapon pieces did not play the correct pickup sound,
+  and when they were fully assembled, they did not play the sound across the
+  entire level.
+- Antialiasing of lines is now controlled solely by the vid_hwaalines cvar,
+  ignoring what the driver reports, since ATI is apparently just as bad as
+  NVidia.
+
+September 9, 2008
+- Added a check for D3DLINECAPS_ANTIALIAS, but this is complicated by the
+  fact that NVidia's don't report it, even though they support it. If there
+  are any cards that no longer have antialised lines on the automap, please
+  let me know.
+- Added vid_hwaalines cvar to force antialiased lines off for the
+  Direct3D renderer, in case it doesn't really support them.
+
+September 9, 2008  (Changes by Graf Zahl)
+- Fixed: The new rolloff values being stored in FSoundChan need to be serialized
+  for savegames.
+- Since loading of the sound lump is now done in S_LoadSound I added an IsNull
+  method to the SoundRenderer class so that this function doesn't need to 
+  load the sound for the NullSoundRenderer.
+- Took some more non-FMOD related code out of fmodsound.cpp, including the
+  code that checks for raw and Doom sounds. This means that sfxinfo_t is no
+  longer needed in the SoundRenderer class so I took out all references to it.
+- Fixed: FMODSoundRenderer::StartSound3D must set the static variable pointing
+  to the rolloff information back to NULL when starting the sound fails.
+- Fixed: Rolloff information was taken from the sfxinfo that contained the
+  actual sound data, not the one that was used for starting the sound.
+
+September 7, 2008  (Changes by Graf Zahl)
+- Fixed: Chex Quest's Super Bootspork was missing the pickup message.
+- Added missing Strife automap colors for items and non-monsters.
+- Fixed: GetMSLength didn't resolve random and player sounds.
+- Moved sound aliasing code out of fmodsound.cpp into S_LoadSound.
+
 September 6, 2008  (Changes by Graf Zahl)
+- Fixed: The tagged version of TranslucentLine took the information for additive
+  translucency from the tagged linedef, not the control linedef.
+- Added check for additive translucency to TRANMAP checking.
 - Changed listener structure to directly contain the sound environment instead
   of getting it from the zone in the low level code.
 - Changed sound interface so that all references to game data like actors
