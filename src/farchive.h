@@ -35,10 +35,7 @@
 #define __FARCHIVE_H__
 
 #include <stdio.h>
-#include "doomtype.h"
 #include "dobject.h"
-#include "tarray.h"
-#include "name.h"
 
 class FFile
 {
@@ -278,8 +275,6 @@ inline FArchive &operator<< (FArchive &arc, PalEntry &p)
 	return arc << p.a << p.r << p.g << p.b;
 }
 
-#include "dobject.h"
-
 template<class T>
 inline FArchive &operator<< (FArchive &arc, T* &object)
 {
@@ -287,6 +282,14 @@ inline FArchive &operator<< (FArchive &arc, T* &object)
 }
 
 FArchive &operator<< (FArchive &arc, const PClass * &info);
+
+class FFont;
+FArchive &SerializeFFontPtr (FArchive &arc, FFont* &font);
+template<> inline FArchive &operator<< <FFont> (FArchive &arc, FFont* &font)
+{
+	return SerializeFFontPtr (arc, font);
+}
+
 
 template<class T,class TT>
 inline FArchive &operator<< (FArchive &arc, TArray<T,TT> &self)

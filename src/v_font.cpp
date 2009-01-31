@@ -93,6 +93,8 @@ The FON2 header is followed by variable length data:
 #include "hu_stuff.h"
 #include "r_draw.h"
 #include "r_translate.h"
+#include "colormatcher.h"
+#include "v_palette.h"
 // [BC] New #includes.
 #include "network.h"
 
@@ -101,6 +103,7 @@ The FON2 header is followed by variable length data:
 #define DEFAULT_LOG_COLOR	PalEntry(223,223,223)
 
 // TYPES -------------------------------------------------------------------
+void RecordTextureColors (FTexture *pic, BYTE *colorsused);
 
 // This structure is used by BuildTranslations() to hold color information.
 struct TranslationParm
@@ -115,6 +118,34 @@ struct TranslationMap
 {
 	FName Name;
 	int Number;
+};
+
+class FSingleLumpFont : public FFont
+{
+public:
+	FSingleLumpFont (const char *fontname, int lump);
+
+protected:
+	void CheckFON1Chars (int lump, const BYTE *data, double *luminosity);
+	void BuildTranslations2 ();
+	void FixupPalette (BYTE *identity, double *luminosity, const BYTE *palette,
+		bool rescale, PalEntry *out_palette);
+	void LoadFON1 (int lump, const BYTE *data);
+	void LoadFON2 (int lump, const BYTE *data);
+	void CreateFontFromPic (FTextureID picnum);
+};
+
+class FSinglePicFont : public FFont
+{
+public:
+	FSinglePicFont(const char *picname);
+
+	// FFont interface
+	FTexture *GetChar (int code, int *const width) const;
+	int GetCharWidth (int code) const;
+
+protected:
+	FTextureID PicNum;
 };
 
 // This is a font character that loads a texture and recolors it.
@@ -2121,8 +2152,5 @@ void V_InitFonts()
 	{
 		ConFont = new FSingleLumpFont ("ConsoleFont", Wads.GetNumForName ("CONFONT"));
 	}
-
-	// [BC] The server doesn't have a screen.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		screen->SetFont(SmallFont);
 }
+

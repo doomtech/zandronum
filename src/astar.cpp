@@ -52,6 +52,7 @@
 #include <stdlib.h>
 
 #include "astar.h"
+#include "doomstat.h"
 #include "gi.h"
 #include "m_random.h"
 #include "p_lnspec.h"

@@ -27,7 +27,6 @@
 
 #include "templates.h"
 
-#include "m_alloc.h"
 #include "m_bbox.h"
 #include "m_random.h"
 #include "i_system.h"
@@ -50,9 +49,10 @@
 #include "gi.h"
 
 #include "a_sharedglobal.h"
-#include "a_doomglobal.h"
 #include "p_conversation.h"
 #include "r_translate.h"
+#include "g_level.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"
 #include "network.h"

@@ -50,6 +50,7 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "r_sky.h"
+#include "g_level.h"
 
 // This is for debugging maps.
 CVAR(Bool, gl_notexturefill, false, 0);

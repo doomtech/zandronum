@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "m_random.h"
@@ -7,9 +8,7 @@
 #include "gstrings.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
-// [BC] New #includes.
-#include "network.h"
-#include "sv_commands.h"
+*/
 
 //
 // Mancubus attack,

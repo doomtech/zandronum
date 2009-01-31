@@ -50,10 +50,16 @@
 #include "r_sky.h"
 #include "stats.h"
 
-#include "m_alloc.h"
 #include "v_video.h"
 #include "a_sharedglobal.h"
 #include "c_console.h"
+#include "cmdlib.h"
+#include "d_net.h"
+#include "g_level.h"
+#include "r_bsp.h"
+#include "r_plane.h"
+#include "r_segs.h"
+#include "v_palette.h"
 // [BC] New #includes.
 #include "sv_commands.h"
 

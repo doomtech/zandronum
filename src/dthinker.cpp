@@ -42,7 +42,9 @@
 #include "statnums.h"
 #include "i_system.h"
 #include "doomerrors.h"
+// [BB] New #includes.
 #include "cl_demo.h"
+#include "doomstat.h"
 
 
 static cycle_t ThinkCycles;

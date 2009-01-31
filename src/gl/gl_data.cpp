@@ -54,6 +54,7 @@
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gi.h"
+#include "g_level.h"
 // [BC]
 #include "network.h"
 #include "sv_commands.h"

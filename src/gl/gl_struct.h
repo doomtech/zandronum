@@ -5,6 +5,7 @@
 #include "v_palette.h"
 #include "tarray.h"
 #include "gl_values.h"
+#include "textures/textures.h"
 
 struct vertex_t;
 extern DWORD gl_boomcolormap;

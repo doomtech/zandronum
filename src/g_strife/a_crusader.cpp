@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -6,9 +7,7 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
+*/
 
 bool Sys_1ed64 (AActor *self)
 {

@@ -35,7 +35,6 @@
 #include "m_random.h"
 #include "p_pspr.h"
 #include "p_enemy.h"
-#include "p_effect.h"
 #include "s_sound.h"
 #include "a_sharedglobal.h"
 #include "a_keys.h"
@@ -51,6 +50,8 @@
 #include "c_dispatch.h"
 #include "tarray.h"
 #include "thingdef/thingdef.h"
+#include "g_level.h"
+#include "d_net.h"
 // [BB] New #includes.
 #include "sv_commands.h"
 #include "a_doomglobal.h"

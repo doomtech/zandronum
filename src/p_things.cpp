@@ -34,7 +34,6 @@
 
 #include "doomtype.h"
 #include "p_local.h"
-#include "p_effect.h"
 #include "info.h"
 #include "s_sound.h"
 #include "tables.h"
@@ -45,6 +44,7 @@
 #include "a_sharedglobal.h"
 #include "gi.h"
 #include "templates.h"
+#include "g_level.h"
 // [BC] New #includes.
 #include "a_doomglobal.h"
 #include "sv_commands.h"

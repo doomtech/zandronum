@@ -221,6 +221,37 @@ typedef enum
 
 #define WP_NOCHANGE ((AWeapon*)~0)
 
+
+// [BC] Allow longer names since we can now colorize them and stuff.
+#define MAXPLAYERNAME	31
+
+enum
+{
+	GENDER_MALE,
+	GENDER_FEMALE,
+	GENDER_NEUTER
+};
+
+struct userinfo_t
+{
+	char		netname[MAXPLAYERNAME+1];
+	BYTE		team;
+	int			aimdist;
+	int			color;
+	int			skin;
+	int			gender;
+	int			switchonpickup;
+	fixed_t		MoveBob, StillBob;
+	int			PlayerClass;
+
+	// [BC] New Skulltag userinfo settings.
+	LONG		lRailgunTrailColor;
+	LONG		lHandicap;
+};
+
+FArchive &operator<< (FArchive &arc, userinfo_t &info);
+
+
 //
 // Extended player object info: player_t
 //

@@ -3,6 +3,7 @@
 #include "doomtype.h"
 #include "doomstat.h"
 #include "v_font.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "v_text.h"
 #include "chat.h"

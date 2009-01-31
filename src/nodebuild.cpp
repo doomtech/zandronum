@@ -199,7 +199,7 @@ void FNodeBuilder::CreateSubsectorsForReal ()
 		// Convert seg pointers into indices
 		for (unsigned int i = sub.firstline; i < SegList.Size(); ++i)
 		{
-			SegList[i].SegNum = SegList[i].SegPtr - &Segs[0];
+			SegList[i].SegNum = DWORD(SegList[i].SegPtr - &Segs[0]);
 		}
 		Subsectors.Push (sub);
 	}

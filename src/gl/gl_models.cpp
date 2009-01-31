@@ -48,6 +48,8 @@
 #include "gl_texture.h"
 #include "gl_values.h"
 #include "gl_renderstruct.h"
+#include "doomstat.h"
+#include "g_level.h"
 
 static inline float GetTimeFloat()
 {

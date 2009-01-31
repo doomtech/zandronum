@@ -36,9 +36,6 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-#include "m_fixed.h"
-#include "tarray.h"
-#include "name.h"
 //[BL] New Includes
 #include "sectinfo.h"
 
@@ -128,7 +125,7 @@
 
 #define	LEVEL_NOBOTNODES			UCONST64(0x200000000000000)	// [BC] Level does not use bot nodes.
 
-struct acsdefered_s;
+struct acsdefered_t;
 
 struct FSpecialAction
 {
@@ -177,7 +174,7 @@ struct level_info_t
 	int			musicorder;
 	FCompressedMemFile	*snapshot;
 	DWORD		snapshotVer;
-	struct acsdefered_s *defered;
+	struct acsdefered_t *defered;
 	char		skypic2[9];
 	float		skyspeed1;
 	float		skyspeed2;
@@ -317,7 +314,7 @@ struct EndSequence
 
 extern TArray<EndSequence> EndSequences;
 
-struct cluster_info_s
+struct cluster_info_t
 {
 	int			cluster;
 	char		finaleflat[9];
@@ -330,7 +327,6 @@ struct cluster_info_s
 	char		*clustername;
 	unsigned int cdid;
 };
-typedef struct cluster_info_s cluster_info_t;
 
 // Cluster flags
 #define CLUSTER_HUB				0x00000001	// Cluster uses hub behavior

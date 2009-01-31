@@ -69,6 +69,7 @@
 #include "team.h"
 #include "survival.h"
 #include "vectors.h"
+#include "v_palette.h"
 #include "r_translate.h"
 #include "domination.h"
 

@@ -97,6 +97,7 @@
 #include "stats.h"
 #include "team.h"
 #include "chat.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "templates.h"
 #include "joinqueue.h"
@@ -378,7 +379,8 @@ void SERVER_Construct( void )
 	}
 
 	// Initizlize the playeringame array (is this necessary?).
-	memset( playeringame, 0, sizeof( playeringame ));
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+		playeringame[ulIdx] = false;
 
 	NETWORK_InitBuffer( &g_PacketLossBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_PacketLossBuffer );

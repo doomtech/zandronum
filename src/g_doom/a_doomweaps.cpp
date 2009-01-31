@@ -1,9 +1,9 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "s_sound.h"
 #include "m_random.h"
 #include "a_pickups.h"
-#include "a_doomglobal.h"
 #include "d_player.h"
 #include "p_pspr.h"
 #include "p_local.h"
@@ -12,14 +12,8 @@
 #include "gi.h"
 #include "templates.h"
 #include "thingdef/thingdef.h"
-#include "deathmatch.h"
-#include "g_game.h"
-#include "sv_commands.h"
-#include "team.h"
-#include "p_enemy.h"
-#include "cl_demo.h"
-#include "cl_main.h"
-#include "gamemode.h"
+#include "doomstat.h"
+*/
 
 static FRandom pr_punch ("Punch");
 static FRandom pr_saw ("Saw");

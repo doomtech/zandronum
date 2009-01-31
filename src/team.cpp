@@ -58,7 +58,9 @@
 #include "cl_main.h"
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "doomstat.h"
 #include "g_game.h"
+#include "g_level.h"
 #include "info.h"
 #include "m_random.h"
 #include "network.h"
@@ -71,6 +73,7 @@
 #include "sv_commands.h"
 #include "sv_main.h"
 #include "team.h"
+#include "v_palette.h"
 #include "v_text.h"
 #include "v_video.h"
 

@@ -1,18 +1,16 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "p_local.h"
 #include "m_random.h"
 #include "s_sound.h"
-#include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
 #include "a_weaponpiece.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "deathmatch.h"
-#include "network.h"
-#include "sv_commands.h"
+#include "g_level.h"
+#include "doomstat.h"
+*/
 
 #define BLAST_FULLSTRENGTH	255
 

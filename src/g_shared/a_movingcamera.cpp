@@ -36,6 +36,7 @@
 #include "info.h"
 #include "p_local.h"
 #include "p_lnspec.h"
+#include "doomstat.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"

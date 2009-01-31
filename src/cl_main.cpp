@@ -82,6 +82,7 @@
 #include "p_acs.h"
 #include "p_enemy.h"
 #include "survival.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "deathmatch.h"

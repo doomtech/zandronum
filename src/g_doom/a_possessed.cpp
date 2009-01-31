@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "m_random.h"
@@ -6,11 +7,8 @@
 #include "p_enemy.h"
 #include "gstrings.h"
 #include "a_action.h"
-#include "a_doomglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "deathmatch.h"
-#include "cl_demo.h"
+*/
 
 static FRandom pr_posattack ("PosAttack");
 static FRandom pr_sposattack ("SPosAttack");

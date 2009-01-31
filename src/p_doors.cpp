@@ -34,6 +34,8 @@
 #include "a_keys.h"
 #include "i_system.h"
 #include "sc_man.h"
+#include "cmdlib.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"

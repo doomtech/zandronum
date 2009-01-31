@@ -1,16 +1,13 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
 #include "p_local.h"
-#include "p_enemy.h"
 #include "s_sound.h"
 #include "m_random.h"
 #include "a_strifeglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "network.h"
-#include "sv_commands.h"
+*/
 
 AActor *P_SpawnSubMissile (AActor *source, const PClass *type, AActor *target);
 

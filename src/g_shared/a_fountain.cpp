@@ -35,6 +35,8 @@
 #include "actor.h"
 #include "info.h"
 #include "p_effect.h"
+#include "doomdata.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 

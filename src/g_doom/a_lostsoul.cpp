@@ -1,3 +1,4 @@
+/*
 #include "templates.h"
 #include "actor.h"
 #include "info.h"
@@ -5,13 +6,11 @@
 #include "s_sound.h"
 #include "p_local.h"
 #include "p_enemy.h"
-#include "a_doomglobal.h"
 #include "gi.h"
 #include "gstrings.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
+*/
 
  FRandom pr_lost ("LostMissileRange");
 

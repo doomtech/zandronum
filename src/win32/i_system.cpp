@@ -64,6 +64,9 @@
 #include "c_dispatch.h"
 #include "templates.h"
 #include "gameconfigfile.h"
+#include "v_font.h"
+#include "g_level.h"
+#include "doomstat.h"
 // [BC] New #includes.
 #include "announcer.h"
 #include "network.h"

@@ -51,17 +51,14 @@
 #include "s_sound.h"
 #include "cmdlib.h"
 #include "p_lnspec.h"
-#include "p_enemy.h"
 #include "a_action.h"
 #include "decallib.h"
 #include "m_random.h"
-#include "autosegs.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "p_effect.h"
 #include "v_palette.h"
 #include "doomerrors.h"
-#include "a_doomglobal.h"
 #include "a_hexenglobal.h"
 #include "a_weaponpiece.h"
 #include "p_conversation.h"
@@ -70,6 +67,7 @@
 #include "a_sharedglobal.h"
 #include "r_translate.h"
 #include "a_morph.h"
+#include "colormatcher.h"
 
 //==========================================================================
 //

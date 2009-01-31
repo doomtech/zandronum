@@ -36,14 +36,10 @@
 
 #include "doomtype.h"
 
-#include "v_palette.h"
-#include "v_font.h"
-#include "colormatcher.h"
-
 #include "doomdef.h"
-
-// Needed because we are refering to patches.
-#include "r_data.h"
+#include "dobject.h"
+#include "r_blend.h"
+#include "c_cvars.h"
 
 #include "network.h"
 
@@ -132,6 +128,10 @@ enum ESSType
 	SS_RGB,
 	SS_BGRA
 };
+
+class FFont;
+struct FRemapTable;
+class player_t;
 
 //
 // VIDEO
@@ -405,8 +405,6 @@ private:
 	DWORD LastMS, LastSec, FrameCount, LastCount, LastTic;
 };
 
-
-extern FColorMatcher ColorMatcher;
 
 // This is the screen updated by I_FinishUpdate.
 extern DFrameBuffer *screen;

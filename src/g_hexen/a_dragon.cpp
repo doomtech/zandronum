@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "p_enemy.h"
@@ -6,9 +7,7 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
+*/
 
 static FRandom pr_dragonseek ("DragonSeek");
 static FRandom pr_dragonflight ("DragonFlight");

@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "p_local.h"
@@ -6,10 +7,7 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "network.h"
-#include "cl_demo.h"
-#include "sv_commands.h"
+*/
 
 #define FIREDEMON_ATTACK_RANGE	64*8*FRACUNIT
 

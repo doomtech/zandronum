@@ -25,7 +25,6 @@
 #include <stddef.h>
 
 #include "version.h"
-#include "m_alloc.h"
 #include "m_menu.h"
 #include "m_random.h"
 #include "i_system.h"
@@ -36,6 +35,7 @@
 #include "doomstat.h"
 #include "c_console.h"
 #include "d_netinf.h"
+#include "d_net.h"
 #include "cmdlib.h"
 #include "s_sound.h"
 #include "m_cheat.h"
@@ -54,6 +54,9 @@
 #include "st_start.h"
 #include "teaminfo.h"
 #include "p_conversation.h"
+#include "g_level.h"
+#include "d_event.h"
+#include "m_argv.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"

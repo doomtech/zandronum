@@ -1,3 +1,4 @@
+/*
 #include "a_pickups.h"
 #include "p_local.h"
 #include "m_random.h"
@@ -6,9 +7,8 @@
 #include "p_enemy.h"
 #include "templates.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
+#include "doomstat.h"
+*/
 
 // Note: Strife missiles do 1-4 times their damage amount.
 // Doom missiles do 1-8 times their damage amount, so to

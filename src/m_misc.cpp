@@ -42,8 +42,6 @@
 
 #include <ctype.h>
 
-#include "m_alloc.h"
-
 #include "doomdef.h"
 
 #include "m_swap.h"
@@ -58,6 +56,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "v_video.h"
+#include "r_defs.h"
 
 #include "hu_stuff.h"
 

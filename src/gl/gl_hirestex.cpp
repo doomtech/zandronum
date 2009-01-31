@@ -44,6 +44,7 @@
 #include "gi.h"
 #include "cmdlib.h"
 #include "sc_man.h"
+#include "doomstat.h"
 
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"

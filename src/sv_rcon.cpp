@@ -54,7 +54,9 @@
 #include <time.h>
 #include "sv_ban.h"
 #include "c_console.h"
+#include "doomstat.h"
 #include "network.h"
+#include "g_level.h"
 #include "i_system.h"
 #include "m_random.h"
 #include "version.h"

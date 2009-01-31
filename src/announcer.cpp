@@ -51,6 +51,7 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "cmdlib.h"
+#include "doomstat.h"
 #include "d_player.h"
 #include "deathmatch.h"
 #include "doomtype.h"

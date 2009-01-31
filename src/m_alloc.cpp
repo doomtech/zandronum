@@ -39,6 +39,7 @@
 #include <malloc_np.h>
 #endif
 #include "i_system.h"
+#include "dobject.h"
 
 #ifndef _MSC_VER
 #define _NORMAL_BLOCK			0

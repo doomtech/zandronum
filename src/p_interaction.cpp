@@ -45,7 +45,6 @@
 #include "p_effect.h"
 #include "p_acs.h"
 
-#include "a_doomglobal.h"
 #include "ravenshared.h"
 #include "a_hexenglobal.h"
 #include "a_sharedglobal.h"
@@ -53,8 +52,14 @@
 #include "gi.h"
 #include "templates.h"
 #include "sbar.h"
+#include "s_sound.h"
+#include "g_level.h"
+#include "d_net.h"
+#include "d_netinf.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "duel.h"
+#include "d_event.h"
 #include "medal.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -413,7 +418,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	if (debugfile && this->player)
 	{
 		static int dieticks[MAXPLAYERS];
-		int pnum = this->player-players;
+		int pnum = int(this->player-players);
 		if (dieticks[pnum] == gametic)
 			gametic=gametic;
 		dieticks[pnum] = gametic;

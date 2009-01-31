@@ -35,11 +35,11 @@
 #define __V_FONT_H__
 
 #include "doomtype.h"
-#include "farchive.h"
-#include "textures/textures.h"
 
 class DCanvas;
 struct FRemapTable;
+class FTexture;
+class FArchive;
 
 enum EColorRange
 {
@@ -71,13 +71,6 @@ enum EColorRange
 
 extern int NumTextColors;
 
-inline FArchive &operator<< (FArchive &arc, EColorRange &i)
-{
-	BYTE val = (BYTE)i;
-	arc << val;
-	i = (EColorRange)val;
-	return arc;
-}
 
 class FFont
 {
@@ -132,40 +125,6 @@ protected:
 	friend FArchive &SerializeFFontPtr (FArchive &arc, FFont* &font);
 };
 
-template<> inline FArchive &operator<< <FFont> (FArchive &arc, FFont* &font)
-{
-	return SerializeFFontPtr (arc, font);
-}
-
-class FSingleLumpFont : public FFont
-{
-public:
-	FSingleLumpFont (const char *fontname, int lump);
-
-protected:
-	void CheckFON1Chars (int lump, const BYTE *data, double *luminosity);
-	void BuildTranslations2 ();
-	void FixupPalette (BYTE *identity, double *luminosity, const BYTE *palette,
-		bool rescale, PalEntry *out_palette);
-	void LoadFON1 (int lump, const BYTE *data);
-	void LoadFON2 (int lump, const BYTE *data);
-	void CreateFontFromPic (FTextureID picnum);
-};
-
-class FSinglePicFont : public FFont
-{
-public:
-	FSinglePicFont(const char *picname);
-
-	// FFont interface
-	FTexture *GetChar (int code, int *const width) const;
-	int GetCharWidth (int code) const;
-
-protected:
-	FTextureID PicNum;
-};
-
-void RecordTextureColors (FTexture *pic, BYTE *colorsused);
 
 extern FFont *SmallFont, *SmallFont2, *BigFont, *ConFont;
 

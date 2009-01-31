@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -7,10 +8,9 @@
 #include "a_strifeglobal.h"
 #include "f_finale.h"
 #include "thingdef/thingdef.h"
-// [CW] New includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
-
+#include "g_level.h"
+#include "doomstat.h"
+*/
 static FRandom pr_prog ("Programmer");
 
 // The Programmer level ending thing ----------------------------------------

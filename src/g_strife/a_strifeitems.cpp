@@ -1,3 +1,4 @@
+/*
 #include "info.h"
 #include "a_pickups.h"
 #include "d_player.h"
@@ -13,9 +14,9 @@
 #include "c_console.h"
 #include "templates.h"
 #include "thingdef/thingdef.h"
-// [BC] New #includes.
-#include "cl_demo.h"
-
+#include "g_level.h"
+#include "doomstat.h"
+*/
 // Degnin Ore ---------------------------------------------------------------
 
 IMPLEMENT_CLASS(ADegninOre)

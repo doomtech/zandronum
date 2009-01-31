@@ -35,11 +35,14 @@
 #include <stddef.h>
 
 #include "templates.h"
-#include "m_alloc.h"
 #include "r_draw.h"
+#include "r_main.h"
 #include "r_translate.h"
 #include "v_video.h"
 #include "g_game.h"
+#include "colormatcher.h"
+#include "d_netinf.h"
+#include "v_palette.h"
 
 #include "gi.h"
 #include "stats.h"

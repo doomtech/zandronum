@@ -77,6 +77,10 @@ Low priority:
 #include "r_draw.h"
 #include "templates.h"
 #include "r_sky.h"
+#include "g_level.h"
+#include "r_bsp.h"
+#include "v_palette.h"
+#include "v_font.h"
 
 EXTERN_CVAR (Int, r_polymost)
 

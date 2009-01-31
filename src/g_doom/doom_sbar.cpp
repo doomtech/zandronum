@@ -15,6 +15,9 @@
 #include "i_system.h"
 #include "r_translate.h"
 #include "sbarinfo.h"
+#include "g_level.h"
+#include "v_palette.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"

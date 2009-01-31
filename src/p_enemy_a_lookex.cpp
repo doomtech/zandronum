@@ -2,12 +2,10 @@
 
 #include "templates.h"
 #include "m_random.h"
-#include "m_alloc.h"
 #include "i_system.h"
 #include "doomdef.h"
 #include "p_local.h"
 #include "p_lnspec.h"
-#include "p_effect.h"
 #include "s_sound.h"
 #include "g_game.h"
 #include "doomstat.h"
@@ -15,9 +13,9 @@
 #include "c_cvars.h"
 #include "p_enemy.h"
 #include "a_sharedglobal.h"
-#include "a_doomglobal.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
+#include "g_level.h"
 
 #include "gi.h"
 // [BB] new #includes.

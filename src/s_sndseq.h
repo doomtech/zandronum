@@ -2,10 +2,8 @@
 #define __S_SNDSEQ_H__
 
 #include <stddef.h>
-//#include "actor.h"
+#include "dobject.h"
 #include "s_sound.h"
-#include "r_defs.h"
-#include "name.h"
 
 typedef enum {
 	SEQ_PLATFORM,

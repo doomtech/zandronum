@@ -36,6 +36,7 @@
 struct FLightNode;
 
 #include "dthinker.h"
+#include "farchive.h"
 
 #define MAXWIDTH 2560
 #define MAXHEIGHT 1600

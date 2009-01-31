@@ -2,20 +2,19 @@
 ** Decorations that do special things
 */
 
+/*
 #include "actor.h"
 #include "info.h"
 #include "a_action.h"
-#include "p_enemy.h"
 #include "m_random.h"
 #include "s_sound.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_hexenglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "network.h"
-#include "cl_demo.h"
-#include "sv_commands.h"
+#include "g_level.h"
+#include "doomstat.h"
+*/
 
 static FRandom pr_pottery ("PotteryExplode");
 static FRandom pr_bit ("PotteryChooseBit");

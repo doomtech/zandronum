@@ -21,8 +21,8 @@
 #ifndef __HU_STUFF_H__
 #define __HU_STUFF_H__
 
-#include "d_event.h"
-
+struct event_t;
+class player_t;
 
 //
 // Globally visible constants.
@@ -39,7 +39,6 @@
 
 // [RH] Draw deathmatch scores
 
-class player_t;
 void HU_DrawScores (player_t *me);
 */
 #endif

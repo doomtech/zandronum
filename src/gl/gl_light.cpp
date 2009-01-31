@@ -50,6 +50,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_portal.h"
 #include "gl/glsl_state.h"
+#include "g_level.h"
 
 
 EXTERN_CVAR (Float, transsouls)

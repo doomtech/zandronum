@@ -53,6 +53,7 @@
 #include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "doomstat.h"
 #include "duel.h"
 #include "g_game.h"
 #include "gamemode.h"

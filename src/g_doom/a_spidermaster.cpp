@@ -1,3 +1,4 @@
+/*
 #include "templates.h"
 #include "actor.h"
 #include "m_random.h"
@@ -6,10 +7,7 @@
 #include "p_enemy.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
-// [BC] New #includes.
-#include "cl_demo.h"
-#include "network.h"
-#include "sv_commands.h"
+*/
 
 static FRandom pr_spidrefire ("SpidRefire");
 

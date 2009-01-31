@@ -51,6 +51,7 @@
 #include <errno.h>
 
 #include "c_dispatch.h"
+#include "doomstat.h"
 #include "network.h"
 #include "sv_ban.h"
 #include "v_text.h"

@@ -40,7 +40,6 @@
 #include "configfile.h"
 #include "c_console.h"
 #include "c_dispatch.h"
-#include "m_alloc.h"
 
 #include "doomstat.h"
 #include "c_cvars.h"
@@ -51,6 +50,8 @@
 #include "i_system.h"
 #include "v_palette.h"
 #include "v_video.h"
+#include "colormatcher.h"
+// [BB] New #includes.
 #include "v_text.h"
 #include "deathmatch.h"
 #include "duel.h"

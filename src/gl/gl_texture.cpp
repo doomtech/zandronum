@@ -46,9 +46,11 @@
 #include "gi.h"
 #include "cmdlib.h"
 #include "stats.h"
+#include "r_main.h"
 #include "templates.h"
 #include "sc_man.h"
 #include "r_translate.h"
+#include "colormatcher.h"
 
 #include "gl/gl_struct.h"
 #include "gl/gl_framebuffer.h"

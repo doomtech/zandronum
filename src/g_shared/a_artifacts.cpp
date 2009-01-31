@@ -8,7 +8,6 @@
 #include "p_local.h"
 #include "p_spec.h"
 #include "p_lnspec.h"
-#include "p_enemy.h"
 #include "p_effect.h"
 #include "a_artifacts.h"
 #include "sbar.h"
@@ -17,6 +16,9 @@
 #include "v_video.h"
 #include "templates.h"
 #include "a_morph.h"
+#include "g_level.h"
+#include "doomstat.h"
+#include "v_palette.h"
 // New #includes for ST.
 #include "cl_demo.h"
 #include "cl_main.h"

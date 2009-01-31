@@ -67,6 +67,7 @@
 #include "info.h"
 #include "r_translate.h"
 #include "sbarinfo.h"
+#include "cmdlib.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"
@@ -898,7 +899,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 		BYTE *strings = FindChunk (MAKE_ID('S','T','R','L'));
 		if (strings != NULL)
 		{
-			StringTable = strings - Data + 8;
+			StringTable = DWORD(strings - Data + 8);
 		}
 		else
 		{
@@ -6297,7 +6298,7 @@ static void addDefered (level_info_t *i, acsdefered_t::EType type, int script, i
 {
 	if (i)
 	{
-		acsdefered_t *def = new acsdefered_s;
+		acsdefered_t *def = new acsdefered_t;
 
 		def->next = i->defered;
 		def->type = type;
@@ -6387,13 +6388,13 @@ void P_TerminateScript (int script, char *map)
 		SetScriptState (script, DLevelScript::SCRIPT_PleaseRemove);
 }
 
-FArchive &operator<< (FArchive &arc, acsdefered_s *&defertop)
+FArchive &operator<< (FArchive &arc, acsdefered_t *&defertop)
 {
 	BYTE more;
 
 	if (arc.IsStoring ())
 	{
-		acsdefered_s *defer = defertop;
+		acsdefered_t *defer = defertop;
 		more = 1;
 		while (defer)
 		{
@@ -6409,14 +6410,14 @@ FArchive &operator<< (FArchive &arc, acsdefered_s *&defertop)
 	}
 	else
 	{
-		acsdefered_s **defer = &defertop;
+		acsdefered_t **defer = &defertop;
 
 		arc << more;
 		while (more)
 		{
-			*defer = new acsdefered_s;
+			*defer = new acsdefered_t;
 			arc << more;
-			(*defer)->type = (acsdefered_s::EType)more;
+			(*defer)->type = (acsdefered_t::EType)more;
 			arc << (*defer)->script << (*defer)->playernum
 				<< (*defer)->arg0 << (*defer)->arg1 << (*defer)->arg2;
 			defer = &((*defer)->next);

@@ -39,6 +39,7 @@
 */
 #include "gl/gl_include.h"
 #include "sbar.h"
+#include "doomstat.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_glow.h"
 #include "gl/gl_texture.h"

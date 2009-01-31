@@ -14,6 +14,8 @@
 #include "templates.h"
 #include "sbar.h"
 #include "thingdef/thingdef.h"
+#include "doomstat.h"
+#include "g_level.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"

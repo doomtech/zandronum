@@ -1,17 +1,16 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "m_random.h"
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
-#include "a_doomglobal.h"
 #include "statnums.h"
 #include "a_specialspot.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "deathmatch.h"
-#include "team.h"
+#include "doomstat.h"
+#include "g_level.h"
+*/
 
 static FRandom pr_brainscream ("BrainScream");
 static FRandom pr_brainexplode ("BrainExplode");

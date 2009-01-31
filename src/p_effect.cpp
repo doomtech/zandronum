@@ -48,6 +48,8 @@
 #include "s_sound.h"
 #include "templates.h"
 #include "gi.h"
+#include "v_palette.h"
+#include "colormatcher.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"

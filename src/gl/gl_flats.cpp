@@ -50,6 +50,8 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_shader.h"
 #include "r_sky.h"
+#include "g_level.h"
+#include "doomstat.h"
 
 
 EXTERN_CVAR (Bool, gl_lights_checkside);

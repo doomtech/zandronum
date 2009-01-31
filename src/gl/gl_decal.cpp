@@ -38,6 +38,7 @@
 **
 */
 
+#include "doomdata.h"
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
 #include "gl/gl_renderstruct.h"

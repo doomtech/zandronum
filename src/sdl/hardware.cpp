@@ -45,6 +45,8 @@
 #include "sdlglvideo.h"
 #endif
 #include "v_text.h"
+#include "doomstat.h"
+#include "m_argv.h"
 #include "version.h"
 
 EXTERN_CVAR (Bool, ticker)
@@ -130,9 +132,10 @@ void I_ShutdownGraphics ()
 {
 	if (screen)
 	{
-		screen->ObjectFlags |= OF_YesReallyDelete;
-		delete screen;
+		DFrameBuffer *s = screen;
 		screen = NULL;
+		s->ObjectFlags |= OF_YesReallyDelete;
+		delete s;
 	}
 	if (Video)
 		delete Video, Video = NULL;

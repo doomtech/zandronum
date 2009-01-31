@@ -54,6 +54,7 @@
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "callvote.h"
+#include "doomstat.h"
 #include "network.h"
 #include "templates.h"
 #include "sbar.h"

@@ -1,3 +1,4 @@
+/*
 #include "templates.h"
 #include "actor.h"
 #include "info.h"
@@ -7,10 +8,9 @@
 #include "p_enemy.h"
 #include "gstrings.h"
 #include "a_action.h"
-#include "a_doomglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
+#include "g_level.h"
+*/
 
 static FRandom pr_tracer ("Tracer");
 static FRandom pr_skelfist ("SkelFist");

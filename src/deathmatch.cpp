@@ -54,6 +54,7 @@
 #include "cl_main.h"
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "doomstat.h"
 #include "g_game.h"
 #include "gamemode.h"
 #include "network.h"

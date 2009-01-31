@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "p_local.h"
@@ -9,10 +10,8 @@
 #include "gstrings.h"
 #include "a_specialspot.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "network.h"
-#include "sv_commands.h"
+#include "g_level.h"
+*/
 
 static FRandom pr_s2fx1 ("S2FX1");
 static FRandom pr_scrc1atk ("Srcr1Attack");

@@ -66,6 +66,8 @@
 #include "p_local.h"
 #include "r_sky.h"
 #include "p_setup.h"
+#include "cmdlib.h"
+#include "d_net.h"
 // [BC] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"

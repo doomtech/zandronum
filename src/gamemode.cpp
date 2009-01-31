@@ -50,6 +50,7 @@
 
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "doomstat.h"
 #include "gamemode.h"
 #include "team.h"
 #include "network.h"

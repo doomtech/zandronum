@@ -51,9 +51,9 @@ extern HWND Window;
 #endif
 #include "c_cvars.h"
 #include "i_system.h"
-#include "w_wad.h"
 #include "i_music.h"
 #include "v_text.h"
+#include "v_video.h"
 #include "v_palette.h"
 
 // MACROS ------------------------------------------------------------------
@@ -1338,7 +1338,7 @@ SoundStream *FMODSoundRenderer::OpenStream(const char *filename_or_data, int fla
 //
 //==========================================================================
 
-FSoundChan *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FSoundChan *reuse_chan)
+FISoundChannel *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch, int flags, FISoundChannel *reuse_chan)
 {
 	FMOD_RESULT result;
 	FMOD_MODE mode;
@@ -1366,18 +1366,18 @@ FSoundChan *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch,
 			mode = FMOD_SOFTWARE;
 		}
 		mode = (mode & ~FMOD_3D) | FMOD_2D;
-		if (chanflags & CHAN_LOOP)
+		if (flags & SNDF_LOOP)
 		{
 			mode = (mode & ~FMOD_LOOP_OFF) | FMOD_LOOP_NORMAL;
 		}
 		chan->setMode(mode);
-		chan->setChannelGroup((chanflags & (CHAN_UI | CHAN_NOPAUSE)) ? SfxGroup : PausableSfx);
+		chan->setChannelGroup((flags & SNDF_NOPAUSE) ? SfxGroup : PausableSfx);
 		if (freq != 0)
 		{
 			chan->setFrequency(freq);
 		}
 		chan->setVolume(vol);
-		HandleChannelDelay(chan, reuse_chan, freq);
+		HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq);
 		chan->setPaused(false);
 		return CommonChannelSetup(chan, reuse_chan);
 	}
@@ -1394,10 +1394,10 @@ FSoundChan *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch,
 
 CVAR(Float, snd_3dspread, 180, 0)
 
-FSoundChan *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *listener, float vol, 
+FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *listener, float vol, 
 	FRolloffInfo *rolloff, float distscale,
 	int pitch, int priority, const FVector3 &pos, const FVector3 &vel,
-	int channum, int chanflags, FSoundChan *reuse_chan)
+	int channum, int flags, FISoundChannel *reuse_chan)
 {
 	FMOD_RESULT result;
 	FMOD_MODE mode;
@@ -1453,13 +1453,13 @@ FSoundChan *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *list
 		{
 			mode = FMOD_3D | FMOD_SOFTWARE;
 		}
-		if (chanflags & CHAN_LOOP)
+		if (flags & SNDF_LOOP)
 		{
 			mode = (mode & ~FMOD_LOOP_OFF) | FMOD_LOOP_NORMAL;
 		}
-		mode = SetChanHeadSettings(listener, chan, pos, channum, chanflags, mode);
+		mode = SetChanHeadSettings(listener, chan, pos, !!(flags & SNDF_AREA), mode);
 		chan->setMode(mode);
-		chan->setChannelGroup((chanflags & (CHAN_UI | CHAN_NOPAUSE)) ? SfxGroup : PausableSfx);
+		chan->setChannelGroup((flags & SNDF_NOPAUSE) ? SfxGroup : PausableSfx);
 
 		if (freq != 0)
 		{
@@ -1471,9 +1471,9 @@ FSoundChan *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *list
 			chan->set3DAttributes((FMOD_VECTOR *)&pos[0], (FMOD_VECTOR *)&vel[0]);
 			chan->set3DSpread(snd_3dspread);
 		}
-		HandleChannelDelay(chan, reuse_chan, freq);
+		HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq);
 		chan->setPaused(false);
-		FSoundChan *schan = CommonChannelSetup(chan, reuse_chan);
+		FISoundChannel *schan = CommonChannelSetup(chan, reuse_chan);
 		schan->Rolloff = *rolloff;
 		return schan;
 	}
@@ -1492,7 +1492,7 @@ FSoundChan *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *list
 //
 //==========================================================================
 
-void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FSoundChan *reuse_chan, float freq) const
+void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, bool abstime, float freq) const
 {
 	if (reuse_chan != NULL)
 	{ // Sound is being restarted, so seek it to the position
@@ -1500,9 +1500,9 @@ void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FSoundChan *reus
 		QWORD_UNION nowtime;
 		chan->getDelay(FMOD_DELAYTYPE_DSPCLOCK_START, &nowtime.Hi, &nowtime.Lo);
 
-		// If CHAN_ABSTIME is set, the sound is being restored, and
+		// If abstime is set, the sound is being restored, and
 		// the channel's start time is actually its seek position.
-		if (reuse_chan->ChanFlags & CHAN_ABSTIME)
+		if (abstime)
 		{
 			unsigned int seekpos = reuse_chan->StartTime.Lo;
 			if (seekpos > 0)
@@ -1510,7 +1510,6 @@ void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FSoundChan *reus
 				chan->setPosition(seekpos, FMOD_TIMEUNIT_PCM);
 			}
 			reuse_chan->StartTime.AsOne = QWORD(nowtime.AsOne - seekpos * OutputRate / freq);
-			reuse_chan->ChanFlags &= ~CHAN_ABSTIME;
 		}
 		else
 		{
@@ -1538,7 +1537,7 @@ void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FSoundChan *reus
 //==========================================================================
 
 FMOD_MODE FMODSoundRenderer::SetChanHeadSettings(SoundListener *listener, FMOD::Channel *chan,
-												 const FVector3 &pos, int channum, int chanflags, 
+												 const FVector3 &pos, bool areasound, 
 												 FMOD_MODE oldmode) const
 {
 	if (!listener->valid)
@@ -1549,7 +1548,7 @@ FMOD_MODE FMODSoundRenderer::SetChanHeadSettings(SoundListener *listener, FMOD::
 
 	cpos = listener->position;
 
-	if (chanflags & CHAN_AREA)
+	if (areasound)
 	{
 		float level, old_level;
 
@@ -1599,14 +1598,13 @@ FMOD_MODE FMODSoundRenderer::SetChanHeadSettings(SoundListener *listener, FMOD::
 //
 //==========================================================================
 
-FSoundChan *FMODSoundRenderer::CommonChannelSetup(FMOD::Channel *chan, FSoundChan *reuse_chan) const
+FISoundChannel *FMODSoundRenderer::CommonChannelSetup(FMOD::Channel *chan, FISoundChannel *reuse_chan) const
 {
-	FSoundChan *schan;
+	FISoundChannel *schan;
 	
 	if (reuse_chan != NULL)
 	{
 		schan = reuse_chan;
-		schan->ChanFlags &= ~CHAN_EVICTED;
 		schan->SysChannel = chan;
 	}
 	else
@@ -1626,24 +1624,11 @@ FSoundChan *FMODSoundRenderer::CommonChannelSetup(FMOD::Channel *chan, FSoundCha
 //
 //==========================================================================
 
-void FMODSoundRenderer::StopSound(FSoundChan *chan)
+void FMODSoundRenderer::StopChannel(FISoundChannel *chan)
 {
-	if (chan == NULL)
-		return;
-
-	if (chan->SysChannel != NULL)
+	if (chan != NULL && chan->SysChannel != NULL)
 	{
-		// S_EvictAllChannels() will set the CHAN_EVICTED flag to indicate
-		// that it wants to keep all the channel information around.
-		if (!(chan->ChanFlags & CHAN_EVICTED))
-		{
-			chan->ChanFlags |= CHAN_FORGETTABLE;
-		}
 		((FMOD::Channel *)chan->SysChannel)->stop();
-	}
-	else
-	{
-		S_ReturnChannel(chan);
 	}
 }
 
@@ -1655,7 +1640,7 @@ void FMODSoundRenderer::StopSound(FSoundChan *chan)
 //
 //==========================================================================
 
-unsigned int FMODSoundRenderer::GetPosition(FSoundChan *chan)
+unsigned int FMODSoundRenderer::GetPosition(FISoundChannel *chan)
 {
 	unsigned int pos;
 
@@ -1720,7 +1705,7 @@ void FMODSoundRenderer::SetInactive(bool inactive)
 //
 //==========================================================================
 
-void FMODSoundRenderer::UpdateSoundParams3D(SoundListener *listener, FSoundChan *chan, const FVector3 &pos, const FVector3 &vel)
+void FMODSoundRenderer::UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel)
 {
 	if (chan == NULL || chan->SysChannel == NULL)
 		return;
@@ -1732,7 +1717,7 @@ void FMODSoundRenderer::UpdateSoundParams3D(SoundListener *listener, FSoundChan 
 	{
 		oldmode = FMOD_3D | FMOD_SOFTWARE;
 	}
-	mode = SetChanHeadSettings(listener, fchan, pos, chan->EntChannel, chan->ChanFlags, oldmode);
+	mode = SetChanHeadSettings(listener, fchan, pos, areasound, oldmode);
 	if (mode != oldmode)
 	{ // Only set the mode if it changed.
 		fchan->setMode(mode);
@@ -2005,6 +1990,26 @@ unsigned int FMODSoundRenderer::GetMSLength(SoundHandle sfx)
 }
 
 
+//==========================================================================
+//
+// FMODSoundRenderer :: GetMSLength
+//
+//==========================================================================
+
+unsigned int FMODSoundRenderer::GetSampleLength(SoundHandle sfx)
+{
+	if (sfx.data != NULL)
+	{
+		unsigned int length;
+
+		if (((FMOD::Sound *)sfx.data)->getLength(&length, FMOD_TIMEUNIT_PCM) == FMOD_OK)
+		{
+			return length;
+		}
+	}
+	return 0;	// Don't know.
+}
+
 
 //==========================================================================
 //
@@ -2020,62 +2025,11 @@ FMOD_RESULT F_CALLBACK FMODSoundRenderer::ChannelEndCallback
 {
 	assert(type == FMOD_CHANNEL_CALLBACKTYPE_END);
 	FMOD::Channel *chan = (FMOD::Channel *)channel;
-	FSoundChan *schan;
+	FISoundChannel *schan;
 
 	if (chan->getUserData((void **)&schan) == FMOD_OK && schan != NULL)
 	{
-		bool evicted;
-
-		// If the sound was stopped with GSnd->StopSound(), then we know
-		// it wasn't evicted. Otherwise, if it's looping, it must have
-		// been evicted. If it's not looping, then it was evicted if it
-		// didn't reach the end of its playback.
-		if (schan->ChanFlags & CHAN_FORGETTABLE)
-		{
-			evicted = false;
-		}
-		else if (schan->ChanFlags & (CHAN_LOOP | CHAN_EVICTED))
-		{
-			evicted = true;
-		}
-		else
-		{
-			FMOD::Sound *sound;
-			unsigned int len, pos;
-
-			evicted = false;	// Assume not evicted
-			if (FMOD_OK == chan->getPosition(&pos, FMOD_TIMEUNIT_PCM))
-			{
-				// If position is 0, then this sound either didn't have
-				// a chance to play at all, or it stopped normally.
-				if (pos == 0)
-				{
-					if (schan->ChanFlags & CHAN_JUSTSTARTED)
-					{
-						evicted = true;
-					}
-				}
-				else if (FMOD_OK == chan->getCurrentSound(&sound))
-				{
-					if (FMOD_OK == sound->getLength(&len, FMOD_TIMEUNIT_PCM))
-					{
-						if (pos < len)
-						{
-							evicted = true;
-						}
-					}
-				}
-			}
-		}
-		if (!evicted)
-		{
-			S_ReturnChannel(schan);
-		}
-		else
-		{
-			schan->ChanFlags |= CHAN_EVICTED;
-			schan->SysChannel = NULL;
-		}
+		S_ChannelEnded(schan);
 	}
 	return FMOD_OK;
 }
@@ -2092,53 +2046,19 @@ FMOD_RESULT F_CALLBACK FMODSoundRenderer::ChannelEndCallback
 float F_CALLBACK FMODSoundRenderer::RolloffCallback(FMOD_CHANNEL *channel, float distance)
 {
 	FMOD::Channel *chan = (FMOD::Channel *)channel;
-	FSoundChan *schan;
-	FRolloffInfo *rolloff;
+	FISoundChannel *schan;
 
 	if (GRolloff != NULL)
 	{
-		rolloff = GRolloff;
-		distance *= GDistScale;
+		return S_GetRolloff(GRolloff, distance * GDistScale);
 	}
 	else if (chan->getUserData((void **)&schan) == FMOD_OK && schan != NULL)
 	{
-		rolloff = &schan->Rolloff;
-		distance *= schan->DistanceScale;
+		return S_GetRolloff(&schan->Rolloff, distance * schan->DistanceScale);
 	}
 	else
 	{
 		return 0;
-	}
-	if (rolloff == NULL)
-	{
-		return 0;
-	}
-
-	if (distance <= rolloff->MinDistance)
-	{
-		return 1;
-	}
-	if (rolloff->RolloffType == ROLLOFF_Log)
-	{ // Logarithmic rolloff has no max distance where it goes silent.
-		return rolloff->MinDistance / (rolloff->MinDistance + rolloff->RolloffFactor * (distance - rolloff->MinDistance));
-	}
-	if (distance >= rolloff->MaxDistance)
-	{
-		return 0;
-	}
-
-	float volume = (rolloff->MaxDistance - distance) / (rolloff->MaxDistance - rolloff->MinDistance);
-	if (rolloff->RolloffType == ROLLOFF_Custom && S_SoundCurve != NULL)
-	{
-		volume = S_SoundCurve[int(S_SoundCurveSize * (1 - volume))] / 127.f;
-	}
-	if (rolloff->RolloffType == ROLLOFF_Linear)
-	{
-		return volume;
-	}
-	else
-	{
-		return (powf(10.f, volume) - 1.f) / 9.f;
 	}
 }
 
@@ -2158,7 +2078,6 @@ float F_CALLBACK FMODSoundRenderer::RolloffCallback(FMOD_CHANNEL *channel, float
 void FMODSoundRenderer::DrawWaveDebug(int mode)
 {
 	const int window_height = 100;
-	float wavearray[MAXWIDTH];
 	int window_size;
 	int numoutchans;
 	int y;
@@ -2171,6 +2090,8 @@ void FMODSoundRenderer::DrawWaveDebug(int mode)
 	// Scale all the channel windows so one group fits completely on one row, with
 	// 16 pixels of padding between each window.
 	window_size = (screen->GetWidth() - 16) / numoutchans - 16;
+
+	float *wavearray = (float*)alloca(window_size*sizeof(float));
 
 	y = 16;
 	y = DrawChannelGroupOutput(SfxGroup, wavearray, window_size, window_height, y, mode);

@@ -40,6 +40,8 @@
 #include "gl/gl_include.h"
 #include "p_local.h"
 #include "r_translate.h"
+#include "g_level.h"
+#include "doomstat.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_lights.h"

@@ -54,6 +54,7 @@
 #include "v_text.h"
 #include "gamemode.h"
 #include "g_level.h"
+#include "doomstat.h"
 
 //*****************************************************************************
 //	CONSOLE VARIABLES

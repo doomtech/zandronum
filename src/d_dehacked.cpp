@@ -52,7 +52,6 @@
 #include "g_level.h"
 #include "cmdlib.h"
 #include "gstrings.h"
-#include "m_alloc.h"
 #include "m_misc.h"
 #include "w_wad.h"
 #include "d_player.h"
@@ -64,7 +63,6 @@
 #include "v_palette.h"
 #include "a_sharedglobal.h"
 #include "thingdef/thingdef.h"
-#include "dobject.h"
 #include "r_translate.h"
 // [BC] New #includes.
 #include "cl_demo.h"

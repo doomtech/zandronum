@@ -51,6 +51,7 @@
 #include "campaign.h"
 #include "cl_demo.h"
 #include "deathmatch.h"
+#include "doomstat.h"
 #include "i_system.h"
 #include "network.h"
 #include "sc_man.h"

@@ -40,6 +40,7 @@
 
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
+#include "g_level.h"
 #include "r_sky.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_functions.h"

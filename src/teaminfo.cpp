@@ -38,7 +38,9 @@
 #include "i_system.h"
 #include "sc_man.h"
 #include "teaminfo.h"
+#include "v_video.h"
 #include "v_palette.h"
+#include "v_font.h"
 #include "w_wad.h"
 
 // [CW] New includes.

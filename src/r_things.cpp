@@ -25,14 +25,12 @@
 #include <stdlib.h>
 
 #include "templates.h"
-#include "m_alloc.h"
 #include "doomdef.h"
 #include "m_swap.h"
 #include "m_argv.h"
 #include "i_system.h"
 #include "w_wad.h"
 #include "r_local.h"
-#include "p_effect.h"
 #include "c_console.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
@@ -43,12 +41,22 @@
 #include "sbar.h"
 #include "gi.h"
 #include "r_sky.h"
+#include "cmdlib.h"
+#include "g_level.h"
+#include "d_net.h"
+#include "colormatcher.h"
+#include "d_netinf.h"
+#include "r_bsp.h"
+#include "r_plane.h"
+#include "r_segs.h"
+#include "v_palette.h"
 // [BB] New #includes.
 #include "w_wad.h"
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "lastmanstanding.h"
 #include "network.h"
+
 
 extern FTexture *CrosshairImage;
 extern fixed_t globaluclip, globaldclip;

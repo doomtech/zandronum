@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "p_local.h"
@@ -7,9 +8,7 @@
 #include "m_random.h"
 #include "a_sharedglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "sv_commands.h"
-#include "cl_demo.h"
+*/
 
 static FRandom pr_stealhealth ("StealHealth");
 static FRandom pr_wraithfx2 ("WraithFX2");

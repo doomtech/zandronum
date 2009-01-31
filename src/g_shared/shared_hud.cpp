@@ -46,6 +46,9 @@
 #include "sc_man.h"
 #include "templates.h"
 #include "p_local.h"
+#include "doomstat.h"
+#include "g_level.h"
+
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"

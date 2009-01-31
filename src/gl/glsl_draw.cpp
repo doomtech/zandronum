@@ -4,6 +4,7 @@
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"
 #include "r_blend.h"
+#include "doomstat.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"

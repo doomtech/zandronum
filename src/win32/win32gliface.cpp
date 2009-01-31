@@ -15,6 +15,7 @@
 #include "hardware.h"
 #include "v_video.h"
 #include "i_input.h"
+#include "doomstat.h"
 //#include "gl_defs.h"
 
 

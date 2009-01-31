@@ -41,11 +41,11 @@
 #include "r_state.h"
 #include "m_random.h"
 #include "p_saveg.h"
-#include "p_acs.h"
 #include "s_sndseq.h"
 #include "v_palette.h"
 #include "a_sharedglobal.h"
 #include "r_interpolate.h"
+#include "g_level.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"

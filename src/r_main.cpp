@@ -33,7 +33,6 @@
 #include "network.h"
 
 #include "templates.h"
-#include "m_alloc.h"
 #include "doomdef.h"
 #include "d_net.h"
 #include "doomstat.h"
@@ -52,6 +51,9 @@
 #include "r_translate.h"
 #include "p_3dmidtex.h"
 #include "r_interpolate.h"
+#include "r_bsp.h"
+#include "r_plane.h"
+#include "v_palette.h"
 #include "gl/gl_data.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"

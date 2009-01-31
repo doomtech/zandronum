@@ -42,6 +42,7 @@
 #include "gl/gl_include.h"
 #include "p_local.h"
 #include "vectors.h"
+#include "doomstat.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_portal.h"
 #include "gl/gl_clipper.h"

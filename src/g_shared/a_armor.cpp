@@ -5,6 +5,8 @@
 #include "r_data.h"
 #include "a_pickups.h"
 #include "templates.h"
+// [BB] New #includes.
+#include "doomstat.h"
 
 
 IMPLEMENT_CLASS (AArmor)

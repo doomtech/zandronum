@@ -39,6 +39,7 @@
 */
 
 #include "gi.h"
+#include "g_level.h"
 #include "actor.h"
 #include "info.h"
 #include "sc_man.h"
@@ -55,20 +56,22 @@
 #include "a_action.h"
 #include "decallib.h"
 #include "m_random.h"
-#include "autosegs.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "c_console.h"
 #include "doomerrors.h"
 #include "a_sharedglobal.h"
-#include "a_doomglobal.h"
 #include "thingdef/thingdef.h"
 #include "v_video.h"
-#include "deathmatch.h"
+#include "v_font.h"
+#include "doomstat.h"
+#include "v_palette.h"
 // [BB] new #includes.
+#include "deathmatch.h"
 #include "cl_main.h"
 #include "cl_demo.h"
 #include "invasion.h"
+#include "sv_commands.h"
 
 static FRandom pr_camissile ("CustomActorfire");
 static FRandom pr_camelee ("CustomMelee");

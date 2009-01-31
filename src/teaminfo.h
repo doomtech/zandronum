@@ -41,6 +41,10 @@
 //	[CW] When bumping MAX_TEAMS don't forget to update other pieces of code.
 //	[CW] The code that needs to be changed is marked with: "[CW] Add to this when bumping 'MAX_TEAMS'."
 
+#include "doomtype.h"
+// [BB] New #includes.
+#include "doomdata.h"
+
 struct TEAMINFO
 {
 /* [BB] ST has its own teaminfo code.

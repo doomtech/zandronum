@@ -58,7 +58,6 @@ extern HINSTANCE g_hInst;
 #endif
 
 #include "doomtype.h"
-#include "m_alloc.h"
 #include <math.h>
 
 #ifndef NO_SOUND
@@ -148,9 +147,16 @@ public:
 		// ambient sounds to specify a default minimum period.
 		return 250;
 	}
+	unsigned int GetSampleLength(SoundHandle sfx)
+	{
+		return 0;
+	}
 	float GetOutputRate()
 	{
 		return 11025;	// Lies!
+	}
+	void StopChannel(FISoundChannel *chan)
+	{
 	}
 
 	// Streaming sounds.
@@ -164,26 +170,17 @@ public:
 	}
 
 	// Starts a sound. (No, not really.)
-	FSoundChan *StartSound (SoundHandle sfx, float vol, int pitch, int chanflags, FSoundChan *reuse_chan)
+	FISoundChannel *StartSound (SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan)
 	{
 		return NULL;
 	}
-	FSoundChan *StartSound3D (SoundHandle sfx, SoundListener *listener, float vol, FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel, int channum, int chanflags, FSoundChan *reuse_chan)
+	FISoundChannel *StartSound3D (SoundHandle sfx, SoundListener *listener, float vol, FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel, int channum, int chanflags, FISoundChannel *reuse_chan)
 	{
 		return NULL;
-	}
-
-	// Stops a sound channel.
-	void StopSound (FSoundChan *chan)
-	{
-		if (chan != NULL)
-		{
-			S_ReturnChannel(chan);
-		}
 	}
 
 	// Returns position of sound on this channel, in samples.
-	unsigned int GetPosition(FSoundChan *chan)
+	unsigned int GetPosition(FISoundChannel *chan)
 	{
 		return 0;
 	}
@@ -204,7 +201,7 @@ public:
 	}
 
 	// Updates the volume, separation, and pitch of a sound channel.
-	void UpdateSoundParams3D (SoundListener *listener, FSoundChan *chan, const FVector3 &pos, const FVector3 &vel)
+	void UpdateSoundParams3D (SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel)
 	{
 	}
 

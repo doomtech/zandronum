@@ -24,13 +24,13 @@
 
 #include "p_local.h"
 #include "p_effect.h"
-#include "p_acs.h"
 #include "c_console.h"
 #include "s_sound.h"
 #include "doomstat.h"
 #include "sbar.h"
 #include "r_interpolate.h"
 #include "i_sound.h"
+#include "g_level.h"
 // [BB] New #includes.
 #include "g_game.h"
 #include "team.h"

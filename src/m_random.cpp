@@ -39,6 +39,8 @@
 #include "i_system.h"
 #include "c_dispatch.h"
 #include "files.h"
+// [BB] New #includes.
+#include "doomdef.h"
 
 #define RAND_ID MAKE_ID('r','a','N','d')
 

@@ -42,6 +42,7 @@
 #include "m_png.h"
 #include "m_crc32.h"
 #include "templates.h"
+#include "v_palette.h"
 
 //===========================================================================
 //

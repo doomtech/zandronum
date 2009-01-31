@@ -82,6 +82,7 @@
 #include "sbar.h"
 #include "version.h"
 #include "v_text.h"
+#include "doomstat.h"
 
 //*****************************************************************************
 //	VARIABLES

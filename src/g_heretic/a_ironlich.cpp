@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "info.h"
 #include "m_random.h"
@@ -7,9 +8,8 @@
 #include "a_action.h"
 #include "gstrings.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "sv_commands.h"
-#include "cl_demo.h"
+#include "g_level.h"
+*/
 
 static FRandom pr_foo ("WhirlwindDamage");
 static FRandom pr_atk ("LichAttack");

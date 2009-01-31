@@ -1,5 +1,6 @@
 #include "info.h"
 #include "a_pickups.h"
+#include "doomstat.h"
 #include "d_player.h"
 #include "p_local.h"
 #include "gi.h"

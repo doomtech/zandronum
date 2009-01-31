@@ -51,6 +51,8 @@
 #include "cl_commands.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "doomstat.h"
+#include "d_event.h"
 #include "gi.h"
 #include "network.h"
 #include "r_state.h"

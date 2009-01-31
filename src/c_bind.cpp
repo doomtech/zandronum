@@ -42,6 +42,7 @@
 #include "gi.h"
 #include "configfile.h"
 #include "i_system.h"
+#include "d_event.h"
 // [BC] New #includes.
 #include "chat.h"
 #include "p_local.h"

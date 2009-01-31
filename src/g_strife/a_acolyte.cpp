@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -7,9 +8,8 @@
 #include "a_strifeglobal.h"
 #include "doomdata.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
+#include "doomstat.h"
+*/
 
 //============================================================================
 //

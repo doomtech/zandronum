@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -6,8 +7,7 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "thingdef/thingdef.h"
-// [CW] New include.
-#include "sv_commands.h"
+*/
 
 static FRandom pr_templar ("Templar");
 

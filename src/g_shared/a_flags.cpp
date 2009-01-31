@@ -50,6 +50,7 @@
 
 #include "a_sharedglobal.h"
 #include "announcer.h"
+#include "doomstat.h"
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "network.h"

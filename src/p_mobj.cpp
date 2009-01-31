@@ -28,7 +28,6 @@
 #include "network.h"
 
 #include "templates.h"
-#include "m_alloc.h"
 #include "i_system.h"
 #include "m_random.h"
 #include "doomdef.h"
@@ -43,7 +42,6 @@
 #include "v_video.h"
 #include "c_cvars.h"
 #include "stats.h"
-#include "a_doomglobal.h"
 #include "a_hexenglobal.h"
 #include "a_sharedglobal.h"
 #include "gi.h"
@@ -60,7 +58,12 @@
 #include "teaminfo.h"
 #include "r_translate.h"
 #include "r_sky.h"
-
+#include "g_level.h"
+#include "d_event.h"
+#include "colormatcher.h"
+#include "v_palette.h"
+#include "gl/gl_functions.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "duel.h"
 #include "gamemode.h"
@@ -72,8 +75,6 @@
 #include "sv_commands.h"
 #include "cl_demo.h"
 #include "survival.h"
-
-#include "gl/gl_functions.h"
 
 // MACROS ------------------------------------------------------------------
 

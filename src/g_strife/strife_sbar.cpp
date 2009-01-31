@@ -14,6 +14,9 @@
 #include "a_keys.h"
 #include "a_strifeglobal.h"
 #include "gi.h"
+#include "g_level.h"
+#include "colormatcher.h"
+#include "v_palette.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 

@@ -9,6 +9,8 @@
 #include "gi.h"
 #include "w_wad.h"
 #include "thingdef/thingdef.h"
+#include "g_level.h"
+#include "doomstat.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"

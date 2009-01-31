@@ -46,7 +46,6 @@
 #define NOTIFY_FOR_THIS_SESSION 0
 
 #include <malloc.h>
-#include "m_alloc.h"
 #ifdef _MSC_VER
 #include <eh.h>
 #include <new.h>
@@ -71,9 +70,13 @@
 #include "i_video.h"
 #include "i_sound.h"
 #include "i_input.h"
-#include "autosegs.h"
 #include "w_wad.h"
 #include "templates.h"
+#include "cmdlib.h"
+#include "g_level.h"
+#include "doomstat.h"
+#include "r_main.h"
+// [BB] New #includes.
 #include "serverconsole.h"
 #include "network.h"
 

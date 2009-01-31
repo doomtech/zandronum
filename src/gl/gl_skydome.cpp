@@ -37,6 +37,7 @@
 */
 #include "gl/gl_include.h"
 #include "doomtype.h"
+#include "g_level.h"
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gl/gl_portal.h"

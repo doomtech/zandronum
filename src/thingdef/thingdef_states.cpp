@@ -39,6 +39,7 @@
 */
 
 #include "actor.h"
+#include "autosegs.h"
 #include "info.h"
 #include "sc_man.h"
 #include "tarray.h"
@@ -47,14 +48,13 @@
 #include "p_lnspec.h"
 #include "a_action.h"
 #include "p_local.h"
-#include "p_effect.h"
 #include "v_palette.h"
 #include "doomerrors.h"
 #include "thingdef.h"
 #include "a_sharedglobal.h"
 #include "s_sound.h"
 #include "i_system.h"
-#include "autosegs.h"
+#include "colormatcher.h"
 
 TArray<int> StateParameters;
 TArray<FName> JumpParameters;

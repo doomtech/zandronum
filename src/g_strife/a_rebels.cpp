@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -8,10 +9,8 @@
 #include "a_sharedglobal.h"
 #include "a_strifeglobal.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "deathmatch.h"
-#include "cl_demo.h"
-#include "sv_commands.h"
+#include "doomstat.h"
+*/
 
 static FRandom pr_shootgun ("ShootGun");
 

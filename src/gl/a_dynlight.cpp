@@ -41,6 +41,7 @@
 #include "r_main.h"
 #include "p_local.h"
 #include "c_dispatch.h"
+#include "g_level.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
 #include "gl/gl_basic.h"

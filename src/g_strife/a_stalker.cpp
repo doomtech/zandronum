@@ -1,3 +1,4 @@
+/*
 #include "actor.h"
 #include "m_random.h"
 #include "a_action.h"
@@ -5,9 +6,7 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "thingdef/thingdef.h"
-// [BB] New #includes.
-#include "cl_demo.h"
-#include "sv_commands.h"
+*/
 
 static FRandom pr_stalker ("Stalker");
 

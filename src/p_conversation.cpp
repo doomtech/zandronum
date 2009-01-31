@@ -36,6 +36,7 @@
 
 #include "actor.h"
 #include "r_data.h"
+#include "r_main.h"
 #include "p_conversation.h"
 #include "w_wad.h"
 #include "cmdlib.h"
@@ -52,6 +53,10 @@
 #include "gstrings.h"
 #include "sound/i_music.h"
 #include "p_setup.h"
+#include "d_net.h"
+#include "g_level.h"
+#include "d_event.h"
+#include "doomstat.h"
 
 // The conversations as they exist inside a SCRIPTxx lump.
 struct Response

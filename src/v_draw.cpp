@@ -40,12 +40,19 @@
 #include "m_swap.h"
 #include "r_defs.h"
 #include "r_draw.h"
+#include "r_main.h"
 #include "r_things.h"
 #include "r_translate.h"
+#include "doomstat.h"
+#include "v_palette.h"
 
 #include "i_system.h"
 #include "i_video.h"
 #include "templates.h"
+#include "d_net.h"
+#include "colormatcher.h"
+// [BB] New #includes.
+#include "v_font.h"
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings
