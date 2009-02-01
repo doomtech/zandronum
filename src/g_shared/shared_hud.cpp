@@ -798,6 +798,10 @@ void DrawHUD()
 {
 	player_t * CPlayer = StatusBar->CPlayer;
 
+	// [BB] The player may not have a body while connecting.
+	if ( CPlayer->mo == NULL )
+		return;
+
 	if (HudFont==NULL) HUD_InitHud();
 
 	players[consoleplayer].inventorytics = 0;
