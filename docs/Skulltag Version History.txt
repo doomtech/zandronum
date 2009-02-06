@@ -48,7 +48,7 @@ latestzdoom branch
 -	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
 -	- Fixed: The network traffic needed by Sector_SetFade increased linearly with the number of sectors that have the given tag instead of being constant. [Torr Samaho, SuperGod]
 -	- Fixed: If the model flag rotation-speed was used with a value other than 1, the rotation "skipped" every five seconds. [Torr Samaho]
--	- Fixed: Friendly actors could cause the server to freeze completely when the first player connects or the last player disconnects. [Torr Samaho, SuperGod]
+-	- Fixed: Friendly actors or actors using A_Chase could cause the server to freeze completely when the first player connects or the last player disconnects. [Torr Samaho, SuperGod]
 -	- Fixed: The one and five minute announcer warnings didn't work at all for clients. [Karate Chris]
 
 v0.97d3 RC2
