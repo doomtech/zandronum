@@ -5022,7 +5022,7 @@ void SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra, ULONG u
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MapExit( LONG lPosition, char *pszNextMap, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
