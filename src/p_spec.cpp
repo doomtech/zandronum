@@ -669,26 +669,25 @@ void P_UpdateSpecials ()
 //	size_t j;
 //	int i;
 	
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	// LEVEL TIMER
+	if (( deathmatch || teamgame ) && timelimit )
 	{
-		// LEVEL TIMER
-		if (( deathmatch || teamgame ) && timelimit )
+		// [RC] Play the five minute warning.
+		if ( level.time == (int)( ( timelimit - 5 ) * TICRATE * 60 ) ) // I'm amazed this works so well without a flag.
 		{
-			// [RC] Play the five minute warning.
-			if ( level.time == (int)( ( timelimit - 5 ) * TICRATE * 60 ) ) // I'm amazed this works so well without a flag.
-			{
-				Printf("Five minutes remain!\n");
-				ANNOUNCER_PlayEntry( cl_announcer, "FiveMinuteWarning" );
-			}
+			Printf("Five minutes remain!\n");
+			ANNOUNCER_PlayEntry( cl_announcer, "FiveMinuteWarning" );
+		}
 
-			// [RC] Play the one minute warning.
-			else if ( level.time == (int)( ( timelimit - 1 ) * TICRATE * 60 ) )
-			{
-				Printf("One minute remains!\n");
-				ANNOUNCER_PlayEntry( cl_announcer, "OneMinuteWarning" );
-			}
+		// [RC] Play the one minute warning.
+		else if ( level.time == (int)( ( timelimit - 1 ) * TICRATE * 60 ) )
+		{
+			Printf("One minute remains!\n");
+			ANNOUNCER_PlayEntry( cl_announcer, "OneMinuteWarning" );
+		}
 
-
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
 				// Special game modes handle this differently.
