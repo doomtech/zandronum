@@ -1,4 +1,103 @@
+October 5, 2008  (Changes by Graf Zahl)
+- Fixed: Powerup.Color's handler contained an unnecessary 'else' which resulted
+  in opaque powerup blends.
+
+October 4, 2008  (Changes by Graf Zahl)
+- Fixed: Resurrecting a player didn't unset the RF_INVISIBLE flag which is
+  set when the player is crushed to gibs under a door.
+
+September 28, 2008  (Changes by Graf Zahl)
+- Fixed: Dropitem gave incorrect amounts to the item if a probability was set.
+
+September 27, 2008  (Changes by Graf Zahl)
+- Fixed: weapon.ammogive2 always gave 2 amounts of ammo.
+- Fixed: The translation string parser printed a broken error message.
+
+September 24, 2008  (Changes by Graf Zahl)
+- Fixed: player.colorrange didn't read the parameters correctly.
+- Reverted an 'optimization' in d_dehacked.cpp that didn't work.
+
+September 23, 2008  (Changes by Graf Zahl)
+- Fixed: Old style decorations forgot all inherited states when installing 
+  their labels.
+  
+September 22, 2008  (Changes by Graf Zahl)
+- Used the one unused byte in the state structure as a flag to tell what type
+  the NextState parameter is. The code did some rather unsafe checks with it
+  to determine its type.
+- moved all state related code into a new file: p_states.cpp.
+- merged all FindState functions. All the different variations are now inlined
+  and call the same function to do the real work.
+
+September 21, 2008  (Changes by Graf Zahl)
+- did some code cleanup and reorganization in thingdef.cpp.
+- Replaced the translation parser for TEXTURES with FRemapTable::AddToTranslation.
+- To get the game name the screenshot code might as well use the globally
+  available GameNames array instead of creating its own list.
+- Moved backpack names for cheat into gameinfo.
+- Fixed: SNDINFO must be loaded before the textures. However, this required
+  some changes to the MAPINFO parser which tried to access the texture manager
+  to check if the level name patches exist. That check had to be moved to
+  where the intermission screen is set up.
+- Fixed: 'bloodcolor' ignored the first parameter value when given a list
+  of integers.
+  Please note that this creates an incompatibility between old and new 
+  versions so if you want to create something that works with both 2.2.0
+  and current versions better use the string format version for the color
+  parameter!
+- Rewrote the DECORATE property parser so that the parser is completely
+  separated from the property handlers. This should allow reuse of all 
+  the handler code for a new format if Doomscript requires one.
+- Fixed: PClass::InitializeActorInfo copied too many bytes if a subclass's
+  defaults were larger than the parent's.
+- Moved A_ChangeFlag to thingdef_codeptr.cpp.
+- Moved translation related code from thingdef_properties.cpp to r_translate.cpp
+  and rewrote the translation parser to use FScanner instead of strtol.
+- replaced DECORATE's 'alpha default' by 'defaultalpha' for consistency.
+  Since this was never used outside zdoom.pk3 it's not critical.
+- Removed support for game specific pickup messages because the only thing
+  this was ever used for - Raven's invulnerability item - has already been
+  split up into a Heretic and Hexen version.
+
+September 20, 2008
+- Fixed: The Timidity config parser always tried to process the note number,
+  even if it wasn't specified.
+
+September 19, 2008
+- Fixed: When UpdateJoystickMenu() modifies the menu items for different
+  controllers, the joystick axis selectors need to NULL the d.graycheck
+  field, since this is shared by the axis sensitivity sliders' step values.
+
+September 19, 2008  (Changes by Graf Zahl)
+- Fixed: The crosshair must be initialized after the texture manager because
+  on the fly texture creation for graphics patches is no longer supported.
+- Fixed a few Linux compile errors.
+
+September 16, 2008  (Changes by Graf Zahl)
+- Changed: Replaced weapons should not be given by generic cheats, only
+  when explicitly giving them.
+- Changed 'give weapon' cheat so that in single player it only gives weapons
+  belonging to the current game or are placed in a weapon slot to avoid
+  giving the Chex Quest weapons in Doom and vice versa.
+- Fixed: The texture manager must be the first thing to be initialized
+  because MAPINFO and DECORATE both can reference textures and letting them
+  create their own textures is not safe.
+
+September 15, 2008  (Changes by Graf Zahl)
+- Separated low level sound code from all high level dependencies.
+- Separated low level sound channel class from high level class which now
+  is just a subclass of the low level class.
+- Moved some more high level sound logic out of FMODSoundRenderer:
+  The rolloff and channel ended callbacks now call functions in s_sound.cpp
+  instead of working on the data itself and GSnd->StopSound has been replaced
+  with S_StopChannel.
+- Changed compilation for g_doom, g_heretic, g_hexen and g_strife folders so 
+  that all files are included by a central one instead of compiling each one 
+  separately. This speeds up the compilation process by 25% when doing a 
+  complete rebuild in Visual C.
+
 September 14, 2008  (Changes by Graf Zahl)
+- Cleaned up some include dependencies.
 - fixed: For Chex Quest some CVars were initialized to Heretic's default.
 - fixed pickup message for LargeZorchPack.
 

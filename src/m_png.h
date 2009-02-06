@@ -35,8 +35,7 @@
 
 #include <stdio.h>
 #include "doomtype.h"
-
-enum ESSType;
+#include "v_video.h"
 
 // PNG Writing --------------------------------------------------------------
 

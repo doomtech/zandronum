@@ -874,6 +874,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 
 	if (actor != NULL)
 	{
+		GC::ReadBarrier(actor);
 		type = SOURCE_Actor;
 	}
 	else if (sec != NULL)
@@ -1567,6 +1568,7 @@ void S_RelinkSound (AActor *from, AActor *to)
 			}
 			else
 			{
+				chan->Actor = NULL;
 				S_StopChannel(chan);
 			}
 		}
@@ -1879,7 +1881,7 @@ static void S_SetListener(SoundListener &listener, AActor *listenactor)
 //
 //==========================================================================
 
-float S_GetRolloff(FRolloffInfo *rolloff, float distance)
+float S_GetRolloff(FRolloffInfo *rolloff, float distance, bool logarithmic)
 {
 	if (rolloff == NULL)
 	{
@@ -1904,13 +1906,27 @@ float S_GetRolloff(FRolloffInfo *rolloff, float distance)
 	{
 		volume = S_SoundCurve[int(S_SoundCurveSize * (1 - volume))] / 127.f;
 	}
-	if (rolloff->RolloffType == ROLLOFF_Linear)
+	if (logarithmic)
 	{
-		return volume;
+		if (rolloff->RolloffType == ROLLOFF_Linear)
+		{
+			return volume;
+		}
+		else
+		{
+			return float((powf(10.f, volume) - 1.) / 9.);
+		}
 	}
 	else
 	{
-		return (powf(10.f, volume) - 1.f) / 9.f;
+		if (rolloff->RolloffType == ROLLOFF_Linear)
+		{
+			return float(log10(9. * volume + 1.));
+		}
+		else
+		{
+			return volume;
+		}
 	}
 }
 

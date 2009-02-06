@@ -655,7 +655,11 @@ void gl_PreprocessLevel()
 	if (gl_disabled) return;
 
 	PrepareSectorData();
-	for(i=0;i<numsectors;i++) PrepareTransparentDoors(&sectors[i]);
+	for(i=0;i<numsectors;i++) 
+	{
+		sectors[i].sectornum = i;
+		PrepareTransparentDoors(&sectors[i]);
+	}
 	pitch=0.0f;
 
 	gl_vertices.Resize(100);	

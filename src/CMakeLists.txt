@@ -226,21 +226,21 @@ if( NOT NO_ASM )
 		find_program( NASM_PATH NAMES ${NASM_NAMES} )
 		find_program( YASM_PATH yasm )
 
-		if( YASM_PATH )
-			set( ASSEMBLER ${YASM_PATH} )
-		else( YASM_PATH )
-			if( X64 )
+		if( X64 )
+			if( YASM_PATH )
+				set( ASSEMBLER ${YASM_PATH} )
+			else( YASM_PATH )
 				message( STATUS "Could not find YASM. Disabling assembly code." )
 				set( NO_ASM ON )
-			else( X64 )
-				if( NOT NASM_PATH )
-					message( STATUS "Could not find YASM or NASM. Disabling assembly code." )
-					set( NO_ASM ON )
-				else( NOT NASM_PATH )
-					set( ASSEMBLER ${NASM_PATH} )
-				endif( NOT NASM_PATH )
-			endif( X64 )
-		endif( YASM_PATH )
+			endif( YASM_PATH )
+		else( X64 )
+			if( NASM_PATH )
+				set( ASSEMBLER ${NASM_PATH} )
+			else( NASM_PATH )
+				message( STATUS "Could not find NASM. Disabling assembly code." )
+				set( NO_ASM ON )
+			endif( NASM_PATH )
+		endif( X64 )
 	endif( UNIX AND X64 )
 
 	# I think the only reason there was a version requirement was because the
@@ -429,7 +429,7 @@ else( NO_ASM )
 	endif( X64 )
 	if( WIN32 )
 		if( NOT X64 )
-			ADD_ASM_FILE( win32/wrappers.asm )
+			ADD_ASM_FILE( win32 wrappers )
 		endif( NOT X64 )
 	endif( WIN32 )
 endif( NO_ASM )
@@ -616,6 +616,7 @@ add_executable( zdoom WIN32
 	p_sight.cpp
 	p_slopes.cpp
 	p_spec.cpp
+	p_states.cpp
 	p_switch.cpp
 	p_teleport.cpp
 	p_terrain.cpp
@@ -775,6 +776,7 @@ add_executable( zdoom WIN32
 	thingdef/thingdef_codeptr.cpp
 	thingdef/thingdef_exp.cpp
 	thingdef/thingdef_main.cpp
+	thingdef/thingdef_parse.cpp
 	thingdef/thingdef_properties.cpp
 	thingdef/thingdef_states.cpp
 	# [BB] Due to licensing issues, Skulltag doesn't use timidity.

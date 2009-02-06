@@ -240,7 +240,7 @@ char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = 0;
 
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )
@@ -254,7 +254,7 @@ char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
 	
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )
@@ -434,7 +434,7 @@ char *ACustomPickupInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = 0;
 
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )
@@ -448,7 +448,7 @@ char *ACustomPickupInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
 	
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )
@@ -578,7 +578,7 @@ char *ACustomWeaponInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = 0;
 
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )
@@ -592,7 +592,7 @@ char *ACustomWeaponInvasionSpot::GetSpawnName( void )
 
 	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
 	
-	pDropItem = GetDropItems( RUNTIME_TYPE(this) );
+	pDropItem = this->GetDropItems();
 	while ( pDropItem )
 	{
 		if ( pDropItem->Name != NAME_None )

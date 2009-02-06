@@ -5786,16 +5786,13 @@ int DLevelScript::RunScript ()
 		case PCD_SETACTORSTATE:
 			{
 				const char *statename = FBehavior::StaticLookupString (STACK(2));
-				TArray<FName> statelist;
 				FState *state;
-
-				MakeStateNameList(statename, &statelist);
 
 				if (STACK(3) == 0)
 				{
 					if (activator != NULL)
 					{
-						state = activator->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+						state = activator->GetClass()->ActorInfo->FindStateByString (statename, !!STACK(1));
 						if (state != NULL)
 						{
 						// [BC] Tell clients to change this thing's state.
@@ -5819,7 +5816,7 @@ int DLevelScript::RunScript ()
 
 					while ( (actor = iterator.Next ()) )
 					{
-						state = actor->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+						state = actor->GetClass()->ActorInfo->FindStateByString (statename, !!STACK(1));
 						if (state != NULL)
 						{
 							// [BC] Tell clients to change this thing's state.

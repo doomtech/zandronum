@@ -5,6 +5,24 @@
 
 class FScanner;
 
+
+//==========================================================================
+//
+// A flag descriptor
+//
+//==========================================================================
+
+struct FFlagDef
+{
+	int flagbit;
+	const char *name;
+	int structoffset;
+};
+
+FFlagDef *FindFlag (const PClass *type, const char *part1, const char *part2);
+void HandleDeprecatedFlags(AActor *defaults, FActorInfo *info, bool set, int index);
+
+
 //==========================================================================
 //
 // This class is for storing a name inside a const PClass* field without
@@ -32,44 +50,98 @@ public:
 
 //==========================================================================
 //
-// Dropitem list
+// State parser
 //
 //==========================================================================
 
-struct FDropItem 
+extern TArray<int> StateParameters;
+extern TArray<FName> JumpParameters;
+
+struct FStateLabels;
+
+enum EStateDefineFlags
 {
-	FName Name;
-	int probability;
-	int amount;
-	FDropItem * Next;
+	SDF_NEXT = 0,
+	SDF_STATE = 1,
+	SDF_STOP = 2,
+	SDF_WAIT = 3,
+	SDF_LABEL = 4,
+	SDF_INDEX = 5,
 };
 
-FDropItem *GetDropItems(const PClass * cls);
+struct FStateDefine
+{
+	FName Label;
+	TArray<FStateDefine> Children;
+	FState *State;
+	BYTE DefineFlags;
+};
+
+class FStateDefinitions
+{
+	TArray<FStateDefine> StateLabels;
+
+	static FStateDefine *FindStateLabelInList(TArray<FStateDefine> &list, FName name, bool create);
+	static FStateLabels *CreateStateLabelList(TArray<FStateDefine> &statelist);
+	static void MakeStateList(const FStateLabels *list, TArray<FStateDefine> &dest);
+	static void RetargetStatePointers (intptr_t count, const char *target, TArray<FStateDefine> & statelist);
+	FStateDefine *FindStateAddress(const char *name);
+	FState *FindState(const char *name);
+
+	FState *ResolveGotoLabel (AActor *actor, const PClass *mytype, char *name);
+	static void FixStatePointers (FActorInfo *actor, TArray<FStateDefine> & list);
+	void ResolveGotoLabels (FActorInfo *actor, AActor *defaults, TArray<FStateDefine> & list);
+
+public:
+
+
+	void ClearStateLabels()
+	{
+		StateLabels.Clear();
+	}
+
+	void AddState (const char * statename, FState * state, BYTE defflags = SDF_STATE);
+	void InstallStates(FActorInfo *info, AActor *defaults);
+	int FinishStates (FActorInfo *actor, AActor *defaults, TArray<FState> &StateArray);
+
+	void MakeStateDefines(const PClass *cls);
+	void AddStateDefines(const FStateLabels *list);
+	void RetargetStates (intptr_t count, const char *target);
+
+};
 
 //==========================================================================
 //
 // Extra info maintained while defining an actor.
 //
 //==========================================================================
+struct FDropItem;
 
 struct Baggage
 {
+#ifdef _DEBUG
+	FString ClassName;	// This is here so that during debugging the class name can be seen
+#endif
 	FActorInfo *Info;
 	bool DropItemSet;
 	bool StateSet;
 	int CurrentState;
+	int Lumpnum;
+	FStateDefinitions statedef;
+	TArray<FState> StateArray;
 
 	FDropItem *DropItemList;
 };
 
-inline void ResetBaggage (Baggage *bag)
+inline void ResetBaggage (Baggage *bag, const PClass *stateclass)
 {
 	bag->DropItemList = NULL;
 	bag->DropItemSet = false;
 	bag->CurrentState = 0;
 	bag->StateSet = false;
+	bag->StateArray.Clear();
+	bag->statedef.MakeStateDefines(stateclass);
 }
-
 
 //==========================================================================
 //
@@ -87,25 +159,8 @@ AFuncDesc * FindFunction(const char * string);
 
 
 
-//==========================================================================
-//
-// State parser
-//
-//==========================================================================
-
-extern TArray<int> StateParameters;
-extern TArray<FName> JumpParameters;
-
-void ClearStateLabels();
-void AddState (const char * statename, FState * state);
-FState * FindState(AActor * actor, const PClass * type, const char * name);
-void InstallStates(FActorInfo *info, AActor *defaults);
-void MakeStateDefines(const FStateLabels *list);
-void AddStateDefines(const FStateLabels *list);
 FState *P_GetState(AActor *self, FState *CallingState, int offset);
-int FinishStates (FScanner &sc, FActorInfo *actor, AActor *defaults, Baggage &bag);
 int ParseStates(FScanner &sc, FActorInfo *actor, AActor *defaults, Baggage &bag);
-FState *CheckState(FScanner &sc, PClass *type);
 
 
 //==========================================================================
@@ -115,6 +170,7 @@ FState *CheckState(FScanner &sc, PClass *type);
 //==========================================================================
 
 void ParseActorProperty(FScanner &sc, Baggage &bag);
+void HandleActorFlag(FScanner &sc, Baggage &bag, const char *part1, const char *part2, int mod);
 void ParseActorFlag (FScanner &sc, Baggage &bag, int mod);
 void FinishActor(FScanner &sc, FActorInfo *info, Baggage &bag);
 
@@ -156,20 +212,91 @@ enum EDefinitionType
 
 #if defined(_MSC_VER)
 #pragma data_seg(".areg$u")
+#pragma data_seg(".greg$u")
 #pragma data_seg()
 
 #define MSVC_ASEG __declspec(allocate(".areg$u"))
 #define GCC_ASEG
+#define MSVC_PSEG __declspec(allocate(".greg$u"))
+#define GCC_PSEG
 #else
 #define MSVC_ASEG
 #define GCC_ASEG __attribute__((section(AREG_SECTION)))
+#define MSVC_PSEG
+#define GCC_PSEG __attribute__((section(GREG_SECTION)))
 #endif
 
 
+union FPropParam
+{
+	int i;
+	float f;
+	const char *s;
+};
+
+typedef void (*PropHandler)(AActor *defaults, Baggage &bag, FPropParam *params);
+
+enum ECategory
+{
+	CAT_PROPERTY,	// Inheritable property
+	CAT_INFO		// non-inheritable info (spawn ID, Doomednum, game filter, conversation ID)
+};
+
+struct FPropertyInfo
+{
+	const char *name;
+	const char *params;
+	const PClass *cls;
+	PropHandler Handler;
+	int category;
+};
+
+FPropertyInfo *FindProperty(const char * string);
+int MatchString (const char *in, const char **strings);
+
+
+#define DEFINE_PROPERTY_BASE(name, paramlist, clas, cat) \
+	static void Handler_##name##_##paramlist##_##clas(A##clas *defaults, Baggage &bag, FPropParam *params); \
+	static FPropertyInfo Prop_##name##_##paramlist##_##clas = \
+		{ #name, #paramlist, RUNTIME_CLASS(A##clas), (PropHandler)Handler_##name##_##paramlist##_##clas, cat }; \
+	MSVC_PSEG FPropertyInfo *infoptr_##name##_##paramlist##_##clas GCC_PSEG = &Prop_##name##_##paramlist##_##clas; \
+	static void Handler_##name##_##paramlist##_##clas(A##clas *defaults, Baggage &bag, FPropParam *params)
+
+#define DEFINE_PREFIXED_PROPERTY_BASE(prefix, name, paramlist, clas, cat) \
+	static void Handler_##name##_##paramlist##_##clas(A##clas *defaults, Baggage &bag, FPropParam *params); \
+	static FPropertyInfo Prop_##name##_##paramlist##_##clas = \
+{ #prefix"."#name, #paramlist, RUNTIME_CLASS(A##clas), (PropHandler)Handler_##name##_##paramlist##_##clas, cat }; \
+	MSVC_PSEG FPropertyInfo *infoptr_##name##_##paramlist##_##clas GCC_PSEG = &Prop_##name##_##paramlist##_##clas; \
+	static void Handler_##name##_##paramlist##_##clas(A##clas *defaults, Baggage &bag, FPropParam *params)
+
+
+#define DEFINE_PROPERTY(name, paramlist, clas) DEFINE_PROPERTY_BASE(name, paramlist, clas, CAT_PROPERTY)
+#define DEFINE_INFO_PROPERTY(name, paramlist, clas) DEFINE_PROPERTY_BASE(name, paramlist, clas, CAT_INFO)
+
+#define DEFINE_CLASS_PROPERTY(name, paramlist, clas) DEFINE_PREFIXED_PROPERTY_BASE(clas, name, paramlist, clas, CAT_PROPERTY)
+#define DEFINE_CLASS_PROPERTY_PREFIX(prefix, name, paramlist, clas) DEFINE_PREFIXED_PROPERTY_BASE(prefix, name, paramlist, clas, CAT_PROPERTY)
+
+#define PROP_PARM_COUNT (params[0].i)
+
+#define PROP_STRING_PARM(var, no) \
+	const char *var = params[(no)+1].s;
+
+#define PROP_INT_PARM(var, no) \
+	int var = params[(no)+1].i;
+
+#define PROP_FLOAT_PARM(var, no) \
+	float var = params[(no)+1].f;
+
+#define PROP_FIXED_PARM(var, no) \
+	fixed_t var = fixed_t(params[(no)+1].f * FRACUNIT);
+
+#define PROP_COLOR_PARM(var, no) \
+	int var = params[(no)+1].i== 0? params[(no)+2].i : V_GetColor(NULL, params[(no)+2].s);
+
 struct StateCallData
 {
-	FState * State;
-	AActor * Item;
+	FState *State;
+	AActor *Item;
 	bool Result;
 };
 

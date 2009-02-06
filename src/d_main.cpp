@@ -2890,6 +2890,13 @@ void D_DoomMain (void)
 	Printf ("S_InitData: Load sound definitions.\n");
 	S_InitData ();
 
+
+	Printf ("Texman.Init: Init texture manager.\n");
+	TexMan.Init();
+
+	// Now that all textues have been loaded the crosshair can be initialized.
+	crosshair.Callback ();
+
 	// [CW] Parse any TEAMINFO lumps
 	Printf ("TEAMINFO_Init: Load team definitions.\n");
 	TEAMINFO_Init ();

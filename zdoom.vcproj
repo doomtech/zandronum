@@ -2961,6 +2961,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\p_states.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_switch.cpp"
 				>
 				<FileConfiguration
@@ -4211,6 +4215,10 @@
 				</File>
 				<File
 					RelativePath=".\src\thingdef\thingdef_main.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\thingdef\thingdef_parse.cpp"
 					>
 				</File>
 				<File

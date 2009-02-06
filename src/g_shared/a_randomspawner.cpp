@@ -26,7 +26,7 @@ class ARandomSpawner : public AActor
 
 	void PostBeginPlay()
 	{
-		AActor *newmobj;
+		AActor *newmobj = NULL;
 		FDropItem *di;   // di will be our drop item list iterator
 		FDropItem *drop; // while drop stays as the reference point.
 		int n=0;
@@ -40,7 +40,7 @@ class ARandomSpawner : public AActor
 			return;
 		}
 
-		drop = di = GetDropItems(RUNTIME_TYPE(this));
+		drop = di = GetDropItems();
 		if (di != NULL)
 		{
 			while (di != NULL)

@@ -199,7 +199,7 @@ static void SpawnFly(AActor *self, const PClass *spawntype, FSoundID sound)
 		FDropItem *drop; // while drop stays as the reference point.
 		int n=0;
 
-		drop = di = GetDropItems(self->master->GetClass());
+		drop = di = self->master->GetDropItems();
 		if (di != NULL)
 		{
 			while (di != NULL)

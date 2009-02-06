@@ -531,6 +531,27 @@ enum
 	AMETA_BloodType3,		// AxeBlood replacement type
 };
 
+struct FDropItem 
+{
+	FName Name;
+	int probability;
+	int amount;
+	FDropItem * Next;
+};
+
+class FDropItemPtrArray : public TArray<FDropItem *>
+{
+public:
+	~FDropItemPtrArray();
+};
+
+extern FDropItemPtrArray DropItemList;
+
+void FreeDropItemChain(FDropItem *chain);
+int StoreDropItemChain(FDropItem *chain);
+
+
+
 // Map Object definition.
 class AActor : public DThinker
 {
@@ -552,6 +573,7 @@ public:
 		return (AActor *)(RUNTIME_TYPE(this)->Defaults);
 	}
 
+	FDropItem *GetDropItems();
 
 	// Return true if the monster should use a missile attack, false for melee
 	bool SuggestMissileAttack (fixed_t dist);
@@ -922,13 +944,19 @@ public:
 	bool isFast();
 	void SetIdle();
 
-	FState *FindState (FName label) const;
-	FState *FindState (FName label, FName sublabel, bool exact = false) const;
+	FState *FindState (FName label) const
+	{
+		return GetClass()->ActorInfo->FindState(1, &label);
+	}
+
+	FState *FindState (FName label, FName sublabel, bool exact = false) const
+	{
+		FName names[]={label, sublabel};
+		return GetClass()->ActorInfo->FindState(2, &label, exact);
+	}
+
+
 	bool HasSpecialDeathStates () const;
-
-	static FState States[];
-
-	enum { S_NULL = 2, S_GENERICFREEZEDEATH = 3 };
 
 	// [GZDoom]
 	TArray<TObjPtr<AActor> >		dynamiclights;

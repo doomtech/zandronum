@@ -749,7 +749,7 @@ IMPLEMENT_CLASS(AWeaponGiver)
 
 bool AWeaponGiver::TryPickup(AActor *&toucher)
 {
-	FDropItem *di = GetDropItems(GetClass());
+	FDropItem *di = GetDropItems();
 
 	if (di != NULL)
 	{
@@ -901,8 +901,8 @@ bool FWeaponSlots::LocateWeapon (const PClass *type, int *const slot, int *const
 		{
 			if (Slots[i].Weapons[j] == type)
 			{
-				*slot = i;
-				*index = j;
+				if (slot != NULL) *slot = i;
+				if (index != NULL) *index = j;
 				return true;
 			}
 			else if (Slots[i].Weapons[j] == NULL)

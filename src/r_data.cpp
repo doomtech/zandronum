@@ -292,9 +292,7 @@ void R_InitData ()
 	}
 	*/
 
-	FTexture::InitGrayMap();
 	StartScreen->Progress();
-	TexMan.Init();
 
 	V_InitFonts();
 	StartScreen->Progress();

@@ -1774,7 +1774,7 @@ void V_InitCustomFonts()
 	return;
 
 wrong:
-	sc.ScriptError ("Invalid combination of properties in font '%s'", namebuffer);
+	sc.ScriptError ("Invalid combination of properties in font '%s'", namebuffer.GetChars());
 }
 
 //==========================================================================

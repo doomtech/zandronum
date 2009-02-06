@@ -114,8 +114,8 @@ PSymbolActionFunction *FindGlobalActionFunction(const char *name);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
-static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
-	TArray<FState> &states, FExtraInfo &extra, EDefinitionType def, FScanner &sc);
+static void ParseInsideDecoration (Baggage &bag, AActor *defaults,
+	FExtraInfo &extra, EDefinitionType def, FScanner &sc);
 static void ParseSpriteFrames (FActorInfo *info, TArray<FState> &states, FScanner &sc);
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -134,97 +134,6 @@ static const char *RenderStyles[] =
 	NULL
 };
 
-static const char *FlagNames1[] =
-{
-	"*",
-	"Solid",
-	"*",
-	"NoSector",
-
-	"NoBlockmap",
-	"*",
-	"*",
-	"*",
-
-	"SpawnCeiling",
-	"NoGravity",
-	"*",
-	"*",
-
-	"*",
-	"*",
-	"*",
-	"*",
-
-	"*",
-	"*",
-	"Shadow",
-	"NoBlood",
-
-	"*",
-	"*",
-	"*",
-	"CountItem",
-	NULL
-};
-
-static const char *FlagNames2[] =
-{
-	"LowGravity",
-	"WindThrust",
-	"*",
-	"*",
-
-	"*",
-	"FloorClip",
-	"SpawnFloat",
-	"NoTeleport",
-
-	"Ripper",
-	"Pushable",
-	"SlidesOnWalls",
-	"*",
-
-	"CanPass",
-	"CannotPush",
-	"ThruGhost",
-	"*",
-
-	"FireDamage",
-	"NoDamageThrust",
-	"Telestomp",
-	"FloatBob",
-
-	"*",
-	"ActivateImpact",
-	"CanPushWalls",
-	"ActivateMCross",
-
-	"ActivatePCross",
-	"*",
-	"*",
-	"*",
-
-	"*",
-	"*",
-	"*",
-	"Reflective",
-	NULL
-};
-
-static const char *FlagNames3[] =
-{
-	"FloorHugger",
-	"CeilingHugger",
-	"*",
-	"*",
-
-	"*",
-	"*",
-	"DontSplash",
-	NULL
-};
-
 // CODE --------------------------------------------------------------------
 
 //==========================================================================
@@ -237,11 +146,11 @@ static const char *FlagNames3[] =
 
 void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 {
-	TArray<FState> states;
+	Baggage bag;
 	FExtraInfo extra;
+	FActorInfo *info;
 	PClass *type;
 	PClass *parent;
-	FActorInfo *info;
 	FName typeName;
 
 	if (def == DEF_Pickup) parent = RUNTIME_CLASS(AFakeInventory);
@@ -250,76 +159,20 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 	sc.MustGetString();
 	typeName = FName(sc.String);
 	type = parent->CreateDerivedClass (typeName, parent->Size);
-	info = type->ActorInfo;
-	info->GameFilter = 0x80;
-	MakeStateDefines(parent->ActorInfo->StateList);
-
-	// There isn't a single WAD out there which uses game filters with old style
-	// decorations so this may as well be disabled. Without this option is is much
-	// easier to detect incorrect declarations 
-#if 0
-	sc.MustGetString ();
-	while (!sc.Compare ("{"))
-	{
-		if (sc.Compare ("Doom"))
-		{
-			info->GameFilter |= GAME_Doom;
-		}
-		else if (sc.Compare ("Heretic"))
-		{
-			info->GameFilter |= GAME_Heretic;
-		}
-		else if (sc.Compare ("Hexen"))
-		{
-			info->GameFilter |= GAME_Hexen;
-		}
-		else if (sc.Compare ("Raven"))
-		{
-			info->GameFilter |= GAME_Raven;
-		}
-		else if (sc.Compare ("Strife"))
-		{
-			info->GameFilter |= GAME_Strife;
-		}
-		else if (sc.Compare ("Any"))
-		{
-			info->GameFilter = GAME_Any;
-		}
-		else
-		{
-			if (def != DEF_Decoration || info->GameFilter != 0x80) 
-			{
-				sc.ScriptError ("Unknown game type %s in %s", sc.String, typeName.GetChars());
-			}
-			else 
-			{
-				// If this is a regular decoration (without preceding keyword) and no game 
-				// filters defined this is more likely a general syntax error so output a 
-				// more meaningful message.
-				sc.ScriptError ("Syntax error: Unknown identifier '%s'", typeName.GetChars());
-			}
-		}
-		sc.MustGetString ();
-	}
-	if (info->GameFilter == 0x80)
-	{
-		info->GameFilter = GAME_Any;
-	}
-	else
-	{
-		info->GameFilter &= ~0x80;
-	}
-#else
-	info->GameFilter = GAME_Any;
-	sc.MustGetStringName("{");
+	ResetBaggage(&bag, parent);
+	info = bag.Info = type->ActorInfo;
+#ifdef _DEBUG
+	bag.ClassName = type->TypeName;
 #endif
 
-	states.Clear ();
-	memset (&extra, 0, sizeof(extra));
-	ParseInsideDecoration (info, (AActor *)(type->Defaults), states, extra, def, sc);
+	info->GameFilter = GAME_Any;
+	sc.MustGetStringName("{");
 
-	info->NumOwnedStates = states.Size();
-	if (info->NumOwnedStates == 0)
+	memset (&extra, 0, sizeof(extra));
+	ParseInsideDecoration (bag, (AActor *)(type->Defaults), extra, def, sc);
+
+	bag.Info->NumOwnedStates = bag.StateArray.Size();
+	if (bag.Info->NumOwnedStates == 0)
 	{
 		sc.ScriptError ("%s does not define any animation frames", typeName.GetChars() );
 	}
@@ -339,13 +192,13 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 	if (extra.IceDeathEnd != 0)
 	{
 		// Make a copy of the final frozen frame for A_FreezeDeathChunks
-		FState icecopy = states[extra.IceDeathEnd-1];
-		states.Push (icecopy);
+		FState icecopy = bag.StateArray[extra.IceDeathEnd-1];
+		bag.StateArray.Push (icecopy);
 		info->NumOwnedStates += 1;
 	}
 
 	info->OwnedStates = new FState[info->NumOwnedStates];
-	memcpy (info->OwnedStates, &states[0], info->NumOwnedStates * sizeof(info->OwnedStates[0]));
+	memcpy (info->OwnedStates, &bag.StateArray[0], info->NumOwnedStates * sizeof(info->OwnedStates[0]));
 	if (info->NumOwnedStates == 1)
 	{
 		info->OwnedStates->Tics = -1;
@@ -406,7 +259,7 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 				if (extra.DeathHeight == 0) extra.DeathHeight = ((AActor*)(type->Defaults))->height;
 				info->Class->Meta.SetMetaFixed (AMETA_DeathHeight, extra.DeathHeight);
 			}
-			AddState("Death", &info->OwnedStates[extra.DeathStart]);
+			bag.statedef.AddState("Death", &info->OwnedStates[extra.DeathStart]);
 		}
 
 		// Burn states are the same as death states, except they can optionally terminate
@@ -444,7 +297,7 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 			if (extra.BurnHeight == 0) extra.BurnHeight = ((AActor*)(type->Defaults))->height;
 			type->Meta.SetMetaFixed (AMETA_BurnHeight, extra.BurnHeight);
 
-			AddState("Burn", &info->OwnedStates[extra.FireDeathStart]);
+			bag.statedef.AddState("Burn", &info->OwnedStates[extra.FireDeathStart]);
 		}
 
 		// Ice states are similar to burn and death, except their final frame enters
@@ -465,11 +318,11 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 			info->OwnedStates[i].Tics = 1;
 			info->OwnedStates[i].Misc1 = 0;
 			info->OwnedStates[i].SetAction(FindGlobalActionFunction("A_FreezeDeathChunks"));
-			AddState("Ice", &info->OwnedStates[extra.IceDeathStart]);
+			bag.statedef.AddState("Ice", &info->OwnedStates[extra.IceDeathStart]);
 		}
 		else if (extra.bGenericIceDeath)
 		{
-			AddState("Ice", RUNTIME_CLASS(AActor)->ActorInfo->FindState(NAME_GenericFreezeDeath));
+			bag.statedef.AddState("Ice", RUNTIME_CLASS(AActor)->ActorInfo->FindState(NAME_GenericFreezeDeath));
 		}
 	}
 	if (def == DEF_BreakableDecoration)
@@ -480,8 +333,8 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 	{
 		((AActor *)(type->Defaults))->flags |= MF_DROPOFF|MF_MISSILE;
 	}
-	AddState("Spawn", &info->OwnedStates[extra.SpawnStart]);
-	InstallStates (info, ((AActor *)(type->Defaults)));
+	bag.statedef.AddState("Spawn", &info->OwnedStates[extra.SpawnStart]);
+	bag.statedef.InstallStates (info, ((AActor *)(type->Defaults)));
 }
 
 //==========================================================================
@@ -492,8 +345,8 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def)
 //
 //==========================================================================
 
-static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
-	TArray<FState> &states, FExtraInfo &extra, EDefinitionType def, FScanner &sc)
+static void ParseInsideDecoration (Baggage &bag, AActor *defaults,
+	FExtraInfo &extra, EDefinitionType def, FScanner &sc)
 {
 	AFakeInventory *const inv = static_cast<AFakeInventory *>(defaults);
 	char sprite[5] = "TNT1";
@@ -508,7 +361,7 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 			{
 				sc.ScriptError ("DoomEdNum must be in the range [-1,32767]");
 			}
-			info->DoomEdNum = (SWORD)sc.Number;
+			bag.Info->DoomEdNum = (SWORD)sc.Number;
 		}
 		else if (sc.Compare ("SpawnNum"))
 		{
@@ -517,7 +370,7 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 			{
 				sc.ScriptError ("SpawnNum must be in the range [0,255]");
 			}
-			info->SpawnID = (BYTE)sc.Number;
+			bag.Info->SpawnID = (BYTE)sc.Number;
 		}
 		else if (sc.Compare ("Sprite") || (
 			(def == DEF_BreakableDecoration || def == DEF_Projectile) &&
@@ -542,31 +395,31 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 		else if (sc.Compare ("Frames"))
 		{
 			sc.MustGetString ();
-			extra.SpawnStart = states.Size();
-			ParseSpriteFrames (info, states, sc);
-			extra.SpawnEnd = states.Size();
+			extra.SpawnStart = bag.StateArray.Size();
+			ParseSpriteFrames (bag.Info, bag.StateArray, sc);
+			extra.SpawnEnd = bag.StateArray.Size();
 		}
 		else if ((def == DEF_BreakableDecoration || def == DEF_Projectile) &&
 			sc.Compare ("DeathFrames"))
 		{
 			sc.MustGetString ();
-			extra.DeathStart = states.Size();
-			ParseSpriteFrames (info, states, sc);
-			extra.DeathEnd = states.Size();
+			extra.DeathStart = bag.StateArray.Size();
+			ParseSpriteFrames (bag.Info, bag.StateArray, sc);
+			extra.DeathEnd = bag.StateArray.Size();
 		}
 		else if (def == DEF_BreakableDecoration && sc.Compare ("IceDeathFrames"))
 		{
 			sc.MustGetString ();
-			extra.IceDeathStart = states.Size();
-			ParseSpriteFrames (info, states, sc);
-			extra.IceDeathEnd = states.Size();
+			extra.IceDeathStart = bag.StateArray.Size();
+			ParseSpriteFrames (bag.Info, bag.StateArray, sc);
+			extra.IceDeathEnd = bag.StateArray.Size();
 		}
 		else if (def == DEF_BreakableDecoration && sc.Compare ("BurnDeathFrames"))
 		{
 			sc.MustGetString ();
-			extra.FireDeathStart = states.Size();
-			ParseSpriteFrames (info, states, sc);
-			extra.FireDeathEnd = states.Size();
+			extra.FireDeathStart = bag.StateArray.Size();
+			ParseSpriteFrames (bag.Info, bag.StateArray, sc);
+			extra.FireDeathEnd = bag.StateArray.Size();
 		}
 		else if (def == DEF_BreakableDecoration && sc.Compare ("GenericIceDeath"))
 		{
@@ -623,18 +476,18 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 		else if (def == DEF_Projectile && sc.Compare ("ExplosionRadius"))
 		{
 			sc.MustGetNumber ();
-			info->Class->Meta.SetMetaInt(ACMETA_ExplosionRadius, sc.Number);
+			bag.Info->Class->Meta.SetMetaInt(ACMETA_ExplosionRadius, sc.Number);
 			extra.bExplosive = true;
 		}
 		else if (def == DEF_Projectile && sc.Compare ("ExplosionDamage"))
 		{
 			sc.MustGetNumber ();
-			info->Class->Meta.SetMetaInt(ACMETA_ExplosionDamage, sc.Number);
+			bag.Info->Class->Meta.SetMetaInt(ACMETA_ExplosionDamage, sc.Number);
 			extra.bExplosive = true;
 		}
 		else if (def == DEF_Projectile && sc.Compare ("DoNotHurtShooter"))
 		{
-			info->Class->Meta.SetMetaInt(ACMETA_DontHurtShooter, true);
+			bag.Info->Class->Meta.SetMetaInt(ACMETA_DontHurtShooter, true);
 		}
 		else if (def == DEF_Projectile && sc.Compare ("Damage"))
 		{
@@ -719,7 +572,7 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 		else if (def == DEF_Pickup && sc.Compare ("PickupMessage"))
 		{
 			sc.MustGetString ();
-			info->Class->Meta.SetMetaString(AIMETA_PickupMessage, sc.String);
+			bag.Info->Class->Meta.SetMetaString(AIMETA_PickupMessage, sc.String);
 		}
 		// [BC]
 		else if (def == DEF_Pickup && sc.Compare ("PickupAnnouncerEntry"))
@@ -741,23 +594,7 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 		}
 		else if (sc.String[0] != '*')
 		{
-			int bit = sc.MatchString (FlagNames1);
-			if (bit != -1)
-			{
-				defaults->flags |= 1 << bit;
-			}
-			else if ((bit = sc.MatchString (FlagNames2)) != -1)
-			{
-				defaults->flags2 |= 1 << bit;
-			}
-			else if ((bit = sc.MatchString (FlagNames3)) != -1)
-			{
-				defaults->flags3 |= 1 << bit;
-			}
-			else
-			{
-				sc.ScriptError (NULL);
-			}
+			HandleActorFlag(sc, bag, sc.String, NULL, '+');
 		}
 		else
 		{
@@ -769,16 +606,16 @@ static void ParseInsideDecoration (FActorInfo *info, AActor *defaults,
 	unsigned int i;
 	int spr = GetSpriteIndex(sprite);
 
-	for (i = 0; i < states.Size(); ++i)
+	for (i = 0; i < bag.StateArray.Size(); ++i)
 	{
-		states[i].sprite = spr;
+		bag.StateArray[i].sprite = spr;
 	}
 	if (extra.DeathSprite[0] && extra.DeathEnd != 0)
 	{
 		int spr = GetSpriteIndex(extra.DeathSprite);
 		for (i = extra.DeathStart; i < extra.DeathEnd; ++i)
 		{
-			states[i].sprite = spr;
+			bag.StateArray[i].sprite = spr;
 		}
 	}
 }

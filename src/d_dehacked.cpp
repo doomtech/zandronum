@@ -686,6 +686,7 @@ static int PatchThing (int thingy)
 	bool hadHeight = false;
 	bool hadTranslucency = false;
 	bool hadStyle = false;
+	FStateDefinitions statedef;
 	bool patchedStates = false;
 	int oldflags;
 	const PClass *type;
@@ -817,36 +818,36 @@ static int PatchThing (int thingy)
 
 				if (type != NULL && !patchedStates)
 				{
-					MakeStateDefines(type->ActorInfo->StateList);
+					statedef.MakeStateDefines(type);
 					patchedStates = true;
 				}
 
 				if (!strnicmp (Line1, "Initial", 7))
-					AddState("Spawn", state ? state : GetDefault<AActor>()->SpawnState);
+					statedef.AddState("Spawn", state ? state : GetDefault<AActor>()->SpawnState);
 				else if (!strnicmp (Line1, "First moving", 12))
-					AddState("See", state);
+					statedef.AddState("See", state);
 				else if (!strnicmp (Line1, "Injury", 6))
-					AddState("Pain", state);
+					statedef.AddState("Pain", state);
 				else if (!strnicmp (Line1, "Close attack", 12))
 				{
 					if (thingy != 1)	// Not for players!
 					{
-						AddState("Melee", state);
+						statedef.AddState("Melee", state);
 					}
 				}
 				else if (!strnicmp (Line1, "Far attack", 10))
 				{
 					if (thingy != 1)	// Not for players!
 					{
-						AddState("Missile", state);
+						statedef.AddState("Missile", state);
 					}
 				}
 				else if (!strnicmp (Line1, "Death", 5))
-					AddState("Death", state);
+					statedef.AddState("Death", state);
 				else if (!strnicmp (Line1, "Exploding", 9))
-					AddState("XDeath", state);
+					statedef.AddState("XDeath", state);
 				else if (!strnicmp (Line1, "Respawn", 7))
-					AddState("Raise", state);
+					statedef.AddState("Raise", state);
 			}
 			else if (stricmp (Line1 + linelen - 6, " sound") == 0)
 			{
@@ -1052,7 +1053,7 @@ static int PatchThing (int thingy)
 		}
 		if (patchedStates)
 		{
-			InstallStates(type->ActorInfo, info);
+			statedef.InstallStates(type->ActorInfo, info);
 		}
 	}
 
@@ -1363,6 +1364,7 @@ static int PatchWeapon (int weapNum)
 	AWeapon *info;
 	BYTE dummy[sizeof(AWeapon)];
 	bool patchedStates = false;
+	FStateDefinitions statedef;
 
 	if (weapNum >= 0 && weapNum < 9)
 	{
@@ -1389,20 +1391,20 @@ static int PatchWeapon (int weapNum)
 
 				if (type != NULL && !patchedStates)
 				{
-					MakeStateDefines(type->ActorInfo->StateList);
+					statedef.MakeStateDefines(type);
 					patchedStates = true;
 				}
 
 				if (strnicmp (Line1, "Deselect", 8) == 0)
-					AddState("Select", state);
+					statedef.AddState("Select", state);
 				else if (strnicmp (Line1, "Select", 6) == 0)
-					AddState("Deselect", state);
+					statedef.AddState("Deselect", state);
 				else if (strnicmp (Line1, "Bobbing", 7) == 0)
-					AddState("Ready", state);
+					statedef.AddState("Ready", state);
 				else if (strnicmp (Line1, "Shooting", 8) == 0)
-					AddState("Fire", state);
+					statedef.AddState("Fire", state);
 				else if (strnicmp (Line1, "Firing", 6) == 0)
-					AddState("Flash", state);
+					statedef.AddState("Flash", state);
 			}
 			else if (stricmp (Line1, "Ammo type") == 0)
 			{
@@ -1468,7 +1470,7 @@ static int PatchWeapon (int weapNum)
 
 	if (patchedStates)
 	{
-		InstallStates(type->ActorInfo, info);
+		statedef.InstallStates(type->ActorInfo, info);
 	}
 
 	return result;
@@ -1713,17 +1715,21 @@ static int PatchMisc (int dummy)
 	{
 		player->health = deh.StartHealth;
 
-		FDropItem * di = GetDropItems(PClass::FindClass(NAME_DoomPlayer));
-		while (di != NULL)
+		// Hm... I'm not sure that this is the right way to change this info...
+		unsigned int index = PClass::FindClass(NAME_DoomPlayer)->Meta.GetMetaInt (ACMETA_DropItems) - 1;
+		if (index >= 0 && index < DropItemList.Size())
 		{
-			if (di->Name == NAME_Clip)
+			FDropItem * di = DropItemList[index];
+			while (di != NULL)
 			{
-				di->amount = deh.StartBullets;
+				if (di->Name == NAME_Clip)
+				{
+					di->amount = deh.StartBullets;
+				}
+				di = di->Next;
 			}
-			di = di->Next;
 		}
 	}
-
 
 	// 0xDD means "enable infighting"
 	if (infighting == 0xDD)
@@ -2211,14 +2217,6 @@ void DoDehPatch (const char *patchfile, bool autoloading, int lump)
 	PatchFile[filelen] = 0;
 
 	dversion = pversion = -1;
-/*
-	if (gameinfo.gametype != GAME_Doom)
-	{
-		Printf ("DeHackEd/BEX patches are only supported for DOOM mode\n");
-		delete[] PatchFile;
-		return;
-	}
-*/
 	cont = 0;
 	if (0 == strncmp (PatchFile, "Patch File for DeHackEd v", 25))
 	{
@@ -2601,14 +2599,16 @@ void FinishDehPatch ()
 		AActor *defaults2 = GetDefaultByType (subclass);
 		memcpy (defaults2, defaults1, sizeof(AActor));
 
-		// Make a copy the state labels 
-		MakeStateDefines(type->ActorInfo->StateList);
+		// Make a copy the replaced class's state labels 
+		FStateDefinitions statedef;
+		statedef.MakeStateDefines(type);
+
 		if (!type->IsDescendantOf(RUNTIME_CLASS(AInventory)))
 		{
 			// If this is a hacked non-inventory item we must also copy AInventory's special states
-			AddStateDefines(RUNTIME_CLASS(AInventory)->ActorInfo->StateList);
+			statedef.AddStateDefines(RUNTIME_CLASS(AInventory)->ActorInfo->StateList);
 		}
-		InstallStates(subclass->ActorInfo, defaults2);
+		statedef.InstallStates(subclass->ActorInfo, defaults2);
 
 		// Use the DECORATE replacement feature to redirect all spawns
 		// of the original class to the new one.

@@ -1341,9 +1341,6 @@ void P_LoadSectors (MapData * map)
 		// killough 8/28/98: initialize all sectors to normal friction
 		ss->friction = ORIG_FRICTION;
 		ss->movefactor = ORIG_FRICTION_FACTOR;
-
-		// This is so that R_FakeFlat copies can still retrieve the sector's index.
-		ss->sectornum = i;
 	}
 	delete[] msp;
 }

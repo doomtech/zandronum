@@ -4597,7 +4597,6 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	LONG			lOffset;
 	LONG			lPosition;
 	FState			*pNewState;
-	TArray<FName>	StateList;
 
 	// Read in the player.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -4619,7 +4618,7 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Build the state name list.
-	MakeStateNameList( pszState, &StateList );
+	TArray<FName> &StateList = MakeStateNameList( pszState );
 
 	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
@@ -6166,7 +6165,6 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 	LONG			lOffset;
 	AActor			*pActor;
 	FState			*pNewState = NULL;
-	TArray<FName>	StateList;
 
 	// Read in the network ID for the object to have its state changed.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -6242,7 +6240,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 	}
 
 	// Build the state name list.
-	MakeStateNameList( pszState, &StateList );
+	TArray<FName> &StateList = MakeStateNameList( pszState );
 
 	pNewState = RUNTIME_TYPE( pActor )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
