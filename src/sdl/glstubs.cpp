@@ -9,31 +9,6 @@ class ADynamicLight : public AActor
 	DECLARE_CLASS (ADynamicLight, AActor)
 };
 
-class APointLight : public ADynamicLight
-{
-	DECLARE_CLASS (APointLight, ADynamicLight)
-};
-
-class APointLightPulse : public APointLight
-{
-   DECLARE_CLASS (APointLightPulse, APointLight)
-};
-
-class APointLightFlicker : public APointLight
-{
-   DECLARE_CLASS (APointLightFlicker, APointLight)
-};
-
-class APointLightFlickerRandom : public APointLight
-{
-   DECLARE_CLASS (APointLightFlickerRandom, APointLight)
-};
-
-class ASectorPointLight : public APointLight
-{
-   DECLARE_CLASS (ASectorPointLight, APointLight)
-};
-
 class AVavoomLight : public ADynamicLight
 {
    DECLARE_CLASS (AVavoomLight, ADynamicLight)
@@ -50,14 +25,14 @@ class AVavoomLightColor : public AVavoomLight
 };
 
 IMPLEMENT_CLASS (ADynamicLight)
-IMPLEMENT_CLASS (APointLight)
-IMPLEMENT_CLASS (APointLightPulse)
-IMPLEMENT_CLASS (APointLightFlicker)
-IMPLEMENT_CLASS (ASectorPointLight)
-IMPLEMENT_CLASS (APointLightFlickerRandom)
 IMPLEMENT_CLASS (AVavoomLight)
 IMPLEMENT_CLASS (AVavoomLightWhite)
 IMPLEMENT_CLASS (AVavoomLightColor)
+
+DEFINE_CLASS_PROPERTY(type, S, DynamicLight)
+{
+	PROP_STRING_PARM(str, 0);
+}
 
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
@@ -90,11 +65,6 @@ const WorldTextureInfo *FGLTexture::Bind(int, int, int)
 
 void FGLTexture::Clean(bool)
 {
-}
-
-bool FGLTexture::Update()
-{
-	return false;
 }
 
 const PatchTextureInfo *FGLTexture::BindPatch(int, int, int)
@@ -176,6 +146,14 @@ void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 }
 
 void FTexture::PrecacheGL()
+{
+}
+
+FTexture::MiscGLInfo::MiscGLInfo() throw ()
+{
+}
+
+FTexture::MiscGLInfo::~MiscGLInfo()
 {
 }
 
