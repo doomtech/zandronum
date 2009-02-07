@@ -1,5 +1,6 @@
 
 
+#include "gl/gl_include.h"
 #include "m_menu.h"
 #include "v_video.h"
 #include "gl/gl_intern.h"
@@ -12,6 +13,9 @@ extern value_t OnOff[2];
 extern bool gl_disabled;
 
 void StartGLLightMenu (void);
+void StartGLTextureMenu (void);
+void StartGLPrefMenu (void);
+void StartGLShaderMenu (void);
 void StartDisableGL();
 void ReturnToMainMenu();
 
@@ -32,9 +36,6 @@ EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
 EXTERN_CVAR(Bool, gl_fakecontrast)
 EXTERN_CVAR (Bool, gl_lights_additive)
-EXTERN_CVAR(Bool, gl_warp_shader)
-EXTERN_CVAR(Bool, gl_colormap_shader)
-EXTERN_CVAR(Bool, gl_brightmap_shader)
 EXTERN_CVAR (Float, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
 EXTERN_CVAR(Int, gl_particles_style)
@@ -85,11 +86,20 @@ static value_t Colormaps[] =
 	{ 1.0, "Blend" },
 };
 
-static value_t LightingModes[] =
+static value_t LightingModes2[] =
 {
 	{ 0.0, "Standard" },
 	{ 1.0, "Bright" },
 	{ 3.0, "Doom" },
+	{ 4.0, "Legacy" },
+};
+
+static value_t LightingModes[] =
+{
+	{ 0.0, "Standard" },
+	{ 1.0, "Bright" },
+	{ 2.0, "Doom" },
+	{ 3.0, "Dark" },
 	{ 4.0, "Legacy" },
 };
 
@@ -125,6 +135,13 @@ static value_t Particles[] =
 	{ 2.0, "Smooth" },
 };
 
+static value_t FogMode[] =
+{
+	{ 0.0, "Off" },
+	{ 1.0, "Standard" },
+	{ 2.0, "Radial" },
+};
+
 static value_t HqResizeModes[] =
 {
    { 0.0, "Off" },
@@ -139,29 +156,28 @@ static value_t HqResizeTargets[] =
    { 1.0, "Sprites/fonts" },
 };
 
-menuitem_t OpenGLItems[] = {
-	{ more,     "Dynamic Light Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLLightMenu} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
+static menuitem_t OpenGLItems[] = {
+	{ more,     "Dynamic Light Options",	{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLLightMenu} },
+	{ more,     "Texture Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLTextureMenu} },
+	{ more,     "Shader Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLShaderMenu} },
+	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
-//	{ discrete, "Refresh rate",				{&vid_refreshrate},			{7.0}, {0.0}, {0.0}, {Hz} },
-//	{ more,		"Apply Refresh rate setting",{NULL+},						{7.0}, {0.0}, {0.0}, {(value_t *)ApplyRefresh} },
 	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
-	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Enhanced night vision mode",{&gl_enhanced_lightamp},		{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Sector light mode",		{&gl_lightmode},				{4.0}, {0.0}, {0.0}, {LightingModes} },
-	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{3.0}, {0.0}, {0.0}, {SpriteclipModes} },
-	{ discrete, "Smooth sprite edges",		{&gl_sprite_blend},				{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
-	{ discrete, "Enable brightness maps",	{&gl_brightmap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Shaders for texture warp",	{&gl_warp_shader},				{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Shaders for colormaps",	{&gl_colormap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Depth Fog",				{&gl_depthfog},					{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Fake contrast",			{&gl_fakecontrast},				{2.0}, {0.0}, {0.0}, {OnOff} },
-	//{ discrete, "Boom colormap handling",	{&gl_blendcolormaps},			{2.0}, {0.0}, {0.0}, {Colormaps} },
-	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
+};
+
+static menuitem_t OpenGLItems2[] = {
+	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
+	{ more,     "Dynamic Light Options",	{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLLightMenu} },
+	{ more,     "Texture Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLTextureMenu} },
+	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
+	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
+};
+
+
+menuitem_t GLTextureItems[] = {
 	{ discrete, "Textures enabled",			{&gl_texture},					{2.0}, {0.0}, {0.0}, {YesNo} },
 	{ discrete, "Texture Filter mode",		{&gl_texture_filter},			{5.0}, {0.0}, {0.0}, {FilterModes} },
 	{ discrete, "Anisotropic filter",		{&gl_texture_filter_anisotropic},{5.0},{0.0}, {0.0}, {Anisotropy} },
@@ -181,6 +197,27 @@ menuitem_t GLLightItems[] = {
 	{ discrete, "Force additive lighting",	{&gl_lights_additive},	{2.0}, {0.0}, {0.0}, {YesNo} },
 	{ slider,	"Light intensity",			{&gl_lights_intensity}, {0.0}, {1.0}, {0.1f}, {NULL} },
 	{ slider,	"Light size",				{&gl_lights_size},		{0.0}, {2.0}, {0.1f}, {NULL} },
+};
+
+menuitem_t GLPrefItems[] = {
+	{ discrete, "Sector light mode",		{&gl_lightmode},				{4.0}, {0.0}, {0.0}, {LightingModes} },
+	{ discrete, "Fog mode",					{&gl_fogmode},					{3.0}, {0.0}, {0.0}, {FogMode} },
+	{ discrete, "Fake contrast",			{&gl_fakecontrast},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Enhanced night vision mode",{&gl_enhanced_nightvision},		{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{3.0}, {0.0}, {0.0}, {SpriteclipModes} },
+	{ discrete, "Smooth sprite edges",		{&gl_sprite_blend},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
+	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
+	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
+};
+
+menuitem_t GLShaderItems[] = {
+	{ discrete, "Enable brightness maps",	{&gl_brightmap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Shaders for texture warp",	{&gl_warp_shader},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Shaders for fog",			{&gl_fog_shader},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Shaders for colormaps",	{&gl_colormap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Shaders for glowing textures",	{&gl_glow_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
 };
 
 menuitem_t OpenGLDisabled[] = {
@@ -216,6 +253,33 @@ menu_t GLLightMenu = {
    0,
 };
 
+menu_t GLTextureMenu = {
+   "TEXTURE OPTIONS",
+   0,
+   sizeof(GLTextureItems)/sizeof(GLTextureItems[0]),
+   0,
+   GLTextureItems,
+   0,
+};
+
+menu_t GLPrefMenu = {
+   "PREFERENCES",
+   0,
+   sizeof(GLPrefItems)/sizeof(GLPrefItems[0]),
+   0,
+   GLPrefItems,
+   0,
+};
+
+menu_t GLShaderMenu = {
+   "SHADER OPTIONS",
+   0,
+   sizeof(GLShaderItems)/sizeof(GLShaderItems[0]),
+   0,
+   GLShaderItems,
+   0,
+};
+
 void StartDisableGL()
 {
 	M_SwitchMenu(&OpenGLMessage);
@@ -243,6 +307,54 @@ void StartGLMenu (void)
 void StartGLLightMenu (void)
 {
 	M_SwitchMenu(&GLLightMenu);
+}
+
+void StartGLTextureMenu (void)
+{
+	M_SwitchMenu(&GLTextureMenu);
+}
+
+void StartGLPrefMenu (void)
+{
+	M_SwitchMenu(&GLPrefMenu);
+}
+
+void StartGLShaderMenu (void)
+{
+	M_SwitchMenu(&GLShaderMenu);
+}
+
+void gl_SetupMenu()
+{
+	// Customize the GL menu depending on shader availability
+	if (!(gl.flags & RFL_GLSL))
+	{
+		menuitem_t *lightmodeitem = &GLPrefItems[0];
+		menuitem_t *fogmodeitem = &GLPrefItems[1];
+
+		lightmodeitem->e.values = LightingModes2;
+		lightmodeitem->b.numvalues = 4;
+
+		fogmodeitem->b.numvalues = 2;
+
+		OpenGLMenu.numitems = sizeof(OpenGLItems2)/sizeof(OpenGLItems2[0]);
+		OpenGLMenu.items = OpenGLItems2;
+
+		// disable features that don't work without shaders.
+		if (gl_lightmode == 2) gl_lightmode = 3;
+		if (gl_fogmode == 2) gl_fogmode = 1;
+	}
+	else
+	{
+		menuitem_t *lightmodeitem = &GLPrefItems[0];
+		menuitem_t *fogmodeitem = &GLPrefItems[1];
+
+		lightmodeitem->e.values = LightingModes;
+		lightmodeitem->b.numvalues = 5;
+
+		OpenGLMenu.numitems = sizeof(OpenGLItems)/sizeof(OpenGLItems[0]);
+		OpenGLMenu.items = OpenGLItems;
+	}
 }
 
 CUSTOM_CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)

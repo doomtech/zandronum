@@ -358,7 +358,7 @@ void ADynamicLight::UpdateLocation()
 		{
 			intensity = m_currentIntensity;
 		}
-		radius = FROM_MAP(intensity * 2.0f * gl_lights_size);
+		radius = TO_MAP(intensity * 2.0f * gl_lights_size);
 
 		if (x!=oldx || y!=oldy || radius!=oldradius) 
 		{
@@ -473,19 +473,19 @@ float ADynamicLight::DistToSeg(seg_t *seg)
 {
    float u, px, py;
 
-   float seg_dx = TO_MAP(seg->v2->x - seg->v1->x);
-   float seg_dy = TO_MAP(seg->v2->y - seg->v1->y);
+   float seg_dx = TO_GL(seg->v2->x - seg->v1->x);
+   float seg_dy = TO_GL(seg->v2->y - seg->v1->y);
    float seg_length_sq = seg_dx * seg_dx + seg_dy * seg_dy;
 
-   u = (  TO_MAP(x - seg->v1->x) * seg_dx + TO_MAP(y - seg->v1->y) * seg_dy) / seg_length_sq;
+   u = (  TO_GL(x - seg->v1->x) * seg_dx + TO_GL(y - seg->v1->y) * seg_dy) / seg_length_sq;
    if (u < 0.f) u = 0.f; // clamp the test point to the line segment
    if (u > 1.f) u = 1.f;
 
-   px = TO_MAP(seg->v1->x) + (u * seg_dx);
-   py = TO_MAP(seg->v1->y) + (u * seg_dy);
+   px = TO_GL(seg->v1->x) + (u * seg_dx);
+   py = TO_GL(seg->v1->y) + (u * seg_dy);
 
-   px -= TO_MAP(x);
-   py -= TO_MAP(y);
+   px -= TO_GL(x);
+   py -= TO_GL(y);
 
    return (px*px) + (py*py);
 }
@@ -565,7 +565,7 @@ void ADynamicLight::LinkLight()
 		subsector_t * subSec = R_PointInSubsector(x, y);
 		if (subSec)
 		{
-			float fradius = TO_MAP(radius);
+			float fradius = TO_GL(radius);
 			CollectWithinRadius(subSec, fradius*fradius);
 		}
 	}
@@ -631,8 +631,8 @@ CCMD(listlights)
 		sectors=0;
 		Printf("%s at (%f, %f, %f), color = 0x%02x%02x%02x, radius = %f ",
 			dl->target? dl->target->GetClass()->TypeName.GetChars() : dl->GetClass()->TypeName.GetChars(),
-			TO_MAP(dl->x), TO_MAP(dl->y), TO_MAP(dl->z), dl->args[LIGHT_RED], 
-			dl->args[LIGHT_GREEN], dl->args[LIGHT_BLUE], TO_MAP(dl->radius));
+			TO_GL(dl->x), TO_GL(dl->y), TO_GL(dl->z), dl->args[LIGHT_RED], 
+			dl->args[LIGHT_GREEN], dl->args[LIGHT_BLUE], TO_GL(dl->radius));
 		i++;
 
 		if (dl->target)

@@ -58,10 +58,6 @@
 #include "gl/gl_shader.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_models.h"
-#include "gl/glsl_state.h"
-
-//#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
-//#define RAD2DEG( a ) ( a / M_PI ) * 180.0F
 
 //==========================================================================
 //
@@ -111,7 +107,6 @@ float yaw      = 0.0f;
 float pitch    = 0.0f;
 
 DWORD			gl_fixedcolormap;
-DWORD			gl_boomcolormap;
 float			currentFoV;
 AActor *		viewactor;
 area_t			in_area;
@@ -136,14 +131,6 @@ angle_t gl_FrustumAngle()
 	angle_t a1 = ANGLE_1*toint(floatangle);
 	if (a1>=ANGLE_180) return 0xffffffff;
 	return a1;
-
-	// This is ZDoomGL's code which works better for a larger pitch
-	//float vp = clamp<float>(tilt + (currentFoV / 2), 0.f, 90.f);
-	//angle_t a2 = (angle_t)(2.f * vp * ANGLE_1);
-
-	// return the smaller one of the 2 values!
-	//return min(a1,a2);
-	
 }
 
 
@@ -278,9 +265,9 @@ void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle
 	viewvecX= cos(DEG2RAD(fviewangle));
 
 	// Player coordinates
-	xCamera=TO_MAP(viewx);
-	yCamera=TO_MAP(viewy);
-	zCamera=TO_MAP(viewz);
+	xCamera=TO_GL(viewx);
+	yCamera=TO_GL(viewy);
+	zCamera=TO_GL(viewz);
 	
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.LoadIdentity();
@@ -293,8 +280,6 @@ void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle
 	gl.Rotatef(yaw,   0.0f, mult, 0.0f);
 	gl.Translatef( xCamera*mult, -zCamera*planemult, -yCamera);
 	gl.Scalef(-mult, planemult, 1);
-
-	// Clear the flat render info 
 }
 
 //-----------------------------------------------------------------------------
@@ -377,7 +362,7 @@ static void RenderScene(int recursion)
 
 	if (!gl_no_skyclear) GLPortal::RenderFirstSkyPortal(recursion);
 
-	gl_SetCamera(TO_MAP(viewx), TO_MAP(viewy), TO_MAP(viewz));
+	gl_SetCamera(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 
 	gl_EnableFog(true);
 	gl.BlendFunc(GL_ONE,GL_ZERO);
@@ -392,7 +377,7 @@ static void RenderScene(int recursion)
 
 	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
 
-	if (!gl_texture) gl_EnableTexture(false);
+	gl_EnableTexture(gl_texture);
 	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
 	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
@@ -504,6 +489,8 @@ static void RenderScene(int recursion)
 		gl_drawinfo->drawlists[i].Draw(GLPASS_DECALS);
 	}
 
+	gl_SetTextureMode(TM_MODULATE);
+
 	gl.DepthMask(true);
 
 
@@ -514,71 +501,6 @@ static void RenderScene(int recursion)
 	// flood all the gaps with the back sector's flat texture
 	// This will always be drawn like GLDL_PLAIN or GLDL_FOG, depending on the fog settings
 	gl_drawinfo->DrawUnhandledMissingTextures();
-
-	gl.PolygonOffset(0.0f, 0.0f);
-	gl.Disable(GL_POLYGON_OFFSET_FILL);
-
-	RenderAll.Unclock();
-}
-
-//-----------------------------------------------------------------------------
-//
-// RenderSceneGLSL
-//
-// Draws the current draw lists for the GLSL renderer
-//
-//-----------------------------------------------------------------------------
-
-static void RenderSceneGLSL(int recursion)
-{
-	RenderAll.Clock();
-
-	if (!gl_no_skyclear) GLPortal::RenderFirstSkyPortal(recursion);
-
-	gl_SetCamera(TO_MAP(viewx), TO_MAP(viewy), TO_MAP(viewz));
-
-	gl.DepthFunc(GL_LESS);
-	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
-
-
-
-	// Part 1: solid geometry. This is set up so that there are no transparent parts
-
-	glsl->SetBlend(GL_ONE,GL_ZERO);
-	glsl->SetAlphaThreshold(0);
-
-	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
-	gl_drawinfo->drawlists[GLDL_PLAIN].DrawGLSL(/*gl_texture?*/ GLPASS_PLAIN/* : GLPASS_BASE*/);
-
-
-	glsl->SetAlphaThreshold(gl_mask_threshold);
-
-	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_MASKED].DrawGLSL(/*gl_texture?*/ GLPASS_PLAIN /*: GLPASS_BASE_MASKED*/);
-
-	// Draw decals (not a real pass)
-	gl.DepthFunc(GL_LEQUAL);
-	gl.Enable(GL_POLYGON_OFFSET_FILL);
-	gl.PolygonOffset(-1.0f, -128.0f);
-	gl.DepthMask(false);
-
-	for(int i=0; i<GLDL_TRANSLUCENT; i++)
-	{
-		gl_drawinfo->drawlists[GLDL_PLAIN].Draw(GLPASS_DECALS);
-	}
-
-	gl.DepthMask(true);
-
-	// Push bleeding floor/ceiling textures back a little in the z-buffer
-	// so they don't interfere with overlapping mid textures.
-	gl.PolygonOffset(1.0f, 128.0f);
-
-	// ***LATER!***
-	// flood all the gaps with the back sector's flat texture
-	// This will always be drawn like GLDL_PLAIN
-	glsl->SetBlend(GL_ONE,GL_ZERO);
-	glsl->SetAlphaThreshold(0);
-	//gl_drawinfo->DrawUnhandledMissingTextures();
 
 	gl.PolygonOffset(0.0f, 0.0f);
 	gl.Disable(GL_POLYGON_OFFSET_FILL);
@@ -599,7 +521,7 @@ static void RenderTranslucent()
 	RenderAll.Clock();
 
 	gl.DepthMask(false);
-	gl_SetCamera(TO_MAP(viewx), TO_MAP(viewy), TO_MAP(viewz));
+	gl_SetCamera(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 
 	// final pass: translucent stuff
 	gl.AlphaFunc(GL_GEQUAL,0.5f);
@@ -619,35 +541,6 @@ static void RenderTranslucent()
 
 //-----------------------------------------------------------------------------
 //
-// RenderTranslucentGLSL
-//
-// Draws the current draw lists for the GLSL renderer
-//
-//-----------------------------------------------------------------------------
-
-static void RenderTranslucentGLSL()
-{
-	RenderAll.Clock();
-
-	gl.DepthMask(false);
-	gl_SetCamera(TO_MAP(viewx), TO_MAP(viewy), TO_MAP(viewz));
-
-	// final pass: translucent stuff
-	glsl->SetBlend(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glsl->SetAlphaThreshold(0.5f);
-
-	gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].DrawGLSL(GLPASS_TRANSLUCENT);
-	gl_drawinfo->drawlists[GLDL_TRANSLUCENT].DrawSortedGLSL();
-
-	gl.DepthMask(true);
-
-	glsl->SetAlphaThreshold(0.5f);
-	RenderAll.Unclock();
-}
-
-
-//-----------------------------------------------------------------------------
-//
 // gl_drawscene - this function renders the scene from the current
 // viewpoint, including mirrors and skyboxes and other portals
 // It is assumed that the GLPortal::EndFrame returns with the 
@@ -661,14 +554,7 @@ void gl_DrawScene()
 
 	ProcessScene();
 
-	if (!gl_glsl_renderer)
-	{
-		RenderScene(recursion);
-	}
-	else
-	{
-		RenderSceneGLSL(recursion);
-	}
+	RenderScene(recursion);
 
 	// Handle all portals after rendering the opaque objects but before
 	// doing all translucent stuff
@@ -676,14 +562,7 @@ void gl_DrawScene()
 	GLPortal::EndFrame();
 	recursion--;
 
-	if (!gl_glsl_renderer)
-	{
-		RenderTranslucent();
-	}
-	else
-	{
-		RenderTranslucentGLSL();
-	}
+	RenderTranslucent();
 }
 
 
@@ -795,6 +674,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 			gl_EnableTexture(false);
 			gl.BlendFunc(GL_DST_COLOR,GL_ZERO);
 			gl.Color4f(extra_red, extra_green, extra_blue, 1.0f);
+			gl_DisableShader();
 			gl.Begin(GL_TRIANGLE_STRIP);
 			gl.Vertex2f( 0.0f, 0.0f);
 			gl.Vertex2f( 0.0f, (float)SCREENHEIGHT);
@@ -873,6 +753,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 		gl.Disable(GL_ALPHA_TEST);
 		gl_EnableTexture(false);
 		gl.Color4fv(blend);
+		gl_DisableShader();
 		gl.Begin(GL_TRIANGLE_STRIP);
 		gl.Vertex2f( 0.0f, 0.0f);
 		gl.Vertex2f( 0.0f, (float)SCREENHEIGHT);
@@ -955,25 +836,6 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 	gl_sky1pos = (float)fmod(gl_frameMS * level.skyspeed1, 1024.f) * 90.f/256.f;
 	gl_sky2pos = (float)fmod(gl_frameMS * level.skyspeed2, 1024.f) * 90.f/256.f;
 
-	// Handle Boom colormaps
-	gl_boomcolormap=CM_DEFAULT;
-	/* doesn't work as intended
-	if (mainview && !gl_blendcolormaps)
-	{
-		if (!viewsector->e->ffloors.Size() && gl_fixedcolormap==CM_DEFAULT && 
-			viewsector->heightsec && !(viewsector->MoreFlags&SECF_IGNOREHEIGHTSEC))
-		{
-			PalEntry blendv;
-			
-			if (in_area == area_above)  blendv=viewsector->heightsec->topmap;
-			if (in_area == area_below)  blendv=viewsector->heightsec->bottommap;
-			else						blendv=viewsector->heightsec->midmap;
-
-			// Is it a colormap lump?
-			if (blendv.a==0 && blendv<numfakecmaps) gl_boomcolormap=blendv+CM_FIRSTCOLORMAP;
-		}
-	}
-	*/
 	retval = viewsector;
 
 
@@ -1031,7 +893,7 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 	gl.Flush();
 	gl_RenderView(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false);
 	gl.Flush();
-	gltex->Bind(CM_DEFAULT);
+	gltex->Bind(CM_DEFAULT, 0, 0);
 	gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTexture::TexFilter[gl_texture_filter].magfilter);
 }

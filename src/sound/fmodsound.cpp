@@ -1614,7 +1614,7 @@ FISoundChannel *FMODSoundRenderer::CommonChannelSetup(FMOD::Channel *chan, FISou
 		chan->getDelay(FMOD_DELAYTYPE_DSPCLOCK_START, &schan->StartTime.Hi, &schan->StartTime.Lo);
 	}
 	chan->setUserData(schan);
-	chan->setCallback(FMOD_CHANNEL_CALLBACKTYPE_END, ChannelEndCallback, 0);
+	chan->setCallback(ChannelCallback);
 	GRolloff = NULL;
 	return schan;
 }
@@ -2014,17 +2014,21 @@ unsigned int FMODSoundRenderer::GetSampleLength(SoundHandle sfx)
 
 //==========================================================================
 //
-// FMODSoundRenderer :: ChannelEndCallback							static
+// FMODSoundRenderer :: ChannelCallback								static
 //
-// Called when the channel finishes playing.
+// Handles when a channel finishes playing. This is only called when
+// System::update is called and is therefore asynchronous with the actual
+// end of the channel.
 //
 //==========================================================================
 
-FMOD_RESULT F_CALLBACK FMODSoundRenderer::ChannelEndCallback
-	(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type,
-	 int cmd, unsigned int data1, unsigned int data2)
+FMOD_RESULT F_CALLBACK FMODSoundRenderer::ChannelCallback
+	(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *data1, void *data2)
 {
-	assert(type == FMOD_CHANNEL_CALLBACKTYPE_END);
+	if (type != FMOD_CHANNEL_CALLBACKTYPE_END)
+	{
+		return FMOD_OK;
+	}
 	FMOD::Channel *chan = (FMOD::Channel *)channel;
 	FISoundChannel *schan;
 

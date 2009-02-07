@@ -8,7 +8,6 @@
 #include "textures/textures.h"
 
 struct vertex_t;
-extern DWORD gl_boomcolormap;
 extern DWORD gl_fixedcolormap;
 class FGLTexture;
 
@@ -81,7 +80,7 @@ struct FColormap
 	FColormap & operator=(FDynamicColormap * from)
 	{
 		LightColor = from->Color;
-		LightColor.a = gl_boomcolormap? gl_boomcolormap : from->Desaturate>>3;
+		LightColor.a = from->Desaturate>>3;
 		FadeColor = from->Fade;
 		blendfactor = from->Color.a;
 		return * this;
@@ -90,7 +89,7 @@ struct FColormap
 	void CopyLightColor(FDynamicColormap * from)
 	{
 		LightColor = from->Color;
-		LightColor.a = gl_boomcolormap? gl_boomcolormap : from->Desaturate>>3;
+		LightColor.a = from->Desaturate>>3;
 		blendfactor = from->Color.a;
 	}
 };

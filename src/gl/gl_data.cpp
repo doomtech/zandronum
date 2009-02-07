@@ -216,9 +216,12 @@ static void ParseFunc(FScanner &sc, level_info_t *info)
 	FOptionalMapinfoData *dat = info->opdata;
 
 	while (dat && dat->identifier != id) dat = dat->Next;
-	if (!dat) dat = new FGLROptions;
-	dat->Next = info->opdata;
-	info->opdata = dat;
+	if (!dat) 
+	{
+		dat = new FGLROptions;
+		dat->Next = info->opdata;
+		info->opdata = dat;
+	}
 
 	FGLROptions *opt = static_cast<FGLROptions*>(dat);
 
@@ -521,7 +524,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (sector-sectors==590)
+	if (sector-sectors==9)
 	{
 		__asm nop
 	}
@@ -565,23 +568,26 @@ static void PrepareTransparentDoors(sector_t * sector)
 				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom).isValid()) nobtextures++;
 			}
 		}
-		if (selfref+notextures==sector->linecount || sector->GetTexture(sector_t::ceiling)==skyflatnum)
+		if (sector->GetTexture(sector_t::ceiling)==skyflatnum)
 		{
 			sector->transdoor=false;
 			return;
 		}
 
-		// This is a crude attempt to fix an incorrect transparent door effect I found in some
-		// WolfenDoom maps but considering the amount of code required to handle it I left it in.
-		// Do this only if the sector only contains one-sided walls or ones with no lower texture.
-		if (solidwall)
+		if (selfref+notextures!=sector->linecount)
 		{
-			if (solidwall+nobtextures+selfref==sector->linecount && nextsec)
+			// This is a crude attempt to fix an incorrect transparent door effect I found in some
+			// WolfenDoom maps but considering the amount of code required to handle it I left it in.
+			// Do this only if the sector only contains one-sided walls or ones with no lower texture.
+			if (solidwall)
 			{
-				sector->heightsec=nextsec;
-				sector->heightsec->MoreFlags=0;
+				if (solidwall+nobtextures+selfref==sector->linecount && nextsec)
+				{
+					sector->heightsec=nextsec;
+					sector->heightsec->MoreFlags=0;
+				}
+				sector->transdoor=false;
 			}
-			sector->transdoor=false;
 		}
 	}
 }
@@ -681,10 +687,10 @@ void gl_PreprocessLevel()
 			vertex_t * vtx = seg->v1;
 			GLVertex * vt=&gl_vertices[gl_vertices.Reserve(1)];
 
-			vt->u =  TO_MAP(vtx->x)/64.0f;
-			vt->v = -TO_MAP(vtx->y)/64.0f;
-			vt->x =  TO_MAP(vtx->x);
-			vt->y =  TO_MAP(vtx->y);
+			vt->u =  TO_GL(vtx->x)/64.0f;
+			vt->v = -TO_GL(vtx->y)/64.0f;
+			vt->x =  TO_GL(vtx->x);
+			vt->y =  TO_GL(vtx->y);
 			vt->z = 0.0f;
 			vt->vt = vtx;
 		}
@@ -762,13 +768,13 @@ CCMD(dumpgeometry)
 				if (seg->linedef)
 				{
 				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
-					TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
+					TO_GL(seg->v1->x), TO_GL(seg->v1->y), TO_GL(seg->v2->x), TO_GL(seg->v2->y),
 					seg-segs, seg->linedef-lines, seg->sidedef!=&sides[seg->linedef->sidenum[0]]);
 				}
 				else
 				{
 					Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
-						TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
+						TO_GL(seg->v1->x), TO_GL(seg->v1->y), TO_GL(seg->v2->x), TO_GL(seg->v2->y),
 						seg-segs);
 				}
 				if (seg->PartnerSeg) 

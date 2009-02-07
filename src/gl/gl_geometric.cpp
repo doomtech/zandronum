@@ -230,10 +230,10 @@ void Plane::Set(secplane_t &plane)
 {
    float a, b, c, d;
 
-   a = TO_MAP(plane.a);
-   b = TO_MAP(plane.b);
-   c = TO_MAP(plane.c);
-   d = TO_MAP(plane.d);
+   a = TO_GL(plane.a);
+   b = TO_GL(plane.b);
+   c = TO_GL(plane.c);
+   d = TO_GL(plane.d);
 
    m_normal.Set(a, c, b);
    //m_normal.Normalize(); the vector is already normalized

@@ -73,6 +73,7 @@ const BYTE SF_FRAMEMASK  = 0x1f;
 void GLSprite::Draw(int pass)
 {
 	bool additivefog = false;
+	int rel = extralight*gl_weaponlight;
 
 	if (pass!=GLPASS_PLAIN && pass!=GLPASS_TRANSLUCENT) return;
 
@@ -119,8 +120,8 @@ void GLSprite::Draw(int pass)
 			// fog + fuzz don't work well without some fiddling with the alpha value!
 			if (!gl_isBlack(Colormap.FadeColor))
 			{
-				float xcamera=TO_MAP(viewx);
-				float ycamera=TO_MAP(viewy);
+				float xcamera=TO_GL(viewx);
+				float ycamera=TO_GL(viewy);
 
 				float dist=Dist2(xcamera,ycamera, x,y);
 
@@ -145,18 +146,18 @@ void GLSprite::Draw(int pass)
 	{
 		if (actor)
 		{
-			gl_SetSpriteLighting(RenderStyle, actor, lightlevel, extralight*gl_weaponlight, &Colormap, ThingColor, 
+			gl_SetSpriteLighting(RenderStyle, actor, lightlevel, rel, &Colormap, ThingColor, 
 								 trans, !!(actor->renderflags & RF_FULLBRIGHT), false);
 		}
 		else if (particle)
 		{
 			if (gl_light_particles)
 			{
-				gl_SetSpriteLight(particle, lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
+				gl_SetSpriteLight(particle, lightlevel, rel, &Colormap, trans, ThingColor);
 			}
 			else 
 			{
-				gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
+				gl_SetColor(lightlevel, rel, &Colormap, trans, ThingColor);
 			}
 		}
 		else return;
@@ -176,7 +177,7 @@ void GLSprite::Draw(int pass)
 		additivefog=false;
 	}
 
-	gl_SetFog(foglevel,  Colormap.FadeColor, additivefog, Colormap.LightColor.a);
+	gl_SetFog(foglevel, rel, &Colormap, additivefog);
 
 	if (gltexture) gltexture->BindPatch(Colormap.LightColor.a,translation);
 	else if (!modelframe) gl_EnableTexture(false);
@@ -187,45 +188,62 @@ void GLSprite::Draw(int pass)
 		const bool drawWithXYBillboard = ( !(actor && actor->renderflags & RF_FORCEYBILLBOARD)
 		                                   && players[consoleplayer].camera
 		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
+		gl_ApplyShader();
+		gl.Begin(GL_TRIANGLE_STRIP);
 		if ( drawWithXYBillboard )
 		{
-			// Save the current view matrix.
-			gl.MatrixMode(GL_MODELVIEW);
-			gl.PushMatrix();
 			// Rotate the sprite about the vector starting at the center of the sprite
 			// triangle strip and with direction orthogonal to where the player is looking
 			// in the x/y plane.
 			float xcenter = (x1+x2)*0.5;
 			float ycenter = (y1+y2)*0.5;
 			float zcenter = (z1+z2)*0.5;
-			float angleRad = ANGLE_TO_FLOAT(players[consoleplayer].camera->angle)/180.*M_PI;
-			gl.Translatef( xcenter, zcenter, ycenter);
-			gl.Rotatef(-ANGLE_TO_FLOAT(players[consoleplayer].camera->pitch), -sin(angleRad), 0, cos(angleRad));
-			gl.Translatef( -xcenter, -zcenter, -ycenter);
+			float angleRad = ANGLE_TO_RAD(players[consoleplayer].camera->angle);
+			
+			Matrix3x4 mat;
+			mat.MakeIdentity();
+			mat.Translate( xcenter, zcenter, ycenter);
+			mat.Rotate(-sin(angleRad), 0, cos(angleRad),-ANGLE_TO_FLOAT(players[consoleplayer].camera->pitch));
+			mat.Translate( -xcenter, -zcenter, -ycenter);
+			Vector v1 = mat * Vector(x1,z1,y1);
+			Vector v2 = mat * Vector(x2,z1,y2);
+			Vector v3 = mat * Vector(x1,z2,y1);
+			Vector v4 = mat * Vector(x2,z2,y2);
+
+			if (gltexture)
+			{
+				gl.TexCoord2f(ul, vt); gl.Vertex3fv(&v1[0]);
+				gl.TexCoord2f(ur, vt); gl.Vertex3fv(&v2[0]);
+				gl.TexCoord2f(ul, vb); gl.Vertex3fv(&v3[0]);
+				gl.TexCoord2f(ur, vb); gl.Vertex3fv(&v4[0]);
+			}
+			else	// Particle
+			{
+				gl.Vertex3fv(&v1[0]);
+				gl.Vertex3fv(&v2[0]);
+				gl.Vertex3fv(&v3[0]);
+				gl.Vertex3fv(&v4[0]);
+			}
+
 		}
-		gl.Begin(GL_TRIANGLE_STRIP);
-		if (gltexture)
+		else
 		{
-			gl.TexCoord2f(ul, vt); gl.Vertex3f(x1, z1, y1);
-			gl.TexCoord2f(ur, vt); gl.Vertex3f(x2, z1, y2);
-			gl.TexCoord2f(ul, vb); gl.Vertex3f(x1, z2, y1);
-			gl.TexCoord2f(ur, vb); gl.Vertex3f(x2, z2, y2);
-		}
-		else	// Particle
-		{
-			gl.Vertex3f(x1, z1, y1);
-			gl.Vertex3f(x2, z1, y2);
-			gl.Vertex3f(x1, z2, y1);
-			gl.Vertex3f(x2, z2, y2);
+			if (gltexture)
+			{
+				gl.TexCoord2f(ul, vt); gl.Vertex3f(x1, z1, y1);
+				gl.TexCoord2f(ur, vt); gl.Vertex3f(x2, z1, y2);
+				gl.TexCoord2f(ul, vb); gl.Vertex3f(x1, z2, y1);
+				gl.TexCoord2f(ur, vb); gl.Vertex3f(x2, z2, y2);
+			}
+			else	// Particle
+			{
+				gl.Vertex3f(x1, z1, y1);
+				gl.Vertex3f(x2, z1, y2);
+				gl.Vertex3f(x1, z2, y1);
+				gl.Vertex3f(x2, z2, y2);
+			}
 		}
 		gl.End();
-		// [BB] Billboard stuff
-		if ( drawWithXYBillboard )
-		{
-			// Restore the view matrix.
-			gl.MatrixMode(GL_MODELVIEW);
-			gl.PopMatrix();
-		}
 	}
 	else
 	{
@@ -273,7 +291,7 @@ inline void GLSprite::PutSprite(bool translucent)
 	{
 		list = GLDL_TRANSLUCENT;
 	}
-	else if ((!gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE) && !gl_glsl_renderer)
+	else if ((!gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE))
 	{
 		list = GLDL_FOGMASKED;
 	}
@@ -307,8 +325,8 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor->x,actor->y);
 		else lightbottom=frontsector->floorplane.ZatPoint(actor->x,actor->y);
 
-		//maplighttop=TO_MAP(lightlist[i].height);
-		maplightbottom=TO_MAP(lightbottom);
+		//maplighttop=TO_GL(lightlist[i].height);
+		maplightbottom=TO_GL(lightbottom);
 		if (maplightbottom<z2) maplightbottom=z2;
 
 		if (maplightbottom<z1)
@@ -356,8 +374,8 @@ void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
 		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor->x,actor->y);
 		else lightbottom=sector->floorplane.ZatPoint(actor->x,actor->y);
 
-		//maplighttop=TO_MAP(lightlist[i].height);
-		maplightbottom=TO_MAP(lightbottom);
+		//maplighttop=TO_GL(lightlist[i].height);
+		maplightbottom=TO_GL(lightbottom);
 		if (maplightbottom<z2) maplightbottom=z2;
 
 		if (maplightbottom<center_y)
@@ -445,9 +463,9 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	}
 	
 
-	x = TO_MAP(thingx);
-	z = TO_MAP(thingz-thing->floorclip);
-	y = TO_MAP(thingy);
+	x = TO_GL(thingx);
+	z = TO_GL(thingz-thing->floorclip);
+	y = TO_GL(thingy);
 	
 	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/);
 	if (!modelframe)
@@ -476,7 +494,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			ul=pti->GetUR();
 			ur=pti->GetUL();
 		}
-		r.Scale(TO_MAP(thing->scaleX),TO_MAP(thing->scaleY));
+		r.Scale(TO_GL(thing->scaleX),TO_GL(thing->scaleY));
 
 		float rightfac=-r.left;
 		float leftfac=rightfac-r.width;
@@ -501,7 +519,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
 						if (floorh==thing->floorz) 
 						{
-							btm=TO_MAP(floorh);
+							btm=TO_GL(floorh);
 							break;
 						}
 					}
@@ -511,11 +529,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 					if (thing->flags2&MF2_ONMOBJ && thing->floorz==
 						thing->Sector->heightsec->floorplane.ZatPoint(thingx, thingy))
 					{
-						btm=TO_MAP(thing->floorz);
+						btm=TO_GL(thing->floorz);
 					}
 				}
 				if (btm==1000000.0f) 
-					btm= TO_MAP(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
+					btm= TO_GL(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
 
 				float diff = z2 - btm;
 				if (diff >= 0 /*|| !gl_sprite_clip_to_floor*/) diff = 0;
@@ -548,7 +566,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
 	bool fullbright =
-		(!gl_brightmap_shader || !gltexture || !gltexture->tex->bm_info.bBrightmapDisablesFullbright) &&
+		(!gl_brightmap_shader || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright) &&
 		 (thing->renderflags & RF_FULLBRIGHT);
 
 	lightlevel=fullbright? 255 : rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
@@ -565,7 +583,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 		if (gl_fixedcolormap==CM_LITE)
 		{
-			if (gl_enhanced_lightamp &&
+			if (gl_enhanced_nightvision &&
 				(thing->IsKindOf(RUNTIME_CLASS(AInventory)) || thing->flags3&MF3_ISMONSTER || thing->flags&MF_MISSILE || thing->flags&MF_CORPSE))
 			{
 				Colormap.LightColor.a=CM_INVERT;
@@ -649,7 +667,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	RenderStyle = thing->RenderStyle;
 	RenderStyle.CheckFuzz();
-	trans = TO_MAP(thing->alpha);
+	trans = TO_GL(thing->alpha);
 	hw_styleflags = STYLEHW_Normal;
 
 	if (RenderStyle.Flags & STYLEF_TransSoulsAlpha)
@@ -676,7 +694,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		hw_styleflags = STYLEHW_NoAlphaTest;
 	}
 
-	if (enhancedvision && gl_enhanced_lightamp)
+	if (enhancedvision && gl_enhanced_nightvision)
 	{
 		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
 		{
@@ -802,9 +820,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 		}
 	}
 
-	x= TO_MAP(particle->x);
-	y= TO_MAP(particle->y);
-	z= TO_MAP(particle->z);
+	x= TO_GL(particle->x);
+	y= TO_GL(particle->y);
+	z= TO_GL(particle->z);
 	
 	float scalefac=particle->size/4.0f;
 	// [BB] The smooth particles are smaller than the other ones. Compensate for this here.

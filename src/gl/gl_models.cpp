@@ -50,6 +50,7 @@
 #include "gl_renderstruct.h"
 #include "doomstat.h"
 #include "g_level.h"
+#include "gl_geometric.h"
 
 static inline float GetTimeFloat()
 {
@@ -57,6 +58,8 @@ static inline float GetTimeFloat()
 }
 
 CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
+EXTERN_CVAR(Int, gl_fogmode)
+
 
 class DeletingModelArray : public TArray<FModel *>
 {
@@ -504,6 +507,7 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 						   const int curTics,
 						   const PClass *ti,
 						   int cm,
+						   Matrix3x4 *modeltoworld = NULL,
 						   int translation = 0 )
 {
 	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
@@ -560,9 +564,9 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 		if (mdl!=NULL)
 		{
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, modeltoworld, translation);
 			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, modeltoworld, translation);
 		}
 	}
 }
@@ -585,50 +589,105 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		glFrontFace(GL_CW);
 	}
 
-	// Model space => World space
-	gl.Translatef(spr->x, spr->z, spr->y );
+	Matrix3x4 ModelToWorld;
+	Matrix3x4 *mat;
 
-	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
-
-	// Model rotation.
-	// [BB] Added Doomsday like rotation of the weapon pickup models.
-	// The rotation angle is based on the elapsed time.
-	if( smf->flags & MDL_ROTATING )
+	if (gl_fogmode != 2)
 	{
-		float offsetAngle = 0.;
-		const float time = smf->rotationSpeed*GetTimeFloat()/200.;
-		offsetAngle = ( (time - static_cast<int>(time)) *360. );
-		gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
-		gl.Rotatef(offsetAngle, smf->xrotate, smf->yrotate, smf->zrotate);
-		gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-	}
+		// Model space => World space
+		gl.Translatef(spr->x, spr->z, spr->y );
 
-	// [BB] Workaround for the missing pitch information.
-	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
+
+		// Model rotation.
+		// [BB] Added Doomsday like rotation of the weapon pickup models.
+		// The rotation angle is based on the elapsed time.
+		if( smf->flags & MDL_ROTATING )
+		{
+			float offsetAngle = 0.;
+			const float time = smf->rotationSpeed*GetTimeFloat()/200.;
+			offsetAngle = ( (time - static_cast<int>(time)) *360. );
+			gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
+			gl.Rotatef(offsetAngle, smf->xrotate, smf->yrotate, smf->zrotate);
+			gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
+		}
+
+		// [BB] Workaround for the missing pitch information.
+		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		{
+			const double x = static_cast<double>(spr->actor->momx);
+			const double y = static_cast<double>(spr->actor->momy);
+			const double z = static_cast<double>(spr->actor->momz);
+			// [BB] Calculate the pitch using spherical coordinates.
+			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+			gl.Rotatef(pitch, 0, 0, 1);
+		}
+
+		// Scaling and model space offset.
+		gl.Scalef(	
+			TO_GL(spr->actor->scaleX) * smf->xscale,
+			TO_GL(spr->actor->scaleY) * smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
+			TO_GL(spr->actor->scaleX) * smf->yscale);
+
+		// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+		gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
+		mat = NULL;
+	}
+	else
 	{
-		const double x = static_cast<double>(spr->actor->momx);
-		const double y = static_cast<double>(spr->actor->momy);
-		const double z = static_cast<double>(spr->actor->momz);
-		// [BB] Calculate the pitch using spherical coordinates.
-		const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+		// For radial fog we need to pass coordinates in world space in order to calculate distances.
+		// That means that the local transformations cannot be part of the modelview matrix
 
-		gl.Rotatef(pitch, 0, 0, 1);
+		ModelToWorld.MakeIdentity();
+
+		// Model space => World space
+		ModelToWorld.Translate(spr->x, spr->z, spr->y);
+		ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT(spr->actor->angle));
+
+		// Model rotation.
+		// [BB] Added Doomsday like rotation of the weapon pickup models.
+		// The rotation angle is based on the elapsed time.
+
+		if( smf->flags & MDL_ROTATING )
+		{
+			float offsetAngle = 0.;
+			const float time = GetTimeFloat()/200.;
+			offsetAngle = ( (time - static_cast<int>(time)) *360. );
+
+			ModelToWorld.Translate(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
+			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, offsetAngle*smf->rotationSpeed);
+			ModelToWorld.Translate(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
+		}
+
+		// [BB] Workaround for the missing pitch information.
+		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		{
+			const double x = static_cast<double>(spr->actor->momx);
+			const double y = static_cast<double>(spr->actor->momy);
+			const double z = static_cast<double>(spr->actor->momz);
+			// [BB] Calculate the pitch using spherical coordinates.
+			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+			ModelToWorld.Rotate(0,0,1,pitch);
+		}
+
+		ModelToWorld.Scale(TO_GL(spr->actor->scaleX) * smf->xscale,
+						   TO_GL(spr->actor->scaleY) * smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
+						   TO_GL(spr->actor->scaleX) * smf->yscale);
+
+
+		// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+		ModelToWorld.Translate(0., smf->zoffset / smf->zscale, 0.);
+
+		mat = &ModelToWorld;
 	}
-
-	// Scaling and model space offset.
-	gl.Scalef(	
-		TO_MAP(spr->actor->scaleX) * smf->xscale,
-		TO_MAP(spr->actor->scaleY) * smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
-		TO_MAP(spr->actor->scaleX) * smf->yscale);
-
-	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
-	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
 	int translation = 0;
 	if ( !(smf->flags & MDL_IGNORETRANSLATION) )
 		translation = spr->actor->Translation;
 
-	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, translation );
+	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, mat, translation );
 
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
@@ -679,8 +738,8 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
 	// [BB] Weapon bob, very similar to the normal Doom weapon bob.
-	gl.Rotatef(TO_MAP(ofsx)/4, 0, 1, 0);
-	gl.Rotatef(-TO_MAP(ofsy-WEAPONTOP)/4, 1, 0, 0);
+	gl.Rotatef(TO_GL(ofsx)/4, 0, 1, 0);
+	gl.Rotatef(-TO_GL(ofsy-WEAPONTOP)/4, 1, 0, 0);
 
 	// [BB] For some reason the jDoom models need to be rotated.
 	gl.Rotatef(90., 0, 1, 0);

@@ -152,7 +152,7 @@ public:
    void SetAngle(angle_t angle) { m_Angle = angle; }
    void SetArg(int arg, byte val) { m_Args[arg] = val; }
    byte GetArg(int arg) { return m_Args[arg]; }
-   void SetOffset(fixed_t x, fixed_t y, fixed_t z) { m_X = x; m_Y = y; m_Z = z; }
+   void SetOffset(float* ft) { m_X = FLOAT2FIXED(ft[0]); m_Y = FLOAT2FIXED(ft[1]); m_Z = FLOAT2FIXED(ft[2]); }
    void SetSubtractive(bool subtract) { m_subtractive = subtract; }
    void SetAdditive(bool add) { m_additive = add; }
    void SetDontLightSelf(bool add) { m_dontlightself = add; }
@@ -345,7 +345,7 @@ void gl_ParsePointLight(FScanner &sc)
 				break;
 			case LIGHTTAG_OFFSET:
 				gl_ParseTriple(sc, floatTriple);
-				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				defaults->SetOffset(floatTriple);
 				break;
 			case LIGHTTAG_SIZE:
 				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
@@ -414,7 +414,7 @@ void gl_ParsePulseLight(FScanner &sc)
 				break;
 			case LIGHTTAG_OFFSET:
 				gl_ParseTriple(sc, floatTriple);
-				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				defaults->SetOffset(floatTriple);
 				break;
 			case LIGHTTAG_SIZE:
 				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
@@ -488,7 +488,7 @@ void gl_ParseFlickerLight(FScanner &sc)
 				break;
 			case LIGHTTAG_OFFSET:
 				gl_ParseTriple(sc, floatTriple);
-				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				defaults->SetOffset(floatTriple);
 				break;
 			case LIGHTTAG_SIZE:
 				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
@@ -562,7 +562,7 @@ void gl_ParseFlickerLight2(FScanner &sc)
 				break;
 			case LIGHTTAG_OFFSET:
 				gl_ParseTriple(sc, floatTriple);
-				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				defaults->SetOffset(floatTriple);
 				break;
 			case LIGHTTAG_SIZE:
 				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
@@ -642,7 +642,7 @@ void gl_ParseSectorLight(FScanner &sc)
 				break;
 			case LIGHTTAG_OFFSET:
 				gl_ParseTriple(sc, floatTriple);
-				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				defaults->SetOffset(floatTriple);
 				break;
 			case LIGHTTAG_SCALE:
 				floatVal = gl_ParseFloat(sc);

@@ -48,6 +48,7 @@
 #include "gl/gl_data.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_basic.h"
+#include "gl/gl_shader.h"
 #include "gl/gl_functions.h"
 #include "r_sky.h"
 #include "g_level.h"
@@ -627,6 +628,7 @@ void GLDrawInfo::SetupFloodStencil(wallseg * ws)
 	gl.Enable(GL_DEPTH_TEST);
 	gl.DepthMask(true);
 
+	gl_DisableShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
 	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
@@ -652,6 +654,7 @@ void GLDrawInfo::ClearFloodStencil(wallseg * ws)
 	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
 	gl.Color3f(1,1,1);
 
+	gl_DisableShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
 	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
@@ -693,24 +696,25 @@ void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bo
 	else
 	{
 		Colormap=sec->ColorMap;
-		if (gl_isGlowingTexture(plane.texture)) 
+		if (gltexture->tex->isFullbright())
 		{
-			// glowing textures are always drawn full bright without colored light
 			Colormap.LightColor.r = Colormap.LightColor.g = Colormap.LightColor.b = 0xff;
 			lightlevel=255;
 		}
 		else lightlevel=abs(ceiling? GetCeilingLight(sec) : GetFloorLight(sec));
 	}
 
-	gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
-	gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap,1.0f);
+	int rel = extralight * gl_weaponlight;
+	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
+	gl_SetFog(lightlevel, rel, &Colormap, false);
 	gltexture->Bind(Colormap.LightColor.a);
 	gl_SetPlaneTextureRotation(&plane, gltexture);
 
-	float fviewx = TO_MAP(viewx);
-	float fviewy = TO_MAP(viewy);
-	float fviewz = TO_MAP(viewz);
+	float fviewx = TO_GL(viewx);
+	float fviewy = TO_GL(viewy);
+	float fviewz = TO_GL(viewz);
 
+	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	float prj_fac1 = (planez-fviewz)/(ws->z1-fviewz);
 	float prj_fac2 = (planez-fviewz)/(ws->z2-fviewz);
@@ -780,13 +784,13 @@ void GLDrawInfo::FloodUpperGap(seg_t * seg)
 		v2=seg->linedef->v1;
 	}
 
-	ws.x1= TO_MAP(v1->x);
-	ws.y1= TO_MAP(v1->y);
-	ws.x2= TO_MAP(v2->x);
-	ws.y2= TO_MAP(v2->y);
+	ws.x1= TO_GL(v1->x);
+	ws.y1= TO_GL(v1->y);
+	ws.x2= TO_GL(v2->x);
+	ws.y2= TO_GL(v2->y);
 
-	ws.z1= TO_MAP(frontz);
-	ws.z2= TO_MAP(backz);
+	ws.z1= TO_GL(frontz);
+	ws.z2= TO_GL(backz);
 
 	// Step1: Draw a stencil into the gap
 	SetupFloodStencil(&ws);
@@ -833,13 +837,13 @@ void GLDrawInfo::FloodLowerGap(seg_t * seg)
 		v2=seg->linedef->v1;
 	}
 
-	ws.x1= TO_MAP(v1->x);
-	ws.y1= TO_MAP(v1->y);
-	ws.x2= TO_MAP(v2->x);
-	ws.y2= TO_MAP(v2->y);
+	ws.x1= TO_GL(v1->x);
+	ws.y1= TO_GL(v1->y);
+	ws.x2= TO_GL(v2->x);
+	ws.y2= TO_GL(v2->y);
 
-	ws.z2= TO_MAP(frontz);
-	ws.z1= TO_MAP(backz);
+	ws.z2= TO_GL(frontz);
+	ws.z1= TO_GL(backz);
 
 	// Step1: Draw a stencil into the gap
 	SetupFloodStencil(&ws);

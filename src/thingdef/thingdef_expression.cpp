@@ -2634,8 +2634,12 @@ FxExpression *FxMultiNameState::Resolve(FCompileContext &ctx)
 		if (destination == NULL)
 		{
 			ScriptPosition.Message(ctx.lax? MSG_WARNING:MSG_ERROR, "Unknown state jump destination");
-			delete this;
-			return NULL;
+			if (!ctx.lax)
+			{
+				delete this;
+				return NULL;
+			}
+			return this;
 		}
 		FxExpression *x = new FxConstant(destination, ScriptPosition);
 		delete this;
@@ -2662,7 +2666,7 @@ ExpVal FxMultiNameState::EvalExpression (AActor *self)
 	{
 		const char *dot="";
 		Printf("Jump target '");
-		for (int i=0;i<names.Size();i++)
+		for (unsigned int i=0;i<names.Size();i++)
 		{
 			Printf("%s%s", dot, names[i].GetChars());
 			dot = ".";
@@ -2691,7 +2695,7 @@ FStateExpressions StateParams;
 
 FStateExpressions::~FStateExpressions()
 {
-	for(unsigned i=0; i<Size(); i++)
+	for(int i=0; i<Size(); i++)
 	{
 		if (expressions[i].expr != NULL && !expressions[i].cloned)
 		{
@@ -2781,7 +2785,7 @@ int FStateExpressions::ResolveAll()
 
 	FCompileContext ctx;
 	ctx.lax = true;
-	for(unsigned i=0; i<Size(); i++)
+	for(int i=0; i<Size(); i++)
 	{
 		if (expressions[i].cloned)
 		{
@@ -2806,7 +2810,7 @@ int FStateExpressions::ResolveAll()
 		}
 	}
 
-	for(unsigned i=0; i<Size(); i++)
+	for(int i=0; i<Size(); i++)
 	{
 		if (expressions[i].expr != NULL)
 		{

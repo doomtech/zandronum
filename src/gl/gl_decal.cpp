@@ -45,7 +45,6 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
-#include "gl/glsl_state.h"
 
 EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 
@@ -162,7 +161,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	
 	float red, green, blue;
 	
-	if (actor->RenderStyle.Flags & STYLEF_ColorIsFixed)
+	if (actor->RenderStyle.Flags & STYLEF_RedIsAlpha)
 	{
 		loadAlpha = true;
 		p.LightColor.a=CM_SHADE;
@@ -200,13 +199,13 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	
 	
-	a = TO_MAP(actor->Alpha);
+	a = TO_GL(actor->Alpha);
 	
 	// now clip the decal to the actual polygon
-	float decalwidth = tex->TextureWidth(FGLTexture::GLUSE_PATCH)  * TO_MAP(actor->ScaleX);
-	float decalheight= tex->TextureHeight(FGLTexture::GLUSE_PATCH) * TO_MAP(actor->ScaleY);
-	float decallefto = tex->GetLeftOffset(FGLTexture::GLUSE_PATCH) * TO_MAP(actor->ScaleX);
-	float decaltopo  = tex->GetTopOffset(FGLTexture::GLUSE_PATCH)  * TO_MAP(actor->ScaleY);
+	float decalwidth = tex->TextureWidth(FGLTexture::GLUSE_PATCH)  * TO_GL(actor->ScaleX);
+	float decalheight= tex->TextureHeight(FGLTexture::GLUSE_PATCH) * TO_GL(actor->ScaleY);
+	float decallefto = tex->GetLeftOffset(FGLTexture::GLUSE_PATCH) * TO_GL(actor->ScaleX);
+	float decaltopo  = tex->GetTopOffset(FGLTexture::GLUSE_PATCH)  * TO_GL(actor->ScaleY);
 
 	
 	float leftedge = glseg.fracleft * side->TexelLength;
@@ -257,12 +256,12 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 
 	const PatchTextureInfo * pti=tex->BindPatch(p.LightColor.a, actor->Translation);
 
-	dv[1].z=dv[2].z = TO_MAP(zpos);
+	dv[1].z=dv[2].z = TO_GL(zpos);
 	dv[0].z=dv[3].z = dv[1].z - decalheight;
 	dv[1].v=dv[2].v=pti->GetVT();
 
-	dv[1].u=dv[0].u=pti->GetU(lefttex / TO_MAP(actor->ScaleX));
-	dv[3].u=dv[2].u=pti->GetU(righttex / TO_MAP(actor->ScaleX));
+	dv[1].u=dv[0].u=pti->GetU(lefttex / TO_GL(actor->ScaleX));
+	dv[3].u=dv[2].u=pti->GetU(righttex / TO_GL(actor->ScaleX));
 	dv[0].v=dv[3].v=pti->GetVB();
 
 
@@ -317,33 +316,22 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	// fog is set once per wall in the calling function and not per decal!
 
-	if (!gl_glsl_renderer)
+	if (loadAlpha)
 	{
-		if (loadAlpha)
-		{
-			gl.Color4f(red, green, blue, a);
-		}
-		else
-		{
-			gl_SetColor(light, rel, &p, a);
-		}
+		gl.Color4f(red, green, blue, a);
 	}
 	else
 	{
-		glsl->SetLight(light, rel, &p, a, false);
-		if (loadAlpha) glsl->SetLightAbsolute(red, green, blue, a);
+		gl_SetColor(light, rel, &p, a);
 	}
 
-	FRenderStyle style = actor->RenderStyle;
-	style.Flags &= ~STYLEF_ColorIsFixed;	// this is handled differently for decals (see above)
-
-	gl_SetRenderStyle(style, false, false);
+	gl_SetRenderStyle(actor->RenderStyle, false, false);
 
 	// If srcalpha is one it looks better with a higher alpha threshold
-	if (style.SrcAlpha == STYLEALPHA_One) gl.AlphaFunc(GL_GEQUAL, 0.5f);
+	if (actor->RenderStyle.SrcAlpha == STYLEALPHA_One) gl.AlphaFunc(GL_GEQUAL, 0.5f);
 	else gl.AlphaFunc(GL_GREATER, 0.f);
 
-	if (gl_glsl_renderer) glsl->Apply();
+	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	for(i=0;i<4;i++)
 	{
@@ -352,7 +340,6 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	gl.End();
 	rendered_decals++;
-	if (loadAlpha && gl_glsl_renderer) glsl->SetLightAbsolute(-1,-1,-1,-1);
 }
 
 //==========================================================================

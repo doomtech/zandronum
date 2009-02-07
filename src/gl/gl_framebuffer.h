@@ -65,8 +65,6 @@ public:
 
 	void PrecacheTexture(FTexture *tex, bool cache);
 
-	// Create a native texture from a game texture.
-	FNativeTexture *CreateTexture(FTexture *gametex, bool wrapping);
 	FNativePalette *CreatePalette(FRemapTable *remap);
 
 	void RenderView (player_t* player);

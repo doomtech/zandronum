@@ -45,7 +45,6 @@ enum Drawpasses
 	GLPASS_LIGHT,		// Draws dynamic lights
 	GLPASS_LIGHT_ADDITIVE,	// Draws additive dynamic lights
 	GLPASS_TEXTURE,		// Draws the texture to be modulated with the light information on the base surface
-	GLPASS_FOG,			// Draws a fog layer
 	GLPASS_DECALS,		// Draws a decal
 	GLPASS_DECALS_NOFOG,// Draws a decal without setting the fog (used for passes that need a fog layer)
 	GLPASS_TRANSLUCENT,	// Draws translucent objects
@@ -109,10 +108,15 @@ enum EColorManipulation
 	CM_TORCH=247,				// These are not real color manipulations
 };
 
-#define TO_MAP(v) ((float)(v)/FRACUNIT)
-#define FROM_MAP(f) (fixed_t)quickertoint((f)*FRACUNIT)
-#define ANGLE_TO_FLOAT(ang) ((float)((ang) * 180.0f / ANGLE_180))
-#define FLOAT_TO_ANGLE(ang) (angle_t)((ang) / 180.f * ANGLE_180)
+#define TO_GL(v) ((float)(v)/FRACUNIT)
+#define TO_MAP(f) (fixed_t)quickertoint((f)*FRACUNIT)
+#define ANGLE_TO_FLOAT(ang) ((float)((ang) * 180. / ANGLE_180))
+#define FLOAT_TO_ANGLE(ang) (angle_t)((ang) / 180. * ANGLE_180)
 
+#define ANGLE_TO_RAD(ang) ((float)((ang) * M_PI / ANGLE_180))
+#define RAD_TO_ANGLE(ang) (angle_t)((ang) / M_PI * ANGLE_180)
+
+#define FLOAT_TO_RAD(ang) float((ang) * M_PI / 180.)
+#define RAD_TO_FLOAT(ang) float((ang) / M_PI * 180.)
 
 #endif

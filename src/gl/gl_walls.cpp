@@ -43,6 +43,7 @@
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"
 #include "g_level.h"
+#include "templates.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"
@@ -129,45 +130,40 @@ void GLWall::PutWall(bool translucent)
 	}
 	else if (passflag[type]!=4)	// non-translucent walls
 	{
-		if (!gl_glsl_renderer)
+		static DrawListType list_indices[2][2][2]={
+			{ { GLDL_PLAIN, GLDL_FOG      }, { GLDL_MASKED,      GLDL_FOGMASKED      } },
+			{ { GLDL_LIGHT, GLDL_LIGHTFOG }, { GLDL_LIGHTMASKED, GLDL_LIGHTFOGMASKED } }
+		};
+
+		bool masked;
+		bool light = gl_forcemultipass;
+
+		if (!gl_fixedcolormap)
 		{
-			static DrawListType list_indices[2][2][2]={
-				{ { GLDL_PLAIN, GLDL_FOG      }, { GLDL_MASKED,      GLDL_FOGMASKED      } },
-				{ { GLDL_LIGHT, GLDL_LIGHTFOG }, { GLDL_LIGHTMASKED, GLDL_LIGHTFOGMASKED } }
-			};
-
-			bool masked;
-			bool light = gl_forcemultipass;
-
-			if (!gl_fixedcolormap)
+			if (gl_lights)
 			{
-				if (gl_lights)
+				if (!seg->bPolySeg)
 				{
-					if (!seg->bPolySeg)
-					{
-						light = (seg->sidedef != NULL && seg->sidedef->lighthead[0] != NULL);
-					}
-					else if (sub)
-					{
-						light = sub->lighthead[0] != NULL;
-					}
+					light = (seg->sidedef != NULL && seg->sidedef->lighthead[0] != NULL);
+				}
+				else if (sub)
+				{
+					light = sub->lighthead[0] != NULL;
 				}
 			}
-			else 
-			{
-				flags&=~GLWF_FOGGY;
-			}
-
-			masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || gltexture->tex->bMasked;
-
-			list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
-			if (list == GLDL_LIGHT && gltexture->tex->bm_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
 		}
-		else
+		else 
 		{
-			// The GLSL renderer only distinguishes between solid and masked geometry
-			bool masked = passflag[type]==1? false : gltexture->tex->bMasked;
-			list = masked? GLDL_MASKED : GLDL_PLAIN;
+			flags&=~GLWF_FOGGY;
+		}
+
+		masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || gltexture->tex->bMasked;
+
+		list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
+		if (list == GLDL_LIGHT)
+		{
+			if (gltexture->tex->gl_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+			if (flags & GLWF_GLOW) list = GLDL_LIGHTBRIGHT;
 		}
 		gl_drawinfo->drawlists[list].AddWall(this);
 
@@ -299,10 +295,10 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 		// in fixed point. The conversion introduces a needless inaccuracy here.
 
 		#ifndef FLOAT_ENGINE
-			fixed_t x1 = FROM_MAP(glseg.x1);
-			fixed_t y1 = FROM_MAP(glseg.y1);
-			fixed_t x2 = FROM_MAP(glseg.x2);
-			fixed_t y2 = FROM_MAP(glseg.y2);
+			fixed_t x1 = TO_MAP(glseg.x1);
+			fixed_t y1 = TO_MAP(glseg.y1);
+			fixed_t x2 = TO_MAP(glseg.x2);
+			fixed_t y2 = TO_MAP(glseg.y2);
 		#endif
 
 		for(i=0;i<lightlist.Size()-1;i++)
@@ -318,8 +314,8 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 					lightbottomright = lightbottomleft = -32000*FRACUNIT;
 				}
 
-				maplightbottomleft=TO_MAP(lightbottomleft);
-				maplightbottomright=TO_MAP(lightbottomright);
+				maplightbottomleft=TO_GL(lightbottomleft);
+				maplightbottomright=TO_GL(lightbottomright);
 			#else
 				if (i<lightlist.Size()-1) 
 				{
@@ -472,13 +468,13 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 	lightlist_t * light;
 
 	// ZDoom doesn't support slopes in a horizon sector so I won't either!
-	ztop[1]=ztop[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::ceiling));
-	zbottom[1]=zbottom[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::floor));
+	ztop[1]=ztop[0]=TO_GL(fs->GetPlaneTexZ(sector_t::ceiling));
+	zbottom[1]=zbottom[0]=TO_GL(fs->GetPlaneTexZ(sector_t::floor));
 
 	if (viewz<fs->GetPlaneTexZ(sector_t::ceiling))
 	{
 		if (viewz>fs->GetPlaneTexZ(sector_t::floor))
-			zbottom[1]=zbottom[0]=TO_MAP(viewz);
+			zbottom[1]=zbottom[0]=TO_GL(viewz);
 
 		if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
 		{
@@ -508,7 +504,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 
 	if (viewz>fs->GetPlaneTexZ(sector_t::floor))
 	{
-		zbottom[1]=zbottom[0]=TO_MAP(fs->GetPlaneTexZ(sector_t::floor));
+		zbottom[1]=zbottom[0]=TO_GL(fs->GetPlaneTexZ(sector_t::floor));
 		if (fs->GetTexture(sector_t::floor)==skyflatnum)
 		{
 			SkyTexture(fs->sky, fs->FloorSkyBox, false);
@@ -577,8 +573,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 	if (topleft>=bottomleft)
 	{
 		// normal case
-		ztop[0]=TO_MAP(topleft);
-		zbottom[0]=TO_MAP(bottomleft);
+		ztop[0]=TO_GL(topleft);
+		zbottom[0]=TO_GL(bottomleft);
 
 		if (wti)
 		{
@@ -596,13 +592,13 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 
 		fixed_t inter_y=topleft+FixedMul(coeff,dch);
 											 
-		float inter_x= TO_MAP(coeff);
+		float inter_x= TO_GL(coeff);
 
 		glseg.x1=glseg.x1+inter_x*(glseg.x2-glseg.x1);
 		glseg.y1=glseg.y1+inter_x*(glseg.y2-glseg.y1);
 		glseg.fracleft = inter_x;
 
-		zbottom[0]=ztop[0]=TO_MAP(inter_y);	
+		zbottom[0]=ztop[0]=TO_GL(inter_y);	
 
 		if (wti)
 		{
@@ -619,8 +615,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 	if (topright>=bottomright)
 	{
 		// normal case
-		ztop[1]=TO_MAP(topright)		;
-		zbottom[1]=TO_MAP(bottomright)		;
+		ztop[1]=TO_GL(topright)		;
+		zbottom[1]=TO_GL(bottomright)		;
 
 		if (wti)
 		{
@@ -638,13 +634,13 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 
 		fixed_t inter_y=topleft+FixedMul(coeff,dch);
 											 
-		float inter_x= TO_MAP(coeff);
+		float inter_x= TO_GL(coeff);
 
 		glseg.x2=glseg.x1+inter_x*(glseg.x2-glseg.x1);
 		glseg.y2=glseg.y1+inter_x*(glseg.y2-glseg.y1);
 		glseg.fracright = inter_x;
 
-		zbottom[1]=ztop[1]=TO_MAP(inter_y);
+		zbottom[1]=ztop[1]=TO_GL(inter_y);
 		if (wti)
 		{
 			//uprgt.u=lorgt.u=l_ul+wti->FloatToTexU(inter_x*length);
@@ -745,12 +741,12 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
-			texturebottom=max(realfront->GetPlaneTexZ(sector_t::floor),realback->GetPlaneTexZ(sector_t::floor))+rowoffset;
+			texturebottom = MAX(realfront->GetPlaneTexZ(sector_t::floor),realback->GetPlaneTexZ(sector_t::floor))+rowoffset;
 			texturetop=texturebottom+(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 		else
 		{
-			texturetop=min(realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling))+rowoffset;
+			texturetop = MIN(realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling))+rowoffset;
 			texturebottom=texturetop-(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 	}
@@ -775,22 +771,22 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		if (!tex || tex->UseType==FTexture::TEX_Null)
 		{
 			// texture is missing - use the higher plane
-			topleft=max(bch1,fch1);
-			topright=max(bch2,fch2);
+			topleft = MAX(bch1,fch1);
+			topright = MAX(bch2,fch2);
 		}
 		else if ((bch1>fch1 || bch2>fch2) && 
 				 (seg->frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum)) 
 				 // (!((bch1<=fch1 && bch2<=fch2) || (bch1>=fch1 && bch2>=fch2)))
 		{
 			// Use the higher plane and let the geometry clip the extruding part
-			topleft=bch1;
-			topright=bch2;
+			topleft = bch1;
+			topright = bch2;
 		}
 		else
 		{
 			// But not if there can be visual artifacts.
-			topleft=min(bch1,fch1);
-			topright=min(bch2,fch2);
+			topleft = MIN(bch1,fch1);
+			topright = MIN(bch2,fch2);
 		}
 		
 		//
@@ -802,21 +798,21 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		if (!tex || tex->UseType==FTexture::TEX_Null)
 		{
 			// texture is missing - use the lower plane
-			bottomleft=min(bfh1,ffh1);
-			bottomright=min(bfh2,ffh2);
+			bottomleft = MIN(bfh1,ffh1);
+			bottomright = MIN(bfh2,ffh2);
 		}
 		else if (bfh1<ffh1 || bfh2<ffh2) // (!((bfh1<=ffh1 && bfh2<=ffh2) || (bfh1>=ffh1 && bfh2>=ffh2)))
 		{
 			// the floor planes intersect. Use the backsector's floor for drawing so that
 			// drawing the front sector's plane clips the polygon automatically.
-			bottomleft=bfh1;
-			bottomright=bfh2;
+			bottomleft = bfh1;
+			bottomright = bfh2;
 		}
 		else
 		{
 			// normal case - use the higher plane
-			bottomleft=max(bfh1,ffh1);
-			bottomright=max(bfh2,ffh2);
+			bottomleft = MAX(bfh1,ffh1);
+			bottomright = MAX(bfh2,ffh2);
 		}
 		
 		//
@@ -894,17 +890,10 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	// 
 	if (drawfogboundary)
 	{
-		if (!gl_glsl_renderer)
-		{
-			type=RENDERWALL_FOGBOUNDARY;
-			PutWall(true);
-			if (!gltexture) return;
-			type=RENDERWALL_M2SNF;
-		}
-		else
-		{
-			type=RENDERWALL_M2SFOG;
-		}
+		type=RENDERWALL_FOGBOUNDARY;
+		PutWall(true);
+		if (!gltexture) return;
+		type=RENDERWALL_M2SNF;
 	}
 	else type=RENDERWALL_M2S;
 
@@ -949,8 +938,8 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			GL_RECT * splitrect=gltexture->GetAreas();
 			float v_factor=(zbottom[0]-ztop[0])/(lolft.v-uplft.v);
 			// only split the vertical area of the polygon that does not contain slopes!
-			float splittopv=max(uplft.v, uprgt.v);
-			float splitbotv=min(lolft.v, lorgt.v);
+			float splittopv = MAX(uplft.v, uprgt.v);
+			float splitbotv = MIN(lolft.v, lorgt.v);
 
 			// this is split vertically into sections.
 			for(i=0;i<v;i++)
@@ -1078,10 +1067,10 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 		type=RENDERWALL_FFBLOCK;
 	}
 
-	ztop[0]=TO_MAP(ff_topleft);
-	ztop[1]=TO_MAP(ff_topright);
-	zbottom[0]=TO_MAP(ff_bottomleft);//-0.001f;
-	zbottom[1]=TO_MAP(ff_bottomright);
+	ztop[0]=TO_GL(ff_topleft);
+	ztop[1]=TO_GL(ff_topright);
+	zbottom[0]=TO_GL(ff_bottomleft);//-0.001f;
+	zbottom[1]=TO_GL(ff_bottomright);
 
 	if (rover->flags&FF_TRANSLUCENT)
 	{
@@ -1445,10 +1434,10 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	vertexes[0]=v1;
 	vertexes[1]=v2;
 
-	glseg.x1= TO_MAP(v1->x);
-	glseg.y1= TO_MAP(v1->y);
-	glseg.x2= TO_MAP(v2->x);
-	glseg.y2= TO_MAP(v2->y);
+	glseg.x1= TO_GL(v1->x);
+	glseg.y1= TO_GL(v1->y);
+	glseg.x2= TO_GL(v2->x);
+	glseg.y2= TO_GL(v2->y);
 	Colormap=frontsector->ColorMap;
 	flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
 
@@ -1476,26 +1465,26 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	{
 		ffh1=frontsector->floorplane.ZatPoint(v1); 
 		ffh2=frontsector->floorplane.ZatPoint(v2); 
-		zfloor[0]=TO_MAP(ffh1);
-		zfloor[1]=TO_MAP(ffh2);
+		zfloor[0]=TO_GL(ffh1);
+		zfloor[1]=TO_GL(ffh2);
 	}
 	else
 	{
 		ffh1 = ffh2 = frontsector->GetPlaneTexZ(sector_t::floor); 
-		zfloor[0] = zfloor[1] = TO_MAP(ffh2);
+		zfloor[0] = zfloor[1] = TO_GL(ffh2);
 	}
 
 	if (frontsector->ceilingplane.a | frontsector->ceilingplane.b)
 	{
 		fch1=frontsector->ceilingplane.ZatPoint(v1);
 		fch2=frontsector->ceilingplane.ZatPoint(v2);
-		zceil[0]= TO_MAP(fch1);
-		zceil[1]= TO_MAP(fch2);
+		zceil[0]= TO_GL(fch1);
+		zceil[1]= TO_GL(fch2);
 	}
 	else
 	{
 		fch1 = fch2 = frontsector->GetPlaneTexZ(sector_t::ceiling);
-		zceil[0] = zceil[1] = TO_MAP(fch2);
+		zceil[0] = zceil[1] = TO_GL(fch2);
 	}
 
 
@@ -1685,10 +1674,10 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		vertexes[0]=v1;
 		vertexes[1]=v2;
 
-		glseg.x1= TO_MAP(v1->x);
-		glseg.y1= TO_MAP(v1->y);
-		glseg.x2= TO_MAP(v2->x);
-		glseg.y2= TO_MAP(v2->y);
+		glseg.x1= TO_GL(v1->x);
+		glseg.y1= TO_GL(v1->y);
+		glseg.x2= TO_GL(v2->x);
+		glseg.y2= TO_GL(v2->y);
 		glseg.fracleft=0;
 		glseg.fracright=1;
 
@@ -1705,7 +1694,7 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		topflat=frontsector->GetTexture(sector_t::ceiling);	// for glowing textures
 		bottomflat=frontsector->GetTexture(sector_t::floor);
 
-		zfloor[0] = zfloor[1] = TO_MAP(ffh);
+		zfloor[0] = zfloor[1] = TO_GL(ffh);
 
 		gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::floor));
 

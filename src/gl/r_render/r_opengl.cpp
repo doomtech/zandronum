@@ -1058,6 +1058,7 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.Vertex2i = glVertex2i;
 	gl.Vertex3f = glVertex3f;
 	gl.Vertex3fv = glVertex3fv;
+	gl.Vertex3d = glVertex3d;
 
 	gl.Color4f = glColor4f;
 	gl.Color4fv = glColor4fv;

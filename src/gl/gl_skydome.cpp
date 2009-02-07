@@ -44,6 +44,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
+#include "gl/gl_shader.h"
 
 
 //-----------------------------------------------------------------------------
@@ -63,6 +64,7 @@ public:
 	{ 
 		faces[0]=faces[1]=faces[2]=faces[3]=faces[4]=faces[5]=NULL; 
 		UseType=TEX_Override;
+		gl_info.bSkybox = true;
 	}
 	~FSkyBox()
 	{
@@ -105,12 +107,6 @@ public:
 	{
 		for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
 	}
-
-	virtual bool IsSkybox() const 
-	{  
-		return true; 
-	}
-
 };
 
 //-----------------------------------------------------------------------------
@@ -183,10 +179,10 @@ static PalEntry SkyCapColor(FTextureID texno, bool bottom)
 
 			if (buffer)
 			{
-				tex->gl_info.CeilingSkyColor = averageColor((DWORD *) buffer, w * MIN(30, h), false);
+				tex->gl_info.CeilingSkyColor = averageColor((DWORD *) buffer, w * MIN(30, h), 0);
 				if (h>30)
 				{
-					tex->gl_info.FloorSkyColor = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, false);
+					tex->gl_info.FloorSkyColor = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, 0);
 				}
 				else tex->gl_info.FloorSkyColor = tex->gl_info.CeilingSkyColor;
 				delete buffer;
@@ -259,9 +255,9 @@ static void SkyVertex(int r, int c)
 		gl.TexCoord2f(u, v);
 	}
 	// And finally the vertex.
-	fx =-TO_MAP(x);	// Doom mirrors the sky vertically!
-	fy = TO_MAP(y);
-	fz = TO_MAP(z);
+	fx =-TO_GL(x);	// Doom mirrors the sky vertically!
+	fy = TO_GL(y);
+	fz = TO_GL(z);
 	gl.Vertex3f(fx, fy - 1.f, fz);
 }
 
@@ -297,6 +293,8 @@ static void RenderSkyHemisphere(int hemi)
 		return;
 	}
 
+	gl_DisableShader();
+
 	// Draw the cap as one solid color polygon
 	if (!foglayer)
 	{
@@ -318,6 +316,7 @@ static void RenderSkyHemisphere(int hemi)
 
 		gl_EnableTexture(true);
 		foglayer=false;
+		gl_ApplyShader();
 	}
 	else
 	{
@@ -377,7 +376,7 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 
 	if (tex)
 	{
-		tex->Bind(CM_Index);
+		tex->Bind(CM_Index, 0, 0);
 		texw = tex->TextureWidth(FGLTexture::GLUSE_TEXTURE);
 		texh = tex->TextureHeight(FGLTexture::GLUSE_TEXTURE);
 
@@ -490,7 +489,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 		// north
 		tex = FGLTexture::ValidateTexture(sb->faces[0]);
-		tex->BindPatch(CM_Index);
+		tex->BindPatch(CM_Index, 0);
+		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, -128.f);
@@ -504,7 +504,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 		// east
 		tex = FGLTexture::ValidateTexture(sb->faces[1]);
-		tex->BindPatch(CM_Index);
+		tex->BindPatch(CM_Index, 0);
+		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(-128.f, 128.f, -128.f);
@@ -518,7 +519,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 		// south
 		tex = FGLTexture::ValidateTexture(sb->faces[2]);
-		tex->BindPatch(CM_Index);
+		tex->BindPatch(CM_Index, 0);
+		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(-128.f, 128.f, 128.f);
@@ -532,7 +534,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 		// west
 		tex = FGLTexture::ValidateTexture(sb->faces[3]);
-		tex->BindPatch(CM_Index);
+		tex->BindPatch(CM_Index, 0);
+		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, 128.f);
@@ -549,8 +552,9 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 		faces=1;
 		// all 4 sides
 		tex = FGLTexture::ValidateTexture(sb->faces[0]);
-		tex->BindPatch(CM_Index);
+		tex->BindPatch(CM_Index, 0);
 
+		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, -128.f);
@@ -601,7 +605,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 	// top
 	tex = FGLTexture::ValidateTexture(sb->faces[faces]);
-	tex->BindPatch(CM_Index);
+	tex->BindPatch(CM_Index, 0);
+	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.TexCoord2f(0, 0);
 	gl.Vertex3f(128.f, 128.f, -128.f);
@@ -616,7 +621,8 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 	// bottom
 	tex = FGLTexture::ValidateTexture(sb->faces[faces+1]);
-	tex->BindPatch(CM_Index);
+	tex->BindPatch(CM_Index, 0);
+	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.TexCoord2f(0, 0);
 	gl.Vertex3f(128.f, -128.f, -128.f);
@@ -659,7 +665,7 @@ void GLSkyPortal::DrawContents()
 	gl.PushMatrix();
 	gl_SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1), true);
 
-	if (origin->texture[0] && origin->texture[0]->tex->IsSkybox())
+	if (origin->texture[0] && origin->texture[0]->tex->gl_info.bSkybox)
 	{
 		if (fixedcolormap)
 		{						

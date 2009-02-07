@@ -49,6 +49,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_translate.h"
+#include "gl/gl_shader.h"
 #include "vectors.h"
 
 EXTERN_CVAR(Bool, gl_vid_compatibility)
@@ -186,6 +187,7 @@ bool OpenGLFrameBuffer::WipeDo(int ticks)
 	{
 		return true;
 	}
+	gl_DisableShader();
 	bool done = ScreenWipe->Run(ticks, this);
 	//DrawLetterbox();
 	return done;

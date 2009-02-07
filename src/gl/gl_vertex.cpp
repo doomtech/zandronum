@@ -71,7 +71,7 @@ static FVertexsplitInfo * gl_vertexsplit;
 //
 //==========================================================================
 
-void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs)
+void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs, bool glow)
 {
 	if (wall->vertexes[0]==NULL) return;
 
@@ -88,6 +88,7 @@ void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs)
 		while (i<vi->numheights && vi->heightlist[i] <= wall->zbottom[0] ) i++;
 		while (i<vi->numheights && vi->heightlist[i] < wall->ztop[0])
 		{
+			if (glow) gl_SetGlowPosition(wall->zceil[0] - vi->heightlist[i], vi->heightlist[i] - wall->zfloor[0]);
 			gl.TexCoord2f(factu1*(vi->heightlist[i] - wall->ztop[0]) + tcs[1].u,
 						 factv1*(vi->heightlist[i] - wall->ztop[0]) + tcs[1].v);
 			gl.Vertex3f(wall->glseg.x1, vi->heightlist[i], wall->glseg.y1);
@@ -102,7 +103,7 @@ void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs)
 //
 //==========================================================================
 
-void gl_SplitRightEdge(GLWall * wall, texcoord * tcs)
+void gl_SplitRightEdge(GLWall * wall, texcoord * tcs, bool glow)
 {
 	if (wall->vertexes[1]==NULL) return;
 
@@ -119,6 +120,7 @@ void gl_SplitRightEdge(GLWall * wall, texcoord * tcs)
 		while (i>0 && vi->heightlist[i] >= wall->ztop[1]) i--;
 		while (i>0 && vi->heightlist[i] > wall->zbottom[1])
 		{
+			if (glow) gl_SetGlowPosition(wall->zceil[1] - vi->heightlist[i], vi->heightlist[i] - wall->zfloor[1]);
 			gl.TexCoord2f(factu2 * (vi->heightlist[i] - wall->ztop[1]) + tcs[2].u,
 						 factv2 * (vi->heightlist[i] - wall->ztop[1]) + tcs[2].v);
 			gl.Vertex3f(wall->glseg.x2, vi->heightlist[i], wall->glseg.y2);
@@ -149,8 +151,8 @@ void gl_RecalcVertexHeights(vertex_t * v)
 	{
 		for(j=0;j<2;j++)
 		{
-			if (j==0) height=TO_MAP(vi->sectors[i]->ceilingplane.ZatPoint(v));
-			else height=TO_MAP(vi->sectors[i]->floorplane.ZatPoint(v));
+			if (j==0) height=TO_GL(vi->sectors[i]->ceilingplane.ZatPoint(v));
+			else height=TO_GL(vi->sectors[i]->floorplane.ZatPoint(v));
 
 			for(k=0;k<vi->numheights;k++)
 			{

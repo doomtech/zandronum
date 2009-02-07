@@ -39,6 +39,7 @@
 **
 */
 #include "gl/gl_include.h"
+#include "gl/gl_intern.h"
 #include "gl/gl_values.h"
 #include "c_cvars.h"
 #include "v_video.h"
@@ -48,12 +49,46 @@
 #include "i_system.h"
 #include "doomerrors.h"
 
+CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+CUSTOM_CVAR(Bool, gl_fog_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+CUSTOM_CVAR(Bool, gl_colormap_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+CUSTOM_CVAR(Bool, gl_brightmap_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+CUSTOM_CVAR(Bool, gl_glow_shader, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+
 extern long gl_frameMS;
 
 bool gl_fogenabled;
 bool gl_textureenabled;
+bool gl_glowenabled;
 int gl_texturemode;
 int gl_brightmapenabled;
+static float gl_lightfactor;
+static float gl_lightdist;
+static float gl_camerapos[3];
+static int gl_warpstate;
+static int gl_colormapstate;
+static bool gl_brightmapstate;
+static float gl_warptime;
 
 class FShader
 {
@@ -63,33 +98,36 @@ class FShader
 	GLhandleARB hVertProg;
 	GLhandleARB hFragProg;
 
-	TArray<int> attribs;
-	TArray<int> attrib_names;
-	TArray<int> uniforms;
-	TArray<int> uniform_names;
-
 	int timer_index;
 	int desaturation_index;
 	int fogenabled_index;
 	int texturemode_index;
+	int camerapos_index;
+	int lightfactor_index;
+	int lightdist_index;
+
+	int glowbottomcolor_index;
+	int glowtopcolor_index;
+
+	int glowbottomdist_index;
+	int glowtopdist_index;
 
 	int currentfogenabled;
 	int currenttexturemode;
+	float currentlightfactor;
+	float currentlightdist;
 
 public:
 	FShader()
 	{
 		hShader = hVertProg = hFragProg = NULL;
 		currentfogenabled = currenttexturemode = 0;
+		currentlightfactor = currentlightdist = 0.0f;
 	}
 
 	~FShader();
 
 	bool Load(const char * name, const char * vertprog, const char * fragprog);
-	void AddAttrib(const char * pname);
-	int GetAttribIndex(FName pname);
-	void AddUniform(const char * pname);
-	int GetUniformIndex(FName pname);
 
 	void SetFogEnabled(int on)
 	{
@@ -108,6 +146,42 @@ public:
 			gl.Uniform1iARB(texturemode_index, mode); 
 		}
 	}
+
+	void SetLightDist(float dist)
+	{
+		if (dist != currentlightdist)
+		{
+			currentlightdist = dist;
+			gl.Uniform1fARB(lightdist_index, dist);
+		}
+	}
+
+	void SetLightFactor(float fac)
+	{
+		if (fac != currentlightfactor)
+		{
+			currentlightfactor = fac;
+			gl.Uniform1fARB(lightfactor_index, fac);
+		}
+	}
+
+	void SetCameraPos(float x, float y, float z)
+	{
+		gl.Uniform3fARB(camerapos_index, x, y, z); 
+	}
+
+	void SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight)
+	{
+		gl.Uniform4fARB(glowtopcolor_index, topcolors[0], topcolors[1], topcolors[2], topheight);
+		gl.Uniform4fARB(glowbottomcolor_index, bottomcolors[0], bottomcolors[1], bottomcolors[2], bottomheight);
+	}
+
+	void SetGlowPosition(float topdist, float bottomdist)
+	{
+		gl.VertexAttrib1fARB(glowtopdist_index, topdist);
+		gl.VertexAttrib1fARB(glowbottomdist_index, bottomdist);
+	}
+
 	bool Bind(float Speed);
 
 };
@@ -157,6 +231,14 @@ bool FShader::Load(const char * name, const char * vert_prog, const char * frag_
 		desaturation_index = gl.GetUniformLocationARB(hShader, "desaturation_factor");
 		fogenabled_index = gl.GetUniformLocationARB(hShader, "fogenabled");
 		texturemode_index = gl.GetUniformLocationARB(hShader, "texturemode");
+		camerapos_index = gl.GetUniformLocationARB(hShader, "camerapos");
+		lightdist_index = gl.GetUniformLocationARB(hShader, "lightdist");
+		lightfactor_index = gl.GetUniformLocationARB(hShader, "lightfactor");
+
+		glowbottomcolor_index = gl.GetUniformLocationARB(hShader, "bottomglowcolor");
+		glowbottomdist_index = gl.GetAttribLocationARB(hShader, "bottomdistance");
+		glowtopcolor_index = gl.GetUniformLocationARB(hShader, "topglowcolor");
+		glowtopdist_index = gl.GetAttribLocationARB(hShader, "topdistance");
 
 		int brightmap_index = gl.GetUniformLocationARB(hShader, "brightmap");
 
@@ -189,80 +271,11 @@ FShader::~FShader()
 //
 //==========================================================================
 
-void FShader::AddAttrib(const char * pname)
-{
-	FName nm = FName(pname);
-
-	for(unsigned int i=0;i<attribs.Size();i++)
-	{
-		if (attrib_names[i]==nm) return;
-	}
-	attrib_names.Push(nm);
-	attribs.Push(gl.GetAttribLocationARB(hShader, pname));
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-int FShader::GetAttribIndex(FName pname)
-{
-	for(unsigned int i=0;i<attribs.Size();i++)
-	{
-		if (attrib_names[i]==pname) return attribs[i];
-	}
-	return -1;
-}
-
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-void FShader::AddUniform(const char * pname)
-{
-	FName nm = FName(pname);
-
-	for(unsigned int i=0;i<uniforms.Size();i++)
-	{
-		if (uniform_names[i]==nm) return;
-	}
-	uniform_names.Push(nm);
-	uniforms.Push(gl.GetUniformLocationARB(hShader, pname));
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-int FShader::GetUniformIndex(FName pname)
-{
-	for(unsigned int i=0;i<uniforms.Size();i++)
-	{
-		if (uniform_names[i]==pname) return uniforms[i];
-	}
-	return -1;
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
 bool FShader::Bind(float Speed)
 {
 	if (gl_activeShader!=this)
 	{
 		gl.UseProgramObjectARB(hShader);
-		SetTextureMode(gl_texturemode);
-		SetFogEnabled(gl_fogenabled);
 		gl_activeShader=this;
 	}
 	if (timer_index >=0 && Speed > 0.f) gl.Uniform1fARB(timer_index, gl_frameMS*Speed/1000.f);
@@ -305,17 +318,23 @@ public:
 
 FString FShaderContainer::CombineFragmentShader(const char * gettexel, const char * lighting, const char * main)
 {
-	int lump1 = Wads.GetNumForFullName(gettexel);
+	FString res;
+
+	// can be empty.
+	if (gettexel)
+	{
+		int lump1 = Wads.GetNumForFullName(gettexel);
+		FMemLump data1 = Wads.ReadLump(lump1);
+		res << (char*)data1.GetMem() << '\n';
+	}
+
 	int lump2 = Wads.GetNumForFullName(lighting);
 	int lump3 = Wads.GetNumForFullName(main);
 
-	FMemLump data1 = Wads.ReadLump(lump1);
 	FMemLump data2 = Wads.ReadLump(lump2);
 	FMemLump data3 = Wads.ReadLump(lump3);
 
-	FString res;
-
-	res << (char*)data1.GetMem() << '\n' << (char*)data2.GetMem() << '\n' << (char*)data3.GetMem();
+	res << (char*)data2.GetMem() << '\n' << (char*)data3.GetMem();
 	return res;
 }
 
@@ -330,21 +349,22 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 	struct Lighting
 	{
 		const char * LightingName;
+		const char * VertexShader;
 		const char * lightpixelfunc;
 	};
 
 	static Lighting default_cm[]={
-		{ "Standard",	"shaders/light/light_norm.fp"			},
-		{ "Inverse",	"shaders/light/light_inverse.fp"		},
-		{ "Gold",		"shaders/light/light_gold.fp"			},
-		{ "Red",		"shaders/light/light_red.fp"			},
-		{ "Green",		"shaders/light/light_green.fp"			},
+		{ "Standard",	"shaders/main_nofog.vp",	"shaders/light/light_norm.fp"		},
+		{ "Inverse",	"shaders/main_nofog.vp",	"shaders/light/light_inverse.fp"	},
+		{ "Gold",		"shaders/main_nofog.vp",	"shaders/light/light_gold.fp"		},
+		{ "Red",		"shaders/main_nofog.vp",	"shaders/light/light_red.fp"		},
+		{ "Green",		"shaders/main_nofog.vp",	"shaders/light/light_green.fp"		},
 	};
 
 	static Lighting default_light[]={
-		{ "Standard",	"shaders/light/light_eyefog.fp"		},
-		{ "Brightmap",	"shaders/light/light_brightmap.fp"	},
-		//{ "Doom",		"shaders/light/light_doom.fp"		},
+		{ "Standard",	"shaders/main.vp",			"shaders/light/light_eyefog.fp"		},
+		{ "Brightmap",	"shaders/main.vp",			"shaders/light/light_brightmap.fp"	},
+		{ "Glow",		"shaders/main_glow.vp",		"shaders/light/light_glow.fp"		},
 	};
 
 	static const char * main_fp2[]={ "shaders/main.fp", "shaders/main_desat.fp" };
@@ -360,9 +380,10 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 		try
 		{
-			FString frag = CombineFragmentShader(ShaderPath, default_cm[i].lightpixelfunc, "shaders/main.fp");
+			const char *main_fp = ShaderPath? "shaders/main.fp" : "shaders/main_notex.fp";
+			FString frag = CombineFragmentShader(ShaderPath, default_cm[i].lightpixelfunc, main_fp);
 
-			int vlump = Wads.GetNumForFullName("shaders/main_nofog.vp");
+			int vlump = Wads.GetNumForFullName(default_cm[i].VertexShader);
 			FMemLump vdata = Wads.ReadLump(vlump);
 
 			shader_cm[i] = new FShader;
@@ -380,7 +401,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 	}
 
-	for(int i=0;i<2;i++) for(int j=0;j<2;j++)
+	for(int i=0;i<3;i++) for(int j=0;j<2;j++)
 	{
 		FString name;
 
@@ -389,9 +410,10 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 		try
 		{
-			FString frag = CombineFragmentShader(ShaderPath, default_light[i].lightpixelfunc, main_fp2[j]);
+			const char *main_fp = ShaderPath? main_fp2[j] : "shaders/main_notex.fp";
+			FString frag = CombineFragmentShader(ShaderPath, default_light[i].lightpixelfunc, main_fp);
 
-			int vlump = Wads.GetNumForFullName("shaders/main.vp");
+			int vlump = Wads.GetNumForFullName(default_light[i].VertexShader);
 			FMemLump vdata = Wads.ReadLump(vlump);
 
 			shader_light[i][j] = new FShader;
@@ -451,6 +473,7 @@ static FDefaultShader defaultshaders[]=
 		{"Default",	"shaders/tex/tex_norm.fp"},
 		{"Warp 1",	"shaders/tex/tex_warp1.fp"},
 		{"Warp 2",	"shaders/tex/tex_warp2.fp"},
+		{"No Texture", NULL },
 		{NULL,NULL}
 		
 	};
@@ -493,8 +516,21 @@ static FShaderContainer * GetShader(const char * n,const char * fn)
 //
 //==========================================================================
 
-GLShader * GLShader::lastshader;
-int GLShader::lastcm;
+class GLShader
+{
+	FName Name;
+	FShaderContainer *container;
+
+public:
+
+	static void Initialize();
+	static void Clear();
+	static GLShader *Find(const char * shn);
+	static GLShader *Find(int warp);
+	void Bind(int cm, int lightmode, float Speed);
+	static void Unbind();
+
+};
 
 static TArray<GLShader *> AllShaders;
 
@@ -502,7 +538,7 @@ void GLShader::Initialize()
 {
 	if (gl.flags & RFL_GLSL)
 	{
-		for(int i=0;i<3;i++)
+		for(int i=0;i<4;i++)
 		{
 			FShaderContainer * shc = AddShader(defaultshaders[i].ShaderName, defaultshaders[i].gettexelfunc);
 			GLShader * shd = new GLShader;
@@ -544,8 +580,18 @@ GLShader *GLShader::Find(const char * shn)
 	return NULL;
 }
 
+GLShader *GLShader::Find(int warp)
+{
+	// indices 0-2 match the warping modes, 3 is the no texture shader
+	if (warp < AllShaders.Size())
+	{
+		return AllShaders[warp];
+	}
+	return NULL;
+}
 
-void GLShader::Bind(int cm, bool brightmap, float Speed)
+
+void GLShader::Bind(int cm, int lightmode, float Speed)
 {
 	FShader *sh=NULL;
 	switch(cm)
@@ -562,9 +608,8 @@ void GLShader::Bind(int cm, bool brightmap, float Speed)
 		break;
 
 	default:
-
 		bool desat = cm>=CM_DESAT1 && cm<=CM_DESAT31;
-		sh = container->shader_light[brightmap][desat];
+		sh = container->shader_light[lightmode][desat];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{
@@ -576,13 +621,6 @@ void GLShader::Bind(int cm, bool brightmap, float Speed)
 		}
 		break;
 	}
-	lastshader = this;
-	lastcm = cm;
-}
-
-void GLShader::Rebind()
-{
-	//if (lastshader) lastshader->Bind(lastcm);
 }
 
 void GLShader::Unbind()
@@ -602,16 +640,11 @@ void GLShader::Unbind()
 
 void gl_EnableTexture(bool on)
 {
-	static FShader * shader_when_disabled = NULL;
 	if (on)
 	{
 		if (!gl_textureenabled) 
 		{
 			gl.Enable(GL_TEXTURE_2D);
-			if (shader_when_disabled != NULL)
-			{
-				shader_when_disabled->Bind(0.f);
-			}
 		}
 	}
 	else 
@@ -619,8 +652,6 @@ void gl_EnableTexture(bool on)
 		if (gl_textureenabled) 
 		{
 			gl.Disable(GL_TEXTURE_2D);
-			shader_when_disabled = gl_activeShader;
-			GLShader::Unbind();
 		}
 	}
 	if (gl_textureenabled != on)
@@ -646,7 +677,6 @@ void gl_EnableFog(bool on)
 		if (gl_fogenabled) gl.Disable(GL_FOG);
 	}
 	gl_fogenabled=on;
-	if (gl_activeShader) gl_activeShader->SetFogEnabled(on);
 }
 
 
@@ -659,26 +689,139 @@ void gl_EnableFog(bool on)
 void gl_SetTextureMode(int which)
 {
 	if (which != gl_texturemode) gl.SetTextureMode(which);
-	if (gl_activeShader) gl_activeShader->SetTextureMode(which);
 	gl_texturemode = which;
 }
 
 
 //==========================================================================
 //
-// Lighting stuff (unused for now)
+// Lighting stuff 
 //
 //==========================================================================
 
-bool i_useshaders;
+void gl_SetShaderLight(float level, float olight)
+{
+#if 1 //ndef _DEBUG
+	const float MAXDIST = 256.f;
+	const float THRESHOLD = 96.f;
+	const float FACTOR = 0.75f;
+#else
+	const float MAXDIST = 256.f;
+	const float THRESHOLD = 96.f;
+	const float FACTOR = 2.75f;
+#endif
+
+
+		
+	if (olight < THRESHOLD)
+	{
+		gl_lightdist = olight * MAXDIST / THRESHOLD;
+		olight = THRESHOLD;
+	}
+	else gl_lightdist = MAXDIST;
+
+	gl_lightfactor = (olight/level);
+	gl_lightfactor = 1.f + (gl_lightfactor - 1.f) * FACTOR;
+}
+
+//==========================================================================
+//
+// Sets camera position
+//
+//==========================================================================
 
 void gl_SetCamera(float x, float y, float z)
 {
-	/*
-	if (i_useshaders)
-	{
-		gl.Uniform4fARB(u_camera, x, z, y, 0);
-	}
-	*/
+	gl_camerapos[0] = x;
+	gl_camerapos[1] = z;
+	gl_camerapos[2] = y;
 }
 
+//==========================================================================
+//
+// Glow stuff
+//
+//==========================================================================
+
+
+void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight)
+{
+	if (gl_activeShader) gl_activeShader->SetGlowParams(topcolors, topheight, bottomcolors, bottomheight);
+}
+
+void gl_SetGlowPosition(float topdist, float bottomdist)
+{
+	if (gl_activeShader) gl_activeShader->SetGlowPosition(topdist, bottomdist);
+}
+
+//==========================================================================
+//
+// Set texture shader info
+//
+//==========================================================================
+
+void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime)
+{
+	gl_warpstate = warped;
+	gl_colormapstate = cm;
+	gl_brightmapstate = usebright;
+	gl_warptime = warptime;
+}
+
+//==========================================================================
+//
+// Apply shader settings
+//
+//==========================================================================
+CVAR(Bool, gl_no_shaders, 0, 0) // For shader debugging.
+
+void gl_ApplyShader()
+{
+	if (gl.flags & RFL_GLSL && !gl_no_shaders)
+	{
+		if (
+			(gl_fogenabled && (gl_fogmode == 2 || gl_fog_shader || gl_lightmode == 2) && gl_fogmode != 0) || // fog requires a shader
+			(gl_textureenabled && (gl_warpstate != 0 || gl_brightmapstate || gl_colormapstate)) ||		// warp or brightmap
+			(gl_glowenabled)		// glow requires a shader
+			)
+		{
+			// we need a shader
+			int index = gl_textureenabled? gl_warpstate : 3;
+			GLShader *shd = GLShader::Find(index);
+
+			if (shd != NULL)
+			{
+				int lightmode = gl_glowenabled? 2 : gl_brightmapstate? 1:0;
+				shd->Bind(gl_colormapstate, lightmode, gl_warptime);
+
+				if (gl_activeShader)
+				{
+					gl_activeShader->SetTextureMode(gl_texturemode);
+					gl_activeShader->SetFogEnabled(gl_fogenabled? gl_fogmode : 0);
+					gl_activeShader->SetCameraPos(gl_camerapos[0], gl_camerapos[1], gl_camerapos[2]);
+					gl_activeShader->SetLightFactor(gl_lightfactor);
+					gl_activeShader->SetLightDist(gl_lightdist);
+				}
+			}
+		}
+		else
+		{
+			GLShader::Unbind();
+		}
+	}
+}
+
+void gl_InitShaders()
+{
+	GLShader::Initialize();
+}
+
+void gl_DisableShader()
+{
+	GLShader::Unbind();
+}
+
+void gl_ClearShaders()
+{
+	GLShader::Clear();
+}

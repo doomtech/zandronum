@@ -4,6 +4,8 @@
 #include "doomtype.h"
 #include "templates.h"
 #include "m_fixed.h"
+#include "tables.h"
+#include "textures/textures.h"
 
 class FArchive;
 
@@ -19,6 +21,13 @@ class FCanvasTexture;
 class GLWall;
 struct texcoord;
 struct MapData;
+struct FColormap;
+struct particle_t;
+struct subsector_t;
+struct vertex_t;
+class DCanvas;
+union FRenderStyle;
+
 extern DWORD gl_fixedcolormap;
 
 // gl_data.cpp
@@ -31,14 +40,6 @@ void gl_PreprocessLevel(void);
 void gl_AddMapinfoParser();
 
 // Light + color
-
-void gl_CalcLightTable(int usegamma);
-
-extern float lighttable[256];
-inline int gl_CalcLightLevel(int lightlevel) 
-{
-	return clamp<int>(lightlevel,0, 255);
-}
 
 inline bool gl_isBlack(PalEntry color)
 {
@@ -55,7 +56,6 @@ inline bool gl_isFullbright(PalEntry color, int lightlevel)
 	return gl_fixedcolormap || (gl_isWhite(color) && lightlevel==255);
 }
 
-struct FColormap;
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor=0xffffff, bool weapon=false);
@@ -72,13 +72,12 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon);
 
 
-struct particle_t;
 void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
 
 void gl_InitFog();
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
-void gl_SetFog(int lightlevel, PalEntry pe, bool isadditive, int cm);
+void gl_SetFog(int lightlevel, int rellight, const FColormap *cm, bool isadditive);
 
 // textures + sprites
 
@@ -89,20 +88,22 @@ void gl_EnableShader(bool on);
 
 void gl_SetTextureMode(int which);
 void gl_EnableFog(bool on);
+void gl_SetShaderLight(float level, float factor);
 void gl_SetCamera(float x, float y, float z);
-void gl_SetFogLight(int lightlevel);
+
+void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight);
+void gl_SetGlowPosition(float topdist, float bottomdist);
+
+void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime);
+
+void gl_ApplyShader();
+
 void gl_EnableTexture(bool on);
+
 
 
 FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle, bool *mirror);
 
-
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-#ifndef min
-#define min(a,b) ((a)<(b)?(a):(b))
-#endif
 
 // Render
 
@@ -111,14 +112,6 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
 
 #define INVALID_SPRITE 0xffffff
 
-// Data
-
-void SaveGFX(const char * fn, unsigned char * buffer, int w, int h);
-PalEntry averageColor(const DWORD *data, int size, bool maxout);
-void gl_ScreenShot(const char *filename);
-void gl_EnableShader(bool on);
-bool gl_SetShader(int cmap);
-void gl_Init(int width, int height);
 
 // Scene
 
@@ -127,7 +120,6 @@ void gl_SetViewArea();
 void gl_DrawScene();
 void gl_EndDrawScene();
 sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, bool mainview);
-void gl_RenderPlayerView(player_s *player);   // Called by G_Drawer.
 void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height);
 void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 angle_t gl_FrustumAngle();
@@ -146,8 +138,8 @@ void gl_RecreateAllAttachedLights();
 void gl_ParseDefs();
 
 
-void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs);
-void gl_SplitRightEdge(GLWall * wall, texcoord * tcs);
+void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs, bool glow);
+void gl_SplitRightEdge(GLWall * wall, texcoord * tcs, bool glow);
 void gl_RecalcVertexHeights(vertex_t * v);
 void gl_InitVertexData();
 void gl_CleanVertexData();
@@ -156,9 +148,6 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 {
 	return sqrtf((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
-
-
-EXTERN_CVAR(Int, screenblocks)
 
 
 __forceinline void gl_InverseMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
@@ -195,6 +184,7 @@ __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE
 }
 
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm);
+PalEntry averageColor(const DWORD *data, int size, fixed_t maxout);
 
 
 extern int currentrenderer;

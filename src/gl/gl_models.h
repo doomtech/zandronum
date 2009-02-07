@@ -2,6 +2,7 @@
 #define __GL_MODELS_H_
 
 #include "r_data.h"
+#include "gl_geometric.h"
 
 #define MAX_LODS			4
 
@@ -25,9 +26,9 @@ public:
 
 	virtual bool Load(const char * fn, const char * buffer, int length) = 0;
 	virtual int FindFrame(const char * name) = 0;
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0) = 0;
+	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0) = 0;
 	// [BB] Added RenderFrameInterpolated
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0) = 0;
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0) = 0;
 
 	char * filename;
 };
@@ -128,7 +129,7 @@ protected:
 	char           *vertexUsage;   // Bitfield for each vertex.
 	bool			allowTexComp;  // Allow texture compression with this.
 
-	static void RenderGLCommands(void *glCommands, unsigned int numVertices,FModelVertex * vertices);
+	static void RenderGLCommands(void *glCommands, unsigned int numVertices,FModelVertex * vertices, Matrix3x4 *modeltoworld);
 
 public:
 	FDMDModel() { loaded = false; }
@@ -136,8 +137,8 @@ public:
 
 	virtual bool Load(const char * fn, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0);
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0);
+	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0);
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0);
 
 };
 
@@ -219,7 +220,7 @@ class FMD3Model : public FModel
 	MD3Frame * frames;
 	MD3Surface * surfaces;
 
-	void RenderTriangles(MD3Surface * surf, MD3Vertex * vert);
+	void RenderTriangles(MD3Surface * surf, MD3Vertex * vert, Matrix3x4 *modeltoworld);
 
 public:
 	FMD3Model() { }
@@ -227,8 +228,8 @@ public:
 
 	virtual bool Load(const char * fn, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0);
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0);
+	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0);
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0);
 };
 
 

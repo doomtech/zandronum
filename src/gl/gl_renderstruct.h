@@ -107,8 +107,6 @@ struct GLHorizonInfo
 	FColormap colormap;
 };
 
-
-
 //==========================================================================
 //
 // One wall segment in the draw list
@@ -148,6 +146,11 @@ public:
 	byte type;
 	byte flags;
 	short rellight;
+
+	float topglowcolor[3];
+	float bottomglowcolor[3];
+	float topglowheight;
+	float bottomglowheight;
 
 	union
 	{
@@ -228,17 +231,11 @@ private:
 	void RenderMirrorSurface();
 	void RenderTranslucentWall();
 
-	void RenderWallGLSL();
-	void RenderFogBoundaryGLSL();
-	void RenderMirrorSurfaceGLSL();
-	void RenderTranslucentWallGLSL();
-
 public:
 
 	void Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, subsector_t * polysub);
 	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
 	void Draw(int pass);
-	void DrawGLSL(int pass);
 
 	float PointOnSide(float x,float y)
 	{
@@ -294,9 +291,6 @@ public:
 	void Process(sector_t * sector, bool whichplane, bool notexture);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);
-
-	void DrawGLSL(int pass);
-
 };
 
 
@@ -343,7 +337,6 @@ public:
 public:
 
 	void Draw(int pass);
-	void DrawGLSL(int pass);
 	void PutSprite(bool translucent);
 	void Process(AActor* thing,sector_t * sector);
 	void ProcessParticle (particle_t *particle, sector_t *sector);//, int shade, int fakeside)
@@ -450,11 +443,6 @@ public:
 	void DrawSorted();
 	void Draw(int pass);
 	
-	void DoDrawGLSL(int pass, int index);
-	void DoDrawSortedGLSL(SortNode * node);
-	void DrawSortedGLSL();
-	void DrawGLSL(int pass);
-
 	GLDrawList * next;
 } ;
 
@@ -584,7 +572,6 @@ public:
 };
 
 extern GLDrawInfo * gl_drawinfo;
-EXTERN_CVAR(Bool, gl_glsl_renderer)
 
 
 #endif

@@ -34,6 +34,7 @@
 
 #include <SDL.h>
 
+#include "version.h"
 #include "hardware.h"
 #include "i_video.h"
 #include "i_system.h"
@@ -41,23 +42,16 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "sdlvideo.h"
-#ifndef NO_GL
-#include "sdlglvideo.h"
-#endif
 #include "v_text.h"
 #include "doomstat.h"
 #include "m_argv.h"
-#include "version.h"
+#ifndef NO_GL
+#include "sdlglvideo.h"
+#endif
 
 EXTERN_CVAR (Bool, ticker)
 EXTERN_CVAR (Bool, fullscreen)
 EXTERN_CVAR (Float, vid_winscale)
-
-#ifndef NO_GL
-#include "gl/gl_texture.h"
-
-bool ForceWindowed;
-#endif
 
 IVideo *Video;
 
@@ -65,14 +59,15 @@ extern int NewWidth, NewHeight, NewBits, DisplayBits;
 #ifndef NO_GL
 bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
+#endif
 
+EXTERN_CVAR(Bool, gl_nogl)
+#ifndef NO_GL
 int currentrenderer=1;
 #else
 int currentrenderer=0;
 #endif
-bool changerenderer;
-bool gl_disabled;
-EXTERN_CVAR(Bool, gl_nogl)
+bool gl_disabled = gl_nogl;
 
 // [ZDoomGL]
 CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)// | CVAR_NOINITCALL)
@@ -99,34 +94,9 @@ CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)// | CVAR_NO
 			self = 0; // make sure to actually switch to the software renderer
 			break;
 		}
-#ifndef NO_GL
-		Printf("You must restart "GAMENAME" to switch the renderer\n");
-#else
-		changerenderer = true;
-#endif
+		Printf("You must restart " GAMENAME " to switch the renderer\n");
 	}
 }
-
-CCMD (vid_restart)
-{
-	if (!gl_disabled) changerenderer = true;
-}
-
-/*
-void I_CheckRestartRenderer()
-{
-	if (gl_disabled) return;
-
-#ifndef NO_GL
-	while (changerenderer)
-	{
-		currentrenderer = vid_renderer;
-		I_RestartRenderer();
-		if (currentrenderer == vid_renderer) changerenderer = false;
-	}
-#endif
-}
-*/
 
 void I_ShutdownGraphics ()
 {
@@ -192,18 +162,7 @@ DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 		fs = true;
 		break;
 	case DISPLAY_Both:
-#ifndef NO_GL
-		if (ForceWindowed)
-		{
-			fs = false;
-		}
-		else
-		{
-			fs = fullscreen;
-		}
-#else
 		fs = fullscreen;
-#endif
 		break;
 	}
 	DFrameBuffer *res = Video->CreateFrameBuffer (width, height, fs, old);

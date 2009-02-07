@@ -118,12 +118,7 @@ bool GLWall::PrepareLight(texcoord * tcs, ADynamicLight * light)
 void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 {
 	texcoord tcs[4];
-
-	if (flags&GLWF_GLOW) 
-	{
-		RenderGlowingPoly(textured, light);
-		return;
-	}
+	bool glowing;
 
 	if (!light)
 	{
@@ -131,23 +126,36 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 		tcs[1]=uplft;
 		tcs[2]=uprgt;
 		tcs[3]=lorgt;
+		glowing = !!(flags&GLWF_GLOW) && (textured & 2);
 	}
 	else
 	{
 		if (!PrepareLight(tcs, light)) return;
+		glowing = false;
+	}
+
+	gl_ApplyShader();
+
+	if (glowing)
+	{
+		// must be done after gl_ApplyShader!
+		gl_SetGlowParams(topglowcolor, topglowheight, bottomglowcolor, bottomglowheight);
 	}
 
 	// the rest of the code is identical for textured rendering and lights
 
 	gl.Begin(GL_TRIANGLE_FAN);
 
+
 	// lower left corner
+	if (glowing) gl_SetGlowPosition(zceil[0] - zbottom[0], zbottom[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[0].u,tcs[0].v);
 	gl.Vertex3f(glseg.x1,zbottom[0],glseg.y1);
 
-	if (gl_seamless && glseg.fracleft==0) gl_SplitLeftEdge(this, tcs);
+	if (gl_seamless && glseg.fracleft==0) gl_SplitLeftEdge(this, tcs, glowing);
 
 	// upper left corner
+	if (glowing) gl_SetGlowPosition(zceil[0] - ztop[0], ztop[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[1].u,tcs[1].v);
 	gl.Vertex3f(glseg.x1,ztop[0],glseg.y1);
 
@@ -155,12 +163,14 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (color2) gl.Color4fv(color2);
 
 	// upper right corner
+	if (glowing) gl_SetGlowPosition(zceil[1] - ztop[1], ztop[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[2].u,tcs[2].v);
 	gl.Vertex3f(glseg.x2,ztop[1],glseg.y2);
 
-	if (gl_seamless && glseg.fracright==1) gl_SplitRightEdge(this, tcs);
+	if (gl_seamless && glseg.fracright==1) gl_SplitRightEdge(this, tcs, glowing);
 
 	// lower right corner
+	if (glowing) gl_SetGlowPosition(zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[3].u,tcs[3].v); 
 	gl.Vertex3f(glseg.x2,zbottom[1],glseg.y2);
 
@@ -178,12 +188,12 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 
 void GLWall::RenderFogBoundary()
 {
-	if (gl_depthfog)
+	if (gl_fogmode)
 	{
 		float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
 
-		float xcamera=TO_MAP(viewx);
-		float ycamera=TO_MAP(viewy);
+		float xcamera=TO_GL(viewx);
+		float ycamera=TO_GL(viewy);
 
 		float dist1=Dist2(xcamera,ycamera, glseg.x1,glseg.y1);
 		float dist2=Dist2(xcamera,ycamera, glseg.x2,glseg.y2);
@@ -202,6 +212,7 @@ void GLWall::RenderFogBoundary()
 		gl.DepthFunc(GL_LEQUAL);
 		gl.Color4f(fc[0],fc[1],fc[2], fogd1);
 
+		flags &= ~GLWF_GLOW;
 		RenderWall(0,fc);
 
 		gl.DepthFunc(GL_LESS);
@@ -231,11 +242,12 @@ void GLWall::RenderMirrorSurface()
 	gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 	gl.AlphaFunc(GL_GREATER,0);
 	gl.DepthFunc(GL_LEQUAL);
-	gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);
+	gl_SetFog(lightlevel, extralight*gl_weaponlight, &Colormap, true);
 
 	FGLTexture * pat=FGLTexture::ValidateTexture(mirrortexture);
 	pat->BindPatch(Colormap.LightColor.a, 0);
 
+	flags &= ~GLWF_GLOW;
 	RenderWall(0,NULL);
 
 	gl.Disable(GL_TEXTURE_GEN_T);
@@ -280,21 +292,23 @@ void GLWall::RenderTranslucentWall()
 	else gl.Disable(GL_ALPHA_TEST);
 	if (isadditive) gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 
-	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, isadditive, Colormap.LightColor.a);
-	else gl_SetFog(255, 0, false, CM_DEFAULT);
-
+	int extra;
 	if (gltexture) 
 	{
 		if (flags&GLWF_FOGGY) gl_EnableBrightmap(false);
-		gltexture->Bind(Colormap.LightColor.a, flags);
-		// prevent some ugly artifacts at the borders of fences etc.
-		gl_SetColor(lightlevel, (extralight * gl_weaponlight), &Colormap, fabsf(alpha));
+		gl_EnableGlow(!!(flags & GLWF_GLOW));
+		gltexture->Bind(Colormap.LightColor.a, flags, 0);
+		extra = (extralight * gl_weaponlight);
 	}
 	else 
 	{
 		gl_EnableTexture(false);
-		gl_SetColor(lightlevel, 0, &Colormap, fabsf(alpha));
+		extra = 0;
 	}
+
+	gl_SetColor(lightlevel, extra, &Colormap, fabsf(alpha));
+	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, extra, &Colormap, isadditive);
+	else gl_SetFog(255, 0, NULL, false);
 
 	RenderWall(1,NULL);
 
@@ -307,6 +321,7 @@ void GLWall::RenderTranslucentWall()
 		gl_EnableTexture(true);
 	}
 	gl_EnableBrightmap(true);
+	gl_EnableGlow(false);
 }
 
 //==========================================================================
@@ -317,6 +332,7 @@ void GLWall::RenderTranslucentWall()
 void GLWall::Draw(int pass)
 {
 	FLightNode * node;
+	int rel;
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -342,28 +358,30 @@ void GLWall::Draw(int pass)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
 	case GLPASS_PLAIN:			// Single-pass rendering
 
-		gl_SetColor(lightlevel, rellight + (extralight * gl_weaponlight), &Colormap,1.0f);
+		rel = rellight + (extralight * gl_weaponlight);
+		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
 		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN) 
 		{
-			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
-			else gl_SetFog(255, 0, false, CM_DEFAULT);
+			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, rel, &Colormap, false);
+			else gl_SetFog(255, 0, NULL, false);
 		}
+		gl_EnableGlow(!!(flags & GLWF_GLOW));
 
 		// fall through
 	case GLPASS_TEXTURE:		// modulated texture
 		if (pass != GLPASS_BASE)
 		{
-			gltexture->Bind(Colormap.LightColor.a, flags);
+			gltexture->Bind(Colormap.LightColor.a, flags, 0);
 		}
-		
 		RenderWall((pass!=GLPASS_BASE) + 2*(pass!=GLPASS_TEXTURE), NULL);
+		gl_EnableGlow(false);
 		break;
 
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
 		// black fog is diminishing light and should affect lights less than the rest!
-		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, false, CM_DEFAULT);
-		else gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);	
+		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, NULL, false);
+		else gl_SetFog(lightlevel, 0, &Colormap, true);	
 
 		if (!seg->bPolySeg)
 		{
@@ -395,7 +413,10 @@ void GLWall::Draw(int pass)
 	case GLPASS_DECALS_NOFOG:
 		if (seg->sidedef && seg->sidedef->AttachedDecals)
 		{
-			if (pass==GLPASS_DECALS) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
+			if (pass==GLPASS_DECALS) 
+			{
+				gl_SetFog(lightlevel, rellight + extralight*gl_weaponlight, &Colormap, false);
+			}
 			DoDrawDecals(seg->sidedef->AttachedDecals, seg);
 		}
 		break;

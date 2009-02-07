@@ -17,6 +17,7 @@
 
 #include "sdlglvideo.h"
 #include "gl/gl_pch.h"
+#include "r_defs.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
@@ -43,10 +44,11 @@ struct MiniModeInfo
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
 extern IVideo *Video;
+// extern int vid_renderer;
 
 EXTERN_CVAR (Float, Gamma)
 EXTERN_CVAR (Int, vid_displaybits)
-EXTERN_CVAR(Int, vid_renderer);
+EXTERN_CVAR (Int, vid_renderer)
 
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
@@ -97,10 +99,15 @@ static MiniModeInfo WinModes[] =
 	{ 1360, 768 },	// 16:9
 	{ 1400, 787 },	// 16:9
 	{ 1400, 875 },	// 16:10
+	{ 1440, 900 },
 	{ 1400, 1050 },
 	{ 1600, 900 },	// 16:9
 	{ 1600, 1000 },	// 16:10
 	{ 1600, 1200 },
+	{ 1680, 1050 },
+	{ 1920, 1080 },
+	{ 1920, 1200 },
+	{ 2054, 1536 }
 };
 
 // CODE --------------------------------------------------------------------

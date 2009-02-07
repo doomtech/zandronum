@@ -70,6 +70,7 @@ struct RenderContext
 	void (APIENTRY * Vertex2f) (GLfloat x, GLfloat y);
 	void (APIENTRY * Vertex2i) (GLint x, GLint y);
 	void (APIENTRY * Vertex3f) (GLfloat x, GLfloat y, GLfloat z);
+	void (APIENTRY * Vertex3d) (GLdouble x, GLdouble y, GLdouble z);
 	void (APIENTRY * Vertex3fv) (const GLfloat *v);
 
 	void (APIENTRY * Color4f) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);

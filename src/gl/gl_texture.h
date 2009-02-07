@@ -112,10 +112,9 @@ public:
 // this is the texture maintenance class for OpenGL. 
 //
 //===========================================================================
-class GLShader;
 struct FRemapTable;
 
-class FGLTexture : public FNativeTexture, protected WorldTextureInfo, protected PatchTextureInfo
+class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 {
 	friend void AdjustSpriteOffsets();
 
@@ -139,8 +138,6 @@ private:
 	signed char areacount;
 	bool bHasColorkey;		// only for hires
 	GL_RECT * areas;
-	GLShader * Shader;
-	bool ShaderSet;
 
 	short LeftOffset[2];
 	short TopOffset[2];
@@ -162,7 +159,9 @@ private:
 
 	BYTE *WarpBuffer(BYTE *buffer, int Width, int Height, int warp);
 
+	void CreateDefaultBrightmap();
 	void CheckForAlpha(const unsigned char * buffer);
+	void SetupShader(int clampmode, int warped, int &cm, int translation);
 
 	const WorldTextureInfo * Bind(int texunit, int cm, int clamp, int translation);
 	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation);
@@ -253,8 +252,8 @@ public:
 	{
 		if (bIsTransparent == -1) 
 		{
-			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT);
-			else Bind (CM_DEFAULT);
+			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT, 0, true);
+			else Bind (CM_DEFAULT, 0, 0, true);
 		}
 		return !!bIsTransparent;
 	}

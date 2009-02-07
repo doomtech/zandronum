@@ -92,7 +92,8 @@ DWORD LanguageIDs[4] =
 	
 int (*I_GetTime) (bool saveMS);
 int (*I_WaitForTic) (int);
-void (*I_FreezTime) (bool frozen);
+void (*I_FreezeTime) (bool frozen);
+static DWORD basetime = 0;
 
 void I_Tactile (int on, int off, int total)
 {
