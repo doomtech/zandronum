@@ -488,8 +488,6 @@ if( NOT NO_GL )
 		gl/gl_walls_draw.cpp
 		gl/gl_weapon.cpp
 		gl/gl_wipe.cpp
-		gl/glsl_state.cpp
-		gl/glsl_draw.cpp
 		gl/r_render/r_opengl.cpp
 	)
 else( NOT NO_GL )
