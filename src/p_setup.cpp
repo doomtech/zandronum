@@ -3233,14 +3233,14 @@ void P_GetPolySpots (MapData * map, TArray<FNodeBuilder::FPolyStart> &spots, TAr
 
 //=============================================================================
 //
-// [BC] P_RemoveThing
+// [BC] P_RemoveThingLocal
 //
 // Destroys an individual thing, and properly updates the level total monster
-// and item count.
+// and item count. [BB] Doesn't do anything network related (unlike P_RemoveThing)
 //
 //=============================================================================
 
-void P_RemoveThing( AActor *pActor )
+void P_RemoveThingLocal( AActor *pActor )
 {
 	if ( pActor->CountsAsKill( ))
 		level.total_monsters--;
@@ -3273,7 +3273,7 @@ void P_RemoveThings( void )
 				// Don't destroy flags in teamgame modes.
 				if ((( ctf || oneflagctf || skulltag ) && ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "Flag" )))) == false )
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 			}
@@ -3282,7 +3282,7 @@ void P_RemoveThings( void )
 		// don't spawn keycards and players in deathmatch
 		if ( deathmatch && ( pActor->flags & MF_NOTDMATCH ))
 		{
-			P_RemoveThing( pActor );
+			P_RemoveThingLocal( pActor );
 			continue;
 		}
 
@@ -3296,7 +3296,7 @@ void P_RemoveThings( void )
 			{
 				if (( pActor->SpawnFlags & ( MTF_DEATHMATCH|MTF_SINGLE )) == MTF_DEATHMATCH )
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 			}
@@ -3306,7 +3306,7 @@ void P_RemoveThings( void )
 		if (( dmflags & DF_NO_MONSTERS ) &&
 			( pActor->flags3 & MF3_ISMONSTER ))
 		{
-			P_RemoveThing( pActor );
+			P_RemoveThingLocal( pActor );
 			continue;
 		}
 
@@ -3318,14 +3318,14 @@ void P_RemoveThings( void )
 				if (( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AHealth ))) ||
 					( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AMaxHealth ))))
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 				if (( pActor->GetClass( )->TypeName == NAME_Berserk ) ||
 					( pActor->GetClass( )->TypeName == NAME_Soulsphere ) ||
 					( pActor->GetClass( )->TypeName == NAME_Megasphere ))
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 			}
@@ -3343,12 +3343,12 @@ void P_RemoveThings( void )
 			{
 				if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AArmor )))
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 				if ( pActor->GetClass( )->TypeName == NAME_Megasphere )
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 			}
@@ -3357,7 +3357,7 @@ void P_RemoveThings( void )
 			{
 				if ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "RuneGiver" )))
 				{
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 					continue;
 				}
 			}
@@ -3386,7 +3386,7 @@ void P_RemoveThings( void )
 				// [BB] We may not delete the dynamic lights here!
 				// If we do, the game crashes directly in a cooperative skirmish.
 				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
-					P_RemoveThing( pActor );
+					P_RemoveThingLocal( pActor );
 				continue;
 			}
 		}
@@ -3425,7 +3425,7 @@ void P_RemoveThings( void )
 		{
 			if ( pActor->IsKindOf( PClass::FindClass( "WhiteFlag" )))
 			{
-				P_RemoveThing( pActor );
+				P_RemoveThingLocal( pActor );
 				continue;
 			}
 		}

@@ -239,6 +239,7 @@ inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
 
 #include "p_3dfloors.h"
 struct subsector_t;
+extern bool gl_plane_reflection_i;
 
 // Ceiling/floor flags
 enum
@@ -631,6 +632,9 @@ struct sector_t
 	fixed_t						transdoorheight;	// for transparent door hacks
 	int							subsectorcount;		// list of subsectors
 	subsector_t **				subsectors;
+
+	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
+	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }
 
 	// [BC] Is this sector a floor or ceiling?
 	int		floorOrCeiling;

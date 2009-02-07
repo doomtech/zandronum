@@ -681,7 +681,7 @@ add_executable( zdoom WIN32
 	g_doom/a_doomarmor.cpp #ST
 	g_doom/a_doomartifacts.cpp #ST
 	g_doom/a_doommisc.cpp
-	g_doom/doom_sbar.cpp
+	g_doom/doom_sbar.cpp #ST doesn't use the SBARINFO version of the Doom status bar yet.
 	g_heretic/a_hereticmisc.cpp
 	g_heretic/heretic_sbar.cpp
 	g_hexen/a_hexenmisc.cpp

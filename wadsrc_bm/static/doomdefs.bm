@@ -450,12 +450,6 @@ brightmap sprite BOSSD5
 	iwad
 }
 
-brightmap sprite BOSSD5
-{
-	map "brightmaps/doom/bossd5.png"
-	iwad
-}
-
 brightmap sprite BOSSE1
 {
 	map "brightmaps/doom/bosse1.png"

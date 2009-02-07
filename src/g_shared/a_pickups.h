@@ -358,7 +358,10 @@ public:
 	virtual bool HandlePickup (AInventory *item);
 	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 
+	int AbsorbCount;
 	fixed_t SavePercent;
+	int MaxAbsorb;
+	int MaxFullAbsorb;
 	int BonusCount;
 };
 
@@ -372,6 +375,8 @@ public:
 	virtual bool Use (bool pickup);
 
 	fixed_t SavePercent;
+	int MaxAbsorb;
+	int MaxFullAbsorb;
 	int SaveAmount;
 };
 
@@ -386,6 +391,8 @@ public:
 
 	fixed_t SavePercent;	// The default, for when you don't already have armor
 	int MaxSaveAmount;
+	int MaxAbsorb;
+	int MaxFullAbsorb;
 	int SaveAmount;
 	int BonusCount;
 	int BonusMax;

@@ -172,6 +172,7 @@ EXTERN_CVAR (Float, m_pitch)
 EXTERN_CVAR (Float, m_yaw)
 EXTERN_CVAR (Bool, invertmouse)
 EXTERN_CVAR (Bool, lookstrafe)
+EXTERN_CVAR (Int, screenblocks)
 
 extern gameinfo_t SharewareGameInfo;
 extern gameinfo_t RegisteredGameInfo;
@@ -721,13 +722,13 @@ void D_Display ()
 				R_RefreshViewBorder ();
 			}
 
-			if (hud_althud && viewheight == SCREENHEIGHT)
+			if (hud_althud && viewheight == SCREENHEIGHT && screenblocks > 10)
 			{
 				if (DrawFSHUD || automapactive) DrawHUD();
 				StatusBar->DrawTopStuff (HUD_None);
 			}
 			else 
-			if (viewheight == SCREENHEIGHT && viewactive)
+			if (viewheight == SCREENHEIGHT && viewactive && screenblocks > 10)
 			{
 				StatusBar->Draw (DrawFSHUD ? HUD_Fullscreen : HUD_None);
 				StatusBar->DrawTopStuff (DrawFSHUD ? HUD_Fullscreen : HUD_None);
@@ -1918,71 +1919,6 @@ static int CheckIWAD (const char *doomwaddir, WadStuff *wads)
 	}
 
 	return numfound;
-}
-
-//==========================================================================
-//
-// ExpandEnvVars
-//
-// Expands environment variable references in a string. Intended primarily
-// for use with IWAD search paths in config files.
-//
-//==========================================================================
-
-static FString ExpandEnvVars(const char *searchpathstring)
-{
-	static const char envvarnamechars[] =
-		"01234567890"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"_"
-		"abcdefghijklmnopqrstuvwxyz";
-
-	if (searchpathstring == NULL)
-		return FString ("");
-
-	const char *dollar = strchr (searchpathstring,'$');
-	if (dollar == NULL)
-	{
-		return FString (searchpathstring);
-	}
-
-	const char *nextchars = searchpathstring;
-	FString out = FString (searchpathstring, dollar - searchpathstring);
-	while ( (dollar != NULL) && (*nextchars != 0) )
-	{
-		size_t length = strspn(dollar + 1, envvarnamechars);
-		if (length != 0)
-		{
-			FString varname = FString (dollar + 1, length);
-			if (stricmp (varname, "progdir") == 0)
-			{
-				out += progdir;
-			}
-			else
-			{
-				char *varvalue = getenv (varname);
-				if ( (varvalue != NULL) && (strlen(varvalue) != 0) )
-				{
-					out += varvalue;
-				}
-			}
-		}
-		else
-		{
-			out += '$';
-		}
-		nextchars = dollar + length + 1;
-		dollar = strchr (nextchars, '$');
-		if (dollar != NULL)
-		{
-			out += FString (nextchars, dollar - nextchars);
-		}
-	}
-	if (*nextchars != 0)
-	{
-		out += nextchars;
-	}
-	return out;
 }
 
 //==========================================================================

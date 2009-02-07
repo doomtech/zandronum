@@ -13,8 +13,7 @@
 // PIT_VileCheck
 // Detect a corpse that could be raised.
 //
-DECLARE_ACTION(A_Fire)
-
+void A_Fire(AActor *self, int height);
 
 
 //
@@ -33,16 +32,24 @@ DEFINE_ACTION_FUNCTION(AActor, A_VileStart)
 DEFINE_ACTION_FUNCTION(AActor, A_StartFire)
 {
 	S_Sound (self, CHAN_BODY, "vile/firestrt", 1, ATTN_NORM);
-	CALL_ACTION(A_Fire, self);
+	A_Fire (self, 0);
 }
 
 DEFINE_ACTION_FUNCTION(AActor, A_FireCrackle)
 {
 	S_Sound (self, CHAN_BODY, "vile/firecrkl", 1, ATTN_NORM);
-	CALL_ACTION(A_Fire, self);
+	A_Fire (self, 0);
 }
 
-DEFINE_ACTION_FUNCTION(AActor, A_Fire)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Fire)
+{
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_FIXED(height,0);
+	
+	A_Fire(self, height);
+}
+
+void A_Fire(AActor *self, int height)
 {
 	AActor *dest;
 	angle_t an;
@@ -66,7 +73,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Fire)
 
 	self->SetOrigin (dest->x + FixedMul (24*FRACUNIT, finecosine[an]),
 					 dest->y + FixedMul (24*FRACUNIT, finesine[an]),
-					 dest->z);
+					 dest->z + height);
 
 	// [BC] Tell clients of the fire update.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -79,8 +86,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_Fire)
 // A_VileTarget
 // Spawn the hellfire
 //
-DEFINE_ACTION_FUNCTION(AActor, A_VileTarget)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_VileTarget)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(fire,0);
 	AActor *fog;
 		
 	// [BC] Fire movement is server-side.
@@ -95,7 +104,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_VileTarget)
 
 	A_FaceTarget (self);
 
-	fog = Spawn ("ArchvileFire", self->target->x, self->target->y,
+	fog = Spawn (fire, self->target->x, self->target->y,
 		self->target->z, ALLOW_REPLACE);
 	
 	// [BC] If we're the server, tell clients to spawn the thing.
@@ -105,7 +114,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_VileTarget)
 	self->tracer = fog;
 	fog->target = self;
 	fog->tracer = self->target;
-	CALL_ACTION(A_Fire, fog);
+	A_Fire(fog, 0);
 }
 
 

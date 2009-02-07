@@ -1889,15 +1889,12 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		else
 			StatusBar = CreateStatusBar ();
 		/*  [BB] Moved to CreateStatusBar()
-		else if (SBarInfoScript != NULL)
+		else if (SBarInfoScript[SCRIPT_CUSTOM] != NULL)
 		{
-			int cstype = SBarInfoScript->GetGameType();
+			int cstype = SBarInfoScript[SCRIPT_CUSTOM]->GetGameType();
 
-			if(cstype & GAME_DoomChex) //Did the user specify a "base"
-			{
-				StatusBar = CreateDoomStatusBar ();
-			}
-			else if(cstype == GAME_Heretic)
+			//Did the user specify a "base"
+			if(cstype == GAME_Heretic)
 			{
 				StatusBar = CreateHereticStatusBar();
 			}
@@ -1909,16 +1906,20 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			{
 				StatusBar = CreateStrifeStatusBar();
 			}
-			else //Use the default, empty or custom.
+			else if(cstype == GAME_Any) //Use the default, empty or custom.
 			{
-				StatusBar = CreateCustomStatusBar();
+				StatusBar = CreateCustomStatusBar(SCRIPT_CUSTOM);
+		}
+		else
+		{
+			StatusBar = CreateCustomStatusBar(GETSBARINFOSCRIPT(gameinfo.gametype));
 			}
 		}
 		if (StatusBar == NULL)
 		{
 			if (gameinfo.gametype & GAME_DoomChex)
 			{
-				StatusBar = CreateDoomStatusBar ();
+				StatusBar = CreateCustomStatusBar (GETSBARINFOSCRIPT(gameinfo.gametype));
 			}
 			else if (gameinfo.gametype == GAME_Heretic)
 			{
@@ -1944,7 +1945,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	}
 	setsizeneeded = true;
 
-	if (gameinfo.gametype == GAME_Strife || (SBarInfoScript != NULL && SBarInfoScript->GetGameType() == GAME_Strife))
+	if (gameinfo.gametype == GAME_Strife || (SBarInfoScript != NULL && SBarInfoScript[SCRIPT_CUSTOM]->GetGameType() == GAME_Strife))
 	{
 		// Set the initial quest log text for Strife.
 		for (i = 0; i < MAXPLAYERS; ++i)

@@ -4855,6 +4855,10 @@ void G_DoPlayDemo (void)
 	{
 		const char *eek = "Cannot play non-ZDoom demos.\n(They would go out of sync badly.)\n";
 
+		C_RestoreCVars();
+		M_Free(demobuffer);
+		demo_p = demobuffer = NULL;
+
 		// [BC] Check if this is one of Skulltag's client-side demos.
 		// [BC] THIS IS BROKEN NOW
 		if ( i == CLD_DEMOSTART )
@@ -4875,11 +4879,13 @@ void G_DoPlayDemo (void)
 	}
 	else if (G_ProcessIFFDemo (mapname))
 	{
+		C_RestoreCVars();
 		gameaction = ga_nothing;
 		demoplayback = false;
 	}
 	else
 	{
+	
 		// don't spend a lot of time in loadlevel 
 		precache = false;
 		demonew = true;

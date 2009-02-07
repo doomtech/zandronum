@@ -72,6 +72,11 @@ CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 	if (self<0) self=0;
 	if (self>10) self=10;
 }
+bool gl_plane_reflection_i;	// This is needed in a header that cannot include the CVAR stuff...
+CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+{
+	gl_plane_reflection_i = self;
+}
 TArray<GLPortal *> GLPortal::portals;
 int GLPortal::recursion;
 int GLPortal::MirrorFlag;

@@ -509,6 +509,26 @@ int P_Thing_Damage (int tid, AActor *whofor0, int amount, FName type)
 	return count;
 }
 
+void P_RemoveThing(AActor * actor)
+{
+	// Don't remove live players.
+	if (actor->player == NULL || actor != actor->player->mo)
+	{
+		// [BC] DESTROY!
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_DestroyThing( actor );
+
+		// be friendly to the level statistics. ;)
+		if (actor->CountsAsKill() && actor->health > 0) level.total_monsters--;
+		if (actor->flags&MF_COUNTITEM) level.total_items--;
+		actor->Destroy ();
+
+		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+		actor->HideOrDestroyIfSafe ();
+	}
+}
+
+
 CCMD (dumpspawnables)
 {
 	int i;
@@ -521,3 +541,4 @@ CCMD (dumpspawnables)
 		}
 	}
 }
+

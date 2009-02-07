@@ -1,3 +1,64 @@
+December 7, 2008  (Changes by Graf Zahl)
+- Fixed: The save percentage for Doom's green armor was slightly too low
+  which caused roundoff errors that made it less than 1/3 effective.
+- Added support for "RRGGBB" strings to V_GetColor.
+- Fixed: Desaturation maps for the TEXTURES lump were calculated incorrectly.
+- Changed GetSpriteIndex to cache the last used sprite name so that the code
+  using this function doesn't have to do it itself.
+- Moved some more code for the state parser into p_states.cpp.
+- Fixed: TDeletingArray should not try to delete NULL pointers.
+
+December 6, 2008
+- Added binary (b) and hexadecimal (x) cast types for ACS's various print
+  statements.
+- Added ClassifyActor(tid) ACS builtin function. This takes a TID and returns
+  a set of bits describing the actor. If TID is 0, it returns information
+  about the activator. If there is more than one actor with the given TID,
+  only the first one is considered. Currently defined bits are:
+    ACTOR_NONE         No actors with this TID exist (only when TID is not 0).
+    ACTOR_WORLD        Activator is the world (only when TID is 0).
+    ACTOR_PLAYER       Actor is a player (includes bots and voodoo dolls).
+    ACTOR_BOT          Actor is a bot.
+    ACTOR_VOODOODOLL   Actor is a voodoo doll.
+    ACTOR_MONSTER      Actor is a monster.
+    ACTOR_ALIVE        Actor is alive (players/monsters only).
+    ACTOR_DEAD         Actor is dead (players/monsters only).
+    ACTOR_MISSILE      Actor is a missile.
+    ACTOR_GENERIC      Actor exists, but no further information is available.
+- Moved ExpandEnvVars() from d_main.cpp to cmdlib.cpp.
+- AutoExec paths now support the same variable expansion as the search paths.
+  Additionally, on Windows, the default autoexec path is now relative to
+  $PROGDIR, rather than using a fixed path to the executable's current
+  directory.
+- All usable Autoload and AutoExec sections are now created at the top of
+  the config file along with some brief explanatory notes so they are
+  readily visible to anyone who wants to edit them.
+
+December 6, 2008  (Changes by Graf Zahl)
+- Fixed: G_DoPlayDemo did not free the demobuffer or the CVAR backups when it
+  failed to start the demo.
+
+December 2, 2008  (Changes by Graf Zahl)
+- Added a MF5_BRIGHT flag to always render an actor fullbright.
+- Fixed: Calling Door_Animated with a non-zero tag created a new thinker
+  for each two-sided line of the sector.
+
+December 1, 2008  (Changes by Graf Zahl)
+- Added Karate Chris's submission for making 'spray' a cheat.
+- Added CO2's default parameter additions for several Doom code pointers
+  submission.
+- Added CO2's A_RemoveMaster/A_RemoveChildren submission.
+- Added Blzut3's SBARINFO replacement for the Doom statusbar.
+- Fixed: SBarInfo still displayed the wrong bar for height 0
+- Added A_KillSiblings and A_DamageSiblings code pointers.
+- added MaxAbsorb and MaxFullAbsorb properties for Armor.
+
+December 1, 2008
+- Restored the multiplayer scoreboard's former centering so that it doesn't
+  look awful on widescreen intermissions. Also changed the column widths to
+  be font-dependant rather than fixed proportions of the screen width.
+- Fixed horizontal positioning of 'finished' on the Raven games when scaled.
+
 November 30, 2008  (Changes by Graf Zahl)
 - Fixed: 'finished' wasn't drawn on the intermission because the space 
   check compared scaled with unscaled coordinates.

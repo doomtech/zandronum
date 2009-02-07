@@ -915,12 +915,12 @@ FString FScanner::TokenName (int token, const char *string)
 		"'global'",
 		"'self'",
 		"'stop'",
-		"'pickup'",
-		"'breakable'",
-		"'projectile'",
 		"'#include'",
 		"'fixed_t'",
 		"'angle_t'",
+		"'abs'",
+		"'random'",
+		"'random2'"
 	};
 
 	FString work;
@@ -1113,6 +1113,8 @@ void STACK_ARGS FScriptPosition::Message (int severity, const char *message, ...
 		I_Error ("Script error, \"%s\" line %d:\n%s\n",
 			FileName.GetChars(), ScriptLine, composed.GetChars());
 	}
+	Printf (level, "Script %s, \"%s\" line %d:\n%s\n",
+		type, FileName.GetChars(), ScriptLine, composed.GetChars());
 }
 
 
