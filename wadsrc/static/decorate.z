@@ -15,25 +15,32 @@ ACTOR DynamicLight native
 }
 
 
-ACTOR PointLight : DynamicLight 9800 native
+ACTOR PointLight : DynamicLight 9800
 {
+	DynamicLight.Type "Point"
 }
 
-ACTOR PointLightPulse : PointLight 9801 native
+ACTOR PointLightPulse : PointLight 9801
 {
+	DynamicLight.Type "Pulse"
 }
 
-ACTOR PointLightFlicker : PointLight 9802 native
+ACTOR PointLightFlicker : PointLight 9802
 {
+	DynamicLight.Type "Flicker"
 }
 
-ACTOR SectorPointLight : PointLight 9803 native
+ACTOR SectorPointLight : PointLight 9803
 {
+	DynamicLight.Type "Sector"
 }
 
-ACTOR PointLightFlickerRandom : PointLight 9804 native
+ACTOR PointLightFlickerRandom : PointLight 9804
 {
+	DynamicLight.Type "RandomFlicker"
 }
+
+// MISSILEMORE and MISSILEEVENMORE are used by the lights for additive and subtractive lighrs
 
 ACTOR PointLightAdditive : PointLight 9810
 {

@@ -124,41 +124,6 @@ public:
 
 };
 
-class APointLight : public ADynamicLight
-{
-	DECLARE_CLASS (APointLight, ADynamicLight)
-public:
-   virtual void BeginPlay();
-};
-
-class APointLightPulse : public APointLight
-{
-   DECLARE_CLASS (APointLightPulse, APointLight)
-public:
-   virtual void BeginPlay();
-};
-
-class APointLightFlicker : public APointLight
-{
-   DECLARE_CLASS (APointLightFlicker, APointLight)
-public:
-   virtual void BeginPlay();
-};
-
-class APointLightFlickerRandom : public APointLight
-{
-   DECLARE_CLASS (APointLightFlickerRandom, APointLight)
-public:
-   virtual void BeginPlay();
-};
-
-class ASectorPointLight : public APointLight
-{
-   DECLARE_CLASS (ASectorPointLight, APointLight)
-public:
-   virtual void BeginPlay();
-};
-
 class AVavoomLight : public ADynamicLight
 {
    DECLARE_CLASS (AVavoomLight, ADynamicLight)

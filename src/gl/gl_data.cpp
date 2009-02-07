@@ -61,6 +61,8 @@
 
 GLRenderSettings glset;
 
+// [BB] ST may not use the sections code at the moment, so I just provide a dummy function here.
+void gl_CreateSections() {}
 
 EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 
@@ -177,10 +179,6 @@ static int LS_Sector_SetPlaneReflection (line_t *ln, AActor *it, bool backSide,
 TArray<GLVertex> gl_vertices(1024);
 
 extern bool gl_disabled;
-
-// A simple means so that I don't have to link to the debug stuff when I don't need it!
-void (*gl_DebugHook)();
-
 
 
 //==========================================================================
@@ -540,7 +538,7 @@ static void PrepareSectorData()
 						seg[j].PartnerSeg!=NULL && 
 						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector->render_sector)
 				{
-					//Printf("Found hack: %d,%d %d,%d\n", seg[j].v1->x>>16, seg[j].v1->y>>16, seg[j].v2->x>>16, seg[j].v2->y>>16);
+					DPrintf("Found hack: (%d,%d) (%d,%d)\n", seg[j].v1->x>>16, seg[j].v1->y>>16, seg[j].v2->x>>16, seg[j].v2->y>>16);
 					subsectors[i].hacked|=1;
 					SpreadHackedFlag(&subsectors[i]);
 				}
@@ -635,12 +633,12 @@ static void PrepareTransparentDoors(sector_t * sector)
 }
 
 
+//=============================================================================
+//
+//
+//
+//=============================================================================
 
-//=============================================================================
-//
-//
-//
-//=============================================================================
 side_t* getNextSide(sector_t * sec, line_t* line)
 {
 	if (sec==line->frontsector)
@@ -739,11 +737,11 @@ void gl_PreprocessLevel()
 	}
 	gl_CollectMissingLines();
 	gl_InitVertexData();
+	gl_CreateSections();
 
 	// This code can be called when the hardware renderer is inactive!
 	if (currentrenderer!=0) gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
 
-	if (gl_DebugHook) gl_DebugHook();
 	AdjustSpriteOffsets();
 	InitGLRMapinfoData();
 }

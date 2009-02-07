@@ -8,6 +8,13 @@
 #include "textures/textures.h"
 
 struct vertex_t;
+struct line_t;
+struct side_t;
+struct seg_t;
+struct subsector_t;
+struct sector_t;
+struct FGLSection;
+
 extern DWORD gl_fixedcolormap;
 class FGLTexture;
 
@@ -146,5 +153,49 @@ struct GLSectorStackInfo
 
 extern TArray<GLVertex> gl_vertices;
 
+struct FGLSectionLine
+{
+	vertex_t *start;
+	vertex_t *end;
+	side_t *sidedef;
+	line_t *linedef;
+	union
+	{
+		int otherside;
+		seg_t *refseg;
+	};
+};
+
+struct FGLSectionLoop
+{
+	int startline;
+	int numlines;
+
+	FGLSectionLine *GetLine(int no);
+};
+
+struct FGLSection
+{
+	sector_t *sector;
+	TArray<subsector_t *> subsectors;
+	int startloop;
+	int numloops;
+
+	FGLSectionLoop *GetLoop(int no);
+};
+
+extern TArray<FGLSectionLine> SectionLines;
+extern TArray<FGLSectionLoop> SectionLoops;
+extern TArray<FGLSection> Sections;
+
+inline FGLSectionLine *FGLSectionLoop::GetLine(int no)
+{
+	return &SectionLines[startline + no];
+}
+
+inline FGLSectionLoop *FGLSection::GetLoop(int no)
+{
+	return &SectionLoops[startloop + no];
+}
 
 #endif

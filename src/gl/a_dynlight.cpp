@@ -47,9 +47,29 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_values.h"
+#include "thingdef/thingdef.h"
+#include "i_system.h"
 
 EXTERN_CVAR (Float, gl_lights_size);
 EXTERN_CVAR (Bool, gl_lights_additive);
+
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_CLASS_PROPERTY(type, S, DynamicLight)
+{
+	PROP_STRING_PARM(str, 0);
+	static const char * ltype_names[]={
+		"Point","Pulse","Flicker","Sector","RandomFlicker", NULL};
+
+	static const int ltype_values[]={
+		PointLight, PulseLight, FlickerLight, SectorLight, RandomFlickerLight };
+
+	int style = MatchString(str, ltype_names);
+	if (style < 0) I_Error("Unknown light type '%s'", str);
+	defaults->lighttype = ltype_values[style];
+}
 
 //==========================================================================
 //
@@ -60,44 +80,9 @@ EXTERN_CVAR (Bool, gl_lights_additive);
 //
 //==========================================================================
 IMPLEMENT_CLASS (ADynamicLight)
-IMPLEMENT_CLASS (APointLight)
-IMPLEMENT_CLASS (APointLightPulse)
-IMPLEMENT_CLASS (APointLightFlicker)
-IMPLEMENT_CLASS (ASectorPointLight)
-IMPLEMENT_CLASS (APointLightFlickerRandom)
 IMPLEMENT_CLASS (AVavoomLight)
 IMPLEMENT_CLASS (AVavoomLightWhite)
 IMPLEMENT_CLASS (AVavoomLightColor)
-
-void APointLight::BeginPlay ()
-{
-	Super::BeginPlay();
-	lighttype = PointLight;
-}
-
-void APointLightPulse::BeginPlay ()
-{
-	Super::BeginPlay();
-	lighttype = PulseLight;
-}
-
-void APointLightFlicker::BeginPlay ()
-{
-	Super::BeginPlay();
-	lighttype = FlickerLight;
-}
-
-void ASectorPointLight::BeginPlay ()
-{
-	Super::BeginPlay();
-	lighttype = SectorLight;
-}
-
-void APointLightFlickerRandom::BeginPlay ()
-{
-	Super::BeginPlay();
-	lighttype=RandomFlickerLight;
-}
 
 void AVavoomLight::BeginPlay ()
 {
@@ -171,15 +156,6 @@ void ADynamicLight::BeginPlay()
 
 	m_intensity[0] = args[LIGHT_INTENSITY];
 	m_intensity[1] = args[LIGHT_SECONDARY_INTENSITY];
-	if (args[LIGHT_RED]==0 && args[LIGHT_GREEN]==0 && args[LIGHT_BLUE]==0)
-	{
-		// Hackhack! This allows to predefine lights in DECORATE ;)
-		PalEntry pe = GetClass()->Meta.GetMetaInt(AMETA_BloodColor);
-		args[LIGHT_RED] = pe.r;
-		args[LIGHT_GREEN] = pe.g;
-		args[LIGHT_BLUE] = pe.b;
-		m_intensity[0] = (byte)(radius>>FRACBITS);
-	}
 }
 
 //==========================================================================
