@@ -64,6 +64,8 @@
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+CVAR(Bool, gl_portals, true, 0)
+
 CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 {
 	if (self<0) self=0;
@@ -149,6 +151,8 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	PortalAll.Clock();
 	if (usestencil)
 	{
+		if (!gl_portals) return false;
+	
 		// Create stencil 
 		gl.StencilFunc(GL_EQUAL,recursion,~0);		// create stencil
 		gl.StencilOp(GL_KEEP,GL_KEEP,GL_INCR);		// increment stencil of valid pixels

@@ -774,8 +774,9 @@ add_executable( zdoom WIN32
 	thingdef/olddecorations.cpp
 	thingdef/thingdef.cpp
 	thingdef/thingdef_codeptr.cpp
+	thingdef/thingdef_data.cpp
 	thingdef/thingdef_exp.cpp
-	thingdef/thingdef_main.cpp
+	thingdef/thingdef_expression.cpp
 	thingdef/thingdef_parse.cpp
 	thingdef/thingdef_properties.cpp
 	thingdef/thingdef_states.cpp

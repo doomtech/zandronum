@@ -287,6 +287,8 @@ enum
 	COMPATF_SILENT_INSTANT_FLOORS = 1<<24,	// Instantly moving floors are not silent
 	// [BB] Changed from 1 << 18 to 1<<25.
 	COMPATF_SECTORSOUNDS	= 1 << 25,	// Sector sounds use original method for sound origin.
+	// [BB] Changed from 1 << 19 to 1<<26.
+	COMPATF_MISSILECLIP		= 1 << 26,	// Use original Doom heights for clipping against projectiles
 
 	// [BC] Start of new compatflags.
 

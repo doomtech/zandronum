@@ -177,7 +177,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 				inf.CurSector->heightsec != NULL &&
 				inf.CurSector->heightsec->floorplane.ZatPoint (res.X, res.Y) >= res.Z)
 			{
-				res.CrossedWater = inf.CurSector;
+				res.CrossedWater = &sectors[inf.CurSector->sectornum];
 			}
 		}
 		else if (inf.CheckSectorPlane (inf.CurSector, false))
@@ -280,13 +280,13 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 			}
 
 			if (Results->CrossedWater == NULL &&
-				CurSector->heightsec &&
+				CurSector->heightsec && 
 				!(CurSector->MoreFlags & SECF_IGNOREHEIGHTSEC) &&
 				//CurSector->heightsec->waterzone &&
 				hitz <= CurSector->heightsec->floorplane.ZatPoint (hitx, hity))
 			{
 				// hit crossed a water plane
-				Results->CrossedWater = CurSector;
+				Results->CrossedWater = &sectors[CurSector->sectornum];
 			}
 
 			if (hitz <= ff)

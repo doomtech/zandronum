@@ -620,19 +620,11 @@ bool AInventory::GoAway ()
 	// Dropped items never stick around
 	if (flags & MF_DROPPED)
 	{
-		if (PickupFlash != NULL)
-		{
-			Spawn(PickupFlash, x, y, z, ALLOW_REPLACE);
-		}
 		return false;
 	}
 
 	if (!ShouldStay ())
 	{
-		if (PickupFlash != NULL)
-		{
-			Spawn(PickupFlash, x, y, z, ALLOW_REPLACE);
-		}
 /*
 		// [BC] Test
 		if ( GAMEMODE_GetFlags( ) & GMF_MAPRESETS )
@@ -1046,8 +1038,13 @@ void AInventory::Touch (AActor *toucher)
 		toucher = toucher->player->mo;
 	}
 
-	if (!CallTryPickup (toucher))
-		return;
+	// This is the only situation when a pickup flash should ever play.
+	if (!CallTryPickup (toucher)) return;
+
+	if (PickupFlash != NULL && !ShouldStay())
+	{
+		Spawn(PickupFlash, x, y, z, ALLOW_REPLACE);
+	}
 
 	// [BC] Tell the client that he successfully picked up the item.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
@@ -1490,7 +1487,7 @@ bool AInventory::CallTryPickup (AActor *toucher)
 {
 	bool res = TryPickup(toucher);
 
-	if (!res && (ItemFlags & IF_ALWAYSPICKUP))
+	if (!res && (ItemFlags & IF_ALWAYSPICKUP) && !ShouldStay())
 	{
 		res = true;
 		GoAwayAndDie();

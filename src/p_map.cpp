@@ -897,8 +897,24 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		{
 			return true;
 		}
+
+		int clipheight;
+		
+		if (thing->projectilepassheight > 0) 
+		{
+			clipheight = thing->projectilepassheight;
+		}
+		else if (thing->projectilepassheight < 0 && (i_compatflags & COMPATF_MISSILECLIP))
+		{
+			clipheight = -thing->projectilepassheight;
+		}
+		else
+		{
+			clipheight = thing->height;
+		}
+
 		// Check if it went over / under
-		if (tm.thing->z > thing->z + thing->height)
+		if (tm.thing->z > thing->z + clipheight)
 		{ // Over thing
 			return true;
 		}
@@ -4117,7 +4133,7 @@ static bool ProcessRailHit (FTraceResults &res)
 	return true;
 }
 
-void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, FName puff)
+void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puffclass)
 {
 	fixed_t vx, vy, vz;
 	angle_t angle, pitch;
@@ -4211,7 +4227,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 	// Now hurt anything the trace hit
 	unsigned int i;
-	const PClass *puffclass = PClass::FindClass(puff);
+	if (puffclass == NULL) puffclass = PClass::FindClass(NAME_BulletPuff);
 	AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
 	FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
 
@@ -4299,7 +4315,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent );
 }
 
-void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, FName puff)
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff)
 {
 	// [BC]
 	LONG	lOuterColor;

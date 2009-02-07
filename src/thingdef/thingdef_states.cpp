@@ -55,84 +55,7 @@
 #include "s_sound.h"
 #include "i_system.h"
 #include "colormatcher.h"
-
-TArray<int> StateParameters;
-static TArray<AFuncDesc> AFTable;
-
-//==========================================================================
-//
-// Action functions
-//
-//==========================================================================
-
-//==========================================================================
-//
-// Find a function by name using a binary search
-//
-//==========================================================================
-static int STACK_ARGS funccmp(const void * a, const void * b)
-{
-	return stricmp( ((AFuncDesc*)a)->Name, ((AFuncDesc*)b)->Name);
-}
-
-AFuncDesc * FindFunction(const char * string)
-{
-	static bool funcsorted=false;
-
-	if (!funcsorted) 
-	{
-		TAutoSegIterator<AFuncDesc *, &ARegHead, &ARegTail> probe;
-
-		while (++probe != NULL)
-		{
-			AFTable.Push(*probe);
-		}
-		AFTable.ShrinkToFit();
-		qsort(&AFTable[0], AFTable.Size(), sizeof(AFTable[0]), funccmp);
-		funcsorted=true;
-	}
-
-	int min = 0, max = AFTable.Size()-1;
-
-	while (min <= max)
-	{
-		int mid = (min + max) / 2;
-		int lexval = stricmp (string, AFTable[mid].Name);
-		if (lexval == 0)
-		{
-			return &AFTable[mid];
-		}
-		else if (lexval > 0)
-		{
-			min = mid + 1;
-		}
-		else
-		{
-			max = mid - 1;
-		}
-	}
-	return NULL;
-}
-
-
-//==========================================================================
-//
-// Find an action function in AActor's table
-//
-//==========================================================================
-
-PSymbolActionFunction *FindGlobalActionFunction(const char *name)
-{
-	PSymbol *sym = RUNTIME_CLASS(AActor)->Symbols.FindSymbol(name, false);
-	if (sym != NULL && sym->SymbolType == SYM_ActionFunction)
-		return static_cast<PSymbolActionFunction*>(sym);
-	else
-		return NULL;
-}
-
-
-
-
+#include "thingdef_exp.h"
 
 //==========================================================================
 //***
@@ -140,13 +63,9 @@ PSymbolActionFunction *FindGlobalActionFunction(const char *name)
 // creates an empty parameter list for a parameterized function call
 //
 //==========================================================================
-int PrepareStateParameters(FState * state, int numparams)
+static int PrepareStateParameters(FState * state, int numparams, const PClass *cls)
 {
-	int paramindex=StateParameters.Size();
-	int i, v;
-
-	v=0;
-	for(i=0;i<numparams;i++) StateParameters.Push(v);
+	int paramindex=StateParams.Reserve(numparams, cls);
 	state->ParameterIndex = paramindex+1;
 	return paramindex;
 }
@@ -168,21 +87,16 @@ bool DoActionSpecials(FScanner &sc, FState & state, bool multistate, int * state
 	if (special > 0 && min_args >= 0)
 	{
 
-		int paramindex=PrepareStateParameters(&state, 6);
+		int paramindex=PrepareStateParameters(&state, 6, bag.Info->Class);
 
-		// The function expects the special to be passed as expression so we
-		// have to convert it.
-		specname.Format("%d", special);
-		FScanner sc2;
-		sc2.OpenMem("", (char*)specname.GetChars(), int(specname.Len()));
-		StateParameters[paramindex] = ParseExpression(sc2, false, bag.Info->Class);
+		StateParams.Set(paramindex, new FxConstant(special, sc));
 
 		// Make this consistent with all other parameter parsing
 		if (sc.CheckToken('('))
 		{
 			for (i = 0; i < 5;)
 			{
-				StateParameters[paramindex+i+1] = ParseExpression (sc, false, bag.Info->Class);
+				StateParams.Set(paramindex+i+1, ParseExpression (sc, bag.Info->Class));
 				i++;
 				if (!sc.CheckToken (',')) break;
 			}
@@ -425,23 +339,24 @@ do_stop:
 							}
 						}
 						
-						int paramindex = PrepareStateParameters(&state, numparams);
+						int paramindex = PrepareStateParameters(&state, numparams, bag.Info->Class);
 						int paramstart = paramindex;
 						bool varargs = params[numparams - 1] == '+';
+						int varargcount=0;
 
 
 						if (varargs)
 						{
-							StateParameters[paramindex++] = 0;
+							paramindex++;
 						}
 						else if (afd->defaultparameterindex > -1)
 						{
-							memcpy(&StateParameters[paramindex], &StateParameters[afd->defaultparameterindex],
-								afd->Arguments.Len() * sizeof (StateParameters[0]));
+							StateParams.Copy(paramindex, afd->defaultparameterindex, int(afd->Arguments.Len()));
 						}
 
 						while (*params)
 						{
+							FxExpression *x;
 							if ((*params == 'l' || *params == 'L') && sc.CheckNumber())
 							{
 								// Special case: State label as an offset
@@ -456,19 +371,18 @@ do_stop:
 									sc.ScriptError("Negative jump offsets are not allowed");
 								}
 
-								int minreq=count+v;
-								if (minreq>minrequiredstate) minrequiredstate=minreq;
+								x = new FxStateByIndex(count+v, sc);
 							}
 							else
 							{
 								// Use the generic parameter parser for everything else
-								v = ParseParameter(sc, bag.Info->Class, *params, false);
+								x = ParseParameter(sc, bag.Info->Class, *params, false);
 							}
-							StateParameters[paramindex++] = v;
+							StateParams.Set(paramindex++, x);
 							params++;
 							if (varargs)
 							{
-								StateParameters[paramstart]++;
+								varargcount++;
 							}
 							if (*params)
 							{
@@ -476,11 +390,11 @@ do_stop:
 								{
 									if (sc.CheckString(")"))
 									{
+										StateParams.Set(paramstart, new FxConstant(varargcount, sc));
 										goto endofstate;
 									}
 									params--;
-									v = 0;
-									StateParameters.Push(v);
+									StateParams.Reserve(1, bag.Info->Class);
 								}
 								else if ((islower(*params) || *params=='!') && sc.CheckString(")"))
 								{
@@ -524,10 +438,6 @@ endofstate:
 			laststate=&bag.StateArray[count];
 			count++;
 		}
-	}
-	if (count<=minrequiredstate)
-	{
-		sc.ScriptError("A_Jump offset out of range in %s", actor->Class->TypeName.GetChars());
 	}
 	sc.SetEscape(true);	// re-enable escape sequences
 	return count;

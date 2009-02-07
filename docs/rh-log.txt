@@ -1,4 +1,112 @@
+October 29, 2008  (Changes by Graf Zahl)
+- Fixed: FxClassTypeCast::Resolve didn't work for NULL classes because a variable
+  was not initialized.
+
+October 28, 2008  (Changes by Graf Zahl)
+- Fixed: The railgun attack functions still read their puff parameters as names
+  even though they are now passed as class pointers.
+- Fixed: The state parser counted one parameter too many for a varargs function.
+- Fixed: FStateExpressions could copy unresolved default parameter expressions.
+  When these were resolved and changed later all copied pointers pointed to
+  invalid data.
+
+October 26, 2008  (Changes by Graf Zahl)
+- Added read and write barriers to the actor pointer in the sound channel
+  structure.
+- Fixed: Items which should stay but had an IF_ALWAYSPICKUP flag were removed.
+- Fixed: The pickup flash must only play when an item is picked up so the 
+  correct place to spawn it is in AInventory::Touch, not in AInventory::GoAway.
+- Fixed: A_Jump didn't properly determine a state's owner anymore when called
+  from weapons.
+
+October 25, 2008  (Changes by Graf Zahl)
+- Added NULL checks to all places where class names are passed as DECORATE
+  parameters.
+- All DECORATE parameters are passed as expressions now. This change allows
+  for compile time checks of all class names being used in DECORATE so many
+  incorrect definitions may output warnings now.
+
+October 23, 2008  (Changes by Graf Zahl)
+- Changed: S_StopChannel now resets the actor's sound flags. The previous bug
+  made me think that delaying this until FMod calls the end of sound callback 
+  may simply be too late.
+- Fixed: The high level sound code must not rely on FMod immediately returning 
+  the sound channel data when a sound is being stopped. This caused
+  an endless loop when changing levels with Strife's Flamethrower active.
+
+October 22, 2008  (Changes by Graf Zahl)
+- Changed DECORATE sound and color parameters to use expressions.
+
+October 21, 2008  (Changes by Graf Zahl)
+- Added a proper function parser to the expression evaluator and converted
+  sin/cos and action specials to use it. The old evaluator is gone now.
+- fixed some GCC problems with autosegs.
+
+October 20, 2008
+- Game time is now frozen during screen wipes. This obsoletes the DEM_WIPEON
+  and DEM_WIPEOFF commands. Fixes multimap demos desyncing when played back
+  or recorded with wipes enabled, and prevents multiplayer games from
+  starting until all players' wipes have finished.
+
+October 19, 2008  (Changes by Graf Zahl)
+- Added native variables to expression evaluator and replaced the previous
+  handling of actor variables in expressions with it.
+- Added support for floating point constants to DECORATE expression evaluator.
+
+October 18, 2008
+- Rewrote the SeePastShootableLines check in P_SightCheckLine() to be
+  more readable.
+- Commented out the MugShot state nulling in DSBarInfo::AttachToPlayer() so
+  that fiddling with player options does not reset the mug shot.
+- Fixed: SetMugShotState ACS command did not pop the stack.
+
+October 18, 2008  (Changes by Graf Zahl)
+- Added a global symbol table and changed DECORATE parser to put its global 
+  symbols there instead of into AActor.
+- Changed the expression evaluator's floating point precision to double.
+- Started rewriting the DECORATE expression evaluator to allow more flexibility.
+  All the operators use the new functionality but functions, variables and
+  constants are yet to be redone.
+  While doing this rewrite I noticed that random2 was always evaluated as const.
+  This got fixed automatically.
+
+October 13, 2008
+- This may or may not be a problem, but GCC warned that FStateDefinitions::
+  AddStateDefines() does not initialize def.FStateDefine::DefineFlags, so
+  I fixed that.
+- Fixed: The three-argument version of AActor::FindState() initialized a
+  two-entry array for passing to the main FindState() routine, but did
+  not actually pass it, passing the original primary label instead.
+- Fixed: SDL builds did not shutdown the sound system at exit.
+- Fixed: ThingCountSector and ThingCountNameSector did not remove enough
+  entries from the stack, and did not put the result in the right slot.
+- Fixed: Teleport lines were prioritized over secret lines when deciding what
+  color to draw them on the automap.
+- Fixed: Death-reverting morphs did not remove the morph item from the
+  player's inventory when death caused the morph to revert.
+- Updated fmod_wrap.h for FMOD Ex 4.18.
+
+October 10, 2008  (Changes by Graf Zahl)
+- Fixed: The TEXTURES parser could copy beyond the end of a string when parsing
+  a 'define' definition.
+
+October 7, 2008  (Changes by Graf Zahl)
+- Fixed: Cheats in demos must not access the weapon slots.
+- Fixed: S_ChannelEnded didn't check for a NULL SfxInfo.
+- Fixed: R_InitTables did a typecast to angle_t instead of fixed_t.
+
+October 6, 2008  (Changes by Graf Zahl)
+- Fixed: PowerProtection and PowerDamage applied their defaults incorrectly.
+- Fixed: The damage type property didn't properly read its factor.
+
 October 5, 2008  (Changes by Graf Zahl)
+- Finally has the right idea how to restore Doom's original clipping of projectiles
+  against decorations without breaking anything newer:
+  Added a new 'projectilepassheight' property that defines an alternative height
+  that is only used when checking a projectile's movement against this actor.
+  If the value is positive it is used regardless of other settings, if it is
+  negative, its absolute will be used if a new compatibility option is enabled
+  and if it is 0 the normal height will be used.
 - Fixed: Powerup.Color's handler contained an unnecessary 'else' which resulted
   in opaque powerup blends.
 

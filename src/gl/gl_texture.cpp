@@ -123,7 +123,7 @@ void gl_GenerateGlobalBrightmapFromColormap()
 
 	GlobalBrightmap.MakeIdentity();
 	memset(GlobalBrightmap.Remap, white, 256);
-	for(int i=0;i<256;i++) GlobalBrightmap.Palette[i]=PalEntry(255,255,255);
+	for(int i=0;i<256;i++) GlobalBrightmap.Palette[i]=PalEntry(255,255,255,255);
 	for(int j=0;j<32;j++)
 	{
 		for(int i=0;i<256;i++)
@@ -601,6 +601,7 @@ void FTexture::UncacheGL()
 
 FBrightmapTexture::FBrightmapTexture (FTexture *source)
 {
+	memcpy(Name, source->Name, 9);
 	SourcePic = source;
 	CopySize(source);
 	bNoDecals = source->bNoDecals;
@@ -915,6 +916,7 @@ bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool 
 {
 	if (tex->bm_info.bIsBrightmap==-1)
 	{
+
 		DWORD * dwbuf = (DWORD*)buffer;
 		for(int i=0;i<w*h;i++)
 		{

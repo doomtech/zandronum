@@ -2,6 +2,44 @@
 #define __GL_BASIC
 
 #include "stats.h"
+#include "x86.h"
+
+#if _MSC_VER
+
+#include <intrin.h>
+
+inline long long GetClockCycle ()
+{
+#if _M_X64
+	return __rdtsc();
+#else
+	return CPU.bRDTSC ? __rdtsc() : 0;
+#endif
+}
+
+#elif defined(__GNUG__) && defined(__i386__)
+
+inline long long GetClockCycle()
+{
+	if (CPU.bRDTSC)
+	{
+		cycle_t res;
+		asm volatile ("rdtsc" : "=A" (res));
+		return res;
+	}
+	else
+	{
+		return 0;
+	}	
+}
+
+#else
+
+inline long long GetClockCycle ()
+{
+	return 0;
+}
+#endif
 
 class glcycle_t
 {
@@ -22,24 +60,24 @@ public:
 		// Not using QueryPerformanceCounter directly, so we don't need
 		// to pull in the Windows headers for every single file that
 		// wants to do some profiling.
-		//long long time = QueryPerfCounter();
-		//Counter -= time;
+		long long time = GetClockCycle();
+		Counter -= time;
 	}
 	
 	void Unclock()
 	{
-		//long long time = QueryPerfCounter();
-		//Counter += time;
+		long long time = GetClockCycle();
+		Counter += time;
 	}
 	
 	double Time()
 	{
-		return 0; //Counter * GLPerfToSec;
+		return double(Counter) / 1000; // * GLPerfToSec;
 	}
 	
 	double TimeMS()
 	{
-		return 0; //Counter * GLPerfToMillisec;
+		return double(Counter); // * GLPerfToMillisec;
 	}
 
 private:

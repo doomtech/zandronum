@@ -52,7 +52,7 @@
 #include "cl_main.h"
 #include "network.h"
 
-extern void LoadDecorations ();
+extern void LoadActors ();
 
 //==========================================================================
 //
@@ -62,12 +62,11 @@ extern void LoadDecorations ();
 int GetSpriteIndex(const char * spritename)
 {
 	// Make sure that the string is upper case and 4 characters long
-	char upper[5];
+	char upper[5]={0,0,0,0,0};
 	for (int i = 0; spritename[i] != 0 && i < 4; i++)
 	{
 		upper[i] = toupper (spritename[i]);
 	}
-	upper[4] = 0;
 
 	for (unsigned i = 0; i < sprites.Size (); ++i)
 	{
@@ -106,8 +105,8 @@ void FActorInfo::StaticInit ()
 		sprites.Push (temp);
 	}
 
-	Printf ("LoadDecorations: Load external actors.\n");
-	LoadDecorations ();
+	Printf ("LoadActors: Load actor definitions.\n");
+	LoadActors ();
 }
 
 //==========================================================================

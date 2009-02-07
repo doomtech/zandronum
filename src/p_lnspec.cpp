@@ -3565,7 +3565,7 @@ struct FLineSpecial
 {
 	const char *name;
 	BYTE number;
-	BYTE min_args;
+	SBYTE min_args;
 	SBYTE max_args;
 };
 
