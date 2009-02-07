@@ -3650,7 +3650,7 @@ void P_SetupLevel (char *lumpname, int position)
 	AActor::ClearTIDHashes ();
 
 	// [RH] clear out the mid-screen message
-	C_MidPrint (NULL);
+	C_MidPrint (NULL, NULL);
 
 	// Free all level data from the previous map
 	P_FreeLevelData ();
@@ -4141,9 +4141,7 @@ void P_SetupLevel (char *lumpname, int position)
 	// [BB] Notify software users if 3d floors are present.
 	if( ( currentrenderer == 0) && (NETWORK_GetState( ) != NETSTATE_SERVER) && mapUses3DFloors && screen && StatusBar )
 	{
-		screen->SetFont( BigFont );
-
-		DHUDMessageFadeOut	*pMsg = new DHUDMessageFadeOut( "This map uses 3D floors that are invisible in the software renderer.",
+		DHUDMessageFadeOut	*pMsg = new DHUDMessageFadeOut( BigFont, "This map uses 3D floors that are invisible in the software renderer.",
 			160.4f,
 			75.0f,
 			320,
@@ -4153,7 +4151,6 @@ void P_SetupLevel (char *lumpname, int position)
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg );
-		screen->SetFont( SmallFont );
 	}
 
 }

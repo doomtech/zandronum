@@ -252,7 +252,7 @@ void P_Ticker (void)
 				sprintf( szString, "ALL CLEAR!" );
 			}
 
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				0.9f,
 				0,
@@ -281,7 +281,7 @@ void P_Ticker (void)
 				sprintf( szString, "ALL CLEAR!" );
 			}
 
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				0.9f,
 				0,

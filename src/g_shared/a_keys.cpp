@@ -9,6 +9,7 @@
 #include "v_palette.h"
 #include "w_wad.h"
 #include "doomstat.h"
+#include "v_font.h"
 // [BB] New #includes.
 #include "network.h"
 #include "sv_commands.h"
@@ -171,9 +172,9 @@ static void PrintMessage (const char *str)
 	{
 		if (str[0]=='$') 
 		{
-			str=GStrings(str+1);
+			str = GStrings(str+1);
 		}
-		C_MidPrint (str);
+		C_MidPrint (SmallFont, str);
 	}
 }
 

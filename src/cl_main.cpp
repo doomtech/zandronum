@@ -2757,7 +2757,7 @@ void CLIENT_DisplayMOTD( void )
 	if ( StatusBar == NULL )
 		return;
 
-	StatusBar->AttachMessage( new DHUDMessageFadeOut( g_MOTD,
+	StatusBar->AttachMessage( new DHUDMessageFadeOut( SmallFont, g_MOTD,
 		1.5f,
 		0.375f,
 		0,
@@ -6767,9 +6767,9 @@ static void client_PrintMid( BYTESTREAM_s *pByteStream )
 
 	// Print the message.
 	if ( bBold )
-		C_MidPrintBold( pszString );
+		C_MidPrintBold( SmallFont, pszString );
 	else
-		C_MidPrint( pszString );
+		C_MidPrint( SmallFont, pszString );
 }
 
 //*****************************************************************************
@@ -6795,7 +6795,6 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	bool		bLog;
 	LONG		lID;
 	DHUDMessage	*pMsg;
-	FFont		*pOldFont;
 
 	// Read in the string.
 	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
@@ -6828,12 +6827,8 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
-	pOldFont = screen->Font;
-	if ( V_GetFont( pszFont ))
-		screen->SetFont( V_GetFont( pszFont ));
-
 	// Create the message.
-	pMsg = new DHUDMessage( szString,
+	pMsg = new DHUDMessage( V_GetFont( pszFont ), szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -6847,9 +6842,6 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	// Log the message if desired.
 	if ( bLog )
 		CLIENT_LogHUDMessage( szString, lColor );
-
-	// Finally, revert to the old font we were using.
-	screen->SetFont( pOldFont );
 }
 
 //*****************************************************************************
@@ -6868,7 +6860,6 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	bool				bLog;
 	LONG				lID;
 	DHUDMessageFadeOut	*pMsg;
-	FFont				*pOldFont;
 
 	// Read in the string.
 	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
@@ -6904,12 +6895,8 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
-	pOldFont = screen->Font;
-	if ( V_GetFont( pszFont ))
-		screen->SetFont( V_GetFont( pszFont ));
-
 	// Create the message.
-	pMsg = new DHUDMessageFadeOut( szString,
+	pMsg = new DHUDMessageFadeOut( V_GetFont( pszFont ), szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -6924,9 +6911,6 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	// Log the message if desired.
 	if ( bLog )
 		CLIENT_LogHUDMessage( szString, lColor );
-
-	// Finally, revert to the old font we were using.
-	screen->SetFont( pOldFont );
 }
 
 //*****************************************************************************
@@ -6946,7 +6930,6 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	bool					bLog;
 	LONG					lID;
 	DHUDMessageFadeInOut	*pMsg;
-	FFont					*pOldFont;
 
 	// Read in the string.
 	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
@@ -6985,12 +6968,8 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
-	pOldFont = screen->Font;
-	if ( V_GetFont( pszFont ))
-		screen->SetFont( V_GetFont( pszFont ));
-
 	// Create the message.
-	pMsg = new DHUDMessageFadeInOut( szString,
+	pMsg = new DHUDMessageFadeInOut( V_GetFont( pszFont ), szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -7006,9 +6985,6 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	// Log the message if desired.
 	if ( bLog )
 		CLIENT_LogHUDMessage( szString, lColor );
-
-	// Finally, revert to the old font we were using.
-	screen->SetFont( pOldFont );
 }
 
 //*****************************************************************************
@@ -7028,7 +7004,6 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	bool						bLog;
 	LONG						lID;
 	DHUDMessageTypeOnFadeOut	*pMsg;
-	FFont						*pOldFont;
 
 	// Read in the string.
 	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
@@ -7067,12 +7042,8 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
-	pOldFont = screen->Font;
-	if ( V_GetFont( pszFont ))
-		screen->SetFont( V_GetFont( pszFont ));
-
 	// Create the message.
-	pMsg = new DHUDMessageTypeOnFadeOut( szString,
+	pMsg = new DHUDMessageTypeOnFadeOut( V_GetFont( pszFont ), szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -7088,9 +7059,6 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	// Log the message if desired.
 	if ( bLog )
 		CLIENT_LogHUDMessage( szString, lColor );
-
-	// Finally, revert to the old font we were using.
-	screen->SetFont( pOldFont );
 }
 
 //*****************************************************************************

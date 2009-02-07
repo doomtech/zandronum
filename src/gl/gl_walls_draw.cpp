@@ -134,7 +134,8 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 		glowing = false;
 	}
 
-	gl_ApplyShader();
+	if (!(flags & GLWF_NOSHADER)) gl_ApplyShader();
+	else gl_DisableShader();
 
 	if (glowing)
 	{
@@ -248,6 +249,7 @@ void GLWall::RenderMirrorSurface()
 	pat->BindPatch(Colormap.LightColor.a, 0);
 
 	flags &= ~GLWF_GLOW;
+	flags |= GLWF_NOSHADER;
 	RenderWall(0,NULL);
 
 	gl.Disable(GL_TEXTURE_GEN_T);

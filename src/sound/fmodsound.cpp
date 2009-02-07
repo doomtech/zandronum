@@ -1378,7 +1378,11 @@ FISoundChannel *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pi
 			chan->setFrequency(freq);
 		}
 		chan->setVolume(vol);
-		HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq);
+		if (!HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq))
+		{
+			chan->stop();
+			return NULL;
+		}
 		chan->setPaused(false);
 		return CommonChannelSetup(chan, reuse_chan);
 	}
@@ -1472,7 +1476,11 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 			chan->set3DAttributes((FMOD_VECTOR *)&pos[0], (FMOD_VECTOR *)&vel[0]);
 			chan->set3DSpread(snd_3dspread);
 		}
-		HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq);
+		if (!HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq))
+		{
+			chan->stop();
+			return NULL;
+		}
 		chan->setPaused(false);
 		FISoundChannel *schan = CommonChannelSetup(chan, reuse_chan);
 		schan->Rolloff = *rolloff;
@@ -1488,12 +1496,14 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 //
 // FMODSoundRenderer :: HandleChannelDelay
 //
-// If the sound is restarting, seek it to its proper place.
-// Otherwise, record its starting time.
+// If the sound is restarting, seek it to its proper place. Returns false
+// if the sound would have ended.
+//
+// Otherwise, record its starting time, and return true.
 //
 //==========================================================================
 
-void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, bool abstime, float freq) const
+bool FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, bool abstime, float freq) const
 {
 	if (reuse_chan != NULL)
 	{ // Sound is being restarted, so seek it to the position
@@ -1517,7 +1527,7 @@ void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *
 			QWORD difftime = nowtime.AsOne - reuse_chan->StartTime.AsOne;
 			if (difftime > 0)
 			{
-				chan->setPosition((unsigned int)(difftime / OutputRate), FMOD_TIMEUNIT_MS);
+				return chan->setPosition((unsigned int)(difftime / OutputRate), FMOD_TIMEUNIT_MS) == FMOD_OK;
 			}
 		}
 	}
@@ -1525,6 +1535,7 @@ void FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *
 	{
 		chan->setDelay(FMOD_DELAYTYPE_DSPCLOCK_START, DSPClock.Hi, DSPClock.Lo);
 	}
+	return true;
 }
 
 //==========================================================================

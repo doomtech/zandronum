@@ -50,18 +50,13 @@
 #include "sv_main.h"
 
 //
-// SetFont
+// DrawChar
 //
-// Set the canvas's font
+// Write a single character using the given font
 //
-void DCanvas::SetFont (FFont *font)
+void STACK_ARGS DCanvas::DrawChar (FFont *font, int normalcolor, int x, int y, BYTE character, ...)
 {
-	Font = font;
-}
-
-void STACK_ARGS DCanvas::DrawChar (int normalcolor, int x, int y, BYTE character, ...)
-{
-	if (Font == NULL)
+	if (font == NULL)
 		return;
 
 	if (normalcolor >= NumTextColors)
@@ -70,9 +65,9 @@ void STACK_ARGS DCanvas::DrawChar (int normalcolor, int x, int y, BYTE character
 	FTexture *pic;
 	int dummy;
 
-	if (NULL != (pic = Font->GetChar (character, &dummy)))
+	if (NULL != (pic = font->GetChar (character, &dummy)))
 	{
-		const FRemapTable *range = Font->GetColorTranslation ((EColorRange)normalcolor);
+		const FRemapTable *range = font->GetColorTranslation ((EColorRange)normalcolor);
 		va_list taglist;
 		va_start (taglist, character);
 		DrawTexture (pic, x, y, DTA_Translation, range, TAG_MORE, &taglist);
@@ -83,9 +78,9 @@ void STACK_ARGS DCanvas::DrawChar (int normalcolor, int x, int y, BYTE character
 //
 // DrawText
 //
-// Write a string using the current font
+// Write a string using the given font
 //
-void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *string, ...)
+void STACK_ARGS DCanvas::DrawText (FFont *font, int normalcolor, int x, int y, const char *string, ...)
 {
 	va_list tags;
 	DWORD tag;
@@ -105,16 +100,16 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 	int			kerning;
 	FTexture *pic;
 
-	if (Font == NULL || string == NULL)
+	if (font == NULL || string == NULL)
 		return;
 
 	if (normalcolor >= NumTextColors)
 		normalcolor = CR_UNTRANSLATED;
 	boldcolor = normalcolor ? normalcolor - 1 : NumTextColors - 1;
 
-	range = Font->GetColorTranslation ((EColorRange)normalcolor);
-	height = Font->GetHeight () + 1;
-	kerning = Font->GetDefaultKerning ();
+	range = font->GetColorTranslation ((EColorRange)normalcolor);
+	height = font->GetHeight () + 1;
+	kerning = font->GetDefaultKerning ();
 
 	ch = (const BYTE *)string;
 	cx = x;
@@ -222,7 +217,7 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 			EColorRange newcolor = V_ParseFontColor (ch, normalcolor, boldcolor);
 			if (newcolor != CR_UNDEFINED)
 			{
-				range = Font->GetColorTranslation (newcolor);
+				range = font->GetColorTranslation (newcolor);
 			}
 			continue;
 		}
@@ -234,11 +229,14 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 			continue;
 		}
 
-		if (NULL != (pic = Font->GetChar (c, &w)))
+		if (NULL != (pic = font->GetChar (c, &w)))
 		{
+
 			va_list taglist;
 			va_start (taglist, string);
 			// [BC] Flag this as being text.
+			// [BB] Don't apply these text rules to the big font. This special handling of the big font formerly
+			// was done in DCanvas::ParseDrawTextureTags.
 			if (forcedwidth)
 			{
 				w = forcedwidth;
@@ -246,14 +244,14 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 					DTA_Translation, range,
 					DTA_DestWidth, forcedwidth,
 					DTA_DestHeight, height,
-					DTA_IsText, true,
+					DTA_IsText, (font == BigFont) ? false : true,
 					TAG_MORE, &taglist);
 			}
 			else
 			{
 				DrawTexture (pic, cx, cy,
 					DTA_Translation, range,
-					DTA_IsText, true,
+					DTA_IsText, (font == BigFont) ? false : true,
 					TAG_MORE, &taglist);
 			}
 			va_end (taglist);

@@ -525,8 +525,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			1.5,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -535,7 +534,6 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 			3.0f,
 			0.5f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
@@ -559,8 +557,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( SmallFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS_SUB,
 			0,
@@ -669,7 +666,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer )
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -720,8 +717,7 @@ void TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx )
 	V_ColorizeString( szString );
 
 	// Now, print it.
-	screen->SetFont( BigFont );
-	pMsg = new DHUDMessageFadeOut( szString,
+	pMsg = new DHUDMessageFadeOut( BigFont, szString,
 		1.5f,
 		TEAM_MESSAGE_Y_AXIS,
 		0,
@@ -730,7 +726,6 @@ void TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx )
 		3.0f,
 		0.25f );
 	StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-	screen->SetFont( SmallFont );
 
 	// Finally, play the announcer entry associated with this event.
 	sprintf( szString, "%s%sDropped", TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
@@ -761,8 +756,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			160.4f,
 			75.0f,
 			320,
@@ -772,7 +766,6 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 	else
 	{
@@ -833,10 +826,8 @@ void TEAM_TimeExpired( void )
 
 				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 				{
-					screen->SetFont( BigFont );
-
 					// Display the HUD message.
-					pMsg = new DHUDMessageFadeOut( szString,
+					pMsg = new DHUDMessageFadeOut( BigFont, szString,
 						160.4f,
 						75.0f,
 						320,
@@ -846,7 +837,6 @@ void TEAM_TimeExpired( void )
 						2.0f );
 
 					StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-					screen->SetFont( SmallFont );
 				}
 				else
 				{

@@ -2342,10 +2342,6 @@ void DLevelScript::DoSetFont (int fontnum)
 	{
 		activefont = SmallFont;
 	}
-	if (screen != NULL)
-	{
-		screen->SetFont (activefont);
-	}
 }
 
 #define APROP_Health		0
@@ -2771,11 +2767,6 @@ int DLevelScript::RunScript ()
 	const char *lookup;
 	int optstart = -1;
 	int temp;
-
-	if (screen != NULL)
-	{
-		screen->SetFont (activefont);
-	}
 
 	// [BC] Since the server doesn't have a screen, we have to save the active font some
 	// other way.
@@ -4248,7 +4239,7 @@ int DLevelScript::RunScript ()
 				if (pcd == PCD_ENDPRINTBOLD || screen == NULL ||
 					screen->CheckLocalView (consoleplayer))
 				{
-					C_MidPrint (work);
+					C_MidPrint (activefont, work);
 				}
 
 				// [BC] Potentially tell clients to print this message.
@@ -4320,7 +4311,7 @@ int DLevelScript::RunScript ()
 								SERVERCOMMANDS_PrintHUDMessage( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 						}
 						else
-							msg = new DHUDMessage (work, x, y, hudwidth, hudheight, color, holdTime);
+							msg = new DHUDMessage (activefont, work, x, y, hudwidth, hudheight, color, holdTime);
 						break;
 					case 1:		// fade out
 						{
@@ -4335,7 +4326,7 @@ int DLevelScript::RunScript ()
 									SERVERCOMMANDS_PrintHUDMessageFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
-								msg = new DHUDMessageFadeOut (work, x, y, hudwidth, hudheight, color, holdTime, fadeTime);
+								msg = new DHUDMessageFadeOut (activefont, work, x, y, hudwidth, hudheight, color, holdTime, fadeTime);
 						}
 						break;
 					case 2:		// type on, then fade out
@@ -4352,7 +4343,7 @@ int DLevelScript::RunScript ()
 									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
-								msg = new DHUDMessageTypeOnFadeOut (work, x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime);
+								msg = new DHUDMessageTypeOnFadeOut (activefont, work, x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime);
 						}
 						break;
 					case 3:		// fade in, then fade out
@@ -4369,7 +4360,7 @@ int DLevelScript::RunScript ()
 									SERVERCOMMANDS_PrintHUDMessageFadeInOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
-								msg = new DHUDMessageFadeInOut (work, x, y, hudwidth, hudheight, color, holdTime, inTime, outTime);
+								msg = new DHUDMessageFadeInOut (activefont, work, x, y, hudwidth, hudheight, color, holdTime, inTime, outTime);
 						}
 						break;
 					}
@@ -6162,10 +6153,6 @@ int DLevelScript::RunScript ()
 	{
 		this->pc = pc;
 		assert (sp == 0);
-	}
-	if (screen != NULL)
-	{
-		screen->SetFont (SmallFont);
 	}
 
 	// [BC] Since the server doesn't have a screen, we have to save the active font some

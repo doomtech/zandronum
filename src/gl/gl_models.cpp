@@ -51,6 +51,7 @@
 #include "doomstat.h"
 #include "g_level.h"
 #include "gl_geometric.h"
+#include "gl_intern.h"
 
 static inline float GetTimeFloat()
 {
@@ -79,20 +80,6 @@ public:
 
 DeletingModelArray Models;
 
-class DeletingSkinArray : public TArray<FTexture *>
-{
-public:
-
-	~DeletingSkinArray()
-	{
-		for(unsigned i=0;i<Size();i++)
-		{
-			delete (*this)[i];
-		}
-	}
-};
-
-static DeletingSkinArray ModelSkins;
 static TArray<FSpriteModelFrame> SpriteModelFrames;
 static int * SpriteModelHash;
 //TArray<FStateModelFrame> StateModelFrames;
@@ -142,9 +129,14 @@ FTexture * LoadSkin(const char * path, const char * fn)
 	int texlump = FindGFXFile(buffer);
 	if (texlump>=0)
 	{
-		FTexture * tex = FTexture::CreateTexture(texlump, FTexture::TEX_Any);
-		ModelSkins.Push(tex);
-		return tex;
+		FTextureID texno = TexMan.FindTextureByLumpNum(texlump);
+		if (!texno.isValid())
+		{
+			FTexture *tex = FTexture::CreateTexture("", texlump, FTexture::TEX_Override);
+			TexMan.AddTexture(tex);
+			return tex;
+		}
+		return TexMan[texno];
 	}
 	else 
 	{
@@ -592,7 +584,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	Matrix3x4 ModelToWorld;
 	Matrix3x4 *mat;
 
-	if (gl_fogmode != 2)
+	if (gl_fogmode != 2 || !gl_fog_shader)
 	{
 		// Model space => World space
 		gl.Translatef(spr->x, spr->z, spr->y );

@@ -88,6 +88,7 @@ class FGLTexture;
 class FTexture
 {
 public:
+	static FTexture *CreateTexture(const char *name, int lumpnum, int usetype);
 	static FTexture *CreateTexture(int lumpnum, int usetype);
 	virtual ~FTexture ();
 
@@ -97,6 +98,8 @@ public:
 
 	fixed_t		xScale;
 	fixed_t		yScale;
+
+	int SourceLump;
 
 	char Name[9];
 	BYTE UseType;	// This texture's primary purpose
@@ -147,7 +150,7 @@ public:
 	virtual int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate=0, FCopyInfo *inf = NULL);
 	int CopyTrueColorTranslated(FBitmap *bmp, int x, int y, int rotate, FRemapTable *remap, FCopyInfo *inf = NULL);
 	virtual bool UseBasePalette();
-	virtual int GetSourceLump() { return -1; }
+	virtual int GetSourceLump() { return SourceLump; }
 	virtual FTexture *GetRedirect(bool wantwarped);
 
 	virtual void Unload () = 0;
@@ -211,7 +214,7 @@ protected:
 	static BYTE GrayMap[256];
 	FNativeTexture *Native;
 
-	FTexture ();
+	FTexture (const char *name = NULL, int lumpnum = -1);
 
 	Span **CreateSpans (const BYTE *pixels) const;
 	void FreeSpans (Span **spans) const;
@@ -314,6 +317,7 @@ public:
 
 	FTextureID CheckForTexture (const char *name, int usetype, BITFIELD flags=TEXMAN_TryAny);
 	FTextureID GetTexture (const char *name, int usetype, BITFIELD flags=0);
+	FTextureID FindTextureByLumpNum (int lumpnum);
 	int ListTextures (const char *name, TArray<FTextureID> &list);
 
 	void AddTexturesLump (const void *lumpdata, int lumpsize, int deflumpnum, int patcheslump, int firstdup=0, bool texture1=false);

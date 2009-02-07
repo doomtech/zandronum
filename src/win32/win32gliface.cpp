@@ -230,12 +230,7 @@ DFrameBuffer *Win32GLVideo::CreateFrameBuffer(int width, int height, bool fs, DF
 
 bool Win32GLVideo::SetResolution (int width, int height, int bits)
 {
-	// This function will destroy the old video context and create a new one
-	// It's the only means to change resolutions in GL under Windows.
-	FFont *font;
-	
 	FGLTexture::FlushAll();
-	font = screen? screen->Font : NULL;
 	I_ShutdownGraphics();
 	
 	Video = new Win32GLVideo(0);
@@ -244,7 +239,6 @@ bool Win32GLVideo::SetResolution (int width, int height, int bits)
 	bits=32;
 	
 	V_DoModeSetup(width, height, bits);
-	if (font != NULL) screen->SetFont(font);
 	return true;	// We must return true because the old video context no longer exists.
 }
 

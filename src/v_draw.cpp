@@ -599,12 +599,7 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 
 		// [BC] Is what we're drawing text? If so, handle it differently.
 		case DTA_IsText:
-
 			bIsText = !!va_arg( tags, INTBOOL );
-
-			// Don't apply these text rules to the big font.
-			if ( screen->Font == BigFont )
-				bIsText = false;
 			break;
 		}
 		tag = va_arg (tags, DWORD);

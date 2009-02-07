@@ -392,9 +392,7 @@ void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 		
 		// Build the string and text color;
 		sprintf( szString, "%s", players[consoleplayer].PendingWeapon->GetClass( )->TypeName.GetChars( ));
-		// [RC] Set the font
-		screen->SetFont( SmallFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
 			0,

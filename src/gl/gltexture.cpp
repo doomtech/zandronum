@@ -83,7 +83,7 @@ CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 	FGLTexture::FlushAll();
 }
 
-CVAR(Bool, gl_clamping_bug, true,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_clamp_per_texture, false,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 
 //===========================================================================
@@ -398,11 +398,11 @@ unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool
 //===========================================================================
 void GLTexture::SetTextureClamp(int newclampmode)
 {
-	if (gl_clamping_bug || (clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
+	if (!gl_clamp_per_texture || (clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
 	{
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, newclampmode&GLT_CLAMPX? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}
-	if (gl_clamping_bug || (clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
+	if (!gl_clamp_per_texture || (clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
 	{
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}

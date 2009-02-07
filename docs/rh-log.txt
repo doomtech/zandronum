@@ -1,3 +1,86 @@
+November 30, 2008  (Changes by Graf Zahl)
+- Fixed: 'finished' wasn't drawn on the intermission because the space 
+  check compared scaled with unscaled coordinates.
+- Changed: Textures without a name no longer get added to the texture manager's 
+  hash chains.
+- Fixed: specifying texture patches or font characters by full lump name instead
+  of texture name didn't work. To do this properly the texture manager needs
+  an option to look for a texture by lump number so that such textures can
+  be maintained without interfering with regular operation.
+- added 'skystretch' and 'autosequences' keywords for MAPINFO so that the effects
+  of 'noautosequences' and 'forcenoskystretch' can be cancelled.
+- Added a 'gamedefaults' section to MAPINFO after discovering that 'defaultmap'
+  gets reset for each MAPINFO. A global section is needed to define a game's
+  default setting in zdoom.pk3. The gamedefaults should normally not be changed 
+  by PWADs but it can be done if some mod intends to change gameplay settings 
+  but wants to allow custom add-ons on its own.
+
+November 29, 2008
+- Fixed alignment of "finished" line in WI_drawLF() when the level name is a
+  graphic and scaled.
+- It is now possible to replace the game's SmallFont with a single lump font
+  called SMALLFNT.
+- Reduced the width of the second column in wi_percents false mode from 3 to
+  2 characters.
+- Added a WISLASH graphic for Doom's intermission screen when wi_percents is
+  false.
+
+November 29, 2008 (sbarinfo update)
+- Added: inventorybarnotvisible to check to see if the inventory bar is up.
+- Added the following flags to drawselectedinventory center, centerbottom, and
+  drawshadow.
+- Fixed: The translucent flag for drawinventorybar should only have affected
+  the artibox image.
+
+November 27, 2008
+- Removed S_MarkSoundChannels(), as it caused all non-actor sounds to
+  have their origins zeroed during collections.
+- WI_drawLF() now draws the level name at the top of the screen, always.
+- Fixed: disabling lowerHealthCap didn't affect interpolateHealth.
+- The co-op summary screen now has a totals row at the bottom (if it fits).
+- Changed WI_drawPercent() when wi_percents is false so that the total
+  display is optional, and it formats it like Heretic's intermission, with
+  a slash and a fixed-width right column.
+
+November 21, 2008
+- Font is no longer a property of the screen object. Pass the font to
+  DrawText and DrawChar directly instead.
+- Doom's intermission characters are now collected together as a font
+  so they can be colorized.
+
+November 18, 2008  (Changes by Graf Zahl)
+- Fixed: compatf_limitpain must check for 21 Lost Souls, not 20.
+
+November 15, 2008  (Changes by Graf Zahl)
+- Moved common code of Raven's fast projectiles into a base class
+  called FastProjectile. This base class doesn't have any effects attached
+  so that it can be used for user defined fast projectiles.
+
+November 14, 2008
+- Removed GC barriers from the sound channels. If we must, we can always
+  do it the old way and scan every channel to see if it matches an actor/
+  entchannel pair.
+- Fixed: S_RelinkSounds() did not move the SoundChans bitfield to the new
+  actor.
+- Fixed: Stolen channels could be kept around by the high-level channels
+  indefinitely.
+- Fixed: AMageStaffFX2::IsOkayToAttack() / A_MStaffAttack aimed at friendlies.
+- Added kill count awareness to A_ChangeFlag.
+- P_NightmareRespawn() now clears the MTF_AMBUSH flag, so respawned monsters
+  aren't dormant (since there would be no way to activate them, and they
+  were certainly not dormant when they died).
+
+November 8, 2008
+- Made sdl/i_system.cpp:I_GetTimePolled() functionally equivalent to the
+  Win32 version.
+- Updated fmod_wrap.h and fmodsound.cpp for FMOD 4.20.
+- GCC warning removal.
+
+November 2, 2008  (Changes by Graf Zahl)
+- Fixed: The TEXTURES parser didn't report an error for invalid keywords.
+- Fixed: The DECORATE expression evaluator was too strict with missing jump labels.
+  For compatibility it only may print a warning, not an error.
+
 October 29, 2008  (Changes by Graf Zahl)
 - Fixed: FxClassTypeCast::Resolve didn't work for NULL classes because a variable
   was not initialized.

@@ -456,15 +456,13 @@ static void callvote_EndVote( void )
 		SERVERCOMMANDS_VoteEnded( g_bVotePassed );
 	else
 	{
-		screen->SetFont( BigFont );
-
 		if ( g_bVotePassed )
 			sprintf( szString, "VOTE PASSED!" );
 		else
 			sprintf( szString, "VOTE FAILED!" );
 
 		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			160.4f,
 			75.0f,
 			320,
@@ -474,7 +472,6 @@ static void callvote_EndVote( void )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 
 	// Play the announcer sound associated with this event.

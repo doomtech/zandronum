@@ -93,7 +93,6 @@ DWORD LanguageIDs[4] =
 int (*I_GetTime) (bool saveMS);
 int (*I_WaitForTic) (int);
 void (*I_FreezeTime) (bool frozen);
-static DWORD basetime = 0;
 
 void I_Tactile (int on, int off, int total)
 {
@@ -123,6 +122,7 @@ unsigned int I_MSTime (void)
 
 static DWORD TicStart;
 static DWORD TicNext;
+static DWORD BaseTime;
 static int TicFrozen;
 
 //
@@ -136,14 +136,18 @@ int I_GetTimePolled (bool saveMS)
 		return TicFrozen;
 	}
 
-	DWORD tm = SDL_GetTicks ();
+	DWORD tm = SDL_GetTicks() + 1;	// Make sure this isn't 0.
+	if (BaseTime == 0)
+	{
+		BaseTime = tm;
+	}
 
 	if (saveMS)
 	{
 		TicStart = tm;
-		TicNext = Scale ((Scale (tm, TICRATE, 1000) + 1), 1000, TICRATE);
+		TicNext = Scale((Scale (tm, TICRATE, 1000) + 1), 1000, TICRATE);
 	}
-	return Scale (tm, TICRATE, 1000);
+	return Scale(tm - BaseTime, TICRATE, 1000);
 }
 
 int I_WaitForTicPolled (int prevtic)
@@ -170,7 +174,7 @@ void I_FreezeTimePolled (bool frozen)
 		int froze = TicFrozen;
 		TicFrozen = 0;
 		int now = I_GetTimePolled(false);
-		basetime += (now - froze) * 1000 / TICRATE;
+		BaseTime += (now - froze) * 1000 / TICRATE;
 	}
 }
 

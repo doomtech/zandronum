@@ -139,6 +139,13 @@ ACTOR RandomSpawner native
 	+NOGRAVITY
 }
 
+// Fast projectiles -----------------------------------------------------------
+
+ACTOR FastProjectile native
+{
+	Projectile
+}
+
 
 
 // [BB] Some native base classes for the invasion spawners.

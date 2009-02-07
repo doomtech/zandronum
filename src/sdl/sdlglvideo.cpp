@@ -255,10 +255,8 @@ bool SDLGLVideo::SetResolution (int width, int height, int bits)
 	// FIXME: Is it possible to do this without completely destroying the old
 	// interface?
 #ifndef NO_GL
-	FFont *font = NULL;
 	
 	FGLTexture::FlushAll();
-	// font = screen->Font;
 	I_ShutdownGraphics();
 
 	Video = new SDLGLVideo(0);
@@ -271,7 +269,6 @@ bool SDLGLVideo::SetResolution (int width, int height, int bits)
 #endif
 	
 	V_DoModeSetup(width, height, bits);
-	screen->SetFont(font);
 #endif
 	return true;	// We must return true because the old video context no longer exists.
 }

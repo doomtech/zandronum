@@ -2127,25 +2127,19 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Print)
 		(self->target!=NULL && self->target->CheckLocalView (consoleplayer))
 		|| ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 	{
-		FFont * oldfont = ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->Font : NULL;
 		float saved = con_midtime;
-
+		FFont *font = NULL;
 		
-		// [BB] The server doesn't have a screen.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		if (fontname != NAME_None)
 		{
-			if (fontname != NAME_None)
-			{
-				FFont * font = V_GetFont(fontname);
-				if (font != NULL) screen->SetFont(font);
-			}
+			font = V_GetFont(fontname);
 		}
 		if (time > 0)
 		{
 			con_midtime = time;
 		}
 		
-		C_MidPrint(text);
+		C_MidPrint(font != NULL ? font : SmallFont, text);
 		// [BB] The server sends out the message and doesn't have a screen.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
@@ -2161,8 +2155,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Print)
 			if ( player >= 0 )
 				SERVERCOMMANDS_PrintHUDMessage( text, 1.5f, 0.375f, 0, 0, CR_GOLD, con_midtime, (fontname != NAME_None) ? fontname.GetChars() : SERVER_GetCurrentFont( ), true, MAKE_ID('C','N','T','R'), ULONG(player), SVCF_ONLYTHISCLIENT );
 		}
-		else
-			screen->SetFont(oldfont);
+
 		con_midtime = saved;
 	}
 }
@@ -2832,16 +2825,39 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 
 	if (fd != NULL)
 	{
+		bool kill_before, kill_after;
+
+		kill_before = self->CountsAsKill();
 		if (fd->structoffset == -1)
 		{
 			HandleDeprecatedFlags(self, cls->ActorInfo, expression, fd->flagbit);
 		}
 		else
 		{
-			int * flagp = (int*) (((char*)self) + fd->structoffset);
+			int *flagp = (int*) (((char*)self) + fd->structoffset);
 
-			if (expression) *flagp |= fd->flagbit;
-			else *flagp &= ~fd->flagbit;
+			if (expression)
+			{
+				*flagp |= fd->flagbit;
+			}
+			else
+			{
+				*flagp &= ~fd->flagbit;
+			}
+		}
+		kill_after = self->CountsAsKill();
+		// Was this monster previously worth a kill but no longer is?
+		// Or vice versa?
+		if (kill_before != kill_after)
+		{
+			if (kill_after)
+			{ // It counts as a kill now.
+				level.total_monsters++;
+			}
+			else
+			{ // It no longer counts as a kill.
+				level.total_monsters--;
+			}
 		}
 	}
 	else

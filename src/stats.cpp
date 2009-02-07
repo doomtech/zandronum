@@ -103,9 +103,6 @@ void FStat::PrintStat ()
 	int y = ( NETWORK_GetState( ) == NETSTATE_SERVER ) ? 0 : SCREENHEIGHT;
 	int count = 0;
 
-	// [BC] The server doesn't actually load any fonts.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		screen->SetFont (ConFont);
 	for (FStat *stat = FirstStat; stat != NULL; stat = stat->m_Next)
 	{
 		if (stat->m_Active)
@@ -120,12 +117,12 @@ void FStat::PrintStat ()
 				else
 				{
 					y -= fontheight;	// there's at least one line of text
-					for(unsigned i = 0; i < stattext.Len()-1; i++)
+					for (unsigned i = 0; i < stattext.Len()-1; i++)
 					{
 						// Count number of linefeeds but ignore terminating ones.
 						if (stattext[i] == '\n') y -= fontheight;
 					}
-					screen->DrawText (CR_GREEN, 5, y, stattext, TAG_DONE);
+					screen->DrawText(ConFont, CR_GREEN, 5, y, stattext, TAG_DONE);
 					count++;
 				}
 			}
@@ -134,7 +131,6 @@ void FStat::PrintStat ()
 	// [BC] The server doesn't actually load any fonts.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont (SmallFont);
 		if (count)
 		{
 			SB_state = screen->GetPageCount ();

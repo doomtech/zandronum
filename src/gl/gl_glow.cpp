@@ -88,13 +88,13 @@ void gl_InitGlow(FScanner &sc)
 		{
 			sc.SetCMode(true);
 			sc.MustGetString();
-			FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
+			FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
 			FTexture *tex = TexMan[flump];
 			sc.MustGetStringName(",");
 			sc.MustGetString();
 			PalEntry color = V_GetColor(NULL, sc.String);
-			sc.MustGetStringName(",");
-			sc.MustGetNumber();
+			//sc.MustGetStringName(",");
+			//sc.MustGetNumber();
 			if (sc.CheckString(","))
 			{
 				sc.MustGetStringName("fullbright");

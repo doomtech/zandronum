@@ -105,6 +105,7 @@ CUSTOM_CVAR(Int, gl_lightmode, 3 ,CVAR_ARCHIVE|CVAR_NOINITCALL)
 	if (self>4) self=4;
 	if (self<0) self=0;
 	if (self == 2 && !(gl.flags & RFL_GLSL)) self = 3;	// mode 2 requires GLSL
+	glset.lightmode = self;
 }
 
 static float distfogtable[2][256];	// light to fog conversion table for black fog
@@ -194,7 +195,7 @@ void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float 
 
 	float light;
 
-	if (gl_lightmode&2 && lightlevel<192) 
+	if (glset.lightmode&2 && lightlevel<192) 
 	{
 		if (!weapon)
 		{
@@ -291,7 +292,7 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 	{
 		return 0;
 	}
-	if (gl_lightmode&4)
+	if (glset.lightmode&4)
 	{
 		// uses approximations of Legacy's default settings.
 		density = fogdensity? fogdensity : 18;
@@ -299,7 +300,7 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 	else if (gl_isBlack(fogcolor))
 	{
 		// case 1: black fog
-		density=distfogtable[gl_lightmode!=0][lightlevel];
+		density=distfogtable[glset.lightmode!=0][lightlevel];
 	}
 	else if (outsidefogcolor.a!=0xff && 
 			fogcolor.r==outsidefogcolor.r && 
@@ -385,7 +386,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 	}
 	else
 	{
-		if (gl_lightmode == 2 && fogcolor == 0)
+		if ((glset.lightmode == 2 && gl_fog_shader) && fogcolor == 0)
 		{
 			float light;
 

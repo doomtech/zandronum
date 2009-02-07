@@ -399,7 +399,7 @@ void F_TextWrite (void)
 
 	// draw some of the text onto the screen
 	leftmargin = (gameinfo.gametype & (GAME_DoomStrifeChex|GAME_Hexen) ? 10 : 20) - 160;
-	rowheight = screen->Font->GetHeight () +
+	rowheight = SmallFont->GetHeight () +
 		(gameinfo.gametype & (GAME_DoomStrifeChex) ? 3 : -1);
 	scale = (CleanXfac != 1 || CleanYfac != 1);
 
@@ -415,7 +415,7 @@ void F_TextWrite (void)
 	ch = FinaleText.GetChars();
 		
 	count = (FinaleCount - 10)/TEXTSPEED;
-	range = screen->Font->GetColorTranslation (CR_UNTRANSLATED);
+	range = SmallFont->GetColorTranslation (CR_UNTRANSLATED);
 
 	for ( ; count ; count-- )
 	{
@@ -429,7 +429,7 @@ void F_TextWrite (void)
 			continue;
 		}
 
-		pic = screen->Font->GetChar (c, &w);
+		pic = SmallFont->GetChar (c, &w);
 		if (cx+w > SCREENWIDTH)
 			continue;
 		if (pic != NULL)
@@ -774,7 +774,7 @@ void F_CastDrawer (void)
 		DTA_DestHeight, screen->GetHeight(),
 		TAG_DONE);
 
-	screen->DrawText (CR_RED,
+	screen->DrawText (SmallFont, CR_UNTRANSLATED,
 		(SCREENWIDTH - SmallFont->StringWidth (GStrings(castorder[castnum].name)) * CleanXfac)/2,
 		(SCREENHEIGHT * 180) / 200,
 		GStrings(castorder[castnum].name),

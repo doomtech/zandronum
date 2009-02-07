@@ -824,7 +824,7 @@ void D_Display ()
 			sprintf( szString, "Waiting for server..." );
 			usTextColor = CR_GREEN;
 
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				0.9f,
 				0,
@@ -846,7 +846,7 @@ void D_Display ()
 			sprintf( szString, "CONNECTION INTERRUPTED!" );
 			usTextColor = CR_GREEN;
 
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				0.9f,
 				0,
@@ -1112,7 +1112,7 @@ void D_PageDrawer (void)
 		screen->Clear (0, 0, SCREENWIDTH, SCREENHEIGHT, 0, 0);
 		if (!PageBlank)
 		{
-			screen->DrawText (CR_WHITE, 0, 0, "Page graphic goes here", TAG_DONE);
+			screen->DrawText (SmallFont, CR_WHITE, 0, 0, "Page graphic goes here", TAG_DONE);
 		}
 	}
 	if (Advisory != NULL)

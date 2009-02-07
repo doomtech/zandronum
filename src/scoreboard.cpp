@@ -205,7 +205,7 @@ static void SCOREBOARD_DrawBottomString( void )
 		DHUDMessageFadeOut	*pMsg;
 		V_ColorizeString( g_BottomString );
 
-		pMsg = new DHUDMessageFadeOut( g_BottomString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, g_BottomString,
 			1.5f,
 			1.0f,
 			0,
@@ -685,7 +685,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				( con_virtualwidth ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
 				(LONG)( ulYPos * g_rYScale ),
 				szString,
@@ -700,7 +700,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 				(LONG)ulYPos,
 				TAG_DONE );
 
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
 				(LONG)ulYPos,
 				szString,
@@ -732,7 +732,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 				sprintf( szString, "\\cC%s \\c%c:", TEAM_GetCarrier( i ) ? TEAM_GetCarrier( i )->userinfo.netname : TEAM_GetReturnTicks( i ) ? "?" : "-", V_GetColorChar( TEAM_GetTextColor( i )));
 				V_ColorizeString( szString );
 
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
 					(LONG)( ulYPos * g_rYScale ),
 					szString,
@@ -750,7 +750,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 				sprintf( szString, "\\cC%s \\c%c:", TEAM_GetCarrier( i ) ? TEAM_GetCarrier( i )->userinfo.netname : TEAM_GetReturnTicks( i ) ? "?" : "-", V_GetColorChar( TEAM_GetTextColor( i )));
 				V_ColorizeString( szString );
 
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
 					ulYPos,
 					szString,
@@ -813,7 +813,7 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 
 			if ( g_bScale )
 			{
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					0,
 					(LONG)( ulYPos * g_rYScale ),
 					szString,
@@ -823,7 +823,7 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 			}
 			else
 			{
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					0,
 					ulYPos,
 					szString,
@@ -854,7 +854,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 	if ( g_bScale )
 	{
-		screen->DrawText( CR_GRAY,
+		screen->DrawText( SmallFont, CR_GRAY,
 			0,
 			(LONG)( ulYPos * g_rYScale ),
 			szString,
@@ -864,7 +864,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	}
 	else
 	{
-		screen->DrawText( CR_GRAY,
+		screen->DrawText( SmallFont, CR_GRAY,
 			0,
 			ulYPos,
 			szString,
@@ -878,7 +878,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 	if ( g_bScale )
 	{
-		screen->DrawText( CR_GRAY,
+		screen->DrawText( SmallFont, CR_GRAY,
 			0,
 			(LONG)( ulYPos * g_rYScale ),
 			szString,
@@ -888,7 +888,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	}
 	else
 	{
-		screen->DrawText( CR_GRAY,
+		screen->DrawText( SmallFont, CR_GRAY,
 			0,
 			ulYPos,
 			szString,
@@ -903,7 +903,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				g_ValWidth.Int - SmallFont->StringWidth( szString ),
 				(LONG)( ulYPos * g_rYScale ),
 				szString,
@@ -913,7 +913,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				SCREENWIDTH - SmallFont->StringWidth( szString ),
 				ulYPos,
 				szString,
@@ -930,7 +930,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 			if ( g_bScale )
 			{
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					g_ValWidth.Int - SmallFont->StringWidth( szString ),
 					(LONG)( ulYPos * g_rYScale ),
 					szString,
@@ -940,7 +940,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 			}
 			else
 			{
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( SmallFont, CR_GRAY,
 					SCREENWIDTH - SmallFont->StringWidth( szString ),
 					ulYPos,
 					szString,
@@ -964,7 +964,7 @@ void SCOREBOARD_RenderInvasionStats( void )
 		DHUDMessage		*pMsg;
 
 		sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", static_cast<unsigned int> (INVASION_GetCurrentWave( )), static_cast<unsigned int> (INVASION_GetNumMonstersLeft( )), static_cast<unsigned int> (INVASION_GetNumArchVilesLeft( )));
-		pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
+		pMsg = new DHUDMessage( SmallFont, szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('I','N','V','S') );
 	}
@@ -985,22 +985,18 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	// Start with the "VOTE NOW!" title.
 	ulCurYPos = 16;
 
-	screen->SetFont( BigFont );
-
 	// Render the title.
 	sprintf( szString, "VOTE NOW!" );
-	screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+	screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 		160 - ( BigFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
-	screen->SetFont( SmallFont );
-
 	// Render who called the vote.
 	ulCurYPos += 24;
 	sprintf( szString, "Vote called by: %s", players[CALLVOTE_GetVoteCaller( )].userinfo.netname );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1009,7 +1005,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	// Render the command being voted on.
 	ulCurYPos += 16;
 	sprintf( szString, "%s", CALLVOTE_GetCommand( ));
-	screen->DrawText( CR_WHITE,
+	screen->DrawText( SmallFont, CR_WHITE,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1018,7 +1014,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	// Render how much time is left to vote.
 	ulCurYPos += 16;
 	sprintf( szString, "Vote ends in: %d", static_cast<unsigned int> (( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE) );
-	screen->DrawText( CR_RED,
+	screen->DrawText( SmallFont, CR_RED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1042,14 +1038,14 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	// Display how many have voted for "Yes" and "No".
 	ulCurYPos += 16;
 	sprintf( szString, "YES: %d", static_cast<unsigned int> (ulNumYes) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		32,
 		ulCurYPos,
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
 	sprintf( szString, "NO: %d", static_cast<unsigned int> (ulNumNo) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		320 - 32 - SmallFont->StringWidth( szString ),
 		ulCurYPos,
 		szString,
@@ -1063,7 +1059,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
 		{
 			sprintf( szString, "%s", players[pulPlayersWhoVotedYes[ulIdx]].userinfo.netname );
-			screen->DrawText( CR_UNTRANSLATED,
+			screen->DrawText( SmallFont, CR_UNTRANSLATED,
 				32,
 				ulCurYPos,
 				szString,
@@ -1073,7 +1069,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
 		{
 			sprintf( szString, "%s", players[pulPlayersWhoVotedNo[ulIdx]].userinfo.netname );
-			screen->DrawText( CR_UNTRANSLATED,
+			screen->DrawText( SmallFont, CR_UNTRANSLATED,
 				320 - 32 - SmallFont->StringWidth( szString ),
 				ulCurYPos,
 				szString,
@@ -1122,12 +1118,11 @@ void SCOREBOARD_RenderInVote( void )
 	ulCurYPos = 8;	
 
 	// Render the title and time left.
-	screen->SetFont( BigFont );
 	sprintf( szString, "VOTE NOW! ( %d )", static_cast<unsigned int> (( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE) );
 
 	if(g_bScale)
 	{
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			(LONG)(160 * g_fXScale) - (BigFont->StringWidth( szString ) / 2),
 			ulCurYPos,	szString, 
 			DTA_VirtualWidth, g_ValWidth.Int,
@@ -1136,20 +1131,18 @@ void SCOREBOARD_RenderInVote( void )
 	}
 	else
 	{
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			SCREENWIDTH/2 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
 			DTA_Clean,	g_bScale,	TAG_DONE );
 	}						
-	screen->SetFont( SmallFont );
-
 	// Render the command being voted on.
 	ulCurYPos += 14;
 	sprintf( szString, "%s", CALLVOTE_GetCommand( ));
 	if(g_bScale)
 	{
-		screen->DrawText( CR_WHITE,
+		screen->DrawText( SmallFont, CR_WHITE,
 			(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,	szString,
 			DTA_VirtualWidth, g_ValWidth.Int,
@@ -1158,7 +1151,7 @@ void SCOREBOARD_RenderInVote( void )
 	}
 	else
 	{
-		screen->DrawText( CR_WHITE,
+		screen->DrawText( SmallFont, CR_WHITE,
 			SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
@@ -1171,7 +1164,7 @@ void SCOREBOARD_RenderInVote( void )
 	V_ColorizeString( szString );
 	if(g_bScale)
 	{
-		screen->DrawText( CR_DARKBROWN,
+		screen->DrawText( SmallFont, CR_DARKBROWN,
 			(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,	szString,
 			DTA_VirtualWidth, g_ValWidth.Int,
@@ -1180,7 +1173,7 @@ void SCOREBOARD_RenderInVote( void )
 	}
 	else
 	{
-		screen->DrawText( CR_DARKBROWN,
+		screen->DrawText( SmallFont, CR_DARKBROWN,
 			SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
@@ -1198,7 +1191,7 @@ void SCOREBOARD_RenderInVote( void )
 		sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
 		if(g_bScale)
 		{
-			screen->DrawText( CR_BLACK,
+			screen->DrawText( SmallFont, CR_BLACK,
 				(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,	szString,
 				DTA_VirtualWidth, g_ValWidth.Int,
@@ -1207,7 +1200,7 @@ void SCOREBOARD_RenderInVote( void )
 		}
 		else
 		{
-			screen->DrawText( CR_BLACK,
+			screen->DrawText( SmallFont, CR_BLACK,
 				SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
 				szString,
@@ -1247,10 +1240,8 @@ void SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft )
 	ulCurYPos = 16;
 	if ( gamestate == GS_LEVEL )
 	{
-		screen->SetFont( BigFont );
-
 		sprintf( szString, "%s", players[lDueler1].userinfo.netname );
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
@@ -1258,7 +1249,7 @@ void SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft )
 
 		ulCurYPos += 16;
 		sprintf( szString, "vs." );
-		screen->DrawText( CR_UNTRANSLATED,
+		screen->DrawText( BigFont, CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
@@ -1266,18 +1257,16 @@ void SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft )
 
 		ulCurYPos += 16;
 		sprintf( szString, "%s", players[lDueler2].userinfo.netname );
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
 			DTA_Clean, true, TAG_DONE );
-
-		screen->SetFont( SmallFont );
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1297,16 +1286,12 @@ void SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft )
 		ulCurYPos = 32;
 		if ( gamestate == GS_LEVEL )
 		{
-			screen->SetFont( BigFont );
-
 			sprintf( szString, "LAST MAN STANDING" );
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
 				szString,
 				DTA_Clean, true, TAG_DONE );
-
-			screen->SetFont( SmallFont );
 		}
 	}
 	else if ( teamlms )
@@ -1314,22 +1299,18 @@ void SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft )
 		ulCurYPos = 32;
 		if ( gamestate == GS_LEVEL )
 		{
-			screen->SetFont( BigFont );
-
 			sprintf( szString, "TEAM LAST MAN STANDING" );
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
 				szString,
 				DTA_Clean, true, TAG_DONE );
-
-			screen->SetFont( SmallFont );
 		}
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1349,16 +1330,12 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 		ulCurYPos = 32;
 		if ( gamestate == GS_LEVEL )
 		{
-			screen->SetFont( BigFont );
-
 			sprintf( szString, "%s", pszString );
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
 				szString,
 				DTA_Clean, true, TAG_DONE );
-
-			screen->SetFont( SmallFont );
 		}
 	}
 	else if ( teampossession )
@@ -1366,22 +1343,18 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 		ulCurYPos = 32;
 		if ( gamestate == GS_LEVEL )
 		{
-			screen->SetFont( BigFont );
-
 			sprintf( szString, "%s", pszString );
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
 				szString,
 				DTA_Clean, true, TAG_DONE );
-
-			screen->SetFont( SmallFont );
 		}
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1399,21 +1372,17 @@ void SCOREBOARD_RenderSurvivalCountdown( ULONG ulTimeLeft )
 	ulCurYPos = 32;
 	if ( gamestate == GS_LEVEL )
 	{
-		screen->SetFont( BigFont );
-
 		sprintf( szString, "SURVIVAL CO-OP" );
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
 			DTA_Clean, true, TAG_DONE );
-
-		screen->SetFont( SmallFont );
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1431,24 +1400,20 @@ void SCOREBOARD_RenderInvasionFirstCountdown( ULONG ulTimeLeft )
 	ulCurYPos = 32;
 	if ( gamestate == GS_LEVEL )
 	{
-		screen->SetFont( BigFont );
-
 		if ( sv_maxlives > 0 )
 			sprintf( szString, "SURVIVAL INVASION" );
 		else
 			sprintf( szString, "PREPARE FOR INVASION!" );
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
 			DTA_Clean, true, TAG_DONE );
-
-		screen->SetFont( SmallFont );
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "First wave begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1466,8 +1431,6 @@ void SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft )
 	ulCurYPos = 32;
 	if ( gamestate == GS_LEVEL )
 	{
-		screen->SetFont( BigFont );
-
 		// Build the string to use.
 		if ((LONG)( INVASION_GetCurrentWave( ) + 1 ) == wavelimit )
 			sprintf( szString, "FINAL WAVE!" );
@@ -1542,18 +1505,16 @@ void SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft )
 			}
 		}
 
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,
 			szString,
 			DTA_Clean, true, TAG_DONE );
-
-		screen->SetFont( SmallFont );
 	}
 
 	ulCurYPos += 24;
 	sprintf( szString, "begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
-	screen->DrawText( CR_UNTRANSLATED,
+	screen->DrawText( SmallFont, CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
@@ -1793,8 +1754,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 
 	V_ColorizeString( szString );
 
-	screen->SetFont( BigFont );
-	pMsg = new DHUDMessageFadeOut( szString,
+	pMsg = new DHUDMessageFadeOut( BigFont, szString,
 		1.5f,
 		0.325f,
 		0,
@@ -1804,7 +1764,6 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 		0.5f );
 
 	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
-	screen->SetFont( SmallFont );
 
 	szString[0] = 0;
 
@@ -1885,7 +1844,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 	if ( szString[0] != 0 )
 	{
 		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			0.375f,
 			0,
@@ -1912,8 +1871,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 
 	V_ColorizeString( szString );
 
-	screen->SetFont( BigFont );
-	pMsg = new DHUDMessageFadeOut( szString,
+	pMsg = new DHUDMessageFadeOut( BigFont, szString,
 		1.5f,
 		0.325f,
 		0,
@@ -1923,7 +1881,6 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 		0.5f );
 
 	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
-	screen->SetFont( SmallFont );
 
 	if ( teamplay )
 	{
@@ -1931,7 +1888,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 		SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
 
 		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			0.375f,
 			0,
@@ -1948,7 +1905,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 		SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
 
 		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			0.375f,
 			0,
@@ -1999,7 +1956,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
 
 		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			0.375f,
 			0,
@@ -2350,7 +2307,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					lXPosOffset -= SmallFont->StringWidth ( szHandicapString );
 					if ( g_bScale )
 					{
-						screen->DrawText( ulColor,
+						screen->DrawText( SmallFont, ulColor,
 							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 							g_ulCurYPos,
 							szHandicapString,
@@ -2360,7 +2317,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					}
 					else
 					{
-						screen->DrawText( ulColor,
+						screen->DrawText( SmallFont, ulColor,
 							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 							g_ulCurYPos,
 							szHandicapString,
@@ -2490,7 +2447,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						lXPosOffset -= SmallFont->StringWidth ( szVoteString );
 						if ( g_bScale )
 						{
-							screen->DrawText( ( CALLVOTE_GetVoteCaller() == ulPlayer ) ? CR_RED : CR_GOLD,
+							screen->DrawText( SmallFont, ( CALLVOTE_GetVoteCaller() == ulPlayer ) ? CR_RED : CR_GOLD,
 								(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 								g_ulCurYPos,
 								szVoteString,
@@ -2500,7 +2457,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						}
 						else
 						{
-							screen->DrawText( ( static_cast<signed> (CALLVOTE_GetVoteCaller()) == consoleplayer ) ? CR_RED : CR_GOLD,
+							screen->DrawText( SmallFont, ( static_cast<signed> (CALLVOTE_GetVoteCaller()) == consoleplayer ) ? CR_RED : CR_GOLD,
 								(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 								g_ulCurYPos,
 								szVoteString,
@@ -2645,7 +2602,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 		{
 			if ( g_bScale )
 			{
-				screen->DrawText( ulColor,
+				screen->DrawText( SmallFont, ulColor,
 						(LONG)( g_aulColumnX[ulIdx] * g_fXScale ),
 						g_ulCurYPos,
 						szString,
@@ -2655,7 +2612,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 			}
 			else
 			{
-				screen->DrawText( ulColor,
+				screen->DrawText( SmallFont, ulColor,
 						(LONG)( g_aulColumnX[ulIdx] * CleanXfac ),
 						g_ulCurYPos,
 						szString,
@@ -2674,11 +2631,9 @@ static void scoreboard_DrawHeader( void )
 	// Don't draw it if we're in intermission.
 	if ( gamestate == GS_LEVEL )
 	{
-		screen->SetFont( BigFont );
-
 		if ( g_bScale )
 		{
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 )),
 				g_ulCurYPos,
 				"RANKINGS",
@@ -2688,14 +2643,12 @@ static void scoreboard_DrawHeader( void )
 		}
 		else
 		{
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				( SCREENWIDTH / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 ),
 				g_ulCurYPos,
 				"RANKINGS",
 				TAG_DONE );
 		}
-
-		screen->SetFont( SmallFont );
 	}
 
 	g_ulCurYPos += 22;
@@ -2725,7 +2678,7 @@ static void scoreboard_DrawLimits( void )
 
 			if ( g_bScale )
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					g_ulCurYPos,
 					szString,
@@ -2735,7 +2688,7 @@ static void scoreboard_DrawLimits( void )
 			}
 			else
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 					g_ulCurYPos,
 					szString,
@@ -2756,7 +2709,7 @@ static void scoreboard_DrawLimits( void )
 
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -2766,7 +2719,7 @@ static void scoreboard_DrawLimits( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -2806,7 +2759,7 @@ static void scoreboard_DrawLimits( void )
 
 			if ( g_bScale )
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					g_ulCurYPos,
 					szString,
@@ -2816,7 +2769,7 @@ static void scoreboard_DrawLimits( void )
 			}
 			else
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 					g_ulCurYPos,
 					szString,
@@ -2839,7 +2792,7 @@ static void scoreboard_DrawLimits( void )
 
 			if ( g_bScale )
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					g_ulCurYPos,
 					szString,
@@ -2849,7 +2802,7 @@ static void scoreboard_DrawLimits( void )
 			}
 			else
 			{
-				screen->DrawText( CR_GREY,
+				screen->DrawText( SmallFont, CR_GREY,
 					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 					g_ulCurYPos,
 					szString,
@@ -2868,7 +2821,7 @@ static void scoreboard_DrawLimits( void )
 		
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -2878,7 +2831,7 @@ static void scoreboard_DrawLimits( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -2898,7 +2851,7 @@ static void scoreboard_DrawLimits( void )
 		
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -2908,7 +2861,7 @@ static void scoreboard_DrawLimits( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -2954,7 +2907,7 @@ static void scoreboard_DrawLimits( void )
 		
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -2964,7 +2917,7 @@ static void scoreboard_DrawLimits( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -2982,7 +2935,7 @@ static void scoreboard_DrawLimits( void )
 		
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -2992,7 +2945,7 @@ static void scoreboard_DrawLimits( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -3025,7 +2978,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -3035,7 +2988,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -3096,7 +3049,7 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 				g_ulCurYPos,
 				szString,
@@ -3106,7 +3059,7 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 				g_ulCurYPos,
 				szString,
@@ -3434,15 +3387,13 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 	if ( gamestate != GS_LEVEL )
 		g_ulCurYPos = ( g_bScale == true ) ? (LONG)( 48 * g_fYScale ) : (LONG)( 48 * CleanYfac );
 
-	screen->SetFont( g_pColumnHeaderFont );
-
 	// Draw the titles for the columns.
 	for ( ulIdx = 0; ulIdx < g_ulNumColumnsUsed; ulIdx++ )
 	{
 		sprintf( szString, "%s", g_pszColumnHeaders[g_aulColumnType[ulIdx]] );
 		if ( g_bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( g_pColumnHeaderFont, CR_RED,
 				(LONG)( g_aulColumnX[ulIdx] * g_fXScale ),
 				g_ulCurYPos,
 				szString,
@@ -3452,7 +3403,7 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( g_pColumnHeaderFont, CR_RED,
 				(LONG)( g_aulColumnX[ulIdx] * CleanXfac ),
 				g_ulCurYPos,
 				szString,
@@ -3461,7 +3412,6 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 	}
 
 	// Draw the player list.
-	screen->SetFont( SmallFont );
 	g_ulCurYPos += 24;
 
 	// Team-based games: Divide up the teams.

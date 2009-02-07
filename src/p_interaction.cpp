@@ -638,10 +638,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 						if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 						{
-							screen->SetFont( BigFont );
-
 							// Display "%s WINS!" HUD message.
-							pMsg = new DHUDMessageFadeOut( szString,
+							pMsg = new DHUDMessageFadeOut( BigFont, szString,
 								160.4f,
 								75.0f,
 								320,
@@ -651,10 +649,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 								2.0f );
 
 							StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-							screen->SetFont( SmallFont );
 
 							szString[0] = 0;
-							pMsg = new DHUDMessageFadeOut( szString,
+							pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 								0.0f,
 								0.0f,
 								0,
@@ -665,7 +662,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 							StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 
-							pMsg = new DHUDMessageFadeOut( szString,
+							pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 								0.0f,
 								0.0f,
 								0,
@@ -1948,10 +1945,8 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( BigFont );
-
 				// Display "%s WINS!" HUD message.
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( BigFont, szString,
 					160.4f,
 					75.0f,
 					320,
@@ -1961,7 +1956,6 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 					2.0f );
 
 				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				screen->SetFont( SmallFont );
 			}
 			else
 			{
@@ -1992,10 +1986,8 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( BigFont );
-
 				// Display "%s WINS!" HUD message.
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( BigFont, szString,
 					1.5f,
 					0.375f,
 					320,
@@ -2005,7 +1997,6 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 					2.0f );
 
 				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				screen->SetFont( SmallFont );
 			}
 			else
 			{

@@ -248,7 +248,7 @@ void ADynamicLight::Tick()
 
 	if (IsOwned())
 	{
-		if (!target || !target->state || target != Owner)
+		if (!target || !target->state)
 		{
 			this->Destroy();
 			return;
@@ -380,6 +380,21 @@ void ADynamicLight::SetOffset(fixed_t x, fixed_t y, fixed_t z)
 	m_offY = y;
 	m_offZ = z;
 	UpdateLocation();
+}
+
+
+//==========================================================================
+//
+// The target pointer in dynamic lights should never be substituted unless 
+// notOld is NULL (which indicates that the object was destroyed by force.)
+//
+//==========================================================================
+size_t ADynamicLight::PointerSubstitution (DObject *old, DObject *notOld)
+{
+	AActor *saved_target = target;
+	size_t ret = Super::PointerSubstitution(old, notOld);
+	if (notOld != NULL) target = saved_target;
+	return ret;
 }
 
 //=============================================================================

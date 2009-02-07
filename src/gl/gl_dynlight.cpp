@@ -1009,17 +1009,22 @@ void gl_SetActorLights(AActor *actor)
 		lights = tmpLight = NULL;
 
 		count=0;
+		
 		for (i = 0; i < LightAssociations.Size(); i++)
 		{
 			if (LightAssociations[i]->Sprite() == sprite &&
 				(LightAssociations[i]->Frame()==frame || LightAssociations[i]->Frame()==-1))
 			{
 				// I'm skipping the single rotations because that really doesn't make sense!
-				if (count < actor->dynamiclights.Size()) light = barrier_cast<ADynamicLight*>(actor->dynamiclights[count]);
+				if (count < actor->dynamiclights.Size()) 
+				{
+					light = barrier_cast<ADynamicLight*>(actor->dynamiclights[count]);
+					assert(light != NULL);
+				}
 				else
 				{
 					light = Spawn<ADynamicLight>(actor->x, actor->y, actor->z, NO_REPLACE);
-					light->Owner = light->target = actor;
+					light->target = actor;
 					light->owned = true;
 					actor->dynamiclights.Push(light);
 				}
@@ -1027,16 +1032,6 @@ void gl_SetActorLights(AActor *actor)
 				LightAssociations[i]->Light()->ApplyProperties(light);
 				count++;
 			}
-		}
-		// [BB] Under some circumstances dynamiclights contains NULL pointers, for
-		// example after a player respawns in multiplayer. Since the following code
-		// will crash in this case, I remove the NULL pointers from the array here.
-		// Of course, this is just an ugly hack and should be fixed properly!
-		// (assuming the real cause is found...)
-		for( int i = actor->dynamiclights.Size()-1; i >= 0; i-- )
-		{
-			if ( actor->dynamiclights[i] == NULL )
-				actor->dynamiclights.Delete(i);
 		}
 		for(;count<actor->dynamiclights.Size();count++)
 		{

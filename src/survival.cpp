@@ -262,10 +262,8 @@ void SURVIVAL_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
-		screen->SetFont( BigFont );
-
 		// Display "FIGHT!" HUD message.
-		pMsg = new DHUDMessageFadeOut( "FIGHT!",
+		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
 			160.4f,
 			75.0f,
 			320,
@@ -275,7 +273,6 @@ void SURVIVAL_DoFight( void )
 			1.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
 	else
@@ -446,10 +443,8 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		{
 			DHUDMessageFadeOut	*pMsg;
 
-			screen->SetFont( BigFont );
-
 			// Display "%s WINS!" HUD message.
-			pMsg = new DHUDMessageFadeOut( "MISSION FAILED!",
+			pMsg = new DHUDMessageFadeOut( BigFont, "MISSION FAILED!",
 				160.4f,
 				75.0f,
 				320,
@@ -459,7 +454,6 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 				2.0f );
 
 			StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-			screen->SetFont( SmallFont );
 		}
 		break;
 	default:

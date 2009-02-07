@@ -77,8 +77,9 @@ void CONSOLE_SetRCONPlayer( ULONG ulPlayer );
 void C_InitTicker (const char *label, unsigned int max, bool showpercent=true);
 void C_SetTicker (unsigned int at, bool forceUpdate=false);
 
-void C_MidPrint (const char *message);
-void C_MidPrintBold (const char *message);
+class FFont;
+void C_MidPrint (FFont *font, const char *message);
+void C_MidPrintBold (FFont *font, const char *message);
 
 bool C_Responder (event_t *ev);
 

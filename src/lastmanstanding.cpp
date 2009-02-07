@@ -463,10 +463,8 @@ void LASTMANSTANDING_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
-		screen->SetFont( BigFont );
-
 		// Display "FIGHT!" HUD message.
-		pMsg = new DHUDMessageFadeOut( "FIGHT!",
+		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
 			160.4f,
 			75.0f,
 			320,
@@ -476,7 +474,6 @@ void LASTMANSTANDING_DoFight( void )
 			1.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
 	else
@@ -536,8 +533,6 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
 
-		screen->SetFont( BigFont );
-
 		if ( teamlms )
 		{
 			if ( ulWinner == teams.Size( ) )
@@ -552,7 +547,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 		V_ColorizeString( szString );
 
 		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			160.4f,
 			75.0f,
 			320,
@@ -562,10 +557,9 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 
 		szString[0] = 0;
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			0.0f,
 			0.0f,
 			0,
@@ -576,7 +570,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			0.0f,
 			0.0f,
 			0,
@@ -700,10 +694,8 @@ void LASTMANSTANDING_TimeExpired( void )
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( BigFont );
-
 				// Display the HUD message.
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( BigFont, szString,
 					160.4f,
 					75.0f,
 					320,
@@ -713,7 +705,6 @@ void LASTMANSTANDING_TimeExpired( void )
 					2.0f );
 
 				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				screen->SetFont( SmallFont );
 			}
 			else
 			{

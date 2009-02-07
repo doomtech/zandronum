@@ -435,8 +435,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			this->ReturnFlag( NULL );
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( SmallFont );
-				pMsg = new DHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f );
+				pMsg = new DHUDMessageFadeOut( SmallFont, "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f );
 				StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
 			}
 			// If necessary, send it to clients.
@@ -450,8 +449,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			// Now, print it.
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( BigFont );
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( BigFont, szString,
 					1.5f,
 					TEAM_MESSAGE_Y_AXIS,
 					0,
@@ -460,7 +458,6 @@ bool AFlag::HandlePickup( AInventory *pItem )
 					3.0f,
 					0.5f );
 				StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-				screen->SetFont( SmallFont );
 			}
 			// If necessary, send it to clients.
 			else
@@ -490,8 +487,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			// Now, print it.
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( SmallFont );
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 					1.5f,
 					TEAM_MESSAGE_Y_AXIS_SUB,
 					0,
@@ -602,8 +598,7 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -612,7 +607,6 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
@@ -637,8 +631,7 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		if (( pToucher->player - players ) != consoleplayer )
 		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				TEAM_MESSAGE_Y_AXIS_SUB,
 				0,
@@ -864,8 +857,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 		// Now, print it.
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			screen->SetFont( BigFont );
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( BigFont, szString,
 				1.5f,
 				TEAM_MESSAGE_Y_AXIS,
 				0,
@@ -874,7 +866,6 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 				3.0f,
 				0.25f );
 			StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-			screen->SetFont( SmallFont );
 		}
 		// If necessary, send it to clients.
 		else
@@ -890,8 +881,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 		// Now, print it.
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				TEAM_MESSAGE_Y_AXIS_SUB,
 				0,
@@ -989,8 +979,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -999,7 +988,6 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
@@ -1026,8 +1014,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		if (( pToucher->player - players ) != consoleplayer )
 		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				TEAM_MESSAGE_Y_AXIS_SUB,
 				0,
@@ -1195,8 +1182,7 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 	// Now, print it.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -1205,7 +1191,6 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
@@ -1230,8 +1215,7 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 	{
 		if (( pToucher->player - players ) != consoleplayer )
 		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 				1.5f,
 				TEAM_MESSAGE_Y_AXIS_SUB,
 				0,

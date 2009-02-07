@@ -80,6 +80,7 @@ public:
 	float GetRadius() const { return (IsActive() ? GetIntensity() * 2.f : 0.f); }
 	void LinkLight();
 	void UnlinkLight();
+	size_t PointerSubstitution (DObject *old, DObject *notOld);
 
 	virtual void BeginPlay();
 	void PostBeginPlay();
@@ -114,7 +115,6 @@ public:
 	BYTE lighttype;
 	bool owned;
 	bool halo;
-	AActor *Owner;	// NOTE: This is *NOT* subject to pointer cleanup or garbage collection!!!
 
 	// intermediate texture coordinate data
 	// this is stored in the light object to avoid recalculating it

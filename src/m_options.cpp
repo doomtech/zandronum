@@ -1873,12 +1873,12 @@ void M_SkulltagVersionDrawer( void )
 	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
 
 	sprintf( szString, "Skulltag v%s", DOTVERSIONSTR_REV );
-	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "\"The next level of Doom\"" );
-	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 }
 
 /*=======================================
@@ -2022,7 +2022,7 @@ void M_BrowserMenuDrawer( void )
 
 	lNumServers = M_CalcLastSortedIndex( );
 	sprintf( szString, "Currently showing %d servers", static_cast<int> (lNumServers) );
-	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
 }
 
 //*****************************************************************************
@@ -2449,37 +2449,37 @@ void M_DrawServerInfo( void )
 
 	sprintf( szString, "Name: \\cc%s", BROWSER_GetHostName( g_lSelectedServer ));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "IP: \\cc%s", NETWORK_AddressToString( BROWSER_GetAddress( g_lSelectedServer )));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "Map: \\cc%s", BROWSER_GetMapname( g_lSelectedServer ));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "Gametype: \\cc%s", GameModeVals[BROWSER_GetGameMode( g_lSelectedServer )].name );
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "IWAD: \\cc%s", BROWSER_GetIWADName( g_lSelectedServer ));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "PWADs: \\cc%d", static_cast<int> (BROWSER_GetNumPWADs( g_lSelectedServer )));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
@@ -2487,26 +2487,26 @@ void M_DrawServerInfo( void )
 	{
 		sprintf( szString, "\\cc%s", BROWSER_GetPWADName( g_lSelectedServer, ulIdx ));
 		V_ColorizeString( szString );
-		screen->DrawText( CR_UNTRANSLATED, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+		screen->DrawText( SmallFont, CR_UNTRANSLATED, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 		ulCurYPos += ulTextHeight;
 	}
 
 	sprintf( szString, "WAD URL: \\cc%s", BROWSER_GetWadURL( g_lSelectedServer ));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "Host e-mail: \\cc%s", BROWSER_GetEmailAddress( g_lSelectedServer ));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
 	sprintf( szString, "Players: \\cc%d/%d", static_cast<int> (BROWSER_GetNumPlayers( g_lSelectedServer )), static_cast<int> (BROWSER_GetMaxClients( g_lSelectedServer )));
 	V_ColorizeString( szString );
-	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
@@ -2514,9 +2514,9 @@ void M_DrawServerInfo( void )
 	{
 		ulCurYPos += ulTextHeight;
 
-		screen->DrawText( CR_UNTRANSLATED, 32, ulCurYPos, "NAME", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( CR_UNTRANSLATED, 192, ulCurYPos, "FRAGS", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( CR_UNTRANSLATED, 256, ulCurYPos, "PING", DTA_Clean, true, TAG_DONE );
+		screen->DrawText( SmallFont, CR_UNTRANSLATED, 32, ulCurYPos, "NAME", DTA_Clean, true, TAG_DONE );
+		screen->DrawText( SmallFont, CR_UNTRANSLATED, 192, ulCurYPos, "FRAGS", DTA_Clean, true, TAG_DONE );
+		screen->DrawText( SmallFont, CR_UNTRANSLATED, 256, ulCurYPos, "PING", DTA_Clean, true, TAG_DONE );
 
 		ulCurYPos += ( ulTextHeight * 2 );
 
@@ -2524,15 +2524,15 @@ void M_DrawServerInfo( void )
 		{
 			sprintf( szString, "%s", BROWSER_GetPlayerName( g_lSelectedServer, ulIdx ));
 			V_ColorizeString( szString );
-			screen->DrawText( CR_GRAY, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+			screen->DrawText( SmallFont, CR_GRAY, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerFragcount( g_lSelectedServer, ulIdx )));
 			V_ColorizeString( szString );
-			screen->DrawText( CR_GRAY, 192, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+			screen->DrawText( SmallFont, CR_GRAY, 192, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerPing( g_lSelectedServer, ulIdx )));
 			V_ColorizeString( szString );
-			screen->DrawText( CR_GRAY, 256, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+			screen->DrawText( SmallFont, CR_GRAY, 256, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 			ulCurYPos += ulTextHeight;
 		}
@@ -3783,7 +3783,7 @@ void TextScalingMenuDrawer( void )
 	}
 
 	sprintf( szString, "This is clean text." );
-	screen->DrawText( CR_WHITE,
+	screen->DrawText( SmallFont, CR_WHITE,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		96,
 		szString,
@@ -3791,7 +3791,7 @@ void TextScalingMenuDrawer( void )
 		TAG_DONE );
 
 	sprintf( szString, "This is unscaled text." );
-	screen->DrawText( CR_WHITE,
+	screen->DrawText( SmallFont, CR_WHITE,
 		( (float)screen->GetWidth( ) / 320.0f ) * 160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		( (float)screen->GetHeight( ) / 200.0f ) * 112,
 		szString,
@@ -3800,7 +3800,7 @@ void TextScalingMenuDrawer( void )
 	if ( bScale )
 	{
 		sprintf( szString, "This is scaled text.\n" );
-		screen->DrawText( CR_WHITE,
+		screen->DrawText( SmallFont, CR_WHITE,
 			(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 			( 128 * fYScale ) - ( SmallFont->GetHeight( ) / 2 ),
 			szString,
@@ -3968,14 +3968,12 @@ static void M_DrawConText (int color, int x, int y, const char *str)
 {
 	int len = (int)strlen(str);
 
-	screen->SetFont (ConFont);
 	x = int((x - 160) * (CleanXfac) + screen->GetWidth() / 2);
 	y = int((y - 100) * (CleanYfac) + screen->GetHeight() / 2);
-	screen->DrawText (color, x, y, str,
+	screen->DrawText (ConFont, color, x, y, str,
 		DTA_CellX, int(8 * CleanXfac),
 		DTA_CellY, int(8 * CleanYfac),
 		TAG_DONE);
-	screen->SetFont (SmallFont);
 }
 
 void M_BuildKeyList (menuitem_t *item, int numitems)
@@ -4197,11 +4195,9 @@ void M_OptDrawer ()
 	{
 		if (BigFont && CurrentMenu->texttitle)
 		{
-			screen->SetFont (BigFont);
-			screen->DrawText (gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
+			screen->DrawText (BigFont, gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
 				160-BigFont->StringWidth (CurrentMenu->texttitle)/2, 10,
 				CurrentMenu->texttitle, DTA_Clean, true, TAG_DONE);
-			screen->SetFont (SmallFont);
 			y = 15 + BigFont->GetHeight ();
 		}
 		else
@@ -4279,12 +4275,12 @@ void M_OptDrawer ()
 
 			case browserheader:
 
-				screen->DrawText( CR_UNTRANSLATED, 16, y, "PING", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( CR_UNTRANSLATED, 48, y, "NAME", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( CR_UNTRANSLATED, /*128*/160, y, "MAP", DTA_Clean, true, TAG_DONE );
-//				screen->DrawText( CR_UNTRANSLATED, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( CR_UNTRANSLATED, 224, y, "TYPE", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, y, "PING", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_UNTRANSLATED, 48, y, "NAME", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_UNTRANSLATED, /*128*/160, y, "MAP", DTA_Clean, true, TAG_DONE );
+//				screen->DrawText( SmallFont, CR_UNTRANSLATED, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_UNTRANSLATED, 224, y, "TYPE", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
 				break;
 
 			case discrete:
@@ -4308,7 +4304,7 @@ void M_OptDrawer ()
 					? CR_YELLOW : LabelColor;
 				break;
 			}
-			screen->DrawText (color, x, y, item->label, DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
+			screen->DrawText (SmallFont, color, x, y, item->label, DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 
 			if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
 				x = 32 + width + 6;
@@ -4324,7 +4320,7 @@ void M_OptDrawer ()
 
 					mysnprintf (tbuf, countof(tbuf), "%d.", item->b.position);
 					x = CurrentMenu->indent - SmallFont->StringWidth (tbuf);
-					screen->DrawText (CR_GREY, x, y, tbuf, DTA_Clean, true, TAG_DONE);
+					screen->DrawText (SmallFont, CR_GREY, x, y, tbuf, DTA_Clean, true, TAG_DONE);
 				}
 				break;
 			case bitmask:
@@ -4339,12 +4335,12 @@ void M_OptDrawer ()
 
 				if (v == vals)
 				{
-					screen->DrawText (ValueColor, CurrentMenu->indent + 14, y, "Unknown",
+					screen->DrawText (SmallFont, ValueColor, CurrentMenu->indent + 14, y, "Unknown",
 						DTA_Clean, true, TAG_DONE);
 				}
 				else
 				{
-					screen->DrawText (item->type == cdiscrete ? v : ValueColor,
+					screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
 						CurrentMenu->indent + 14, y, item->e.values[v].name,
 						DTA_Clean, true, TAG_DONE);
 				}
@@ -4373,7 +4369,7 @@ void M_OptDrawer ()
 						menu_autoaim <= 2 ? "High" :
 						menu_autoaim <= 3 ? "Very High" : "Always");
 
-					screen->DrawText( ValueColor, x, y, szLabel, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, ValueColor, x, y, szLabel, DTA_Clean, true, TAG_DONE );
 				}
 				else
 				{
@@ -4405,12 +4401,12 @@ void M_OptDrawer ()
 
 					if (v == vals)
 					{
-						screen->DrawText (ValueColor, x, y, "Unknown",
+						screen->DrawText (SmallFont, ValueColor, x, y, "Unknown",
 							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 					}
 					else
 					{
-						screen->DrawText (item->type == cdiscrete ? v : ValueColor,
+						screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
 						x, y,
 						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
 							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
@@ -4425,7 +4421,7 @@ void M_OptDrawer ()
 
 				value = item->a.cvar->GetGenericRep (CVAR_String);
 				v = M_FindCurVal(value.String, item->e.enumvalues, (int)item->b.numvalues);
-				screen->DrawText(ValueColor, CurrentMenu->indent + 14, y, v, DTA_Clean, true, TAG_DONE);
+				screen->DrawText(SmallFont, ValueColor, CurrentMenu->indent + 14, y, v, DTA_Clean, true, TAG_DONE);
 			}
 			break;
 
@@ -4439,11 +4435,11 @@ void M_OptDrawer ()
 				if (v == vals)
 				{
 					UCVarValue val = item->a.guidcvar->GetGenericRep (CVAR_String);
-					screen->DrawText (ValueColor, x, y, val.String, DTA_Clean, true, TAG_DONE);
+					screen->DrawText (SmallFont, ValueColor, x, y, val.String, DTA_Clean, true, TAG_DONE);
 				}
 				else
 				{
-					screen->DrawText (ValueColor, x, y, item->e.guidvalues[v].Name,
+					screen->DrawText (SmallFont, ValueColor, x, y, item->e.guidvalues[v].Name,
 						DTA_Clean, true, TAG_DONE);
 				}
 
@@ -4451,7 +4447,7 @@ void M_OptDrawer ()
 			break;
 
 			case nochoice:
-				screen->DrawText (CR_GOLD, x, y,
+				screen->DrawText (SmallFont, CR_GOLD, x, y,
 					(item->e.values[(int)item->b.min]).name, DTA_Clean, true, TAG_DONE);
 				break;
 
@@ -4510,7 +4506,7 @@ void M_OptDrawer ()
 				}
 				else
 				{
-					screen->DrawText(CR_BLACK, CurrentMenu->indent + 14, y + labelofs, "---",
+					screen->DrawText(SmallFont, CR_BLACK, CurrentMenu->indent + 14, y + labelofs, "---",
 						DTA_Clean, true, TAG_DONE);
 				}
 			}
@@ -4589,7 +4585,7 @@ void M_OptDrawer ()
 					str = "???";
 				}
 
-				screen->DrawText (ValueColor,
+				screen->DrawText (SmallFont, ValueColor,
 					x, y, str, DTA_Clean, true, TAG_DONE);
 			}
 			break;
@@ -4600,16 +4596,16 @@ void M_OptDrawer ()
 				// draw the temporary string and the cursor.
 				if ( g_bStringInput && i == CurrentItem )
 				{
-					screen->DrawText( CR_GREY, x, y, g_szStringInputBuffer, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_Clean, true, TAG_DONE );
 
 					// Draw the cursor.
-					screen->DrawText( CR_GREY,
+					screen->DrawText( SmallFont, CR_GREY,
 						x + SmallFont->StringWidth( g_szStringInputBuffer ),
 						y,
 						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_Clean, true, TAG_DONE );
 				}
 				else
-					screen->DrawText( CR_GREY, x, y, *item->a.stringcvar, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, *item->a.stringcvar, DTA_Clean, true, TAG_DONE );
 				break;
 			case pwstring:
 
@@ -4625,10 +4621,10 @@ void M_OptDrawer ()
 						for ( ulIdx = 0; ulIdx < strlen( szPWString ); ulIdx++ )
 							szPWString[ulIdx] = '*';
 
-						screen->DrawText( CR_GREY, x, y, szPWString, DTA_Clean, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, x, y, szPWString, DTA_Clean, true, TAG_DONE );
 
 						// Draw the cursor.
-						screen->DrawText( CR_GREY,
+						screen->DrawText( SmallFont, CR_GREY,
 							x + SmallFont->StringWidth( szPWString ),
 							y,
 							gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_Clean, true, TAG_DONE );
@@ -4642,7 +4638,7 @@ void M_OptDrawer ()
 						for ( ulIdx = 0; ulIdx < strlen( szPWString ); ulIdx++ )
 							szPWString[ulIdx] = '*';
 
-						screen->DrawText( CR_GREY, x, y, szPWString, DTA_Clean, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, x, y, szPWString, DTA_Clean, true, TAG_DONE );
 					}
 				}
 				break;
@@ -4651,16 +4647,16 @@ void M_OptDrawer ()
 					char	szString[16];
 				
 					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
-					screen->DrawText( CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
 				}
 				break;
 			case skintype:
 
-				screen->DrawText( CR_GREY, x, y, skins[g_ulPlayerSetupSkin].name, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_GREY, x, y, skins[g_ulPlayerSetupSkin].name, DTA_Clean, true, TAG_DONE );
 				break;
 			case classtype:
 
-				screen->DrawText( CR_GREY, x, y, ( g_lPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_lPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_GREY, x, y, ( g_lPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_lPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
 				break;
 			case botslot:
 
@@ -4725,21 +4721,21 @@ void M_OptDrawer ()
 
 					Val = pVar->GetGenericRep( CVAR_Int );
 					if ( BOTINFO_GetName( Val.Int ) == NULL )
-						screen->DrawText( CR_GREY, x, y, "-", DTA_Clean, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, x, y, "-", DTA_Clean, true, TAG_DONE );
 					else
 					{
 						sprintf( szBuffer, "%s", BOTINFO_GetName( Val.Int ));
 						V_ColorizeString( szBuffer );
-						screen->DrawText( CR_GREY, x, y, szBuffer, DTA_Clean, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, x, y, szBuffer, DTA_Clean, true, TAG_DONE );
 					}
 				}
 				break;
 			case announcer:
 
 				if ( ANNOUNCER_GetName( *item->a.intcvar ) == NULL )
-					screen->DrawText( CR_GREY, x, y, "NONE", DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, "NONE", DTA_Clean, true, TAG_DONE );
 				else
-					screen->DrawText( CR_GREY, x, y, ANNOUNCER_GetName( *item->a.intcvar ), DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, ANNOUNCER_GetName( *item->a.intcvar ), DTA_Clean, true, TAG_DONE );
 				break;
 			case levelslot:
 				{
@@ -4753,9 +4749,9 @@ void M_OptDrawer ()
 						sprintf( szMapName, "%s - %s", wadlevelinfos[*item->a.intcvar].mapname, G_MaybeLookupLevelName( &wadlevelinfos[*item->a.intcvar] ));
 
 						if ( stricmp( szMapName, "(null)" ) == 0 )
-							screen->DrawText( CR_GREY, x, y, "UNKNOWN LEVEL", DTA_Clean, true, TAG_DONE );
+							screen->DrawText( SmallFont, CR_GREY, x, y, "UNKNOWN LEVEL", DTA_Clean, true, TAG_DONE );
 						else
-							screen->DrawText( CR_GREY, x, y, szMapName, DTA_Clean, true, TAG_DONE );
+							screen->DrawText( SmallFont, CR_GREY, x, y, szMapName, DTA_Clean, true, TAG_DONE );
 					}
 				}
 				break;
@@ -4771,10 +4767,10 @@ void M_OptDrawer ()
 				// draw the temporary string and the cursor.
 				if ( g_bStringInput && i == CurrentItem )
 				{
-					screen->DrawText( CR_GREY, x, y, g_szStringInputBuffer, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_Clean, true, TAG_DONE );
 
 					// Draw the cursor.
-					screen->DrawText( CR_GREY,
+					screen->DrawText( SmallFont, CR_GREY,
 						x + SmallFont->StringWidth( g_szStringInputBuffer ),
 						y,
 						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_Clean, true, TAG_DONE );
@@ -4784,7 +4780,7 @@ void M_OptDrawer ()
 					char	szString[16];
 				
 					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
-					screen->DrawText( CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
 				}
 				break;
 			default:
@@ -4822,7 +4818,7 @@ void M_OptDrawer ()
 					else
 						color = CR_BRICK;	//LabelColor;
 
-					screen->DrawText (color, 104 * x + 20, y, str, DTA_Clean, true, TAG_DONE);
+					screen->DrawText (SmallFont, color, 104 * x + 20, y, str, DTA_Clean, true, TAG_DONE);
 				}
 			}
 
@@ -4848,49 +4844,45 @@ void M_OptDrawer ()
 
 				// Draw ping.
 				sprintf( szString, "%d", static_cast<int> (BROWSER_GetPing( lServer )));
-				screen->DrawText( lColor, 16, y, szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, lColor, 16, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw name.
 				strncpy( szString, BROWSER_GetHostName( lServer ), 12 );
 				szString[12] = 0;
 				if ( strlen( BROWSER_GetHostName( lServer )) > 12 )
 					sprintf( szString, "%s...", szString );
-				screen->DrawText( lColor, 48, y, szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, lColor, 48, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw map.
 				strncpy( szString, BROWSER_GetMapname( lServer ), 8 );
-				screen->DrawText( lColor, /*128*/160, y, szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, lColor, /*128*/160, y, szString, DTA_Clean, true, TAG_DONE );
 /*
 				// Draw wad.
 				if ( BROWSER_Get
 				sprintf( szString, "%d", BROWSER_GetPing( lServer ));
-				screen->DrawText( CR_GRAY, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_GRAY, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
 */
 				// Draw gametype.
 				strncpy( szString, GAMEMODE_GetShortName( BROWSER_GetGameMode( lServer )), 8 );
-				screen->DrawText( lColor, 224, y, szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, lColor, 224, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw players.
 				sprintf( szString, "%d/%d", static_cast<int> (BROWSER_GetNumPlayers( lServer )), static_cast<int> (BROWSER_GetMaxClients( lServer )));
-				screen->DrawText( lColor, 272, y, szString, DTA_Clean, true, TAG_DONE );
-
-				screen->SetFont( ConFont );
+				screen->DrawText( SmallFont, lColor, 272, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw the cursor.
 				if (( i == CurrentItem ) && ( skullAnimCounter < 6 ))
-					screen->DrawText( CR_RED, 6, y-1 + labelofs, "\xd", DTA_Clean, true, TAG_DONE );
+					screen->DrawText( ConFont, CR_RED, 6, y-1 + labelofs, "\xd", DTA_Clean, true, TAG_DONE );
 
 				// If the server in the highest browser slot is not the first server in the sorted server list, draw
 				// an up scroll arrow. (If this happens, we must have scrolled down.)
 				if (( i == SERVER_SLOT_START ) && ( lServer != g_iSortedServers[0] ) && ( BROWSER_CalcNumServers( )))
-					screen->DrawText( CR_ORANGE, 300, y-1 + labelofs - 4, "\x1a", DTA_Clean, true, TAG_DONE );
+					screen->DrawText( ConFont, CR_ORANGE, 300, y-1 + labelofs - 4, "\x1a", DTA_Clean, true, TAG_DONE );
 
 				// If the server in the highest browser slot is not the last server in the sorted server list, draw
 				// a down scroll arrow.
 				if (( i == ( SERVER_SLOT_START + NUM_SERVER_SLOTS - 1 )) && ( lServer != g_iSortedServers[M_CalcLastSortedIndex( ) - 1] ) && ( BROWSER_CalcNumServers( )))
-					screen->DrawText( CR_ORANGE, 300, y-1 + labelofs + 4, "\x1b", DTA_Clean, true, TAG_DONE );
-
-				screen->SetFont( SmallFont );
+					screen->DrawText( ConFont, CR_ORANGE, 300, y-1 + labelofs + 4, "\x1b", DTA_Clean, true, TAG_DONE );
 			}
 		}
 	}
@@ -4934,7 +4926,7 @@ void M_OptDrawer ()
 					fillptr += mysnprintf (fillptr, countof(flagsblah) - (fillptr - flagsblah), "%s = %d", vars[i]->GetName (), **vars[i]);
 			}
 		}
-		screen->DrawText (ValueColor,
+		screen->DrawText (SmallFont, ValueColor,
 			160 - (SmallFont->StringWidth (flagsblah) >> 1), 0, flagsblah,
 			DTA_Clean, true, TAG_DONE);
 	}
@@ -6502,9 +6494,9 @@ static void ColorPickerDrawer ()
 	screen->Clear (x + 48*CleanXfac, y, x + 48*2*CleanXfac, y + 48*CleanYfac, -1, newColor);
 
 	y += 49*CleanYfac;
-	screen->DrawText (CR_GRAY, x+(24-SmallFont->StringWidth("Old")/2)*CleanXfac, y,
+	screen->DrawText (SmallFont, CR_GRAY, x+(24-SmallFont->StringWidth("Old")/2)*CleanXfac, y,
 		"Old", DTA_CleanNoMove, true, TAG_DONE);
-	screen->DrawText (CR_WHITE, x+(48+24-SmallFont->StringWidth("New")/2)*CleanXfac, y,
+	screen->DrawText (SmallFont, CR_WHITE, x+(48+24-SmallFont->StringWidth("New")/2)*CleanXfac, y,
 		"New", DTA_CleanNoMove, true, TAG_DONE);
 }
 

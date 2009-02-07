@@ -777,17 +777,6 @@ FGLTexture::~FGLTexture()
 
 //===========================================================================
 //
-// Update
-//
-//===========================================================================
-
-bool FGLTexture::Update ()
-{
-	return false;
-}
-
-//===========================================================================
-//
 // GetRect
 //
 //===========================================================================
@@ -1539,6 +1528,11 @@ void gl_ParseBrightmap(FScanner &sc, int deflump)
 			Printf("Unable to create texture from '%s' in brightmap definition for '%s'\n", 
 				maplumpname.GetChars(), tex->Name);
 			return;
+		}
+		if (tex->gl_info.Brightmap != NULL)
+		{
+			// If there is already a brightmap assigned replace it
+			delete tex->gl_info.Brightmap;
 		}
 		tex->gl_info.Brightmap = brightmap;
 		brightmap->gl_info.bBrightmap = true;

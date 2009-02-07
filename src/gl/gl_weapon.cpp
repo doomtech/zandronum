@@ -182,7 +182,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		lightlevel = gl_CheckSpriteGlow(viewsector->GetTexture(sector_t::floor), lightlevel, playermo->z-playermo->floorz);
 
 		// calculate colormap for weapon sprites
-		if (viewsector->e->XFloor.ffloors.Size() && !gl_nocoloredspritelighting)
+		if (viewsector->e->XFloor.ffloors.Size() && !glset.nocoloredspritelighting)
 		{
 			TArray<lightlist_t> & lightlist = viewsector->e->XFloor.lightlist;
 			for(i=0;i<lightlist.Size();i++)
@@ -209,7 +209,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		else 
 		{
 			cm=fakesec->ColorMap;
-			if (gl_nocoloredspritelighting) cm.ClearColor();
+			if (glset.nocoloredspritelighting) cm.ClearColor();
 		}
 		if (fullbright)
 		{

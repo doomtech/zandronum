@@ -446,7 +446,7 @@ void DBaseStatusBar::ShowPlayerName ()
 	EColorRange color;
 
 	color = (CPlayer == &players[consoleplayer]) ? CR_GOLD : CR_GREEN;
-	AttachMessage (new DHUDMessageFadeOut (CPlayer->userinfo.netname,
+	AttachMessage (new DHUDMessageFadeOut (SmallFont, CPlayer->userinfo.netname,
 		1.5f, 0.92f, 0, 0, color, 2.f, 0.35f), MAKE_ID('P','N','A','M'));
 }
 
@@ -1160,7 +1160,7 @@ void DBaseStatusBar::Draw (EHudState state)
 	// [BB] The following code relies on CPlayer->mo != NULL.
 	if (idmypos && CPlayer->mo)
 	{ // Draw current coordinates
-		int height = screen->Font->GetHeight();
+		int height = SmallFont->GetHeight();
 		char labels[3] = { 'X', 'Y', 'Z' };
 		fixed_t *value;
 		int i;
@@ -1197,7 +1197,7 @@ void DBaseStatusBar::Draw (EHudState state)
 		for (i = 2, value = &CPlayer->mo->z; i >= 0; y -= height, --value, --i)
 		{
 			mysnprintf (line, countof(line), "%c: %d", labels[i], *value >> FRACBITS);
-			screen->DrawText (CR_GREEN, xpos, y, line, 
+			screen->DrawText (SmallFont, CR_GREEN, xpos, y, line, 
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, vwidth, DTA_VirtualHeight, vheight, 				
 				TAG_DONE);
@@ -1219,20 +1219,20 @@ void DBaseStatusBar::Draw (EHudState state)
 		EColorRange highlight = (gameinfo.gametype & GAME_DoomChex) ?
 			CR_UNTRANSLATED : CR_YELLOW;
 
-		height = screen->Font->GetHeight () * CleanYfac;
+		height = SmallFont->GetHeight () * CleanYfac;
 
 		// Draw timer
 		y = 8;
 		if (am_showtime)
 		{
 			mysnprintf (line, countof(line), "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);	// Time
-			screen->DrawText (CR_GREY, SCREENWIDTH - 80*CleanXfac, y, line, DTA_CleanNoMove, true, TAG_DONE);
+			screen->DrawText (SmallFont, CR_GREY, SCREENWIDTH - 80*CleanXfac, y, line, DTA_CleanNoMove, true, TAG_DONE);
 			y+=8*CleanYfac;
 		}
 		if (am_showtotaltime)
 		{
 			mysnprintf (line, countof(line), "%02d:%02d:%02d", totaltime/3600, (totaltime%3600)/60, totaltime%60);	// Total time
-			screen->DrawText (CR_GREY, SCREENWIDTH - 80*CleanXfac, y, line, DTA_CleanNoMove, true, TAG_DONE);
+			screen->DrawText (SmallFont, CR_GREY, SCREENWIDTH - 80*CleanXfac, y, line, DTA_CleanNoMove, true, TAG_DONE);
 		}
 
 		// Draw map name
@@ -1279,7 +1279,7 @@ void DBaseStatusBar::Draw (EHudState state)
 		line[i] = TEXTCOLOR_ESCAPE;
 		line[i+1] = CR_GREY + 'A';
 		strcpy (&line[i+2], level.level_name);
-		screen->DrawText (highlight,
+		screen->DrawText (SmallFont, highlight,
 			(SCREENWIDTH - SmallFont->StringWidth (line)*CleanXfac)/2, y, line,
 			DTA_CleanNoMove, true, TAG_DONE);
 
@@ -1292,7 +1292,7 @@ void DBaseStatusBar::Draw (EHudState state)
 			{
 				mysnprintf (line, countof(line), "MONSTERS:" TEXTCOLOR_GREY " %d/%d",
 					level.killed_monsters, level.total_monsters);
-				screen->DrawText (highlight, 8, y, line,
+				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 				y += height;
 			}
@@ -1302,7 +1302,7 @@ void DBaseStatusBar::Draw (EHudState state)
 			{
 				mysnprintf (line, countof(line), "SECRETS:" TEXTCOLOR_GREY " %d/%d",
 					level.found_secrets, level.total_secrets);
-				screen->DrawText (highlight, 8, y, line,
+				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 				y += height;
 			}
@@ -1312,7 +1312,7 @@ void DBaseStatusBar::Draw (EHudState state)
 			{
 				mysnprintf (line, countof(line), "ITEMS:" TEXTCOLOR_GREY " %d/%d",
 					level.found_items, level.total_items);
-				screen->DrawText (highlight, 8, y, line,
+				screen->DrawText (SmallFont, highlight, 8, y, line,
 					DTA_CleanNoMove, true, TAG_DONE);
 			}
 		}
@@ -1375,11 +1375,10 @@ void DBaseStatusBar::DrawLog ()
 							 Scale(w, SCREENWIDTH, hudwidth), Scale(height, SCREENHEIGHT, hudheight));
 		x+=20;
 		y+=10;
-		screen->SetFont(SmallFont);
 		for (int i = 0; lines[i].Width != -1; i++)
 		{
 
-			screen->DrawText (CR_UNTRANSLATED, x, y, lines[i].Text,
+			screen->DrawText (SmallFont, CR_UNTRANSLATED, x, y, lines[i].Text,
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, TAG_DONE);
 			y += SmallFont->GetHeight ()+1;
@@ -1473,7 +1472,7 @@ void DBaseStatusBar::DrawTopStuff (EHudState state)
 {
 	if (demoplayback && demover != DEMOGAMEVERSION)
 	{
-		screen->DrawText (CR_TAN, 0, ST_Y - 40 * CleanYfac,
+		screen->DrawText (SmallFont, CR_TAN, 0, ST_Y - 40 * CleanYfac,
 			"Demo was recorded with a different version\n"
 			"of ZDoom. Expect it to go out of sync.",
 			DTA_CleanNoMove, true, TAG_DONE);
@@ -1665,7 +1664,7 @@ void DBaseStatusBar::DrawConsistancy () const
 					players[1-consoleplayer].inconsistant/ticdup);
 			}
 		}
-		screen->DrawText (CR_GREEN, 
+		screen->DrawText (SmallFont, CR_GREEN, 
 			(screen->GetWidth() - SmallFont->StringWidth (conbuff)*CleanXfac) / 2,
 			0, conbuff, DTA_CleanNoMove, true, TAG_DONE);
 		BorderTopRefresh = screen->GetPageCount ();
@@ -1741,7 +1740,7 @@ void DBaseStatusBar::DrawTargetName ()
 		sprintf(szString, "%s\\n%s", szString, szDiplomacyStatus);
 		V_ColorizeString(szString);
 
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
 			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
 			0,

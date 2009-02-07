@@ -271,9 +271,9 @@ void MEDAL_Render( void )
 			ulCurXPos = 160 - ( SmallFont->StringWidth( szString ) / 2 );
 
 			if ( ulTick > ( 1 * TICRATE ))
-				screen->DrawText( g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
 			else
-				screen->DrawText( g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
 		}
 		// Display the medal icon <usNumMedals> times centered on the screen.
 		else
@@ -296,9 +296,9 @@ void MEDAL_Render( void )
 			ulCurXPos = 160 - ( SmallFont->StringWidth( szString ) / 2 );
 
 			if ( ulTick >  ( 1 * TICRATE ))
-				screen->DrawText( g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
+				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
 			else
-				screen->DrawText( g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
 		}
 	}
 }
@@ -465,7 +465,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 					DTA_Clean, bScale, TAG_DONE );
 	
 				sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
-				screen->DrawText( CR_RED,
+				screen->DrawText( SmallFont, CR_RED,
 					ulCurXPos - ( SmallFont->StringWidth( szString ) / 2 ) + TexMan[szPatchName]->GetWidth( ) / 2,
 					ulCurYPos,
 					szString,
@@ -526,11 +526,9 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	// Start by drawing "MEDALS" 4 pixels from the top.
 	ulCurYPos = 4;
 
-	screen->SetFont( BigFont );
-
 	if ( bScale )
 	{
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			(LONG)(( ValWidth.Int / 2 ) - ( BigFont->StringWidth( "MEDALS" ) / 2 )),
 			ulCurYPos,
 			"MEDALS",
@@ -540,14 +538,12 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	}
 	else
 	{
-		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			( SCREENWIDTH / 2 ) - ( BigFont->StringWidth( "MEDALS" ) / 2 ),
 			ulCurYPos,
 			"MEDALS",
 			TAG_DONE );
 	}
-
-	screen->SetFont( SmallFont );
 
 	ulCurYPos += 42;
 
@@ -596,7 +592,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( SmallFont, CR_RED,
 				ulCurXPos + 48,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - SmallFont->GetHeight( ) / 2,
 				"X",
@@ -606,7 +602,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( SmallFont, CR_RED,
 				ulCurXPos + 48,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - SmallFont->GetHeight( ) / 2,
 				"X",
@@ -614,10 +610,9 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		}
 
 		sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
-		screen->SetFont( BigFont );
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( BigFont, CR_RED,
 				ulCurXPos + 64,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - BigFont->GetHeight( ) / 2,
 				szString,
@@ -627,13 +622,12 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( BigFont, CR_RED,
 				ulCurXPos + 64,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - BigFont->GetHeight( ) / 2,
 				szString,
 				TAG_DONE );
 		}
-		screen->SetFont( SmallFont );
 
 		if ( ulNumMedal % 2 )
 			ulCurYPos += ulMaxMedalHeight;
@@ -646,7 +640,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	{
 		if ( bScale )
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( SmallFont, CR_WHITE,
 				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( "YOU HAVE NOT YET EARNED ANY MEDALS." ) / 2 )),
 				26,
 				"YOU HAVE NOT YET EARNED ANY MEDALS.",
@@ -656,7 +650,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( SmallFont, CR_WHITE,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( "YOU HAVE NOT YET EARNED ANY MEDALS." ) / 2 ),
 				26,
 				"YOU HAVE NOT YET EARNED ANY MEDALS.",
@@ -667,7 +661,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	{
 		if ( bScale )
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( SmallFont, CR_WHITE,
 				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( "YOU HAVE EARNED THE FOLLOWING MEDALS:" ) / 2 )),
 				26,
 				"YOU HAVE EARNED THE FOLLOWING MEDALS:",
@@ -677,7 +671,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		}
 		else
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( SmallFont, CR_WHITE,
 				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( "YOU HAVE EARNED THE FOLLOWING MEDALS:" ) / 2 ),
 				26,
 				"YOU HAVE EARNED THE FOLLOWING MEDALS:",

@@ -6,6 +6,7 @@
 #include "s_sound.h"
 #include "c_console.h"
 #include "doomstat.h"
+#include "v_font.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
@@ -56,7 +57,7 @@ bool APuzzleItem::Use (bool pickup)
 		const char *message = GetClass()->Meta.GetMetaString (AIMETA_PuzzFailMessage);
 		if (message != NULL && *message=='$') message = GStrings[message + 1];
 		if (message == NULL) message = GStrings("TXT_USEPUZZLEFAILED");
-		C_MidPrintBold (message);
+		C_MidPrintBold (SmallFont, message);
 
 		// [BB] If we're the server, print the message. This sends the message to all players.
 		// Should be tweaked so that it only is shown to those who are watching through the

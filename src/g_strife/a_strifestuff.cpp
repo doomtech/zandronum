@@ -17,6 +17,7 @@
 #include "a_sharedglobal.h"
 #include "templates.h"
 #include "d_event.h"
+#include "v_font.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"

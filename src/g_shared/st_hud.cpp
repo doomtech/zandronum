@@ -68,7 +68,7 @@ void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool
 {
 	if ( Scale )
 	{
-		screen->DrawText( Normalcolor,
+		screen->DrawText( SmallFont, Normalcolor,
 			X,
 			Y,
 			String,
@@ -78,7 +78,7 @@ void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool
 	}
 	else
 	{
-		screen->DrawText( Normalcolor,
+		screen->DrawText( SmallFont, Normalcolor,
 			X,
 			Y,
 			String,
@@ -89,7 +89,7 @@ void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool
 void HUD_DrawTextAligned( int Normalcolor, int Y, const char *String, bool AlignLeft, const bool Scale, const int VirtualWidth, const int VirtualHeight )
 {
 	int screenWidthSacled = Scale ? VirtualWidth : SCREENWIDTH;
-	HUD_DrawText ( Normalcolor, AlignLeft ? 0 : ( screenWidthSacled - screen->Font->StringWidth ( String ) ) , Y, String, Scale, VirtualWidth, VirtualHeight );
+	HUD_DrawText ( Normalcolor, AlignLeft ? 0 : ( screenWidthSacled - SmallFont->StringWidth ( String ) ) , Y, String, Scale, VirtualWidth, VirtualHeight );
 }
 
 void DrawHUD_CoopInfo()
@@ -110,15 +110,12 @@ void DrawHUD_CoopInfo()
 	else
 		bScale = false;
 
-	FFont * oldFont = screen->Font;
-	FFont * coopInfoFont = SmallFont;
-	screen->SetFont( coopInfoFont );
 	FString drawString;
 
 	// [BB] We may not draw in the first 4 lines, this is reserved for chat messages.
 	// Leave free another line to prevent the keys from being drawn over in ST's
 	// fullscreen HUD.
-	const int yOffset = 5 * coopInfoFont->GetHeight( );
+	const int yOffset = 5 * SmallFont->GetHeight( );
 	int playersDrawn = 0;
 
 	for ( int i = 0; i < MAXPLAYERS; i++ )
@@ -131,7 +128,7 @@ void DrawHUD_CoopInfo()
 		if ( players[i].mo->CheckLocalView( consoleplayer ) )
 			continue;
 
-		int curYPos = yOffset + (playersDrawn/2) * ( 4 * coopInfoFont->GetHeight( ) + 3 ) ;
+		int curYPos = yOffset + (playersDrawn/2) * ( 4 * SmallFont->GetHeight( ) + 3 ) ;
 
 		const bool drawLeft = ( playersDrawn % 2 == 0 );
 
@@ -139,7 +136,7 @@ void DrawHUD_CoopInfo()
 		drawString = players[i].userinfo.netname;
 		V_ColorizeString( drawString );
 		HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
-		curYPos += coopInfoFont->GetHeight( ) + 1;
+		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BL] Draw the player's location, [BB] but only if the map has any SectorInfo.
 		if ( level.info->SectorInfo.Names.Size() > 0 )
@@ -150,7 +147,7 @@ void DrawHUD_CoopInfo()
 				drawString = FString("\\cmUnknown Location\\c-");
 			V_ColorizeString( drawString );
 			HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
-			curYPos += coopInfoFont->GetHeight( ) + 1;
+			curYPos += SmallFont->GetHeight( ) + 1;
 		}
 
 		// [BB] Draw player health (color coded) and armor.
@@ -169,7 +166,7 @@ void DrawHUD_CoopInfo()
 		else
 			drawString = "dead";
 		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
-		curYPos += coopInfoFont->GetHeight( ) + 1;
+		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BB] Draw player weapon and Ammo1/Ammo2, but only if the player is alive.
 		if ( players[i].ReadyWeapon && players[i].mo->health > 0 )
@@ -187,6 +184,4 @@ void DrawHUD_CoopInfo()
 
 		playersDrawn++;
 	}
-
-	screen->SetFont( oldFont );
 }

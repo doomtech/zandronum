@@ -23,7 +23,7 @@ inline long long GetClockCycle()
 {
 	if (CPU.bRDTSC)
 	{
-		cycle_t res;
+		long long res;
 		asm volatile ("rdtsc" : "=A" (res));
 		return res;
 	}

@@ -598,7 +598,7 @@ void DrawFullHUD_Unknown ()
 
 	if ( bScale )
 	{
-		screen->DrawText( CR_RED,
+		screen->DrawText( ConFont, CR_RED,
 			ulCurXPos + 18,
 			ulCurYPos - 16,
 			szString,
@@ -608,7 +608,7 @@ void DrawFullHUD_Unknown ()
 	}
 	else
 	{
-		screen->DrawText( CR_RED,
+		screen->DrawText( ConFont, CR_RED,
 			ulCurXPos + 18,
 			ulCurYPos - 16,
 			szString,
@@ -641,7 +641,7 @@ void DrawFullHUD_Health()
 		sprintf( szString, "%d", CPlayer->health );
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -651,7 +651,7 @@ void DrawFullHUD_Health()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -661,7 +661,7 @@ void DrawFullHUD_Health()
 		sprintf( szString, "/" );
 		if ( bScale )
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( ConFont, CR_WHITE,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -671,7 +671,7 @@ void DrawFullHUD_Health()
 		}
 		else
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( ConFont, CR_WHITE,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -682,7 +682,7 @@ void DrawFullHUD_Health()
 		sprintf( szString, "%d", static_cast<int> (( CPlayer->cheats & CF_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : lMaxHealth + CPlayer->lMaxHealthBonus) );
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -692,7 +692,7 @@ void DrawFullHUD_Health()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -741,7 +741,7 @@ void DrawFullHUD_Armor()
 		sprintf( szString, "%d", pArmor ? pArmor->Amount : 0 );
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -751,7 +751,7 @@ void DrawFullHUD_Armor()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -761,7 +761,7 @@ void DrawFullHUD_Armor()
 		sprintf( szString, "/" );
 		if ( bScale )
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( ConFont, CR_WHITE,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -771,7 +771,7 @@ void DrawFullHUD_Armor()
 		}
 		else
 		{
-			screen->DrawText( CR_WHITE,
+			screen->DrawText( ConFont, CR_WHITE,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -781,7 +781,7 @@ void DrawFullHUD_Armor()
 		sprintf( szString, "%d", ( CPlayer->cheats & CF_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + (pArmor ? pArmor->BonusCount : 0) );
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -791,7 +791,7 @@ void DrawFullHUD_Armor()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 				ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 				szString,
@@ -810,7 +810,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 
 			if ( bScale )
 			{
-				screen->DrawText( CR_YELLOW,
+				screen->DrawText( ConFont, CR_YELLOW,
 					ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -820,7 +820,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 			}
 			else
 			{
-				screen->DrawText( CR_YELLOW,
+				screen->DrawText( ConFont, CR_YELLOW,
 					ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -830,7 +830,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 			sprintf( szString, "/" );
 			if ( bScale )
 			{
-				screen->DrawText( CR_WHITE,
+				screen->DrawText( ConFont, CR_WHITE,
 					ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -840,7 +840,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 			}
 			else
 			{
-				screen->DrawText( CR_WHITE,
+				screen->DrawText( ConFont, CR_WHITE,
 					ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -851,7 +851,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 
 			if ( bScale )
 			{
-				screen->DrawText( CR_YELLOW,
+				screen->DrawText( ConFont, CR_YELLOW,
 					ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),						
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -861,7 +861,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 			}
 			else
 			{
-				screen->DrawText( CR_YELLOW,
+				screen->DrawText( ConFont, CR_YELLOW,
 					ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -960,7 +960,7 @@ void DrawFullHUD_GameInformation()
 
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos - ConFont->StringWidth( szString ),
 				ulCurYPos,
 				szString,
@@ -970,7 +970,7 @@ void DrawFullHUD_GameInformation()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos - ConFont->StringWidth( szString ),
 				ulCurYPos,
 				szString,
@@ -1068,7 +1068,7 @@ void DrawFullHUD_GameInformation()
 			sprintf( szString, "%d", static_cast<int>( TEAM_GetScore( i )));
 			if ( bScale )
 			{
-				screen->DrawText( TEAM_GetTextColor( i ),
+				screen->DrawText( ConFont, TEAM_GetTextColor( i ),
 					ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
 					ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -1078,7 +1078,7 @@ void DrawFullHUD_GameInformation()
 			}
 			else
 			{
-				screen->DrawText( TEAM_GetTextColor( i ),
+				screen->DrawText( ConFont, TEAM_GetTextColor( i ),
 					ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
 					ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 					szString,
@@ -1129,7 +1129,7 @@ void DrawFullHUD_GameInformation()
 				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ),  static_cast<int>( ulPoints[i] ));
 				V_ColorizeString( szString );
 
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( ConFont, CR_GRAY,
 					ulCurXPos,
 					ulCurYPos + (lSlot * SCREENHEIGHT / 40),
 					szString,
@@ -1150,7 +1150,7 @@ void DrawFullHUD_GameInformation()
 				sprintf( szString , "\\c%c%u\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), static_cast<unsigned int> (ulPoints[i]));
 				V_ColorizeString( szString );
 
-				screen->DrawText( CR_GRAY,
+				screen->DrawText( ConFont, CR_GRAY,
 					ulCurXPos,
 					ulCurYPos - (lSlot * SCREENHEIGHT / 40),
 					szString,
@@ -1175,7 +1175,7 @@ void DrawFullHUD_GameInformation()
 
 		if ( bScale )
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos,
 				ulCurYPos - ConFont->GetHeight( ),
 				szString,
@@ -1185,7 +1185,7 @@ void DrawFullHUD_GameInformation()
 		}
 		else
 		{
-			screen->DrawText( CR_RED,
+			screen->DrawText( ConFont, CR_RED,
 				ulCurXPos,
 				ulCurYPos - ConFont->GetHeight( ),
 				szString,
@@ -1200,7 +1200,7 @@ void DrawFullHUD_GameInformation()
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
-				screen->DrawText( CR_RED,
+				screen->DrawText( ConFont, CR_RED,
 					ulCurXPos,
 					ulCurYPos - ConFont->GetHeight( ),
 					szString,
@@ -1210,7 +1210,7 @@ void DrawFullHUD_GameInformation()
 			}
 			else
 			{
-				screen->DrawText( CR_RED,
+				screen->DrawText( ConFont, CR_RED,
 					ulCurXPos,
 					ulCurYPos - ConFont->GetHeight( ),
 					szString,
@@ -1235,7 +1235,7 @@ void DrawFullHUD_GameInformation()
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
-				screen->DrawText( CR_RED,
+				screen->DrawText( ConFont, CR_RED,
 					ulCurXPos,
 					ulCurYPos,
 					szString,
@@ -1245,7 +1245,7 @@ void DrawFullHUD_GameInformation()
 			}
 			else
 			{
-				screen->DrawText( CR_RED,
+				screen->DrawText( ConFont, CR_RED,
 					ulCurXPos,
 					ulCurYPos,
 					szString,
@@ -1259,7 +1259,7 @@ void DrawFullHUD_GameInformation()
 				V_ColorizeString( szString );
 				if ( bScale )
 				{
-					screen->DrawText( CR_RED,
+					screen->DrawText( ConFont, CR_RED,
 						ulCurXPos,
 						ulCurYPos,
 						szString,
@@ -1269,7 +1269,7 @@ void DrawFullHUD_GameInformation()
 				}
 				else
 				{
-					screen->DrawText( CR_RED,
+					screen->DrawText( ConFont, CR_RED,
 						ulCurXPos,
 						ulCurYPos,
 						szString,
@@ -1634,9 +1634,6 @@ void DrawFullHUD_GameInformation()
 		else
 			bScale = false;
 
-		// Use the console font for all the drawing here.
-		screen->SetFont( ConFont );
-
 		/*=========================================================
 		Draw the bottom parts of the HUD - health, armor, and ammo.
 		=========================================================*/
@@ -1691,9 +1688,6 @@ void DrawFullHUD_GameInformation()
 		Draw information about the game (frags, scores, limits, etc)
 		=========================================================*/
 		DrawFullHUD_GameInformation();
-
-		// Revert back to the small font.
-		screen->SetFont( SmallFont );
 
 		// [BB] Draw inventory. Doesn't respect scaling yet, but it's better than nothing.
 		DrawFullScreenInventory( SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14 );

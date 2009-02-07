@@ -55,7 +55,10 @@
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
-CVAR(Bool, gl_nocoloredspritelighting, false, 0)
+CUSTOM_CVAR(Bool, gl_nocoloredspritelighting, false, 0)
+{
+	glset.nocoloredspritelighting = self;
+}
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
 CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
 CVAR(Int, gl_billboard_mode, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -335,7 +338,7 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 			copySprite.lightlevel=*lightlist[i].p_lightlevel;
 			copySprite.Colormap.CopyLightColor(*lightlist[i].p_extra_colormap);
 
-			if (gl_nocoloredspritelighting)
+			if (glset.nocoloredspritelighting)
 			{
 				int v = (copySprite.Colormap.LightColor.r + copySprite.Colormap.LightColor.g + copySprite.Colormap.LightColor.b )/3;
 				copySprite.Colormap.LightColor.r=
@@ -383,7 +386,7 @@ void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
 			lightlevel=*lightlist[i].p_lightlevel;
 			Colormap.CopyLightColor(*lightlist[i].p_extra_colormap);
 
-			if (gl_nocoloredspritelighting)
+			if (glset.nocoloredspritelighting)
 			{
 				int v = (Colormap.LightColor.r + Colormap.LightColor.g + Colormap.LightColor.b )/3;
 				Colormap.LightColor.r=
@@ -417,7 +420,12 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
  	// invisible things
 	if (thing->sprite==0) return;
-	if (thing->renderflags & RF_INVISIBLE || !thing->RenderStyle.IsVisible(thing->alpha)) return; 
+
+	if (thing->renderflags & RF_INVISIBLE || !thing->RenderStyle.IsVisible(thing->alpha)) 
+	{
+		if (!(thing->flags & MF_STEALTH) || !gl_fixedcolormap || !gl_enhanced_nightvision)
+			return; 
+	}
 
 	// [RH] Interpolate the sprite's position to make it look smooth
 	fixed_t thingx = thing->PrevX + FixedMul (r_TicFrac, thing->x - thing->PrevX);
@@ -604,7 +612,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 				Colormap.LightColor.b=0xff;
 			}
 		}
-		else if (gl_nocoloredspritelighting)
+		else if (glset.nocoloredspritelighting)
 		{
 			int v = (Colormap.LightColor.r /* * 77 */ + Colormap.LightColor.g /**143 */ + Colormap.LightColor.b /**35*/)/3;//255;
 			Colormap.LightColor.r=

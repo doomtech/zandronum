@@ -252,16 +252,13 @@ void CHAT_Render( void )
 		ulYPos = (( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y ) - SmallFont->GetHeight( ) + 1;
 	}
 	
-	// Use the small font.
-	screen->SetFont( SmallFont );
-
 	lX = static_cast<LONG>(SmallFont->GetCharWidth( '_' ) * fXScale * 2 + SmallFont->StringWidth( g_pszChatPrompt ));
 
 	// figure out if the text is wider than the screen->
 	// if so, only draw the right-most portion of it.
 	for ( lIdx = g_lStringLength - 1; (( lIdx >= 0 ) && ( lX < ( (float)SCREENWIDTH * fXScale ))); lIdx-- )
 	{
-		lX += screen->Font->GetCharWidth( g_szChatBuffer[lIdx] & 0x7f );
+		lX += SmallFont->GetCharWidth( g_szChatBuffer[lIdx] & 0x7f );
 	}
 
 	// If lIdx is >= 0, then this chat string goes beyond the edge of the screen.
@@ -277,7 +274,7 @@ void CHAT_Render( void )
 	{
 		if ( g_ulChatMode == CHATMODE_GLOBAL )
 		{
-			screen->DrawText( CR_GREEN,
+			screen->DrawText( SmallFont, CR_GREEN,
 				0,
 				(LONG)( ulYPos * fYScale ),
 				g_pszChatPrompt,
@@ -285,7 +282,7 @@ void CHAT_Render( void )
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
 
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				(LONG)( ulYPos * fYScale ),
 				g_szChatBuffer + lIdx,
@@ -295,7 +292,7 @@ void CHAT_Render( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				0,
 				(LONG)( ulYPos * fYScale ),
 				g_pszChatPrompt,
@@ -303,7 +300,7 @@ void CHAT_Render( void )
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
 
-			screen->DrawText((TEAM_GetTextColor (players[consoleplayer].ulTeam)),
+			screen->DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				(LONG)( ulYPos * fYScale ),
 				g_szChatBuffer + lIdx,
@@ -316,13 +313,13 @@ void CHAT_Render( void )
 	{
 		if ( g_ulChatMode == CHATMODE_GLOBAL )
 		{
-			screen->DrawText( CR_GREEN,
+			screen->DrawText( SmallFont, CR_GREEN,
 				0,
 				ulYPos,
 				g_pszChatPrompt,
 				TAG_DONE );
 
-			screen->DrawText( CR_GRAY,
+			screen->DrawText( SmallFont, CR_GRAY,
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				ulYPos,
 				g_szChatBuffer + lIdx,
@@ -330,13 +327,13 @@ void CHAT_Render( void )
 		}
 		else
 		{
-			screen->DrawText( CR_GREY,
+			screen->DrawText( SmallFont, CR_GREY,
 				0,
 				ulYPos,
 				g_pszChatPrompt,
 				TAG_DONE );
 
-			screen->DrawText((TEAM_GetTextColor (players[consoleplayer].ulTeam)),
+			screen->DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				ulYPos,
 				g_szChatBuffer + lIdx,
@@ -357,7 +354,7 @@ void CHAT_Render( void )
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
-				screen->DrawText( CR_UNTRANSLATED,
+				screen->DrawText( SmallFont, CR_UNTRANSLATED,
 					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
 					szString,
@@ -367,7 +364,7 @@ void CHAT_Render( void )
 			}
 			else
 			{
-				screen->DrawText( CR_UNTRANSLATED,
+				screen->DrawText( SmallFont, CR_UNTRANSLATED,
 					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
 					szString,
@@ -381,7 +378,7 @@ void CHAT_Render( void )
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
-				screen->DrawText( CR_UNTRANSLATED,
+				screen->DrawText( SmallFont, CR_UNTRANSLATED,
 					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
 					szString,
@@ -391,7 +388,7 @@ void CHAT_Render( void )
 			}
 			else
 			{
-				screen->DrawText( CR_UNTRANSLATED,
+				screen->DrawText( SmallFont, CR_UNTRANSLATED,
 					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
 					szString,

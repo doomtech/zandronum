@@ -206,11 +206,11 @@ void DOMINATION_DrawHUD(bool scaled)
 		str << "\\c- :" << *level.info->SectorInfo.PointNames[i];
 		V_ColorizeString(str);
 		if(scaled)
-			screen->DrawText(CR_GRAY, ValWidth.Int - SmallFont->StringWidth(str),
+			screen->DrawText(SmallFont, CR_GRAY, ValWidth.Int - SmallFont->StringWidth(str),
 							static_cast<int> (ST_Y * YScale) - (NumPoints-i)*SmallFont->GetHeight(), str,
 							DTA_VirtualWidth, ValWidth.Int, DTA_VirtualHeight, ValHeight.Int, TAG_DONE);
 		else
-			screen->DrawText(CR_GRAY, SCREENWIDTH - SmallFont->StringWidth(str),
+			screen->DrawText(SmallFont, CR_GRAY, SCREENWIDTH - SmallFont->StringWidth(str),
 							ST_Y  - (NumPoints-i)*SmallFont->GetHeight(), str,
 							TAG_DONE);
 	}

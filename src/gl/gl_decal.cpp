@@ -153,7 +153,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	int b = BPART(actor->AlphaColor);
 	FColormap p = Colormap;
 	
-	if (gl_nocoloredspritelighting)
+	if (glset.nocoloredspritelighting)
 	{
 		int v = (Colormap.LightColor.r * 77 + Colormap.LightColor.g*143 + Colormap.LightColor.b*35)/255;
 		p.LightColor = PalEntry(p.LightColor.a, v, v, v);

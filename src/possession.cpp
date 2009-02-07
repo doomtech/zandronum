@@ -284,21 +284,22 @@ void POSSESSION_Render( void )
 	if( SCOREBOARD_ShouldDrawBoard( consoleplayer ) )
 		return;
 
+	bool bUseBigFont = false;
 	// [RC] Use a bolder display, at resolutions large enough.
 	if ( bScale )
 	{
 		if ( con_virtualwidth.GetGenericRep( CVAR_Int ).Int >= 640 )
-			screen->SetFont(BigFont);
+			bUseBigFont = true;
 	}
 	else
 	{
 		if ( SCREENWIDTH >= 640 )
-			screen->SetFont(BigFont);
+			bUseBigFont = true;
 	}
 
 	if ( bScale )
 	{
-		screen->DrawText( ulColor,
+		screen->DrawText( bUseBigFont ? BigFont : SmallFont, ulColor,
 			(LONG)(( con_virtualwidth / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
 			(LONG)( 25 * fYScale ),
 			szString,
@@ -308,13 +309,12 @@ void POSSESSION_Render( void )
 	}
 	else
 	{
-		screen->DrawText( ulColor,
+		screen->DrawText( bUseBigFont ? BigFont : SmallFont, ulColor,
 			( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
 			25,
 			szString,
 			TAG_DONE );
 	}
-	screen->SetFont(SmallFont);
 }
 
 //*****************************************************************************
@@ -414,10 +414,8 @@ void POSSESSION_DoFight( void )
 		// Play fight sound.
 		ANNOUNCER_PlayEntry( cl_announcer, "Fight" );
 
-		screen->SetFont( BigFont );
-
 		// Display "FIGHT!" HUD message.
-		pMsg = new DHUDMessageFadeOut( "FIGHT!",
+		pMsg = new DHUDMessageFadeOut( BigFont, "FIGHT!",
 			160.4f,
 			75.0f,
 			320,
@@ -427,7 +425,6 @@ void POSSESSION_DoFight( void )
 			1.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
 	else
@@ -599,8 +596,7 @@ void POSSESSION_ArtifactPickedUp( player_t *pPlayer, ULONG ulTicks )
 	// up.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( GStrings( "POSSESSIONARTIFACT_PICKEDUP" ),
+		pMsg = new DHUDMessageFadeOut( BigFont, GStrings( "POSSESSIONARTIFACT_PICKEDUP" ),
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -609,7 +605,6 @@ void POSSESSION_ArtifactPickedUp( player_t *pPlayer, ULONG ulTicks )
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 
 	// Also, announce that the artifact has been picked up.
@@ -647,8 +642,7 @@ void POSSESSION_ArtifactDropped( void )
 	// up.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( GStrings( "POSSESSIONARTIFACT_DROPPED" ),
+		pMsg = new DHUDMessageFadeOut( BigFont, GStrings( "POSSESSIONARTIFACT_DROPPED" ),
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -657,7 +651,6 @@ void POSSESSION_ArtifactDropped( void )
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 
 	// Also, announce that the artifact has been dropped.
@@ -704,13 +697,11 @@ void POSSESSION_TimeExpired( void )
 		{
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
-				screen->SetFont( BigFont );
-
 				sprintf( szString, "\\cdSUDDEN DEATH!" );
 				V_ColorizeString( szString );
 
 				// Display the HUD message.
-				pMsg = new DHUDMessageFadeOut( szString,
+				pMsg = new DHUDMessageFadeOut( BigFont, szString,
 					160.4f,
 					75.0f,
 					320,
@@ -720,7 +711,6 @@ void POSSESSION_TimeExpired( void )
 					2.0f );
 
 				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-				screen->SetFont( SmallFont );
 			}
 			else
 			{
@@ -843,10 +833,8 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 	// send the parameters to the client.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-
 		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( szString,
+		pMsg = new DHUDMessageFadeOut( BigFont, szString,
 			160.4f,
 			75.0f,
 			320,
@@ -856,12 +844,11 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 
 		// [RC] Display small HUD message for the scorer
 		if ( teampossession && ( players[ulPlayer].bOnTeam ))
 		{
-			pMsg = new DHUDMessageFadeOut( szScorer,
+			pMsg = new DHUDMessageFadeOut( SmallFont, szScorer,
 					160.4f,
 					90.0f,
 					320,

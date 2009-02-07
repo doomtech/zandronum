@@ -59,8 +59,10 @@
 #include "network.h"
 #include "sv_commands.h"
 
+GLRenderSettings glset;
 
 
+EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 
 FTexture *glpart2;
 FTexture *glpart;
@@ -195,6 +197,8 @@ struct FGLROptions : public FOptionalMapinfoData
 		fogdensity = 0;
 		outsidefogdensity = 0;
 		skyfog = 0;
+		lightmode = -1;
+		nocoloredspritelighting = -1;
 	}
 	virtual FOptionalMapinfoData *Clone() const
 	{
@@ -203,11 +207,15 @@ struct FGLROptions : public FOptionalMapinfoData
 		newopt->fogdensity = fogdensity;
 		newopt->outsidefogdensity = outsidefogdensity;
 		newopt->skyfog = skyfog;
+		newopt->lightmode = lightmode;
+		newopt->nocoloredspritelighting = nocoloredspritelighting;
 		return newopt;
 	}
 	int			fogdensity;
 	int			outsidefogdensity;
 	int			skyfog;
+	int			lightmode;
+	bool		nocoloredspritelighting;
 };
 
 static void ParseFunc(FScanner &sc, level_info_t *info)
@@ -243,6 +251,22 @@ static void ParseFunc(FScanner &sc, level_info_t *info)
 			sc.MustGetNumber();
 			opt->skyfog = sc.Number;
 		}
+		else if (sc.Compare("lightmode"))
+		{
+			sc.MustGetNumber();
+			opt->lightmode = BYTE(sc.Number);
+		}
+		else if (sc.Compare("nocoloredspritelighting"))
+		{
+			if (sc.CheckNumber())
+			{
+				opt->nocoloredspritelighting = !!sc.Number;
+			}
+			else
+			{
+				opt->nocoloredspritelighting = true;
+			}
+		}
 		else
 		{
 			sc.ScriptError("Unknown keyword %s", sc.String);
@@ -265,11 +289,29 @@ static void InitGLRMapinfoData()
 	{
 		FGLROptions *opt = static_cast<FGLROptions*>(dat);
 		gl_SetFogParams(opt->fogdensity, level.info->outsidefog, opt->outsidefogdensity, opt->skyfog);
+
+		glset.map_lightmode = opt->lightmode;
+		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
 	}
 	else
 	{
 		gl_SetFogParams(0, level.info->outsidefog, 0, 0);
+		glset.map_lightmode = -1;
+		glset.map_nocoloredspritelighting = -1;
 	}
+
+	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
+	else glset.lightmode = glset.map_lightmode;
+	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
+	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
+}
+
+CCMD(gl_resetmap)
+{
+	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
+	else glset.lightmode = glset.map_lightmode;
+	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
+	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
 }
 
 //==========================================================================

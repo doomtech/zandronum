@@ -147,8 +147,6 @@ private:
 	short RenderHeight[2];
 	float AlphaThreshold;
 
-	virtual bool Update();
-
 	bool FindHoles(const unsigned char * buffer, int w, int h);
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
 	void CheckTrans(unsigned char * buffer, int size, int trans);

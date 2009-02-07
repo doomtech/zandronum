@@ -343,10 +343,8 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 	{
 		DHUDMessageFadeOut	*pMsg;
 
-		screen->SetFont( BigFont );
-
 		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( pszMessage,
+		pMsg = new DHUDMessageFadeOut( BigFont, pszMessage,
 			160.4f,
 			75.0f,
 			320,
@@ -356,7 +354,6 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-		screen->SetFont( SmallFont );
 	}
 }
 
@@ -366,8 +363,7 @@ void GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClie
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( BigFont );
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( pszMessage,
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( BigFont, pszMessage,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS,
 			0,
@@ -376,7 +372,6 @@ void GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClie
 			3.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else if ( bInformClients )
@@ -391,8 +386,7 @@ void GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClie
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		screen->SetFont( SmallFont );
-		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( pszMessage,
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, pszMessage,
 			1.5f,
 			TEAM_MESSAGE_Y_AXIS_SUB,
 			0,

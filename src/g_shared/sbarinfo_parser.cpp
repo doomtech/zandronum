@@ -99,6 +99,7 @@ static const char *SBarInfoRoutineLevel[] =
 	"isselected",
 	"usessecondaryammo",
 	"hasweaponpiece",
+	"inventorybarnotvisible",
 	"weaponammo", //event
 	"ininventory",
 	NULL
@@ -514,7 +515,7 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					else if(sc.Compare("centerbottom"))
 						cmd.flags |= DRAWIMAGE_OFFSET_CENTERBOTTOM;
 					else
-						sc.ScriptError("Expected 'center' or 'centerbottom' got '%s' instead.", sc.String);
+						sc.ScriptError("'%s' is not a valid alignment.", sc.String);
 				}
 				sc.MustGetToken(';');
 				break;
@@ -735,6 +736,18 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					else if(sc.Compare("alwaysshowcounter"))
 					{
 						cmd.flags |= DRAWSELECTEDINVENTORY_ALWAYSSHOWCOUNTER;
+					}
+					else if(sc.Compare("center"))
+					{
+						cmd.flags |= DRAWSELECTEDINVENTORY_CENTER;
+					}
+					else if(sc.Compare("centerbottom"))
+					{
+						cmd.flags |= DRAWSELECTEDINVENTORY_CENTERBOTTOM;
+					}
+					else if(sc.Compare("drawshadow"))
+					{
+						cmd.flags |= DRAWSELECTEDINVENTORY_DRAWSHADOW;
 					}
 					else
 					{
@@ -1268,6 +1281,11 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
 			}
+			case SBARINFO_INVENTORYBARNOTVISIBLE:
+				sc.MustGetToken('{');
+				cmd.subBlock.fullScreenOffsets = block.fullScreenOffsets;
+				this->ParseSBarInfoBlock(sc, cmd.subBlock);
+				break;
 			case SBARINFO_WEAPONAMMO:
 				sc.MustGetToken(TK_Identifier);
 				if(sc.Compare("not"))

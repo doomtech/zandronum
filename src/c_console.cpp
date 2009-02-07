@@ -622,11 +622,11 @@ void C_AddNotifyString (int printlevel, const char *source)
 	if (addtype == APPENDLINE && NotifyStrings[NUMNOTIFIES-1].PrintLevel == printlevel)
 	{
 		FString str = NotifyStrings[NUMNOTIFIES-1].Text + source;
-		lines = V_BreakLines (screen->Font, width, str);
+		lines = V_BreakLines (SmallFont, width, str);
 	}
 	else
 	{
-		lines = V_BreakLines (screen->Font, width, source);
+		lines = V_BreakLines (SmallFont, width, source);
 		addtype = (addtype == APPENDLINE) ? NEWLINE : addtype;
 	}
 
@@ -987,7 +987,7 @@ int PrintString (int printlevel, const char *outline)
 		AddToConsole (printlevel, outlinecopy);
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			if (vidactive && screen && screen->Font)
+			if (vidactive && screen && SmallFont)
 			{
 				C_AddNotifyString (printlevel, outlinecopy);
 				maybedrawnow (false, false);
@@ -1204,13 +1204,13 @@ static void C_DrawNotifyText ()
 			if ( bScale )
 			{
 				if (!center)
-					screen->DrawText (color, 0, line, NotifyStrings[i].Text,
+					screen->DrawText (SmallFont, color, 0, line, NotifyStrings[i].Text,
 						DTA_Alpha, alpha,
 						DTA_VirtualWidth, ValWidth.Int,
 						DTA_VirtualHeight, ValHeight.Int,
 						TAG_DONE);
 				else
-					screen->DrawText (color, (ValWidth.Int -
+					screen->DrawText (SmallFont, color, (ValWidth.Int -
 						SmallFont->StringWidth (NotifyStrings[i].Text))/2,
 						line, NotifyStrings[i].Text,
 						DTA_Alpha, alpha,
@@ -1221,10 +1221,10 @@ static void C_DrawNotifyText ()
 			else
 			{
 				if (!center)
-					screen->DrawText (color, 0, line, NotifyStrings[i].Text,
+					screen->DrawText (SmallFont, color, 0, line, NotifyStrings[i].Text,
 						DTA_Alpha, alpha, TAG_DONE);
 				else
-					screen->DrawText (color, (SCREENWIDTH -
+					screen->DrawText (SmallFont, color, (SCREENWIDTH -
 						SmallFont->StringWidth (NotifyStrings[i].Text))/2,
 						line, NotifyStrings[i].Text,
 						DTA_Alpha, alpha, TAG_DONE);
@@ -1335,8 +1335,7 @@ void C_DrawConsole (bool hw2d)
 			sprintf( szString, "\\cIv%s (\\cD%s\\cI) \\ch%s", DOTVERSIONSTR, ZDOOMVERSIONSTR, SVN_REVISION_STRING );
 			V_ColorizeString( szString );
 
-			screen->SetFont( ConFont );
-			screen->DrawText( CR_ORANGE, SCREENWIDTH - 8 -
+			screen->DrawText (ConFont, CR_ORANGE, SCREENWIDTH - 8 -
 				ConFont->StringWidth( szString ),
 				ConBottom - ConFont->GetHeight( ) - 4,
 				szString, TAG_DONE );
@@ -1369,11 +1368,11 @@ void C_DrawConsole (bool hw2d)
 				{
 					tickstr[tickend+3] = 0;
 				}
-				screen->DrawText (CR_BROWN, LEFTMARGIN, tickerY, tickstr, TAG_DONE);
+				screen->DrawText (ConFont, CR_BROWN, LEFTMARGIN, tickerY, tickstr, TAG_DONE);
 
 				// Draw the marker
 				i = LEFTMARGIN+5+tickbegin*8 + Scale (TickerAt, (SDWORD)(tickend - tickbegin)*8, TickerMax);
-				screen->DrawChar (CR_ORANGE, (int)i, tickerY, 0x13, TAG_DONE);
+				screen->DrawChar (ConFont, CR_ORANGE, (int)i, tickerY, 0x13, TAG_DONE);
 
 				TickerVisible = true;
 			}
@@ -1403,7 +1402,6 @@ void C_DrawConsole (bool hw2d)
 
 	if (menuactive != MENU_Off)
 	{
-		screen->SetFont (SmallFont);
 		return;
 	}
 
@@ -1412,8 +1410,6 @@ void C_DrawConsole (bool hw2d)
 		int bottomline = ConBottom - ConFont->GetHeight()*2 - 4;
 		int pos = (InsertLine - 1) & LINEMASK;
 		int i;
-
-		screen->SetFont (ConFont);
 
 		ConsoleDrawing = true;
 
@@ -1435,7 +1431,7 @@ void C_DrawConsole (bool hw2d)
 			pos = (pos - 1) & LINEMASK;
 			if (Lines[pos] != NULL)
 			{
-				screen->DrawText (CR_TAN, LEFTMARGIN, offset + lines * ConFont->GetHeight(),
+				screen->DrawText (ConFont, CR_TAN, LEFTMARGIN, offset + lines * ConFont->GetHeight(),
 					Lines[pos], TAG_DONE);
 			}
 			lines--;
@@ -1454,13 +1450,13 @@ void C_DrawConsole (bool hw2d)
 				FString command((char *)&CmdLine[2+CmdLine[259]]);
 				int cursorpos = CmdLine[1] - CmdLine[259];
 
-				screen->DrawChar (CR_ORANGE, left, bottomline, '\x1c', TAG_DONE);
-				screen->DrawText (CR_ORANGE, left + ConFont->GetCharWidth(0x1c), bottomline,
+				screen->DrawChar (ConFont, CR_ORANGE, left, bottomline, '\x1c', TAG_DONE);
+				screen->DrawText (ConFont, CR_ORANGE, left + ConFont->GetCharWidth(0x1c), bottomline,
 					command, TAG_DONE);
 
 				if (cursoron)
 				{
-					screen->DrawChar (CR_YELLOW, left + ConFont->GetCharWidth(0x1c) + cursorpos * ConFont->GetCharWidth(0xb),
+					screen->DrawChar (ConFont, CR_YELLOW, left + ConFont->GetCharWidth(0x1c) + cursorpos * ConFont->GetCharWidth(0xb),
 						bottomline, '\xb', TAG_DONE);
 				}
 			}
@@ -1468,11 +1464,10 @@ void C_DrawConsole (bool hw2d)
 			{
 				// Indicate that the view has been scrolled up (10)
 				// and if we can scroll no further (12)
-				screen->DrawChar (CR_GREEN, 0, bottomline, pos == TopLine ? 12 : 10, TAG_DONE);
+				screen->DrawChar (ConFont, CR_GREEN, 0, bottomline, pos == TopLine ? 12 : 10, TAG_DONE);
 			}
 		}
 	}
-	screen->SetFont (SmallFont);
 }
 
 void C_FullConsole ()
@@ -2046,12 +2041,12 @@ static const char bar3[] = TEXTCOLOR_RED "\n\35\36\36\36\36\36\36\36\36\36\36\36
 						  "\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_NORMAL "\n";
 static const char logbar[] = "\n<------------------------------->\n";
 
-void C_MidPrint (const char *msg)
+void C_MidPrint (FFont *font, const char *msg)
 {
 	if (StatusBar == NULL)
 		return;
 
-	if (msg)
+	if (msg != NULL)
 	{
 		AddToConsole (-1, bar1);
 		AddToConsole (-1, msg);
@@ -2064,7 +2059,7 @@ void C_MidPrint (const char *msg)
 			fflush (Logfile);
 		}
 
-		StatusBar->AttachMessage (new DHUDMessage (msg, 1.5f, 0.375f, 0, 0,
+		StatusBar->AttachMessage (new DHUDMessage (font, msg, 1.5f, 0.375f, 0, 0,
 			(EColorRange)PrintColors[PRINTLEVELS], con_midtime), MAKE_ID('C','N','T','R'));
 	}
 	else
@@ -2073,7 +2068,7 @@ void C_MidPrint (const char *msg)
 	}
 }
 
-void C_MidPrintBold (const char *msg)
+void C_MidPrintBold (FFont *font, const char *msg)
 {
 	if (StatusBar == NULL)
 		return;
@@ -2091,7 +2086,7 @@ void C_MidPrintBold (const char *msg)
 			fflush (Logfile);
 		}
 
-		StatusBar->AttachMessage (new DHUDMessage (msg, 1.5f, 0.375f, 0, 0,
+		StatusBar->AttachMessage (new DHUDMessage (font, msg, 1.5f, 0.375f, 0, 0,
 			(EColorRange)PrintColors[PRINTLEVELS+1], con_midtime), MAKE_ID('C','N','T','R'));
 	}
 	else
