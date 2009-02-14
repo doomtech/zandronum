@@ -64,6 +64,7 @@
 
 static	ULONG	g_ulLastChangeTeamTime = 0;
 static	ULONG	g_ulLastSuicideTime = 0;
+static	ULONG	g_ulLastJoinTime = 0;
 static	ULONG	g_ulLastDropTime = 0;
 
 //*****************************************************************************
@@ -256,6 +257,13 @@ void CLIENTCOMMANDS_Spectate( void )
 //
 void CLIENTCOMMANDS_RequestJoin( char *pszJoinPassword )
 {
+	if (( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 10 ))))
+	{
+		Printf( "You must wait at least 10 seconds before joining again.\n" );
+		return;
+	}
+
+	g_ulLastJoinTime = gametic;
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_REQUESTJOIN );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszJoinPassword );
 }
