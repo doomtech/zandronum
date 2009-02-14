@@ -81,7 +81,7 @@ CVAR (Int, hudcolor_ltim, CR_ORANGE, CVAR_ARCHIVE)			// color of single level ti
 CVAR (Int, hudcolor_ttim, CR_GOLD, CVAR_ARCHIVE)			// color of total time
 CVAR (Int, hudcolor_xyco, CR_GREEN, CVAR_ARCHIVE)			// color of coordinates
 
-CVAR (Int, hudcolor_statnames, CR_RED, CVAR_ARCHIVE)		// For the letters befóre the stats
+CVAR (Int, hudcolor_statnames, CR_RED, CVAR_ARCHIVE)		// For the letters befï¿½re the stats
 CVAR (Int, hudcolor_stats, CR_GREEN, CVAR_ARCHIVE)			// For the stats values themselves
 
 
@@ -795,6 +795,10 @@ void HU_InitHud();
 void DrawHUD()
 {
 	player_t * CPlayer = StatusBar->CPlayer;
+
+	// [BB] The player may not have a body while connecting.
+	if ( CPlayer->mo == NULL )
+		return;
 
 	if (HudFont==NULL) HU_InitHud();
 
