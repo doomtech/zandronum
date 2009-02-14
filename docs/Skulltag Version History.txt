@@ -29,6 +29,7 @@
 -	- Fixed: Friendly actors or actors using A_Chase could cause the server to freeze completely when the first player connects or the last player disconnects. [Torr Samaho, SuperGod]
 -	- Fixed: The one and five minute announcer warnings didn't work at all for clients. [Karate Chris]
 -	- Fixed: The network traffic needed by SetLineTexture increased linearly with the number of lines that have the given identification number instead of being constant. [Torr Samaho, SuperGod]
+-	- Fixed: The ACS command SectorSound didn't work properly online if it was called by a line. [Torr Samaho, SuperGod]
 !	- There is now a 10 second time limit on joining. [Torr Samaho, SuperGod]
 
 v0.97d3 RC2
