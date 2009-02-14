@@ -686,17 +686,20 @@ fixed_t sector_t::FindLowestCeilingPoint (vertex_t **v) const
 }
 
 
-void sector_t::SetColor(int r, int g, int b, int desat)
+// [BB] Added bInformClients and bExecuteOnClient.
+void sector_t::SetColor(int r, int g, int b, int desat, bool bInformClients, bool bExecuteOnClient)
 {
 	// [CW] Clients should not do this.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+	// [BB] Except if explicitly instructed to do so.
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !bExecuteOnClient)
 		return;
 
 	PalEntry color = PalEntry (r,g,b);
 	ColorMap = GetSpecialLights (color, ColorMap->Fade, desat);
 
 	// Tell clients about the sector color update.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BB] Only if instructed to.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bInformClients )
 		SERVERCOMMANDS_SetSectorColor( sectornum );
 }
 

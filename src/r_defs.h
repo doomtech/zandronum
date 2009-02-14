@@ -285,7 +285,8 @@ struct sector_t
 	fixed_t FindLowestCeilingPoint (vertex_t **v) const;
 	fixed_t FindHighestFloorPoint (vertex_t **v) const;
 	void AdjustFloorClip () const;
-	void SetColor(int r, int g, int b, int desat);
+	// [BB] Added bInformClients and bExecuteOnClient.
+	void SetColor(int r, int g, int b, int desat, bool bInformClients = true, bool bExecuteOnClient = false);
 	// [BB] Added bInformClients and bExecuteOnClient.
 	void SetFade(int r, int g, int b, bool bInformClients = true, bool bExecuteOnClient = false);
 
