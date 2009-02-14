@@ -2027,12 +2027,11 @@ void DLevelScript::SetLineTexture (int lineid, int side, int position, int name)
 		default:
 			break;
 		}
-
-		// [BC] If we're the server, tell clients about this texture change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetLineTexture( linenum );
-
 	}
+
+	// [BB] If we're the server, tell clients about this texture change.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetLineTextureByID( lineid, side, position, texname );
 }
 
 void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)

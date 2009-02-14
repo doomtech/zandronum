@@ -291,7 +291,7 @@ static	void	client_DoSectorLightPhased( BYTESTREAM_s *pByteStream );
 
 // Line commands.
 static	void	client_SetLineAlpha( BYTESTREAM_s *pByteStream );
-static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream );
+static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLinesByID = false );
 static	void	client_SetLineBlocking( BYTESTREAM_s *pByteStream );
 
 // Side commands.
@@ -635,6 +635,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOSECTORLIGHTPHASED",
 	"SVC_SETLINEALPHA",
 	"SVC_SETLINETEXTURE",
+	"SVC_SETLINETEXTUREBYID",
 	"SVC_SETLINEBLOCKING",
 	"SVC_SETSIDEFLAGS",
 	"SVC_ACSSCRIPTEXECUTE",
@@ -2050,6 +2051,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETLINETEXTURE:
 
 		client_SetLineTexture( pByteStream );
+		break;
+	case SVC_SETLINETEXTUREBYID:
+
+		client_SetLineTexture( pByteStream, true );
 		break;
 	case SVC_SETLINEBLOCKING:
 
@@ -8778,10 +8783,50 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
+static void client_SetLineTextureHelper ( ULONG ulLineIdx, ULONG ulSide, ULONG ulPosition, LONG lTexture )
 {
-	line_t		*pLine;
-	side_t		*pSide;
+	line_t *pLine = NULL;
+
+	if ( ulLineIdx < static_cast<ULONG>(numlines) )
+		pLine = &lines[ulLineIdx];
+
+	if ( pLine == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetLineTexture: Couldn't find line: %d\n", ulLineIdx );
+#endif
+		return;
+	}
+
+	if ( pLine->sidenum[ulSide] == NO_SIDE )
+		return;
+
+	side_t *pSide = &sides[pLine->sidenum[ulSide]];
+
+	switch ( ulPosition )
+	{
+	case 0 /*TEXTURE_TOP*/:
+
+		pSide->toptexture = lTexture;
+		break;
+	case 1 /*TEXTURE_MIDDLE*/:
+
+		pSide->midtexture = lTexture;
+		break;
+	case 2 /*TEXTURE_BOTTOM*/:
+
+		pSide->bottomtexture = lTexture;
+		break;
+	default:
+
+		break;
+	}
+}
+
+//*****************************************************************************
+//
+static void client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLinesByID )
+{
 	ULONG		ulLineIdx;
 	const char	*pszTextureName;
 	ULONG		ulSide;
@@ -8800,42 +8845,20 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	// Read in the position.
 	ulPosition = NETWORK_ReadByte( pByteStream );
 
-	pLine = &lines[ulLineIdx];
-	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetLineTexture: Couldn't find line: %d\n", ulLineIdx );
-#endif
-		return;
-	}
-
 	lTexture = TexMan.CheckForTexture( pszTextureName, FTexture::TEX_Wall );
 
 	if ( lTexture < 0 )
 		return;
 
-	if ( pLine->sidenum[ulSide] == NO_SIDE )
-		return;
-
-	pSide = &sides[pLine->sidenum[ulSide]];
-
-	switch ( ulPosition )
+	if ( bIdentifyLinesByID )
 	{
-	case 0 /*TEXTURE_TOP*/:
-			
-		pSide->toptexture = lTexture;
-		break;
-	case 1 /*TEXTURE_MIDDLE*/:
-
-		pSide->midtexture = lTexture;
-		break;
-	case 2 /*TEXTURE_BOTTOM*/:
-
-		pSide->bottomtexture = lTexture;
-		break;
-	default:
-
-		break;
+		int linenum = -1;
+		while ((linenum = P_FindLineFromID (ulLineIdx, linenum)) >= 0)
+			client_SetLineTextureHelper ( linenum, ulSide, ulPosition, lTexture );
+	}
+	else
+	{
+		client_SetLineTextureHelper ( ulLineIdx, ulSide, ulPosition, lTexture );
 	}
 }
 
