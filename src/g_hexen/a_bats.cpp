@@ -19,6 +19,8 @@ class ABatSpawner : public AActor
 public:
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
+	// [BB]
+	bool IsActive( void );
 };
 
 FState ABatSpawner::States[] =
@@ -48,6 +50,12 @@ void ABatSpawner::Activate (AActor *activator)
 void ABatSpawner::Deactivate (AActor *activator)
 {
 	SetState (&States[S_SPAWNBATS_OFF]);
+}
+
+// [BB]
+bool ABatSpawner::IsActive( void )
+{
+	return ( state != &States[S_SPAWNBATS_OFF] );
 }
 
 // Bat ----------------------------------------------------------------------
