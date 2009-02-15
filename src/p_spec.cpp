@@ -671,7 +671,8 @@ void P_UpdateSpecials ()
 //	int i;
 	
 	// LEVEL TIMER
-	if (( deathmatch || teamgame ) && timelimit )
+	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
+	if (/*( deathmatch || teamgame ) &&*/ timelimit )
 	{
 		// [RC] Play the five minute warning.
 		if ( level.time == (int)( ( timelimit - 5 ) * TICRATE * 60 ) ) // I'm amazed this works so well without a flag.
@@ -700,7 +701,15 @@ void P_UpdateSpecials ()
 					POSSESSION_TimeExpired( );
 				else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS )
 					TEAM_TimeExpired( );
+				else if ( cooperative )
+				{
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+					else
+						Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 
+					GAME_SetEndLevelDelay( 1 * TICRATE );
+				}
 				// End the level after one second.
 				else
 				{

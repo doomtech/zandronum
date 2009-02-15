@@ -85,6 +85,10 @@ CVAR (String,	playerclass,			"Fighter",	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 
+// [BB] Two variables to keep track of client side name changes.
+static	ULONG	g_ulLastNameChangeTime = 0;
+static	FString g_oldPlayerName;
+
 enum
 {
 	INFO_Name,
@@ -529,6 +533,27 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		V_ColorizeString( val.String );
 
 		ulUpdateFlags |= USERINFO_NAME;
+
+		// [BB] We don't want clients to change their name too often.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			// [BB] The name was not actually changed, so no need to do anything.
+			if ( strcmp ( g_oldPlayerName.GetChars(), val.String ) == 0 )
+				ulUpdateFlags &= ~USERINFO_NAME;
+			// [BB] The client recently changed its name, don't allow to change it again yet.
+			else if (( g_ulLastNameChangeTime > 0 ) && ( (ULONG)gametic < ( g_ulLastNameChangeTime + ( TICRATE * 30 ))))
+			{
+				Printf( "You must wait at least 30 seconds before changing your name again.\n" );
+				name = g_oldPlayerName;
+				return;
+			}
+			// [BB] The client made a valid name change, keep track of this.
+			else
+			{
+				g_ulLastNameChangeTime = gametic;
+				g_oldPlayerName = val.String;
+			}
+		}
 	}
 	else if ( cvar == &gender )
 		ulUpdateFlags |= USERINFO_GENDER;

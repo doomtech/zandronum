@@ -2406,8 +2406,12 @@ FUNC(LS_Sector_SetColor)
 	
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
-		sectors[secnum].SetColor(arg1, arg2, arg3, arg4);
+		// [BB] Don't update the clients for each sector separately.
+		sectors[secnum].SetColor(arg1, arg2, arg3, arg4, false);
 	}
+	// [BB] Tell clients to set the color for all sectors with tag arg0.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetSectorColorByTag( arg0, arg1, arg2, arg3, arg4 );
 
 	return true;
 }

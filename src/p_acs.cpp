@@ -2103,12 +2103,11 @@ void DLevelScript::SetLineTexture (int lineid, int side, int position, int name)
 		default:
 			break;
 		}
-
-		// [BC] If we're the server, tell clients about this texture change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetLineTexture( linenum );
-
 	}
+
+	// [BB] If we're the server, tell clients about this texture change.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetLineTextureByID( lineid, side, position, texname );
 }
 
 void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
@@ -4681,7 +4680,7 @@ int DLevelScript::RunScript ()
 
 					// [BC] If we're the server, tell clients to play this sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SoundPoint( activationline->frontsector->soundorg[0], activationline->frontsector->soundorg[1], activationline->frontsector->soundorg[2], CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
+						SERVERCOMMANDS_SoundPoint( activationline->frontsector->soundorg[0], activationline->frontsector->soundorg[1], activationline->frontsector->soundorg[2], CHAN_AUTO, (char *)lookup, (float)(STACK(1)) / 127.f, ATTN_NORM );
 				}
 				else
 				{

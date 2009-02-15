@@ -270,7 +270,7 @@ static	void	client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorLightLevel( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
@@ -294,7 +294,7 @@ static	void	client_DoSectorLightPhased( BYTESTREAM_s *pByteStream );
 
 // Line commands.
 static	void	client_SetLineAlpha( BYTESTREAM_s *pByteStream );
-static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream );
+static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLinesByID = false );
 static	void	client_SetLineBlocking( BYTESTREAM_s *pByteStream );
 
 // Side commands.
@@ -617,6 +617,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORCEILINGPLANESLOPE",
 	"SVC_SETSECTORLIGHTLEVEL",
 	"SVC_SETSECTORCOLOR",
+	"SVC_SETSECTORCOLORBYTAG",
 	"SVC_SETSECTORFADE",
 	"SVC_SETSECTORFADEBYTAG",
 	"SVC_SETSECTORFLAT",
@@ -638,6 +639,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOSECTORLIGHTPHASED",
 	"SVC_SETLINEALPHA",
 	"SVC_SETLINETEXTURE",
+	"SVC_SETLINETEXTUREBYID",
 	"SVC_SETLINEBLOCKING",
 	"SVC_SETSIDEFLAGS",
 	"SVC_ACSSCRIPTEXECUTE",
@@ -1972,6 +1974,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetSectorColor( pByteStream );
 		break;
+	case SVC_SETSECTORCOLORBYTAG:
+
+		client_SetSectorColor( pByteStream, true );
+		break;
 	case SVC_SETSECTORFADE:
 
 		client_SetSectorFade( pByteStream );
@@ -2055,6 +2061,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETLINETEXTURE:
 
 		client_SetLineTexture( pByteStream );
+		break;
+	case SVC_SETLINETEXTUREBYID:
+
+		client_SetLineTexture( pByteStream, true );
 		break;
 	case SVC_SETLINEBLOCKING:
 
@@ -8052,9 +8062,9 @@ static void client_SetSectorLightLevel( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetSectorColor( BYTESTREAM_s *pByteStream )
+static void client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
 {
-	LONG		lSectorID;
+	LONG		lSectorIDOrTag;
 	LONG		lR;
 	LONG		lG;
 	LONG		lB;
@@ -8063,7 +8073,7 @@ static void client_SetSectorColor( BYTESTREAM_s *pByteStream )
 	PalEntry	Color;
 
 	// Read in the sector to have its panning altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
+	lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
 
 	// Read in the RGB and desaturate.
 	lR = NETWORK_ReadByte( pByteStream );
@@ -8071,19 +8081,28 @@ static void client_SetSectorColor( BYTESTREAM_s *pByteStream )
 	lB = NETWORK_ReadByte( pByteStream );
 	lDesaturate = NETWORK_ReadByte( pByteStream );
 
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{ 
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorColor: Cannot find sector: %d\n", lSectorID );
-#endif
-		return; 
-	}
+	if ( bIdentifySectorsByTag )
+	{
+		int secnum = -1;
 
-	// Finally, set the color.
-	Color = PalEntry( lR, lG, lB );
-	pSector->ColorMap = GetSpecialLights( Color, pSector->ColorMap->Fade, lDesaturate );
+		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
+			sectors[secnum].SetColor(lR, lG, lB, lDesaturate, false, true);
+	}
+	else
+	{
+		// Now find the sector.
+		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
+		if ( pSector == NULL )
+		{ 
+#ifdef CLIENT_WARNING_MESSAGES
+			Printf( "client_SetSectorColor: Cannot find sector: %d\n", lSectorID );
+#endif
+			return; 
+		}
+
+		// Finally, set the color.
+		pSector->SetColor(lR, lG, lB, lDesaturate, false, true);
+	}
 }
 
 //*****************************************************************************
@@ -8755,10 +8774,50 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
+static void client_SetLineTextureHelper ( ULONG ulLineIdx, ULONG ulSide, ULONG ulPosition, FTextureID texture )
 {
-	line_t		*pLine;
-	side_t		*pSide;
+	line_t *pLine = NULL;
+
+	if ( ulLineIdx < static_cast<ULONG>(numlines) )
+		pLine = &lines[ulLineIdx];
+
+	if ( pLine == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetLineTexture: Couldn't find line: %d\n", ulLineIdx );
+#endif
+		return;
+	}
+
+	if ( pLine->sidenum[ulSide] == NO_SIDE )
+		return;
+
+	side_t *pSide = &sides[pLine->sidenum[ulSide]];
+
+	switch ( ulPosition )
+	{
+	case 0 /*TEXTURE_TOP*/:
+
+		pSide->SetTexture(side_t::top, texture);
+		break;
+	case 1 /*TEXTURE_MIDDLE*/:
+
+		pSide->SetTexture(side_t::mid, texture);
+		break;
+	case 2 /*TEXTURE_BOTTOM*/:
+
+		pSide->SetTexture(side_t::bottom, texture);
+		break;
+	default:
+
+		break;
+	}
+}
+
+//*****************************************************************************
+//
+static void client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLinesByID )
+{
 	ULONG		ulLineIdx;
 	const char	*pszTextureName;
 	ULONG		ulSide;
@@ -8777,42 +8836,20 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	// Read in the position.
 	ulPosition = NETWORK_ReadByte( pByteStream );
 
-	pLine = &lines[ulLineIdx];
-	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetLineTexture: Couldn't find line: %d\n", ulLineIdx );
-#endif
-		return;
-	}
-
 	texture = TexMan.CheckForTexture( pszTextureName, FTexture::TEX_Wall );
 
 	if ( !texture.Exists() )
 		return;
 
-	if ( pLine->sidenum[ulSide] == NO_SIDE )
-		return;
-
-	pSide = &sides[pLine->sidenum[ulSide]];
-
-	switch ( ulPosition )
+	if ( bIdentifyLinesByID )
 	{
-	case 0 /*TEXTURE_TOP*/:
-			
-		pSide->SetTexture(side_t::top, texture);
-		break;
-	case 1 /*TEXTURE_MIDDLE*/:
-
-		pSide->SetTexture(side_t::mid, texture);
-		break;
-	case 2 /*TEXTURE_BOTTOM*/:
-
-		pSide->SetTexture(side_t::bottom, texture);
-		break;
-	default:
-
-		break;
+		int linenum = -1;
+		while ((linenum = P_FindLineFromID (ulLineIdx, linenum)) >= 0)
+			client_SetLineTextureHelper ( linenum, ulSide, ulPosition, texture );
+	}
+	else
+	{
+		client_SetLineTextureHelper ( ulLineIdx, ulSide, ulPosition, texture );
 	}
 }
 
