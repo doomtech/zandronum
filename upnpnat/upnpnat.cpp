@@ -101,22 +101,25 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 *******************************************************************/
 #define HTTP_HEADER_ACTION "POST %s HTTP/1.1\r\n"                         \
                            "HOST: %s:%u\r\n"                                  \
-                           "SOAPACTION:\"%s#%s\"\r\n"                           \
-                           "CONTENT-TYPE: text/xml ; charset=\"utf-8\"\r\n"\
-                           "Content-Length: %d \r\n\r\n"
+                           "Content-Length: %d \r\n" \
+                           "CONTENT-TYPE: text/xml\r\n"             \
+                           "SOAPACTION:\"%s#%s\"\r\n"   \
+						   "\r\n"
 
-#define SOAP_ACTION  "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"     \
-                     "<s:Envelope xmlns:s="                               \
+#define SOAP_ACTION  "<?xml version=\"1.0\"?>\r\n"     \
+                     "<SOAP-ENV:Envelope xmlns:SOAP-ENV="                               \
                      "\"http://schemas.xmlsoap.org/soap/envelope/\" "     \
-                     "s:encodingStyle="                                   \
+                     "SOAP-ENV:encodingStyle="                                   \
                      "\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" \
-                     "<s:Body>\r\n"                                       \
-                     "<u:%s xmlns:u=\"%s\">\r\n%s"         \
-                     "</u:%s>\r\n"                                        \
-                     "</s:Body>\r\n"                                      \
-                     "</s:Envelope>\r\n"
+                     "<SOAP-ENV:Body>\r\n"                                       \
+                     "<m:%s xmlns:m=\"%s\">\r\n%s"         \
+                     "</m:%s>\r\n"                                        \
+                     "</SOAP-ENV:Body>\r\n"                                      \
+                     "</SOAP-ENV:Envelope>\r\n"
 
-#define PORT_MAPPING_LEASE_TIME "63072000"                                //two year
+
+
+#define PORT_MAPPING_LEASE_TIME "0"                                //infinite
 
 #define ADD_PORT_MAPPING_PARAMS "<NewRemoteHost></NewRemoteHost>\r\n"      \
                                 "<NewExternalPort>%u</NewExternalPort>\r\n"\
@@ -472,7 +475,8 @@ bool UPNPNAT::add_port_mapping(const char * _description, const char * _destinat
 	sprintf(buff,SOAP_ACTION,ACTION_ADD,service_type.c_str(),action_params.c_str(),ACTION_ADD);
 	std::string soap_message=buff;
 
-	sprintf(buff,HTTP_HEADER_ACTION,path.c_str(),host.c_str(),port,service_type.c_str(),ACTION_ADD,soap_message.size());
+	const char *pathString = ( ( path.c_str()[0] == '/' ) && ( path.c_str()[1] == '/' ) ) ? ( path.c_str() + 1 ) : path.c_str();
+	sprintf(buff,HTTP_HEADER_ACTION,pathString,host.c_str(),port,soap_message.size(),service_type.c_str(),ACTION_ADD);
 	std::string action_message=buff;
 
 	std::string http_request=action_message+soap_message;
