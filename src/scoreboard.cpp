@@ -2919,7 +2919,8 @@ static void scoreboard_DrawLimits( void )
 	}
 
 	// Render the timelimit string.
-	if (( deathmatch || teamgame ) && timelimit && gamestate == GS_LEVEL )
+	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
+	if (/*( deathmatch || teamgame ) &&*/ timelimit && gamestate == GS_LEVEL )
 	{
 		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
 		ULONG	ulHours;
