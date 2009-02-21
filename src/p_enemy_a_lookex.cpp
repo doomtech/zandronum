@@ -225,6 +225,12 @@ bool P_NewLookPlayers (AActor *actor, angle_t fov, fixed_t mindist, fixed_t maxd
 	}
 	stop = (pnum - 1) & (MAXPLAYERS-1);
 		
+	// [BB] On the server it's possible that there are no players. In this case the
+	// for loop below would get stuck, so we may not enter it. Since there are no
+	// players in the game in this case, we can safely return false.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumPlayers() == 0 ) )
+		return false;
+
 	for (;;)
 	{
 		pnum = (pnum + 1) & (MAXPLAYERS-1);
