@@ -1007,7 +1007,15 @@ void SERVER_CheckTimeouts( void )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
+		{
+			if ( ( g_aClients[ulIdx].State != CLS_FREE )
+			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ) ) )
+			{
+				Printf( "Unfinished connection from %s timed out.\n", NETWORK_AddressToString( g_aClients[ulIdx].Address ) );
+				SERVER_DisconnectClient( ulIdx, false, false );
+			}
 			continue;
+		}
 
 		// If we haven't gotten a packet from this client in CLIENT_TIMEOUT seconds,
 		// disconnect him.
@@ -1783,10 +1791,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		ULONG ulOtherClientsFromIP = 0;
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			// [BB] Consider timeouts here. This is necessary because of non finished connection
-			// attempts, e.g. done by http://aluigi.org/poc/skulltagod.zip.
-			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true )
-			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) < ( CLIENT_TIMEOUT * TICRATE ) ) )
+			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true ) )
 				ulOtherClientsFromIP++;
 		}
 
@@ -1896,7 +1901,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	}
 
 	// Client is now in the loop, prevent from a early timeout
-	g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
+	// [BB] Only do this if this is actually a new player connecting. Otherwise it
+	// could be abused to keep non-finished connections alive.
+	if ( bNewPlayer )
+		g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
 
 	// Check if we require a password to join this server.
 	Val = sv_password.GetGenericRep( CVAR_String );
@@ -3580,6 +3588,18 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 			SERVER_ConnectNewPlayer( pByteStream );
 			break;
 		default:
+
+			// [BB] Only authenticated clients are allowed to send the commands handled in
+			// SERVER_ProcessCommand(). If we would let non authenticated clients do this,
+			// this could be abused to keep non finished connections alive.
+			if ( g_aClients[g_lCurrentClient].State < CLS_AUTHENTICATED )
+			{
+				Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ) );
+				// [BB] Ignore the rest of the packet, it can't be valid.
+				while ( NETWORK_ReadByte( pByteStream ) != -1 );
+				break;
+			}
+
 
 			// This returns true if the player was kicked as a result.
 			if ( SERVER_ProcessCommand( lCommand, pByteStream ))
