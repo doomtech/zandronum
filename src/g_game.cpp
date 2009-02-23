@@ -288,6 +288,10 @@ CCMD (turnspeeds)
 
 CCMD (slot)
 {
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (argv.argc() > 1)
 	{
 		int slot = atoi (argv[1]);
@@ -587,6 +591,10 @@ CCMD (useflechette)
 
 CCMD (select)
 {
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (argv.argc() > 1)
 	{
 		AInventory *item = who->FindInventory (PClass::FindClass (argv[1]));

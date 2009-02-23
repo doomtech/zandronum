@@ -757,6 +757,10 @@ CCMD(initpolymosttest)
 	double px[4], py[4];
 	int test = 0;
 
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (argv.argc() > 1)
 		test = atoi(argv[1]);
 

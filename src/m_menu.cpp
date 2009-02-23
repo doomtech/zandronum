@@ -744,6 +744,10 @@ CCMD (menu_class)
 
 CCMD (quicksave)
 {	// F6
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	//M_StartControlPanel (true);
 	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
 	M_QuickSave();
@@ -751,6 +755,10 @@ CCMD (quicksave)
 
 CCMD (quickload)
 {	// F9
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	//M_StartControlPanel (true);
 	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
 	M_QuickLoad();
