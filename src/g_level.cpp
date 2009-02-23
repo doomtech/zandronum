@@ -1385,6 +1385,10 @@ void G_SetForEndGame (char *nextmap)
 {
 	if (!strncmp(nextmap, "enDSeQ",6)) return;	// If there is already an end sequence please leave it alone!!!
 
+	// [BB] In multiplayer games end sequences are not supported. So just ignore them.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (gameinfo.gametype == GAME_Strife)
 	{
 		SetEndSequence (nextmap, gameinfo.flags & GI_SHAREWARE ? END_BuyStrife : END_Strife);
