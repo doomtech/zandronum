@@ -510,6 +510,8 @@ void R_InitSkins (void)
 	int aliasid;
 	bool remove;
 	const PClass *basetype, *transtype;
+	int s_skin = 1; // (0 = skininfo, 1 = s_skin, 2 = s_skin non-changeable)
+	bool lumpSkininfo = false; // are we parsing the SKININFO lumps (has no effect on the format)
 
 	key[sizeof(key)-1] = 0;
 	i = PlayerClasses.Size () - 1;
@@ -520,12 +522,23 @@ void R_InitSkins (void)
 		playersoundrefs[j] = skinsoundnames[j][1];
 	}
 
-	while ((base = Wads.FindLump ("S_SKIN", &lastlump, true)) != -1)
+	//[BL] We need to parse two different lumps.
+	while (true)
 	{
-		// The player sprite has 23 frames. This means that the S_SKIN
-		// marker needs a minimum of 23 lumps after it.
-		if (base >= Wads.GetNumLumps() - 23 || base == -1)
+		if ( !lumpSkininfo && (base = Wads.FindLump ("S_SKIN", &lastlump, true)) == -1)
+		{
+			lastlump = 0;
+			lumpSkininfo = true;
 			continue;
+		}
+		else if( lumpSkininfo && (base = Wads.FindLump( "SKININFO", &lastlump, true )) == -1)
+		{
+			break;
+		}
+
+		//[BL] removed some restrictions since Skulltag doesn't need them.
+		//     Also, default to S_SKIN format.
+		s_skin = 1;
 
 		i++;
 		for (j = 0; j < NUMSKINSOUNDS; j++)
@@ -543,669 +556,340 @@ void R_InitSkins (void)
 		// Data is stored as "key = data".
 		while (sc.GetString ())
 		{
-			strncpy (key, sc.String, sizeof(key)-1);
-			if (!sc.GetString() || sc.String[0] != '=')
+			if(sc.String[0] == '{')
 			{
-				Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", (int)i, key);
-				break;
+				if(s_skin == 1)
+					s_skin = 0; // Change to SKININFO
+				else if(s_skin == 0)
+					i++; // new skin
+				if(s_skin != 2) // If this is at S_SKIN unchangeable then no nothing else get a new string.
+					sc.GetString();
 			}
-			sc.GetString ();
-			if (0 == stricmp (key, "name"))
-			{
-				// [BC] MAX_SKIN_NAME.
-				strncpy (skins[i].name, sc.String, MAX_SKIN_NAME);
-				for (j = 0; j < i; j++)
-				{
-					if (stricmp (skins[i].name, skins[j].name) == 0)
-					{
-						mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
-						Printf (PRINT_BOLD, "Skin %s duplicated as %s\n",
-							skins[j].name, skins[i].name);
-						break;
-					}
-				}
-			}
-			else if (0 == stricmp (key, "sprite"))
-			{
-				for (j = 3; j >= 0; j--)
-					sc.String[j] = toupper (sc.String[j]);
-				intname = *((DWORD *)sc.String);
-			}
-			else if (0 == stricmp (key, "crouchsprite"))
-			{
-				for (j = 3; j >= 0; j--)
-					sc.String[j] = toupper (sc.String[j]);
-				crouchname = *((DWORD *)sc.String);
-			}
-			else if (0 == stricmp (key, "face"))
-			{
-				for (j = 2; j >= 0; j--)
-					skins[i].face[j] = toupper (sc.String[j]);
-				skins[i].face[3] = '\0';
-			}
-			else if (0 == stricmp (key, "gender"))
-			{
-				skins[i].gender = D_GenderToInt (sc.String);
-			}
-			else if (0 == stricmp (key, "scale"))
-			{
-				skins[i].ScaleX = clamp<fixed_t> (FLOAT2FIXED(atof (sc.String)), 1, 256*FRACUNIT);
-				skins[i].ScaleY = skins[i].ScaleX;
-			}
-			else if (0 == stricmp (key, "game"))
-			{
-				if (gameinfo.gametype == GAME_Heretic)
-					basetype = PClass::FindClass (NAME_HereticPlayer);
-				else if (gameinfo.gametype == GAME_Strife)
-					basetype = PClass::FindClass (NAME_StrifePlayer);
-				else
-					basetype = PClass::FindClass (NAME_DoomPlayer);
 
-				transtype = basetype;
+			if(s_skin == 1)
+				s_skin = 2; // If it doesn't find a '{' permanently use S_SKIN format.
 
-				if (stricmp (sc.String, "heretic") == 0)
+			//[BL] We'll now go until we hit a '}' in SKININFO format
+			do
+			{
+				if(s_skin == 0 && sc.String[0] == '}')
+					break;
+
+				strncpy (key, sc.String, sizeof(key)-1);
+				if (!sc.GetString() || sc.String[0] != '=')
 				{
-					if (gameinfo.gametype & GAME_DoomChex)
+					Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", (int)i, key);
+					break;
+				}
+				sc.GetString ();
+				if (0 == stricmp (key, "name"))
+				{
+					// [BC] MAX_SKIN_NAME.
+					strncpy (skins[i].name, sc.String, MAX_SKIN_NAME);
+					for (j = 0; j < i; j++)
 					{
-						transtype = PClass::FindClass (NAME_HereticPlayer);
-						skins[i].othergame = true;
-					}
-					else if (gameinfo.gametype != GAME_Heretic)
-					{
-						remove = true;
+						if (stricmp (skins[i].name, skins[j].name) == 0)
+						{
+							mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
+							Printf (PRINT_BOLD, "Skin %s duplicated as %s\n",
+								skins[j].name, skins[i].name);
+							break;
+						}
 					}
 				}
-				else if (stricmp (sc.String, "strife") == 0)
+				else if (0 == stricmp (key, "sprite"))
 				{
-					if (gameinfo.gametype != GAME_Strife)
-					{
-						remove = true;
-					}
+					for (j = 3; j >= 0; j--)
+						sc.String[j] = toupper (sc.String[j]);
+					intname = *((DWORD *)sc.String);
 				}
-				else
+				else if (0 == stricmp (key, "crouchsprite"))
+				{
+					for (j = 3; j >= 0; j--)
+						sc.String[j] = toupper (sc.String[j]);
+					crouchname = *((DWORD *)sc.String);
+				}
+				else if (0 == stricmp (key, "face"))
+				{
+					for (j = 2; j >= 0; j--)
+						skins[i].face[j] = toupper (sc.String[j]);
+					skins[i].face[3] = '\0';
+				}
+				else if (0 == stricmp (key, "gender"))
+				{
+					skins[i].gender = D_GenderToInt (sc.String);
+				}
+				else if (0 == stricmp (key, "scale"))
+				{
+					skins[i].ScaleX = clamp<fixed_t> (FLOAT2FIXED(atof (sc.String)), 1, 256*FRACUNIT);
+					skins[i].ScaleY = skins[i].ScaleX;
+				}
+				else if (0 == stricmp (key, "game"))
 				{
 					if (gameinfo.gametype == GAME_Heretic)
+						basetype = PClass::FindClass (NAME_HereticPlayer);
+					else if (gameinfo.gametype == GAME_Strife)
+						basetype = PClass::FindClass (NAME_StrifePlayer);
+					else
+						basetype = PClass::FindClass (NAME_DoomPlayer);
+
+					transtype = basetype;
+
+					if (stricmp (sc.String, "heretic") == 0)
 					{
-						transtype = PClass::FindClass (NAME_DoomPlayer);
-						skins[i].othergame = true;
+						if (gameinfo.gametype & GAME_DoomChex)
+						{
+							transtype = PClass::FindClass (NAME_HereticPlayer);
+							skins[i].othergame = true;
+						}
+						else if (gameinfo.gametype != GAME_Heretic)
+						{
+							remove = true;
+						}
 					}
-					else if (!(gameinfo.gametype & GAME_DoomChex))
+					else if (stricmp (sc.String, "strife") == 0)
+					{
+						if (gameinfo.gametype != GAME_Strife)
+						{
+							remove = true;
+						}
+					}
+					else
+					{
+						if (gameinfo.gametype == GAME_Heretic)
+						{
+							transtype = PClass::FindClass (NAME_DoomPlayer);
+							skins[i].othergame = true;
+						}
+						else if (!(gameinfo.gametype & GAME_DoomChex))
+						{
+							remove = true;
+						}
+					}
+
+					if (remove)
+						break;
+				}
+				else if (0 == stricmp (key, "class"))
+				{ // [GRB] Define the skin for a specific player class
+					int pclass = D_PlayerClassToInt (sc.String);
+
+					if (pclass < 0)
 					{
 						remove = true;
-					}
-				}
-
-				if (remove)
-					break;
-			}
-			else if (0 == stricmp (key, "class"))
-			{ // [GRB] Define the skin for a specific player class
-				int pclass = D_PlayerClassToInt (sc.String);
-
-				if (pclass < 0)
-				{
-					remove = true;
-					break;
-				}
-
-				basetype = transtype = PlayerClasses[pclass].Type;
-			}
-			else if (key[0] == '*')
-			{ // Player sound replacment (ZDoom extension)
-				int lump = Wads.CheckNumForName (sc.String, skins[i].namespc);
-				if (lump == -1)
-				{
-					lump = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
-				}
-				if (lump != -1)
-				{
-					if (stricmp (key, "*pain") == 0)
-					{ // Replace all pain sounds in one go
-						aliasid = S_AddPlayerSound (skins[i].name, skins[i].gender,
-							playersoundrefs[0], lump, true);
-						for (int l = 3; l > 0; --l)
-						{
-							S_AddPlayerSoundExisting (skins[i].name, skins[i].gender,
-								playersoundrefs[l], aliasid, true);
-						}
-					}
-					else
-					{
-						int sndref = S_FindSoundNoHash (key);
-						if (sndref != 0)
-						{
-							S_AddPlayerSound (skins[i].name, skins[i].gender, sndref, lump, true);
-						}
-					}
-				}
-			}
-			else
-			{
-				for (j = 0; j < NUMSKINSOUNDS; j++)
-				{
-					if (stricmp (key, skinsoundnames[j][0]) == 0)
-					{
-						sndlumps[j] = Wads.CheckNumForName (sc.String, skins[i].namespc);
-						if (sndlumps[j] == -1)
-						{ // Replacement not found, try finding it in the global namespace
-							sndlumps[j] = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
-						}
-					}
-				}
-				//if (j == 8)
-				//	Printf ("Funny info for skin %i: %s = %s\n", i, key, sc.String);
-			}
-		}
-
-		// [GRB] Assume Doom skin by default
-		if (!remove && basetype == NULL)
-		{
-			if (gameinfo.gametype & GAME_DoomChex)
-			{
-				basetype = transtype = PClass::FindClass (NAME_DoomPlayer);
-			}
-			else if (gameinfo.gametype == GAME_Heretic)
-			{
-				basetype = PClass::FindClass (NAME_HereticPlayer);
-				transtype = PClass::FindClass (NAME_DoomPlayer);
-				skins[i].othergame = true;
-			}
-			else
-			{
-				remove = true;
-			}
-		}
-
-		if (!remove)
-		{
-			skins[i].range0start = transtype->Meta.GetMetaInt (APMETA_ColorRange) & 0xff;
-			skins[i].range0end = transtype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-
-			remove = true;
-			for (j = 0; j < (int)PlayerClasses.Size (); j++)
-			{
-				const PClass *type = PlayerClasses[j].Type;
-
-				if (type->IsDescendantOf (basetype) &&
-					GetDefaultByType (type)->SpawnState->sprite == GetDefaultByType (basetype)->SpawnState->sprite &&
-					type->Meta.GetMetaInt (APMETA_ColorRange) == basetype->Meta.GetMetaInt (APMETA_ColorRange))
-				{
-					PlayerClasses[j].Skins.Push ((int)i);
-					remove = false;
-				}
-			}
-		}
-
-		if (!remove)
-		{
-			if (skins[i].name[0] == 0)
-				mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
-
-			// Now collect the sprite frames for this skin. If the sprite name was not
-			// specified, use whatever immediately follows the specifier lump.
-			if (intname == 0)
-			{
-				char name[9];
-				Wads.GetLumpName (name, base+1);
-				intname = *(DWORD *)name;
-			}
-
-			int basens = Wads.GetLumpNamespace(base);
-
-			for(int spr = 0; spr<2; spr++)
-			{
-				memset (sprtemp, 0xFFFF, sizeof(sprtemp));
-				for (k = 0; k < MAX_SPRITE_FRAMES; ++k)
-				{
-					sprtemp[k].Flip = 0;
-				}
-				maxframe = -1;
-
-				if (spr == 1)
-				{
-					if (crouchname !=0 && crouchname != intname)
-					{
-						intname = crouchname;
-					}
-					else
-					{
-						skins[i].crouchsprite = -1;
 						break;
 					}
-				}
 
-				for (k = base + 1; Wads.GetLumpNamespace(k) == basens; k++)
+					basetype = transtype = PlayerClasses[pclass].Type;
+				}
+				// [BL] Skulltag additions
+				else if (0 == stricmp (key, "hidden"))
 				{
-					char lname[9];
-					Wads.GetLumpName (lname, k);
-					if (*(DWORD *)lname == intname)
+					if (( stricmp(sc.String, "true") == 0 ) || ( stricmp(sc.String, "yes") == 0 ))
+						skins[i].bRevealed = true;
+					else if (( stricmp(sc.String, "false") == 0 ) || ( stricmp(sc.String, "no") == 0 ))
+						skins[i].bRevealed = false;
+				}
+				else if (0 == stricmp (key, "cheat"))
+				{
+					if (( stricmp(sc.String, "true") == 0 ) || ( stricmp(sc.String, "yes") == 0 ))
+						skins[i].bCheat = true;
+					else if (( stricmp(sc.String, "false") == 0 ) || ( stricmp(sc.String, "no") == 0 ))
+						skins[i].bCheat = false;
+				}
+				else if (key[0] == '*')
+				{ // Player sound replacment (ZDoom extension)
+					int lump = Wads.CheckNumForName (sc.String, skins[i].namespc);
+					if (lump == -1)
 					{
-						FTextureID picnum = TexMan.CreateTexture(k, FTexture::TEX_SkinSprite);
-						R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
-
-						if (lname[6])
-							R_InstallSpriteLump (picnum, lname[6] - 'A', lname[7], true);
+						lump = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
 					}
-				}
-
-				if (spr == 0 && maxframe <= 0)
-				{
-					Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, (int)i);
-					remove = true;
-					break;
-				}
-
-				Wads.GetLumpName (temp.name, base+1);
-				temp.name[4] = 0;
-				int sprno = (int)sprites.Push (temp);
-				if (spr==0)	skins[i].sprite = sprno;
-				else skins[i].crouchsprite = sprno;
-				R_InstallSprite (sprno);
-			}
-		}
-
-		if (remove)
-		{
-			if (static_cast<unsigned> (i) < numskins-1)
-				memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
-			i--;
-			continue;
-		}
-
-		// Register any sounds this skin provides
-		aliasid = 0;
-		for (j = 0; j < NUMSKINSOUNDS; j++)
-		{
-			if (sndlumps[j] != -1)
-			{
-				if (j == 0 || sndlumps[j] != sndlumps[j-1])
-				{
-					aliasid = S_AddPlayerSound (skins[i].name, skins[i].gender,
-						playersoundrefs[j], sndlumps[j], true);
+					if (lump != -1)
+					{
+						if (stricmp (key, "*pain") == 0)
+						{ // Replace all pain sounds in one go
+							aliasid = S_AddPlayerSound (skins[i].name, skins[i].gender,
+								playersoundrefs[0], lump, true);
+							for (int l = 3; l > 0; --l)
+							{
+								S_AddPlayerSoundExisting (skins[i].name, skins[i].gender,
+									playersoundrefs[l], aliasid, true);
+							}
+						}
+						else
+						{
+							int sndref = S_FindSoundNoHash (key);
+							if (sndref != 0)
+							{
+								S_AddPlayerSound (skins[i].name, skins[i].gender, sndref, lump, true);
+							}
+						}
+					}
 				}
 				else
 				{
-					S_AddPlayerSoundExisting (skins[i].name, skins[i].gender,
-						playersoundrefs[j], aliasid, true);
+					for (j = 0; j < NUMSKINSOUNDS; j++)
+					{
+						if (stricmp (key, skinsoundnames[j][0]) == 0)
+						{
+							sndlumps[j] = Wads.CheckNumForName (sc.String, skins[i].namespc);
+							if (sndlumps[j] == -1)
+							{ // Replacement not found, try finding it in the global namespace
+								sndlumps[j] = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
+							}
+						}
+					}
+					//if (j == 8)
+					//	Printf ("Funny info for skin %i: %s = %s\n", i, key, sc.String);
 				}
 			}
-		}
+			while(sc.GetString());
 
-		// Make sure face prefix is a full 3 chars
-		if (skins[i].face[1] == 0 || skins[i].face[2] == 0)
-		{
-			skins[i].face[0] = 0;
-		}
-	}
-
-	// [BC] Now parse SKININFO lumps.
-	{
-		LONG		lCurLump;
-		LONG		lLastLump = 0;
-		char		szKey[128];
-		char		szValue[128];
-		ULONG		ulIdx;
-
-		// Search through all loaded wads for a lump called "SKININFO".
-		while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
-		{
-			// Load the found SKININFO lump.
-			FScanner sc( lCurLump );
-
-			// Begin parsing the lump.
-			while ( sc.GetString( ))
+			// [GRB] Assume Doom skin by default
+			if (!remove && basetype == NULL)
 			{
-				// Parse until we find a starting bracket.
-				while ( sc.String[0] != '{' )
-					sc.GetString( );
-
-				// Move onto the next skin.
-				i++;
-
-				intname = 0;
-				crouchname = 0;
-
-				remove = false;
-				basetype = NULL;
-				transtype = NULL;
-
-				// Initialize the sound lumps.
-				for ( ulIdx = 0; ulIdx < NUMSKINSOUNDS; ulIdx++ )
-					sndlumps[ulIdx] = -1;
-
-				// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-				while ( sc.String[0] != '}' )
+				if (gameinfo.gametype & GAME_DoomChex)
 				{
-					// The current token should be our key. (key = value) If it's an end bracket, break.
-					sc.GetString( );
-					sprintf( szKey, "%s", sc.String );
-					if ( sc.String[0] == '}' )
-						break;
-
-					// The following key must be an = sign. If not, the user made an error!
-					sc.GetString( );
-					if ( stricmp( sc.String, "=" ) != 0 )
-						I_Error( "R_InitSkins: Missing \"=\" in SKININFO lump for field \"%s\".\n", szKey );
-
-					// The last token should be our value.
-					sc.GetString( );
-					sprintf( szValue, "%s", sc.String );
-
-					// Now try to match our key with a valid bot info field.
-					if ( stricmp( szKey, "name" ) == 0 )
-						strncpy( skins[i].name, szValue, MAX_SKIN_NAME );
-					else if ( stricmp( szKey, "sprite" ) == 0 )
-					{
-						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
-							szValue[ulIdx] = toupper( szValue[ulIdx] );
-		
-						intname = *((DWORD *)szValue);
-					}
-					else if (0 == stricmp (szKey, "crouchsprite"))
-					{
-						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
-							szValue[ulIdx] = toupper( szValue[ulIdx] );
-
-						crouchname = *((DWORD *)szValue);
-					}
-					else if ( stricmp( szKey, "face" ) == 0 )
-					{
-						for ( ulIdx = 0; ulIdx < 3; ulIdx++ )
-							skins[i].face[ulIdx] = toupper( szValue[ulIdx] );
-					}
-					else if (( stricmp( szKey, "gender" ) == 0 ) || ( stricmp( szKey, "sex" ) == 0 ))
-					{
-						if (( stricmp( szValue, "male" ) == 0 ) || ( stricmp( szValue, "man" ) == 0 ))
-							skins[i].gender = GENDER_MALE;
-						else if (( stricmp( szValue, "female" ) == 0 ) || ( stricmp( szValue, "woman" ) == 0 ))
-							skins[i].gender = GENDER_FEMALE;
-						else if (( stricmp( szValue, "cyborg" ) == 0 ) || ( stricmp( szValue, "neuter" ) == 0 ))
-							skins[i].gender = GENDER_NEUTER;
-					}
-					else if ( stricmp( szKey, "hidden" ) == 0 )
-					{
-						if (( stricmp( szValue, "true" ) == 0 ) || ( stricmp( szValue, "yes" ) == 0 ))
-							skins[i].bRevealed = false;
-						else if (( stricmp( szValue, "false" ) == 0 ) || ( stricmp( szValue, "no" ) == 0 ))
-							skins[i].bRevealed = true;
-
-						skins[i].bRevealedByDefault = skins[i].bRevealed;
-					}
-					else if ( stricmp( szKey, "cheat" ) == 0 )
-					{
-						if (( stricmp( szValue, "true" ) == 0 ) || ( stricmp( szValue, "yes" ) == 0 ))
-							skins[i].bCheat = true;
-						else if (( stricmp( szValue, "false" ) == 0 ) || ( stricmp( szValue, "no" ) == 0 ))
-							skins[i].bCheat = false;
-					}
-					else if ( stricmp( szKey, "color" ) == 0 )
-						sprintf( skins[i].szColor, "%s", szValue );
-					else if ( stricmp( szKey, "scale" ) == 0 )
-					{
-						skins[i].ScaleX = skins[i].ScaleY = clamp<fixed_t> (FLOAT2FIXED(atof (szValue)), 1, 256*FRACUNIT);
-					}
-					else if ( stricmp( szKey, "game" ) == 0 )
-					{
-						// If the user is specifying another game, then select a different
-						// basetype for the skin.
-						if ( gameinfo.gametype == GAME_Heretic )
-							basetype = PClass::FindClass( NAME_HereticPlayer );
-						else if ( gameinfo.gametype == GAME_Strife )
-							basetype = PClass::FindClass( NAME_StrifePlayer );
-						else
-							basetype = PClass::FindClass( NAME_DoomPlayer );
-
-						// NOTE TO SELF: What is transtype?
-						transtype = basetype;
-
-						if ( stricmp( sc.String, "heretic" ) == 0 )
-						{
-							// I guess you can use heretic skins in Doom?
-							if ( gameinfo.gametype == GAME_Doom )
-							{
-								transtype = PClass::FindClass( NAME_HereticPlayer );
-								skins[i].othergame = true;
-							}
-							else if ( gameinfo.gametype != GAME_Heretic )
-								remove = true;
-						}
-						else if ( stricmp ( sc.String, "strife" ) == 0 )
-						{
-							// Only allow the use of Strife skins in Strife.
-							if ( gameinfo.gametype != GAME_Strife )
-								remove = true;
-						}
-						else
-						{
-							// Hmm... what about Hexen skins?
-							if ( gameinfo.gametype == GAME_Heretic )
-							{
-								transtype = PClass::FindClass( NAME_DoomPlayer );
-								skins[i].othergame = true;
-							}
-							else if ( gameinfo.gametype != GAME_Doom )
-								remove = true;
-						}
-
-						if ( remove )
-							break;
-					}
-					// [GRB] Define the skin for a specific player class.
-					else if ( stricmp( key, "class" ) == 0 )
-					{
-						LONG	lClass;
-
-						lClass = D_PlayerClassToInt( sc.String );
-
-						// If the class this skin is for doesn't exist, remove the skin.
-						if ( lClass < 0 )
-						{
-							remove = true;
-							break;
-						}
-
-						basetype = transtype = PlayerClasses[lClass].Type;
-					}
-					// Player sound replacment (ZDoom extension)
-					else if ( szKey[0] == '*' )
-					{
-						LONG	lIdx;
-						LONG	lLump = Wads.CheckNumForName( sc.String, skins[i].namespc );
-
-						if ( lLump == -1 )
-							lLump = Wads.CheckNumForName( sc.String );
-
-						if ( lLump != -1 )
-						{
-							// Replace all pain sounds in one go
-							if ( stricmp( szKey, "*pain" ) == 0 )
-							{
-								aliasid = S_AddPlayerSound( skins[i].name, skins[i].gender,
-									playersoundrefs[0], lLump, true );
-
-								for ( lIdx = 3; lIdx > 0; --lIdx )
-								{
-									S_AddPlayerSoundExisting( skins[i].name, skins[i].gender,
-										playersoundrefs[lIdx], aliasid, true );
-								}
-							}
-							else
-							{
-								LONG	lSoundRef;
-
-								lSoundRef = S_FindSoundNoHash( szKey );
-								if ( lSoundRef != 0 )
-									S_AddPlayerSound( skins[i].name, skins[i].gender, lSoundRef, lLump, true );
-							}
-						}
-					}
-					else
-					{
-						for ( ulIdx = 0; ulIdx < NUMSKINSOUNDS; ulIdx++ )
-						{
-							if ( stricmp( szKey, skinsoundnames[ulIdx][0] ) == 0 )
-							{
-								sndlumps[ulIdx] = Wads.CheckNumForName( szValue, skins[i].namespc );
-							
-								// Replacement not found, try finding it in the global namespace.
-								if ( sndlumps[ulIdx] == -1 )
-									sndlumps[ulIdx] = Wads.CheckNumForName( szValue );
-
-								// [BB] Replacement still not found, try finding it in the Sounds subdirectory of the loaded zips/pk3s.
-								if ( sndlumps[ulIdx] == -1 )
-									sndlumps[ulIdx] = Wads.CheckNumForName( szValue, ns_sounds );
-							}
-						}
-					}
+					basetype = transtype = PClass::FindClass (NAME_DoomPlayer);
 				}
-
-				// [GRB] Assume Doom skin by default.
-				if (( remove == false ) && ( basetype == NULL ))
+				else if (gameinfo.gametype == GAME_Heretic)
 				{
-					if ( gameinfo.gametype == GAME_Doom )
-						basetype = transtype = PClass::FindClass( NAME_DoomPlayer );
-					else if ( gameinfo.gametype == GAME_Heretic )
-					{
-						basetype = PClass::FindClass( NAME_HereticPlayer );
-						transtype = PClass::FindClass( NAME_DoomPlayer );
-						skins[i].othergame = true;
-					}
-					else
-						remove = true;
+					basetype = PClass::FindClass (NAME_HereticPlayer);
+					transtype = PClass::FindClass (NAME_DoomPlayer);
+					skins[i].othergame = true;
 				}
-
-				if ( remove == false )
+				else
 				{
-					skins[i].range0start = transtype->Meta.GetMetaInt( APMETA_ColorRange ) & 0xff;
-					skins[i].range0end = transtype->Meta.GetMetaInt( APMETA_ColorRange ) >> 8;
-
-					// Check which class this skin belongs to, and add it.
 					remove = true;
-					for ( ulIdx = 0; ulIdx < (ULONG)PlayerClasses.Size( ); ulIdx++ )
-					{
-						const PClass	*pType = PlayerClasses[ulIdx].Type;
+				}
+			}
 
-						if (( pType->IsDescendantOf( basetype )) &&
-							( GetDefaultByType( pType )->SpawnState->sprite == GetDefaultByType( basetype )->SpawnState->sprite ) &&
-							( pType->Meta.GetMetaInt( APMETA_ColorRange ) == basetype->Meta.GetMetaInt( APMETA_ColorRange )))
-						{
-							PlayerClasses[ulIdx].Skins.Push( i );
-							remove = false;
-						}
+			if (!remove)
+			{
+				skins[i].range0start = transtype->Meta.GetMetaInt (APMETA_ColorRange) & 0xff;
+				skins[i].range0end = transtype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
+			
+				remove = true;
+				for (j = 0; j < (int)PlayerClasses.Size (); j++)
+				{
+					const PClass *type = PlayerClasses[j].Type;
+			
+					if (type->IsDescendantOf (basetype) &&
+						GetDefaultByType (type)->SpawnState->sprite == GetDefaultByType (basetype)->SpawnState->sprite &&
+						type->Meta.GetMetaInt (APMETA_ColorRange) == basetype->Meta.GetMetaInt (APMETA_ColorRange))
+					{
+						PlayerClasses[j].Skins.Push ((int)i);
+						remove = false;
 					}
 				}
+			}
+			
+			if (!remove)
+			{
+				if (skins[i].name[0] == 0)
+					mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
 
-				if ( remove == false )
+				// Now collect the sprite frames for this skin. If the sprite name was not
+				// specified, use whatever immediately follows the specifier lump.
+				if (intname == 0)
 				{
-					// User didn't specify a name for this skin.
-					if ( skins[i].name[0] == 0 )
-						sprintf( skins[i].name, "UNNAMED SKIN %d", i );
+					char name[9];
+					Wads.GetLumpName (name, base+1);
+					intname = *(DWORD *)name;
+				}
 
-					// Attempt to install a new sprite.
-					if ( intname || crouchname )
+				int basens = Wads.GetLumpNamespace(base);
+
+				for(int spr = 0; spr<2; spr++)
+				{
+					memset (sprtemp, 0xFFFF, sizeof(sprtemp));
+					for (k = 0; k < MAX_SPRITE_FRAMES; ++k)
 					{
-						char	szTempLumpName[9];
-						LONG	lSpriteNum;
-
-						int basens = Wads.GetLumpNamespace(base);
-
-						for(int spr = 0; spr<2; spr++)
-						{
-							memset (sprtemp, 0xFFFF, sizeof(sprtemp));
-							for (k = 0; k < MAX_SPRITE_FRAMES; ++k)
-							{
-								sprtemp[k].Flip = 0;
-							}
-							maxframe = -1;
-
-							if (spr == 1)
-							{
-								if (crouchname !=0 && crouchname != intname)
-								{
-									intname = crouchname;
-								}
-								else
-								{
-									skins[i].crouchsprite = -1;
-									break;
-								}
-							}
-
-							if ( intname == 0 )
-								continue;
-
-							// Loop through all the lumps searching for frames for this skin.
-							for ( ulIdx = 0; static_cast<signed> (ulIdx) < Wads.GetNumLumps( ); ulIdx++ )
-							{
-								// Only process skin entries from the wad the SKININFO lump is in.
-								// NOTE: If this isn't done, Skulltag doesn't work with hr.wad.
-								if ( Wads.GetLumpFile( lCurLump ) != Wads.GetLumpFile( ulIdx ))
-									continue;
-
-								Wads.GetLumpName( szTempLumpName, ulIdx );
-								if ( *(DWORD *)szTempLumpName == intname )
-								{
-									FTextureID picNum = TexMan.CreateTexture( ulIdx, FTexture::TEX_SkinSprite );
-
-									R_InstallSpriteLump( picNum, 
-														 szTempLumpName[4] - 'A',
-														 szTempLumpName[5],
-														 false );
-
-									// This lump represents two frames (A3A7, etc.), so install it twice.
-									if ( szTempLumpName[6] )
-										R_InstallSpriteLump( picNum,
-														 szTempLumpName[6] - 'A',
-														 szTempLumpName[7],
-														 true );
-								}
-							}
-
-							if (spr == 0 && maxframe <= 0)
-							{
-								Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, i);
-								remove = true;
-								break;
-							}
-
-							strncpy( temp.name, reinterpret_cast<const char*>(&intname), 4 );
-							temp.name[4] = 0;
-							lSpriteNum = (int)sprites.Push( temp );
-							if ( spr == 0 )
-								skins[i].sprite = lSpriteNum;
-							else
-								skins[i].crouchsprite = lSpriteNum;
-							R_InstallSprite( lSpriteNum );
-						}
+						sprtemp[k].Flip = 0;
 					}
-				}
+					maxframe = -1;
 
-				if ( remove )
-				{
-					if (static_cast<unsigned> (i) < numskins-1)
-						memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
-					i--;
-					continue;
-				}
-
-				// Register any sounds this skin provides.
-				aliasid = 0;
-				for ( ulIdx = 0; ulIdx < NUMSKINSOUNDS; ulIdx++ )
-				{
-					if ( sndlumps[ulIdx] != -1 )
+					if (spr == 1)
 					{
-						if (( ulIdx == 0 ) || ( sndlumps[ulIdx] != sndlumps[ulIdx-1] ))
+						if (crouchname !=0 && crouchname != intname)
 						{
-							aliasid = S_AddPlayerSound (skins[i].name, skins[i].gender,
-								playersoundrefs[ulIdx], sndlumps[ulIdx], true);
+							intname = crouchname;
 						}
 						else
 						{
-							S_AddPlayerSoundExisting (skins[i].name, skins[i].gender,
-								playersoundrefs[ulIdx], aliasid, true);
+							skins[i].crouchsprite = -1;
+							break;
 						}
 					}
+
+					// [BL] From the SKININFO parser
+					// Loop through all the lumps searching for frames for this skin.
+					for ( k = 0; static_cast<signed> (k) < Wads.GetNumLumps( ); k++ )
+					{
+						// Only process skin entries from the wad the SKININFO lump is in.
+						// NOTE: If this isn't done, Skulltag doesn't work with hr.wad.
+						if ( Wads.GetLumpFile( base ) != Wads.GetLumpFile( k ))
+							continue;
+
+						char lname[9];
+						Wads.GetLumpName( lname, k );
+						if ( *(DWORD *)lname == intname )
+						{
+							FTextureID picnum = TexMan.CreateTexture(k, FTexture::TEX_SkinSprite);
+							R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
+
+							if (lname[6])
+								R_InstallSpriteLump (picnum, lname[6] - 'A', lname[7], true);
+						}
+					}
+
+					if (spr == 0 && maxframe <= 0)
+					{
+						Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, (int)i);
+						remove = true;
+						break;
+					}
+
+					Wads.GetLumpName (temp.name, base+1);
+					temp.name[4] = 0;
+					int sprno = (int)sprites.Push (temp);
+					if (spr==0)	skins[i].sprite = sprno;
+					else skins[i].crouchsprite = sprno;
+					R_InstallSprite (sprno);
 				}
+			}
+
+			if (remove)
+			{
+				if (static_cast<unsigned> (i) < numskins-1)
+					memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
+				i--;
+				continue;
+			}
+
+			// Register any sounds this skin provides
+			aliasid = 0;
+			for (j = 0; j < NUMSKINSOUNDS; j++)
+			{
+				if (sndlumps[j] != -1)
+				{
+					if (j == 0 || sndlumps[j] != sndlumps[j-1])
+					{
+						aliasid = S_AddPlayerSound (skins[i].name, skins[i].gender,
+							playersoundrefs[j], sndlumps[j], true);
+					}
+					else
+					{
+						S_AddPlayerSoundExisting (skins[i].name, skins[i].gender,
+							playersoundrefs[j], aliasid, true);
+					}
+				}
+			}
+
+			// Make sure face prefix is a full 3 chars
+			if (skins[i].face[1] == 0 || skins[i].face[2] == 0)
+			{
+				skins[i].face[0] = 0;
 			}
 		}
 	}

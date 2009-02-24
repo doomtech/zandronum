@@ -32,6 +32,7 @@ latestzdoom branch
 -	- Fixed bots shoot behind them in 64-bit. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
+!	- Merged S_SKIN and SKININFO. [Blzut3]
 
 
 <trunk>
