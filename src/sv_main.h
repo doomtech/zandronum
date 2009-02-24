@@ -140,6 +140,10 @@ typedef enum
 	// Client slot has just received a connection signal.
 	CLS_CHALLENGE,
 
+	// [BB] The map has changed after the client authenticated his level, but
+	// before he finished loading the level.
+	CLS_AUTHENTICATED_BUT_OUTDATED_MAP,
+
 	// Client has authenticated his level.
 	CLS_AUTHENTICATED,
 
@@ -285,6 +289,7 @@ void		SERVER_GetPackets( void );
 void		SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString );
 void		SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream );
 void		SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer );
+void		SERVER_RequestClientToAuthenticate( ULONG ulClient );
 void		SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream );
 bool		SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream );
 void		SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream );

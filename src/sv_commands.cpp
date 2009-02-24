@@ -5091,6 +5091,14 @@ void SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPla
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszNextMap );
 	}
+
+	// [BB] The clients who are authenticated, but still didn't finish loading
+	// the map are not covered by the code above and need special treatment.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_GetClient( ulIdx )->State == CLS_AUTHENTICATED )
+			SERVER_GetClient( ulIdx )->State = CLS_AUTHENTICATED_BUT_OUTDATED_MAP;
+	}
 }
 
 //*****************************************************************************
