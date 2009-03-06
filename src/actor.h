@@ -942,6 +942,9 @@ public:
 	// [BC]
 	bool InSpawnState( );
 	bool InDeathState();
+	// [BB]
+	bool InState(FName label) const;
+
 	virtual bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 	bool isFast();
 	void SetIdle();

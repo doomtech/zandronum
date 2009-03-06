@@ -747,6 +747,43 @@ bool AActor::InDeathState()
 	return false;
 }
 
+//----------------------------------------------------------------------------
+//
+// [BB] AActor::InState
+//
+//----------------------------------------------------------------------------
+
+bool AActor::InState(FName label) const
+{
+	if( state != NULL )
+	{
+		FState *pTempState = FindState(label);
+		std::vector<FState*> checkedFrames;
+		while ( pTempState != NULL )
+		{
+			if ( state == pTempState )
+				return true;
+
+			bool breakLoop = false;
+			// [BB] Check if we already encountered pTempState.
+			for ( unsigned int i = 0; i < checkedFrames.size(); i++ )
+			{
+				if ( pTempState == checkedFrames[i] )
+					breakLoop = true;
+			}
+			// [BB] Save the frame pointer, necessary to check if we encounter this frame again.
+			checkedFrames.push_back( pTempState );
+
+			pTempState = pTempState->GetNextState( );
+
+			// [BB] If the state loops back to any state we already encountered, break out to prevent an infinite loop.
+			if ( breakLoop )
+				break;
+		}
+	}
+	return false;
+}
+
 //============================================================================
 //
 // AActor :: AddInventory

@@ -7693,8 +7693,6 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	fixed_t		X;
 	fixed_t		Y;
 	fixed_t		Z;
-	bool		bNeedExplode = true;
-	FState		*pDeadState;
 
 	// Read in the network ID of the exploding missile.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -7724,37 +7722,9 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	// Move the new actor to the position.
 	CLIENT_MoveThing( pActor, X, Y, Z );
 
-	// See if any of these death frames match our current frame. If they do,
-	// don't explode the missile.
-	pDeadState = pActor->FindState(NAME_Death);
-	std::vector<FState*> checkedDeathFrames;
-	while ( pDeadState != NULL )
-	{
-		if ( pActor->state == pDeadState )
-		{
-			bNeedExplode = false;
-			break;
-		}
-
-		bool breakLoop = false;
-		// [BB] Check if we already encountered pDeadState.
-		for ( unsigned int i = 0; i < checkedDeathFrames.size(); i++ )
-		{
-			if ( pDeadState == checkedDeathFrames[i] )
-				breakLoop = true;
-		}
-		// [BB] Save the frame pointer, necessary to check if we encounter this frame again.
-		checkedDeathFrames.push_back( pDeadState );
-
-		pDeadState = pDeadState->GetNextState( );
-
-		// [BB] If the state loops back to any state we already encountered, break out to prevent an infinite loop.
-		if ( breakLoop )
-			break;
-	}
-
 	// Blow it up!
-	if ( bNeedExplode )
+	// [BB] Only if it's not already in its death state.
+	if ( pActor->InState ( NAME_Death ) == false )
 		P_ExplodeMissile( pActor, pLine, NULL );
 }
 

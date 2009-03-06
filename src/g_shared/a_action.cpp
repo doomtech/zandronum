@@ -26,6 +26,8 @@ class ASwitchableDecoration : public AActor
 public:
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
+	// [BB]
+	bool IsActive( void );
 };
 
 IMPLEMENT_CLASS (ASwitchableDecoration)
@@ -38,6 +40,12 @@ void ASwitchableDecoration::Activate (AActor *activator)
 void ASwitchableDecoration::Deactivate (AActor *activator)
 {
 	SetState (FindState(NAME_Inactive));
+}
+
+// [BB]
+bool ASwitchableDecoration::IsActive( void )
+{
+	return ( InState ( NAME_Inactive ) == false );
 }
 
 // SwitchingDecoration: Only Activate changes state -------------------------
