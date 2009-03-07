@@ -752,7 +752,10 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 	DHUDMessageFadeOut	*pMsg;
 
 	// Display "%s WINS!" HUD message.
-	sprintf( szString, "\\c%c%s WINS!", V_GetColorChar( TEAM_GetTextColor( ulTeamIdx ) ), TEAM_GetName( ulTeamIdx ) );
+	if ( ulTeamIdx < teams.Size( ) )
+		sprintf( szString, "\\c%c%s WINS!", V_GetColorChar( TEAM_GetTextColor( ulTeamIdx ) ), TEAM_GetName( ulTeamIdx ) );
+	else
+		sprintf( szString, "DRAW GAME!\n" );
 
 	V_ColorizeString( szString );
 
@@ -820,7 +823,7 @@ void TEAM_TimeExpired( void )
 			lWinner = teams.Size( );
 
 		// If there was a tie, then go into sudden death!
-		if ( lWinner == teams.Size( ) )
+		if ( sv_suddendeath && ( lWinner == teams.Size( ) ) )
 		{
 			// Only print the message the instant we reach sudden death.
 			if ( level.time == (int)( timelimit * TICRATE * 60 ))

@@ -21,6 +21,7 @@
 		- Added file version metadata and an "about" screen.
 		- Fixed: If you tried to reconnect to a nonexistent server, you wouldn't get 3 retries.
 +	- The authentication mechanism for non-map related lumps now gives detailed warnings on which auto-loaded files contain which protected lumps. [Torr Samaho]
++	- Added new CVAR sv_suddendeath (default true). If set to false, CTF or Skulltag games don't go into sudden death mode when the time limit is hit and no team has more points than all other teams. Instead the game is considered to be a draw. [Torr Samaho]
 -	- Fixed: The code to check the maximum allowed effective skin sprite width/height didn't work with UDMX under Linux. [Torr Samaho]
 -	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho, SuperGod]
 -	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
