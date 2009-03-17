@@ -3967,6 +3967,24 @@ ULONG ACTOR_GetNewNetID( void )
 
 //==========================================================================
 //
+// [BB] AActor::FreeNetID
+//
+//==========================================================================
+
+void AActor::FreeNetID ()
+{
+	// [BB] Actors may have lNetID == -1. 
+	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
+	{
+		g_NetIDList[lNetID].bFree = true;
+		g_NetIDList[lNetID].pActor = NULL;
+	}
+
+	lNetID = -1;
+}
+
+//==========================================================================
+//
 // P_SpawnMobj
 //
 //==========================================================================
@@ -5157,8 +5175,11 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing, bool bTellClientToSpawn)
 {
 	AActor *puff;
+	// [BB] The whole "puff spawning on clients" is pretty awful right now,
+	// but currently I don't see how to fix it without increasing net traffic
+	// and just made some fixes to make it less buggy.
 	// [BC]
-	ULONG	ulState;
+	ULONG	ulState = STATE_SPAWN;
 
 	z += pr_spawnpuff.Random2 () << 10;
 
@@ -5170,10 +5191,24 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 	FState *crashstate;
 	if (hitthing == false && (crashstate = puff->FindState(NAME_Crash)) != NULL)
 	{
+		// [BB] The server needs to tell the state to the clients later.
+		ulState = STATE_CRASH;
+		// [BB] When spawning the puff, the server won't tell the clients the
+		// netID. This needs special handling, otherwise sound won't work.
+		// Freeing the ID needs to be done before setting the state!
+		puff->FreeNetID();
+
 		puff->SetState (crashstate);
 	}
 	else if (attackrange == MELEERANGE && puff->MeleeState != NULL)
 	{
+		// [BB] The server needs to tell the state to the clients later.
+		ulState = STATE_MELEE;
+		// [BB] When spawning the puff, the server won't tell the clients the
+		// netID. This needs special handling, otherwise sound won't work.
+		// Freeing the ID needs to be done before setting the state!
+		puff->FreeNetID();
+
 		// handle the hard coded state jump of Doom's bullet puff
 		// in a more flexible manner.
 		puff->SetState (puff->MeleeState);
@@ -5183,12 +5218,6 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( bTellClientToSpawn ))
 	{
-		ulState = STATE_SPAWN;
-		if ( puff->state == puff->FindState( NAME_Crash ))
-			ulState = STATE_CRASH;
-		else if ( puff->state == puff->MeleeState )
-			ulState = STATE_MELEE;
-
 		// If it's translated, or spawning in a state other than its spawn state,
 		// treat it as a special case.
 		if ( ulState != STATE_SPAWN )

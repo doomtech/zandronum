@@ -917,6 +917,8 @@ public:
 	int GetTics(FState * newstate);
 	bool SetState (FState *newstate);
 	bool SetStateNF (FState *newstate);
+	// [BB] Free the network ID of the actor.
+	void FreeNetID ();
 	// [BB] Completely hides the actor if it's still needed for a map reset, otherwise destroys the actor.
 	void HideOrDestroyIfSafe ();
 	// [BB] Called before being hidden by HideOrDestroyIfSafe().
