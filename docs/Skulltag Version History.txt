@@ -37,6 +37,7 @@
 -	- Fixed: Teleport_EndGame caused the server to get stuck. Nevertheless, end sequences are not supported online. They are just skipped. [Torr Samaho, SuperGod]
 -	- Fixed: The CCMDs dumpmap, initpolymosttest, quickload, quicksave, select, slot, togglemap and vid_setmode caused the server to crash instead of being ignored. [Torr Samaho]
 -	- Fixed: When the server changed the map while a newly connected client was still loading the map, this client didn't get informed about the map change causing severe sync issues. [Torr Samaho, SuperGod]
+-	- Fixed: If you died in co-op and somebody else ended the map before you respawned, you would start the next map with only default inventory, no matter what dmflags was set to. (ported from ZDoom revision 691). [Torr Samaho]
 !	- There is now a 10 second time limit on joining. [Torr Samaho, SuperGod]
 !	- There is now a 30 second time limit on name changes for clients. [Torr Samaho, SuperGod]
 !	- CVAR timelimit now also applies to cooperative game modes. [Torr Samaho, SuperGod]
