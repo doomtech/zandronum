@@ -1262,7 +1262,10 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	
 	FState *nextstate=NULL;
 	
-	if (target != NULL && target->flags & (MF_SHOOTABLE|MF_CORPSE))
+	// [BB] If a missile hits and kills a player, it removes the SHOOTABLE flag from
+	// the killed player. Therefore, the SHOOTABLE check below is never fulfilled.
+	// As workaround we check if the target is a player.
+	if (target != NULL && ( target->flags & (MF_SHOOTABLE|MF_CORPSE) || target->player ) )
 	{
 		if (target->flags & MF_NOBLOOD) nextstate = mo->FindState(NAME_Crash);
 		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
