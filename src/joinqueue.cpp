@@ -299,7 +299,10 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 			// Begin the duel countdown.
 			if ( duel )
 			{
-				if ( sv_duelcountdowntime > 0 )
+				// [BB] Skip countdown and map reset if the map is supposed to be a lobby.
+				if ( level.flags & LEVEL_ISLOBBY )
+					DUEL_SetState( DS_INDUEL );
+				else if ( sv_duelcountdowntime > 0 )
 					DUEL_StartCountdown(( sv_duelcountdowntime * TICRATE ) - 1 );
 				else
 					DUEL_StartCountdown(( 10 * TICRATE ) - 1 );

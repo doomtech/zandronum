@@ -117,6 +117,9 @@
 
 #define LEVEL_ALLOWRESPAWN			UCONST64(0x4000000000000)
 #define	LEVEL_NOBOTNODES			UCONST64(0x8000000000000)	// [BC] Level does not use bot nodes.
+// [BB] Ceartain game modes are supposed to behave differently on
+// the map. For example in duel mode the countdown and the map reset are skipped.
+#define	LEVEL_ISLOBBY			UCONST64(0x10000000000000)
 
 
 

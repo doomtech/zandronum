@@ -322,6 +322,7 @@ static const char *MapInfoMapLevel[] =
 	"allowrespawn",
 	"teamdamage",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
+	"islobby",	// [BB]
 	// new [GZDoom]
 	"fogdensity",
 	"outsidefogdensity",
@@ -469,6 +470,7 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_ALLOWRESPAWN, 0 },
 	{ MITYPE_FLOAT,		lioffset(teamdamage), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
+	{ MITYPE_SETFLAG,	LEVEL_ISLOBBY, 0 },	// [BB]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
 	{ MITYPE_INT,		lioffset(outsidefogdensity), 0 },
