@@ -766,6 +766,11 @@ AWeapon *FWeaponSlot::PickWeapon (player_t *player)
 {
 	int i, j;
 
+	// [BB] Under some rare circumstances, it seems to be possible that this
+	// function is called for a player that doesn't have a body.
+	if ( player->mo == NULL )
+		return NULL;
+
 	if (player->ReadyWeapon != NULL)
 	{
 		for (i = 0; i < MAX_WEAPONS_PER_SLOT; i++)
