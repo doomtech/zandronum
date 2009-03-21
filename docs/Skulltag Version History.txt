@@ -46,6 +46,7 @@ latestzdoom branch
 		- Fixed: If you tried to reconnect to a nonexistent server, you wouldn't get 3 retries.
 +	- The authentication mechanism for non-map related lumps now gives detailed warnings on which auto-loaded files contain which protected lumps. [Torr Samaho]
 +	- Added new CVAR sv_suddendeath (default true). If set to false, CTF or Skulltag games don't go into sudden death mode when the time limit is hit and no team has more points than all other teams. Instead the game is considered to be a draw. [Torr Samaho]
++	- Added new MAPINFO flag "islobby". If a duel is made on a map with this flag, the countdown and the map reset are skipped, e.g. useful for a map selection map like AlexMan's duel16. [Torr Samaho, SuperGod]
 -	- Fixed: The code to check the maximum allowed effective skin sprite width/height didn't work with UDMX under Linux. [Torr Samaho]
 -	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho, SuperGod]
 -	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
@@ -60,6 +61,10 @@ latestzdoom branch
 -	- Fixed: Teleport_EndGame caused the server to get stuck. Nevertheless, end sequences are not supported online. They are just skipped. [Torr Samaho, SuperGod]
 -	- Fixed: The CCMDs dumpmap, initpolymosttest, quickload, quicksave, select, slot, togglemap and vid_setmode caused the server to crash instead of being ignored. [Torr Samaho]
 -	- Fixed: When the server changed the map while a newly connected client was still loading the map, this client didn't get informed about the map change causing severe sync issues. [Torr Samaho, SuperGod]
+-	- Fixed: Under rare circumstances a client could crash while connecting. [Torr Samaho, SuperGod]
+-	- Fixed: Some kind of puffs were not spawned in their crash or melee state on the clients online. [Torr Samaho, SuperGod]
+-	- Fixed: Sounds of puffs in the melee or crash state were not played on the clients online. [Torr Samaho, SuperGod]
+-	- Fixed: Projectiles killing a player, never entered their Crash or XDeath state. [Torr Samaho]
 !	- There is now a 10 second time limit on joining. [Torr Samaho, SuperGod]
 !	- There is now a 30 second time limit on name changes for clients. [Torr Samaho, SuperGod]
 !	- CVAR timelimit now also applies to cooperative game modes. [Torr Samaho, SuperGod]

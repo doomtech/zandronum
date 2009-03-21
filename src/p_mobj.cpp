@@ -1270,7 +1270,10 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	
 	FState *nextstate=NULL;
 	
-	if (target != NULL && target->flags & (MF_SHOOTABLE|MF_CORPSE))
+	// [BB] If a missile hits and kills a player, it removes the SHOOTABLE flag from
+	// the killed player. Therefore, the SHOOTABLE check below is never fulfilled.
+	// As workaround we check if the target is a player.
+	if (target != NULL && ( target->flags & (MF_SHOOTABLE|MF_CORPSE) || target->player ) )
 	{
 		if (target->flags & MF_NOBLOOD) nextstate = mo->FindState(NAME_Crash);
 		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
@@ -3936,6 +3939,24 @@ ULONG ACTOR_GetNewNetID( void )
 	return ( ulID );
 }
 
+// [BB] AActor::FreeNetID
+//
+//==========================================================================
+
+void AActor::FreeNetID ()
+{
+	// [BB] Actors may have lNetID == -1. 
+	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
+	{
+		g_NetIDList[lNetID].bFree = true;
+		g_NetIDList[lNetID].pActor = NULL;
+	}
+
+	lNetID = -1;
+}
+
+//==========================================================================
+//
 // P_SpawnMobj
 //
 //==========================================================================
@@ -5197,8 +5218,11 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, int flags, bool bTellClientToSpawn)
 {
 	AActor *puff;
+	// [BB] The whole "puff spawning on clients" is pretty awful right now,
+	// but currently I don't see how to fix it without increasing net traffic
+	// and just made some fixes to make it less buggy.
 	// [BC]
-	ULONG	ulState;
+	ULONG	ulState = STATE_SPAWN;
 
 	z += pr_spawnpuff.Random2 () << 10;
 
@@ -5211,10 +5235,24 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	FState *crashstate;
 	if (!(flags & PF_HITTHING) && (crashstate = puff->FindState(NAME_Crash)) != NULL)
 	{
+		// [BB] The server needs to tell the state to the clients later.
+		ulState = STATE_CRASH;
+		// [BB] When spawning the puff, the server won't tell the clients the
+		// netID. This needs special handling, otherwise sound won't work.
+		// Freeing the ID needs to be done before setting the state!
+		puff->FreeNetID();
+
 		puff->SetState (crashstate);
 	}
 	else if ((flags & PF_MELEERANGE) && puff->MeleeState != NULL)
 	{
+		// [BB] The server needs to tell the state to the clients later.
+		ulState = STATE_MELEE;
+		// [BB] When spawning the puff, the server won't tell the clients the
+		// netID. This needs special handling, otherwise sound won't work.
+		// Freeing the ID needs to be done before setting the state!
+		puff->FreeNetID();
+
 		// handle the hard coded state jump of Doom's bullet puff
 		// in a more flexible manner.
 		puff->SetState (puff->MeleeState);
@@ -5224,12 +5262,6 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( bTellClientToSpawn ))
 	{
-		ulState = STATE_SPAWN;
-		if ( puff->state == puff->FindState( NAME_Crash ))
-			ulState = STATE_CRASH;
-		else if ( puff->state == puff->MeleeState )
-			ulState = STATE_MELEE;
-
 		// If it's translated, or spawning in a state other than its spawn state,
 		// treat it as a special case.
 		if ( ulState != STATE_SPAWN )

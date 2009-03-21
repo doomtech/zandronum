@@ -112,6 +112,9 @@
 #define LEVEL_INFINITE_FLIGHT		UCONST64(0x1000000000000)
 
 #define LEVEL_ALLOWRESPAWN			UCONST64(0x2000000000000)
+// [BB] Ceartain game modes are supposed to behave differently on
+// the map. For example in duel mode the countdown and the map reset are skipped.
+#define	LEVEL_ISLOBBY			UCONST64(0x10000000000000)
 
 #define LEVEL_FORCETEAMPLAYON		UCONST64(0x4000000000000)
 #define LEVEL_FORCETEAMPLAYOFF		UCONST64(0x8000000000000)

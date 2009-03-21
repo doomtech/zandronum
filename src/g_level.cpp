@@ -402,6 +402,7 @@ static const char *MapInfoMapLevel[] =
 	"allowrespawn",
 	"teamdamage",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
+	"islobby",	// [BB]
 	"teamplayon",
 	"teamplayoff",
 	"checkswitchrange",
@@ -557,6 +558,7 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_ALLOWRESPAWN, 0 },
 	{ MITYPE_FLOAT,		lioffset(teamdamage), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
+	{ MITYPE_SETFLAG,	LEVEL_ISLOBBY, 0 },	// [BB]
 	{ MITYPE_SCFLAGS,	LEVEL_FORCETEAMPLAYON, ~LEVEL_FORCETEAMPLAYOFF },
 	{ MITYPE_SCFLAGS,	LEVEL_FORCETEAMPLAYOFF, ~LEVEL_FORCETEAMPLAYON },
 	{ MITYPE_SETFLAG,	LEVEL_CHECKSWITCHRANGE, 0 },
