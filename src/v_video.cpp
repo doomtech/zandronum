@@ -1381,6 +1381,10 @@ CCMD (vid_setmode)
 	int		width = 0, height = SCREENHEIGHT;
 	int		bits = DisplayBits;
 
+	// [BB] The server doesn't have any screen to alter.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (argv.argc() > 1)
 	{
 		width = atoi (argv[1]);

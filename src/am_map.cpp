@@ -862,6 +862,10 @@ void AM_maxOutWindowScale ()
 
 CCMD (togglemap)
 {
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	gameaction = ga_togglemap;
 }
 

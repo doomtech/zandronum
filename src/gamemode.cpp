@@ -69,6 +69,8 @@
 CVAR( Bool, instagib, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
 CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
 
+CVAR( Bool, sv_suddendeath, true, CVAR_SERVERINFO | CVAR_LATCH );
+
 //*****************************************************************************
 //	VARIABLES
 

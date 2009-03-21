@@ -1009,7 +1009,15 @@ void SERVER_CheckTimeouts( void )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
+		{
+			if ( ( g_aClients[ulIdx].State != CLS_FREE )
+			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ) ) )
+			{
+				Printf( "Unfinished connection from %s timed out.\n", NETWORK_AddressToString( g_aClients[ulIdx].Address ) );
+				SERVER_DisconnectClient( ulIdx, false, false );
+			}
 			continue;
+		}
 
 		// If we haven't gotten a packet from this client in CLIENT_TIMEOUT seconds,
 		// disconnect him.
@@ -1156,6 +1164,18 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 
 //*****************************************************************************
 //
+void SERVER_RequestClientToAuthenticate( ULONG ulClient )
+{
+	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, SVCC_AUTHENTICATE );
+	NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, level.mapname );
+
+	// Send the packet off.
+	SERVER_SendClientPacket( ulClient, true );
+}
+
+//*****************************************************************************
+//
 void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 {
 	if ( SERVER_PerformAuthenticationChecksum( pByteStream ) == false )
@@ -1251,7 +1271,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// If the client hasn't authenticated his level, don't accept this connection.
 	if ( g_aClients[g_lCurrentClient].State < CLS_AUTHENTICATED )
 	{
-		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
+		if ( g_aClients[g_lCurrentClient].State == CLS_AUTHENTICATED_BUT_OUTDATED_MAP )
+			SERVER_RequestClientToAuthenticate( g_lCurrentClient );
+		else
+			SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
 
@@ -1785,10 +1808,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		ULONG ulOtherClientsFromIP = 0;
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			// [BB] Consider timeouts here. This is necessary because of non finished connection
-			// attempts, e.g. done by http://aluigi.org/poc/skulltagod.zip.
-			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true )
-			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) < ( CLIENT_TIMEOUT * TICRATE ) ) )
+			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true ) )
 				ulOtherClientsFromIP++;
 		}
 
@@ -1898,7 +1918,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	}
 
 	// Client is now in the loop, prevent from a early timeout
-	g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
+	// [BB] Only do this if this is actually a new player connecting. Otherwise it
+	// could be abused to keep non-finished connections alive.
+	if ( bNewPlayer )
+		g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
 
 	// Check if we require a password to join this server.
 	Val = sv_password.GetGenericRep( CVAR_String );
@@ -1967,13 +1990,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].bRunEnterScripts = false;
 	g_aClients[lClient].szSkin[0] = 0;
 
-	// Send heartbeat back.
-	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
-	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer.ByteStream, SVCC_AUTHENTICATE );
-	NETWORK_WriteString( &g_aClients[lClient].PacketBuffer.ByteStream, level.mapname );
-
-	// Send the packet off.
-	SERVER_SendClientPacket( lClient, true );
+	// [BB] Inform the client that he is connected and needs to authenticate the map.
+	SERVER_RequestClientToAuthenticate( lClient );
 }
 
 //*****************************************************************************
@@ -3072,6 +3090,14 @@ void SERVER_LoadNewLevel( const char *pszMapName )
 		// Send out the packet and clear out the client's buffer.
 		SERVER_SendClientPacket( ulIdx, true );
 	}
+
+	// [BB] The clients who are authenticated, but still didn't finish loading
+	// the map are not covered by the code above and need special treatment.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_GetClient( ulIdx )->State == CLS_AUTHENTICATED )
+			SERVER_GetClient( ulIdx )->State = CLS_AUTHENTICATED_BUT_OUTDATED_MAP;
+	}
 }
 
 //*****************************************************************************
@@ -3591,6 +3617,21 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 			SERVER_ConnectNewPlayer( pByteStream );
 			break;
 		default:
+
+			// [BB] Only authenticated clients are allowed to send the commands handled in
+			// SERVER_ProcessCommand(). If we would let non authenticated clients do this,
+			// this could be abused to keep non finished connections alive.
+			if ( g_aClients[g_lCurrentClient].State < CLS_AUTHENTICATED )
+			{
+				// [BB] Under these special, rare circumstances valid clients can send illegal commands.
+				if ( g_aClients[g_lCurrentClient].State != CLS_AUTHENTICATED_BUT_OUTDATED_MAP )
+					Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ) );
+
+				// [BB] Ignore the rest of the packet, it can't be valid.
+				while ( NETWORK_ReadByte( pByteStream ) != -1 );
+				break;
+			}
+
 
 			// This returns true if the player was kicked as a result.
 			if ( SERVER_ProcessCommand( lCommand, pByteStream ))

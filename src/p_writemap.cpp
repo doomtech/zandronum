@@ -28,6 +28,10 @@ CCMD (dumpmap)
 	const char *mapname;
 	FILE *file;
 
+	// [BB] The server can't do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (argv.argc() < 2)
 	{
 		Printf ("Usage: dumpmap <wadname> [mapname]\n");

@@ -481,13 +481,17 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 
-	// [RC] User can choose the chat sound.
-	if ( chat_sound == 1 ) // Default
-		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
-	else if ( chat_sound == 2 ) // Doom 1
-		S_Sound( CHAN_VOICE, "misc/chat2", 1, ATTN_NONE );
-	else if ( chat_sound == 3 ) // Doom 2
-		S_Sound( CHAN_VOICE, "misc/chat", 1, ATTN_NONE );
+	// [BB] If the user doesn't want to see the messages, they shouldn't make a sound.
+	if ( show_messages )
+	{
+		// [RC] User can choose the chat sound.
+		if ( chat_sound == 1 ) // Default
+			S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
+		else if ( chat_sound == 2 ) // Doom 1
+			S_Sound( CHAN_VOICE, "misc/chat2", 1, ATTN_NONE );
+		else if ( chat_sound == 3 ) // Doom 2
+			S_Sound( CHAN_VOICE, "misc/chat", 1, ATTN_NONE );
+	}
 
 	BOTCMD_SetLastChatString( pszString );
 	BOTCMD_SetLastChatPlayer( players[ulPlayer].userinfo.netname );

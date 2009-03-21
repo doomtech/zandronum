@@ -51,6 +51,7 @@
 #ifndef __GAMEMODE_H__
 #define __GAMEMODE_H__
 
+#include "c_cvars.h"
 #include "doomtype.h"
 #include "doomdef.h"
 
@@ -69,6 +70,11 @@
 #define	GMF_DEADSPECTATORS				0x00000400
 #define	GMF_PLAYERSONTEAMS				0x00000800
 #define	GMF_USEMAXLIVES					0x00001000
+
+//*****************************************************************************
+//  EXTERNAL CONSOLE VARIABLES
+
+EXTERN_CVAR( Bool, sv_suddendeath )
 
 //*****************************************************************************
 typedef enum
