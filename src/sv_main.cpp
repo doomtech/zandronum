@@ -46,6 +46,9 @@
 // Description: Contains variables and routines related to the server portion
 // of the program.
 //
+// Possible improvements:
+//	- Globally replace SERVER_CalcNumPlayers with SERVER_CountPlayers.
+//
 //-----------------------------------------------------------------------------
 
 #include <stdarg.h>
@@ -147,8 +150,6 @@ static	bool	server_ReadyToGoOn( BYTESTREAM_s *pByteStream );
 static	bool	server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream );
 static	bool	server_AuthenticateLevel( BYTESTREAM_s *pByteStream );
 static	bool	server_CallVote( BYTESTREAM_s *pByteStream );
-static	bool	server_VoteYes( BYTESTREAM_s *pByteStream );
-static	bool	server_VoteNo( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
@@ -498,14 +499,8 @@ void SERVER_Tick( void )
 	LONG			lPreviousTics;
 	LONG			lCurTics;
 	ULONG			ulIdx;
-	//[BB] Looks like dwBaseTime is not used at all.
-	//static DWORD	dwBaseTime = 0;
 
 	I_DoSelect();
-
-	//if ( dwBaseTime == 0 )
-	//	dwBaseTime = timeGetTime( );
-
 	lPreviousTics = g_lGameTime / (( 1.0 / (double)35.75 ) * 1000.0 );
 
 	lNowTime = I_MSTime( );
@@ -530,218 +525,151 @@ void SERVER_Tick( void )
 	while ( g_ServerCommandQueue.Size( ))
 		SERVER_DeleteCommand( );
 #endif
-/*
-		int			entertic;
-		static	int	oldentertics;
-		int 		i;
-		int 		lowtic;
-		int 		realtics;
-		int 		availabletics;
-		int 		counts;
-		int 		numplaying;
-
-		// If paused, do not eat more CPU time than we need, because it
-		// will all be wasted anyway.
-		bool doWait = true;//cl_capfps || r_NoInterpolate;
-
-		// get real tics
-		if (doWait)
-		{
-			entertic = I_WaitForTic (oldentertics);
-		}
-		else
-		{
-			entertic = I_GetTime (false);
-		}
-		realtics = entertic - oldentertics;
-		oldentertics = entertic;
-
-		// get available tics
-		NetUpdate ();
-
-		lowtic = INT_MAX;
-		numplaying = 0;
-		for (i = 0; i < doomcom->numnodes; i++)
-		{
-			if (playeringame[i])
-			{
-				numplaying++;
-				if (nettics[i] < lowtic)
-					lowtic = nettics[i];
-			}
-		}
-
-//		if (ticdup == 1)
-		{
-			availabletics = lowtic - gametic;
-		}
-//		else
-//		{
-//			availabletics = lowtic - gametic / ticdup;
-//		}
-
-		// decide how many tics to run
-		if (realtics < availabletics-1)
-			counts = realtics+1;
-		else if (realtics < availabletics)
-			counts = realtics;
-		else
-			counts = availabletics;
-		
-		if (counts < 1)
-			counts = 1;
-
-		// run the count tics
-		while (counts--)
-*/
-	// run the newtime tics
-//	if ( lNewTics > 0 )
+	
+	while ( lCurTics-- )
 	{
-		while ( lCurTics-- )
+		//DObject::BeginFrame ();
+
+		// Recieve packets.
+		SERVER_GetPackets( );
+
+		G_Ticker ();
+
+		// Update the scoreboard if we have a new second to display.
+		if ( timelimit && (( level.time % TICRATE ) == 0 ))
+			SERVERCONSOLE_UpdateScoreboard( );
+
+		if ( g_lMapRestartTimer > 0 )
 		{
-			//DObject::BeginFrame ();
-
-			// Recieve packets.
-			SERVER_GetPackets( );
-
-			G_Ticker ();
-
-			// Update the scoreboard if we have a new second to display.
-			if ( timelimit && (( level.time % TICRATE ) == 0 ))
-				SERVERCONSOLE_UpdateScoreboard( );
-
-			if ( g_lMapRestartTimer > 0 )
+			if ( --g_lMapRestartTimer == 0 )
 			{
-				if ( --g_lMapRestartTimer == 0 )
-				{
-					char	szString[128];
+				char	szString[128];
 
-					sprintf( szString, "map %s", level.mapname );
-					AddCommandString( szString );
-				}
+				sprintf( szString, "map %s", level.mapname );
+				AddCommandString( szString );
 			}
+		}
 
-			// Drop anyone who's been disconnected.
-			SERVER_CheckTimeouts( );
+		// Drop anyone who's been disconnected.
+		SERVER_CheckTimeouts( );
 
-			// Send out player's true position, etc.
-			SERVER_WriteCommands( );
+		// Send out player's true position, etc.
+		SERVER_WriteCommands( );
 
-			// Check everyone's PacketBuffer for anything that needs to be sent.
-			SERVER_SendOutPackets( );
+		// Check everyone's PacketBuffer for anything that needs to be sent.
+		SERVER_SendOutPackets( );
 
-			// Potentially send an update to the master server.
-			SERVER_MASTER_Tick( );
+		// Potentially send an update to the master server.
+		SERVER_MASTER_Tick( );
 
-			// Time out any old RCON sessions.
-			SERVER_RCON_Tick( );
+		// Time out any old RCON sessions.
+		SERVER_RCON_Tick( );
 
-			// Broadcast the server signal so it can be detected on a LAN.
-			SERVER_MASTER_Broadcast( );
+		// Broadcast the server signal so it can be detected on a LAN.
+		SERVER_MASTER_Broadcast( );
 
-			// Potentially re-parse the banfile.
-			SERVERBAN_Tick( );
+		// Potentially re-parse the banfile.
+		SERVERBAN_Tick( );
 
-			// Print stats and get out.
-			FStat::PrintStat( );
+		// Print stats and get out.
+		FStat::PrintStat( );
 
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
+				continue;
+
+			if ( g_aClients[ulIdx].lLastMoveTick != gametic )
+			{
+				g_aClients[ulIdx].lOverMovementLevel--;
+//					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
+			}
+		}
+
+		gametic++;
+		maketic++;
+
+		// Do some statistic stuff every second.
+		if (( gametic % TICRATE ) == 0 )
+		{
+			LONG	lCurrentNumPlayers;
+
+			// Increase the number of seconds the server has been active.
+			g_lTotalServerSeconds++;
+			SERVERCONSOLE_UpdateTotalUptime( g_lTotalServerSeconds );
+
+			lCurrentNumPlayers = 0;
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 			{
-				if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
+				if ( SERVER_IsValidClient( ulIdx ) == false )
 					continue;
 
-				if ( g_aClients[ulIdx].lLastMoveTick != gametic )
-				{
-					g_aClients[ulIdx].lOverMovementLevel--;
-//					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
-				}
+				// Increase the total number of players. This is divided by the number of
+				// seconds the server has been active to find the average number of players
+				// on the server.
+				g_lTotalNumPlayers++;
+
+				// Increase the current number of players on the servers. This is used for the
+				// "maximum number of players on the server at one time" statistic.
+				lCurrentNumPlayers++;
 			}
 
-			gametic++;
-			maketic++;
+			if ( lCurrentNumPlayers > g_lMaxNumPlayers )
+				g_lMaxNumPlayers = lCurrentNumPlayers;
 
-			// Do some statistic stuff every second.
-			if (( gametic % TICRATE ) == 0 )
+			if ( g_lCurrentOutboundDataTransfer > g_lMaxOutboundDataTransfer )
 			{
-				LONG	lCurrentNumPlayers;
-
-				// Increase the number of seconds the server has been active.
-				g_lTotalServerSeconds++;
-				SERVERCONSOLE_UpdateTotalUptime( g_lTotalServerSeconds );
-
-				lCurrentNumPlayers = 0;
-				for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-				{
-					if ( SERVER_IsValidClient( ulIdx ) == false )
-						continue;
-
-					// Increase the total number of players. This is divided by the number of
-					// seconds the server has been active to find the average number of players
-					// on the server.
-					g_lTotalNumPlayers++;
-
-					// Increase the current number of players on the servers. This is used for the
-					// "maximum number of players on the server at one time" statistic.
-					lCurrentNumPlayers++;
-				}
-
-				if ( lCurrentNumPlayers > g_lMaxNumPlayers )
-					g_lMaxNumPlayers = lCurrentNumPlayers;
-
-				if ( g_lCurrentOutboundDataTransfer > g_lMaxOutboundDataTransfer )
-				{
-					g_lMaxOutboundDataTransfer = g_lCurrentOutboundDataTransfer;
-					SERVERCONSOLE_UpdatePeakOutboundDataTransfer( g_lMaxOutboundDataTransfer );
-				}
-
-				g_lOutboundDataTransferLastSecond = g_lCurrentOutboundDataTransfer;
-				g_lCurrentOutboundDataTransfer = 0;
-
-				SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( g_lOutboundDataTransferLastSecond );
-				SERVERCONSOLE_UpdateAverageOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
-
-				if ( g_lCurrentInboundDataTransfer > g_lMaxInboundDataTransfer )
-				{
-					g_lMaxInboundDataTransfer = g_lCurrentInboundDataTransfer;
-					SERVERCONSOLE_UpdatePeakInboundDataTransfer( g_lMaxInboundDataTransfer );
-				}
-
-				g_lInboundDataTransferLastSecond = g_lCurrentInboundDataTransfer;
-				g_lCurrentInboundDataTransfer = 0;
-
-				SERVERCONSOLE_UpdateCurrentInboundDataTransfer( g_lInboundDataTransferLastSecond );
-				SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_qwTotalInboundDataTransferred );
+				g_lMaxOutboundDataTransfer = g_lCurrentOutboundDataTransfer;
+				SERVERCONSOLE_UpdatePeakOutboundDataTransfer( g_lMaxOutboundDataTransfer );
 			}
 
-			//DObject::EndFrame ();
+			g_lOutboundDataTransferLastSecond = g_lCurrentOutboundDataTransfer;
+			g_lCurrentOutboundDataTransfer = 0;
+
+			SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( g_lOutboundDataTransferLastSecond );
+			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
+
+			if ( g_lCurrentInboundDataTransfer > g_lMaxInboundDataTransfer )
+			{
+				g_lMaxInboundDataTransfer = g_lCurrentInboundDataTransfer;
+				SERVERCONSOLE_UpdatePeakInboundDataTransfer( g_lMaxInboundDataTransfer );
+			}
+
+			g_lInboundDataTransferLastSecond = g_lCurrentInboundDataTransfer;
+			g_lCurrentInboundDataTransfer = 0;
+
+			SERVERCONSOLE_UpdateCurrentInboundDataTransfer( g_lInboundDataTransferLastSecond );
+			SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_qwTotalInboundDataTransferred );
 		}
-/*
-		if ( 1 )
-		{
-			QWORD ms = I_MSTime ();
-			DWORD howlong = DWORD(ms - g_LastMS);
-			if (howlong > 0)
-			{
-				DWORD thisSec = ms/1000;
 
-				if (g_LastSec < thisSec)
-				{
+		//DObject::EndFrame ();
+	}
+/*
+	if ( 1 )
+	{
+		QWORD ms = I_MSTime ();
+		DWORD howlong = DWORD(ms - g_LastMS);
+		if (howlong > 0)
+		{
+			DWORD thisSec = ms/1000;
+
+			if (g_LastSec < thisSec)
+			{
 //					Printf( "%2lu ms (%3lu fps)\n", howlong, g_LastCount );
 
-					g_LastCount = g_FrameCount / (thisSec - g_LastSec);
-					g_LastSec = thisSec;
-					g_FrameCount = 0;
-				}
-				g_FrameCount++;
+				g_LastCount = g_FrameCount / (thisSec - g_LastSec);
+				g_LastSec = thisSec;
+				g_FrameCount = 0;
 			}
-			g_LastMS = ms;
+			g_FrameCount++;
 		}
-*/
-		g_lGameTime = lNowTime;
-
-		// [BB] Remove IP adresses from g_floodProtectionIPQueue that have been in there long enough.
-		g_floodProtectionIPQueue.adjustHead ( g_lGameTime / 1000 );
+		g_LastMS = ms;
 	}
+*/
+	g_lGameTime = lNowTime;
+
+	// [BB] Remove IP adresses from g_floodProtectionIPQueue that have been in there long enough.
+	g_floodProtectionIPQueue.adjustHead ( g_lGameTime / 1000 );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -904,15 +832,12 @@ LONG SERVER_FindFreeClientSlot( void )
 //
 LONG SERVER_FindClientByAddress( NETADDRESS_s Address )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 	   if ( g_aClients[ulIdx].State == CLS_FREE )
 	       continue;
 
-	   // If the client's address matches the IP of the last received packet, return
-	   // the client's index.
+	   // If the client's address matches the given IP, return the client's index.
 	   if ( NETWORK_CompareAddress( g_aClients[ulIdx].Address, Address, false ))
 	       return ( ulIdx );
 	}
@@ -950,21 +875,11 @@ ULONG SERVER_CalcNumConnectedClients( void )
 //
 ULONG SERVER_CalcNumPlayers( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumPlayers = 0;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( playeringame[ulIdx] )
-			ulNumPlayers++;
-	}
-
-	return ( ulNumPlayers );
+	return SERVER_CountPlayers( true );
 }
 
 //*****************************************************************************
 //
-// [RC] TODO 9/3/08: Globally replace SERVER_CalcNumPlayers and SERVER_CalcNumNonSpectatingPlayers with this (should be its own commit).
 ULONG SERVER_CountPlayers( bool bCountBots )
 {
 	ULONG	ulNumPlayers = 0;
@@ -3795,11 +3710,13 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case CLC_VOTEYES:
 
 		// Client wishes to vote "yes" on the current vote.
-		return ( server_VoteYes( pByteStream ));
+		CALLVOTE_VoteYes( g_lCurrentClient );
+		return ( false );
 	case CLC_VOTENO:
 
 		// Client wishes to vote "no" on the current vote.
-		return ( server_VoteNo( pByteStream ));
+		CALLVOTE_VoteNo( g_lCurrentClient );
+		return ( false );
 	case CLC_INVENTORYUSEALL:
 
 		// Client wishes to use all inventory items he has.
@@ -5036,43 +4953,8 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 	
-	// Display the callvote in the console for logging purposes.
-	Printf( "Vote (\"%s %s\") called by %s (%s)\n", szCommand, pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
-
 	// Begin the vote.
 	CALLVOTE_BeginVote( szCommand, pszParameters, g_lCurrentClient );
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-static bool server_VoteYes( BYTESTREAM_s *pByteStream )
-{
-	// If the player successfully was able to vote, inform other clients.
-	if ( CALLVOTE_VoteYes( g_lCurrentClient ))
-	{
-		// Display the vote in the console for logging purposes.
-		Printf( "%s (%s) votes \"yes\".\n", players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
-
-		SERVERCOMMANDS_PlayerVote( g_lCurrentClient, true );
-	}
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-static bool server_VoteNo( BYTESTREAM_s *pByteStream )
-{
-	// If the player successfully was able to vote, inform other clients.
-	if ( CALLVOTE_VoteNo( g_lCurrentClient ))
-	{
-		// Display the vote in the console for logging purposes.
-		Printf( "%s (%s) votes \"no\".\n", players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
-
-		SERVERCOMMANDS_PlayerVote( g_lCurrentClient, false );
-	}
 
 	return ( false );
 }

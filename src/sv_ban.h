@@ -60,15 +60,11 @@
 void			SERVERBAN_Tick( void );
 bool			SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 bool			SERVERBAN_IsIPBanned( const NETADDRESS_s &Address );
-void			SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment );
-bool			SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 void			SERVERBAN_ClearBans( void );
-ULONG			SERVERBAN_GetNumBans( void );
 void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );
+time_t			SERVERBAN_ParseBanLength( const char *szLengthString );
 IPList			*SERVERBAN_GetBanList( void );
 IPList			*SERVERBAN_GetBanExemptionList( void );
-time_t			SERVERBAN_ParseBanLength( const char *szLengthString );
-IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- EXTERNAL CONSOLE VARIABLES --------------------------------------------------------------------------------------------------------------------

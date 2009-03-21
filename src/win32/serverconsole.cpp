@@ -1725,7 +1725,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 				SendDlgItemMessage( hDlg, IDC_ENFORCEBANS, BM_SETCHECK, BST_UNCHECKED, 0 );
 
 			// Populate the box with the current ban list.
-			for ( ulIdx = 0; ulIdx < SERVERBAN_GetNumBans(); ulIdx++ )
+			for ( ulIdx = 0; ulIdx < SERVERBAN_GetBanList( )->size( ); ulIdx++ )
 				SendDlgItemMessage( hDlg, IDC_BANLIST, LB_INSERTSTRING, -1, (LPARAM)SERVERBAN_GetBanList( )->getEntryAsString( ulIdx, true, true, false ).c_str( ));
 		}
 

@@ -44,7 +44,10 @@
 //
 // Filename: callvote.cpp
 //
-// Description: 
+// Description: Handles client-called votes.
+//
+// Possible improvements:
+//	- Remove all the Yes( ) and No( ) code duplication. (suggested by Rivecoder)
 //
 //-----------------------------------------------------------------------------
 
@@ -59,6 +62,7 @@
 #include "templates.h"
 #include "sbar.h"
 #include "sv_commands.h"
+#include "sv_main.h"
 #include "v_video.h"
 #include "maprotation.h"
 
@@ -73,7 +77,7 @@ static	ULONG					g_ulVoteCompletedTicks = 0;
 static	bool					g_bVotePassed;
 static	ULONG					g_ulPlayersWhoVotedYes[(MAXPLAYERS / 2) + 1];
 static	ULONG					g_ulPlayersWhoVotedNo[(MAXPLAYERS / 2) + 1];
-static	ULONG					g_ulKickVoteTargetPlayerIdx;
+static	NETADDRESS_s			g_KickVoteVictimAddress;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -136,12 +140,9 @@ void CALLVOTE_Tick( void )
 					( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 					( CLIENTDEMO_IsPlaying( ) == false ))
 				{
-					// If the vote is a kick vote, we have to alter g_VoteCommand to kick the cached player idx.
-					if ( strncmp( g_VoteCommand, "kick ", 5 ) == 0 )
-					{
-						g_VoteCommand = "kick_idx ";
-						g_VoteCommand.AppendFormat( "%d", static_cast<unsigned int> (g_ulKickVoteTargetPlayerIdx) );
-					}
+					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
+					if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
+						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d.\"", NETWORK_AddressToString( g_KickVoteVictimAddress ), callvote_CountPlayersWhoVotedYes( ), callvote_CountPlayersWhoVotedNo( ) );
 
 					AddCommandString( (char *)g_VoteCommand.GetChars( ));
 				}
@@ -172,6 +173,12 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer )
 	g_VoteCommand += " ";
 	g_VoteCommand += Parameters;
 	g_ulVoteCaller = ulPlayer;
+
+	// Display the message in the console.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		Printf( "%s\\c- (%s) has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand );
+	else
+		Printf( "%s\\c- has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, g_VoteCommand );
 
 	g_VoteState = VOTESTATE_INVOTE;
 	g_ulVoteCountdownTicks = VOTE_COUNTDOWN_TIME * TICRATE;
@@ -247,12 +254,20 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 		}
 	}
 
+	// Display the message in the console.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+	else
+		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.netname );
+
 	// Nothing more to do here for clients.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return ( true );
 	}
+
+	SERVERCOMMANDS_PlayerVote( ulPlayer, true );
 
 	ulNumYes = callvote_CountPlayersWhoVotedYes( );
 	ulNumNo = callvote_CountPlayersWhoVotedNo( );
@@ -316,12 +331,20 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 		}
 	}
 
+	// Display the message in the console.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+	else
+		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.netname );
+
 	// Nothing more to do here for clients.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return ( true );
 	}
+	
+	SERVERCOMMANDS_PlayerVote( ulPlayer, false );
 
 	ulNumYes = callvote_CountPlayersWhoVotedYes( );
 	ulNumNo = callvote_CountPlayersWhoVotedNo( );
@@ -474,6 +497,9 @@ static void callvote_EndVote( void )
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 	}
 
+	// Log to the consiole.
+	Printf( "Vote %s!\n", g_bVotePassed ? "passed": "failed" );
+
 	// Play the announcer sound associated with this event.
 	if ( g_bVotePassed )
 		ANNOUNCER_PlayEntry( cl_announcer, "VotePassed" );
@@ -557,28 +583,17 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 	switch ( ulVoteCmd )
 	{
 	case VOTECMD_KICK:
-
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			if (( playeringame[ulIdx] == false ) ||
-				( players[ulIdx].bIsBot ))
+			// Store the player's IP so he can't get away.
+			ULONG ulIdx = SERVER_GetPlayerIndexFromName( Parameters.GetChars( ), true, false );
+			if ( ulIdx < MAXPLAYERS )
 			{
-				continue;
+				g_KickVoteVictimAddress = SERVER_GetClient( ulIdx )->Address;
+				return ( true );
 			}
-
-			// Compare the parameter to the version of the player's name without color codes.
-			sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
-			V_RemoveColorCodes( szPlayerName );
-			if ( Parameters.CompareNoCase( szPlayerName ) == 0 ){
-				// to prevent a player from escaping a kick vote by renaming, we store his ID at the beginning of the vote
-				g_ulKickVoteTargetPlayerIdx = ulIdx;
-				break;
-			}
+			else
+				return ( false );
 		}
-
-		// If we didn't find the player, then don't allow the vote.
-		if ( ulIdx == MAXPLAYERS )
-			return ( false );
 		break;
 	case VOTECMD_MAP:
 	case VOTECMD_CHANGEMAP:

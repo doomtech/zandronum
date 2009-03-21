@@ -73,6 +73,9 @@ static	ULONG	g_ulReParseTicker;
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 static	void	serverban_LoadBansAndBanExemptions( void );
+static	void	serverban_KickBannedPlayers( void );
+static	LONG	serverban_ExtractBanLength( FString fSearchString, const char *pszPattern );
+static	time_t	serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tNow );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CVARS -----------------------------------------------------------------------------------------------------------------------------------------
@@ -154,15 +157,6 @@ bool SERVERBAN_IsIPBanned( const NETADDRESS_s &Address )
 
 //*****************************************************************************
 //
-void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment, time_t tExpiration )
-{
-	std::string message;
-	g_ServerBans.addEntry( pszIP0, pszIP1, pszIP2, pszIP3, pszPlayerName, pszComment, message, tExpiration );
-	Printf( "addban: %s", message.c_str() );
-}
-
-//*****************************************************************************
-//
 void SERVERBAN_ClearBans( void )
 {
 	FILE		*pFile;
@@ -180,20 +174,6 @@ void SERVERBAN_ClearBans( void )
 	}
 	else
 		Printf( "%s", GenerateCouldNotOpenFileErrorString( "SERVERBAN_ClearBans", sv_banfile.GetGenericRep( CVAR_String ).String, errno ).c_str() );
-}
-
-//*****************************************************************************
-
-ULONG SERVERBAN_GetNumBans( void )
-{
-	return ( g_ServerBans.size() );
-}
-
-//*****************************************************************************
-//
-IPADDRESSBAN_s SERVERBAN_GetBan( ULONG ulIdx )
-{
-	return g_ServerBans.getEntry( ulIdx );
 }
 
 //*****************************************************************************
@@ -222,48 +202,6 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 	}
 
 	// Printf( "Imported %d bans, %d exceptions from the master.\n", g_MasterServerBans.size( ), g_MasterServerBanExemptions.size( ));
-}
-
-//*****************************************************************************
-//
-static void serverban_LoadBansAndBanExemptions( void )
-{
-	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
-		Printf( "%s", g_ServerBans.getErrorMessage( ));
-
-	if ( !( g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )))
-		Printf( "%s", g_ServerBanExemptions.getErrorMessage( ));
-}
-
-//*****************************************************************************
-//
-// [RC] Helper method for serverban_ParseLength.
-static LONG serverban_ExtractBanLength( FString fSearchString, const char *pszPattern )
-{
-	// Look for the pattern (e.g, "min").
-	LONG lIndex = fSearchString.IndexOf( pszPattern );
-
-	if ( lIndex > 0 )
-	{
-		// Extract the number preceding it ("45min" becomes 45).
-		return atoi( fSearchString.Left( lIndex ));
-	}
-	else
-		return 0;
-}
-
-//*****************************************************************************
-//
-// [RC] Helper method for serverban_ParseLength.
-static time_t serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tNow )
-{
-	// Convert to a time in the future (45 MINUTEs becomes 2,700 seconds).
-	if ( lAmount > 0 )		
-		return tNow + ulUnitSize * lAmount;
-
-	// Not found, or bad format.
-	else
-		return NULL;
 }
 
 //*****************************************************************************
@@ -371,6 +309,75 @@ IPList *SERVERBAN_GetBanExemptionList( void )
 	return &g_ServerBanExemptions;
 }
 
+//*****************************************************************************
+//
+static void serverban_LoadBansAndBanExemptions( void )
+{
+	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBans.getErrorMessage( ));
+
+	if ( !( g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage( ));
+
+	// Kick any players using a banned address.
+	serverban_KickBannedPlayers( );
+}
+
+//*****************************************************************************
+//
+// [RC] Refresher method. Kicks any players who are playing under a banned IP.
+//
+static void serverban_KickBannedPlayers( void )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_GetClient( ulIdx )->State == CLS_FREE )
+			continue;
+
+		if ( SERVERBAN_IsIPBanned( SERVER_GetClient( ulIdx )->Address ))
+		{
+			const char *pszReason = g_ServerBans.getEntryComment( SERVER_GetClient( ulIdx )->Address );
+			FString fsReason = "IP is now banned";
+
+			if ( pszReason != NULL )
+				fsReason.AppendFormat( " - %s", pszReason );
+
+			SERVER_KickPlayer( ulIdx, fsReason );
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// [RC] Helper method for serverban_ParseLength.
+static LONG serverban_ExtractBanLength( FString fSearchString, const char *pszPattern )
+{
+	// Look for the pattern (e.g, "min").
+	LONG lIndex = fSearchString.IndexOf( pszPattern );
+
+	if ( lIndex > 0 )
+	{
+		// Extract the number preceding it ("45min" becomes 45).
+		return atoi( fSearchString.Left( lIndex ));
+	}
+	else
+		return 0;
+}
+
+//*****************************************************************************
+//
+// [RC] Helper method for serverban_ParseLength.
+static time_t serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tNow )
+{
+	// Convert to a time in the future (45 MINUTEs becomes 2,700 seconds).
+	if ( lAmount > 0 )		
+		return tNow + ulUnitSize * lAmount;
+
+	// Not found, or bad format.
+	else
+		return NULL;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CCMDS -----------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -430,11 +437,6 @@ CCMD( getIP_idx )
 //
 CCMD( ban_idx )
 {
-	ULONG	ulIdx;
-	char	szPlayerName[64];
-	char	szBanAddress[4][4];
-	time_t	tExpiration;
-
 	// Only the server can ban players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -445,50 +447,36 @@ CCMD( ban_idx )
 		return;
 	}
 
-	ulIdx = atoi(argv[1]);
+	ULONG ulIdx = atoi(argv[1]);
 
 	// Make sure the target is valid and applicable.
-	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
-		return;
-
-	// Removes the color codes from the player name so it appears as the server sees it in the window.
-	sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
-	V_RemoveColorCodes( szPlayerName );
-
-	// Can't ban a bot!
-	if ( players[ulIdx].bIsBot )
+	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ) || players[ulIdx].bIsBot )
 	{
-		Printf( "You cannot ban a bot!\n" );
+		Printf("Error: bad player index, or player is a bot.\n");
 		return;
 	}
 
-	itoa( SERVER_GetClient( ulIdx )->Address.abIP[0], szBanAddress[0], 10 );
-	itoa( SERVER_GetClient( ulIdx )->Address.abIP[1], szBanAddress[1], 10 );
-	itoa( SERVER_GetClient( ulIdx )->Address.abIP[2], szBanAddress[2], 10 );
-	itoa( SERVER_GetClient( ulIdx )->Address.abIP[3], szBanAddress[3], 10 );
-
-	// [RC]
-	tExpiration = SERVERBAN_ParseBanLength( argv[2] );
+	// [RC] Read the ban length.
+	time_t tExpiration = SERVERBAN_ParseBanLength( argv[2] );
 	if ( tExpiration == -1 )
 	{
 		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
 		return;
 	}
 
-	// Add the new ban and kick the player.
-	char	szString[256];
-	if ( argv.argc( ) >= 4 )
-	{
-		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, argv[3], tExpiration );
-		sprintf( szString, "kick_idx %d \"%s\"", static_cast<unsigned int> (ulIdx), argv[3] );
-	}
-	else
-	{
-		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, NULL, tExpiration );
-		sprintf( szString, "kick_idx %d", static_cast<unsigned int> (ulIdx) );
-	}
+	// Removes the color codes from the player name, for the ban record.
+	char	szPlayerName[64];
+	sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
+	V_RemoveColorCodes( szPlayerName );
 
-	SERVER_AddCommand( szString );
+	// Add the ban and kick the player.
+	std::string message;
+	g_ServerBans.addEntry( NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ), szPlayerName, (argv.argc( ) >= 4) ? argv[3] : NULL, message, tExpiration );
+	Printf( "addban: %s", message.c_str() );
+	SERVER_KickPlayer( ulIdx, (argv.argc( ) >= 4) ? argv[3] : "" );  // [RC] serverban_KickBannedPlayers would cover this, but we want the messages to be distinct so there's no confusion.
+
+	// Kick any other players using the newly-banned address.
+	serverban_KickBannedPlayers( );
 }
 
 //*****************************************************************************
@@ -548,6 +536,9 @@ CCMD( addban )
 	std::string message;
 	g_ServerBans.addEntry( argv[1], NULL, (argv.argc( ) >= 4) ? argv[3] : NULL, message, tExpiration );
 	Printf( "addban: %s", message.c_str() );
+
+	// Kick any players using the newly-banned address.
+	serverban_KickBannedPlayers( );
 }
 
 //*****************************************************************************
