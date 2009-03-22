@@ -283,12 +283,12 @@ enum
 	COMPATF_DROPOFF			= 1 << 14,	// Monsters cannot move when hanging over a dropoff
 	COMPATF_BOOMSCROLL		= 1 << 15,	// Scrolling sectors are additive like in Boom
 	COMPATF_INVISIBILITY	= 1 << 16,	// Monsters can see semi-invisible players
-	// [BB] Changed from 1 << 17 to 1<<24.
-	COMPATF_SILENT_INSTANT_FLOORS = 1<<24,	// Instantly moving floors are not silent
-	// [BB] Changed from 1 << 18 to 1<<25.
-	COMPATF_SECTORSOUNDS	= 1 << 25,	// Sector sounds use original method for sound origin.
-	// [BB] Changed from 1 << 19 to 1<<26.
-	COMPATF_MISSILECLIP		= 1 << 26,	// Use original Doom heights for clipping against projectiles
+	// [BB] Changed from 1 << 17 to 1<<28.
+	COMPATF_SILENT_INSTANT_FLOORS = 1<<28,	// Instantly moving floors are not silent
+	// [BB] Changed from 1 << 18 to 1<<29.
+	COMPATF_SECTORSOUNDS	= 1 << 29,	// Sector sounds use original method for sound origin.
+	// [BB] Changed from 1 << 19 to 1<<30.
+	COMPATF_MISSILECLIP		= 1 << 30,	// Use original Doom heights for clipping against projectiles
 
 	// [BC] Start of new compatflags.
 
