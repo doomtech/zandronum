@@ -218,6 +218,9 @@ TArray<FMapThing> PossessionStarts(16);
 // [RC] Terminator starts
 TArray<FMapThing> TerminatorStarts(16);
 
+// [BB] All player starts, including those for voodoo dolls.
+TArray<FMapThing> AllPlayerStarts[MAXPLAYERS];
+
 FMapThing		playerstarts[MAXPLAYERS];
 
 static void P_AllocateSideDefs (int count);
@@ -3904,6 +3907,8 @@ void P_SetupLevel (char *lumpname, int position)
 	GenericInvasionStarts.Clear( );
 	PossessionStarts.Clear();
 	TerminatorStarts.Clear();
+	for (i = 0; i < MAXPLAYERS; ++i)
+		AllPlayerStarts[i].Clear();
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 		teams[i].TeamStarts.Clear( );

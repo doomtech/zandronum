@@ -362,6 +362,9 @@ extern	TArray<FMapThing>	TerminatorStarts;
 // [BC] Generic invasion spawn spots.
 extern	TArray<FMapThing>	GenericInvasionStarts;
 
+// [BB] All player starts, including those for voodoo dolls.
+extern	TArray<FMapThing>	AllPlayerStarts[MAXPLAYERS];
+
 // Player spawn spots.
 extern	FMapThing		playerstarts[MAXPLAYERS];
 

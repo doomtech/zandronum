@@ -57,6 +57,13 @@
 //	DEFINES
 
 //*****************************************************************************
+//	PROTOTYPES
+
+bool	COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer );
+void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer );
+bool	COOP_VoodooDollsSelectedByGameMode ( void );
+
+//*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Bool, cooperative )

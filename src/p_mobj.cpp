@@ -4956,7 +4956,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 
 	if (pnum == -1 || (level.flags & LEVEL_FILTERSTARTS))
 	{
-		// These checks are now done later.
+		// [BC] These checks are now done later.
 /*
 		// check for appropriate game type
 		if (deathmatch) 
@@ -5025,7 +5025,10 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		// save spots for respawning in network games
 		playerstarts[pnum] = *mthing;
 
-		// Need to maintain this method so that we get voodoo dolls, which some doomers are used to.
+		// [BB] To spawn voodoo dolls in multiplayer games, we need to keep track of all starts for every player.
+		AllPlayerStarts[pnum].Push( *mthing );
+
+		// [BC] Need to maintain this method so that we get voodoo dolls, which some doomers are used to.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE && ( deathmatch == false ) && ( teamgame == false ))
 			return P_SpawnPlayer (mthing, false, NULL);
 
