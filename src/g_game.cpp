@@ -3425,7 +3425,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	while (( pActor = ActorIterator.Next( )) != NULL )
 	{
 		// Don't reload players.
-		if ( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )))
+		// [BB] but reload voodoo dolls.
+		if ( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )) && pActor->player && ( pActor->player->mo == pActor ) )
 			continue;
 
 		// If this object belongs to someone's inventory, and it originally spawned on the
@@ -3613,10 +3614,12 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_DestroyThing( pActor );
 
-			pActor->Destroy( );
-
+			// [BB] A voodoo doll needs to stay assigned to the corresponding player.
+			if ( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )) )
+				pNewActor->player = pActor->player;
 			// Tell clients to spawn the new actor.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			// [BB] Voodoo dolls are not spawned on the clients.
+			else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SpawnThing( pNewActor );
 
@@ -3624,6 +3627,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				if ( pNewActor->angle != 0 )
 					SERVERCOMMANDS_SetThingAngle( pNewActor );
 			}
+
+			pActor->Destroy( );
 		}
 	}
 

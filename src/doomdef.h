@@ -321,9 +321,6 @@ enum
 
 	// [BB] Clients use the vanilla Doom weapon on pickup behavior.
 	COMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
-
-	// [BB] Spawn voodoo dolls in cooperative multiplayer games.
-	COMPATF_COOP_SPAWN_VOODOO_DOLLS	= 1 << 27,
 };
 
 // phares 3/20/98:

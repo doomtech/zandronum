@@ -68,6 +68,7 @@
 #include "cmdlib.h"
 #include "g_level.h"
 // [BB] New #includes.
+#include "cooperative.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "team.h"
@@ -1598,6 +1599,9 @@ void P_SpawnThings (int position)
 	}
 	for(int i=0; i<MAXPLAYERS; i++)
 	{
+		// [BB] If the map has voodoo dolls and we want to use them online, we need to spawn them now.
+		// NOTE: The server didn't spawn any players so far.
+		COOP_SpawnVoodooDollsForPlayerIfNecessary ( i );
 		if (playeringame[i] && players[i].mo != NULL)
 			P_PlayerStartStomp(players[i].mo);
 	}

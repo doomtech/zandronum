@@ -3267,7 +3267,8 @@ void AActor::Tick ()
 	}
 
 	// [BC] There are times when we don't want to tick this actor if it's a player.
-	if ( player )
+	// [BB] Voodoo dolls are an exemption.
+	if ( player && player->mo == this )
 	{
 		// In server mode, only allow the ticking of a player if he's a client currently
 		// having his movement commands executed.

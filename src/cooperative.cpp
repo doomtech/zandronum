@@ -55,8 +55,52 @@
 #include "team.h"
 
 //*****************************************************************************
+//	CONSOLE VARIABLES
+
+CVAR( Bool, sv_coopspawnvoodoodolls, false, CVAR_SERVERINFO | CVAR_LATCH );
+
+//*****************************************************************************
 //	PROTOTYPES
 
+void COOP_DestroyVoodooDollsOfPlayer ( const ULONG ulPlayer )
+{
+	// [BB] The current game mode doesn't need voodoo dolls.
+	if ( COOP_VoodooDollsSelectedByGameMode() == false )
+		return;
+
+	// [BB] The map doesn't have any voodoo doll starts for this player.
+	if ( AllPlayerStarts[ulPlayer].Size() <= 1 )
+		return;
+
+	TThinkerIterator<AActor>	Iterator;
+	AActor						*pActor;
+	while (( pActor = Iterator.Next( )))
+	{
+		// [BB] This actor doesn't belong to a player, so it can't be a voodoo doll.
+		if ( pActor->player == NULL )
+			continue;
+
+		// [BB] Belongs to a different player.
+		if ( static_cast<LONG>(pActor->player - players) != ulPlayer )
+			continue;
+
+		// [BB] If we come here, we found a body belonging to the player.
+
+		if (
+			// [BB] The current player doesn't have a body assigned, so we found a voodoo doll.
+			( players[ulPlayer].mo == NULL )
+			// [BB] A different body is assigned to the player, so we found a voodoo doll.
+			|| ( players[ulPlayer].mo != pActor )
+			)
+		{
+			// [BB] Now that we found a voodoo doll, finally destroy it.
+			pActor->Destroy();
+		}
+	}
+}
+
+//*****************************************************************************
+//
 bool COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer )
 {
 	// [BB] The current game mode doesn't need voodoo dolls.
@@ -129,7 +173,7 @@ bool COOP_VoodooDollsSelectedByGameMode ( void )
 		return false;
 
 	// [BB] Only use them if the compat flag tells us to.
-	if ( !( compatflags & COMPATF_COOP_SPAWN_VOODOO_DOLLS ) )
+	if ( sv_coopspawnvoodoodolls == false )
 		return false;
 
 	return true;

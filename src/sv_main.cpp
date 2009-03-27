@@ -1197,6 +1197,18 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// This player is now in the game.
 	playeringame[g_lCurrentClient] = true;
 
+	// [BB] If necessary, spawn a voodoo doll for the player.
+	if ( COOP_PlayersVoodooDollsNeedToBeSpawned ( g_lCurrentClient ) )
+	{
+		// [BB] players[g_lCurrentClient].mo already should be NULL, I'm not sure if the code works if it's not NULL.
+		APlayerPawn* pOldPawn = players[g_lCurrentClient].mo;
+		players[g_lCurrentClient].mo = NULL;
+		COOP_SpawnVoodooDollsForPlayerIfNecessary ( g_lCurrentClient );
+		// [BB] It is important that mo doesn't point to the voodoo doll, otherwise G_CooperativeSpawnPlayer called later
+		// removes the MF_SOLID flag from the doll because it calls G_CheckSpot.
+		players[g_lCurrentClient].mo = pOldPawn;
+	}
+
 	// Check and see if this player should spawn as a spectator.
 	players[g_lCurrentClient].bSpectating = (( PLAYER_ShouldSpawnAsSpectator( &players[g_lCurrentClient] )) || ( g_aClients[g_lCurrentClient].bWantStartAsSpectator ));
 
@@ -2645,6 +2657,8 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 		players[ulClient].mo->Destroy( );
 		players[ulClient].mo = NULL;
 	}
+	// [BB] Destroy all voodoo dolls of that player.
+	COOP_DestroyVoodooDollsOfPlayer ( ulClient );
 
 	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
 	g_aClients[ulClient].State = CLS_FREE;

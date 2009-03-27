@@ -59,6 +59,7 @@
 //*****************************************************************************
 //	PROTOTYPES
 
+void	COOP_DestroyVoodooDollsOfPlayer ( const ULONG ulPlayer );
 bool	COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer );
 void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer );
 bool	COOP_VoodooDollsSelectedByGameMode ( void );
