@@ -57,6 +57,7 @@
 #include "doomerrors.h"
 #include "p_setup.h"
 #include "x86.h"
+#include "version.h"
 
 node_t * gamenodes;
 int numgamenodes;
@@ -108,6 +109,49 @@ typedef struct
 } gl5_mapnode_t;
 
 #define GL5_NF_SUBSECTOR (1 << 31)
+
+
+//==========================================================================
+//
+// Collect all sidedefs which are not entirely covered by segs
+// Old ZDBSPs could create such maps. If such a BSP is discovered
+// a node rebuild must be done to ensure proper rendering
+//
+//==========================================================================
+
+int gl_CheckForMissingSegs()
+{
+	float *added_seglen = new float[numsides];
+	int missing = 0;
+
+	memset(added_seglen, 0, sizeof(float)*numsides);
+	for(int i=0;i<numsegs;i++)
+	{
+		seg_t * seg = &segs[i];
+
+		if (seg->sidedef!=NULL)
+		{
+			// check all the segs and calculate the length they occupy on their sidedef
+			TVector2<double> vec1(seg->v2->x - seg->v1->x, seg->v2->y - seg->v1->y);
+			added_seglen[seg->sidedef - sides] += float(vec1.Length());
+		}
+	}
+
+	for(int i=0;i<numsides;i++)
+	{
+		side_t * side =&sides[i];
+		line_t * line = &lines[side->linenum];
+
+		TVector2<double> lvec(line->dx, line->dy);
+		float linelen = float(lvec.Length());
+
+		missing += (added_seglen[i] < linelen - FRACUNIT);
+	}
+
+	delete [] added_seglen;
+	return missing;
+}
+
 //==========================================================================
 //
 // Checks whether the nodes are suitable for GL rendering
@@ -144,7 +188,13 @@ bool gl_CheckForGLNodes()
 	}
 	// all subsectors were closed but there are no minisegs
 	// Although unlikely this can happen. Such nodes are not a problem.
-	return true;
+	// all that is left is to check whether the BSP covers all sidedefs completely.
+	int missing = gl_CheckForMissingSegs();
+	if (missing > 0)
+	{
+		Printf("%d missing segs counted\nThe BSP needs to be rebuilt", missing);
+	}
+	return missing == 0;
 }
 
 
@@ -186,7 +236,7 @@ static bool gl_LoadVertexes(FileReader * f, wadlump_t * lump)
 		// GLNodes V1 and V4 are unsupported.
 		// V1 because the precision is insufficient and
 		// V4 due to the missing partner segs
-		Printf("GL nodes v%d found. This format is not supported by GZDoom\n",
+		Printf("GL nodes v%d found. This format is not supported by "GAMENAME"\n",
 			(*(int *)gldata == gNd4)? 4:1);
 
 		delete [] gldata;
@@ -256,7 +306,9 @@ bool gl_LoadGLSegs(FileReader * f, wadlump_t * lump)
 	f->Read(data, lump->Size);
 	segs=NULL;
 
-	try
+#ifdef _MSC_VER
+	__try
+#endif
 	{
 		if (!format5 && memcmp(data, "gNd3", 4))
 		{
@@ -346,16 +398,19 @@ bool gl_LoadGLSegs(FileReader * f, wadlump_t * lump)
 		delete [] data;
 		return true;
 	}
-	catch(...)
+#ifdef _MSC_VER
+	__except(1)
 	{
 		// Invalid data has the bas habit of requiring extensive checks here
 		// so let's just catch anything invalid and output a message.
+		// (at least under MSVC. GCC can't do SEH even for Windows... :( )
 		Printf("Invalid GL segs. The BSP will have to be rebuilt.\n");
 		delete [] data;
 		delete [] segs;
 		segs = NULL;
 		return false;
 	}
+#endif
 }
 
 
@@ -612,7 +667,7 @@ bool gl_DoLoadGLNodes(FileReader * f, wadlump_t * lumps)
 		seg_t * seg = &segs[subsectors[i].firstline];
 		if (!seg->sidedef) 
 		{
-			Printf("GWA file contains invalid nodes. The BSP has to be rebuilt.\n");
+			Printf("GL nodes contain invalid data. The BSP has to be rebuilt.\n");
 			delete [] nodes;
 			nodes = NULL;
 			delete [] subsectors;
@@ -622,7 +677,14 @@ bool gl_DoLoadGLNodes(FileReader * f, wadlump_t * lumps)
 			return false;
 		}
 	}
-	return true;
+
+	// check whether the BSP covers all sidedefs completely.
+	int missing = gl_CheckForMissingSegs();
+	if (missing > 0)
+	{
+		Printf("%d missing segs counted in GL nodes.\nThe BSP has to be rebuilt", missing);
+	}
+	return missing == 0;
 }
 
 
@@ -898,5 +960,4 @@ void gl_CheckNodes(MapData * map)
 		gamesubsectors = subsectors;
 		numgamesubsectors = numsubsectors;
 	}
-
 }

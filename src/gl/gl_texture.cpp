@@ -1166,14 +1166,14 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 	}
 
+	// [BB] Potentially upsample the buffer.
+	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h );
+
 	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && W <= 256 && H <= 256)
 	{
 		buffer = WarpBuffer(buffer, W, H, tex->bWarped);
 		createWarped = true;
 	}
-
-	// [BB] Potentially upsample the buffer.
-	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h );
 
 	return buffer;
 }
@@ -1214,7 +1214,7 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 
 //===========================================================================
 // 
-//	Checls if a shader needs to be used for this texture
+//	Checks if a shader needs to be used for this texture
 //
 //===========================================================================
 

@@ -713,8 +713,8 @@ void GLMirrorPortal::DrawContents()
 	angle_t af = gl_FrustumAngle();
 	if (af<ANGLE_180) clipper.SafeAddClipRange(viewangle+af, viewangle-af);
 
-	angle_t a2=R_PointToAngle(mirrorline->v1->x, mirrorline->v1->y);
-	angle_t a1=R_PointToAngle(mirrorline->v2->x, mirrorline->v2->y);
+	angle_t a2 = mirrorline->v1->GetViewAngle();
+	angle_t a1 = mirrorline->v2->GetViewAngle();
 	clipper.SafeAddClipRange(a1,a2);
 
 	gl_DrawScene();

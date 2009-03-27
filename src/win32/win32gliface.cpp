@@ -18,6 +18,7 @@
 #include "doomstat.h"
 //#include "gl_defs.h"
 
+void gl_CalculateCPUSpeed();
 
 CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
 {
@@ -33,6 +34,9 @@ EXTERN_CVAR(Int, vid_refreshrate)
 
 Win32GLVideo::Win32GLVideo(int parm) : m_Modes(NULL), m_IsFullscreen(false)
 {
+	#ifdef _WIN32
+		 if (CPU.bRDTSC) gl_CalculateCPUSpeed();
+	#endif
 	I_SetWndProc();
 	m_DisplayWidth = vid_defwidth;
 	m_DisplayHeight = vid_defheight;
@@ -40,6 +44,7 @@ Win32GLVideo::Win32GLVideo(int parm) : m_Modes(NULL), m_IsFullscreen(false)
 	m_DisplayHz = 60;
 	MakeModesList();
 	GetContext(gl);
+
 }
 
 Win32GLVideo::~Win32GLVideo()

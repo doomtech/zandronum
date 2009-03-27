@@ -130,6 +130,7 @@
 #include "d_event.h"
 #include "d_netinf.h"
 #include "v_palette.h"
+#include "m_cheat.h"
 
 #include "win32/g15/g15.h"
 EXTERN_CVAR(Bool, hud_althud)
@@ -148,6 +149,7 @@ extern void M_SetDefaultMode ();
 extern void R_ExecuteSetViewSize ();
 extern void G_NewInit ();
 extern void SetupPlayerClasses ();
+extern bool CheckCheatmode ();
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
@@ -173,6 +175,7 @@ EXTERN_CVAR (Float, m_yaw)
 EXTERN_CVAR (Bool, invertmouse)
 EXTERN_CVAR (Bool, lookstrafe)
 EXTERN_CVAR (Int, screenblocks)
+EXTERN_CVAR (Bool, sv_cheats)
 
 extern gameinfo_t SharewareGameInfo;
 extern gameinfo_t RegisteredGameInfo;
@@ -479,6 +482,55 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
 		SERVERCOMMANDS_SetGameDMFlags( );
 	}
+
+	// Stop the automap if we aren't allowed to use it.
+	if ((self & DF2_NO_AUTOMAP) && automapactive)
+		AM_Stop ();
+
+	for (int i = 0; i < MAXPLAYERS; i++)
+	{
+		player_t *p = &players[i];
+
+		if (!playeringame[i])
+			continue;
+
+		// Revert our view to our own eyes if spying someone else.
+		if (self & DF2_DISALLOW_SPYING)
+		{
+			// The player isn't looking through its own eyes, so make it.
+			if (p->camera != p->mo)
+			{
+				p->camera = p->mo;
+
+				S_UpdateSounds (p->camera);
+				StatusBar->AttachToPlayer (p);
+
+				if (demoplayback || (NETWORK_GetState( ) != NETSTATE_SINGLE) )
+					StatusBar->ShowPlayerName ();
+			}
+		}
+
+		// Come out of chasecam mode if we're not allowed to use chasecam.
+		if (!(dmflags2 & DF2_CHASECAM) && !G_SkillProperty (SKILLP_DisableCheats) && !sv_cheats)
+		{
+			// Take us out of chasecam mode only.
+			if (p->cheats & CF_CHASECAM)
+				cht_DoCheat (p, CHT_CHASECAM);
+		}
+
+		// Change our autoaim settings if need be.
+		if (dmflags2 & DF2_NOAUTOAIM)
+		{
+			// Save our aimdist and set aimdist to 0.
+			p->userinfo.savedaimdist = p->userinfo.aimdist;
+			p->userinfo.aimdist = 0;
+		}
+		else
+		{
+			// Restore our aimdist.
+			p->userinfo.aimdist = p->userinfo.savedaimdist;
+		}
+	}
 }
 
 CVAR (Flag, sv_weapondrop,			dmflags2, DF2_YES_WEAPONDROP);
@@ -492,6 +544,14 @@ CVAR (Flag, sv_norespawn,			dmflags2, DF2_NO_RESPAWN);
 CVAR (Flag, sv_losefrag,			dmflags2, DF2_YES_LOSEFRAG);
 CVAR (Flag, sv_norespawninvul,		dmflags2, DF2_NO_RESPAWN_INVUL);
 CVAR (Flag, sv_samespawnspot,		dmflags2, DF2_SAME_SPAWN_SPOT);
+CVAR (Flag, sv_infiniteinventory,	dmflags2, DF2_INFINITE_INVENTORY);
+CVAR (Flag, sv_killallmonsters,		dmflags2, DF2_KILL_MONSTERS);
+CVAR (Flag, sv_noautomap,			dmflags2, DF2_NO_AUTOMAP);
+CVAR (Flag, sv_noautomapallies,		dmflags2, DF2_NO_AUTOMAP_ALLIES);
+CVAR (Flag, sv_disallowspying,		dmflags2, DF2_DISALLOW_SPYING);
+CVAR (Flag, sv_chasecam,			dmflags2, DF2_CHASECAM);
+CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
+CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
 

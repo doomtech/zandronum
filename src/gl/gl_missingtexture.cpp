@@ -55,7 +55,6 @@
 
 // This is for debugging maps.
 CVAR(Bool, gl_notexturefill, false, 0);
-extern int firstmissingseg;
 
 
 FreeList<gl_subsectorrendernode> SSR_List;
@@ -939,7 +938,7 @@ ADD_STAT(missingtextures)
 
 void GLDrawInfo::AddHackedSubsector(subsector_t * sub)
 {
-	if (firstmissingseg==numsegs && !(level.flags & LEVEL_HEXENFORMAT))
+	if (!(level.flags & LEVEL_HEXENFORMAT))
 	{
 		SubsectorHackInfo sh={sub, 0};
 		SubsectorHacks.Push (sh);

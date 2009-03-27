@@ -61,10 +61,10 @@ DEFINE_CLASS_PROPERTY(type, S, DynamicLight)
 {
 	PROP_STRING_PARM(str, 0);
 	static const char * ltype_names[]={
-		"Point","Pulse","Flicker","Sector","RandomFlicker", NULL};
+		"Point","Pulse","Flicker","Sector","RandomFlicker", "ColorPulse", "ColorFlicker", "RandomColorFlicker", NULL};
 
 	static const int ltype_values[]={
-		PointLight, PulseLight, FlickerLight, SectorLight, RandomFlickerLight };
+		PointLight, PulseLight, FlickerLight, SectorLight, RandomFlickerLight, ColorPulseLight, ColorFlickerLight, RandomColorFlickerLight };
 
 	int style = MatchString(str, ltype_names);
 	if (style < 0) I_Error("Unknown light type '%s'", str);
@@ -272,6 +272,33 @@ void ADynamicLight::Tick()
 		}
 		break;
 	}
+
+#if 0
+	// These need some more work elsewhere
+	case ColorFlickerLight:
+	{
+		byte rnd = randLight();
+		float pct = ANGLE_TO_FLOAT(angle)/360.f;
+		
+		m_currentIntensity = m_intensity[rnd >= pct * 255];
+		break;
+	}
+
+	case RandomColorFlickerLight:
+	{
+		int flickerRange = m_intensity[1] - m_intensity[0];
+		float amt = randLight() / 255.f;
+		
+		m_tickCount++;
+		
+		if (m_tickCount > ANGLE_TO_FLOAT(angle))
+		{
+			m_currentIntensity = m_intensity[0] + (amt * flickerRange);
+			m_tickCount = 0;
+		}
+		break;
+	}
+#endif
 
 	case SectorLight:
 	{

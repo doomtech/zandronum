@@ -387,12 +387,13 @@ CCMD (chase)
 	}
 	else
 	{
+		// Check if we're allowed to use chasecam.
 		// [BC] Disallow chasecam by default in teamgame as well.
 		// [BB] Always allow chasecam for spectators. CheckCheatmode has to be checked last
 		// because it prints a message if cheats are not allowed.
-		if (gamestate == GS_LEVEL && ( deathmatch || teamgame )
+		if (gamestate != GS_LEVEL || (!(dmflags2 & DF2_CHASECAM)
 			&& (players[consoleplayer].bSpectating == false)
-			&& CheckCheatmode () )
+			&& CheckCheatmode () ) )
 			return;
 
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )

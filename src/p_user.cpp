@@ -758,6 +758,41 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 	return best;
 }
 
+
+//===========================================================================
+//
+// APlayerPawn :: CheckWeaponSwitch
+//
+// Checks if weapons should be changed after picking up ammo
+//
+//===========================================================================
+
+void APlayerPawn::CheckWeaponSwitch(const PClass *ammotype)
+{
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && // [BC] Let clients decide if they want to switch weapons.
+		( player->userinfo.switchonpickup > 0 ) &&
+		player->PendingWeapon == WP_NOCHANGE && 
+		(player->ReadyWeapon == NULL ||
+		 (player->ReadyWeapon->WeaponFlags & WIF_WIMPY_WEAPON)))
+	{
+		AWeapon *best = BestWeapon (ammotype);
+		if (best != NULL && (player->ReadyWeapon == NULL ||
+			best->SelectionOrder < player->ReadyWeapon->SelectionOrder))
+		{
+			player->PendingWeapon = best;
+
+			// [BC] If we're a client, tell the server we're switching weapons.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			{
+				CLIENTCOMMANDS_WeaponSelect( best->GetClass( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
+			}
+		}
+	}
+}
+
 //===========================================================================
 //
 // APlayerPawn :: GiveDeathmatchInventory

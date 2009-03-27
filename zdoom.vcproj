@@ -10476,6 +10476,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\gl_clock.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\gl_cycler.cpp"
 					>
 				</File>
@@ -10529,10 +10533,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_menu.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_missinglines.cpp"
 					>
 				</File>
 				<File

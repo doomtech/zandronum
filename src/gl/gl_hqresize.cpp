@@ -1,73 +1,65 @@
-//-----------------------------------------------------------------------------
-//
-// Skulltag Source
-// Copyright (C) 2008 Benjamin Berkels
-// Copyright (C) 2007-2012 Skulltag Development Team
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// 1. Redistributions of source code must retain the above copyright notice,
-//    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
-// 3. Neither the name of the Skulltag Development Team nor the names of its
-//    contributors may be used to endorse or promote products derived from this
-//    software without specific prior written permission.
-// 4. Redistributions in any form must be accompanied by information on how to
-//    obtain complete source code for the software and any accompanying
-//    software that uses the software. The source code must either be included
-//    in the distribution or be available for no more than the cost of
-//    distribution plus a nominal fee, and must be freely redistributable
-//    under reasonable conditions. For an executable file, complete source
-//    code means the source code for all modules it contains. It does not
-//    include source code for modules or files that typically accompany the
-//    major components of the operating system on which the executable file
-//    runs.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
-//
-//
-// Filename: gl_hqresize.h 
-//
-// Description: Contains high quality upsampling functions.
-// So far Scale2x/3x/4x as described in http://scale2x.sourceforge.net/
-// are implemented.
-//
-//-----------------------------------------------------------------------------
+/*
+** gl_hqresize.cpp
+** Contains high quality upsampling functions.
+** So far Scale2x/3x/4x as described in http://scale2x.sourceforge.net/
+** are implemented.
+**
+**---------------------------------------------------------------------------
+** Copyright 2008 Benjamin Berkels
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+** 1. Redistributions of source code must retain the above copyright
+**    notice, this list of conditions and the following disclaimer.
+** 2. Redistributions in binary form must reproduce the above copyright
+**    notice, this list of conditions and the following disclaimer in the
+**    documentation and/or other materials provided with the distribution.
+** 3. The name of the author may not be used to endorse or promote products
+**    derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**---------------------------------------------------------------------------
+**
+*/
 
 #include "gl_hqresize.h"
 #include "c_cvars.h"
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
+	if (self < 0 || self > 3) self = 0;
 	FGLTexture::FlushAll();
 }
 
 CUSTOM_CVAR(Int, gl_texture_hqresize_maxinputsize, 512, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
+	if (self > 1024) self = 1024;
 	FGLTexture::FlushAll();
 }
 
-CUSTOM_CVAR(Int, gl_texture_hqresize_target, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+CUSTOM_CVAR(Int, gl_texture_hqresize_targets, 7, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	FGLTexture::FlushAll();
 }
 
-void scale2x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
+CVAR (Flag, gl_texture_hqresize_textures, gl_texture_hqresize_targets, 1);
+CVAR (Flag, gl_texture_hqresize_sprites, gl_texture_hqresize_targets, 2);
+CVAR (Flag, gl_texture_hqresize_fonts, gl_texture_hqresize_targets, 4);
+
+
+static void scale2x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
 {
 	const int width = 2* inWidth;
 	const int height = 2 * inHeight;
@@ -104,7 +96,7 @@ void scale2x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHei
 	}
 }
 
-void scale3x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
+static void scale3x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
 {
 	const int width = 3* inWidth;
 	const int height = 3 * inHeight;
@@ -151,7 +143,7 @@ void scale3x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHei
 	}
 }
 
-void scale4x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
+static void scale4x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
 {
 	int width = 2* inWidth;
 	int height = 2 * inHeight;
@@ -165,7 +157,7 @@ void scale4x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHei
 }
 
 
-unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32* , int , int),
+static unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32* , int , int),
 							  const int N,
 							  unsigned char *inputBuffer,
 							  const int inWidth,
@@ -202,26 +194,23 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 	if ( inputGLTexture->tex->bHasCanvas )
 		return inputBuffer;
 
-	bool upsample = false;
-
-	switch (gl_texture_hqresize_target)
+	switch (inputGLTexture->tex->UseType)
 	{
-	case 0:
-		{
-			upsample = true;
-			break;
-		}
-	case 1:
-		{
-			BYTE useType = inputGLTexture->tex->UseType;
-			if ( ( useType == FTexture::TEX_Sprite )
-				|| ( useType == FTexture::TEX_SkinSprite )
-				|| ( useType == FTexture::TEX_FontChar ) )
-				upsample = true;
-		}
+	case FTexture::TEX_Sprite:
+	case FTexture::TEX_SkinSprite:
+		if (!(gl_texture_hqresize_targets & 2)) return inputBuffer;
+		break;
+
+	case FTexture::TEX_FontChar:
+		if (!(gl_texture_hqresize_targets & 4)) return inputBuffer;
+		break;
+
+	default:
+		if (!(gl_texture_hqresize_targets & 1)) return inputBuffer;
+		break;
 	}
 
-	if ( inputBuffer && upsample )
+	if (inputBuffer)
 	{
 		outWidth = inWidth;
 		outHeight = inHeight;

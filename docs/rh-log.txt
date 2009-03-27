@@ -1,4 +1,71 @@
+December 28, 2008  (Changes by Graf Zahl)
+- Added Karate Chris's new DMFlags submission.
+
+December 27, 2008  (Changes by Graf Zahl)
+- Fixed: The correct player class was not remembered when the menu had both
+  a player class selection menu and an episode menu.
+- Fixed: AddToConsole could write outside its working buffer.
+- Fixed: 0 was no longer recognized as placeholder for 'no state' in A_Chase.
+- Fixed: When picking up weapons the code did not check if it should switch away
+  from weak weapons.
+
+December 20, 2008
+- OggMod improperly decodes the right channel of stereo samples when sending
+  them to OggEnc, so I have no choice but to convert them to mono by chopping
+  off the right channel and only using the left channel information.
+
+December 19, 2008
+- Fixed: OggMod passes the raw sample data to OggEnc for stereo samples, so
+  the resultant Vorbis stream is not actually stereo but mono with the right
+  channel after the left. The two need to be interleaved just like
+  uncompressed samples are.
+- Removed the pattern length limit in the XM reader.
+
+December 18, 2008
+- Decal changes as per Xaser's suggestions: Smaller decal for PhoenixFX2,
+  CrossbowFX2 and MaceFX4 were missing decals, and HornRodFX2 gets a whole
+  new decal.
+- Fixed: bfgscrc2.png had some holes in the middle that did not look so good.
+  (From previously being handled through WinTex, maybe?)
+
+December 17, 2008
+- Fixed: Thing_ProjectileIntercept broke slightly when converted to the new
+  vector math routines (almost two years ago!) because the original code
+  multiplied down columns of the rotation matrix, but the new code multiplies
+  across rows of the matrix instead. This is remedied by flipping the matrix
+  across the x=y axis by reversing the sign of the sine value passed to the
+  matrix constructor.
+
+December 15, 2008
+- Fixed: Autoloading a game (e.g. respawning after dying in single player)
+  during demo playback prematurely ended demo control of the player.
+- Fixed: Loading a multiplayer save with only one player crashed.
+- Changed the co-op intermission screen to draw the stats with the small font.
+- Added Karate Chris's patch to optionally specify an angle offset for
+  summoning.
+- Added Karate Chris's fix for Serpent Staff vampirism on teammates.
+- Locks and teleporters now take precedence over one-sidedness for automap
+  coloring.
+- Increased maximum number of per-pattern rows for the XM loader from
+  256 to 1024 to deal with a module that otherwise would not load.
+- Removed the artificial restriction on not supporting Vorbis-compressed
+  samples in XMs if they are stereo, since it turns out that OggMod does
+  support them.
+
+December 12, 2008  (Changes by Graf Zahl)
+- Added a SECF_NORESPAWN flag for sectors that prevents players from being respawned
+  in such a sector. As a workaround for current map formats a new actor
+  (DoomEdNum 9041) was added that can set the extended sector flags without the
+  use of ACS and sector tags. The new flag can also be set with Sector_ChangeFlags.
+- Fixed: Players ignored MF2_TELESTOMP and always telefragged what was in the way.
+- Fixed: Actors with MF5_NOINTERACTION were not affected by the time freezer.
+
 December 7, 2008  (Changes by Graf Zahl)
+- Added a strbin1 function that does the same as strbin but creates a copy 
+  instead of overwriting the original string. ACS performing this operation
+  in place caused crashes with RTC-3057.
+- fixed: FScriptPosition::Message did not print the message if it was not 
+  a fatal error.
 - Fixed: The save percentage for Doom's green armor was slightly too low
   which caused roundoff errors that made it less than 1/3 effective.
 - Added support for "RRGGBB" strings to V_GetColor.

@@ -27,7 +27,6 @@
 #include <malloc.h>
 #include <assert.h>
 
-
 extern short *DUMBCALLBACK dumb_decode_vorbis(int outlen, const void *oggstream, int sizebytes);
 
 /** TODO:
@@ -177,7 +176,7 @@ static void it_xm_convert_volume(int volume, IT_ENTRY *entry)
 
 
 
-static int it_xm_read_pattern(IT_PATTERN *pattern, DUMBFILE *f, int n_channels, unsigned char *buffer, int version)
+static int it_xm_read_pattern(IT_PATTERN *pattern, DUMBFILE *f, int n_channels, unsigned char **bufferptr, int *buffersize, int version)
 {
 	int size;
 	int pos;
@@ -185,6 +184,7 @@ static int it_xm_read_pattern(IT_PATTERN *pattern, DUMBFILE *f, int n_channels, 
 	int row;
 	int effect, effectvalue;
 	IT_ENTRY *entry;
+	unsigned char *buffer;
 
 	/* pattern header size */
 	if (dumbfile_igetl(f) != ( version == 0x0102 ? 0x08 : 0x09 ) ) {
@@ -211,8 +211,16 @@ static int it_xm_read_pattern(IT_PATTERN *pattern, DUMBFILE *f, int n_channels, 
 	if (size == 0)
 		return 0;
 
-	if (size > 1280 * n_channels) {
-		TRACE("XM error: pattern data size > %d bytes\n", 1280 * n_channels);
+	if (size > *buffersize) {
+		if (*bufferptr != NULL) {
+			free(*bufferptr);
+		}
+		*bufferptr = malloc(size);
+		*buffersize = size;
+	}
+	buffer = *bufferptr;
+	if (buffer == NULL) {
+		TRACE("XM error: out of memory reading pattern\n");
 		return -1;
 	}
 
@@ -612,6 +620,7 @@ static int it_xm_read_sample_data(IT_SAMPLE *sample, unsigned char roguebytes, D
 	int32 i;
 	int n_channels;
 	int32 datasizebytes;
+	void *ibuffer;
 
 	if (!(sample->flags & IT_SAMPLE_EXISTS))
 		return dumbfile_skip(f, roguebytes);
@@ -636,8 +645,7 @@ static int it_xm_read_sample_data(IT_SAMPLE *sample, unsigned char roguebytes, D
 		return -1;
 
 	/* FMOD extension: Samples compressed with Ogg Vorbis */
-	if (!(sample->flags & IT_SAMPLE_STEREO) &&
-		!memcmp((char *)sample->data + 4, "OggS", 4) &&
+	if (!memcmp((char *)sample->data + 4, "OggS", 4) &&
 		!memcmp((char *)sample->data + 33, "vorbis", 7))
 	{
 		int32 outlen = ((unsigned char *)(sample->data))[0] |
@@ -648,9 +656,22 @@ static int it_xm_read_sample_data(IT_SAMPLE *sample, unsigned char roguebytes, D
 
 		if (!(sample->flags & IT_SAMPLE_16BIT))
 		{
+			/* Because it'll be 16-bit when we're done with it. */
 			outlen <<= 1;
 		}
 
+		if (sample->flags & IT_SAMPLE_STEREO)
+		{
+			/* OggMod knows nothing of stereo samples and compresses them as mono,
+			 * screwing up the second channel. (Because for whatever reason,
+			 * ModPlug delta encodes them independantly, even though it presents
+			 * the sample as a double-length mono sound to other players.)
+			 */
+			sample->flags &= ~IT_SAMPLE_STEREO;
+			outlen >>= 1;
+			sample->loop_start >>= 1;
+			sample->loop_end >>= 1;
+		}
 		output = dumb_decode_vorbis(outlen, (char *)sample->data + 4, datasizebytes - 4);
 		if (output != NULL)
 		{
@@ -663,6 +684,7 @@ static int it_xm_read_sample_data(IT_SAMPLE *sample, unsigned char roguebytes, D
 				sample->loop_start <<= 1;
 				sample->loop_end <<= 1;
 			}
+
 			it_xm_fixup_sample_points(sample);
 			return 0;
 		}
@@ -680,8 +702,8 @@ static int it_xm_read_sample_data(IT_SAMPLE *sample, unsigned char roguebytes, D
 		/* Stereo samples are a ModPlug extension, so to keep compatibility with
 		 * players that don't know about it (and FastTracker 2 itself), the two
 		 * channels are not stored interleaved but rather, one after the other. */
-		void *ibuffer = malloc(sample->length << ((sample->flags & IT_SAMPLE_16BIT) ? 2 : 1));
 		int old_r = 0;
+		ibuffer = malloc(sample->length << ((sample->flags & IT_SAMPLE_16BIT) ? 2 : 1));
 		if (ibuffer == NULL)
 		{
 			/* No memory => ignore stereo bits at the end */
@@ -859,14 +881,13 @@ static DUMB_IT_SIGDATA *it_xm_load_sigdata(DUMBFILE *f, int * version)
 			sigdata->pattern[i].entry = NULL;
 
 		{
-			unsigned char *buffer = malloc(1280 * n_channels); /* 256 rows * 5 bytes */
-			if (!buffer) {
-				_dumb_it_unload_sigdata(sigdata);
-				return NULL;
-			}
+			unsigned char *buffer = NULL;
+			int buffersize = 0;
 			for (i = 0; i < sigdata->n_patterns; i++) {
-				if (it_xm_read_pattern(&sigdata->pattern[i], f, n_channels, buffer, * version) != 0) {
-					free(buffer);
+				if (it_xm_read_pattern(&sigdata->pattern[i], f, n_channels, &buffer, &buffersize, * version) != 0) {
+					if (buffer != NULL) {
+						free(buffer);
+					}
 					_dumb_it_unload_sigdata(sigdata);
 					return NULL;
 				}
@@ -1054,15 +1075,13 @@ static DUMB_IT_SIGDATA *it_xm_load_sigdata(DUMBFILE *f, int * version)
 			sigdata->pattern[i].entry = NULL;
 
 		{
-			unsigned char *buffer = malloc(1280 * n_channels); /* 256 rows * 5 bytes */
-			if (!buffer) {
-				free(roguebytes);
-				_dumb_it_unload_sigdata(sigdata);
-				return NULL;
-			}
+			unsigned char *buffer = NULL;
+			int buffersize = 0;
 			for (i = 0; i < sigdata->n_patterns; i++) {
-				if (it_xm_read_pattern(&sigdata->pattern[i], f, n_channels, buffer, * version) != 0) {
-					free(buffer);
+				if (it_xm_read_pattern(&sigdata->pattern[i], f, n_channels, &buffer, &buffersize, * version) != 0) {
+					if (buffer != NULL) {
+						free(buffer);
+					}
 					free(roguebytes);
 					_dumb_it_unload_sigdata(sigdata);
 					return NULL;

@@ -148,6 +148,10 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 	if (self == NULL)
 		return true;
 
+	// We must kill all monsters to exit the level.
+	if ((dmflags2 & DF2_KILL_MONSTERS) && level.killed_monsters != level.total_monsters)
+		return false;
+
 	// Is this a deathmatch game and we're not allowed to exit?
 	// [BC] Teamgame, too.
 	if ( ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))

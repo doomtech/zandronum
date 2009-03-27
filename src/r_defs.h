@@ -74,11 +74,15 @@ extern size_t MaxDrawSegs;
 struct vertex_t
 {
 	fixed_t x, y;
+	angle_t viewangle;	// precalculated angle for clipping
+	int angletime;		// recalculation time for view angle
 
 	bool operator== (const vertex_t &other)
 	{
 		return x == other.x && y == other.y;
 	}
+
+	angle_t GetViewAngle();
 };
 
 // Forward of LineDefs, for Sectors.
@@ -268,6 +272,7 @@ enum
 	SECF_SILENT			= 1,	// actors in sector make no noise
 	SECF_NOFALLINGDAMAGE= 2,	// No falling damage in this sector
 	SECF_FLOORDROP		= 4,	// all actors standing on this floor will remain on it when it lowers very fast.
+	SECF_NORESPAWN		= 8,	// players can not respawn in this sector
 };
 
 enum
@@ -637,6 +642,7 @@ struct sector_t
 
 	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
 	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }
+	void SetDirty();
 
 	// [BC] Is this sector a floor or ceiling?
 	int		floorOrCeiling;
@@ -800,6 +806,18 @@ struct side_t
 	void StopInterpolation(int position);
 	//For GL
 	FLightNode * lighthead[2];				// all blended lights that may affect this wall
+
+	enum EClipBits
+	{
+		ClipUpper = 1,
+		ClipNormal = 2,
+		ClipLower = 4,
+		ClipUpperDone = 8,
+		ClipNormalDone = 16,
+		ClipLowerDone = 32,
+	};
+
+
 };
 
 FArchive &operator<< (FArchive &arc, side_t::part &p);
@@ -838,7 +856,6 @@ struct line_t
 	slopetype_t	slopetype;	// To aid move clipping.
 	sector_t	*frontsector, *backsector;
 	int 		validcount;	// if == validcount, already checked
-
 	// [BC] Have any of this line's textures been changed during the course of the level?
 	ULONG		ulTexChangeFlags;
 
@@ -850,7 +867,6 @@ struct line_t
 	fixed_t		SavedAlpha;
 
 };
-
 
 // phares 3/14/98
 //

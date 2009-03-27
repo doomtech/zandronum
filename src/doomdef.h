@@ -252,9 +252,15 @@ enum
 
 	DF2_YES_KEEPFRAGS		= 1 << 14,	// Don't clear frags after each level
 	DF2_NO_RESPAWN			= 1 << 15,	// Player cannot respawn
-	DF2_YES_LOSEFRAG		= 1 << 16,	// Lose a frag when killed. More incentive to try to
-//										// not get yerself killed
+	DF2_YES_LOSEFRAG		= 1 << 16,	// Lose a frag when killed. More incentive to try to not get yerself killed
 	DF2_INFINITE_INVENTORY	= 1 << 17,	// Infinite inventory.
+	DF2_KILL_MONSTERS		= 1 << 22,	// All monsters must be killed before the level exits.
+	DF2_NO_AUTOMAP			= 1 << 23,	// Players are allowed to see the automap.
+	DF2_NO_AUTOMAP_ALLIES	= 1 << 24,	// Allies can been seen on the automap.
+	DF2_DISALLOW_SPYING		= 1 << 25,	// You can spy on your allies.
+	DF2_CHASECAM			= 1 << 26,	// Players can use the chasecam cheat.
+	DF2_NOSUICIDE			= 1 << 27,	// Players are allowed to suicide.
+	DF2_NOAUTOAIM			= 1 << 28,	// Players cannot use autoaim.
 
 	// [BB] Award actual damage dealt instead of kills.
 	DF2_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 20,

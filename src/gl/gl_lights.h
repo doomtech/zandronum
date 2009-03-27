@@ -40,6 +40,9 @@ enum ELightType
 	RandomFlickerLight,
 	SectorLight,
 	SpotLight,
+	ColorPulseLight,
+	ColorFlickerLight, 
+	RandomColorFlickerLight
 };
 
 
@@ -115,6 +118,7 @@ public:
 	BYTE lighttype;
 	bool owned;
 	bool halo;
+	BYTE color2[3];
 
 	// intermediate texture coordinate data
 	// this is stored in the light object to avoid recalculating it

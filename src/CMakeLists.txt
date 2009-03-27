@@ -453,6 +453,7 @@ if( NOT NO_GL )
 		gl/gfxfuncs.cpp
 		gl/gl_bsp.cpp
 		gl/gl_clipper.cpp
+		gl/gl_clock.cpp
 		gl/gl_cycler.cpp
 		gl/gl_data.cpp
 		gl/gl_decal.cpp
@@ -464,10 +465,9 @@ if( NOT NO_GL )
 		gl/gl_geometric.cpp
 		gl/gl_glow.cpp
 		gl/gl_hirestex.cpp
-		gl/gl_hqresize.cpp #ST
+		gl/gl_hqresize.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp
-		gl/gl_missinglines.cpp
 		gl/gl_missingtexture.cpp
 		gl/gl_models.cpp
 		gl/gl_models_md2.cpp

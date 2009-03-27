@@ -2566,6 +2566,10 @@ CCMD (kill)
 	}
 	else
 	{
+		// If suiciding is disabled, then don't do it.
+		if (dmflags2 & DF2_NOSUICIDE)
+			return;
+
 		// [BC] Tell the server we wish to suicide.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( players[consoleplayer].bSpectating == false ))
 			CLIENTCOMMANDS_Suicide( );

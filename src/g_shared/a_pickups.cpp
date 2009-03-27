@@ -109,28 +109,9 @@ bool AAmmo::HandlePickup (AInventory *item)
 
 			assert (Owner != NULL);
 
-			if (oldamount == 0 && Owner != NULL && Owner->player != NULL &&
-				( NETWORK_GetState( ) != NETSTATE_SERVER ) && // [BC] Let clients decide if they want to switch weapons.
-				( Owner->player->userinfo.switchonpickup > 0 ) &&
-				Owner->player->PendingWeapon == WP_NOCHANGE && 
-				(Owner->player->ReadyWeapon == NULL ||
-				 (Owner->player->ReadyWeapon->WeaponFlags & WIF_WIMPY_WEAPON)))
+			if (oldamount == 0 && Owner != NULL && Owner->player != NULL)
 			{
-				AWeapon *best = barrier_cast<APlayerPawn *>(Owner)->BestWeapon (GetClass());
-				if (best != NULL && (Owner->player->ReadyWeapon == NULL ||
-					best->SelectionOrder < Owner->player->ReadyWeapon->SelectionOrder))
-				{
-					Owner->player->PendingWeapon = best;
-
-					// [BC] If we're a client, tell the server we're switching weapons.
-					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
-					{
-						CLIENTCOMMANDS_WeaponSelect( best->GetClass( ));
-
-						if ( CLIENTDEMO_IsRecording( ))
-							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
-					}
-				}
+				barrier_cast<APlayerPawn *>(Owner)->CheckWeaponSwitch(GetClass());
 			}
 		}
 		return true;

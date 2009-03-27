@@ -159,11 +159,9 @@ struct FGLSectionLine
 	vertex_t *end;
 	side_t *sidedef;
 	line_t *linedef;
-	union
-	{
-		int otherside;
-		seg_t *refseg;
-	};
+	seg_t *refseg;			// we need to reference at least one seg for each line.
+	subsector_t *polysub;	// If this is part of a polyobject we need a reference to the containing subsector
+	int otherside;
 };
 
 struct FGLSectionLoop

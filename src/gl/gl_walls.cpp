@@ -1364,7 +1364,7 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 // 
 //
 //==========================================================================
-void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, subsector_t * polysub)
+void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, subsector_t * polysub, bool render_segs)
 {
 	vertex_t * v1, * v2;
 	fixed_t fch1;
@@ -1410,7 +1410,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	glseg.fracleft=0;
 	glseg.fracright=1;
 
-	if (gl_render_segs)
+	if (render_segs)
 	{
 		if (abs(v1->x-v2->x) > abs(v1->y-v2->y))
 		{

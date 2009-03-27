@@ -625,7 +625,7 @@ void GLShader::Bind(int cm, int lightmode, float Speed)
 
 void GLShader::Unbind()
 {
-	if (gl.flags & RFL_GLSL)
+	if ((gl.flags & RFL_GLSL) && gl_activeShader != NULL)
 	{
 		gl.UseProgramObjectARB(0);
 		gl_activeShader=NULL;

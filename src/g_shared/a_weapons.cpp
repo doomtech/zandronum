@@ -180,6 +180,9 @@ bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 	// Don't take ammo if the weapon sticks around.
 	if (!ShouldStay ())
 	{
+		int oldamount = 0;
+		if (ownedWeapon->Ammo1 != NULL) oldamount = ownedWeapon->Ammo1->Amount;
+
 		if (AmmoGive1 > 0)
 		{
 			gotstuff = AddExistingAmmo (ownedWeapon->Ammo1, AmmoGive1);
@@ -196,6 +199,12 @@ bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 			// [BC] If we're the server, tell clients that they just received ammo.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ownedWeapon->Owner ) && ( ownedWeapon->Owner->player ) && ( ownedWeapon->Ammo2 ))
 				SERVERCOMMANDS_GiveInventory( ownedWeapon->Owner->player - players, static_cast<AInventory *>( ownedWeapon->Ammo2 ));
+		}
+
+		AActor *Owner = ownedWeapon->Owner;
+		if (gotstuff && oldamount == 0 && Owner != NULL && Owner->player != NULL)
+		{
+			static_cast<APlayerPawn *>(Owner)->CheckWeaponSwitch(ownedWeapon->Ammo1->GetClass());
 		}
 	}
 	return gotstuff;

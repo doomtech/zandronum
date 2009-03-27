@@ -27,6 +27,7 @@ struct subsector_t;
 struct vertex_t;
 class DCanvas;
 union FRenderStyle;
+struct side_t;
 
 extern DWORD gl_fixedcolormap;
 
@@ -108,6 +109,9 @@ FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle,
 // Render
 
 void gl_RenderBSPNode (void *node);
+
+bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector);
+void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_t *backsector);
 sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
 
 #define INVALID_SPRITE 0xffffff
@@ -125,11 +129,6 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 angle_t gl_FrustumAngle();
 
 void gl_LinkLights();
-
-
-// ZDBSP shittiness compensation
-void gl_CollectMissingLines();
-void gl_RenderMissingLines();
 
 
 void gl_SetActorLights(AActor *);

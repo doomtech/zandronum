@@ -8,6 +8,11 @@
 
 #include <intrin.h>
 
+
+extern double gl_SecondsPerCycle;
+extern double gl_MillisecPerCycle;
+
+
 inline long long GetClockCycle ()
 {
 #if _M_X64
@@ -18,6 +23,9 @@ inline long long GetClockCycle ()
 }
 
 #elif defined(__GNUG__) && defined(__i386__)
+
+extern double gl_SecondsPerCycle;
+extern double gl_MillisecPerCycle;
 
 inline long long GetClockCycle()
 {
@@ -34,6 +42,9 @@ inline long long GetClockCycle()
 }
 
 #else
+
+extern double gl_SecondsPerCycle;
+extern double gl_MillisecPerCycle;
 
 inline long long GetClockCycle ()
 {
@@ -72,12 +83,12 @@ public:
 	
 	double Time()
 	{
-		return double(Counter) / 1000; // * GLPerfToSec;
+		return double(Counter) * gl_SecondsPerCycle;
 	}
 	
 	double TimeMS()
 	{
-		return double(Counter); // * GLPerfToMillisec;
+		return double(Counter) * gl_MillisecPerCycle;
 	}
 
 private:

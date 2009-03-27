@@ -59,120 +59,6 @@ Clipper clipper;
 
 //==========================================================================
 //
-// Check whether the player can look beyond this line
-//
-//==========================================================================
-
-static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector)
-{
-	line_t * linedef=seg->linedef;
-	fixed_t bs_floorheight1;
-	fixed_t bs_floorheight2;
-	fixed_t bs_ceilingheight1;
-	fixed_t bs_ceilingheight2;
-	fixed_t fs_floorheight1;
-	fixed_t fs_floorheight2;
-	fixed_t fs_ceilingheight1;
-	fixed_t fs_ceilingheight2;
-
-	// Mirrors and horizons always block the view
-	//if (linedef->special==Line_Mirror || linedef->special==Line_Horizon) return true;
-
-	// Lines with stacked sectors must never block!
-	if (backsector->CeilingSkyBox && backsector->CeilingSkyBox->bAlways) return false;
-	if (backsector->FloorSkyBox && backsector->FloorSkyBox->bAlways) return false;
-	if (frontsector->CeilingSkyBox && frontsector->CeilingSkyBox->bAlways) return false;
-	if (frontsector->FloorSkyBox && frontsector->FloorSkyBox->bAlways) return false;
-
-	// on large levels this distinction can save some time
-	// That's a lot of avoided multiplications if there's a lot to see!
-
-	if (frontsector->ceilingplane.a | frontsector->ceilingplane.b)
-	{
-		fs_ceilingheight1=frontsector->ceilingplane.ZatPoint(linedef->v1);
-		fs_ceilingheight2=frontsector->ceilingplane.ZatPoint(linedef->v2);
-	}
-	else
-	{
-		fs_ceilingheight2=fs_ceilingheight1=frontsector->GetPlaneTexZ(sector_t::ceiling);
-	}
-
-	if (frontsector->floorplane.a | frontsector->floorplane.b)
-	{
-		fs_floorheight1=frontsector->floorplane.ZatPoint(linedef->v1);
-		fs_floorheight2=frontsector->floorplane.ZatPoint(linedef->v2);
-	}
-	else
-	{
-		fs_floorheight2=fs_floorheight1=frontsector->GetPlaneTexZ(sector_t::floor);
-	}
-	
-	if (backsector->ceilingplane.a | backsector->ceilingplane.b)
-	{
-		bs_ceilingheight1=backsector->ceilingplane.ZatPoint(linedef->v1);
-		bs_ceilingheight2=backsector->ceilingplane.ZatPoint(linedef->v2);
-	}
-	else
-	{
-		bs_ceilingheight2=bs_ceilingheight1=backsector->GetPlaneTexZ(sector_t::ceiling);
-	}
-
-	if (backsector->floorplane.a | backsector->floorplane.b)
-	{
-		bs_floorheight1=backsector->floorplane.ZatPoint(linedef->v1);
-		bs_floorheight2=backsector->floorplane.ZatPoint(linedef->v2);
-	}
-	else
-	{
-		bs_floorheight2=bs_floorheight1=backsector->GetPlaneTexZ(sector_t::floor);
-	}
-
-	// now check for closed sectors!
-	if (bs_ceilingheight1<=fs_floorheight1 && bs_ceilingheight2<=fs_floorheight2) 
-	{
-		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
-		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
-		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
-			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
-		return true;
-	}
-
-	if (fs_ceilingheight1<=bs_floorheight1 && fs_ceilingheight2<=bs_floorheight2) 
-	{
-		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
-		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
-
-		// properly render skies (consider door "open" if both floors are sky):
-		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
-			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
-		return true;
-	}
-
-	if (bs_ceilingheight1<=bs_floorheight1 && bs_ceilingheight2<=bs_floorheight2)
-	{
-		// preserve a kind of transparent door/lift special effect:
-		if (bs_ceilingheight1 < fs_ceilingheight1 || bs_ceilingheight2 < fs_ceilingheight2) 
-		{
-			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
-			if (!tex || tex->UseType==FTexture::TEX_Null) return false;
-		}
-		if (bs_floorheight1 > fs_floorheight1 || bs_floorheight2 > fs_floorheight2)
-		{
-			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
-			if (!tex || tex->UseType==FTexture::TEX_Null) return false;
-		}
-		if (backsector->GetTexture(sector_t::ceiling)==skyflatnum && 
-			frontsector->GetTexture(sector_t::ceiling)==skyflatnum) return false;
-		if (backsector->GetTexture(sector_t::floor)==skyflatnum && frontsector->GetTexture(sector_t::floor)
-			==skyflatnum) return false;
-		return true;
-	}
-	return false;
-}
-
-
-//==========================================================================
-//
 // R_AddLine
 // Clips the given segment
 // and adds any visible pieces to the line list.
@@ -197,8 +83,8 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 		}
 	}
 
-	startAngle = R_PointToAngle(seg->v2->x, seg->v2->y);
-	endAngle = R_PointToAngle(seg->v1->x, seg->v1->y);
+	startAngle = seg->v2->GetViewAngle();
+	endAngle = seg->v1->GetViewAngle();
 
 	// Back side, i.e. backface culling	- read: endAngle >= startAngle!
 	if (startAngle-endAngle<ANGLE_180 || !seg->linedef)  
@@ -233,27 +119,12 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 		}
 		else
 		{
-			// check for levels with exposed lower areas
-			if (in_area==area_default && 
-				(seg->backsector->heightsec && !(seg->backsector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC)) &&
-				(!seg->frontsector->heightsec || seg->frontsector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
-			{
-				sector_t * s=seg->backsector->heightsec;
-
-				fixed_t cz1=seg->frontsector->ceilingplane.ZatPoint(seg->v1);
-				fixed_t cz2=seg->frontsector->ceilingplane.ZatPoint(seg->v2);
-				fixed_t fz1=s->floorplane.ZatPoint(seg->v1);
-				fixed_t fz2=s->floorplane.ZatPoint(seg->v2);
-
-				if (cz1<=fz1 && cz2<=fz2) 
-					in_area=area_below;
-				else 
-					in_area=area_normal;
-			}
+			// clipping checks are only needed when the backsector is not the same as the front sector
+			gl_CheckViewArea(seg->v1, seg->v2, seg->frontsector, seg->backsector);
 
 			backsector = gl_FakeFlat(seg->backsector, &bs, true);
 
-			if (CheckClip(seg, sector, backsector))
+			if (gl_CheckClip(seg->sidedef, sector, backsector))
 			{
 				clipper.SafeAddClipRange(startAngle, endAngle);
 			}
@@ -280,7 +151,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	SetupWall.Clock();
 
-	wall.Process(seg, sector, backsector, polysub);
+	wall.Process(seg, sector, backsector, polysub, gl_render_segs);
 	rendered_lines++;
 
 	SetupWall.Unclock();
