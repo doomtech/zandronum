@@ -35,7 +35,7 @@
 #define __P_TRACE_H__
 
 #include <stddef.h>
-#include "basictypes.h"
+#include "textures/textures.h"
 
 struct sector_t;
 struct line_t;
@@ -62,6 +62,7 @@ enum
 struct FTraceResults
 {
 	sector_t *Sector;
+	FTextureID HitTexture;
 	fixed_t X, Y, Z;
 	fixed_t Distance;
 	fixed_t Fraction;

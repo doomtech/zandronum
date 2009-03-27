@@ -70,7 +70,7 @@ int currentrenderer=0;
 bool gl_disabled = gl_nogl;
 
 // [ZDoomGL]
-CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)// | CVAR_NOINITCALL)
+CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	// 0: Software renderer
 	// 1: OpenGL renderer

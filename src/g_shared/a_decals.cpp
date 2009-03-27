@@ -272,6 +272,7 @@ FTextureID DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor
 			Z -= back->GetPlaneTexZ(sector_t::ceiling);
 		tex = wall->GetTexture(side_t::top);
 	}
+#ifdef _3DFLOORS
 	else if (ffloor) // this is a 3d-floor segment - do this only if we know which one!
 	{
 		Sector=ffloor->model;
@@ -294,6 +295,7 @@ FTextureID DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor
 			tex = sides[ffloor->master->sidenum[0]].GetTexture(side_t::mid);
 		}
 	}
+#endif
 	else return FNullTextureID();
 	CalcFracPos (wall, x, y);
 
@@ -674,7 +676,7 @@ DImpactDecal *DImpactDecal::StaticCreate (const FDecalTemplate *tpl, fixed_t x, 
 		DImpactDecal::CheckMax();
 		decal = new DImpactDecal (z);
 
-		FTextureID stickypic = decal->StickToWall (wall, x, y);
+		FTextureID stickypic = decal->StickToWall (wall, x, y, ffloor);
 		FTexture *tex = TexMan[stickypic];
 
 		if (tex != NULL && tex->bNoDecals)
@@ -795,12 +797,12 @@ void ADecal::BeginPlay ()
 			{
 				decal = new DBaseDecal (this);
 				wall = sides + trace.Line->sidenum[trace.Side];
-				decal->StickToWall (wall, trace.X, trace.Y);
+				decal->StickToWall (wall, trace.X, trace.Y, trace.ffloor);
 				tpl->ApplyToDecal (decal, wall);
 				// Spread decal to nearby walls if it does not all fit on this one
 				if (cl_spreaddecals)
 				{
-					decal->Spread (tpl, wall, trace.X, trace.Y, z);
+					decal->Spread (tpl, wall, trace.X, trace.Y, z, trace.ffloor);
 				}
 			}
 			else

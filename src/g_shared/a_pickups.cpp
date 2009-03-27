@@ -1186,6 +1186,7 @@ const char *AInventory::PickupAnnouncerEntry( )
 void AInventory::PlayPickupSound (AActor *toucher)
 {
 	float atten;
+	int chan;
 
 	if (ItemFlags & IF_NOATTENPICKUPSOUND)
 	{
@@ -1202,7 +1203,16 @@ void AInventory::PlayPickupSound (AActor *toucher)
 	{
 		atten = ATTN_NORM;
 	}
-	S_Sound (toucher, CHAN_PICKUP, PickupSound, 1, atten);
+
+	if (toucher != NULL && toucher->CheckLocalView(consoleplayer))
+	{
+		chan = CHAN_PICKUP|CHAN_NOPAUSE;
+	}
+	else
+	{
+		chan = CHAN_PICKUP;
+	}
+	S_Sound (toucher, chan, PickupSound, 1, atten);
 }
 
 //===========================================================================

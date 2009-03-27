@@ -294,7 +294,7 @@ static void ParseLock(FScanner &sc)
 	{
 		lock->RemoteMsg = lock->Message;
 	}
-	if (!lock->Message.IsEmpty() && lock->RemoteMsg.IsNotEmpty())
+	if (lock->Message.IsEmpty() && lock->RemoteMsg.IsNotEmpty())
 	{
 		lock->Message = lock->RemoteMsg;
 	}

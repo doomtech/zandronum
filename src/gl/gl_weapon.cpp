@@ -49,7 +49,6 @@
 #include "gl/gl_models.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
-EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 EXTERN_CVAR(Float, transsouls)
 
 //==========================================================================

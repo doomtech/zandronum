@@ -46,8 +46,6 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 
-EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
-
 struct DecalVertex
 {
 	float x,y,z;

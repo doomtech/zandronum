@@ -589,5 +589,13 @@ public:
 
 extern GLDrawInfo * gl_drawinfo;
 
+extern int gl_anglecache;
+inline angle_t vertex_t::GetViewAngle()
+{
+	return angletime == gl_anglecache? viewangle : (angletime = gl_anglecache, viewangle = R_PointToAngle2(viewx, viewy, x,y));
+}
+
+
+
 
 #endif

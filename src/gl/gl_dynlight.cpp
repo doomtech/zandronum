@@ -1166,9 +1166,11 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 			break;
 		case TAG_DISABLE_FB:
 			{
+				/* not implemented.
 				sc.MustGetString();
 				const PClass *cls = PClass::FindClass(sc.String);
 				if (cls) GetDefaultByType(cls)->renderflags |= RF_NEVERFULLBRIGHT;
+				*/
 			}
 			break;
 		default:

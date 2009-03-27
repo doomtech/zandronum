@@ -69,6 +69,31 @@
 #include "colormatcher.h"
 #include "autosegs.h"
 
+
+//==========================================================================
+//
+// Gets a class pointer and performs an error check for correct type
+//
+//==========================================================================
+static const PClass *FindClassTentative(const char *name, const char *ancestor)
+{
+	// "" and "none" mean 'no class'
+	if (name == NULL || *name == 0 || !stricmp(name, "none"))
+	{
+		return NULL;
+	}
+
+	const PClass *anc = PClass::FindClass(ancestor);
+	assert(anc != NULL);	// parent classes used here should always be natively defined	
+	const PClass *cls = const_cast<PClass*>(anc)->FindClassTentative(name);
+	assert (cls != NULL);	// cls can not ne NULL here
+	if (!cls->IsDescendantOf(anc))
+	{
+		I_Error("%s does not inherit from %s\n", name, ancestor);
+	}
+	return cls;
+}
+
 //===========================================================================
 //
 // HandleDeprecatedFlags
@@ -107,7 +132,7 @@ void HandleDeprecatedFlags(AActor *defaults, FActorInfo *info, bool set, int ind
 	case DEPF_PICKUPFLASH:
 		if (set)
 		{
-			static_cast<AInventory*>(defaults)->PickupFlash = fuglyname("PickupFlash");
+			static_cast<AInventory*>(defaults)->PickupFlash = FindClassTentative("PickupFlash", "Actor");
 		}
 		else
 		{
@@ -1173,7 +1198,7 @@ DEFINE_CLASS_PROPERTY(defmaxamount, 0, Inventory)
 DEFINE_CLASS_PROPERTY(pickupflash, S, Inventory)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->PickupFlash = fuglyname(str);
+	defaults->PickupFlash = FindClassTentative(str, "Actor");
 }
 
 //==========================================================================
@@ -1292,7 +1317,7 @@ DEFINE_CLASS_PROPERTY(ammogive2, I, Weapon)
 DEFINE_CLASS_PROPERTY(ammotype, S, Weapon)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->AmmoType1 = fuglyname(str);
+	defaults->AmmoType1 = FindClassTentative(str, "Ammo");
 }
 
 //==========================================================================
@@ -1301,7 +1326,7 @@ DEFINE_CLASS_PROPERTY(ammotype, S, Weapon)
 DEFINE_CLASS_PROPERTY(ammotype1, S, Weapon)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->AmmoType1 = fuglyname(str);
+	defaults->AmmoType1 = FindClassTentative(str, "Ammo");
 }
 
 //==========================================================================
@@ -1310,7 +1335,7 @@ DEFINE_CLASS_PROPERTY(ammotype1, S, Weapon)
 DEFINE_CLASS_PROPERTY(ammotype2, S, Weapon)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->AmmoType2 = fuglyname(str);
+	defaults->AmmoType2 = FindClassTentative(str, "Ammo");
 }
 
 //==========================================================================
@@ -1387,7 +1412,7 @@ DEFINE_CLASS_PROPERTY(selectionorder, I, Weapon)
 DEFINE_CLASS_PROPERTY(sisterweapon, S, Weapon)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->SisterWeaponType = fuglyname(str);
+	defaults->SisterWeaponType = FindClassTentative(str, "Weapon");
 }
 
 //==========================================================================
@@ -1423,7 +1448,7 @@ DEFINE_CLASS_PROPERTY(number, I, WeaponPiece)
 DEFINE_CLASS_PROPERTY(weapon, S, WeaponPiece)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->WeaponClass = fuglyname(str);
+	defaults->WeaponClass = FindClassTentative(str, "Weapon");
 }
 
 //==========================================================================
@@ -1533,7 +1558,18 @@ DEFINE_CLASS_PROPERTY_PREFIX(powerup, mode, S, PowerupGiver)
 DEFINE_CLASS_PROPERTY_PREFIX(powerup, type, S, PowerupGiver)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->PowerupType = fuglyname(str);
+
+	// Yuck! What was I thinking when I decided to prepend "Power" to the name? 
+	// Now it's too late to change it...
+	const PClass *cls = PClass::FindClass(str);
+	if (cls == NULL || !cls->IsDescendantOf(RUNTIME_CLASS(APowerup)))
+	{
+		FString st;
+		st.Format("%s%s", strnicmp(str, "power", 5)? "Power" : "", str);
+		cls = FindClassTentative(st, "Powerup");
+	}
+
+	defaults->PowerupType = cls;
 }
 
 //==========================================================================

@@ -640,9 +640,6 @@ static void SetLevelDefaults (level_info_t *levelinfo)
 		levelinfo->flags |= LEVEL_LAXMONSTERACTIVATION;
 	}
 	levelinfo->airsupply = 10;
-
-	// new [GZDoom]
-	levelinfo->airsupply = 20;
 }
 
 //
@@ -3574,10 +3571,12 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	P_SerializeSounds (arc);
 
 	STAT_SAVE(arc, hubLoad);
-	if (arc.IsLoading()) for(i=0;i<numsectors;i++)
-	{
-		P_Recalculate3DFloors(&sectors[i]);
-	}
+	#ifdef _3DFLOORS
+		if (arc.IsLoading()) for(i=0;i<numsectors;i++)
+		{
+			P_Recalculate3DFloors(&sectors[i]);
+		}
+	#endif
 	gl_RecreateAllAttachedLights();
 }
 

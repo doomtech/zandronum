@@ -61,10 +61,20 @@
 
 GLRenderSettings glset;
 
+CUSTOM_CVAR(Float, maxviewpitch, 90.f, CVAR_ARCHIVE|CVAR_SERVERINFO)
+{
+	if (self>90.f) self=90.f;
+	else if (self<-90.f) self=-90.f;
+}
+
+
+CUSTOM_CVAR(Bool, gl_nocoloredspritelighting, false, 0)
+{
+	glset.nocoloredspritelighting = self;
+}
+
 // [BB] ST may not use the sections code at the moment, so I just provide a dummy function here.
 void gl_CreateSections() {}
-
-EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 
 FTexture *glpart2;
 FTexture *glpart;
@@ -276,7 +286,6 @@ static void ParseFunc(FScanner &sc, level_info_t *info)
 			opt->skyrotatevector.Y = (float)sc.Float;
 			sc.MustGetFloat();
 			opt->skyrotatevector.Z = (float)sc.Float;
-			sc.MustGetFloat();
 			opt->skyrotatevector.MakeUnit();
 		}
 		else
@@ -752,7 +761,9 @@ void gl_PreprocessLevel()
 		}
 	}
 	gl_InitVertexData();
+#if 0
 	gl_CreateSections();
+#endif
 
 	// This code can be called when the hardware renderer is inactive!
 	if (currentrenderer!=0) gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));

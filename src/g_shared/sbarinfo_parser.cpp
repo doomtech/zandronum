@@ -105,6 +105,7 @@ static const char *SBarInfoRoutineLevel[] =
 	"playerclass",
 	"aspectratio",
 	"isselected",
+	"usesammo",
 	"usessecondaryammo",
 	"hasweaponpiece",
 	"inventorybarnotvisible",
@@ -1285,12 +1286,13 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
 			case SBARINFO_USESSECONDARYAMMO:
+			case SBARINFO_USESAMMO:
 				if(sc.CheckToken(TK_Identifier))
 				{
 					if(sc.Compare("not"))
 						cmd.flags |= SBARINFOEVENT_NOT;
 					else
-						sc.ScriptError("Exspected 'not' got '%s' instead.", sc.String);
+						sc.ScriptError("Expected 'not' got '%s' instead.", sc.String);
 				}
 				sc.MustGetToken('{');
 				cmd.subBlock.fullScreenOffsets = block.fullScreenOffsets;
@@ -1351,6 +1353,7 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
 			case SBARINFO_ININVENTORY:
+				cmd.special2 = cmd.special3 = 0;
 				sc.MustGetToken(TK_Identifier);
 				if(sc.Compare("not"))
 				{
@@ -1365,6 +1368,13 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					{
 						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
 					}
+					if (sc.CheckToken(','))
+					{
+						sc.MustGetNumber();
+						if (i == 0) cmd.special2 = sc.Number;
+						else cmd.special3 = sc.Number;
+					}
+
 					if(sc.CheckToken(TK_OrOr))
 					{
 						cmd.flags |= SBARINFOEVENT_OR;

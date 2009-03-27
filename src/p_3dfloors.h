@@ -1,8 +1,12 @@
 #ifndef __SECTORE_H
 #define __SECTORE_H
 
-// 3D floor flags. Most are the same as in Legacy but I added some for EDGE's and Vavoom's features as well.
 
+#define _3DFLOORS
+
+#ifdef _3DFLOORS
+
+// 3D floor flags. Most are the same as in Legacy but I added some for EDGE's and Vavoom's features as well.
 typedef enum
 {
   FF_EXISTS            = 0x1,    //MAKE SURE IT'S VALID
@@ -31,6 +35,7 @@ typedef enum
   FF_SHOOTTHROUGH      = 0x4000000,
   FF_FADEWALLS         = 0x8000000,	// Applies real fog to walls and doesn't blend the view		
   FF_ADDITIVETRANS	   = 0x10000000, // Render this floor with additive translucency
+  FF_FLOOD			   = 0x20000000, // extends towards the next lowest flooding or solid 3D floor or the bottom of the sector
   
 } ffloortype_e;
 
@@ -70,13 +75,14 @@ struct F3DFloor
 struct FDynamicColormap;
 
 
-typedef struct lightlist_s {
+struct lightlist_t
+{
 	secplane_t				plane;
 	unsigned char *			p_lightlevel;
 	FDynamicColormap **		p_extra_colormap;
 	int						flags;
 	F3DFloor*				caster;
-} lightlist_t;
+};
 
 
 
@@ -89,13 +95,44 @@ bool P_CheckFor3DCeilingHit(AActor * mo);
 void P_Recalculate3DFloors(sector_t *);
 void P_RecalculateAttached3DFloors(sector_t * sec);
 lightlist_t * P_GetPlaneLight(sector_t * , secplane_t * plane, bool underside);
-void P_SpawnSpecials2( void );
+void P_Spawn3DFloors( void );
 
 struct FLineOpening;
 
 void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *linedef, 
 							fixed_t x, fixed_t y, fixed_t refx, fixed_t refy);
+							
+#else
 
+// Dummy definitions for disabled 3D floor code
+
+struct F3DFloor
+{
+	int dummy;
+};
+
+struct lightlist_t
+{
+	int dummy;
+};
+
+class player_s;
+inline void P_PlayerOnSpecial3DFloor(player_t* player) {}
+
+inline void P_Get3DFloorAndCeiling(AActor * thing, sector_t * sector, fixed_t * floorz, fixed_t * ceilingz, int * floorpic) {}
+inline bool P_CheckFor3DFloorHit(AActor * mo) { return false; }
+inline bool P_CheckFor3DCeilingHit(AActor * mo) { return false; }
+inline void P_Recalculate3DFloors(sector_t *) {}
+inline void P_RecalculateAttached3DFloors(sector_t * sec) {}
+inline lightlist_t * P_GetPlaneLight(sector_t * , secplane_t * plane, bool underside) { return NULL; }
+inline void P_Spawn3DFloors( void ) {}
+
+struct FLineOpening;
+
+inline void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *linedef, 
+							fixed_t x, fixed_t y, fixed_t refx, fixed_t refy) {}
 
 #endif
 
+
+#endif

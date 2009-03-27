@@ -108,7 +108,7 @@ static HWND InitDummy()
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = "OpenGL";
+	wc.lpszClassName = "GZDoomOpenGLDummyWindow";
 
 	//Register window class
 	if(!RegisterClass(&wc))
@@ -126,7 +126,7 @@ static HWND InitDummy()
 
 	//Create Window
 	if(!(dummy = CreateWindowEx(exStyle,
-		"OpenGL",
+		"GZDoomOpenGLDummyWindow",
 		"GZDOOM",
 		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | style,
 		0, 0,
@@ -136,7 +136,7 @@ static HWND InitDummy()
 		g_hInst,
 		NULL)))
 	{
-		UnregisterClass("OpenGL", g_hInst);
+		UnregisterClass("GZDoomOpenGLDummyWindow", g_hInst);
 		return 0;
 	}
 	ShowWindow(dummy, SW_HIDE);

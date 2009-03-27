@@ -59,12 +59,14 @@ class FSkyBox : public FTexture
 public:
 
 	FTexture * faces[6];
+	bool fliptop;
 
 	FSkyBox() 
 	{ 
 		faces[0]=faces[1]=faces[2]=faces[3]=faces[4]=faces[5]=NULL; 
 		UseType=TEX_Override;
 		gl_info.bSkybox = true;
+		fliptop = false;
 	}
 	~FSkyBox()
 	{
@@ -124,6 +126,10 @@ void gl_ParseSkybox(FScanner &sc)
 	FSkyBox * sb = new FSkyBox;
 	uppercopy(sb->Name, sc.String);
 	sb->Name[8]=0;
+	if (sc.CheckString("fliptop"))
+	{
+		sb->fliptop = true;
+	}
 	sc.MustGetStringName("{");
 	while (!sc.CheckString("}"))
 	{
@@ -382,25 +388,19 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 
 		if (texh>190 && skystretch) texh=190;
 
-		gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
+		gl.Rotatef(-180.0f+x_offset, 0.f, 1.f, 0.f);
 
 		yAdd = y_offset/texh;
-
-		// The non-stretched skies still need some work
 
 		if (texh<=180) // && skystretch)
 		{
 			yMult=1.0f;
+			if (!skystretch)
+				gl.Scalef(1.f, texh/180.f, 1.f);
 		}
 		else
 		{
 			yMult= 180.0f/texh;
-			/*
-			if (texh<=180)
-			{
-				yAdd-=(180-texh)/(float)texh;
-			}
-			*/
 		}
 	}
 
@@ -463,7 +463,8 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 
 	if (tex)
 	{
-		gl.Rotatef(180.0f-x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
+		gl.Rotatef(180.0f-x_offset, 0, 1, 0);
+		gl.Scalef(1.f, 1.f, 1.f);
 	}
 }
 
@@ -480,7 +481,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 	int faces;
 	FGLTexture * tex;
 
-	gl.Rotatef(-180.0f+x_offset, 0.f, 1.f, 0.f);
+	gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
 	gl.Color3f(R, G ,B);
 
 	if (sb->faces[5]) 
@@ -608,14 +609,28 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 	tex->BindPatch(CM_Index, 0);
 	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
-	gl.TexCoord2f(0, 0);
-	gl.Vertex3f(128.f, 128.f, -128.f);
-	gl.TexCoord2f(1, 0);
-	gl.Vertex3f(-128.f, 128.f, -128.f);
-	gl.TexCoord2f(1, 1);
-	gl.Vertex3f(-128.f, 128.f, 128.f);
-	gl.TexCoord2f(0, 1);
-	gl.Vertex3f(128.f, 128.f, 128.f);
+	if (!sb->fliptop)
+	{
+		gl.TexCoord2f(0, 0);
+		gl.Vertex3f(128.f, 128.f, -128.f);
+		gl.TexCoord2f(1, 0);
+		gl.Vertex3f(-128.f, 128.f, -128.f);
+		gl.TexCoord2f(1, 1);
+		gl.Vertex3f(-128.f, 128.f, 128.f);
+		gl.TexCoord2f(0, 1);
+		gl.Vertex3f(128.f, 128.f, 128.f);
+	}
+	else
+	{
+		gl.TexCoord2f(0, 0);
+		gl.Vertex3f(128.f, 128.f, 128.f);
+		gl.TexCoord2f(1, 0);
+		gl.Vertex3f(-128.f, 128.f, 128.f);
+		gl.TexCoord2f(1, 1);
+		gl.Vertex3f(-128.f, 128.f, -128.f);
+		gl.TexCoord2f(0, 1);
+		gl.Vertex3f(128.f, 128.f, -128.f);
+	}
 	gl.End();
 
 

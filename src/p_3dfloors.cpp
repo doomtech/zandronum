@@ -42,7 +42,8 @@
 #include "sc_man.h"
 #include "v_palette.h"
 #include "g_level.h"
-#include "gl/gl_lights.h"
+
+#ifdef _3DFLOORS
 
 #include "gamemode.h"
 
@@ -163,14 +164,17 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 				if (l->special==Sector_SetContents && l->frontsector==sec)
 				{
 					alpha=clamp<int>(l->args[1], 0, 100);
-					if (l->args[2]&1) flags&=~FF_SOLID;
+					if (l->args[2] & 1) flags &= ~FF_SOLID;
+					if (l->args[2] & 2) flags |= FF_SEETHROUGH;
+					if (l->args[2] & 4) flags |= FF_SHOOTTHROUGH;
+					if (l->args[2] & 8) flags |= FF_ADDITIVETRANS;
 					if (alpha!=100) flags|=FF_TRANSLUCENT;//|FF_BOTHPLANES|FF_ALLSIDES;
 					if (l->args[0]) 
 					{
 						// Yes, Vavoom's 3D-floor definitions suck!
 						static DWORD vavoomcolors[]={
 							0, 0x101080, 0x801010, 0x108010, 0x287020, 0xf0f010};
-						flags|=FF_SWIMMABLE|FF_BOTHPLANES|FF_ALLSIDES;
+						flags|=FF_SWIMMABLE|FF_BOTHPLANES|FF_ALLSIDES|FF_FLOOD;
 
 						l->frontsector->ColorMap = GetSpecialLights (l->frontsector->ColorMap->Color, 
 																	 vavoomcolors[l->args[0]], 
@@ -183,29 +187,33 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 		}
 		else if (param==4)
 		{
-			flags=FF_EXISTS|FF_RENDERPLANES|FF_INVERTPLANES|FF_NOSHADE|FF_FIX|FF_NOSHADE;
+			flags=FF_EXISTS|FF_RENDERPLANES|FF_INVERTPLANES|FF_NOSHADE|FF_FIX;
 			alpha=255;
 		}
 		else 
 		{
 			static const int defflags[]= {0, 
 										  FF_SOLID, 
-										  FF_SWIMMABLE|FF_BOTHPLANES|FF_ALLSIDES, 
-										  0, 0, 
-										  FF_SOLID|FF_BOTHPLANES|FF_ALLSIDES, 
-										  FF_SWIMMABLE|FF_BOTHPLANES|FF_ALLSIDES, 
-										  FF_BOTHPLANES|FF_ALLSIDES};
+										  FF_SWIMMABLE|FF_BOTHPLANES|FF_ALLSIDES|FF_SHOOTTHROUGH|FF_SEETHROUGH, 
+										  FF_SHOOTTHROUGH|FF_SEETHROUGH, 
+			};
 
-			flags = defflags[param&7] | FF_EXISTS|FF_RENDERALL;
+			flags = defflags[param&3] | FF_EXISTS|FF_RENDERALL;
 
-			if (param2&1) flags|=FF_NOSHADE;
-			if (param2&2) flags|=FF_DOUBLESHADOW;
-			if (param2&4) flags|=FF_FOG;
-			if (param2&8) flags|=FF_THINFLOOR;
-			if (param2&16) flags|=FF_UPPERTEXTURE;
-			if (param2&32) flags|=FF_LOWERTEXTURE;
-			if (param2&64) flags|=FF_ADDITIVETRANS|FF_TRANSLUCENT;
-			if (param2&512) flags|=FF_FADEWALLS;
+			if (param&4) flags |= FF_ALLSIDES|FF_BOTHPLANES;
+			if (param&16) flags ^= FF_SEETHROUGH;
+			if (param&32) flags ^= FF_SHOOTTHROUGH;
+
+			if (param2&1) flags |= FF_NOSHADE;
+			if (param2&2) flags |= FF_DOUBLESHADOW;
+			if (param2&4) flags |= FF_FOG;
+			if (param2&8) flags |= FF_THINFLOOR;
+			if (param2&16) flags |= FF_UPPERTEXTURE;
+			if (param2&32) flags |= FF_LOWERTEXTURE;
+			if (param2&64) flags |= FF_ADDITIVETRANS|FF_TRANSLUCENT;
+			// if flooding is used the floor must be non-solid and is automatically made shootthrough and seethrough
+			if ((param2&128) && !(flags & FF_SOLID)) flags |= FF_FLOOD|FF_SEETHROUGH|FF_SHOOTTHROUGH;
+			if (param2&512) flags |= FF_FADEWALLS;
 			FTextureID tex = sides[line->sidenum[0]].GetTexture(side_t::top);
 			if (!tex.Exists() && alpha<255)
 			{
@@ -600,7 +608,7 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 						highestfloor = ff_top;
 						highestfloorpic = *rover->top.texture;
 					}
-					if(ff_top > lowestfloor[j] && ff_top <= thing->z) lowestfloor[j] = ff_top;
+					if(ff_top > lowestfloor[j] && ff_top <= thing->z + thing->MaxStepHeight) lowestfloor[j] = ff_top;
 				}
 			}
 			
@@ -624,11 +632,12 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 
 //==========================================================================
 //
-// Spawns non-ZDoom specials
+// Spawns 3D floors
 //
 //==========================================================================
-void P_SpawnSpecials2 (void)
+void P_Spawn3DFloors (void)
 {
+	static int flagvals[] = {128+512, 2+512, 512};
 	int i;
 	line_t * line;
 	mapUses3DFloors = false;
@@ -644,7 +653,8 @@ void P_SpawnSpecials2 (void)
 			// the best option.
 			//
 			// This does not yet handle case 0 properly!
-			P_Set3DFloor(line, 3, line->args[1]&1? 514:512, 0);
+			if (line->args[1] < 0 || line->args[1] > 2) line->args[1] = 0;
+			P_Set3DFloor(line, 3, flagvals[line->args[1]], 0);
 			break;
 
 		case Sector_Set3DFloor:
@@ -669,30 +679,10 @@ void P_SpawnSpecials2 (void)
 			continue;
 		}
 		line->special=0;
-		line->args[0] = line->args[1] = line->args[2] = line->args[3] = line->args[4]==0;
-	}
-
-	//
-	// Also do some tweaks to the spawned actors
-	//
-	TThinkerIterator<AActor> it;
-	AActor * mo;
-
-	while ((mo=it.Next()))
-	{
-		// Don't count monsters in end-of-level sectors
-		// In 99.9% of all occurences they are part of a trap
-		// and not supposed to be killed.
-		if (mo->flags & MF_COUNTKILL)
-		{
-			if (mo->Sector->special == dDamage_End)
-			{
-				level.total_monsters--;
-				mo->flags&=~(MF_COUNTKILL);
-			}
-		}
+		line->args[0] = line->args[1] = line->args[2] = line->args[3] = line->args[4] = 0;
 	}
 }
 
 
 
+#endif

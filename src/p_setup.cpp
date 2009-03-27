@@ -1345,6 +1345,7 @@ void P_LoadSectors (MapData * map)
 		// killough 8/28/98: initialize all sectors to normal friction
 		ss->friction = ORIG_FRICTION;
 		ss->movefactor = ORIG_FRICTION_FACTOR;
+		ss->sectornum = i;
 	}
 	delete[] msp;
 }
@@ -2289,6 +2290,7 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 		}
 		break;
 
+#ifdef _3DFLOORS
 	case Sector_Set3DFloor:
 		if (msd->toptexture[0]=='#')
 		{
@@ -2308,6 +2310,7 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 		strncpy (name, msd->bottomtexture, 8);
 		sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 		break;
+#endif
 
 	case TranslucentLine:	// killough 4/11/98: apply translucency to 2s normal texture
 		if (checktranmap)
@@ -3920,6 +3923,9 @@ void P_SetupLevel (char *lumpname, int position)
 	for ( i = 0; i < MAXPLAYERS; i++ )
 		playerstarts[i].type = 0;
 
+	// Spawn 3d floors - must be done before spawning things so it can't be done in P_SpawnSpecials
+	P_Spawn3DFloors();
+
 	if (!buildmap)
 	{
 		times[14].Clock();
@@ -3950,8 +3956,6 @@ void P_SetupLevel (char *lumpname, int position)
 	// set up world state
 	P_SpawnSpecials ();
 
-	// Spawn extended specials
-	P_SpawnSpecials2();
 	P_InitTagLists();
 
 	// This must be done BEFORE the PolyObj Spawn!!!
@@ -4040,6 +4044,28 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// set up world state
 	//P_SpawnSpecials ();
+
+	// Don't count monsters in end-of-level sectors
+	// In 99.9% of all occurences they are part of a trap
+	// and not supposed to be killed.
+	{
+		TThinkerIterator<AActor> it;
+		AActor * mo;
+
+		while ((mo=it.Next()))
+		{
+			if (mo->flags & MF_COUNTKILL)
+			{
+				if (mo->Sector->special == dDamage_End)
+				{
+					level.total_monsters--;
+					mo->flags&=~(MF_COUNTKILL);
+				}
+			}
+		}
+	}
+
+	//T_PreprocessScripts();        // preprocess FraggleScript scripts
 
 	// build subsector connect matrix
 	//	UNUSED P_ConnectSubsectors ();

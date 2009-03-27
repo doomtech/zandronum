@@ -173,13 +173,6 @@ subsector_t *R_PointInSubsector (fixed_t x, fixed_t y);
 subsector_t *R_PointInSubsector2 (fixed_t x, fixed_t y);
 fixed_t R_PointToDist2 (fixed_t dx, fixed_t dy);
 
-extern int gl_anglecache;
-inline angle_t vertex_t::GetViewAngle()
-{
-	return angletime == gl_anglecache? viewangle : (angletime = gl_anglecache, viewangle = R_PointToAngle2(viewx, viewy, x,y));
-}
-
-
 void R_SetFOV (float fov);
 float R_GetFOV ();
 void R_InitTextureMapping ();

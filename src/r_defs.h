@@ -629,11 +629,11 @@ struct sector_t
 
 	vertex_t *Triangle[3];	// Three points that can define a plane
 	short						oldspecial;			//jff 2/16/98 remembers if sector WAS secret (automap)
+	int							sectornum;			// for comparing sector copies
 
 	// [GZDoom]
 	extsector_t	*				e;		// This stores data that requires construction/destruction. Such data must not be copied by R_FakeFlat.
 	float						ceiling_reflect, floor_reflect;
-	int							sectornum;			// for comparing sector copies
 
 	bool						transdoor;			// For transparent door hacks
 	fixed_t						transdoorheight;	// for transparent door hacks
@@ -806,17 +806,6 @@ struct side_t
 	void StopInterpolation(int position);
 	//For GL
 	FLightNode * lighthead[2];				// all blended lights that may affect this wall
-
-	enum EClipBits
-	{
-		ClipUpper = 1,
-		ClipNormal = 2,
-		ClipLower = 4,
-		ClipUpperDone = 8,
-		ClipNormalDone = 16,
-		ClipLowerDone = 32,
-	};
-
 
 };
 

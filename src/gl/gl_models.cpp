@@ -594,6 +594,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.
 		// The rotation angle is based on the elapsed time.
+		
 		if( smf->flags & MDL_ROTATING )
 		{
 			float offsetAngle = 0.;
@@ -602,7 +603,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
 			gl.Rotatef(offsetAngle, smf->xrotate, smf->yrotate, smf->zrotate);
 			gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-		}
+		} 		
 
 		// [BB] Workaround for the missing pitch information.
 		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
@@ -648,7 +649,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			offsetAngle = ( (time - static_cast<int>(time)) *360. );
 
 			ModelToWorld.Translate(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, offsetAngle*smf->rotationSpeed);
+			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, smf->rotationSpeed);
 			ModelToWorld.Translate(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
 		}
 
