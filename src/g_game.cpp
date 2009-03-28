@@ -73,6 +73,7 @@
 #include "cmdlib.h"
 #include "d_net.h"
 #include "d_event.h"
+#include "p_acs.h"
 // [BB] New #includes.
 #include "network.h"
 #include "chat.h"
@@ -537,6 +538,11 @@ CCMD (invdrop)
 		CLIENTCOMMANDS_RequestInventoryDrop( players[consoleplayer].mo->InvSel );
 	else
 		if (players[consoleplayer].mo) SendItemDrop = players[consoleplayer].mo->InvSel;
+}
+
+CCMD (weapdrop)
+{
+	SendItemDrop = players[consoleplayer].ReadyWeapon;
 }
 
 CCMD (drop)
@@ -1947,7 +1953,7 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 		}
 	}
 
-	if (mode == FINISH_NoHub && !(level.flags & LEVEL_KEEPFULLINVENTORY))
+	if (mode == FINISH_NoHub && !(level.flags2 & LEVEL2_KEEPFULLINVENTORY))
 	{ // Reduce all owned (visible) inventory to 1 item each
 		for (item = p->mo->Inventory; item != NULL; item = item->Inventory)
 		{
@@ -2606,7 +2612,7 @@ void G_DoReborn (int playernum, bool freshbot)
 	{
 		return;
 	}
-	else if ((NETWORK_GetState( ) == NETSTATE_SINGLE) && !(level.flags & LEVEL_ALLOWRESPAWN))
+	else if ((NETWORK_GetState( ) == NETSTATE_SINGLE) && !(level.flags2 & LEVEL2_ALLOWRESPAWN))
 	{
 		if (BackupSaveName.Len() > 0 && FileExists (BackupSaveName.GetChars()))
 		{ // Load game from the last point it was saved
@@ -3419,10 +3425,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	level.total_monsters = 0;
 
 	// Restart the map music.
-	S_ChangeMusic( level.music, level.musicorder );
+	S_ChangeMusic( level.Music.GetChars(), level.musicorder );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVER_SetMapMusic( level.music );
+		SERVER_SetMapMusic( level.Music.GetChars() );
 		SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ));
 	}
 
@@ -3902,128 +3908,6 @@ bool G_CheckSaveGameWads (PNGHandle *png, bool printwarn)
 	return true;
 }
 
-static void WriteVars (FILE *file, SDWORD *vars, size_t count, DWORD id)
-{
-	size_t i, j;
-
-	for (i = 0; i < count; ++i)
-	{
-		if (vars[i] != 0)
-			break;
-	}
-	if (i < count)
-	{
-		// Find last non-zero var. Anything beyond the last stored variable
-		// will be zeroed at load time.
-		for (j = count-1; j > i; --j)
-		{
-			if (vars[j] != 0)
-				break;
-		}
-		FPNGChunkArchive arc (file, id);
-		for (i = 0; i <= j; ++i)
-		{
-			DWORD var = vars[i];
-			arc << var;
-		}
-	}
-}
-
-static void ReadVars (PNGHandle *png, SDWORD *vars, size_t count, DWORD id)
-{
-	size_t len = M_FindPNGChunk (png, id);
-	size_t used = 0;
-
-	if (len != 0)
-	{
-		DWORD var;
-		size_t i;
-		FPNGChunkArchive arc (png->File->GetFile(), id, len);
-		used = len / 4;
-
-		for (i = 0; i < used; ++i)
-		{
-			arc << var;
-			vars[i] = var;
-		}
-		png->File->ResetFilePtr();
-	}
-	if (used < count)
-	{
-		memset (&vars[used], 0, (count-used)*4);
-	}
-}
-
-static void WriteArrayVars (FILE *file, FWorldGlobalArray *vars, unsigned int count, DWORD id)
-{
-	unsigned int i, j;
-
-	// Find the first non-empty array.
-	for (i = 0; i < count; ++i)
-	{
-		if (vars[i].CountUsed() != 0)
-			break;
-	}
-	if (i < count)
-	{
-		// Find last non-empty array. Anything beyond the last stored array
-		// will be emptied at load time.
-		for (j = count-1; j > i; --j)
-		{
-			if (vars[j].CountUsed() != 0)
-				break;
-		}
-		FPNGChunkArchive arc (file, id);
-		arc.WriteCount (i);
-		arc.WriteCount (j);
-		for (; i <= j; ++i)
-		{
-			arc.WriteCount (vars[i].CountUsed());
-
-			FWorldGlobalArray::ConstIterator it(vars[i]);
-			const FWorldGlobalArray::Pair *pair;
-
-			while (it.NextPair (pair))
-			{
-				arc.WriteCount (pair->Key);
-				arc.WriteCount (pair->Value);
-			}
-		}
-	}
-}
-
-static void ReadArrayVars (PNGHandle *png, FWorldGlobalArray *vars, size_t count, DWORD id)
-{
-	size_t len = M_FindPNGChunk (png, id);
-	unsigned int i, k;
-
-	for (i = 0; i < count; ++i)
-	{
-		vars[i].Clear ();
-	}
-
-	if (len != 0)
-	{
-		DWORD max, size;
-		FPNGChunkArchive arc (png->File->GetFile(), id, len);
-
-		i = arc.ReadCount ();
-		max = arc.ReadCount ();
-
-		for (; i <= max; ++i)
-		{
-			size = arc.ReadCount ();
-			for (k = 0; k < size; ++k)
-			{
-				SDWORD key, val;
-				key = arc.ReadCount();
-				val = arc.ReadCount();
-				vars[i].Insert (key, val);
-			}
-		}
-		png->File->ResetFilePtr();
-	}
-}
 
 void G_DoLoadGame ()
 {
@@ -4141,10 +4025,7 @@ void G_DoLoadGame ()
 	delete[] map;
 	savegamerestore = false;
 
-	ReadVars (png, ACS_WorldVars, NUM_WORLDVARS, MAKE_ID('w','v','A','r'));
-	ReadVars (png, ACS_GlobalVars, NUM_GLOBALVARS, MAKE_ID('g','v','A','r'));
-	ReadArrayVars (png, ACS_WorldArrays, NUM_WORLDVARS, MAKE_ID('w','a','R','r'));
-	ReadArrayVars (png, ACS_GlobalArrays, NUM_GLOBALVARS, MAKE_ID('g','a','R','r'));
+	P_ReadACSVars(png);
 
 	// [BC] Read the invasion state, etc.
 	if ( invasion )
@@ -4312,7 +4193,7 @@ static void PutSaveComment (FILE *file)
 
 	// Get level name
 	//strcpy (comment, level.level_name);
-	mysnprintf(comment, countof(comment), "%s - %s", level.mapname, level.level_name);
+	mysnprintf(comment, countof(comment), "%s - %s", level.mapname, level.LevelName.GetChars());
 	len = (WORD)strlen (comment);
 	comment[len] = '\n';
 
@@ -4396,10 +4277,7 @@ void G_DoSaveGame (bool okForQuicksave, FString filename, const char *descriptio
 	FRandom::StaticWriteRNGState (stdfile);
 	P_WriteACSDefereds (stdfile);
 
-	WriteVars (stdfile, ACS_WorldVars, NUM_WORLDVARS, MAKE_ID('w','v','A','r'));
-	WriteVars (stdfile, ACS_GlobalVars, NUM_GLOBALVARS, MAKE_ID('g','v','A','r'));
-	WriteArrayVars (stdfile, ACS_WorldArrays, NUM_WORLDVARS, MAKE_ID('w','a','R','r'));
-	WriteArrayVars (stdfile, ACS_GlobalArrays, NUM_GLOBALVARS, MAKE_ID('g','a','R','r'));
+	P_WriteACSVars(stdfile);
 
 	// [BC] Write the invasion state, etc.
 	if ( invasion )
@@ -4890,11 +4768,11 @@ void G_DoPlayDemo (void)
 
 		if (singledemo)
 		{
-			I_Error (eek);
+			I_Error ("%s", eek);
 		}
 		else
 		{
-			Printf (PRINT_BOLD, eek);
+			Printf (PRINT_BOLD, "%s", eek);
 			gameaction = ga_nothing;
 		}
 	}
@@ -5055,14 +4933,14 @@ CCMD( freeze )
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
 	{
 		// Toggle the freeze mode.
-		if ( level.flags & LEVEL_FROZEN )
-			level.flags &= ~LEVEL_FROZEN;
+		if ( level.flags2 & LEVEL2_FROZEN )
+			level.flags2 &= ~LEVEL2_FROZEN;
 		else
-			level.flags|= LEVEL_FROZEN;
+			level.flags2|= LEVEL2_FROZEN;
 
-		Printf( "Freeze mode %s\n", ( level.flags & LEVEL_FROZEN ) ? "ON" : "OFF" );
+		Printf( "Freeze mode %s\n", ( level.flags2 & LEVEL2_FROZEN ) ? "ON" : "OFF" );
 
-		if ( level.flags & LEVEL_FROZEN )
+		if ( level.flags2 & LEVEL2_FROZEN )
 			players[consoleplayer].cheats |= CF_FREEZE;
 		else
 			players[consoleplayer].cheats &= ~CF_FREEZE;

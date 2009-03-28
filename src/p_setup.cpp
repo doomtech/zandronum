@@ -1670,7 +1670,7 @@ void P_SetLineID (line_t *ld)
 		switch (ld->special)
 		{
 		case Line_SetIdentification:
-			if (!(level.flags & LEVEL_HEXENHACK))
+			if (!(level.flags2 & LEVEL2_HEXENHACK))
 			{
 				ld->id = ld->args[0] + 256 * ld->args[4];
 				ld->flags |= ld->args[1]<<16;
@@ -1920,9 +1920,9 @@ void P_LoadLineDefs (MapData * map)
 		ld->SavedArgs[3] = ld->args[3];
 		ld->SavedArgs[4] = ld->args[4];
 
-		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
-		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
-		if (level.flags & LEVEL_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
+		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
+		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
+		if (level.flags2 & LEVEL2_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
 	}
 	delete[] mldf;
 }
@@ -2008,9 +2008,9 @@ void P_LoadLineDefs2 (MapData * map)
 		ld->SavedArgs[3] = ld->args[3];
 		ld->SavedArgs[4] = ld->args[4];
 
-		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
-		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
-		if (level.flags & LEVEL_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
+		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
+		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
+		if (level.flags2 & LEVEL2_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
 
 		// convert the activation type
 		ld->activation = 1 << GET_SPAC(ld->flags);
@@ -2751,7 +2751,7 @@ void P_LoadBlockMap (MapData * map)
 	// [BC] Also, build the node list for the bot pathing module.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ) &&
-		(( level.flags & LEVEL_NOBOTNODES ) == false ) &&
+		(( level.flags2 & LEVEL2_NOBOTNODES ) == false ) &&
 		(( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( sv_disallowbots == false )))
 	{
 		ASTAR_BuildNodes( );
@@ -3705,7 +3705,7 @@ void P_SetupLevel (char *lumpname, int position)
 		{
 			// We need translators only for Doom format maps.
 			// If none has been defined in a map use the game's default.
-			P_LoadTranslator(level.info->translator != NULL? (const char *)level.info->translator : gameinfo.translator);
+			P_LoadTranslator(!level.info->Translator.IsEmpty()? level.info->Translator.GetChars() : gameinfo.translator);
 		}
 		/* [BB] ST doesn't do this.
 		T_LoadScripts(map);
@@ -3715,9 +3715,9 @@ void P_SetupLevel (char *lumpname, int position)
 		{
 			// Doom format and UDMF text maps get strict monster activation unless the mapinfo
 			// specifies differently.
-			if (!(level.flags & LEVEL_LAXACTIVATIONMAPINFO))
+			if (!(level.flags2 & LEVEL2_LAXACTIVATIONMAPINFO))
 			{
-				level.flags &= ~LEVEL_LAXMONSTERACTIVATION;
+				level.flags2 &= ~LEVEL2_LAXMONSTERACTIVATION;
 			}
 		}
 
@@ -3726,9 +3726,9 @@ void P_SetupLevel (char *lumpname, int position)
 			// set compatibility flags
 			if (gameinfo.gametype == GAME_Strife)
 			{
-				level.flags |= LEVEL_RAILINGHACK;
+				level.flags2 |= LEVEL2_RAILINGHACK;
 			}
-			level.flags |= LEVEL_DUMMYSWITCHES;
+			level.flags2 |= LEVEL2_DUMMYSWITCHES;
 		}
 
 		FBehavior::StaticLoadDefaultModules ();

@@ -496,7 +496,6 @@ void I_Quit (void)
 	// [BC] Support for client-side demos.
 	if ( CLIENTDEMO_IsRecording( ))
 		CLIENTDEMO_FinishRecording( );
-	G_ClearSnapshots ();
 }
 
 

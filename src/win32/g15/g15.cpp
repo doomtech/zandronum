@@ -61,7 +61,7 @@
 
 	// Just define the stubs.
 	void		G15_Construct( void ) { }
-	void		G15_NextLevel( char *lump, char *name ) { }
+	void		G15_NextLevel( const char *lump, const char *name ) { }
 	void		G15_Tick( void ) { }
 	bool		G15_TryConnect( void ) { return false; }
 	bool		G15_IsReady( void ) { return false; }
@@ -265,7 +265,7 @@ void G15_Deconstruct( void )
 
 //*****************************************************************************
 //
-void G15_NextLevel( char *lump, char *name )
+void G15_NextLevel( const char *lump, const char *name )
 {
 	if( G15_IsReady( ) )
 	{

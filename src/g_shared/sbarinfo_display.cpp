@@ -56,6 +56,7 @@
 #include "a_strifeglobal.h"
 #include "g_level.h"
 #include "v_palette.h"
+#include "p_acs.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cooperative.h"
@@ -1749,14 +1750,14 @@ DBaseStatusBar *CreateStatusBar ()
 		}
 		else
 		{
-			sbar = CreateCustomStatusBar(GETSBARINFOSCRIPT(gameinfo.gametype));
+			sbar = CreateCustomStatusBar(SCRIPT_DEFAULT);
 		}
 	}
 	if (sbar == NULL)
 	{
 		if (gameinfo.gametype & GAME_DoomChex)
 		{
-			sbar = CreateCustomStatusBar (GETSBARINFOSCRIPT(gameinfo.gametype));
+			sbar = CreateCustomStatusBar (SCRIPT_DEFAULT);
 		}
 		else if (gameinfo.gametype == GAME_Heretic)
 		{

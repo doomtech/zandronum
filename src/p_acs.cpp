@@ -69,6 +69,7 @@
 #include "r_translate.h"
 #include "sbarinfo.h"
 #include "cmdlib.h"
+#include "m_png.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"
@@ -127,6 +128,222 @@ TArray<FBehavior *> FBehavior::StaticModules;
 
 // [BC] When true, any console commands/line specials were executed via the ConsoleCommand p-code.
 static	bool	g_bCalledFromConsoleCommand = false;
+
+
+//============================================================================
+//
+// Global and world variables
+//
+//============================================================================
+
+// ACS variables with world scope
+SDWORD ACS_WorldVars[NUM_WORLDVARS];
+FWorldGlobalArray ACS_WorldArrays[NUM_WORLDVARS];
+
+// ACS variables with global scope
+SDWORD ACS_GlobalVars[NUM_GLOBALVARS];
+FWorldGlobalArray ACS_GlobalArrays[NUM_GLOBALVARS];
+
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+void P_ClearACSVars(bool alsoglobal)
+{
+	int i;
+
+	memset (ACS_WorldVars, 0, sizeof(ACS_WorldVars));
+	for (i = 0; i < NUM_WORLDVARS; ++i)
+	{
+		ACS_WorldArrays[i].Clear ();
+	}
+	if (alsoglobal)
+	{
+		memset (ACS_GlobalVars, 0, sizeof(ACS_GlobalVars));
+		for (i = 0; i < NUM_GLOBALVARS; ++i)
+		{
+			ACS_GlobalArrays[i].Clear ();
+		}
+	}
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+static void WriteVars (FILE *file, SDWORD *vars, size_t count, DWORD id)
+{
+	size_t i, j;
+
+	for (i = 0; i < count; ++i)
+	{
+		if (vars[i] != 0)
+			break;
+	}
+	if (i < count)
+	{
+		// Find last non-zero var. Anything beyond the last stored variable
+		// will be zeroed at load time.
+		for (j = count-1; j > i; --j)
+		{
+			if (vars[j] != 0)
+				break;
+		}
+		FPNGChunkArchive arc (file, id);
+		for (i = 0; i <= j; ++i)
+		{
+			DWORD var = vars[i];
+			arc << var;
+		}
+	}
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+static void ReadVars (PNGHandle *png, SDWORD *vars, size_t count, DWORD id)
+{
+	size_t len = M_FindPNGChunk (png, id);
+	size_t used = 0;
+
+	if (len != 0)
+	{
+		DWORD var;
+		size_t i;
+		FPNGChunkArchive arc (png->File->GetFile(), id, len);
+		used = len / 4;
+
+		for (i = 0; i < used; ++i)
+		{
+			arc << var;
+			vars[i] = var;
+		}
+		png->File->ResetFilePtr();
+	}
+	if (used < count)
+	{
+		memset (&vars[used], 0, (count-used)*4);
+	}
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+static void WriteArrayVars (FILE *file, FWorldGlobalArray *vars, unsigned int count, DWORD id)
+{
+	unsigned int i, j;
+
+	// Find the first non-empty array.
+	for (i = 0; i < count; ++i)
+	{
+		if (vars[i].CountUsed() != 0)
+			break;
+	}
+	if (i < count)
+	{
+		// Find last non-empty array. Anything beyond the last stored array
+		// will be emptied at load time.
+		for (j = count-1; j > i; --j)
+		{
+			if (vars[j].CountUsed() != 0)
+				break;
+		}
+		FPNGChunkArchive arc (file, id);
+		arc.WriteCount (i);
+		arc.WriteCount (j);
+		for (; i <= j; ++i)
+		{
+			arc.WriteCount (vars[i].CountUsed());
+
+			FWorldGlobalArray::ConstIterator it(vars[i]);
+			const FWorldGlobalArray::Pair *pair;
+
+			while (it.NextPair (pair))
+			{
+				arc.WriteCount (pair->Key);
+				arc.WriteCount (pair->Value);
+			}
+		}
+	}
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+static void ReadArrayVars (PNGHandle *png, FWorldGlobalArray *vars, size_t count, DWORD id)
+{
+	size_t len = M_FindPNGChunk (png, id);
+	unsigned int i, k;
+
+	for (i = 0; i < count; ++i)
+	{
+		vars[i].Clear ();
+	}
+
+	if (len != 0)
+	{
+		DWORD max, size;
+		FPNGChunkArchive arc (png->File->GetFile(), id, len);
+
+		i = arc.ReadCount ();
+		max = arc.ReadCount ();
+
+		for (; i <= max; ++i)
+		{
+			size = arc.ReadCount ();
+			for (k = 0; k < size; ++k)
+			{
+				SDWORD key, val;
+				key = arc.ReadCount();
+				val = arc.ReadCount();
+				vars[i].Insert (key, val);
+			}
+		}
+		png->File->ResetFilePtr();
+	}
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+void P_ReadACSVars(PNGHandle *png)
+{
+	ReadVars (png, ACS_WorldVars, NUM_WORLDVARS, MAKE_ID('w','v','A','r'));
+	ReadVars (png, ACS_GlobalVars, NUM_GLOBALVARS, MAKE_ID('g','v','A','r'));
+	ReadArrayVars (png, ACS_WorldArrays, NUM_WORLDVARS, MAKE_ID('w','a','R','r'));
+	ReadArrayVars (png, ACS_GlobalArrays, NUM_GLOBALVARS, MAKE_ID('g','a','R','r'));
+}
+
+//============================================================================
+//
+//
+//
+//============================================================================
+
+void P_WriteACSVars(FILE *stdfile)
+{
+	WriteVars (stdfile, ACS_WorldVars, NUM_WORLDVARS, MAKE_ID('w','v','A','r'));
+	WriteVars (stdfile, ACS_GlobalVars, NUM_GLOBALVARS, MAKE_ID('g','v','A','r'));
+	WriteArrayVars (stdfile, ACS_WorldArrays, NUM_WORLDVARS, MAKE_ID('w','a','R','r'));
+	WriteArrayVars (stdfile, ACS_GlobalArrays, NUM_GLOBALVARS, MAKE_ID('g','a','R','r'));
+}
 
 //---- Inventory functions --------------------------------------//
 //
@@ -2342,24 +2559,28 @@ void DLevelScript::DoSetFont (int fontnum)
 	}
 }
 
-#define APROP_Health		0
-#define APROP_Speed			1
-#define APROP_Damage		2
-#define APROP_Alpha			3
-#define APROP_RenderStyle	4
-#define APROP_Ambush		10
-#define APROP_Invulnerable	11
-#define APROP_JumpZ			12	// [GRB]
-#define APROP_ChaseGoal		13
-#define APROP_Frightened	14
-#define APROP_Gravity		15
-#define APROP_Friendly		16
-#define APROP_SpawnHealth   17
-#define APROP_SeeSound		5	// Sounds can only be set, not gotten
-#define APROP_AttackSound	6
-#define APROP_PainSound		7
-#define APROP_DeathSound	8
-#define APROP_ActiveSound	9
+enum
+{
+	APROP_Health		= 0,
+	APROP_Speed			= 1,
+	APROP_Damage		= 2,
+	APROP_Alpha			= 3,
+	APROP_RenderStyle	= 4,
+	APROP_SeeSound		= 5,	// Sounds can only be set, not gotten
+	APROP_AttackSound	= 6,
+	APROP_PainSound		= 7,
+	APROP_DeathSound	= 8,
+	APROP_ActiveSound	= 9,
+	APROP_Ambush		= 10,
+	APROP_Invulnerable	= 11,
+	APROP_JumpZ			= 12,	// [GRB]
+	APROP_ChaseGoal		= 13,
+	APROP_Frightened	= 14,
+	APROP_Gravity		= 15,
+	APROP_Friendly		= 16,
+	APROP_SpawnHealth   = 17,
+	APROP_Dropped		= 18,
+};	
 
 // These are needed for ACS's APROP_RenderStyle
 static const int LegacyRenderStyleIndices[] =
@@ -2456,6 +2677,10 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_Ambush:
 		if (value) actor->flags |= MF_AMBUSH; else actor->flags &= ~MF_AMBUSH;
+		break;
+
+	case APROP_Dropped:
+		if (value) actor->flags |= MF_DROPPED; else actor->flags &= ~MF_DROPPED;
 		break;
 
 	case APROP_Invulnerable:
@@ -2589,6 +2814,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 							return STYLE_Normal;
 	case APROP_Gravity:		return actor->gravity;
 	case APROP_Ambush:		return !!(actor->flags & MF_AMBUSH);
+	case APROP_Dropped:		return !!(actor->flags & MF_DROPPED);
 	case APROP_ChaseGoal:	return !!(actor->flags5 & MF5_CHASEGOAL);
 	case APROP_Frightened:	return !!(actor->flags4 & MF4_FRIGHTENED);
 	case APROP_Friendly:	return !!(actor->flags & MF_FRIENDLY);

@@ -1,3 +1,114 @@
+February 5, 2009  (Changes by Graf Zahl)
+- Made improvements so that the FOptionalMapinfoData class is easier to use.
+
+February 3, 2009
+- Moved the MF_INCHASE recursion check from A_Look() into A_Chase(). This
+  lets A_Look() always put the actor into its see state. This problem could
+  be heard by an Archvile's resurrectee playing its see sound but failing to
+  enter its see state because it was called from A_Chase().
+- Fixed: SBARINFO used different rounding modes for the background and
+  foreground of the DrawBar command.
+- Bumped MINSAVEVER to coincide with the new MAPINFO merge.
+- Added a fflush() call after the logfile write in I_FatalError so that the
+  error text is visible in the file while the error dialog is displayed.
+
+January 18, 2009 - February 3, 2009  (Changes by Graf Zahl)
+- moved all code related to global ACS variables to p_acs.cpp where it belongs.
+- fixed: The nextmap and nextsecret CCMDs need to call G_DeferedInitNew instead of G_InitNew.
+- rewrote the MAPINFO parser:
+  * split level_info_t::flags into 2 DWORDS so that I don't have to deal with 64 bit values later.
+  * split off skill code into its own file
+  * created a parser class for MAPINFO
+  * replaced all uses of ReplaceString in level_info_t with FStrings and made the specialaction 
+    data a TArray so that levelinfos can be handled without error prone maintenance functions.
+  * split of parser code from g_level.cpp
+  * const-ified parameters to F_StartFinale.
+  * Changed how G_MaybeLookupLevelName works and made it return an FString.
+  * removed 64 character limit on level names.
+
+February 2, 2009
+- Changed DECORATE replacements so that they aren't overridden by Dehacked.
+
+February 2, 2009  (Changes by Graf Zahl)
+- Fixed: The damage factor for 'normal' damage is supposed to be applied to
+  all damage types that don't have a specific damage factor.
+
+January 31, 2009
+- Changed FMOD init() to allocate some virtual channels.
+- Fixed clipping in D3DFB::DrawTextureV() for good by using a scissor test.
+
+January 30, 2009
+- Fixed: D3DFB::DrawTextureV() did not properly adjust the texture coordinate
+  for lclip and rclip.
+- Added weapdrop ccmd.
+- Centered the compatibility mode option in the comptibility options menu.
+- Added button mappings for 8 mouse buttons on SDL. It works with my system,
+  but Linux being Linux, there are no guarantees that it's appropriate for
+  other systems.
+- Fixed: SDL input code did not generate GUI events for the mousewheel, so it
+  could not be used to scroll the console buffer.
+
+January 30, 2009  (Changes by Graf Zahl)
+- Added Blzut3's statusbar maintenance patch.
+
+January 29, 2009  (Changes by Graf Zahl)
+- fixed sound origin of the Mage Wand's missile.
+
+January 28, 2009  (Changes by Graf Zahl)
+- Added APROP_Dropped actor property.
+- Fixed: The compatmode CVAR needs CVAR_NOINITCALL so that the compatibility 
+  flags don't get reset each start.
+- Fixed: compatmode Doom(strict) was missing COMPAT_CROSSDROPOFF
+  
+January 27, 2009
+- More GCC warning removal, the most egregious of which was the security
+  vulnerability "format not a string literal and no format arguments".
+- Changed the CMake script to search for fmod libraries by full name instead
+  of assuming a symbolic link has been placed for the latest version. It can
+  also find a non-installed copy of FMOD if it is placed local to the ZDoom
+  source tree.
+
+January 26, 2009
+- Fixed: Some OPL state needs to be restored before calculating rhythm. Also,
+  since only the rhythm section uses the RNG, it doesn't need to be advanced
+  for the normal voice processing.
+
+January 25, 2009  (Changes by Graf Zahl)
+- fixed some issues with P_FindFloorCeiling's coordinate processing.
+- added a new compatmode CVAR which allows setting some generic compatibility 
+  flag combinations:
+  Doom: sets the options needed to make most Doom.exe compatible map play without
+  errors.
+  Doom (strict): Same as above but sets a few more options. Please note that this
+  does not mean full Doom.exe behavior emulation.
+  Boom: Sets all options that consider differences between ZDoom and Boom.
+  ZDoom 2.0.63: Sets only the COMPATF_SOUNDTARGET option which is needed for
+  many older ZDoom maps.
+- added new COMPAT_CROSSDROPOFF option to block monsters from being pushed over
+  dropoffs by damage kickback.
+- fixed: AFastProjectile::Tick must call Effect only 8 times per tic, regardless
+  of the amount of steps taken.
+- fixed: momentum checks in AFastProjectile did not use absolute values.
+
+January 24, 2009
+- Restored the rhythm section to fmopl.cpp and made some slight updates from
+  version 0.72 of MAME's fmopl.c. Also refactored CalcVoice so that the
+  original MAME structure is more visible.
+- Removed the SoundChans bitfield from AActor, since it seems there are race
+  conditions I don't fully understand where it simply doesn't work.
+- Removed BaseTime initialization from sdl/i_system.cpp as per Chris's
+  recommendation.
+
+January 24, 2009  (Changes by Graf Zahl)
+- Fixed: The sight checking code didn't initialize the myseethrough variable.
+- Fixed: With COMPAT_TRACE switched on linedef actions on lines having
+  the same sector on both sides were not triggered.
+
+January 23, 2009
+- Set packet server as the default for four or more player games, and also the
+  default for three player games where the other players are not in the same
+  private IP range.
+
 January 18, 2009  (Changes by Graf Zahl)
 - Added a CopyInfo function to FTexture that contains all code required to 
   clone a texture. Used for creating warping textures.

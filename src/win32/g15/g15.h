@@ -76,7 +76,7 @@ typedef enum
 //	PROTOTYPES
 
 void		G15_Construct( void );
-void		G15_NextLevel( char *lump, char *name );
+void		G15_NextLevel( const char *lump, const char *name );
 void		G15_Tick( void );
 bool		G15_TryConnect( void );
 bool		G15_IsReady( void );

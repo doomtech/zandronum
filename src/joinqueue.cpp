@@ -302,7 +302,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 			if ( duel )
 			{
 				// [BB] Skip countdown and map reset if the map is supposed to be a lobby.
-				if ( level.flags & LEVEL_ISLOBBY )
+				if ( level.flags2 & LEVEL2_ISLOBBY )
 					DUEL_SetState( DS_INDUEL );
 				else if ( sv_duelcountdowntime > 0 )
 					DUEL_StartCountdown(( sv_duelcountdowntime * TICRATE ) - 1 );

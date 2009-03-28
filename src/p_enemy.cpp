@@ -1792,14 +1792,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look)
 			// Let the self wander around aimlessly looking for a fight
 			if (self->SeeState != NULL)
 			{
-				if (!(self->flags & MF_INCHASE))
-				{
-					// [BC] Tell clients to set the thing's state.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+				// [BC] Tell clients to set the thing's state.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingState( self, STATE_SEE );
 
-					self->SetState (self->SeeState);
-				}
+				self->SetState (self->SeeState);
 			}
 			else
 			{
@@ -1852,7 +1849,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look)
 		}
 	}
 
-	if (self->target && !(self->flags & MF_INCHASE))
+	if (self->target)
 	{
 		// [BC] If we are the server, tell clients about the state change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2009,6 +2006,10 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 {
 	int delta;
 
+	if (actor->flags & MF_INCHASE)
+	{
+		return;
+	}
 	actor->flags |= MF_INCHASE;
 
 	// [RH] Andy Baker's stealth monsters
@@ -2528,11 +2529,6 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			S_Sound (corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 			info = corpsehit->GetDefault ();
 			
-			// [BC] If we're the server, tell clients to put the thing into its raise state.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
-
-			corpsehit->SetState (raisestate);
 			corpsehit->height = info->height;	// [RH] Use real mobj height
 			corpsehit->radius = info->radius;	// [RH] Use real radius
 			/*
@@ -2571,6 +2567,12 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 
 			// You are the Archvile's minion now, so hate what it hates
 			corpsehit->CopyFriendliness (self, false);
+
+			// [BC] If we're the server, tell clients to put the thing into its raise state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
+
+			corpsehit->SetState (raisestate);
 			return true;
 		}
 	}
@@ -3097,9 +3099,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 	
 	// Do generic special death actions first
 	bool checked = false;
-	FSpecialAction *sa = level.info->specialactions;
-	while (sa)
+	for(unsigned i=0; i<level.info->specialactions.Size(); i++)
 	{
+		FSpecialAction *sa = &level.info->specialactions[i];
+
 		if (type == sa->Type || mytype == sa->Type)
 		{
 			if (!checked && !CheckBossDeath(self))
@@ -3111,7 +3114,6 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 			LineSpecials[sa->Action](NULL, self, false, 
 				sa->Args[0], sa->Args[1], sa->Args[2], sa->Args[3], sa->Args[4]);
 		}
-		sa = sa->Next;
 	}
 
 	// [RH] These all depend on the presence of level flags now

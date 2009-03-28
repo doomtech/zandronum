@@ -97,7 +97,6 @@ void gl_InitSpecialTextures()
 	glpart = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart.png"), FTexture::TEX_MiscPatch);
 	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
 	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
-	//atterm(DeleteGLTextures);
 }
 
 //-----------------------------------------------------------------------------
@@ -229,88 +228,73 @@ struct FGLROptions : public FOptionalMapinfoData
 	FVector3	skyrotatevector;
 };
 
-static void ParseFunc(FScanner &sc, level_info_t *info)
+DEFINE_MAP_OPTION(fogdensity, false)
 {
-	FName id = "gl_renderer";
-	FOptionalMapinfoData *dat = info->opdata;
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	parse.ParseAssign();
+	parse.sc.MustGetNumber();
+	opt->fogdensity = parse.sc.Number;
+}
 
-	while (dat && dat->identifier != id) dat = dat->Next;
-	if (!dat) 
+DEFINE_MAP_OPTION(outsidefogdensity, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	parse.ParseAssign();
+	parse.sc.MustGetNumber();
+	opt->outsidefogdensity = parse.sc.Number;
+}
+
+DEFINE_MAP_OPTION(skyfog, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	parse.ParseAssign();
+	parse.sc.MustGetNumber();
+	opt->skyfog = parse.sc.Number;
+}
+
+DEFINE_MAP_OPTION(lightmode, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	parse.ParseAssign();
+	parse.sc.MustGetNumber();
+	opt->lightmode = BYTE(parse.sc.Number);
+}
+
+DEFINE_MAP_OPTION(nocoloredspritelighting, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	if (parse.CheckAssign())
 	{
-		dat = new FGLROptions;
-		dat->Next = info->opdata;
-		info->opdata = dat;
+		parse.sc.MustGetNumber();
+		opt->nocoloredspritelighting = !!parse.sc.Number;
 	}
-
-	FGLROptions *opt = static_cast<FGLROptions*>(dat);
-
-	while (!sc.CheckString("}"))
+	else
 	{
-		sc.MustGetString();
-		if (sc.Compare("fogdensity"))
-		{
-			sc.MustGetNumber();
-			opt->fogdensity = sc.Number;
-		}
-		else if (sc.Compare("outsidefogdensity"))
-		{
-			sc.MustGetNumber();
-			opt->outsidefogdensity = sc.Number;
-		}
-		else if (sc.Compare("skyfog"))
-		{
-			sc.MustGetNumber();
-			opt->skyfog = sc.Number;
-		}
-		else if (sc.Compare("lightmode"))
-		{
-			sc.MustGetNumber();
-			opt->lightmode = BYTE(sc.Number);
-		}
-		else if (sc.Compare("nocoloredspritelighting"))
-		{
-			if (sc.CheckNumber())
-			{
-				opt->nocoloredspritelighting = !!sc.Number;
-			}
-			else
-			{
-				opt->nocoloredspritelighting = true;
-			}
-		}
-		else if (sc.Compare("skyrotate"))
-		{
-			sc.MustGetFloat();
-			opt->skyrotatevector.X = (float)sc.Float;
-			sc.MustGetFloat();
-			opt->skyrotatevector.Y = (float)sc.Float;
-			sc.MustGetFloat();
-			opt->skyrotatevector.Z = (float)sc.Float;
-			opt->skyrotatevector.MakeUnit();
-		}
-		else
-		{
-			sc.ScriptError("Unknown keyword %s", sc.String);
-		}
+		opt->nocoloredspritelighting = true;
 	}
 }
 
-void gl_AddMapinfoParser() 
-{ 
-	AddOptionalMapinfoParser("gl_renderer", ParseFunc);
+DEFINE_MAP_OPTION(skyrotate, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+
+	parse.ParseAssign();
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector.X = (float)parse.sc.Float;
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector.Y = (float)parse.sc.Float;
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector.Z = (float)parse.sc.Float;
+	opt->skyrotatevector.MakeUnit();
 }
 
 static void InitGLRMapinfoData()
 {
-	FName id = "gl_renderer";
-	FOptionalMapinfoData *dat = level.info->opdata;
+	FGLROptions *opt = level.info->GetOptData<FGLROptions>("gl_renderer", false);
 
-	while (dat && dat->identifier != id) dat = dat->Next;
-	if (dat != NULL)
+	if (opt != NULL)
 	{
-		FGLROptions *opt = static_cast<FGLROptions*>(dat);
 		gl_SetFogParams(opt->fogdensity, level.info->outsidefog, opt->outsidefogdensity, opt->skyfog);
-
 		glset.map_lightmode = opt->lightmode;
 		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
 		glset.skyrotatevector = opt->skyrotatevector;

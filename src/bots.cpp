@@ -1942,7 +1942,7 @@ void CSkullBot::Tick( void )
 		return;
 
 	// Don't run their script if the game is frozen.
-	if ( level.flags & LEVEL_FROZEN )
+	if ( level.flags2 & LEVEL2_FROZEN )
 		return;
 
 	// [BB] Don't run their script if they are frozen either.
@@ -3794,7 +3794,7 @@ CCMD( addbot )
 	{
 		if ( sv_disallowbots )
 			Printf( "The bot pathing nodes have not been set up. Please set \"sv_disallowbots\" to \"false\" if you wish to use bots.\n" );
-		else if ( level.flags & LEVEL_NOBOTNODES )
+		else if ( level.flags2 & LEVEL2_NOBOTNODES )
 			Printf( "The bot pathing nodes have not been set up. This level has disabled the ability to do so.\n" );
 		else
 			Printf( "The bot pathing nodes have not been set up. Please reload the level if you wish to use bots.\n" );

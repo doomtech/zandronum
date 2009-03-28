@@ -46,18 +46,11 @@
 #include "gi.h"
 #include "i_system.h"
 #include "g_level.h"
+#include "p_acs.h"
 //[BL] New Includes
 #include "teaminfo.h"
 
-SBarInfo *SBarInfoScript[NUM_SCRIPTS] = {NULL,NULL,NULL,NULL,NULL};
-static const char *DefaultScriptNames[NUM_SCRIPTS] =
-{
-	"SBARINFO", //Custom
-	"sbarinfo/doom.txt",
-	NULL, //Heretic
-	NULL, //Hexen
-	NULL  //Strife
-};
+SBarInfo *SBarInfoScript[2] = {NULL,NULL};
 
 static const char *SBarInfoTopLevel[] =
 {
@@ -116,7 +109,7 @@ static const char *SBarInfoRoutineLevel[] =
 
 static void FreeSBarInfoScript()
 {
-	for(int i = 0;i < NUM_SCRIPTS;i++)
+	for(int i = 0;i < 2;i++)
 	{
 		if (SBarInfoScript[i] != NULL)
 		{
@@ -128,28 +121,25 @@ static void FreeSBarInfoScript()
 
 void SBarInfo::Load()
 {
-	Printf ("ParseSBarInfo: Loading default status bar definitions.\n");
-	for(int i = 1;i < NUM_SCRIPTS;i++) // Read in default bars if they exist
+	if(gameinfo.statusbar != NULL)
 	{
-		if(DefaultScriptNames[i] != NULL)
+		int lump = Wads.CheckNumForFullName(gameinfo.statusbar, true);
+		if(lump != -1)
 		{
-			int lump = Wads.CheckNumForFullName(DefaultScriptNames[i], true);
-			if(lump != -1)
-			{
-				if(SBarInfoScript[i] == NULL)
-					SBarInfoScript[i] = new SBarInfo(lump);
-				else
-					SBarInfoScript[i]->ParseSBarInfo(lump);
-			}
+			Printf ("ParseSBarInfo: Loading default status bar definition.\n");
+			if(SBarInfoScript[SCRIPT_DEFAULT] == NULL)
+				SBarInfoScript[SCRIPT_DEFAULT] = new SBarInfo(lump);
+			else
+				SBarInfoScript[SCRIPT_DEFAULT]->ParseSBarInfo(lump);
 		}
 	}
 
-	if(Wads.CheckNumForName(DefaultScriptNames[SCRIPT_CUSTOM]) != -1)
+	if(Wads.CheckNumForName("SBARINFO") != -1)
 	{
 		Printf ("ParseSBarInfo: Loading custom status bar definition.\n");
 		int lastlump, lump;
 		lastlump = 0;
-		while((lump = Wads.FindLump(DefaultScriptNames[SCRIPT_CUSTOM], &lastlump)) != -1)
+		while((lump = Wads.FindLump("SBARINFO", &lastlump)) != -1)
 		{
 			if(SBarInfoScript[SCRIPT_CUSTOM] == NULL)
 				SBarInfoScript[SCRIPT_CUSTOM] = new SBarInfo(lump);

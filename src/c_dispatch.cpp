@@ -54,6 +54,7 @@
 #include "d_net.h"
 // [BC] new #includes.
 #include "p_local.h"
+#include "g_level.h"
 #include "p_acs.h"
 
 // MACROS ------------------------------------------------------------------

@@ -172,7 +172,8 @@ void S_NoiseDebug (void)
 	screen->DrawText (SmallFont, CR_GOLD, 220, y, "vol", TAG_DONE);
 	screen->DrawText (SmallFont, CR_GOLD, 260, y, "dist", TAG_DONE);
 	screen->DrawText (SmallFont, CR_GOLD, 300, y, "chan", TAG_DONE);
-	screen->DrawText (SmallFont, CR_GOLD, 340, y, "flags", TAG_DONE);
+	screen->DrawText (SmallFont, CR_GOLD, 340, y, "pri", TAG_DONE);
+	screen->DrawText (SmallFont, CR_GOLD, 380, y, "flags", TAG_DONE);
 	y += 8;
 
 	if (Channels == NULL)
@@ -240,6 +241,10 @@ void S_NoiseDebug (void)
 		mysnprintf(temp, countof(temp), "%d", chan->EntChannel);
 		screen->DrawText(SmallFont, color, 300, y, temp, TAG_DONE);
 
+		// Priority
+		mysnprintf(temp, countof(temp), "%d", chan->Priority);
+		screen->DrawText(SmallFont, color, 340, y, temp, TAG_DONE);
+
 		// Flags
 		mysnprintf(temp, countof(temp), "%s3%sZ%sU%sM%sN%sA%sL%sE",
 			(chan->ChanFlags & CHAN_IS3D)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
@@ -250,7 +255,7 @@ void S_NoiseDebug (void)
 			(chan->ChanFlags & CHAN_AREA)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_LOOP)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_EVICTED)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK);
-		screen->DrawText(SmallFont, color, 340, y, temp, TAG_DONE);
+		screen->DrawText(SmallFont, color, 380, y, temp, TAG_DONE);
 
 		y += 8;
 		if (chan->PrevChan == &Channels)
@@ -403,26 +408,18 @@ void S_Start ()
 		
 		// Check for local sound definitions. Only reload if they differ
 		// from the previous ones.
-		const char *LocalSndInfo;
-		const char *LocalSndSeq;
+		FString LocalSndInfo;
+		FString LocalSndSeq;
 		
 		// To be certain better check whether level is valid!
-		if (level.info && level.info->soundinfo)
+		if (level.info)
 		{
-			LocalSndInfo = level.info->soundinfo;
-		}
-		else
-		{
-			LocalSndInfo = "";
+			LocalSndInfo = level.info->SoundInfo;
 		}
 
-		if (level.info && level.info->sndseq)
+		if (level.info)
 		{
-			LocalSndSeq  = level.info->sndseq;
-		}
-		else
-		{
-			LocalSndSeq  = "";
+			LocalSndSeq  = level.info->SndSeq;
 		}
 
 		bool parse_ss = false;
@@ -453,11 +450,11 @@ void S_Start ()
 		{
 			parse_ss = true;
 		}
+
 		if (parse_ss)
 		{
 			S_ParseSndSeq(*LocalSndSeq? Wads.CheckNumForFullName(LocalSndSeq, true) : -1);
 		}
-		else
 		
 		LastLocalSndInfo = LocalSndInfo;
 		LastLocalSndSeq = LocalSndSeq;
@@ -474,19 +471,19 @@ void S_Start ()
 	// [BC] In client mode, let the server tell us what music to play.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || 
 		( CLIENTDEMO_IsPlaying( )) ||
-		( level.music == NULL ))
+		( level.Music.IsEmpty() ))
 	{
 		// [RH] This is a lot simpler now.
 		if (!savegamerestore)
 		{
 			if (level.cdtrack == 0 || !S_ChangeCDMusic (level.cdtrack, level.cdid))
 			{
-				S_ChangeMusic (level.music, level.musicorder);
+				S_ChangeMusic (level.Music, level.musicorder);
 
 				// [BC] If we're the server, save this music selection so we can tell clients
 				// what music to play when they connect.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_SetMapMusic( level.music );
+					SERVER_SetMapMusic( level.Music.GetChars() );
 			}
 		}
 	}
@@ -995,7 +992,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	// Select priority.
 	if (type == SOURCE_None || actor == players[consoleplayer].camera)
 	{
-		basepriority = 40;
+		basepriority = 80;
 	}
 	else
 	{
@@ -1761,7 +1758,7 @@ void S_EvictAllChannels()
 			{
 				S_StopChannel(chan);
 			}
-			assert(chan->NextChan == next);
+//			assert(chan->NextChan == next);
 		}
 	}
 }
@@ -2278,7 +2275,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 	{
 		if (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL)
 		{
-			musicname = level.music;
+			musicname = level.Music;
 			order = level.musicorder;
 		}
 		else
@@ -2557,9 +2554,9 @@ CCMD (idmus)
 
 		if ( (info = FindLevelInfo (map)) )
 		{
-			if (info->music)
+			if (info->Music.IsNotEmpty())
 			{
-				S_ChangeMusic (info->music, info->musicorder);
+				S_ChangeMusic (info->Music, info->musicorder);
 				Printf ("%s\n", GStrings("STSTR_MUS"));
 			}
 		}

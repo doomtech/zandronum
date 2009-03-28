@@ -554,6 +554,8 @@ add_executable( zdoom WIN32
 	g_game.cpp
 	g_hub.cpp
 	g_level.cpp
+	g_mapinfo.cpp
+	g_skill.cpp
 	gameconfigfile.cpp
 	gamemode.cpp #ST
 	gi.cpp

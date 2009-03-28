@@ -1149,7 +1149,7 @@ void DDecalFader::Tick ()
 	}
 	else
 	{
-		if (level.maptime < TimeToStartDecay || (level.flags & LEVEL_FROZEN) )
+		if (level.maptime < TimeToStartDecay || (level.flags2 & LEVEL2_FROZEN) )
 		{
 			return;
 		}
@@ -1232,7 +1232,7 @@ void DDecalStretcher::Tick ()
 		Destroy ();
 		return;
 	}
-	if (level.maptime < TimeToStart || (level.flags & LEVEL_FROZEN) )
+	if (level.maptime < TimeToStart || (level.flags2 & LEVEL2_FROZEN) )
 	{
 		return;
 	}
@@ -1301,7 +1301,7 @@ void DDecalSlider::Tick ()
 		Destroy ();
 		return;
 	}
-	if (level.maptime < TimeToStart || (level.flags & LEVEL_FROZEN) )
+	if (level.maptime < TimeToStart || (level.flags2 & LEVEL2_FROZEN) )
 	{
 		return;
 	}
@@ -1367,7 +1367,7 @@ void DDecalColorer::Tick ()
 	}
 	else
 	{
-		if (level.maptime < TimeToStartDecay || (level.flags & LEVEL_FROZEN) )
+		if (level.maptime < TimeToStartDecay || (level.flags2 & LEVEL2_FROZEN) )
 		{
 			return;
 		}

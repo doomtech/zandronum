@@ -763,8 +763,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 			}
 			else if ( strnicmp( pszInString + 1, "level_name", strlen( "level_name" )) == 0 )
 			{				
-				sprintf( pszOutString, "%s\\c-", level.level_name );
-				pszOutString += strlen( level.level_name );
+				sprintf( pszOutString, "%s\\c-", level.LevelName.GetChars() );
+				pszOutString += strlen( level.LevelName.GetChars() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "level_name" );

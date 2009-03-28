@@ -957,7 +957,7 @@ void AGrenade::Tick( )
 		return;
 	}
 
-	if ( this->special1 && !(level.flags & LEVEL_FROZEN) )
+	if ( this->special1 && !(level.flags2 & LEVEL2_FROZEN) )
 	{
 		this->special1--;
 		if ( this->special1 == 0 )

@@ -2036,7 +2036,7 @@ IMPLEMENT_CLASS (AMapRevealer)
 
 bool AMapRevealer::TryPickup (AActor *&toucher)
 {
-	level.flags |= LEVEL_ALLMAP;
+	level.flags2 |= LEVEL2_ALLMAP;
 	GoAwayAndDie ();
 	return true;
 }

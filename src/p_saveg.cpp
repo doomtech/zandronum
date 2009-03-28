@@ -529,7 +529,7 @@ void P_SerializeSounds (FArchive &arc)
 	{
 		if (!S_ChangeMusic (name, order))
 			if (level.cdtrack == 0 || !S_ChangeCDMusic (level.cdtrack, level.cdid))
-				S_ChangeMusic (level.music, level.musicorder);
+				S_ChangeMusic (level.Music, level.musicorder);
 	}
 	delete[] name;
 }

@@ -53,6 +53,7 @@
 #include "doomstat.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "g_level.h"
 #include "network.h"
 #include "p_acs.h"
 #include "sbar.h"
