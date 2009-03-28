@@ -129,6 +129,29 @@ void	chat_DeleteChar( void );
 // [CW]
 void	chat_DoSubstitution( FString &Input );
 
+// [BB] From ZDoom
+//===========================================================================
+//
+// CT_PasteChat
+//
+//===========================================================================
+
+void CT_PasteChat(const char *clip)
+{
+	if (clip != NULL)
+	{
+		// Only paste the first line.
+		while (*clip != '\0')
+		{
+			if (*clip == '\n' || *clip == '\r' || *clip == '\b')
+			{
+				break;
+			}
+			chat_AddChar (*clip++);
+		}
+	}
+}
+
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -182,17 +205,7 @@ bool CHAT_Input( event_t *pEvent )
 			// Ctrl+V.
 			else if ( pEvent->data1 == 'V' && ( pEvent->data3 & GKM_CTRL ))
 			{
-				char *clip = I_GetFromClipboard ();
-				if (clip != NULL)
-				{
-					char *clip_p = clip;
-					strtok (clip, "\n\r\b");
-					while (*clip_p)
-					{
-						chat_AddChar( *clip_p++ );
-					}
-					delete[] clip;
-				}
+				CT_PasteChat(I_GetFromClipboard());
 			}
 		}
 		else if ( pEvent->subtype == EV_GUI_Char )
@@ -207,6 +220,10 @@ bool CHAT_Input( event_t *pEvent )
 				chat_AddChar( pEvent->data1 );
 
 			return ( true );
+		}
+		else if (pEvent->subtype == EV_GUI_MButtonDown)
+		{
+			CT_PasteChat(I_GetFromClipboard());
 		}
 	}
 

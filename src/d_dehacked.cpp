@@ -317,6 +317,7 @@ static int PatchText (int);
 static int PatchStrings (int);
 static int PatchPars (int);
 static int PatchCodePtrs (int);
+static int PatchMusic (int);
 static int DoInclude (int);
 
 static const struct {
@@ -339,6 +340,7 @@ static const struct {
 	{ "[STRINGS]",	PatchStrings },
 	{ "[PARS]",		PatchPars },
 	{ "[CODEPTR]",	PatchCodePtrs },
+	{ "[MUSIC]",	PatchMusic },
 	{ NULL, },
 };
 
@@ -1864,6 +1866,26 @@ static int PatchCodePtrs (int dummy)
 	return result;
 }
 
+static int PatchMusic (int dummy)
+{
+	int result;
+
+	DPrintf ("[Music]\n");
+
+	while ((result = GetLine()) == 1)
+	{
+		const char *newname = skipwhite (Line2);
+		FString keystring;
+		
+		keystring << "MUSIC_" << Line1;
+
+		GStrings.SetString (keystring, newname);
+		DPrintf ("Music %s set to:\n%s\n", keystring.GetChars(), newname);
+	}
+
+	return result;
+}
+
 static int PatchText (int oldSize)
 {
 	int newSize;
@@ -1956,26 +1978,6 @@ static int PatchText (int oldSize)
 			goto donewithtext;
 		}
 	}
-
-#if 0
-	// Search through music names.
-	if (oldSize < 7)
-	{		// Music names are never >6 chars
-		char musname[9];
-		level_info_t *info = LevelInfos;
-		mysnprintf (musname, countof(musname), "d_%s", oldStr);
-
-		while (info->level_name)
-		{
-			if (info->music && stricmp (info->music, musname) == 0)
-			{
-				good = true;
-				strcpy (info->music, musname);
-			}
-			info++;
-		}
-	}
-#endif
 
 	if (good)
 		goto donewithtext;

@@ -30,6 +30,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #ifndef NO_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -262,7 +263,10 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 
 		// Record error to log (if logging)
 		if (Logfile)
+		{
 			fprintf (Logfile, "\n**** DIED WITH FATAL ERROR:\n%s\n", errortext);
+			fflush (Logfile);
+		}
 
 		// [BB] Tell the server we're leaving the game.
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -526,11 +530,7 @@ static const char *pattern;
 #ifdef __FreeBSD__
 static int matchfile (struct dirent *ent)
 #else
-#ifdef OSF1
-static int matchfile (struct dirent *ent)
-#else
 static int matchfile (const struct dirent *ent)
-#endif
 #endif
 {
     return fnmatch (pattern, ent->d_name, FNM_NOESCAPE) == 0;
@@ -586,21 +586,54 @@ int I_FindClose (void *handle)
 
 int I_FindAttr (findstate_t *fileinfo)
 {
-	struct dirent *ent = fileinfo->namelist[fileinfo->current];
+	dirent *ent = fileinfo->namelist[fileinfo->current];
+	struct stat buf;
 
-#ifdef OSF1
-	return 0;	// I don't know how to detect dirs under OSF/1
-#else
-    return (ent->d_type == DT_DIR) ? FA_DIREC : 0;
+	if (stat(ent->d_name, &buf) == 0)
+	{
+		return S_ISDIR(buf.st_mode) ? FA_DIREC : 0;
+	}
+	return 0;
+}
+
+// Clipboard support requires GTK+
+// TODO: GTK+ uses UTF-8. We don't, so some conversions would be appropriate.
+void I_PutInClipboard (const char *str)
+{
+#ifndef NO_GTK
+	if (GtkAvailable)
+	{
+		GtkClipboard *clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+		if (clipboard != NULL)
+		{
+			gtk_clipboard_set_text(clipboard, str, -1);
+		}
+		clipboard = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+		if (clipboard != NULL)
+		{
+			gtk_clipboard_set_text(clipboard, str, -1);
+		}
+	}
 #endif
 }
 
-// No clipboard support for Linux
-void I_PutInClipboard (const char *str)
+FString I_GetFromClipboard ()
 {
-}
-
-char *I_GetFromClipboard ()
-{
-	return NULL;
+#ifndef NO_GTK
+	if (GtkAvailable)
+	{
+		GtkClipboard *clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+		if (clipboard != NULL)
+		{
+			gchar *text = gtk_clipboard_wait_for_text(clipboard);
+			if (text != NULL)
+			{
+				FString copy(text);
+				g_free(text);
+				return copy;
+			}
+		}
+	}
+#endif
+	return "";
 }

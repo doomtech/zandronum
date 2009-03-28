@@ -131,6 +131,7 @@
 #include "d_netinf.h"
 #include "v_palette.h"
 #include "m_cheat.h"
+#include "compatibility.h"
 
 #include "win32/g15/g15.h"
 EXTERN_CVAR(Bool, hud_althud)
@@ -555,6 +556,7 @@ CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 //==========================================================================
 
 int i_compatflags;	// internal compatflags composed from the compatflags CVAR and MAPINFO settings
+int ii_compatflags, ib_compatflags;
 
 EXTERN_CVAR(Int, compatmode)
 
@@ -567,7 +569,7 @@ static int GetCompatibility(int mask)
 // [BB] Removed the CVAR_ARCHIVE flag.
 CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 {
-	i_compatflags = GetCompatibility(self);
+	i_compatflags = GetCompatibility(self) | ii_compatflags;
 
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
@@ -1675,6 +1677,12 @@ void D_AddSubdirectory (const char *Subdirectory)
 	dirName += Subdirectory;
 	D_AddDirectory (dirName);
 
+/* [BB] New ZDoom code, unused so far.
+#ifdef unix
+	dirName = NicePath("~/" GAME_DIR "/"Subdirectory);
+	D_AddDirectory (dirName);
+#endif	
+*/
 	const char *home = getenv ("HOME");
 	if (home)
 	{
@@ -2703,6 +2711,8 @@ void D_DoomMain (void)
 
 	Printf ("ST_Init: Init startup screen.\n");
 	StartScreen = FStartupScreen::CreateInstance (R_GuesstimateNumTextures() + 5);
+
+	ParseCompatibility();
 
 	Printf ("P_Init: Checking cmd-line parameters...\n");
 	flags = dmflags;

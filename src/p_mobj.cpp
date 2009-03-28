@@ -4761,7 +4761,6 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 			SERVERCOMMANDS_PlayerRespawnInvulnerability( playernum );
 		}
 	}
-
 	// [BC] Do script stuff
 	if (!tempplayer)
 	{

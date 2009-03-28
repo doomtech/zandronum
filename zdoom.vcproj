@@ -921,6 +921,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\compatibility.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\configfile.cpp"
 				>
 				<FileConfiguration
@@ -2084,6 +2088,10 @@
 			</File>
 			<File
 				RelativePath=".\src\maprotation.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\md5.cpp"
 				>
 			</File>
 			<File
@@ -4352,6 +4360,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\compatibility.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\configfile.h"
 				>
 			</File>
@@ -4601,6 +4613,10 @@
 			</File>
 			<File
 				RelativePath=".\src\maprotation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\md5.h"
 				>
 			</File>
 			<File

@@ -702,6 +702,23 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DIKState[ActiveDIKState][event.data1] = (event.type == EV_KeyDown);
 			D_PostEvent (&event);
 		}
+		else if (GUICapture)
+		{
+			event.type = EV_GUI_Event;
+			if (message >= WM_LBUTTONDOWN && message <= WM_LBUTTONDBLCLK)
+			{
+				event.subtype = message - WM_LBUTTONDOWN + EV_GUI_LButtonDown;
+			}
+			else if (message >= WM_RBUTTONDOWN && message <= WM_RBUTTONDBLCLK)
+			{
+				event.subtype = message - WM_RBUTTONDOWN + EV_GUI_RButtonDown;
+			}
+			else if (message >= WM_MBUTTONDOWN && message <= WM_MBUTTONDBLCLK)
+			{
+				event.subtype = message - WM_MBUTTONDOWN + EV_GUI_MButtonDown;
+			}
+			D_PostEvent (&event);
+		}
 		break;
 
 	case WM_XBUTTONDOWN:
@@ -2033,15 +2050,15 @@ void I_PutInClipboard (const char *str)
 	CloseClipboard ();
 }
 
-char *I_GetFromClipboard ()
+FString I_GetFromClipboard ()
 {
-	char *retstr = NULL;
+	FString retstr;
 	HGLOBAL cliphandle;
 	char *clipstr;
 	char *nlstr;
 
 	if (!IsClipboardFormatAvailable (CF_TEXT) || !OpenClipboard (Window))
-		return NULL;
+		return retstr;
 
 	cliphandle = GetClipboardData (CF_TEXT);
 	if (cliphandle != NULL)
@@ -2049,15 +2066,16 @@ char *I_GetFromClipboard ()
 		clipstr = (char *)GlobalLock (cliphandle);
 		if (clipstr != NULL)
 		{
-			retstr = copystring (clipstr);
-			GlobalUnlock (clipstr);
-			nlstr = retstr;
-
-			// Convert CR-LF pairs to just LF
-			while ( (nlstr = strstr (retstr, "\r\n")) )
+			// Convert CR-LF pairs to just LF while copying to the FString
+			for (nlstr = clipstr; *nlstr != '\0'; ++nlstr)
 			{
-				memmove (nlstr, nlstr + 1, strlen (nlstr) - 1);
+				if (nlstr[0] == '\r' && nlstr[1] == '\n')
+				{
+					nlstr++;
+				}
+				retstr += *nlstr;
 			}
+			GlobalUnlock (clipstr);
 		}
 	}
 

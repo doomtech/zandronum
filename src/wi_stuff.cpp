@@ -2486,10 +2486,10 @@ void WI_Ticker(void)
 			}
 			// [BC] Otherwise, use the default doom2 intermission music.
 			else
-				S_ChangeMusic ("d_dm2int");
+				S_ChangeMusic ("$MUSIC_DM2INT");
 		}
 		else
-			S_ChangeMusic ("d_inter"); 
+			S_ChangeMusic ("$MUSIC_INTER"); 
 
 	}
 	

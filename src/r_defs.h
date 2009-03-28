@@ -1048,6 +1048,7 @@ struct vissprite_t
 	fixed_t			startfrac;		// horizontal position of x1
 	fixed_t			xscale, yscale;
 	fixed_t			xiscale;		// negative if flipped
+	fixed_t			depth;
 	fixed_t			idepth;			// 1/z
 	fixed_t			texturemid;
 	DWORD			FillColor;

@@ -745,7 +745,7 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 
 			// If this is co-op, respawn any dead players now so they can
 			// keep their inventory on the next map.
-			if ((NETWORK_GetState( ) != NETSTATE_SINGLE) && !deathmatch && player->playerstate == PST_DEAD)
+			if (((NETWORK_GetState( ) != NETSTATE_SINGLE) || level.flags2 & LEVEL2_ALLOWRESPAWN) && !deathmatch && player->playerstate == PST_DEAD)
 			{
 				// Copied from the end of P_DeathThink [[
 				player->cls = NULL;		// Force a new class if the player is using a random class
@@ -1780,6 +1780,10 @@ void G_FinishTravel ()
 				// something, which is the case with bobbing objects.
 				P_OldAdjustFloorCeil( inv );
 			}
+			if (ib_compatflags & BCOMPATF_RESETPLAYERSPEED)
+			{
+				pawn->Speed = pawn->GetDefault()->Speed;
+			}
 			if (level.FromSnapshot)
 			{
 				FBehavior::StaticStartTypedScripts (SCRIPT_Return, pawn, true);
@@ -1823,6 +1827,7 @@ void G_InitLevelLocals ()
 	level.aircontrol = (fixed_t)(sv_aircontrol * 65536.f);
 	level.teamdamage = teamdamage;
 	level.flags = 0;
+	level.flags2 = 0;
 
 	info = FindLevelInfo (level.mapname);
 
@@ -1876,6 +1881,7 @@ void G_InitLevelLocals ()
 		level.cluster = info->cluster;
 		level.clusterflags = clus ? clus->flags : 0;
 		level.flags |= info->flags;
+		level.flags2 |= info->flags2;
 		level.levelnum = info->levelnum;
 		level.Music = info->Music;
 		level.musicorder = info->musicorder;
@@ -1902,6 +1908,7 @@ void G_InitLevelLocals ()
 		strcpy (level.skypic1, "SKY1");
 		strcpy (level.skypic2, "SKY1");
 		level.flags = 0;
+		level.flags2 = 0;
 		level.levelnum = 1;
 	}
 
@@ -2037,8 +2044,8 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	{
 		strncpy (level.skypic1, arc.ReadName(), 8);
 		strncpy (level.skypic2, arc.ReadName(), 8);
-		sky1texture = TexMan.GetTexture (level.skypic1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
-		sky2texture = TexMan.GetTexture (level.skypic2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+		sky1texture = TexMan.GetTexture (level.skypic1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_ReturnFirst);
+		sky2texture = TexMan.GetTexture (level.skypic2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_ReturnFirst);
 		R_InitSkyMap ();
 	}
 

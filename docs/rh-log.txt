@@ -1,4 +1,67 @@
+February 8, 2009  (Changes by Graf Zahl)
+- Fixed parsing for MustConfirm key in skill parser.
+- Converted internal MAPINFOs to new syntax.
+- Added a range parameter to SNDINFO's $limit.
+- Restored Dehacked music name replacement.
+
+February 7, 2009
+- Added GUICapture mouse events for Win32.
+- Changed I_GetFromClipboard() to return an FString.
+- Added GTK+-based clipboard support for Linux.
+- Fixed: Most Linux filesystems do not fill in d_type for scandir(), so we
+  cannot rely on it to detect directories.
+- Added NicePath() function to perform shell-style ~ substitution on path
+  names.
+- Changed the default screenshot directory on Unix to ~/.zdoom/screenshots/.
+- Added -shotdir command line option to temporarily override the
+  screenshot_dir cvar.
+
+February 7, 2009  (Changes by Graf Zahl)
+- Fixed: G_SerializeLevel must use the TEXMAN_ReturnFirst flag for getting
+  the sky textures so that it still works when the first texture in a TEXTURE1
+  lump is used as sky.
+
+February 6, 2009
+- Restored the old drawseg/sprite distance check from 2.0.63. The code that
+  replaced it did the check at the center of the area intersected by the
+  sprite and the drawseg, whereas 2.0.63 only did the check at the location
+  of the sprite on the map.
+- Commented out the CALL_ACTION(A_Look, actor) for targetless friendly
+  monsters in A_DoChase(). They can still find new targets without this,
+  and with it, they got stuck on the first frame of their see state.
+- Fixed: Keys bound in a custom key section would unbind the key in the
+  main game section.
+- Fixed scrolling of the automap background on a rotated automap.
+
+February 5, 2009
+- Changed singleplayer allowrespawn to act like a co-op game when you
+  change levels while dead by immediately respawning you before the switch
+  so that you get to keep all your inventory.
+- Fixed: G_InitLevelLocals() did not set flags2.
+
 February 5, 2009  (Changes by Graf Zahl)
+- fixed: The compatibility parser applied the last map's settings to all
+  maps in the compatibility list.
+- Added compatibility settings for a few more levels in some classic WADs.
+- Added spechit overflow workaround for Strain MAP07. This is highly map
+  specific because the original behavior cannot be restored.
+- Added a check for Doom's IWAD levels that forces COMPAT_SHORTTEX for them.
+  MD5 cannot be used well here because there's many different IWADs with 
+  slightly different levels. This is only done for Doom format levels to
+  ensure that custom IWADs for ZDoom are not affected.
+- fixed: level.flags2 was not reset at level start.
+- Fixed: Morph powerups can change the actor picking up the item so 
+  AInventory::CallTryPickup must be able to return the new actor.
+- Fixed: ACS's GiveInventory may not assume that a PlayerPawn is still
+  attached to the player data after an item has been given.
+- Added a missing NULL pointer check to DBaseStatusBar::Blendview.
+
+February 4, 2009
+- Added a compatibility lump because I think it's a shame that Void doesn't
+  work properly on new ZDooms after all the collaboration I had with Cyb on
+  that map. (Works with other maps, too.)
+
+February 4, 2009  (Changes by Graf Zahl)
 - Made improvements so that the FOptionalMapinfoData class is easier to use.
 
 February 3, 2009

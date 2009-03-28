@@ -5030,21 +5030,24 @@ void M_OptResponder (event_t *ev)
 			// Ctrl+V.
 			else if ( ev->data1 == 'V' && ( ev->data3 & GKM_CTRL ))
 			{
-				char *clip = I_GetFromClipboard ();
-				if (clip != NULL)
+				FString clipString = I_GetFromClipboard ();
+				if (clipString.IsNotEmpty())
 				{
-					char *clip_p = clip;
-					strtok (clip, "\n\r\b");
-					while (*clip_p)
+					const char *clip = clipString.GetChars();
+					// Only paste the first line.
+					while (*clip != '\0')
 					{
+						if (*clip == '\n' || *clip == '\r' || *clip == '\b')
+						{
+							break;
+						}
 						ulLength = (ULONG)strlen( g_szStringInputBuffer );
 						if ( ulLength < ( 64 - 2 ))
 						{
-							g_szStringInputBuffer[ulLength] = *clip_p++;
+							g_szStringInputBuffer[ulLength] = *clip++;
 							g_szStringInputBuffer[ulLength + 1] = '\0';
 						}
 					}
-					delete[] clip;
 				}
 			}
 		}
