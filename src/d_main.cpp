@@ -517,19 +517,6 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 			if (p->cheats & CF_CHASECAM)
 				cht_DoCheat (p, CHT_CHASECAM);
 		}
-
-		// Change our autoaim settings if need be.
-		if (dmflags2 & DF2_NOAUTOAIM)
-		{
-			// Save our aimdist and set aimdist to 0.
-			p->userinfo.savedaimdist = p->userinfo.aimdist;
-			p->userinfo.aimdist = 0;
-		}
-		else
-		{
-			// Restore our aimdist.
-			p->userinfo.aimdist = p->userinfo.savedaimdist;
-		}
 	}
 }
 
@@ -569,11 +556,18 @@ CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 
 int i_compatflags;	// internal compatflags composed from the compatflags CVAR and MAPINFO settings
 
+EXTERN_CVAR(Int, compatmode)
+
+static int GetCompatibility(int mask)
+{
+	if (level.info == NULL) return mask;
+	else return (mask & ~level.info->compatmask) | (level.info->compatflags & level.info->compatmask);
+}
+
 // [BB] Removed the CVAR_ARCHIVE flag.
 CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 {
-	if (level.info == NULL) i_compatflags = self;
-	else i_compatflags = (self & ~level.info->compatmask) | (level.info->compatflags & level.info->compatmask);
+	i_compatflags = GetCompatibility(self);
 
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
@@ -581,6 +575,39 @@ CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
 		SERVERCOMMANDS_SetGameDMFlags( );
 	}
+}
+
+CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_SERVERINFO)
+{
+	int v;
+
+	switch (self)
+	{
+	default:
+	case 0:
+		v = 0;
+		break;
+
+	case 1:	// Doom2.exe compatible with a few relaxed settings
+		v = COMPATF_SHORTTEX|COMPATF_STAIRINDEX|COMPATF_USEBLOCKING|COMPATF_NODOORLIGHT|
+			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_DEHHEALTH|COMPATF_CROSSDROPOFF;
+		break;
+
+	case 2:	// same as 1 but stricter (NO_PASSMOBJ and INVISIBILITY are also set)
+		v = COMPATF_SHORTTEX|COMPATF_STAIRINDEX|COMPATF_USEBLOCKING|COMPATF_NODOORLIGHT|
+			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_NO_PASSMOBJ|COMPATF_LIMITPAIN|
+			COMPATF_DEHHEALTH|COMPATF_INVISIBILITY;
+		break;
+
+	case 3:
+		v = COMPATF_TRACE|COMPATF_SOUNDTARGET|COMPATF_BOOMSCROLL;
+		break;
+
+	case 4:
+		v = COMPATF_SOUNDTARGET;
+		break;
+	}
+	compatflags = v;
 }
 
 CVAR (Flag, compat_shortTex,	compatflags, COMPATF_SHORTTEX);
@@ -603,6 +630,7 @@ CVAR (Flag, compat_invisibility,compatflags, COMPATF_INVISIBILITY);
 CVAR (Flag, compat_silentinstantfloors,compatflags, COMPATF_SILENT_INSTANT_FLOORS);
 CVAR (Flag, compat_sectorsounds,compatflags, COMPATF_SECTORSOUNDS);
 CVAR (Flag, compat_missileclip,	compatflags, COMPATF_MISSILECLIP);
+CVAR (Flag, compat_crossdropoff,compatflags, COMPATF_CROSSDROPOFF);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, compatflags, COMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	compatflags, COMPATF_PLASMA_BUMP_BUG);
@@ -1898,18 +1926,15 @@ static EIWADType ScanIWAD (const char *iwad)
 		}
 		else
 		{
+			if (lumpsfound[Check_FreeDoom])
+			{
+				return IWAD_FreeDoom1;
+			}
 			for (i = Check_e2m1; i < NUM_CHECKLUMPS; i++)
 			{
 				if (!lumpsfound[i])
 				{
-					if (lumpsfound[Check_FreeDoom])
-					{
-						return IWAD_FreeDoom1;
-					}
-					else
-					{
-						return IWAD_DoomShareware;
-					}
+					return IWAD_DoomShareware;
 				}
 			}
 			if (i == NUM_CHECKLUMPS)

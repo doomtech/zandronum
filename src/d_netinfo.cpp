@@ -472,17 +472,11 @@ void D_SetupUserInfo ()
 
 	if (autoaim > 35.f || autoaim < 0.f)
 	{
-		if (dmflags & DF2_NOAUTOAIM)
-			coninfo->savedaimdist = ANGLE_1*35;
-		else
-			coninfo->aimdist = ANGLE_1*35;
+		coninfo->aimdist = ANGLE_1*35;
 	}
 	else
 	{
-		if (dmflags & DF2_NOAUTOAIM)
-			coninfo->savedaimdist = abs ((int)(autoaim * (float)ANGLE_1));
-		else
-			coninfo->aimdist = abs ((int)(autoaim * (float)ANGLE_1));
+		coninfo->aimdist = abs ((int)(autoaim * (float)ANGLE_1));
 	}
 	coninfo->color = color;
 	// [BB] We need to take into account CurrentPlayerClass when determining the skin.
@@ -919,16 +913,10 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				angles = atof (value);
 				if (angles > 35.f || angles < 0.f)
 				{
-					if (dmflags & DF2_NOAUTOAIM)
-						info->savedaimdist = ANGLE_1*35;
-					else
 						info->aimdist = ANGLE_1*35;
 				}
 				else
 				{
-					if (dmflags & DF2_NOAUTOAIM)
-						info->savedaimdist = abs ((int)(angles * (float)ANGLE_1));
-					else
 						info->aimdist = abs ((int)(angles * (float)ANGLE_1));
 				}
 								}
@@ -1076,8 +1064,11 @@ FArchive &operator<< (FArchive &arc, userinfo_t &info)
 		arc.Read (&info.netname, sizeof(info.netname));
 	}
 	arc << /*info.team <<*/ info.aimdist << info.color << info.skin << info.gender << info.switchonpickup;
-	if (SaveVersion >= 1333) arc << info.savedaimdist;
-	else info.savedaimdist = info.aimdist;
+	if (SaveVersion >= 1333 && SaveVersion <= 1355) 
+	{
+		int savedaimdist;
+		arc << savedaimdist;
+	}
 	return arc;
 }
 

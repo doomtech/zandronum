@@ -1265,9 +1265,6 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBFG)
 	{
 		return;
 	}
-	// [RH] bfg can be forced to not use freeaim
-	angle_t storedpitch = self->pitch;
-	int storedaimdist = player->userinfo.aimdist;
 
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
@@ -1283,22 +1280,16 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBFG)
 		return;
 	}
 
-	if (( dmflags2 & DF2_YES_FREEAIMBFG ) == false )
-	{
-		self->pitch = 0;
-		player->userinfo.aimdist = ANGLE_1*35;
-	}
-	P_SpawnPlayerMissile (self, PClass::FindClass("BFGBall"));
+
+	P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle, NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG));
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_SpawnPlayerMissile( self, PClass::FindClass("BFGBall"), self->angle + ( ANGLE_45 / 3 ), false );
-		P_SpawnPlayerMissile( self, PClass::FindClass("BFGBall"), self->angle - ( ANGLE_45 / 3 ), false );
+		P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle + ( ANGLE_45 / 3 ), NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG), false );
+		P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle - ( ANGLE_45 / 3 ), NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG), false );
 	}
 
-	self->pitch = storedpitch;
-	player->userinfo.aimdist = storedaimdist;
 }
 
 //

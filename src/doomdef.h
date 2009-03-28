@@ -295,6 +295,8 @@ enum
 	COMPATF_SECTORSOUNDS	= 1 << 29,	// Sector sounds use original method for sound origin.
 	// [BB] Changed from 1 << 19 to 1<<30.
 	COMPATF_MISSILECLIP		= 1 << 30,	// Use original Doom heights for clipping against projectiles
+	// [BB] Changed from 1 << 20 to 1<<31.
+	COMPATF_CROSSDROPOFF	= 1 << 31,	// monsters can't be pushed over dropoffs
 
 	// [BC] Start of new compatflags.
 

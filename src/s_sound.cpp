@@ -107,6 +107,7 @@ extern float S_GetMusicVolume (const char *music);
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 static bool S_CheckSoundLimit(sfxinfo_t *sfx, const FVector3 &pos, int near_limit);
+static bool S_IsChannelUsed(AActor *actor, int channel, int *seen);
 static void S_ActivatePlayList(bool goBack);
 static void CalcPosVel(FSoundChan *chan, FVector3 *pos, FVector3 *vel);
 static void CalcPosVel(int type, const AActor *actor, const sector_t *sector, const FPolyObj *poly,
@@ -623,10 +624,6 @@ FISoundChannel *S_GetChannel(void *syschan)
 
 void S_ReturnChannel(FSoundChan *chan)
 {
-	if (chan->SourceType == SOURCE_Actor && chan->Actor != NULL)
-	{
-		chan->Actor->SoundChans &= ~(1 << chan->EntChannel);
-	}
 	S_UnlinkChannel(chan);
 	memset(chan, 0, sizeof(*chan));
 	S_LinkChannel(chan, &FreeChannels);
@@ -1005,20 +1002,20 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 		basepriority = 0;
 	}
 
+	int seen = 0;
 	if (actor != NULL && channel == CHAN_AUTO)
-	{ // Select a channel that isn't already playing something.
-		BYTE mask = actor->SoundChans;
-
+	{
+		// Select a channel that isn't already playing something.
 		// Try channel 0 first, then travel from channel 7 down.
-		if ((mask & 1) == 0)
+		if (!S_IsChannelUsed(actor, 0, &seen))
 		{
 			channel = 0;
 		}
 		else
 		{
-			for (channel = 7; channel > 0; --channel, mask <<= 1)
+			for (channel = 7; channel > 0; --channel)
 			{
-				if ((mask & 0x80) == 0)
+				if (!S_IsChannelUsed(actor, channel, &seen))
 				{
 					break;
 				}
@@ -1031,7 +1028,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	}
 
 	// If this actor is already playing something on the selected channel, stop it.
-	if (type != SOURCE_None && ((actor == NULL && channel != CHAN_AUTO) || (actor != NULL && actor->SoundChans & (1 << channel))))
+	if (type != SOURCE_None && ((actor == NULL && channel != CHAN_AUTO) || (actor != NULL && S_IsChannelUsed(actor, channel, &seen))))
 	{
 		for (chan = Channels; chan != NULL; chan = chan->NextChan)
 		{
@@ -1123,7 +1120,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 		chan->SourceType = type;
 		switch (type)
 		{
-		case SOURCE_Actor:		chan->Actor = actor;	actor->SoundChans |= 1 << channel; GC::WriteBarrier(actor);	break;
+		case SOURCE_Actor:		chan->Actor = actor;	break;
 		case SOURCE_Sector:		chan->Sector = sec;		break;
 		case SOURCE_Polyobj:	chan->Poly = poly;		break;
 		case SOURCE_Unattached:	chan->Point[0] = pt->X; chan->Point[1] = pt->Y; chan->Point[2] = pt->Z;	break;
@@ -1194,17 +1191,10 @@ void S_RestartSound(FSoundChan *chan)
 		ochan = (FSoundChan*)GSnd->StartSound(sfx->data, chan->Volume, chan->Pitch, startflags, chan);
 	}
 	assert(ochan == NULL || ochan == chan);
-	if (ochan != NULL)
+	if (ochan == NULL)
 	{
-		// When called from the savegame loader, the actor's SoundChans
-		// flags will be cleared. During normal gameplay, they should still
-		// be set.
-		if (ochan->SourceType == SOURCE_Actor)
-		{
-			if (ochan->Actor != NULL) ochan->Actor->SoundChans |= 1 << ochan->EntChannel;
-		}
+		chan->ChanFlags = oldflags;
 	}
-	else chan->ChanFlags = oldflags;
 }
 
 //==========================================================================
@@ -1462,17 +1452,13 @@ void S_StopSound (int channel)
 
 void S_StopSound (AActor *actor, int channel)
 {
-	// No need to search every channel if we know it's not playing anything.
-	if (actor != NULL && actor->SoundChans & (1 << channel))
+	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
 	{
-		for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+		if (chan->SourceType == SOURCE_Actor &&
+			chan->Actor == actor &&
+			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
-			if (chan->SourceType == SOURCE_Actor &&
-				chan->Actor == actor &&
-				(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
-			{
-				S_StopChannel(chan);
-			}
+			S_StopChannel(chan);
 		}
 	}
 }
@@ -1515,27 +1501,6 @@ void S_StopSound (const FPolyObj *poly, int channel)
 			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
 			S_StopChannel(chan);
-		}
-	}
-}
-
-//==========================================================================
-//
-// S_MarkSoundChannels
-//
-//==========================================================================
-
-void S_MarkSoundChannels()
-{
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
-	{
-		if (chan->SourceType == SOURCE_Actor)
-		{
-			GC::Mark(chan->Actor);
-		}
-		else
-		{
-			chan->Actor = NULL;
 		}
 	}
 }
@@ -1597,7 +1562,6 @@ void S_RelinkSound (AActor *from, AActor *to)
 			if (to != NULL)
 			{
 				chan->Actor = to;
-				GC::WriteBarrier(to);
 			}
 			else if (!(chan->ChanFlags & CHAN_LOOP))
 			{
@@ -1609,16 +1573,10 @@ void S_RelinkSound (AActor *from, AActor *to)
 			}
 			else
 			{
-				chan->Actor = NULL;
 				S_StopChannel(chan);
 			}
 		}
 	}
-	if (to != NULL)
-	{
-		to->SoundChans = from->SoundChans;
-	}
-	from->SoundChans = 0;
 }
 
 //==========================================================================
@@ -1681,17 +1639,42 @@ bool S_GetSoundPlayingInfo (const FPolyObj *poly, int sound_id)
 
 //==========================================================================
 //
+// S_IsChannelUsed
+//
+// Returns true if the channel is in use. Also fills in a bitmask of
+// channels seen while scanning for this one, to make searching for unused
+// channels faster. Initialize seen to 0 for the first call.
+//
+//==========================================================================
+
+bool S_IsChannelUsed(AActor *actor, int channel, int *seen)
+{
+	if (*seen & (1 << channel))
+	{
+		return true;
+	}
+	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	{
+		if (chan->SourceType == SOURCE_Actor && chan->Actor == actor)
+		{
+			*seen |= 1 << chan->EntChannel;
+			if (chan->EntChannel == channel)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+//==========================================================================
+//
 // S_IsActorPlayingSomething
 //
 //==========================================================================
 
 bool S_IsActorPlayingSomething (AActor *actor, int channel, int sound_id)
 {
-	if (actor->SoundChans == 0)
-	{
-		return false;
-	}
-
 	if (i_compatflags & COMPATF_MAGICSILENCE)
 	{
 		channel = 0;
@@ -2057,9 +2040,8 @@ void S_StopChannel(FSoundChan *chan)
 			chan->ChanFlags |= CHAN_FORGETTABLE;
 		}
 
-		if (chan->SourceType == SOURCE_Actor && chan->Actor != NULL)
+		if (chan->SourceType == SOURCE_Actor)
 		{
-			chan->Actor->SoundChans &= ~(1 << chan->EntChannel);
 			chan->Actor = NULL;
 		}
 

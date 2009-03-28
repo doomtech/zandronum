@@ -117,7 +117,7 @@ void P_SetPsprite (player_t *player, int position, FState *state)
 
 		if (player->mo != NULL)
 		{
-			if (state->CallAction(player->mo))
+			if (state->CallAction(player->mo, player->ReadyWeapon))
 			{
 				if (!psp->state)
 				{
@@ -726,7 +726,7 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 
 		if (mo->player != NULL &&
 			level.IsFreelookAllowed() &&
-			mo->player->userinfo.aimdist <= ANGLE_1/2)
+			mo->player->userinfo.GetAimDist() <= ANGLE_1/2)
 		{
 			break;
 		}

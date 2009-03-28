@@ -178,10 +178,9 @@ struct FSoundChan : public FISoundChannel
 	SBYTE		Priority;
 	SWORD		NearLimit;
 	BYTE		SourceType;
-	TObjPtr<AActor> Actor;
 	union
 	{
-		//AActor	*Actor;				// Used for position and velocity.
+		AActor			*Actor;		// Used for position and velocity.
 		const sector_t	*Sector;	// Sector for area sounds.
 		const FPolyObj	*Poly;		// Polyobject sound source.
 		float			 Point[3];	// Sound is not attached to any source.
@@ -281,7 +280,6 @@ void S_StopSoundID (int sound_id, int channel);
 void S_StopSound (AActor *ent, int channel);
 void S_StopSound (const sector_t *sec, int channel);
 void S_StopSound (const FPolyObj *poly, int channel);
-void S_MarkSoundChannels();
 
 // Stops an origin-less sound from playing from this channel.
 void S_StopSound (int channel);

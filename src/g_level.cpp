@@ -3571,12 +3571,10 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	P_SerializeSounds (arc);
 
 	STAT_SAVE(arc, hubLoad);
-	#ifdef _3DFLOORS
-		if (arc.IsLoading()) for(i=0;i<numsectors;i++)
-		{
-			P_Recalculate3DFloors(&sectors[i]);
-		}
-	#endif
+	if (arc.IsLoading()) for(i=0;i<numsectors;i++)
+	{
+		P_Recalculate3DFloors(&sectors[i]);
+	}
 	gl_RecreateAllAttachedLights();
 }
 
