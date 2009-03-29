@@ -4015,8 +4015,6 @@ void P_SetupLevel (char *lumpname, int position)
 	// set up world state
 	P_SpawnSpecials ();
 
-	P_InitTagLists();
-
 	// This must be done BEFORE the PolyObj Spawn!!!
 	// [BB] The server may not execute this
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

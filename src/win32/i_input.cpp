@@ -102,6 +102,7 @@
 #include "templates.h"
 #include "cmdlib.h"
 #include "d_event.h"
+#include "v_text.h"
 
 #define DINPUT_BUFFERSIZE	32
 
@@ -2050,14 +2051,14 @@ void I_PutInClipboard (const char *str)
 	CloseClipboard ();
 }
 
-FString I_GetFromClipboard ()
+FString I_GetFromClipboard (bool return_nothing)
 {
 	FString retstr;
 	HGLOBAL cliphandle;
 	char *clipstr;
 	char *nlstr;
 
-	if (!IsClipboardFormatAvailable (CF_TEXT) || !OpenClipboard (Window))
+	if (return_nothing || !IsClipboardFormatAvailable (CF_TEXT) || !OpenClipboard (Window))
 		return retstr;
 
 	cliphandle = GetClipboardData (CF_TEXT);

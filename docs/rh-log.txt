@@ -1,3 +1,35 @@
+February 14, 2009  (Changes by Graf Zahl)
+- Added MF5_CANTSEEK flag to prevent seeker missiles from homing in on
+  certain actors and added an option to APowerInvisibility to set this
+  flag when active.
+- Added map specific automap backgrounds.
+- Fixed: Voodoo dolls did not play a sound when dying.
+- Added colorized error messages to DECORATE and made a few more error
+  conditions that do not block further parsing not immediately abort.
+- Made all errors in CreateNewActor not immediately fatal so that the
+  rest of the DECORATE lump can be parsed normally to look for more errors.
+- Fixed: Defining classes with the same name as their immediate base class
+  was legal. It should not be allowed that a class has another one with the
+  same name in its ancestry.
+- Fixed: Formatting of the intermission screen on Heretic, Hexen and Strife
+  was broken. Changed it to use WI_Drawpercent which does it properly and
+  also allows showing percentage in these games now.
+- Fixed: The MAPINFO parser ignored missing terminating braces of the last
+  block in the file.
+
+February 10, 2009
+- Moved the V_InitFontColors() call earlier in the startup sequence so that
+  colored error messages appear colored in the startup window. Also lightened
+  up the "Flat" red to contrast better on the startup background.
+
+February 9, 2009
+- Changed I_InitInput() to acquire the IDirectInput8A interface by using
+  DirectInput8Create() instead of CoCreateInstance(). This allows the Steam
+  GameOverlayRenderer.dll to properly hook it.
+- Stopped sending double the number of wheel events as appropriate to the
+  console under Linux.
+- Added middle mouse button selection pasting for X systems.
+
 February 8, 2009  (Changes by Graf Zahl)
 - Fixed parsing for MustConfirm key in skill parser.
 - Converted internal MAPINFOs to new syntax.
@@ -5,7 +37,7 @@ February 8, 2009  (Changes by Graf Zahl)
 - Restored Dehacked music name replacement.
 
 February 7, 2009
-- Added GUICapture mouse events for Win32.
+- Added GUICapture mouse button events for Win32.
 - Changed I_GetFromClipboard() to return an FString.
 - Added GTK+-based clipboard support for Linux.
 - Fixed: Most Linux filesystems do not fill in d_type for scandir(), so we

@@ -138,7 +138,7 @@ void	chat_DoSubstitution( FString &Input );
 
 void CT_PasteChat(const char *clip)
 {
-	if (clip != NULL)
+	if (clip != NULL && *clip != '\0')
 	{
 		// Only paste the first line.
 		while (*clip != '\0')
@@ -205,7 +205,7 @@ bool CHAT_Input( event_t *pEvent )
 			// Ctrl+V.
 			else if ( pEvent->data1 == 'V' && ( pEvent->data3 & GKM_CTRL ))
 			{
-				CT_PasteChat(I_GetFromClipboard());
+				CT_PasteChat(I_GetFromClipboard(false));
 			}
 		}
 		else if ( pEvent->subtype == EV_GUI_Char )
@@ -221,10 +221,12 @@ bool CHAT_Input( event_t *pEvent )
 
 			return ( true );
 		}
+#ifdef unix
 		else if (pEvent->subtype == EV_GUI_MButtonDown)
 		{
-			CT_PasteChat(I_GetFromClipboard());
+			CT_PasteChat(I_GetFromClipboard(true));
 		}
+#endif
 	}
 
 	return ( false );

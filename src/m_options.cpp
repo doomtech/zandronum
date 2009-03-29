@@ -5030,7 +5030,7 @@ void M_OptResponder (event_t *ev)
 			// Ctrl+V.
 			else if ( ev->data1 == 'V' && ( ev->data3 & GKM_CTRL ))
 			{
-				FString clipString = I_GetFromClipboard ();
+				FString clipString = I_GetFromClipboard (false);
 				if (clipString.IsNotEmpty())
 				{
 					const char *clip = clipString.GetChars();
