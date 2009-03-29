@@ -251,6 +251,7 @@ void MIDIStreamer::Play(bool looping, int subsong)
 	}
 
 	MusicVolumeChanged();	// set volume to current music's properties
+	OutputVolume(Volume);
 
 #ifdef _WIN32
 	ResetEvent(ExitEvent);

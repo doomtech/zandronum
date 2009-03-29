@@ -3095,6 +3095,12 @@ void D_DoomMain (void)
 
 		delete StartScreen;
 		StartScreen = NULL;
+
+	if (Args->CheckParm("-norun"))
+	{
+		throw CNoRunExit();
+	}
+
 		V_Init2();
 
 		files = Args->GatherFiles ("-playdemo", ".lmp", false);

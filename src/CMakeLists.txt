@@ -43,7 +43,7 @@ foreach( majver ${MAJOR_VERSIONS} )
 		set( FMOD_LOCAL_INC_DIRS ${FMOD_LOCAL_INC_DIRS} "${dir}/api/inc" )
 		set( FMOD_LOCAL_LIB_DIRS ${FMOD_LOCAL_LIB_DIRS} "${dir}/api/lib" )
 	endforeach( dir ${FMOD_DIR_VERSIONS} )
-endforeach( majver ${MAJER_VERSIONS} )
+endforeach( majver ${MAJOR_VERSIONS} )
 
 if( WIN32 )
 	if( X64 )
@@ -410,7 +410,7 @@ set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" )
 if ( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
 endif ( NOT NO_SOUND )
-include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" )
+include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 
 # Start defining source files for ZDoom
 
@@ -574,6 +574,7 @@ add_executable( zdoom WIN32
 	#ct_chat.cpp
 	cooperative.cpp #ST
 	d_dehacked.cpp
+	d_iwad.cpp
 	d_main.cpp
 	d_net.cpp
 	d_netinfo.cpp

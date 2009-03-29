@@ -177,16 +177,21 @@ static bool PIT_FindFloorCeiling (line_t *ld, const FBoundingBox &box, FCheckPos
 }
 
 
-void P_GetFloorCeilingZ(FCheckPosition &tmf)
+void P_GetFloorCeilingZ(FCheckPosition &tmf, bool get)
 {
-	sector_t *sec = P_PointInSector (tmf.x, tmf.y);
-	tmf.floorsector = sec;
-	tmf.ceilingsector = sec;
+	sector_t *sec;
+	if (get)
+	{
+		sec = P_PointInSector (tmf.x, tmf.y);
+		tmf.floorsector = sec;
+		tmf.ceilingsector = sec;
 
-	tmf.floorz = tmf.dropoffz = sec->floorplane.ZatPoint (tmf.x, tmf.y);
-	tmf.ceilingz = sec->ceilingplane.ZatPoint (tmf.x, tmf.y);
-	tmf.floorpic = sec->GetTexture(sector_t::floor);
-	tmf.ceilingpic = sec->GetTexture(sector_t::ceiling);
+		tmf.floorz = tmf.dropoffz = sec->floorplane.ZatPoint (tmf.x, tmf.y);
+		tmf.ceilingz = sec->ceilingplane.ZatPoint (tmf.x, tmf.y);
+		tmf.floorpic = sec->GetTexture(sector_t::floor);
+		tmf.ceilingpic = sec->GetTexture(sector_t::ceiling);
+	}
+	else sec = tmf.thing->Sector;
 
 #ifdef _3DFLOORS
 	for(unsigned int i=0;i<sec->e->XFloor.ffloors.Size();i++)
@@ -229,8 +234,21 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 	tmf.x = actor->x;
 	tmf.y = actor->y;
 	tmf.z = actor->z;
-	P_GetFloorCeilingZ(tmf);
 
+	if (!onlyspawnpos)
+	{
+		P_GetFloorCeilingZ(tmf, true);
+	}
+	else
+	{
+		tmf.ceilingsector = tmf.floorsector = actor->Sector;
+
+		tmf.floorz = tmf.dropoffz = actor->floorz;
+		tmf.ceilingz = actor->ceilingz;
+		tmf.floorpic = actor->floorpic;
+		tmf.ceilingpic = actor->ceilingpic;
+		P_GetFloorCeilingZ(tmf, false);
+	}
 	actor->floorz = tmf.floorz;
 	actor->dropoffz = tmf.dropoffz;
 	actor->ceilingz = tmf.ceilingz;
@@ -264,6 +282,10 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 		actor->ceilingpic = tmf.ceilingpic;
 		actor->ceilingsector = tmf.ceilingsector;
 	}
+	else
+	{
+		actor->floorsector = actor->ceilingsector = actor->Sector;
+	}
 }
 
 //
@@ -292,7 +314,7 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 	tmf.x = x;
 	tmf.y = y;
 	tmf.z = z;
-	P_GetFloorCeilingZ(tmf);
+	P_GetFloorCeilingZ(tmf, true);
 					
 	spechit.Clear ();
 
@@ -3445,8 +3467,7 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 	nextsector=NULL;
 	nexttopplane=nextbottomplane=NULL;
 
-    if ((li->frontsector && li->frontsector->e->XFloor.ffloors.Size()) || 
-		(li->backsector && li->backsector->e->XFloor.ffloors.Size()))
+    if(li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size())
 	{
 		int  frontflag;
 		F3DFloor* rover;
@@ -4347,32 +4368,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		8192*FRACUNIT, MF_SHOOTABLE, ML_BLOCKEVERYTHING, source, trace,
 		TRACE_PCross|TRACE_Impact, ProcessRailHit);
 
-	if (trace.HitType == TRACE_HitWall)
-	{
-		SpawnShootDecal (source, trace);
-	}
-	if (trace.HitType == TRACE_HitFloor &&
-		trace.CrossedWater == NULL &&
-		trace.Sector->heightsec == NULL)
-	{
-		AActor *thepuff = Spawn (puffclass, trace.X, trace.Y, trace.Z, ALLOW_REPLACE);
-		if (thepuff != NULL)
-		{
-			P_HitWater (thepuff, trace.Sector);
-			thepuff->Destroy ();
-		}
-	}
-	if (trace.CrossedWater)
-	{
-		AActor *thepuff = Spawn (puffclass, 0, 0, 0, ALLOW_REPLACE);
-		if (thepuff != NULL)
-		{
-			SpawnDeepSplash (source, trace, thepuff, vx, vy, vz, shootz);
-			thepuff->Destroy ();
-		}
-	}
-
-	// Now hurt anything the trace hit
+	// Hurt anything the trace hit
 	unsigned int i;
 	AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
 	FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
@@ -4391,11 +4387,12 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
 			(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
 		{
-			if (puffclass != NULL) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG180, 1, PF_HITTHING);
+			if (puffclass != NULL) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
 		}
 		else
 		{
 			P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
+			P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
 		}
 		// [BC] Damage is server side.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -4407,7 +4404,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			else
 				P_DamageMobj (RailHits[i].HitActor, source, source, damage, damagetype, DMG_NO_ARMOR);
 		}
-		P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, angle, pitch);
 
 		if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
 		{
@@ -4451,6 +4447,33 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			source->player->ulConsecutiveRailgunHits = 0;
 	}
 
+	// Spawn a decal or puff at the point where the trace ended.
+	if (trace.HitType == TRACE_HitWall)
+	{
+		SpawnShootDecal (source, trace);
+	}
+	if (trace.HitType == TRACE_HitFloor &&
+		trace.CrossedWater == NULL &&
+		trace.Sector->heightsec == NULL)
+	{
+		AActor *thepuff = Spawn (puffclass, trace.X, trace.Y, trace.Z, ALLOW_REPLACE);
+		if (thepuff != NULL)
+		{
+			P_HitWater (thepuff, trace.Sector);
+			thepuff->Destroy ();
+		}
+	}
+	if (trace.CrossedWater)
+	{
+		AActor *thepuff = Spawn (puffclass, 0, 0, 0, ALLOW_REPLACE);
+		if (thepuff != NULL)
+		{
+			SpawnDeepSplash (source, trace, thepuff, vx, vy, vz, shootz);
+			thepuff->Destroy ();
+		}
+	}
+
+	// Draw the slug's trail.
 	end.X = FIXED2FLOAT(trace.X);
 	end.Y = FIXED2FLOAT(trace.Y);
 	end.Z = FIXED2FLOAT(trace.Z);

@@ -1441,13 +1441,16 @@ void S_StopSoundID (int sound_id, int channel)
 
 void S_StopSound (int channel)
 {
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	FSoundChan *chan = Channels;
+	while (chan != NULL)
 	{
+		FSoundChan *next = chan->NextChan;
 		if (chan->SourceType == SOURCE_None &&
 			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
 			S_StopChannel(chan);
 		}
+		chan = next;
 	}
 }
 
@@ -1461,14 +1464,17 @@ void S_StopSound (int channel)
 
 void S_StopSound (AActor *actor, int channel)
 {
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	FSoundChan *chan = Channels;
+	while (chan != NULL)
 	{
+		FSoundChan *next = chan->NextChan;
 		if (chan->SourceType == SOURCE_Actor &&
 			chan->Actor == actor &&
 			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
 			S_StopChannel(chan);
 		}
+		chan = next;
 	}
 }
 
@@ -1482,14 +1488,17 @@ void S_StopSound (AActor *actor, int channel)
 
 void S_StopSound (const sector_t *sec, int channel)
 {
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	FSoundChan *chan = Channels;
+	while (chan != NULL)
 	{
+		FSoundChan *next = chan->NextChan;
 		if (chan->SourceType == SOURCE_Sector &&
 			chan->Sector == sec &&
 			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
 			S_StopChannel(chan);
 		}
+		chan = next;
 	}
 }
 
@@ -1503,14 +1512,17 @@ void S_StopSound (const sector_t *sec, int channel)
 
 void S_StopSound (const FPolyObj *poly, int channel)
 {
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	FSoundChan *chan = Channels;
+	while (chan != NULL)
 	{
+		FSoundChan *next = chan->NextChan;
 		if (chan->SourceType == SOURCE_Polyobj &&
 			chan->Poly == poly &&
 			(chan->EntChannel == channel || (i_compatflags & COMPATF_MAGICSILENCE)))
 		{
 			S_StopChannel(chan);
 		}
+		chan = next;
 	}
 }
 
@@ -1564,8 +1576,10 @@ void S_RelinkSound (AActor *from, AActor *to)
 	if (from == NULL)
 		return;
 
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	FSoundChan *chan = Channels;
+	while (chan != NULL)
 	{
+		FSoundChan *next = chan->NextChan;
 		if (chan->SourceType == SOURCE_Actor && chan->Actor == from)
 		{
 			if (to != NULL)
@@ -1585,6 +1599,7 @@ void S_RelinkSound (AActor *from, AActor *to)
 				S_StopChannel(chan);
 			}
 		}
+		chan = next;
 	}
 }
 

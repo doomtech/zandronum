@@ -59,6 +59,8 @@ IMPLEMENT_CLASS (ARune)
 
 bool APowerupGiver::Use (bool pickup)
 {
+	if (PowerupType == NULL) return true;	// item is useless
+
 	APowerup *power = static_cast<APowerup *> (Spawn (PowerupType, 0, 0, 0, NO_REPLACE));
 
 	if (EffectTics != 0)
