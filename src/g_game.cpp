@@ -1585,6 +1585,16 @@ void G_Ticker ()
 		}
 	}
 
+	// [BB] Since this is now done in the block above that the server doesn't enter, we need to do it here:
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		for ( i = 0; i < MAXPLAYERS; i++ )
+		{
+			if ( playeringame[i] )
+				players[i].oldbuttons = players[i].cmd.ucmd.buttons;
+		}
+	}
+
 	// Check if the players are moving faster than they should.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( sv_cheats == false ))
 	{
@@ -1594,9 +1604,6 @@ void G_Ticker ()
 			{
 				LONG		lMaxThreshold;
 				ticcmd_t	*cmd = &players[i].cmd;
-
-				// [BB] Since this is now done in the block above that the server doesn't enter, we need to do it here:
-				players[i].oldbuttons = cmd->ucmd.buttons;
 
 				lMaxThreshold = TURBOTHRESHOLD;
 				if ( players[i].cheats & CF_SPEED25 )
