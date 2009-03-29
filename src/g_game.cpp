@@ -1562,7 +1562,7 @@ void G_Ticker ()
 				{
 					G_WriteDemoTiccmd (newcmd, i, buf);
 				}
-			players[i].oldbuttons = cmd->ucmd.buttons;
+				players[i].oldbuttons = cmd->ucmd.buttons;
 				// If the user alt-tabbed away, paused gets set to -1. In this case,
 				// we do not want to read more demo commands until paused is no
 				// longer negative.
@@ -1594,6 +1594,9 @@ void G_Ticker ()
 			{
 				LONG		lMaxThreshold;
 				ticcmd_t	*cmd = &players[i].cmd;
+
+				// [BB] Since this is now done in the block above that the server doesn't enter, we need to do it here:
+				players[i].oldbuttons = cmd->ucmd.buttons;
 
 				lMaxThreshold = TURBOTHRESHOLD;
 				if ( players[i].cheats & CF_SPEED25 )
