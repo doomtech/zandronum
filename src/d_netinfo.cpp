@@ -55,6 +55,7 @@
 #include "teaminfo.h"
 #include "r_translate.h"
 #include "templates.h"
+#include "cmdlib.h"
 // [BC] New #includes.
 #include "network.h"
 #include "cl_commands.h"
@@ -928,10 +929,10 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 					//ULONG	ulIdx;
 					char oldname[MAXPLAYERNAME+1];
 
-					strncpy (oldname, info->netname, MAXPLAYERNAME);
-					oldname[MAXPLAYERNAME] = 0;
+					strcpy (oldname, info->netname);
 					strncpy (info->netname, value, MAXPLAYERNAME);
 					info->netname[MAXPLAYERNAME] = 0;
+					CleanseString(info->netname);
 
 					V_CleanPlayerName(info->netname);
 
@@ -1065,11 +1066,6 @@ FArchive &operator<< (FArchive &arc, userinfo_t &info)
 		arc.Read (&info.netname, sizeof(info.netname));
 	}
 	arc << /*info.team <<*/ info.aimdist << info.color << info.skin << info.gender << info.switchonpickup;
-	if (SaveVersion >= 1333 && SaveVersion <= 1355) 
-	{
-		int savedaimdist;
-		arc << savedaimdist;
-	}
 	return arc;
 }
 

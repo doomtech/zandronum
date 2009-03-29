@@ -906,7 +906,7 @@ bool AActor::UseInventory (AInventory *item)
 		return false;
 	}
 	// Don't use it if you don't actually have any of it.
-	if (item->Amount <= 0)
+	if (item->Amount <= 0 || (item->ObjectFlags & OF_EuthanizeMe))
 	{
 		return false;
 	}
@@ -2472,8 +2472,11 @@ void P_ZMovement (AActor *mo)
 		if (!mo->waterlevel || mo->flags & MF_CORPSE || (mo->player &&
 			!(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove)))
 		{
-			mo->momz -= (fixed_t)(level.gravity * mo->Sector->gravity *
+			fixed_t grav = (fixed_t)(level.gravity * mo->Sector->gravity *
 				(( mo->ulSTFlags & STFL_QUARTERGRAVITY ) ? 20.48 : (FIXED2FLOAT(mo->gravity) * 81.92)));
+
+			if (mo->momz == 0) mo->momz -= grav + grav;
+			else mo->momz -= grav;
 		}
 		if (mo->waterlevel > 1)
 		{
@@ -2633,14 +2636,11 @@ void P_ZMovement (AActor *mo)
 
 			if (mo->momz < 0)
 			{
-				// [RH] avoid integer roundoff by doing comparisons with floats
-				// I can't think of any good reason why this varied with gravity
-				float minmom = 800.f /*level.gravity * mo->Sector->gravity*/ * -655.36f;
-				float mom = (float)mo->momz;
+				const fixed_t minmom = -9*FRACUNIT;	// landing speed from a jump with normal gravity
 
 				// Spawn splashes, etc.
 				P_HitFloor (mo);
-				if (mo->DamageType == NAME_Ice && mom < minmom)
+				if (mo->DamageType == NAME_Ice && mo->momz < minmom)
 				{
 					mo->tics = 1;
 					mo->momx = 0;
@@ -2653,7 +2653,7 @@ void P_ZMovement (AActor *mo)
 				if (mo->player)
 				{
 					mo->player->jumpTics = 7;	// delay any jumping for a short while
-					if (mom < minmom && !(mo->flags & MF_NOGRAVITY))
+					if (mo->momz < minmom && !(mo->flags & MF_NOGRAVITY))
 					{
 						// Squat down.
 						// Decrease viewheight for a moment after hitting the ground (hard),
@@ -5639,7 +5639,7 @@ foundone:
 
 	// Don't splash for living things with small vertical velocities.
 	// There are levels where the constant splashing from the monsters gets extremely annoying
-	if ((thing->flags3&MF3_ISMONSTER || thing->player) && thing->momz>=-5*FRACUNIT) return Terrains[terrainnum].IsLiquid;
+	if ((thing->flags3&MF3_ISMONSTER || thing->player) && thing->momz>=-6*FRACUNIT) return Terrains[terrainnum].IsLiquid;
 
 	splash = &Splashes[splashnum];
 

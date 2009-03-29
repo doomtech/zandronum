@@ -1214,7 +1214,7 @@ void DBaseStatusBar::Draw (EHudState state)
 	}
 	else if (automapactive)
 	{
-		int y, i, time = level.time / TICRATE, height;
+		int y, time = level.time / TICRATE, height;
 		int totaltime = level.totaltime / TICRATE;
 		EColorRange highlight = (gameinfo.gametype & GAME_DoomChex) ?
 			CR_UNTRANSLATED : CR_YELLOW;
@@ -1271,14 +1271,17 @@ void DBaseStatusBar::Draw (EHudState state)
 			}
 		}
 		cluster_info_t *cluster = FindClusterInfo (level.cluster);
-		i = 0;
 		if (cluster == NULL || !(cluster->flags & CLUSTER_HUB))
 		{
-			i = mysnprintf (line, countof(line), "%s: ", level.mapname);
+			mysnprintf (line, countof(line), "%s: ", level.mapname);
+		}
+		else
+		{
+			*line = 0;
 		}
 		FString mapname;
 
-		mapname.Format("%c%c%s", TEXTCOLOR_ESCAPE, CR_GREY + 'A', level.LevelName.GetChars());
+		mapname.Format("%s%c%c%s", line, TEXTCOLOR_ESCAPE, CR_GREY + 'A', level.LevelName.GetChars());
 		screen->DrawText (SmallFont, highlight,
 			(SCREENWIDTH - SmallFont->StringWidth (mapname)*CleanXfac)/2, y, mapname,
 			DTA_CleanNoMove, true, TAG_DONE);

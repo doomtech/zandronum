@@ -143,9 +143,9 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 
 void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 {
+	bool statebright[2] = {false, false};
 	unsigned int i;
 	pspdef_t *psp;
-	bool fullbright=false;
 	int lightlevel=0;
 	fixed_t ofsx, ofsy;
 	FColormap cm;
@@ -162,14 +162,14 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	if (player->fixedcolormap==0)
 	{
 		for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
-			if (psp->state && psp->state->GetFullbright()) fullbright=true;
+			if (psp->state != NULL) statebright[i] = !!psp->state->GetFullbright();
 	}
 
 	if (gl_fixedcolormap) 
 	{
 		lightlevel=255;
 		cm.GetFixedColormap();
-		fullbright=true;
+		statebright[0] = statebright[1] = true;
 	}
 	else
 	{
@@ -210,10 +210,6 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 			cm=fakesec->ColorMap;
 			if (glset.nocoloredspritelighting) cm.ClearColor();
 		}
-		if (fullbright)
-		{
-			lightlevel=255;
-		}
 	}
 
 	PalEntry ThingColor = playermo->fillcolor;
@@ -241,16 +237,18 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		trans = TO_GL(vis.alpha);
 	}
 
-
-	// set the lighting parameters (only calls glColor and glAlphaFunc)
-	gl_SetSpriteLighting(vis.RenderStyle, playermo, lightlevel, 0, &cm, 0xffffff, trans, fullbright, true);
-
-	// Weapons are not drawn with fog so we can skip that step here
-
 	// now draw the different layers of the weapon
 	gl_EnableBrightmap(true);
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
-		if (psp->state) DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a, hudModelStep);
+	{
+		if (psp->state) 
+		{
+			// set the lighting parameters (only calls glColor and glAlphaFunc)
+			gl_SetSpriteLighting(vis.RenderStyle, playermo, statebright[i]? 255 : lightlevel, 
+				0, &cm, 0xffffff, trans, statebright[i], true);
+			DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a, hudModelStep);
+		}
+	}
 	gl_EnableBrightmap(false);
 }
 

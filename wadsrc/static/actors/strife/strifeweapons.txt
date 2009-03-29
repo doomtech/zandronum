@@ -45,6 +45,7 @@ ACTOR StrifeSpark : StrifePuff
 
 ACTOR PunchDagger : StrifeWeapon
 {
+	Game Strife
 	Weapon.SelectionOrder 3900
 	+WEAPON.NOALERT
 	
@@ -158,7 +159,7 @@ ACTOR StrifeCrossbow : StrifeWeapon 2001
 	Weapon.SisterWeapon "StrifeCrossbow2"
 	Inventory.PickupMessage "$TXT_STRIFECROSSBOW"
 	Inventory.Icon "CBOWA0"
-	Tag "crossbow"
+	Tag "Crossbow"
 	
 	action native A_ClearFlash ();
 	action native A_ShowElectricFlash ();
@@ -198,11 +199,13 @@ ACTOR StrifeCrossbow : StrifeWeapon 2001
 
 ACTOR StrifeCrossbow2 : StrifeCrossbow
 {
+	Game Strife
 	Weapon.SelectionOrder 2700
 	Weapon.AmmoUse1 1
 	Weapon.AmmoGive1 0
 	Weapon.AmmoType1 "PoisonBolts"
 	Weapon.SisterWeapon "StrifeCrossbow"
+
 	States
 	{
 	Ready:
@@ -240,7 +243,7 @@ actor AssaultGun : StrifeWeapon 2002
 	Weapon.AmmoGive1 20
 	Weapon.AmmoType1 "ClipOfBullets"
 	Inventory.Icon "RIFLA0"
-	Tag "assault_gun"
+	Tag "Assault Gun"
 	Inventory.PickupMessage "$TXT_ASSAULTGUN"
 	States
 	{
@@ -296,7 +299,7 @@ ACTOR MiniMissileLauncher : StrifeWeapon 2003
 	Weapon.AmmoGive1 8
 	Weapon.AmmoType1 "MiniMissiles"
 	Inventory.Icon "MMSLA0"
-	Tag "mini_missile_launcher"
+	Tag "Mini Missile Launcher"
 	Inventory.PickupMessage "$TXT_MMLAUNCHER"
 
 	action native A_FireMiniMissile ();
@@ -362,6 +365,7 @@ ACTOR MiniMissilePuff : StrifePuff
 
 ACTOR MiniMissile
 {
+	Game Strife
 	ConversationID 99,-1,-1
 	Speed 20
 	Radius 10
@@ -403,7 +407,7 @@ ACTOR FlameThrower : StrifeWeapon 2005
 	Weapon.ReadySound "weapons/flameidle"
 	Weapon.AmmoType1 "EnergyPod"
 	Inventory.Icon "FLAMA0"
-	Tag "flame_thrower"
+	Tag "Flame Thrower"
 	Inventory.PickupMessage "$TXT_FLAMER"
 	
 	action native A_FireFlamer ();
@@ -479,7 +483,7 @@ ACTOR Mauler : StrifeWeapon 2004
 	Weapon.AmmoType1 "EnergyPod"
 	Weapon.SisterWeapon "Mauler2"
 	Inventory.Icon "TRPDA0"
-	Tag "mauler"
+	Tag "Mauler"
 	Inventory.PickupMessage "$TXT_MAULER"
 
 	action native A_FireMauler1 ();
@@ -515,6 +519,7 @@ ACTOR Mauler : StrifeWeapon 2004
 
 ACTOR Mauler2 : Mauler
 {
+	Game Strife
 	Weapon.SelectionOrder 3300
 	Weapon.AmmoUse1 30
 	Weapon.AmmoGive1 0
@@ -626,6 +631,7 @@ ACTOR MaulerTorpedoWave
 
 ACTOR HEGrenade
 {
+	Game Strife
 	ConversationID 106,-1,-1
 	Speed 15
 	Radius 13
@@ -663,6 +669,7 @@ ACTOR HEGrenade
 
 ACTOR PhosphorousGrenade
 {
+	Game Strife
 	ConversationID 107,-1,-1
 	Speed 15
 	Radius 13
@@ -742,7 +749,7 @@ ACTOR StrifeGrenadeLauncher : StrifeWeapon 154
 	Weapon.AmmoType1 "HEGrenadeRounds"
 	Weapon.SisterWeapon "StrifeGrenadeLauncher2"
 	Inventory.Icon "GRNDA0"
-	Tag "Grenade_launcher"
+	Tag "Grenade Launcher"
 	Inventory.PickupMessage "$TXT_GLAUNCHER"
 
 	action native A_FireGrenade (class<Actor> grenadetype, int angleofs, state flash);
@@ -782,6 +789,7 @@ ACTOR StrifeGrenadeLauncher : StrifeWeapon 154
 
 ACTOR StrifeGrenadeLauncher2 : StrifeGrenadeLauncher
 {
+	Game Strife
 	Weapon.SelectionOrder 3200
 	Weapon.AmmoUse1 1
 	Weapon.AmmoGive1 0

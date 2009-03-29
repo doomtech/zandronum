@@ -664,6 +664,9 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 	const char *toSay;
 	int i, j;
 
+	// Make sure this is actually a player.
+	if (pc->player == NULL) return;
+
 	// [CW] If an NPC is talking to a PC already, then don't let
 	// anyone else talk to the NPC.
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -677,11 +680,13 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 
 	pc->momx = pc->momy = 0;	// Stop moving
 	pc->player->momx = pc->player->momy = 0;
+	static_cast<APlayerPawn*>(pc)->PlayIdle ();
 
 	pc->player->ConversationPC = pc;
 	pc->player->ConversationNPC = npc;
+	npc->flags5 |= MF5_INCONVERSATION;
 
-	CurNode = npc->Conversation;
+	FStrifeDialogueNode *CurNode = npc->Conversation;
 
 	if (pc->player == &players[consoleplayer])
 	{
@@ -722,88 +727,90 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 		}
 	}
 
-	if (CurNode->SpeakerVoice != 0)
+	// The rest is only done when the conversation is actually displayed.
+	if (pc->player == &players[consoleplayer])
 	{
-		I_SetMusicVolume (dlg_musicvolume);
-		S_Sound (npc, CHAN_VOICE|CHAN_NOPAUSE, CurNode->SpeakerVoice, 1, ATTN_NORM);
-	}
-
-	if (pc->player != &players[consoleplayer])
-		return;
-
-	// Set up the menu
-	ConversationMenu.PreDraw = DrawConversationMenu;
-	ConversationMenu.EscapeHandler = ConversationMenuEscaped;
-
-	// Format the speaker's message.
-	toSay = CurNode->Dialogue;
-	if (strncmp (toSay, "RANDOM_", 7) == 0)
-	{
-		FString dlgtext;
-
-		dlgtext.Format("TXT_%s_%02d", toSay, 1+(pr_randomspeech() % NUM_RANDOM_LINES));
-		toSay = GStrings[dlgtext.GetChars()];
-		if (toSay==NULL) toSay = "Go away!";	// Ok, it's lame - but it doesn't look like an error to the player. ;)
-	}
-	DialogueLines = V_BreakLines (SmallFont, screen->GetWidth()/CleanXfac-24*2, toSay);
-
-	// Fill out the possible choices
-	ShowGold = false;
-	item.type = numberedmore;
-	item.e.mfunc = PickConversationReply;
-	for (reply = CurNode->Children, i = 1; reply != NULL; reply = reply->Next)
-	{
-		if (reply->Reply == NULL)
+		if (CurNode->SpeakerVoice != 0)
 		{
-			continue;
+			I_SetMusicVolume (dlg_musicvolume);
+			S_Sound (npc, CHAN_VOICE|CHAN_NOPAUSE, CurNode->SpeakerVoice, 1, ATTN_NORM);
 		}
-		ShowGold |= reply->NeedsGold;
-		reply->ReplyLines = V_BreakLines (SmallFont, 320-50-10, reply->Reply);
-		for (j = 0; reply->ReplyLines[j].Width >= 0; ++j)
+
+		// Set up the menu
+		::CurNode = CurNode;	// only set the global variaböle for the consoleplayer
+		ConversationMenu.PreDraw = DrawConversationMenu;
+		ConversationMenu.EscapeHandler = ConversationMenuEscaped;
+
+		// Format the speaker's message.
+		toSay = CurNode->Dialogue;
+		if (strncmp (toSay, "RANDOM_", 7) == 0)
 		{
-			item.label = reply->ReplyLines[j].Text.LockBuffer();
-			item.b.position = j == 0 ? i : 0;
-			item.c.extra = reply;
-			ConversationItems.Push (item);
+			FString dlgtext;
+
+			dlgtext.Format("TXT_%s_%02d", toSay, 1+(pr_randomspeech() % NUM_RANDOM_LINES));
+			toSay = GStrings[dlgtext.GetChars()];
+			if (toSay==NULL) toSay = "Go away!";	// Ok, it's lame - but it doesn't look like an error to the player. ;)
 		}
-		++i;
-	}
-	char goodbye[25];
-	mysnprintf(goodbye, countof(goodbye), "TXT_RANDOMGOODBYE_%d", 1+(pr_randomspeech() % NUM_RANDOM_GOODBYES));
-	item.label = (char*)GStrings[goodbye];
-	if (item.label == NULL) item.label = "Bye.";
-	item.b.position = i;
-	item.c.extra = NULL;
-	ConversationItems.Push (item);
+		DialogueLines = V_BreakLines (SmallFont, screen->GetWidth()/CleanXfac-24*2, toSay);
 
-	// Determine where the top of the reply list should be positioned.
-	i = (gameinfo.gametype & GAME_Raven) ? 9 : 8;
-	ConversationMenu.y = MIN<int> (140, 192 - ConversationItems.Size() * i);
-	for (i = 0; DialogueLines[i].Width >= 0; ++i)
-	{ }
-	i = 44 + i * 10;
-	if (ConversationMenu.y - 100 < i - screen->GetHeight() / CleanYfac / 2)
-	{
-		ConversationMenu.y = i - screen->GetHeight() / CleanYfac / 2 + 100;
-	}
-	ConversationMenu.indent = 50;
+		// Fill out the possible choices
+		ShowGold = false;
+		item.type = numberedmore;
+		item.e.mfunc = PickConversationReply;
+		for (reply = CurNode->Children, i = 1; reply != NULL; reply = reply->Next)
+		{
+			if (reply->Reply == NULL)
+			{
+				continue;
+			}
+			ShowGold |= reply->NeedsGold;
+			reply->ReplyLines = V_BreakLines (SmallFont, 320-50-10, reply->Reply);
+			for (j = 0; reply->ReplyLines[j].Width >= 0; ++j)
+			{
+				item.label = reply->ReplyLines[j].Text.LockBuffer();
+				item.b.position = j == 0 ? i : 0;
+				item.c.extra = reply;
+				ConversationItems.Push (item);
+			}
+			++i;
+		}
+		char goodbye[25];
+		mysnprintf(goodbye, countof(goodbye), "TXT_RANDOMGOODBYE_%d", 1+(pr_randomspeech() % NUM_RANDOM_GOODBYES));
+		item.label = (char*)GStrings[goodbye];
+		if (item.label == NULL) item.label = "Bye.";
+		item.b.position = i;
+		item.c.extra = NULL;
+		ConversationItems.Push (item);
 
-	// Finish setting up the menu
-	ConversationMenu.items = &ConversationItems[0];
-	ConversationMenu.numitems = ConversationItems.Size();
-	if (CurNode != PrevNode)
-	{ // Only reset the selection if showing a different menu.
-		ConversationMenu.lastOn = 0;
-		PrevNode = CurNode;
-	}
-	ConversationMenu.DontDim = true;
+		// Determine where the top of the reply list should be positioned.
+		i = (gameinfo.gametype & GAME_Raven) ? 9 : 8;
+		ConversationMenu.y = MIN<int> (140, 192 - ConversationItems.Size() * i);
+		for (i = 0; DialogueLines[i].Width >= 0; ++i)
+		{ }
+		i = 44 + i * 10;
+		if (ConversationMenu.y - 100 < i - screen->GetHeight() / CleanYfac / 2)
+		{
+			ConversationMenu.y = i - screen->GetHeight() / CleanYfac / 2 + 100;
+		}
+		ConversationMenu.indent = 50;
 
-	// And open the menu
-	M_StartControlPanel (false);
-	OptionsActive = true;
-	menuactive = MENU_OnNoPause;
-	ConversationPauseTic = gametic + 20;
-	M_SwitchMenu (&ConversationMenu);
+		// Finish setting up the menu
+		ConversationMenu.items = &ConversationItems[0];
+		ConversationMenu.numitems = ConversationItems.Size();
+		if (CurNode != PrevNode)
+		{ // Only reset the selection if showing a different menu.
+			ConversationMenu.lastOn = 0;
+			PrevNode = CurNode;
+		}
+		ConversationMenu.DontDim = true;
+
+		// And open the menu
+		M_StartControlPanel (false);
+		OptionsActive = true;
+		menuactive = MENU_OnNoPause;
+		ConversationPauseTic = gametic + 20;
+		M_SwitchMenu (&ConversationMenu);
+	}
 }
 
 //============================================================================
@@ -950,6 +957,8 @@ static void PickConversationReply ()
 	{
 		Net_WriteByte (DEM_CONVERSATION);
 		Net_WriteByte (CONV_NPCANGLE);
+		Net_WriteByte (DEM_CONVERSATION);
+		Net_WriteByte (CONV_CLOSE);
 		return;
 	}
 
@@ -969,6 +978,8 @@ static void PickConversationReply ()
 
 			Net_WriteByte (DEM_CONVERSATION);
 			Net_WriteByte (CONV_NPCANGLE);
+			Net_WriteByte (DEM_CONVERSATION);
+			Net_WriteByte (CONV_CLOSE);
 			return;
 		}
 	}
@@ -1188,10 +1199,21 @@ void P_ConversationCommand (int player, BYTE **stream)
 		break;
 
 	case CONV_SETNULL:
+		if (players[player].ConversationNPC != NULL)
+		{
+			players[player].ConversationNPC->flags5 &= ~MF5_INCONVERSATION;
+		}
 		players[player].ConversationFaceTalker = false;
 		players[player].ConversationNPC = NULL;
 		players[player].ConversationPC = NULL;
 		players[player].ConversationNPCAngle = 0;
+		break;
+		
+	case CONV_CLOSE:
+		if (players[player].ConversationNPC != NULL)
+		{
+			players[player].ConversationNPC->flags5 &= ~MF5_INCONVERSATION;
+		}
 		break;
 
 	default:

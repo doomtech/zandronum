@@ -38,6 +38,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <new>
+
+#if !defined(_WIN32)
+#include <inttypes.h>		// for intptr_t
+#elif !defined(_MSC_VER)
+#include <stdint.h>			// for mingw
+#endif
+
 #include "m_alloc.h"
 
 class FArchive;
@@ -392,7 +399,7 @@ typedef unsigned int hash_t;
 template<class KT> struct THashTraits
 {
 	// Returns the hash value for a key.
-	hash_t Hash(const KT key) { return hash_t(key); }
+	hash_t Hash(const KT key) { return (hash_t)(intptr_t)key; }
 
 	// Compares two keys, returning zero if they are the same.
 	int Compare(const KT left, const KT right) { return left != right; }

@@ -177,6 +177,7 @@ EXTERN_CVAR (Bool, invertmouse)
 EXTERN_CVAR (Bool, lookstrafe)
 EXTERN_CVAR (Int, screenblocks)
 EXTERN_CVAR (Bool, sv_cheats)
+EXTERN_CVAR (Bool, sv_unlimited_pickup)
 
 extern gameinfo_t SharewareGameInfo;
 extern gameinfo_t RegisteredGameInfo;
@@ -579,7 +580,7 @@ CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 	}
 }
 
-CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_NOINITCALL)
+CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 {
 	int v;
 
@@ -2721,6 +2722,7 @@ void D_DoomMain (void)
 	if (Args->CheckParm ("-nomonsters"))	flags |= DF_NO_MONSTERS;
 	if (Args->CheckParm ("-respawn"))		flags |= DF_MONSTERS_RESPAWN;
 	if (Args->CheckParm ("-fast"))			flags |= DF_FAST_MONSTERS;
+	if (Args->CheckParm("-ulp"))	sv_unlimited_pickup = true;
 
 	devparm = !!Args->CheckParm ("-devparm");
 
@@ -2965,9 +2967,6 @@ void D_DoomMain (void)
 		}
 	}
 
-	// Now that all actors have been defined we can finally set up the weapon slots
-	GameConfig->DoWeaponSetup (GameNames[gameinfo.gametype]);
-
 	// [GRB] Initialize player class list
 	SetupPlayerClasses ();
 
@@ -3039,6 +3038,7 @@ void D_DoomMain (void)
 	StartScreen->LoadingStatus ("Init game engine", 0x3f);
 	P_Init ();
 
+	P_SetupWeapons_ntohton();
 
 	//SBarInfo support.
 	SBarInfo::Load();

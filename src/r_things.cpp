@@ -492,10 +492,12 @@ static const char *skinsoundnames[NUMSKINSOUNDS][2] =
 	{ "dstaunt",	"*taunt" },
 };
 
+/*
 static int STACK_ARGS skinsorter (const void *a, const void *b)
 {
 	return stricmp (((FPlayerSkin *)a)->name, ((FPlayerSkin *)b)->name);
 }
+*/
 
 void R_InitSkins (void)
 {
@@ -904,36 +906,20 @@ void R_InitSkins (void)
 // [RH] Find a skin by name
 int R_FindSkin (const char *name, int pclass)
 {
-	int min, max, mid;
-	int lexx;
-
 	if (stricmp ("base", name) == 0)
 	{
 		return pclass;
 	}
 
-	min = PlayerClasses.Size ();
-	max = (int)numskins-1;
-
-	while (min <= max)
+	for (unsigned i = PlayerClasses.Size(); i < numskins; i++)
 	{
-		mid = (min + max)/2;
 		// [BC] Changed from 16 to MAX_SKIN_NAME.
-		lexx = strnicmp (skins[mid].name, name, MAX_SKIN_NAME);
-		if (lexx == 0)
+		if (strnicmp (skins[i].name, name, MAX_SKIN_NAME) == 0)
 		{
-			if (PlayerClasses[pclass].CheckSkin (mid))
-				return mid;
+			if (PlayerClasses[pclass].CheckSkin (i))
+				return i;
 			else
 				return pclass;
-		}
-		else if (lexx < 0)
-		{
-			min = mid + 1;
-		}
-		else
-		{
-			max = mid - 1;
 		}
 	}
 	return pclass;
@@ -1237,7 +1223,7 @@ void R_InitSprites ()
 	}
 
 	// [RH] Sort the skins, but leave base as skin 0
-	qsort (&skins[PlayerClasses.Size ()], numskins-PlayerClasses.Size (), sizeof(FPlayerSkin), skinsorter);
+	//qsort (&skins[PlayerClasses.Size ()], numskins-PlayerClasses.Size (), sizeof(FPlayerSkin), skinsorter);
 }
 
 void R_DeinitSprites()

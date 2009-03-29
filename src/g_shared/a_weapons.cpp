@@ -16,6 +16,7 @@
 #include "thingdef/thingdef.h"
 #include "doomstat.h"
 #include "g_level.h"
+#include "d_net.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"
@@ -31,6 +32,15 @@ IMPLEMENT_POINTY_CLASS (AWeapon)
  DECLARE_POINTER (Ammo2)
  DECLARE_POINTER (SisterWeapon)
 END_POINTERS
+
+FString WeaponSection;
+TArray<FString> KeyConfWeapons;
+FWeaponSlots *PlayingKeyConf;
+
+TArray<const PClass *> Weapons_ntoh;
+TMap<const PClass *, int> Weapons_hton;
+
+static int STACK_ARGS ntoh_cmp(const void *a, const void *b);
 
 //===========================================================================
 //
@@ -180,8 +190,10 @@ bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 	// Don't take ammo if the weapon sticks around.
 	if (!ShouldStay ())
 	{
-		int oldamount = 0;
-		if (ownedWeapon->Ammo1 != NULL) oldamount = ownedWeapon->Ammo1->Amount;
+		int oldamount1 = 0;
+		int oldamount2 = 0;
+		if (ownedWeapon->Ammo1 != NULL) oldamount1 = ownedWeapon->Ammo1->Amount;
+		if (ownedWeapon->Ammo2 != NULL) oldamount2 = ownedWeapon->Ammo2->Amount;
 
 		if (AmmoGive1 > 0)
 		{
@@ -202,9 +214,16 @@ bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 		}
 
 		AActor *Owner = ownedWeapon->Owner;
-		if (gotstuff && oldamount == 0 && Owner != NULL && Owner->player != NULL)
+		if (gotstuff && Owner != NULL && Owner->player != NULL)
 		{
-			static_cast<APlayerPawn *>(Owner)->CheckWeaponSwitch(ownedWeapon->Ammo1->GetClass());
+			if (ownedWeapon->Ammo1 != NULL && oldamount1 == 0)
+			{
+				static_cast<APlayerPawn *>(Owner)->CheckWeaponSwitch(ownedWeapon->Ammo1->GetClass());
+			}
+			else if (ownedWeapon->Ammo2 != NULL && oldamount2 == 0)
+			{
+				static_cast<APlayerPawn *>(Owner)->CheckWeaponSwitch(ownedWeapon->Ammo2->GetClass());
+			}
 		}
 	}
 	return gotstuff;
@@ -412,10 +431,11 @@ AAmmo *AWeapon::AddAmmo (AActor *other, const PClass *ammotype, int amount)
 // Give the owner some more ammo he already has.
 //
 //===========================================================================
+EXTERN_CVAR(Bool, sv_unlimited_pickup)
 
 bool AWeapon::AddExistingAmmo (AAmmo *ammo, int amount)
 {
-	if (ammo != NULL && ammo->Amount < ammo->MaxAmount)
+	if (ammo != NULL && (ammo->Amount < ammo->MaxAmount || sv_unlimited_pickup))
 	{
 		// extra ammo in baby mode and nightmare mode
 		if (!(ItemFlags&IF_IGNORESKILL))
@@ -423,7 +443,7 @@ bool AWeapon::AddExistingAmmo (AAmmo *ammo, int amount)
 			amount = FixedMul(amount, G_SkillProperty(SKILLP_AmmoFactor));
 		}
 		ammo->Amount += amount;
-		if (ammo->Amount > ammo->MaxAmount)
+		if (ammo->Amount > ammo->MaxAmount && !sv_unlimited_pickup)
 		{
 			ammo->Amount = ammo->MaxAmount;
 		}
@@ -784,29 +804,22 @@ bool AWeaponGiver::TryPickup(AActor *&toucher)
 
 /* Weapon slots ***********************************************************/
 
-FWeaponSlots LocalWeapons;
+//===========================================================================
+//
+// FWeaponSlot :: AddWeapon
+//
+// Adds a weapon to the end of the slot if it isn't already in it.
+//
+//===========================================================================
 
-FWeaponSlot::FWeaponSlot ()
-{
-	Clear ();
-}
-
-void FWeaponSlot::Clear ()
-{
-	for (int i = 0; i < MAX_WEAPONS_PER_SLOT; i++)
-	{
-		Weapons[i] = NULL;
-	}
-}
-
-bool FWeaponSlot::AddWeapon (const char *type)
+bool FWeaponSlot::AddWeapon(const char *type)
 {
 	return AddWeapon (PClass::FindClass (type));
 }
 
-bool FWeaponSlot::AddWeapon (const PClass *type)
+bool FWeaponSlot::AddWeapon(const PClass *type)
 {
-	int i;
+	unsigned int i;
 	
 	if (type == NULL)
 	{
@@ -819,22 +832,80 @@ bool FWeaponSlot::AddWeapon (const PClass *type)
 		return false;
 	}
 
-	for (i = 0; i < MAX_WEAPONS_PER_SLOT; i++)
+	for (i = 0; i < Weapons.Size(); i++)
 	{
-		if (Weapons[i] == type)
+		if (Weapons[i].Type == type)
 			return true;	// Already present
-		if (Weapons[i] == NULL)
-			break;
 	}
-	if (i == MAX_WEAPONS_PER_SLOT)
-	{ // This slot is full
-		return false;
-	}
-	Weapons[i] = type;
+	WeaponInfo info = { type, -1 };
+	Weapons.Push(info);
 	return true;
 }
 
-AWeapon *FWeaponSlot::PickWeapon (player_t *player)
+//===========================================================================
+//
+// FWeaponSlot :: AddWeaponList
+//
+// Appends all the weapons from the space-delimited list to this slot.
+// Set clear to true to remove any weapons already in this slot first.
+//
+//===========================================================================
+
+void FWeaponSlot :: AddWeaponList(const char *list, bool clear)
+{
+	FString copy(list);
+	char *buff = copy.LockBuffer();
+	char *tok;
+
+	if (clear)
+	{
+		Clear();
+	}
+	tok = strtok(buff, " ");
+	while (tok != NULL)
+	{
+		AddWeapon(tok);
+		tok = strtok(NULL, " ");
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlot :: LocateWeapon
+//
+// Returns the index for the specified weapon in this slot, or -1 if it isn't
+// in this slot.
+//
+//===========================================================================
+
+int FWeaponSlot::LocateWeapon(const PClass *type)
+{
+	unsigned int i;
+
+	for (i = 0; i < Weapons.Size(); ++i)
+	{
+		if (Weapons[i].Type == type)
+		{
+			return (int)i;
+		}
+	}
+	return -1;
+}
+
+//===========================================================================
+//
+// FWeaponSlot :: PickWeapon
+//
+// Picks a weapon from this slot. If no weapon is selected in this slot,
+// or the first weapon in this slot is selected, returns the last weapon.
+// Otherwise, returns the previous weapon in this slot. This means
+// precedence is given to the last weapon in the slot, which by convention
+// is probably the strongest. Does not return weapons you have no ammo
+// for or which you do not possess.
+//
+//===========================================================================
+
+AWeapon *FWeaponSlot::PickWeapon(player_t *player)
 {
 	int i, j;
 
@@ -843,23 +914,28 @@ AWeapon *FWeaponSlot::PickWeapon (player_t *player)
 	if ( player->mo == NULL )
 		return NULL;
 
+	// Does this slot even have any weapons?
+	if (Weapons.Size() == 0)
+	{
+		return player->ReadyWeapon;
+	}
 	if (player->ReadyWeapon != NULL)
 	{
-		for (i = 0; i < MAX_WEAPONS_PER_SLOT; i++)
+		for (i = 0; (unsigned)i < Weapons.Size(); i++)
 		{
-			if (Weapons[i] == player->ReadyWeapon->GetClass() ||
+			if (Weapons[i].Type == player->ReadyWeapon->GetClass() ||
 				(player->ReadyWeapon->WeaponFlags & WIF_POWERED_UP &&
 				 player->ReadyWeapon->SisterWeapon != NULL &&
-				 player->ReadyWeapon->SisterWeapon->GetClass() == Weapons[i]))
+				 player->ReadyWeapon->SisterWeapon->GetClass() == Weapons[i].Type))
 			{
-				for (j = (unsigned)(i - 1) % MAX_WEAPONS_PER_SLOT;
+				for (j = (unsigned)(i - 1) % Weapons.Size();
 					j != i;
-					j = (unsigned)(j - 1) % MAX_WEAPONS_PER_SLOT)
+					j = (unsigned)(j - 1) % Weapons.Size())
 				{
-					AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory (Weapons[j]));
+					AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory(Weapons[j].Type));
 
 					// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-					if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo (AWeapon::EitherFire, false) )))
+					if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
 					{
 						return weap;
 					}
@@ -867,12 +943,12 @@ AWeapon *FWeaponSlot::PickWeapon (player_t *player)
 			}
 		}
 	}
-	for (i = MAX_WEAPONS_PER_SLOT - 1; i >= 0; i--)
+	for (i = Weapons.Size() - 1; i >= 0; i--)
 	{
-		AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory (Weapons[i]));
+		AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory(Weapons[i].Type));
 
 		// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-		if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo (AWeapon::EitherFire, false) )))
+		if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
 		{
 			return weap;
 		}
@@ -880,17 +956,99 @@ AWeapon *FWeaponSlot::PickWeapon (player_t *player)
 	return player->ReadyWeapon;
 }
 
-void FWeaponSlots::Clear ()
+//===========================================================================
+//
+// FWeaponSlot :: SetInitialPositions
+//
+// Fills in the position field for every weapon currently in the slot based
+// on its position in the slot. These are not scaled to [0,1] so that extra
+// weapons can use those values to go to the start or end of the slot.
+//
+//===========================================================================
+
+void FWeaponSlot::SetInitialPositions()
 {
-	for (int i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	unsigned int size = Weapons.Size(), i;
+
+	if (size == 1)
 	{
-		Slots[i].Clear ();
+		Weapons[0].Position = 0x8000;
+	}
+	else
+	{
+		for (i = 0; i < size; ++i)
+		{
+			Weapons[i].Position = i * 0xFF00 / (size - 1) + 0x80;
+		}
 	}
 }
 
+//===========================================================================
+//
+// FWeaponSlot :: Sort
+//
+// Rearranges the weapons by their position field.
+//
+//===========================================================================
+
+void FWeaponSlot::Sort()
+{
+	// This does not use qsort(), because the sort should be stable, and
+	// there is no guarantee that qsort() is stable. This insertion sort
+	// should be fine.
+	int i, j;
+
+	for (i = 1; i < (int)Weapons.Size(); ++i)
+	{
+		fixed_t pos = Weapons[i].Position;
+		const PClass *type = Weapons[i].Type;
+		for (j = i - 1; j >= 0 && Weapons[j].Position > pos; --j)
+		{
+			Weapons[j + 1] = Weapons[j];
+		}
+		Weapons[j + 1].Type = type;
+		Weapons[j + 1].Position = pos;
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots - Copy Constructor
+//
+//===========================================================================
+
+FWeaponSlots::FWeaponSlots(const FWeaponSlots &other)
+{
+	for (int i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	{
+		Slots[i] = other.Slots[i];
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: Clear
+//
+// Removes all weapons from every slot.
+//
+//===========================================================================
+
+void FWeaponSlots::Clear()
+{
+	for (int i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	{
+		Slots[i].Clear();
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: AddDefaultWeapon
+//
 // If the weapon already exists in a slot, don't add it. If it doesn't,
-// then add it to the specified slot. False is returned if the weapon was
-// not in a slot and could not be added. True is returned otherwise.
+// then add it to the specified slot.
+//
+//===========================================================================
 
 ESlotDef FWeaponSlots::AddDefaultWeapon (int slot, const PClass *type)
 {
@@ -908,43 +1066,59 @@ ESlotDef FWeaponSlots::AddDefaultWeapon (int slot, const PClass *type)
 	return SLOTDEF_Exists;
 }
 
+//===========================================================================
+//
+// FWeaponSlots :: LocateWeapon
+//
+// Returns true if the weapon is in a slot, false otherwise. If the weapon
+// is found, it can also optionally return the slot and index for it.
+//
+//===========================================================================
+
 bool FWeaponSlots::LocateWeapon (const PClass *type, int *const slot, int *const index)
 {
 	int i, j;
 
 	for (i = 0; i < NUM_WEAPON_SLOTS; i++)
 	{
-		for (j = 0; j < MAX_WEAPONS_PER_SLOT; j++)
+		j = Slots[i].LocateWeapon(type);
+		if (j >= 0)
 		{
-			if (Slots[i].Weapons[j] == type)
-			{
-				if (slot != NULL) *slot = i;
-				if (index != NULL) *index = j;
-				return true;
-			}
-			else if (Slots[i].Weapons[j] == NULL)
-			{ // No more weapons in this slot, so try the next
-				break;
-			}
+			if (slot != NULL) *slot = i;
+			if (index != NULL) *index = j;
+			return true;
 		}
 	}
 	return false;
 }
 
-static bool FindMostRecentWeapon (player_t *player, int *slot, int *index)
+//===========================================================================
+//
+// FindMostRecentWeapon
+//
+// Locates the slot and index for the most recently selected weapon. If the
+// player is in the process of switching to a new weapon, that is the most
+// recently selected weapon. Otherwise, the current weapon is the most recent
+// weapon.
+//
+//===========================================================================
+
+static bool FindMostRecentWeapon(player_t *player, int *slot, int *index)
 {
 	if (player->PendingWeapon != WP_NOCHANGE)
 	{
-		return LocalWeapons.LocateWeapon (player->PendingWeapon->GetClass(), slot, index);
+		return player->weapons.LocateWeapon(player->PendingWeapon->GetClass(), slot, index);
 	}
 	else if (player->ReadyWeapon != NULL)
 	{
 		AWeapon *weap = player->ReadyWeapon;
-		if (!LocalWeapons.LocateWeapon (weap->GetClass(), slot, index))
+		if (!player->weapons.LocateWeapon(weap->GetClass(), slot, index))
 		{
+			// If the current weapon wasn't found and is powered up,
+			// look for its non-powered up version.
 			if (weap->WeaponFlags & WIF_POWERED_UP && weap->SisterWeaponType != NULL)
 			{
-				return LocalWeapons.LocateWeapon (weap->SisterWeaponType, slot, index);
+				return player->weapons.LocateWeapon(weap->SisterWeaponType, slot, index);
 			}
 			return false;
 		}
@@ -956,7 +1130,17 @@ static bool FindMostRecentWeapon (player_t *player, int *slot, int *index)
 	}
 }
 
-AWeapon *PickNextWeapon (player_t *player)
+//===========================================================================
+//
+// FWeaponSlots :: PickNextWeapon
+//
+// Returns the "next" weapon for this player. If the current weapon is not
+// in a slot, then it just returns that weapon, since there's nothing to
+// consider it relative to.
+//
+//===========================================================================
+
+AWeapon *FWeaponSlots::PickNextWeapon(player_t *player)
 {
 	int startslot, startindex;
 
@@ -964,36 +1148,53 @@ AWeapon *PickNextWeapon (player_t *player)
 	{
 		return NULL;
 	}
-	if (player->ReadyWeapon == NULL || FindMostRecentWeapon (player, &startslot, &startindex))
+	if (player->ReadyWeapon == NULL || FindMostRecentWeapon(player, &startslot, &startindex))
 	{
-		int start;
-		int i;
+		int slot;
+		int index;
 
 		if (player->ReadyWeapon == NULL)
 		{
 			startslot = NUM_WEAPON_SLOTS - 1;
-			startindex = MAX_WEAPONS_PER_SLOT - 1;
+			startindex = Slots[startslot].Size() - 1;
 		}
-		start = startslot * MAX_WEAPONS_PER_SLOT + startindex;
 
-		for (i = 1; i < NUM_WEAPON_SLOTS * MAX_WEAPONS_PER_SLOT + 1; i++)
+		slot = startslot;
+		index = startindex;
+		do
 		{
-			int slot = (unsigned)((start + i) / MAX_WEAPONS_PER_SLOT) % NUM_WEAPON_SLOTS;
-			int index = (unsigned)(start + i) % MAX_WEAPONS_PER_SLOT;
-			const PClass *type = LocalWeapons.Slots[slot].Weapons[index];
-			AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory (type));
-
+			if (++index >= Slots[slot].Size())
+			{
+				index = 0;
+				if (++slot >= NUM_WEAPON_SLOTS)
+				{
+					slot = 0;
+				}
+			}
+			const PClass *type = Slots[slot].GetWeapon(index);
+			AWeapon *weap = static_cast<AWeapon *>(player->mo->FindInventory(type));
 			// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-			if (weap != NULL && ( cl_noammoswitch || ( weap->CheckAmmo (AWeapon::EitherFire, false) )))
+			if (weap != NULL && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
 			{
 				return weap;
 			}
 		}
+		while (slot != startslot || index != startindex);
 	}
 	return player->ReadyWeapon;
 }
 
-AWeapon *PickPrevWeapon (player_t *player)
+//===========================================================================
+//
+// FWeaponSlots :: PickPrevWeapon
+//
+// Returns the "previous" weapon for this player. If the current weapon is
+// not in a slot, then it just returns that weapon, since there's nothing to
+// consider it relative to.
+//
+//===========================================================================
+
+AWeapon *FWeaponSlots::PickPrevWeapon (player_t *player)
 {
 	int startslot, startindex;
 
@@ -1003,76 +1204,306 @@ AWeapon *PickPrevWeapon (player_t *player)
 	}
 	if (player->ReadyWeapon == NULL || FindMostRecentWeapon (player, &startslot, &startindex))
 	{
-		int start;
-		int i;
+		int slot;
+		int index;
 
 		if (player->ReadyWeapon == NULL)
 		{
 			startslot = 0;
 			startindex = 0;
 		}
-		start = startslot * MAX_WEAPONS_PER_SLOT + startindex;
 
-		for (i = 1; i < NUM_WEAPON_SLOTS * MAX_WEAPONS_PER_SLOT + 1; i++)
+		slot = startslot;
+		index = startindex;
+		do
 		{
-			int slot = start - i;
-			if (slot < 0)
-				slot += NUM_WEAPON_SLOTS * MAX_WEAPONS_PER_SLOT;
-			int index = slot % MAX_WEAPONS_PER_SLOT;
-			slot /= MAX_WEAPONS_PER_SLOT;
-			const PClass *type = LocalWeapons.Slots[slot].Weapons[index];
-			AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory (type));
-
+			if (--index < 0)
+			{
+				if (--slot < 0)
+				{
+					slot = NUM_WEAPON_SLOTS - 1;
+				}
+				index = Slots[slot].Size() - 1;
+			}
+			const PClass *type = Slots[slot].GetWeapon(index);
+			AWeapon *weap = static_cast<AWeapon *>(player->mo->FindInventory(type));
 			// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-			if (weap != NULL && ( cl_noammoswitch || ( weap->CheckAmmo (AWeapon::EitherFire, false) )))
+			if (weap != NULL && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
 			{
 				return weap;
 			}
 		}
+		while (slot != startslot || index != startindex);
 	}
 	return player->ReadyWeapon;
 }
 
-CCMD (setslot)
+//===========================================================================
+//
+// FWeaponSlots :: AddExtraWeapons
+//
+// For every weapon class for the current game, add it to its desired slot
+// and position within the slot. Does not first clear the slots.
+//
+//===========================================================================
+
+void FWeaponSlots::AddExtraWeapons()
 {
-	int slot, i;
+	unsigned int i;
 
-	if (ParsingKeyConf && WeaponSection.IsEmpty())
+	// Set fractional positions for current weapons.
+	for (i = 0; i < NUM_WEAPON_SLOTS; ++i)
 	{
-		Printf ("You need to use weaponsection before using setslot\n");
-		return;
+		Slots[i].SetInitialPositions();
 	}
 
-	if (argv.argc() < 2 || (slot = atoi (argv[1])) >= NUM_WEAPON_SLOTS)
+	// Append extra weapons to the slots.
+	for (unsigned int i = 0; i < PClass::m_Types.Size(); ++i)
 	{
-		Printf ("Usage: setslot [slot] [weapons]\nCurrent slot assignments:\n");
-		for (slot = 0; slot < NUM_WEAPON_SLOTS; ++slot)
+		PClass *cls = PClass::m_Types[i];
+
+		if (cls->ActorInfo != NULL &&
+			(cls->ActorInfo->GameFilter == GAME_Any || (cls->ActorInfo->GameFilter & gameinfo.gametype)) &&
+			cls->ActorInfo->Replacement == NULL &&	// Replaced weapons don't get slotted.
+			cls->IsDescendantOf(RUNTIME_CLASS(AWeapon)) &&
+			!LocateWeapon(cls, NULL, NULL)			// Don't duplicate it if it's already present.
+			)
 		{
-			Printf (" Slot %d:", slot);
-			for (i = 0;
-				i < MAX_WEAPONS_PER_SLOT && LocalWeapons.Slots[slot].GetWeapon(i) != NULL;
-				++i)
+			int slot = cls->Meta.GetMetaInt(AWMETA_SlotNumber, -1);
+			if ((unsigned)slot < NUM_WEAPON_SLOTS)
 			{
-				Printf (" %s", LocalWeapons.Slots[slot].GetWeapon(i)->TypeName.GetChars());
+				fixed_t position = cls->Meta.GetMetaFixed(AWMETA_SlotPriority, INT_MAX);
+				FWeaponSlot::WeaponInfo info = { cls, position };
+				Slots[slot].Weapons.Push(info);
 			}
-			Printf ("\n");
 		}
-		return;
 	}
 
-	LocalWeapons.Slots[slot].Clear();
-	if (argv.argc() == 2)
+	// Now resort every slot to put the new weapons in their proper places.
+	for (i = 0; i < NUM_WEAPON_SLOTS; ++i)
 	{
-		Printf ("Slot %d cleared\n", slot);
+		Slots[i].Sort();
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: StandardSetup
+//
+// Setup weapons in this order:
+// 1. Use slots from player class.
+// 2. Add extra weapons that specify their own slots.
+//
+//===========================================================================
+
+void FWeaponSlots::StandardSetup(const PClass *type)
+{
+	SetFromPlayer(type);
+	AddExtraWeapons();
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: LocalSetup
+//
+// Setup weapons in this order:
+// 1. Run KEYCONF weapon commands, affecting slots accordingly.
+// 2. Read config slots, overriding current slots. If WeaponSection is set,
+//    then [<WeaponSection>.<PlayerClass>.Weapons] is tried, followed by
+//    [<WeaponSection>.Weapons] if that did not exist. If WeaponSection is
+//    empty, then the slots are read from [<PlayerClass>.Weapons].
+//
+//===========================================================================
+
+void FWeaponSlots::LocalSetup(const PClass *type)
+{
+	P_PlaybackKeyConfWeapons(this);
+	if (WeaponSection.IsNotEmpty())
+	{
+		FString sectionclass(WeaponSection);
+		sectionclass << '.' << type->TypeName.GetChars();
+		if (RestoreSlots(GameConfig, sectionclass) == 0)
+		{
+			RestoreSlots(GameConfig, WeaponSection);
+		}
 	}
 	else
 	{
-		for (i = 2; i < argv.argc(); ++i)
+		RestoreSlots(GameConfig, type->TypeName.GetChars());
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: SendDifferences
+//
+// Sends the weapon slots from this instance that differ from other's.
+//
+//===========================================================================
+
+void FWeaponSlots::SendDifferences(const FWeaponSlots &other)
+{
+	int i, j;
+
+	for (i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	{
+		if (other.Slots[i].Size() == Slots[i].Size())
 		{
-			if (!LocalWeapons.Slots[slot].AddWeapon (argv[i]))
+			for (j = (int)Slots[i].Size(); j-- > 0; )
 			{
-				Printf ("Could not add %s to slot %d\n", argv[i], slot);
+				if (other.Slots[i].GetWeapon(j) != Slots[i].GetWeapon(j))
+				{
+					break;
+				}
 			}
+			if (j < 0)
+			{ // The two slots are the same.
+				continue;
+			}
+		}
+		// The slots differ. Send mine.
+		Net_WriteByte(DEM_SETSLOT);
+		Net_WriteByte(i);
+		Net_WriteByte(Slots[i].Size());
+		for (j = 0; j < Slots[i].Size(); ++j)
+		{
+			Net_WriteWeapon(Slots[i].GetWeapon(j));
+		}
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: SetFromPlayer
+//
+// Sets all weapon slots according to the player class.
+//
+//===========================================================================
+
+void FWeaponSlots::SetFromPlayer(const PClass *type)
+{
+	Clear();
+	for (int i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	{
+		const char *str = type->Meta.GetMetaString(APMETA_Slot0 + i);
+		if (str != NULL)
+		{
+			Slots[i].AddWeaponList(str, false);
+		}
+	}
+}
+
+//===========================================================================
+//
+// FWeaponSlots :: RestoreSlots
+//
+// Reads slots from a config section. Any slots in the section override
+// existing slot settings, while slots not present in the config are
+// unaffected. Returns the number of slots read.
+//
+//===========================================================================
+
+int FWeaponSlots::RestoreSlots(FConfigFile *config, const char *section)
+{
+	FString section_name(section);
+	const char *key, *value;
+	int slotsread = 0;
+
+	section_name += ".Weapons";
+	if (!config->SetSection(section_name))
+	{
+		return 0;
+	}
+	while (config->NextInSection (key, value))
+	{
+		if (strnicmp (key, "Slot[", 5) != 0 ||
+			key[5] < '0' ||
+			key[5] > '0'+NUM_WEAPON_SLOTS ||
+			key[6] != ']' ||
+			key[7] != 0)
+		{
+			continue;
+		}
+		Slots[key[5] - '0'].AddWeaponList(value, true);
+		slotsread++;
+	}
+	return slotsread;
+}
+
+//===========================================================================
+//
+// CCMD setslot
+//
+//===========================================================================
+
+void FWeaponSlots::PrintSettings()
+{
+	for (int i = 1; i <= NUM_WEAPON_SLOTS; ++i)
+	{
+		int slot = i % NUM_WEAPON_SLOTS;
+		if (Slots[slot].Size() > 0)
+		{
+			Printf("Slot[%d]=", slot);
+			for (int j = 0; j < Slots[slot].Size(); ++j)
+			{
+				Printf("%s ", Slots[slot].GetWeapon(j)->TypeName.GetChars());
+			}
+			Printf("\n");
+		}
+	}
+}
+
+CCMD (setslot)
+{
+	int slot;
+
+	if (argv.argc() < 2 || (slot = atoi (argv[1])) >= NUM_WEAPON_SLOTS)
+	{
+		Printf("Usage: setslot [slot] [weapons]\nCurrent slot assignments:\n");
+		if (players[consoleplayer].mo != NULL)
+		{
+			FString config(GameConfig->GetConfigPath(false));
+			Printf(TEXTCOLOR_BLUE "Add the following to " TEXTCOLOR_ORANGE "%s" TEXTCOLOR_BLUE
+				" to retain these bindings:\n" TEXTCOLOR_NORMAL "[", config.GetChars());
+			if (WeaponSection.IsNotEmpty())
+			{
+				Printf("%s.", WeaponSection.GetChars());
+			}
+			Printf("%s.Weapons]\n", players[consoleplayer].mo->GetClass()->TypeName.GetChars());
+		}
+		players[consoleplayer].weapons.PrintSettings();
+		return;
+	}
+
+	if (ParsingKeyConf)
+	{
+		KeyConfWeapons.Push(argv.args());
+	}
+	else if (PlayingKeyConf != NULL)
+	{
+		PlayingKeyConf->Slots[slot].Clear();
+		for (int i = 2; i < argv.argc(); ++i)
+		{
+			PlayingKeyConf->Slots[slot].AddWeapon(argv[i]);
+		}
+	}
+	else
+	{
+		if (argv.argc() == 2)
+		{
+			Printf ("Slot %d cleared\n", slot);
+		}
+
+		Net_WriteByte(DEM_SETSLOT);
+		Net_WriteByte(slot);
+		Net_WriteByte(argv.argc()-2);
+		for (int i = 2; i < argv.argc(); i++)
+		{
+			Net_WriteWeapon(PClass::FindClass(argv[i]));
+		}
+	}
+
+	/* [BB] Some old code from before ZDoom completely changed how weapon slots are handled.
 			const PClass *replacee;
 			replacee = PClass::FindClass (argv[i]);
 			// [BB] This weapon has been replaced. It's reasonable to add the replacement to the same slot.
@@ -1081,13 +1512,26 @@ CCMD (setslot)
 				LocalWeapons.Slots[slot].AddWeapon ( replacee->ActorInfo->Replacement->Class->TypeName.GetChars() );
 				Printf( "%s is replaced, adding %s to slot %d too.\n", argv[i], replacee->ActorInfo->Replacement->Class->TypeName.GetChars(), slot );
 			}
-		}
+	*/
+}
+
+//===========================================================================
+//
+// CCMD addslot
+//
+//===========================================================================
+
+void FWeaponSlots::AddSlot(int slot, const PClass *type, bool feedback)
+{
+	if (type != NULL && !Slots[slot].AddWeapon(type) && feedback)
+	{
+		Printf ("Could not add %s to slot %d\n", type->TypeName.GetChars(), slot);
 	}
 }
 
 CCMD (addslot)
 {
-	size_t slot;
+	unsigned int slot;
 
 	if (argv.argc() != 3 || (slot = atoi (argv[1])) >= NUM_WEAPON_SLOTS)
 	{
@@ -1095,57 +1539,60 @@ CCMD (addslot)
 		return;
 	}
 
-	if (!LocalWeapons.Slots[slot].AddWeapon (argv[2]))
+	if (ParsingKeyConf)
 	{
-		Printf ("Could not add %s to slot %zu\n", argv[2], slot);
+		KeyConfWeapons.Push(argv.args());
 	}
-}
-
-CCMD (weaponsection)
-{
-	if (argv.argc() != 2)
+	else if (PlayingKeyConf != NULL)
 	{
-		Printf ("Usage: weaponsection <ini name>\n");
+		PlayingKeyConf->AddSlot(int(slot), PClass::FindClass(argv[2]), false);
 	}
 	else
 	{
-		// Limit the section name to 32 chars
-		if (strlen(argv[1]) > 32)
-		{
-			argv[1][32] = 0;
-		}
+		Net_WriteByte(DEM_ADDSLOT);
+		Net_WriteByte(slot);
+		Net_WriteWeapon(PClass::FindClass(argv[2]));
+	}
+}
+
+//===========================================================================
+//
+// CCMD weaponsection
+//
+//===========================================================================
+
+CCMD (weaponsection)
+{
+	if (argv.argc() > 1)
+	{
 		WeaponSection = argv[1];
+	}
+}
 
-		// If the ini already has definitions for this section, load them
-		char fullSection[32*3];
-		char *tackOn;
+//===========================================================================
+//
+// CCMD addslotdefault
+//
+//===========================================================================
+void FWeaponSlots::AddSlotDefault(int slot, const PClass *type, bool feedback)
+{
+	if (type != NULL && type->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
+	{
+		switch (AddDefaultWeapon(slot, type))
+		{
+		case SLOTDEF_Full:
+			if (feedback)
+			{
+				Printf ("Could not add %s to slot %d\n", type->TypeName.GetChars(), slot);
+			}
+			break;
 
-		if (gameinfo.gametype == GAME_Hexen)
-		{
-			strcpy (fullSection, "Hexen");
-			tackOn = fullSection + 5;
-		}
-		else if (gameinfo.gametype == GAME_Heretic)
-		{
-			strcpy (fullSection, "Heretic");
-			tackOn = fullSection + 7;
-		}
-		else if (gameinfo.gametype == GAME_Strife)
-		{
-			strcpy (fullSection, "Strife");
-			tackOn = fullSection + 6;
-		}
-		else
-		{
-			strcpy (fullSection, "Doom");
-			tackOn = fullSection + 4;
-		}
+		default:
+		case SLOTDEF_Added:
+			break;
 
-		mysnprintf (tackOn, countof(fullSection) - (tackOn - fullSection),
-			".%s.WeaponSlots", WeaponSection.GetChars());
-		if (GameConfig->SetSection (fullSection))
-		{
-			LocalWeapons.RestoreSlots (*GameConfig);
+		case SLOTDEF_Exists:
+			break;
 		}
 	}
 }
@@ -1161,113 +1608,216 @@ CCMD (addslotdefault)
 		return;
 	}
 
-	if (ParsingKeyConf && WeaponSection.IsEmpty())
-	{
-		Printf ("You need to use weaponsection before using addslotdefault\n");
-		return;
-	}
-
 	type = PClass::FindClass (argv[2]);
 	if (type == NULL || !type->IsDescendantOf (RUNTIME_CLASS(AWeapon)))
 	{
 		Printf ("%s is not a weapon\n", argv[2]);
+		return;
 	}
 
-	switch (LocalWeapons.AddDefaultWeapon (slot, type))
+	if (ParsingKeyConf)
 	{
-	case SLOTDEF_Full:
-		Printf ("Could not add %s to slot %d\n", argv[2], slot);
-		break;
-
-	case SLOTDEF_Added:
-		break;
-
-	case SLOTDEF_Exists:
-		break;
+		KeyConfWeapons.Push(argv.args());
+	}
+	else if (PlayingKeyConf != NULL)
+	{
+		PlayingKeyConf->AddSlotDefault(int(slot), PClass::FindClass(argv[2]), false);
+	}
+	else
+	{
+		Net_WriteByte(DEM_ADDSLOTDEFAULT);
+		Net_WriteByte(slot);
+		Net_WriteWeapon(PClass::FindClass(argv[2]));
 	}
 }
 
-int FWeaponSlots::RestoreSlots (FConfigFile &config)
+//===========================================================================
+//
+// P_PlaybackKeyConfWeapons
+//
+// Executes the weapon-related commands from a KEYCONF lump.
+//
+//===========================================================================
+
+void P_PlaybackKeyConfWeapons(FWeaponSlots *slots)
 {
-	char buff[MAX_WEAPONS_PER_SLOT*64];
-	const char *key, *value;
-	int slot;
-	int slotsread = 0;
-
-	buff[sizeof(buff)-1] = 0;
-
-	for (slot = 0; slot < NUM_WEAPON_SLOTS; ++slot)
+	PlayingKeyConf = slots;
+	for (unsigned int i = 0; i < KeyConfWeapons.Size(); ++i)
 	{
-		Slots[slot].Clear ();
+		FString cmd(KeyConfWeapons[i]);
+		AddCommandString(cmd.LockBuffer());
 	}
-
-	while (config.NextInSection (key, value))
-	{
-		if (strnicmp (key, "Slot[", 5) != 0 ||
-			key[5] < '0' ||
-			key[5] > '0'+NUM_WEAPON_SLOTS ||
-			key[6] != ']' ||
-			key[7] != 0)
-		{
-			continue;
-		}
-		slot = key[5] - '0';
-		strncpy (buff, value, sizeof(buff)-1);
-		char *tok;
-
-		Slots[slot].Clear ();
-		tok = strtok (buff, " ");
-		while (tok != NULL)
-		{
-			Slots[slot].AddWeapon (tok);
-			tok = strtok (NULL, " ");
-		}
-		slotsread++;
-	}
-	return slotsread;
+	PlayingKeyConf = NULL;
 }
 
-void FWeaponSlots::SaveSlots (FConfigFile &config)
+//===========================================================================
+//
+// P_SetupWeapons_ntohton
+//
+// Initializes the ntoh and hton maps for weapon types. To populate the ntoh
+// array, weapons are sorted first by game, then lexicographically. Weapons
+// from the current game are sorted first, followed by weapons for all other
+// games, and within each block, they are sorted by name.
+//
+//===========================================================================
+
+void P_SetupWeapons_ntohton()
 {
-	char buff[MAX_WEAPONS_PER_SLOT*64];
-	char keyname[16];
+	unsigned int i;
+	const PClass *cls;
 
-	for (int i = 0; i < NUM_WEAPON_SLOTS; ++i)
+	Weapons_ntoh.Clear();
+	Weapons_hton.Clear();
+
+	cls = NULL;
+	Weapons_ntoh.Push(cls);		// Index 0 is always NULL.
+	for (i = 0; i < PClass::m_Types.Size(); ++i)
 	{
-		int index = 0;
+		PClass *cls = PClass::m_Types[i];
 
-		for (int j = 0; j < MAX_WEAPONS_PER_SLOT; ++j)
+		if (cls->ActorInfo != NULL && cls->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
 		{
-			if (Slots[i].Weapons[j] == NULL)
-			{
-				break;
-			}
-			if (index > 0)
-			{
-				buff[index++] = ' ';
-			}
-			const char *name = Slots[i].Weapons[j]->TypeName.GetChars();
-			strcpy (buff+index, name);
-			index += (int)strlen (name);
+			Weapons_ntoh.Push(cls);
 		}
-		if (index > 0)
-		{
-			mysnprintf (keyname, countof(keyname), "Slot[%d]", i);
-			config.SetValueForKey (keyname, buff);
-		}
+	}
+	qsort(&Weapons_ntoh[1], Weapons_ntoh.Size() - 1, sizeof(Weapons_ntoh[0]), ntoh_cmp);
+	for (i = 0; i < Weapons_ntoh.Size(); ++i)
+	{
+		Weapons_hton[Weapons_ntoh[i]] = i;
 	}
 }
 
-int FWeaponSlot::CountWeapons ()
-{
-	int i;
+//===========================================================================
+//
+// ntoh_cmp
+//
+// Sorting comparison function used by P_SetupWeapons_ntohton().
+//
+// Weapons that filter for the current game appear first, weapons that filter
+// for any game appear second, and weapons that filter for some other game
+// appear last. The idea here is to try to keep all the weapons that are
+// most likely to be used at the start of the list so that they only need
+// one byte to transmit across the network.
+//
+//===========================================================================
 
-	for (i = 0; i < MAX_WEAPONS_PER_SLOT; ++i)
+static int STACK_ARGS ntoh_cmp(const void *a, const void *b)
+{
+	const PClass *c1 = *(const PClass **)a;
+	const PClass *c2 = *(const PClass **)b;
+	int g1 = c1->ActorInfo->GameFilter == GAME_Any ? 1 : (c1->ActorInfo->GameFilter & gameinfo.gametype) ? 0 : 2;
+	int g2 = c2->ActorInfo->GameFilter == GAME_Any ? 1 : (c2->ActorInfo->GameFilter & gameinfo.gametype) ? 0 : 2;
+	if (g1 != g2)
 	{
-		if (Weapons[i] == NULL)
+		return g1 - g2;
+	}
+	return stricmp(c1->TypeName.GetChars(), c2->TypeName.GetChars());
+}
+
+//===========================================================================
+//
+// P_WriteDemoWeaponsChunk
+//
+// Store the list of weapons so that adding new ones does not automatically
+// break demos.
+//
+//===========================================================================
+
+void P_WriteDemoWeaponsChunk(BYTE **demo)
+{
+	WriteWord(Weapons_ntoh.Size(), demo);
+	for (unsigned int i = 1; i < Weapons_ntoh.Size(); ++i)
+	{
+		WriteString(Weapons_ntoh[i]->TypeName.GetChars(), demo);
+	}
+}
+
+//===========================================================================
+//
+// P_ReadDemoWeaponsChunk
+//
+// Restore the list of weapons that was current at the time the demo was
+// recorded.
+//
+//===========================================================================
+
+void P_ReadDemoWeaponsChunk(BYTE **demo)
+{
+	int count, i;
+	const PClass *type;
+	const char *s;
+
+	count = ReadWord(demo);
+	Weapons_ntoh.Resize(count);
+	Weapons_hton.Clear(count);
+
+	Weapons_ntoh[0] = type = NULL;
+	Weapons_hton[type] = 0;
+
+	for (i = 1; i < count; ++i)
+	{
+		s = ReadStringConst(demo);
+		type = PClass::FindClass(s);
+		// If a demo was recorded with a weapon that is no longer present,
+		// should we report it?
+		Weapons_ntoh[i] = type;
+		if (type != NULL)
 		{
-			break;
+			Weapons_hton[type] = i;
 		}
 	}
-	return i;
+}
+
+//===========================================================================
+//
+// Net_WriteWeapon
+//
+//===========================================================================
+
+void Net_WriteWeapon(const PClass *type)
+{
+	int index, *index_p;
+
+	index_p = Weapons_hton.CheckKey(type);
+	if (index_p == NULL)
+	{
+		index = 0;
+	}
+	else
+	{
+		index = *index_p;
+	}
+	// 32767 weapons better be enough for anybody.
+	assert(index >= 0 && index <= 32767);
+	if (index < 128)
+	{
+		Net_WriteByte(index);
+	}
+	else
+	{
+		Net_WriteByte(0x80 | index);
+		Net_WriteByte(index >> 7);
+	}
+}
+
+//===========================================================================
+//
+// Net_ReadWeapon
+//
+//===========================================================================
+
+const PClass *Net_ReadWeapon(BYTE **stream)
+{
+	int index;
+
+	index = ReadByte(stream);
+	if (index & 0x80)
+	{
+		index = (index & 0x7F) | (ReadByte(stream) << 7);
+	}
+	if ((unsigned)index >= Weapons_ntoh.Size())
+	{
+		return NULL;
+	}
+	return Weapons_ntoh[index];
 }

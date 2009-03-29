@@ -71,6 +71,9 @@ struct FBrokenLines
 #define TEXTCOLOR_NORMAL		"\034-"
 #define TEXTCOLOR_BOLD			"\034+"
 
+#define TEXTCOLOR_CHAT			"\034*"
+#define TEXTCOLOR_TEAMCHAT		"\034!"
+
 // [BC] New text functions.
 void	V_ColorizeString( char *pszString );
 void	V_ColorizeString( FString &String );

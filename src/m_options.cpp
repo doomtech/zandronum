@@ -638,6 +638,7 @@ menuitem_t ControlsItems[] =
 	{ control,	"Next item",			{NULL}, {0.0}, {0.0}, {0.0}, {(value_t *)"invnext"} },
 	{ control,	"Previous item",		{NULL}, {0.0}, {0.0}, {0.0}, {(value_t *)"invprev"} },
 	{ control,	"Drop item",			{NULL}, {0.0}, {0.0}, {0.0}, {(value_t *)"invdrop"} },
+	{ control,	"Query item",			{NULL}, {0.0}, {0.0}, {0.0}, {(value_t *)"invquery"} },
 	{ control,	"Drop weapon",			{NULL}, {0.0}, {0.0}, {0.0}, {(value_t *)"weapdrop"} },
 	{ redtext,	" ",					{NULL},	{0.0}, {0.0}, {0.0}, {NULL} },
 	{ whitetext,"Voting",				{NULL},	{0.0}, {0.0}, {0.0}, {NULL} },
@@ -1554,6 +1555,7 @@ static valueenum_t Outputs[] =
 #elif defined(unix)
 	{ "OSS",			"OSS" },
 	{ "ALSA",			"ALSA" },
+	{ "SDL",			"SDL" },
 	{ "ESD",			"ESD" },
 #elif defined(__APPLE__)
 	{ "Sound Manager",	"Sound Manager" },

@@ -56,6 +56,7 @@ extern HWND Window;
 #include "v_text.h"
 #include "v_video.h"
 #include "v_palette.h"
+#include "cmdlib.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -165,6 +166,7 @@ static const FEnumList OutputNames[] =
 	{ "OSS",					FMOD_OUTPUTTYPE_OSS },
 	{ "ALSA",					FMOD_OUTPUTTYPE_ALSA },
 	{ "ESD",					FMOD_OUTPUTTYPE_ESD },
+	{ "SDL",					666 },
 
 	// Mac
 	{ "Sound Manager",			FMOD_OUTPUTTYPE_SOUNDMANAGER },
@@ -616,6 +618,9 @@ bool FMODSoundRenderer::Init()
 	PrevEnvironment = DefaultEnvironments[0];
 	DSPClock.AsOne = 0;
 	ChannelGroupTargetUnit = NULL;
+	SfxReverbHooked = false;
+	SfxReverbPlaceholder = NULL;
+	OutputPlugin = 0;
 
 	Printf("I_InitSound: Initializing FMOD\n");
 
@@ -656,7 +661,7 @@ bool FMODSoundRenderer::Init()
 
 	if (!ShowedBanner)
 	{
-		Printf("FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2008.\n");
+		Printf("FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2009.\n");
 		ShowedBanner = true;
 	}
 #ifdef _WIN32
@@ -696,21 +701,65 @@ bool FMODSoundRenderer::Init()
 	}
 #endif
 
+#ifndef _WIN32
+	// Try to load SDL output plugin
+	result = Sys->setPluginPath(progdir);	// Should we really look for it in the program directory?
+	result = Sys->loadPlugin("liboutput_sdl.so", &OutputPlugin);
+	if (result != FMOD_OK)
+	{
+		OutputPlugin = 0;
+	}
+#endif
+
 	// Set the user specified output mode.
 	eval = Enum_NumForName(OutputNames, snd_output);
 	if (eval >= 0)
 	{
-		result = Sys->setOutput(FMOD_OUTPUTTYPE(eval));
+		if (eval == 666 && OutputPlugin != 0)
+		{
+			result = Sys->setOutputByPlugin(OutputPlugin);
+		}
+		else
+		{
+			result = Sys->setOutput(FMOD_OUTPUTTYPE(eval));
+		}
 		if (result != FMOD_OK)
 		{
 			Printf(TEXTCOLOR_BLUE"Setting output type '%s' failed. Using default instead. (Error %d)\n", *snd_output, result);
+			eval = FMOD_OUTPUTTYPE_AUTODETECT;
 			Sys->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
 		}
 	}
-
+	
 	result = Sys->getNumDrivers(&driver);
+#ifdef unix
 	if (result == FMOD_OK)
 	{
+		// On Linux, FMOD defaults to OSS. If OSS is not present, it doesn't
+		// try ALSA, it just fails. We'll try for it, but only if OSS wasn't
+		// explicitly specified for snd_output.
+		if (driver == 0 && eval == FMOD_OUTPUTTYPE_AUTODETECT)
+		{
+			FMOD_OUTPUTTYPE output;
+			if (FMOD_OK == Sys->getOutput(&output))
+			{
+				if (output == FMOD_OUTPUTTYPE_OSS)
+				{
+					Printf(TEXTCOLOR_BLUE"OSS could not be initialized. Trying ALSA.\n");
+					Sys->setOutput(FMOD_OUTPUTTYPE_ALSA);
+					result = Sys->getNumDrivers(&driver);
+				}
+			}
+		}
+	}
+#endif
+	if (result == FMOD_OK)
+	{
+		if (driver == 0)
+		{
+			Printf(TEXTCOLOR_ORANGE"No working sound devices found. Try a different snd_output?\n");
+			return false;
+		}
 		if (snd_driver >= driver)
 		{
 			Printf(TEXTCOLOR_BLUE"Driver %d does not exist. Using 0.\n", *snd_driver);
@@ -919,6 +968,35 @@ bool FMODSoundRenderer::Init()
 			result = sfx_head->getInput(0, &pausable_head, &SfxConnection);
 			if (result == FMOD_OK)
 			{
+				// The placeholder mixer is for reference to where to connect the SFX
+				// reverb unit once it gets created.
+				result = Sys->createDSPByType(FMOD_DSP_TYPE_MIXER, &SfxReverbPlaceholder);
+				if (result == FMOD_OK)
+				{
+					// Replace the PausableSFX->SFX connection with
+					// PausableSFX->ReverbPlaceholder->SFX.
+					result = SfxReverbPlaceholder->addInput(pausable_head, NULL);
+					if (result == FMOD_OK)
+					{
+						FMOD::DSPConnection *connection;
+						result = sfx_head->addInput(SfxReverbPlaceholder, &connection);
+						if (result == FMOD_OK)
+						{
+							sfx_head->disconnectFrom(pausable_head);
+							SfxReverbPlaceholder->setActive(true);
+							SfxReverbPlaceholder->setBypass(true);
+							// The placeholder now takes the place of the pausable_head
+							// for the following connections.
+							pausable_head = SfxReverbPlaceholder;
+							SfxConnection = connection;
+						}
+					}
+					else
+					{
+						SfxReverbPlaceholder->release();
+						SfxReverbPlaceholder = NULL;
+					}
+				}
 				result = WaterLP->addInput(pausable_head, NULL);
 				WaterLP->setActive(false);
 				WaterLP->setParameter(FMOD_DSP_LOWPASS_CUTOFF, snd_waterlp);
@@ -1029,8 +1107,18 @@ void FMODSoundRenderer::Shutdown()
 			WaterReverb->release();
 			WaterReverb = NULL;
 		}
+		if (SfxReverbPlaceholder != NULL)
+		{
+			SfxReverbPlaceholder->release();
+			SfxReverbPlaceholder = NULL;
+		}
 
 		Sys->close();
+		if (OutputPlugin != 0)
+		{
+			Sys->unloadPlugin(OutputPlugin);
+			OutputPlugin = 0;
+		}
 		Sys->release();
 		Sys = NULL;
 	}
@@ -1400,6 +1488,15 @@ FISoundChannel *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pi
 			chan->stop();
 			return NULL;
 		}
+		if (flags & SNDF_NOREVERB)
+		{
+			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
+			if (FMOD_OK == chan->getReverbProperties(&reverb))
+			{
+				reverb.Room = -10000;
+				chan->setReverbProperties(&reverb);
+			}
+		}
 		chan->setPaused(false);
 		return CommonChannelSetup(chan, reuse_chan);
 	}
@@ -1498,6 +1595,15 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 			chan->stop();
 			return NULL;
 		}
+		if (flags & SNDF_NOREVERB)
+		{
+			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
+			if (FMOD_OK == chan->getReverbProperties(&reverb))
+			{
+				reverb.Room = -10000;
+				chan->setReverbProperties(&reverb);
+			}
+		}
 		chan->setPaused(false);
 		chan->getPriority(&def_priority);
 		FISoundChannel *schan = CommonChannelSetup(chan, reuse_chan);
@@ -1551,7 +1657,7 @@ bool FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *
 	}
 	else
 	{
-		chan->setDelay(FMOD_DELAYTYPE_DSPCLOCK_START, DSPClock.Hi, DSPClock.Lo);
+//		chan->setDelay(FMOD_DELAYTYPE_DSPCLOCK_START, DSPClock.Hi, DSPClock.Lo);
 	}
 	return true;
 }
@@ -1795,13 +1901,13 @@ void FMODSoundRenderer::UpdateListener(SoundListener *listener)
 	bool underwater = false;
 	const ReverbContainer *env;
 
+	underwater = (listener->underwater && snd_waterlp);
 	if (ForcedEnvironment)
 	{
 		env = ForcedEnvironment;
 	}
 	else
 	{
-		underwater = (listener->underwater && snd_waterlp);
 		env = listener->Environment;
 		if (env == NULL)
 		{
@@ -1814,6 +1920,11 @@ void FMODSoundRenderer::UpdateListener(SoundListener *listener)
 		const_cast<ReverbContainer*>(env)->Modified = false;
 		Sys->setReverbProperties((FMOD_REVERB_PROPERTIES *)(&env->Properties));
 		PrevEnvironment = env;
+
+		if (!SfxReverbHooked)
+		{
+			SfxReverbHooked = ReconnectSFXReverbUnit();
+		}
 	}
 
 	if (underwater || env->SoftwareWater)
@@ -1861,6 +1972,65 @@ void FMODSoundRenderer::UpdateListener(SoundListener *listener)
 			}
 		}
 	}
+}
+
+//==========================================================================
+//
+// FMODSoundRenderer :: ReconnectSFXReverbUnit
+//
+// Locates the DSP unit responsible for software 3D reverb. There is only
+// one, and it by default is connected directly to the ChannelGroup Target
+// Unit. Older versions of FMOD created this at startup; newer versions
+// delay creating it until the first call to setReverbProperties, at which
+// point it persists until the system is closed.
+//
+// Upon locating the proper DSP unit, reconnects it to serve as an input to
+// our water DSP chain after the Pausable SFX ChannelGroup.
+//
+//==========================================================================
+
+bool FMODSoundRenderer::ReconnectSFXReverbUnit()
+{
+	FMOD::DSP *unit;
+	FMOD_DSP_TYPE type;
+	int numinputs, i;
+
+	if (ChannelGroupTargetUnit == NULL || SfxReverbPlaceholder == NULL)
+	{
+		return false;
+	}
+	// Look for SFX Reverb unit
+	if (FMOD_OK != ChannelGroupTargetUnit->getNumInputs(&numinputs))
+	{
+		return false;
+	}
+	for (i = numinputs - 1; i >= 0; --i)
+	{
+		if (FMOD_OK == ChannelGroupTargetUnit->getInput(i, &unit, NULL) &&
+			FMOD_OK == unit->getType(&type))
+		{
+			if (type == FMOD_DSP_TYPE_SFXREVERB)
+			{
+				break;
+			}
+		}
+	}
+	if (i < 0)
+	{
+		return false;
+	}
+
+	// Found it! Now move it in the DSP graph to be done before the water
+	// effect.
+	if (FMOD_OK != ChannelGroupTargetUnit->disconnectFrom(unit))
+	{
+		return false;
+	}
+	if (FMOD_OK != SfxReverbPlaceholder->addInput(unit, NULL))
+	{
+		return false;
+	}
+	return true;
 }
 
 //==========================================================================

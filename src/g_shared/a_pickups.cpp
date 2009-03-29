@@ -80,13 +80,14 @@ const PClass *AAmmo::GetParentAmmo () const
 // AAmmo :: HandlePickup
 //
 //===========================================================================
+EXTERN_CVAR(Bool, sv_unlimited_pickup)
 
 bool AAmmo::HandlePickup (AInventory *item)
 {
 	if (GetClass() == item->GetClass() ||
 		(item->IsKindOf (RUNTIME_CLASS(AAmmo)) && static_cast<AAmmo*>(item)->GetParentAmmo() == GetClass()))
 	{
-		if (Amount < MaxAmount)
+		if (Amount < MaxAmount || sv_unlimited_pickup)
 		{
 			int receiving = item->Amount;
 
@@ -97,7 +98,7 @@ bool AAmmo::HandlePickup (AInventory *item)
 			int oldamount = Amount;
 
 			Amount += receiving;
-			if (Amount > MaxAmount)
+			if (Amount > MaxAmount && !sv_unlimited_pickup)
 			{
 				Amount = MaxAmount;
 			}
@@ -1752,6 +1753,18 @@ bool AHealthPickup::HandlePickup (AInventory *item)
 bool AHealthPickup::Use (bool pickup)
 {
 	return P_GiveBody (Owner, health);
+}
+
+//===========================================================================
+//
+// AHealthPickup :: Serialize
+//
+//===========================================================================
+
+void AHealthPickup::Serialize (FArchive &arc)
+{
+	Super::Serialize(arc);
+	arc << autousemode;
 }
 
 // [BC] New definition here for pickups that increase your max. health.

@@ -575,10 +575,7 @@ private:
 		if (armor != NULL && armor->Amount != 0)
 		{
 			pic = TexMan(armor->Icon);
-			// [BB] This check shouldn't be necessary, but seems to
-			// fix the crash that sometimes occures when you pick up
-			// a terminator sphere.
-			if( pic )
+			if (pic != NULL)
 			{
 				screen->DrawTexture (pic, 56, -24,
 					DTA_HUDRules, HUD_Normal,

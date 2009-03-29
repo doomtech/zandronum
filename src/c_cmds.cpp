@@ -90,6 +90,7 @@ extern char g_szActualLogFilename[256];
 
 
 CVAR (Bool, sv_cheats, false, CVAR_SERVERINFO | CVAR_LATCH)
+CVAR (Bool, sv_unlimited_pickup, false, CVAR_SERVERINFO)
 CVAR (Bool, sv_logfilenametimestamp, true, CVAR_ARCHIVE)
 
 CCMD (toggleconsole)
@@ -1087,7 +1088,7 @@ CCMD(nextmap)
 
 	if (next != NULL && strncmp(next, "enDSeQ", 6))
 	{
-		G_DeferedInitNew(next, false);
+		G_DeferedInitNew(next);
 	}
 	else
 	{
@@ -1109,7 +1110,7 @@ CCMD(nextsecret)
 
 	if (next != NULL && strncmp(next, "enDSeQ", 6))
 	{
-		G_DeferedInitNew(next, false);
+		G_DeferedInitNew(next);
 	}
 	else
 	{

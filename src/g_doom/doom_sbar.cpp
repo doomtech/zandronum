@@ -334,9 +334,9 @@ private:
 		memset (arms, 0, sizeof(arms));
 		for (i = 0; i < 6; i++)
 		{
-			for (j = 0; j < MAX_WEAPONS_PER_SLOT; j++)
+			for (j = 0; j < CPlayer->weapons.Slots[i+2].Size(); j++)
 			{
-				const PClass *weap = LocalWeapons.Slots[i+2].GetWeapon (j);
+				const PClass *weap = CPlayer->weapons.Slots[i+2].GetWeapon (j);
 				if (weap != NULL && CPlayer->mo->FindInventory (weap) != NULL)
 				{
 					arms[i] = 1;

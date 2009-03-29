@@ -1269,6 +1269,15 @@ DEFINE_CLASS_PROPERTY(lowmessage, IS, Health)
 //==========================================================================
 //
 //==========================================================================
+DEFINE_CLASS_PROPERTY(autouse, I, HealthPickup)
+{
+	PROP_INT_PARM(i, 0);
+	defaults->autousemode = i;
+}
+
+//==========================================================================
+//
+//==========================================================================
 DEFINE_CLASS_PROPERTY(number, I, PuzzleItem)
 {
 	PROP_INT_PARM(i, 0);
@@ -1431,6 +1440,24 @@ DEFINE_CLASS_PROPERTY(yadjust, F, Weapon)
 {
 	PROP_FIXED_PARM(i, 0);
 	defaults->YAdjust = i;
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_CLASS_PROPERTY(slotnumber, I, Weapon)
+{
+	PROP_INT_PARM(i, 0);
+	info->Class->Meta.SetMetaInt(AWMETA_SlotNumber, i);
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_CLASS_PROPERTY(slotpriority, F, Weapon)
+{
+	PROP_FIXED_PARM(i, 0);
+	info->Class->Meta.SetMetaFixed(AWMETA_SlotPriority, i);
 }
 
 //==========================================================================
@@ -1872,6 +1899,30 @@ DEFINE_CLASS_PROPERTY_PREFIX(player, hexenarmor, FFFFF, PlayerPawn)
 	{
 		PROP_FIXED_PARM(val, i);
 		info->Class->Meta.SetMetaFixed (APMETA_Hexenarmor0+i, val);
+	}
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_CLASS_PROPERTY_PREFIX(player, weaponslot, ISsssssssssssssssssssssssssssssssssssssssssss, PlayerPawn)
+{
+	PROP_INT_PARM(slot, 0);
+
+	if (slot < 0 || slot > 9)
+	{
+		I_Error("Slot must be between 0 and 9.");
+	}
+	else
+	{
+		FString weapons;
+
+		for(int i = 1; i < PROP_PARM_COUNT; ++i)
+		{
+			PROP_STRING_PARM(str, i);
+			weapons << ' ' << str;
+		}
+		info->Class->Meta.SetMetaString(APMETA_Slot0 + slot, &weapons[1]);
 	}
 }
 

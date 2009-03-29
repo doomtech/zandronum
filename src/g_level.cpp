@@ -1406,6 +1406,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	ACTOR_ClearNetIDList( );
 
 	P_SetupLevel (level.mapname, position);
+
 	AM_LevelInit();
 
 	// [RH] Start lightning, if MAPINFO tells us to
@@ -2021,6 +2022,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	gl_DeleteAllAttachedLights();
 
 	arc << level.flags
+		<< level.flags2
 		<< level.fadeto
 		<< level.found_secrets
 		<< level.found_items
@@ -2033,7 +2035,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 
 	// Hub transitions must keep the current total time
 	if (!hubLoad)
-		level.totaltime=i;
+		level.totaltime = i;
 
 	if (arc.IsStoring ())
 	{
@@ -2124,11 +2126,19 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 
 	P_SerializePlayers (arc, hubLoad);
 	P_SerializeSounds (arc);
-
-	STAT_SAVE(arc, hubLoad);
-	if (arc.IsLoading()) for(i=0;i<numsectors;i++)
+	if (arc.IsLoading())
 	{
-		P_Recalculate3DFloors(&sectors[i]);
+		for (i = 0; i < numsectors; i++)
+		{
+			P_Recalculate3DFloors(&sectors[i]);
+		}
+		for (i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i] && players[i].mo != NULL)
+			{
+				players[i].mo->SetupWeaponSlots();
+			}
+		}
 	}
 	gl_RecreateAllAttachedLights();
 }

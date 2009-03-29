@@ -38,6 +38,7 @@
 #include "p_effect.h"
 #include "p_terrain.h"
 #include "p_trace.h"
+#include "p_enemy.h"
 
 #include "s_sound.h"
 #include "decallib.h"
@@ -604,7 +605,7 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		return false;
 	}
 
-	if (!(tm.thing->flags & MF_MISSILE) || (ld->flags & ML_BLOCKEVERYTHING))
+	if (!(tm.thing->flags & MF_MISSILE) || (ld->flags & (ML_BLOCKEVERYTHING|ML_BLOCKPROJECTILE)))
 	{
 		if (ld->flags & ML_RAILING)
 		{
@@ -613,6 +614,7 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		else if ((ld->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING)) || 	// explicitly blocking everything
 			(!(tm.thing->flags3 & MF3_NOBLOCKMONST) && (ld->flags & ML_BLOCKMONSTERS)) || 	// block monsters only
 			(tm.thing->player != NULL && (ld->flags & ML_BLOCK_PLAYERS)) ||					// block players
+			((tm.thing->flags & MF_MISSILE) && (ld->flags & ML_BLOCKPROJECTILE)) ||			// block projectiles
 			((ld->flags & ML_BLOCK_FLOATERS) && (tm.thing->flags & MF_FLOAT)))				// block floaters
 		{
 			if (tm.thing->flags2 & MF2_BLASTED)
@@ -3443,8 +3445,8 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 	nextsector=NULL;
 	nexttopplane=nextbottomplane=NULL;
 
-	// [BB] In j-ecinvbug.wad I experienced li->backsector == NULL, which obviously leads to a crash.
-	if( li->frontsector && li->backsector && (li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size()))
+    if ((li->frontsector && li->frontsector->e->XFloor.ffloors.Size()) || 
+		(li->backsector && li->backsector->e->XFloor.ffloors.Size()))
 	{
 		int  frontflag;
 		F3DFloor* rover;
@@ -5467,19 +5469,53 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 		FState * state = thing->FindState(NAME_Crush);
 		if (state != NULL && !(thing->flags & MF_ICECORPSE))
 		{
-			// Clear MF_CORPSE so that this isn't done more than once
-			thing->flags &= ~(MF_CORPSE|MF_SOLID);
+			if (thing->flags4 & MF4_BOSSDEATH) 
+			{
+				CALL_ACTION(A_BossDeath, thing);
+			}
+			thing->flags &= ~MF_SOLID;
+			thing->flags3 |= MF3_DONTGIB;
 			thing->height = thing->radius = 0;
 			thing->SetState (state);
 			return;
 		}
 		if (!(thing->flags & MF_NOBLOOD))
 		{
-			AActor *gib = Spawn ("RealGibs", thing->x, thing->y, thing->z, ALLOW_REPLACE);
-			gib->RenderStyle = thing->RenderStyle;
-			gib->alpha = thing->alpha;
-			gib->height = 0;
-			gib->radius = 0;
+			if (thing->flags4 & MF4_BOSSDEATH) 
+			{
+				CALL_ACTION(A_BossDeath, thing);
+			}
+
+			const PClass *i = PClass::FindClass("RealGibs");
+
+			if (i != NULL)
+			{
+				i = i->ActorInfo->GetReplacement()->Class;
+
+				const AActor *defaults = GetDefaultByType (i);
+				if (defaults->SpawnState == NULL ||
+					sprites[defaults->SpawnState->sprite].numframes == 0)
+				{ 
+					i = NULL;
+				}
+			}
+			if (i == NULL)
+			{
+				// if there's no gib sprite don't crunch it.
+				thing->flags &= ~MF_SOLID;
+				thing->flags3 |= MF3_DONTGIB;
+				thing->height = thing->radius = 0;
+				return;
+			}
+
+			AActor *gib = Spawn (i, thing->x, thing->y, thing->z, ALLOW_REPLACE);
+			if (gib != NULL)
+			{
+				gib->RenderStyle = thing->RenderStyle;
+				gib->alpha = thing->alpha;
+				gib->height = 0;
+				gib->radius = 0;
+			}
 			S_Sound (thing, CHAN_BODY, "misc/fallingsplat", 1, ATTN_IDLE);
 
 			PalEntry bloodcolor = (PalEntry)thing->GetClass()->Meta.GetMetaInt(AMETA_BloodColor);

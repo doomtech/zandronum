@@ -104,13 +104,13 @@ struct GLSectorPlane
 		{
 			texture = sec->GetTexture(sector_t::ceiling);
 			plane = sec->ceilingplane;
-			texheight = sec->GetPlaneTexZ(sector_t::ceiling);
+			texheight = plane.d;
 		}
 		else
 		{
 			texture = sec->GetTexture(sector_t::floor);
 			plane = sec->floorplane;
-			texheight = sec->GetPlaneTexZ(sector_t::floor);
+			texheight = -plane.d;
 		}
 	}
 };

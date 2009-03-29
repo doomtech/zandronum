@@ -74,7 +74,7 @@ bool ATeleporterBeacon::Use (bool pickup)
 	}
 	else
 	{
-		drop->SetState (drop->SeeState);
+		drop->SetState(drop->FindState(NAME_Drop));
 		drop->target = Owner;
 		return true;
 	}
@@ -146,10 +146,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_Beacon)
 
 	if (--self->health < 0)
 	{
-		// [BC] If we're the server, destroy the beacon.
+		// [BB] Tell clients to set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DestroyThing( self );
+			SERVERCOMMANDS_SetThingState( self, STATE_DEATH );
 
-		self->Destroy ();
+		self->SetState(self->FindState(NAME_Death));
 	}
 }

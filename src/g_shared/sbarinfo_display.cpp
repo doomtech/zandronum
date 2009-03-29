@@ -422,9 +422,9 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 				if((cmd.flags & DRAWIMAGE_WEAPONSLOT)) //weaponslots
 				{
 					drawAlt = 1; //draw off state until we know we have something.
-					for (int i = 0; i < MAX_WEAPONS_PER_SLOT; i++)
+					for (int i = 0; i < CPlayer->weapons.Slots[cmd.value].Size(); i++)
 					{
-						const PClass *weap = LocalWeapons.Slots[cmd.value].GetWeapon(i);
+						const PClass *weap = CPlayer->weapons.Slots[cmd.value].GetWeapon(i);
 						if(weap == NULL)
 						{
 							continue;

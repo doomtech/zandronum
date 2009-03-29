@@ -47,7 +47,6 @@ public:
 
 	void DoGlobalSetup ();
 	void DoGameSetup (const char *gamename);
-	void DoWeaponSetup (const char *gamename);
 	void ArchiveGlobalData ();
 	void ArchiveGameData (const char *gamename);
 	void AddAutoexec (DArgs *list, const char *gamename);
@@ -65,7 +64,6 @@ private:
 	void MigrateOldConfig ();
 	void SetRavenDefaults (bool isHexen);
 	void ReadCVars (DWORD flags);
-	void SetupWeaponList (const char *gamename);
 
 	bool bMigrating;
 
@@ -74,7 +72,6 @@ private:
 	size_t sublen;
 };
 
-extern FString WeaponSection;
 extern FGameConfigFile *GameConfig;
 
 #endif //__GAMECONFIGFILE_H__

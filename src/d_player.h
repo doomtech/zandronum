@@ -63,6 +63,16 @@ enum
 	APMETA_Hexenarmor2,
 	APMETA_Hexenarmor3,
 	APMETA_Hexenarmor4,
+	APMETA_Slot0,
+	APMETA_Slot1,
+	APMETA_Slot2,
+	APMETA_Slot3,
+	APMETA_Slot4,
+	APMETA_Slot5,
+	APMETA_Slot6,
+	APMETA_Slot7,
+	APMETA_Slot8,
+	APMETA_Slot9,
 };
 
 class player_t;
@@ -76,6 +86,7 @@ class APlayerPawn : public AActor
 public:
 	virtual void Serialize (FArchive &arc);
 
+	virtual void PostBeginPlay();
 	virtual void Tick();
 	virtual void AddInventory (AInventory *item);
 	virtual void RemoveInventory (AInventory *item);
@@ -101,6 +112,7 @@ public:
 	// [BC]
 	virtual void Destroy( );
 
+	void SetupWeaponSlots ();
 	void GiveDefaultInventory ();
 	void PlayAttacking ();
 	void PlayAttacking2 ();
@@ -370,6 +382,8 @@ public:
 	fixed_t crouchfactor;
 	fixed_t crouchoffset;
 	fixed_t crouchviewdelta;
+
+	FWeaponSlots weapons;
 
 	// [CW] I moved these here for multiplayer conversation support.
 	TObjPtr<AActor> ConversationNPC, ConversationPC;

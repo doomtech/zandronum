@@ -541,7 +541,40 @@ void APlayerPawn::Tick()
 	Super::Tick();
 }
 
+//===========================================================================
+//
+// APlayerPawn :: PostBeginPlay
+//
+//===========================================================================
 
+void APlayerPawn::PostBeginPlay()
+{
+	SetupWeaponSlots();
+}
+
+//===========================================================================
+//
+// APlayerPawn :: SetupWeaponSlots
+//
+// Sets up the default weapon slots for this player. If this is also the
+// local player, determines local modifications and sends those across the
+// network. Ignores voodoo dolls.
+//
+//===========================================================================
+
+void APlayerPawn::SetupWeaponSlots()
+{
+	if (player != NULL && player->mo == this)
+	{
+		player->weapons.StandardSetup(GetClass());
+		if (player - players == consoleplayer)
+		{ // If we're the local player, then there's a bit more work to do.
+			FWeaponSlots local_slots(player->weapons);
+			local_slots.LocalSetup(GetClass());
+			local_slots.SendDifferences(player->weapons);
+		}
+	}
+}
 
 //===========================================================================
 //
@@ -3557,9 +3590,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 		}
 	}
-
-	// Save buttons
-	player->oldbuttons = cmd->ucmd.buttons;
 }
 
 /*

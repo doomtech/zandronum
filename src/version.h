@@ -43,9 +43,9 @@
 #define DOTVERSIONSTR "0.97e-alpha"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
-#define ZDVER_STRING "2.2.0"
-#define ZD_SVN_REVISION_STRING "1425"
-#define ZD_SVN_REVISION_NUMBER 1425
+#define ZDVER_STRING "2.3.1"
+#define ZD_SVN_REVISION_STRING "1481"
+#define ZD_SVN_REVISION_NUMBER 1481
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -79,16 +79,16 @@
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
 // be able to migrate in FGameConfigFile::DoGlobalSetup().
-#define LASTRUNVERSION "207"
+#define LASTRUNVERSION "208"
 
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x20E
+#define DEMOGAMEVERSION 0x210
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
-#define MINDEMOVERSION 0x207
+#define MINDEMOVERSION 0x210
 
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	"Skulltag v" DOTVERSIONSTR " Server"
@@ -98,7 +98,7 @@
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 1393
+#define MINSAVEVER 1452
 
 #if ZD_SVN_REVISION_NUMBER < MINSAVEVER
 // Never write a savegame with a version lower than what we need

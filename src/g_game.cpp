@@ -301,7 +301,7 @@ CCMD (slot)
 
 		if (slot < NUM_WEAPON_SLOTS)
 		{
-			SendItemUse = LocalWeapons.Slots[slot].PickWeapon (&players[consoleplayer]);
+			SendItemUse = players[consoleplayer].weapons.Slots[slot].PickWeapon (&players[consoleplayer]);
 
 			// [BC] This can be NULL if we're a spectator.
 			if ( SendItemUse == NULL )
@@ -413,14 +413,14 @@ void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 CCMD (weapnext)
 {
 	// [BB] Skulltag does this a little differently from ZDoom.
-	AWeapon	*pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
+	AWeapon	*pSelectedWeapon = players[consoleplayer].weapons.PickNextWeapon (&players[consoleplayer]);
 	SelectWeaponAndDisplayName ( pSelectedWeapon );
 }
 
 CCMD (weapprev)
 {
 	// [BB] Skulltag does this a little differently from ZDoom.
-	AWeapon	*pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
+	AWeapon	*pSelectedWeapon = players[consoleplayer].weapons.PickPrevWeapon (&players[consoleplayer]);
 	SelectWeaponAndDisplayName ( pSelectedWeapon );
 }
 
@@ -508,6 +508,17 @@ CCMD (invuse)
 			if (players[consoleplayer].mo) SendItemUse = players[consoleplayer].mo->InvSel;
 		}
 		players[consoleplayer].inventorytics = 0;
+	}
+}
+
+CCMD(invquery)
+{
+	AInventory *inv = players[consoleplayer].mo->InvSel;
+	if (inv != NULL)
+	{
+		const char *description = inv->GetClass()->Meta.GetMetaString(AMETA_StrifeName);
+		if (description == NULL) description = inv->GetClass()->TypeName;
+		Printf(PRINT_HIGH, "%s (%dx)\n", description, inv->Amount);
 	}
 }
 
@@ -1551,6 +1562,7 @@ void G_Ticker ()
 				{
 					G_WriteDemoTiccmd (newcmd, i, buf);
 				}
+			players[i].oldbuttons = cmd->ucmd.buttons;
 				// If the user alt-tabbed away, paused gets set to -1. In this case,
 				// we do not want to read more demo commands until paused is no
 				// longer negative.
@@ -4514,6 +4526,11 @@ void G_BeginRecording (const char *startmap)
 	C_WriteCVars (&demo_p, CVAR_SERVERINFO|CVAR_DEMOSAVE);
 	FinishChunk (&demo_p);
 
+	// Write weapon ordering chunk
+	StartChunk (WEAP_ID, &demo_p);
+	P_WriteDemoWeaponsChunk(&demo_p);
+	FinishChunk (&demo_p);
+
 	// Indicate body is compressed
 	StartChunk (COMP_ID, &demo_p);
 	democompspot = demo_p;
@@ -4661,6 +4678,10 @@ bool G_ProcessIFFDemo (char *mapname)
 			NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
 			break;
 
+		case WEAP_ID:
+			P_ReadDemoWeaponsChunk(&demo_p);
+			break;
+
 		case BODY_ID:
 			bodyHit = true;
 			zdembodyend = demo_p + len;
@@ -4754,7 +4775,7 @@ void G_DoPlayDemo (void)
 	{
 		const char *eek = "Cannot play non-ZDoom demos.\n(They would go out of sync badly.)\n";
 
-		C_RestoreCVars();
+		C_ForgetCVars();
 		M_Free(demobuffer);
 		demo_p = demobuffer = NULL;
 
@@ -4784,7 +4805,6 @@ void G_DoPlayDemo (void)
 	}
 	else
 	{
-	
 		// don't spend a lot of time in loadlevel 
 		precache = false;
 		demonew = true;
@@ -4840,19 +4860,16 @@ bool G_CheckDemoStatus (void)
 			endtime = I_GetTime (false) - starttime;
 
 		C_RestoreCVars ();		// [RH] Restore cvars demo might have changed
-
 		M_Free (demobuffer);
+
+		P_SetupWeapons_ntohton();
 		demoplayback = false;
 		netdemo = false;
 //		netgame = false;
 //		multiplayer = false;
 		singletics = false;
-		{
-			int i;
-
-			for (i = 1; i < MAXPLAYERS; i++)
-				playeringame[i] = 0;
-		}
+		for (int i = 1; i < MAXPLAYERS; i++)
+			playeringame[i] = 0;
 		consoleplayer = 0;
 		players[0].camera = NULL;
 		StatusBar->AttachToPlayer (&players[0]);

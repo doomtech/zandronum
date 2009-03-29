@@ -1,3 +1,210 @@
+﻿March 15, 2009  (Changes by Graf Zahl)
+- Fixed: AWeapon::PickupForAmmo accessed ammo type 1 when checking ammo type2.
+
+March 14, 2009
+- Changed Linux default for fullscreen to false.
+- Removed CVAR_SERVERINFO flag from compatmode. Since it writes to
+  compatflags, that should be enough. Having that flag set for both of
+  them leads to problems with e.g. loading a savegame, where compatflags is
+  restored, then compatmode is restored and it completely undoes whatever
+  compatflags was restored to.
+- Fixed: Trying to start a map for some single file that isn't really a map
+  caused a crash.
+
+March 12, 2009
+- Fixed: After loading a savegame or unmorphing, a player's weapon slots
+  were empty.
+
+March 11, 2009
+- Moved weapon slot initialization into APlayerPawn::PostBeginPlay() so that
+  they can be initialized when players respawn in multiplayer.
+
+March 11, 2009  (Changes by Graf Zahl)
+- Added a Check for the Vavoom namespace to the UDMF parser. Functionally
+  it's 100% identical with ZDoom's own but needs to be checked for in
+  case Vavoom compatible UDMF maps are released.
+
+March 10, 2009
+- Added an SDL output plugin, so FMOD can produce sound using SDL's audio
+  support instead of its own OSS/ALSA/ESD support. This is selectable by
+  setting snd_output to "sdl".
+- Fixed: On Linux systems with ALSA but no OSS support, trying to start
+  the sound system with snd_output "default" would fail instead of trying
+  to use ALSA.
+- Added sdl_nokeyrepeat to disable key repeating in the menus and console
+  on Linux.
+- Added support for zip/pk3 files with LZMA and bzip2 compression to ZDoom.
+- Added more output to zipdir and a -q option to turn it off.
+- Added -u option to zipdir to only recompress those files in a zip that have
+  changed. 
+
+March 7, 2009
+- Added -d and -f options to zipdir. -d forces deflate compression, and -f
+  forces a write of the zip, even if it's newer than all the files it contains.
+
+March 7, 2009  (Changes by Graf Zahl)
+- Fixed: P_CompleteWeaponSetup was missing a NULL pointer check for the player.
+- Adjusted some gravity related thresholds for the fix from Feb 28. Also removed
+  some unnecessary floating point math from this code.
+
+March 6, 2009
+- Added support for bzip2 and LZMA compression to zipdir.
+
+March 6, 2009  (Changes by Graf Zahl)
+- Added Hirogen2's patch for unlimited ammo CVAR.
+
+March 4, 2009
+- Fixed: You couldn't easily play with the compatibility options menu during
+  the title screen, because the demo loop reset the server cvars after each
+  attempt to play a demo, even though the demos never actually played. The
+  proper long-term solution would be to make shadow copies of all cvars
+  touched by demos and use those for the demo and the real things for
+  everything else, but this should do for now and is a lot easier.
+- Fixed: When using BOOM-style sector flags and specials together, the
+  special was ignored unless it was "secret".
+- Fixed: One byte is too short for DUMB_IT_SIGRENDERER to store song tempo.
+  Changed it to a word.
+- Went back to using RDTSC for timing on Win32. Ironically,
+  QueryPerformanceCounter() is obviously using the TSC for its timing on my
+  machine, yet the overhead it has to do to keep the timer sane is apparently
+  noticeable on a few maps. I suppose I should at some time check
+  clock_gettime() and see if it has similar issues on Linux.
+
+March 3, 2009  (Changes by Graf Zahl)
+- changed: If a monster with the BOSSDEATH flag is crushed A_BossDeath will
+  be called now.
+- fixed: D'Sparil's second form was missing the BOSSDEATH flag.
+- fixed: D'Sparil's first form requires the DONTGIB flag.
+- fixed: Heretic doesn't crush monsters. To handle this in a more generic
+  fashion this depends on the presence of a gib sprite now.
+
+March 1, 2009  (Changes by Graf Zahl)
+- Changed burn and Acolyte death sequences so that they leave corpses that
+  don't vanish.
+- Fixed: AActor::SetOrigin must call P_FindFloorCeiling to get the true
+  floor and ceiling heights. Otherwise the actor will fall right through
+  3DMidtex textures (and 3D-floors.)
+
+February 29, 2008
+- Version bump to 2.3.0.
+
+February 28, 2009
+- Fixed: The TeleporterBeacon tried to enter its See state rather than its
+  Drop state. Also changed it to fade out when it's done rather than
+  disappearing abruptly.
+
+February 28, 2009  (Changes by Graf Zahl)
+- Fixed: Strife's quest based line actions also work in Deathmatch.
+- Fixed: Gravity application was not correct. For actors with no vertical 
+  momentum the initial pull is supposed to be twice as strong as when 
+  vertical movement already takes place.
+- added invquery CCMD like in Strife. Also removed all underscores from the
+  tag strings so that they can be printed properly.
+- Fixed: Skill baby was missing 'autousehealth' for all games.
+- Added a new CVAR: sv_disableautohealth
+- Autouse of health items is no longer hardwired to the default item classes. 
+  There's a new property HealthPickup.Autouse. 0 means no autouse, 1 a small 
+  Raven health item, 2 a large Raven health item and 3 a Strife item.
+
+February 26, 2009
+- Removed an early-out in wallscan_striped() that is invalid when drawing a
+  skybox.
+
+February 25, 2009  (Changes by Graf Zahl)
+- fixed: nextmap and nextsecret CCMDs set skill to 0.
+- fixed: level.flags2 was not stored in savegames. Also bumped min. savegame
+  version and removed old compatibility handlings.
+
+February 25, 2009
+- The SFX Reverb unit is now moved so that it serves as an input to the water
+  effect rather than as an input to the ChannelGroup Target Unit. This means
+  the water effect is now applied after any room reverb, rather than in
+  parallel with it.
+- Fixed: UI sounds should not have reverb applied to them.
+- Removed the delay for starting all sounds from one tic at exactly the same
+  DSP position. Without also synchronizing the stopping of sounds, it can
+  cause problems with things like the chainsaw where the sound is stopped and
+  immediately restarted, causing occassional gaps between the stopping of the
+  sound and the starting of the new one. (I added the start synchronization to
+  combat flanging of paired moving polyobjects when moving around, but I think
+  just removing velocity from the player for sound calculations takes care of
+  that well enough.)
+
+February 24, 2009  (Changes by Graf Zahl)
+- Added GCC headers for intptr_t to tarray.h.
+- Added MF5_PAINLESS flag for projectiles that don't make the target go into
+  the pain state.
+
+February 23, 2009
+- Changed DEM_ADDSLOTDEFAULT, DEM_ADDSLOT, and DEM_SETSLOT to be more space-
+  efficient.
+- Fixed: player->oldbuttons was copied from the current button set at the end
+  of P_PlayerThink(), well before ACS could ever get at it with GetPlayerInput.
+
+February 23, 2009  (Changes by Graf Zahl)
+- Fixed: The map name display on the automap was incomplete.
+- Added FakeInventory.Respawns DECORATe property
+- Fixed: Unsetting the MF5_INCONVERSATION flag did not work when quitting the
+  conversation by pressing Escape.
+
+February 22, 2009  (Changes by Graf Zahl)
+- added ML_BLOCKPROJECTILE flag to lines.
+- Fixed: With opl_onechip set the second OPL chip was never set to anything valid
+  so it contained an invalid pointer. There were also a few other places that
+  simply assumed that the second chip is set to something valid.
+- Fixed: NPCs which are engaged in a conversation should not move.
+- Fixed: Player movement animation was not stopped when starting a conversation.
+
+February 21, 2009
+- Added selective compression of network packets. Interestingly, most packets
+  don't actually compress all that well, even the ones that aren't too short
+  to possibly compress. (Maybe make the whole thing one long, never-ending
+  zlib data stream with Z_SYNC_FLUSH used to chunk things at packet
+  boundaries? That would probably help the compression ratio, but it would
+  require changing the way the netcode determines sequence, which would be
+  a much more invasive change.)
+
+February 21, 2009  (Changes by Graf Zahl)
+- Fixed: Heretic's fullscreen HUD crashed when the player had armor without
+  a valid icon.
+- Fixed: The StrifePlayer was missing a RunHealth setting.
+- Fixed: Untranslated colors in fonts had an alpha value of 0 but need 255.
+- Fixed: The Doom status bar's ammo display may not use the INDEXFONT for 
+  the alternative HUD. Instead it has to create a separate one out of the
+  STYSNUM characters.
+- Fixed: skins can not be sorted for binary search because the player class
+  code depends on the original indices.
+- Fixed: P_StartConversation set the global dialog node variable for all
+  players, not just the consoleplayer.
+- Fixed: AWeapon::PickupForAmmo assumed that any weapon having a secondary
+  ammo type also has a primary one.
+
+February 20, 2009  (Changes by Graf Zahl)
+- Bumped netgame, demo and min demo version for the weapon slot changes.
+- changed weapon slots to be stored per player. Information is now transmitted
+  across the network so that all machines know each player's current weapon
+  configuration so that it can be used by cheats or HUD display routines.
+- fixed: level_info_t::mapbg was not initialized
+
+February 17, 2009
+- Fixed: Player names and chat macros that end with incomplete \c escapes now
+  have those escapes stripped before printing so that they do not merge with
+  subsequent text.
+
+February 15, 2009  (Changes by Graf Zahl)
+- Fixed: The CHARFORMAT structure that is used to set the color in a Windows
+  Rich Edit control was not fully initialized resulting in incorrect colors
+  being set.
+
+Feburary 14, 2009
+- Moved default weapon slot assignments into the player classes.
+  Weapon.SlotNumber is now used solely for mods that want to add new weapons
+  without completely redoing the player's arsenal. Restored some config-based
+  weapon slot customization, though slots are no longer automatically saved
+  to the config and section names have changed slightly. However, unlike
+  before, config slots are now the definitive word on slot assignments and
+  cannot be overridden by any other files loaded.
+
 February 14, 2009  (Changes by Graf Zahl)
 - Added MF5_CANTSEEK flag to prevent seeker missiles from homing in on
   certain actors and added an option to APowerInvisibility to set this
@@ -17,7 +224,16 @@ February 14, 2009  (Changes by Graf Zahl)
 - Fixed: The MAPINFO parser ignored missing terminating braces of the last
   block in the file.
 
+February 11, 2009
+- Fixed: Several weapons were missing a game filter from their definitions.
+- Removed storage of weapon slots in the config so that weapon slots can
+  be setup in the weapons themselves. Slots are still configurable, since
+  they need to be for KEYCONF to work; any changes simply won't be saved
+  when you quit.
+- Removed limit on weapon slot sizes.
+
 February 10, 2009
+- Fixed: DirectInput8Create() used the wrong calling convention.
 - Moved the V_InitFontColors() call earlier in the startup sequence so that
   colored error messages appear colored in the startup window. Also lightened
   up the "Flat" red to contrast better on the startup background.
@@ -31,6 +247,8 @@ February 9, 2009
 - Added middle mouse button selection pasting for X systems.
 
 February 8, 2009  (Changes by Graf Zahl)
+- Fixed parsing of 'cluster' keyword when format is not yet known.
+- Moved CheckCompatibility call so that it is done after setting LEVEL_HEXENFORMAT.
 - Fixed parsing for MustConfirm key in skill parser.
 - Converted internal MAPINFOs to new syntax.
 - Added a range parameter to SNDINFO's $limit.

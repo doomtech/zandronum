@@ -31,6 +31,7 @@ extern int paused;
 CVAR (Bool,  use_mouse,				true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,  m_noprescale,			false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,	 m_filter,				false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Bool,  sdl_nokeyrepeat,		false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 float JoyAxes[6];
 //static int JoyActive;
@@ -202,6 +203,10 @@ static void InitKeySymMap ()
 static void I_CheckGUICapture ()
 {
 	bool wantCapt;
+	bool repeat;
+	int oldrepeat, interval;
+
+	SDL_GetKeyRepeat(&oldrepeat, &interval);
 
 	if (menuactive == MENU_Off)
 	{
@@ -219,13 +224,32 @@ static void I_CheckGUICapture ()
 		{
 			FlushDIKState ();
 			memset (DownState, 0, sizeof(DownState));
-			SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+			repeat = !sdl_nokeyrepeat;
 			SDL_EnableUNICODE (1);
 		}
 		else
 		{
-			SDL_EnableKeyRepeat (0, 0);
+			repeat = false;
 			SDL_EnableUNICODE (0);
+		}
+	}
+	if (wantCapt)
+	{
+		repeat = !sdl_nokeyrepeat;
+	}
+	else
+	{
+		repeat = false;
+	}
+	if (repeat != (oldrepeat != 0))
+	{
+		if (repeat)
+		{
+			SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+		}
+		else
+		{
+			SDL_EnableKeyRepeat (0, 0);
 		}
 	}
 }

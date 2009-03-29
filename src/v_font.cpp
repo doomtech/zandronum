@@ -217,6 +217,8 @@ static int STACK_ARGS TranslationMapCompare (const void *a, const void *b);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
+extern int PrintColors[];
+
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
 FFont *FFont::FirstFont = NULL;
@@ -1626,6 +1628,7 @@ FSpecialFont::FSpecialFont (const char *name, int first, int count, FTexture **l
 			{
 				remap->Remap[j] = identity[j];
 				remap->Palette[j] = GPalette.BaseColors[identity[j]];
+				remap->Palette[j].a = 0xff;
 			}
 		}
 	}
@@ -2063,13 +2066,21 @@ EColorRange V_ParseFontColor (const BYTE *&color_value, int normalcolor, int bol
 	const BYTE *ch = color_value;
 	int newcolor = *ch++;
 
-	if (newcolor == '-')		// Normal
+	if (newcolor == '-')			// Normal
 	{
 		newcolor = normalcolor;
 	}
 	else if (newcolor == '+')		// Bold
 	{
 		newcolor = boldcolor;
+	}
+	else if (newcolor == '!')		// Team chat
+	{
+		newcolor = PrintColors[PRINT_TEAMCHAT];
+	}
+	else if (newcolor == '*')		// Chat
+	{
+		newcolor = PrintColors[PRINT_CHAT];
 	}
 	else if (newcolor == '[')		// Named
 	{

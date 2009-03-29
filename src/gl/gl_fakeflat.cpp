@@ -328,7 +328,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 			dest->SetTexture(sector_t::floor, diffTex ? sec->GetTexture(sector_t::floor) : s->GetTexture(sector_t::floor), false);
 			dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 
-			dest->ceilingplane		= s->floorplane;
+			//dest->ceilingplane		= s->floorplane;
 			
 			if (s->GetTexture(sector_t::ceiling) == skyflatnum) 
 			{
