@@ -543,17 +543,8 @@ void R_InitSkins (void)
 		s_skin = 1;
 
 		i++;
-		for (j = 0; j < NUMSKINSOUNDS; j++)
-			sndlumps[j] = -1;
-		skins[i].namespc = Wads.GetLumpNamespace (base);
 
 		FScanner sc(base);
-		intname = 0;
-		crouchname = 0;
-
-		remove = false;
-		basetype = NULL;
-		transtype = NULL;
 
 		// Data is stored as "key = data".
 		while (sc.GetString ())
@@ -567,6 +558,15 @@ void R_InitSkins (void)
 				if(s_skin != 2) // If this is at S_SKIN unchangeable then no nothing else get a new string.
 					sc.GetString();
 			}
+			for (j = 0; j < NUMSKINSOUNDS; j++)
+				sndlumps[j] = -1;
+			skins[i].namespc = Wads.GetLumpNamespace (base);
+			intname = 0;
+			crouchname = 0;
+
+			remove = false;
+			basetype = NULL;
+			transtype = NULL;
 
 			if(s_skin == 1)
 				s_skin = 2; // If it doesn't find a '{' permanently use S_SKIN format.
@@ -736,6 +736,10 @@ void R_InitSkins (void)
 						{
 							sndlumps[j] = Wads.CheckNumForName (sc.String, skins[i].namespc);
 							if (sndlumps[j] == -1)
+							{ // [BL] no replacement, search all wads?
+								sndlumps[j] = Wads.CheckNumForName (sc.String);
+							}
+							if (sndlumps[j] == -1)
 							{ // Replacement not found, try finding it in the global namespace
 								sndlumps[j] = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
 							}
@@ -793,7 +797,8 @@ void R_InitSkins (void)
 
 				// Now collect the sprite frames for this skin. If the sprite name was not
 				// specified, use whatever immediately follows the specifier lump.
-				if (intname == 0)
+				// [BL] S_SKIN only
+				if (intname == 0 && s_skin != 0)
 				{
 					char name[9];
 					Wads.GetLumpName (name, base+1);
@@ -823,6 +828,9 @@ void R_InitSkins (void)
 							break;
 						}
 					}
+
+					if (intname == 0)
+						continue;
 
 					// [BL] From the SKININFO parser
 					// Loop through all the lumps searching for frames for this skin.

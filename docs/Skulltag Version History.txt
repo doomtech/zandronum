@@ -31,6 +31,7 @@ latestzdoom branch
 -	- Fixed error in SECTINFO parser where only one property could be set per map header. [Blzut3]
 -	- Fixed bots shoot behind them in 64-bit. [Blzut3]
 -	- Fixed: Under certain circumstance inactive SwitchableDecoration actors were treated as active on the clients. [Torr Samaho]
+-	- Fixed: Some values were improperly initiated during skin parsing resulting in values bleeding through defintions. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]
