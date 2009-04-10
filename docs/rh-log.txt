@@ -1,4 +1,32 @@
-﻿March 29, 2009  (Changes by Graf Zahl)
+﻿April 6, 2009  (Changes by Graf Zahl)
+- Fixed: The UDMF textmap readbuffer was never freed.
+
+April 4, 2009
+- Fixed: GetPlayerInput() died if you tried to get the input of the activator
+  and the activator was the world.
+
+April 4, 2009  (Changes by Graf Zahl)
+- fixed: Any player class inheriting directly from PlayerPawn was left with
+  empty weapon slots due to the recent rewrite of the weapon slot assignment
+  code. To handle such classes each game now defines a default weapon slot
+  setting in its gameinfo. This will be used when a player class without any
+  weapon slot settings is used.
+- added 'damage' to the actor variables exported to DECORATE's expression
+  evaluator.
+- fixed: solid corpses could block ripper missile that originally killed them.
+
+April 2, 2009
+- Fixed: Doom's status bar was lacking its default face.
+- Fixed: Custom skin face graphics were not added to the texture manager.
+- Fixed: UseHealthItems() gave you health equal to the number of items in
+  the stack of health items, rather than the item's proper amount.
+
+April 1, 2008
+- Fixed: SBARINFO's "usessecondaryammo" considered a weapon to not use
+  secondaryammo if ammo2's type was the same as ammo1's, but only if you
+  didn't use the "not" keyword with it.
+
+March 29, 2009  (Changes by Graf Zahl)
 - Fixed: Altering a link type with Sector_SetLink did not work.
 - Fixed: player.crouchsprite had no proper means of unsetting the crouch
   sprite which is needed by the ChexPlayer.

@@ -781,7 +781,7 @@ static int FindGLNodesInFile(FileReader * f, const char * label)
 	f->Seek(0, SEEK_SET);
 	(*f) >> id >> numentries >> dirofs;
 
-	if (id == IWAD_ID || id == PWAD_ID)
+	if ((id == IWAD_ID || id == PWAD_ID) && numentries > 4)
 	{
 		f->Seek(dirofs, SEEK_SET);
 		for(DWORD i=0;i<numentries-4;i++)

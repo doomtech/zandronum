@@ -25,6 +25,13 @@ gameinfo
 	backpacktype = "Backpack"
 	statusbar = "sbarinfo/doom.txt"
 	intermissionmusic = "$MUSIC_DM2INT"
+	weaponslot = 1, "Fist", "Chainsaw"
+	weaponslot = 2, "Pistol"
+	weaponslot = 3, "Shotgun", "SuperShotgun"
+	weaponslot = 4, "Chaingun", "Minigun"			// [BB] Create default binding for the minigun.
+	weaponslot = 5, "RocketLauncher", "GrenadeLauncher"	// [BB] Create default binding for the grenade launcher.
+	weaponslot = 6, "PlasmaRifle", "Railgun"		// [BB] Create default binding for the railgun.
+	weaponslot = 7, "BFG9000", "BFG10K"			// [BB] Create default binding for the BFG10K.
 }
 
 skill baby
