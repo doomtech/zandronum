@@ -352,7 +352,7 @@ void GLFlat::Draw(int pass)
 // plane in the appropriate render list.
 //
 //==========================================================================
-inline void GLFlat::PutFlat()
+inline void GLFlat::PutFlat(bool fog)
 {
 	int list;
 
@@ -365,7 +365,7 @@ inline void GLFlat::PutFlat()
 		renderstyle=STYLE_Translucent;
 		alpha=1.f;
 	}
-	if (renderstyle!=STYLE_Translucent || alpha < 1.f - FLT_EPSILON)
+	if (renderstyle!=STYLE_Translucent || alpha < 1.f - FLT_EPSILON || fog)
 	{
 		int list = (renderflags&SSRF_RENDER3DPLANES) ? GLDL_TRANSLUCENT : GLDL_TRANSLUCENTBORDER;
 		gl_drawinfo->drawlists[list].AddFlat (this);
@@ -410,11 +410,11 @@ inline void GLFlat::PutFlat()
 //
 //==========================================================================
 
-void GLFlat::Process(sector_t * sector, bool whichplane, bool notexture)
+void GLFlat::Process(sector_t * sector, bool whichplane, bool fog)
 {
 	plane.GetFromSector(sector, whichplane);
 
-	if (!notexture)
+	if (!fog)
 	{
 		if (plane.texture==skyflatnum) return;
 
@@ -437,7 +437,7 @@ void GLFlat::Process(sector_t * sector, bool whichplane, bool notexture)
 
 	if (!whichplane && sector->transdoor) z -= 1;
 	
-	PutFlat();
+	PutFlat(fog);
 	rendered_flats++;
 }
 

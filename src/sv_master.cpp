@@ -597,7 +597,7 @@ const char *SERVER_MASTER_GetGameName( void )
 	{
 	case GAME_Doom:
 
-		if ( gamemode != commercial )
+		if ( !(gameinfo.flags & GI_MAPxx) )
 			return ( "DOOM" );
 		else
 			return ( "DOOM II" );

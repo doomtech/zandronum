@@ -723,7 +723,8 @@ bool BOTS_IsPathObstructed( fixed_t Distance, AActor *pSource )
 //	return ( P_PathTraverse( pSource->x, pSource->y, vx, vy, PT_ADDLINES|PT_ADDTHINGS, PTR_AimTraverse ) == false );
 	if ( Trace( pSource->x,	// Source X
 				pSource->y,		// Source Y
-				pSource->z + gameinfo.StepHeight,//sz,				// Source Z
+				// [BB] gameinfo.StepHeight seems to be gone from ZDoom, but even before the removal it was always 0.
+				pSource->z /*+ gameinfo.StepHeight*/,//sz,				// Source Z
 				pSource->Sector,// Source sector
 				vx,
 				vy,

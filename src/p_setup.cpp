@@ -3328,7 +3328,7 @@ void P_RemoveThings( void )
 	TThinkerIterator<AActor>	Iterator;
 
 	// [BB] Buckshot only makes sense if this is a Doom, but not a Doom 1 game.
-	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && gamemission != doom );
+	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && (gameinfo.flags & GI_MAPxx) );
 
 	while ( (pActor = Iterator.Next( )))
 	{
@@ -3763,7 +3763,7 @@ void P_SetupLevel (char *lumpname, int position)
 		{
 			// We need translators only for Doom format maps.
 			// If none has been defined in a map use the game's default.
-			P_LoadTranslator(!level.info->Translator.IsEmpty()? level.info->Translator.GetChars() : gameinfo.translator);
+			P_LoadTranslator(!level.info->Translator.IsEmpty()? level.info->Translator.GetChars() : gameinfo.translator.GetChars());
 		}
 		CheckCompatibility(map);
 		/* [BB] ST doesn't do this.

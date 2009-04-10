@@ -1,4 +1,104 @@
-﻿March 15, 2009  (Changes by Graf Zahl)
+﻿March 29, 2009  (Changes by Graf Zahl)
+- Fixed: Altering a link type with Sector_SetLink did not work.
+- Fixed: player.crouchsprite had no proper means of unsetting the crouch
+  sprite which is needed by the ChexPlayer.
+- Fixed: A_ChangeFlags must unlink the actor from the world before changing
+  the NOBLOCKMAP and NOSECTOR flags.
+
+March 28, 2009  (Changes by Graf Zahl)
+- Fixed: Dehacked string replacement did not check the clusters' finaleflats.
+- Changed the definition of several typedef'd structs so that they are
+  properly named.
+- Limited DEHSUPP lump lookup to search zdoom.pk3 only. It will no longer
+  be possible to load DEHSUPP lumps from user WADs.
+- Brought back the text-based DEHSUPP parser and changed it to be able to 
+  reference states by label. Also changed label names of 
+  DoomUnusedStates and added proper labels to all states that were
+  previously forced to be the first state of an actor so that the old
+  (limited) method could access them. This was done to address the following
+  bug:
+- Fixed: The player's death states calling A_PlayerSkinCheck should not be
+  part of the state set that is accessible by Dehacked. These will produce
+  error messages when mapped to non-players.
+
+March 27, 2009  (Changes by Graf Zahl)
+- Fixed: Reading the RNG states from a savegame calculated the amounts of
+  RNGs in the savegame wrong.
+
+March 26, 2009
+- Changed random seed initialization so that it uses the system's
+  cryptographically secure random number generator, if available, instead
+  of the current time.
+- Changed the random number generator from Lee Killough's algorithm to the
+  SFMT607 variant of the Mersenne Twister.
+  <http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/index.html>
+
+March 25, 2009
+- Made fmodex.dll delay-loaded so the game should be runnable on Windows 95
+  again, though without sound.
+- Changed gameinfo_t and gameborder_t to be named structs instead of
+  typedef'ed anonymous structs.
+- Fixed: P_AutoUseHealth() used autousemodes 0 and 1 instead of 1 and 2.
+- Fixed: SBARINFO did not recognize 5:4 aspect ratio.
+- Fixed: screenshot_dir was ignored.
+
+March 25, 2009  (Changes by Graf Zahl)
+- Removed some obsolete code from G_InitLevelLocals that was causing problems
+  with maps that have no name.
+- Fixed: The inner loop in AWeaponSlot::PickWeapon could endlessly loop when
+  the counter variable became negative.
+- Fixed: Implicitly defined clusters were not initialized when being created.
+
+March 24, 2009  (Changes by Graf Zahl)
+- Fixed: Item tossing did not work anymore.
+
+March 23, 2009  (Changes by Graf Zahl)
+- Changed: Making the gameinfo customizable by MAPINFO requires different
+  checks for map specific border flats.
+
+March 22, 2009  (Changes by Graf Zahl)
+- removed gamemission variable because it wasn't used anywhere.
+- removed gamemode variable. All it was used for were some checks that
+  really should depend on GI_MAPxx.
+- Externalized all internal gameinfo definitions.
+- added include to MAPINFO parser.
+- split IWAD detection code off from d_main.cpp into its own file.
+- disabled gamemission based switch filtering because it is not useful.
+- added GAMEINFO submission by Blzut3 with significant modifications. There
+  is no GAMEINFO lump. Instead all information is placed in MAPINFO, except
+  the data that is needed to decide which WADs to autoload.
+
+March 19, 2009
+- Added the current value of the string buffer to the state saved when
+  making a function call in ACS. Now you can print inside functions and
+  also return values from them for the caller to plug directly into
+  another string without having to save it to a temporary variable.
+- Added an OutputVolume() call after the MusicVolumeChanged() call in
+  MIDIStreamer::Play(). Since the state isn't playing yet when
+  MusicVolumeChanged() is called, it doesn't do this itself.
+- Fixed: P_RailAttack() passed the wrong angle variable to P_TraceBleed().
+
+March 18, 2009  (Changes by Graf Zahl)
+- Fixed: S_StopSound may not assume that after stopping a sound channel
+  its link to the next item in the list is still valid.
+- Fixed typo in src/CMakeLists.txt.
+- Fixed: Armor only worked for players.
+- Fixed: P_FindFloorCeiling may not call P_PointInSector if called from
+  P_SpawnMapThing. It must use the values the actor has been initialized to
+  by LinkToWorldForMapThing.
+
+March 17, 2009
+- Added the -norun parameter to quit the game just before video
+  initialization. To be used to check for errors in scripts without actually
+  running the game.
+- Added the -stdout parameter to the Windows version to send all output to
+  a console, like the Linux version has done all along.
+
+March 16, 2009
+- Added support for loading ZGL2 nodes. (Only useful with UDMF and maps with
+  more than 65534 lines.)
+
+March 15, 2009  (Changes by Graf Zahl)
 - Fixed: AWeapon::PickupForAmmo accessed ammo type 1 when checking ammo type2.
 
 March 14, 2009

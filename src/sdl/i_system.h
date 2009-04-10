@@ -64,6 +64,9 @@ extern void (*I_FreezeTime) (bool frozen);
 
 fixed_t I_GetTimeFrac (uint32 *ms);
 
+// Return a seed value for the RNG.
+unsigned int I_MakeRNGSeed();
+
 
 //
 // Called by D_DoomLoop,
@@ -127,12 +130,12 @@ unsigned int I_MSTime (void);
 
 // Directory searching routines
 
-typedef struct
+struct findstate_t
 {
     int count;
     struct dirent **namelist;
     int current;
-} findstate_t;
+};
 
 void *I_FindFirst (const char *filespec, findstate_t *fileinfo);
 int I_FindNext (void *handle, findstate_t *fileinfo);

@@ -64,7 +64,7 @@ struct zdemoheader_s {
 	BYTE	consoleplayer;
 };
 
-struct usercmd_s
+struct usercmd_t
 {
 	// [BB] Added unused dummy variables to prevent sthook from working at all.
 	BYTE	dummy1;
@@ -83,7 +83,6 @@ struct usercmd_s
 	short	sidemove;
 	short	upmove;
 };
-typedef struct usercmd_s usercmd_t;
 
 class FArchive;
 

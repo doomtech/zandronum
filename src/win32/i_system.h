@@ -68,6 +68,9 @@ extern void (*I_FreezeTime) (bool frozen);
 
 fixed_t I_GetTimeFrac (uint32 *ms);
 
+// Return a seed value for the RNG.
+unsigned int I_MakeRNGSeed();
+
 float	I_GetTimeFloat( void );
 // [BB] Use I_MSTime instead, since it does the same as I_GetMSElapsed did and is also available under Linux.
 //int		I_GetMSElapsed( void );

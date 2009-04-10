@@ -45,6 +45,7 @@
 #include "cmdlib.h"
 #include "sc_man.h"
 #include "doomstat.h"
+#include "d_main.h"
 
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
@@ -78,6 +79,9 @@ int FGLTexture::CheckDDPK3()
 	static const char * strifetexpath[]= {
 		"data/jstrife/textures/%s.%s", NULL };
 
+	static const char * chextexpath[]= {
+		"data/jchex/textures/%s.%s", NULL };
+
 	static const char * doomflatpath[]= {
 		"data/jdoom/flats/%s.%s", NULL };
 
@@ -89,6 +93,9 @@ int FGLTexture::CheckDDPK3()
 
 	static const char * strifeflatpath[]= {
 		"data/jstrife/flats/%s.%s", NULL };
+
+	static const char * chexflatpath[]= {
+		"data/jchex/flats/%s.%s", NULL };
 
 
 	FString checkName;
@@ -105,37 +112,52 @@ int FGLTexture::CheckDDPK3()
 	// for patches this doesn't work yet
 	if (ispatch) return -3;
 
-	switch (gameinfo.gametype)
+	switch (gameiwad)
 	{
-	case GAME_Doom:
-		switch (gamemission)
-		{
-		case doom:
-			checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
-			break;
-		case doom2:
-			checklist = useType==FTexture::TEX_Flat? doomflatpath : doom2texpath;
-			break;
-		case pack_tnt:
-			checklist = useType==FTexture::TEX_Flat? doomflatpath : tnttexpath;
-			break;
-		case pack_plut:
-			checklist = useType==FTexture::TEX_Flat? doomflatpath : pluttexpath;
-			break;
-		default:
-			return -3;
-		}
+	case IWAD_DoomShareware:
+	case IWAD_UltimateDoom:
+	case IWAD_DoomRegistered:
+	case IWAD_FreeDoom1:
+		checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
 		break;
 
-	case GAME_Heretic:
+	case IWAD_Doom2:
+	case IWAD_FreeDoom:
+	case IWAD_FreeDM:
+		checklist = useType==FTexture::TEX_Flat? doomflatpath : doom2texpath;
+		break;
+
+	case IWAD_Doom2TNT:
+		checklist = useType==FTexture::TEX_Flat? doomflatpath : tnttexpath;
+		break;
+
+	case IWAD_Doom2Plutonia:
+		checklist = useType==FTexture::TEX_Flat? doomflatpath : pluttexpath;
+		break;
+
+	case IWAD_HereticShareware:
+	case IWAD_HereticExtended:
+	case IWAD_Heretic:
 		checklist = useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
 		break;
-	case GAME_Hexen:
+
+	case IWAD_Hexen:
+	case IWAD_HexenDK:
+	case IWAD_HexenDemo:
 		checklist = useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
 		break;
-	case GAME_Strife:
+
+	case IWAD_Strife:
+	case IWAD_StrifeTeaser:
+	case IWAD_StrifeTeaser2:
 		checklist = useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
 		break;
+
+	case IWAD_ChexQuest:
+	case IWAD_ChexQuest3:	// check this!
+		checklist = useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
+		break;
+
 	default:
 		return -3;
 	}
@@ -197,6 +219,10 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 		"%stextures/strife/%s.%s", "%stextures/strife/%s-ck.%s", "%stextures/%s.%s", "%stextures/%s-ck.%s", NULL
 	};
 
+	static const char * chextexpath[]= {
+		"%stextures/chex/%s.%s", "%stextures/chex/%s-ck.%s", "%stextures/%s.%s", "%stextures/%s-ck.%s", NULL
+	};
+
 	static const char * doom1flatpath[]= {
 		"%sflats/doom/doom1/%s.%s", "%stextures/doom/doom1/flat-%s.%s", 
 			"%sflats/doom/%s.%s", "%stextures/doom/flat-%s.%s", "%sflats/%s.%s", "%stextures/flat-%s.%s", NULL
@@ -231,6 +257,10 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 		"%sflats/strife/%s.%s", "%stextures/strife/flat-%s.%s", "%sflats/%s.%s", "%stextures/flat-%s.%s", NULL
 	};
 
+	static const char * chexflatpath[]= {
+		"%sflats/chex/%s.%s", "%stextures/chex/flat-%s.%s", "%sflats/%s.%s", "%stextures/flat-%s.%s", NULL
+	};
+
 	static const char * doom1patchpath[]= {
 		"%spatches/doom/doom1/%s.%s", "%spatches/doom/%s.%s", "%spatches/%s.%s", NULL
 	};
@@ -259,6 +289,10 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 		"%spatches/strife/%s.%s", "%spatches/%s.%s", NULL
 	};
 
+	static const char * chexpatchpath[]= {
+		"%spatches/chex/%s.%s", "%spatches/%s.%s", NULL
+	};
+
 	FString checkName;
 	const char ** checklist;
 	BYTE useType=tex->UseType;
@@ -273,37 +307,52 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 	// for patches this doesn't work yet
 	if (ispatch) return -3;
 
-	switch (gameinfo.gametype)
+	switch (gameiwad)
 	{
-	case GAME_Doom:
-		switch (gamemission)
-		{
-		case doom:
-			checklist = ispatch ? doom1patchpath : useType==FTexture::TEX_Flat? doom1flatpath : doom1texpath;
-			break;
-		case doom2:
-			checklist = ispatch ? doom2patchpath : useType==FTexture::TEX_Flat? doom2flatpath : doom2texpath;
-			break;
-		case pack_tnt:
-			checklist = ispatch ? tntpatchpath : useType==FTexture::TEX_Flat? tntflatpath : tnttexpath;
-			break;
-		case pack_plut:
-			checklist = ispatch ? plutpatchpath : useType==FTexture::TEX_Flat? plutflatpath : pluttexpath;
-			break;
-		default:
-			return -3;
-		}
+	case IWAD_DoomShareware:
+	case IWAD_UltimateDoom:
+	case IWAD_DoomRegistered:
+	case IWAD_FreeDoom1:
+		checklist = ispatch ? doom1patchpath : useType==FTexture::TEX_Flat? doom1flatpath : doom1texpath;
 		break;
 
-	case GAME_Heretic:
+	case IWAD_Doom2:
+	case IWAD_FreeDoom:
+	case IWAD_FreeDM:
+		checklist = ispatch ? doom2patchpath : useType==FTexture::TEX_Flat? doom2flatpath : doom2texpath;
+		break;
+
+	case IWAD_Doom2TNT:
+		checklist = ispatch ? tntpatchpath : useType==FTexture::TEX_Flat? tntflatpath : tnttexpath;
+		break;
+
+	case IWAD_Doom2Plutonia:
+		checklist = ispatch ? plutpatchpath : useType==FTexture::TEX_Flat? plutflatpath : pluttexpath;
+		break;
+
+	case IWAD_HereticShareware:
+	case IWAD_HereticExtended:
+	case IWAD_Heretic:
 		checklist = ispatch ? hereticpatchpath : useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
 		break;
-	case GAME_Hexen:
+
+	case IWAD_Hexen:
+	case IWAD_HexenDK:
+	case IWAD_HexenDemo:
 		checklist = ispatch ? hexenpatchpath : useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
 		break;
-	case GAME_Strife:
+
+	case IWAD_Strife:
+	case IWAD_StrifeTeaser:
+	case IWAD_StrifeTeaser2:
 		checklist = ispatch ?strifepatchpath : useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
 		break;
+
+	case IWAD_ChexQuest:
+	case IWAD_ChexQuest3:	// check this!
+		checklist = ispatch ?chexpatchpath : useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
+		break;
+
 	default:
 		return -3;
 	}

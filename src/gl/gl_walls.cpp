@@ -157,7 +157,7 @@ void GLWall::PutWall(bool translucent)
 			flags&=~GLWF_FOGGY;
 		}
 
-		masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || gltexture->tex->bMasked;
+		masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || (gltexture && gltexture->tex->bMasked);
 
 		list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
 		if (list == GLDL_LIGHT)
@@ -1030,6 +1030,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 			// the fog plane defines the light level, not the front sector!
 			lightlevel=*light->p_lightlevel;
 			gltexture=NULL;
+			type=RENDERWALL_FFBLOCK;
 		}
 		else return;
 	}
@@ -1072,7 +1073,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	zbottom[0]=TO_GL(ff_bottomleft);//-0.001f;
 	zbottom[1]=TO_GL(ff_bottomright);
 
-	if (rover->flags&FF_TRANSLUCENT)
+	if (rover->flags&(FF_TRANSLUCENT|FF_ADDITIVETRANS|FF_FOG))
 	{
 		alpha=rover->alpha/255.0f;
 		RenderStyle = (rover->flags&FF_ADDITIVETRANS)? STYLE_Add : STYLE_Translucent;

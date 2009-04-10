@@ -350,7 +350,7 @@ bool BOTPATH_IsPositionBlocked( AActor *pActor, fixed_t DestX, fixed_t DestY )
 					// other things in the blocks and see if we hit something that is
 					// definitely blocking. Otherwise, we need to check the lines, or we
 					// could end up stuck inside a wall.
-					if (( g_pBlockingActor->player == NULL ) && (( g_pBlockingActor->z + g_pBlockingActor->height - pActor->z ) <= gameinfo.StepHeight ))
+					if (( g_pBlockingActor->player == NULL ) && (( g_pBlockingActor->z + g_pBlockingActor->height - pActor->z ) <= 0 /*gameinfo.StepHeight*/ ))
 					{
 						if (( pThingBlocker == NULL ) || ( g_pBlockingActor->z > pThingBlocker->z ))
 							pThingBlocker = g_pBlockingActor;
@@ -358,7 +358,7 @@ bool BOTPATH_IsPositionBlocked( AActor *pActor, fixed_t DestX, fixed_t DestY )
 						pRobin = g_pBlockingActor;
 						g_pBlockingActor = NULL;
 					}
-					else if ((( pActor->z + pActor->height ) - g_pBlockingActor->z ) <= gameinfo.StepHeight )
+					else if ((( pActor->z + pActor->height ) - g_pBlockingActor->z ) <= 0 /*gameinfo.StepHeight*/ )
 					{
 						if ( pThingBlocker )
 						{
@@ -479,7 +479,7 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 
 			if ((( g_pBlockingActor->z + g_pBlockingActor->height ) - StartZ ) > 0 )
 			{
-				if ((( g_pBlockingActor->z + g_pBlockingActor->height ) - StartZ ) <= gameinfo.StepHeight )
+				if ((( g_pBlockingActor->z + g_pBlockingActor->height ) - StartZ ) <= 0 /*gameinfo.StepHeight*/ )
 					ulFlags |= BOTPATH_STAIRS;
 				else if ((( g_pBlockingActor->z + g_pBlockingActor->height ) - StartZ ) <= 36 * FRACUNIT )
 					ulFlags |= BOTPATH_JUMPABLELEDGE;
@@ -545,7 +545,7 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 		lHeightChange = g_PathSectorFloorZ - pActor->z;
 		if ( lHeightChange > 0 )
 		{
-			if ( lHeightChange <= gameinfo.StepHeight )
+			if ( lHeightChange <= 0 /*gameinfo.StepHeight*/ )
 				ulFlags |= BOTPATH_STAIRS;
 			else if ( lHeightChange <= ( 60 * FRACUNIT ))
 				ulFlags |= BOTPATH_JUMPABLELEDGE;
@@ -624,7 +624,7 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 				lHeightChange = pBackSector->floorplane.ZatPoint( pLine->v1 ) - pFrontSector->floorplane.ZatPoint( pLine->v1 );
 				if ( lHeightChange > 0 )
 				{
-					if ( lHeightChange <= gameinfo.StepHeight )
+					if ( lHeightChange <= 0 /*gameinfo.StepHeight*/ )
 						ulFlags |= BOTPATH_STAIRS;
 					else if ( lHeightChange <= ( 60 * FRACUNIT ))
 						ulFlags |= BOTPATH_JUMPABLELEDGE;

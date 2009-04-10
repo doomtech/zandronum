@@ -155,16 +155,16 @@ void	P_NoiseAlert (AActor* target, AActor* emmiter, bool splash);
 //
 // P_MAPUTL
 //
-typedef struct
+struct divline_t
 {
 	fixed_t 	x;
 	fixed_t 	y;
 	fixed_t 	dx;
 	fixed_t 	dy;
 	
-} divline_t;
+};
 
-typedef struct
+struct intercept_t
 {
 	fixed_t 	frac;			// along trace line
 	bool	 	isaline;
@@ -173,7 +173,7 @@ typedef struct
 		AActor *thing;
 		line_t *line;
 	} d;
-} intercept_t;
+};
 
 typedef bool (*traverser_t) (intercept_t *in);
 
@@ -429,10 +429,9 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 // (For ZDoom itself this doesn't make any difference here but for GZDoom it does.)
 //
 //----------------------------------------------------------------------------------
-subsector_t *P_PointInSubsector (fixed_t x, fixed_t y);
 inline sector_t *P_PointInSector(fixed_t x, fixed_t y)
 {
-	return P_PointInSubsector(x,y)->sector;
+	return R_PointInSubsector(x,y)->sector;
 }
 
 //
@@ -483,14 +482,14 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle, int d
 
 // [RH] Data structure for P_SpawnMapThing() to keep track
 //		of polyobject-related things.
-typedef struct polyspawns_s
+struct polyspawns_t
 {
-	struct polyspawns_s *next;
+	polyspawns_t *next;
 	fixed_t x;
 	fixed_t y;
 	short angle;
 	short type;
-} polyspawns_t;
+};
 
 enum
 {

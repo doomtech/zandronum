@@ -15,8 +15,8 @@
 latestzdoom branch
 ------
 
-*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1493). [Torr Samaho]
-*+	- Upgraded the GZDoom renderer to 1.1.04 (revision 127, maintenance fixes from up to revision 317)! [Torr Samaho]
+*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1514). [Torr Samaho]
+*+	- Upgraded the GZDoom renderer to 1.1.04 (revision 127, maintenance fixes from up to revision 320)! [Torr Samaho]
 *+	- Added support for voodoo dolls online, controlled by the new CVAR sv_coopspawnvoodoodolls (default false). One of the limitations currently is, that the clients know nothing about the dolls, only the server does. Because of this the dolls are invisible on the clients. [Torr Samaho]
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K, GrenadeLauncher, RandomPowerup, TeamItem, Flag, Skull, WhiteFlag, FloatyIcon, PathNode, ReturnZone, SpringPadZone, Hissy, MaxHealth, RuneGiver, RedArmor, PowerTerminatorArtifact, PowerPossessionArtifact, various invasion spawner base classes and various Rune classes to DECORATE. [Torr Samaho]

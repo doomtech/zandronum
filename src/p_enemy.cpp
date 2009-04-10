@@ -2912,33 +2912,36 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int 
 		}
 		mo = Spawn (type, source->x, source->y, spawnz, ALLOW_REPLACE);
 
-		// [BC] If we're the server, tell clients to spawn the thing.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnThing( mo );
-
-		mo->flags |= MF_DROPPED;
-		mo->flags &= ~MF_NOGRAVITY;	// [RH] Make sure it is affected by gravity
-		if (mo->IsKindOf (RUNTIME_CLASS(AInventory)))
+		if (mo != NULL)
 		{
-			AInventory * inv = static_cast<AInventory *>(mo);
-			ModifyDropAmount(inv, dropamount);
+			// [BC] If we're the server, tell clients to spawn the thing.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( mo );
+
+			mo->flags |= MF_DROPPED;
+			mo->flags &= ~MF_NOGRAVITY;	// [RH] Make sure it is affected by gravity
+			if (!(i_compatflags & COMPATF_NOTOSSDROPS))
+			{
+				P_TossItem (mo);
+			}
+			if (mo->IsKindOf (RUNTIME_CLASS(AInventory)))
+			{
+				AInventory * inv = static_cast<AInventory *>(mo);
+				ModifyDropAmount(inv, dropamount);
 
 				// [BB] Now that the ammo amount from weapon pickups is handled on the server
 				// this shouldn't be necessary anymore. Remove after thorough testing.
 				// [BC] If we're the server, tell clients that the thing is dropped.
 				//if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				//	SERVERCOMMANDS_SetWeaponAmmoGive( mo );
-			if (inv->SpecialDropAction (source))
-			{
-				return NULL;
+				if (inv->SpecialDropAction (source))
+				{
+					return NULL;
+				}
+				return inv;
 			}
-			return inv;
+			// we can't really return an AInventory pointer to a non-inventory item here, can we?
 		}
-		if (!(i_compatflags & COMPATF_NOTOSSDROPS))
-		{
-			P_TossItem (mo);
-		}
-		// we can't really return an AInventory pointer to a non-inventory item here, can we?
 	}
 	return NULL;
 }

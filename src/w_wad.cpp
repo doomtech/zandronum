@@ -168,6 +168,11 @@ FWadCollection::FWadCollection ()
 
 FWadCollection::~FWadCollection ()
 {
+	DeleteAll();
+}
+
+void FWadCollection::DeleteAll ()
+{
 	if (FirstLumpIndex != NULL)
 	{
 		delete[] FirstLumpIndex;
@@ -196,6 +201,7 @@ FWadCollection::~FWadCollection ()
 		}
 	}
 	LumpInfo.Clear();
+	NumLumps = 0;
 
 	for (DWORD i = 0; i < Wads.Size(); ++i)
 	{
@@ -220,10 +226,8 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 	int numfiles;
 
 	// open all the files, load headers, and count lumps
+	DeleteAll();
 	numfiles = 0;
-	Wads.Clear();
-	LumpInfo.Clear();
-	NumLumps = 0;
 
 	while (*filenames)
 	{
@@ -264,10 +268,10 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 	MergeLumps ("HI_START", "HI_END", ns_hires);
 
 	// [RH] Set up hash table
-	FirstLumpIndex = new WORD[NumLumps];
-	NextLumpIndex = new WORD[NumLumps];
-	FirstLumpIndex_FullName = new WORD[NumLumps];
-	NextLumpIndex_FullName = new WORD[NumLumps];
+	FirstLumpIndex = new DWORD[NumLumps];
+	NextLumpIndex = new DWORD[NumLumps];
+	FirstLumpIndex_FullName = new DWORD[NumLumps];
+	NextLumpIndex_FullName = new DWORD[NumLumps];
 	InitHashChains ();
 }
 
@@ -302,7 +306,7 @@ int FWadCollection::AddExternalFile(const char *filename)
 //
 //-----------------------------------------------------------------------
 
-static DWORD Zip_FindCentralDir(FileReader * fin)
+DWORD Zip_FindCentralDir(FileReader * fin)
 {
 	unsigned char buf[BUFREADCOMMENT + 4];
 	DWORD FileSize;

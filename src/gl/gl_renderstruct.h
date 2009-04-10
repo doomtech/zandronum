@@ -303,7 +303,7 @@ public:
 	void DrawSubsectorLights(subsector_t * sub, int pass);
 	void DrawSubsectors(bool istrans);
 
-	void PutFlat();
+	void PutFlat(bool fog = false);
 	void Process(sector_t * sector, bool whichplane, bool notexture);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);

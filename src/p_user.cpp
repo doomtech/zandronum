@@ -1167,7 +1167,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	FDropItem *di = GetDropItems();
 
 	// [BB] Buckshot only makes sense if this is a Doom, but not a Doom 1 game.
-	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && gamemission != doom );
+	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && (gameinfo.flags & GI_MAPxx) );
 
 	// [BB] Ugly hack: Stuff for the Doom player. The instagib and buckshot stuff
 	// has to be done before giving the default items.
