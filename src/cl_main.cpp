@@ -6837,8 +6837,13 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
+	// [BB] We can't create the message if the font doesn't exist.
+	FFont *font = V_GetFont( pszFont );
+	if ( font == NULL )
+		return;
+
 	// Create the message.
-	pMsg = new DHUDMessage( V_GetFont( pszFont ), szString,
+	pMsg = new DHUDMessage( font, szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -6905,8 +6910,13 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
+	// [BB] We can't create the message if the font doesn't exist.
+	FFont *font = V_GetFont( pszFont );
+	if ( font == NULL )
+		return;
+
 	// Create the message.
-	pMsg = new DHUDMessageFadeOut( V_GetFont( pszFont ), szString,
+	pMsg = new DHUDMessageFadeOut( font, szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -6978,8 +6988,13 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
+	// [BB] We can't create the message if the font doesn't exist.
+	FFont *font = V_GetFont( pszFont );
+	if ( font == NULL )
+		return;
+
 	// Create the message.
-	pMsg = new DHUDMessageFadeInOut( V_GetFont( pszFont ), szString,
+	pMsg = new DHUDMessageFadeInOut( font, szString,
 		fX,
 		fY,
 		lHUDWidth,
@@ -7052,8 +7067,13 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	if ( StatusBar == NULL )
 		return;
 
+	// [BB] We can't create the message if the font doesn't exist.
+	FFont *font = V_GetFont( pszFont );
+	if ( font == NULL )
+		return;
+
 	// Create the message.
-	pMsg = new DHUDMessageTypeOnFadeOut( V_GetFont( pszFont ), szString,
+	pMsg = new DHUDMessageTypeOnFadeOut( font, szString,
 		fX,
 		fY,
 		lHUDWidth,
