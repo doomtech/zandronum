@@ -85,6 +85,9 @@ static	bool				g_bDemoRecording;
 static	bool				g_bDemoPlaying;
 static	bool				g_bDemoPlayingHonest;
 
+// [BB] Do we want to skip to the next map in the demo we are playing at the moment?
+static	bool				g_bSkipToNextMap = false;
+
 // Buffer for our demo.
 static	BYTE				*g_pbDemoBuffer;
 
@@ -351,7 +354,12 @@ void CLIENTDEMO_ReadPacket( void )
 			CLIENTDEMO_ReadTiccmd( &players[consoleplayer].cmd );
 
 			// After we write our ticcmd, we're done for this tic.
-			return;
+			if ( CLIENTDEMO_IsSkippingToNextMap() == false )
+				return;
+			// [BB] If we don't return here, we essentially skip a tic and have to adjust the tic offset.
+			else
+				g_lGameticOffset--;
+			break;
 		case CLD_INVUSE:
 
 			{
@@ -456,6 +464,7 @@ void CLIENTDEMO_DoPlayDemo( const char *pszDemoName )
 		C_HideConsole( );
 		g_bDemoPlaying = true;
 		g_bDemoPlayingHonest = true;
+		CLIENTDEMO_SetSkippingToNextMap ( false );
 
 		g_lGameticOffset = gametic;
 	}
@@ -481,6 +490,7 @@ void CLIENTDEMO_FinishPlaying( void )
 	// We're no longer playing a demo.
 	g_bDemoPlaying = false;
 	g_bDemoPlayingHonest = false;
+	CLIENTDEMO_SetSkippingToNextMap ( false );
 
 	// Clear out the existing players.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -579,6 +589,20 @@ void CLIENTDEMO_SetPlaying( bool bPlaying )
 }
 
 //*****************************************************************************
+//
+bool CLIENTDEMO_IsSkippingToNextMap( void )
+{
+	return g_bSkipToNextMap;
+}
+
+//*****************************************************************************
+//
+void CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap )
+{
+	g_bSkipToNextMap = bSkipToNextMap;
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void clientdemo_CheckDemoBuffer( ULONG ulSize )
@@ -596,3 +620,12 @@ static void clientdemo_CheckDemoBuffer( ULONG ulSize )
 		g_ByteStream.pbStreamEnd = g_pbDemoBuffer + g_lMaxDemoLength;
 	}
 }
+
+//*****************************************************************************
+//	CONSOLE COMMANDS
+
+CCMD( demo_skiptonextmap )
+{
+	CLIENTDEMO_SetSkippingToNextMap ( true );
+}
+

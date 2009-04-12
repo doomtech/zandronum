@@ -1355,6 +1355,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVCC_MAPLOAD:
 		{
+			// [BB] We are about to change the map, so if we are playing a demo right now
+			// and wanted to skip the current map, we are done with it now.
+			CLIENTDEMO_SetSkippingToNextMap ( false );
+
 			bool	bPlaying;
 
 			// Print a status message.
@@ -2112,14 +2116,23 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVC_MAPLOAD:
 
+		// [BB] We are about to change the map, so if we are playing a demo right now
+		// and wanted to skip the current map, we are done with it now.
+		CLIENTDEMO_SetSkippingToNextMap ( false );
 		client_MapLoad( pByteStream );
 		break;
 	case SVC_MAPNEW:
 
+		// [BB] We are about to change the map, so if we are playing a demo right now
+		// and wanted to skip the current map, we are done with it now.
+		CLIENTDEMO_SetSkippingToNextMap ( false );
 		client_MapNew( pByteStream );
 		break;
 	case SVC_MAPEXIT:
 
+		// [BB] We are about to change the map, so if we are playing a demo right now
+		// and wanted to skip the current map, we are done with it now.
+		CLIENTDEMO_SetSkippingToNextMap ( false );
 		client_MapExit( pByteStream );
 		break;
 	case SVC_MAPAUTHENTICATE:

@@ -100,5 +100,7 @@ bool		CLIENTDEMO_IsRecording( void );
 void		CLIENTDEMO_SetRecording( bool bRecording );
 bool		CLIENTDEMO_IsPlaying( void );
 void		CLIENTDEMO_SetPlaying( bool bPlaying );
+bool		CLIENTDEMO_IsSkippingToNextMap( void );
+void		CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap );
 
 #endif // __CL_DEMO__
