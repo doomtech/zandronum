@@ -37,6 +37,7 @@ latestzdoom branch
 -	- Fixed: In the first map of client side demos the player always started with the fist as ready weapon. [Torr Samaho]
 -	- Fixed: After a map change in client side demos the player possibly started with the wrong ready weapon. [Torr Samaho]
 -	- Fixed: The client didn't properly confirm the weapon change that happens when a Tome of Power expires. [Torr Samaho]
+-	- Fixed: If a client was given a health item, e.g. a stimpack, it always thought that item had the default amount, ignoring the amount specified. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]

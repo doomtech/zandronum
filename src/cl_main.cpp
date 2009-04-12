@@ -9401,9 +9401,12 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 				static_cast<ABasicArmorBonus*>( pInventory )->SaveAmount *= lAmount;
 				static_cast<ABasicArmorBonus*>( pInventory )->BonusCount *= lAmount;
 			}
-			else if ( pType->IsDescendantOf( PClass::FindClass( "HealthBonus" )))
+			else if ( pType->IsDescendantOf( RUNTIME_CLASS( AHealth ) ) )
 			{
-				pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
+				if ( pInventory->MaxAmount > 0 )
+					pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
+				else
+					pInventory->Amount = lAmount;
 			}
 			// [BB] TryPickup handles the MaxAmount.
 			//else
