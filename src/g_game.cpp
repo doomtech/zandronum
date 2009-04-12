@@ -353,6 +353,9 @@ CCMD (turn180)
 	sendturn180 = true;
 }
 
+// [BB] If possible use team starts in deathmatch game modes with teams, e.g. TDM, TLMS.
+CVAR( Bool, sv_useteamstartsindm, false, CVAR_SERVERINFO )
+
 // [BC] New cvar that shows the name of the weapon we're cycling to.
 CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 
@@ -2445,6 +2448,18 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 {
 	unsigned int selections;
 	FMapThing *spot;
+
+	// [BB] If sv_useteamstartsindm is true, we want to use team starts in deathmatch
+	// game modes with teams, e.g. TDM, TLMS.
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+		&& players[playernum].bOnTeam
+		&& TEAM_CheckIfValid ( players[playernum].ulTeam )
+		&& ( teams[players[playernum].ulTeam].TeamStarts.Size( ) >= 1 )
+		&& sv_useteamstartsindm )
+	{
+		G_TeamgameSpawnPlayer( playernum, players[playernum].ulTeam, bClientUpdate );
+		return;
+	}
 
 	selections = deathmatchstarts.Size ();
 	// [RH] We can get by with just 1 deathmatch start
