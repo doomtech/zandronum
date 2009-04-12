@@ -679,10 +679,10 @@ void AWeapon::EndPowerup ()
 				// [BC] If we're a client, tell the server we're switching weapons.
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
 				{
-					CLIENTCOMMANDS_WeaponSelect( this->GetClass( ));
+					CLIENTCOMMANDS_WeaponSelect( SisterWeapon->GetClass( ));
 
 					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
+						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, SisterWeapon->GetClass( )->TypeName.GetChars( ) );
 				}
 			}
 		}
