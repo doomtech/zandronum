@@ -32,6 +32,7 @@ latestzdoom branch
 -	- Fixed bots shoot behind them in 64-bit. [Blzut3]
 -	- Fixed: Under certain circumstance inactive SwitchableDecoration actors were treated as active on the clients. [Torr Samaho]
 -	- Fixed: The clients crashed if the server sent them malformed packets. [Torr Samaho]
+-	- Fixed: In the first map of client side demos the player always started with the fist as ready weapon. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]

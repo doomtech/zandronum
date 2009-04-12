@@ -1284,7 +1284,10 @@ void APlayerPawn::GiveDefaultInventory ()
 			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) &&
 				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
 			{
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
+				// [BB] When playing a client side demo, the default weapon for the consoleplayer
+				// will be selected by a recorded CLD_INVUSE command.
+				if ( ( CLIENTDEMO_IsPlaying() == false ) || ( player - players ) != consoleplayer )
+					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
 			}
 		}
 		di = di->Next;
