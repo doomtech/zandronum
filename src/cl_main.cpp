@@ -3188,6 +3188,32 @@ void CLIENT_LogHUDMessage( char *pszString, LONG lColor )
 }
 
 //*****************************************************************************
+//
+void CLIENT_UpdatePendingWeapon( const player_t *pPlayer )
+{
+	// [BB] Only the client needs to do this.
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		return;
+
+	// [BB] Invalid argument, nothing to do.
+	if ( pPlayer == NULL )
+		return;
+
+	// [BB] The current PendingWeapon is invalid.
+	if ( ( pPlayer->PendingWeapon == WP_NOCHANGE ) || ( pPlayer->PendingWeapon == NULL ) )
+		return;
+
+	// [BB] A client only needs to handle its own weapon changes.
+	if ( static_cast<LONG>( pPlayer - players ) == consoleplayer )
+	{
+		CLIENTCOMMANDS_WeaponSelect( pPlayer->PendingWeapon->GetClass( ));
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void client_Header( BYTESTREAM_s *pByteStream )
@@ -7817,11 +7843,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].PendingWeapon = pWeapon;
 
 	// Confirm to the server that this is the weapon we're using.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		( ulPlayer == static_cast<ULONG>(consoleplayer) ))
-	{
-		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( ));
-	}
+	CLIENT_UpdatePendingWeapon( &players[ulPlayer] );
 }
 
 //*****************************************************************************
