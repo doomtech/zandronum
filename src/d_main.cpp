@@ -709,12 +709,10 @@ void D_Display ()
 			if (automapactive)
 			{
 				int saved_ST_Y = ST_Y;
-				/*
 				if (hud_althud && viewheight == SCREENHEIGHT)
 				{
 					ST_Y = viewheight;
 				}
-				*/
 				AM_Drawer ();
 				ST_Y = saved_ST_Y;
 			}

@@ -27,6 +27,7 @@ latestzdoom branch
 +	- Added teamscore to SBarInfo's drawnumber and drawbar.  Its takes one parameter for team name. [Blzut3]
 +	- Added new CCMD demo_skiptonextmap. When playing a client side demo, this command jumps the playback to the next map change. [Torr Samaho]
 +	- Added new CVAR sv_useteamstartsindm (default false). If true, team starts will be used when possible in deathmatch game modes with teams, e.g. TDM, TLMS. [Torr Samaho]
++	- Added support for GZDoom's alternate HUD. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
