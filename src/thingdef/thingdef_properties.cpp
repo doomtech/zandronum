@@ -989,7 +989,7 @@ DEFINE_PROPERTY(projectile, 0, Actor)
 //==========================================================================
 // [BB]
 //==========================================================================
-DEFINE_PROPERTY(limitedtoteam, 0, Actor)
+DEFINE_PROPERTY(limitedtoteam, I, Actor)
 {
 	PROP_INT_PARM(i, 0);
 	defaults->ulLimitedToTeam=i+1;
