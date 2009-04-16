@@ -5117,7 +5117,8 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 		// them far too "active." BossBrains also use the old code
 		// because some user levels require they have a height of 16,
 		// which can make them near impossible to hit with the new code.
-		if (!bombdodamage || !((bombspot->flags5 | thing->flags5) & MF5_OLDRADIUSDMG))
+		if (!bombdodamage || ( !((bombspot->flags5 | thing->flags5) & MF5_OLDRADIUSDMG)
+		                       && !( compatflags & COMPATF_OLDRADIUSDMG ) ) )
 		{
 			// [RH] New code. The bounding box only covers the
 			// height of the thing and not the height of the map.

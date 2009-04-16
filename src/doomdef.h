@@ -309,7 +309,11 @@ enum
 	// Disable stealth monsters, since doom2.exe didn't have them.
 	COMPATF_DISABLESTEALTHMONSTERS		= 1 << 23,
 
+	// [BB] Always use the old radius damage code (infinite height)
+	COMPATF_OLDRADIUSDMG		= 1 << 24,
+
 	// Disable cooperative backpacks.
+	// [BB] We are running out of numbers, 1 << 24 is now used for COMPATF_OLDRADIUSDMG
 //	COMPATF_DISABLECOOPERATIVEBACKPACKS	= 1 << 24,
 
 	// [BB] Clients are not allowed to use a crosshair.
