@@ -1041,7 +1041,7 @@ std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment, b
 
 //*****************************************************************************
 //
-void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message, time_t tExpiration )
+void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszCommentUncleaned, std::string &Message, time_t tExpiration )
 {
 	FILE		*pFile;
 	char		szOutString[512];
@@ -1056,6 +1056,28 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list.\n";
 		Message = messageStream.str();
 		return;
+	}
+
+	// [BB] The comment may not contain line breaks or feeds, so we create a cleaned copy of the comment argument here.
+	char *pszComment = NULL;
+	if ( pszCommentUncleaned )
+	{
+		pszComment = new char [ strlen( pszCommentUncleaned ) + 1 ];
+
+		const char *p = pszCommentUncleaned;
+		char *pCleaned = pszComment;
+
+		do
+		{
+			const char c = *p;
+			if ( c != '\n' && c != '\r' )
+			{
+				*pCleaned = c;
+				pCleaned++;
+			}
+			p++;
+		} while ( *p != 0 );
+		*pCleaned = 0;
 	}
 
 	szOutString[0] = 0;
@@ -1113,6 +1135,8 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 		Message = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
 	}
 
+	if ( pszComment )
+		delete pszComment;
 }
 
 //*****************************************************************************

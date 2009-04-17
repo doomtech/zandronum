@@ -12,7 +12,14 @@
 ===============================================================================================================
 
 
-<trunk>
+v0.97d3-security-update-1
+-------------------------
+
+-	- Fixed a critical security bug of the server. Thanks a lot to kgsws for submitting a detailed report on this issue along with an implementation of the exploit. [Torr Samaho]
+-	- Fixed: A malicious client could skip the map authentication. Thanks to kgsws for his detailed report on this. [Torr Samaho]
+!	- Changed: All line breaks are removed from the comment when an entry is added to the banlist or whitelist. Thanks to kgsws for pointing me to this. [Torr Samaho]
+
+v0.97d3
 -------
 
 +	- Several improvements to the RCON utility: [Rivecoder]

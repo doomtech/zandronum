@@ -537,7 +537,7 @@ bool v_IsCharAcceptableInNames ( char c )
 	if ( c <= 31 )
 		return false;
 
-	// Percent is forbiddon in net names (why?).
+	// Percent is forbiddon in net names, because it can be abused for string exploits.
 	if ( c == '%' )
 		return false;
 

@@ -140,15 +140,15 @@ typedef enum
 	// Client slot has just received a connection signal.
 	CLS_CHALLENGE,
 
+	// [BB] Connection has been received, but the player hasn't authenticated or been spawned in the game yet.
+	CLS_CONNECTED,
+
 	// [BB] The map has changed after the client authenticated his level, but
 	// before he finished loading the level.
 	CLS_AUTHENTICATED_BUT_OUTDATED_MAP,
 
 	// Client has authenticated his level.
 	CLS_AUTHENTICATED,
-
-	// Connection has been received, but has not been spawned in the game yet.
-	CLS_CONNECTED,
 
 	// Client is in the game.
 	CLS_SPAWNED,
