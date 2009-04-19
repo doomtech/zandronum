@@ -73,6 +73,7 @@ enum
 	LUMPF_ZIPFILE		= 4,	// Inside a Zip file - used to enforce use of special directories insize Zips
 	LUMPF_NEEDFILESTART	= 8,	// Still need to process local file header to find file start inside a zip
 	LUMPF_EXTERNAL		= 16,	// Lump is from an external file that won't be kept open permanently
+	LUMPF_7ZFILE		= 32,	// Inside a 7z archive; position is its index in the archive
 };
 
 
@@ -172,7 +173,7 @@ public:
 	enum { IWAD_FILENUM = 2 };
 
 	void InitMultipleFiles (wadlist_t **filenames);
-	void AddFile (const char *filename, const char * data=NULL,int length=-1, bool bLoadedAutomatically = false);	// [BC]
+	void AddFile (const char *filename, const char *data=NULL,int length=-1, bool bLoadedAutomatically = false);	// [BC]
 	int CheckIfWadLoaded (const char *name);
 
 	const char *GetWadName (int wadnum) const;
@@ -245,7 +246,7 @@ protected:
 
 
 	TArray<LumpRecord> LumpInfo;
-	TArray<WadFileRecord *>Wads;
+	TArray<WadFileRecord *> Wads;
 	DWORD NumLumps;					// Not necessarily the same as LumpInfo.Size()
 	DWORD NumWads;
 
@@ -256,6 +257,8 @@ protected:
 	int MergeLumps (const char *start, const char *end, int name_space);
 	bool IsMarker (const LumpRecord *lump, const char *marker) const;
 	void FindStrifeTeaserVoices ();
+
+	char *ReadZipLump(LumpRecord *l);
 
 private:
 	static int STACK_ARGS lumpcmp(const void * a, const void * b);

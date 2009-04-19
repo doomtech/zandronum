@@ -5763,7 +5763,7 @@ void PIT_FloorDrop (AActor *thing, FChangePosition *cpos)
 			thing->z = thing->z - oldfloorz + thing->floorz;
 			P_CheckFakeFloorTriggers (thing, oldz);
 		}
-		else if ((thing->flags & MF_NOGRAVITY) ||
+		else if ((thing->flags & MF_NOGRAVITY) || (thing->flags5 & MF5_MOVEWITHSECTOR) ||
 			(((cpos->sector->Flags & SECF_FLOORDROP) || cpos->moveamt < 9*FRACUNIT)
 			 && thing->z - thing->floorz <= cpos->moveamt))
 		{
@@ -5972,7 +5972,11 @@ bool P_ChangeSector (sector_t *sector, int crunch, int amt, int floorOrCeil, boo
 					if (!n->visited)
 					{
 						n->visited  = true;
-						if (!(n->m_thing->flags&MF_NOBLOCKMAP)) iterator(n->m_thing, &cpos);
+						if (!(n->m_thing->flags & MF_NOBLOCKMAP) ||	//jff 4/7/98 don't do these
+							(n->m_thing->flags5 & MF5_MOVEWITHSECTOR))
+						{
+							iterator(n->m_thing, &cpos);
+						}
 						break;
 					}
 				}
@@ -5985,7 +5989,7 @@ bool P_ChangeSector (sector_t *sector, int crunch, int amt, int floorOrCeil, boo
 
 
 	// [RH] Use different functions for the four different types of sector
-	// movement. Also update the soundorg's z-coordinate for 3D sound.
+	// movement.
 	switch (floorOrCeil)
 	{
 	case 0:
@@ -6032,7 +6036,8 @@ bool P_ChangeSector (sector_t *sector, int crunch, int amt, int floorOrCeil, boo
 			if (!n->visited)								// unprocessed thing found
 			{
 				n->visited = true; 							// mark thing as processed
-				if (!(n->m_thing->flags & MF_NOBLOCKMAP))	//jff 4/7/98 don't do these
+				if (!(n->m_thing->flags & MF_NOBLOCKMAP) ||	//jff 4/7/98 don't do these
+					(n->m_thing->flags5 & MF5_MOVEWITHSECTOR))
 				{
 					iterator (n->m_thing, &cpos);		 			// process it
 					if (iterator2 != NULL) iterator2 (n->m_thing, &cpos);

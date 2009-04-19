@@ -74,9 +74,6 @@ CVAR (Bool, wi_noautostartmap, false, CVAR_ARCHIVE)
 void WI_loadData ();
 void WI_unloadData ();
 
-#define NEXTSTAGE		(gameinfo.gametype & GAME_DoomChex ? "weapons/rocklx" : "doors/dr1_clos")
-#define PASTSTATS		(gameinfo.gametype & GAME_DoomChex ? "weapons/shotgr" : "plats/pt1_stop")
-
 // GLOBAL LOCATIONS
 #define WI_TITLEY				2
 #define WI_SPACINGY 			33
@@ -1315,7 +1312,7 @@ void WI_UpdateCampaignStats( void )
 	{
 		acceleratestage = 0;
 		cp_state = 10;
-		S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+		S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 
 		if (( teamplay ) && ( players[consoleplayer].bOnTeam ))
 		{
@@ -1373,7 +1370,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Frags >= TEAM_GetFragCount( players[consoleplayer].ulTeam ))
 			{
 				cnt_Frags = TEAM_GetFragCount( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1382,7 +1379,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Frags >= static_cast<signed> (players[consoleplayer].ulWins) )
 			{
 				cnt_Frags = players[consoleplayer].ulWins;
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1391,7 +1388,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Frags >= TEAM_GetWinCount( players[consoleplayer].ulTeam ))
 			{
 				cnt_Frags = TEAM_GetWinCount( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1400,7 +1397,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Frags >= TEAM_GetScore( players[consoleplayer].ulTeam ))
 			{
 				cnt_Frags = TEAM_GetScore( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1409,7 +1406,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Frags >= players[consoleplayer].fragcount )
 			{
 				cnt_Frags = players[consoleplayer].fragcount;
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1426,7 +1423,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Deaths >= TEAM_GetDeathCount( players[consoleplayer].ulTeam ))
 			{
 				cnt_Deaths = TEAM_GetDeathCount( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1435,7 +1432,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Deaths >= players[consoleplayer].fragcount )
 			{
 				cnt_Deaths = players[consoleplayer].fragcount;
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1444,7 +1441,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Deaths >= TEAM_GetFragCount( players[consoleplayer].ulTeam ))
 			{
 				cnt_Deaths = TEAM_GetFragCount( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1453,7 +1450,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Deaths >= TEAM_GetFragCount( players[consoleplayer].ulTeam ))
 			{
 				cnt_Deaths = TEAM_GetFragCount( players[consoleplayer].ulTeam );
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1462,7 +1459,7 @@ void WI_UpdateCampaignStats( void )
 			if ( cnt_Deaths >= static_cast<signed> (players[consoleplayer].ulDeathCount) )
 			{
 				cnt_Deaths = players[consoleplayer].ulDeathCount;
-				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 				cp_state++;
 			}
 		}
@@ -1510,7 +1507,7 @@ void WI_UpdateCampaignStats( void )
 		if ( cnt_NumPlayers >= static_cast<signed> ((( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( ))))
 		{
 			cnt_NumPlayers = (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( ));
-			S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
+			S_Sound( CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE );
 			cp_state++;
 		}
 	}
@@ -1524,7 +1521,7 @@ void WI_UpdateCampaignStats( void )
 		if (cnt_time >= plrs[0].stime / TICRATE)
 		{
 			cnt_time = plrs[0].stime / TICRATE;
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE, "intermission/nextstage", 1, ATTN_NONE);
 			cp_state++;
 		}
 	}
@@ -1532,7 +1529,7 @@ void WI_UpdateCampaignStats( void )
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE, PASTSTATS, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE, "intermission/paststats", 1, ATTN_NONE);
 
 			if ((gameinfo.flags & GI_MAPxx))
 				WI_initNoState();
@@ -1697,7 +1694,7 @@ void WI_updateDeathmatchStats ()
 			}
 		}
 		
-		S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 		*/
 		dm_state = 4;
 	}
@@ -1708,7 +1705,7 @@ void WI_updateDeathmatchStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 		
 		stillticking = false;
 
@@ -1747,7 +1744,7 @@ void WI_updateDeathmatchStats ()
 		}
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			dm_state++;
 		}
 		*/
@@ -1757,7 +1754,7 @@ void WI_updateDeathmatchStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, "players/male/gibbed", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/pastdmstats", 1, ATTN_NONE);
 			WI_initShowNextLoc();
 		}
 	}
@@ -1919,7 +1916,7 @@ void WI_updateNetgameStats ()
 			if (dofrags)
 				cnt_frags[i] = WI_fragSum (i);
 		}
-		S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 		*/
 		ng_state = 10;
 	}
@@ -1929,7 +1926,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -1948,7 +1945,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -1959,7 +1956,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -1976,7 +1973,7 @@ void WI_updateNetgameStats ()
 		}
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -1987,7 +1984,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -2006,7 +2003,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			ng_state += 1 + 2*!dofrags;
 		}
 		*/
@@ -2017,7 +2014,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -2036,7 +2033,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, "player/male/death1", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/cooptotal", 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -2046,7 +2043,7 @@ void WI_updateNetgameStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, PASTSTATS, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/pastcoopstats", 1, ATTN_NONE);
 			WI_initShowNextLoc();
 		}
 	}
@@ -2199,7 +2196,7 @@ void WI_updateStats ()
 		{
 			acceleratestage = 0;
 			sp_state = 10;
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 		}
 		cnt_kills[0] = plrs[me].skills;
 		cnt_items[0] = plrs[me].sitems;
@@ -2216,12 +2213,12 @@ void WI_updateStats ()
 			cnt_kills[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 		}
 		if (cnt_kills[0] >= plrs[me].skills)
 		{
 			cnt_kills[0] = plrs[me].skills;
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2232,12 +2229,12 @@ void WI_updateStats ()
 			cnt_items[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 		}
 		if (cnt_items[0] >= plrs[me].sitems)
 		{
 			cnt_items[0] = plrs[me].sitems;
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2248,12 +2245,12 @@ void WI_updateStats ()
 			cnt_secret[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 		}
 		if (cnt_secret[0] >= plrs[me].ssecret)
 		{
 			cnt_secret[0] = plrs[me].ssecret;
-			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2262,7 +2259,7 @@ void WI_updateStats ()
 		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);
 
 			cnt_time += 3;
 			cnt_par += 3;
@@ -2282,7 +2279,7 @@ void WI_updateStats ()
 			if (cnt_time >= plrs[me].stime / TICRATE)
 			{
 				cnt_total_time = wbs->totaltime / TICRATE;
-				S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/nextstage", 1, ATTN_NONE);
 				sp_state++;
 			}
 		}
@@ -2291,7 +2288,7 @@ void WI_updateStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE | CHAN_UI, PASTSTATS, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "intermission/paststats", 1, ATTN_NONE);
 			WI_initShowNextLoc();
 		}
 	}

@@ -111,6 +111,15 @@ static BYTE StrifePaletteVals[11*3] =
 	187, 59, 0, 219, 171, 0
 };
 
+static AMColor RavenColors[11];
+static BYTE RavenPaletteVals[11*3] =
+{
+	0x6c,0x54,0x40,  255, 255, 255, 0x74,0x5c,0x48,
+	  75,  50,  16,   88,  93,  86,  208, 176, 133,  
+	 103,  59,  31,  236, 236, 236,    0,   0,   0,
+	   0,   0,   0,    0,   0,   0,
+};
+
 #define MAPBITS 12
 #define MapDiv SafeDivScale12
 #define MapMul MulScale12
@@ -368,6 +377,7 @@ static fixed_t mapxstart=0; //x-value for the bitmap.
 
 static bool stopped = true;
 
+static void AM_calcMinMaxMtoF();
 
 void AM_rotatePoint (fixed_t *x, fixed_t *y);
 void AM_rotate (fixed_t *x, fixed_t *y, angle_t an);
@@ -393,7 +403,7 @@ void AM_getIslope (mline_t *ml, islope_t *is)
 }
 */
 
-void AM_GetPosition(fixed_t & x, fixed_t & y)
+void AM_GetPosition(fixed_t &x, fixed_t &y)
 {
 	x = (m_x + m_w/2) << FRACTOMAPBITS;
 	y = (m_y + m_h/2) << FRACTOMAPBITS;
@@ -470,14 +480,10 @@ bool AM_addMark ()
 //
 static void AM_findMinMaxBoundaries ()
 {
-	int i;
-	fixed_t a;
-	fixed_t b;
-
 	min_x = min_y = FIXED_MAX;
 	max_x = max_y = FIXED_MIN;
   
-	for (i = 0; i < numvertexes; i++)
+	for (int i = 0; i < numvertexes; i++)
 	{
 		if (vertexes[i].x < min_x)
 			min_x = vertexes[i].x;
@@ -496,8 +502,13 @@ static void AM_findMinMaxBoundaries ()
 	min_w = 2*PLAYERRADIUS; // const? never changed?
 	min_h = 2*PLAYERRADIUS;
 
-	a = MapDiv (SCREENWIDTH << MAPBITS, max_w);
-	b = MapDiv (::ST_Y << MAPBITS, max_h);
+	AM_calcMinMaxMtoF();
+}
+
+static void AM_calcMinMaxMtoF()
+{
+	fixed_t a = MapDiv (SCREENWIDTH << MAPBITS, max_w);
+	fixed_t b = MapDiv (::ST_Y << MAPBITS, max_h);
 
 	min_scale_mtof = a < b ? a : b;
 	max_scale_mtof = MapDiv (SCREENHEIGHT << MAPBITS, 2*PLAYERRADIUS);
@@ -690,6 +701,7 @@ static void AM_initColors (bool overlayed)
 		{
 			DoomColors[i].FromRGB(DoomPaletteVals[j], DoomPaletteVals[j+1], DoomPaletteVals[j+2]);
 			StrifeColors[i].FromRGB(StrifePaletteVals[j], StrifePaletteVals[j+1], StrifePaletteVals[j+2]);
+			RavenColors[i].FromRGB(RavenPaletteVals[j], RavenPaletteVals[j+1], RavenPaletteVals[j+2]);
 		}
 	}
 
@@ -791,6 +803,28 @@ static void AM_initColors (bool overlayed)
 			XHairColor = DoomColors[9];
 			NotSeenColor = DoomColors[10];
 			break;
+
+		case 3:	// Raven
+			// Use colors corresponding to the original Raven's
+			Background = RavenColors[0];
+			YourColor = RavenColors[1];
+			AlmostBackground = DoomColors[2];
+			SecretSectorColor = 		
+				SecretWallColor =
+				WallColor = RavenColors[3];
+			TSWallColor = RavenColors[4];
+			FDWallColor = RavenColors[5];
+			LockedColor =
+				CDWallColor = RavenColors[6];
+			ThingColor = 
+			ThingColor_Item = 
+			ThingColor_Friend = 
+				ThingColor_Monster = RavenColors[7];
+			GridColor = RavenColors[4];
+			XHairColor = RavenColors[9];
+			NotSeenColor = RavenColors[10];
+			break;
+
 	}
 
 	lastpal = palette;
@@ -839,9 +873,6 @@ void AM_LevelInit ()
 	scale_ftom = MapDiv(MAPUNIT, scale_mtof);
 }
 
-
-
-
 //
 //
 //
@@ -864,6 +895,8 @@ void AM_Start ()
 	AM_loadPics();
 }
 
+
+
 //
 // set the window scale to the maximum size
 //
@@ -880,6 +913,24 @@ void AM_maxOutWindowScale ()
 {
 	scale_mtof = max_scale_mtof;
 	scale_ftom = MapDiv(MAPUNIT, scale_mtof);
+}
+
+//
+// Called right after the resolution has changed
+//
+void AM_NewResolution()
+{
+	fixed_t oldmin = min_scale_mtof;
+	AM_calcMinMaxMtoF();
+	scale_mtof = Scale(scale_mtof, min_scale_mtof, oldmin);
+	scale_ftom = MapDiv(MAPUNIT, scale_mtof);
+	if (scale_mtof < min_scale_mtof)
+		AM_minOutWindowScale();
+	else if (scale_mtof > max_scale_mtof)
+		AM_maxOutWindowScale();
+	f_w = screen->GetWidth();
+	f_h = ST_Y;
+	AM_activateNewScale();
 }
 
 
@@ -1444,7 +1495,7 @@ void AM_drawWalls (bool allmap)
 					 lines[i].special == ACS_LockedExecuteDoor ||
 					 (lines[i].special == Generic_Door && lines[i].args[4] !=0 ))
 			{
-				if (am_colorset == 0)
+				if (am_colorset == 0 || am_colorset == 3)	// Raven games show door colors
 				{
 					int P_GetMapColorForLock(int lock);
 					int lock;

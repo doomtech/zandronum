@@ -302,10 +302,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_FreezeDeathChunks)
 	{
 		CALL_ACTION(A_BossDeath, self);
 	}
-   CALL_ACTION(A_NoBlocking, self);
+	CALL_ACTION(A_NoBlocking, self);
 
 	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 	self->HideOrDestroyIfSafe ();
+	// [BB] ZDoom doesn't use destroy here anymore but it sets it to the "Null" state, which
+	// will make it invisible and destroy it one tic later. Shall Skulltag do this, too? With
+	// custom survival handling of course.
+	//self->SetState(self->FindState(NAME_Null));
 }
 
 //----------------------------------------------------------------------------

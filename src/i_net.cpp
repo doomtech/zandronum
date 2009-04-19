@@ -81,9 +81,10 @@ typedef int SOCKET;
 #define WSAGetLastError()	errno
 #endif
 
-#if defined(__WIN32__) || defined (__FreeBSD__) 
+#ifndef IPPORT_USERRESERVED
 #define IPPORT_USERRESERVED 5000
 #endif
+
 #ifdef __WIN32__
 typedef int socklen_t;
 #endif

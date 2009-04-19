@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "doomtype.h"

@@ -3,10 +3,6 @@
 #include "cmdlib.h"
 #include "templates.h"
 
-#ifdef __FreeBSD__
-#include <signal.h>
-#endif
-
 #if !defined(_WIN32) && 0
 // Under Linux, buffer output from Timidity to try to avoid "bubbles"
 // in the sound output.
@@ -38,6 +34,7 @@ private:
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <wordexp.h>
+#include <signal.h>
 
 int ChildQuit;
 

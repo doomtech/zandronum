@@ -138,8 +138,8 @@ void STACK_ARGS DCanvas::DrawText (FFont *font, int normalcolor, int x, int y, c
 		case TAG_MORE:
 			more_p = va_arg (tags, va_list*);
 			va_end (tags);
-#ifdef __GNUC__
-			__va_copy (tags, *more_p);
+#ifndef NO_VA_COPY
+			va_copy (tags, *more_p);
 #else
 			tags = *more_p;
 #endif

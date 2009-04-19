@@ -208,6 +208,7 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(MF5, BRIGHT, AActor, flags5),
 	DEFINE_FLAG(MF5, CANTSEEK, AActor, flags5),
 	DEFINE_FLAG(MF5, PAINLESS, AActor, flags5),
+	DEFINE_FLAG(MF5, MOVEWITHSECTOR, AActor, flags5),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),

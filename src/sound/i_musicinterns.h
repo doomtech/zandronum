@@ -13,10 +13,6 @@
 #include <SDL.h>
 #define FALSE 0
 #define TRUE 1
-//[BB] fmod.h is not needed here under Windows.
-#ifndef NO_SOUND
-#include <fmod.h>
-#endif
 #endif
 #include "tempfiles.h"
 #include "oplsynth/opl_mus_player.h"

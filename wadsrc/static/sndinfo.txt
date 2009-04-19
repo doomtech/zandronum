@@ -50,11 +50,11 @@ misc/icebreak			icebrk1a
 // Retail Doom and Strife use 200.
 $rolloff * 200 1200
 
-/***************************************************************************/
-/*									   */
-/* DOOM SOUNDS								   */
-/*									   */
-/***************************************************************************/
+/****************************************************************************/
+/*																			*/
+/* DOOM SOUNDS																*/
+/*																			*/
+/****************************************************************************/
 
 $ifdoom
 
@@ -519,6 +519,12 @@ menu/clear			dsswtchx	// Close top menu
 $random menu/quit1 { player/male/death1 demon/pain grunt/pain misc/gibbed misc/teleport grunt/sight1 grunt/sight3 demon/melee }
 $random menu/quit2 { vile/active misc/p_pkup brain/cube misc/gibbed skeleton/swing knight/death baby/active demon/melee  }
 
+$alias				intermission/tick			weapons/pistol
+$alias				intermission/cooptotal		*death
+$alias				intermission/nextstage		weapons/rocklx
+$alias				intermission/paststats		weapons/shotgr
+$alias				intermission/pastcoopstats	weapons/shotgr
+$alias				intermission/pastdmstats	*gibbed
 
 
 /***************************************************************************/
@@ -539,11 +545,11 @@ $ambient 2 WaterFallSound POINT CONTINUOUS 1.0
 
 $endif	// ifdoom
 
-/***************************************************************************/
-/*									   */
-/* HERETIC SOUNDS							   */
-/*									   */
-/***************************************************************************/
+/****************************************************************************/
+/*																			*/
+/* HERETIC SOUNDS															*/
+/*																			*/
+/****************************************************************************/
 
 $ifheretic
 
@@ -823,14 +829,21 @@ menu/clear			dorcls
 
 misc/secret			dssecret
 
+$alias				intermission/cooptotal		*death
+$alias				intermission/nextstage		doors/dr1_clos
+$alias				intermission/paststats		plats/pt1_stop
+$alias				intermission/pastcoopstats	plats/pt1_stop
+$alias				intermission/pastdmstats	*gibbed
+
+
 $endif	// ifheretic
 
 
-/***************************************************************************/
-/*									   */
-/* HEXEN SOUNDS								   */
-/*									   */
-/***************************************************************************/
+/****************************************************************************/
+/*																			*/
+/* HEXEN SOUNDS																*/
+/*																			*/
+/****************************************************************************/
 
 $ifhexen
 
@@ -991,6 +1004,12 @@ $alias menu/clear		PlatformStop
 // Hexen does not have ripslop sound like Heretic
 misc/ripslop			dsempty
 
+$alias				intermission/cooptotal		*death
+$alias				intermission/nextstage		DoorCloseLight
+$alias				intermission/paststats		PlatformStop
+$alias				intermission/pastcoopstats	PlatformStop
+$alias				intermission/pastdmstats	*gibbed
+
 $limit DoorCloseLight 4
 
 $limit PuppyBeat 0
@@ -1007,11 +1026,11 @@ $limit DragonPain 0
 
 $endif	// ifhexen
 
-//===========================================================================
-//
-// Strife
-//
-//===========================================================================
+/****************************************************************************/
+/*																			*/
+/* STRIFE SOUNDS															*/
+/*																			*/
+/****************************************************************************/
 
 $ifstrife
 
@@ -1313,5 +1332,12 @@ entity/melee		dsrevbld
 entity/pain		dsalnpn
 entity/death		dsmnaldt
 entity/active		dsalnact
+
+$alias				intermission/tick			weapons/assaultgun
+$alias				intermission/cooptotal		*death
+$alias				intermission/nextstage		misc/explosion
+$alias				intermission/paststats		world/barrelx
+$alias				intermission/pastcoopstats	world/barrelx
+$alias				intermission/pastdmstats	*gibbed
 
 $endif

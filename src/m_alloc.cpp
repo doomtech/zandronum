@@ -32,11 +32,11 @@
 **
 */
 
-#ifndef __FreeBSD__
-#include <malloc.h>
-#else
+#ifdef __FreeBSD__
 #include <stdlib.h>
 #include <malloc_np.h>
+#else
+#include <malloc.h>
 #endif
 #include "i_system.h"
 #include "dobject.h"
