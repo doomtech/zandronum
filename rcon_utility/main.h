@@ -77,6 +77,6 @@ typedef struct
 int				Printf( const char *pszString, ... );
 int				Printf_NoTimestamp( const char *pszString, ... );
 void			VPrintf( bool bTimestamp, const char *pszString, va_list Parms );
-void			MAIN_Print( bool bTimestamp, char *pszString );
+void			MAIN_Print( bool bTimestamp, const char *pszString );
 
 #endif // __MAIN_H__

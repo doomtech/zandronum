@@ -744,8 +744,9 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 		break;
 	case SVRC_MESSAGE:
 		
+		// [BB] The string may contain format parameters like %n, so we may not use Printf!
 		if ( g_State == STATE_CONNECTED )
-			Printf( NETWORK_ReadString( pByteStream ));
+			MAIN_Print( true, NETWORK_ReadString( pByteStream ));
 		break;
 	case SVRC_UPDATE:
 
@@ -907,13 +908,13 @@ int Printf_NoTimestamp( const char *pszString, ... )
 void VPrintf( bool bTimestamp, const char *pszString, va_list Parms )
 {
 	char	szOutLine[8192];
-	vsprintf( szOutLine, pszString, Parms );
+	vsprintf_s( szOutLine, pszString, Parms );
 	MAIN_Print( bTimestamp, szOutLine );
 }
 
 //*****************************************************************************
 //
-void MAIN_Print( bool bTimestamp, char *pszString )
+void MAIN_Print( bool bTimestamp, const char *pszString )
 {
 	main_UpdateStatusbar( pszString );
 	
