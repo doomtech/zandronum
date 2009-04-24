@@ -571,7 +571,12 @@ void APlayerPawn::SetupWeaponSlots()
 		{ // If we're the local player, then there's a bit more work to do.
 			FWeaponSlots local_slots(player->weapons);
 			local_slots.LocalSetup(GetClass());
-			local_slots.SendDifferences(player->weapons);
+			// [BB] SendDifferences uses DEM_* stuff, that ST never uses in
+			// multiplayer games, so we have to handle this differently.
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				local_slots.SendDifferences(player->weapons);
+			else
+				player->weapons = local_slots;
 		}
 	}
 }
