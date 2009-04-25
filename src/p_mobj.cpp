@@ -4789,7 +4789,9 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 			{
 				// [BC] If we're the server, just mark this client as needing to have his enter
 				// scripts run when he actually authenticates the level.
+				// [BB] Enter scripts of bots have to be called immediately.
 				if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+					( p->bIsBot == false ) &&
 					( SERVER_GetClient( p - players )->State != CLS_SPAWNED ))
 				{
 					SERVER_GetClient( p - players )->bRunEnterScripts = true;
