@@ -2377,9 +2377,10 @@ void P_CalcHeight (player_t *player)
 	bool		still = false;
 
 	// [BC] If we're a spectator, don't calculate viewheight for other players.
+	// [BB] The same is true if we are not a spectator, but still are looking through the eyes of that player.
 	// We'll receive that from the server.
 	// Don't calculate height for other players.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( players[consoleplayer].bSpectating ) &&
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( players[consoleplayer].bSpectating || player->mo->CheckLocalView( consoleplayer ) ) &&
 		(( player - players ) != consoleplayer ))
 	{
 		return;
