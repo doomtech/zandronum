@@ -256,7 +256,7 @@ ACTOR Belphegor : HellKnight 5008
 
 ACTOR BelphegorBall : BaronBall
 {
-	SpawnID 154
+	SpawnID 222
 	Speed 20
 }
 

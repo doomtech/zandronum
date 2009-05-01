@@ -42,6 +42,7 @@ latestzdoom branch
 -	- Fixed: If a client was given a health item, e.g. a stimpack, it always thought that item had the default amount, ignoring the amount specified. [Torr Samaho]
 -	- Fixed: Enter scripts of bots are never executed online. [Torr Samaho]
 -	- Fixed: If a non-spectator player spies through the eyes of someone else, weapon bob doesn't work. [Torr Samaho]
+-	- Fixed: BelphegorBall overrode the SpawnID of BaronBall. BelphegorBall now has SpawnID 222. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]
