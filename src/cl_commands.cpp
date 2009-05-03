@@ -226,8 +226,16 @@ void CLIENTCOMMANDS_MissingPacket( void )
 //
 void CLIENTCOMMANDS_Pong( ULONG ulTime )
 {
-	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_PONG );
-	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, ulTime );
+	// [BB] For an accurate ping measurement, the client has to answer
+	// immediately instead of sending the answer together with the the
+	// other commands tic-synced in CLIENT_EndTick().
+	NETBUFFER_s	TempBuffer;
+	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+	NETWORK_ClearBuffer( &TempBuffer );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, CLC_PONG );
+	NETWORK_WriteLong( &TempBuffer.ByteStream, ulTime );
+	NETWORK_LaunchPacket( &TempBuffer, NETWORK_GetFromAddress( ) );
+	NETWORK_FreeBuffer( &TempBuffer );
 }
 
 //*****************************************************************************

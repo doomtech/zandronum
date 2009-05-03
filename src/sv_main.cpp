@@ -509,6 +509,10 @@ void SERVER_Tick( void )
 	lCurTics = lNewTics - lPreviousTics;
 	while ( lCurTics <= 0 )
 	{
+		// [BB] Recieve packets whenever possible (not only once each tic) to allow
+		// for an accurate ping measurement.
+		SERVER_GetPackets( );
+
 		I_Sleep( 1 );
 		lNowTime = I_MSTime( );
 		lNewTics = lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 );

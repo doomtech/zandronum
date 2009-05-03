@@ -999,6 +999,10 @@ void D_DoomLoop ()
 			{
 			case NETSTATE_CLIENT:
 
+				// [BB] Recieve packets whenever possible (not only once each tic) to allow
+				// for an accurate ping measurement.
+				CLIENT_GetPackets( );
+
 				// frame syncronous IO operations
 				if (gametic > lasttic)
 				{
