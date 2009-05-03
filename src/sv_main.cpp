@@ -4095,7 +4095,25 @@ static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 	ULONG	ulPing;
 
 	ulPing = NETWORK_ReadLong( pByteStream );
-	players[g_lCurrentClient].ulPing = I_MSTime( ) - ulPing;
+
+	ULONG currentPing = (I_MSTime( ) - ulPing);
+	const ULONG ticLength = 1000 / TICRATE;
+	player_t *p = &players[g_lCurrentClient];
+	// [BB] Lag spike, reset the averaging.
+	if ( labs (currentPing - p->ulPing) > 3.5 * ticLength )
+	{
+		p->ulPing = currentPing;
+		p->ulPingAverages = 0;
+	}
+	else
+	{
+		ULONG oldPing = p->ulPing;
+		ULONG ulPingAverages = p->ulPingAverages;
+		p->ulPing = ( p->ulPingAverages * p->ulPing + currentPing ) / ( 1 + p->ulPingAverages );
+		// [BB] The most recent ping measurement should always have a noticeable influence on the average ping.
+		if ( p->ulPingAverages < 5 )
+			p->ulPingAverages++;
+	}
 
 	return ( false );
 }

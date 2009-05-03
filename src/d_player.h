@@ -476,6 +476,9 @@ public:
 	// Ping of the player to the server he's playing on.
 	ULONG		ulPing;
 
+	// [BB] Over how many measurements has ulPing been averaged?
+	ULONG		ulPingAverages;
+
 	// Last tick this player received a packet.
 //	ULONG		ulLastTick;
 
