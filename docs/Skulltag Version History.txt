@@ -33,6 +33,7 @@ latestzdoom branch
 +	- Added new CVAR sv_useteamstartsindm (default false). If true, team starts will be used when possible in deathmatch game modes with teams, e.g. TDM, TLMS. [Torr Samaho]
 +	- Added support for GZDoom's alternate HUD. [Torr Samaho]
 +	- Added new compatflag "old radius damage", controlled by the new CVAR compat_oldradiusdmg. If this is enabled, the original Doom radius damage code is used, i.e. explosions have infinite vertical range. [Torr Samaho, SuperGod]
++	- Added new CVAR sv_logfiletimestamp_usedate. If enabled, the current date "YY:MM:DD" is prepended to the per-line timestamp of the logfile. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

@@ -198,6 +198,9 @@ CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 // [BB] Add a timestamp to every string printed to the logfile.
 CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
 
+// [BB] Prepend the current date to the per-line timestamp.
+CVAR (Bool, sv_logfiletimestamp_usedate, false, CVAR_ARCHIVE)
+
 #define NUMNOTIFIES 4
 #define NOTIFYFADETIME 6
 
@@ -940,13 +943,16 @@ int PrintString (int printlevel, const char *outline)
 
 		if( sv_logfiletimestamp )
 		{
-			// [BB] Generate time string "[HH:MM:SS] " and write it to the logfile.
+			// [BB] Generate time string "[YY:MM:DD;HH:MM:SS] " or "[HH:MM:SS] " and write it to the logfile.
 			time_t clock;
 			struct tm *lt;
 			time (&clock);
 			lt = localtime (&clock);
-			char time[16];
-			sprintf( time, "[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
+			char time[26];
+			if ( sv_logfiletimestamp_usedate )
+				sprintf( time, "[%02d:%02d:%02d;%02d:%02d:%02d] ", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+			else
+				sprintf( time, "[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
 			fputs (time, Logfile);
 		}
 
