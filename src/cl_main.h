@@ -138,6 +138,7 @@ void				CLIENT_AttemptConnection( void );
 void				CLIENT_AttemptAuthentication( char *pszMapName );
 void				CLIENT_RequestSnapshot( void );
 bool				CLIENT_GetNextPacket( void );
+void				CLIENT_GetPackets( void );
 void				CLIENT_CheckForMissingPackets( void );
 bool				CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream );
 void				CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket );
