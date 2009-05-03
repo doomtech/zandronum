@@ -822,9 +822,13 @@ ACTOR BrainStem 81
 ACTOR Stalagmite 5050
 {
 	Game Doom
+	// [BB] Skulltag's Stalagmite also was defined for Heretic and Hexen
+	Game Heretic
+	Game Hexen
 	Radius 16
 	Height 48
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
