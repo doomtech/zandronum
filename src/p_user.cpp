@@ -2517,6 +2517,13 @@ CUSTOM_CVAR (Float, sv_aircontrol, 0.00390625f, CVAR_SERVERINFO|CVAR_NOSAVE)
 
 void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 {
+	// [BB] A client doesn't know enough about the other players to make their movement.
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		(( player - players ) != consoleplayer ))
+	{
+		return;
+	}
+
 	APlayerPawn *mo = player->mo;
 
 	// [RH] 180-degree turn overrides all other yaws

@@ -43,6 +43,7 @@ latestzdoom branch
 -	- Fixed: Enter scripts of bots are never executed online. [Torr Samaho]
 -	- Fixed: If a non-spectator player spies through the eyes of someone else, weapon bob doesn't work. [Torr Samaho]
 -	- Fixed: BelphegorBall overrode the SpawnID of BaronBall. BelphegorBall now has SpawnID 222. [Torr Samaho]
+-	- Fixed: Clients tried to calculate the movement of the other players instead of only relying on the server to do this. The effects of this were nearly unnoticeable, but become apparent if used with the accurate ping code. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]
