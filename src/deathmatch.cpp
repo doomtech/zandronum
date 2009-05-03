@@ -301,6 +301,13 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 //
 CCMD( spectate )
 {
+	// [BB] The server can't use this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		Printf ( "CCMD spectate can't be used on the server\n" );
+		return;
+	}
+
 	// Already a spectator!
 	if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
 		return;

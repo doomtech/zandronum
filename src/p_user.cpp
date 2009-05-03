@@ -3001,6 +3001,13 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 }
 
 CCMD( join ) {
+	// [BB] The server can't use this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		Printf ( "CCMD join can't be used on the server\n" );
+		return;
+	}
+
 	PLAYER_JoinGameFromSpectators('y');
 }
 
