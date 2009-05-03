@@ -2725,8 +2725,8 @@ void SERVER_SendHeartBeat( void )
 {
 	ULONG	ulIdx;
 
-	// Ping clients once every three seconds.
-	if (( gametic % ( 3 * TICRATE )) || ( gamestate == GS_INTERMISSION ))
+	// Ping clients once every second.
+	if (( gametic % ( 1 * TICRATE )) || ( gamestate == GS_INTERMISSION ))
 		return;
 
 	SERVERCOMMANDS_Ping( I_MSTime( ));

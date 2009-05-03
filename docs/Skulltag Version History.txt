@@ -48,6 +48,7 @@ latestzdoom branch
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]
+!	- The ping of the clients is now measured every second instead of every three seconds. [Torr Samaho, SuperGod]
 
 
 <trunk>
