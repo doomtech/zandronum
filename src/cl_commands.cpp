@@ -226,6 +226,12 @@ void CLIENTCOMMANDS_MissingPacket( void )
 //
 void CLIENTCOMMANDS_Pong( ULONG ulTime )
 {
+	// [BB] CLIENTCOMMANDS_Pong is the only client command function that
+	// immediately launches a network packet. This is something that
+	// we obviously don't want to do when playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) )
+		return;
+
 	// [BB] For an accurate ping measurement, the client has to answer
 	// immediately instead of sending the answer together with the the
 	// other commands tic-synced in CLIENT_EndTick().
