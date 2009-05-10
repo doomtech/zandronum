@@ -268,6 +268,10 @@ public:
 	fixed_t MoveCombatDist;					// Used by bots, but do they *really* need it?
 	int ReloadCounter;						// For A_CheckForReload
 
+	// [BB] When a player uses this weapon and a skin with name equal to the PreferredSkin value exists for
+	// his/her player class, the player is forced to use this skin, overriding any personal skin settings.
+	FNameNoInit PreferredSkin;
+
 	// In-inventory instance variables
 	TObjPtr<AAmmo> Ammo1, Ammo2;
 	TObjPtr<AWeapon> SisterWeapon;

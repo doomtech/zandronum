@@ -2254,6 +2254,22 @@ void P_CheckPlayerSprites()
 			if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))))
 				lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
 
+			// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
+			if ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) )
+			{
+				LONG lDesiredSkin = R_FindSkin( player->ReadyWeapon->PreferredSkin.GetChars(), player->CurrentPlayerClass );
+				if ( lDesiredSkin != lSkin )
+				{
+					lSkin = lDesiredSkin;
+					mo->sprite = skins[lSkin].sprite;
+				}
+			}
+			// [BB] No longer using a weapon with a preferred skin, reset the sprite.
+			else if ( ( mo->sprite != skins[lSkin].sprite ) && ( mo->sprite != skins[lSkin].crouchsprite ) )
+			{
+				mo->sprite = skins[lSkin].sprite;
+			}
+
 			if (lSkin != 0)
 			{
 				defscaleY = skins[lSkin].ScaleY;

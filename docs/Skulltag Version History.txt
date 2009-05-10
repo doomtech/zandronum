@@ -34,6 +34,7 @@ latestzdoom branch
 +	- Added support for GZDoom's alternate HUD. [Torr Samaho]
 +	- Added new compatflag "old radius damage", controlled by the new CVAR compat_oldradiusdmg. If this is enabled, the original Doom radius damage code is used, i.e. explosions have infinite vertical range. [Torr Samaho, SuperGod]
 +	- Added new CVAR sv_logfiletimestamp_usedate. If enabled, the current date "YY:MM:DD" is prepended to the per-line timestamp of the logfile. [Torr Samaho]
++	- Added new DECORATE weapon property "preferredskin". While the PreferredSkin value of a player's ready weapon is equal to a skin available to the player's class, the player is forced to use this skin, overriding any personal skin settings. This allows to easily create mods were one can see from the skin which weapon the other players are currently using. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
