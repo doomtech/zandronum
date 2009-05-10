@@ -475,6 +475,11 @@ void I_Init (void)
 	CalculateCPUSpeed();
 	DumpCPUInfo(&CPU);
 
+	// [BB] CalculateCPUSpeed() messes with the priority, so I think it's a good place
+	// to set the server priority afterwards.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+
 	// Use a timer event if possible
 	NewTicArrived = CreateEvent (NULL, FALSE, FALSE, NULL);
 	if (NewTicArrived)
