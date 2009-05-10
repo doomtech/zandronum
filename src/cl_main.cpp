@@ -5852,6 +5852,10 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] If we are destroying a player's body here, we must NULL the corresponding pointer.
+	if ( pActor->player && ( pActor->player->mo == pActor ) )
+		pActor->player->mo = NULL;
+
 	// Destroy the thing.
 	pActor->Destroy( );
 }
