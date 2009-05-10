@@ -9555,6 +9555,10 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( pType == NULL )
 		return;
 
+	// [BB] If pType is not derived from AInventory, the cast below will fail.
+	if ( !(pType->IsDescendantOf( RUNTIME_CLASS( AInventory ))) )
+		return;
+
 	// Try to give the player the item.
 	pInventory = static_cast<AInventory *>( Spawn( pType, 0, 0, 0, NO_REPLACE ));
 	if ( pInventory != NULL )
