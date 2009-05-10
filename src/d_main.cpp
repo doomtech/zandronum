@@ -1001,7 +1001,10 @@ void D_DoomLoop ()
 
 				// [BB] Recieve packets whenever possible (not only once each tic) to allow
 				// for an accurate ping measurement.
-				CLIENT_GetPackets( );
+				// [BB] Possibly it's bad when we parse packets before we spawned in the map
+				// or the first tic was completed, so wait until then.
+				if ( ( CLIENT_GetConnectionState( ) == CTS_ACTIVE ) && level.maptime != 0 )
+					CLIENT_GetPackets( );
 
 				// frame syncronous IO operations
 				if (gametic > lasttic)
