@@ -128,6 +128,13 @@ EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
 
 //*****************************************************************************
+//	CONSOLE COMMANDS/VARIABLES
+
+#ifdef	_DEBUG
+CVAR( Bool, cl_emulatepacketloss, false, 0 )
+#endif
+
+//*****************************************************************************
 //	PROTOTYPES
 
 // Protocol functions.
@@ -1177,6 +1184,9 @@ bool CLIENT_GetNextPacket( void )
 void CLIENT_GetPackets( void )
 {
 	LONG lSize;
+#ifdef	_DEBUG
+	static	ULONG	s_ulEmulatingPacketLoss = 0;
+#endif
 	while (( lSize = NETWORK_GetPackets( )) > 0 )
 	{
 		UCVarValue		Val;

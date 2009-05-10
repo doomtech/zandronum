@@ -1206,10 +1206,6 @@ bool G_Responder (event_t *ev)
 			ev->type == EV_Mouse);
 }
 
-#ifdef	_DEBUG
-CVAR( Bool, cl_emulatepacketloss, false, 0 )
-#endif
-
 
 //
 // G_Ticker
@@ -1225,9 +1221,7 @@ void G_Ticker ()
 	int			buf;
 	ticcmd_t*	cmd;
 	LONG		lSize;
-#ifdef	_DEBUG
-	static	ULONG	s_ulEmulatingPacketLoss;
-#endif
+
 	// Client's don't spawn players until instructed by the server.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
