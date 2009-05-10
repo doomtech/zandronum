@@ -1093,21 +1093,21 @@ void DrawFullHUD_GameInformation()
 	// article game (ST/CTF), just show the scores / frags.
 	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		ULONG	ulPoints[MAX_TEAMS]; // Frags or points
+		LONG	lPoints[MAX_TEAMS]; // Frags or points
 		if ( teamlms )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
-				ulPoints[i] = TEAM_GetWinCount( i );
+				lPoints[i] = TEAM_GetWinCount( i );
 		}			
 		else if ( teamplay )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
-				ulPoints[i] = TEAM_GetFragCount( i );;
+				lPoints[i] = TEAM_GetFragCount( i );;
 		}
 		else
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
-				ulPoints[i] = TEAM_GetScore( i );
+				lPoints[i] = TEAM_GetScore( i );
 		}
 		ulCurXPos = 4;
 		if ( bScale )
@@ -1126,7 +1126,7 @@ void DrawFullHUD_GameInformation()
 				if ( TEAM_CountPlayers( i ) < 1 )
 					continue;
 
-				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ),  static_cast<int>( ulPoints[i] ));
+				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ),  static_cast<int>( lPoints[i] ));
 				V_ColorizeString( szString );
 
 				screen->DrawText( ConFont, CR_GRAY,
@@ -1147,7 +1147,7 @@ void DrawFullHUD_GameInformation()
 				if ( TEAM_CountPlayers( i ) < 1 )
 					continue;
 
-				sprintf( szString , "\\c%c%u\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), static_cast<unsigned int> (ulPoints[i]));
+				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), static_cast<unsigned int> (lPoints[i]));
 				V_ColorizeString( szString );
 
 				screen->DrawText( ConFont, CR_GRAY,

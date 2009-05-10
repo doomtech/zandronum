@@ -51,6 +51,7 @@ latestzdoom branch
 -	- Fixed: Clients tried to calculate the movement of the other players instead of only relying on the server to do this. The effects of this were nearly unnoticeable, but become apparent if used with the accurate ping code. [Torr Samaho]
 -	- Fixed: Bad things happened when the server used the CCMDs spectate or join. Now they simply are ignored when issued through the server console or RCON. [Torr Samaho]
 -	- Fixed: The client calculated falling damage on its own instead of relying on the server. This could cause sync issues where a client thought it's dead, when it wasn't. [Torr Samaho]
+-	- Fixed: Negative frag counts of teams are not displayed properly in the new fullscreen HUD if text scaling is deactivated. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]
