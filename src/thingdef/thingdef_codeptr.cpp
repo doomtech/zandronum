@@ -499,8 +499,6 @@ static void DoJump(AActor * self, FState * CallingState, FState *jumpto, StateCa
 	}
 	else if (CallingState == self->state)
 	{
-		self->SetState (jumpto);
-
 		// [BC] If we're the server, tell clients to change the thing's state.
 		if (( ulClientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -520,6 +518,8 @@ static void DoJump(AActor * self, FState * CallingState, FState *jumpto, StateCa
 			if ( ulClientUpdateFlags & CLIENTUPDATE_POSITION )
 				SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
 		}
+
+		self->SetState (jumpto);
 	}
 	else
 	{
