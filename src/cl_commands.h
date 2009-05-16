@@ -79,7 +79,7 @@ void	CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType );
 void	CLIENTCOMMANDS_ReadyToGoOn( void );
 void	CLIENTCOMMANDS_ChangeDisplayPlayer( LONG lDisplayPlayer );
 void	CLIENTCOMMANDS_AuthenticateLevel( void );
-void	CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument );
+void	CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument, char *pszReason );
 void	CLIENTCOMMANDS_VoteYes( void );
 void	CLIENTCOMMANDS_VoteNo( void );
 void	CLIENTCOMMANDS_RequestInventoryUseAll( void );

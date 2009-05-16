@@ -4948,7 +4948,7 @@ void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, FString Reason, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4971,6 +4971,7 @@ void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameter
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Command.GetChars() );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Parameters.GetChars() );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Reason.GetChars() );
 	}
 }
 

@@ -671,6 +671,21 @@ char V_GetColorChar( ULONG ulColor )
 	return (char) ( 97 + (int) ulColor );
 }
 
+// [RC] Escapes quotes and backslashes.
+void V_EscapeBacklashes( FString &String )
+{
+	// Escape any backslashes or quotation marks before sending the name to the console.
+	FString EscapedName = "";
+	for ( const char *p = String; *p != '\0'; ++p )
+	{
+		if ( *p == '"' || *p == '\\' )
+			EscapedName << '\\';
+		EscapedName << *p;
+	}
+
+	String = EscapedName;
+}
+
 //
 // Break long lines of text into multiple lines no longer than maxwidth pixels
 //

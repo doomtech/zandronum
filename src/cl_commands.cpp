@@ -386,11 +386,12 @@ void CLIENTCOMMANDS_AuthenticateLevel( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument )
+void CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument, char *pszReason )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CALLVOTE );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lVoteCommand );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszArgument );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszReason );
 }
 
 //*****************************************************************************

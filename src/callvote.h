@@ -52,12 +52,19 @@
 #define	__CALLVOTE_H__
 
 #include "c_cvars.h"
+#include "network.h"
 
 //*****************************************************************************
 //	DEFINES
 
-#define	VOTE_COUNTDOWN_TIME			20
-#define	VOTE_PASSED_TIME			5
+#define	VOTE_COUNTDOWN_TIME				15
+#define	VOTE_PASSED_TIME				4
+
+// [RC]	Time restraints on revoting. (In minutes)
+#define VOTER_NEWVOTE_INTERVAL			5
+#define VOTER_VOTETYPE_INTERVAL			10
+#define VOTE_LITERALREVOTE_INTERVAL		10
+#define VOTE_LONGEST_INTERVAL			10	// Sets when old votes are removed from the flood cache. Set to the longest interval of the above.
 
 //*****************************************************************************
 enum
@@ -84,33 +91,56 @@ typedef enum
 } VOTESTATE_e;
 
 //*****************************************************************************
+//	STRUCTURES
+
+typedef struct
+{
+	// The vote caller's address.
+	NETADDRESS_s	Address;
+
+	// Time that this vote was called.
+	time_t			tTimeCalled;
+
+	// The type of vote (see NUM_VOTECMDS).
+	ULONG			ulVoteType;
+	
+	// Parameter of the vote ("map01", "50", etc).
+	FString			fsParameter;
+
+	// For kick votes: the address being kicked.
+	NETADDRESS_s	KickAddress;
+
+	// Was it passed?
+	bool			bPassed;
+
+} VOTE_s;
+
+//*****************************************************************************
 //	PROTOTYPES
 
 void			CALLVOTE_Construct( void );
 void			CALLVOTE_Tick( void );
 //void			CALLVOTE_Render( void );
-void			CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer );
+void			CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, ULONG ulPlayer );
 void			CALLVOTE_ClearVote( void );
 bool			CALLVOTE_VoteYes( ULONG ulPlayer );
 bool			CALLVOTE_VoteNo( ULONG ulPlayer );
 ULONG			CALLVOTE_CountNumEligibleVoters( void );
 void			CALLVOTE_EndVote( bool bPassed );
 
-//void			CALLVOTE_SetCommand( char *pszCommand );
 const char		*CALLVOTE_GetCommand( void );
-
-//void			CALLVOTE_SetVoteCaller( ULONG ulPlayer );
+const char		*CALLVOTE_GetReason( void );
 ULONG			CALLVOTE_GetVoteCaller( void );
-
 VOTESTATE_e		CALLVOTE_GetVoteState( void );
-
 ULONG			CALLVOTE_GetCountdownTicks( void );
 ULONG			*CALLVOTE_GetPlayersWhoVotedYes( void );
 ULONG			*CALLVOTE_GetPlayersWhoVotedNo( void );
+bool			CALLVOTE_ShouldShowVoteScreen( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 
+EXTERN_CVAR( Int, sv_minvoters );
 EXTERN_CVAR( Int, sv_nocallvote )
 EXTERN_CVAR( Bool, sv_nokickvote );
 EXTERN_CVAR( Bool, sv_nomapvote );

@@ -4920,27 +4920,22 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 static bool server_CallVote( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulVoteCmd;
-	const char	*pszParameters;
 	char		szCommand[128];
 
 	// Read in the type of vote happening.
 	ulVoteCmd = NETWORK_ReadByte( pByteStream );
 
 	// Read in the parameters for the vote.
-	pszParameters = NETWORK_ReadString( pByteStream );
+	FString		Parameters = NETWORK_ReadString( pByteStream );
+
+	// Read in the reason for the vote.
+	FString		Reason = NETWORK_ReadString( pByteStream );
 
 	//==============
 	// VERIFICATION
 	//==============
 
-	// Don't allow one person to call a vote, and vote by himself.	
-	if ( CALLVOTE_CountNumEligibleVoters( ) < 2 )
-	{
-		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "There must be at least two eligible voters to call a vote!\n" );
-		return false;
-	}
-
-	// Also, don't allow votes if the server has them disabled.
+	// Don't allow votes if the server has them disabled.
 	if ( sv_nocallvote == 1 )
 	{
 		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server has disabled voting.\n" );
@@ -4951,6 +4946,13 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	if ( sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating )
 	{
 		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server requires spectators to join the game to vote.\n" );
+		return false;
+	}
+
+	// Make sure we have the required number of voters.
+	if ( static_cast<int>( CALLVOTE_CountNumEligibleVoters( )) < sv_minvoters )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server requires at least %d eligible voters to call a vote.\n", static_cast<ULONG>( sv_minvoters ));
 		return false;
 	}
 
@@ -5012,7 +5014,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Begin the vote, if that type is allowed.
 	if ( bVoteAllowed )
-		CALLVOTE_BeginVote( szCommand, pszParameters, g_lCurrentClient );
+		CALLVOTE_BeginVote( szCommand, Parameters, Reason, g_lCurrentClient );
 	else
 		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s votes are disabled on this server.\n", szCommand );
 

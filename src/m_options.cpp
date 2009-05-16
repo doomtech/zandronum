@@ -169,6 +169,7 @@ CVAR( Int, menu_handicap, 0, 0 );
 CVAR( Float, menu_autoaim, 0.0f, 0 );
 CVAR( Int, menu_votecommand, 0, 0 );
 CVAR( String, menu_voteparameters, "", 0 );
+CVAR( String, menu_votereason, "", 0 );
 
 static void CalcIndent (menu_t *menu);
 
@@ -1737,6 +1738,7 @@ static menuitem_t CallVoteItems[] =
 {
 	{ discrete,	"Command",				{&menu_votecommand},	{8.0}, {0.0},	{0.0}, {VoteCommandVals} },
 	{ string,	"Parameter(s)",			{&menu_voteparameters},	{0.0}, {0.0},	{0.0}, {NULL} },
+	{ string,	"Reason",				{&menu_votereason},		{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Send vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_SendVote} },
 };
@@ -1769,35 +1771,35 @@ void M_SendVote( void )
 	{
 	case VOTECMD_KICK:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "kick", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "kick", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_MAP:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "map", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "map", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "changemap", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "changemap", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_FRAGLIMIT:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "fraglimit", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "fraglimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_TIMELIMIT:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "timelimit", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "timelimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_WINLIMIT:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "winlimit", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "winlimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_DUELLIMIT:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "duellimit", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "duellimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	case VOTECMD_POINTLIMIT:
 
-		sprintf( szString, "%s %s \"%s\"", szString, "pointlimit", Val2.String );
+		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "pointlimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
 		break;
 	default:
 

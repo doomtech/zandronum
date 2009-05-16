@@ -117,6 +117,7 @@ void			SERVERCONSOLE_UpdateOperatingSystem( const char *pszString );
 void			SERVERCONSOLE_UpdateCPUSpeed( const char *pszString );
 void			SERVERCONSOLE_UpdateVendor( const char *pszString );
 void			SERVERCONSOLE_Print( char *pszString );
+void			SERVERCONSOLE_Quit( void );
 
 DWORD WINAPI	MainDoomThread( LPVOID );
 

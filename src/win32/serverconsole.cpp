@@ -179,16 +179,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 	{
 	case WM_CLOSE:
 
-		if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
-		{
-			SERVER_AddCommand( "quit" );
-/*
-			Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
-			EndDialog( hDlg, -1 );
-			CloseHandle( g_hThread );
-			exit( 0 );
-*/
-		}
+		SERVERCONSOLE_Quit( );
 		break;
 	case WM_DESTROY:
 
@@ -428,12 +419,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			// This even occurs when esc is pressed.
 			case IDCANCEL:
 
-				if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
-				{
-					EndDialog( hDlg, -1 );
-					CloseHandle( g_hThread );
-					exit( 0 );
-				}
+				SERVERCONSOLE_Quit( );
 				break;
 */
 			// Server admin has inputted a command.
@@ -470,13 +456,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				break;
 			case ID_FILE_EXIT:
 
-				if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
-				{
-					EndDialog( hDlg, -1 );
-					SuspendThread( g_hThread );
-					CloseHandle( g_hThread );
-					exit( 0 );
-				}
+				SERVERCONSOLE_Quit( );
 				break;
 			case ID_FILE_IMPORTCONFIGURATION:
 
@@ -2797,6 +2777,23 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		SetDlgItemText( g_hDlg, lTextBox, szString );
 		ulLine++;
 	}
+}
+
+//*****************************************************************************
+//
+// [RC] Shuts the server down. Just using SERVER_AddCommand( "quit" ) will not work if the game thread is frozen.
+//
+void SERVERCONSOLE_Quit( void )
+{
+#ifndef _DEBUG
+	if ( MessageBox( g_hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) != IDYES )
+		return;
+#endif
+
+	EndDialog( g_hDlg, -1 );
+	SuspendThread( g_hThread );
+	CloseHandle( g_hThread );
+	exit( 0 );
 }
 
 //*****************************************************************************

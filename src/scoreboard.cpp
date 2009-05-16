@@ -385,7 +385,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			g_BottomString += "\\cdSPECTATING - SPACE TO JOIN";
 	}
 
-	if ( CALLVOTE_GetVoteState( ) == VOTESTATE_INVOTE )
+	if ( CALLVOTE_ShouldShowVoteScreen( ))
 	{		
 		// [RC] Display either the fullscreen or minimized vote screen.
 		if ( cl_showfullscreenvote )
@@ -1011,6 +1011,18 @@ void SCOREBOARD_RenderInVoteClassic( void )
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
+	// Render the reason for the vote being voted on.
+	if ( strlen( CALLVOTE_GetReason( )) > 0 )
+	{
+		ulCurYPos += 16;
+		sprintf( szString, "Reason: %s", CALLVOTE_GetReason( ));
+		screen->DrawText( SmallFont, CR_ORANGE,
+			160 - ( SmallFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,
+			szString,
+			DTA_Clean, true, TAG_DONE );
+	}
+
 	// Render how much time is left to vote.
 	ulCurYPos += 16;
 	sprintf( szString, "Vote ends in: %d", static_cast<unsigned int> (( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE) );
@@ -1079,7 +1091,9 @@ void SCOREBOARD_RenderInVoteClassic( void )
 }
 
 //*****************************************************************************
+//
 // [RC] New compact version; RenderInVoteClassic is the fullscreen version
+//
 void SCOREBOARD_RenderInVote( void )
 {
 	char				szString[128];
@@ -1156,6 +1170,32 @@ void SCOREBOARD_RenderInVote( void )
 			ulCurYPos,
 			szString,
 			DTA_Clean,	g_bScale,	TAG_DONE );
+	}
+
+	ulCurYPos += 4;
+
+	// Render the reason of the vote being voted on.
+	if ( strlen( CALLVOTE_GetReason( )) > 0 )
+	{
+		ulCurYPos += 8;
+		sprintf( szString, "Reason: %s", CALLVOTE_GetReason( ));
+		if ( g_bScale )
+		{
+			screen->DrawText( SmallFont, CR_ORANGE,
+				(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
+				ulCurYPos,	szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( SmallFont, CR_ORANGE,
+				SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
+				ulCurYPos,
+				szString,
+				DTA_Clean,	g_bScale,	TAG_DONE );
+		}
 	}
 
 	// Render the number of votes.

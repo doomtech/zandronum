@@ -9301,6 +9301,7 @@ static void client_CallVote( BYTESTREAM_s *pByteStream )
 {
 	FString		command;
 	FString		parameters;
+	FString		reason;
 	ULONG		ulVoteCaller;
 
 	// Read in the vote starter.
@@ -9311,9 +9312,12 @@ static void client_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Read in the parameters.
 	parameters = NETWORK_ReadString( pByteStream );
+	
+	// Read in the reason.
+	reason = NETWORK_ReadString( pByteStream );
 
 	// Begin the vote!
-	CALLVOTE_BeginVote( command, parameters, ulVoteCaller );
+	CALLVOTE_BeginVote( command, parameters, reason, ulVoteCaller );
 }
 
 //*****************************************************************************
