@@ -176,9 +176,9 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand );
+		Printf( "%s\\c- (%s) has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand.GetChars() );
 	else
-		Printf( "%s\\c- has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, g_VoteCommand );
+		Printf( "%s\\c- has called a vote (\"%s\").\n", players[ulPlayer].userinfo.netname, g_VoteCommand.GetChars() );
 
 	g_VoteState = VOTESTATE_INVOTE;
 	g_ulVoteCountdownTicks = VOTE_COUNTDOWN_TIME * TICRATE;
