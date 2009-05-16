@@ -4924,73 +4924,92 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	// Read in the parameters for the vote.
 	pszParameters = NETWORK_ReadString( pByteStream );
 
-	// Display the callvote in the console for logging purposes.
-	Printf( "Vote ATTEMPT (%d \"%s\") called by %s (%s)\n", static_cast<unsigned int> (ulVoteCmd), pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
+	//==============
+	// VERIFICATION
+	//==============
 
-	// Don't allow one person to call a vote, and vote by himself.
+	// Don't allow one person to call a vote, and vote by himself.	
+	if ( CALLVOTE_CountNumEligibleVoters( ) < 2 )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "There must be at least two eligible voters to call a vote!\n" );
+		return false;
+	}
+
 	// Also, don't allow votes if the server has them disabled.
-	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote == 1) || (sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating )
-	    // [BB] Further no votes, when not in a level, e.g. during intermission.
-	    || ( gamestate != GS_LEVEL ) )
-		return ( false );
+	if ( sv_nocallvote == 1 )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server has disabled voting.\n" );
+		return false;
+	}
 
+	// Also, don't allow spectator votes if the server has them disabled.
+	if ( sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server requires spectators to join the game to vote.\n" );
+		return false;
+	}
+
+	// [BB] Further no votes, when not in a level, e.g. during intermission.
+	if ( gamestate != GS_LEVEL )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You can only vote during the game.\n" );
+		return false;
+	}
+
+	// Check if the specific type of vote is allowed.
+	bool bVoteAllowed = false;
 	switch ( ulVoteCmd )
 	{
 	case VOTECMD_KICK:
 
-		if ( sv_nokickvote )
-			return ( false );
+		bVoteAllowed = !sv_nokickvote;
 		sprintf( szCommand, "kick" );
 		break;
 	case VOTECMD_MAP:
 
-		if ( sv_nomapvote )
-			return ( false );
+		bVoteAllowed = !sv_nomapvote;
 		sprintf( szCommand, "map" );
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		if ( sv_nochangemapvote )
-			return ( false );
+		bVoteAllowed = !sv_nochangemapvote;
 		sprintf( szCommand, "changemap" );
 		break;
 	case VOTECMD_FRAGLIMIT:
 
-		if ( sv_nofraglimitvote )
-			return ( false );
+		bVoteAllowed = !sv_nofraglimitvote;
 		sprintf( szCommand, "fraglimit" );
 		break;
 	case VOTECMD_TIMELIMIT:
 
-		if ( sv_notimelimitvote )
-			return ( false );
+		bVoteAllowed = !sv_notimelimitvote;
 		sprintf( szCommand, "timelimit" );
 		break;
 	case VOTECMD_WINLIMIT:
 
-		if ( sv_nowinlimitvote )
-			return ( false );
+		bVoteAllowed = !sv_nowinlimitvote;
 		sprintf( szCommand, "winlimit" );
 		break;
 	case VOTECMD_DUELLIMIT:
 
-		if ( sv_noduellimitvote )
-			return ( false );
+		bVoteAllowed = !sv_noduellimitvote;
 		sprintf( szCommand, "duellimit" );
 		break;
 	case VOTECMD_POINTLIMIT:
 
-		if ( sv_nopointlimitvote )
-			return ( false );
+		bVoteAllowed = !sv_nopointlimitvote;
 		sprintf( szCommand, "pointlimit" );
 		break;
 	default:
 
 		return ( false );
 	}
-	
-	// Begin the vote.
-	CALLVOTE_BeginVote( szCommand, pszParameters, g_lCurrentClient );
+
+	// Begin the vote, if that type is allowed.
+	if ( bVoteAllowed )
+		CALLVOTE_BeginVote( szCommand, pszParameters, g_lCurrentClient );
+	else
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s votes are disabled on this server.\n", szCommand );
 
 	return ( false );
 }

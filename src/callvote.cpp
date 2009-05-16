@@ -86,6 +86,7 @@ static	void			callvote_EndVote( void );
 static	ULONG			callvote_CountPlayersWhoVotedYes( void );
 static	ULONG			callvote_CountPlayersWhoVotedNo( void );
 static	bool			callvote_CheckValidity( FString &Command, FString &Parameters );
+static	ULONG			callvote_GetVoteType( const char *pszCommand );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -160,7 +161,11 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer )
 {
 	// Don't allow a vote in the middle of another vote.
 	if ( g_VoteState != VOTESTATE_NOVOTE )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "Another vote is already underway.\n" );
 		return;
+	}
 
 	// Check and make sure all the parameters are valid.
 	if ( callvote_CheckValidity( Command, Parameters ) == false )
@@ -294,6 +299,15 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 	// Don't allow the vote unless we're in the middle of a vote.
 	if ( g_VoteState != VOTESTATE_INVOTE )
 		return ( false );
+
+	// [RC] Vote callers can cancel their votes by voting "no".
+	if ( ulPlayer == g_ulVoteCaller && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+	{
+		g_VoteState = VOTESTATE_VOTECOMPLETED;
+		g_ulVoteCompletedTicks = VOTE_PASSED_TIME * TICRATE;
+		SERVERCOMMANDS_VoteEnded( false );
+		SERVER_Printf( PRINT_HIGH, "Vote caller cancelled the vote.\n" );
+	}
 
 	// If this player has already voted, ignore his vote.
 	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
@@ -498,7 +512,7 @@ static void callvote_EndVote( void )
 	}
 
 	// Log to the consiole.
-	Printf( "Vote %s!\n", g_bVotePassed ? "passed": "failed" );
+	Printf( "Vote %s!\n", g_bVotePassed ? "passed" : "failed" );
 
 	// Play the announcer sound associated with this event.
 	if ( g_bVotePassed )
@@ -545,37 +559,25 @@ static ULONG callvote_CountPlayersWhoVotedNo( void )
 //
 static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 {
-	ULONG	ulIdx;
-	ULONG	ulVoteCmd;
-	char	szPlayerName[64];
+	// Get the type of vote this is.
+	ULONG	ulVoteCmd = callvote_GetVoteType( Command.GetChars( ));
+	if ( ulVoteCmd == NUM_VOTECMDS )
+		return ( false );
 
-	// First, figure out what kind of command we're trying to vote on.
-	if ( Command.CompareNoCase( "kick" ) == 0 )
-		ulVoteCmd = VOTECMD_KICK;
-	else {
+	// Check for any illegal characters.
+	if ( ulVoteCmd != VOTECMD_KICK )
+	{
 		int i = 0;
-		while( Parameters.GetChars()[i] != '\0' )
+		while ( Parameters.GetChars()[i] != '\0' )
 		{
-		  if( Parameters.GetChars()[i] == ';' || Parameters.GetChars()[i] == ' ' )
-			  	return ( false );
-		  i++;
+			if ( Parameters.GetChars()[i] == ';' || Parameters.GetChars()[i] == ' ' )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "That vote command contained illegal characters.\n" );
+  				return ( false );
+			}
+			i++;
 		}
-		if ( Command.CompareNoCase( "map" ) == 0 )
-			ulVoteCmd = VOTECMD_MAP;
-		else if ( Command.CompareNoCase( "changemap" ) == 0 )
-			ulVoteCmd = VOTECMD_CHANGEMAP;
-		else if ( Command.CompareNoCase( "fraglimit" ) == 0 )
-			ulVoteCmd = VOTECMD_FRAGLIMIT;
-		else if ( Command.CompareNoCase( "timelimit" ) == 0 )
-			ulVoteCmd = VOTECMD_TIMELIMIT;
-		else if ( Command.CompareNoCase( "winlimit" ) == 0 )
-			ulVoteCmd = VOTECMD_WINLIMIT;
-		else if ( Command.CompareNoCase( "duellimit" ) == 0 )
-			ulVoteCmd = VOTECMD_DUELLIMIT;
-		else if ( Command.CompareNoCase( "pointlimit" ) == 0 )
-			ulVoteCmd = VOTECMD_POINTLIMIT;
-		else
-			return ( false );
 	}
 
 	// Then, make sure the parameter for each vote is valid.
@@ -584,30 +586,40 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 	{
 	case VOTECMD_KICK:
 		{
-			// Store the player's IP so he can't get away.
-			ULONG ulIdx = SERVER_GetPlayerIndexFromName( Parameters.GetChars( ), true, false );
-			if ( ulIdx < MAXPLAYERS )
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				g_KickVoteVictimAddress = SERVER_GetClient( ulIdx )->Address;
-				return ( true );
+				// Store the player's IP so he can't get away.
+				ULONG ulIdx = SERVER_GetPlayerIndexFromName( Parameters.GetChars( ), true, false );
+				if ( ulIdx < MAXPLAYERS )
+				{
+					g_KickVoteVictimAddress = SERVER_GetClient( ulIdx )->Address;
+					return ( true );
+				}
+				else
+				{
+					SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "That player doesn't exist.\n" );
+					return ( false );
+				}
 			}
-			else
-				return ( false );
 		}
 		break;
 	case VOTECMD_MAP:
 	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
-		if ( !P_CheckIfMapExists( Parameters.GetChars() ) )
+		if ( !P_CheckIfMapExists( Parameters.GetChars( )))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "That map does not exist.\n" );
 			return ( false );
-		// Don't allow to leave the maprotation (Only the server knows the maprotation)
+		}
+		
+		// Don't allow us to leave the map rotation.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			if ( sv_maprotation && ( MAPROTATION_IsMapInRotation( Parameters.GetChars() ) == false ) )
+			if ( sv_maprotation && ( MAPROTATION_IsMapInRotation( Parameters.GetChars( ) ) == false ) )
 			{
-				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "This map is not in the map rotation.\n" );
-				Printf ( "map %s is not in the map rotation\n", Parameters.GetChars() );
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "That map is not in the map rotation.\n" );
 				return ( false );
 			}
 		}
@@ -616,9 +628,13 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 	case VOTECMD_WINLIMIT:
 	case VOTECMD_DUELLIMIT:
 
-		// limit must be from 0-255.
+		// Parameteter be between 0 and 255.
 		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 255.\n", Command );
 			return ( false );
+		}
 		else if ( parameterInt == 0 )
 		{
 			if (( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ))
@@ -629,9 +645,13 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 	case VOTECMD_TIMELIMIT:
 	case VOTECMD_POINTLIMIT:
 
-		// limit must be from 0-65535.
+		// Parameteter must be between 0 and 65535.
 		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 65535.\n", Command );
 			return ( false );
+		}
 		else if ( parameterInt == 0 )
 		{
 			if (( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ))
@@ -646,6 +666,30 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 
 	// Passed all checks!
 	return ( true );
+}
+
+//*****************************************************************************
+//
+static ULONG callvote_GetVoteType( const char *pszCommand )
+{
+	if ( stricmp( "kick", pszCommand ) == 0 )
+		return VOTECMD_KICK;
+	else if ( stricmp( "map", pszCommand ) == 0 )
+		return VOTECMD_MAP;
+	else if ( stricmp( "changemap", pszCommand ) == 0 )
+		return VOTECMD_CHANGEMAP;
+	else if ( stricmp( "fraglimit", pszCommand ) == 0 )
+		return VOTECMD_FRAGLIMIT;
+	else if ( stricmp( "timelimit", pszCommand ) == 0 )
+		return VOTECMD_TIMELIMIT;
+	else if ( stricmp( "winlimit", pszCommand ) == 0 )
+		return VOTECMD_WINLIMIT;
+	else if ( stricmp( "duellimit", pszCommand ) == 0 )
+		return VOTECMD_DUELLIMIT;
+	else if ( stricmp( "pointlimit", pszCommand ) == 0 )
+		return VOTECMD_POINTLIMIT;
+
+	return NUM_VOTECMDS;
 }
 
 //*****************************************************************************
@@ -695,23 +739,8 @@ CCMD( callvote )
 		return;
 	}
 
-	if ( stricmp( "kick", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_KICK;
-	else if ( stricmp( "map", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_MAP;
-	else if ( stricmp( "changemap", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_CHANGEMAP;
-	else if ( stricmp( "fraglimit", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_FRAGLIMIT;
-	else if ( stricmp( "timelimit", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_TIMELIMIT;
-	else if ( stricmp( "winlimit", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_WINLIMIT;
-	else if ( stricmp( "duellimit", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_DUELLIMIT;
-	else if ( stricmp( "pointlimit", argv[1] ) == 0 )
-		ulVoteCmd = VOTECMD_POINTLIMIT;
-	else
+	ulVoteCmd = callvote_GetVoteType( argv[1] );
+	if ( ulVoteCmd == NUM_VOTECMDS )
 	{
 		Printf( "Invalid callvote command.\n" );
 		return;
@@ -774,4 +803,30 @@ CCMD( vote_no )
 */
 	NETWORK_LaunchPacket( CLIENT_GetLocalBuffer( ), CLIENT_GetServerAddress( ));
 	NETWORK_ClearBuffer( CLIENT_GetLocalBuffer( ));
+}
+
+//*****************************************************************************
+//
+CCMD ( cancelvote )
+{
+	if ( g_VoteState != VOTESTATE_INVOTE )
+		return;
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		g_VoteState = VOTESTATE_VOTECOMPLETED;
+		g_ulVoteCompletedTicks = VOTE_PASSED_TIME * TICRATE;
+		SERVERCOMMANDS_VoteEnded( false );
+		SERVER_Printf( PRINT_HIGH, "Server cancelled the vote.\n" );
+	}
+	else if ( g_ulVoteCaller == consoleplayer )
+	{
+		// Just vote no; we're the original caller, so it will be cancelled.
+		if ( CLIENT_GetConnectionState( ) == CTS_ACTIVE )
+		{
+			CLIENTCOMMANDS_VoteNo( );
+			NETWORK_LaunchPacket( CLIENT_GetLocalBuffer( ), CLIENT_GetServerAddress( ));
+			NETWORK_ClearBuffer( CLIENT_GetLocalBuffer( ));
+		}
+	}
 }

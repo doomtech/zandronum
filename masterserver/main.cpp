@@ -76,7 +76,8 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	long					g_lCurrentTime;
 
 // Global list of banned IPs.
-static	IPList					g_BannedIPs;
+static	IPList					g_BannedIPs; // Banned entirely.
+static	IPList					g_BlockedIPs; // Blocked from hosting, but can still browse servers.
 static	IPList					g_BannedIPExemptions;
 static	IPList					g_MultiServerExceptions;
 
@@ -217,7 +218,10 @@ void MASTERSERVER_InitializeBans( void )
 	if ( !(g_MultiServerExceptions.clearAndLoadFromFile( "multiserver_whitelist.txt" )) )
 		std::cerr << g_MultiServerExceptions.getErrorMessage();
 
-	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
+	if ( !(g_BlockedIPs.clearAndLoadFromFile( "blocklist.txt" )) )
+		std::cerr << g_BlockedIPs.getErrorMessage();
+
+	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BlockedIPs.size( ) << " blocked IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
 	std::cerr << "Multi-server exceptions: " << g_MultiServerExceptions.size() << "." << std::endl;
 
 	if ( BannedIPsChanged || BannedIPExemptionsChanged )
@@ -306,6 +310,17 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_StringToAddress( szAddress, &Address );
 			}
 */
+			// Certain IPs can be blocked from just hosting.
+			if ( !g_BannedIPExemptions.isIPInList( AddressFrom ) && g_BlockedIPs.isIPInList( AddressFrom ))
+			{
+				NETWORK_ClearBuffer( &g_MessageBuffer );
+				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
+				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+
+				printf( "* Received server challenge from blocked IP (%s). Ignoring for 10 seconds.\n", NETWORK_AddressToString( AddressFrom ));
+				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
+				return;
+			}
 			lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
 
 			// This is a new server; add it to the list.

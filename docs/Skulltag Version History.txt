@@ -64,12 +64,16 @@ latestzdoom branch
 <trunk>
 -------
 
-+	- The actions of each vote ("Player votes yes, etc") are now printed in the client's console. [Rivecoder]
-+	- Vote-kicking a player now bans his IP for 10 minutes. [Rivecoder]
-+	- Vote-kicking is now more resilient; the mong's IP will be tempbanned even if he ducks out of the server right before the vote passes. [Rivecoder]
-+	- When a player is votekicked, the reason ("Vote kick, 5 to 2") is now stated. [Rivecoder]
-+	- When an IP address is banned, all players using that address are now immediately kicked. [Rivecoder]
--	- Fixed a bug where the wrong player could be kicked by a votekick. [Rivecoder]
++	- Improved voting... [Rivecoder]
+		- The actions of each vote ("Player votes yes, etc") are now printed in the client's console. [Rivecoder]
+		- Vote-kicking a player now bans his IP for 10 minutes. [Rivecoder]
+		- Vote-kicking is now more resilient; the mong's IP will be tempbanned even if he ducks out of the server right before the vote passes. [Rivecoder]
+		- When a player is votekicked, the reason ("Vote kick, 5 to 2") is now stated. [Rivecoder]
+		- When an IP address is banned, all players using that address are now immediately kicked. [Rivecoder]
+		- Fixed a bug where the wrong player could be kicked by a votekick. [Rivecoder]
+		- A helpful message is now given if a client's vote is denied ("This server has disabled voting", "that player does not exist", "kick votes are disabled on this server"). [Rivecoder]
+		- Vote callers can now cancel the vote they called (i.e., in case they made a mistake) by voting "no". [Rivecoder]		
+		- Added the CCMD "cancelvote", which can be used by the server or original vote caller to cancel the current vote. [Rivecoder]
 
 v0.97d3
 -------

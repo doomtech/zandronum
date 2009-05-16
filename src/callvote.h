@@ -70,6 +70,8 @@ enum
 	VOTECMD_WINLIMIT,
 	VOTECMD_DUELLIMIT,
 	VOTECMD_POINTLIMIT,
+
+	NUM_VOTECMDS
 };
 
 //*****************************************************************************
