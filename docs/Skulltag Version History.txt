@@ -74,6 +74,10 @@ latestzdoom branch
 		- A helpful message is now given if a client's vote is denied ("This server has disabled voting", "that player does not exist", "kick votes are disabled on this server"). [Rivecoder]
 		- Vote callers can now cancel the vote they called (i.e., in case they made a mistake) by voting "no". [Rivecoder]		
 		- Added the CCMD "cancelvote", which can be used by the server or original vote caller to cancel the current vote. [Rivecoder]
+-	- Fixed a critical security bug of the server. Thanks a lot to kgsws for submitting a detailed report on this issue along with an implementation of the exploit. [Torr Samaho]
+-	- Fixed: A malicious client could skip the map authentication. Thanks to kgsws for his detailed report on this. [Torr Samaho]
+-	- Fixed: The RCON utility crashed when somebody said a chat string with "%n" or similar printf compatible format parameters. Again thanks to kgsws for reporting. [Torr Samaho]
+!	- Changed: All line breaks are removed from the comment when an entry is added to the banlist or whitelist. Thanks to kgsws for pointing me to this. [Torr Samaho]
 
 v0.97d3
 -------

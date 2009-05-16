@@ -2011,6 +2011,11 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 			kickReason = "User name contains illegal characters." ;
 		}
 
+		// [BB] It's extremely critical that we NEVER use the uncleaned player name!
+		// If this is omitted, for example the RCON password can be optained by just using
+		// a tampered name.
+		strcpy( pPlayer->userinfo.netname, nameString.GetChars() );
+
 		if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED )
 		{
 			char	szPlayerNameNoColor[32];
@@ -3558,7 +3563,7 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 			{
 				// [BB] Under these special, rare circumstances valid clients can send illegal commands.
 				if ( g_aClients[g_lCurrentClient].State != CLS_AUTHENTICATED_BUT_OUTDATED_MAP )
-					Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ) );
+					Printf( "Illegal command (%d) from non-authenticated client (%s).\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( ) ) );
 
 				// [BB] Ignore the rest of the packet, it can't be valid.
 				while ( NETWORK_ReadByte( pByteStream ) != -1 );
