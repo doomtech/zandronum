@@ -3268,6 +3268,7 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	pPlayer->pSkullBot = 0;
 	pPlayer->bIsBot = 0;
 	pPlayer->ulPing = 0;
+	pPlayer->ulPingAverages = 0;
 	pPlayer->bReadyToGoOn = 0;
 	pPlayer->bSpawnOkay = 0;
 	pPlayer->SpawnX = 0;

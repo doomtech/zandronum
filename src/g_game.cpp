@@ -1905,6 +1905,7 @@ void G_PlayerReborn (int player)
 	ULONG		ulMedalCount[NUM_MEDALS];
 	CSkullBot	*pSkullBot;
 	ULONG		ulPing;
+	ULONG		ulPingAverages;
 	ULONG		ulWins;
 	ULONG		ulTime;
 	LONG		lCheats;
@@ -1936,6 +1937,7 @@ void G_PlayerReborn (int player)
 	memcpy( &ulMedalCount, &p->ulMedalCount, sizeof( ulMedalCount ));
 	pSkullBot = p->pSkullBot;
 	ulPing = p->ulPing;
+	ulPingAverages = p->ulPingAverages;
 	ulWins = p->ulWins;
 	ulTime = p->ulTime;
 	lCheats = p->cheats;
@@ -1972,6 +1974,7 @@ void G_PlayerReborn (int player)
 	memcpy( &p->ulMedalCount, &ulMedalCount, sizeof( ulMedalCount ));
 	p->pSkullBot = pSkullBot;
 	p->ulPing = ulPing;
+	p->ulPingAverages = ulPingAverages;
 	p->ulWins = ulWins;
 	p->ulTime = ulTime;
 	if ( lCheats & CF_FREEZE )
