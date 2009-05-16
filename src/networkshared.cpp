@@ -1060,7 +1060,9 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 
 	// [BB] The comment may not contain line breaks or feeds, so we create a cleaned copy of the comment argument here.
 	char *pszComment = NULL;
-	if ( pszCommentUncleaned )
+	// [BB] If pszCommentUncleaned starts with 0, it's empty and we don't need to copy it. The copy code assumes
+	// that pszCommentUncleaned is not empty, so we may not call it in case pszCommentUncleaned is empty but not NULL.
+	if ( pszCommentUncleaned && (pszCommentUncleaned[0] != 0) )
 	{
 		pszComment = new char [ strlen( pszCommentUncleaned ) + 1 ];
 
