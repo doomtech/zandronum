@@ -3652,8 +3652,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 			// Copy the player's translation, so that if they change their color later, only
 			// their current body will change and not all their old corpses.
-			*translationtables[TRANSLATION_PlayerCorpses][translationslot] = *TranslationToTable(pOldActor->Translation);
-			pOldActor->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,translationslot);
+			if (GetTranslationType(pOldActor->Translation) == TRANSLATION_Players ||
+				GetTranslationType(pOldActor->Translation) == TRANSLATION_PlayersExtra)
+			{
+				*translationtables[TRANSLATION_PlayerCorpses][translationslot] = *TranslationToTable(pOldActor->Translation);
+				pOldActor->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,translationslot);
+			}
 
 			g_CorpseTranslationQueueSlot++;
 		}
