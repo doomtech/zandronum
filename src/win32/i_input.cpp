@@ -233,6 +233,9 @@ CUSTOM_CVAR (GUID, joy_guid,		NULL, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCA
 	}
 }
 
+// [BB] Allows to keep the sound turned on, when the client is not the active app.
+CVAR (Bool, cl_soundwhennotactive, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 static void MapAxis (FIntCVar &var, int num)
 {
 	if (var < JOYAXIS_NONE || var > JOYAXIS_UP)
@@ -786,7 +789,8 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			SetPriorityClass (GetCurrentProcess (), IDLE_PRIORITY_CLASS);
 		}
-		SetSoundPaused (wParam);
+		if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( cl_soundwhennotactive == false ) )
+			SetSoundPaused (wParam);
 		break;
 
 	case WM_WTSSESSION_CHANGE:
