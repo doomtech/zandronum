@@ -171,13 +171,22 @@ void CHAT_Tick( void )
 	// Check the chat ignore timers.
 	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
 	{
+		// [BB] Nothing to do for players that are not in the game.
+		if ( playeringame[i] == false )
+			continue;
+
 		// Decrement this player's timer.
 		if ( players[i].bIgnoreChat && ( players[i].lIgnoreChatTicks > 0 ))
 			players[i].lIgnoreChatTicks--;
 
 		// Is it time to un-ignore him?
 		if ( players[i].lIgnoreChatTicks == 0 )
+		{
 			players[i].bIgnoreChat = false;
+			// [BB] The player is unignored indefinitely. If we wouldn't do this,
+			// bIgnoreChat would be set to false every tic once lIgnoreChatTicks reaches 0.
+			players[i].lIgnoreChatTicks = -1;
+		}
 	}
 }
 
@@ -852,15 +861,15 @@ CCMD( say_team )
 //
 CCMD( ignore )
 {
-	// Create a list of currently ignored players.
-	FString PlayersIgnored;
-	chat_GetIgnoredPlayers( PlayersIgnored );
-
 	// Print the explanation message.
 	if ( argv.argc( ) < 2 )
 	{
+		// Create a list of currently ignored players.
+		FString PlayersIgnored;
+		chat_GetIgnoredPlayers( PlayersIgnored );
+
 		if ( PlayersIgnored.Len( ))
-			Printf( "\\cgIgnored players: \\c-%s\nUse \"unignore\" to undo.\n", PlayersIgnored );
+			Printf( "\\cgIgnored players: \\c-%s\nUse \"unignore\" to undo.\n", PlayersIgnored.GetChars() );
 		else
 			Printf( "Ignores a certain player's chat messages.\nUsage: ignore <name> [duration, in minutes]\n" );
 
@@ -872,7 +881,7 @@ CCMD( ignore )
 	LONG	lTicks = -1;
 	
 	// Did the user specify a set duration?
-	if ( argv.argc( ) >= 3 ) 
+	if ( argv.argc( ) >= 3 && ( atoi( argv[2] ) > 0 ) && ( atoi( argv[2] ) < LONG_MAX / ( TICRATE * MINUTE )))
 		lTicks = atoi( argv[2] ) * TICRATE * MINUTE;
 
 	if ( ulPlayer == MAXPLAYERS )
@@ -888,7 +897,11 @@ CCMD( ignore )
 		Printf( "%s\\c- will now be ignored", players[ulPlayer].userinfo.netname );
 		if ( lTicks > 0 )
 			Printf( ", for %d minutes", atoi( argv[2] ));
-		Printf( ".\n", players[ulPlayer].userinfo.netname );
+		Printf( ".\n" );
+
+		// Add a helpful note about bots.
+		if ( players[ulPlayer].bIsBot )
+			Printf( "Note: you can disable all bot chat by setting the CVAR bot_allowchat to false.\n" );
 	}
 }
 
@@ -898,15 +911,15 @@ CCMD( ignore )
 //
 CCMD( unignore )
 {
-	// Create a list of currently ignored players.
-	FString PlayersIgnored = "";
-	chat_GetIgnoredPlayers( PlayersIgnored );
-
 	// Print the explanation message.
 	if ( argv.argc( ) < 2 )
 	{
+		// Create a list of currently ignored players.
+		FString PlayersIgnored = "";
+		chat_GetIgnoredPlayers( PlayersIgnored );
+
 		if ( PlayersIgnored.Len( ))
-			Printf( "\\cgIgnored players: \\c-%s\n", PlayersIgnored );
+			Printf( "\\cgIgnored players: \\c-%s\n", PlayersIgnored.GetChars() );
 		else
 			Printf( "Un-ignores a certain player's chat messages.\nUsage: unignore <name>\n" );
 

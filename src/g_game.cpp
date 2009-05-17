@@ -1907,6 +1907,8 @@ void G_PlayerReborn (int player)
 	ULONG		ulUnrewardedDamageDealt;
 	ULONG		ulMedalCount[NUM_MEDALS];
 	CSkullBot	*pSkullBot;
+	bool		bIgnoreChat;
+	LONG		lIgnoreChatTicks;
 	ULONG		ulPing;
 	ULONG		ulPingAverages;
 	ULONG		ulWins;
@@ -1939,6 +1941,8 @@ void G_PlayerReborn (int player)
 	ulUnrewardedDamageDealt = p->ulUnrewardedDamageDealt;
 	memcpy( &ulMedalCount, &p->ulMedalCount, sizeof( ulMedalCount ));
 	pSkullBot = p->pSkullBot;
+	bIgnoreChat = p->bIgnoreChat;
+	lIgnoreChatTicks = p->lIgnoreChatTicks;
 	ulPing = p->ulPing;
 	ulPingAverages = p->ulPingAverages;
 	ulWins = p->ulWins;
@@ -1976,6 +1980,8 @@ void G_PlayerReborn (int player)
 	p->ulUnrewardedDamageDealt = ulUnrewardedDamageDealt;
 	memcpy( &p->ulMedalCount, &ulMedalCount, sizeof( ulMedalCount ));
 	p->pSkullBot = pSkullBot;
+	p->bIgnoreChat = bIgnoreChat;
+	p->lIgnoreChatTicks = lIgnoreChatTicks;
 	p->ulPing = ulPing;
 	p->ulPingAverages = ulPingAverages;
 	p->ulWins = ulWins;

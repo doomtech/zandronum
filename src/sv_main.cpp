@@ -3825,7 +3825,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 
 	// [RC] Are this player's chats ignored?
 	if ( players[ulPlayer].bIgnoreChat )
-		return ( true );
+		return ( false );
 
 	//==========================
 	// Check for chat flooding.
@@ -3867,7 +3867,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].bIgnoreChat = true;
 		players[ulPlayer].lIgnoreChatTicks = 15 * TICRATE;
 		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "Please refrain from chatting so much. You've been muted for 15 seconds.\n" );
-		return ( true );
+		return ( false );
 	}
 	// Or, relay the chat message onto clients.
 	else

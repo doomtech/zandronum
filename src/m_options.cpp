@@ -1714,27 +1714,156 @@ static void ActivateConfirm (const char *text, void (*func)())
 
 //====================================================================================
 //
+// Player Selection Slider
+// Used in the "kick player" and "ignore player" menu.
+//
+//====================================================================================
+
+CVAR( Int, menu_playerslider_idx, 0, 0 );
+static TArray<valuestring_t> AvailablePlayers;
+
+//*****************************************************************************
+//
+bool playerslider_IsValidPlayer( LONG lPlayer, bool bAllowBots )
+{
+	if ( lPlayer >= MAXPLAYERS )
+		return ( false );
+
+	if ( !playeringame[lPlayer] )
+		return ( false );
+
+	if ( !bAllowBots && ( players[lPlayer].bIsBot ))
+		return ( false );
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+void playerslider_BuildList( bool bIncludeBots )
+{
+	// Build the list of players.
+	valuestring_t	value;
+	AvailablePlayers.Clear();
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		if ( playerslider_IsValidPlayer( ulIdx, bIncludeBots ) )
+		{
+			value.value = static_cast<float> ( AvailablePlayers.Size() );
+			value.name.Format( "%s", players[ulIdx].userinfo.netname );
+			AvailablePlayers.Push( value );
+		}
+	}
+	value.value = static_cast<float> ( AvailablePlayers.Size() );
+}
+
+//====================================================================================
+//
+// Multiplayer Vote-->Ignore Player Menu
+//
+//====================================================================================
+
+CVAR( Int, menu_ignoreplayer_duration, 0, 0 );
+CVAR( Int, menu_ignoreplayer_action, 0, 0 );
+
+void ignoreplayermenu_Ignore( void );
+
+//*****************************************************************************
+//
+value_t ignoreplayer_Durations[4] = {
+	{ 0.0, "Indefinitely" },
+	{ 10.0, "10 minutes" },
+	{ 20.0, "20 minutes" },
+	{ 30.0, "30 minutes" },
+};
+
+//*****************************************************************************
+//
+value_t ignoreplayer_Actions[2] = {
+	{ 0.0, "Ignore" },
+	{ 1.0, "Unignore" },
+};
+
+//*****************************************************************************
+//
+static menuitem_t ignoreplayermenu_Items[] =
+{
+	{ discretes,"Player",			{&menu_playerslider_idx},		{1.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete,	"Duration",			{&menu_ignoreplayer_duration},	{4.0}, {0.0},	{0.0}, {ignoreplayer_Durations} },
+	{ redtext,	" ",				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete,	"Action",			{&menu_ignoreplayer_action},	{2.0}, {0.0},	{0.0}, {ignoreplayer_Actions} },
+	{ more,		"Execute!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)ignoreplayermenu_Ignore} },
+};
+
+// [BB, RC] Line number of the "Player:" entry from ignoreplayermenu_Items. If the line number is changed, the value has to be adjusted.
+#define IGNOREPLAYER_SLIDER_LOCATION 0
+
+//*****************************************************************************
+//
+menu_t IgnorePlayerMenu = {
+	"IGNORE A PLAYER",
+	0,
+	countof(ignoreplayermenu_Items),
+	0,
+	ignoreplayermenu_Items,
+	0,
+	0,
+};
+
+//*****************************************************************************
+//
+void ignoreplayermenu_Ignore( void )
+{
+	// Clean the name of color codes.
+	FString Name = AvailablePlayers[menu_playerslider_idx].name.GetChars( );
+	V_RemoveColorCodes( Name );
+	V_EscapeBacklashes( Name );
+
+	// Execute the command.
+	char	szString[256];
+	if ( menu_ignoreplayer_action == 0 )
+		sprintf( szString, "ignore \"%s\" %d", Name.Left( 96 ), menu_ignoreplayer_duration.GetGenericRep( CVAR_Int ).Int );
+	else
+		sprintf( szString, "unignore \"%s\"", Name.Left( 96 ));
+
+	AddCommandString( szString );
+	M_ClearMenus( );
+}
+
+//*****************************************************************************
+//
+void ignoreplayermenu_Show( void )
+{
+	// Set up the player selection slider.
+	playerslider_BuildList( false );
+	ignoreplayermenu_Items[IGNOREPLAYER_SLIDER_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
+	ignoreplayermenu_Items[IGNOREPLAYER_SLIDER_LOCATION].e.valuestrings = &AvailablePlayers[0];
+
+	M_SwitchMenu( &IgnorePlayerMenu );
+}
+
+//====================================================================================
+//
 // Call Vote-->Kick Player Menu
 //
 //====================================================================================
 
-CVAR( Int, menu_kickplayer_idx, 0, 0 );
 CVAR( String, menu_votereason, "", 0 );
-static TArray<valuestring_t> AvailablePlayers;
+
 void kickplayermenu_Kick( void );
 
 //*****************************************************************************
 //
 static menuitem_t kickplayermenu_Items[] =
 {
-	{ discretes,"Player",			{&menu_kickplayer_idx},		   	{1.0}, {0.0},	{0.0}, {NULL} },
+	{ discretes,"Player",			{&menu_playerslider_idx},		   	{1.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",				{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Reason for kicking:",{&menu_votereason},			{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Kick!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)kickplayermenu_Kick} },
 };
 
 // [BB, RC] Line number of the "Player:" entry from kickplayermenu_Items. If the line number is changed, the value has to be adjusted.
-#define KICKPLAYER_DISCRETE_LOCATION 0
+#define KICKPLAYER_SLIDER_LOCATION 0
 
 //*****************************************************************************
 //
@@ -1750,26 +1879,10 @@ menu_t KickPlayerMenu = {
 
 //*****************************************************************************
 //
-bool kickplayermenu_ShouldShowPlayer( LONG lPlayer )
-{
-	if ( lPlayer >= MAXPLAYERS )
-		return ( false );
-
-	if ( !playeringame[lPlayer] )
-		return ( false );
-
-	if ( players[lPlayer].bIsBot )
-		return ( false );
-
-	return ( true );
-}
-
-//*****************************************************************************
-//
 void kickplayermenu_Kick( void )
 {
 	// Clean the name of color codes.
-	FString Name = AvailablePlayers[menu_kickplayer_idx].name.GetChars( );
+	FString Name = AvailablePlayers[menu_playerslider_idx].name.GetChars( );
 	V_RemoveColorCodes( Name );
 	V_EscapeBacklashes( Name );
 
@@ -1787,21 +1900,10 @@ void kickplayermenu_Kick( void )
 //
 void kickplayermenu_Show( void )
 {
-	// Build the list of players.
-	valuestring_t	value;
-	AvailablePlayers.Clear();
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
-	{
-		if ( kickplayermenu_ShouldShowPlayer( ulIdx ) )
-		{
-			value.value = static_cast<float> ( AvailablePlayers.Size() );
-			value.name.Format( "%s", players[ulIdx].userinfo.netname );
-			AvailablePlayers.Push( value );
-		}
-	}
-	value.value = static_cast<float> ( AvailablePlayers.Size() );
-	kickplayermenu_Items[KICKPLAYER_DISCRETE_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
-	kickplayermenu_Items[KICKPLAYER_DISCRETE_LOCATION].e.valuestrings = &AvailablePlayers[0];
+	// Set up the player selection slider.
+	playerslider_BuildList( false );
+	kickplayermenu_Items[KICKPLAYER_SLIDER_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
+	kickplayermenu_Items[KICKPLAYER_SLIDER_LOCATION].e.valuestrings = &AvailablePlayers[0];
 
 	M_SwitchMenu( &KickPlayerMenu );
 }
@@ -1986,8 +2088,10 @@ static menuitem_t MultiplayerItems[] =
 //	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Spectate",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Spectate} },
-	{ more,		"Call a vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_CallVote} },
 	{ more,		"Switch teams",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_ChangeTeam} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Call a vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_CallVote} },	
+	{ more,		"Ignore a player",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)ignoreplayermenu_Show} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Allow skins",			{&cl_skins},			{3.0}, {0.0},	{0.0}, {AllowSkinVals} },
 	{ discrete, "Allow taunts",			{&cl_taunts},			{2.0}, {0.0},	{0.0}, {OnOff} },

@@ -315,6 +315,8 @@ player_t::player_t()
   ulWins( 0 ),
   pSkullBot( 0 ),
   bIsBot( 0 ),
+  bIgnoreChat( 0 ),
+  lIgnoreChatTicks( -1 ),
   ulPing( 0 ),
   bReadyToGoOn( 0 ),
   bSpawnOkay( 0 ),
