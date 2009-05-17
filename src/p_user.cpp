@@ -318,6 +318,7 @@ player_t::player_t()
   bIgnoreChat( 0 ),
   lIgnoreChatTicks( -1 ),
   ulPing( 0 ),
+  ulPingAverages( 0 ),
   bReadyToGoOn( 0 ),
   bSpawnOkay( 0 ),
   SpawnX( 0 ),
