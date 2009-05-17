@@ -3,10 +3,11 @@
   SKULLTAG Launcher Protocol
   ==========================
 
-  v0.5 by Rivecoder
-    May 13, 2009
+  v0.51 by Torr Samho
+    May 17, 2009
 
   Version history:
+    - v0.51: Added the revision number to the version string.
     - v0.5: Support for TEAMINFO
     - v0.4: Fixes to huffman.cpp
     - v0.3: Improved style and phrasing
@@ -146,7 +147,7 @@ Next, assuming you were accepted, you'll get:
 
   Type    Value       Request flag      Description
   -------------------------------
-  String  Version                           Long version string without revision number, as seen in the console. (ex: "0.97d-RC10")
+  String  Version                           Long version string with revision number, as seen in the console.
   Long    Flags                             The info you'll be receiving. This may differ from what you asked for - see below.
   String              SQF_NAME              The server's name (sv_hostname)
   String              SQF_URL               The server's WAD URL (sv_website)

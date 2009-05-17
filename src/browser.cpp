@@ -437,7 +437,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		ULONG	ulDummyNumPWADs;
 
 		// If the version doesn't match ours, remove it from the list.
-		if ( stricmp( NETWORK_ReadString( pByteStream ), DOTVERSIONSTR ) != 0 )
+		if ( stricmp( NETWORK_ReadString( pByteStream ), DOTVERSIONSTR_REV ) != 0 )
 		{
 			g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
 			while ( 1 )
@@ -654,7 +654,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	g_BrowserServerList[lServer].Version = NETWORK_ReadString( pByteStream );
 
 	// If the version doesn't match ours, remove it from the list.
-	if ( g_BrowserServerList[lServer].Version.CompareNoCase( DOTVERSIONSTR ) != 0 )
+	if ( g_BrowserServerList[lServer].Version.CompareNoCase( DOTVERSIONSTR_REV ) != 0 )
 	{
 		g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
 		while ( 1 )

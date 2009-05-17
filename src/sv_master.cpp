@@ -339,7 +339,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
 	// Send our version.
-	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, DOTVERSIONSTR );
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, DOTVERSIONSTR_REV );
 
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;
