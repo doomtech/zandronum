@@ -55,16 +55,16 @@
 
 /** Release code stuff */
 
-// [RC] Release code ID for this build.
-#define BUILD_ID			BUILD_INTERNAL;
-#define BUILD_ID_STR		"Internal" // Used in the exe's metadata.
-
 // Please maintain the existing structure as much as possible, because it's
 // used in communicating between servers and clients of different versions.
-#define BUILD_OTHER			0;
-#define BUILD_RELEASE		1;
-#define BUILD_INTERNAL		2;
-#define BUILD_PRIVATE		3;
+#define BUILD_OTHER			0
+#define BUILD_RELEASE		1
+#define BUILD_INTERNAL		2
+#define BUILD_PRIVATE		3
+
+// [RC] Release code ID for this build.
+#define BUILD_ID			BUILD_INTERNAL
+#define BUILD_ID_STR		"Internal" // Used in the exe's metadata.
 
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
