@@ -232,6 +232,8 @@ void CLIENT_PREDICT_PlayerPredict( void )
 
 	// Now that all of the prediction has been done, do our movement for this tick.
 	P_PlayerThink( pPlayer );
+	// [BB] Due to recent ZDoom changes (ported in revision 2029), we need to save the old buttons.
+	pPlayer->oldbuttons = pPlayer->cmd.ucmd.buttons;
 	pPlayer->mo->Tick( );
 }
 
