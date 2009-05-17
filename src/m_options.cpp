@@ -167,9 +167,6 @@ CVAR( Int, menu_gender, 0, 0 );
 CVAR( Int, menu_railcolor, 0, 0 );
 CVAR( Int, menu_handicap, 0, 0 );
 CVAR( Float, menu_autoaim, 0.0f, 0 );
-CVAR( Int, menu_votecommand, 0, 0 );
-CVAR( String, menu_voteparameters, "", 0 );
-CVAR( String, menu_votereason, "", 0 );
 
 static void CalcIndent (menu_t *menu);
 
@@ -338,17 +335,6 @@ value_t SwitchOnPickupVals[3] = {
 	{ 0.0, "Never" },
 	{ 1.0, "Only higher ranked" },
 	{ 2.0, "Always" },
-};
-
-value_t VoteCommandVals[8] = {
-	{ 0.0, "kick" },
-	{ 1.0, "map" },
-	{ 2.0, "map (intermission)" },
-	{ 3.0, "fraglimit" },
-	{ 4.0, "timelimit" },
-	{ 5.0, "winlimit" },
-	{ 6.0, "duellimit" },
-	{ 7.0, "pointlimit" },
 };
 
 menu_t  *CurrentMenu;
@@ -1726,21 +1712,244 @@ static void ActivateConfirm (const char *text, void (*func)())
 	M_SwitchMenu (&ConfirmMenu);
 }
 
-/*=======================================
- *
- * Call Vote Menu
- *
- *=======================================*/
+//====================================================================================
+//
+// Call Vote-->Kick Player Menu
+//
+//====================================================================================
 
-void M_SendVote( void );
+CVAR( Int, menu_kickplayer_idx, 0, 0 );
+CVAR( String, menu_votereason, "", 0 );
+static TArray<valuestring_t> AvailablePlayers;
+void kickplayermenu_Kick( void );
+
+//*****************************************************************************
+//
+static menuitem_t kickplayermenu_Items[] =
+{
+	{ discretes,"Player",			{&menu_kickplayer_idx},		   	{1.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",				{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ string,	"Reason for kicking:",{&menu_votereason},			{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Kick!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)kickplayermenu_Kick} },
+};
+
+// [BB, RC] Line number of the "Player:" entry from kickplayermenu_Items. If the line number is changed, the value has to be adjusted.
+#define KICKPLAYER_DISCRETE_LOCATION 0
+
+//*****************************************************************************
+//
+menu_t KickPlayerMenu = {
+	"KICK A PLAYER",
+	0,
+	countof(kickplayermenu_Items),
+	0,
+	kickplayermenu_Items,
+	0,
+	0,
+};
+
+//*****************************************************************************
+//
+bool kickplayermenu_ShouldShowPlayer( LONG lPlayer )
+{
+	if ( lPlayer >= MAXPLAYERS )
+		return ( false );
+
+	if ( !playeringame[lPlayer] )
+		return ( false );
+
+	if ( players[lPlayer].bIsBot )
+		return ( false );
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+void kickplayermenu_Kick( void )
+{
+	// Clean the name of color codes.
+	FString Name = AvailablePlayers[menu_kickplayer_idx].name.GetChars( );
+	V_RemoveColorCodes( Name );
+	V_EscapeBacklashes( Name );
+
+	FString Reason = menu_votereason.GetGenericRep( CVAR_String ).String;
+	V_EscapeBacklashes( Reason );
+
+	// Execute the command.
+	char	szString[256];
+	sprintf( szString, "callvote kick \"%s\" \"%s\"", Name.Left( 96 ), Reason.Left( 25 ));
+	AddCommandString( szString );
+	M_ClearMenus( );
+}
+
+//*****************************************************************************
+//
+void kickplayermenu_Show( void )
+{
+	// Build the list of players.
+	valuestring_t	value;
+	AvailablePlayers.Clear();
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		if ( kickplayermenu_ShouldShowPlayer( ulIdx ) )
+		{
+			value.value = static_cast<float> ( AvailablePlayers.Size() );
+			value.name.Format( "%s", players[ulIdx].userinfo.netname );
+			AvailablePlayers.Push( value );
+		}
+	}
+	value.value = static_cast<float> ( AvailablePlayers.Size() );
+	kickplayermenu_Items[KICKPLAYER_DISCRETE_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
+	kickplayermenu_Items[KICKPLAYER_DISCRETE_LOCATION].e.valuestrings = &AvailablePlayers[0];
+
+	M_SwitchMenu( &KickPlayerMenu );
+}
+
+//====================================================================================
+//
+// Call Vote-->Map Menu
+//
+//====================================================================================
+
+CVAR( String, menu_mapvotemap, "", 0 );
+CVAR( Bool, menu_mapvoteintermission, false, 0 );
+
+//*****************************************************************************
+//
+void mapvotemenu_Vote( void )
+{
+	// Sanitize the inputs.
+	FString		Map = menu_mapvotemap.GetGenericRep( CVAR_String ).String;
+	FString		Reason = menu_votereason.GetGenericRep( CVAR_String ).String;
+	V_EscapeBacklashes( Map );
+	V_EscapeBacklashes( Reason );
+
+	if ( !Map.Len( ) )
+	{
+		Printf( "You didn't specify a map!\n" );
+		return;
+	}
+
+	// Execute the command.
+	char		szString[256];
+	sprintf( szString, "callvote %s %s %s", ( menu_mapvoteintermission.GetGenericRep( CVAR_Bool ).Bool ? "changemap" : "map" ), Map.Left( 128 ), Reason.Left( 25 ) );
+	AddCommandString( szString );
+	M_ClearMenus( );
+}
+
+//*****************************************************************************
+//
+static menuitem_t mapvotemenu_Items[] =
+{
+	{ string,	"Map",				{&menu_mapvotemap},				{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Intermission",		{&menu_mapvoteintermission},	{2.0}, {0.0},	{0.0}, {YesNo} },	
+	{ redtext,	" ",				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
+	{ string,	"Reason for change:",{&menu_votereason},			{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Vote!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)mapvotemenu_Vote} },
+};
+
+//*****************************************************************************
+//
+menu_t MapVoteMenu = {
+	"CHANGE MAP",
+	0,
+	countof(mapvotemenu_Items),
+	0,
+	mapvotemenu_Items,
+	0,
+	0,
+};
+
+//*****************************************************************************
+//
+void mapvotemenu_Show( void )
+{
+	M_SwitchMenu( &MapVoteMenu );
+}
+
+//====================================================================================
+//
+// Call Vote-->Limit Menu
+//
+//====================================================================================
+
+//*****************************************************************************
+//
+value_t limitvote_Types[5] = {
+	{ 0.0, "fraglimit" },
+	{ 1.0, "timelimit" },
+	{ 2.0, "winlimit" },
+	{ 3.0, "duellimit" },
+	{ 4.0, "pointlimit" }
+};
+
+//*****************************************************************************
+//
+CVAR( Int, menu_limitvote_type, 0, 0 );
+CVAR( String, menu_limitvote_value, "", 0 );
+
+//*****************************************************************************
+//
+void limitvotemenu_Vote( void )
+{
+	// Sanitize the inputs.
+	int			iVoteType = menu_limitvote_type.GetGenericRep( CVAR_Int ).Int;
+	int			iLimit =  atoi( menu_limitvote_value.GetGenericRep( CVAR_String ).String );
+	FString		Reason = menu_votereason.GetGenericRep( CVAR_String ).String;
+	V_EscapeBacklashes( Reason );
+
+	if ( iVoteType >= 4 || iVoteType < 0 )
+		return;
+
+	// Execute the command.
+	char		szString[512];
+	sprintf( szString, "callvote %s %d \"%s\"", limitvote_Types[iVoteType].name, iLimit, Reason.Left( 25 ) );
+	AddCommandString( szString );
+	M_ClearMenus( );
+}
+
+//*****************************************************************************
+//
+static menuitem_t limitvotemenu_Items[] =
+{
+	{ discrete,	"Type of limit",	{&menu_limitvote_type},			{4.0}, {0.0},	{0.0}, {limitvote_Types} },
+	{ string,	"New value",		{&menu_limitvote_value},		{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
+	{ string,	"Reason for change:",{&menu_votereason},			{0.0}, {0.0},	{0.0}, {NULL} },	
+	{ more,		"Vote!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)limitvotemenu_Vote} },
+};
+
+//*****************************************************************************
+//
+menu_t limitvoteMenu = {
+	"CHANGE LIMIT",
+	0,
+	countof(limitvotemenu_Items),
+	0,
+	limitvotemenu_Items,
+	0,
+	0,
+};
+
+//*****************************************************************************
+//
+void limitvotemenu_Show( void )
+{
+	M_SwitchMenu( &limitvoteMenu );
+}
+
+//====================================================================================
+//
+// Call Vote Menu
+//
+//====================================================================================
 
 static menuitem_t CallVoteItems[] =
 {
-	{ discrete,	"Command",				{&menu_votecommand},	{8.0}, {0.0},	{0.0}, {VoteCommandVals} },
-	{ string,	"Parameter(s)",			{&menu_voteparameters},	{0.0}, {0.0},	{0.0}, {NULL} },
-	{ string,	"Reason",				{&menu_votereason},		{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Send vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_SendVote} },
+	{ more,		"Kick a player",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)kickplayermenu_Show} },
+	{ more,		"Change the map",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)mapvotemenu_Show} },
+	{ more,		"Change a limit",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)limitvotemenu_Show} },
 };
 
 menu_t CallVoteMenu = {
@@ -1752,62 +1961,6 @@ menu_t CallVoteMenu = {
 	0,
 	0,
 };
-
-//*****************************************************************************
-//
-void M_SendVote( void )
-{
-	UCVarValue	Val;
-	UCVarValue	Val2;
-	char		szString[128];
-
-	M_ClearMenus( );
-
-	sprintf( szString, "%s", "callvote" );
-
-	Val = menu_votecommand.GetGenericRep( CVAR_Int );
-	Val2 = menu_voteparameters.GetGenericRep( CVAR_String );
-	switch ( Val.Int )
-	{
-	case VOTECMD_KICK:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "kick", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_MAP:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "map", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_CHANGEMAP:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "changemap", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_FRAGLIMIT:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "fraglimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_TIMELIMIT:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "timelimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_WINLIMIT:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "winlimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_DUELLIMIT:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "duellimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	case VOTECMD_POINTLIMIT:
-
-		sprintf( szString, "%s %s \"%s\" \"%s\"", szString, "pointlimit", Val2.String, menu_votereason.GetGenericRep( CVAR_String ).String );
-		break;
-	default:
-
-		return;
-	}
-
-	AddCommandString( szString );
-}
 
 /*=======================================
  *

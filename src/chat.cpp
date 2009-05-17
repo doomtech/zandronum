@@ -126,8 +126,8 @@ void	chat_SendMessage( ULONG ulMode, const char *pszString );
 void	chat_ClearChatMessage( void );
 void	chat_AddChar( char cChar );
 void	chat_DeleteChar( void );
-// [CW]
-void	chat_DoSubstitution( FString &Input );
+void	chat_GetIgnoredPlayers( FString &Destination ); // [RC]
+void	chat_DoSubstitution( FString &Input ); // [CW]
 
 // [BB] From ZDoom
 //===========================================================================
@@ -162,6 +162,23 @@ void CHAT_Construct( void )
 
 	// Clear out the chat buffer.
 	chat_ClearChatMessage( );
+}
+
+//*****************************************************************************
+//
+void CHAT_Tick( void )
+{
+	// Check the chat ignore timers.
+	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
+	{
+		// Decrement this player's timer.
+		if ( players[i].bIgnoreChat && ( players[i].lIgnoreChatTicks > 0 ))
+			players[i].lIgnoreChatTicks--;
+
+		// Is it time to un-ignore him?
+		if ( players[i].lIgnoreChatTicks == 0 )
+			players[i].bIgnoreChat = false;
+	}
 }
 
 //*****************************************************************************
@@ -435,6 +452,10 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	FString		OutString;
 	FString		ChatString;
 
+	// [RC] Are we ignoring this player?
+	if (( ulPlayer != MAXPLAYERS ) && players[ulPlayer].bIgnoreChat )
+		return;
+
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
 	if ( ulPlayer == MAXPLAYERS )
 	{
@@ -626,6 +647,29 @@ void chat_DeleteChar( void )
 
 //*****************************************************************************
 //
+// [RC] Fills Destination with a list of ignored players.
+//
+void chat_GetIgnoredPlayers( FString &Destination )
+{
+	Destination = "";
+
+	// Append all the players' names.
+	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
+	{
+		if ( players[i].bIgnoreChat )
+		{
+			Destination += players[i].userinfo.netname;
+			Destination += "\\c-, ";
+		}
+	}
+
+	// Remove the last ", ".
+	if ( Destination.Len( ))
+		Destination = Destination.Left( Destination.Len( ) - 4 );
+}
+
+//*****************************************************************************
+//
 // [CW]
 void chat_DoSubstitution( FString &Input )
 {
@@ -790,5 +834,75 @@ CCMD( say_team )
 
 		// We typed out our message in the console or with a macro. Go ahead and send the message now.
 		chat_SendMessage( CHATMODE_TEAM, ChatString.GetChars( ));
+	}
+}
+
+//*****************************************************************************
+//
+// [RC] Lets clients ignore an annoying player's chat messages.
+//
+CCMD( ignore )
+{
+	// Create a list of currently ignored players.
+	FString PlayersIgnored;
+	chat_GetIgnoredPlayers( PlayersIgnored );
+
+	// Print the explanation message.
+	if ( argv.argc( ) < 2 )
+	{
+		if ( PlayersIgnored.Len( ))
+			Printf( "\\cgIgnored players: \\c-%s\nUse \"unignore\" to undo.\n", PlayersIgnored );
+		else
+			Printf( "Ignores a certain player's chat messages.\nUsage: ignore <name>\n" );
+
+		return;
+	}
+	
+	// Find the player and ignore him.
+	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
+	if ( ulPlayer == MAXPLAYERS )
+		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
+	else if ( players[ulPlayer].bIgnoreChat )
+		Printf( "You're already ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );
+	else
+	{
+		players[ulPlayer].bIgnoreChat = true;
+		players[ulPlayer].lIgnoreChatTicks = -1;
+		Printf( "%s\\c- will now be ignored.\n", players[ulPlayer].userinfo.netname );
+	}
+}
+
+//*****************************************************************************
+//
+// [RC] Undos "ignore".
+//
+CCMD( unignore )
+{
+	// Create a list of currently ignored players.
+	FString PlayersIgnored = "";
+	chat_GetIgnoredPlayers( PlayersIgnored );
+
+	// Print the explanation message.
+	if ( argv.argc( ) < 2 )
+	{
+		if ( PlayersIgnored.Len( ))
+			Printf( "\\cgIgnored players: \\c-%s\n", PlayersIgnored );
+		else
+			Printf( "Un-ignores a certain player's chat messages.\nUsage: unignore <name>\n" );
+
+		return;
+	}
+	
+	// Find the player.
+	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
+	if ( ulPlayer == MAXPLAYERS )
+		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
+	else if ( !players[ulPlayer].bIgnoreChat )
+		Printf( "You're not ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );
+	else 
+	{
+		players[ulPlayer].bIgnoreChat = false;
+		players[ulPlayer].lIgnoreChatTicks = -1;
+		Printf( "%s\\c- will no longer be ignored.\n", players[ulPlayer].userinfo.netname );
 	}
 }

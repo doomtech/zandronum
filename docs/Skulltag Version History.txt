@@ -64,14 +64,18 @@ latestzdoom branch
 <trunk>
 -------
 
-+	- Improved voting... [Rivecoder]		
+*+	- Fixed many of the annoyances with the voting system. [Rivecoder]		
 		+	- Vote-kicking a player now bans his IP for 10 minutes. [Rivecoder]
 		+	- Vote callers can now cancel the vote they called (i.e., in case they made a mistake) by voting "no". [Rivecoder]		
-		+	- Added some flooding protection... [Rivecoder]
+		+	- Added some flooding protection: [Rivecoder]
 				- Each player can only call one vote per 5 minutes. [Rivecoder]
 				- Each player can only call one *type* of vote per 10 minutes (to prevent spamming of, for example, "fraglimit 30..fraglimit 31...flaglimit 29...etc"). Kickvotes are ignored (because new mongs come and go) as long as they passed. [Rivecoder]
-				- If a specific vote fails it can't be revoted for 10 minutes. (It failed. Get over it). [Rivecoder]
-		+	- Added vote reasons. These are brief blurbs showing why a vote was called. [Rivecoder]
+				- If a specific vote fails, it can't be revoted for 10 minutes. (It failed; let it go). [Rivecoder]		
+		+	- Made the client's voting menu nicer and easier to use. [Rivecoder]
+				- You can now votekick players by selecting them, instead of having to type in their names. [Rivecoder]
+				- Sorted the types of votes into categories and cleared up the difference between map/changemap. [Rivecoder]
+				- Fixed several bugs that cropped up when quotes were used in the input strings. [Rivecoder]
+		+	- Added vote reasons. These are brief blurbs explaining why a vote was called. [Rivecoder]
 		+	- Vote-kicking is now more resilient; the mong's IP will be tempbanned even if he ducks out of the server right before the vote passes. [Rivecoder]
 		+	- The actions of each vote ("Player votes yes, etc") are now printed in the client's console. [Rivecoder]		
 		+	- When a player is votekicked, the reason ("Vote kick, 5 to 2") is now stated. [Rivecoder]				
@@ -82,9 +86,16 @@ latestzdoom branch
 		-	- Fixed: spectators could vote "yes" or "no" even when sv_nocallvote was set to 2. [Rivecoder]
 		!	- The default minimum of eligible voters is now 1. [Rivecoder]
 		!	- The "VOTE PASSED!" string is now drawn at the top of the screen. [Rivecoder]
-		!	- Votes now take up a little less time. [Rivecoder]
+		!	- Votes now run for a shorter duration. [Rivecoder]
 		!	- After voting, the "vote" screen is now hidden. [Rivecoder]
++	- Added the ability to ignore an annoying player's chat messages! Use the new CCMDS "ignore" and "unignore". [Rivecoder]
 +	- When an IP address is banned, all players using that address are now immediately kicked. [Rivecoder]
+!	- When a player starts chat spamming, he is now muted instead of kicked. [Rivecoder]
+
+
+<hotfix>
+--------
+
 -	- Fixed a critical security bug of the server. Thanks a lot to kgsws for submitting a detailed report on this issue along with an implementation of the exploit. [Torr Samaho]
 -	- Fixed: A malicious client could skip the map authentication. Thanks to kgsws for his detailed report on this. [Torr Samaho]
 -	- Fixed: The RCON utility crashed when somebody said a chat string with "%n" or similar printf compatible format parameters. Again thanks to kgsws for reporting. [Torr Samaho]

@@ -466,6 +466,12 @@ public:
 	// Is this player a bot?
 	bool		bIsBot;
 
+	// [RC] Are we, the client, ignoring this player's chat messages?
+	bool		bIgnoreChat;
+
+	// [RC] Number of ticks until this player can chat again.
+	LONG		lIgnoreChatTicks;
+
 	// *** THE FOLLOWING ARE NETWORK VARIABLES ***
 	// True XYZ position as told to us by the server.
 	fixed_t		ServerXYZ[3];

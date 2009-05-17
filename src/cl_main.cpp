@@ -3260,6 +3260,7 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	PLAYER_ResetSpecialCounters ( pPlayer );
 	pPlayer->bChatting = 0;
 	pPlayer->bSpectating = 0;
+	pPlayer->bIgnoreChat = 0;
 	pPlayer->bDeadSpectator = 0;
 	pPlayer->bStruckPlayer = 0;
 	pPlayer->pIcon = 0;

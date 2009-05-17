@@ -1514,6 +1514,9 @@ void G_Ticker ()
 			// Tick the callvote module.
 			CALLVOTE_Tick( );
 
+			// Tick the chat module.
+			CHAT_Tick( );
+
 			// [BB] Possibly award points for the damage players dealt.
 			// Is there a better place to put this?
 			PLAYER_AwardDamagePointsForAllPlayers( );

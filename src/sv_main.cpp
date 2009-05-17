@@ -1197,7 +1197,6 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-
 	// This player is now in the game.
 	playeringame[g_lCurrentClient] = true;
 
@@ -3816,56 +3815,66 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 //
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
-	ULONG		ulPlayer;
-	ULONG		ulChatMode;
-	const char	*pszChatString;
-	ULONG		ulChatInstance;
-
-	ulPlayer = g_lCurrentClient;
+	ULONG ulPlayer = g_lCurrentClient;
 
 	// Read in the chat mode (normal, team, etc.)
-	ulChatMode = NETWORK_ReadByte( pByteStream );
+	ULONG ulChatMode = NETWORK_ReadByte( pByteStream );
 
 	// Read in the chat string.
-	pszChatString = NETWORK_ReadString( pByteStream );
+	const char	*pszChatString = NETWORK_ReadString( pByteStream );
 
-	ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
+	// [RC] Are this player's chats ignored?
+	if ( players[ulPlayer].bIgnoreChat )
+		return ( true );
+
+	//==========================
+	// Check for chat flooding.
+	//==========================
+
+	bool bMutePlayer = false;
+	ULONG ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
 	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
 
-	// If this is the second time a player has chatted in a 7 tick interval (~1/5 of a second, ~1/5 of a second chat interval),
-	// kick him.
+	// Mute the player if this is the...
+
+	// ...second time he has chatted in a 7 tick interval (~1/5 of a second, ~1/5 of a second chat interval).
 	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
 		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 1 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 7 )
 	{
-		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
-		return ( true );
+		bMutePlayer = true;
 	}
 
-	// If this is the third time a player has chatted in a 42 tick interval (~1.5 seconds, ~.75 second chat interval),
-	// kick him.
+	// ..third time he has chatted in a 42 tick interval (~1.5 seconds, ~.75 second chat interval).
 	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
 		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 2 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 42 )
 	{
-		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
-		return ( true );
+		bMutePlayer = true;
 	}
 
-	// If this is the fourth time a player has chatted in a 105 tick interval (~3 seconds, ~1 second interval ),
-	// kick him.
+	// ...fourth time he has chatted in a 105 tick interval (~3 seconds, ~1 second interval).
 	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
 		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 3 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 105 )
 	{
-		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
-		return ( true );
+		bMutePlayer = true;
 	}
 
-	// Relay the chat message onto clients.
-	SERVER_SendChatMessage( ulPlayer, ulChatMode, pszChatString );
-
-	return ( false );
+	// Mute the player.
+	if ( bMutePlayer )
+	{
+		players[ulPlayer].bIgnoreChat = true;
+		players[ulPlayer].lIgnoreChatTicks = 15 * TICRATE;
+		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "Please refrain from chatting so much. You've been muted for 15 seconds.\n" );
+		return ( true );
+	}
+	// Or, relay the chat message onto clients.
+	else
+	{
+		SERVER_SendChatMessage( ulPlayer, ulChatMode, pszChatString );
+		return ( false );
+	}
 }
 
 //*****************************************************************************
@@ -4003,8 +4012,10 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	// If CLC_ENDCHAT got missed, and the player is doing stuff, then obviously he is no longer
-	// chatting.
+	// If CLC_ENDCHAT got missed, and the player is doing stuff, then obviously he is no longer chatting.
+
+	// [RC] This actually isn't necessarily true. By using a joystick, a player can both move and chat.
+	// I'm not going to change it though, because since they can move, they shouldn't be protected by the llama medal. Also, it'd confuse people.
 	if (( pPlayer->bChatting ) &&
 		(( pCmd->ucmd.buttons != 0 ) ||
 		( pCmd->ucmd.forwardmove != 0 ) ||
