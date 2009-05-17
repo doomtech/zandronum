@@ -3,13 +3,16 @@
   SKULLTAG Launcher Protocol
   ==========================
 
-  v0.3 by Rivecoder
-    July 15, 2008
+  v0.5 by Rivecoder
+    May 13, 2009
 
   Version history:
-    - 0.2 -> 0.3: Improved style and phrasing.
-                  Fixed mistake with the time left under SQF_LIMITS.
-    - 0.1 -> 0.2: Misc. fixes
+    - v0.5: Support for TEAMINFO
+    - v0.4: Fixes to huffman.cpp
+    - v0.3: Improved style and phrasing
+            Fixed mistake with the time left under SQF_LIMITS
+    - v0.2: Misc. fixes
+    - v0.1: Initial release
 
 ===============================================================================
 
@@ -192,29 +195,27 @@ And that's it!
  Notes
 ========================================
 
-* Flags: The server will automatically correct your request if you made a mistake (like request team scores in cooperative games),
-         so always use the flags it sends back to you when reading your data.
+  * Flags: The server will automatically correct your request if you made a mistake (like request team scores in cooperative games),
+           so always use the flags it sends back to you when reading your data.
 
-* Game modes: Game modes are defined as:
-	0   GAMEMODE_COOPERATIVE
-	1   GAMEMODE_SURVIVAL
-	2   GAMEMODE_INVASION
-	3   GAMEMODE_DEATHMATCH
-	4   GAMEMODE_TEAMPLAY
-	5   GAMEMODE_DUEL
-	6   GAMEMODE_TERMINATOR
-	7   GAMEMODE_LASTMANSTANDING
-	8   GAMEMODE_TEAMLMS
-	9   GAMEMODE_POSSESSION
-	10  GAMEMODE_TEAMPOSSESSION
-	11  GAMEMODE_TEAMGAME
-	12  GAMEMODE_CTF
-	13  GAMEMODE_ONEFLAGCTF
-	14  GAMEMODE_SKULLTAG
-	15  GAMEMODE_DOMINATION
+  * Game modes: Game modes are defined as:
+    0   GAMEMODE_COOPERATIVE
+    1   GAMEMODE_SURVIVAL
+    2   GAMEMODE_INVASION
+    3   GAMEMODE_DEATHMATCH
+    4   GAMEMODE_TEAMPLAY
+    5   GAMEMODE_DUEL
+    6   GAMEMODE_TERMINATOR
+    7   GAMEMODE_LASTMANSTANDING
+    8   GAMEMODE_TEAMLMS
+    9   GAMEMODE_POSSESSION
+    10  GAMEMODE_TEAMPOSSESSION
+    11  GAMEMODE_TEAMGAME
+    12  GAMEMODE_CTF
+    13  GAMEMODE_ONEFLAGCTF
+    14  GAMEMODE_SKULLTAG
+    15  GAMEMODE_DOMINATION
 
-* Mistakes: This spec is volatile and imperfect. Please look out for updates as we change the protocol from time to time.
+  * Mistakes: This spec is volatile and imperfect. Please look out for updates as we change the protocol from time to time.
 
 Happy coding!
-
-~Rivecoder

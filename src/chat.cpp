@@ -659,13 +659,22 @@ void chat_GetIgnoredPlayers( FString &Destination )
 		if ( players[i].bIgnoreChat )
 		{
 			Destination += players[i].userinfo.netname;
-			Destination += "\\c-, ";
+			Destination += "\\c-";
+			
+			// Add the time remaining.
+			if ( players[i].lIgnoreChatTicks > 0 )
+			{
+				int iMinutesLeft = static_cast<int>( 1 + players[i].lIgnoreChatTicks / ( MINUTE * TICRATE ));
+				Destination.AppendFormat( " (%d minute%s left)", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
+			}
+
+			Destination += ", ";
 		}
 	}
 
 	// Remove the last ", ".
-	if ( Destination.Len( ))
-		Destination = Destination.Left( Destination.Len( ) - 4 );
+	if ( Destination.Len( ) )
+		Destination = Destination.Left( Destination.Len( ) - 2 );
 }
 
 //*****************************************************************************
@@ -853,22 +862,33 @@ CCMD( ignore )
 		if ( PlayersIgnored.Len( ))
 			Printf( "\\cgIgnored players: \\c-%s\nUse \"unignore\" to undo.\n", PlayersIgnored );
 		else
-			Printf( "Ignores a certain player's chat messages.\nUsage: ignore <name>\n" );
+			Printf( "Ignores a certain player's chat messages.\nUsage: ignore <name> [duration, in minutes]\n" );
 
 		return;
 	}
 	
 	// Find the player and ignore him.
-	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
+	ULONG	ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
+	LONG	lTicks = -1;
+	
+	// Did the user specify a set duration?
+	if ( argv.argc( ) >= 3 ) 
+		lTicks = atoi( argv[2] ) * TICRATE * MINUTE;
+
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
-	else if ( players[ulPlayer].bIgnoreChat )
+	else if ( ulPlayer == consoleplayer )
+		Printf( "You can't ignore yourself.\n" );
+	else if ( players[ulPlayer].bIgnoreChat && ( players[ulPlayer].lIgnoreChatTicks == lTicks ))
 		Printf( "You're already ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );
 	else
 	{
 		players[ulPlayer].bIgnoreChat = true;
-		players[ulPlayer].lIgnoreChatTicks = -1;
-		Printf( "%s\\c- will now be ignored.\n", players[ulPlayer].userinfo.netname );
+		players[ulPlayer].lIgnoreChatTicks = lTicks;
+		Printf( "%s\\c- will now be ignored", players[ulPlayer].userinfo.netname );
+		if ( lTicks > 0 )
+			Printf( ", for %d minutes", atoi( argv[2] ));
+		Printf( ".\n", players[ulPlayer].userinfo.netname );
 	}
 }
 
@@ -897,6 +917,8 @@ CCMD( unignore )
 	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
+	else if ( ulPlayer == consoleplayer )
+		Printf( "You can't unignore yourself.\n" );
 	else if ( !players[ulPlayer].bIgnoreChat )
 		Printf( "You're not ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );
 	else 

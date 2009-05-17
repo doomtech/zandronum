@@ -89,6 +89,7 @@ latestzdoom branch
 		!	- Votes now run for a shorter duration. [Rivecoder]
 		!	- After voting, the "vote" screen is now hidden. [Rivecoder]
 +	- Added the ability to ignore an annoying player's chat messages! Use the new CCMDS "ignore" and "unignore". [Rivecoder]
+		+	- You can also ignore the player for n minutes by using "ignore <name> n". [Rivecoder]
 +	- When an IP address is banned, all players using that address are now immediately kicked. [Rivecoder]
 !	- When a player starts chat spamming, he is now muted instead of kicked. [Rivecoder]
 
