@@ -55,6 +55,9 @@
 #include <net/if.h>
 #define inaddrr(x) (*(struct in_addr *) &ifr->x[sizeof sa.sin_port])
 #define IFRSIZE   ((int)(size * sizeof (struct ifreq)))
+#ifdef __FreeBSD__
+#include <machine/param.h>
+#endif
 #endif
 
 #include <stdlib.h>
@@ -578,6 +581,7 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 	// Now we need to resort to something more complicated.
 	if ( stringToAddress == false );
 	{
+#ifndef __FreeBSD__
 		unsigned char      *u;
 		int                size  = 1;
 		struct ifreq       *ifr;
@@ -626,7 +630,44 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 				break;
 			}
 		}
-
+#else
+		struct ifreq       *ifr;
+		struct ifconf      ifc;
+		bzero(&ifc, sizeof(ifc));
+		unsigned int n = 1;
+		struct ifreq *lifr;
+		ifr = (ifreq*)calloc( ifc.ifc_len, sizeof(*ifr) );
+		do
+		{
+			n *= 2;
+			ifr = (ifreq*)realloc( ifr, PAGE_SIZE * n );
+			bzero( ifr, PAGE_SIZE * n );
+			ifc.ifc_req = ifr;
+			ifc.ifc_len = n * PAGE_SIZE;
+		} while( ( ioctl( g_NetworkSocket, SIOCGIFCONF, &ifc ) == -1 ) || ( ifc.ifc_len >= ( (n-1) * PAGE_SIZE)) );
+		
+		lifr = (struct ifreq *)&ifc.ifc_buf[ifc.ifc_len];
+		
+		while (ifr < lifr)
+		{
+			struct sockaddr *sa = &ifr->ifr_ifru.ifru_addr;
+			if( AF_INET == sa->sa_family )
+			{
+				struct sockaddr_in dummysa;
+				in_addr inAddr = *(struct in_addr *) &ifr->ifr_addr.sa_data[sizeof dummysa.sin_port];
+	
+				Printf("Found interface %s", ifr->ifr_name);
+				Printf(" with IP address: %s\n", inet_ntoa(inAddr));
+				*(int *)&Address.abIP = *(int *)&inAddr;
+				if ( Address.abIP[0] != 127 )
+				{
+					Printf ( "Using IP address of interface %s as local address.\n", ifr->ifr_name );
+					break;
+				}
+			 }
+	 	ifr = (struct ifreq *)(((char *)ifr) + _SIZEOF_ADDR_IFREQ(*ifr));
+ 		}
+#endif
 	}
 #endif
 
