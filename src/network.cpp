@@ -126,7 +126,7 @@ EXTERN_CVAR (Float, turbo)
 
 static	void			network_Error( char *pszError );
 static	SOCKET			network_AllocateSocket( void );
-static	bool			network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
+static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
 static	bool			network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *LumpName, FString &MD5Hash );
 
 //*****************************************************************************
@@ -151,19 +151,42 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	Printf( "Winsock initialization succeeded!\n" );
 #endif
 
+	ULONG ulInAddr = INADDR_ANY;
+	const char* pszIPAddress = Args->CheckValue( "-useip" );
+	// [BB] An IP was specfied. Check if it's valid and if it is, try to bind our socket to it.
+	if ( pszIPAddress )
+	{
+		ULONG requestedIP = inet_addr( pszIPAddress );
+		if ( requestedIP == INADDR_NONE )
+		{
+			sprintf( szString, "NETWORK_Construct: %s is not a valid IP address\n", pszIPAddress );
+			network_Error( szString );
+		}
+		else
+			ulInAddr = requestedIP;
+	}
+
 	g_usLocalPort = usPort;
 
 	// Allocate a socket, and attempt to bind it to the given port.
 	g_NetworkSocket = network_AllocateSocket( );
-	if ( network_BindSocketToPort( g_NetworkSocket, g_usLocalPort, false ) == false )
+	if ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, g_usLocalPort, false ) == false )
 	{
 		bSuccess = true;
+		bool bSuccessIP = true;
 		usNewPort = g_usLocalPort;
-		while ( network_BindSocketToPort( g_NetworkSocket, ++usNewPort, false ) == false )
+		while ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, ++usNewPort, false ) == false )
 		{
 			// Didn't find an available port. Oh well...
 			if ( usNewPort == g_usLocalPort )
 			{
+				// [BB] We couldn't use the specified IP, so just try any.
+				if ( ulInAddr != INADDR_ANY )
+				{
+					ulInAddr = INADDR_ANY;
+					bSuccessIP = false;
+					continue;
+				}
 				bSuccess = false;
 				break;
 			}
@@ -172,6 +195,11 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		if ( bSuccess == false )
 		{
 			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to port: %d\n", g_usLocalPort );
+			network_Error( szString );
+		}
+		else if ( bSuccessIP == false )
+		{
+			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to IP %s, using the default IP instead:\n", pszIPAddress );
 			network_Error( szString );
 		}
 		else
@@ -189,7 +217,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	if ( bAllocateLANSocket )
 	{
 		g_LANSocket = network_AllocateSocket( );
-		if ( network_BindSocketToPort( g_LANSocket, DEFAULT_BROADCAST_PORT, true ) == false )
+		if ( network_BindSocketToPort( g_LANSocket, ulInAddr, DEFAULT_BROADCAST_PORT, true ) == false )
 		{
 			sprintf( szString, "network_BindSocketToPort: Couldn't bind LAN socket to port: %d. You will not be able to see LAN servers in the browser.", DEFAULT_BROADCAST_PORT );
 			network_Error( szString );
@@ -203,8 +231,17 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET, BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
+	// [BB] Get and save our local IP.
+	if ( ( ulInAddr == INADDR_ANY ) || ( pszIPAddress == NULL ) )
+		g_LocalAddress = NETWORK_GetLocalAddress( );
+	// [BB] We are using a specified IP, so we don't need to figure out what IP we have, but just use the specified one.
+	else
+	{
+		NETWORK_StringToAddress ( pszIPAddress, &g_LocalAddress );
+		g_LocalAddress.usPort = htons ( NETWORK_GetLocalPort() );
+	}
+
 	// Print out our local IP address.
-	g_LocalAddress = NETWORK_GetLocalAddress( );
 	Printf( "IP address %s\n", NETWORK_AddressToString( g_LocalAddress ));
 
 	// If hosting, update the server GUI.
@@ -875,7 +912,7 @@ static SOCKET network_AllocateSocket( void )
 
 //*****************************************************************************
 //
-bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
+bool network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse )
 {
 	int		iErrorCode;
 	struct sockaddr_in address;
@@ -883,7 +920,7 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 
 	memset (&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_addr.s_addr = ulInAddr;
 	address.sin_port = htons( usPort );
 
 	// Allow the network socket to broadcast.

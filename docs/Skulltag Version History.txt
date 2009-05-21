@@ -37,6 +37,7 @@ latestzdoom branch
 +	- Added new DECORATE weapon property "preferredskin". While the PreferredSkin value of a player's ready weapon is equal to a skin available to the player's class, the player is forced to use this skin, overriding any personal skin settings. This allows to easily create mods were one can see from the skin which weapon the other players are currently using. [Torr Samaho]
 +	- Added new CVAR cl_soundwhennotactive. If enabled, the Windows client will keep playing sound as normal when the client is not the currently active application. [Torr Samaho, SuperGod]
 +	- Extended the launcher protocol to allow launchers to handle one stable version (e.g. 97d3) and one testing version (e.g. 97e-alpha) side by side. [Torr Samaho, SuperGod]
++	- You can now specify the IP Skulltag binds its network socket to with "-useip IP". If used, Skulltag only listens on that IP for incoming traffic and uses the corresponding NIC for outgoing traffic. If not specified, Skulltag listens on all NICs, but uses the default NIC for outgoing traffic. May be useful when hosting a server on a machine with multiple NICs to select which one to use. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
