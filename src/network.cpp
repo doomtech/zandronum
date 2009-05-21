@@ -164,7 +164,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			// Didn't find an available port. Oh well...
 			if ( usNewPort == g_usLocalPort )
 			{
-				usNewPort = false;
+				bSuccess = false;
 				break;
 			}
 		}
