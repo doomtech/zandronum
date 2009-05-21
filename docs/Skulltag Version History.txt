@@ -36,6 +36,7 @@ latestzdoom branch
 +	- Added new CVAR sv_logfiletimestamp_usedate. If enabled, the current date "YY:MM:DD" is prepended to the per-line timestamp of the logfile. [Torr Samaho]
 +	- Added new DECORATE weapon property "preferredskin". While the PreferredSkin value of a player's ready weapon is equal to a skin available to the player's class, the player is forced to use this skin, overriding any personal skin settings. This allows to easily create mods were one can see from the skin which weapon the other players are currently using. [Torr Samaho]
 +	- Added new CVAR cl_soundwhennotactive. If enabled, the Windows client will keep playing sound as normal when the client is not the currently active application. [Torr Samaho, SuperGod]
++	- Extended the launcher protocol to allow launchers to handle one stable version (e.g. 97d3) and one testing version (e.g. 97e-alpha) side by side. [Torr Samaho, SuperGod]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

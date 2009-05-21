@@ -4,9 +4,10 @@
   ==========================
 
   v0.51 by Torr Samho
-    May 17, 2009
+    May 21, 2009
 
   Version history:
+    - v0.52: Added SQF_TESTING_SERVER
     - v0.51: Added the revision number to the version string.
     - v0.5: Support for TEAMINFO
     - v0.4: Fixes to huffman.cpp
@@ -115,6 +116,7 @@ The flags are:
 	SQF_TEAMINFO_NAME			0x00400000
 	SQF_TEAMINFO_COLOR			0x00800000
 	SQF_TEAMINFO_SCORE			0x01000000
+	SQF_TESTING_SERVER			0x02000000
 	
 For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS).
 Please use these flags appropiately; it saves your users' and server hosters' bandwidth.
@@ -189,6 +191,8 @@ Next, assuming you were accepted, you'll get:
   String              SQF_TEAMINFO_NAME     The team's name. (Sent for each team.)
   Long                SQF_TEAMINFO_COLOR    The team's color. (Sent for each team.)
   Short               SQF_TEAMINFO_SCORE    The team's score. (Sent for each team.)
+  Byte                SQF_TESTING_SERVER    Whether this server is running a testing binary - true (1) / false (0)
+  String              SQF_TESTING_SERVER    An empty string in case the server is running a stable binary, otherwise name of the testing binary archive found in http://skulltag.com/testing/files/
 
 And that's it!
 

@@ -88,6 +88,14 @@ static	LONG				g_lStoredQueryIPTail;
 
 extern	NETADDRESS_s		g_LocalAddress;
 
+//*****************************************************************************
+//	CONSOLE VARIABLES
+
+#if (BUILD_ID != BUILD_RELEASE)
+// [BB] Name of the testing binary archive found in http://skulltag.com/testing/files/
+CVAR( String, sv_testingbinary, "", CVAR_ARCHIVE )
+#endif
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -585,6 +593,21 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				else
 					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
 			}
+		}
+	}
+
+	// [BB] Testing server and what's the binary name?
+	if ( ulBits & SQF_TESTING_SERVER )
+	{
+		if ( BUILD_ID == BUILD_RELEASE )
+		{
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 0 );
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, "" );
+		}
+		else
+		{
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 1 );
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, sv_testingbinary.GetGenericRep( CVAR_String ).String );
 		}
 	}
 

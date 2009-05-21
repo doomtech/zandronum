@@ -628,6 +628,12 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				NETWORK_ReadShort( pByteStream );
 		}
 
+		// [BB] Testing server and what's the binary name?
+		if ( ulFlags & SQF_TESTING_SERVER )
+		{
+			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadString( pByteStream );
+		}
 		return;
 	}
 
@@ -844,6 +850,13 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	{
 		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
 			NETWORK_ReadShort( pByteStream );
+	}
+
+	// [BB] Testing server and what's the binary name?
+	if ( ulFlags & SQF_TESTING_SERVER )
+	{
+		NETWORK_ReadByte( pByteStream );
+		NETWORK_ReadString( pByteStream );
 	}
 
 	// Now that this server has been read in, resort the servers in the menu.
