@@ -1061,6 +1061,8 @@ void ParseDecorate (FScanner &sc)
 			sc.MustGetString();
 			FScanner newscanner;
 			newscanner.Open(sc.String);
+			// [BB] Clients may not tamper with DECORATE code, so mark the included lump for authentication.
+			NETWORK_AddLumpForAuthentication ( Wads.CheckNumForFullName(sc.String, true) );
 			ParseDecorate(newscanner);
 			break;
 		}

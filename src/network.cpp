@@ -92,6 +92,8 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 FString g_lumpsAuthenticationChecksum;
 
+static TArray<LONG> g_LumpNumsToAuthenticate ( 0 );
+
 // The current network state. Single player, client, server, etc.
 static	LONG			g_lNetworkState = NETSTATE_SINGLE;
 
@@ -272,6 +274,17 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	FString checksum, longChecksum;
 	bool noProtectedLumpsAutoloaded = true;
+
+	// [BB] First check the lumps that were marked for authentication while initializing. This
+	// includes for example those lumps included by DECORATE lumps. It's much easier to mark those
+	// lumps while the engine parses the DECORATE code than trying to find all included lumps from
+	// the DECORATE lumps directly.
+	for ( unsigned int i = 0; i < g_LumpNumsToAuthenticate.Size(); ++i )
+	{
+		if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( g_LumpNumsToAuthenticate[i], Wads.GetLumpFullName (g_LumpNumsToAuthenticate[i]), checksum ) )
+			noProtectedLumpsAutoloaded = false;
+		longChecksum += checksum;
+	}
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
 	{
@@ -738,6 +751,16 @@ ULONG NETWORK_ntohs( ULONG ul )
 USHORT NETWORK_GetLocalPort( void )
 {
 	return ( g_usLocalPort );
+}
+
+//*****************************************************************************
+//
+void NETWORK_AddLumpForAuthentication( const LONG LumpNumber )
+{
+	if ( LumpNumber == -1 )
+		return;
+
+	g_LumpNumsToAuthenticate.Push ( LumpNumber );
 }
 
 //*****************************************************************************
