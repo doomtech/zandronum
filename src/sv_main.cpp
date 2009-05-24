@@ -130,6 +130,7 @@ EXTERN_CVAR( Bool, sv_cheats );
 
 static	bool	server_StartChat( BYTESTREAM_s *pByteStream );
 static	bool	server_EndChat( BYTESTREAM_s *pByteStream );
+static	bool	server_Ignore( BYTESTREAM_s *pByteStream );
 static	bool	server_Say( BYTESTREAM_s *pByteStream );
 static	bool	server_ClientMove( BYTESTREAM_s *pByteStream );
 static	bool	server_MissingPacket( BYTESTREAM_s *pByteStream );
@@ -1557,6 +1558,9 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 	// Tell the client that the snapshot is done.
 	SERVERCOMMANDS_EndSnapshot( g_lCurrentClient );
+
+	// [RC] Clients may wish to ignore this new player.
+	SERVERCOMMANDS_PotentiallyIgnorePlayer( g_lCurrentClient );
 }
 
 //*****************************************************************************
@@ -1628,6 +1632,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_ENDCHAT:
 		case CLC_ENTERCONSOLE:
 		case CLC_EXITCONSOLE:
+		case CLC_IGNORE:
 		case CLC_SAY:
 		case CLC_CLIENTMOVE:
 		case CLC_MISSINGPACKET:
@@ -1919,6 +1924,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].lOverMovementLevel = 0;
 	g_aClients[lClient].bRunEnterScripts = false;
 	g_aClients[lClient].szSkin[0] = 0;
+	g_aClients[lClient].IgnoredAddresses.clear();
 
 	// [BB] Inform the client that he is connected and needs to authenticate the map.
 	SERVER_RequestClientToAuthenticate( lClient );
@@ -3190,6 +3196,37 @@ bool SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 )
 }
 
 //*****************************************************************************
+// 
+// [RC] Is this player ignoring players at this address?
+// Returns 0 (if not), -1 (if indefinitely), or the tics until expiration (if temporarily).
+//
+LONG SERVER_GetPlayerIgnoreTic( ULONG ulPlayer, NETADDRESS_s Address )
+{
+	// Remove all expired entries first. ([RC] We could combine the loops, but not all of the old entries would be removed.)
+	for ( std::list<STORED_QUERY_IP_s>::iterator i = SERVER_GetClient( ulPlayer )->IgnoredAddresses.begin(); i != SERVER_GetClient( ulPlayer )->IgnoredAddresses.end( ); )
+	{
+		if (( i->lNextAllowedGametic != -1 ) && ( i->lNextAllowedGametic <= gametic ))
+			i = SERVER_GetClient( ulPlayer )->IgnoredAddresses.erase( i ); // Returns a new iterator.
+		else
+			++i;
+	}
+
+	// Search for entries with this address.
+	for ( std::list<STORED_QUERY_IP_s>::iterator i = SERVER_GetClient( ulPlayer )->IgnoredAddresses.begin(); i != SERVER_GetClient( ulPlayer )->IgnoredAddresses.end(); ++i )
+	{
+		if ( NETWORK_CompareAddress( i->Address, Address, true ))
+		{
+			if ( i->lNextAllowedGametic != -1 )
+				return i->lNextAllowedGametic - gametic;
+			else
+				return -1;
+		}
+	}
+
+	return 0;
+}
+
+//*****************************************************************************
 //
 const char *SERVER_GetCurrentFont( void )
 {
@@ -3627,6 +3664,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
 
 		return false;
+	case CLC_IGNORE:
+
+		// Player whishes to ignore / unignore someone.
+		return ( server_Ignore( pByteStream ) );
 	case CLC_SAY:
 
 		// Client is talking.
@@ -3836,6 +3877,40 @@ void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPositio
 		SERVERCOMMANDS_GiveInventory( ulPlayer, static_cast<AInventory *>( pReadyWeapon->Ammo1 ));
 	if ( pReadyWeapon->Ammo2 )
 		SERVERCOMMANDS_GiveInventory( ulPlayer, static_cast<AInventory *>( pReadyWeapon->Ammo2 ));
+}
+
+//*****************************************************************************
+//
+static bool server_Ignore( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulTargetIdx = NETWORK_ReadByte( pByteStream );
+	bool	bIgnore = !!NETWORK_ReadByte( pByteStream );
+	LONG	lTicks = NETWORK_ReadLong( pByteStream );
+
+	if ( !SERVER_IsValidClient( ulTargetIdx ))
+		return false;
+
+	// First, remove any entries using this IP.
+	NETADDRESS_s AddressToIgnore  = SERVER_GetClient( ulTargetIdx )->Address;
+	for ( std::list<STORED_QUERY_IP_s>::iterator i = SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.begin(); i != SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.end( ); )
+	{
+		if ( NETWORK_CompareAddress( i->Address, AddressToIgnore, true ))
+			i = SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.erase( i ); // Returns a new iterator.
+		else
+			++i;
+	}
+
+	// Now, add the new entry. If an entry had existed before, this "updates" it.
+	if ( bIgnore )
+	{
+		STORED_QUERY_IP_s Entry;
+		Entry.Address = AddressToIgnore;
+		Entry.lNextAllowedGametic = ( lTicks == -1 ) ? lTicks : ( gametic + lTicks );
+
+		SERVER_GetClient( g_lCurrentClient )->IgnoredAddresses.push_back( Entry );
+	}
+
+	return false;
 }
 
 //*****************************************************************************

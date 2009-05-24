@@ -1825,7 +1825,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	}
 	else
 	{
-		Printf( "%s does not have a script specified. %s will not do anything.\n", players[ulPlayerNum].userinfo.netname, players[ulPlayerNum].userinfo.gender == GENDER_MALE ? "He" : players[ulPlayerNum].userinfo.gender == GENDER_MALE ? "She" : "It" );
+		Printf( "%s does not have a script specified. %s will not do anything.\n", players[ulPlayerNum].userinfo.netname, players[ulPlayerNum].userinfo.gender == GENDER_MALE ? "He" : players[ulPlayerNum].userinfo.gender == GENDER_FEMALE ? "She" : "It" );
 	}
 
 	// Check and see if this bot should spawn as a spectator.

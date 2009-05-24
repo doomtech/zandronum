@@ -185,6 +185,7 @@ static	void	client_PlayerTaunt( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerUseInventory( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerDropInventory( BYTESTREAM_s *pByteStream );
+static	void	client_IgnorePlayer( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
@@ -2538,6 +2539,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_CREATETRANSLATION:
 
 		client_CreateTranslation( pByteStream );
+		break;
+	case SVC_IGNOREPLAYER:
+
+		client_IgnorePlayer( pByteStream );
 		break;
 	default:
 
@@ -11404,6 +11409,22 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 	pTranslation->MakeIdentity();
 	pTranslation->AddIndexRange(ulStart, ulEnd, ulPal1, ulPal2);
 	pTranslation->UpdateNative();
+}
+
+//*****************************************************************************
+//
+static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulPlayer = NETWORK_ReadByte( pByteStream );
+	LONG	lTicks = NETWORK_ReadLong( pByteStream );
+
+	if ( ulPlayer < MAXPLAYERS )
+	{
+		players[ulPlayer].bIgnoreChat = true;
+		players[ulPlayer].lIgnoreChatTicks = lTicks;
+
+		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.netname, players[ulPlayer].userinfo.gender == GENDER_MALE ? "his" : players[ulPlayer].userinfo.gender == GENDER_FEMALE ? "her" : "its" );
+	}
 }
 
 //*****************************************************************************

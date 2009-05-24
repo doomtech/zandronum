@@ -111,6 +111,7 @@
 
 void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
 void StartGLMenu (void);
+void M_StartMessage (const char *string, void (*routine)(int), bool input);
 
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
@@ -1735,6 +1736,9 @@ bool playerslider_IsValidPlayer( LONG lPlayer, bool bAllowBots )
 	if ( !bAllowBots && ( players[lPlayer].bIsBot ))
 		return ( false );
 
+	if ( lPlayer == consoleplayer )
+		return ( false );
+
 	return ( true );
 }
 
@@ -1834,6 +1838,13 @@ void ignoreplayermenu_Ignore( void )
 //
 void ignoreplayermenu_Show( void )
 {
+	if ( SERVER_CountPlayers( false ) < 2 )
+	{
+		M_ClearMenus( );
+		M_StartMessage( "There is nobody else here to ignore!\n\npress any key.", NULL, false );
+		return;
+	}
+
 	// Set up the player selection slider.
 	playerslider_BuildList( false );
 	ignoreplayermenu_Items[IGNOREPLAYER_SLIDER_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
@@ -1900,6 +1911,13 @@ void kickplayermenu_Kick( void )
 //
 void kickplayermenu_Show( void )
 {
+	if ( SERVER_CountPlayers( false ) < 2 )
+	{
+		M_ClearMenus( );
+		M_StartMessage( "There is nobody else here to kick!\n\npress any key.", NULL, false );
+		return;
+	}
+
 	// Set up the player selection slider.
 	playerslider_BuildList( false );
 	kickplayermenu_Items[KICKPLAYER_SLIDER_LOCATION].b.numvalues = static_cast<float>(AvailablePlayers.Size());
@@ -2118,7 +2136,6 @@ menu_t MultiplayerMenu = {
 	false,
 };
 
-void M_StartMessage (const char *string, void (*routine)(int), bool input);
 void M_Spectate( void )
 {
 	M_ClearMenus( );

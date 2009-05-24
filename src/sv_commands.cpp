@@ -1431,6 +1431,27 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_PotentiallyIgnorePlayer( ULONG ulPlayer )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false || ( ulIdx == ulPlayer ))
+			continue; 
+
+		// Check whether this player is ignoring the newcomer's address.
+		LONG lTicks = SERVER_GetPlayerIgnoreTic( ulIdx, SERVER_GetClient( ulPlayer )->Address );
+		if ( lTicks != 0 )
+		{
+			SERVER_CheckClientBuffer( ulIdx, 6, true );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_IGNOREPLAYER );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTicks );
+		}
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )

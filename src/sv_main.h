@@ -56,6 +56,7 @@
 #include "i_net.h"
 #include "networkshared.h"
 #include "s_sndseq.h"
+#include <list>
 
 //*****************************************************************************
 //	DEFINES
@@ -160,6 +161,17 @@ typedef enum
 //*****************************************************************************
 typedef struct
 {
+	// Address of the person who queried us.
+	NETADDRESS_s	Address;
+
+	// Gametic when we allow another query.
+	LONG			lNextAllowedGametic;
+
+} STORED_QUERY_IP_s;
+
+//*****************************************************************************
+typedef struct
+{
 	// The network address of this client.
 	NETADDRESS_s	Address;
 
@@ -244,18 +256,10 @@ typedef struct
 	// What is the name of the client's skin?
 	char			szSkin[MAX_SKIN_NAME+1];
 
+	// [RC] List of IP addresses that this client is ignoring.
+	std::list<STORED_QUERY_IP_s> IgnoredAddresses;
+
 } CLIENT_s;
-
-//*****************************************************************************
-typedef struct
-{
-	// Address of the person who queried us.
-	NETADDRESS_s	Address;
-
-	// Gametic when we allow another query.
-	LONG			lNextAllowedGametic;
-
-} STORED_QUERY_IP_s;
 
 //*****************************************************************************
 typedef struct
@@ -321,6 +325,7 @@ void		SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason );
 void		SERVER_AddCommand( const char *pszCommand );
 void		SERVER_DeleteCommand( void );
 bool		SERVER_IsEveryoneReadyToGoOn( void );
+LONG		SERVER_GetPlayerIgnoreTic( ULONG ulPlayer, NETADDRESS_s Address ); // [RC]
 bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
 bool		SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
 const char	*SERVER_GetCurrentFont( void );

@@ -158,6 +158,16 @@ void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 
 //*****************************************************************************
 //
+void CLIENTCOMMANDS_Ignore( ULONG ulPlayer, bool bIgnore, LONG lTicks )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_IGNORE );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulPlayer );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bIgnore );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, lTicks );
+}
+
+//*****************************************************************************
+//
 void CLIENTCOMMANDS_ClientMove( void )
 {
 	ticcmd_t	*pCmd;

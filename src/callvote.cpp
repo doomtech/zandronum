@@ -727,6 +727,11 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 				ULONG ulIdx = SERVER_GetPlayerIndexFromName( Parameters.GetChars( ), true, false );
 				if ( ulIdx < MAXPLAYERS )
 				{
+					if ( ulIdx == SERVER_GetCurrentClient( ))
+					{
+						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "You cannot votekick yourself!\n" );
+  						return ( false );
+					}
 					g_KickVoteVictimAddress = SERVER_GetClient( ulIdx )->Address;
 					return ( true );
 				}

@@ -61,6 +61,7 @@ void	CLIENTCOMMANDS_UserInfo( ULONG ulFlags );
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );
 void	CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString );
+void	CLIENTCOMMANDS_Ignore( ULONG ulPlayer, bool bIgnore, LONG lTicks = -1 );
 void	CLIENTCOMMANDS_ClientMove( void );
 void	CLIENTCOMMANDS_MissingPacket( void );
 void	CLIENTCOMMANDS_Pong( ULONG ulTime );

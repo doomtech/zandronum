@@ -902,6 +902,10 @@ CCMD( ignore )
 		// Add a helpful note about bots.
 		if ( players[ulPlayer].bIsBot )
 			Printf( "Note: you can disable all bot chat by setting the CVAR bot_allowchat to false.\n" );
+
+		// Notify the server so that others using this IP are also ignored.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENTCOMMANDS_Ignore( ulPlayer, true, lTicks );
 	}
 }
 
@@ -939,5 +943,9 @@ CCMD( unignore )
 		players[ulPlayer].bIgnoreChat = false;
 		players[ulPlayer].lIgnoreChatTicks = -1;
 		Printf( "%s\\c- will no longer be ignored.\n", players[ulPlayer].userinfo.netname );
+
+		// Notify the server so that others using this IP are also ignored.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENTCOMMANDS_Ignore( ulPlayer, false );
 	}
 }
