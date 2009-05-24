@@ -473,28 +473,24 @@ static void DoJump(AActor * self, FState * CallingState, FState *jumpto, StateCa
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_weapon].state)
 	{
-/*
-		// [BC] If we're the server, tell clients to change the thing's state.
-		if (( bNeedClientUpdate ) &&
+		// [BB] If we're the server, tell clients to change the thing's state.
+		if (( ulClientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			// This isn't ready (and hopefully will never be needed!).
-//			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_weapon );
+			SERVER_HandleWeaponStateJump ( static_cast<ULONG>( self->player - players ), jumpto, ps_weapon );
 		}
-*/
+
 		P_SetPsprite(self->player, ps_weapon, jumpto);
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
 	{
-/*
-		// [BC] If we're the server, tell clients to change the thing's state.
-		if (( bNeedClientUpdate ) &&
+		// [BB] If we're the server, tell clients to change the thing's state.
+		if (( ulClientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			// This isn't ready (and hopefully will never be needed!).
-//			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_flash );
+			SERVER_HandleWeaponStateJump ( static_cast<ULONG>( self->player - players ), jumpto, ps_flash );
 		}
-*/
+
 		P_SetPsprite(self->player, ps_flash, jumpto);
 	}
 	else if (CallingState == self->state)

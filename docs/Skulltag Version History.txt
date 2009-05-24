@@ -60,6 +60,7 @@ latestzdoom branch
 -	- Fixed: If the client was instructed by the server to destroy an actor of type PlayerPawn, the client didn't erase the corresponding pointer to it in the player array. [Torr Samaho]
 -	- Fixed: Detection of the local IP under FreeBSD did not work properly. [Torr Samaho]
 -	- Fixed: If no useable network port was found, no proper error message was shown. [Torr Samaho]
+-	- Fixed: Random state jumps on player weapons weren't synchronized online at all. [Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]

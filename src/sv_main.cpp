@@ -3812,6 +3812,33 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 }
 
 //*****************************************************************************
+// [BB]
+void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPosition )
+{
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	AWeapon *pReadyWeapon = players[ulPlayer].ReadyWeapon;
+
+	if ( pReadyWeapon == false )
+		return;
+
+	// [BB] First set the weapon sprite of the player according to the jump.
+	SERVERCOMMANDS_SetPlayerPSprite( ulPlayer, pState, lPosition );
+
+	// [BB] During the time it takes for the server to instruct the client to do the jump
+	// the client possible executes code pointers it shouldn't because the client just ignores
+	// the jump when executing A_Jump. Typically this can mess the local ammo prediction done
+	// by the client (KF7Soviet from Goldeneye64TCv12.pk3 gives a good example of this). As
+	// workaround we resync the clients ammo count every time a jump is done. Not really nice,
+	// but should get the job done.
+	if ( pReadyWeapon->Ammo1 )
+		SERVERCOMMANDS_GiveInventory( ulPlayer, static_cast<AInventory *>( pReadyWeapon->Ammo1 ));
+	if ( pReadyWeapon->Ammo2 )
+		SERVERCOMMANDS_GiveInventory( ulPlayer, static_cast<AInventory *>( pReadyWeapon->Ammo2 ));
+}
+
+//*****************************************************************************
 //
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
