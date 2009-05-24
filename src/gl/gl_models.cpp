@@ -59,6 +59,8 @@ static inline float GetTimeFloat()
 }
 
 CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
+// [BB] Allow the user disable the use of any kind of models.
+CVAR(Bool, gl_use_models, true, CVAR_ARCHIVE)
 EXTERN_CVAR(Int, gl_fogmode)
 
 
@@ -464,7 +466,9 @@ void gl_InitModels()
 
 FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
 {
-
+	// [BB] The user doesn't want to use models, so just pretend that there is no model for this frame.
+	if ( gl_use_models == false )
+		return NULL;
 
 	if (GetDefaultByType(ti)->hasmodel)
 	{
