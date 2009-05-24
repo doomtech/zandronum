@@ -4846,7 +4846,7 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 
 	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
-		P_SetPsprite( &players[ulPlayer], ps_weapon, pNewState + lOffset );
+		P_SetPsprite( &players[ulPlayer], lPosition, pNewState + lOffset );
 }
 
 //*****************************************************************************

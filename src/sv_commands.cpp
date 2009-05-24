@@ -118,6 +118,43 @@ void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
 		ulBits  &= ~CM_MOVEDIR;
 }
 
+
+//*****************************************************************************
+//
+// [BB] Try to find the state label and the correspoding offset belonging to the target state.
+void FindStateLabelAndOffset( const PClass *pClass, FState *pState, FString &stateLabel, LONG &lOffset )
+{
+	stateLabel = "";
+	lOffset = 0;
+	FState *pCompareState;
+
+	// Begin searching through the actor's state labels to find the state that corresponds
+	// to the given state.
+	for ( ULONG ulIdx = 0; ulIdx < (ULONG)pClass->ActorInfo->StateList->NumLabels; ulIdx++ )
+	{
+		if ( stateLabel.IsNotEmpty() )
+			break;
+
+		// See if any of the states in this label match the given state.
+		lOffset = 0;
+		pCompareState = pClass->ActorInfo->StateList->Labels[ulIdx].State;
+		while ( pCompareState )
+		{
+			if ( pState == pCompareState )
+			{
+				stateLabel = pClass->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
+				break;
+			}
+
+			if ( pCompareState->GetNextState( ) != pCompareState + 1 )
+				break;
+
+			lOffset++;
+			pCompareState = pCompareState->GetNextState( );
+		}
+	}
+}
+
 //*****************************************************************************
 //
 // [BB] Mark the actor as updated according to ulBits.
@@ -919,10 +956,9 @@ void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 //
 void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	const char		*pszStateLabel;
+	FString			stateLabel;
 	LONG			lOffset;
 	ULONG			ulIdx;
-	FState			*pCompareState;
 	const PClass	*pClass;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
@@ -933,34 +969,13 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 
 	pClass = players[ulPlayer].ReadyWeapon->GetClass( );
 
-	// Begin searching through the actor's state labels to find the state that corresponds
-	// to the given state.
-	pszStateLabel = NULL;
-	for ( ulIdx = 0; ulIdx < (ULONG)pClass->ActorInfo->StateList->NumLabels; ulIdx++ )
-	{
-		// See if any of the states in this label match the given state.
-		lOffset = 0;
-		pCompareState = pClass->ActorInfo->StateList->Labels[ulIdx].State;
-		while ( 1 )
-		{
-			if ( pState == pCompareState )
-			{
-				pszStateLabel = pClass->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
-				break;
-			}
-
-			if ( pCompareState->GetNextState( ) != pCompareState + 1 )
-				break;
-
-			lOffset++;
-			pCompareState = pCompareState->GetNextState( );
-		}
-	}
+	// [BB] Try to find the state label and the correspoding offset belonging to the target state.
+	FindStateLabelAndOffset( pClass, pState, stateLabel, lOffset );
 
 	// Couldn't find the state, so just try to go based off the spawn state.
-	if ( pszStateLabel == NULL )
+	if ( stateLabel.IsEmpty() )
 	{
-		pszStateLabel = "Ready";
+		stateLabel = "Ready";
 		lOffset = LONG( pState - players[ulPlayer].ReadyWeapon->GetReadyState( ));
 		if (( lOffset < 0 ) ||
 			( lOffset > 255 ))
@@ -980,10 +995,10 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszStateLabel ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4 + static_cast<ULONG>( stateLabel.Len() ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPSPRITE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszStateLabel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, stateLabel.GetChars() );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
 	}
@@ -2327,7 +2342,6 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	FString stateLabel;
 	LONG		lOffset = 0;
 	ULONG		ulIdx;
-	FState		*pCompareState;
 
 	if ( !EnsureActorHasNetID (pActor) || (pState == NULL) )
 		return;
@@ -2351,31 +2365,8 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		}
 	}
 
-	// Begin searching through the actor's state labels to find the state that corresponds
-	// to the given state.
-	for ( ulIdx = 0; ulIdx < (ULONG)pActor->GetClass( )->ActorInfo->StateList->NumLabels; ulIdx++ )
-	{
-		if ( stateLabel.IsNotEmpty() )
-			break;
-
-		// See if any of the states in this label match the given state.
-		lOffset = 0;
-		pCompareState = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].State;
-		while ( pCompareState )
-		{
-			if ( pState == pCompareState )
-			{
-				stateLabel = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
-				break;
-			}
-
-			if ( pCompareState->GetNextState( ) != pCompareState + 1 )
-				break;
-
-			lOffset++;
-			pCompareState = pCompareState->GetNextState( );
-		}
-	}
+	// [BB] Try to find the state label and the correspoding offset belonging to the target state.
+	FindStateLabelAndOffset( pActor->GetClass( ), pState, stateLabel, lOffset );
 
 	// Couldn't find the state, so just try to go based off one of the standard states.
 	// [BB] This is a workaround. Therefore let the name of the state string begin
