@@ -370,6 +370,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySoundEx)
 	ACTION_PARAM_BOOL(looping, 2);
 	ACTION_PARAM_INT(attenuation_raw, 3);
 
+	// [BB] Let the server play these sounds.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+			return;
+	}
+
 	int attenuation;
 	switch (attenuation_raw)
 	{
@@ -388,12 +396,20 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySoundEx)
 	if (!looping)
 	{
 		S_Sound (self, int(channel) - NAME_Auto, soundid, 1, attenuation);
+
+		// [BB] If we're the server, tell clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, int(channel) - NAME_Auto, S_GetName( soundid ), 1, attenuation );
 	}
 	else
 	{
 		if (!S_IsActorPlayingSomething (self, int(channel) - NAME_Auto, soundid))
 		{
 			S_Sound (self, (int(channel) - NAME_Auto) | CHAN_LOOP, soundid, 1, attenuation);
+
+			// [BB] If we're the server, tell clients to play the sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, (int(channel) - NAME_Auto) | CHAN_LOOP, S_GetName( soundid ), 1, attenuation );
 		}
 	}
 }
