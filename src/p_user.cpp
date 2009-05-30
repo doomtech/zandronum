@@ -2268,7 +2268,8 @@ void P_CheckPlayerSprites()
 				}
 			}
 			// [BB] No longer using a weapon with a preferred skin, reset the sprite.
-			else if ( ( mo->sprite != skins[lSkin].sprite ) && ( mo->sprite != skins[lSkin].crouchsprite ) )
+			else if ( ( mo->sprite != skins[lSkin].sprite ) && ( mo->sprite != skins[lSkin].crouchsprite )
+					&& ( mo->sprite != mo->state->sprite ) )
 			{
 				mo->sprite = skins[lSkin].sprite;
 			}
