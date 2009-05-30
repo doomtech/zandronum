@@ -3472,7 +3472,9 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 	nextsector=NULL;
 	nexttopplane=nextbottomplane=NULL;
 
-    if(li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size())
+	// [BB] In j-ecinvbug.wad I experienced li->backsector == NULL, which obviously leads to a crash.
+	if( li->frontsector && li->backsector &&
+		(li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size()) )
 	{
 		int  frontflag;
 		F3DFloor* rover;
