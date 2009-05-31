@@ -5227,7 +5227,13 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 						angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
 						thing->momx += fixed_t (finecosine[ang] * thrust);
 						thing->momy += fixed_t (finesine[ang] * thrust);
-						if (bombdodamage) thing->momz += (fixed_t)momz;	// this really doesn't work well
+
+						// [BB] If DF2_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
+						if ( ( (dmflags2 & DF2_NO_ROCKET_JUMPING) == false ) ||
+							( bombsource == NULL ) || ( bombsource->player == NULL ) || ( thing->player == NULL ) )
+						{
+							if (bombdodamage) thing->momz += (fixed_t)momz;	// this really doesn't work well
+						}
 
 					// [BC] If we're the server, update the thing's momentum.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )

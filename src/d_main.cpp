@@ -451,6 +451,7 @@ CVAR (Flag, sv_disallowspying,		dmflags2, DF2_DISALLOW_SPYING);
 CVAR (Flag, sv_chasecam,			dmflags2, DF2_CHASECAM);
 CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
 CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
+CVAR (Flag, sv_norocketjumping,		dmflags2, DF2_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
 
