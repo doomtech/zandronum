@@ -26,13 +26,14 @@
 struct event_t;
 struct PNGHandle;
 
-
+struct FMapThing;
 //
 // GAME
 //
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate );
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate );
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate );
+FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer );
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer = false );
 
 // [BC] Determines the game type by map spots and other items placed on the level.

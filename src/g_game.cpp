@@ -2266,11 +2266,22 @@ static FMapThing *SelectRandomTeamSpot( USHORT usPlayer, ULONG ulTeam, ULONG ulN
 }
 
 // Select a cooperative spawn spot at random.
-static FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSelections )
+FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer )
 {
 	ULONG		ulNumAttempts;
 	ULONG		ulSelection;
 	ULONG		ulIdx;
+
+	// [BB] Count the number of available player starts.
+	ULONG ulNumSelections = 0;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( playerstarts[ulIdx].type != 0 )
+			ulNumSelections++;
+	}
+
+	if ( ulNumSelections < 1 )
+		I_Error( "No cooperative starts!" );
 
 	// Try up to 20 times to find a valid spot.
 	for ( ulNumAttempts = 0; ulNumAttempts < 20; ulNumAttempts++ )
@@ -2430,10 +2441,6 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer )
 {
-	ULONG		ulNumSpots;
-	ULONG		ulIdx;
-	FMapThing	*pSpot;
-
 	// If there's a valid start for this player, spawn him there.
 	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
@@ -2442,18 +2449,8 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 		return;
 	}
 
-	ulNumSpots = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( playerstarts[ulIdx].type != 0 )
-			ulNumSpots++;
-	}
-
-	if ( ulNumSpots < 1 )
-		I_Error( "No cooperative starts!" );
-
 	// Now, try to find a valid cooperative start.
-	pSpot = SelectRandomCooperativeSpot( ulPlayer, ulNumSpots );
+	FMapThing *pSpot = SelectRandomCooperativeSpot( ulPlayer );
 
 	// ANAMOLOUS HAPPENING!!!
 	if ( pSpot == NULL )
