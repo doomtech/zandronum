@@ -5178,31 +5178,31 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 				float thrust;
 				int damage = (int)points;
 
-			// [BC] Damage is server side.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			{
-				if (bombdodamage) P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
-				else if (thing->player == NULL)
+				// [BC] Damage is server side.
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
-					thing->flags2 |= MF2_BLASTED;
+					if (bombdodamage) P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
+					else if (thing->player == NULL)
+					{
+						thing->flags2 |= MF2_BLASTED;
 
-					// [BB] If we're the server, tell clients to update the flags of the object.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingFlags( thing, FLAGSET_FLAGS2 );
+						// [BB] If we're the server, tell clients to update the flags of the object.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetThingFlags( thing, FLAGSET_FLAGS2 );
+					}
 				}
-			}
 
-			// [BC] If this explosion damaged a player, and the explosion originated from a
-			// player, mark the source player as striking a player, to potentially reward an
-			// accuracy medal.
-			if (( bombsource ) &&
-				( bombsource->player ) &&
-				( thing != bombsource ) &&
-				( thing->player ) &&
-				( thing->IsTeammate( bombsource ) == false ))
-			{
-				bombsource->player->bStruckPlayer = true;
-			}
+				// [BC] If this explosion damaged a player, and the explosion originated from a
+				// player, mark the source player as striking a player, to potentially reward an
+				// accuracy medal.
+				if (( bombsource ) &&
+					( bombsource->player ) &&
+					( thing != bombsource ) &&
+					( thing->player ) &&
+					( thing->IsTeammate( bombsource ) == false ))
+				{
+					bombsource->player->bStruckPlayer = true;
+				}
 
 				if (!(thing->flags & MF_ICECORPSE))
 				{
@@ -5235,9 +5235,9 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 							if (bombdodamage) thing->momz += (fixed_t)momz;	// this really doesn't work well
 						}
 
-					// [BC] If we're the server, update the thing's momentum.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_MoveThingExact( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
+						// [BC] If we're the server, update the thing's momentum.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_MoveThingExact( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
 					}
 				}
 			}
