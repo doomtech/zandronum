@@ -41,6 +41,11 @@ latestzdoom branch
 +	- Added new CVAR gl_use_models (default true). If false, all sprite model replacements are ignored. [Torr Samaho]
 +	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps. [Torr Samaho]
 +	- Added new dmflag "no rocket jumping", controlled by the new CVAR sv_norocketjumping. If enabled, P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping. [Torr Samaho, SuperGod]
++	- Revamped the ZDoom dmflag "kill monsters", controlled by the CVAR DF2_KILL_MONSTERS. [Torr Samaho, SuperGod]
+		- When the exit is blocked, the player is now teleported back to a random start. This fixes problems when the exit was blocked and the player passed an exit line.
+		- The flag is now only used in cooperative game modes, doesn't make much sense in other modes.
+		- Added new CVAR sv_killallmonsters_percentage (default 100) that allows to specify how many percent of the monsters have to be killed before the level can be exited.
+		- If the flag is used, the scoreboard now displays how many percent of the monsters are still alive instead of the absolute number.
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

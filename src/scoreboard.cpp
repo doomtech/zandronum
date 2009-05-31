@@ -2195,8 +2195,10 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	{
 		if ( invasion )
 			return (LONG)INVASION_GetNumMonstersLeft( );
-		else
+		else if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
 			return ( level.total_monsters - level.killed_monsters );
+		else
+			return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
 	}
 	// WIN-based mode (LMS).
 	else if (( lastmanstanding || teamlms ) && ( winlimit > 0 ))
@@ -2972,7 +2974,10 @@ static void scoreboard_DrawLimits( void )
 	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
 	{
 		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d monster%s remaining", static_cast<int> (lNumMonstersRemaining), lNumMonstersRemaining == 1 ? "" : "s" );
+		if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
+			sprintf( szString, "%d monster%s remaining", static_cast<int> (lNumMonstersRemaining), lNumMonstersRemaining == 1 ? "" : "s" );
+		else
+			sprintf( szString, "%d%% remaining", static_cast<int> (lNumMonstersRemaining) );
 		
 		if ( g_bScale )
 		{

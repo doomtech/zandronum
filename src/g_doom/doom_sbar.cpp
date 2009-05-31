@@ -954,7 +954,12 @@ void DrawFullHUD_GameInformation()
 
 		LONG left = SCOREBOARD_GetLeftToLimit( );
 		if(left > 0)
-			sprintf( szString, "%s \\cb(%d left)", szString, static_cast<int> (left) );
+		{
+			if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
+				sprintf( szString, "%s \\cb(%d left)", szString, static_cast<int> (left) );
+			else
+				sprintf( szString, "%s \\cb(%d%% left)", szString, static_cast<int> (left) );
+		}
 		
 		V_ColorizeString( szString );
 

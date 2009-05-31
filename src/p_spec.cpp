@@ -79,6 +79,7 @@
 #include "cooperative.h"
 #include "survival.h"
 #include "gamemode.h"
+#include "doomdata.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -138,6 +139,15 @@ static void P_SpawnScrollers();
 static void P_SpawnFriction ();		// phares 3/16/98
 static void P_SpawnPushers ();		// phares 3/20/98
 
+CUSTOM_CVAR ( Int, sv_killallmonsters_percentage, 100, CVAR_SERVERINFO )
+{
+	if ( self > 100 )
+		self = 100;
+	else if ( self < 0 )
+		self = 0;
+}
+
+FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer );
 
 // [RH] Check dmflags for noexit and respond accordingly
 bool CheckIfExitIsGood (AActor *self, level_info_t *info)
@@ -150,7 +160,34 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 
 	// We must kill all monsters to exit the level.
 	if ((dmflags2 & DF2_KILL_MONSTERS) && level.killed_monsters != level.total_monsters)
-		return false;
+	{
+		// [BB] Refine this: Instead of needing to kill all monsters, only sv_killallmonsters_percentage percent have to be killed.
+		float fPercentKilled = 100 * ( static_cast<float>(level.killed_monsters) / static_cast<float>(level.total_monsters) );
+		// [BB] Use the flag only in cooperative game modes, doesn't make much sense otherwise.
+		if ( ( fPercentKilled < sv_killallmonsters_percentage ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
+		{
+			// [BB] We have to do something when a player passes a line that should exit the level, so we just
+			// teleport the player back to one of the player starts.
+			if ( self->player && self->player->mo )
+			{
+				ULONG ulPlayer = static_cast<ULONG>( self->player - players );
+
+				// [BB] SelectRandomCooperativeSpot calls G_CheckSpot which removes the MF_SOLID flag, we need to work around this.
+				bool bSolidFlag = ( players[ulPlayer].mo->flags & MF_SOLID );
+				FMapThing *pSpot = SelectRandomCooperativeSpot( ulPlayer );
+				if ( bSolidFlag )
+					players[ulPlayer].mo->flags |=  MF_SOLID;
+				P_Teleport (self, pSpot->x, pSpot->y, ONFLOORZ, ANG45 * (pSpot->angle/45), true, true, false);
+
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "You need to kill %d percent of the monsters before exiting the level.\n", sv_killallmonsters_percentage.GetGenericRep( CVAR_Int ).Int );
+				else
+					Printf( "You need to kill %d percent of the monsters before exiting the level.\n", sv_killallmonsters_percentage.GetGenericRep( CVAR_Int ).Int );
+
+			}
+			return false;
+		}
+	}
 
 	// Is this a deathmatch game and we're not allowed to exit?
 	// [BC] Teamgame, too.
