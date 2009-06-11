@@ -437,6 +437,21 @@ void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
 	*pszString = 0;
 }
 
+// [BB] Version of V_UnColorizeString that accepts a FString as argument and doesn't need ulMaxStringLength.
+void V_UnColorizeString( FString &String )
+{
+	const int length = static_cast<int> (String.Len());
+	// [BB] The temporary array is twice as big, because every converted color code
+	// increases the length of the string by one.
+	char *tempCharArray = new char[2*length+1];
+	// [BB] We only need to copy length chars, because that's length = String.Len().
+	strncpy( tempCharArray, String.GetChars(), length );
+	tempCharArray[length] = 0;
+	V_UnColorizeString( tempCharArray, 2*length );
+	String = tempCharArray;
+	delete[] tempCharArray;
+}
+
 // [BC] This strips color codes from a string.
 void V_RemoveColorCodes( char *pszString )
 {
@@ -635,6 +650,22 @@ void V_CleanPlayerName( char *pszString )
 
 	// Cut the string at its new end.
 	*pszString = 0;
+
+	// [BB] Remove any trailing incomplete escaped color codes. Since we just removed
+	// quite a bit from the string, it's possible that those are there now.
+	// Note: We need to work on pszStart now, by now pszString only contains a pointer
+	// to the end of the string.
+	ulStringLength = static_cast<ULONG>(strlen( pszStart ));
+	while ( ulStringLength > 0 )
+	{
+		if ( pszStart[ulStringLength-1] == TEXTCOLOR_ESCAPE )
+		{
+			pszStart[ulStringLength-1] = 0;
+			ulStringLength--;
+		}
+		else
+			break;
+	}
 
 	// Determine the name's actual length.
 	strncpy( szColorlessName, pszStart, 256 );
