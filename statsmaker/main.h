@@ -54,6 +54,7 @@
 #define _WIN32_IE 0x0501
 #include <windows.h>
 #include "network.h"
+#include "i_system.h"
 #include "..\src\tarray.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -231,7 +232,6 @@ typedef struct
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 SERVER_s		*MAIN_FindServerByAddress( NETADDRESS_s Address );
-void			Printf( const char *pszString, ... );
 void			VPrintf( const char *pszString, va_list Parms );
 void			MAIN_Print( char *pszString );
 

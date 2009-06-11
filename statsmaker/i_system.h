@@ -53,10 +53,14 @@
 #define __I_SYSTEM__
 
 #include <stdio.h>
-#include "../src/m_alloc.h"
 
 #define atterm atexit
-#define I_FatalError printf
-#define Printf printf
+#define I_FatalError Printf
+#define M_Malloc(s) malloc(s)
+#define M_Realloc(p,s) realloc(p,s)
+#define M_Free(s) free(s)
+
+// [BB] Implemented in main.cpp
+void			Printf( const char *pszString, ... );
 
 #endif
