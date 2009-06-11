@@ -1157,6 +1157,10 @@ AWeapon *FWeaponSlots::PickNextWeapon(player_t *player)
 		{
 			startslot = NUM_WEAPON_SLOTS - 1;
 			startindex = Slots[startslot].Size() - 1;
+			// [BB] If the start slot is empty, we have to set startindex differently, otherwise
+			// the while loop won't terminate if the player has no weapons.
+			if ( startindex < 0 )
+				startindex = 0;
 		}
 
 		slot = startslot;
@@ -1211,6 +1215,10 @@ AWeapon *FWeaponSlots::PickPrevWeapon (player_t *player)
 		{
 			startslot = 0;
 			startindex = 0;
+			// [BB] If the start slot is empty, we have to set startindex differently, otherwise
+			// the while loop won't terminate if the player has no weapons.
+			if ( Slots[startslot].Size() == 0 )
+				startindex = -1;
 		}
 
 		slot = startslot;
