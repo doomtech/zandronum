@@ -120,9 +120,10 @@ class FWadLump : public FileReader
 public:
 	FWadLump ();
 	FWadLump (const FWadLump &copy);
-#ifdef _DEBUG
+// [BB] The automatically generated assignment operator doesn't work properly (reference counting of SourceData is broken).
+//#ifdef _DEBUG
 	FWadLump & operator= (const FWadLump &copy);
-#endif
+//#endif
 	~FWadLump();
 
 	long Seek (long offset, int origin);

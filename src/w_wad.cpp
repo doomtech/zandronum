@@ -2566,10 +2566,25 @@ FWadLump::FWadLump (const FWadLump &copy)
 	}
 }
 
-#ifdef _DEBUG
+// [BB] The automatically generated assignment operator doesn't work properly (reference counting of SourceData is broken).
+//#ifdef _DEBUG
 FWadLump & FWadLump::operator= (const FWadLump &copy)
 {
+	// [BB] Since the assignment overwrites SourceData, we have to clean this first.
+	if (SourceData && DestroySource) 
+	{
+		if (SourceData[Length] == 0)
+		{
+			delete[] SourceData;
+		}
+		else
+		{
+			SourceData[Length]--;
+		}
+	}
+
 	// Only the debug build actually calls this!
+	// [BB] No, also the release build calls (and needs to call) this.
 	File = copy.File;
 	Length = copy.Length;
 	FilePos = copy.FilePos;
@@ -2583,7 +2598,7 @@ FWadLump & FWadLump::operator= (const FWadLump &copy)
 	}
 	return *this;
 }
-#endif
+//#endif
 
 FWadLump::FWadLump (const FileReader &other, long length, bool encrypted)
 : FileReader(other, length), SourceData(NULL), DestroySource(false), Encrypted(encrypted)
