@@ -532,6 +532,20 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	else if ( cvar == &name )
 	{
 		val = cvar->GetGenericRep( CVAR_String );
+		FString cleanedName = val.String;
+		// [BB] V_CleanPlayerName removes all backslashes, including those from '\c'.
+		// To clean the name, we first convert the color codes, clean the name and
+		// then restore the color codes again.
+		V_ColorizeString ( cleanedName );
+		V_CleanPlayerName ( cleanedName );
+		V_UnColorizeString ( cleanedName );
+		// [BB] The name needed to be cleaned. Update the CVAR name with the cleaned
+		// string and return (updating the name calls D_UserInfoChanged again).
+		if ( strcmp ( cleanedName.GetChars(), val.String ) != 0 )
+		{
+			name = cleanedName;
+			return;
+		}
 		V_ColorizeString( val.String );
 
 		ulUpdateFlags |= USERINFO_NAME;
