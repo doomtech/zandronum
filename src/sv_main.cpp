@@ -4706,7 +4706,7 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
 		return ( true );
 	}
 
@@ -4753,7 +4753,7 @@ static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
 		return ( true );
 	}
 
@@ -4833,7 +4833,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
 		return ( true );
 	}
 
