@@ -78,6 +78,7 @@ latestzdoom branch
 !	- The Windows server now runs on above-normal priority. [Torr Samaho, SuperGod]
 !	- The server now reports the full version (including the revision number) over the launcher protocol. [Torr Samaho, SuperGod]
 !	- The player name restrictions are now also applied to the CVAR name itself, not only to the actually used netname value. [Torr Samaho]
+!	- The authentication mechanism for non-map related lumps now allows Freedoom/Doom clients to join Doom/Freedoom servers. [Torr Samaho]
 
 
 <trunk>

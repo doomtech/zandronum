@@ -292,6 +292,18 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			case LAST_LUMP:
 				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), lumpsToAuthenticate[i].c_str(), checksum ) )
 					noProtectedLumpsAutoloaded = false;
+
+				// [BB] To make Doom and Freedoom network compatible, substitue the Freedoom PLAYPAL/COLORMAP hash
+				// by the corresponding Doom hash.
+				// 4804c7f34b5285c334a7913dd98fae16 Doom PLAYPAL hash
+				// 061a4c0f80aa8029f2c1bc12dc2e261e Doom COLORMAP hash
+				// 2e01ae6258f2a0fdad32125537efe1af Freedoom PLAYPAL hash
+				// bb535e66cae508e3833a5d2de974267b Freedoom COLORMAP hash
+				if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "PLAYPAL" ) == 0 ) && ( stricmp ( checksum.GetChars(), "2e01ae6258f2a0fdad32125537efe1af" ) == 0 ) )
+					checksum = "4804c7f34b5285c334a7913dd98fae16";
+				else if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "COLORMAP" ) == 0 ) && ( stricmp ( checksum.GetChars(), "bb535e66cae508e3833a5d2de974267b" ) == 0 ) )
+					checksum = "061a4c0f80aa8029f2c1bc12dc2e261e";
+
 				longChecksum += checksum;
 				break;
 
