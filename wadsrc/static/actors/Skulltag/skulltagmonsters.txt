@@ -12,6 +12,8 @@ actor DarkImp : DoomImp 5003 // [RT] Inherits from the DoomImp for convenience
   hitobituary "$OB_DARKIMP_MELEE"
   health 120
   missiletype DarkImpBall
+  meleedamage 3
+  meleesound "imp/melee"
   states
   {
   Spawn:
