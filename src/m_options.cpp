@@ -1826,9 +1826,9 @@ void ignoreplayermenu_Ignore( void )
 	// Execute the command.
 	char	szString[256];
 	if ( menu_ignoreplayer_action == 0 )
-		sprintf( szString, "ignore \"%s\" %d", Name.Left( 96 ), menu_ignoreplayer_duration.GetGenericRep( CVAR_Int ).Int );
+		sprintf( szString, "ignore \"%s\" %d", Name.Left( 96 ).GetChars(), menu_ignoreplayer_duration.GetGenericRep( CVAR_Int ).Int );
 	else
-		sprintf( szString, "unignore \"%s\"", Name.Left( 96 ));
+		sprintf( szString, "unignore \"%s\"", Name.Left( 96 ).GetChars());
 
 	AddCommandString( szString );
 	M_ClearMenus( );
@@ -1902,7 +1902,7 @@ void kickplayermenu_Kick( void )
 
 	// Execute the command.
 	char	szString[256];
-	sprintf( szString, "callvote kick \"%s\" \"%s\"", Name.Left( 96 ), Reason.Left( 25 ));
+	sprintf( szString, "callvote kick \"%s\" \"%s\"", Name.Left( 96 ).GetChars(), Reason.Left( 25 ).GetChars());
 	AddCommandString( szString );
 	M_ClearMenus( );
 }
@@ -1953,7 +1953,7 @@ void mapvotemenu_Vote( void )
 
 	// Execute the command.
 	char		szString[256];
-	sprintf( szString, "callvote %s %s %s", ( menu_mapvoteintermission.GetGenericRep( CVAR_Bool ).Bool ? "changemap" : "map" ), Map.Left( 128 ), Reason.Left( 25 ) );
+	sprintf( szString, "callvote %s %s %s", ( menu_mapvoteintermission.GetGenericRep( CVAR_Bool ).Bool ? "changemap" : "map" ), Map.Left( 128 ).GetChars(), Reason.Left( 25 ).GetChars() );
 	AddCommandString( szString );
 	M_ClearMenus( );
 }
@@ -2024,7 +2024,7 @@ void limitvotemenu_Vote( void )
 
 	// Execute the command.
 	char		szString[512];
-	sprintf( szString, "callvote %s %d \"%s\"", limitvote_Types[iVoteType].name, iLimit, Reason.Left( 25 ) );
+	sprintf( szString, "callvote %s %d \"%s\"", limitvote_Types[iVoteType].name, iLimit, Reason.Left( 25 ).GetChars() );
 	AddCommandString( szString );
 	M_ClearMenus( );
 }
@@ -5057,7 +5057,7 @@ void M_OptDrawer ()
 							*item->a.intcvar = 0;
 
 						level_info_t *info = &wadlevelinfos[*item->a.intcvar];
-						sprintf( szMapName, "%s - %s", wadlevelinfos[*item->a.intcvar].mapname, info ? info->LookupLevelName() : "" );
+						sprintf( szMapName, "%s - %s", wadlevelinfos[*item->a.intcvar].mapname, info ? info->LookupLevelName().GetChars() : "" );
 
 						if ( stricmp( szMapName, "(null)" ) == 0 )
 							screen->DrawText( SmallFont, CR_GREY, x, y, "UNKNOWN LEVEL", DTA_Clean, true, TAG_DONE );
