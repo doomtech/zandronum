@@ -339,7 +339,7 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 	{
 		// [BC] Don't allow spectators to telefrag/be telefragged.
 		if ((( th->player ) && ( th->player->bSpectating )) || (( thing->player ) && ( thing->player->bSpectating )))
-			return ( true );
+			continue;
 
 		if (!(th->flags & MF_SHOOTABLE))
 			continue;
