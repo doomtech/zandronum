@@ -43,6 +43,8 @@
 #include "r_sky.h"
 #include "g_level.h"
 #include "v_palette.h"
+// [BB] New #includes.
+#include "g_game.h"
 
 //===========================================================================
 //
@@ -1192,6 +1194,11 @@ struct UDMFParser
 			{
 				line_t li;
 				ParseLinedef(&li);
+
+				// [BB] Save some values that are necessary for a map reset.
+				GAME_BackupLineProperties(&li);
+				li.SavedAlpha = li.Alpha;
+
 				ParsedLines.Push(li);
 			}
 			else if (sc.Compare("sidedef"))
