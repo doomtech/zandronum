@@ -2198,7 +2198,12 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 		else if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
 			return ( level.total_monsters - level.killed_monsters );
 		else
-			return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
+		{
+			if ( level.total_monsters > 0 )
+				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
+			else
+				return 0;
+		}
 	}
 	// WIN-based mode (LMS).
 	else if (( lastmanstanding || teamlms ) && ( winlimit > 0 ))
