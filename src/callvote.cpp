@@ -155,7 +155,7 @@ void CALLVOTE_Tick( void )
 				{
 					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
 					if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
-						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d.\"", NETWORK_AddressToString( g_KickVoteVictimAddress ), callvote_CountPlayersWhoVotedYes( ), callvote_CountPlayersWhoVotedNo( ) );
+						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d.\"", NETWORK_AddressToString( g_KickVoteVictimAddress ), static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
 
 					AddCommandString( (char *)g_VoteCommand.GetChars( ));
 				}
@@ -266,7 +266,7 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 		return ( false );
 
 	// [RC] If this is our vote, hide the vote screen soon.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ulPlayer == consoleplayer )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( static_cast<LONG>(ulPlayer) == consoleplayer ) )
 		g_ulShowVoteScreenTicks = 1 * TICRATE;
 
 	// Also, don't allow spectator votes if the server has them disabled.
@@ -354,7 +354,7 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 		return ( false );
 
 	// [RC] If this is our vote, hide the vote screen soon.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ulPlayer == consoleplayer )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( static_cast<LONG>(ulPlayer) == consoleplayer ) )
 		g_ulShowVoteScreenTicks = 1 * TICRATE;
 
 	// [RC] Vote callers can cancel their votes by voting "no".
@@ -654,7 +654,7 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 		if ( !( i->ulVoteType == VOTECMD_KICK && i->bPassed ) && NETWORK_CompareAddress( i->Address, Address, true ) && ( ulVoteType == i->ulVoteType ) && (( tNow - i->tTimeCalled ) < VOTER_VOTETYPE_INTERVAL * MINUTE ))
 		{
 			int iMinutesLeft = static_cast<int>( 1 + ( i->tTimeCalled + VOTER_VOTETYPE_INTERVAL * MINUTE - tNow ) / MINUTE );
-			SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "You must wait %d minute%s to call another %s vote.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ), Command );
+			SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "You must wait %d minute%s to call another %s vote.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ), Command.GetChars() );
 			return false;
 		}
 
@@ -679,9 +679,9 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 			}
 
 			// Other votes.
-			if (( i->ulVoteType != VOTECMD_KICK ) && ( stricmp( i->fsParameter, Parameters ) == 0 ))
+			if (( i->ulVoteType != VOTECMD_KICK ) && ( stricmp( i->fsParameter.GetChars(), Parameters.GetChars() ) == 0 ))
 			{
-				SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "That specific vote (\"%s %s\") was recently called, and failed. You must wait %d minute%s to call it again.\n", Command, Parameters, iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
+				SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "That specific vote (\"%s %s\") was recently called, and failed. You must wait %d minute%s to call it again.\n", Command.GetChars(), Parameters.GetChars(), iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
 				return false;
 			}
 		}
@@ -727,7 +727,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 				ULONG ulIdx = SERVER_GetPlayerIndexFromName( Parameters.GetChars( ), true, false );
 				if ( ulIdx < MAXPLAYERS )
 				{
-					if ( ulIdx == SERVER_GetCurrentClient( ))
+					if ( static_cast<LONG>(ulIdx) == SERVER_GetCurrentClient( ))
 					{
 						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "You cannot votekick yourself!\n" );
   						return ( false );
@@ -772,7 +772,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 255.\n", Command );
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 255.\n", Command.GetChars() );
 			return ( false );
 		}
 		else if ( parameterInt == 0 )
@@ -789,7 +789,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 65535.\n", Command );
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "%s parameters must be between 0 and 65535.\n", Command.GetChars() );
 			return ( false );
 		}
 		else if ( parameterInt == 0 )
@@ -958,7 +958,7 @@ CCMD ( cancelvote )
 		g_bVotePassed = false;
 		callvote_EndVote( );
 	}
-	else if ( g_ulVoteCaller == consoleplayer )
+	else if ( static_cast<LONG>(g_ulVoteCaller) == consoleplayer )
 	{
 		// Just vote no; we're the original caller, so it will be cancelled.
 		if ( CLIENT_GetConnectionState( ) == CTS_ACTIVE )
