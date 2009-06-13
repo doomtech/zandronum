@@ -800,7 +800,10 @@ const char *G_GetExitMap()
 			 ( MAPROTATION_GetNumEntries( ) != 0 ))
 	{
 		// Move on to the next map.
-		MAPROTATION_AdvanceMap( );
+		// [BB] It's possible that G_GetExitMap() is called multiple times before a map change.
+		// In this case we need to make sure that MAPROTATION_AdvanceMap() is only called once.
+		if ( stricmp ( level.mapname, MAPROTATION_GetCurrentMapName() ) == 0 )
+			MAPROTATION_AdvanceMap( );
 
 		return ( MAPROTATION_GetCurrentMapName( ));
 	}
