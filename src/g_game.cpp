@@ -2995,6 +2995,19 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 
 //*****************************************************************************
 //
+void GAME_BackupLineProperties ( line_t *li )
+{
+	li->SavedSpecial = li->special;
+	li->SavedFlags = li->flags;
+	li->SavedArgs[0] = li->args[0];
+	li->SavedArgs[1] = li->args[1];
+	li->SavedArgs[2] = li->args[2];
+	li->SavedArgs[3] = li->args[3];
+	li->SavedArgs[4] = li->args[4];
+}
+
+//*****************************************************************************
+//
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );

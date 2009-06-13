@@ -27,6 +27,7 @@ struct event_t;
 struct PNGHandle;
 
 struct FMapThing;
+struct line_t;
 //
 // GAME
 //
@@ -38,6 +39,9 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 
 // [BC] Determines the game type by map spots and other items placed on the level.
 void	GAME_CheckMode( void );
+
+// [BB] Backup certain initial properties of the line necessary for a map reset.
+void	GAME_BackupLineProperties ( line_t *li );
 
 // [BC] Function that reverts the map into its original state when it first loaded, without
 // actually reloading the map.

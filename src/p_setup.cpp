@@ -1969,13 +1969,7 @@ void P_LoadLineDefs (MapData * map)
 		P_SaveLineSpecial (ld);
 
 		// [BC] Backup certain properties of the line.
-		ld->SavedSpecial = ld->special;
-		ld->SavedFlags = ld->flags;
-		ld->SavedArgs[0] = ld->args[0];
-		ld->SavedArgs[1] = ld->args[1];
-		ld->SavedArgs[2] = ld->args[2];
-		ld->SavedArgs[3] = ld->args[3];
-		ld->SavedArgs[4] = ld->args[4];
+		GAME_BackupLineProperties ( ld );
 
 		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
@@ -2057,13 +2051,7 @@ void P_LoadLineDefs2 (MapData * map)
 		P_SaveLineSpecial (ld);
 
 		// [BC] Backup certain properties of the line.
-		ld->SavedSpecial = ld->special;
-		ld->SavedFlags = ld->flags;
-		ld->SavedArgs[0] = ld->args[0];
-		ld->SavedArgs[1] = ld->args[1];
-		ld->SavedArgs[2] = ld->args[2];
-		ld->SavedArgs[3] = ld->args[3];
-		ld->SavedArgs[4] = ld->args[4];
+		GAME_BackupLineProperties ( ld );
 
 		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
