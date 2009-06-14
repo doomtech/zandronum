@@ -2213,232 +2213,233 @@ explode:
 	return oldfloorz;
 }
 
-/* [BB] Not compatible with latest ZDoom changes and wasn't used.
-////////////////////////////////////////////////////////////////////////////////
-//// prBoom version of XY movement.
-//void P_OldXYMovement( AActor *mo )
-//{
-//	player_t *player;
-//	fixed_t ptryx, ptryy;
-//	fixed_t xmove, ymove;
-//	fixed_t	maxmove;
-//
-//	maxmove = MAXMOVE;
-//
-//	xmove = clamp( mo->momx, -maxmove, maxmove );
-//	ymove = clamp( mo->momy, -maxmove, maxmove );
-//
-//	if (!(mo->momx | mo->momy)) // Any momentum?
-//	{
-//		if (mo->flags & MF_SKULLFLY)
-//		{
-//
-//			// the skull slammed into something
-//			mo->flags &= ~MF_SKULLFLY;
-//			mo->momz = 0;
-//
-//			mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
-//		}
-//		return;
-//	}
-//
-//	player = mo->player;
-//
-//	maxmove /= 2;
-//
-//	do
-//	{
-//		// killough 8/9/98: fix bug in original Doom source:
-//		// Large negative displacements were never considered.
-//		// This explains the tendency for Mancubus fireballs
-//		// to pass through walls.
-//		// CPhipps - compatibility optioned
-//
-//		if ( 0 )
-////		if (xmove > MAXMOVE/2 || ymove > MAXMOVE/2 ||
-////			xmove < -MAXMOVE/2 || ymove < -MAXMOVE/2)
-//		{
-//			ptryx = mo->x + xmove/2;
-//			ptryy = mo->y + ymove/2;
-//			xmove >>= 1;
-//			ymove >>= 1;
-//		}
-//*/
-//		if (xmove > maxmove || ymove > maxmove)
-//		{
-//			ptryx = mo->x + (xmove >>= 1);
-//			ptryy = mo->y + (ymove >>= 1);
-//		}
-//		else
-//		{
-//			ptryx = mo->x + xmove;
-//			ptryy = mo->y + ymove;
-//			xmove = ymove = 0;
-//		}
-//
-//		// killough 3/15/98: Allow objects to drop off
-//
-//		if (!P_OldTryMove (mo, ptryx, ptryy, true))
-//		{
-//			// blocked move
-//
-//			// killough 8/11/98: bouncing off walls
-//			// killough 10/98:
-//			// Add ability for objects other than players to bounce on ice
-///*	  
-//			if (!(mo->flags & MF_MISSILE) && 
-//				(mo->flags & MF_BOUNCES ||
-//				(!player && blockline &&
-//				variable_friction && mo->z <= mo->floorz &&
-//				P_GetFriction(mo, NULL) > ORIG_FRICTION)))
-//			{
-//				if (blockline)
-//				{
-//					fixed_t r = ((blockline->dx >> FRACBITS) * mo->momx +
-//						(blockline->dy >> FRACBITS) * mo->momy) /
-//						((blockline->dx >> FRACBITS)*(blockline->dx >> FRACBITS)+
-//						(blockline->dy >> FRACBITS)*(blockline->dy >> FRACBITS));
-//				
-//					fixed_t x = FixedMul(r, blockline->dx);
-//					fixed_t y = FixedMul(r, blockline->dy);
-//
-//					// reflect momentum away from wall
-//					mo->momx = x*2 - mo->momx;
-//					mo->momy = y*2 - mo->momy;
-//
-//					// if under gravity, slow down in
-//					// direction perpendicular to wall.
-//					if (!(mo->flags & MF_NOGRAVITY))
-//					{
-//						mo->momx = (mo->momx + x)/2;
-//						mo->momy = (mo->momy + y)/2;
-//					}
-//				}
-//				else
-//					mo->momx = mo->momy = 0;
-//			}
-//*/
-//			if ( 0 )
-//			{
-//			}
-//			else
-//			{
-//				if (player)   // try to slide along it
-//					P_OldSlideMove (mo);
-//
-//				// [BC] This function is only potentially being used for player movement.
-///*
-//				else 
-//				{
-//					if (mo->flags & MF_MISSILE)
-//					{
-//						// explode a missile
-//
-//						if (ceilingline &&
-//							ceilingline->backsector &&
-//							ceilingline->backsector->ceilingpic == skyflatnum)
-//							if (demo_compatibility ||  // killough
-//							mo->z > ceilingline->backsector->ceilingheight)
-//						{
-//							// Hack to prevent missiles exploding
-//							// against the sky.
-//							// Does not handle sky floors.
-//
-//							P_RemoveMobj (mo);
-//							return;
-//						}
-//						P_ExplodeMissile (mo);
-//					}
-//					else // whatever else it is, it is now standing still in (x,y)
-//						mo->momx = mo->momy = 0;
-//				}
-//*/
-//			}
-//		}
-//	} while (xmove || ymove);
-//
-//	// slow down
-//
-//	/* no friction for missiles or skulls ever, no friction when airborne */
-//	if (mo->flags & (MF_MISSILE | MF_SKULLFLY) || mo->z > mo->floorz)
-//		return;
-//
-//	if (mo->flags & MF_CORPSE)
-//	{ // Don't stop sliding if halfway off a step with some momentum
-//		if (mo->momx > FRACUNIT/4 || mo->momx < -FRACUNIT/4
-//			|| mo->momy > FRACUNIT/4 || mo->momy < -FRACUNIT/4)
-//		{
-//			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
-//				return;
-//		}
-//	}
-//
-//	// killough 11/98:
-//	// Stop voodoo dolls that have come to rest, despite any
-//	// moving corresponding player:
-//	if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED
-//		&& mo->momy > -STOPSPEED && mo->momy < STOPSPEED
-//		&& (!player || (player->mo != mo)
-//			|| !(player->cmd.ucmd.forwardmove | player->cmd.ucmd.sidemove)))
-//	{
-//		// if in a walking frame, stop moving
-//		// killough 10/98:
-//		// Don't affect main player when voodoo dolls stop:
-//		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
-//		{
-//			// [BC] In client mode, we don't know if other players have any forwardmove or
-//			// sidemove values, so the server will tell us when to put other players in
-//			// idle mode.
-//			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
-//				(( player - players ) == consoleplayer ))
-//			{
-//				player->mo->PlayIdle ();
-//			}
-//		}
-//
-//		mo->momx = mo->momy = 0;
-//
-//		// killough 10/98: kill any bobbing momentum too (except in voodoo dolls)
-//		if (player && player->mo == mo)
-//			player->momx = player->momy = 0; 
-//	}
-//	else
-//	{
-//		/* phares 3/17/98
-//		*
-//		* Friction will have been adjusted by friction thinkers for
-//		* icy or muddy floors. Otherwise it was never touched and
-//		* remained set at ORIG_FRICTION
-//		*
-//		* killough 8/28/98: removed inefficient thinker algorithm,
-//		* instead using touching_sectorlist in P_GetFriction() to
-//		* determine friction (and thus only when it is needed).
-//		*
-//		* killough 10/98: changed to work with new bobbing method.
-//		* Reducing player momentum is no longer needed to reduce
-//		* bobbing, so ice works much better now.
-//		*
-//		* cph - DEMOSYNC - need old code for Boom demos?
-//		*/
-//
-//		fixed_t friction = P_GetFriction(mo, NULL);
-//
-//		mo->momx = FixedMul(mo->momx, friction);
-//		mo->momy = FixedMul(mo->momy, friction);
-//
-//		/* killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
-//		* This prevents problems with bobbing on ice, where it was not being
-//		* reduced fast enough, leading to all sorts of kludges being developed.
-//		*/
-//
-//		if (player && player->mo == mo)     /* Not voodoo dolls */
-//		{
-//			player->momx = FixedMul(player->momx, ORIG_FRICTION);
-//			player->momy = FixedMul(player->momy, ORIG_FRICTION);
-//		}
-//
-//    }
-//}
+//*****************************************************************************
+// prBoom version of XY movement.
+fixed_t P_OldXYMovement( AActor *mo )
+{
+	player_t *player;
+	fixed_t ptryx, ptryy;
+	fixed_t xmove, ymove;
+	fixed_t	maxmove;
+	fixed_t oldfloorz = mo->floorz;
+
+	maxmove = MAXMOVE;
+
+	xmove = clamp( mo->momx, -maxmove, maxmove );
+	ymove = clamp( mo->momy, -maxmove, maxmove );
+
+	if (!(mo->momx | mo->momy)) // Any momentum?
+	{
+		if (mo->flags & MF_SKULLFLY)
+		{
+
+			// the skull slammed into something
+			mo->flags &= ~MF_SKULLFLY;
+			mo->momz = 0;
+
+			mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
+		}
+		return oldfloorz;
+	}
+
+	player = mo->player;
+
+	maxmove /= 2;
+
+	do
+	{
+		// killough 8/9/98: fix bug in original Doom source:
+		// Large negative displacements were never considered.
+		// This explains the tendency for Mancubus fireballs
+		// to pass through walls.
+		// CPhipps - compatibility optioned
+/*
+		if ( 0 )
+//		if (xmove > MAXMOVE/2 || ymove > MAXMOVE/2 ||
+//			xmove < -MAXMOVE/2 || ymove < -MAXMOVE/2)
+		{
+			ptryx = mo->x + xmove/2;
+			ptryy = mo->y + ymove/2;
+			xmove >>= 1;
+			ymove >>= 1;
+		}
+*/
+		if (xmove > maxmove || ymove > maxmove)
+		{
+			ptryx = mo->x + (xmove >>= 1);
+			ptryy = mo->y + (ymove >>= 1);
+		}
+		else
+		{
+			ptryx = mo->x + xmove;
+			ptryy = mo->y + ymove;
+			xmove = ymove = 0;
+		}
+
+		// killough 3/15/98: Allow objects to drop off
+
+		if (!P_OldTryMove (mo, ptryx, ptryy, true))
+		{
+			// blocked move
+
+			// killough 8/11/98: bouncing off walls
+			// killough 10/98:
+			// Add ability for objects other than players to bounce on ice
+/*	  
+			if (!(mo->flags & MF_MISSILE) && 
+				(mo->flags & MF_BOUNCES ||
+				(!player && blockline &&
+				variable_friction && mo->z <= mo->floorz &&
+				P_GetFriction(mo, NULL) > ORIG_FRICTION)))
+			{
+				if (blockline)
+				{
+					fixed_t r = ((blockline->dx >> FRACBITS) * mo->momx +
+						(blockline->dy >> FRACBITS) * mo->momy) /
+						((blockline->dx >> FRACBITS)*(blockline->dx >> FRACBITS)+
+						(blockline->dy >> FRACBITS)*(blockline->dy >> FRACBITS));
+				
+					fixed_t x = FixedMul(r, blockline->dx);
+					fixed_t y = FixedMul(r, blockline->dy);
+
+					// reflect momentum away from wall
+					mo->momx = x*2 - mo->momx;
+					mo->momy = y*2 - mo->momy;
+
+					// if under gravity, slow down in
+					// direction perpendicular to wall.
+					if (!(mo->flags & MF_NOGRAVITY))
+					{
+						mo->momx = (mo->momx + x)/2;
+						mo->momy = (mo->momy + y)/2;
+					}
+				}
+				else
+					mo->momx = mo->momy = 0;
+			}
+*/
+			if ( 0 )
+			{
+			}
+			else
+			{
+				if (player)   // try to slide along it
+					P_OldSlideMove (mo);
+
+				// [BC] This function is only potentially being used for player movement.
+/*
+				else 
+				{
+					if (mo->flags & MF_MISSILE)
+					{
+						// explode a missile
+
+						if (ceilingline &&
+							ceilingline->backsector &&
+							ceilingline->backsector->ceilingpic == skyflatnum)
+							if (demo_compatibility ||  // killough
+							mo->z > ceilingline->backsector->ceilingheight)
+						{
+							// Hack to prevent missiles exploding
+							// against the sky.
+							// Does not handle sky floors.
+
+							P_RemoveMobj (mo);
+							return;
+						}
+						P_ExplodeMissile (mo);
+					}
+					else // whatever else it is, it is now standing still in (x,y)
+						mo->momx = mo->momy = 0;
+				}
+*/
+			}
+		}
+	} while (xmove || ymove);
+
+	// slow down
+
+	/* no friction for missiles or skulls ever, no friction when airborne */
+	if (mo->flags & (MF_MISSILE | MF_SKULLFLY) || mo->z > mo->floorz)
+		return oldfloorz; 
+
+	if (mo->flags & MF_CORPSE)
+	{ // Don't stop sliding if halfway off a step with some momentum
+		if (mo->momx > FRACUNIT/4 || mo->momx < -FRACUNIT/4
+			|| mo->momy > FRACUNIT/4 || mo->momy < -FRACUNIT/4)
+		{
+			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
+				return oldfloorz;
+		}
+	}
+
+	// killough 11/98:
+	// Stop voodoo dolls that have come to rest, despite any
+	// moving corresponding player:
+	if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED
+		&& mo->momy > -STOPSPEED && mo->momy < STOPSPEED
+		&& (!player || (player->mo != mo)
+			|| !(player->cmd.ucmd.forwardmove | player->cmd.ucmd.sidemove)))
+	{
+		// if in a walking frame, stop moving
+		// killough 10/98:
+		// Don't affect main player when voodoo dolls stop:
+		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
+		{
+			// [BC] In client mode, we don't know if other players have any forwardmove or
+			// sidemove values, so the server will tell us when to put other players in
+			// idle mode.
+			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+				(( player - players ) == consoleplayer ))
+			{
+				player->mo->PlayIdle ();
+			}
+		}
+
+		mo->momx = mo->momy = 0;
+
+		// killough 10/98: kill any bobbing momentum too (except in voodoo dolls)
+		if (player && player->mo == mo)
+			player->momx = player->momy = 0; 
+	}
+	else
+	{
+		/* phares 3/17/98
+		*
+		* Friction will have been adjusted by friction thinkers for
+		* icy or muddy floors. Otherwise it was never touched and
+		* remained set at ORIG_FRICTION
+		*
+		* killough 8/28/98: removed inefficient thinker algorithm,
+		* instead using touching_sectorlist in P_GetFriction() to
+		* determine friction (and thus only when it is needed).
+		*
+		* killough 10/98: changed to work with new bobbing method.
+		* Reducing player momentum is no longer needed to reduce
+		* bobbing, so ice works much better now.
+		*
+		* cph - DEMOSYNC - need old code for Boom demos?
+		*/
+
+		fixed_t friction = P_GetFriction(mo, NULL);
+
+		mo->momx = FixedMul(mo->momx, friction);
+		mo->momy = FixedMul(mo->momy, friction);
+
+		/* killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
+		* This prevents problems with bobbing on ice, where it was not being
+		* reduced fast enough, leading to all sorts of kludges being developed.
+		*/
+
+		if (player && player->mo == mo)     /* Not voodoo dolls */
+		{
+			player->momx = FixedMul(player->momx, ORIG_FRICTION);
+			player->momy = FixedMul(player->momy, ORIG_FRICTION);
+		}
+
+    }
+	return oldfloorz;
+}
 
 // Move this to p_inter ***
 void P_MonsterFallingDamage (AActor *mo)
@@ -3687,12 +3688,11 @@ void AActor::Tick ()
 
 		// Handle X and Y momemtums
 		BlockingMobj = NULL;
-		/*
+		fixed_t oldfloorz = 0;
 		if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
-			P_OldXYMovement( this );
+			oldfloorz = P_OldXYMovement( this );
 		else
-		*/
-		fixed_t oldfloorz = P_XYMovement (this, cummx, cummy);
+			oldfloorz = P_XYMovement (this, cummx, cummy);
 		if (ObjectFlags & OF_EuthanizeMe)
 		{ // actor was destroyed
 			return;

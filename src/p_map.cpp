@@ -571,22 +571,23 @@ int P_GetMoveFactor (const AActor *mo, int *frictionp)
 // MOVEMENT ITERATOR FUNCTIONS
 //
 
+// [BB] This old function still lives on in the bot code...
+int P_BoxOnLineSide (const fixed_t *tmbox, const line_t *ld);
 // [BC] ugh old code for people who just have to have doom2.exe style movement.
 /* killough 8/1/98: used to test intersection between thing and line
  * assuming NO movement occurs -- used to avoid sticky situations.
  */
-/*
-static int untouched(line_t *ld)
+static int untouched(line_t *ld, FCheckPosition &tm)
 {
   fixed_t x, y, tmbbox[4];
   return 
-    (tmbbox[BOXRIGHT] = (x=tmthing->x)+tmthing->radius) <= ld->bbox[BOXLEFT] ||
-    (tmbbox[BOXLEFT] = x-tmthing->radius) >= ld->bbox[BOXRIGHT] ||
-    (tmbbox[BOXTOP] = (y=tmthing->y)+tmthing->radius) <= ld->bbox[BOXBOTTOM] ||
-    (tmbbox[BOXBOTTOM] = y-tmthing->radius) >= ld->bbox[BOXTOP] ||
+    (tmbbox[BOXRIGHT] = (x=tm.thing->x)+tm.thing->radius) <= ld->bbox[BOXLEFT] ||
+    (tmbbox[BOXLEFT] = x-tm.thing->radius) >= ld->bbox[BOXRIGHT] ||
+    (tmbbox[BOXTOP] = (y=tm.thing->y)+tm.thing->radius) <= ld->bbox[BOXBOTTOM] ||
+    (tmbbox[BOXBOTTOM] = y-tm.thing->radius) >= ld->bbox[BOXTOP] ||
     P_BoxOnLineSide(tmbbox, ld) != -1;
 }
-*/
+
 //
 // PIT_CheckLine
 // Adjusts tmfloorz and tmceilingz as lines are contacted
@@ -2231,158 +2232,166 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	return P_TryMove(thing, x, y, dropoff, onfloor, tm);
 }
 
-// [BB] Not compatible with latest ZDoom changes.
-////*****************************************************************************
-////
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
-//				bool dropoff, // killough 3/15/98: allow dropoff as option
-//				bool onfloor) // [RH] Let P_TryMove keep the thing on the floor
-//{
-//	fixed_t		oldx, oldy;
-//	line_t* 	ld;
-//	int 		side;
-//	int 		oldside;
+//*****************************************************************************
 //
-////  felldown = 
-//	floatok = false;               // killough 11/98
+// [BC] ugh old code for people who just have to have doom2.exe style movement.
+bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
+				bool dropoff, // killough 3/15/98: allow dropoff as option
+				bool /*onfloor*/, // [RH] Let P_TryMove keep the thing on the floor
+				FCheckPosition &tm)
+{
+	fixed_t		oldx, oldy;
+	line_t* 	ld;
+	int 		side;
+	int 		oldside;
+
+//  felldown = 
+	tm.floatok = false;               // killough 11/98
+
+//	if (!P_OldCheckPosition (thing, x, y))
+	if (!P_CheckPosition (thing, x, y, tm))
+		return false;   // solid wall or thing
+
+	if ( !(thing->flags & MF_NOCLIP) )
+	{
+		// killough 7/26/98: reformatted slightly
+		// killough 8/1/98: Possibly allow escape if otherwise stuck
+
+		if (tm.ceilingz - tm.floorz < thing->height ||     // doesn't fit
+			// mobj must lower to fit
+			(tm.floatok = true, !(thing->flags & MF_TELEPORT) &&
+			tm.ceilingz - thing->z < thing->height) ||
+			// too big a step up
+			(!(thing->flags & MF_TELEPORT) && 
+			tm.floorz - thing->z > 24*FRACUNIT))
+		{	
+			return tmunstuck 
+				&& !(tm.ceilingline && untouched(tm.ceilingline, tm));
+				/*&& !(  floorline && untouched(  floorline));*/
+		}
+
+		/* killough 3/15/98: Allow certain objects to drop off
+		* killough 7/24/98, 8/1/98: 
+		* Prevent monsters from getting stuck hanging off ledges
+		* killough 10/98: Allow dropoffs in controlled circumstances
+		* killough 11/98: Improve symmetry of clipping on stairs
+		*/
+
+		if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
+		{
+//			if (comp[comp_dropoff])
+			if ( 1 )
+			{
+				if ((0/*compatibility*/ || !dropoff) && (tm.floorz - tm.dropoffz > 24*FRACUNIT))
+					return false;                      // don't stand over a dropoff
+			}
+			else
+			{
+				// [BB] dropoff is a bool, it can't be equal to 2
+				if (!dropoff || (/*dropoff==2 &&*/ // large jump down (e.g. dogs)
+					(tm.floorz-tm.dropoffz > 128*FRACUNIT || 
+					!thing->target || thing->target->z >tm.dropoffz)))
+				{
+					if (/*!monkeys ||*/ /*!mbf_features*/ 1 ?
+						( tm.floorz - tm.dropoffz > 24*FRACUNIT ) :
+						thing->floorz  - tm.floorz > 24*FRACUNIT ||
+						thing->dropoffz - tm.dropoffz > 24*FRACUNIT)
+					{
+						return false;
+					}
+				}
+				else
+				{ /* dropoff allowed -- check for whether it fell more than 24 */
+//					felldown = !(thing->flags & MF_NOGRAVITY) &&
+//					thing->z - tm.floorz > 24*FRACUNIT;
+				}
+			}
+
+			if (thing->flags2 & MF2_BOUNCE2 &&    // killough 8/13/98
+			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
+			/*!sentient(thing) &&*/ tm.floorz - thing->z > 16*FRACUNIT)
+				return false; // too big a step up for bouncers under gravity
+/*
+			// killough 11/98: prevent falling objects from going up too many steps
+			if (thing->intflags & MIF_FALLING && tm.floorz - thing->z >
+				FixedMul(thing->momx,thing->momx)+FixedMul(thing->momy,thing->momy))
+			{
+				return false;
+			}
+*/
+		}
+	}
+
+	// the move is ok,
+	// so unlink from the old position and link into the new position
+
+	thing->UnlinkFromWorld( );
+
+	oldx = thing->x;
+	oldy = thing->y;
+	thing->floorz = tm.floorz;
+	thing->ceilingz = tm.ceilingz;
+	thing->dropoffz = tm.dropoffz;      // killough 11/98: keep track of dropoffs
+	thing->x = x;
+	thing->y = y;
+
+	thing->LinkToWorld( );
+
+	// if any special lines were hit, do the effect
+	if (!(thing->flags & (MF_TELEPORT|MF_NOCLIP)))
+	{
+		while (spechit.Pop (ld))
+		{
+			// see if the line was crossed
+			side = P_PointOnLineSide (thing->x, thing->y, ld);
+			oldside = P_PointOnLineSide (oldx, oldy, ld);
+			if (side != oldside && ld->special)
+			{
+				// Don't activate specials if the thing is a spectating player.
+				if ( thing->player && thing->player->bSpectating )
+				{
+					// Although teleport specials are okay.
+					if (ld->special == Teleport ||
+				     ld->special == Teleport_NoFog ||
+					 ld->special == Teleport_Line)
+					{ 
+						P_ActivateLine (ld, thing, oldside, SPAC_Cross); 
+					}
+				}
+				else if (thing->player)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_Cross);
+				}
+				else if (thing->flags2 & MF2_MCROSS)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_MCross);
+				}
+				else if (thing->flags2 & MF2_PCROSS)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_PCross);
+				}
+				else if ((ld->special == Teleport ||
+						  ld->special == Teleport_NoFog ||
+						  ld->special == Teleport_Line))
+				{	// [RH] Just a little hack for BOOM compatibility
+					P_ActivateLine (ld, thing, oldside, SPAC_MCross);
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+//*****************************************************************************
 //
-////	if (!P_OldCheckPosition (thing, x, y))
-//	if (!P_CheckPosition (thing, x, y))
-//		return false;   // solid wall or thing
-//
-//	if ( !(thing->flags & MF_NOCLIP) )
-//	{
-//		// killough 7/26/98: reformatted slightly
-//		// killough 8/1/98: Possibly allow escape if otherwise stuck
-//
-//		if (tmceilingz - tmfloorz < thing->height ||     // doesn't fit
-//			// mobj must lower to fit
-//			(floatok = true, !(thing->flags & MF_TELEPORT) &&
-//			tmceilingz - thing->z < thing->height) ||
-//			// too big a step up
-//			(!(thing->flags & MF_TELEPORT) && 
-//			tmfloorz - thing->z > 24*FRACUNIT))
-//		{	
-//			return tmunstuck 
-//				&& !(ceilingline && untouched(ceilingline));
-//				/*&& !(  floorline && untouched(  floorline));*/
-//		}
-//
-//		/* killough 3/15/98: Allow certain objects to drop off
-//		* killough 7/24/98, 8/1/98: 
-//		* Prevent monsters from getting stuck hanging off ledges
-//		* killough 10/98: Allow dropoffs in controlled circumstances
-//		* killough 11/98: Improve symmetry of clipping on stairs
-//		*/
-//
-//		if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
-//		{
-////			if (comp[comp_dropoff])
-//			if ( 1 )
-//			{
-//				if ((0/*compatibility*/ || !dropoff) && (tmfloorz - tmdropoffz > 24*FRACUNIT))
-//					return false;                      // don't stand over a dropoff
-//			}
-//			else
-//			{
-//				// [BB] dropoff is a bool, it can't be equal to 2
-//				if (!dropoff || (/*dropoff==2 &&*/ // large jump down (e.g. dogs)
-//					(tmfloorz-tmdropoffz > 128*FRACUNIT || 
-//					!thing->target || thing->target->z >tmdropoffz)))
-//				{
-//					if (/*!monkeys ||*/ /*!mbf_features*/ 1 ?
-//						( tmfloorz - tmdropoffz > 24*FRACUNIT ) :
-//						thing->floorz  - tmfloorz > 24*FRACUNIT ||
-//						thing->dropoffz - tmdropoffz > 24*FRACUNIT)
-//					{
-//						return false;
-//					}
-//				}
-//				else
-//				{ /* dropoff allowed -- check for whether it fell more than 24 */
-////					felldown = !(thing->flags & MF_NOGRAVITY) &&
-////					thing->z - tmfloorz > 24*FRACUNIT;
-//				}
-//			}
-//
-//			if (thing->flags2 & MF2_BOUNCE2 &&    // killough 8/13/98
-//			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
-//			/*!sentient(thing) &&*/ tmfloorz - thing->z > 16*FRACUNIT)
-//				return false; // too big a step up for bouncers under gravity
-///*
-//			// killough 11/98: prevent falling objects from going up too many steps
-//			if (thing->intflags & MIF_FALLING && tmfloorz - thing->z >
-//				FixedMul(thing->momx,thing->momx)+FixedMul(thing->momy,thing->momy))
-//			{
-//				return false;
-//			}
-//*/
-//		}
-//	}
-//
-//  // the move is ok,
-//  // so unlink from the old position and link into the new position
-//
-//	thing->UnlinkFromWorld( );
-//
-//	oldx = thing->x;
-//	oldy = thing->y;
-//	thing->floorz = tmfloorz;
-//	thing->ceilingz = tmceilingz;
-//	thing->dropoffz = tmdropoffz;      // killough 11/98: keep track of dropoffs
-//	thing->x = x;
-//	thing->y = y;
-//
-//	thing->LinkToWorld( );
-//
-//  // if any special lines were hit, do the effect
-//
-//	// if any special lines were hit, do the effect
-//	if (!(thing->flags & (MF_TELEPORT|MF_NOCLIP)))
-//	{
-//		while (spechit.Pop (ld))
-//		{
-//			// see if the line was crossed
-//			side = P_PointOnLineSide (thing->x, thing->y, ld);
-//			oldside = P_PointOnLineSide (oldx, oldy, ld);
-//			if (side != oldside && ld->special)
-//			{
-//				// Don't activate specials if the thing is a spectating player.
-//				if ( thing->player && thing->player->bSpectating )
-//				{
-//					// Although teleport specials are okay.
-//					if (ld->special == Teleport ||
-//				     ld->special == Teleport_NoFog ||
-//					 ld->special == Teleport_Line)
-//					{ 
-//						P_ActivateLine (ld, thing, oldside, SPAC_CROSS); 
-//					}
-//				}
-//				else if (thing->player)
-//				{
-//					P_ActivateLine (ld, thing, oldside, SPAC_CROSS);
-//				}
-//				else if (thing->flags2 & MF2_MCROSS)
-//				{
-//					P_ActivateLine (ld, thing, oldside, SPAC_MCROSS);
-//				}
-//				else if (thing->flags2 & MF2_PCROSS)
-//				{
-//					P_ActivateLine (ld, thing, oldside, SPAC_PCROSS);
-//				}
-//				else if ((ld->special == Teleport ||
-//						  ld->special == Teleport_NoFog ||
-//						  ld->special == Teleport_Line))
-//				{	// [RH] Just a little hack for BOOM compatibility
-//					P_ActivateLine (ld, thing, oldside, SPAC_MCROSS);
-//				}
-//			}
-//		}
-//	}
-//
-//	return true;
-//}
+bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
+				bool dropoff, // killough 3/15/98: allow dropoff as option
+				bool onfloor) // [RH] Let P_TryMove keep the thing on the floor
+{
+	FCheckPosition tm;
+	return P_OldTryMove(thing, x, y, dropoff, onfloor, tm);
+}
 
 //
 // P_CheckMove
@@ -2483,6 +2492,11 @@ struct FSlide
 	void HitSlideLine(line_t *ld);
 	void SlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy);
 	void SlideMove (AActor *mo, fixed_t tryx, fixed_t tryy, int numsteps);
+
+	// [BB] Old code for people who just have to have doom2.exe style movement, converted to work with the latest ZDoom version.
+	void OldHitSlideLine(line_t *ld);
+	void OldSlideMove (AActor *mo);
+	void OldSlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy);
 
 	// The bouncing code uses the same data structure
 	bool BounceTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy);
@@ -2637,102 +2651,101 @@ void FSlide::HitSlideLine (line_t* ld)
 	}																// phares
 }
 
-// [BB] Not compatible with latest ZDoom changes.
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//static void P_OldHitSlideLine(line_t *ld)
-//  {
-//  int     side;
-//  angle_t lineangle;
-//  angle_t moveangle;
-//  angle_t deltaangle;
-//  fixed_t movelen;
-//  fixed_t newlen;
-//  bool icyfloor;  // is floor icy?                               // phares
-//                                                                    //   |
-//  // Under icy conditions, if the angle of approach to the wall     //   V
-//  // is more than 45 degrees, then you'll bounce and lose half
-//  // your momentum. If less than 45 degrees, you'll slide along
-//  // the wall. 45 is arbitrary and is believable.
-//
-//  // Check for the special cases of horz or vert walls.
-//
-//  /* killough 10/98: only bounce if hit hard (prevents wobbling)
-//   * cph - DEMOSYNC - should only affect players in Boom demos? */
-//  icyfloor = 0;/*
-//    (mbf_features ? 
-//     P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT : !compatibility) &&
-//    variable_friction &&  // killough 8/28/98: calc friction on demand
-//    slidemo->z <= slidemo->floorz &&
-//    P_GetFriction(slidemo, NULL) > ORIG_FRICTION;
-//*/
-//  if (ld->slopetype == ST_HORIZONTAL)
-//    {
-//    if (icyfloor && (abs(tmymove) > abs(tmxmove)))
-//      {
-//      tmxmove /= 2; // absorb half the momentum
-//      tmymove = -tmymove/2;
-//      //S_StartSound(slidemo,sfx_oof); // oooff!
-//      }
-//    else
-//      tmymove = 0; // no more movement in the Y direction
-//    return;
-//    }
-//
-//  if (ld->slopetype == ST_VERTICAL)
-//    {
-//    if (icyfloor && (abs(tmxmove) > abs(tmymove)))
-//      {
-//      tmxmove = -tmxmove/2; // absorb half the momentum
-//      tmymove /= 2;
-//      //S_StartSound(slidemo,sfx_oof); // oooff!                      //   ^
-//      }                                                             //   |
-//    else                                                            // phares
-//      tmxmove = 0; // no more movement in the X direction
-//    return;
-//    }
-//
-//  // The wall is angled. Bounce if the angle of approach is         // phares
-//  // less than 45 degrees.                                          // phares
-//
-//  side = P_PointOnLineSide (slidemo->x, slidemo->y, ld);
-//
-//  lineangle = R_PointToAngle2 (0,0, ld->dx, ld->dy);
-//  if (side == 1)
-//    lineangle += ANG180;
-//  moveangle = R_PointToAngle2 (0,0, tmxmove, tmymove);
-//
-//  // killough 3/2/98:
-//  // The moveangle+=10 breaks v1.9 demo compatibility in
-//  // some demos, so it needs demo_compatibility switch.
-//
-//  if (0)//!demo_compatibility)
-//    moveangle += 10; // prevents sudden path reversal due to        // phares
-//                     // rounding error                              //   |
-//  deltaangle = moveangle-lineangle;                                 //   V
-//  movelen = P_AproxDistance (tmxmove, tmymove);
-//  if (icyfloor && (deltaangle > ANG45) && (deltaangle < ANG90+ANG45))
-//    {
-//    moveangle = lineangle - deltaangle;
-//    movelen /= 2; // absorb
-//    //S_StartSound(slidemo,sfx_oof); // oooff!
-//    moveangle >>= ANGLETOFINESHIFT;
-//    tmxmove = FixedMul (movelen, finecosine[moveangle]);
-//    tmymove = FixedMul (movelen, finesine[moveangle]);
-//    }                                                               //   ^
-//  else                                                              //   |
-//    {                                                               // phares
-//    if (deltaangle > ANG180)
-//      deltaangle += ANG180;
-//
-//    //  I_Error ("SlideLine: ang>ANG180");
-//
-//    lineangle >>= ANGLETOFINESHIFT;
-//    deltaangle >>= ANGLETOFINESHIFT;
-//    newlen = FixedMul (movelen, finecosine[deltaangle]);
-//    tmxmove = FixedMul (newlen, finecosine[lineangle]);
-//    tmymove = FixedMul (newlen, finesine[lineangle]);
-//    }                                                               // phares
-//  }
+// [BC] ugh old code for people who just have to have doom2.exe style movement.
+void FSlide::OldHitSlideLine(line_t *ld)
+{
+	int     side;
+	angle_t lineangle;
+	angle_t moveangle;
+	angle_t deltaangle;
+	fixed_t movelen;
+	fixed_t newlen;
+	bool icyfloor;  // is floor icy?                               // phares
+	//   |
+	// Under icy conditions, if the angle of approach to the wall     //   V
+	// is more than 45 degrees, then you'll bounce and lose half
+	// your momentum. If less than 45 degrees, you'll slide along
+	// the wall. 45 is arbitrary and is believable.
+
+	// Check for the special cases of horz or vert walls.
+
+	/* killough 10/98: only bounce if hit hard (prevents wobbling)
+	* cph - DEMOSYNC - should only affect players in Boom demos? */
+	icyfloor = 0;/*
+				 (mbf_features ? 
+				 P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT : !compatibility) &&
+				 variable_friction &&  // killough 8/28/98: calc friction on demand
+				 slidemo->z <= slidemo->floorz &&
+				 P_GetFriction(slidemo, NULL) > ORIG_FRICTION;
+				 */
+	if (ld->slopetype == ST_HORIZONTAL)
+	{
+		if (icyfloor && (abs(tmymove) > abs(tmxmove)))
+		{
+			tmxmove /= 2; // absorb half the momentum
+			tmymove = -tmymove/2;
+			//S_StartSound(slidemo,sfx_oof); // oooff!
+		}
+		else
+			tmymove = 0; // no more movement in the Y direction
+		return;
+	}
+
+	if (ld->slopetype == ST_VERTICAL)
+	{
+		if (icyfloor && (abs(tmxmove) > abs(tmymove)))
+		{
+			tmxmove = -tmxmove/2; // absorb half the momentum
+			tmymove /= 2;
+			//S_StartSound(slidemo,sfx_oof); // oooff!                      //   ^
+		}                                                             //   |
+		else                                                            // phares
+			tmxmove = 0; // no more movement in the X direction
+		return;
+	}
+
+	// The wall is angled. Bounce if the angle of approach is         // phares
+	// less than 45 degrees.                                          // phares
+
+	side = P_PointOnLineSide (slidemo->x, slidemo->y, ld);
+
+	lineangle = R_PointToAngle2 (0,0, ld->dx, ld->dy);
+	if (side == 1)
+		lineangle += ANG180;
+	moveangle = R_PointToAngle2 (0,0, tmxmove, tmymove);
+
+	// killough 3/2/98:
+	// The moveangle+=10 breaks v1.9 demo compatibility in
+	// some demos, so it needs demo_compatibility switch.
+
+	if (0)//!demo_compatibility)
+		moveangle += 10; // prevents sudden path reversal due to        // phares
+	// rounding error                              //   |
+	deltaangle = moveangle-lineangle;                                 //   V
+	movelen = P_AproxDistance (tmxmove, tmymove);
+	if (icyfloor && (deltaangle > ANG45) && (deltaangle < ANG90+ANG45))
+	{
+		moveangle = lineangle - deltaangle;
+		movelen /= 2; // absorb
+		//S_StartSound(slidemo,sfx_oof); // oooff!
+		moveangle >>= ANGLETOFINESHIFT;
+		tmxmove = FixedMul (movelen, finecosine[moveangle]);
+		tmymove = FixedMul (movelen, finesine[moveangle]);
+	}                                                               //   ^
+	else                                                              //   |
+	{                                                               // phares
+		if (deltaangle > ANG180)
+			deltaangle += ANG180;
+
+		//  I_Error ("SlideLine: ang>ANG180");
+
+		lineangle >>= ANGLETOFINESHIFT;
+		deltaangle >>= ANGLETOFINESHIFT;
+		newlen = FixedMul (movelen, finecosine[deltaangle]);
+		tmxmove = FixedMul (newlen, finecosine[lineangle]);
+		tmymove = FixedMul (newlen, finesine[lineangle]);
+	}                                                               // phares
+}
 
 
 //
@@ -2823,60 +2836,66 @@ void FSlide::SlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_
 	}
 }
 
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//static bool PTR_OldSlideTraverse(intercept_t *in)
-//  {
-//  line_t* li;
-//
-//  if (!in->isaline)
-//    I_Error ("PTR_SlideTraverse: not a line?");
-//
-//  li = in->d.line;
-//
-//  if ( ! (li->flags & ML_TWOSIDED) )
-//    {
-//    if (P_PointOnLineSide (slidemo->x, slidemo->y, li))
-//      return true; // don't hit the back side
-//    goto isblocking;
-//    }
-//
-//  // set openrange, opentop, openbottom.
-//  // These define a 'window' from one sector to another across a line
-//
-////  P_LineOpening (li);
-//	FLineOpening open;
-//
-//	P_LineOpening (open, slidemo, li, trace.x + FixedMul (trace.dx, in->frac),
-//		trace.y + FixedMul (trace.dy, in->frac));	// set openrange, opentop, openbottom
-//
-//  if (open.range < slidemo->height)
-//    goto isblocking;  // doesn't fit
-//
-//  if (open.top - slidemo->z < slidemo->height)
-//    goto isblocking;  // mobj is too high
-//
-//  if (open.bottom - slidemo->z > 24*FRACUNIT )
-//    goto isblocking;  // too big a step up
-//
-//  // this line doesn't block movement
-//
-//  return true;
-//
-//  // the line does block movement,
-//  // see if it is closer than best so far
-//
-//isblocking:
-//
-//  if (in->frac < bestslidefrac)
-//    {
-//    secondslidefrac = bestslidefrac;
-//    secondslideline = bestslideline;
-//    bestslidefrac = in->frac;
-//    bestslideline = li;
-//    }
-//
-//  return false; // stop
-//  }
+// [BC] ugh old code for people who just have to have doom2.exe style movement.
+void FSlide::OldSlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy)
+{
+	line_t* li;
+	FLineOpening open;
+
+	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES);
+	intercept_t *in;
+
+	while ((in = it.Next()))
+	{
+		if (!in->isaline)
+			I_Error ("PTR_SlideTraverse: not a line?");
+
+		li = in->d.line;
+
+		if ( ! (li->flags & ML_TWOSIDED) )
+		{
+			if (P_PointOnLineSide (slidemo->x, slidemo->y, li))
+				continue; // don't hit the back side
+			goto isblocking;
+		}
+
+		// set openrange, opentop, openbottom.
+		// These define a 'window' from one sector to another across a line
+
+		//  P_LineOpening (li);
+
+		P_LineOpening (open, slidemo, li, it.Trace().x + FixedMul (it.Trace().dx, in->frac),
+			it.Trace().y + FixedMul (it.Trace().dy, in->frac));	// set openrange, opentop, openbottom
+
+		if (open.range < slidemo->height)
+			goto isblocking;  // doesn't fit
+
+		if (open.top - slidemo->z < slidemo->height)
+			goto isblocking;  // mobj is too high
+
+		if (open.bottom - slidemo->z > 24*FRACUNIT )
+			goto isblocking;  // too big a step up
+
+		// this line doesn't block movement
+
+		continue;
+
+		// the line does block movement,
+		// see if it is closer than best so far
+
+isblocking:
+
+		if (in->frac < bestslidefrac)
+		{
+			secondslidefrac = bestslidefrac;
+			secondslideline = bestslideline;
+			bestslidefrac = in->frac;
+			bestslideline = li;
+		}
+
+		return; // stop
+	}
+}
 
 
 //
@@ -3004,115 +3023,119 @@ void P_SlideMove (AActor *mo, fixed_t tryx, fixed_t tryy, int numsteps)
 	slide.SlideMove(mo, tryx, tryy, numsteps);
 }
 
-// [BB] Not compatible with latest ZDoom changes.
-////*****************************************************************************
-////
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//void P_OldSlideMove (AActor *mo)
-//{
-//  int hitcount = 3;
+//*****************************************************************************
 //
-//  slidemo = mo; // the object that's sliding
+// [BC] ugh old code for people who just have to have doom2.exe style movement.
+void FSlide::OldSlideMove (AActor *mo)
+{
+	int hitcount = 3;
+
+	slidemo = mo; // the object that's sliding
+
+	do 
+	{
+		fixed_t leadx, leady, trailx, traily;
+
+		if (!--hitcount)
+			goto stairstep;   // don't loop forever
+
+		// trace along the three leading corners
+
+		if (mo->momx > 0)
+			leadx = mo->x + mo->radius, trailx = mo->x - mo->radius;
+		else
+			leadx = mo->x - mo->radius, trailx = mo->x + mo->radius;
+
+		if (mo->momy > 0)
+			leady = mo->y + mo->radius, traily = mo->y - mo->radius;
+		else
+			leady = mo->y - mo->radius, traily = mo->y + mo->radius;
+
+		bestslidefrac = FRACUNIT+1;
+
+		OldSlideTraverse(leadx, leady, leadx+mo->momx, leady+mo->momy);
+		OldSlideTraverse(trailx, leady, trailx+mo->momx, leady+mo->momy);
+		OldSlideTraverse(leadx, traily, leadx+mo->momx, traily+mo->momy);
+
+		// move up to the wall
+
+		if (bestslidefrac == FRACUNIT+1)
+		{
+			// the move must have hit the middle, so stairstep
+
+stairstep:
+
+			/* killough 3/15/98: Allow objects to drop off ledges
+			*
+			* phares 5/4/98: kill momentum if you can't move at all
+			* This eliminates player bobbing if pressed against a wall
+			* while on ice.
+			*
+			* killough 10/98: keep buggy code around for old Boom demos
+			*
+			* cph 2000/09//23: buggy code was only in Boom v2.01
+			*/
+
+			if (!P_OldTryMove(mo, mo->x, mo->y + mo->momy, true))
+				if (!P_OldTryMove(mo, mo->x + mo->momx, mo->y, true))
+					if (0)//compatibility_level == boom_201_compatibility)
+						mo->momx = mo->momy = 0;
+
+			break;
+		}
+
+		// fudge a bit to make sure it doesn't hit
+
+		if ((bestslidefrac -= 0x800) > 0)
+		{
+			fixed_t newx = FixedMul(mo->momx, bestslidefrac);
+			fixed_t newy = FixedMul(mo->momy, bestslidefrac);
+
+			// killough 3/15/98: Allow objects to drop off ledges
+
+			if (!P_OldTryMove(mo, mo->x+newx, mo->y+newy, true))
+				goto stairstep;
+		}
+
+		// Now continue along the wall.
+		// First calculate remainder.
+
+		bestslidefrac = FRACUNIT-(bestslidefrac+0x800);
+
+		if (bestslidefrac > FRACUNIT)
+			bestslidefrac = FRACUNIT;
+
+		if (bestslidefrac <= 0)
+			break;
+
+		tmxmove = FixedMul(mo->momx, bestslidefrac);
+		tmymove = FixedMul(mo->momy, bestslidefrac);
+
+		OldHitSlideLine(bestslideline); // clip the moves
+
+		mo->momx = tmxmove;
+		mo->momy = tmymove;
+
+		/* killough 10/98: affect the bobbing the same way (but not voodoo dolls)
+		* cph - DEMOSYNC? */
+		if (mo->player && mo->player->mo == mo)
+		{
+			if (abs(mo->player->momx) > abs(tmxmove))
+				mo->player->momx = tmxmove;
+			if (abs(mo->player->momy) > abs(tmymove))
+				mo->player->momy = tmymove;
+		}
+	}  // killough 3/15/98: Allow objects to drop off ledges:
+	while (!P_OldTryMove(mo, mo->x+tmxmove, mo->y+tmymove, true));
+}
+
+//*****************************************************************************
 //
-//  do 
-//    {
-//      fixed_t leadx, leady, trailx, traily;
-//
-//      if (!--hitcount)
-//	goto stairstep;   // don't loop forever
-//
-//      // trace along the three leading corners
-//
-//      if (mo->momx > 0)
-//	leadx = mo->x + mo->radius, trailx = mo->x - mo->radius;
-//      else
-//	leadx = mo->x - mo->radius, trailx = mo->x + mo->radius;
-//
-//      if (mo->momy > 0)
-//	leady = mo->y + mo->radius, traily = mo->y - mo->radius;
-//      else
-//	leady = mo->y - mo->radius, traily = mo->y + mo->radius;
-//
-//      bestslidefrac = FRACUNIT+1;
-//
-//      P_PathTraverse(leadx, leady, leadx+mo->momx, leady+mo->momy,
-//		     PT_ADDLINES, PTR_OldSlideTraverse);
-//      P_PathTraverse(trailx, leady, trailx+mo->momx, leady+mo->momy,
-//		     PT_ADDLINES, PTR_OldSlideTraverse);
-//      P_PathTraverse(leadx, traily, leadx+mo->momx, traily+mo->momy,
-//		     PT_ADDLINES, PTR_OldSlideTraverse);
-//
-//      // move up to the wall
-//
-//      if (bestslidefrac == FRACUNIT+1)
-//	{
-//	  // the move must have hit the middle, so stairstep
-//
-//	stairstep:
-//
-//	  /* killough 3/15/98: Allow objects to drop off ledges
-//	   *
-//	   * phares 5/4/98: kill momentum if you can't move at all
-//	   * This eliminates player bobbing if pressed against a wall
-//	   * while on ice.
-//	   *
-//	   * killough 10/98: keep buggy code around for old Boom demos
-//	   *
-//	   * cph 2000/09//23: buggy code was only in Boom v2.01
-//	   */
-//
-//	  if (!P_OldTryMove(mo, mo->x, mo->y + mo->momy, true))
-//	    if (!P_OldTryMove(mo, mo->x + mo->momx, mo->y, true))
-//	      if (0)//compatibility_level == boom_201_compatibility)
-//		mo->momx = mo->momy = 0;
-//
-//	  break;
-//	}
-//
-//      // fudge a bit to make sure it doesn't hit
-//      
-//      if ((bestslidefrac -= 0x800) > 0)
-//	{
-//	  fixed_t newx = FixedMul(mo->momx, bestslidefrac);
-//	  fixed_t newy = FixedMul(mo->momy, bestslidefrac);
-//
-//	  // killough 3/15/98: Allow objects to drop off ledges
-//	  
-//	  if (!P_OldTryMove(mo, mo->x+newx, mo->y+newy, true))
-//	    goto stairstep;
-//	}
-//
-//      // Now continue along the wall.
-//      // First calculate remainder.
-//
-//      bestslidefrac = FRACUNIT-(bestslidefrac+0x800);
-//
-//      if (bestslidefrac > FRACUNIT)
-//	bestslidefrac = FRACUNIT;
-//
-//      if (bestslidefrac <= 0)
-//	break;
-//
-//      tmxmove = FixedMul(mo->momx, bestslidefrac);
-//      tmymove = FixedMul(mo->momy, bestslidefrac);
-//
-//      P_OldHitSlideLine(bestslideline); // clip the moves
-//
-//      mo->momx = tmxmove;
-//      mo->momy = tmymove;
-//
-//      /* killough 10/98: affect the bobbing the same way (but not voodoo dolls)
-//       * cph - DEMOSYNC? */
-//      if (mo->player && mo->player->mo == mo)
-//	{
-//	  if (abs(mo->player->momx) > abs(tmxmove))
-//	    mo->player->momx = tmxmove;
-//	  if (abs(mo->player->momy) > abs(tmymove))
-//	    mo->player->momy = tmymove;
-//	}
-//    }  // killough 3/15/98: Allow objects to drop off ledges:
-//  while (!P_OldTryMove(mo, mo->x+tmxmove, mo->y+tmymove, true));
-//}
+void P_OldSlideMove (AActor *mo)
+{
+	FSlide slide;
+	slide.OldSlideMove(mo);
+}
 
 //============================================================================
 //
