@@ -1577,8 +1577,11 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 	}
 	else if (actor->flags & MF_FRIENDLY)
 	{
-		return P_LookForEnemies (actor, allaround);
-	}
+		if (!deathmatch) // [SP] If you don't see any enemies in deathmatch, look for players.
+			return P_LookForEnemies (actor, allaround);
+		else if ( P_LookForEnemies (actor, allaround) )
+			return true;
+	}	// [SP] if false, and in deathmatch, intentional fall-through
 
 	if (!(gameinfo.gametype & (GAME_DoomStrifeChex)) &&
 		( NETWORK_GetState( ) == NETSTATE_SINGLE ) &&
@@ -1639,6 +1642,16 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 		// [BC] In invasion mode, player doesn't have to be visible to be chased by monsters.
 		if ((!P_CheckSight (actor, player->mo, 2)) && ( invasion == false ))
 			continue;			// out of sight
+
+		// [SP] Deathmatch fixes - if we have MF_FRIENDLY we're definitely in deathmatch
+		// We're going to ignore our master, but go after his enemies.
+		if ( actor->flags & MF_FRIENDLY )
+		{
+			if ( actor->FriendPlayer == 0 )
+				continue; // I have no friends, I will ignore players.
+			if ( actor->FriendPlayer == player->mo->FriendPlayer )
+				continue; // This is my master.
+		}
 
 		if (!allaround)
 		{
