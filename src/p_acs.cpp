@@ -4947,17 +4947,21 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_LOCALAMBIENTSOUND:
-			lookup = FBehavior::StaticLookupString (STACK(2));
-			if (lookup != NULL && activator->CheckLocalView (consoleplayer))
+			// [BB] With Skulltag's in game joining / leaving, it's possible that activator is NULL.
+			if ( activator != NULL )
 			{
-				S_Sound (CHAN_AUTO,
-						 lookup,
-						 (float)(STACK(1)) / 127.f, ATTN_NONE);
-			}
+				lookup = FBehavior::StaticLookupString (STACK(2));
+				if (lookup != NULL && activator->CheckLocalView (consoleplayer))
+				{
+					S_Sound (CHAN_AUTO,
+						lookup,
+						(float)(STACK(1)) / 127.f, ATTN_NONE);
+				}
 
-			// [BC] If we're the server, tell clients to play this sound.
-			if (( lookup != NULL ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( activator->player ))
-				SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, (float)( STACK( 1 ) / 127.f ), ATTN_NONE, activator->player - players, SVCF_ONLYTHISCLIENT );
+				// [BC] If we're the server, tell clients to play this sound.
+				if (( lookup != NULL ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( activator->player ))
+					SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, (float)( STACK( 1 ) / 127.f ), ATTN_NONE, activator->player - players, SVCF_ONLYTHISCLIENT );
+			}
 
 			sp -= 2;
 			break;
