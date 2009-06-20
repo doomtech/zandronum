@@ -75,7 +75,7 @@ void		MAPROTATION_Construct( void );
 
 ULONG		MAPROTATION_GetNumEntries( void );
 void		MAPROTATION_AdvanceMap( void );
-const char	*MAPROTATION_GetCurrentMapName( void );
+const char	*MAPROTATION_GetNextMapName( void );
 const char	*MAPROTATION_GetMapName( ULONG ulIdx );
 void		MAPROTATION_SetPositionToMap( const char *pszMapName );
 bool		MAPROTATION_IsMapInRotation( const char *pszMapName );

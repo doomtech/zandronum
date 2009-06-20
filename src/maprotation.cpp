@@ -61,6 +61,7 @@
 
 static	MAPROTATIONENTRY_t		g_MapRotationEntries[MAX_MAPROTATIONLIST_ENTRIES];
 static	ULONG					g_ulCurMapInList;
+static	ULONG					g_ulNextMapInList;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -75,6 +76,7 @@ void MAPROTATION_Construct( void )
 	ULONG	ulIdx;
 
 	g_ulCurMapInList = 0;
+	g_ulNextMapInList = 0;
 	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
 	{
 		g_MapRotationEntries[ulIdx].szMapName[0] = 0;
@@ -99,7 +101,7 @@ ULONG MAPROTATION_GetNumEntries( void )
 
 //*****************************************************************************
 //
-void MAPROTATION_AdvanceMap( void )
+static void MAPROTATION_CalcNextMap( void )
 {
 	if ( MAPROTATION_GetNumEntries( ) <= 1 )
 		return;
@@ -108,7 +110,6 @@ void MAPROTATION_AdvanceMap( void )
 	{
 		ULONG	ulNumEntriesLeft;
 		ULONG	ulIdx;
-		ULONG	ulLastMap;
 
 		// Mark the current map in the list as being used.
 		g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
@@ -136,29 +137,42 @@ void MAPROTATION_AdvanceMap( void )
 			}
 		}
 
-		// Save the current map we're on, so that we don't select the same map two
-		// times in a row!
-		ulLastMap = g_ulCurMapInList;
-
 		do
 		{
-			g_ulCurMapInList = M_Random.Random( ) % MAX_MAPROTATIONLIST_ENTRIES;
-		} while (( g_MapRotationEntries[g_ulCurMapInList].szMapName[0] == 0 ) ||
-				 ( g_MapRotationEntries[g_ulCurMapInList].bUsed == true ) ||
-				 ( g_ulCurMapInList == ulLastMap ));
+			g_ulNextMapInList = M_Random.Random( ) % MAX_MAPROTATIONLIST_ENTRIES;
+		} while (( g_MapRotationEntries[g_ulNextMapInList].szMapName[0] == 0 ) ||
+				 ( g_MapRotationEntries[g_ulNextMapInList].bUsed == true ) ||
+				 ( g_ulNextMapInList == g_ulCurMapInList ));
 	}
 	else
 	{
-		g_ulCurMapInList++; //Increment the varaible here to satisfy GCC.
-		g_ulCurMapInList = ( g_ulCurMapInList % MAPROTATION_GetNumEntries( ));
+		g_ulNextMapInList = g_ulCurMapInList + 1; //Increment the varaible here to satisfy GCC.
+		g_ulNextMapInList = ( g_ulNextMapInList % MAPROTATION_GetNumEntries( ));
 	}
 }
 
 //*****************************************************************************
 //
-const char *MAPROTATION_GetCurrentMapName( void )
+void MAPROTATION_AdvanceMap( void )
 {
-	return ( g_MapRotationEntries[g_ulCurMapInList].szMapName );
+	g_ulCurMapInList = g_ulNextMapInList;
+}
+
+//*****************************************************************************
+//
+const char *MAPROTATION_GetNextMapName( void )
+{
+	// [BB] If we don't want to use the rotation, there is no scheduled next map.
+	if ( sv_maprotation == false )
+		return NULL;
+
+	// [BB] The first time this is called after calling MAPROTATION_AdvanceMap(),
+	// we need need to calculate the next map.
+	if ( g_ulNextMapInList == g_ulCurMapInList )
+		MAPROTATION_CalcNextMap();
+
+	// [BB] It should be save to return this without any checks to g_ulNextMapInList.
+	return ( g_MapRotationEntries[g_ulNextMapInList].szMapName );
 }
 
 //*****************************************************************************
@@ -180,14 +194,15 @@ void MAPROTATION_SetPositionToMap( const char *pszMapName )
 	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
 	{
 		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-			return;
+			break;
 
 		if ( stricmp( g_MapRotationEntries[ulIdx].szMapName, pszMapName ) == 0 )
 		{
 			g_ulCurMapInList = ulIdx;
-			return;
+			break;
 		}
 	}
+	g_ulNextMapInList = g_ulCurMapInList;
 }
 
 //*****************************************************************************

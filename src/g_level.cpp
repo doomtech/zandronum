@@ -716,7 +716,16 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 
 	// [BC] If we're the server, tell clients that the map has finished.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_MapExit( position, nextlevel.GetChars() );
+
+		// [BB] It's possible that the selected next map doesn't coincide with the next map
+		// in the rotation, e.g. exiting to a secret map allows to leave the rotation.
+		// In this case, we may not advance to the next map in the rotation.
+		if ( ( MAPROTATION_GetNextMapName( ) != NULL )
+			&& ( stricmp ( MAPROTATION_GetNextMapName( ), nextlevel.GetChars() ) == 0 ) )
+			MAPROTATION_AdvanceMap();
+	}
 
 	STAT_END(nextlevel);
 
@@ -799,13 +808,9 @@ const char *G_GetExitMap()
 			 ( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			 ( MAPROTATION_GetNumEntries( ) != 0 ))
 	{
-		// Move on to the next map.
 		// [BB] It's possible that G_GetExitMap() is called multiple times before a map change.
-		// In this case we need to make sure that MAPROTATION_AdvanceMap() is only called once.
-		if ( stricmp ( level.mapname, MAPROTATION_GetCurrentMapName() ) == 0 )
-			MAPROTATION_AdvanceMap( );
-
-		return ( MAPROTATION_GetCurrentMapName( ));
+		// Therefore we may not advance the map, but just peek at it.
+		return ( MAPROTATION_GetNextMapName( ));
 	}
 
 	return level.nextmap;
