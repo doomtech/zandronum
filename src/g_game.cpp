@@ -2099,8 +2099,8 @@ static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FMapThing *spot )
 			continue;
 
 		ulNumSpots++;
-		distance += P_AproxDistance (players[i].mo->x - spot->x * FRACUNIT,
-									players[i].mo->y - spot->y * FRACUNIT);
+		distance += P_AproxDistance (players[i].mo->x - spot->x,
+									players[i].mo->y - spot->y);
 	}
 
 	if ( ulNumSpots )
