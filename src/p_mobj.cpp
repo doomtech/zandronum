@@ -6146,6 +6146,9 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	if (linetarget == NULL)
 	{
 		an = angle;
+		// [BB] No freeaiming and no target means that we shoot at a pitch of zero.
+		if ( nofreeaim )
+			pitch = 0;
 	}
 	if (pLineTarget) *pLineTarget = linetarget;
 
