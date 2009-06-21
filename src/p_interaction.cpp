@@ -77,6 +77,7 @@
 #include "cl_demo.h"
 #include "win32/g15/g15.h"
 #include "r_translate.h"
+#include "p_enemy.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
@@ -2593,19 +2594,32 @@ CCMD (kill)
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	// [BC] Don't let spectators kill themselves.
-	if ( players[consoleplayer].bSpectating == true )
-		return;
-
-	// [BC] Don't allow suiciding during a duel.
-	if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
+	// [BB] The server can't suicide, so it can ignore this checks.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		Printf( "You cannot suicide during a duel.\n" );
-		return;
+		// [BC] Don't let spectators kill themselves.
+		if ( players[consoleplayer].bSpectating == true )
+			return;
+
+		// [BC] Don't allow suiciding during a duel.
+		if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
+		{
+			Printf( "You cannot suicide during a duel.\n" );
+			return;
+		}
 	}
 
 	if (argv.argc() > 1)
 	{
+		// [BB] Special handling for "kill monsters" on the server: It's allowed
+		// independent of the sv_cheats setting and bypasses the DEM_* handling.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && !stricmp (argv[1], "monsters") )
+		{
+			const int killcount = P_Massacre ();
+			SERVER_Printf( PRINT_HIGH, "%d Monster%s Killed", killcount, killcount==1 ? "" : "s" );
+			return;
+		}
+
 		if (CheckCheatmode ())
 			return;
 
