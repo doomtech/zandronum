@@ -157,11 +157,15 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer )
 	if ( AllPlayerStarts[ulPlayer].Size() <= 1 )
 		return;
 
-	APlayerPawn *pDoll = P_SpawnPlayer ( &(AllPlayerStarts[ulPlayer][AllPlayerStarts[ulPlayer].Size()-2]), false, NULL );
-	// [BB] Mark the voodoo doll as spawned by the map.
-	// P_SpawnPlayer won't spawn anything for a player not in game, therefore we need to check if pDoll is NULL.
-	if ( pDoll )
-		pDoll->ulSTFlags |= STFL_LEVELSPAWNED;
+	// [BB] Every start except for the last, has to spawn a voodoo doll.
+	for ( ULONG ulIdx = 0; ulIdx < AllPlayerStarts[ulPlayer].Size() - 1; ulIdx++ )
+	{
+		APlayerPawn *pDoll = P_SpawnPlayer ( &(AllPlayerStarts[ulPlayer][ulIdx]), false, NULL );
+		// [BB] Mark the voodoo doll as spawned by the map.
+		// P_SpawnPlayer won't spawn anything for a player not in game, therefore we need to check if pDoll is NULL.
+		if ( pDoll )
+			pDoll->ulSTFlags |= STFL_LEVELSPAWNED;
+	}
 }
 
 //*****************************************************************************
