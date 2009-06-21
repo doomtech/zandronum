@@ -57,7 +57,7 @@
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( Bool, sv_coopspawnvoodoodolls, false, CVAR_SERVERINFO | CVAR_LATCH );
+CVAR( Bool, sv_coopspawnvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
 CVAR( Bool, sv_coopunassignedvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
 
 player_t DummyPlayer;
