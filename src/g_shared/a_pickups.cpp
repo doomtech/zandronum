@@ -1017,9 +1017,16 @@ void AInventory::Touch (AActor *toucher)
 		}
 	}
 
-	// [BB] For the time being, unassigned voodoo dolls can't pickup anything.
-	if ( toucher->player == COOP_GetVoodooDollDummyPlayer() )
+	// [BB] When an unassigned voodoo doll touches something, pretend all players are touching it.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( toucher->player == COOP_GetVoodooDollDummyPlayer() ) )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( ( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) )
+				Touch ( players[ulIdx].mo );
+		}
 		return;
+	}
 
 	// If a voodoo doll touches something, pretend the real player touched it instead.
 	if (toucher->player != NULL)
