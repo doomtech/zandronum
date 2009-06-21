@@ -58,6 +58,9 @@
 //	CONSOLE VARIABLES
 
 CVAR( Bool, sv_coopspawnvoodoodolls, false, CVAR_SERVERINFO | CVAR_LATCH );
+CVAR( Bool, sv_coopunassignedvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
+
+player_t DummyPlayer;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -111,6 +114,12 @@ bool COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer )
 	if ( AllPlayerStarts[ulPlayer].Size() <= 1 )
 		return false;
 
+	// [BB] When we are using unassigned voodoo dolls, all dolls for all players
+	// (even those who are not in the game) are already spawned in P_SpawnThings.
+	// Therefore, we don't need to spawn any dolls afterwards.
+	if ( sv_coopunassignedvoodoodolls == true )
+		return false;
+
 	TThinkerIterator<AActor>	Iterator;
 	AActor						*pActor;
 	while (( pActor = Iterator.Next( )))
@@ -143,7 +152,7 @@ bool COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer )
+void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const bool bSpawnEvenIfPlayerIsNotIngame )
 {
 	// [BB] Only the server spawns voodoo dolls.
 	if ( NETWORK_GetState() != NETSTATE_SERVER )
@@ -157,6 +166,11 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer )
 	if ( AllPlayerStarts[ulPlayer].Size() <= 1 )
 		return;
 
+	// [BB] To enforce the spawning, we have to set playeringame to true.
+	const bool bPlayerInGame = playeringame[ulPlayer];
+	if ( bSpawnEvenIfPlayerIsNotIngame )
+		playeringame[ulPlayer] = true;
+
 	// [BB] Every start except for the last, has to spawn a voodoo doll.
 	for ( ULONG ulIdx = 0; ulIdx < AllPlayerStarts[ulPlayer].Size() - 1; ulIdx++ )
 	{
@@ -164,8 +178,20 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer )
 		// [BB] Mark the voodoo doll as spawned by the map.
 		// P_SpawnPlayer won't spawn anything for a player not in game, therefore we need to check if pDoll is NULL.
 		if ( pDoll )
+		{
 			pDoll->ulSTFlags |= STFL_LEVELSPAWNED;
+
+			// [BB] If we would just set the player pointer to NULL, a lot of things wouldn't work
+			// at all for the voodoo dolls (e.g. floor scrollers), so we set it do a pointer to a
+			// dummy player to get past all the ( player != NULL ) checks. This will require special
+			// handling wherever the code assumes that non-NULL player pointers have a valid mo.
+			if ( sv_coopunassignedvoodoodolls )
+				pDoll->player = &DummyPlayer;
+		}
 	}
+
+	// [BB] Now that the spawning is done, we have to restore the proper playeringame value.
+	playeringame[ulPlayer] = bPlayerInGame;
 }
 
 //*****************************************************************************
@@ -181,6 +207,13 @@ bool COOP_VoodooDollsSelectedByGameMode ( void )
 		return false;
 
 	return true;
+}
+
+//*****************************************************************************
+//
+const player_t* COOP_GetVoodooDollDummyPlayer ( void )
+{
+	return &DummyPlayer;
 }
 
 //*****************************************************************************

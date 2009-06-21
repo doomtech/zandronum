@@ -1659,7 +1659,9 @@ void P_SpawnThings (int position)
 	{
 		// [BB] If the map has voodoo dolls and we want to use them online, we need to spawn them now.
 		// NOTE: The server didn't spawn any players so far.
-		COOP_SpawnVoodooDollsForPlayerIfNecessary ( i );
+		// [BB] When we are using unassigned voodoo dolls, we have to enforce the spawning
+		// of all dolls for all players (even those who are not in the game) now.
+		COOP_SpawnVoodooDollsForPlayerIfNecessary ( i, sv_coopunassignedvoodoodolls );
 		if (playeringame[i] && players[i].mo != NULL)
 			P_PlayerStartStomp(players[i].mo);
 	}

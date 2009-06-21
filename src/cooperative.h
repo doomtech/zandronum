@@ -52,6 +52,7 @@
 #define __COOPERATIVE_H__
 
 #include "c_cvars.h"
+#include "d_player.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -61,8 +62,9 @@
 
 void	COOP_DestroyVoodooDollsOfPlayer ( const ULONG ulPlayer );
 bool	COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer );
-void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer );
+void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const bool bSpawnEvenIfPlayerIsNotIngame = false );
 bool	COOP_VoodooDollsSelectedByGameMode ( void );
+const player_t* COOP_GetVoodooDollDummyPlayer ( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
@@ -71,5 +73,6 @@ EXTERN_CVAR( Bool, cooperative )
 EXTERN_CVAR( Bool, survival )
 EXTERN_CVAR( Bool, invasion )
 EXTERN_CVAR( Bool, cl_drawcoopinfo )
+EXTERN_CVAR( Bool, sv_coopunassignedvoodoodolls );
 
 #endif	// __COOPERATIVE_H__

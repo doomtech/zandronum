@@ -1097,6 +1097,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		return;
 	}
 
+	// [BB] For the time being, unassigned voodoo dolls can't be damaged.
+	if ( target->player == COOP_GetVoodooDollDummyPlayer() )
+		return;
+
 	// Spectral targets only take damage from spectral projectiles.
 	if (target->flags4 & MF4_SPECTRAL && damage < 1000000)
 	{
