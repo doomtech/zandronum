@@ -304,7 +304,7 @@ static	void	client_DoSectorLightPhased( BYTESTREAM_s *pByteStream );
 // Line commands.
 static	void	client_SetLineAlpha( BYTESTREAM_s *pByteStream );
 static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLinesByID = false );
-static	void	client_SetLineBlocking( BYTESTREAM_s *pByteStream );
+static	void	client_SetSomeLineFlags( BYTESTREAM_s *pByteStream );
 
 // Side commands.
 static	void	client_SetSideFlags( BYTESTREAM_s *pByteStream );
@@ -649,7 +649,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETLINEALPHA",
 	"SVC_SETLINETEXTURE",
 	"SVC_SETLINETEXTUREBYID",
-	"SVC_SETLINEBLOCKING",
+	"SVC_SETSOMELINEFLAGS",
 	"SVC_SETSIDEFLAGS",
 	"SVC_ACSSCRIPTEXECUTE",
 	"SVC_SOUND",
@@ -2239,9 +2239,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetLineTexture( pByteStream, true );
 		break;
-	case SVC_SETLINEBLOCKING:
+	case SVC_SETSOMELINEFLAGS:
 
-		client_SetLineBlocking( pByteStream );
+		client_SetSomeLineFlags( pByteStream );
 		break;
 	case SVC_SETSIDEFLAGS:
 
@@ -9064,7 +9064,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLine
 
 //*****************************************************************************
 //
-static void client_SetLineBlocking( BYTESTREAM_s *pByteStream )
+static void client_SetSomeLineFlags( BYTESTREAM_s *pByteStream )
 {
 	LONG	lLine;
 	LONG	lBlockFlags;
@@ -9079,7 +9079,7 @@ static void client_SetLineBlocking( BYTESTREAM_s *pByteStream )
 	if (( lLine >= numlines ) || ( lLine < 0 ))
 		return;
 
-	lines[lLine].flags &= ~(ML_BLOCKING|ML_BLOCK_PLAYERS|ML_BLOCKEVERYTHING|ML_RAILING);
+	lines[lLine].flags &= ~(ML_BLOCKING|ML_BLOCK_PLAYERS|ML_BLOCKEVERYTHING|ML_RAILING|ML_ADDTRANS);
 	lines[lLine].flags |= lBlockFlags;
 }
 

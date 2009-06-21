@@ -5048,7 +5048,7 @@ int DLevelScript::RunScript ()
 
 					// If we're the server, tell clients to update this line.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetLineBlocking( line );
+						SERVERCOMMANDS_SetSomeLineFlags( line );
 				}
 
 				sp -= 2;

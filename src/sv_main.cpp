@@ -2955,9 +2955,9 @@ void SERVER_UpdateLines( ULONG ulClient )
 		if ( lines[ulLine].Alpha != lines[ulLine].SavedAlpha )
 			SERVERCOMMANDS_SetLineAlpha( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
 
-		// Has the line's blocking status changed?
+		// Has the line's blocking status or the ML_ADDTRANS setting changed?
 		if ( lines[ulLine].flags != lines[ulLine].SavedFlags )
-			SERVERCOMMANDS_SetLineBlocking( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetSomeLineFlags( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 }
 

@@ -4702,9 +4702,9 @@ void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPo
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG	lBlockFlags;
+	LONG	lSelectedFlags;
 	ULONG	ulIdx;
 
 	if ( ulLine >= (ULONG)numlines )
@@ -4712,15 +4712,17 @@ void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ul
 
 	// I bet there's a better way to do this... alas, my knowledge of bits is not
 	// wonderful.
-	lBlockFlags = 0;
+	lSelectedFlags = 0;
 	if ( lines[ulLine].flags & ML_BLOCKING )
-		lBlockFlags |= ML_BLOCKING;
+		lSelectedFlags |= ML_BLOCKING;
 	if ( lines[ulLine].flags & ML_BLOCKEVERYTHING )
-		lBlockFlags |= ML_BLOCKEVERYTHING;
+		lSelectedFlags |= ML_BLOCKEVERYTHING;
 	if ( lines[ulLine].flags & ML_RAILING )
-		lBlockFlags |= ML_RAILING;
+		lSelectedFlags |= ML_RAILING;
 	if ( lines[ulLine].flags & ML_BLOCK_PLAYERS )
-		lBlockFlags |= ML_BLOCK_PLAYERS;
+		lSelectedFlags |= ML_BLOCK_PLAYERS;
+	if ( lines[ulLine].flags & ML_ADDTRANS )
+		lSelectedFlags |= ML_ADDTRANS;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -4734,9 +4736,9 @@ void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINEBLOCKING );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSOMELINEFLAGS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBlockFlags );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSelectedFlags );
 	}
 }
 

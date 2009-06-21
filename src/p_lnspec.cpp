@@ -3030,13 +3030,9 @@ FUNC(LS_TranslucentLine)
 			Printf ("Unknown translucency type used with TranslucentLine\n");
 		}
 
-		// [BC] If we're the server, tell clients to adjust this line's alpha.
+		// [BB] If we're the server, tell clients the new ML_ADDTRANS setting.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			SERVERCOMMANDS_SetSideFlags( lines[linenum].sidenum[0] );
-			if ( lines[linenum].sidenum[1] != NO_SIDE )
-				SERVERCOMMANDS_SetSideFlags( lines[linenum].sidenum[1] );
-		}
+			SERVERCOMMANDS_SetSomeLineFlags( linenum );
 	}
 
 	return true;
@@ -3172,7 +3168,7 @@ FUNC(LS_ClearForceField)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetLineTexture( ULONG( line - lines ));
-					SERVERCOMMANDS_SetLineBlocking( ULONG( line - lines ));
+					SERVERCOMMANDS_SetSomeLineFlags( ULONG( line - lines ));
 				}
 			}
 		}
@@ -3190,7 +3186,7 @@ FUNC(LS_GlassBreak)
 
 	// [BC] If we're the server, update this line's blocking.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetLineBlocking( ULONG( ln - lines ));
+		SERVERCOMMANDS_SetSomeLineFlags( ULONG( ln - lines ));
 
 	switched = P_ChangeSwitchTexture (&sides[ln->sidenum[0]], false, 0, &quest1);
 	ln->special = 0;

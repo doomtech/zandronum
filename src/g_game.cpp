@@ -3118,14 +3118,14 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				SERVERCOMMANDS_SetLineAlpha( ulIdx );
 		}
 
-		// Restore the line's blocking status.
+		// Restore the line's blocking status and the ML_ADDTRANS setting.
 		if ( lines[ulIdx].flags != lines[ulIdx].SavedFlags )
 		{
 			lines[ulIdx].flags = lines[ulIdx].SavedFlags;
 
-			// If we're the server, tell clients about this blocking change.
+			// If we're the server, tell clients about this blocking change and the ML_ADDTRANS setting.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetLineBlocking( ulIdx );
+				SERVERCOMMANDS_SetSomeLineFlags( ulIdx );
 		}
 	}
 
