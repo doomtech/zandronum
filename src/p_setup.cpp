@@ -1970,12 +1970,12 @@ void P_LoadLineDefs (MapData * map)
 		P_AdjustLine (ld);
 		P_SaveLineSpecial (ld);
 
-		// [BC] Backup certain properties of the line.
-		GAME_BackupLineProperties ( ld );
-
 		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
 		if (level.flags2 & LEVEL2_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
+
+		// [BC] Backup certain properties of the line.
+		GAME_BackupLineProperties ( ld );
 	}
 	delete[] mldf;
 }
@@ -2052,9 +2052,6 @@ void P_LoadLineDefs2 (MapData * map)
 		P_SetLineID(ld);
 		P_SaveLineSpecial (ld);
 
-		// [BC] Backup certain properties of the line.
-		GAME_BackupLineProperties ( ld );
-
 		if (level.flags2 & LEVEL2_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags2 & LEVEL2_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
 		if (level.flags2 & LEVEL2_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
@@ -2063,6 +2060,9 @@ void P_LoadLineDefs2 (MapData * map)
 		ld->activation = 1 << GET_SPAC(ld->flags);
 		if (ld->activation == SPAC_AnyCross) ld->activation = SPAC_Impact|SPAC_PCross;	// this is really PTouch
 		ld->flags &= ~ML_SPAC_MASK;
+
+		// [BC] Backup certain properties of the line.
+		GAME_BackupLineProperties ( ld );
 	}
 	delete[] mldf;
 }
