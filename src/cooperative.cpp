@@ -192,6 +192,14 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const boo
 
 	// [BB] Now that the spawning is done, we have to restore the proper playeringame value.
 	playeringame[ulPlayer] = bPlayerInGame;
+	// [BB] If we have spawned the doll for a player not in the game, we have to clear a few pointers.
+	// Otherwise we'll run into nasty problems after a map change.
+	if ( bPlayerInGame == false )
+	{
+		players[ulPlayer].mo = NULL;
+		players[ulPlayer].ReadyWeapon = NULL;
+		players[ulPlayer].PendingWeapon = NULL;
+	}
 }
 
 //*****************************************************************************
