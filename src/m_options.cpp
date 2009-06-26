@@ -1953,7 +1953,7 @@ void mapvotemenu_Vote( void )
 
 	// Execute the command.
 	char		szString[256];
-	sprintf( szString, "callvote %s %s %s", ( menu_mapvoteintermission.GetGenericRep( CVAR_Bool ).Bool ? "changemap" : "map" ), Map.Left( 128 ).GetChars(), Reason.Left( 25 ).GetChars() );
+	sprintf( szString, "callvote %s %s \"%s\"", ( menu_mapvoteintermission.GetGenericRep( CVAR_Bool ).Bool ? "changemap" : "map" ), Map.Left( 128 ).GetChars(), Reason.Left( 25 ).GetChars() );
 	AddCommandString( szString );
 	M_ClearMenus( );
 }
