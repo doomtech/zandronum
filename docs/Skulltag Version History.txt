@@ -39,7 +39,7 @@ latestzdoom branch
 +	- Extended the launcher protocol to allow launchers to handle one stable version (e.g. 97d3) and one testing version (e.g. 97e-alpha) side by side. [Torr Samaho, SuperGod]
 +	- You can now specify the IP Skulltag binds its network socket to with "-useip IP". If used, Skulltag only listens on that IP for incoming traffic and uses the corresponding NIC for outgoing traffic. If not specified, Skulltag listens on all NICs, but uses the default NIC for outgoing traffic. May be useful when hosting a server on a machine with multiple NICs to select which one to use. [Torr Samaho]
 +	- Added new CVAR gl_use_models (default true). If false, all sprite model replacements are ignored. [Torr Samaho]
-+	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps. [Torr Samaho]
++	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps and all ACS library lumps included by LOADACS lumps. [Torr Samaho, SuperGod]
 +	- Added new dmflag "no rocket jumping", controlled by the new CVAR sv_norocketjumping. If enabled, P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping. [Torr Samaho, SuperGod]
 +	- Revamped the ZDoom dmflag "kill monsters", controlled by the CVAR DF2_KILL_MONSTERS. [Torr Samaho, SuperGod]
 		- When the exit is blocked, the player is now teleported back to a random start. This fixes problems when the exit was blocked and the player passed an exit line.

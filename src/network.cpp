@@ -275,6 +275,20 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	FString checksum, longChecksum;
 	bool noProtectedLumpsAutoloaded = true;
 
+	// [BB] All precompiled ACS libraries need to be authenticated. The only way to find all of them
+	// at this point is to parse all LOADACS lumps.
+	{
+		int lump, lastlump = 0;
+		while ((lump = Wads.FindLump ("LOADACS", &lastlump)) != -1)
+		{
+			FScanner sc(lump);
+			while (sc.GetString())
+			{
+				NETWORK_AddLumpForAuthentication ( Wads.CheckNumForName (sc.String, ns_acslibrary) );
+			}
+		}
+	}
+
 	// [BB] First check the lumps that were marked for authentication while initializing. This
 	// includes for example those lumps included by DECORATE lumps. It's much easier to mark those
 	// lumps while the engine parses the DECORATE code than trying to find all included lumps from
