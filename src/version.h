@@ -74,7 +74,10 @@
 // 005 = 0.97d-beta4
 // 006 = 0.97d-beta4.2
 // 007 = 0.97d-RC9
-#define NETGAMEVERSION 0x008
+// [BB] Use the revision number to automatically make builds from
+// different revisions incompatible. Skulltag only uses one byte
+// to transfer NETGAMEVERSION, so we need to limit its value to [0,255].
+#define NETGAMEVERSION (SVN_REVISION_NUMBER % 256)
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
