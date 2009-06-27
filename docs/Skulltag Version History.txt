@@ -75,6 +75,7 @@ latestzdoom branch
 -	- Fixed: The DarkImp never used its melee attack. [Torr Samaho]
 -	- Fixed: ACS scripts using LocalAmbientSound could crash the server if a player left and rejoined while the script was running. [Torr Samaho]
 -	- Fixed: The mapinfo properties clipmidtextures, wrapmidtextures and checkswitchrange were lost after a map reset. [Torr Samaho]
+-	- Fixed: The map authentication didn't cover the BEHAVIOR lump. [Torr Samaho, SuperGod]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]

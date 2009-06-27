@@ -2749,6 +2749,11 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
 	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, Checksum );
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	if ( pMap->HasBehavior )
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_BEHAVIOR, Checksum );
+	else
+		Checksum = "";
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
 
 	// Finally, free the map.
 	delete ( pMap );
