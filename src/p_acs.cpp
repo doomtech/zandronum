@@ -1777,16 +1777,16 @@ const char *FBehavior::LookupString (DWORD index) const
 	}
 }
 
-void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts)
+void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts)
 {
 	DPrintf("Starting all scripts of type %d\n", type);
 	for (unsigned int i = 0; i < StaticModules.Size(); ++i)
 	{
-		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyNetScripts);
+		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyClientSideScripts);
 	}
 }
 
-void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts)
+void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts)
 {
 	const ScriptPtr *ptr;
 	int i;
@@ -1796,15 +1796,15 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 		ptr = &Scripts[i];
 		if (ptr->Type == type)
 		{
-			// [BB] This is no net script, so skip it if onlyNetScripts is true.
-			if ( onlyNetScripts && !( ptr->Flags & SCRIPTF_Net ) )
+			// [BB] This is not a client side script, so skip it if onlyClientSideScripts is true.
+			if ( onlyClientSideScripts && !ACS_IsScriptClientSide( ptr ) )
 			{
 				continue;
 			}
 
-			// [BC] If this is a net script, just let clients execute it themselves.
+			// [BC] If this script is client side, just let clients execute it themselves.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-				( ptr->Flags & SCRIPTF_Net ))
+				ACS_IsScriptClientSide( ptr ))
 			{
 				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, NULL, level.mapname, 0, arg1, 0, 0, always );
 				continue;
@@ -6787,12 +6787,17 @@ bool ACS_IsCalledFromConsoleCommand( void )
 
 //*****************************************************************************
 //
-bool ACS_IsNetScript( ULONG ulScript )
+bool ACS_IsScriptClientSide( ULONG ulScript )
 {
 	FBehavior		*pModule = NULL;
-	const ScriptPtr	*pScriptData;
 
-	pScriptData = FBehavior::StaticFindScript( ulScript, pModule );
+	return ACS_IsScriptClientSide ( FBehavior::StaticFindScript( ulScript, pModule ) );
+}
+
+//*****************************************************************************
+//
+bool ACS_IsScriptClientSide( const ScriptPtr *pScriptData )
+{
 	if ( pScriptData == NULL )
 		return ( false );
 

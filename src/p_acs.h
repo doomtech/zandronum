@@ -161,7 +161,7 @@ public:
 	BYTE *FindChunk (DWORD id) const;
 	BYTE *NextChunk (BYTE *chunk) const;
 	const ScriptPtr *FindScript (int number) const;
-	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts=false);
+	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts=false);
 	int CountTypedScripts( WORD type );
 	DWORD PC2Ofs (int *pc) const { return (DWORD)((BYTE *)pc - Data); }
 	int *Ofs2PC (DWORD ofs) const {	return (int *)(Data + ofs); }
@@ -186,7 +186,7 @@ public:
 
 	static const ScriptPtr *StaticFindScript (int script, FBehavior *&module);
 	static const char *StaticLookupString (DWORD index);
-	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false, bool onlyNetScripts=false);
+	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false, bool onlyClientSideScripts=false);
 	static void StaticStopMyScripts (AActor *actor);
 	static int StaticCountTypedScripts( WORD type );
 
@@ -796,6 +796,7 @@ FArchive &operator<< (FArchive &arc, acsdefered_t *&defer);
 //	PROTOTYPES
 
 bool	ACS_IsCalledFromConsoleCommand( void );
-bool	ACS_IsNetScript( ULONG ulScript );
+bool	ACS_IsScriptClientSide( ULONG ulScript );
+bool	ACS_IsScriptClientSide( const ScriptPtr *pScriptData );
 
 #endif //__P_ACS_H__

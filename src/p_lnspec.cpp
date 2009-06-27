@@ -1680,9 +1680,9 @@ FUNC(LS_ACS_Execute)
 
 	if (arg1 == 0)
 	{
-		// [BC] If this is a net script, just let clients execute it themselves.
+		// [BC] If this script is client side, just let clients execute it themselves.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsNetScript( arg0 )))
+			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, false );
 			return ( false );
@@ -1692,9 +1692,9 @@ FUNC(LS_ACS_Execute)
 	}
 	else if ((info = FindLevelByNum (arg1)) )
 	{
-		// [BC] If this is a net script, just let clients execute it themselves.
+		// [BC] If this script is client side, just let clients execute it themselves.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsNetScript( arg0 )))
+			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, false );
 			return ( false );
@@ -1712,9 +1712,9 @@ FUNC(LS_ACS_ExecuteAlways)
 
 	if (arg1 == 0)
 	{
-		// [BC] If this is a net script, just let clients execute it themselves.
+		// [BC] If this script is client side, just let clients execute it themselves.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsNetScript( arg0 )))
+			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
 			return ( false );
@@ -1724,9 +1724,9 @@ FUNC(LS_ACS_ExecuteAlways)
 	}
 	else if ((info = FindLevelByNum (arg1)) )
 	{
-		// [BC] If this is a net script, just let clients execute it themselves.
+		// [BC] If this script is client side, just let clients execute it themselves.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsNetScript( arg0 )))
+			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, true );
 			return ( false );
@@ -1761,9 +1761,9 @@ FUNC(LS_ACS_ExecuteWithResult)
 	// This is like ACS_ExecuteAlways, except the script is always run on
 	// the current map, and the return value is whatever the script sets
 	// with SetResultValue.
-	// [BC] If this is a net script, just let clients execute it themselves.
+	// [BC] If this script is client side, just let clients execute it themselves.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( ACS_IsNetScript( arg0 )))
+		( ACS_IsScriptClientSide( arg0 )))
 	{
 		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
 		return ( false );
