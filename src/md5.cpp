@@ -260,6 +260,36 @@ MD5Transform(DWORD buf[4], const DWORD in[16])
 #include "c_dispatch.h"
 #include <errno.h>
 
+// [BB]
+bool MD5SumOfFile ( const char *Filename, char *MD5Sum )
+{
+	FILE *file = fopen(Filename, "rb");
+	if (file == NULL)
+	{
+		Printf("%s: %s\n", Filename, strerror(errno));
+		return false;
+	}
+	else
+	{
+		MD5Context md5;
+		BYTE readbuf[8192];
+		size_t len;
+
+		while ((len = fread(readbuf, 1, sizeof(readbuf), file)) > 0)
+		{
+			md5.Update(readbuf, (unsigned int)len);
+		}
+		md5.Final(readbuf);
+		for(int j = 0; j < 16; ++j)
+		{
+			mysnprintf(MD5Sum, sizeof(MD5Sum), "%02x", readbuf[j]);
+			++++MD5Sum;
+		}
+		fclose (file);
+		return true;
+	}
+}
+
 CCMD (md5sum)
 {
 	if (argv.argc() < 2)
@@ -268,6 +298,10 @@ CCMD (md5sum)
 	}
 	for (int i = 1; i < argv.argc(); ++i)
 	{
+		char MD5Sum[33];
+		if ( MD5SumOfFile ( argv[i], MD5Sum ) )
+			Printf ( "%s *%s\n", MD5Sum, argv[i] );
+		/* [BB] Moved the code into the new function MD5SumOfFile.
 		FILE *file = fopen(argv[i], "rb");
 		if (file == NULL)
 		{
@@ -291,5 +325,6 @@ CCMD (md5sum)
 			Printf(" *%s\n", argv[i]);
 			fclose (file);
 		}
+		*/
 	}
 }

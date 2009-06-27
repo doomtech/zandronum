@@ -38,4 +38,9 @@ private:
 
 void MD5Transform(DWORD buf[4], DWORD const in[16]);
 
+// [BB] Calculates the MD5 sum of a file and writes it to MD5Sum.
+// Writes 33 bytes in total (32 bytes for the sum + 1 for the terminating 0).
+// Returns false, if there was a problem reading the file.
+bool MD5SumOfFile ( const char *Filename, char *MD5Sum );
+
 #endif /* !MD5_H */
