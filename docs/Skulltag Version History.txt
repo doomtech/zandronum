@@ -19,6 +19,7 @@ v0.97d4
 -	- Fixed: The map authentication didn't cover the BEHAVIOR lump. [Torr Samaho, SuperGod]
 !	- The authentication mechanism for non-map related lumps now allows Freedoom/Doom clients to join Doom/Freedoom servers. [Torr Samaho]
 -	- Fixed: If a server was queried for unknown flags, these flags were not removed from the Flags field in the answer. [Torr Samaho]
+-	- Fixed: The clients crashed if the server sent them malformed packets. [Torr Samaho]
 
 v0.97d3-security-update-1
 -------------------------
