@@ -59,6 +59,7 @@
 
 CVAR( Bool, sv_coopspawnvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
 CVAR( Bool, sv_coopunassignedvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
+CVAR( Int, sv_coopunassignedvoodoodollsfornplayers, MAXPLAYERS, CVAR_SERVERINFO | CVAR_LATCH );
 
 player_t DummyPlayer;
 
@@ -164,6 +165,11 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const boo
 
 	// [BB] The map doesn't have any voodoo doll starts for this player.
 	if ( AllPlayerStarts[ulPlayer].Size() <= 1 )
+		return;
+
+	// [BB] In case of unassigned voodoo dolls, on some maps it may be better only
+	// to spawn the voodoo dolls for the first N players.
+	if ( ( sv_coopunassignedvoodoodolls == true ) && ( static_cast<LONG>(ulPlayer) >= sv_coopunassignedvoodoodollsfornplayers ) )
 		return;
 
 	// [BB] To enforce the spawning, we have to set playeringame to true.
