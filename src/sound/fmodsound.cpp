@@ -44,7 +44,8 @@ extern HWND Window;
 #define FALSE 0
 #define TRUE 1
 #endif
-#include <malloc.h>
+// [BB] FreeBSD doesn't accept malloc.h anymore.
+#include <stdlib.h>
 
 #include "templates.h"
 #ifndef NO_SOUND

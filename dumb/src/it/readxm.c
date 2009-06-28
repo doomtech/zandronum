@@ -24,7 +24,8 @@
 #include "dumb.h"
 #include "internal/it.h"
 
-#include <malloc.h>
+// [BB] FreeBSD doesn't accept malloc.h anymore.
+#include <stdlib.h>
 #include <assert.h>
 
 extern short *DUMBCALLBACK dumb_decode_vorbis(int outlen, const void *oggstream, int sizebytes);
