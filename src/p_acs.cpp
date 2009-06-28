@@ -6801,5 +6801,12 @@ bool ACS_IsScriptClientSide( const ScriptPtr *pScriptData )
 	if ( pScriptData == NULL )
 		return ( false );
 
-	return ( pScriptData->Flags & SCRIPTF_Net );
+	// [BB] For the time being, net scripts are always treated to be client side.
+	if ( pScriptData->Flags & SCRIPTF_Net )
+		return ( true );
+
+	if ( pScriptData->Flags & SCRIPTF_ClientSide )
+		return ( true );
+
+	return ( false );
 }

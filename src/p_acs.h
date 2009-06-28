@@ -146,7 +146,8 @@ enum
 // Script flags
 enum
 {
-	SCRIPTF_Net = 0x0001	// Safe to "puke" in multiplayer
+	SCRIPTF_Net = 0x0001,	// Safe to "puke" in multiplayer
+	SCRIPTF_ClientSide = 0x0002	// [BB] Is executed on the clients, not on the server.
 };
 
 enum ACSFormat { ACS_Old, ACS_Enhanced, ACS_LittleEnhanced, ACS_Unknown };
