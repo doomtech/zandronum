@@ -634,6 +634,10 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadString( pByteStream );
 		}
+
+		// [BB] MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
+		if ( ulFlags & SQF_DATA_MD5SUM )
+			NETWORK_ReadString( pByteStream );
 		return;
 	}
 
@@ -858,6 +862,10 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		NETWORK_ReadByte( pByteStream );
 		NETWORK_ReadString( pByteStream );
 	}
+
+	// [BB] MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
+	if ( ulFlags & SQF_DATA_MD5SUM )
+		NETWORK_ReadString( pByteStream );
 
 	// Now that this server has been read in, resort the servers in the menu.
 	if ( bResortList )

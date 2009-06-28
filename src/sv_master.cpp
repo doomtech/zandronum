@@ -611,6 +611,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		}
 	}
 
+	// [BB] Send the MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
+	if ( ulBits & SQF_DATA_MD5SUM )
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, g_SkulltagDataFileMD5Sum.GetChars() );
+
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
 	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 }

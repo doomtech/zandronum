@@ -92,6 +92,9 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 FString g_lumpsAuthenticationChecksum;
 
+// [BB] MD5Sum of skulltag.wad / skulltag_data.pk3
+FString g_SkulltagDataFileMD5Sum;
+
 static TArray<LONG> g_LumpNumsToAuthenticate ( 0 );
 
 // The current network state. Single player, client, server, etc.
@@ -346,6 +349,8 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			Printf ( PRINT_BOLD, "You can't connect to servers without these files.\n" );
 	}
 
+	// [BB] To facilitate testing changes to skulltag.wad, show its MD5 sum on startup.
+	Printf("MD5 sum of skulltag.wad is %s\n", g_SkulltagDataFileMD5Sum.GetChars());
 
 	// [BB] Initialize the actor network class indices.
 	for ( unsigned int i = 0; i < PClass::m_Types.Size(); i++ )

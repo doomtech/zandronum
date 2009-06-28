@@ -551,6 +551,7 @@ enum
 //	VARIABLES
 
 extern FString g_lumpsAuthenticationChecksum;
+extern FString g_SkulltagDataFileMD5Sum;
 
 //*****************************************************************************
 //	PROTOTYPES

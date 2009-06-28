@@ -3,10 +3,11 @@
   SKULLTAG Launcher Protocol
   ==========================
 
-  v0.51 by Torr Samho
-    May 21, 2009
+  v0.53 by Torr Samho
+    June 26, 2009
 
   Version history:
+    - v0.53: Added SQF_DATA_MD5SUM
     - v0.52: Added SQF_TESTING_SERVER
     - v0.51: Added the revision number to the version string.
     - v0.5: Support for TEAMINFO
@@ -117,6 +118,7 @@ The flags are:
 	SQF_TEAMINFO_COLOR			0x00800000
 	SQF_TEAMINFO_SCORE			0x01000000
 	SQF_TESTING_SERVER			0x02000000
+	SQF_DATA_MD5SUM				0x04000000
 	
 For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS).
 Please use these flags appropiately; it saves your users' and server hosters' bandwidth.
@@ -193,6 +195,7 @@ Next, assuming you were accepted, you'll get:
   Short               SQF_TEAMINFO_SCORE    The team's score. (Sent for each team.)
   Byte                SQF_TESTING_SERVER    Whether this server is running a testing binary - true (1) / false (0)
   String              SQF_TESTING_SERVER    An empty string in case the server is running a stable binary, otherwise name of the testing binary archive found in http://skulltag.com/testing/files/
+  String              SQF_DATA_MD5SUM       A string with the MD5 sum of the main data file (skulltag.wad/skulltag_data.pk3) the server uses.
 
 And that's it!
 

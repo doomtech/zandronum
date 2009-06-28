@@ -119,6 +119,7 @@
 #include "cl_demo.h"
 #include "gamemode.h"
 #include "sectinfo.h"
+#include "md5.h"
 
 #include "st_start.h"
 #include "templates.h"
@@ -1912,6 +1913,11 @@ void D_DoomMain (void)
 		wad = BaseFileSearch( "skulltag.wad", NULL, true );
 		if ( wad == NULL )
 			I_FatalError( "Cannot find skulltag.wad" );
+
+		// [BB] Calculate and save the MD5 sum, we'll need it later.
+		char MD5Sum[33];
+		MD5SumOfFile ( wad, MD5Sum );
+		g_SkulltagDataFileMD5Sum = MD5Sum;
 	}
 
 	// Load zdoom.pk3 alone so that we can get access to the internal gameinfos before 
