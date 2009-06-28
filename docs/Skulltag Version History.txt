@@ -12,6 +12,11 @@
 ===============================================================================================================
 
 
+v0.97d4
+-------
+
++	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps. [Torr Samaho]
+
 v0.97d3-security-update-1
 -------------------------
 

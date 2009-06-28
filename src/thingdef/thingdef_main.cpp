@@ -44,6 +44,8 @@
 #include "cmdlib.h"
 #include "thingdef.h"
 #include "vectors.h"
+// [BB] New #includes.
+#include "network.h"
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
@@ -96,6 +98,9 @@ static void ParseDecorate ()
 
 			if (lump==-1) 
 				SC_ScriptError("Lump '%s' not found", sc_String);
+
+			// [BB] Clients may not tamper with DECORATE code, so mark the included lump for authentication.
+			NETWORK_AddLumpForAuthentication ( lump );
 
 			SC_SaveScriptState();
 			SC_OpenLumpNum(lump, sc_String);
