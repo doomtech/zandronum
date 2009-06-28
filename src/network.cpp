@@ -74,6 +74,7 @@
 #include "network.h"
 #include "sbar.h"
 #include "v_video.h"
+#include "sc_man.h"
 
 #include "MD5Checksum.h"
 
@@ -235,6 +236,21 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	FString checksum, longChecksum;
 	bool noProtectedLumpsAutoloaded = true;
 
+	// [BB] All precompiled ACS libraries need to be authenticated. The only way to find all of them
+	// at this point is to parse all LOADACS lumps.
+	{
+		int lump, lastlump = 0;
+		while ((lump = Wads.FindLump ("LOADACS", &lastlump)) != -1)
+		{
+			SC_OpenLumpNum (lump, "LOADACS");
+			while (SC_GetString())
+			{
+				NETWORK_AddLumpForAuthentication ( Wads.CheckNumForName (sc_String, ns_acslibrary) );
+			}
+			SC_Close ();
+		}
+	}
+
 	// [BB] First check the lumps that were marked for authentication while initializing. This
 	// includes for example those lumps included by DECORATE lumps. It's much easier to mark those
 	// lumps while the engine parses the DECORATE code than trying to find all included lumps from
@@ -252,6 +268,18 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			case LAST_LUMP:
 				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), lumpsToAuthenticate[i].c_str(), checksum ) )
 					noProtectedLumpsAutoloaded = false;
+
+				// [BB] To make Doom and Freedoom network compatible, substitue the Freedoom PLAYPAL/COLORMAP hash
+				// by the corresponding Doom hash.
+				// 4804c7f34b5285c334a7913dd98fae16 Doom PLAYPAL hash
+				// 061a4c0f80aa8029f2c1bc12dc2e261e Doom COLORMAP hash
+				// 2e01ae6258f2a0fdad32125537efe1af Freedoom PLAYPAL hash
+				// bb535e66cae508e3833a5d2de974267b Freedoom COLORMAP hash
+				if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "PLAYPAL" ) == 0 ) && ( stricmp ( checksum.GetChars(), "2e01ae6258f2a0fdad32125537efe1af" ) == 0 ) )
+					checksum = "4804c7f34b5285c334a7913dd98fae16";
+				else if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "COLORMAP" ) == 0 ) && ( stricmp ( checksum.GetChars(), "bb535e66cae508e3833a5d2de974267b" ) == 0 ) )
+					checksum = "061a4c0f80aa8029f2c1bc12dc2e261e";
+
 				longChecksum += checksum;
 				break;
 
