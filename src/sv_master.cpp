@@ -342,6 +342,9 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;
 
+	// [BB] Remove all unknown flags from our answer.
+	ulBits &= SQF_ALL;
+
 	// If the launcher desires to know the team damage, but we're not in a game mode where
 	// team damage applies, then don't send back team damage information.
 	if (( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false ))) == false )
