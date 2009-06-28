@@ -1202,10 +1202,12 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	FString		serverLinedefString;
 	FString		serverSidedefString;
 	FString		serverSectorString;
+	FString		serverBehaviorString;
 	FString		clientVertexString;
 	FString		clientLinedefString;
 	FString		clientSidedefString;
 	FString		clientSectorString;
+	FString		clientBehaviorString;
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
 	pMap = P_OpenMapData( level.mapname );
@@ -1215,6 +1217,10 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, serverLinedefString );
 	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, serverSidedefString );
 	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, serverSectorString );
+	if ( pMap->HasBehavior ) // ML_BEHAVIOR
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_BEHAVIOR, serverBehaviorString );
+	else
+		serverBehaviorString = "";
 
 	// Free the map pointer, we don't need it anymore.
 	delete ( pMap );
@@ -1224,12 +1230,14 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	clientLinedefString = NETWORK_ReadString( pByteStream );
 	clientSidedefString = NETWORK_ReadString( pByteStream );
 	clientSectorString = NETWORK_ReadString( pByteStream );
+	clientBehaviorString = NETWORK_ReadString( pByteStream );
 
 	// Checksums did not match! Therefore, the level authentication has failed.
 	if (( serverVertexString.Compare( clientVertexString ) != 0 ) ||
 		( serverLinedefString.Compare( clientLinedefString ) != 0 ) ||
 		( serverSidedefString.Compare( clientSidedefString ) != 0 ) ||
-		( serverSectorString.Compare( clientSectorString ) != 0 ))
+		( serverSectorString.Compare( clientSectorString ) != 0 ) ||
+		( serverBehaviorString.Compare( clientBehaviorString ) != 0 ))
 	{
 		return ( false );
 	}
