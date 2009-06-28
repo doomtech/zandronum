@@ -492,6 +492,22 @@ CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 	}
 }
 
+//==========================================================================
+//
+// [BB] CVAR compatflags2
+//
+//==========================================================================
+
+CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO)
+{
+	// [BC] If we're the server, tell clients that the dmflags changed.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
+		SERVERCOMMANDS_SetGameDMFlags( );
+	}
+}
+
 CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 {
 	int v;
@@ -558,6 +574,7 @@ CVAR (Flag, compat_oldradiusdmg,	compatflags, COMPATF_OLDRADIUSDMG);
 //CVAR (Flag, compat_disablecooperativebackpacks,	compatflags, COMPATF_DISABLECOOPERATIVEBACKPACKS);
 CVAR (Flag, compat_nocrosshair,		compatflags, COMPATF_NO_CROSSHAIR);
 CVAR (Flag, compat_oldweaponswitch,		compatflags, COMPATF_OLD_WEAPON_SWITCH);
+CVAR (Flag, compat_netscriptsareclientside,		compatflags2, COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE);
 
 //==========================================================================
 //

@@ -326,6 +326,14 @@ enum
 	COMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
 };
 
+// [BB] More compatibility flags.
+enum
+{
+	// [BB] Treat ACS scripts with the SCRIPTF_Net flag to be client side, i.e.
+	// executed on the clients, but not on the server.
+	COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE		= 1 << 0,
+};
+
 // Emulate old bugs for select maps. These are not exposed by a cvar
 // or mapinfo because we do not want new maps to use these bugs.
 enum

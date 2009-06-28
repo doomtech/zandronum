@@ -6801,8 +6801,8 @@ bool ACS_IsScriptClientSide( const ScriptPtr *pScriptData )
 	if ( pScriptData == NULL )
 		return ( false );
 
-	// [BB] For the time being, net scripts are always treated to be client side.
-	if ( pScriptData->Flags & SCRIPTF_Net )
+	// [BB] Some existing maps rely on Skulltag's old net script handling.
+	if ( ( pScriptData->Flags & SCRIPTF_Net ) && ( compatflags2 & COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE ) )
 		return ( true );
 
 	if ( pScriptData->Flags & SCRIPTF_ClientSide )
