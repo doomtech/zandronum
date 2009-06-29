@@ -387,7 +387,8 @@ inline FBaseCVar *cvar_forceset (const char *var_name, const BYTE *value) { retu
 
 // Maximum number of cvars that can be saved across a demo. If you need
 // to save more, bump this up.
-#define MAX_DEMOCVARS 32
+// [BB] Bumped this from 32 to 64
+#define MAX_DEMOCVARS 64
 
 // Restore demo cvars. Called after demo playback to restore all cvars
 // that might possibly have been changed during the course of demo playback.
