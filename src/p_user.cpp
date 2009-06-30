@@ -3203,8 +3203,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					}
 					else
 					{
-					   if (player->mo->pitch < -ANGLE_1*32)
-						   player->mo->pitch = -ANGLE_1*32;
+					   if (player->mo->pitch < -ANGLE_1*56)
+						   player->mo->pitch = -ANGLE_1*56;
 					}
 				}
 				else
@@ -3427,8 +3427,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 						}
 						else
 						{
-						   if (player->mo->pitch < -ANGLE_1*32)
-							   player->mo->pitch = -ANGLE_1*32;
+						   if (player->mo->pitch < -ANGLE_1*56)
+							   player->mo->pitch = -ANGLE_1*56;
 						}
 					}
 					else

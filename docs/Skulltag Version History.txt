@@ -78,6 +78,7 @@ latestzdoom branch
 -	- Fixed: ACS scripts using LocalAmbientSound could crash the server if a player left and rejoined while the script was running. [Torr Samaho]
 -	- Fixed: The mapinfo properties clipmidtextures, wrapmidtextures and checkswitchrange were lost after a map reset. [Torr Samaho]
 -	- Fixed: The map authentication didn't cover the BEHAVIOR lump. [Torr Samaho, SuperGod]
+!	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down).  This is done to reduce the advantage of OpenGL. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
 !	- Merged S_SKIN and SKININFO. [Blzut3]

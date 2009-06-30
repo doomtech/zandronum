@@ -4942,8 +4942,8 @@ static void client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream )
 	// the viewangle has to be limited.	We don't care about cl_disallowfullpitch here.
 	if ( !currentrenderer )
 	{
-		if (lPitch < -ANGLE_1*32)
-			lPitch = -ANGLE_1*32;
+		if (lPitch < -ANGLE_1*56)
+			lPitch = -ANGLE_1*56;
 		if (lPitch > ANGLE_1*56)
 			lPitch = ANGLE_1*56;
 	}
