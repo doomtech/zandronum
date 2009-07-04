@@ -3964,6 +3964,8 @@ void ACTOR_ClearNetIDList( void )
 
 //*****************************************************************************
 //
+void CountActors ( ); // [BB]
+
 ULONG ACTOR_GetNewNetID( void )
 {
 	ULONG	ulID;
@@ -3979,7 +3981,16 @@ ULONG ACTOR_GetNewNetID( void )
 
 		if ( g_ulFirstFreeNetID == ulID )
 		{
-			Printf( "ACTOR_GetNewNetID: Network ID limit reached (>=%d actors)\n", MAX_NETID );
+			// [BB] In case there is no free netID, the server has to abort the current game.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				// [BB] We can only spawn (MAX_NETID-2) actors with netID, because ID zero is reserved and
+				// we already check that a new ID for the next actor is available when assign a net ID.
+				Printf( "ACTOR_GetNewNetID: Network ID limit reached (>=%d actors)\n", MAX_NETID - 1 );
+				CountActors ( );
+				I_Error ("Network ID limit reached (>=%d actors)!\n", MAX_NETID - 1 );
+			}
+
 			return ( 0 );
 		}
 	} while ( g_NetIDList[g_ulFirstFreeNetID].bFree == false );
