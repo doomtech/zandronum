@@ -1020,11 +1020,21 @@ void AInventory::Touch (AActor *toucher)
 	// [BB] When an unassigned voodoo doll touches something, pretend all players are touching it.
 	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( toucher->player == COOP_GetVoodooDollDummyPlayer() ) )
 	{
+		bool bPlayerTouchedItem = false;
 		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( ( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) )
+			{
 				Touch ( players[ulIdx].mo );
+				bPlayerTouchedItem = true;
+			}
 		}
+		// [BB] To prevent a VD that is sitting on top of an item from spamming the players with pickups
+		// in case item respawning is enabled (getting bersek every 30 seconds in DVII is pretty annoying ;))
+		// we just destroy (or hide) the item, after the VD gave at least one player the chance to get the item.
+		if ( bPlayerTouchedItem )
+			HideOrDestroyIfSafe();
+
 		return;
 	}
 
