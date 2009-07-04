@@ -48,6 +48,7 @@ latestzdoom branch
 		- If the flag is used, the scoreboard now displays how many percent of the monsters are still alive instead of the absolute number.
 +	- Added new ACS script flag CLIENTSIDE. Scripts with this flag are only executed on the clients, not on the server. Therefore, such scripts should not need any network bandwidth while running (only the server instruction that tells the clients to start the script needs bandwidth). Only use it on scripts that don't affect the game in any way (visuals aside) and only use it, if you know what you are doing! [Torr Samaho]
 +	- Extended the launcher protocol to optionally report the MD5 sum of the main data file (skulltag.wad/skulltag_data.pk3) the server uses. The sum is also shown on startup in the console log. [Torr Samaho]
++	- Added new CCMD countactors that counts the number of actors currently in the game, shows how many of them have a network id and how many actors are of which class. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
