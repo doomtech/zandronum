@@ -1665,6 +1665,9 @@ void P_SpawnThings (int position)
 		if (playeringame[i] && players[i].mo != NULL)
 			P_PlayerStartStomp(players[i].mo);
 	}
+	// [BB] When initially spawning the voodoo dolls, we also need to clear the stored pickups
+	// of the unassigned dolls.
+	COOP_ClearStoredUVDPickups();
 }
 
 

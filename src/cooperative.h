@@ -65,6 +65,9 @@ bool	COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer );
 void	COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const bool bSpawnEvenIfPlayerIsNotIngame = false );
 bool	COOP_VoodooDollsSelectedByGameMode ( void );
 const player_t* COOP_GetVoodooDollDummyPlayer ( void );
+void	COOP_PotentiallyStoreUVDPickup ( const PClass *pType );
+void	COOP_ClearStoredUVDPickups ( void );
+void	COOP_GiveStoredUVDPickupsToPlayer ( const ULONG ulPlayer );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

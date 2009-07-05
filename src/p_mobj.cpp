@@ -4831,6 +4831,11 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 				}
 				else
 					FBehavior::StaticStartTypedScripts (SCRIPT_Enter, p->mo, true);
+
+				// [BB] If there is any stored inventory picked up by unassigned voodoo dolls
+				// give it to the entering player.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					COOP_GiveStoredUVDPickupsToPlayer ( static_cast<ULONG> ( p - players ) );
 			}
 		}
 		// [BC] Added PST_REBORNNOINVENTORY.

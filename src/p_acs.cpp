@@ -435,7 +435,8 @@ static void ClearInventory (AActor *activator)
 //
 //============================================================================
 
-static void DoGiveInv (AActor *actor, const PClass *info, int amount)
+// [BB] I need this outside p_acs.cpp.
+/*static*/ void DoGiveInv (AActor *actor, const PClass *info, int amount)
 {
 	AWeapon *savedPendingWeap = actor->player != NULL
 		? actor->player->PendingWeapon : NULL;

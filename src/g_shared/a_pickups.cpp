@@ -1034,6 +1034,9 @@ void AInventory::Touch (AActor *toucher)
 		// we just destroy (or hide) the item, after the VD gave at least one player the chance to get the item.
 		if ( bPlayerTouchedItem )
 		{
+			// [BB] Some kind of items need to be stored to give them to players who join afterwards.
+			COOP_PotentiallyStoreUVDPickup ( this->GetClass() );
+
 			// [BB] Notify the clients that the item is gone.
 			SERVERCOMMANDS_DestroyThing( this );
 

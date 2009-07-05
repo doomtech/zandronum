@@ -48,6 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "a_keys.h"
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "doomstat.h"
@@ -61,7 +62,11 @@ CVAR( Bool, sv_coopspawnvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
 CVAR( Bool, sv_coopunassignedvoodoodolls, true, CVAR_SERVERINFO | CVAR_LATCH );
 CVAR( Int, sv_coopunassignedvoodoodollsfornplayers, MAXPLAYERS, CVAR_SERVERINFO | CVAR_LATCH );
 
+//*****************************************************************************
+//	PRIVATE DATA DEFINITIONS
+
 player_t DummyPlayer;
+TMap<FName, int> UVDpickupMap;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -228,6 +233,54 @@ bool COOP_VoodooDollsSelectedByGameMode ( void )
 const player_t* COOP_GetVoodooDollDummyPlayer ( void )
 {
 	return &DummyPlayer;
+}
+
+//*****************************************************************************
+//
+void COOP_PotentiallyStoreUVDPickup ( const PClass *pType )
+{
+	// [BB] The current game mode doesn't need voodoo dolls, so no need to store any pickups.
+	if ( COOP_VoodooDollsSelectedByGameMode() == false )
+		return;
+
+	// [BB] There is no ingame joining in such gamemodes, so no need to store any pickups.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS )
+		return;
+
+	// [BB] Nothing to store.
+	if ( pType == NULL )
+		return;
+
+	// [BB] We only store weapons and keys since they might be crucial to finish a map.
+	if ( ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )
+		&& ( pType->IsDescendantOf( RUNTIME_CLASS( AKey )) == false ) )
+		return;
+
+	const FName pickupName = pType->TypeName.GetChars();
+	if ( UVDpickupMap.CheckKey( pickupName ) == false )
+		UVDpickupMap.Insert( pickupName, 1 );
+}
+
+//*****************************************************************************
+//
+void COOP_ClearStoredUVDPickups ( )
+{
+	UVDpickupMap.Clear();
+}
+
+//*****************************************************************************
+//
+void DoGiveInv (AActor *actor, const PClass *info, int amount);
+void COOP_GiveStoredUVDPickupsToPlayer ( const ULONG ulPlayer )
+{
+	const TMap<FName, int>::Pair *pair;
+	TMap<FName, int>::ConstIterator mapit ( UVDpickupMap );
+	while ( mapit.NextPair (pair) )
+	{
+		const PClass *pType = PClass::FindClass ( pair->Key.GetChars() );
+		if ( pType )
+			DoGiveInv ( players[ulPlayer].mo, pType, 1 );
+	}
 }
 
 //*****************************************************************************
