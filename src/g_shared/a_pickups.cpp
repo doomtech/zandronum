@@ -1033,7 +1033,12 @@ void AInventory::Touch (AActor *toucher)
 		// in case item respawning is enabled (getting bersek every 30 seconds in DVII is pretty annoying ;))
 		// we just destroy (or hide) the item, after the VD gave at least one player the chance to get the item.
 		if ( bPlayerTouchedItem )
+		{
+			// [BB] Notify the clients that the item is gone.
+			SERVERCOMMANDS_DestroyThing( this );
+
 			HideOrDestroyIfSafe();
+		}
 
 		return;
 	}
