@@ -1139,6 +1139,7 @@ void R_InitSprites ()
 
 		int maxwidth = 0, maxheight = 0;
 		char	szTempLumpName[9];
+		FString maxwidthSprite, maxheightSprite;
 
 		// [BB] Loop through all the lumps searching for sprites of this skin.
 		// This may look very inefficient, but since this is only called once on
@@ -1158,6 +1159,14 @@ void R_InitSprites ()
 
 				if ( szTempLumpName[6] )
 				{
+					// [BB] Only check lumps that possibly can be used as sprite frames.
+					if ( static_cast<unsigned> ( szTempLumpName[6] - 'A' ) >= MAX_SPRITE_FRAMES )
+						continue;
+
+					// [BB] No need to check Death/XDeath frames.
+					if ( szTempLumpName[6] >= 'H' )
+						continue;
+
 					if ( R_IsCharUsuableAsSpriteRotation ( szTempLumpName[7] ) == false )
 						continue;
 				}
@@ -1166,8 +1175,16 @@ void R_InitSprites ()
 				FTexture *tex = (texnum.Exists()) ? TexMan[ texnum ] : NULL;
 				if ( tex )
 				{
-					maxheight = MAX ( maxheight, tex->GetHeight() );
-					maxwidth = MAX ( maxwidth, tex->GetWidth() );
+					if ( tex->GetHeight() > maxheight )
+					{
+						maxheight = tex->GetHeight();
+						maxheightSprite = szTempLumpName;
+					}
+					if ( tex->GetWidth() > maxwidth )
+					{
+						maxwidth = tex->GetWidth();
+						maxwidthSprite = szTempLumpName;
+					}
 				}
 			}
 		}
@@ -1206,6 +1223,7 @@ void R_InitSprites ()
 		{
 			sizeLimitsExceeded = true;
 			Printf ( "\\cgEffective sprite height of skin %s too big! Downsizing.\n", skins[skinIdx].name );
+			Printf ( "\\cgOffending lump name %s.\n", maxheightSprite.GetChars() );
 			const fixed_t oldScaleY = skins[skinIdx].ScaleY;
 			skins[skinIdx].ScaleY = 1.68*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) / maxheight;
 			// [BB] Preserve the aspect ration of the sprites.
@@ -1221,6 +1239,7 @@ void R_InitSprites ()
 			skins[skinIdx].ScaleY *= FIXED2FLOAT( skins[skinIdx].ScaleX ) / FIXED2FLOAT( oldScaleX );
 			sizeLimitsExceeded = true;
 			Printf ( "\\cgEffective sprite width of skin %s too big! Downsizing.\n", skins[skinIdx].name );
+			Printf ( "\\cgOffending lump name %s.\n", maxwidthSprite.GetChars() );
 		}
 
 		// [BB] Don't allow the base skin sprites of the player classes to exceed the limits.
