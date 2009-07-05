@@ -521,7 +521,6 @@ void P_RemoveThing(AActor * actor)
 		// be friendly to the level statistics. ;)
 		if (actor->CountsAsKill() && actor->health > 0) level.total_monsters--;
 		if (actor->flags&MF_COUNTITEM) level.total_items--;
-		actor->Destroy ();
 
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 		actor->HideOrDestroyIfSafe ();
