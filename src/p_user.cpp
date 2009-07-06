@@ -327,7 +327,8 @@ player_t::player_t()
   OldPendingWeapon( 0 ),
   bLagging( 0 ),
   bSpawnTelefragged( 0 ),
-  ulTime( 0 )
+  ulTime( 0 ),
+  bUnarmed( false )
 {
 	memset (&cmd, 0, sizeof(cmd));
 	memset (&userinfo, 0, sizeof(userinfo));
@@ -3829,6 +3830,9 @@ void player_t::Serialize (FArchive &arc)
 		<< crouchviewdelta
 		<< original_cmd
 		<< original_oldbuttons;
+
+	// [BL] is the player unarmed?
+	arc << bUnarmed;
 
 	if (arc.IsLoading ())
 	{

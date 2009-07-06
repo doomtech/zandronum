@@ -512,6 +512,9 @@ public:
 	// Amount of time this player has been on the server.
 	ULONG		ulTime;
 
+	// [BL] Should the player be able to use weapons?
+	bool		bUnarmed;
+
 	// [BC] End of ST additions.
 
 	fixed_t GetDeltaViewHeight() const

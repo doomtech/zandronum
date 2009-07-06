@@ -366,7 +366,8 @@ void P_WriteACSVars(FILE *stdfile)
 //
 //============================================================================
 
-static void DoClearInv (AActor *actor)
+// [BL] We're exporting this now
+void DoClearInv (AActor *actor)
 {
 	AInventory *inv = actor->Inventory;
 

@@ -2126,6 +2126,22 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	// Update this player's info on the scoreboard.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
+
+	// [BL] If the player was "unarmed" give back his inventory now.
+	if ( pPlayer->bUnarmed )
+	{
+		pPlayer->mo->GiveDefaultInventory();
+		if ( deathmatch )
+			pPlayer->mo->GiveDeathmatchInventory();
+
+		pPlayer->bUnarmed = false;
+		// Switch the player's weapon.
+		if(NETWORK_GetState() == NETSTATE_SERVER)
+		{
+			SERVERCOMMANDS_SetPlayerPendingWeapon(pPlayer - players);
+		}
+		P_BringUpWeapon(pPlayer);
+	}
 }
 
 //*****************************************************************************

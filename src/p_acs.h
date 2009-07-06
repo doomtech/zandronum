@@ -800,4 +800,7 @@ bool	ACS_IsCalledFromConsoleCommand( void );
 bool	ACS_IsScriptClientSide( ULONG ulScript );
 bool	ACS_IsScriptClientSide( const ScriptPtr *pScriptData );
 
+// [BL] Export DoClearInv
+void	DoClearInv(AActor *actor);
+
 #endif //__P_ACS_H__

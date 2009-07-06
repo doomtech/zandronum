@@ -2416,7 +2416,13 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
 	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
-	if (mo != NULL) P_PlayerStartStomp(mo);
+	if (mo != NULL)
+	{
+		P_PlayerStartStomp(mo);
+		// [BL] Say goodbye to selection room pistol-fights! I'm fed up with them!
+		players[ulPlayer].bUnarmed = true;
+		DoClearInv(players[ulPlayer].mo);
+	}
 }
 
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )

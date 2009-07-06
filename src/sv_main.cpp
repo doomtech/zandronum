@@ -5030,6 +5030,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
+	// [BL] To remove pistol fire-fights if the player is supposed to be unarmed clear his inventory
+	if ( players[g_lCurrentClient].bUnarmed )
+		SERVERCOMMANDS_DestroyAllInventory( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
 	// Finally, send out the packet.
 	SERVER_SendClientPacket( g_lCurrentClient, true );
 
