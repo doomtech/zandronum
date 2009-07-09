@@ -51,7 +51,6 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
-#define _WIN32_IE 0x0501
 #include <windows.h>
 #include "network.h"
 #include "i_system.h"

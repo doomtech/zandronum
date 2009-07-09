@@ -59,6 +59,8 @@
 #define M_Malloc(s) malloc(s)
 #define M_Realloc(p,s) realloc(p,s)
 #define M_Free(s) free(s)
+#define M_Malloc_Dbg(s, y, z) malloc(s)
+#define M_Realloc_Dbg(p,s, y, z) realloc(p,s)
 
 // [BB] Implemented in main.cpp
 void			Printf( const char *pszString, ... );
