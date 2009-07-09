@@ -4,7 +4,7 @@
 	Version="8,00"
 	Name="statsmaker"
 	ProjectGUID="{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
-	RootNamespace="Skulltag Stats Maker"
+	RootNamespace="statsmaker"
 	>
 	<Platforms>
 		<Platform
@@ -42,7 +42,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/Skulltag Stats Maker.tlb"
+				TypeLibraryName=".\Debug\statsmaker.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -53,7 +53,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/Skulltag Stats Maker.pch"
+				PrecompiledHeaderFile=".\Debug\statsmaker.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,11 +76,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="user32.lib wsock32.lib winmm.lib shell32.lib"
-				OutputFile=".\Debug/Skulltag Stats Maker.exe"
+				OutputFile=".\Debug\statsmaker.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Skulltag Stats Maker.pdb"
+				ProgramDatabaseFile=".\Debug\statsmaker.pdb"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -96,7 +96,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/Skulltag Stats Maker.bsc"
+				OutputFile=".\Debug\statsmaker.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -139,7 +139,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/Skulltag Stats Maker.tlb"
+				TypeLibraryName=".\Release\statsmaker.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -151,7 +151,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/Skulltag Stats Maker.pch"
+				PrecompiledHeaderFile=".\Release\statsmaker.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -173,10 +173,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="user32.lib wsock32.lib winmm.lib shell32.lib"
-				OutputFile=".\Release/Skulltag Stats Maker.exe"
+				OutputFile=".\Release\statsmaker.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Skulltag Stats Maker.pdb"
+				ProgramDatabaseFile=".\Release\statsmaker.pdb"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -192,7 +192,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/Skulltag Stats Maker.bsc"
+				OutputFile=".\Release\statsmaker.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"

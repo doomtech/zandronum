@@ -26,7 +26,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "updaterevision", "tools\upd
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jpeg-6b", "jpeg-6b\jpeg-6b.vcproj", "{AC3F5340-40CB-4C3A-8AA7-CB7158DB4466}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "statsmaker", "statsmaker\Skulltag Stats Maker.vcproj", "{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "statsmaker", "statsmaker\statsmaker.vcproj", "{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fixrtext", "tools\fixrtext\fixrtext.vcproj", "{DA47396F-60C1-4BDE-A977-7F7DE461CF77}"
 EndProject
