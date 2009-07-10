@@ -55,6 +55,12 @@ DEFINE_ACTION_FUNCTION(AActor, A_SentinelAttack)
 {
 	AActor *missile = NULL, *trail;
 
+	// [BB] Without a target the P_SpawnMissileZAimed call will crash.
+	if (!self->target)
+	{
+		return;
+	}
+
 	// [CW] If we aren't a client, spawn the missile.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
 	{
