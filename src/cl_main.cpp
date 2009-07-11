@@ -9054,7 +9054,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream, bool bIdentifyLine
 	// Read in the position.
 	ulPosition = NETWORK_ReadByte( pByteStream );
 
-	texture = TexMan.CheckForTexture( pszTextureName, FTexture::TEX_Wall );
+	texture = TexMan.GetTexture( pszTextureName, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 
 	if ( !texture.Exists() )
 		return;
