@@ -95,6 +95,7 @@ latestzdoom branch
 !	- The "kill monsters" cheat can now be used by the server (independent of the sv_cheats setting). [Torr Samaho, SuperGod]
 !	- To restore compatibility with ZDoom, ACS scripts with the NET flag are not treated to be client side anymore. The new compatflag "net scripts are client side", controlled by the new CVAR compat_netscriptsareclientside, allows to restore the old Skulltag behavior. After changing the flag, the map should be restarted. [Torr Samaho]
 !	- The code to check the maximal allowed effective skin sprite width/height now reports the offending sprite names in case the allowed dimensions are exceeded. [Torr Samaho]
+!	- Going to intermission now automatically stops any active vote. [Torr Samaho, SuperGod]
 
 
 <trunk>

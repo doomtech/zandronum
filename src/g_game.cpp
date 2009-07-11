@@ -1731,6 +1731,10 @@ void G_Ticker ()
 			}
 		}
 
+		// [BB] Going to intermission automatically stops any active vote.
+		if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
+			CALLVOTE_ClearVote();
+
 		WI_Ticker ();
 		break;
 
