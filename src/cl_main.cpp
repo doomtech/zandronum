@@ -2834,6 +2834,11 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->SpawnPoint[0] = X;
 		pActor->SpawnPoint[1] = Y;
 
+		// [BB] After the actor has been spawned we need to recalculate its floor and ceiling properties.
+		// I'm not sure why this is necessary, but at least the floorpic property is messed up if we don't do this.
+		// And this completely breaks client side prediction of MF2_CANTLEAVEFLOORPIC actors.
+		P_FindFloorCeiling ( pActor );
+
 		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
 		if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
 			pActor->momz = FRACUNIT*2;
