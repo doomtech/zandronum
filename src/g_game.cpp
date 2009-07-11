@@ -3483,12 +3483,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			else if ( Z == ONCEILINGZ )
 				pNewActor->z -= pActor->SpawnPoint[2];
 
-			// [BB] After the actor has been spawned and its z-coordinate adjusted, we need
-			// to recalculate its floor and ceiling properties. I'm not sure why this is necessary,
-			// but at least the floorpic property is messed up if we don't do this. And this
-			// completely breaks MF2_CANTLEAVEFLOORPIC actors, e.g. they are completely stuck after a map reset.
-			P_FindFloorCeiling ( pNewActor );
-
 			// Inherit attributes from the old actor.
 			pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
 			pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];

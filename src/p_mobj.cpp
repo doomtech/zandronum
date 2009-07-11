@@ -4101,7 +4101,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		// z-coordinate.
 		if (!SpawningMapThing) 
 		{
-			P_FindFloorCeiling(actor, true);
+			// [BB] We need to run P_FindFloorCeiling completely, otherwise MF2_CANTLEAVEFLOORPIC actors that are
+			// not spawned by the map are completely broken.
+			P_FindFloorCeiling(actor/*, true*/);
 		}
 		else
 		{
