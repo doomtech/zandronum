@@ -372,4 +372,38 @@ public:
 	bool	isFull( ) const;
 };
 
+//==========================================================================
+//
+// RingBuffer
+//
+// @author Benjamin Berkels
+//
+//==========================================================================
+template<typename DataType, int Length>
+class RingBuffer
+{
+	DataType _data[Length];
+	// Position of the entry that will be overwritten next AKA the oldest entry.
+	unsigned int _position;
+public:
+	RingBuffer ( )
+	{
+		clear();
+	}
+	void clear ( )
+	{
+		memset( _data, 0, sizeof( _data ));
+		_position = 0;
+	}
+	void put ( DataType Entry )
+	{
+		_data[_position] = Entry;
+		_position = ( ++_position % Length );
+	}
+	DataType getOldestEntry ( unsigned int Offset = 0 ) const
+	{
+		return _data[ ( _position + Offset ) % Length ];
+	}
+};
+
 #endif	// __NETWORKSHARED_H__

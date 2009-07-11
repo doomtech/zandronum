@@ -311,6 +311,40 @@ IPList *SERVERBAN_GetBanExemptionList( void )
 
 //*****************************************************************************
 //
+void SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char *pszBanReason )
+{
+	// Make sure the target is valid and applicable.
+	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ) || players[ulPlayer].bIsBot )
+	{
+		Printf("Error: bad player index, or player is a bot.\n");
+		return;
+	}
+
+	// [RC] Read the ban length.
+	time_t tExpiration = SERVERBAN_ParseBanLength( pszBanLength );
+	if ( tExpiration == -1 )
+	{
+		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
+		return;
+	}
+
+	// Removes the color codes from the player name, for the ban record.
+	char	szPlayerName[64];
+	sprintf( szPlayerName, "%s", players[ulPlayer].userinfo.netname );
+	V_RemoveColorCodes( szPlayerName );
+
+	// Add the ban and kick the player.
+	std::string message;
+	g_ServerBans.addEntry( NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), szPlayerName, pszBanReason, message, tExpiration );
+	Printf( "addban: %s", message.c_str() );
+	SERVER_KickPlayer( ulPlayer, pszBanReason ? pszBanReason : "" );  // [RC] serverban_KickBannedPlayers would cover this, but we want the messages to be distinct so there's no confusion.
+
+	// Kick any other players using the newly-banned address.
+	serverban_KickBannedPlayers( );
+}
+
+//*****************************************************************************
+//
 static void serverban_LoadBansAndBanExemptions( void )
 {
 	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
@@ -449,34 +483,8 @@ CCMD( ban_idx )
 
 	ULONG ulIdx = atoi(argv[1]);
 
-	// Make sure the target is valid and applicable.
-	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ) || players[ulIdx].bIsBot )
-	{
-		Printf("Error: bad player index, or player is a bot.\n");
-		return;
-	}
+	SERVERBAN_BanPlayer( ulIdx, argv[2], (argv.argc( ) >= 4) ? argv[3] : NULL );
 
-	// [RC] Read the ban length.
-	time_t tExpiration = SERVERBAN_ParseBanLength( argv[2] );
-	if ( tExpiration == -1 )
-	{
-		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
-		return;
-	}
-
-	// Removes the color codes from the player name, for the ban record.
-	char	szPlayerName[64];
-	sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
-	V_RemoveColorCodes( szPlayerName );
-
-	// Add the ban and kick the player.
-	std::string message;
-	g_ServerBans.addEntry( NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ), szPlayerName, (argv.argc( ) >= 4) ? argv[3] : NULL, message, tExpiration );
-	Printf( "addban: %s", message.c_str() );
-	SERVER_KickPlayer( ulIdx, (argv.argc( ) >= 4) ? argv[3] : "" );  // [RC] serverban_KickBannedPlayers would cover this, but we want the messages to be distinct so there's no confusion.
-
-	// Kick any other players using the newly-banned address.
-	serverban_KickBannedPlayers( );
 }
 
 //*****************************************************************************

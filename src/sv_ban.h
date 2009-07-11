@@ -65,6 +65,7 @@ void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );
 time_t			SERVERBAN_ParseBanLength( const char *szLengthString );
 IPList			*SERVERBAN_GetBanList( void );
 IPList			*SERVERBAN_GetBanExemptionList( void );
+void			SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char *pszBanReason );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- EXTERNAL CONSOLE VARIABLES --------------------------------------------------------------------------------------------------------------------
