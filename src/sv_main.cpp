@@ -1919,6 +1919,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	g_aClients[lClient].bRCONAccess = false;
 	g_aClients[lClient].ulDisplayPlayer = lClient;
+	g_aClients[lClient].commandInstances.clear();
 	for ( ulIdx = 0; ulIdx < MAX_CHATINSTANCE_STORAGE; ulIdx++ )
 		g_aClients[lClient].lChatInstances[ulIdx] = 0;
 	g_aClients[lClient].ulLastChatInstance = 0;
@@ -3923,6 +3924,32 @@ static bool server_Ignore( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static bool server_CheckForClientCommandFlood( ULONG ulClient )
+{
+	// [BB] If a client issues more commands in floodWindowLength seconds than
+	// his commandInstances can hold, he is temporarily banned.
+	const LONG floodWindowLength = 60;
+	if ( g_aClients[ulClient].commandInstances.getOldestEntry() > 0 )
+	{
+		if ( ( gametic - g_aClients[ulClient].commandInstances.getOldestEntry() ) <= floodWindowLength * TICRATE )
+		{
+			SERVERBAN_BanPlayer( ulClient, "10min", "Client command flood." );
+			return ( true );
+		}
+	}
+	// [BB] If this is the last command he may do in the given time frame, warn him.
+	if ( g_aClients[ulClient].commandInstances.getOldestEntry( 1 ) > 0 )
+	{
+		if ( ( gametic - g_aClients[ulClient].commandInstances.getOldestEntry( 1 ) ) <= floodWindowLength * TICRATE )
+			SERVER_PrintfPlayer( PRINT_HIGH, ulClient, "Stop flooding the server with commands or you will be temporarily banned.\n" );
+	}
+	g_aClients[ulClient].commandInstances.put ( gametic );
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
 	ULONG ulPlayer = g_lCurrentClient;
@@ -4436,6 +4463,12 @@ static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 
 	// If the user password matches our PW, and we have a PW set, give him RCON access.
 	pszUserPassword = NETWORK_ReadString( pByteStream );
+
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
+
 	if (( strlen( Val.String )) && ( strcmp( Val.String, pszUserPassword ) == 0 ))
 	{
 		g_aClients[g_lCurrentClient].bRCONAccess = true;
@@ -5059,6 +5092,11 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	//==============
 	// VERIFICATION
 	//==============
+
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
 
 	// Don't allow votes if the server has them disabled.
 	if ( sv_nocallvote == 1 )
