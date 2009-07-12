@@ -285,6 +285,12 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 	else
 	{
 		actor->floorsector = actor->ceilingsector = actor->Sector;
+		// [BB] Don't forget to update floorpic and ceilingpic.
+		if ( actor->Sector )
+		{
+			actor->floorpic = actor->floorsector->GetTexture(sector_t::floor);
+			actor->ceilingpic = actor->ceilingsector->GetTexture(sector_t::ceiling);
+		}
 	}
 }
 
