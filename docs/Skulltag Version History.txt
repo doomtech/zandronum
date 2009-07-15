@@ -12,6 +12,11 @@
 ===============================================================================================================
 
 
+v0.97d4-security-update-1
+-------------------------
+
++	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
+
 v0.97d4
 -------
 

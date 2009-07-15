@@ -1982,6 +1982,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	g_aClients[lClient].bRCONAccess = false;
 	g_aClients[lClient].ulDisplayPlayer = lClient;
+	g_aClients[lClient].commandInstances.clear();
 	for ( ulIdx = 0; ulIdx < MAX_CHATINSTANCE_STORAGE; ulIdx++ )
 		g_aClients[lClient].lChatInstances[ulIdx] = 0;
 	g_aClients[lClient].ulLastChatInstance = 0;
@@ -3876,6 +3877,40 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 
 //*****************************************************************************
 //
+static bool server_CheckForClientCommandFlood( ULONG ulClient )
+{
+	// [BB] If a client issues more commands in floodWindowLength seconds than
+	// his commandInstances can hold, he is temporarily banned.
+	const LONG floodWindowLength = 60;
+	if ( g_aClients[ulClient].commandInstances.getOldestEntry() > 0 )
+	{
+		if ( ( gametic - g_aClients[ulClient].commandInstances.getOldestEntry() ) <= floodWindowLength * TICRATE )
+		{
+			// [BB] I don't want to backport all the changes made to sv_ban.* since 97d3, so kicking and banning
+			// the player is a little cumbersome. Note: The player needs to be kicked immediately (before processing any
+			// more network commands of the kicked player), therefore we can't use the CCMD ban_idx to do the ban and kick,
+			// because the kick there uses SERVER_AddCommand and thus is delayed.
+			NETADDRESS_s banAddress = g_aClients[ulClient].Address;
+			SERVER_KickPlayer( ulClient, "Client command flood." );
+			char	szString[256];
+			sprintf( szString, "addban %s 10min \"Client command flood.\"", NETWORK_AddressToStringIgnorePort ( banAddress ) );
+			AddCommandString( szString );
+			return ( true );
+		}
+	}
+	// [BB] If this is the last command he may do in the given time frame, warn him.
+	if ( g_aClients[ulClient].commandInstances.getOldestEntry( 1 ) > 0 )
+	{
+		if ( ( gametic - g_aClients[ulClient].commandInstances.getOldestEntry( 1 ) ) <= floodWindowLength * TICRATE )
+			SERVER_PrintfPlayer( PRINT_HIGH, ulClient, "Stop flooding the server with commands or you will be temporarily banned.\n" );
+	}
+	g_aClients[ulClient].commandInstances.put ( gametic );
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulPlayer;
@@ -4359,6 +4394,12 @@ static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 
 	// If the user password matches our PW, and we have a PW set, give him RCON access.
 	pszUserPassword = NETWORK_ReadString( pByteStream );
+
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
+
 	if (( strlen( Val.String )) && ( strcmp( Val.String, pszUserPassword ) == 0 ))
 	{
 		g_aClients[g_lCurrentClient].bRCONAccess = true;
@@ -4970,6 +5011,11 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Read in the parameters for the vote.
 	pszParameters = NETWORK_ReadString( pByteStream );
+
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
 
 	// Display the callvote in the console for logging purposes.
 	Printf( "Vote ATTEMPT (%d \"%s\") called by %s (%s)\n", static_cast<unsigned int> (ulVoteCmd), pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
