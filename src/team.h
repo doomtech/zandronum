@@ -172,6 +172,7 @@ bool		TEAM_CheckAllTeamsHaveEqualFrags( void );
 bool		TEAM_CheckAllTeamsHaveEqualWins( void );
 bool		TEAM_CheckAllTeamsHaveEqualScores( void );
 
+unsigned int	TEAM_GetNumAvailableTeams( void );
 bool		TEAM_ShouldUseTeam( ULONG ulTeam );
 
 LONG		TEAM_GetHighestFragCount( void );
@@ -210,5 +211,7 @@ EXTERN_CVAR( Int, pointlimit )
 EXTERN_CVAR( Int, sv_flagreturntime )
 
 EXTERN_CVAR( Int, menu_team )
+
+EXTERN_CVAR( Int, sv_maxteams )
 
 #endif	// __TEAM_H__

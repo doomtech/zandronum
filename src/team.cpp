@@ -76,6 +76,7 @@
 #include "v_palette.h"
 #include "v_text.h"
 #include "v_video.h"
+#include "templates.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -874,7 +875,7 @@ bool TEAM_SpawningTemporaryFlag( void )
 //
 bool TEAM_CheckIfValid( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < 0 || ulTeamIdx >= teams.Size( ))
+	if ( ulTeamIdx < 0 || ulTeamIdx >= TEAM_GetNumAvailableTeams( ))
 		return ( false );
 
 	return ( true );
@@ -1523,6 +1524,13 @@ bool TEAM_CheckAllTeamsHaveEqualScores( void )
 
 //*****************************************************************************
 //
+unsigned int TEAM_GetNumAvailableTeams( void )
+{
+	return MIN<unsigned int>(teams.Size(), sv_maxteams);
+}
+
+//*****************************************************************************
+//
 bool TEAM_ShouldUseTeam( ULONG ulTeam )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
@@ -2077,6 +2085,9 @@ CCMD( changeteam )
 					if (( (ULONG)atoi( argv[1] ) == ulIdx ) || ( stricmp( argv[1], TEAM_GetName( ulIdx )) == 0 ))
 						lDesiredTeam = ulIdx;
 				}
+
+				if ( !TEAM_ShouldUseTeam(lDesiredTeam) )
+					return;
 			}
 		}
 		// We did not pass in a team, so we must want to toggle our team.
@@ -2119,6 +2130,9 @@ CCMD( changeteam )
 				if (( (ULONG)atoi( argv[1] ) == ulIdx ) || ( stricmp( argv[1], TEAM_GetName( ulIdx )) == 0 ))
 					lDesiredTeam = ulIdx;
 			}
+
+			if ( !TEAM_ShouldUseTeam(lDesiredTeam) )
+				return;
 		}
 	}
 	// We did not pass in a team, so we must want to toggle our team.
@@ -2206,3 +2220,10 @@ CUSTOM_CVAR( Int, pointlimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 
 // Allow the server to set the return time for flags/skulls.
 CVAR( Int, sv_flagreturntime, 15, CVAR_CAMPAIGNLOCK );
+
+CUSTOM_CVAR( Int, sv_maxteams, 2, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_LATCH )
+{
+	int value = clamp<int>(self, 2, teams.Size());
+	if(value != self)
+		self = value;
+}

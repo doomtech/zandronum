@@ -741,6 +741,10 @@ PICKUP_BLUEFLAG = "You got the blue flag!";
 PICKUP_BLUESKULL_ST = "You got the blue skull!";
 PICKUP_REDFLAG = "You got the red flag!";
 PICKUP_REDSKULL_ST = "You got the red skull!";
+PICKUP_GREENFLAG = "You got the green flag!";
+PICKUP_GREENSKULL_ST = "You got the green skull!";
+PICKUP_GOLDFLAG = "You got the gold flag!";
+PICKUP_GOLDFLAG_ST = "You got the gold skull!";
 PICKUP_WHITEFLAG = "You got the flag!";
 
 PICKUP_COOPERATIVEBACKPACK = "Picked up a backpack full of weapons and ammo!";

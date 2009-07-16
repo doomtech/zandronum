@@ -101,6 +101,60 @@ ACTOR WhiteFlag : Flag 5132 native
 
 //=================================================================================================
 //
+// Green Flag
+//
+//=================================================================================================
+
+ACTOR GreenFlag : Flag 5133
+{
+	Radius 20
+	Height 16
+	+INTERHUBSTRIP
+	+NOTDMATCH
+	Inventory.PickupSound "misc/k_pkup"
+	Inventory.PickupMessage "$PICKUP_GREENFLAG"
+	Inventory.Icon "GFLAB0"
+	States
+	{
+	Spawn:
+		GFLA ABC 3
+		GFLA DEF 3 BRIGHT
+		Loop
+	Carry:
+		GFLS ABCDEF 3
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Gold Flag
+//
+//=================================================================================================
+
+ACTOR GoldFlag : Flag 5134
+{
+	Radius 20
+	Height 16
+	+INTERHUBSTRIP
+	+NOTDMATCH
+	Inventory.PickupSound "misc/k_pkup"
+	Inventory.PickupMessage "$PICKUP_GOLDFLAG"
+	Inventory.Icon "YFLAB0"
+	States
+	{
+	Spawn:
+		YFLA ABC 3
+		YFLA DEF 3 BRIGHT
+		Loop
+	Carry:
+		YFLS ABCDEF 3
+		Loop
+	}
+}
+
+//=================================================================================================
+//
 // Skull, base class for all skulls
 //
 //=================================================================================================
@@ -153,6 +207,43 @@ ACTOR RedSkullST : Skull
 	Spawn:
 		RSKU A 10
 		RSKU B 10 BRIGHT
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Green Skull ST
+//
+//=================================================================================================
+
+ACTOR GreenSkullST : BlueSkullST
+{
+	translation "192:207=112:123", "240:247=124:127"
+	Inventory.PickupMessage "$PICKUP_GREENSKULL_ST"
+	Inventory.Icon "GSKLBIG"
+}
+
+//=================================================================================================
+//
+// Gold (Yellow) Skull ST
+//
+//=================================================================================================
+
+ACTOR GoldSkullST : Skull
+{
+	Radius 20
+	Height 16
+	+INTERHUBSTRIP
+	+NOTDMATCH
+	Inventory.PickupSound "misc/k_pkup"
+	Inventory.PickupMessage "$PICKUP_GOLDSKULL_ST"
+	Inventory.Icon "YSKUB0"
+	States
+	{
+	Spawn:
+		YSKU A 10
+		YSKU B 10 BRIGHT
 		Loop
 	}
 }

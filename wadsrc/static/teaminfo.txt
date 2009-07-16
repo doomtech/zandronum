@@ -31,3 +31,35 @@ Team "Red"
 	LargeFlagHUDIcon "RFLASMAL"
 	LargeSkullHUDIcon "RSKUA0"
 }
+
+Team "Green"
+{
+	PlayerColor "00 BF 00"
+	TextColor "Green"
+	RailColor "00 FF 00"
+
+	FlagItem "GreenFlag"
+	SkullItem "GreenSkullST"
+
+	PlayerStartThingNumber 5083
+	SmallFlagHUDIcon "STFLA4"
+	SmallSkullHUDIcon "GSKLSMAL"
+	LargeFlagHUDIcon "GFLASMAL"
+	LargeSkullHUDIcon "GSKLBIG"
+}
+
+Team "Gold"
+{
+	PlayerColor "FF FF 00" // This needs to be full to look good.
+	TextColor "Gold"
+	RailColor "FF FF 00"
+
+	FlagItem "GoldFlag"
+	SkullItem "GoldSkullST"
+
+	PlayerStartThingNumber 5084
+	SmallFlagHUDIcon "STFLA5"
+	SmallSkullHUDIcon "STKEYS4"
+	LargeFlagHUDIcon "YFLASMAL"
+	LargeSkullHUDIcon "YSKUA0"
+}
