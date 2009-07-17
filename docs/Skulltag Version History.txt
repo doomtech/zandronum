@@ -86,6 +86,7 @@ latestzdoom branch
 -	- Fixed: The code to check the maximal allowed effective skin sprite width/height still checked some textures it shouldn't have checked. [Torr Samaho]
 -	- Fixed: SetLineTexture didn't work online if the desired texture name was "". [Torr Samaho, SuperGod]
 -	- Fixed: It was possible to join "NO TEAM" [Blzut3]
+-	- Fixed: Using changemap or nextmap after a map was aborted by a recoverable error caused Skulltag to crash. [Torr Samaho, SuperGod]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down).  This is done to reduce the advantage of OpenGL. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]

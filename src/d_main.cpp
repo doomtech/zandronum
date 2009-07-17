@@ -995,6 +995,8 @@ void D_ErrorCleanup ()
 	gameaction = ga_fullconsole;
 	menuactive = MENU_Off;
 	insave = false;
+	// [BB] We are not in a level anymore.
+	level.info = NULL;
 }
 
 //==========================================================================
