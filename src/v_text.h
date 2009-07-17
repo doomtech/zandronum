@@ -75,6 +75,7 @@ struct FBrokenLines
 #define TEXTCOLOR_TEAMCHAT		"\034!"
 
 // [BC] New text functions.
+void	V_ApplyCharArrayFunctionToFString ( FString &String, void (*CharArrayFunction) ( char *pszString ) );
 void	V_ColorizeString( char *pszString );
 void	V_ColorizeString( FString &String );
 void	V_UnColorizeString( char *pszString, ULONG ulMaxStringLength );
@@ -84,6 +85,8 @@ void	V_RemoveColorCodes( char *pszString );
 void	V_StripColors( char *pszString );
 char	V_GetColorChar( ULONG ulColor );
 void	V_EscapeBacklashes( FString &String );
+void	V_RemoveTrailingCrap( char *pszString );
+void	V_RemoveTrailingCrapFromFString( FString &String );
 
 // [RC] Functions related to user name cleaning.
 bool	v_IsCharAcceptableInNames ( char c );
