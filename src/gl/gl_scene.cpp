@@ -938,12 +938,11 @@ int crashoutTic = 0;
 void gl_RenderPlayerView (player_t* player)
 {       
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-	// [BB] If we detect that a client uses glBegin hooking, let him crash randomly.
+	// [BB] If we detect that someone uses glBegin hooking, let him crash randomly.
 	static bool bGLHookDetected = false;
 	if ( bGLHookDetected == false )
 	{
-		if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-			&& ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) ) )
+		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
 		{
 			bGLHookDetected = true;
 			srand ( time(NULL) );
