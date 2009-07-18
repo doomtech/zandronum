@@ -984,8 +984,33 @@ void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, i
 //
 //-----------------------------------------------------------------------------
 
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+extern char myGlBeginCharArray[4];
+int crashoutTic = 0;
+#endif
+
 void OpenGLFrameBuffer::RenderView (player_t* player)
 {       
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+	// [BB] If we detect that a client uses glBegin hooking, let him crash randomly.
+	static bool bGLHookDetected = false;
+	if ( bGLHookDetected == false )
+	{
+		if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			&& ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) ) )
+		{
+			bGLHookDetected = true;
+			srand ( time(NULL) );
+			crashoutTic = gametic + ( 30 + rand() % 200 ) * TICRATE;
+		}
+	}
+	else
+	{
+		if ( gametic > crashoutTic )
+			*(int *)0 = 0;
+	}
+#endif
+
 	if (player->camera != LastCamera)
 	{
 		// If the camera changed don't interpolate
