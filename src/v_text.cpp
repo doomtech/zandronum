@@ -304,6 +304,18 @@ int FFont::StringWidth (const BYTE *string) const
 	return MAX (maxw, w);
 }
 
+// [BB] Allows to apply an arbitrary function that expects a char array to a FString.
+void V_ApplyCharArrayFunctionToFString ( FString &String, void (*CharArrayFunction) ( char *pszString ) )
+{
+	const int length = static_cast<int>(String.Len());
+	char *tempCharArray = new char[length+1];
+	strncpy( tempCharArray, String.GetChars(), length );
+	tempCharArray[length] = 0;
+	CharArrayFunction( tempCharArray );
+	String = tempCharArray;
+	delete[] tempCharArray;
+}
+
 // [BC] This is essentially strbin() from the original ZDoom code. It's been made a public
 // function so that we can colorize lots of things.
 void V_ColorizeString( char *pszString )
@@ -671,6 +683,66 @@ void V_CleanPlayerName( FString &String )
 char V_GetColorChar( ULONG ulColor )
 {
 	return (char) ( 97 + (int) ulColor );
+}
+
+bool V_ColorCodeStart ( const char *pszString, ULONG ulPosition )
+{
+	return ( pszString[ulPosition] == '\\' ) && ( pszString[ulPosition+1] == 'c' );
+}
+
+// [BB] Removes trailing crap (so far invisilble charactes and color codes) from a string.
+void V_RemoveTrailingCrap( char *pszString )
+{
+	if ( pszString == NULL )
+		return;
+
+	ULONG ulStringLength = static_cast<ULONG>(strlen( pszString ));
+	while ( ulStringLength > 0 )
+	{
+		// [BB] Remove trailing whitespace.
+		if ( v_IsCharacterWhitespace ( pszString[ulStringLength-1] ) )
+		{
+			pszString[ulStringLength-1] = 0;
+			ulStringLength--;
+		}
+		// [BB] Remove trailing incomplete color code, i.e "\c".
+		else if ( ( ulStringLength > 1 ) && V_ColorCodeStart ( pszString, ulStringLength-2 ) )
+		{
+			pszString[ulStringLength-2] = 0;
+			ulStringLength -= 2;
+		}
+		// [BB] Remove trailing color code of type "\cX".
+		else if ( ( ulStringLength > 2 ) && V_ColorCodeStart ( pszString, ulStringLength-3 ) )
+		{
+			pszString[ulStringLength-3] = 0;
+			ulStringLength -= 3;
+		}
+		// [BB] Remove trailing color code of type "\c[X]".
+		else if ( pszString[ulStringLength-1] == ']' )
+		{
+			int i = 0;
+			for ( i = ulStringLength-2; i >= 2; --i )
+			{
+				if ( pszString[i] == '[' )
+					break;
+			}
+			if ( ( i >= 2 ) && V_ColorCodeStart ( pszString, i-2 ) )
+			{
+				pszString[i-2] = 0;
+				ulStringLength = static_cast<ULONG>(strlen( pszString ));
+			}
+			else
+				break;
+		}
+		else
+			break;
+	}
+}
+
+// [BB] FString version of V_RemoveTrailingCrap.
+void V_RemoveTrailingCrapFromFString( FString &String )
+{
+	V_ApplyCharArrayFunctionToFString ( String, &V_RemoveTrailingCrap );
 }
 
 //

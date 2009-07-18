@@ -478,6 +478,13 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	if ( con_colorinmessages == 2)
 		V_RemoveColorCodes( ChatString );
 
+	// [BB] Remove any kind of trailing crap.
+	V_RemoveTrailingCrapFromFString ( ChatString );
+
+	// [BB] If the chat string is empty now, it only contained crap and is ignored.
+	if ( ChatString.IsEmpty() )
+		return;
+
 	OutString += ChatString;
 
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
