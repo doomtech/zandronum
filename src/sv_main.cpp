@@ -1052,6 +1052,19 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	else
 		bFordidChatToPlayers = false;
 
+	FString cleanedChatString = pszString;
+
+	// [BB] Remove any kind of trailing crap.
+	V_RemoveTrailingCrapFromFString ( cleanedChatString );
+
+	// [BB] If the chat string is empty now, it only contained crap and is ignored.
+	if ( cleanedChatString.IsEmpty() )
+		return;
+
+	// [BB] Replace the pointer to the chat string, with the cleaned version.
+	// This way the code below doesn't need to be altered.
+	pszString = cleanedChatString.GetChars();
+
 	SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
 
 	// [BB] This is to make the lines readily identifiable, necessary

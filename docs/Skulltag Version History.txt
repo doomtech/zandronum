@@ -87,6 +87,7 @@ latestzdoom branch
 -	- Fixed: SetLineTexture didn't work online if the desired texture name was "". [Torr Samaho, SuperGod]
 -	- Fixed: It was possible to join "NO TEAM" [Blzut3]
 -	- Fixed: Using changemap or nextmap after a map was aborted by a recoverable error caused Skulltag to crash. [Torr Samaho, SuperGod]
+-	- Fixed: Certain kinds of chat messages that only consist of color codes and white spaces wiped out all other messages currently on the screen. [Torr Samaho, SuperGod]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down).  This is done to reduce the advantage of OpenGL. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
@@ -99,6 +100,7 @@ latestzdoom branch
 !	- To restore compatibility with ZDoom, ACS scripts with the NET flag are not treated to be client side anymore. The new compatflag "net scripts are client side", controlled by the new CVAR compat_netscriptsareclientside, allows to restore the old Skulltag behavior. After changing the flag, the map should be restarted. [Torr Samaho]
 !	- The code to check the maximal allowed effective skin sprite width/height now reports the offending sprite names in case the allowed dimensions are exceeded. [Torr Samaho]
 !	- Going to intermission now automatically stops any active vote. [Torr Samaho, SuperGod]
+!	- The server doesn't relay chat messages that only consist of color codes and white spaces anymore. [Torr Samaho, SuperGod]
 
 
 <trunk>
