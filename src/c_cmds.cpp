@@ -636,14 +636,23 @@ CCMD (puke)
 			arg[i] = atoi (argv[2+i]);
 		}
 
-		// [BB] The check if the client is allowed to execute the script
-		// is done in P_StartScript, no need to check here.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			P_StartScript (players[consoleplayer].mo, NULL, (script < 0) ? -script : script, level.mapname, false,
-				arg[0], arg[1], arg[2], (script < 0), false, true);
+			ULONG ulScript = (script < 0) ? -script : script;
+			// [BB] The check if the client is allowed to puke a CLIENTSIDE script
+			// is done in P_StartScript, no need to check here.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				|| ACS_IsScriptClientSide ( ulScript ) )
+			{
+				P_StartScript (players[consoleplayer].mo, NULL, ulScript, level.mapname, false,
+					arg[0], arg[1], arg[2], (script < 0), false, true);
+			}
+			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ACS_IsScriptPukeable ( ulScript ) )
+			{
+				CLIENTCOMMANDS_Puke ( script, arg, argn );
+			}
 		}
 		else
 		{

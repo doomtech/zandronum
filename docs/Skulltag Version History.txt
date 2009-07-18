@@ -101,6 +101,7 @@ latestzdoom branch
 !	- The code to check the maximal allowed effective skin sprite width/height now reports the offending sprite names in case the allowed dimensions are exceeded. [Torr Samaho]
 !	- Going to intermission now automatically stops any active vote. [Torr Samaho, SuperGod]
 !	- The server doesn't relay chat messages that only consist of color codes and white spaces anymore. [Torr Samaho, SuperGod]
+!	- If a client pukes an ACS script with the NET flag, it now requests the server to run the script instead of silently running it client side on its own. If you want the script to be run client side, either give it the CLIENTSIDE flag or use compat_netscriptsareclientside. [Torr Samaho]
 
 
 <trunk>

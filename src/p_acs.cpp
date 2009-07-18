@@ -6812,3 +6812,23 @@ bool ACS_IsScriptClientSide( const ScriptPtr *pScriptData )
 
 	return ( false );
 }
+
+//*****************************************************************************
+//
+bool ACS_IsScriptPukeable( ULONG ulScript )
+{
+	FBehavior *pModule = NULL;
+
+	const ScriptPtr *pScriptData = FBehavior::StaticFindScript( ulScript, pModule );
+
+	if ( pScriptData == NULL )
+		return ( false );
+
+	if ( pScriptData->Flags & SCRIPTF_Net )
+		return ( true );
+
+	if ( sv_cheats )
+		return ( true );
+
+	return ( false );
+}

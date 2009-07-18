@@ -154,6 +154,7 @@ static	bool	server_CallVote( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
+static	bool	server_Puke( BYTESTREAM_s *pByteStream );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -1681,6 +1682,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_INVENTORYDROP:
 		case CLC_SUMMONFRIENDCHEAT:
 		case CLC_SUMMONFOECHEAT: 
+		case CLC_PUKE:
 
 			// [BB] After a map change with the CCMD map, legitimate clients may get caught by
 			// this. Since the packet is completely ignored anyway, there is no need to ban the
@@ -3814,6 +3816,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// Client wishes to drop a specfic inventory item he has.
 		return ( server_InventoryDrop( pByteStream ));
+	case CLC_PUKE:
+
+		// [BB] Client wishes to puke a scipt.
+		return ( server_Puke( pByteStream ));
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -5258,6 +5264,35 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 		if ( pItem )
 			players[g_lCurrentClient].mo->DropInventory( pItem );
 	}
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+static bool server_Puke( BYTESTREAM_s *pByteStream )
+{
+	ULONG ulScript = NETWORK_ReadShort( pByteStream );
+	ULONG ulArgn = NETWORK_ReadByte( pByteStream );
+	int arg[3] = { 0, 0, 0 };
+	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx)
+		arg[ulIdx] = NETWORK_ReadLong ( pByteStream );
+	bool bAlways = !!NETWORK_ReadByte( pByteStream );
+
+	// [BB] A normal client checks if the script is pukeable and only requests to puke pukeable scripts.
+	// Thus if the requested script is not pukeable, the client was tampered with.
+	if ( ACS_IsScriptPukeable ( ulScript ) == false )
+	{
+		// [BB] Trying to puke a non-pukeable script is treated as possible command flooding
+		if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+			return ( true );
+
+		return ( false );
+	}
+
+	// [BB] Execute the script as if it was invoked by the puke command.
+	P_StartScript (players[g_lCurrentClient].mo, NULL, ulScript, level.mapname, false,
+		arg[0], arg[1], arg[2], bAlways, false, true);
 
 	return ( false );
 }

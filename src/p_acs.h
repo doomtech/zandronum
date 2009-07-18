@@ -799,6 +799,7 @@ FArchive &operator<< (FArchive &arc, acsdefered_t *&defer);
 bool	ACS_IsCalledFromConsoleCommand( void );
 bool	ACS_IsScriptClientSide( ULONG ulScript );
 bool	ACS_IsScriptClientSide( const ScriptPtr *pScriptData );
+bool	ACS_IsScriptPukeable( ULONG ulScript );
 
 // [BL] Export DoClearInv
 void	DoClearInv(AActor *actor);

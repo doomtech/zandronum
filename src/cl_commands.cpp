@@ -464,3 +464,15 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYDROP );
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usActorNetworkIndex );
 }
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_Puke ( LONG lScript, int arg[3], ULONG ulArgn )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_PUKE );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) ? -lScript : lScript );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulArgn );
+	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx)
+		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, arg[ulIdx] );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) );
+}
