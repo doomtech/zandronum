@@ -12,8 +12,8 @@
 ===============================================================================================================
 
 
-v0.97d4-security-update-1
--------------------------
+v0.97d5
+-------
 
 +	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
 -	- Fixed: Certain kinds of chat messages that only consist of color codes and white spaces wiped out all other messages currently on the screen. [Torr Samaho, SuperGod]
