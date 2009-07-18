@@ -37,6 +37,10 @@
 #include "../../tarray.h"
 #include "gl/gl_intern.h"
 
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+char myGlBeginCharArray[4] = {0,0,0,0};
+#endif
+
 #ifndef unix
 static void CollectExtensions(HDC);
 #else
@@ -1048,6 +1052,11 @@ void APIENTRY GetContext(RenderContext & gl)
 
 	gl.BlendEquation = glBlendEquationDummy;
 	gl.SetVSync = SetVSync;
+
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+	for ( int i = 0; i < 4; ++i )
+		myGlBeginCharArray[i] = reinterpret_cast<char *>(gl.Begin)[i];
+#endif
 
 #ifndef unix
 	ReadInitExtensions();
