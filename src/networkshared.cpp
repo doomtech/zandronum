@@ -675,7 +675,6 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 
 		if ( feof( pFile ))
 		{
-			fclose( pFile );
 			return ( false );
 		}
 	}
@@ -744,7 +743,6 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 
 			if ( feof( pFile ))
 			{
-				fclose( pFile );
 				return ( false );
 			}
 			// If we've hit a comment, skip until the end of the line (or the end of the file) and get out.
@@ -762,7 +760,6 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 
 		if ( lPosition == 256 )
 		{
-			fclose( pFile );
 			return ( false );
 		}
 
