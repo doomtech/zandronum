@@ -2032,8 +2032,16 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			&& (tm.floorpic != thing->floorpic
 				|| tm.floorz - thing->z != 0))
 		{ // must stay within a sector of a certain floor type
-			thing->z = oldz;
-			return false;
+			// [BB] For some reason the client slightly mispredicts the actor position,
+			// i.e. if an actor with MF2_CANTLEAVEFLOORPIC touches the boundary of the floorpic
+			// region, the client sometimes thinks the actor is outside the region.
+			// Therefore, doing the following on the client would completely mess up the
+			// client side monster movement prediction.
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			{
+				thing->z = oldz;
+				return false;
+			}
 		}
 	}
 
