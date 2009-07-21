@@ -89,5 +89,8 @@ add_subdirectory( wadsrc_bm )
 add_subdirectory( src )
 
 if( NOT WIN32 )
-	add_subdirectory( output_sdl )
+	# [BB] We don't need output_sdl (only used for sound), if we are just building the server.
+	if ( NOT SERVERONLY )
+		add_subdirectory( output_sdl )
+	endif ( NOT SERVERONLY )
 endif( NOT WIN32 )

@@ -229,7 +229,10 @@ endif( NOT FMOD_INCLUDE_DIR )
 if( FMOD_INCLUDE_DIR )
 	message( STATUS "FMOD include files found at ${FMOD_INCLUDE_DIR}" )
 else( FMOD_INCLUDE_DIR )
-	message( SEND_ERROR "Could not find FMOD include files" )
+	# [BB] Without sound, we don't need FMOD.
+	if ( NOT NO_SOUND )
+		message( SEND_ERROR "Could not find FMOD include files" )
+	endif ( NOT NO_SOUND )
 endif( FMOD_INCLUDE_DIR )
 
 
@@ -248,7 +251,10 @@ endif( WIN32 )
 if( FMOD_LIBRARY )
 	message( STATUS "FMOD library found at ${FMOD_LIBRARY}" )
 else( FMOD_LIBRARY )
-	message( SEND_ERROR "Could not find FMOD library" )
+	# [BB] Without sound, we don't need FMOD.
+	if ( NOT NO_SOUND )
+		message( SEND_ERROR "Could not find FMOD library" )
+	endif ( NOT NO_SOUND )
 endif( FMOD_LIBRARY )
 
 
@@ -429,8 +435,10 @@ set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" )
 # [BB] Without sound, we don't need FMOD.
 if ( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
+else ( NOT NO_SOUND )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 endif ( NOT NO_SOUND )
-include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 
 # Start defining source files for ZDoom
 
