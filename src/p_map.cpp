@@ -4895,11 +4895,10 @@ void P_UseLines (player_t *player)
 		int spac = SECSPAC_Use;
 		if (foundline) spac |= SECSPAC_UseWall;
 		// [BC] Don't try to trigger sector actions in client mode.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )) ||
-			((!sec->SecActTarget || !sec->SecActTarget->TriggerAction (player->mo, spac)) &&
-			P_NoWayTraverse (player->mo, x2, y2)) )
-
+			!sec->SecActTarget || !sec->SecActTarget->TriggerAction (player->mo, spac)) &&
+			P_NoWayTraverse (player->mo, x2, y2) )
 		{
 			S_Sound (player->mo, CHAN_VOICE, "*usefail", 1, ATTN_IDLE);
 
