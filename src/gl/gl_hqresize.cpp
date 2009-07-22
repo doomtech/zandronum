@@ -34,7 +34,9 @@
 **
 */
 
+#include "gl_pch.h"
 #include "gl_hqresize.h"
+#include "gl_intern.h"
 #include "c_cvars.h"
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
@@ -182,6 +184,11 @@ static unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32*
 //===========================================================================
 unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight )
 {
+	// [BB] Make sure that outWidth and outHeight denote the size of
+	// the returned buffer even if we don't upsample the input buffer.
+	outWidth = inWidth;
+	outHeight = inHeight;
+
 	// [BB] Don't resample if the width or height of the input texture is bigger than gl_texture_hqresize_maxinputsize.
 	if ( ( inWidth > gl_texture_hqresize_maxinputsize ) || ( inHeight > gl_texture_hqresize_maxinputsize ) )
 		return inputBuffer;
@@ -192,6 +199,10 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 
 	// [BB] Don't try to upsample textures based off FCanvasTexture.
 	if ( inputGLTexture->tex->bHasCanvas )
+		return inputBuffer;
+
+	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory.
+	if ( (!(gl.flags & RFL_GLSL) || !gl_warp_shader) && inputGLTexture->tex->bWarped )
 		return inputBuffer;
 
 	switch (inputGLTexture->tex->UseType)
@@ -212,8 +223,6 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 
 	if (inputBuffer)
 	{
-		outWidth = inWidth;
-		outHeight = inHeight;
 		int type = gl_texture_hqresize;
 		switch (type)
 		{

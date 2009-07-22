@@ -1166,12 +1166,13 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 	}
 
-	// [BB] Potentially upsample the buffer.
+	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
+	// w, h are set to the width and height of the buffer.
 	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h );
 
-	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && W <= 256 && H <= 256)
+	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && w <= 256 && h <= 256)
 	{
-		buffer = WarpBuffer(buffer, W, H, tex->bWarped);
+		buffer = WarpBuffer(buffer, w, h, tex->bWarped);
 		createWarped = true;
 	}
 
