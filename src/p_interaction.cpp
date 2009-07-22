@@ -956,12 +956,25 @@ static int UseHealthItems(TArray<AInventory *> &Items, int &saveHealth)
 			}
 		}
 
+		// [BB] Keep track of some values to inform the client how many items were used.
+		int oldAmount = Items[index]->Amount;
+		int newAmount = oldAmount;
+		const FString itemName = Items[index]->GetClass()->TypeName.GetChars();
+		ULONG ulPlayer = MAXPLAYERS;
+		if ( Items[index]->Owner && Items[index]->Owner->player )
+			ulPlayer = static_cast<ULONG>(Items[index]->Owner->player - players);
+
 		// Now apply the health items, using the same logic as Heretic and Hexen.
 		int count = (saveHealth + maxhealth-1) / maxhealth;
 		for(int i = 0; i < count; i++)
 		{
 			saved += maxhealth;
 			saveHealth -= maxhealth;
+
+			// [BB] Update newAmount separately from Items[index]->Amount. If the item is depleted
+			// we can't access Items[index]->Amount after the i-loop.
+			--newAmount;
+
 			if (--Items[index]->Amount == 0)
 			{
 				if (!(Items[index]->ItemFlags & IF_KEEPDEPLETED))
@@ -972,6 +985,11 @@ static int UseHealthItems(TArray<AInventory *> &Items, int &saveHealth)
 				break;
 			}
 		}
+
+		// [BB] Inform the client about ths used items. 
+		// Note: SERVERCOMMANDS_TakeInventory checks the validity of the ulPlayer value.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( newAmount != oldAmount ) )
+			SERVERCOMMANDS_TakeInventory ( ulPlayer, itemName.GetChars(), newAmount );
 	}
 	return saved;
 }
