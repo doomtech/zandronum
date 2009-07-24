@@ -4131,12 +4131,13 @@ void SERVERCONSOLE_InitializeGeneralSettingsDisplay( HWND hDlg )
 //
 bool SERVERCONSOLE_IsRestartNeeded( HWND hDlg )
 {
+	// [BB] This whole construction is awful, I only fixed what was broken and didn't touch the rest.
 	switch ( SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_GETCURSEL, 0, 0 ))
 	{
 	// Cooperative
 	case 0:
 
-		if ( cooperative != true )
+		if (  GAMEMODE_GetCurrentMode( ) != GAMEMODE_COOPERATIVE )
 			return ( true );
 		break;
 	// Survival cooperative
@@ -4154,7 +4155,7 @@ bool SERVERCONSOLE_IsRestartNeeded( HWND hDlg )
 	// DM FFA
 	case 3:
 
-		if ( deathmatch != true )
+		if (  GAMEMODE_GetCurrentMode( ) != GAMEMODE_DEATHMATCH )
 			return ( true );
 		break;
 	// DM teamplay
@@ -4202,7 +4203,7 @@ bool SERVERCONSOLE_IsRestartNeeded( HWND hDlg )
 	// Teamgame
 	case 11:
 
-		if ( teamgame != true )
+		if (  GAMEMODE_GetCurrentMode( ) != GAMEMODE_TEAMGAME )
 			return ( true );
 		break;
 	// CTF

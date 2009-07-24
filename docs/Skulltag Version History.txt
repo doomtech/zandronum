@@ -89,6 +89,7 @@ latestzdoom branch
 -	- Fixed: Using changemap or nextmap after a map was aborted by a recoverable error caused Skulltag to crash. [Torr Samaho, SuperGod]
 -	- Fixed: Certain kinds of chat messages that only consist of color codes and white spaces wiped out all other messages currently on the screen. [Torr Samaho, SuperGod]
 -	- Improved the client side movement prediction of a monster with CANTLEAVEFLOORPIC if the the monster touches the boundary of the floorpic region. [Torr Samaho]
+-	- Fixed: After changing the gamemode in the general settings window of the Windows serverconsole, the map restart dialog wasn't always shown. [Torr Samaho, SuperGod]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down).  This is done to reduce the advantage of OpenGL. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
