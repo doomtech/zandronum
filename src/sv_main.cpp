@@ -173,8 +173,10 @@ static	LONG			g_lCurrentClient;
 // Number of ticks that have passed since start of... level?
 static	LONG			g_lGameTime = 0;
 
+#ifndef NO_SERVER_GUI
 // Storage for commands issued through various menu options to be executed all at once.
 static	TArray<FString>	g_ServerCommandQueue;
+#endif
 
 // Timer for restarting the map.
 static	LONG			g_lMapRestartTimer;
@@ -412,7 +414,9 @@ void SERVER_Construct( void )
 	if ( pszMaxClients )
 		sv_maxclients = atoi( pszMaxClients );
 
+#ifndef NO_SERVER_GUI
 	g_ServerCommandQueue.Clear( );
+#endif
 
 	g_lMapRestartTimer = 0;
 
@@ -3156,15 +3160,24 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 //
 void SERVER_AddCommand( const char *pszCommand )
 {
+#ifdef NO_SERVER_GUI
+	char* command = new char[strlen(pszCommand)+1];
+	memcpy(command, pszCommand, strlen(pszCommand)+1);
+	AddCommandString( command );
+	delete[] command;
+#else
 	g_ServerCommandQueue.Push( pszCommand );
+#endif
 }
 
 //*****************************************************************************
 //
 void SERVER_DeleteCommand( void )
 {
+#ifndef NO_SERVER_GUI
 	AddCommandString( (char *)g_ServerCommandQueue[0].GetChars( ));
 	g_ServerCommandQueue.Delete( 0 );
+#endif
 }
 
 //*****************************************************************************
@@ -3847,7 +3860,7 @@ ULONG SERVER_GetPlayerIndexFromName( const char *pszName, bool bIgnoreColors, bo
 		// Optionally remove the color codes from the player name.
 		if ( bIgnoreColors )
 		{
-			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+			sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 			V_RemoveColorCodes( szPlayerName );
 		}
 
