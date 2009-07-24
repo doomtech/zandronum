@@ -96,7 +96,8 @@ void STACK_ARGS DCanvas::DrawText (FFont *font, int normalcolor, int x, int y, c
 	const FRemapTable *range;
 	int			height;
 	int			forcedwidth = 0;
-	int			scalex, scaley;
+	// [BB] Since CleanX/Yfac are floats in Skulltag, scalex/y also need to be floats.
+	float		scalex, scaley;
 	int			kerning;
 	FTexture *pic;
 
@@ -162,8 +163,8 @@ void STACK_ARGS DCanvas::DrawText (FFont *font, int normalcolor, int x, int y, c
 			boolval = va_arg (tags, INTBOOL);
 			if (boolval)
 			{
-				scalex = (LONG)CleanXfac;
-				scaley = (LONG)CleanYfac;
+				scalex = CleanXfac;
+				scaley = CleanYfac;
 				maxwidth = Width - (Width % (int)CleanYfac);
 			}
 			break;
