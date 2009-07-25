@@ -91,6 +91,7 @@ latestzdoom branch
 -	- Improved the client side movement prediction of a monster with CANTLEAVEFLOORPIC if the the monster touches the boundary of the floorpic region. [Torr Samaho]
 -	- Fixed: After changing the gamemode in the general settings window of the Windows serverconsole, the map restart dialog wasn't always shown. [Torr Samaho, SuperGod]
 -	- Fixed: The RCON utility did not work with Linux servers. [Blzut3, Rivecoder]
+-	- Fixed: The Windows welcome screen didn't take into account the gl_nogl CVAR setting. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down).  This is done to reduce the advantage of OpenGL. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
