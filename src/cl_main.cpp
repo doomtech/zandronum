@@ -126,6 +126,7 @@ EXTERN_CVAR( Int, cl_bloodtype )
 EXTERN_CVAR( Int, cl_pufftype )
 EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
+EXTERN_CVAR( Bool, cl_oldfreelooklimit )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
@@ -4942,8 +4943,10 @@ static void client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream )
 	// the viewangle has to be limited.	We don't care about cl_disallowfullpitch here.
 	if ( !currentrenderer )
 	{
-		if (lPitch < -ANGLE_1*56)
-			lPitch = -ANGLE_1*56;
+		// [BB] The user can restore ZDoom's freelook limit.
+		const fixed_t pitchLimit = -ANGLE_1*( cl_oldfreelooklimit ? 32 : 56 );
+		if (lPitch < pitchLimit)
+			lPitch = pitchLimit;
 		if (lPitch > ANGLE_1*56)
 			lPitch = ANGLE_1*56;
 	}

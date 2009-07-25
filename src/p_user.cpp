@@ -76,6 +76,10 @@
 #include "gamemode.h"
 #include "invasion.h"
 
+// [BB] Use ZDoom's freelook limit for the sotfware renderer.
+// Note: ZDoom's limit is chosen such that the sky is rendered properly.
+CVAR (Bool, cl_oldfreelooklimit, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 static FRandom pr_skullpop ("SkullPop");
 
 
@@ -3204,8 +3208,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					}
 					else
 					{
-					   if (player->mo->pitch < -ANGLE_1*56)
-						   player->mo->pitch = -ANGLE_1*56;
+						// [BB] The user can restore ZDoom's freelook limit.
+						const fixed_t pitchLimit = -ANGLE_1*( cl_oldfreelooklimit ? 32 : 56 );
+						if (player->mo->pitch < pitchLimit)
+							player->mo->pitch = pitchLimit;
 					}
 				}
 				else
@@ -3428,8 +3434,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 						}
 						else
 						{
-						   if (player->mo->pitch < -ANGLE_1*56)
-							   player->mo->pitch = -ANGLE_1*56;
+							// [BB] The user can restore ZDoom's freelook limit.
+							const fixed_t pitchLimit = -ANGLE_1*( cl_oldfreelooklimit ? 32 : 56 );
+							if (player->mo->pitch < pitchLimit)
+								player->mo->pitch = pitchLimit;
 						}
 					}
 					else
