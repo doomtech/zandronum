@@ -2144,10 +2144,23 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Recoil)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_FIXED(xymom, 0);
 
+	// [BB] For non-player non-clientsideonly actors, this is server side.
+	// Note: I'm not sure whether this should be server side also for players.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if ( (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) && ( self->player == NULL ) )
+			return;
+	}
+
 	angle_t angle = self->angle + ANG180;
 	angle >>= ANGLETOFINESHIFT;
 	self->momx += FixedMul (xymom, finecosine[angle]);
 	self->momy += FixedMul (xymom, finesine[angle]);
+
+	// [BB] Set the thing's momentum, also resync the position.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( self->player == NULL ) )
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY );
 }
 
 
