@@ -1302,17 +1302,25 @@ void CLIENT_GetPackets( void )
 				lCommand = NETWORK_ReadLong( pByteStream );
 				switch ( lCommand )
 				{
-				case MSC_BEGINSERVERLIST:
+				case MSC_BEGINSERVERLISTPART:
+					{
+						ULONG ulPacketNum = NETWORK_ReadByte( pByteStream );
+						ULONG ulNumPackets = NETWORK_ReadByte( pByteStream );
 
-					// Get the list of servers.
-					BROWSER_GetServerList( pByteStream );
+						// Get the list of servers.
+						BROWSER_GetServerList( pByteStream );
 
-					// Now, query all the servers on the list.
-					BROWSER_QueryAllServers( );
+						// [BB] We received the final part of the server list, now query the servers.
+						if ( ulPacketNum + 1 == ulNumPackets )
+						{
+							// Now, query all the servers on the list.
+							BROWSER_QueryAllServers( );
 
-					// Finally, clear the server list. Server slots will be reactivated when
-					// they come in.
-					BROWSER_DeactivateAllServers( );
+							// Finally, clear the server list. Server slots will be reactivated when
+							// they come in.
+							BROWSER_DeactivateAllServers( );
+						}
+					}
 					break;
 
 				case MSC_REQUESTIGNORED:

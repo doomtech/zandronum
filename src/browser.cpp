@@ -387,7 +387,7 @@ void BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 	// No longer waiting for a master server response.
 	g_bWaitingForMasterResponse = false;
 
-	while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLIST )
+	while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLISTPART )
 	{
 		// Receiving information about a new server.
 		ulServer = browser_GetNewListID( );
@@ -885,7 +885,8 @@ void BROWSER_QueryMasterServer( void )
 
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
-	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, LAUNCHER_MASTER_CHALLENGE );
+	NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, MASTER_SERVER_VERSION );
 
 	// Send the master server our packet.
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer, true );

@@ -52,6 +52,7 @@ latestzdoom branch
 +	- In levels with a team selection room, the player's inventory is not given until a team has been picked. [Blzut3]
 +	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
 +	- sv_maxteams to select between 2, 3, and 4 team games.  4 teams are defined in Skulltag: blue, red, green, and gold. [Blzut3]
++	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
