@@ -2535,10 +2535,6 @@ bool M_ShouldShowServer( LONG lServer )
 	if ( stricmp( SERVER_MASTER_GetIWADName( ), BROWSER_GetIWADName( lServer )) != 0 )
 		return ( false );
 */
-	// Version does not match.
-	if ( stricmp( BROWSER_GetVersion( lServer ), DOTVERSIONSTR ) != 0 )
-		return ( false );
-
 	// Don't show Internet servers if we are only showing LAN servers.
 	if ( menu_browser_servers == 1 )
 	{
