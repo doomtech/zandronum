@@ -1128,6 +1128,8 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 	// Tell the client his level was authenticated.
 	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
 	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer.ByteStream, SVCC_MAPLOAD );
+	// [BB] Also tell him the game mode, otherwise the client can't decide whether 3D floors should be spawned or not.
+	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer.ByteStream, GAMEMODE_GetCurrentMode( ) );
 	
 	// Send the packet off.
 	SERVER_SendClientPacket( g_lCurrentClient, true );

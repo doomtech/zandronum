@@ -1529,6 +1529,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// and wanted to skip the current map, we are done with it now.
 			CLIENTDEMO_SetSkippingToNextMap ( false );
 
+			// [BB] Setting the game mode is necessary to decide whether 3D floors should be spawned or not.
+			GAMEMODE_SetCurrentMode ( static_cast<GAMEMODE_e>(NETWORK_ReadByte( pByteStream )) );
+
 			bool	bPlaying;
 
 			// Print a status message.
