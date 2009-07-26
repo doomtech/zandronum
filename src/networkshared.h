@@ -85,6 +85,20 @@ typedef enum
 //*****************************************************************************
 enum
 {
+	MSC_BEGINSERVERLIST,
+	MSC_SERVER,
+	MSC_ENDSERVERLIST,
+	MSC_IPISBANNED,
+	MSC_REQUESTIGNORED,
+	MSC_WRONGVERSION,
+	MSC_BEGINSERVERLISTPART,
+	MSC_ENDSERVERLISTPART,
+
+};
+
+//*****************************************************************************
+enum
+{
 	// Server is letting master server of its existance.
 	SERVER_MASTER_CHALLENGE = 5660020,
 
@@ -110,7 +124,12 @@ enum
 	// Client is trying to log in with the master server.
 	CLIENT_MASTER_LOGIN,
 
+	// [BB] Launcher is querying the master server for a full server list, possibly split into several packets.
+	LAUNCHER_MASTER_CHALLENGE,
 };
+
+// [BB] Protocol version of the master server, currently only used in conjunction with LAUNCHER_MASTER_CHALLENGE.
+#define MASTER_SERVER_VERSION		1
 
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199

@@ -58,20 +58,6 @@
 #define	USE_HUFFMAN_COMPRESSION
 
 //*****************************************************************************
-enum
-{
-	MSC_BEGINSERVERLIST,
-	MSC_SERVER,
-	MSC_ENDSERVERLIST,
-	MSC_IPISBANNED,
-	MSC_REQUESTIGNORED,
-	MSC_AUTHENTICATEUSER,
-	MSC_INVALIDUSERNAMEORPASSWORD,
-	MSC_ACCOUNTALREADYEXISTS,
-
-};
-
-//*****************************************************************************
 //	PROTOTYPES
 
 void			NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket );

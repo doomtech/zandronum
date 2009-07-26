@@ -535,20 +535,6 @@ enum
 };
 
 //*****************************************************************************
-enum
-{
-	MSC_BEGINSERVERLIST,
-	MSC_SERVER,
-	MSC_ENDSERVERLIST,
-	MSC_IPISBANNED,
-	MSC_REQUESTIGNORED,
-	MSC_AUTHENTICATEUSER,
-	MSC_INVALIDUSERNAMEORPASSWORD,
-	MSC_ACCOUNTALREADYEXISTS,
-
-};
-
-//*****************************************************************************
 //	VARIABLES
 
 extern FString g_lumpsAuthenticationChecksum;

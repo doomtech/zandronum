@@ -65,16 +65,6 @@
 #define	NETWORK_ERROR			254
 
 //*****************************************************************************
-enum
-{
-	MSC_BEGINSERVERLIST,
-	MSC_SERVER,
-	MSC_ENDSERVERLIST,
-	MSC_IPISBANNED,
-	MSC_REQUESTIGNORED,
-};
-
-//*****************************************************************************
 //	PROTOTYPES
 
 void			NETWORK_Construct( USHORT usPort );
