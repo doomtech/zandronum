@@ -190,6 +190,36 @@ long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
+void MASTERSERVER_SendServerIPToLauncher( SERVER_s *pServer, BYTESTREAM_s *pByteStream )
+{
+	// Tell the launcher the IP of this server on the list.
+	NETWORK_WriteByte( pByteStream, MSC_SERVER );
+	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[0] );
+	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[1] );
+	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[2] );
+	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[3] );
+	NETWORK_WriteShort( pByteStream, ntohs( pServer->Address.usPort ));
+}
+
+//*****************************************************************************
+//
+unsigned long MASTERSERVER_NumServers ( void )
+{
+	unsigned long ulNumServers = 0;
+	for ( unsigned long ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+	{
+		// Not an active server.
+		if ( g_Servers[ulIdx].bAvailable )
+			continue;
+
+		ulNumServers++;
+	}
+
+	return ulNumServers;
+}
+
+//*****************************************************************************
+//
 bool MASTERSERVER_RefreshIPList( IPList &List, const char *FileName )
 {
 	std::stringstream oldIPs;
@@ -391,13 +421,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				if ( g_Servers[ulIdx].bAvailable )
 					continue;
 
-				// Tell the launcher the IP of this server on the list.
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_SERVER );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[0] );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[1] );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[2] );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[3] );
-				NETWORK_WriteShort( &g_MessageBuffer.ByteStream, ntohs( g_Servers[ulIdx].Address.usPort ));
+				MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
 			}
 
 			// Tell the launcher that we're done sending servers.
