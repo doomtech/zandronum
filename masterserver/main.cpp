@@ -392,6 +392,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 		}
 	// Launcher is asking master server for server list.
 	case LAUNCHER_SERVER_CHALLENGE:
+	case LAUNCHER_MASTER_CHALLENGE:
 		{
 			unsigned long	ulIdx;
 
@@ -407,29 +408,97 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				g_ShortFloodQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 				return;
 			}
-			
+
+			// [BB] The launcher only sends the protocol version with LAUNCHER_MASTER_CHALLENGE.
+			if ( lCommand == LAUNCHER_MASTER_CHALLENGE )
+			{
+				// [BB] Check if the requested version of the protocol matches ours.
+				const unsigned short usVersion = NETWORK_ReadShort( pByteStream );
+
+				if ( usVersion != MASTER_SERVER_VERSION )
+				{
+					NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_WRONGVERSION );
+					NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+					return;
+				}
+			}
+
 			printf( "-> Sending server list to %s.\n", NETWORK_AddressToString( AddressFrom ));
 
 			// Wait 10 seconds before sending this IP the server list again.
 			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 
-			// Send the list of servers.
-			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
-			for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+			switch ( lCommand )
 			{
-				// Not an active server.
-				if ( g_Servers[ulIdx].bAvailable )
-					continue;
+			case LAUNCHER_SERVER_CHALLENGE:
+				// Send the list of servers.
+				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
+				for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				{
+					// Not an active server.
+					if ( g_Servers[ulIdx].bAvailable )
+						continue;
 
-				MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
+					MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
+				}
+
+				// Tell the launcher that we're done sending servers.
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
+
+				// Send the launcher our packet.
+				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+				return;
+
+			case LAUNCHER_MASTER_CHALLENGE:
+
+				const unsigned long ulNumServers = MASTERSERVER_NumServers();
+
+				// [BB] We don't want a single packet to exceed 1024 bytes. The header needs
+				// 4+1+1 bytes (MSC_BEGINSERVERLISTPART + current part + number of parts), closing the packet needs
+				// 1 byte (MSC_ENDSERVERLISTPART) and one server IP needs 7 bytes. Thus we can fit 145 server in
+				// one packet ( 145 * 7 + 7 = 1019 ).
+				const unsigned long ulNumServersPerPacket = 145;
+				// [BB] We send ( ulNumServers / ulNumServersPerPacket ) packets with ulNumServersPerPacket servers.
+				// Furthermore, we send one additional packet with less than ulNumServersPerPacket servers,
+				// if ( ulNumServers % ulNumServersPerPacket ) != 0.
+				const unsigned long ulNumPackets = ( ulNumServers / ulNumServersPerPacket ) + ( ( ulNumServers % ulNumServersPerPacket ) != 0 ? 1 : 0 );
+				unsigned long ulNumServersSent = 0;
+
+				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumPackets );
+
+				for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				{
+					// Not an active server.
+					if ( g_Servers[ulIdx].bAvailable )
+						continue;
+
+					MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
+					++ulNumServersSent;
+
+					// [BB] Current packet is full. Close it and if necessary start another one.
+					if ( ( ulNumServersSent % ulNumServersPerPacket ) == 0 )
+					{
+						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
+						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+						if ( ulNumServersSent < ulNumServers )
+						{
+							NETWORK_ClearBuffer( &g_MessageBuffer );
+							NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
+							NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumServersSent / ulNumServersPerPacket );
+							NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumPackets );
+						}
+					}
+				}
+				// [BB] If applicable, close the packet that has less than ulNumServersPerPacket servers.
+				if ( ( ulNumServersSent % ulNumServersPerPacket ) != 0 )
+				{
+					NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
+					NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+				}
+				return;
 			}
-
-			// Tell the launcher that we're done sending servers.
-			NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
-
-			// Send the launcher our packet.
-			NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
-			return;
 		}
 	}
 
