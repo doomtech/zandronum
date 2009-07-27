@@ -2650,7 +2650,7 @@ CCMD (kill)
 		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && !stricmp (argv[1], "monsters") )
 		{
 			const int killcount = P_Massacre ();
-			SERVER_Printf( PRINT_HIGH, "%d Monster%s Killed", killcount, killcount==1 ? "" : "s" );
+			SERVER_Printf( PRINT_HIGH, "%d Monster%s Killed\n", killcount, killcount==1 ? "" : "s" );
 			return;
 		}
 
