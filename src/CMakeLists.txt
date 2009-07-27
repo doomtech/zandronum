@@ -457,9 +457,25 @@ if( WIN32 )
 		win32/i_main.cpp
 		win32/i_movie.cpp
 		win32/i_system.cpp
+		win32/serverconsole.cpp #ST
 		win32/st_start.cpp
 		win32/win32gliface.cpp
 		win32/win32video.cpp )
+	# [BB] Add files for G15 support.
+	set( SYSTEM_SOURCES ${SYSTEM_SOURCES}
+		win32/g15/include/EZ_LCD.cpp
+		win32/g15/include/LCDAnimatedBitmap.cpp
+		win32/g15/include/LCDBase.cpp
+		win32/g15/include/LCDBitmap.cpp
+		win32/g15/include/LCDCollection.cpp
+		win32/g15/include/LCDGfx.cpp
+		win32/g15/include/LCDIcon.cpp
+		win32/g15/include/LCDManager.cpp
+		win32/g15/include/LCDOutput.cpp
+		win32/g15/include/LCDProgressBar.cpp
+		win32/g15/include/LCDScrollingText.cpp
+		win32/g15/include/LCDStreamingText.cpp
+		win32/g15/include/LCDText.cpp )
 	if( CMAKE_COMPILER_IS_GNUCXX )
 		# CMake is not set up to compile and link rc files with GCC. :(
 		add_custom_command( OUTPUT zdoom-rc.o
