@@ -479,6 +479,8 @@ void APowerInvulnerable::EndEffect ()
 	if (Owner->player != NULL)
 	{
 		Owner->player->fixedcolormap = 0;
+		// [BB] Additionally clear lFixedColormap.
+		Owner->lFixedColormap = 0;
 	}
 }
 
