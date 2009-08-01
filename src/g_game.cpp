@@ -2379,9 +2379,9 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 		for ( ULONG i = 0; i < MAX_TEAMS; i++ )
 			bCanUseStarts[i] = false;
 
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 		{
-			if ( teams[i].TeamStarts.Size( ) < 0 )
+			if ( teams[i].TeamStarts.Size( ) == 0 )
 				continue;
 
 			bCanUseStarts[i] = true;
@@ -2397,15 +2397,15 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 			I_Error( "No teamgame starts!" );
 		}
 
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 		{
 			if ( bCanUseStarts[i] == false )
 				continue;
 
-			ulOnTeamNum++;
-
 			if ( ulOnTeamNum == ulTeam )
 				ulTeam = i;
+
+			ulOnTeamNum++;
 		}
 
 		G_TeamgameSpawnPlayer( ulPlayer, ulTeam, bClientUpdate );
@@ -2656,7 +2656,7 @@ void GAME_CheckMode( void )
 	}
 
 	// [CW] Check whether any team starts are available.
-	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 	{
 		if ( teams[i].TeamStarts.Size( ) != 0 )
 		{
@@ -2814,7 +2814,7 @@ void GAME_CheckMode( void )
 	// simplified, hardcoded version of the CTF or ST modes.
 	// [BB] The loop over the teams is a tricky way to check if at least one of the
 	// scripts necessary is missing and works because of the break further down.
-	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 	{
 		if (( FBehavior::StaticCountTypedScripts( SCRIPT_Pickup ) == 0 ) ||
 			( FBehavior::StaticCountTypedScripts( TEAM_GetReturnScriptOffset( i ) ) == 0 ))
@@ -2825,7 +2825,7 @@ void GAME_CheckMode( void )
 
 				while ( (pItem = iterator.Next( )))
 				{
-					for ( ULONG i = 0; i < teams.Size( ); i++ )
+					for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 					{
 						if ( pItem->GetClass( ) == TEAM_GetItem( i ))
 						{
@@ -2858,7 +2858,7 @@ void GAME_CheckMode( void )
 
 				while ( (pItem = iterator.Next( )))
 				{
-					for ( ULONG i = 0; i < teams.Size( ); i++ )
+					for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 					{
 						if ( pItem->GetClass( ) == TEAM_GetItem( i ))
 						{

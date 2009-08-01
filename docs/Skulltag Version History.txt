@@ -95,6 +95,7 @@ latestzdoom branch
 -	- Fixed: The Windows welcome screen didn't take into account the gl_nogl CVAR setting. [Torr Samaho]
 -	- Fixed: Monsters using A_Recoil to move suffered from severe sync issues. [Torr Samaho]
 -	- Fixed: Clients sometimes spawned 3D floors locally when they shouldn't or didn't spawn them when they should. [Torr Samaho]
+-	- Fixed: Spectators in a teamgame mode were possibly assigned to spawn in a team spot of a team that doesn't have any such spots on the current map, causing the whole game to be aborted. Furthermore, spectators were never spawned on starts of the second team. [Torr Samaho, SuperGod]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
