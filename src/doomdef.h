@@ -250,6 +250,9 @@ enum
 	DF2_NOSUICIDE			= 1 << 27,	// Players are allowed to suicide.
 	DF2_NOAUTOAIM			= 1 << 28,	// Players cannot use autoaim.
 
+	// [BB] Enforces some Gl rendering options to their default values.
+	DF2_FORCE_GL_DEFAULTS		= 1 << 18,
+
 	// [BB] P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping.
 	DF2_NO_ROCKET_JUMPING		= 1 << 19,
 

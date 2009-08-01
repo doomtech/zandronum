@@ -387,6 +387,11 @@ CVAR (Flag, sv_allowcrouch,		dmflags, DF_YES_CROUCH);
 //
 //==========================================================================
 
+// [BB] Only necessary to handle DF2_FORCE_GL_DEFAULTS.
+#ifndef NO_GL
+EXTERN_CVAR(Int, gl_lightmode)
+#endif
+
 CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 {
 	// [BC] If we're the server, tell clients that the dmflags changed.
@@ -431,6 +436,11 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 				cht_DoCheat (p, CHT_CHASECAM);
 		}
 	}
+
+#ifndef NO_GL
+	// [BB] This makes gl_lightmode handle DF2_FORCE_GL_DEFAULTS.
+	gl_lightmode = gl_lightmode;
+#endif
 }
 
 CVAR (Flag, sv_weapondrop,			dmflags2, DF2_YES_WEAPONDROP);
@@ -452,6 +462,7 @@ CVAR (Flag, sv_disallowspying,		dmflags2, DF2_DISALLOW_SPYING);
 CVAR (Flag, sv_chasecam,			dmflags2, DF2_CHASECAM);
 CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
 CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
+CVAR (Flag, sv_forcegldefaults,		dmflags2, DF2_FORCE_GL_DEFAULTS);
 CVAR (Flag, sv_norocketjumping,		dmflags2, DF2_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
