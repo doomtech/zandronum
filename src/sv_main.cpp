@@ -4853,6 +4853,10 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 	// Read in the item name.
 	pszName = NETWORK_ReadString( pByteStream );
 
+	const bool bSetAngle = NETWORK_ReadByte( pByteStream );
+	// [BB] The client only sends the angle, if it is supposed to be set.
+	const SHORT sAngle = bSetAngle ? NETWORK_ReadShort( pByteStream ) : 0;
+
 	pSource = players[g_lCurrentClient].mo;
 	if ( pSource == NULL )
 		return ( false );
@@ -4909,6 +4913,14 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 
 			if ( pActor )
 				SERVERCOMMANDS_SpawnThing( pActor );
+
+			if ( bSetAngle )
+			{
+				pActor->angle = pSource->angle - (ANGLE_1 * sAngle);
+				// [BB] If the angle is not zero, we have to inform the clients.
+				if ( pActor->angle != 0 )
+					SERVERCOMMANDS_SetThingAngle( pActor );
+			}
 		}
 	}
 	// If not, boot their ass!

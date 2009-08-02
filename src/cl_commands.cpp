@@ -367,10 +367,13 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType )
+void CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType, const bool bSetAngle, const SHORT sAngle )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lType );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bSetAngle );
+	if ( bSetAngle )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, sAngle );
 }
 
 //*****************************************************************************

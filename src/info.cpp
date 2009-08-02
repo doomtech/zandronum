@@ -390,16 +390,18 @@ static void SummonActor (int command, int command2, FCommandLine argv)
 
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
+			const bool bSetAngle = ( argv.argc() > 2 );
+			const SHORT sAngle = bSetAngle ? atoi (argv[2]) : 0;
 			switch(command)
 			{
 			case DEM_SUMMON:
-				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONCHEAT );
+				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONCHEAT, bSetAngle, sAngle );
 				break;
 			case DEM_SUMMONFRIEND:
-				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFRIENDCHEAT );
+				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFRIENDCHEAT, bSetAngle, sAngle );
 				break;
 			case DEM_SUMMONFOE:
-				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFOECHEAT );
+				CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFOECHEAT, bSetAngle, sAngle );
 				break;
 			}
 			return;
