@@ -89,5 +89,6 @@ void	CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem );
 void	CLIENTCOMMANDS_EnterConsole( void );
 void	CLIENTCOMMANDS_ExitConsole( void );
 void	CLIENTCOMMANDS_Puke ( LONG lScript, int arg[3], ULONG ulArgn );
+void	CLIENTCOMMANDS_MorphCheat ( const char *pszMorphClass );
 
 #endif	// __CL_COMMANDS_H__

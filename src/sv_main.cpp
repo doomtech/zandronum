@@ -155,6 +155,7 @@ static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
 static	bool	server_Puke( BYTESTREAM_s *pByteStream );
+static	bool	server_MorphCheat( BYTESTREAM_s *pByteStream );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -1689,6 +1690,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_SUMMONFRIENDCHEAT:
 		case CLC_SUMMONFOECHEAT: 
 		case CLC_PUKE:
+		case CLC_MORPHEX:
 
 			// [BB] After a map change with the CCMD map, legitimate clients may get caught by
 			// this. Since the packet is completely ignored anyway, there is no need to ban the
@@ -3835,6 +3837,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// [BB] Client wishes to puke a scipt.
 		return ( server_Puke( pByteStream ));
+	case CLC_MORPHEX:
+
+		// [BB] Client wishes to morph to a certain class.
+		return ( server_MorphCheat( pByteStream ));
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -5308,6 +5314,29 @@ static bool server_Puke( BYTESTREAM_s *pByteStream )
 	// [BB] Execute the script as if it was invoked by the puke command.
 	P_StartScript (players[g_lCurrentClient].mo, NULL, ulScript, level.mapname, false,
 		arg[0], arg[1], arg[2], bAlways, false, true);
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+static bool server_MorphCheat( BYTESTREAM_s *pByteStream )
+{
+	const char *pszMorphClass = NETWORK_ReadString( pByteStream );
+
+	// If it's legal, do the moprh.
+	if ( sv_cheats )
+	{
+		const char *msg = cht_Morph (players + g_lCurrentClient, PClass::FindClass (pszMorphClass), false);
+		FString messageString = *msg != '\0' ? msg : "Morph failed.";
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, messageString.GetChars() );
+	}
+	// If not, boot their ass!
+	else
+	{
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
+		return ( true );
+	}
 
 	return ( false );
 }

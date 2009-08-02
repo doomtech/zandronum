@@ -321,7 +321,12 @@ CCMD (morphme)
 		return;
 
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENTCOMMANDS_GenericCheat( CHT_MORPH );
+	{
+		if (argv.argc() == 1)
+			CLIENTCOMMANDS_GenericCheat( CHT_MORPH );
+		else
+			CLIENTCOMMANDS_MorphCheat( argv[1] );
+	}
 	else
 	{
 		if (argv.argc() == 1)

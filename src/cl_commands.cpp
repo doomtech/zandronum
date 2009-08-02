@@ -476,3 +476,20 @@ void CLIENTCOMMANDS_Puke ( LONG lScript, int arg[3], ULONG ulArgn )
 		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, arg[ulIdx] );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) );
 }
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_MorphCheat ( const char *pszMorphClass )
+{
+	if ( pszMorphClass == NULL )
+		return;
+
+	if ( PClass::FindClass ( pszMorphClass ) == NULL )
+	{
+		Printf ( "Unknown class %s\n", pszMorphClass );
+		return;
+	}
+
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_MORPHEX );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszMorphClass );
+}
