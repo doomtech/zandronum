@@ -275,6 +275,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	lumpsToAuthenticate.push_back( "LOADACS" );
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "DEHACKED" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+
 	FString checksum, longChecksum;
 	bool noProtectedLumpsAutoloaded = true;
 
