@@ -2643,7 +2643,7 @@ CCMD (pings)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
-			Printf ("% 4d %s\n", currrecvtime[i] - lastrecvtime[i],
+			Printf ("% 4d %s\n", /*[BB] currrecvtime[i] - lastrecvtime[i]*/ players[i].ulPing,
 					players[i].userinfo.netname);
 }
 /* [BB] ST has no need for this.
