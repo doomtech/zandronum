@@ -234,7 +234,7 @@ CUSTOM_CVAR (GUID, joy_guid,		NULL, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCA
 }
 
 // [BB] Allows to keep the sound turned on, when the client is not the active app.
-CVAR (Bool, cl_soundwhennotactive, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Bool, cl_soundwhennotactive, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 static void MapAxis (FIntCVar &var, int num)
 {
