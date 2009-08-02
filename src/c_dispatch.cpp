@@ -608,6 +608,12 @@ void C_DoCommand (const char *cmd, int keynum)
 
 	if ( (com = FindNameInHashTable (Commands, beg, len)) )
 	{
+		// [BB] For security reasons, we don't allow any alias to be called by ConsoleCommand.
+		if ( ACS_IsCalledFromConsoleCommand( ) && com->IsAlias() )
+		{
+			return;
+		}
+
 		if (gamestate != GS_STARTUP || ParsingKeyConf ||
 			(len == 3 && strnicmp (beg, "set", 3) == 0) ||
 			(len == 7 && strnicmp (beg, "logfile", 7) == 0) ||
