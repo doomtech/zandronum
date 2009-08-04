@@ -572,19 +572,19 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		if ( ulBits & SQF_TEAMINFO_NUMBER )
-			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, teams.Size( ));
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, TEAM_GetNumAvailableTeams( ));
 
 		if ( ulBits & SQF_TEAMINFO_NAME )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+			for ( ulIdx = 0; ulIdx < TEAM_GetNumAvailableTeams( ); ulIdx++ )
 				NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, TEAM_GetName( ulIdx ));
 
 		if ( ulBits & SQF_TEAMINFO_COLOR )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+			for ( ulIdx = 0; ulIdx < TEAM_GetNumAvailableTeams( ); ulIdx++ )
 				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, TEAM_GetColor( ulIdx ));
 
 		if ( ulBits & SQF_TEAMINFO_SCORE )
 		{
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+			for ( ulIdx = 0; ulIdx < TEAM_GetNumAvailableTeams( ); ulIdx++ )
 			{
 				if ( teamplay )
 					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
