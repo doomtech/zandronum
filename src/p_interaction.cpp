@@ -2146,6 +2146,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
 
 	// [BL] If the player was "unarmed" give back his inventory now.
+	// [BB] Note: On the clients bUnarmed is never true!
 	if ( pPlayer->bUnarmed )
 	{
 		pPlayer->mo->GiveDefaultInventory();
@@ -2153,11 +2154,11 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 			pPlayer->mo->GiveDeathmatchInventory();
 
 		pPlayer->bUnarmed = false;
-		// Switch the player's weapon.
-		if(NETWORK_GetState() == NETSTATE_SERVER)
-		{
-			SERVERCOMMANDS_SetPlayerPendingWeapon(pPlayer - players);
-		}
+
+		// [BB] Since the clients never come here, tell them about their new inventory (includes bringing up the weapon on the client).
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVER_ResetInventory( static_cast<ULONG>( pPlayer-players ));
+
 		P_BringUpWeapon(pPlayer);
 	}
 }

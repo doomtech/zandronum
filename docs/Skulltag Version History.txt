@@ -49,7 +49,7 @@ latestzdoom branch
 +	- Added new ACS script flag CLIENTSIDE. Scripts with this flag are only executed on the clients, not on the server. Therefore, such scripts should not need any network bandwidth while running (only the server instruction that tells the clients to start the script needs bandwidth). Only use it on scripts that don't affect the game in any way (visuals aside) and only use it, if you know what you are doing! [Torr Samaho]
 +	- Extended the launcher protocol to optionally report the MD5 sum of the main data file (skulltag.wad/skulltag_data.pk3) the server uses. The sum is also shown on startup in the console log. [Torr Samaho]
 +	- Added new CCMD countactors that counts the number of actors currently in the game, shows how many of them have a network id and how many actors are of which class. [Torr Samaho]
-+	- In levels with a team selection room, the player's inventory is not given until a team has been picked. [Blzut3]
++	- In levels with a team selection room, the player's inventory is not given until a team has been picked. [Blzut3, Torr Samaho]
 +	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
 +	- sv_maxteams to select between 2, 3, and 4 team games.  4 teams are defined in Skulltag: blue, red, green, and gold. [Blzut3]
 +	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. [Torr Samaho]

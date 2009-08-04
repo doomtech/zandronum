@@ -8066,6 +8066,9 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	if ( players[ulPlayer].ReadyWeapon != pWeapon )
 		players[ulPlayer].PendingWeapon = pWeapon;
 
+	// [BB] Ensure that the weapon is brought up.
+	P_BringUpWeapon (&players[ulPlayer]);
+
 	// Confirm to the server that this is the weapon we're using.
 	CLIENT_UpdatePendingWeapon( &players[ulPlayer] );
 }
