@@ -55,6 +55,7 @@ latestzdoom branch
 +	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. [Torr Samaho]
 +	- Added new dmflag "force gl defaults", controlled by the new CVAR sv_forcegldefaults. If this is enabled, some default OpenGL rendering options are enforced, i.e. clients render as if gl_lightmode == 3 and gl_light_ambient == 20.0. [Torr Samaho]
 +	- Extended the authentication mechanism for non-map related lumps to check all DEHACKED lumps. [Torr Samaho, SuperGod]
++	- The new ingame class selection join menu is now also used in non-team based game modes, allowing to select from an arbitrary number of classes. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

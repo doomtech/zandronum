@@ -3745,7 +3745,15 @@ static void SelectClassAndJoinTeam( void )
 	char command[1024];
 
 	playerclass = AvailablePlayerClasses[menu_teamplayerclass].name.GetChars();
-	sprintf ( command, "team \"%s\"", TEAM_GetName( g_ulDesiredTeam ) );
+	// [BB] If the class selection menu is used in non-team games or the random team 
+	// is chosen in a team game, g_ulDesiredTeam is teams.Size( ). Using "join" in both
+	// cases should work fine, although in team games this will be more like
+	// "team autoselect" instead of "team random". For gameplay purposes the former
+	// is better anyway.
+	if ( g_ulDesiredTeam == teams.Size( ) )
+		sprintf ( command, "join" );
+	else
+		sprintf ( command, "team \"%s\"", TEAM_GetName( g_ulDesiredTeam ) );
 	AddCommandString( command );
 	M_ClearMenus( );
 }
@@ -3925,14 +3933,12 @@ static menuitem_t JoinItems[] =
 // [RC] For the join menu
 static void JoinGame( void )
 {
-	// [BB] If there are several classes to choose from, start the class selection menu.
-	// The joining is handeled in M_ChooseClass. This needs to be restructured a little
-	// to use it in gamemodes with different teams. Further this does not work for Hexen yet.
-	if( PlayerClasses.Size() > 1 && gameinfo.gametype != GAME_Hexen )
+	// [BB] If there are several classes to choose from, we just hijack PlayerClassSelectionMenu
+	// that I originally intended for team based modes to respect the limitedtoteam property.
+	if( PlayerClasses.Size() > 1 )
 	{
-		M_ClearMenus( );
-		static char menu_class[] = "menu_class";
-		AddCommandString( menu_class );
+		InitAvailablePlayerClassList( teams.Size( ) );
+		M_SwitchMenu (&PlayerClassSelectionMenu);
 	}
 	else
 	{
