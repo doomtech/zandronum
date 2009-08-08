@@ -605,7 +605,7 @@ bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s
 		while ( true )
 		{
 			IPADDRESSBAN_s IP;
-			IP.tExpirationDate = NULL;
+			IP.tExpirationDate = 0;
 			ULONG oldNumberOfEntries = _numberOfEntries;
 			bool parsingDone = !parseNextLine( pFile, IP, _numberOfEntries );
 
@@ -724,7 +724,7 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 					_itoa( IPAddress.abIP[1], IP.szIP[1], 10 );
 					_itoa( IPAddress.abIP[2], IP.szIP[2], 10 );
 					_itoa( IPAddress.abIP[3], IP.szIP[3], 10 );
-					IP.tExpirationDate = NULL;
+					IP.tExpirationDate = 0;
 
 					BanIdx++;
 					// [BB] If there is a reason given why the IP is on the list, read it now.
@@ -802,7 +802,7 @@ time_t IPFileParser::readExpirationDate( FILE *pFile )
 	if ( iResult < 5 )
 	{
 		Printf("parseNextLine: WARNING! Failure to read the ban expiration date! (%d fields read)\n", iResult );
-		return NULL;
+		return 0;
 	}	
 
 	// Create the time structure, based on the current time.
@@ -866,7 +866,7 @@ void IPList::removeExpiredEntries( void )
 	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); )
 	{
 		// If this entry isn't infinite, and expires in the past (or now), remove it.
-		if (( _ipVector[ulIdx].tExpirationDate != NULL ) && ( _ipVector[ulIdx].tExpirationDate - tNow <= 0))
+		if (( _ipVector[ulIdx].tExpirationDate != 0 ) && ( _ipVector[ulIdx].tExpirationDate - tNow <= 0))
 		{
 			char		szMessage[256];
 
@@ -961,7 +961,7 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 		sprintf( ZeroBan.szIP[3], "0" );
 
 		ZeroBan.szComment[0] = 0;
-		ZeroBan.tExpirationDate = NULL;
+		ZeroBan.tExpirationDate = 0;
 
 		return ( ZeroBan );
 	}
@@ -996,7 +996,7 @@ const char *IPList::getEntryComment( const NETADDRESS_s &Address ) const
 time_t IPList::getEntryExpiration( const NETADDRESS_s &Address ) const
 {
 	ULONG ulIdx = getEntryIndex( Address );
-	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].tExpirationDate : NULL;
+	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].tExpirationDate : 0;
 }
 
 //*****************************************************************************
@@ -1014,7 +1014,7 @@ std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment, b
 					<< _ipVector[ulIdx].szIP[3];
 
 		// Expiration date.
-		if ( bIncludeExpiration && _ipVector[ulIdx].tExpirationDate != NULL && _ipVector[ulIdx].tExpirationDate != -1 )
+		if ( bIncludeExpiration && _ipVector[ulIdx].tExpirationDate != 0 && _ipVector[ulIdx].tExpirationDate != -1 )
 		{			
 			struct tm	*pTimeInfo;
 			char		szDate[32];
