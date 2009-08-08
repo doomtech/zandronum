@@ -3691,6 +3691,10 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		}
 	}
 
+	// [BB] We may not filter coop inventory if the player changed the player class.
+	// Thus we need to keep track of the old class.
+	const BYTE oldPlayerClass = pPlayer->CurrentPlayerClass;
+
 	// Set up the player class.
 	pPlayer->CurrentPlayerClass = lPlayerClass;
 	pPlayer->cls = PlayerClasses[pPlayer->CurrentPlayerClass].Type;
@@ -3735,8 +3739,10 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		pPlayer->mo->GiveDeathmatchInventory( );
 	// [BC] Don't filter coop inventory in teamgame mode.
 	// Special inventory handling for respawning in coop.
+	// [BB] Also don't do so if the player changed the player class.
 	else if (( teamgame == false ) &&
 			 ( lPlayerState == PST_REBORN ) &&
+			 ( oldPlayerClass == pPlayer->CurrentPlayerClass ) &&
 			 ( pOldActor ))
 	{
 		pPlayer->mo->FilterCoopRespawnInventory( pOldActor );

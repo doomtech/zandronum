@@ -4536,6 +4536,10 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	// [BB] Make sure that the player only uses a class available to his team.
 	TEAM_EnsurePlayerHasValidClass ( p );
 
+	// [BB] We may not filter coop inventory if the player changed the player class.
+	// Thus we need to keep track of the old class.
+	const BYTE oldPlayerClass = p->CurrentPlayerClass;
+
 	// [BB] The (p->userinfo.PlayerClass != p->CurrentPlayerClass) check allows the player to change its class when respawning.
 	if (p->cls == NULL || (p->userinfo.PlayerClass != p->CurrentPlayerClass))
 	{
@@ -4704,7 +4708,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		p->mo->GiveDeathmatchInventory ();
 	}
 	// [BC] Don't filter coop inventory in teamgame mode.
-	else if ((( NETWORK_GetState( ) != NETSTATE_SINGLE ) || (level.flags2 & LEVEL2_ALLOWRESPAWN) ) && state == PST_REBORN && oldactor != NULL && ( teamgame == false ))
+	// [BB] Also don't do so if the player changed the player class.
+	else if ((( NETWORK_GetState( ) != NETSTATE_SINGLE ) || (level.flags2 & LEVEL2_ALLOWRESPAWN) ) && state == PST_REBORN && oldactor != NULL && ( teamgame == false ) && ( oldPlayerClass == p->CurrentPlayerClass ) )
 	{ // Special inventory handling for respawning in coop
 		p->mo->FilterCoopRespawnInventory (oldactor);
 	}
