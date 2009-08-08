@@ -377,6 +377,14 @@ CVAR (Flag, sv_nofov,			dmflags, DF_NO_FOV);
 CVAR (Flag, sv_noweaponspawn,	dmflags, DF_NO_COOP_WEAPON_SPAWN);
 CVAR (Flag, sv_nocrouch,		dmflags, DF_NO_CROUCH);
 CVAR (Flag, sv_allowcrouch,		dmflags, DF_YES_CROUCH);
+// [BB] New CVARs for Skulltag's flags.
+CVAR (Flag, sv_coop_loseinventory,	dmflags, DF_COOP_LOSE_INVENTORY);
+CVAR (Flag, sv_coop_losekeys,		dmflags, DF_COOP_LOSE_KEYS);
+CVAR (Flag, sv_coop_loseweapons,	dmflags, DF_COOP_LOSE_WEAPONS);
+CVAR (Flag, sv_coop_losearmor,		dmflags, DF_COOP_LOSE_ARMOR);
+CVAR (Flag, sv_coop_losepowerups,	dmflags, DF_COOP_LOSE_POWERUPS);
+CVAR (Flag, sv_coop_loseammo,		dmflags, DF_COOP_LOSE_AMMO);
+CVAR (Flag, sv_coop_halveammo,		dmflags, DF_COOP_HALVE_AMMO);
 
 //==========================================================================
 //
