@@ -68,11 +68,15 @@ typedef struct
 	// The IP address of this server.
 	NETADDRESS_s	Address;
 
+	// [BB] lLastReceived and bHasLatestBanList don't affect the ordering in the set we are going to
+	// organize the servers in. Thus we can mark them as mutable, which in turn allows us to change
+	// both values using the set iterators.
+
 	// The last time we heard from this server (used for timeouts).
-	long			lLastReceived;
+	mutable long	lLastReceived;
 
 	// [BB] Does the server have the latest version of the holy banlist?
-	bool			bHasLatestBanList;
+	mutable bool	bHasLatestBanList;
 
 } SERVER_s;
 

@@ -139,7 +139,7 @@ int I_GetTime (void)
 
 //*****************************************************************************
 //
-void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
+void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 {
 #ifndef STAY_97D2_COMPATIBLE
 	NETWORK_ClearBuffer( &g_MessageBuffer );
@@ -474,7 +474,9 @@ void MASTERSERVER_CheckTimeouts( void )
 		if (( g_lCurrentTime - it->lLastReceived ) >= 60 )
 		{
 			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( it->Address ));
-			it = g_Servers.erase ( it );
+			// [BB] The standard does not require set::erase to return the incremented operator,
+			// that's why we must use the post increment operator here.
+			g_Servers.erase ( it++ );
 			continue;
 		}
 		else
