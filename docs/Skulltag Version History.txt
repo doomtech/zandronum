@@ -57,6 +57,7 @@ latestzdoom branch
 +	- Extended the authentication mechanism for non-map related lumps to check all DEHACKED lumps. [Torr Samaho, SuperGod]
 +	- The new ingame class selection join menu is now also used in non-team based game modes, allowing to select from an arbitrary number of classes. [Torr Samaho]
 +	- Added new CVARs sv_coop_loseinventory, sv_coop_losekeys, sv_coop_loseweapons, sv_coop_losearmor, sv_coop_losepowerups, sv_coop_loseammo and sv_coop_halveammo to control the corresponding dmflags. [Torr Samaho]
++	- Extended the effect of the MAPINFO flag "islobby": Maps with this flag now behave as if sv_keepteams is false. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

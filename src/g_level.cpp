@@ -1071,7 +1071,12 @@ void G_DoLoadLevel (int position, bool autosave)
 		TEAM_SetReturnTicks( i, 0 );
 	}
 
-	if ( !(dmflags2 & DF2_YES_KEEP_TEAMS) )
+	// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
+	const level_info_t *info = FindLevelInfo (level.mapname);
+	// [BB] We clear the teams if either DF2_YES_KEEP_TEAMS is not on or if the new level is a lobby.
+	const bool bClearTeams = ( !(dmflags2 & DF2_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
+
+	if ( bClearTeams )
 	{
 		// Clear everyone's team.
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -1113,7 +1118,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	// Reset their team.
 	else
 	{
-		if ( !(dmflags2 & DF2_YES_KEEP_TEAMS) )
+		if ( bClearTeams )
 		{
 			for (i = 0; i < MAXPLAYERS; i++)
 				PLAYER_SetTeam( &players[i], teams.Size( ), true );
