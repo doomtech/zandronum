@@ -380,29 +380,53 @@ void BROWSER_DeactivateAllServers( void )
 
 //*****************************************************************************
 //
+void BROWSER_AddServerToList( const NETADDRESS_s &Address )
+{
+	const ULONG ulServer = browser_GetNewListID( );
+	if ( ulServer >= MAX_BROWSER_SERVERS )
+		I_Error( "BROWSER_GetServerList: Server limit exceeded (>=%d servers)", MAX_BROWSER_SERVERS );
+
+	// This server is now active.
+	g_BrowserServerList[ulServer].ulActiveState = AS_WAITINGFORREPLY;
+
+	// Set the server address.
+	g_BrowserServerList[ulServer].Address = Address;
+}
+
+//*****************************************************************************
+//
 void BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulServer;
-
 	// No longer waiting for a master server response.
 	g_bWaitingForMasterResponse = false;
 
-	while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLISTPART )
+	while ( true )
 	{
-		// Receiving information about a new server.
-		ulServer = browser_GetNewListID( );
-		if ( ulServer >= MAX_BROWSER_SERVERS )
-			I_Error( "BROWSER_GetServerList: Server limit exceeded (>=%d servers)", MAX_BROWSER_SERVERS );
+		const LONG lCommand = NETWORK_ReadByte( pByteStream );
 
-		// This server is now active.
-		g_BrowserServerList[ulServer].ulActiveState = AS_WAITINGFORREPLY;
+		switch ( lCommand )
+		{
+		case MSC_SERVER:
+			{
+				// Read in address information.
+				NETADDRESS_s serverAddress;
+				serverAddress.abIP[0] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[1] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[2] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[3] = NETWORK_ReadByte( pByteStream );
+				serverAddress.usPort = htons( NETWORK_ReadShort( pByteStream ));
 
-		// Read in address information.
-		g_BrowserServerList[ulServer].Address.abIP[0] = NETWORK_ReadByte( pByteStream );
-		g_BrowserServerList[ulServer].Address.abIP[1] = NETWORK_ReadByte( pByteStream );
-		g_BrowserServerList[ulServer].Address.abIP[2] = NETWORK_ReadByte( pByteStream );
-		g_BrowserServerList[ulServer].Address.abIP[3] = NETWORK_ReadByte( pByteStream );
-		g_BrowserServerList[ulServer].Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
+				BROWSER_AddServerToList ( serverAddress );
+			}
+			break;
+
+		case MSC_ENDSERVERLISTPART:
+			return;
+
+		default:
+			Printf( "Unknown server list command from master server: %d\n", static_cast<int> (lCommand) );
+			return;
+		}
 	}
 }
 
