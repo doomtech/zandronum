@@ -1887,7 +1887,7 @@ void DDoomStatusBar::FDoomStatusBarTexture::MakeTexture ()
 	{
 		DrawToBar ("STARMS", 104, 0, NULL);
 	}
-	else if ( teamgame || possession || teampossession )
+	else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		DrawToBar( "STPTS", 104, 0, NULL );
 	DrawToBar("STTPRCNT", 90, 3, NULL);
 	DrawToBar("STTPRCNT", 221, 3, NULL);
