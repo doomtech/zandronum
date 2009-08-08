@@ -74,9 +74,6 @@ typedef struct
 	// [BB] Does the server have the latest version of the holy banlist?
 	bool			bHasLatestBanList;
 
-	// Is this server slot active or inactive?
-	bool			bAvailable;
-
 } SERVER_s;
 
 #endif	// __MAIN_H__

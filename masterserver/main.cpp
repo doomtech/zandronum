@@ -54,6 +54,7 @@
 #include "network.h"
 #include "main.h"
 #include <sstream>
+#include <set>
 
 // [BB] Needed for I_GetTime.
 #ifdef _MSC_VER
@@ -66,8 +67,23 @@
 //*****************************************************************************
 //	VARIABLES
 
+// [BB] Comparision function, necessary to put SERVER_s entries into a std::set.
+class SERVERCompFunc
+{
+public:
+	bool operator()(SERVER_s s1, SERVER_s s2) const
+	{
+		// [BB] NETWORK_AddressToString uses a static char array to generate the string, so we
+		// need to cache the string conversion of the first string when comparing to two.
+		// Note: Because we need a "<" comparison and not a "!=" comparison we can't use
+		// NETWORK_CompareAddress.
+		std::string address1 = NETWORK_AddressToString ( s1.Address );
+		return ( stricmp ( address1.c_str(), NETWORK_AddressToString ( s2.Address ) ) < 0 );
+	}
+};
+
 // Global server list.
-static	SERVER_s				g_Servers[MAX_SERVERS];
+static	std::set<SERVER_s, SERVERCompFunc> g_Servers;
 
 // Message buffer we write our commands to.
 static	NETBUFFER_s				g_MessageBuffer;
@@ -147,75 +163,22 @@ void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
 
 //*****************************************************************************
 //
-long MASTERSERVER_CheckIfServerAlreadyExists( NETADDRESS_s Address )
-{
-	for ( unsigned long	 ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
-	{
-		// This slot is not active. Skip over it.
-		if ( g_Servers[ulIdx].bAvailable == true )
-			continue;
-
-		// The IP of the server we just heard from matches a server in our list.
-		if ( NETWORK_CompareAddress( g_Servers[ulIdx].Address, Address, false ))
-			return ( ulIdx );
-	}
-
-	// IP was not found in server list.
-	return ( -1 );
-}
-
-//*****************************************************************************
-//
-long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
-{
-	for ( unsigned long	ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
-	{
-		// This slot is not active. Use it.
-		if ( g_Servers[ulIdx].bAvailable == true )
-		{
-			// Slot is in use; no longer available to be slotted with a new server.
-			g_Servers[ulIdx].bAvailable = false;
-
-			// Set the server IP.
-			g_Servers[ulIdx].Address = Address;
-
-			// A slot was found; return the index.
-			return ( ulIdx );
-		}
-	}
-
-	// Could not find an available slot to put the server in.
-	return ( -1 );
-}
-
-//*****************************************************************************
-//
-void MASTERSERVER_SendServerIPToLauncher( SERVER_s *pServer, BYTESTREAM_s *pByteStream )
+void MASTERSERVER_SendServerIPToLauncher( const SERVER_s &Server, BYTESTREAM_s *pByteStream )
 {
 	// Tell the launcher the IP of this server on the list.
 	NETWORK_WriteByte( pByteStream, MSC_SERVER );
-	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[0] );
-	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[1] );
-	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[2] );
-	NETWORK_WriteByte( pByteStream, pServer->Address.abIP[3] );
-	NETWORK_WriteShort( pByteStream, ntohs( pServer->Address.usPort ));
+	NETWORK_WriteByte( pByteStream, Server.Address.abIP[0] );
+	NETWORK_WriteByte( pByteStream, Server.Address.abIP[1] );
+	NETWORK_WriteByte( pByteStream, Server.Address.abIP[2] );
+	NETWORK_WriteByte( pByteStream, Server.Address.abIP[3] );
+	NETWORK_WriteShort( pByteStream, ntohs( Server.Address.usPort ));
 }
 
 //*****************************************************************************
 //
 unsigned long MASTERSERVER_NumServers ( void )
 {
-	unsigned long ulNumServers = 0;
-	for ( unsigned long ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
-	{
-		// Not an active server.
-		if ( g_Servers[ulIdx].bAvailable )
-			continue;
-
-		ulNumServers++;
-	}
-
-	return ulNumServers;
+	return g_Servers.size();
 }
 
 //*****************************************************************************
@@ -257,8 +220,8 @@ void MASTERSERVER_InitializeBans( void )
 	if ( BannedIPsChanged || BannedIPExemptionsChanged )
 	{
 		// [BB] The ban list was changed, so no server has the latest list anymore.
-		for ( ULONG ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
-			g_Servers[ulIdx].bHasLatestBanList = false;
+		for( std::set<SERVER_s, SERVERCompFunc>::iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
+			it->bHasLatestBanList = false;
 
 		std::cerr << "Ban lists were changed since last refresh\n";
 	}
@@ -312,7 +275,6 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	case SERVER_MASTER_CHALLENGE:
 	case SERVER_MASTER_CHALLENGE_OVERRIDE:
 		{
-			long			lServerIdx;
 			NETADDRESS_s	Address;
 
 //			if ( lCommand == SERVER_MASTER_CHALLENGE )
@@ -351,17 +313,20 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 				return;
 			}
-			lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
+			SERVER_s newServer;
+			newServer.Address = Address;
+
+			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
 			// This is a new server; add it to the list.
-			if ( lServerIdx == -1 )
+			if ( currentServer == g_Servers.end() )
 			{
 				unsigned int iNumOtherServers = 0;
 
 				// First count the number of servers from this IP.
-				for ( unsigned long	ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					if ( !g_Servers[ulIdx].bAvailable && NETWORK_CompareAddress( g_Servers[ulIdx].Address, Address, true ))
+					if ( NETWORK_CompareAddress( it->Address, Address, true ))
 						iNumOtherServers++;
 				}
 
@@ -369,21 +334,22 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( Address ));
 				else
 				{
-					lServerIdx = MASTERSERVER_AddServerToList( Address );
-					if ( lServerIdx == -1 )
-						printf( "ERROR: Server list full!\n" );
+					std::set<SERVER_s, SERVERCompFunc>::iterator addedServer = g_Servers.insert ( newServer ).first;
+
+					if ( addedServer == g_Servers.end() )
+						printf( "ERROR: Adding new entry to the set failed. This should not happen!\n" );
 					else
 					{
-						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;						
-						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
-						MASTERSERVER_SendBanlistToServer( g_Servers[lServerIdx] );
+						addedServer->lLastReceived = g_lCurrentTime;						
+						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( addedServer->Address ));
+						MASTERSERVER_SendBanlistToServer( *addedServer );
 					}
 				}
 			}
 
 			// Command is from a server already on the list. It's just sending us a heartbeat.
 			else
-				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+				currentServer->lLastReceived = g_lCurrentTime;
 
 			// Ignore IP for 10 seconds.
 		//	if ( !g_MultiServerExceptions.isIPInList( Address ) )
@@ -394,8 +360,6 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	case LAUNCHER_SERVER_CHALLENGE:
 	case LAUNCHER_MASTER_CHALLENGE:
 		{
-			unsigned long	ulIdx;
-
 			NETWORK_ClearBuffer( &g_MessageBuffer );
 
 			// Did this IP query us recently? If so, send it an explanation, and ignore it completely for 3 seconds.
@@ -433,13 +397,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			case LAUNCHER_SERVER_CHALLENGE:
 				// Send the list of servers.
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
-				for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					// Not an active server.
-					if ( g_Servers[ulIdx].bAvailable )
-						continue;
-
-					MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
+					MASTERSERVER_SendServerIPToLauncher ( *it, &g_MessageBuffer.ByteStream );
 				}
 
 				// Tell the launcher that we're done sending servers.
@@ -468,13 +428,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumPackets );
 
-				for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					// Not an active server.
-					if ( g_Servers[ulIdx].bAvailable )
-						continue;
-
-					MASTERSERVER_SendServerIPToLauncher ( &g_Servers[ulIdx], &g_MessageBuffer.ByteStream );
+					MASTERSERVER_SendServerIPToLauncher ( *it, &g_MessageBuffer.ByteStream );
 					++ulNumServersSent;
 
 					// [BB] Current packet is full. Close it and if necessary start another one.
@@ -510,27 +466,27 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 //
 void MASTERSERVER_CheckTimeouts( void )
 {
-	unsigned long	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+	// [BB] Because we are erasing entries from the set, the iterator has to be incremented inside
+	// the loop, depending on whether and element was erased or not.
+	for( std::set<SERVER_s, SERVERCompFunc>::iterator it = g_Servers.begin(); it != g_Servers.end(); )
 	{
-		// An open slot; not an active server.
-		if ( g_Servers[ulIdx].bAvailable )
-			continue;
-
 		// If the server has timed out, make it an open slot!
-		if (( g_lCurrentTime - g_Servers[ulIdx].lLastReceived ) >= 60 )
+		if (( g_lCurrentTime - it->lLastReceived ) >= 60 )
 		{
-			g_Servers[ulIdx].bAvailable = true;
-			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
+			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( it->Address ));
+			it = g_Servers.erase ( it );
 			continue;
 		}
+		else
+		{
+			// [BB] If the server doesn't have the latest ban list, send it now.
+			// This construction has the drawback that all servers are updated at once.
+			// Possibly it will be necessary to do this differently.
+			if ( it->bHasLatestBanList == false )
+				MASTERSERVER_SendBanlistToServer( *it );
 
-		// [BB] If the server doesn't have the latest ban list, send it now.
-		// This construction has the drawback that all servers are updated at once.
-		// Possibly it will be necessary to do this differently.
-		if ( g_Servers[ulIdx].bHasLatestBanList == false )
-			MASTERSERVER_SendBanlistToServer( g_Servers[ulIdx] );
+			++it;
+		}
 	}
 }
 
@@ -539,7 +495,6 @@ void MASTERSERVER_CheckTimeouts( void )
 int main( )
 {
 	BYTESTREAM_s	*pByteStream;
-	unsigned long	ulIdx;
 
 	std::cerr << "=== S K U L L T A G | Master ===\n";
 	std::cerr << "Revision: "SVN_REVISION_STRING"\n";
@@ -553,9 +508,6 @@ int main( )
 
 	// Initialize the network system.
 	NETWORK_Construct( DEFAULT_MASTER_PORT );
-
-	for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
-		g_Servers[ulIdx].bAvailable = true;
 
 	// Initialize the message buffer we send messages to the launcher in.
 	NETWORK_InitBuffer( &g_MessageBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
