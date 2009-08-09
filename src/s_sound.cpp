@@ -788,7 +788,8 @@ static void CalcSectorSoundOrg(const sector_t *sec, int channum, fixed_t *x, fix
 	if (!(i_compatflags & COMPATF_SECTORSOUNDS))
 	{
 		// Are we inside the sector? If yes, the closest point is the one we're on.
-		if (P_PointInSector(*x, *y) == sec)
+		// [BB] We need to check if players[consoleplayer].camera is valid.
+		if ( (P_PointInSector(*x, *y) == sec) && (players[consoleplayer].camera != NULL) )
 		{
 			*x = players[consoleplayer].camera->x;
 			*y = players[consoleplayer].camera->y;
