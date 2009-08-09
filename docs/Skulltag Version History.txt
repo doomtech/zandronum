@@ -121,6 +121,7 @@ latestzdoom branch
 !	- The server doesn't relay chat messages that only consist of color codes and white spaces anymore. [Torr Samaho, SuperGod]
 !	- If a client pukes an ACS script with the NET flag, it now requests the server to run the script instead of silently running it client side on its own. If you want the script to be run client side, either give it the CLIENTSIDE flag or use compat_netscriptsareclientside. [Torr Samaho]
 !	- For security reasons, aliases can't be called by ConsoleCommand anymore. [Torr Samaho]
+!	- The Linux server console now flushes the output buffer.  This allows other programs, such as Doomseeker, to easily capture the standard input and output. [Blzut3]
 
 
 <trunk>

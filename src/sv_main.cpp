@@ -531,6 +531,7 @@ void SERVER_Tick( void )
 	char *cmd = I_ConsoleInput();
 	if (cmd)
 		AddCommandString (cmd);
+	fflush(stdout);
 #else
 	// Execute any commands that have been issued through server menus.
 	while ( g_ServerCommandQueue.Size( ))
