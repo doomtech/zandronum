@@ -1330,6 +1330,10 @@ void APlayerPawn::GiveDefaultInventory ()
 			{
 				pType = PClass::m_Types[ulIdx];
 
+				// [BB] Don't give anything that is not allowed for our game.
+				if ( pType->ActorInfo && ( ( pType->ActorInfo->GameFilter & gameinfo.gametype ) == 0 ) )
+					continue;
+
 				// Potentially disallow certain weapons.
 				if ((( lmsallowedweapons & LMS_AWF_CHAINSAW ) == false ) &&
 					( pType == PClass::FindClass( "Chainsaw" )))
@@ -1513,6 +1517,10 @@ void APlayerPawn::GiveDefaultInventory ()
 			for ( ulIdx = 0; ulIdx < PClass::m_Types.Size( ); ulIdx++ )
 			{
 				pType = PClass::m_Types[ulIdx];
+
+				// [BB] Don't give anything that is not allowed for our game.
+				if ( pType->ActorInfo && ( ( pType->ActorInfo->GameFilter & gameinfo.gametype ) == 0 ) )
+					continue;
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{
