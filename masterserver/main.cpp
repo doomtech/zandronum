@@ -163,15 +163,53 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 
 //*****************************************************************************
 //
-void MASTERSERVER_SendServerIPToLauncher( const SERVER_s &Server, BYTESTREAM_s *pByteStream )
+void MASTERSERVER_SendServerIPToLauncher( const NETADDRESS_s &Address, BYTESTREAM_s *pByteStream )
 {
 	// Tell the launcher the IP of this server on the list.
 	NETWORK_WriteByte( pByteStream, MSC_SERVER );
-	NETWORK_WriteByte( pByteStream, Server.Address.abIP[0] );
-	NETWORK_WriteByte( pByteStream, Server.Address.abIP[1] );
-	NETWORK_WriteByte( pByteStream, Server.Address.abIP[2] );
-	NETWORK_WriteByte( pByteStream, Server.Address.abIP[3] );
-	NETWORK_WriteShort( pByteStream, ntohs( Server.Address.usPort ));
+	NETWORK_WriteByte( pByteStream, Address.abIP[0] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[1] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[2] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[3] );
+	NETWORK_WriteShort( pByteStream, ntohs( Address.usPort ));
+}
+
+//*****************************************************************************
+//
+unsigned long MASTERSERVER_CalcServerIPBlockNetSize( const NETADDRESS_s &Address, const std::vector<USHORT> &PortList )
+{
+	if ( PortList.size() == 0 )
+		return 0;
+
+	if ( ( PortList.size() == 1 ) && ( Address.usPort == PortList[0] ) )
+		return 7; // ( 1 (MSC_SERVER) + 4 (IP) + 2 (Port)
+
+	return ( 6 + 2 * PortList.size() ); // 6 = 1 (MSC_SERVERBLOCK) + 4 (IP) + 1 (Number of ports of the server)
+}
+
+//*****************************************************************************
+//
+void MASTERSERVER_SendServerIPBlockToLauncher( const NETADDRESS_s &Address, const std::vector<USHORT> &PortList, BYTESTREAM_s *pByteStream )
+{
+	if ( PortList.size() == 0 )
+		return;
+
+	// [BB] There is only one server and the argument "Address" is its full address (IP + Port).
+	if ( ( PortList.size() == 1 ) && ( Address.usPort == PortList[0] ) )
+	{
+		MASTERSERVER_SendServerIPToLauncher( Address, pByteStream );
+		return;
+	}
+
+	// Tell the launcher the IP and all ports of the servers on that IP.
+	NETWORK_WriteByte( pByteStream, MSC_SERVERBLOCK );
+	NETWORK_WriteByte( pByteStream, Address.abIP[0] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[1] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[2] );
+	NETWORK_WriteByte( pByteStream, Address.abIP[3] );
+	NETWORK_WriteByte( pByteStream, PortList.size() );
+	for ( unsigned int i = 0; i < PortList.size(); ++i )
+		NETWORK_WriteShort( pByteStream, ntohs( PortList[i] ) );
 }
 
 //*****************************************************************************
@@ -399,7 +437,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
 				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					MASTERSERVER_SendServerIPToLauncher ( *it, &g_MessageBuffer.ByteStream );
+					MASTERSERVER_SendServerIPToLauncher ( it->Address, &g_MessageBuffer.ByteStream );
 				}
 
 				// Tell the launcher that we're done sending servers.
@@ -411,48 +449,45 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 
 			case LAUNCHER_MASTER_CHALLENGE:
 
-				const unsigned long ulNumServers = MASTERSERVER_NumServers();
+				const unsigned long ulMaxPacketSize = 1024;
+				unsigned long ulPacketNum = 0;
 
-				// [BB] We don't want a single packet to exceed 1024 bytes. The header needs
-				// 4+1+1 bytes (MSC_BEGINSERVERLISTPART + current part + number of parts), closing the packet needs
-				// 1 byte (MSC_ENDSERVERLISTPART) and one server IP needs 7 bytes. Thus we can fit 145 server in
-				// one packet ( 145 * 7 + 7 = 1019 ).
-				const unsigned long ulNumServersPerPacket = 145;
-				// [BB] We send ( ulNumServers / ulNumServersPerPacket ) packets with ulNumServersPerPacket servers.
-				// Furthermore, we send one additional packet with less than ulNumServersPerPacket servers,
-				// if ( ulNumServers % ulNumServersPerPacket ) != 0.
-				const unsigned long ulNumPackets = ( ulNumServers / ulNumServersPerPacket ) + ( ( ulNumServers % ulNumServersPerPacket ) != 0 ? 1 : 0 );
-				unsigned long ulNumServersSent = 0;
+				std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin();
 
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumPackets );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulPacketNum );
+				unsigned long ulSizeOfPacket = 5; // 4 (MSC_BEGINSERVERLISTPART) + 0 (1)
 
-				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
+				while ( it != g_Servers.end() )
 				{
-					MASTERSERVER_SendServerIPToLauncher ( *it, &g_MessageBuffer.ByteStream );
-					++ulNumServersSent;
+					NETADDRESS_s serverAddress = it->Address;
+					std::vector<USHORT> serverPortList;
 
-					// [BB] Current packet is full. Close it and if necessary start another one.
-					if ( ( ulNumServersSent % ulNumServersPerPacket ) == 0 )
+					do {
+						serverPortList.push_back ( it->Address.usPort );
+						++it;
+					} while ( ( it != g_Servers.end() ) && NETWORK_CompareAddress( it->Address, serverAddress, true ) );
+
+					const unsigned long ulServerBlockNetSize = MASTERSERVER_CalcServerIPBlockNetSize( serverAddress, serverPortList );
+
+					// [BB] If sending this block would cause the current packet to exceed ulMaxPacketSize ...
+					if ( ulSizeOfPacket + ulServerBlockNetSize > ulMaxPacketSize - 1 )
 					{
+						// [BB] ... close the current packet and start a new one.
 						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
 						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
-						if ( ulNumServersSent < ulNumServers )
-						{
-							NETWORK_ClearBuffer( &g_MessageBuffer );
-							NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
-							NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumServersSent / ulNumServersPerPacket );
-							NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulNumPackets );
-						}
+
+						NETWORK_ClearBuffer( &g_MessageBuffer );
+						++ulPacketNum;
+						ulSizeOfPacket = 5;
+						NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
+						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulPacketNum );
 					}
+					ulSizeOfPacket += ulServerBlockNetSize;
+					MASTERSERVER_SendServerIPBlockToLauncher ( serverAddress, serverPortList, &g_MessageBuffer.ByteStream );
 				}
-				// [BB] If applicable, close the packet that has less than ulNumServersPerPacket servers.
-				if ( ( ulNumServersSent % ulNumServersPerPacket ) != 0 )
-				{
-					NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
-					NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
-				}
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
+				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 				return;
 			}
 		}

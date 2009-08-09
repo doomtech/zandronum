@@ -1305,13 +1305,12 @@ void CLIENT_GetPackets( void )
 				case MSC_BEGINSERVERLISTPART:
 					{
 						ULONG ulPacketNum = NETWORK_ReadByte( pByteStream );
-						ULONG ulNumPackets = NETWORK_ReadByte( pByteStream );
 
 						// Get the list of servers.
-						BROWSER_GetServerList( pByteStream );
+						bool bLastPartReceived = BROWSER_GetServerList( pByteStream );
 
 						// [BB] We received the final part of the server list, now query the servers.
-						if ( ulPacketNum + 1 == ulNumPackets )
+						if ( bLastPartReceived )
 						{
 							// Now, query all the servers on the list.
 							BROWSER_QueryAllServers( );

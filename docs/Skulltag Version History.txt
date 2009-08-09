@@ -52,7 +52,7 @@ latestzdoom branch
 +	- In levels with a team selection room, the player's inventory is not given until a team has been picked. [Blzut3, Torr Samaho]
 +	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
 +	- sv_maxteams to select between 2, 3, and 4 team games.  4 teams are defined in Skulltag: blue, red, green, and gold. [Blzut3]
-+	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. [Torr Samaho]
++	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. Furthermore, servers with the same IP are sent in blocks now (kudos to bond for this idea), vastly reducing the amount of traffic necessary for the list. [Torr Samaho]
 +	- Added new dmflag "force gl defaults", controlled by the new CVAR sv_forcegldefaults. If this is enabled, some default OpenGL rendering options are enforced, i.e. clients render as if gl_lightmode == 3 and gl_light_ambient == 20.0. [Torr Samaho]
 +	- Extended the authentication mechanism for non-map related lumps to check all DEHACKED lumps. [Torr Samaho, SuperGod]
 +	- The new ingame class selection join menu is now also used in non-team based game modes, allowing to select from an arbitrary number of classes. [Torr Samaho]

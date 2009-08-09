@@ -394,8 +394,9 @@ void BROWSER_AddServerToList( const NETADDRESS_s &Address )
 }
 
 //*****************************************************************************
-//
-void BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
+// [BB] Returns true if the server list packet was terminated by MSC_ENDSERVERLIST,
+// else it returns false.
+bool BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 {
 	// No longer waiting for a master server response.
 	g_bWaitingForMasterResponse = false;
@@ -420,12 +421,34 @@ void BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 			}
 			break;
 
+		case MSC_SERVERBLOCK:
+			{
+				// Read in address information.
+				NETADDRESS_s serverAddress;
+				serverAddress.abIP[0] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[1] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[2] = NETWORK_ReadByte( pByteStream );
+				serverAddress.abIP[3] = NETWORK_ReadByte( pByteStream );
+				ULONG ulPorts =  NETWORK_ReadByte( pByteStream );
+				for ( ULONG ulIdx = 0; ulIdx < ulPorts; ++ulIdx )
+				{
+					serverAddress.usPort = htons( NETWORK_ReadShort( pByteStream ));
+					BROWSER_AddServerToList ( serverAddress );
+				}
+
+			}
+			break;
+
 		case MSC_ENDSERVERLISTPART:
-			return;
+			return false;
+
+		case MSC_ENDSERVERLIST:
+			return true;
 
 		default:
+
 			Printf( "Unknown server list command from master server: %d\n", static_cast<int> (lCommand) );
-			return;
+			return false;
 		}
 	}
 }
