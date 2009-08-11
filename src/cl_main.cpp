@@ -9190,7 +9190,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	else
 		pLine = &lines[lLineIdx];
 
-	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, ulArg0, ulArg1, ulArg2, bAlways, false, true );
+	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, ulArg0, ulArg1, ulArg2, bAlways, false );
 }
 
 //*****************************************************************************
