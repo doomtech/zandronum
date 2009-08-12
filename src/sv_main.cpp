@@ -151,6 +151,7 @@ static	bool	server_VoteNo( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
+static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -1996,6 +1997,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].bRCONAccess = false;
 	g_aClients[lClient].ulDisplayPlayer = lClient;
 	g_aClients[lClient].commandInstances.clear();
+	g_aClients[lClient].minorCommandInstances.clear();
 	for ( ulIdx = 0; ulIdx < MAX_CHATINSTANCE_STORAGE; ulIdx++ )
 		g_aClients[lClient].lChatInstances[ulIdx] = 0;
 	g_aClients[lClient].ulLastChatInstance = 0;
@@ -3675,35 +3677,44 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		SERVER_DisconnectClient( g_lCurrentClient, true, true );
 		break;
 	case CLC_STARTCHAT:
-
-		// Client is beginning to type.
-		players[g_lCurrentClient].bChatting = true;
-
-		// Tell clients about the change in this player's chatting status.
-		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
-
-		return false;
 	case CLC_ENDCHAT:
-
-		// Client is done talking.
-		players[g_lCurrentClient].bChatting = false;
-
-		// Tell clients about the change in this player's chatting status.
-		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
-
-		return false;
 	case CLC_ENTERCONSOLE:
-
-		// Player has entered the console - give him an icon.
-		players[g_lCurrentClient].bInConsole = true;
-		SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
-
-		return false;
 	case CLC_EXITCONSOLE:
 
-		// Player has left the console - remove his icon.
-		players[g_lCurrentClient].bInConsole = false;
-		SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+		// [BB] If the client is flooding the server with commands, the client is
+		// kicked and we don't need to handle the command.
+		if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+			return ( true );
+
+		if ( lCommand == CLC_STARTCHAT )
+		{
+			// Client is beginning to type.
+			players[g_lCurrentClient].bChatting = true;
+
+			// Tell clients about the change in this player's chatting status.
+			SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+		}
+		else if ( lCommand == CLC_ENDCHAT )
+		{
+			// Client is done talking.
+			players[g_lCurrentClient].bChatting = false;
+
+			// Tell clients about the change in this player's chatting status.
+			SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+		}
+		else if ( lCommand == CLC_ENTERCONSOLE )
+		{
+
+			// Player has entered the console - give him an icon.
+			players[g_lCurrentClient].bInConsole = true;
+			SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+		}
+		else if ( lCommand == CLC_EXITCONSOLE )
+		{
+			// Player has left the console - remove his icon.
+			players[g_lCurrentClient].bInConsole = false;
+			SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+		}
 
 		return false;
 	case CLC_SAY:
@@ -3918,6 +3929,35 @@ static bool server_CheckForClientCommandFlood( ULONG ulClient )
 			SERVER_PrintfPlayer( PRINT_HIGH, ulClient, "Stop flooding the server with commands or you will be temporarily banned.\n" );
 	}
 	g_aClients[ulClient].commandInstances.put ( gametic );
+
+	return ( false );
+}
+
+//*****************************************************************************
+// [BB] Shares quite a bit of code with server_CheckForClientCommandFlood, but
+// we probably don't win enough if it's rewritten to cut down the code duplication here.
+static bool server_CheckForClientMinorCommandFlood( ULONG ulClient )
+{
+	// [BB] If a client issues more commands in floodWindowLength seconds than
+	// his commandInstances can hold, he is temporarily banned.
+	const LONG floodWindowLength = 10;
+	if ( g_aClients[ulClient].minorCommandInstances.getOldestEntry() > 0 )
+	{
+		if ( ( gametic - g_aClients[ulClient].minorCommandInstances.getOldestEntry() ) <= floodWindowLength * TICRATE )
+		{
+			// [BB] I don't want to backport all the changes made to sv_ban.* since 97d3, so kicking and banning
+			// the player is a little cumbersome. Note: The player needs to be kicked immediately (before processing any
+			// more network commands of the kicked player), therefore we can't use the CCMD ban_idx to do the ban and kick,
+			// because the kick there uses SERVER_AddCommand and thus is delayed.
+			NETADDRESS_s banAddress = g_aClients[ulClient].Address;
+			SERVER_KickPlayer( ulClient, "Client command flood." );
+			char	szString[256];
+			sprintf( szString, "addban %s 10min \"Client command flood.\"", NETWORK_AddressToStringIgnorePort ( banAddress ) );
+			AddCommandString( szString );
+			return ( true );
+		}
+	}
+	g_aClients[ulClient].minorCommandInstances.put ( gametic );
 
 	return ( false );
 }
@@ -4278,6 +4318,11 @@ static bool server_Taunt( BYTESTREAM_s *pByteStream )
 	{
 		return ( false );
 	}
+
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
 
 	SERVERCOMMANDS_PlayerTaunt( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
 
