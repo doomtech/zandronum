@@ -2697,6 +2697,8 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	// Destroy the actor attached to the player.
 	if ( players[ulClient].mo )
 	{
+		// [BB] Stop all scripts of the player that are still running.
+		FBehavior::StaticStopMyScripts ( players[ulClient].mo );
 		// If he's disconnecting while carrying an important item like a flag, etc., make sure he, 
 		// drops it before he leaves.
 		players[ulClient].mo->DropImportantItems( true );
