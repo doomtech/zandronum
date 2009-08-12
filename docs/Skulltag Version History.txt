@@ -160,6 +160,11 @@ latestzdoom branch
 !	- When a player starts chat spamming, he is now muted instead of kicked. [Rivecoder]
 
 
+v0.97d5-security-update-1
+-------------------------
+
++	- Extended the server side client command protection to protect from commands the client is allowed to use often, but that still can be abused for a DOS attack. If a client floods the server with such commands (more than 100 in 10 seconds), the client is kicked and banned for 10 minutes. Commands of this type include toggling the console, toggling chat status and taunting. [Torr Samaho, SuperGod]
+
 <hotfix>
 --------
 

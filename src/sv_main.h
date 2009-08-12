@@ -223,8 +223,11 @@ typedef struct
 	// Client doesn't want his fragcount restored if he is reconnecting to the server.
 	bool			bWantNoRestoreFrags;
 
-	// [BB] A record of the gametics the client called protected commands.
+	// [BB] A record of the gametics the client called protected commands, e.g. send_password.
 	RingBuffer<LONG, 6> commandInstances;
+
+	// [BB] A record of the gametics the client called protected minor commands, e.g. toggleconsole.
+	RingBuffer<LONG, 100> minorCommandInstances;
 
 	// A record of the gametic the client spoke at. We store the last MAX_CHATINSTANCE_STORAGE
 	// times the client chatted. This is used to chat spam protection.
