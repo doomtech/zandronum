@@ -56,6 +56,8 @@
 #include "x86.h"
 #include "colormatcher.h"
 #include "v_palette.h"
+// [BB] New #includes.
+#include "deathmatch.h"
 
 extern "C" {
 FDynamicColormap NormalLight;
@@ -584,6 +586,13 @@ CCMD (testfade)
 {
 	FString colorstring;
 	DWORD color;
+
+	// [BB] Without cheats, Client's may not use this.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( sv_cheats == false ) )
+	{
+		Printf ( "If cheats are disabled, clients are not allowed to use testfade.\n" );
+		return;
+	}
 
 	if (argv.argc() < 2)
 	{
