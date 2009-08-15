@@ -3725,6 +3725,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		g_NetIDList[lID].pActor = pPlayer->mo;
 	}
 
+	// Set the spectator variables [after G_PlayerReborn so our data doesn't get lost] [BB] Why?.
+	// [BB] To properly handle that spectators don't get default inventory, we need to set this
+	// before calling G_PlayerReborn (which in turn calls GiveDefaultInventory).
+	pPlayer->bSpectating = bSpectating;
+	pPlayer->bDeadSpectator = bDeadSpectator;
+
 	if (( lPlayerState == PST_REBORN ) ||
 		( lPlayerState == PST_REBORNNOINVENTORY ) ||
 		( lPlayerState == PST_ENTER ) ||
@@ -3750,10 +3756,6 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// Also, destroy all of the old actor's inventory.
 	if ( pOldActor )
 		pOldActor->DestroyAllInventory( );
-
-	// Set the spectator variables after G_PlayerReborn so our data doesn't get lost.
-	pPlayer->bSpectating = bSpectating;
-	pPlayer->bDeadSpectator = bDeadSpectator;
 
 	// If this is the console player, and he's spawned as a regular player, he's definitely not
 	// in line anymore!

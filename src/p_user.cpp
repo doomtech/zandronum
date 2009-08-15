@@ -844,6 +844,9 @@ void APlayerPawn::CheckWeaponSwitch(const PClass *ammotype)
 
 void APlayerPawn::GiveDeathmatchInventory()
 {
+	// [BB] Spectators are supposed to have no inventory.
+	if ( player && player->bSpectating ) return;
+
 	for (unsigned int i = 0; i < PClass::m_Types.Size(); ++i)
 	{
 		if (PClass::m_Types[i]->IsDescendantOf (RUNTIME_CLASS(AKey)))
@@ -1126,6 +1129,9 @@ void APlayerPawn::ThrowPoisonBag ()
 void APlayerPawn::GiveDefaultInventory ()
 {
 	if (player == NULL) return;
+
+	// [BB] Spectators are supposed to have no inventory.
+	if ( player->bSpectating ) return;
 
 	AInventory *fist, *pistol, *bullets;
 	ULONG						ulIdx;
