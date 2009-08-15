@@ -1327,6 +1327,16 @@ void CLIENT_GetPackets( void )
 					Printf( "Refresh request ignored. Please wait 10 seconds before refreshing the list again.\n" );
 					break;
 
+				case MSC_IPISBANNED:
+
+					Printf( "You are banned from the master server.\n" );
+					break;
+
+				case MSC_WRONGVERSION:
+
+					Printf( "The master server is using a different version of the launcher-master protocol.\n" );
+					break;
+
 				default:
 
 					Printf( "Unknown command from master server: %d\n", static_cast<int> (lCommand) );

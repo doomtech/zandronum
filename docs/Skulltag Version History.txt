@@ -107,6 +107,7 @@ latestzdoom branch
 -	- Fixed: When respawning online in a cooperative game mode after selecting a different player class, a player keeps the old inventory (if the dmflags say so) instead of getting a completely fresh inventory based on the new player class selected. [Torr Samaho]
 -	- Fixed: In lms/teamlms players possibly got weapons that should have been filtered out by the game actor property. [Torr Samaho, SuperGod]
 -	- Fixed: When a player left the game online (either by disconnecting of by changing to a spectator) his running scripts were not terminated. [Torr Samaho]
+-	- Fixed: The internal server browser didn't understand the "You are banned" response from the master server. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
