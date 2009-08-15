@@ -130,7 +130,7 @@ enum
 };
 
 // [BB] Protocol version of the master server, currently only used in conjunction with LAUNCHER_MASTER_CHALLENGE.
-#define MASTER_SERVER_VERSION		1
+#define MASTER_SERVER_VERSION		2
 
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199

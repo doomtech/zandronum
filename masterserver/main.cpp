@@ -181,10 +181,7 @@ unsigned long MASTERSERVER_CalcServerIPBlockNetSize( const NETADDRESS_s &Address
 	if ( PortList.size() == 0 )
 		return 0;
 
-	if ( ( PortList.size() == 1 ) && ( Address.usPort == PortList[0] ) )
-		return 7; // ( 1 (MSC_SERVER) + 4 (IP) + 2 (Port)
-
-	return ( 6 + 2 * PortList.size() ); // 6 = 1 (MSC_SERVERBLOCK) + 4 (IP) + 1 (Number of ports of the server)
+	return ( 5 + 2 * PortList.size() ); // 5 = 4 (IP) + 1 (Number of ports of the server)
 }
 
 //*****************************************************************************
@@ -194,20 +191,12 @@ void MASTERSERVER_SendServerIPBlockToLauncher( const NETADDRESS_s &Address, cons
 	if ( PortList.size() == 0 )
 		return;
 
-	// [BB] There is only one server and the argument "Address" is its full address (IP + Port).
-	if ( ( PortList.size() == 1 ) && ( Address.usPort == PortList[0] ) )
-	{
-		MASTERSERVER_SendServerIPToLauncher( Address, pByteStream );
-		return;
-	}
-
 	// Tell the launcher the IP and all ports of the servers on that IP.
-	NETWORK_WriteByte( pByteStream, MSC_SERVERBLOCK );
+	NETWORK_WriteByte( pByteStream, PortList.size() );
 	NETWORK_WriteByte( pByteStream, Address.abIP[0] );
 	NETWORK_WriteByte( pByteStream, Address.abIP[1] );
 	NETWORK_WriteByte( pByteStream, Address.abIP[2] );
 	NETWORK_WriteByte( pByteStream, Address.abIP[3] );
-	NETWORK_WriteByte( pByteStream, PortList.size() );
 	for ( unsigned int i = 0; i < PortList.size(); ++i )
 		NETWORK_WriteShort( pByteStream, ntohs( PortList[i] ) );
 }
@@ -456,7 +445,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulPacketNum );
-				unsigned long ulSizeOfPacket = 5; // 4 (MSC_BEGINSERVERLISTPART) + 0 (1)
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_SERVERBLOCK );
+				unsigned long ulSizeOfPacket = 6; // 4 (MSC_BEGINSERVERLISTPART) + 1 (0) + 1 (MSC_SERVERBLOCK)
 
 				while ( it != g_Servers.end() )
 				{
@@ -474,6 +464,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					if ( ulSizeOfPacket + ulServerBlockNetSize > ulMaxPacketSize - 1 )
 					{
 						// [BB] ... close the current packet and start a new one.
+						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
 						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
 						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
@@ -482,10 +473,12 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						ulSizeOfPacket = 5;
 						NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLISTPART );
 						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, ulPacketNum );
+						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_SERVERBLOCK );
 					}
 					ulSizeOfPacket += ulServerBlockNetSize;
 					MASTERSERVER_SendServerIPBlockToLauncher ( serverAddress, serverPortList, &g_MessageBuffer.ByteStream );
 				}
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 				return;

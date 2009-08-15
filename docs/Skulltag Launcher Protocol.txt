@@ -3,9 +3,10 @@
   SKULLTAG Launcher Protocol
   ==========================
 
-  v0.55
+  v0.56
 
   Version history:
+    - v0.56: Fine tuned the altered master server protocol [Torr Samaho]
     - v0.55: Altered master server protocol (sending servers in blocks, supporting master server protocol version) [Torr Samaho]
     - v0.54: Formatted for wiki. Some tweaks. [Rivecoder]
     - v0.53: Added SQF_DATA_MD5SUM [Torr Samaho]
@@ -39,7 +40,7 @@ This is very easy, accomplished by sending a long and a short to the master serv
   Type    Value       Description
   -------------------------------
   Long    5660028     LAUNCHER_MASTER_CHALLENGE
-  Short   1           MASTER_SERVER_VERSION
+  Short   2           MASTER_SERVER_VERSION
 
 If your request is denied, the server will respond with one of the following:
 
@@ -55,31 +56,25 @@ If you are accepted, you will receive multiple packets, each starting with:
   -------------------------------
   Long    6           Beginning of list (MSC_BEGINSERVERLISTPART)
   Byte    0-255       Packet number (starting with 0)
-
-Then you will get either of the next two blocks, repeated till the packet is closed by MSC_ENDSERVERLIST or MSC_ENDSERVERLISTPART (see below).
-
-Single server:
-
-  Type    Value       Description
-  -------------------------------
-  Byte    1           Beginning of server (MSC_SERVER)
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
-  Short   0-65535     IP port
-
-Server block, all servers on the same IP:
-
-  Type    Value       Description
-  -------------------------------
   Byte    8           Beginning of server block (MSC_SERVERBLOCK)
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
-  Byte    0-255       IP octet
+
+Then you will get this next block, which is repeated for every IP with servers on it.
+
+  Type    Value       Description
+  -------------------------------
   Byte    0-255       n = Number of servers in this IP
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
   n Short 0-65535     IP port
+
+Once the packet is full or all servers are transferred, you will receive 0 as number of servers on the next IP.
+
+  Type    Value       Description
+  -------------------------------
+  Byte    0           There are no ports for the next server, i.e. no more servers in this packet.
+
 
 Finally, the response should end with either
 
