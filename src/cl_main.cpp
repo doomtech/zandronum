@@ -9188,13 +9188,19 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	bAlways = !!NETWORK_ReadByte( pByteStream );
 
 	// Find the actor that matches the given network ID.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
+	// [BB] If the netID is invalid, assume that there is no activator, i.e. the world activated the script.
+	if ( lID == -1 )
+		pActor = NULL;
+	else
 	{
+		pActor = CLIENT_FindThingByNetID( lID );
+		if ( pActor == NULL )
+		{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_ACSScriptExecute: Couldn't find thing: %d\n", lID );
+			Printf( "client_ACSScriptExecute: Couldn't find thing: %d\n", lID );
 #endif
-		return;
+			return;
+		}
 	}
 
 	if (( lLineIdx <= 0 ) || ( lLineIdx >= numlines ))
