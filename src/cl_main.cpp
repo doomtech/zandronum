@@ -209,6 +209,7 @@ static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTranslation( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingProperty( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSound( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingSpawnPoint( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSpecial1( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
@@ -566,6 +567,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
+	"SVC_SETTHINGSPAWNPOINT",
 	"SVC_SETTHINGSPECIAL1",
 	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETTHINGTICS",
@@ -1924,6 +1926,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetThingSound( pByteStream );
 		break;
+	case SVC_SETTHINGSPAWNPOINT:
+
+		client_SetThingSpawnPoint( pByteStream );
+		break;
 	case SVC_SETTHINGSPECIAL1:
 
 		client_SetThingSpecial1( pByteStream );
@@ -3012,36 +3018,39 @@ void CLIENT_RestoreSpecialPosition( AActor *pActor )
 
 	_x = pActor->SpawnPoint[0];
 	_y = pActor->SpawnPoint[1];
-	sec = R_PointInSubsector (_x, _y)->sector;
+	sec = P_PointInSector (_x, _y);
 
-	pActor->SetOrigin( _x, _y, sec->floorplane.ZatPoint( _x, _y ));
-	P_CheckPosition( pActor, _x, _y );
+	fixed_t floorz = sec->floorplane.ZatPoint (_x, _y);
+	fixed_t ceilingz = sec->ceilingplane.ZatPoint (_x, _y);
+
+	pActor->SetOrigin (_x, _y, floorz);
 
 	if ( pActor->flags & MF_SPAWNCEILING )
 	{
-		pActor->z = pActor->ceilingz - pActor->height - ( pActor->SpawnPoint[2] );
+		pActor->z = ceilingz - pActor->height - ( pActor->SpawnPoint[2] );
 	}
 	else if ( pActor->flags2 & MF2_SPAWNFLOAT )
 	{
-		fixed_t space = pActor->ceilingz - pActor->height - pActor->floorz;
+		fixed_t space = ceilingz - pActor->height - floorz;
 		if (space > 48*FRACUNIT)
 		{
 			space -= 40*FRACUNIT;
-			pActor->z = ((space * g_RestorePositionSeed())>>8) + pActor->floorz + 40*FRACUNIT;
+			pActor->z = ((space * g_RestorePositionSeed())>>8) + floorz + 40*FRACUNIT;
 		}
 		else
 		{
-			pActor->z = pActor->floorz;
+			pActor->z = floorz;
 		}
 	}
 	else
 	{
-		pActor->z = (pActor->SpawnPoint[2]) + pActor->floorz;
+		pActor->z = (pActor->SpawnPoint[2]) + floorz;
 		if (pActor->flags2 & MF2_FLOATBOB)
 		{
 			pActor->z += FloatBobOffsets[(pActor->FloatBobPhase + level.time) & 63];
 		}
 	}
+	P_CheckPosition (pActor, _x, _y);
 }
 
 //*****************************************************************************
@@ -6282,6 +6291,34 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		Printf( "client_SetThingSound: Unknown sound, %d!\n", static_cast<unsigned int> (ulSound) );
 		return;
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetThingSpawnPoint( BYTESTREAM_s *pByteStream )
+{
+	// [BB] Get the ID of the actor whose SpawnPoint is being updated.
+	const LONG lID = NETWORK_ReadShort( pByteStream );
+
+	// [BB] Get the actor's SpawnPoint.
+	const LONG lSpawnPointX = NETWORK_ReadLong( pByteStream );
+	const LONG lSpawnPointY = NETWORK_ReadLong( pByteStream );
+	const LONG lSpawnPointZ = NETWORK_ReadLong( pByteStream );
+
+	// Now try to find the corresponding actor.
+	AActor *pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingSpawnPoint: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// [BB] Set the actor's SpawnPoint.
+	pActor->SpawnPoint[0] = lSpawnPointX;
+	pActor->SpawnPoint[1] = lSpawnPointY;
+	pActor->SpawnPoint[2] = lSpawnPointZ;
 }
 
 //*****************************************************************************

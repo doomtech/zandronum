@@ -2401,6 +2401,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		else
 		{
 			SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] If the thing is not at its spawn point, let the client know about the spawn point.
+			if ( ( pActor->x != pActor->SpawnPoint[0] )
+				|| ( pActor->y != pActor->SpawnPoint[1] )
+				|| ( pActor->z != pActor->SpawnPoint[2] )
+				)
+			{
+				SERVERCOMMANDS_SetThingSpawnPoint( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 
 			// [BB] Since the monster movement is client side, the client needs to be
 			// informed about the momentum and the current state. If the frame is not
