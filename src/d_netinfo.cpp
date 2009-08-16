@@ -1108,17 +1108,26 @@ CCMD (playerinfo)
 	else
 	{
 		int i = atoi (argv[1]);
+
+		// [BB] i needs to be checked.
+		if ( ( i < 0 ) || ( i > MAXPLAYERS ) || ( playeringame[i] == false ) )
+		{
+			Printf ( "Invalid player number specified.\n" );
+			return;
+		}
+
 		userinfo_t *ui = &players[i].userinfo;
-		Printf ("Name:        %s\n",		ui->netname);
-		Printf ("Team:        %s (%d)\n",	players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE", static_cast<unsigned int> (players[i].ulTeam) );
-		Printf ("Aimdist:     %d\n",		ui->aimdist);
-		Printf ("Color:       %06x\n",		ui->color);
-		Printf ("Skin:        %s (%d)\n",	skins[ui->skin].name, ui->skin);
-		Printf ("Gender:      %s (%d)\n",	GenderNames[ui->gender], ui->gender);
-		Printf ("SwitchOnPickup:	%s\n",	ui->switchonpickup == 0 ? "never" : ui->switchonpickup == 1 ? "only higher ranked" : "always" );
-		Printf ("MoveBob:     %g\n",		ui->MoveBob/65536.f);
-		Printf ("StillBob:    %g\n",		ui->StillBob/65536.f);
-		Printf ("PlayerClass: %s (%d)\n",
+		// [BB] Adjusted spacing to comply with SwitchOnPickup.
+		Printf ("Name:           %s\n",		ui->netname);
+		Printf ("Team:           %s (%d)\n",	players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE", static_cast<unsigned int> (players[i].ulTeam) );
+		Printf ("Aimdist:        %d\n",		ui->aimdist);
+		Printf ("Color:          %06x\n",		ui->color);
+		Printf ("Skin:           %s (%d)\n",	skins[ui->skin].name, ui->skin);
+		Printf ("Gender:         %s (%d)\n",	GenderNames[ui->gender], ui->gender);
+		Printf ("SwitchOnPickup: %s\n",	ui->switchonpickup == 0 ? "never" : ui->switchonpickup == 1 ? "only higher ranked" : "always" );
+		Printf ("MoveBob:        %g\n",		ui->MoveBob/65536.f);
+		Printf ("StillBob:       %g\n",		ui->StillBob/65536.f);
+		Printf ("PlayerClass:    %s (%d)\n",
 			ui->PlayerClass == -1 ? "Random" : PlayerClasses[ui->PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName),
 			ui->PlayerClass);
 	}
