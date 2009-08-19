@@ -12,7 +12,7 @@
 #ifndef _LCDBASE_H_INCLUDED_
 #define _LCDBASE_H_INCLUDED_
 
-#include <lglcd.h>
+#include "lglcd.h"
 #include "LCDGfx.h"
 
 typedef enum

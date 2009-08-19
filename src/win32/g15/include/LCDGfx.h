@@ -13,7 +13,7 @@
 #ifndef _LCDGFX_H_INCLUDED_ 
 #define _LCDGFX_H_INCLUDED_ 
 
-#include <lglcd.h>
+#include "lglcd.h"
 
 class CLCDGfx
 {
