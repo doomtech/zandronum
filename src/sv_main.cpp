@@ -116,7 +116,6 @@
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
-void	G_PlayerReborn( int player );
 FPolyObj	*GetPolyobj( int polyNum );
 FPolyObj	*GetPolyobjByIndex( ULONG ulPoly );
 

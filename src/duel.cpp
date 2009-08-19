@@ -69,7 +69,6 @@
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
-void	G_PlayerReborn( int player );
 void	SERVERCONSOLE_UpdateScoreboard( );
 
 EXTERN_CVAR( Int,  cl_respawninvuleffect )

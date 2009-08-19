@@ -109,7 +109,6 @@
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
-void	G_PlayerReborn( int player );
 //void	ChangeSpy (bool forward);
 FPolyObj *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);

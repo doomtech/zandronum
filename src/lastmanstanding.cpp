@@ -72,7 +72,6 @@
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
-void	G_PlayerReborn( int player );
 void	SERVERCONSOLE_UpdateScoreboard( );
 void	SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 

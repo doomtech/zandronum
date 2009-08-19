@@ -37,6 +37,9 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate );
 FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer );
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer = false );
 
+// [BB] Added bGiveInventory and moved the declaration to g_game.h.
+void G_PlayerReborn (int player, bool bGiveInventory = true);
+
 // [BC] Determines the game type by map spots and other items placed on the level.
 void	GAME_CheckMode( void );
 

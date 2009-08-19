@@ -84,7 +84,8 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void G_PlayerReborn (int player);
+// [BB] Added bGiveInventory and moved the declaration to g_game.h.
+//void G_PlayerReborn (int player);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 

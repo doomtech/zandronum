@@ -116,7 +116,8 @@ const int SAVEPICHEIGHT = 162;
 bool	G_CheckDemoStatus (void);
 void	G_ReadDemoTiccmd (ticcmd_t *cmd, int player);
 void	G_WriteDemoTiccmd (ticcmd_t *cmd, int player, int buf);
-void	G_PlayerReborn (int player);
+// [BB] Added bGiveInventory and moved the declaration to g_game.h.
+//void	G_PlayerReborn (int player);
 
 void	G_DoNewGame (void);
 void	G_DoLoadGame (void);
@@ -1885,7 +1886,8 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 // Called after a player dies
 // almost everything is cleared and initialized
 //
-void G_PlayerReborn (int player)
+// [BB] Added bGiveInventory.
+void G_PlayerReborn (int player, bool bGiveInventory)
 {
 	player_t*	p;
 	int			fragcount;	// [RH] Cumulative frags
@@ -2003,7 +2005,9 @@ void G_PlayerReborn (int player)
 
 	if (gamestate != GS_TITLELEVEL)
 	{
-		actor->GiveDefaultInventory ();
+		// [BB] Added bGiveInventory.
+		if ( bGiveInventory )
+			actor->GiveDefaultInventory ();
 		p->ReadyWeapon = p->PendingWeapon;
 	}
 }
