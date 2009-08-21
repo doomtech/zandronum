@@ -39,7 +39,6 @@ latestzdoom branch
 +	- Extended the launcher protocol to allow launchers to handle one stable version (e.g. 97d3) and one testing version (e.g. 97e-alpha) side by side. [Torr Samaho, SuperGod]
 +	- You can now specify the IP Skulltag binds its network socket to with "-useip IP". If used, Skulltag only listens on that IP for incoming traffic and uses the corresponding NIC for outgoing traffic. If not specified, Skulltag listens on all NICs, but uses the default NIC for outgoing traffic. May be useful when hosting a server on a machine with multiple NICs to select which one to use. [Torr Samaho]
 +	- Added new CVAR gl_use_models (default true). If false, all sprite model replacements are ignored. [Torr Samaho]
-+	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps and all ACS library lumps included by LOADACS lumps. [Torr Samaho, SuperGod]
 +	- Added new dmflag "no rocket jumping", controlled by the new CVAR sv_norocketjumping. If enabled, P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping. [Torr Samaho, SuperGod]
 +	- Revamped the ZDoom dmflag "kill monsters", controlled by the CVAR DF2_KILL_MONSTERS. [Torr Samaho, SuperGod]
 		- When the exit is blocked, the player is now teleported back to a random start. This fixes problems when the exit was blocked and the player passed an exit line.
@@ -50,7 +49,6 @@ latestzdoom branch
 +	- Extended the launcher protocol to optionally report the MD5 sum of the main data file (skulltag.wad/skulltag_data.pk3) the server uses. The sum is also shown on startup in the console log. [Torr Samaho]
 +	- Added new CCMD countactors that counts the number of actors currently in the game, shows how many of them have a network id and how many actors are of which class. [Torr Samaho]
 +	- In levels with a team selection room, the player's inventory is not given until a team has been picked. [Blzut3, Torr Samaho]
-+	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
 +	- sv_maxteams to select between 2, 3, and 4 team games.  4 teams are defined in Skulltag: blue, red, green, and gold. [Blzut3]
 +	- Extended the master server protocol so that the packets sent by the master containing the server list never exceed 1024 byte. Furthermore, servers with the same IP are sent in blocks now (kudos to bond for this idea), vastly reducing the amount of traffic necessary for the list. [Torr Samaho]
 +	- Added new dmflag "force gl defaults", controlled by the new CVAR sv_forcegldefaults. If this is enabled, some default OpenGL rendering options are enforced, i.e. clients render as if gl_lightmode == 3 and gl_light_ambient == 20.0. [Torr Samaho]
@@ -64,7 +62,6 @@ latestzdoom branch
 -	- Fixed error in SECTINFO parser where only one property could be set per map header. [Blzut3]
 -	- Fixed bots shoot behind them in 64-bit. [Blzut3]
 -	- Fixed: Under certain circumstance inactive SwitchableDecoration actors were treated as active on the clients. [Torr Samaho]
--	- Fixed: The clients crashed if the server sent them malformed packets. [Torr Samaho]
 -	- Fixed: In the first map of client side demos the player always started with the fist as ready weapon. [Torr Samaho]
 -	- Fixed: After a map change in client side demos the player possibly started with the wrong ready weapon. [Torr Samaho]
 -	- Fixed: The client didn't properly confirm the weapon change that happens when a Tome of Power expires. [Torr Samaho]
@@ -76,7 +73,6 @@ latestzdoom branch
 -	- Fixed: Bad things happened when the server used the CCMDs spectate or join. Now they simply are ignored when issued through the server console or RCON. [Torr Samaho]
 -	- Fixed: The client calculated falling damage on its own instead of relying on the server. This could cause sync issues where a client thought it's dead, when it wasn't. [Torr Samaho]
 -	- Fixed: Negative frag counts of teams are not displayed properly in the new fullscreen HUD if text scaling is deactivated. [Torr Samaho]
--	- Fixed: If a server was queried for unknown flags, these flags were not removed from the Flags field in the answer. [Torr Samaho]
 -	- Fixed: If the client was instructed by the server to destroy an actor of type PlayerPawn, the client didn't erase the corresponding pointer to it in the player array. [Torr Samaho]
 -	- Fixed: Detection of the local IP under FreeBSD did not work properly. [Torr Samaho]
 -	- Fixed: If no useable network port was found, no proper error message was shown. [Torr Samaho]
@@ -87,13 +83,11 @@ latestzdoom branch
 -	- Fixed: The DarkImp never used its melee attack. [Torr Samaho]
 -	- Fixed: ACS scripts using LocalAmbientSound could crash the server if a player left and rejoined while the script was running. [Torr Samaho]
 -	- Fixed: The mapinfo properties clipmidtextures, wrapmidtextures and checkswitchrange were lost after a map reset. [Torr Samaho]
--	- Fixed: The map authentication didn't cover the BEHAVIOR lump. [Torr Samaho, SuperGod]
 -	- Fixed the error handling when there are no more free network ids: The server now aborts the current game and restarts the map. In addition, the CCMD countactors is called to help analyzing the situation. In single player, there are no more error messages related to network ids. [Torr Samaho]
 -	- Fixed: The code to check the maximal allowed effective skin sprite width/height still checked some textures it shouldn't have checked. [Torr Samaho]
 -	- Fixed: SetLineTexture didn't work online if the desired texture name was "". [Torr Samaho, SuperGod]
 -	- Fixed: It was possible to join "NO TEAM" [Blzut3]
 -	- Fixed: Using changemap or nextmap after a map was aborted by a recoverable error caused Skulltag to crash. [Torr Samaho, SuperGod]
--	- Fixed: Certain kinds of chat messages that only consist of color codes and white spaces wiped out all other messages currently on the screen. [Torr Samaho, SuperGod]
 -	- Improved the client side movement prediction of a monster with CANTLEAVEFLOORPIC if the the monster touches the boundary of the floorpic region. [Torr Samaho]
 -	- Fixed: After changing the gamemode in the general settings window of the Windows serverconsole, the map restart dialog wasn't always shown. [Torr Samaho, SuperGod]
 -	- Fixed: The RCON utility did not work with Linux servers. [Blzut3, Rivecoder]
@@ -109,6 +103,7 @@ latestzdoom branch
 -	- Fixed: When a player left the game online (either by disconnecting of by changing to a spectator) his running scripts were not terminated. [Torr Samaho]
 -	- Fixed: The internal server browser didn't understand the "You are banned" response from the master server. [Torr Samaho]
 -	- Fixed: The CCMD playerinfo crashed when an invalid player number was used as argument. Furthermore, fixed the spacing and the wrongly displayed special character in the SwitchOnPickup line. [Torr Samaho]
+-	- Fixed: The jump sound of the local player stutters online. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
@@ -116,12 +111,10 @@ latestzdoom branch
 !	- The Windows server now runs on above-normal priority. [Torr Samaho, SuperGod]
 !	- The server now reports the full version (including the revision number) over the launcher protocol. [Torr Samaho, SuperGod]
 !	- The player name restrictions are now also applied to the CVAR name itself, not only to the actually used netname value. [Torr Samaho]
-!	- The authentication mechanism for non-map related lumps now allows Freedoom/Doom clients to join Doom/Freedoom servers. [Torr Samaho]
 !	- The "kill monsters" cheat can now be used by the server (independent of the sv_cheats setting). [Torr Samaho, SuperGod]
 !	- To restore compatibility with ZDoom, ACS scripts with the NET flag are not treated to be client side anymore. The new compatflag "net scripts are client side", controlled by the new CVAR compat_netscriptsareclientside, allows to restore the old Skulltag behavior. After changing the flag, the map should be restarted. [Torr Samaho]
 !	- The code to check the maximal allowed effective skin sprite width/height now reports the offending sprite names in case the allowed dimensions are exceeded. [Torr Samaho]
 !	- Going to intermission now automatically stops any active vote. [Torr Samaho, SuperGod]
-!	- The server doesn't relay chat messages that only consist of color codes and white spaces anymore. [Torr Samaho, SuperGod]
 !	- If a client pukes an ACS script with the NET flag, it now requests the server to run the script instead of silently running it client side on its own. If you want the script to be run client side, either give it the CLIENTSIDE flag or use compat_netscriptsareclientside. [Torr Samaho]
 !	- For security reasons, aliases can't be called by ConsoleCommand anymore. [Torr Samaho]
 !	- The Linux server console now flushes the output buffer.  This allows other programs, such as Doomseeker, to easily capture the standard input and output. [Blzut3]
@@ -161,6 +154,7 @@ latestzdoom branch
 		+	- You can also ignore the player for n minutes by using "ignore <name> n". [Rivecoder]
 		+	- Added a menu to easily select a player. [Rivecoder]
 +	- When an IP address is banned, all players using that address are now immediately kicked. [Rivecoder]
+-	- Fixed: If the main game thread froze, the server close button wouldn't do anything. [Rivecoder]
 !	- When a player starts chat spamming, he is now muted instead of kicked. [Rivecoder]
 
 
@@ -169,13 +163,29 @@ v0.97d5-security-update-1
 
 +	- Extended the server side client command protection to protect from commands the client is allowed to use often, but that still can be abused for a DOS attack. If a client floods the server with such commands (more than 100 in 10 seconds), the client is kicked and banned for 10 minutes. Commands of this type include toggling the console, toggling chat status and taunting. [Torr Samaho, SuperGod]
 
-<hotfix>
---------
+v0.97d5
+-------
+
++	- Added server side client command protection. If a client floods the server with protected commands (more than 6 in 60 seconds), the client is kicked and banned for 10 minutes. [Torr Samaho, SuperGod]
+-	- Fixed: Certain kinds of chat messages that only consist of color codes and white spaces wiped out all other messages currently on the screen. [Torr Samaho, SuperGod]
+-	- Fixed: Parsing ban, white or admin list under Linux could crash. [Torr Samaho]
+!	- The server doesn't relay chat messages that only consist of color codes and white spaces anymore. [Torr Samaho, SuperGod]
+
+v0.97d4
+-------
+
++	- Extended the authentication mechanism for non-map related lumps to check all lumps included by DECORATE lumps and all ACS library lumps included by LOADACS lumps. [Torr Samaho, SuperGod]
+-	- Fixed: The map authentication didn't cover the BEHAVIOR lump. [Torr Samaho, SuperGod]
+!	- The authentication mechanism for non-map related lumps now allows Freedoom/Doom clients to join Doom/Freedoom servers. [Torr Samaho]
+-	- Fixed: If a server was queried for unknown flags, these flags were not removed from the Flags field in the answer. [Torr Samaho]
+-	- Fixed: The clients crashed if the server sent them malformed packets. [Torr Samaho]
+
+v0.97d3-security-update-1
+-------------------------
 
 -	- Fixed a critical security bug of the server. Thanks a lot to kgsws for submitting a detailed report on this issue along with an implementation of the exploit. [Torr Samaho]
 -	- Fixed: A malicious client could skip the map authentication. Thanks to kgsws for his detailed report on this. [Torr Samaho]
 -	- Fixed: The RCON utility crashed when somebody said a chat string with "%n" or similar printf compatible format parameters. Again thanks to kgsws for reporting. [Torr Samaho]
--	- Fixed: If the main game thread froze, the server close button wouldn't do anything. [Rivecoder]
 !	- Changed: All line breaks are removed from the comment when an entry is added to the banlist or whitelist. Thanks to kgsws for pointing me to this. [Torr Samaho]
 
 v0.97d3
@@ -198,11 +208,13 @@ v0.97d3
 -	- Fixed: The one and five minute announcer warnings didn't work at all for clients. [Karate Chris]
 -	- Fixed: The network traffic needed by SetLineTexture increased linearly with the number of lines that have the given identification number instead of being constant. [Torr Samaho, SuperGod]
 -	- Fixed: The ACS command SectorSound didn't work properly online if it was called by a line. [Torr Samaho, SuperGod]
+-	- Fixed: Under certain circumstance inactive BatSpawners were treated as active on the clients. [Torr Samaho, SuperGod]
 -	- Fixed: The chat sound was played even when messages are disabled. [Torr Samaho, SuperGod]
 -	- Fixed: Unfinished client connections to the server didn't timeout properly. [Torr Samaho, SuperGod]
 -	- Fixed: Teleport_EndGame caused the server to get stuck. Nevertheless, end sequences are not supported online. They are just skipped. [Torr Samaho, SuperGod]
 -	- Fixed: The CCMDs dumpmap, initpolymosttest, quickload, quicksave, select, slot, togglemap and vid_setmode caused the server to crash instead of being ignored. [Torr Samaho]
 -	- Fixed: When the server changed the map while a newly connected client was still loading the map, this client didn't get informed about the map change causing severe sync issues. [Torr Samaho, SuperGod]
+-	- Fixed: If you died in co-op and somebody else ended the map before you respawned, you would start the next map with only default inventory, no matter what dmflags was set to. (ported from ZDoom revision 691). [Torr Samaho]
 -	- Fixed: Under rare circumstances a client could crash while connecting. [Torr Samaho, SuperGod]
 -	- Fixed: Some kind of puffs were not spawned in their crash or melee state on the clients online. [Torr Samaho, SuperGod]
 -	- Fixed: Sounds of puffs in the melee or crash state were not played on the clients online. [Torr Samaho, SuperGod]
