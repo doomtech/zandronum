@@ -2698,7 +2698,9 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			// Set base jump ticks.
 			ulJumpTicks = 18 * TICRATE / 35;
 
-			S_Sound (player->mo, CHAN_BODY, "*jump", 1, ATTN_NORM);
+			// [BB] We may not play the sound while predicting, otherwise it'll stutter.
+			if ( CLIENT_PREDICT_IsPredicting( ) == false )
+				S_Sound (player->mo, CHAN_BODY, "*jump", 1, ATTN_NORM);
 			player->mo->flags2 &= ~MF2_ONMOBJ;
 
 			// [BC] Increase jump delay if the player has the high jump power.
