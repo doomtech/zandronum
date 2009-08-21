@@ -2064,6 +2064,33 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlay
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( pActor->flags != pActor->GetDefault( )->flags )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulPlayerExtra, ulFlags );
+	}
+	if ( pActor->flags2 != pActor->GetDefault( )->flags2 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS2, ulPlayerExtra, ulFlags );
+	}
+	if ( pActor->flags3 != pActor->GetDefault( )->flags3 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS3, ulPlayerExtra, ulFlags );
+	}
+	if ( pActor->flags4 != pActor->GetDefault( )->flags4 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS4, ulPlayerExtra, ulFlags );
+	}
+	if ( pActor->flags5 != pActor->GetDefault( )->flags5 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS5, ulPlayerExtra, ulFlags );
+	}
+	// [BB] ulSTFlags is intentionally left out here.
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetThingArguments( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

@@ -5135,6 +5135,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	if ( players[g_lCurrentClient].mo != NULL )
 	{
 		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		// [BB] The player body spawned on the client has the default flag values.
+		// If the actual body doesn't have default values (e.g. the player had the
+		// fly cheat before tha map change), tell the client about the actual values.
+		SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults ( players[g_lCurrentClient].mo, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 		/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 		// If the client has weapon pieces, tell them.
