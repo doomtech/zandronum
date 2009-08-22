@@ -2008,6 +2008,11 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 		// [BB] Added bGiveInventory.
 		if ( bGiveInventory )
 			actor->GiveDefaultInventory ();
+		// [BB] Even if we don't give the inventory, we need to give the player the default health.
+		// Otherwise we get a zombie player with 0 health (at least on the clients).
+		else if ( actor->player )
+			actor->player->health = actor->GetDefault ()->health;
+
 		p->ReadyWeapon = p->PendingWeapon;
 	}
 }

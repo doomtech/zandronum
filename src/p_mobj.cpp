@@ -4500,7 +4500,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 {
 	int		  playernum;
 	APlayerPawn *mobj, *oldactor;
-	BYTE	  state;
+	// [BB] I want this to be const, so we need declare it later.
+	//BYTE	  state;
 	fixed_t spawn_x, spawn_y;
 	angle_t spawn_angle;
 	// [BC]
@@ -4604,11 +4605,13 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	oldactor = p->mo;
 	p->mo = mobj;
 	mobj->player = p;
-	state = p->playerstate;
+	// [BB] The code below assumes that state won't be altered.
+	const BYTE state = p->playerstate;
 	// [BC] Added PST_REBORNNOINVENTORY, PST_ENTERNOINVENTORY.
 	if (state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY)
 	{
-		G_PlayerReborn (playernum);
+		// [BB] The server may not start handing out the inventory yet, see further down.
+		G_PlayerReborn (playernum, ( NETWORK_GetState( ) != NETSTATE_SERVER ) );
 	}
 	else if (oldactor != NULL && oldactor->player == p && !tempplayer)
 	{
@@ -4696,6 +4699,51 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	if ((demoplayback || demonew) && chasedemo)
 		p->cheats = CF_CHASECAM;
 
+	if ( p->bSpectating )
+	{
+		if ( p->mo )
+		{
+			// Don't allow "dead" spectators!
+			players[playernum].playerstate = PST_LIVE;
+			players[playernum].health = players[playernum].mo->health = deh.StartHealth;
+
+			// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
+			PLAYER_SetDefaultSpectatorValues ( p );
+		}
+
+		if ( p->pSkullBot )
+			p->pSkullBot->PostEvent( BOTEVENT_SPECTATING );
+	}
+	// [BB] If this not a coop game and cheats are not allowed, remove the chasecam.
+	else if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && ( sv_cheats == false ) )
+	{
+		p->cheats &= ~(CF_CHASECAM);
+	}
+
+	// [BB] Moved this here, needs to be done before spawning the player on the clients.
+	// "Fix" for one of the starts on exec.wad MAP01: If you start inside the ceiling,
+	// drop down below it, even if that means sinking into the floor.
+	if (mobj->z + mobj->height > mobj->ceilingz)
+	{
+		mobj->z = mobj->ceilingz - mobj->height;
+	}
+
+	// Tell clients about the respawning player.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if ( bClientUpdate )
+			SERVERCOMMANDS_SpawnPlayer( playernum, state );
+
+		// [BB] We may only start handing out the inventory when the player is already spawned on the clients.
+		// Otherwise items that use certain code pointers (e.g. A_GiveInventory) during the first tic of their
+		// Pickup state don't work properly as start items.
+		if (state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY)
+		{
+			if (gamestate != GS_TITLELEVEL)
+				p->mo->GiveDefaultInventory ();
+		}
+	}
+
 	// setup gun psprite
 	if (!tempplayer)
 	{
@@ -4768,49 +4816,11 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		Spawn ("TeleportFog", mobj->x+20*finecosine[an], mobj->y+20*finesine[an], mobj->z + TELEFOGHEIGHT, ALLOW_REPLACE);
 	}
 
-	if ( p->bSpectating )
-	{
-		if ( p->mo )
-		{
-			// Don't allow "dead" spectators!
-			players[playernum].playerstate = PST_LIVE;
-			players[playernum].health = players[playernum].mo->health = deh.StartHealth;
-
-			// Make the layer unshootable, etc.
-			p->mo->flags2 |= (MF2_CANNOTPUSH);
-			p->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-			p->mo->flags2 &= ~(MF2_PASSMOBJ);
-			p->mo->RenderStyle = STYLE_None;
-			
-			// Make me flat!
-			p->mo->height = 0;
-
-			// Make monsters unable to "see" this player.
-			p->cheats |= CF_NOTARGET;
-		}
-
-		if ( p->pSkullBot )
-			p->pSkullBot->PostEvent( BOTEVENT_SPECTATING );
-	}
-	// [BB] If this not a coop game and cheats are not allowed, remove the chasecam.
-	else if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && ( sv_cheats == false ) )
-	{
-		p->cheats &= ~(CF_CHASECAM);
-	}
-
-	// "Fix" for one of the starts on exec.wad MAP01: If you start inside the ceiling,
-	// drop down below it, even if that means sinking into the floor.
-	if (mobj->z + mobj->height > mobj->ceilingz)
-	{
-		mobj->z = mobj->ceilingz - mobj->height;
-	}
+	// [BB] Moved the exec.wad MAP01 "fix" up.
 
 	// Tell clients about the respawning player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		if ( bClientUpdate )
-			SERVERCOMMANDS_SpawnPlayer( playernum, state );
-
 		pInventory = mobj->FindInventory( RUNTIME_CLASS( APowerInvulnerable ));
 		if (( pInventory ) && ( p->bSpectating == false ))
 		{
