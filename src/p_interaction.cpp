@@ -2138,7 +2138,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 	// Finally, update the player's color.
 	R_BuildPlayerTranslation( pPlayer - players );
-	if ( StatusBar && ( pPlayer->mo->CheckLocalView( consoleplayer )))
+	if ( StatusBar && pPlayer->mo && ( pPlayer->mo->CheckLocalView( consoleplayer )))
 		StatusBar->AttachToPlayer( pPlayer );
 
 	// Update this player's info on the scoreboard.

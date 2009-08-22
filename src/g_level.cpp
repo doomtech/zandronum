@@ -1071,6 +1071,14 @@ void G_DoLoadLevel (int position, bool autosave)
 		TEAM_SetReturnTicks( i, 0 );
 	}
 
+	// [BB] Clear the bUnarmed flag, it got invalid by loading the level.
+	// Probably here is not the best place to do this, but we may not do it any later
+	// because PLAYER_SetTeam (called directly below) will hand out inventory if bUnarmed
+	// is true. Something we certainly don't want here. Furthermore, because of this
+	// PLAYER_SetTeam crashes if bUnarmed is true for a player that doesn't have a body.
+	for (i = 0; i < MAXPLAYERS; i++)
+		players[i].bUnarmed = false;
+
 	// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
 	const level_info_t *info = FindLevelInfo (level.mapname);
 	// [BB] We clear the teams if either DF2_YES_KEEP_TEAMS is not on or if the new level is a lobby.
