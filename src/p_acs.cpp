@@ -2642,11 +2642,11 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		{
 			actor->player->health = value;
 
-			// [BC] If we're the server, tell this client his new health value.
+			// [BC/BB] If we're the server, tell all clients about the new health value.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				( SERVER_IsValidClient( actor->player - players )))
 			{
-				SERVERCOMMANDS_SetPlayerHealth( ULONG( actor->player - players ), ULONG( actor->player - players ), SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_SetPlayerHealth( static_cast<ULONG>( actor->player - players ) );
 			}
 		}
 		break;
@@ -2738,6 +2738,12 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
 		{
 			static_cast<APlayerPawn *>(actor)->MaxHealth = value;
+
+			// [BB] If we're the server, tell clients to update this actor property.
+			// Note: Don't do this if the actor is a voodoo doll, the client would
+			// alter the value of the real player body in this case.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && actor->player && ( actor->player->mo == actor ) )
+				SERVERCOMMANDS_SetPlayerMaxHealth( static_cast<ULONG>( actor->player - players ) );
 		}
 		break;
 
