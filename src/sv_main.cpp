@@ -5017,6 +5017,29 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	TThinkerIterator<DCeiling>			CeilingIterator;
 	TThinkerIterator<DScroller>			ScrollerIterator;
 
+	// [BB] Read the name of the map, the client is trying to authenticate.
+	const FString mapnameString = NETWORK_ReadString( pByteStream );
+
+	// [BB] The client sent us the authentication data of the wrong level.
+	// This can happen if the map changes too quickly twice in a row: In that case
+	// we get the authentication data for the first level from the client when
+	// the server already loaded the second level.
+	if ( stricmp ( mapnameString.GetChars(), level.mapname ) != 0 )
+	{
+		// [BB] This eats the authentication strings the client is sending, necessary
+		// because we need to parse the packet completely.
+		SERVER_PerformAuthenticationChecksum( pByteStream );
+
+		// [BB] This authentication problem occures rarely. Make sure that a malicious client
+		// can't abuse it for flooding.
+		if ( server_CheckForClientCommandFlood ( g_lCurrentClient ) == true )
+			return ( true );
+
+		// [BB] Tell the client authenticate again.
+		SERVERCOMMANDS_MapAuthenticate ( level.mapname, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		return ( false );
+	}
+
 	if ( SERVER_PerformAuthenticationChecksum( pByteStream ) == false )
 	{
 		SERVER_KickPlayer( g_lCurrentClient, "Level authentication failed." );

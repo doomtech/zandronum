@@ -9566,6 +9566,10 @@ static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_AUTHENTICATELEVEL );
 
+	// [BB] Send the name of the map we are authenticating, this allows the
+	// server to check whether we try to authenticate the correct map.
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, pszMapName );
+
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 	CLIENT_AuthenticateLevel( pszMapName );
 }
