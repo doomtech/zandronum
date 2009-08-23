@@ -2281,72 +2281,43 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && players[ulClient].bOnTeam )
 		SERVERCOMMANDS_SetPlayerTeam( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 
-	// Tell scores to the client.
-	if ( deathmatch )
-	{
-		// Update each player's frags.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if ( playeringame[ulIdx] == false )
-				continue;
-
-			SERVERCOMMANDS_SetPlayerFrags( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-
-			// If we're in a duel or LMS, update the wincount.
-			if ( duel || lastmanstanding )
-				SERVERCOMMANDS_SetPlayerWins( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-
-			// If we're in possession mode, tell the score of each player.
-			if ( possession )
-				SERVERCOMMANDS_SetPlayerPoints( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-		}
-
-		// If we're in a teamplay deathmatch, update the team scores.
-		if ( teamplay )
-		{
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				SERVERCOMMANDS_SetTeamFrags( ulIdx, TEAM_GetFragCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
-		}
-
-		// If we're playing team LMS, update the team win count.
-		if ( teamlms )
-		{
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				SERVERCOMMANDS_SetTeamWins( ulIdx, TEAM_GetWinCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
-		}
-
-		//Send Domination State
-		if ( domination )
-		{
-			SERVERCOMMANDS_SetDominationState( ulClient, SVCF_ONLYTHISCLIENT );
-		}
-	}
-	// If we're in a teamgame, or team possession, update the team scores.
-	else if ( teamgame || teampossession )
+	// [BB] This game mode uses teams, so inform the incoming player about the scores/wins/frags of the teams.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-			SERVERCOMMANDS_SetTeamScore( ulIdx, TEAM_GetScore( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
-
-		// Also tell the score of each player.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			if ( playeringame[ulIdx] == false )
-				continue;
-
-			SERVERCOMMANDS_SetPlayerPoints( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+				SERVERCOMMANDS_SetTeamWins( ulIdx, TEAM_GetWinCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+				SERVERCOMMANDS_SetTeamScore( ulIdx, TEAM_GetScore( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+				SERVERCOMMANDS_SetTeamFrags( ulIdx, TEAM_GetFragCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
-	// Otherwise, we're in co-op mode, so update the killcounts.
-	else
-	{
-		// Update each player's frags.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if ( playeringame[ulIdx] == false )
-				continue;
 
+	// [BB] Tell individual player scores/wins/frags/kills to the client.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( playeringame[ulIdx] == false )
+			continue;
+
+		// [BB] In all cooperative game modes players get kills, otherwise they get frags
+		// (even if the game mode is not won with frags).
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_COOPERATIVE )
 			SERVERCOMMANDS_SetPlayerKillCount( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-		}
+		else
+			SERVERCOMMANDS_SetPlayerFrags( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+			SERVERCOMMANDS_SetPlayerWins( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+			SERVERCOMMANDS_SetPlayerPoints( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+	}
+
+	// Send Domination State
+	if ( domination )
+	{
+		SERVERCOMMANDS_SetDominationState( ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// If we're in duel mode, tell the client how many duels have taken place.
