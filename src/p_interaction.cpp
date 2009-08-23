@@ -2379,6 +2379,15 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 	pPlayer->bSpectating = false;
 	pPlayer->bDeadSpectator = false;
 
+	// [BB] If the spectator used the chasecam cheat (which is always allowed for spectators)
+	// remove it now that he joins the game.
+	if ( pPlayer->cheats & CF_CHASECAM )
+	{
+		pPlayer->cheats &= ~CF_CHASECAM;
+		if ( NETWORK_GetState() == NETSTATE_SERVER  )
+			SERVERCOMMANDS_SetPlayerCheats( static_cast<ULONG>( pPlayer - players ), static_cast<ULONG>( pPlayer - players ), SVCF_ONLYTHISCLIENT );
+	}
+
 	// [BB] If he's a bot, tell him that he successfully joined.
 	if ( pPlayer->pSkullBot )
 		pPlayer->pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
