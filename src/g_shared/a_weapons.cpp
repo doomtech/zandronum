@@ -306,9 +306,10 @@ void AWeapon::AttachToOwner (AActor *other)
 
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner ) && ( Owner->player ))
 		{
-			if ( Ammo1 )
+			// [BB] We only need to tell the clients the amount, if the weapon actually gives ammo.
+			if ( Ammo1 && ( AmmoGive1 > 0 ) )
 				SERVERCOMMANDS_GiveInventory( Owner->player - players, static_cast<AInventory *>( Ammo1 ));
-			if ( Ammo2 )
+			if ( Ammo2 && ( AmmoGive2 > 0 ) )
 				SERVERCOMMANDS_GiveInventory( Owner->player - players, static_cast<AInventory *>( Ammo2 ));
 		}
 	}
