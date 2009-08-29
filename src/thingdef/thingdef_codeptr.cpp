@@ -2300,7 +2300,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 	self->alpha -= reduce;
-	if (self->alpha<=0) self->Destroy();
+	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+	if (self->alpha<=0) self->HideOrDestroyIfSafe ();
 }
 
 //===========================================================================
