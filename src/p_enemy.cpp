@@ -920,7 +920,8 @@ void P_RandomChaseDir (AActor *actor)
 		fixed_t deltax, deltay;
 		dirtype_t d[3];
 
-		if (actor->FriendPlayer != 0)
+		// [BB] Don't try to head towards a spectator.
+		if ( (actor->FriendPlayer != 0 ) && ( players[actor->FriendPlayer - 1].bSpectating == false ) )
 		{
 			player = players[actor->FriendPlayer - 1].mo;
 		}
@@ -939,9 +940,13 @@ void P_RandomChaseDir (AActor *actor)
 			player = players[i].mo;
 		}
 
-		// [BB] It's possibly that player == NULL. For instance this happens,
+		// [BB] It's possible that player == NULL. For instance this happens,
 		// if a player uses summonfriend online and leaves the server afterwards.
-		if ( (pr_newchasedir() & 1 || !P_CheckSight (actor, player)) && player )
+		// [BB] The else block above possibly selects a spectating player. In that case
+		// don't try to move towards the spectator. This is not exactly the same as
+		// skipping spectators in the above loop, but should work well enough.
+		if ( (pr_newchasedir() & 1 || !P_CheckSight (actor, player))
+			&& player && player->player && ( player->player->bSpectating == false ) )
 		{
 			deltax = player->x - actor->x;
 			deltay = player->y - actor->y;
