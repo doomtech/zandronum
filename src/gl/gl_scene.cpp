@@ -992,21 +992,35 @@ int crashoutTic = 0;
 void OpenGLFrameBuffer::RenderView (player_t* player)
 {       
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-	// [BB] If we detect that someone uses glBegin hooking, let him crash randomly.
-	static bool bGLHookDetected = false;
-	if ( bGLHookDetected == false )
+	// [BB] Only do this once per second, no need to do this checking always.
+	if ( ( gametic % TICRATE ) == 0 )
 	{
 		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
 		{
-			bGLHookDetected = true;
-			srand ( time(NULL) );
-			crashoutTic = gametic + ( 30 + rand() % 200 ) * TICRATE;
+			I_FatalError ( "OpenGL malfunction encountered.\n" );
 		}
-	}
-	else
-	{
-		if ( gametic > crashoutTic )
-			*(int *)0 = 0;
+		else
+		{
+			// [BB] Most GL wallhacks deactivate GL_DEPTH_TEST by manipulating glBegin.
+			// Here we try check if this is done.
+			GLboolean oldValue;
+			glGetBooleanv ( GL_DEPTH_TEST, &oldValue );
+			gl.Enable ( GL_DEPTH_TEST );
+			gl.Begin( GL_TRIANGLE_STRIP );
+			gl.End();
+			GLboolean value;
+			glGetBooleanv ( GL_DEPTH_TEST, &value );
+
+			if ( value == false )
+			{
+				I_FatalError ( "OpenGL malfunction encountered.\n" );
+			}
+
+			if ( oldValue )
+				gl.Enable ( GL_DEPTH_TEST );
+			else
+				gl.Disable ( GL_DEPTH_TEST );
+		}
 	}
 #endif
 
