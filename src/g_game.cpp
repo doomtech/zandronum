@@ -3282,11 +3282,18 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				SERVERCOMMANDS_SetSectorFriction( ulIdx );
 		}
 
-		if (( sectors[ulIdx].SavedSpecial != sectors[ulIdx].special ) ||
-			( sectors[ulIdx].SavedDamage != sectors[ulIdx].damage ) ||
-			( sectors[ulIdx].SavedMOD != sectors[ulIdx].mod ))
+		if ( sectors[ulIdx].SavedSpecial != sectors[ulIdx].special )
 		{
 			sectors[ulIdx].special = sectors[ulIdx].SavedSpecial;
+
+			// [BB] If we're the server, tell clients about the special (at least necessary for secrets).
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorSpecial( ulIdx );
+		}
+
+		if (( sectors[ulIdx].SavedDamage != sectors[ulIdx].damage ) ||
+			( sectors[ulIdx].SavedMOD != sectors[ulIdx].mod ))
+		{
 			sectors[ulIdx].damage = sectors[ulIdx].SavedDamage;
 			sectors[ulIdx].mod = sectors[ulIdx].SavedMOD;
 

@@ -287,6 +287,7 @@ static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorScale( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorSpecial( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorFriction( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorAngleYOffset( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorGravity( BYTESTREAM_s *pByteStream );
@@ -637,6 +638,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORPANNING",
 	"SVC_SETSECTORROTATION",
 	"SVC_SETSECTORSCALE",
+	"SVC_SETSECTORSPECIAL",
 	"SVC_SETSECTORFRICTION",
 	"SVC_SETSECTORANGLEYOFFSET",
 	"SVC_SETSECTORGRAVITY",
@@ -2206,6 +2208,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORSCALE:
 
 		client_SetSectorScale( pByteStream );
+		break;
+	case SVC_SETSECTORSPECIAL:
+
+		client_SetSectorSpecial( pByteStream );
 		break;
 	case SVC_SETSECTORFRICTION:
 
@@ -8613,6 +8619,34 @@ static void client_SetSectorScale( BYTESTREAM_s *pByteStream )
 	pSector->SetYScale(sector_t::ceiling, lCeilingYScale);
 	pSector->SetXScale(sector_t::floor, lFloorXScale);
 	pSector->SetYScale(sector_t::floor, lFloorYScale);
+}
+
+//*****************************************************************************
+//
+static void client_SetSectorSpecial( BYTESTREAM_s *pByteStream )
+{
+	LONG		lSectorID;
+	SHORT		sSpecial;
+	sector_t	*pSector;
+
+	// Read in the sector to have its special altered.
+	lSectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the new special.
+	sSpecial = NETWORK_ReadShort( pByteStream );
+
+	// Now find the sector.
+	pSector = CLIENT_FindSectorByID( lSectorID );
+	if ( pSector == NULL )
+	{ 
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetSectorSpecial: Cannot find sector: %d\n", lSectorID );
+#endif
+		return; 
+	}
+
+	// Finally, set the special.
+	pSector->special = sSpecial;
 }
 
 //*****************************************************************************

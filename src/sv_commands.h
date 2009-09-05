@@ -220,6 +220,7 @@ void	SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAY
 void	SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetSectorSpecial( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
