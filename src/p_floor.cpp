@@ -1542,11 +1542,17 @@ void DWaggleBase::DoWaggle (bool ceiling)
 	{
 		plane = &m_Sector->ceilingplane;
 		pos = sector_t::ceiling;
+		// [BB] The ceiling is going to be moved in here. Is this the best place to put this?
+		// Why do we need these bools anyway? Wouldn't it be better to check the current
+		// ceiling/floor values agains the saved intial values?
+		m_Sector->bCeilingHeightChange = true;
 	}
 	else
 	{
 		plane = &m_Sector->floorplane;
 		pos = sector_t::floor;
+		// [BB] The floor is going to be moved in here. Is this the best place to put this?
+		m_Sector->bFloorHeightChange = true;
 	}
 
 	switch (m_State)
