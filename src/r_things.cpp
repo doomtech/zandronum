@@ -513,7 +513,7 @@ void R_InitSkins (void)
 	bool remove;
 	const PClass *basetype, *transtype;
 	int s_skin = 1; // (0 = skininfo, 1 = s_skin, 2 = s_skin non-changeable)
-	bool lumpSkininfo = false; // are we parsing the SKININFO lumps (has no effect on the format)
+	bool lumpSkininfo = false; // are we parsing the SKININFO lumps
 
 	key[sizeof(key)-1] = 0;
 	i = PlayerClasses.Size () - 1;
@@ -549,6 +549,18 @@ void R_InitSkins (void)
 		// Data is stored as "key = data".
 		while (sc.GetString ())
 		{
+			// [BB] The original SKININFO parser ate everything before the starting bracket.
+			// To retain compatibility with existing wads, we need to keep this behavior.
+			if ( lumpSkininfo )
+			{
+				// Parse until we find a starting bracket.
+				while ( sc.String[0] != '{' )
+				{
+					if ( !sc.GetString( ) )
+						break;
+				}
+			}
+
 			if(sc.String[0] == '{')
 			{
 				if(s_skin == 1)
