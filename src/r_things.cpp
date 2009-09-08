@@ -1007,13 +1007,24 @@ ULONG R_CountSkinInfoSkins( void )
 		{
 			// We found a starting brace. This indicated we're creating a new skin.
 			while ( sc.String[0] != '{' )
-				sc.GetString( );
+			{
+				if ( !sc.GetString( ) )
+				{
+					// [BB] We didn't find a starting brace and thus no skin, so we need
+					// to counter the ulNumSkins increment below.
+					--ulNumSkins;
+					break;
+				}
+			}
 
 			ulNumSkins++;
 
 			// Continue to parse until we've found the corresponding closing brace.
 			while ( sc.String[0] != '}' )
-				sc.GetString( );
+			{
+				if ( !sc.GetString( ) )
+					break;
+			}
 		}
 
 	}
