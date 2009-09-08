@@ -581,6 +581,8 @@ void R_InitSkins (void)
 				if (!sc.GetString() || sc.String[0] != '=')
 				{
 					Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", (int)i, key);
+					// [BB] If there was a problem parsing the skin, remove it. Otherwise bad things may happen.
+					remove = true;
 					break;
 				}
 				sc.GetString ();
