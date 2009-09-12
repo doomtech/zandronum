@@ -250,7 +250,12 @@ void P_FireWeapon (player_t *player)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-	player->mo->PlayAttacking ();
+	// [BB] Except for the consoleplayer, the server handles this.
+	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+		(( player - players ) == consoleplayer ))
+	{
+		player->mo->PlayAttacking ();
+	}
 
 	weapon->bAltFire = false;
 	P_SetPsprite (player, ps_weapon, weapon->GetAtkState(!!player->refire));
@@ -289,7 +294,12 @@ void P_FireWeaponAlt (player_t *player)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK_ALTFIRE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-	player->mo->PlayAttacking ();
+	// [BB] Except for the consoleplayer, the server handles this.
+	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+		(( player - players ) == consoleplayer ))
+	{
+		player->mo->PlayAttacking ();
+	}
 	weapon->bAltFire = true;
 
 
