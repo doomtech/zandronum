@@ -132,6 +132,7 @@ latestzdoom branch
 !	- The Linux server console now flushes the output buffer.  This allows other programs, such as Doomseeker, to easily capture the standard input and output. [Blzut3]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testfade anymore. [Torr Samaho, SuperGod]
 !	- Spectators don't get the default inventory anymore when initially spawned. This is now consistent with the fact that players who turn to spectators after already being in the game lose all their inventory. [Torr Samaho]
+!	- Spectators are now always allowed to use freelook. [SuperGod, Torr Samaho]
 
 
 <trunk>
