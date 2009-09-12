@@ -612,6 +612,22 @@ CCMD( viewbanexemptionlist )
 
 //*****************************************************************************
 //
+CCMD( viewmasterbanlist )
+{
+	for ( ULONG ulIdx = 0; ulIdx < g_MasterServerBans.size(); ulIdx++ )
+		Printf( "%s", g_MasterServerBans.getEntryAsString(ulIdx).c_str( ));
+}
+
+//*****************************************************************************
+//
+CCMD( viewmasterexemptionbanlist )
+{
+	for ( ULONG ulIdx = 0; ulIdx < g_MasterServerBanExemptions.size(); ulIdx++ )
+		Printf( "%s", g_MasterServerBanExemptions.getEntryAsString(ulIdx).c_str( ));
+}
+
+//*****************************************************************************
+//
 CCMD( clearbans )
 {
 	SERVERBAN_ClearBans( );
