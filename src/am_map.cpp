@@ -623,7 +623,8 @@ void AM_changeWindowLoc ()
 
 	oincx = incx = Scale(m_paninc.x, SCREENWIDTH, 320);
 	oincy = incy = Scale(m_paninc.y, SCREENHEIGHT, 200);
-	if (am_rotate == 1 || (am_rotate == 2 && viewactive))
+	// [BB] According to some crash logs, it's possible that players[consoleplayer].camera is NULL during a map reset.
+	if ( ( am_rotate == 1 || (am_rotate == 2 && viewactive) ) && players[consoleplayer].camera )
 	{
 		AM_rotate(&incx, &incy, players[consoleplayer].camera->angle - ANG90);
 	}
