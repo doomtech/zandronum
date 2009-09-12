@@ -114,7 +114,7 @@ latestzdoom branch
 -	- Fixed: After a map reset online the sector special denoting whether a secret sector was already revealed was not reset on the clients. [Torr Samaho, SuperGod]
 -	- Fixed: After a map reset, sectors manipulated by Floor_Waggle or Ceiling_Waggle are not properly reset to their initial position. [Torr Samaho, SuperGod]
 -	- Fixed: Skulltag froze on startup when encountering a non empty SKININFO lump that doesn't have at least one bracket pair or that has an incomplete bracket pair. [Torr Samaho]
--	- Fixed: Newly connecting clients are not informed about the current health of the players already in the game. [Torr Samaho]
+-	- Fixed: Newly connecting clients are not informed about the current health or ammo of the players already in the game. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
