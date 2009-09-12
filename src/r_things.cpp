@@ -713,6 +713,10 @@ void R_InitSkins (void)
 					else if (( stricmp(sc.String, "false") == 0 ) || ( stricmp(sc.String, "no") == 0 ))
 						skins[i].bCheat = false;
 				}
+				else if (0 == stricmp( key, "color" ))
+				{
+					sprintf( skins[i].szColor, "%s", sc.String );
+				}
 				else if (key[0] == '*')
 				{ // Player sound replacment (ZDoom extension)
 					int lump = Wads.CheckNumForName (sc.String, skins[i].namespc);
