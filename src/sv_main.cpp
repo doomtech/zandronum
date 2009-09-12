@@ -2270,6 +2270,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// Also if this player is currently dead, let the incoming player know that.
 		if ( pPlayer->mo->health <= 0 )
 			SERVERCOMMANDS_ThingIsCorpse( pPlayer->mo, ulClient, SVCF_ONLYTHISCLIENT );
+		// [BB] SERVERCOMMANDS_SpawnPlayer instructs the client to spawn a player
+		// with default health. So we still need to send the correct current health value
+		// (if the player is not dead).
+		else
+			SERVERCOMMANDS_SetPlayerHealth( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// If the client receiving the update is a spectator, send the player's
 		// ready weapon.
