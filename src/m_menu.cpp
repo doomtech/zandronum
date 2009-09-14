@@ -2381,9 +2381,11 @@ static void M_PlayerSetupTicker (void)
 		PlayerState = GetDefaultByType (PlayerClass->Type)->SeeState;
 		PlayerTics = PlayerState->GetTics();
 
-		PlayerSkin = R_FindSkin (skins[PlayerSkin].name, int(PlayerClass - &PlayerClasses[0]));
-		R_GetPlayerTranslation (players[consoleplayer].userinfo.color,
-			&skins[PlayerSkin], translationtables[TRANSLATION_Players][MAXPLAYERS]);
+		// [BB] Adapted the following code to Skulltag's player setup menu handling.
+		g_ulPlayerSetupSkin = R_FindSkin (skins[g_ulPlayerSetupSkin].name, int(PlayerClass - &PlayerClasses[0]));
+		PlayerSkin = g_ulPlayerSetupSkin;
+		R_GetPlayerTranslation (g_ulPlayerSetupColor,
+			&skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players][MAXPLAYERS]);
 	}
 
 	if (PlayerState->GetTics () != -1 && PlayerState->GetNextState () != NULL)
