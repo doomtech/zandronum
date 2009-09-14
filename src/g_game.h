@@ -123,5 +123,7 @@ class AActor;
 extern AActor *bodyque[BODYQUESIZE]; 
 extern int bodyqueslot; 
 
+// [BB] Exported G_QueueBody.
+void G_QueueBody (AActor *body);
 
 #endif

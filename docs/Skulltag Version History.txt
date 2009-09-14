@@ -133,6 +133,7 @@ latestzdoom branch
 !	- If cheats are disabled, clients are not allowed to use the CCMD testfade anymore. [Torr Samaho, SuperGod]
 !	- Spectators don't get the default inventory anymore when initially spawned. This is now consistent with the fact that players who turn to spectators after already being in the game lose all their inventory. [Torr Samaho]
 !	- Spectators are now always allowed to use freelook. [SuperGod, Torr Samaho]
+!	- Removed Skulltag's custom player corpse queue, instead the original ZDoom system is used now. Because of this the CVAR cl_maxcorpses is no longer available (as in ZDoom, the corpse queue size is now fixed to 32). This change should resolve the problems that player corpses change their color seemingly randomly. It also fixes the problems that could occur if a client uses a smaller cl_maxcorpses value than the server. Unfortunately, due to a GZDoom bug, this only fixes the color problems in the software renderer. [Torr Samaho]
 
 
 <trunk>

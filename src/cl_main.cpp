@@ -493,9 +493,6 @@ static	LONG				g_lHighestReceivedSequence;
 // Delay for sending a request missing packets.
 static	LONG				g_lMissingPacketTicks;
 
-// [BB] Needed to handle the storage of the translation of player corpses.
-static	LONG				g_CorpseTranslationQueueSlot = 0;
-
 // Debugging variables.
 static	LONG				g_lLastCmd;
 #ifdef _DEBUG
@@ -3146,47 +3143,6 @@ AInventory *CLIENT_FindPlayerInventory( ULONG ulPlayer, const char *pszName )
 
 //*****************************************************************************
 //
-void CLIENT_RemoveCorpses( void )
-{
-	AActor	*pActor;
-	ULONG	ulCorpseCount;
-
-	// Allow infinite corpses.
-	if ( cl_maxcorpses == 0 )
-		return;
-
-	// Initialize the number of corpses.
-	ulCorpseCount = 0;
-
-	TThinkerIterator<AActor> iterator;
-	while (( pActor = iterator.Next( )))
-	{
-		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )) == false ) ||
-			( pActor->player ) ||
-			( pActor->health > 0 ))
-		{
-			continue;
-		}
-
-		ulCorpseCount++;
-		if ( ulCorpseCount >= static_cast<ULONG>(cl_maxcorpses) )
-		{
-/*
-			if ( pActor == players[consoleplayer].mo )
-			{
-#ifdef CLIENT_WARNING_MESSAGES
-				Printf( "CLIENT_RemoveCorpses: WARNING! Tried to delete console player's body!\n" );
-#endif
-				continue;
-			}
-*/
-			pActor->Destroy( );
-		}
-	}
-}
-
-//*****************************************************************************
-//
 /* [BB] Causes major problems with Archviles at the moment, therefore deactivated.
 void CLIENT_RemoveMonsterCorpses( void )
 {
@@ -3698,19 +3654,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		{
 			pOldActor->player = NULL;
 			pOldActor->id = -1;
-
-			int translationslot = g_CorpseTranslationQueueSlot%BODYQUESIZE;
-
-			// Copy the player's translation, so that if they change their color later, only
-			// their current body will change and not all their old corpses.
-			if (GetTranslationType(pOldActor->Translation) == TRANSLATION_Players ||
-				GetTranslationType(pOldActor->Translation) == TRANSLATION_PlayersExtra)
-			{
-				*translationtables[TRANSLATION_PlayerCorpses][translationslot] = *TranslationToTable(pOldActor->Translation);
-				pOldActor->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,translationslot);
-			}
-
-			g_CorpseTranslationQueueSlot++;
+			// [BB] This will eventually free the player's body's network ID.
+			G_QueueBody (pOldActor);
 		}
 		else
 		{
@@ -4159,10 +4104,6 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// If health on the status bar is less than 0%, make it 0%.
 	if ( players[ulPlayer].health <= 0 )
 		players[ulPlayer].health = 0;
-
-	// Potentially get rid of some corpses. This isn't necessarily client-only.
-	// [BB] This will eventually free the player's body's network ID.
-	CLIENT_RemoveCorpses( );
 
 	ulSourcePlayer = MAXPLAYERS;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

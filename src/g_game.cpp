@@ -2484,13 +2484,12 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 //
 // G_QueueBody
 //
-static void G_QueueBody (AActor *body)
+// [BB] Skulltag needs this also in cl_main.cpp.
+/*static*/ void G_QueueBody (AActor *body)
 {
 	// flush an old corpse if needed
 	int modslot = bodyqueslot%BODYQUESIZE;
 
-	// [BC] Skulltag has its own system.
-/*
 	if (bodyqueslot >= BODYQUESIZE && bodyque[modslot] != NULL)
 	{
 		bodyque[modslot]->Destroy ();
@@ -2507,7 +2506,6 @@ static void G_QueueBody (AActor *body)
 	}
 
 	bodyqueslot++;
-*/
 }
 
 //
@@ -2551,7 +2549,8 @@ void G_DoReborn (int playernum, bool freshbot)
 		{
 			// [BB] Skulltag has its own body queue. If G_QueueBody is used, the
 			// STFL_OBSOLETE_SPECTATOR_BODY code below has to be adapted.
-			//G_QueueBody (players[playernum].mo);
+			if ( !( players[playernum].mo->ulSTFlags & STFL_OBSOLETE_SPECTATOR_BODY ) )
+				G_QueueBody (players[playernum].mo);
 			players[playernum].mo->player = NULL;
 		}
 		// [BB] The old body is not a corpse, but an obsolete spectator body. Remove it.

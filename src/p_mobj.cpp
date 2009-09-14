@@ -4879,14 +4879,11 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 				}
 
 				DObject::StaticPointerSubstitution (oldactor, p->mo);
+				// PointerSubstitution() will also affect the bodyque, so undo that now.
+				for (int ii=0; ii < BODYQUESIZE; ++ii)
+					if (bodyque[ii] == p->mo)
+						bodyque[ii] = oldactor;
 			}
-
-/* [BB] Check if this neeeds to be done
-			// PointerSubstitution() will also affect the bodyque, so undo that now.
-			for (int ii=0; ii < BODYQUESIZE; ++ii)
-				if (bodyque[ii] == p->mo)
-					bodyque[ii] = oldactor;
-*/
 			FBehavior::StaticStartTypedScripts (SCRIPT_Respawn, p->mo, true);
 		}
 	}

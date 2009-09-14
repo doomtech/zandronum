@@ -547,9 +547,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 					source->player->pSkullBot->PostEvent( BOTEVENT_ENEMY_KILLED );
 			}
 
-			// [BC] Potentially get rid of some corpses. This isn't necessarily client-only.
-			CLIENT_RemoveCorpses( );
-
 			if (player == source->player)	// [RH] Cumulative frag count
 			{
 				// [BC] Frags are server side.
