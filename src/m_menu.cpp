@@ -2513,44 +2513,19 @@ static void M_PlayerSetupDrawer ()
 		if (sprframe != NULL)
 		{
 			FTexture *tex = TexMan(sprframe->Texture[0]);
-
 			if (tex != NULL && tex->UseType != FTexture::TEX_Null)
 			{
 				if (tex->Rotations != 0xFFFF)
 				{
 					tex = TexMan(SpriteFrames[tex->Rotations].Texture[PlayerRotation]);
 				}
-
-				// Build the translation for the character that's going to draw.
-/*
-				// [BB] Changed to use the ZDoom way to display player menu color
-				R_GetPlayerTranslation( g_ulPlayerSetupColor,
-					&skins[g_ulPlayerSetupSkin],
-					translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS );
-*/
-				//R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
-
-				// [BC] Temporary solution. Copy the translation to the consoleplayer's
-				// translation slot.
-				R_GetPlayerTranslation( g_ulPlayerSetupColor,
-					&skins[g_ulPlayerSetupSkin],
-					translationtables[TRANSLATION_Players][consoleplayer] );
-
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
 					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
 					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, ScaleX),
 					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, ScaleY),
-					DTA_Translation, translationtables[TRANSLATION_Players](consoleplayer),
+					DTA_Translation, translationtables[TRANSLATION_Players](MAXPLAYERS),
 					TAG_DONE);
-
-				// [BC] Temporary solution. Once we've drawn the translated player, restore
-				// the console player's translation.
-				// translation slot.
-				R_GetPlayerTranslation( players[consoleplayer].userinfo.color,
-					&skins[g_ulPlayerSetupSkin],
-					translationtables[TRANSLATION_Players][consoleplayer] );
-
 			}
 		}
 
