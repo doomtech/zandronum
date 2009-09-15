@@ -45,3 +45,15 @@ You can install a package with
 After installing update the path variables with
 
   rehash
+
+------------------------------------------------------------
+Building the latestzdoom branch:
+
+cmake commands:
+
+- Release client
+cmake -DCMAKE_BUILD_TYPE=Release ..
+- Release server
+cmake -DCMAKE_BUILD_TYPE=Release -DSERVERONLY=1 ..
+- Debug server
+cmake -DCMAKE_BUILD_TYPE=Debug -DSERVERONLY=1 ..
