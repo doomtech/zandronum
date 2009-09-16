@@ -992,8 +992,8 @@ int crashoutTic = 0;
 void OpenGLFrameBuffer::RenderView (player_t* player)
 {       
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-	// [BB] Only do this once per second, no need to do this checking always.
-	if ( ( gametic % TICRATE ) == 0 )
+	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
+	// and deactivating itself at the right time interval.
 	{
 		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
 		{

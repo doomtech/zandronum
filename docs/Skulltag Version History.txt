@@ -22,6 +22,7 @@ latestzdoom branch
 		- Freed the ping from the shackles of Doom's fixed ticrate, i.e. the ping is not forced to be a multiple of 28 anymore, but calculated precisely.
 		- The displayed ping of the clients is now averaged over multiple measurements.
 		- The ping of the clients is now measured every second instead of every three seconds.
++	- Extended the OpenGL wallhack protection to catch the updated version of the hack. Kudos to SuperGod for providing extensive background information on how to resolve this. [Torr Samaho, SuperGod]
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K, GrenadeLauncher, RandomPowerup, TeamItem, Flag, Skull, WhiteFlag, FloatyIcon, PathNode, ReturnZone, SpringPadZone, Hissy, MaxHealth, RuneGiver, RedArmor, PowerTerminatorArtifact, PowerPossessionArtifact, various invasion spawner base classes and various Rune classes to DECORATE. [Torr Samaho]
 +	- Converted Cacolantern, Abaddon, Belphegor, BloodDemon, Hectebus and SuperShotgunGuy to DECORATE. [Karate Chris, The Doom Master, Theshooter7, Gez, Torr Samaho]
