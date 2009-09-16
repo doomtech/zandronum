@@ -4948,7 +4948,7 @@ void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, f
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags, bool bRespectActorPlayingSomething )
 {
 	if ( pActor == NULL )
 		return;
@@ -4974,7 +4974,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 		}
 
 		SERVER_CheckClientBuffer( ulIdx, 6 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SOUNDACTOR );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bRespectActorPlayingSomething ? SVC_SOUNDACTORIFNOTPLAYING : SVC_SOUNDACTOR );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lChannel );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );

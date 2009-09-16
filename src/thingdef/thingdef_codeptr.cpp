@@ -407,9 +407,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySoundEx)
 		{
 			S_Sound (self, (int(channel) - NAME_Auto) | CHAN_LOOP, soundid, 1, attenuation);
 
-			// [BB] If we're the server, tell clients to play the sound.
+			// [BB] If we're the server, tell clients to play the sound, but only if they are not already playing something for this actor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, (int(channel) - NAME_Auto) | CHAN_LOOP, S_GetName( soundid ), 1, attenuation );
+				SERVERCOMMANDS_SoundActor( self, (int(channel) - NAME_Auto) | CHAN_LOOP, S_GetName( soundid ), 1, attenuation, MAXPLAYERS, 0, true );
 		}
 	}
 }

@@ -317,7 +317,7 @@ static	void	client_ACSScriptExecute( BYTESTREAM_s *pByteStream );
 
 // Sound commands.
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
-static	void	client_SoundActor( BYTESTREAM_s *pByteStream );
+static	void	client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlayingSomething = false );
 static	void	client_SoundPoint( BYTESTREAM_s *pByteStream );
 
 // Sector sequence commands.
@@ -657,6 +657,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_ACSSCRIPTEXECUTE",
 	"SVC_SOUND",
 	"SVC_SOUNDACTOR",
+	"SVC_SOUNDACTORIFNOTPLAYING",
 	"SVC_SOUNDPOINT",
 	"SVC_STARTSECTORSEQUENCE",
 	"SVC_STOPSECTORSEQUENCE",
@@ -2293,6 +2294,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SOUNDACTOR:
 
 		client_SoundActor( pByteStream );
+		break;
+	case SVC_SOUNDACTORIFNOTPLAYING:
+
+		client_SoundActor( pByteStream, true );
 		break;
 	case SVC_SOUNDPOINT:
 
@@ -9273,7 +9278,7 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SoundActor( BYTESTREAM_s *pByteStream )
+static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlayingSomething )
 {
 	LONG		lID;
 	const char	*pszSoundString;
@@ -9308,6 +9313,10 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream )
 #endif
 		return;
 	}
+
+	// [BB] If instructed to, check whether the actor is already playing something.
+	if ( bRespectActorPlayingSomething && S_IsActorPlayingSomething (pActor, lChannel, S_FindSound ( pszSoundString ) ) )
+		return;
 
 	// Finally, play the sound.
 	S_Sound( pActor, lChannel, pszSoundString, (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
