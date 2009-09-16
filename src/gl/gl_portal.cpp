@@ -67,10 +67,13 @@
 
 CVAR(Bool, gl_portals, true, 0)
 
-CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+// [BB] For some reason values of r_mirror_recursions bigger than 2 cause rendering
+// defects and serious performance problems. Till this is fixed, limit the value to 2.
+CUSTOM_CVAR(Int, r_mirror_recursions,2,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 {
 	if (self<0) self=0;
-	if (self>10) self=10;
+	// [BB] Limit changed to 2, see above.
+	if (self>2) self=2;
 }
 bool gl_plane_reflection_i;	// This is needed in a header that cannot include the CVAR stuff...
 CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
