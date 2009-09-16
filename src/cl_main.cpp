@@ -3857,6 +3857,21 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	pPlayer->playerstate = PST_LIVE;
 	
+	// [BB] If the player is reborn, we have to substitute all pointers
+	// to the old body to the new one. Otherwise (among other things) CLIENTSIDE
+	// ENTER scripts stop working after the corresponding player is respawned.
+	if (lPlayerState == PST_REBORN || lPlayerState == PST_REBORNNOINVENTORY)
+	{
+		if ( pOldActor != NULL )
+		{
+			DObject::StaticPointerSubstitution (pOldActor, pPlayer->mo);
+			// PointerSubstitution() will also affect the bodyque, so undo that now.
+			for (int ii=0; ii < BODYQUESIZE; ++ii)
+				if (bodyque[ii] == pPlayer->mo)
+					bodyque[ii] = pOldActor;
+		}
+	}
+
 	if ( bMorph )
 	{
 		// [BB] Bring up the weapon of the morphed class.
