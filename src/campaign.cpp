@@ -153,7 +153,7 @@ CAMPAIGNINFO_s *CAMPAIGN_GetCampaignInfo( char *pszMapName )
 	pInfo = g_pCampaignInfoRoot;
 	while ( pInfo != NULL )
 	{
-		if ( stricmp( pszMapName, pInfo->szMapName ) == 0 )
+		if ( strnicmp( pszMapName, pInfo->szMapName, 8 ) == 0 )
 			pBestInfo = pInfo;
 
 		pInfo = pInfo->pNextInfo;
