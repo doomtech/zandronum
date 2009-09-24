@@ -144,7 +144,11 @@ void NETWORK_Construct( USHORT usPort )
 		printf( "network_AllocateSocket: ioctl FIONBIO: %s", strerror( errno ));
 
 	// Init our read buffer.
-	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET, BUFFERTYPE_READ );
+	// [BB] Vortex Cortex pointed us to the fact that the smallest huffman code is only 3 bits
+	// and it turns into 8 bits when it's decompressed. Thus we need to allocate a buffer that
+	// can hold the biggest possible size we may get after decompressing (aka Huffman decoding)
+	// the incoming UDP packet.
+	NETWORK_InitBuffer( &g_NetworkMessage, ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
 	// Print out our local IP address.
