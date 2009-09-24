@@ -4616,7 +4616,7 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 {
 	LONG		lDesiredTeam;
-	bool		bOnTeam;
+	bool		bOnTeam, bAutoSelectTeam = false;
 	UCVarValue	Val;
 	FString		clientJoinPassword;
 
@@ -4652,7 +4652,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// If the team isn't valid, just pick the best team for the player to be on.
 	if ( TEAM_CheckIfValid( lDesiredTeam ) == false )
+	{
 		lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
+		bAutoSelectTeam = true;
+	}
 
 	// If the desired team matches our current team, break out.
 	if (( players[g_lCurrentClient].bOnTeam ) && ( lDesiredTeam == static_cast<signed> (players[g_lCurrentClient].ulTeam) ))
@@ -4694,7 +4697,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		JOINSLOT_t	JoinSlot;
 
 		JoinSlot.ulPlayer = g_lCurrentClient;
-		JoinSlot.ulTeam = lDesiredTeam;
+		if ( bAutoSelectTeam ) // [RC] If the player chose to autoselect his team, postpone that until he actually joins.
+			JoinSlot.ulTeam = teams.Size( );
+		else
+			JoinSlot.ulTeam = lDesiredTeam;
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.

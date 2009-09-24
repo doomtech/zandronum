@@ -80,6 +80,7 @@ latestzdoom branch
 -	- Fixed: Random state jumps on player weapons weren't synchronized online at all. [Torr Samaho]
 -	- Fixed: A_PlaySoundEx didn't always work properly online. [Torr Samaho]
 -	- Fixed: Loading bot script lumps from PK3s/ZIPs didn't work. [Torr Samaho]
+-	- Fixed: Autoselecting a team wouldn't work properly if you were put in line. [Rivecoder]
 -	- Fixed: The code that enforces the name restrictions on player names under some circumstances led to escaped, incomplete color codes. [Torr Samaho]
 -	- Fixed: The DarkImp never used its melee attack. [Torr Samaho]
 -	- Fixed: ACS scripts using LocalAmbientSound could crash the server if a player left and rejoined while the script was running. [Torr Samaho]
