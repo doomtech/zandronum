@@ -677,7 +677,8 @@ void M_ScreenShot (const char *filename)
 			if (dirlen == 0)
 			{
 #ifdef unix
-				autoname = "~/.zdoom/screenshots/";
+				// [BB] Use GAMENAMELOWERCASE here.
+				autoname = "~/." GAMENAMELOWERCASE "/screenshots/";
 #else
 				autoname = progdir;
 #endif
