@@ -1130,9 +1130,6 @@ void APlayerPawn::GiveDefaultInventory ()
 {
 	if (player == NULL) return;
 
-	// [BB] Spectators are supposed to have no inventory.
-	if ( player->bSpectating ) return;
-
 	AInventory *fist, *pistol, *bullets;
 	ULONG						ulIdx;
 	const PClass				*pType;
@@ -1143,6 +1140,9 @@ void APlayerPawn::GiveDefaultInventory ()
 
 	// [GRB] Give inventory specified in DECORATE
 	player->health = GetDefault ()->health;
+
+	// [BB] Spectators are supposed to have no inventory, but they should get their health.
+	if ( player->bSpectating ) return;
 
 	// [BC] Initialize the max. health bonus.
 	player->lMaxHealthBonus = 0;
