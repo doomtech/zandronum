@@ -1730,7 +1730,7 @@ void M_DrawBotSkill( void )
 		screen->DrawText( BigFont, CR_RED, 160 - ( BigFont->StringWidth( EpisodeSkillHeaders[epi] ) / 2 ), 14, EpisodeSkillHeaders[epi], DTA_Clean, true, TAG_DONE );
 	}
 	else
-		screen->DrawTexture( TexMan[EpisodeSkillHeaders[epi]], 160 - ( TexMan[EpisodeSkillHeaders[epi]]->GetWidth( ) / 2 ), 14, DTA_Clean, true, TAG_DONE );
+		screen->DrawTexture( TexMan[EpisodeSkillHeaders[epi]], 160 - ( TexMan[EpisodeSkillHeaders[epi]]->GetScaledWidth( ) / 2 ), 14, DTA_Clean, true, TAG_DONE );
 
 	screen->DrawTexture( TexMan["M_BSKILL"], 54, 38, DTA_Clean, true, TAG_DONE );
 }
