@@ -141,6 +141,7 @@ latestzdoom branch
 !	- Spectators are now always allowed to use freelook. [SuperGod, Torr Samaho]
 !	- Removed Skulltag's custom player corpse queue, instead the original ZDoom system is used now. Because of this the CVAR cl_maxcorpses is no longer available (as in ZDoom, the corpse queue size is now fixed to 32). This change should resolve the problems that player corpses change their color seemingly randomly. It also fixes the problems that could occur if a client uses a smaller cl_maxcorpses value than the server. Unfortunately, due to a GZDoom bug, this only fixes the color problems in the software renderer. [Torr Samaho]
 !	- skulltag_data.pk3 is now loaded instead of skulltag.wad. If skulltag_data.pk3 is not found, Skulltag tries to load skulltag.wad. [Torr Samaho]
+! 	- A player whose IP is on the admin list can't be targeted by a kickvote anymore. [Torr Samaho]
 
 
 <trunk>
