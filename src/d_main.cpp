@@ -1947,10 +1947,26 @@ void D_DoomMain (void)
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
-		// [BC] Also load skulltag.wad.
-		wad = BaseFileSearch( "skulltag.wad", NULL, true );
-		if ( wad == NULL )
-			I_FatalError( "Cannot find skulltag.wad" );
+		// [BB] Check if the user wants to look for skulltag_data.pk3 / skulltag.wad elsewhere.
+		const char* skulldataFilename = Args->CheckValue( "-skulldata" );
+		if ( skulldataFilename )
+		{
+			wad = BaseFileSearch( skulldataFilename, NULL, true );
+			if ( wad == NULL )
+				I_FatalError( "Cannot find %s", skulldataFilename );
+		}
+		else
+		{
+			// [BC/BB] Also load skulltag_data.pk3 / skulltag.wad.
+			wad = BaseFileSearch( "skulltag_data.pk3", NULL, true );
+			// [BB] If we can't find skulltag_data.pk3, try skulltag.wad.
+			if ( wad == NULL )
+			{
+				wad = BaseFileSearch( "skulltag.wad", NULL, true );
+				if ( wad == NULL )
+					I_FatalError( "Cannot find skulltag.wad" );
+			}
+		}
 
 		// [BB] Calculate and save the MD5 sum, we'll need it later.
 		char MD5Sum[33];
