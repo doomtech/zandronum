@@ -2503,6 +2503,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	{
 		*translationtables[TRANSLATION_PlayerCorpses][modslot] = *TranslationToTable(body->Translation);
 		body->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,modslot);
+		translationtables[TRANSLATION_PlayerCorpses][modslot]->UpdateNative();
 	}
 
 	bodyqueslot++;
