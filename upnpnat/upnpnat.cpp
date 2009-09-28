@@ -14,6 +14,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <stdio.h>
 
 #include "upnpnat.h"
 #include "xmlParser.h"
