@@ -518,14 +518,14 @@ bool BOTS_AddBotInfo( BOTINFO_s *pBotInfo )
 //
 void BOTS_ParseBotInfo( void )
 {
-	LONG		lCurLump;
-	LONG		lLastLump = 0;
+	int			iCurLump;
+	int			iLastLump = 0; // [BL] We can't use LONG here since 64-bit won't like it.
 
 	// Search through all loaded wads for a lump called "BOTINFO".
-	while (( lCurLump = Wads.FindLump( "BOTINFO", (int *)&lLastLump )) != -1 )
+	while (( iCurLump = Wads.FindLump( "BOTINFO", &iLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
-		FScanner sc( lCurLump );
+		FScanner sc( iCurLump );
 
 		// Parse the lump.
 		bots_ParseBotInfoLump( sc );
@@ -1152,23 +1152,28 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			}
 			else if ( stricmp( szKey, "favoriteweapon" ) == 0 )
 			{
-				sprintf( BotInfo.szFavoriteWeapon, "%s", szValue );
+				strncpy( BotInfo.szFavoriteWeapon, szValue, 31 );
+				BotInfo.szFavoriteWeapon[31] = 0;
 			}
 			else if ( stricmp( szKey, "class" ) == 0 )
 			{
-				sprintf( BotInfo.szClassName, "%s", szValue );
+				strncpy( BotInfo.szClassName, szValue, 31 );
+				BotInfo.szClassName[31] = 0;
 			}
 			else if ( stricmp( szKey, "color" ) == 0 )
 			{
-				sprintf( BotInfo.szColor, "%s", szValue );
+				strncpy( BotInfo.szColor, szValue, 15 );
+				BotInfo.szColor[15] = 0;
 			}
 			else if ( stricmp( szKey, "gender" ) == 0 )
 			{
-				sprintf( BotInfo.szGender, "%s", szValue );
+				strncpy( BotInfo.szGender, szValue, 15 );
+				BotInfo.szGender[15] = 0;
 			}
 			else if ( stricmp( szKey, "skin" ) == 0 )
 			{
-				sprintf( BotInfo.szSkinName, "%s", szValue );
+				strncpy( BotInfo.szSkinName, szValue, 31 );
+				BotInfo.szSkinName[31] = 0;
 			}
 			else if ( stricmp( szKey, "railcolor" ) == 0 )
 			{
@@ -1219,18 +1224,21 @@ void bots_ParseBotInfoLump( FScanner &sc )
 				if ( strlen( szValue ) > 8 )
 					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"script\" (\"%s\") cannot exceed 8 characters!", szValue );
 
-				sprintf( BotInfo.szScriptName, "%s", szValue );
+				strncpy( BotInfo.szScriptName, szValue, 64 );
+				BotInfo.szScriptName[64] = 0;
 			}
 			else if ( stricmp( szKey, "chatfile" ) == 0 )
 			{
-				sprintf( BotInfo.szChatFile, "%s", szValue );
+				strncpy( BotInfo.szChatFile, szValue, 127 );
+				BotInfo.szChatFile[127] = 0;
 			}
 			else if ( stricmp( szKey, "chatlump" ) == 0 )
 			{
 				if ( strlen( szValue ) > 31 )
 					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"chatlump\" (\"%s\") cannot exceed 31 characters!", szValue );
 
-				sprintf( BotInfo.szChatLump, "%s", szValue );
+				strncpy( BotInfo.szChatLump, szValue, 31 );
+				BotInfo.szChatLump[31] = 0;
 			}
 			else
 				I_Error( "BOTS_ParseBotInfo: Unknown BOTINFO property, \"%s\"!", szKey );

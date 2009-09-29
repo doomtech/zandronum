@@ -436,7 +436,7 @@ typedef struct
 	char			szSkinName[32];
 
 	// Class this bot will be in Hexen.
-	char			szClassName[8];
+	char			szClassName[32];
 
 	// Railgun trail color.
 	ULONG			ulRailgunColor;
