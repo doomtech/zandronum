@@ -1203,9 +1203,14 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	{
 		if (( TEAM_GetSimpleCTFSTMode( )) && ( tm.thing->player ) && ( tm.thing->player->bOnTeam ))
 		{
+			// [BB] With the addition of sv_maxteams and the subsequent definition of four teams in
+			// skulltag.pk3, we can't check thing->args[0] against teams.Size( ) anymore. As workaround,
+			// we check against the number of teams that have starts on the map to guess how many teams
+			// the mapper thought were available. Note: This is not going to work properly, if the map
+			// has starts for teams 0 and 2, but not for team 1 for example.
 			if (( thing->ulSTFlags & STFL_SCOREPILLAR ) &&
 				( TEAM_FindOpposingTeamsItemInPlayersInventory ( tm.thing->player ) ) &&
-				( thing->args[0] == static_cast<int> (teams.Size( )) || static_cast<signed>( tm.thing->player->ulTeam ) == thing->args[0] ) &&
+				( thing->args[0] == static_cast<int> (TEAM_GetNumTeamsWithStarts()) || static_cast<signed>( tm.thing->player->ulTeam ) == thing->args[0] ) &&
 				( thing->args[1] > 0 ))
 			{
 				if ( !TEAM_GetItemTaken( tm.thing->player->ulTeam ) )

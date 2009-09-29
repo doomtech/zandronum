@@ -1531,6 +1531,21 @@ unsigned int TEAM_GetNumAvailableTeams( void )
 
 //*****************************************************************************
 //
+unsigned int TEAM_GetNumTeamsWithStarts( void )
+{
+	ULONG ulTeamsWithStarts = 0;
+
+	for ( ULONG i = 0; i < teams.Size( ); ++i )
+	{
+		if ( teams[i].TeamStarts.Size( ) > 0 )
+			++ulTeamsWithStarts;
+	}
+
+	return ulTeamsWithStarts;
+}
+
+//*****************************************************************************
+//
 bool TEAM_ShouldUseTeam( ULONG ulTeam )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )

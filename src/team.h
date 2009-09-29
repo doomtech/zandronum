@@ -173,6 +173,7 @@ bool		TEAM_CheckAllTeamsHaveEqualWins( void );
 bool		TEAM_CheckAllTeamsHaveEqualScores( void );
 
 unsigned int	TEAM_GetNumAvailableTeams( void );
+unsigned int	TEAM_GetNumTeamsWithStarts( void );
 bool		TEAM_ShouldUseTeam( ULONG ulTeam );
 
 LONG		TEAM_GetHighestFragCount( void );
