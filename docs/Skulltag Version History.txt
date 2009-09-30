@@ -29,6 +29,10 @@ latestzdoom branch
 +	- Actor flag NONETID is now available in DECORATE. Actors with this flag are not assigned a network id when spawned. Only use it, if you know what you are doing! [Torr Samaho]
 +	- Added 11 new game mode types to SBarInfo.  They are as follows: ctf, oneflagctf, skulltag, invasion, possession, teampossession, lastmanstanding, teamlms, survival, instagib, and buckshot. [Blzut3]
 +	- Added runeicon to SBarInfo's drawimage. [Blzut3]
++	- Vastly improved the server's DMFlags dialog. [Rivecoder]
+		- Sorted the flags into clear, logical groups.
+		- You can now type in new flags values directly, and see the checkboxes update in real time.
+		- Added missing flags, clarified the description of many, and fixed a few bugs.
 +	- Added teamscore to SBarInfo's drawnumber and drawbar.  Its takes one parameter for team name. [Blzut3]
 +	- Added new CCMD demo_skiptonextmap. When playing a client side demo, this command jumps the playback to the next map change. [Torr Samaho]
 +	- Added new CVAR sv_useteamstartsindm (default false). If true, team starts will be used when possible in deathmatch game modes with teams, e.g. TDM, TLMS. [Torr Samaho]

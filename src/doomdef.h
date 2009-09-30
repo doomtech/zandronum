@@ -183,7 +183,7 @@ enum ESkillLevels
 enum
 {
 	DF_NO_HEALTH			= 1 << 0,	// Do not spawn health items (DM)
-	DF_NO_ITEMS				= 1 << 1,	// Do not spawn powerups (DM)
+	DF_NO_ITEMS				= 1 << 1,	// Do not spawn powerups (DM) - [RC] Currently not implemented (no easy way to find if it's an object, like AArtifact).
 	DF_WEAPONS_STAY			= 1 << 2,	// Leave weapons around after pickup (DM)
 	DF_FORCE_FALLINGZD		= 1 << 3,	// Falling too far hurts (old ZDoom style)
 	DF_FORCE_FALLINGHX		= 2 << 3,	// Falling too far hurts (Hexen style)

@@ -5455,13 +5455,25 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\win32\dmflags\resource.h"
+				>
+			</File>			
+			<File
 				RelativePath=".\src\win32\serverconsole.cpp"
 				>
-			</File>
+			</File>			
 			<File
 				RelativePath=".\src\win32\serverconsole.h"
 				>
 			</File>
+			<File
+				RelativePath=".\src\win32\serverconsole_dmflags.cpp"
+				>
+			</File>			
+			<File
+				RelativePath=".\src\win32\serverconsole_dmflags.h"
+				>
+			</File>			
 			<File
 				RelativePath=".\src\win32\st_start.cpp"
 				>
@@ -9780,6 +9792,45 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\src\win32\dmflags\dmflags.rc"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
+						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
+						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+					/>
+				</FileConfiguration>
+			</File>
+			
 		</Filter>
 		<Filter
 			Name="Audio Files"

@@ -52,6 +52,7 @@
 #define	__SERVERCONSOLE_H__
 
 #include "network.h"
+#include "serverconsole_dmflags.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -70,7 +71,6 @@
 //	PROTOTYPES
 
 BOOL CALLBACK	SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
-BOOL CALLBACK	SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CALLBACK	SERVERCONSOLE_MapRotationCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CALLBACK	SERVERCONSOLE_LMSSettingsCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CALLBACK	SERVERCONSOLE_MessagesCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
@@ -103,9 +103,6 @@ void			SERVERCONSOLE_SetCurrentMapname( const char *pszString );
 void			SERVERCONSOLE_SetupColumns( void );
 void			SERVERCONSOLE_ReListPlayers( void );
 void			SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
-void			SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg );
-void			SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg );
-void			SERVERCONSOLE_UpdateDMFlags( HWND hDlg );
 void			SERVERCONSOLE_InitializeLMSSettingsDisplay( HWND hDlg );
 void			SERVERCONSOLE_UpdateLMSSettingsDisplay( HWND hDlg );
 void			SERVERCONSOLE_UpdateLMSSettings( HWND hDlg );
