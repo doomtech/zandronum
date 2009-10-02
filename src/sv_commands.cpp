@@ -512,12 +512,13 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer )
 {
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
+	FString armorIconTexName = pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "";
 	if ( ulArmorPoints > 0 ){
-		SERVER_CheckClientBuffer( ulPlayer, 4 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ), true );
+		SERVER_CheckClientBuffer( ulPlayer, 4 + (ULONG)strlen( armorIconTexName.GetChars() ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETPLAYERARMOR );
 		NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulArmorPoints );
-		NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, TexMan( pArmor->Icon )->Name );
+		NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, armorIconTexName.GetChars() );
 	}
 }
 

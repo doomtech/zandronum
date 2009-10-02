@@ -713,7 +713,8 @@ void DrawFullHUD_Armor()
 	if ( !pArmor || pArmor->Amount <= 0 )
 		return;
 
-	if ( pArmor )
+	// [BB] If pArmor->Icon is an invalid texture, TexMan returns a NULL pointer.
+	if ( pArmor && pArmor->Icon.isValid() )
 		sprintf( szPatchName, "%s", TexMan[pArmor->Icon]->Name );
 	else
 		sprintf( szPatchName, "ARM1A0" );
