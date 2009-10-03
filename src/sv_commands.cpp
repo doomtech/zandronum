@@ -512,8 +512,9 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer )
 {
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
-	FString armorIconTexName = pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "";
+	// [BB] The ( ulArmorPoints > 0 ) check ensures ( pArmor != NULL ) inside the block below.
 	if ( ulArmorPoints > 0 ){
+		FString armorIconTexName = pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "";
 		SERVER_CheckClientBuffer( ulPlayer, 4 + (ULONG)strlen( armorIconTexName.GetChars() ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETPLAYERARMOR );
 		NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulPlayer );
