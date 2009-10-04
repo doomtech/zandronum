@@ -127,6 +127,7 @@ latestzdoom branch
 -	- Fixed: The botskillpicname sprite in a botepisode menu was not centered correctly when it was a scaled graphic. [Torr Samaho]
 -	- Fixed: When the CVAR screenshot_dir is empty under Linux, Skulltag tries to put screenshots in ~/.zdoom/screenshots/ instead of ~/.skulltag/screenshots/. [Torr Samaho]
 -	- Fixed: Some crashes that happened when a player got / had an armor with an invalid inventory icon. [Torr Samaho]
+-	- Fixed: The game crashes, when you exit the game in single player while spying through the eyes of a bot. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]

@@ -256,7 +256,9 @@ void DBaseStatusBar::SetScaled (bool scale, bool force)
 void DBaseStatusBar::AttachToPlayer (player_t *player)
 {
 	CPlayer = player;
-	SB_state = screen->GetPageCount ();
+	// [BB] If we are spying through the eyes of a bot in single player while
+	// we exit the game, this is called with screen == NULL.
+	SB_state = screen ? screen->GetPageCount () : 0;
 }
 
 //---------------------------------------------------------------------------
