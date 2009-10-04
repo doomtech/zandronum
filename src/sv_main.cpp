@@ -3071,6 +3071,17 @@ void SERVER_LoadNewLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
+void SERVER_KickAllPlayers( const char *pszReason )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) )
+			SERVER_KickPlayer( ulIdx, pszReason ? pszReason : "No reason given." );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 {
 	ULONG	ulIdx;

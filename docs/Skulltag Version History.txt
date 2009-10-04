@@ -62,6 +62,7 @@ latestzdoom branch
 +	- Added new CVARs sv_coop_loseinventory, sv_coop_losekeys, sv_coop_loseweapons, sv_coop_losearmor, sv_coop_losepowerups, sv_coop_loseammo and sv_coop_halveammo to control the corresponding dmflags. [Torr Samaho]
 +	- Extended the effect of the MAPINFO flag "islobby": Maps with this flag now behave as if sv_keepteams is false. [Torr Samaho]
 +	- The name and location of Skulltag's data file (skulltag_data.pk3/skulltag.wad) can be specified with "-skulldata NAME". [Torr Samaho]
++	- When the Windows server crashes, it tries to kick all clients before it shuts down. That way the clients have a chance to notice that the server crashed instead of seeing the "waiting for server" message forever. (implementation for Linux planned). [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]

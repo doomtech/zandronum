@@ -1183,6 +1183,14 @@ LONG WINAPI ExitMessedUp (LPEXCEPTION_POINTERS foo)
 
 void CALLBACK ExitFatally (ULONG_PTR dummy)
 {
+	// [BB] If we are the server, try to kick all players before we shut down.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVER_KickAllPlayers( "The server encountered a fatal error and needs to shut down!" );
+		// [BB] It's crucial that we send the packets informing the clients now.
+		SERVER_SendOutPackets();
+	}
+
 	SetUnhandledExceptionFilter (ExitMessedUp);
 	I_ShutdownGraphics ();
 	RestoreConView ();
