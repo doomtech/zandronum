@@ -861,63 +861,6 @@ LEVEL_SP_PRE_30 = "level 30";
 LEVEL_SP_PRE_31 = "level 31";
 LEVEL_SP_PRE_32 = "level 32";
 
-LEVEL_DM_1 = "Training Center";
-LEVEL_DM_2 = "Testing Center";
-LEVEL_DM_3 = "Combat Center";
-LEVEL_DM_4 = "Containment Facility";
-LEVEL_DM_5 = "The Volcano Installation";
-LEVEL_DM_6 = "Last Bastion";
-LEVEL_DM_7 = "Linguica's Lair";
-LEVEL_DM_8 = "Temple of Pain";
-LEVEL_DM_9 = "Infernal Chamber";
-LEVEL_DM_10 = "Final Atonement";
-LEVEL_DM_SEC = "Some Secret Level";
-
-LEVEL_DUEL_1 = "Alpha Station";
-LEVEL_DUEL_2 = "Delta Base";
-LEVEL_DUEL_3 = "Sigma Junction";
-LEVEL_DUEL_4 = "Disposal Site";
-LEVEL_DUEL_5 = "Courtyard of Ruin";
-LEVEL_DUEL_6 = "Edge of Despair";
-LEVEL_DUEL_7 = "To Hell";
-LEVEL_DUEL_8 = "Impious Demesne";
-LEVEL_DUEL_9 = "Judgement Day";
-LEVEL_DUEL_10 = "Void of Damnation";
-LEVEL_DUEL_SEC = "Battle Corridor";
-
-LEVEL_LMS_1 = "Stealth Corridor";
-LEVEL_LMS_2 = "Survival Corridor";
-LEVEL_LMS_3 = "Death Corridor";
-LEVEL_LMS_4 = "Storage Area";
-LEVEL_LMS_5 = "Hollowed Ground";
-LEVEL_LMS_6 = "Incessant Nightmare";
-LEVEL_LMS_7 = "Sweltering Badlands";
-LEVEL_LMS_8 = "Forgotten Lair";
-LEVEL_LMS_9 = "Cliffside Bunker";
-LEVEL_LMS_10 = "Dark Hatred";
-
-LEVEL_CTF_1 = "McKinley Heritage";
-LEVEL_CTF_2 = "Mt. Capture";
-LEVEL_CTF_3 = "Verflutcher Tempel";
-LEVEL_CTF_4 = "Area -51 Degrees Celsius";
-LEVEL_CTF_5 = "Massmouth Mansion";
-LEVEL_CTF_6 = "Ruins of Blood";
-LEVEL_CTF_7 = "Den of Sanctity";
-LEVEL_CTF_8 = "Ghastly Abode";
-LEVEL_CTF_9 = "Disaster";
-LEVEL_CTF_10 = "Doomed Sea";
-
-LEVEL_ST_1 = "Doom Keep";
-LEVEL_ST_2 = "Ring of Fire";
-LEVEL_ST_3 = "Blood Fortress";
-LEVEL_ST_4 = "'O' of Devastation";
-LEVEL_ST_5 = "Acid Trip";
-LEVEL_ST_6 = "Rocket Jump Canyon";
-LEVEL_ST_7 = "Infinite Void";
-LEVEL_ST_8 = "Station 12";
-LEVEL_ST_9 = "Galactic Orbiter";
-LEVEL_ST_10 = "Oblivion Run";
-
 // Cluster strings.
 DM1TEXT =
 		"CONGRATULATIONS, YOU'VE FOUND WHAT NO\n"

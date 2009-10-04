@@ -853,63 +853,6 @@ LEVEL_SP_PRE_30 = "level 30";
 LEVEL_SP_PRE_31 = "level 31";
 LEVEL_SP_PRE_32 = "level 32";
 
-LEVEL_DM_1 = "Centro di Esercitazione";
-LEVEL_DM_2 = "Centro di Sperimentazione";
-LEVEL_DM_3 = "Centro di Battaglia";
-LEVEL_DM_4 = "Struttura di Contenimento";
-LEVEL_DM_5 = "Installazione del Vulcano";
-LEVEL_DM_6 = "L'ultimo Bastione";
-LEVEL_DM_7 = "Rifugio di Linguica";
-LEVEL_DM_8 = "Tempio del Dolore";
-LEVEL_DM_9 = "Camera Infernale";
-LEVEL_DM_10 = "Espiazione Finale";
-LEVEL_DM_SEC = "Un Livello Segreto";
-
-LEVEL_DUEL_1 = "Station Alpha";
-LEVEL_DUEL_2 = "Base Delta";
-LEVEL_DUEL_3 = "Incrocio Sigma";
-LEVEL_DUEL_4 = "Sito di Disposizione";
-LEVEL_DUEL_5 = "Cortile della Rovina";
-LEVEL_DUEL_6 = "Margine della Disperazione";
-LEVEL_DUEL_7 = "All'Inferno";
-LEVEL_DUEL_8 = "Impious Demesne";
-LEVEL_DUEL_9 = "Giorno Del Giudizio";
-LEVEL_DUEL_10 = "Il Vuoto della Dannazione";
-LEVEL_DUEL_SEC = "Corridoio della Battaglia";
-
-LEVEL_LMS_1 = "Corridoio della Furtivita'";
-LEVEL_LMS_2 = "Corridoio della Sopravvivenza";
-LEVEL_LMS_3 = "Corridoio della Morte";
-LEVEL_LMS_4 = "Area di Contenimento";
-LEVEL_LMS_5 = "Terreno Svuotato";
-LEVEL_LMS_6 = "Incubo Incessante";
-LEVEL_LMS_7 = "Territori Soffocanti";
-LEVEL_LMS_8 = "Rifugio Dimenticato";
-LEVEL_LMS_9 = "Cliffside Bunker";
-LEVEL_LMS_10 = "Odio Oscuro";
-
-LEVEL_CTF_1 = "Eredita' di McKinley";
-LEVEL_CTF_2 = "Mt. Capture";
-LEVEL_CTF_3 = "Tempio Maledetto";
-LEVEL_CTF_4 = "Area -51 Gradi Celsius";
-LEVEL_CTF_5 = "Casa del Massmouth";
-LEVEL_CTF_6 = "Rovine di Sangue";
-LEVEL_CTF_7 = "Tana della santita'";
-LEVEL_CTF_8 = "Orrendo Sopra";
-LEVEL_CTF_9 = "Disastro";
-LEVEL_CTF_10 = "Mare Destinato";
-
-LEVEL_ST_1 = "Bastioni Del Destino";
-LEVEL_ST_2 = "Anello Di Fuoco";
-LEVEL_ST_3 = "Fortezza Di Sangue";
-LEVEL_ST_4 = "'O' della devastazione!";
-LEVEL_ST_5 = "Viaggio Acido";
-LEVEL_ST_6 = "Rocket Jump Canyon";
-LEVEL_ST_7 = "Vuoto Infinito";
-LEVEL_ST_8 = "Stazione 12";
-LEVEL_ST_9 = "Astronave Galattica";
-LEVEL_ST_10 = "Corsa Dell'Oblio";
-
 // Cluster strings.
 DM1TEXT =
 		"Congratulazioni, Hai trovato qualcosa che\n"

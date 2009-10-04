@@ -382,9 +382,6 @@ map MAP32 lookup "HUSTR_32"
 	music = "$MUSIC_ULTIMA"
 }
 
-// [BC] New definitions for the Skulltag maps.
-include "mapinfo/skulltag.txt"
-
 // DOOM II first cluster (up thru level 6)
 
 cluster 5
