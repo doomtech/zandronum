@@ -1903,7 +1903,11 @@ int DDoomStatusBar::FDoomStatusBarTexture::CopyTrueColorPixels(FBitmap *bmp, int
 	BaseTexture->CopyTrueColorPixels(bmp, x, y);
 	if (!deathmatch)
 	{
-		tex = TexMan["STARMS"];
+		// [BB] Possibly draw STPTS instead of STARMS.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+			tex = TexMan["STPTS"];
+		else
+			tex = TexMan["STARMS"];
 		if (tex != NULL)
 		{
 			tex->CopyTrueColorPixels(bmp, x+104, y);
