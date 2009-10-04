@@ -6416,9 +6416,13 @@ static void client_SetThingTID( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	// Finally, set the tid.
-	pActor->tid = lTid;
-	pActor->AddToHash();
+	// [BB] Finally, set the tid, but be careful doing so (cf. FUNC(LS_Thing_ChangeTID)).
+	if (!(pActor->ObjectFlags & OF_EuthanizeMe))
+	{
+		pActor->RemoveFromHash ();
+		pActor->tid = lTid;
+		pActor->AddToHash();
+	}
 }
 
 //*****************************************************************************

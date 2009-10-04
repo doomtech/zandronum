@@ -1001,6 +1001,10 @@ FUNC(LS_Thing_ChangeTID)
 			it->RemoveFromHash ();
 			it->tid = arg1;
 			it->AddToHash ();
+
+			// [BB] Notify the clients about the TID change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingTID( it );
 		}
 	}
 	else
@@ -1019,6 +1023,10 @@ FUNC(LS_Thing_ChangeTID)
 				actor->RemoveFromHash ();
 				actor->tid = arg1;
 				actor->AddToHash ();
+
+				// [BB] Notify the clients about the TID change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingTID( actor );
 			}
 		}
 	}
