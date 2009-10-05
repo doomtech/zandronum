@@ -1952,6 +1952,7 @@ void D_DoomMain (void)
 		if ( skulldataFilename )
 		{
 			wad = BaseFileSearch( skulldataFilename, NULL, true );
+			g_SkulltagDataFileName = ExtractFileBase ( skulldataFilename, true );
 			if ( wad == NULL )
 				I_FatalError( "Cannot find %s", skulldataFilename );
 		}
@@ -1959,10 +1960,12 @@ void D_DoomMain (void)
 		{
 			// [BC/BB] Also load skulltag_data.pk3 / skulltag.wad.
 			wad = BaseFileSearch( "skulltag_data.pk3", NULL, true );
+			g_SkulltagDataFileName = "skulltag_data.pk3";
 			// [BB] If we can't find skulltag_data.pk3, try skulltag.wad.
 			if ( wad == NULL )
 			{
 				wad = BaseFileSearch( "skulltag.wad", NULL, true );
+				g_SkulltagDataFileName = "skulltag.wad";
 				if ( wad == NULL )
 					I_FatalError( "Cannot find skulltag.wad" );
 			}

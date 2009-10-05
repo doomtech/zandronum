@@ -431,7 +431,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			// within pk3 files.
 			if (( ulIdx == ulRealIWADIdx ) ||
 				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+				( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 				( Wads.GetLoadedAutomatically( ulIdx )) ||
 				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 			{
@@ -449,7 +449,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			// within pk3 files.
 			if (( ulIdx == ulRealIWADIdx ) ||
 				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+				( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 				( Wads.GetLoadedAutomatically( ulIdx )) ||
 				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 			{
@@ -717,7 +717,7 @@ CCMD( wads )
 		// within pk3 files.
 		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 			( Wads.GetLoadedAutomatically( ulIdx )) ||
 			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 		{
@@ -735,7 +735,7 @@ CCMD( wads )
 		// within pk3 files.
 		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 			( Wads.GetLoadedAutomatically( ulIdx )) ||
 			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 		{

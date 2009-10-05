@@ -95,6 +95,9 @@ FString g_lumpsAuthenticationChecksum;
 // [BB] MD5Sum of skulltag.wad / skulltag_data.pk3
 FString g_SkulltagDataFileMD5Sum;
 
+// [BB] Actual filename of skulltag.wad / skulltag_data.pk3 currently in use.
+FString g_SkulltagDataFileName;
+
 static TArray<LONG> g_LumpNumsToAuthenticate ( 0 );
 
 // The current network state. Single player, client, server, etc.
