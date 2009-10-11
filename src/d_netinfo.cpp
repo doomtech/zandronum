@@ -533,6 +533,9 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	{
 		val = cvar->GetGenericRep( CVAR_String );
 		FString cleanedName = val.String;
+		// [BB] Don't allow the CVAR to be longer than MAXPLAYERNAME, userinfo_t::netname
+		// can't be longer anyway.
+		cleanedName = cleanedName.Left(MAXPLAYERNAME);
 		// [BB] V_CleanPlayerName removes all backslashes, including those from '\c'.
 		// To clean the name, we first convert the color codes, clean the name and
 		// then restore the color codes again.
