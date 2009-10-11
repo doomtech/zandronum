@@ -4864,6 +4864,10 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	// Build the state name list.
 	TArray<FName> &StateList = MakeStateNameList( pszState );
 
+	// [BB] Obviously, we can't access StateList[0] if StateList is empty.
+	if ( StateList.Size( ) == 0 )
+		return;
+
 	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
 		P_SetPsprite( &players[ulPlayer], lPosition, pNewState + lOffset );
