@@ -1057,9 +1057,13 @@ AInventory *AActor::GiveInventoryType (const PClass *type)
 AInventory *AActor::GiveInventoryTypeRespectingReplacements (const PClass *type)
 {
 	const PClass *pReplacementClass = type->ActorInfo->GetReplacement( )->Class;
+	// [BB] Special handling for DehackedPickup: In this case the original actor is
+	// already modified and we need to give it to him instead of the replacement.
+	if ( pReplacementClass->IsDescendantOf ( PClass::FindClass( "DehackedPickup" ) ) )
+		return GiveInventoryType ( type );
 	// [BB] If the replacement is something, that is not of type AInventory, we
 	// can't give it to the actor.
-	if ( pReplacementClass->IsDescendantOf( RUNTIME_CLASS( AInventory )) )
+	else if ( pReplacementClass->IsDescendantOf( RUNTIME_CLASS( AInventory )) )
 		return GiveInventoryType ( pReplacementClass );
 	else
 		return NULL;
