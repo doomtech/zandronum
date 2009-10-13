@@ -1634,6 +1634,10 @@ void M_DrawReadThis ()
 	FTexture *tex = NULL, *prevpic = NULL;
 	fixed_t alpha;
 
+	// [BB] Is there a built in texture for this gamemode?
+	if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
+		tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
+
 	// Did the mapper choose a custom help page via MAPINFO?
 	if ((level.info != NULL) && level.info->f1[0] != 0)
 	{
@@ -1645,8 +1649,7 @@ void M_DrawReadThis ()
 	{
 		tex = TexMan[gameinfo.infoPages[InfoType-1].GetChars()];
 	}
-		else if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
-			tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
+
 	if (InfoType > 1)
 	{
 		prevpic = TexMan[gameinfo.infoPages[InfoType-2].GetChars()];
