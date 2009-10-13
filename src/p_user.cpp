@@ -1437,7 +1437,14 @@ void APlayerPawn::GiveDefaultInventory ()
 			player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "Berserk" ) );
 			pBerserk = static_cast<APowerStrength *>( player->mo->FindInventory( PClass::FindClass( "PowerStrength" )));
 			if ( pBerserk )
+			{
 				pBerserk->EffectTics = 768;
+				// [BB] This is a workaround to set the EffectTics property of the powerup on the clients.
+				// Note: The server already tells the clients that they got PowerStrength, because
+				// Berserk uses A_GiveInventory("PowerStrength").
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_GivePowerup( static_cast<ULONG>(player - players), pBerserk );
+			}
 
 			player->health = deh.MegasphereHealth;
 			player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "GreenArmor" ) );
