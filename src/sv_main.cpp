@@ -5161,6 +5161,8 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		// If the actual body doesn't have default values (e.g. the player had the
 		// fly cheat before tha map change), tell the client about the actual values.
 		SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults ( players[g_lCurrentClient].mo, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		// [BB] Inform the player about its health, otherwise the client thinks that the local player has the default health.
+		SERVERCOMMANDS_SetPlayerHealth( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		// [BB] It's possible that the MaxHealth property was changed dynamically with ACS, so send it.
 		SERVERCOMMANDS_SetPlayerMaxHealth( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 

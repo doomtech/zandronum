@@ -299,9 +299,6 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		if ( bMorph )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
-	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
-	// The armor display is handled in SERVER_ResetInventory.
-	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
 
 	// [BB]: If the player still has any cheats activated from the last level, tell
 	// him about it. Not doing this leads for example to jerky movement on client side
