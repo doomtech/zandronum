@@ -594,6 +594,7 @@ CVAR (Flag, compat_oldradiusdmg,	compatflags, COMPATF_OLDRADIUSDMG);
 CVAR (Flag, compat_nocrosshair,		compatflags, COMPATF_NO_CROSSHAIR);
 CVAR (Flag, compat_oldweaponswitch,		compatflags, COMPATF_OLD_WEAPON_SWITCH);
 CVAR (Flag, compat_netscriptsareclientside,		compatflags2, COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE);
+CVAR (Flag, compat_clientssendfullbuttoninfo,		compatflags2, COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO);
 
 //==========================================================================
 //

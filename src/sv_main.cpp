@@ -4129,7 +4129,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		pCmd->ucmd.roll = 0;
 
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-		pCmd->ucmd.buttons = NETWORK_ReadByte( pByteStream );
+		pCmd->ucmd.buttons = ( ulBits & CLIENT_UPDATE_BUTTONS_LONG ) ? NETWORK_ReadLong( pByteStream ) : NETWORK_ReadByte( pByteStream );
 	else
 		pCmd->ucmd.buttons = 0;
 

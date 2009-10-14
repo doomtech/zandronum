@@ -335,6 +335,11 @@ enum
 	// [BB] Treat ACS scripts with the SCRIPTF_Net flag to be client side, i.e.
 	// executed on the clients, but not on the server.
 	COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE		= 1 << 0,
+	// [BB] Clients send ucmd.buttons as "long" instead of as "byte" in CLIENTCOMMANDS_ClientMove.
+	// So far this is only necessary if the ACS function GetPlayerInput is used in a server side
+	// script to check for buttons bigger than BT_ZOOM. Otherwise this information is completely
+	// useless for the server and the additional net traffic to send it should be avoided.
+	COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO		= 1 << 1,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

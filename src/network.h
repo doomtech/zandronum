@@ -99,6 +99,7 @@ enum
 #define	CLIENT_UPDATE_FORWARDMOVE		0x10
 #define	CLIENT_UPDATE_SIDEMOVE			0x20
 #define	CLIENT_UPDATE_UPMOVE			0x40
+#define	CLIENT_UPDATE_BUTTONS_LONG		0x80
 
 // Identifying states (the cheap & easy way out)
 #define	STATE_SPAWN				1
