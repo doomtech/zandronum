@@ -2600,7 +2600,9 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		if  (mo->Sector->SecActTarget != NULL &&
 			mo->Sector->floorplane.ZatPoint (mo->x, mo->y) == mo->floorz)
 		{ // [RH] Let the sector do something to the actor
-			mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitFloor);
+			// [BB] Spectators shouldn't trigger such actions.
+			if ( ( mo->player == NULL ) || ( mo->player->bSpectating == false ) )
+				mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitFloor);
 		}
 		P_CheckFor3DFloorHit(mo);
 		// [RH] Need to recheck this because the sector action might have
@@ -2728,7 +2730,9 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			mo->Sector->SecActTarget != NULL &&
 			mo->Sector->ceilingplane.ZatPoint (mo->x, mo->y) == mo->ceilingz)
 		{ // [RH] Let the sector do something to the actor
-			mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitCeiling);
+			// [BB] Spectators shouldn't trigger such actions.
+			if ( ( mo->player == NULL ) || ( mo->player->bSpectating == false ) )
+				mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitCeiling);
 		}
 		P_CheckFor3DCeilingHit(mo);
 		// [RH] Need to recheck this because the sector action might have
