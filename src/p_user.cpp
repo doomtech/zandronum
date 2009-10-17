@@ -2054,8 +2054,12 @@ void APlayerPawn::TweakSpeeds (int &forward, int &side)
 	// Strife's player can't run when its healh is below 10
 	if (health <= RunHealth)
 	{
-		forward = clamp(forward, -0x1900, 0x1900);
-		side = clamp(side, -0x1800, 0x1800);
+		// [BB] Spectators (in particular dead spectators) can run regardless of their health.
+		if ( ( player == NULL ) || ( player->bSpectating == false ) )
+		{
+			forward = clamp(forward, -0x1900, 0x1900);
+			side = clamp(side, -0x1800, 0x1800);
+		}
 	}
 
 	// [GRB]
