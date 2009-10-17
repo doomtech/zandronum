@@ -133,6 +133,7 @@ latestzdoom branch
 -	- Fixed: When the TID of an actor is changed online on the server by Thing_ChangeTID, the clients connected are not informed about the TID change. [Torr Samaho]
 -	- Fixed: The rain spawned by SkullRodPowered online is translated according to the translation of player 1 and not the player that fired the weapon. [Torr Samaho]
 -	- Fixed: When using sv_awarddamageinsteadkills 1 in survival / survival invasion, the player scores are not reset when the map is reset. [Torr Samaho]
+-	- Fixed: Map spawned actors that use certain kind of code pointers in their spawn state (e.g. A_SpawnItemEx) possibly were not properly reset during a map reset. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]

@@ -3466,7 +3466,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 		// This item appears to be untouched; no need to respawn it.
 		if ((( pActor->ulSTFlags & STFL_POSITIONCHANGED ) == false ) &&
-			( pActor->InSpawnState( )) &&
+			( pActor->state == pActor->InitialState ) &&
 			( GAME_DormantStatusMatchesOriginal( pActor )) &&
 			( pActor->health == pActorInfo->health ))
 		{
