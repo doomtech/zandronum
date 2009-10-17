@@ -323,17 +323,23 @@ void GAMEMODE_RespawnAllPlayers( void )
 
 //*****************************************************************************
 //
-void GAMEMODE_ResetPlayersKillCount( void )
+void GAMEMODE_ResetPlayersKillCount( const bool bInformClients )
 {
 	// Reset everyone's kill count.
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		players[ulIdx].killcount = 0;
 		players[ulIdx].ulRailgunShots = 0;
+		// [BB] Also reset the things for DF2_AWARD_DAMAGE_INSTEAD_KILLS.
+		players[ulIdx].lPointCount = 0;
+		players[ulIdx].ulUnrewardedDamageDealt = 0;
 
 		// [BB] Notify the clients about the killcount change.
-		if ( playeringame[ulIdx] && (NETWORK_GetState() == NETSTATE_SERVER) )
+		if ( playeringame[ulIdx] && bInformClients && (NETWORK_GetState() == NETSTATE_SERVER) )
+		{
 			SERVERCOMMANDS_SetPlayerKillCount ( ulIdx );
+			SERVERCOMMANDS_SetPlayerPoints ( ulIdx );
+		}
 	}
 }
 

@@ -55,6 +55,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "g_level.h"
+#include "gamemode.h"
 #include "i_system.h"
 #include "joinqueue.h"
 #include "network.h"
@@ -247,11 +248,7 @@ void SURVIVAL_DoFight( void )
 	level.time = 0;
 
 	// Reset everyone's kill count.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		players[ulIdx].killcount = 0;
-		players[ulIdx].ulRailgunShots = 0;
-	}
+	GAMEMODE_ResetPlayersKillCount ( false );
 
 	// Tell clients to "fight!".
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
