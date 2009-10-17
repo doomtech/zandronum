@@ -1449,6 +1449,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSkullRodPL2)
 	if (MissileActor != NULL)
 	{
 		MissileActor->special2 = (int)(player - players);
+
+		// [BB] Set the special, otherwise the translation of the rain spawned later will be wrong.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingSpecial2( MissileActor );
+
 		if (linetarget)
 		{
 			MissileActor->tracer = linetarget;
@@ -1470,6 +1475,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSkullRodPL2)
 		if (MissileActor != NULL)
 		{
 			MissileActor->special2 = (int)(player - players);
+
+			// [BB] Set the special, otherwise the translation of the rain spawned later will be wrong.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingSpecial2( MissileActor );
+
 			if (linetarget)
 			{
 				MissileActor->tracer = linetarget;
@@ -1488,6 +1498,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSkullRodPL2)
 		if (MissileActor != NULL)
 		{
 			MissileActor->special2 = (int)(player - players);
+
+			// [BB] Set the special, otherwise the translation of the rain spawned later will be wrong.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingSpecial2( MissileActor );
+
 			if (linetarget)
 			{
 				MissileActor->tracer = linetarget;
