@@ -5908,6 +5908,10 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] If we spied the actor we are supposed to destory, reset our camera.
+	if ( pActor->CheckLocalView( consoleplayer ) )
+		CLIENT_ResetConsolePlayerCamera( );
+
 	// [BB] If we are destroying a player's body here, we must NULL the corresponding pointer.
 	if ( pActor->player && ( pActor->player->mo == pActor ) )
 		pActor->player->mo = NULL;
