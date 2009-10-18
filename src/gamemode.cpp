@@ -306,17 +306,22 @@ void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent )
 				continue;
 			}
 
-			if ( players[ulIdx].mo )
-			{
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-				players[ulIdx].mo->Destroy( );
-				players[ulIdx].mo = NULL;
-			}
+			// [BB] Disassociate the player body, but don't delete it right now. The clients
+			// still need the old body while the player is respawned so that they can properly
+			// transfer their camera if they are spying through the eyes of the respawned player.
+			APlayerPawn* pOldPlayerBody = players[ulIdx].mo;
+			players[ulIdx].mo = NULL;
 
 			players[ulIdx].playerstate = PST_ENTER;
 			GAMEMODE_SpawnPlayer( ulIdx );
+
+			if ( pOldPlayerBody )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyThing( pOldPlayerBody );
+
+				pOldPlayerBody->Destroy( );
+			}
 
 			if ( players[ulIdx].pSkullBot && ( BotEvent < NUM_BOTEVENTS ) )
 				players[ulIdx].pSkullBot->PostEvent( BotEvent );
