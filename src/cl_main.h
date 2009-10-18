@@ -165,6 +165,7 @@ AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const char *pszName );
 sector_t			*CLIENT_FindSectorByID( ULONG ulID );
 bool				CLIENT_IsValidPlayer( ULONG ulPlayer );
 bool				CLIENT_IsParsingPacket( void );
+void				CLIENT_ResetConsolePlayerCamera( void );
 void				CLIENT_ResetPlayerData( player_t *pPlayer );
 LONG				CLIENT_AdjustDoorDirection( LONG lDirection );
 LONG				CLIENT_AdjustFloorDirection( LONG lDirection );

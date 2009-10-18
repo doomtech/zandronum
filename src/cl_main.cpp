@@ -3210,6 +3210,17 @@ bool CLIENT_IsParsingPacket( void )
 
 //*****************************************************************************
 //
+void CLIENT_ResetConsolePlayerCamera( void )
+{
+	players[consoleplayer].camera = players[consoleplayer].mo;
+	if ( players[consoleplayer].camera != NULL )
+		S_UpdateSounds( players[consoleplayer].camera );
+	if ( StatusBar != NULL )
+		StatusBar->AttachToPlayer( &players[consoleplayer] );
+}
+
+//*****************************************************************************
+//
 void CLIENT_ResetPlayerData( player_t *pPlayer )
 {
 	pPlayer->mo = NULL;
@@ -5094,9 +5105,7 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 	// If we were a spectator and looking through this player's eyes, revert them.
 	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ))
 	{
-		players[consoleplayer].camera = players[consoleplayer].mo;
-		S_UpdateSounds( players[consoleplayer].camera );
-		StatusBar->AttachToPlayer( &players[consoleplayer] );
+		CLIENT_ResetConsolePlayerCamera( );
 	}
 
 	// Create a little disconnect particle effect thingamabobber!
