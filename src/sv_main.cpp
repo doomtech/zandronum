@@ -1383,20 +1383,8 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	{
 		players[g_lCurrentClient].playerstate = PST_ENTER;
 
-		// Spawn the player at their appropriate team start.
-		if ( teamgame )
-		{
-			if ( players[g_lCurrentClient].bOnTeam )
-				G_TeamgameSpawnPlayer( g_lCurrentClient, players[g_lCurrentClient].ulTeam, true );
-			else
-				G_TemporaryTeamSpawnPlayer( g_lCurrentClient, true );
-		}
-		// If deathmatch, just spawn at a random spot.
-		else if ( deathmatch )
-			G_DeathMatchSpawnPlayer( g_lCurrentClient, true );
-		// Otherwise, just spawn at their normal player start.
-		else
-			G_CooperativeSpawnPlayer( g_lCurrentClient, true );
+		// [BB] Spawn the player at an appropriate start.
+		GAMEMODE_SpawnPlayer ( g_lCurrentClient );
 	}
 
 	// Tell the client of any lines that have been altered since the level start.

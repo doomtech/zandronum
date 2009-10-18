@@ -323,6 +323,26 @@ void GAMEMODE_RespawnAllPlayers( void )
 
 //*****************************************************************************
 //
+void GAMEMODE_SpawnPlayer( const ULONG ulPlayer )
+{
+	// Spawn the player at their appropriate team start.
+	if ( teamgame )
+	{
+		if ( players[ulPlayer].bOnTeam )
+			G_TeamgameSpawnPlayer( ulPlayer, players[ulPlayer].ulTeam, true );
+		else
+			G_TemporaryTeamSpawnPlayer( ulPlayer, true );
+	}
+	// If deathmatch, just spawn at a random spot.
+	else if ( deathmatch )
+		G_DeathMatchSpawnPlayer( ulPlayer, true );
+	// Otherwise, just spawn at their normal player start.
+	else
+		G_CooperativeSpawnPlayer( ulPlayer, true );
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_ResetPlayersKillCount( const bool bInformClients )
 {
 	// Reset everyone's kill count.

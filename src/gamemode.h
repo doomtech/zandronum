@@ -138,6 +138,7 @@ char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void );
 void		GAMEMODE_RespawnAllPlayers( void );
+void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
