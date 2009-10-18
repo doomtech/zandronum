@@ -4748,7 +4748,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		if (state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY)
 		{
 			if (gamestate != GS_TITLELEVEL)
+			{
 				p->mo->GiveDefaultInventory ();
+				// [BB] The default inventory possibly alters the player's health. Thus we need to make sure
+				// that the health of the player's body matches the player's health.
+				mobj->health = p->health;
+			}
 		}
 	}
 
