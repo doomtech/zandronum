@@ -135,6 +135,7 @@ latestzdoom branch
 -	- Fixed: When using sv_awarddamageinsteadkills 1 in survival / survival invasion, the player scores are not reset when the map is reset. [Torr Samaho]
 -	- Fixed: Map spawned actors that use certain kind of code pointers in their spawn state (e.g. A_SpawnItemEx) possibly were not properly reset during a map reset. [Torr Samaho]
 -	- Fixed: Spectators could trigger hit floor/ceiling sector actions offline. [Torr Samaho]
+-	- Fixed: If you are spying someone online while the spied one is turning into a spectator, your eyes return to your body, but your status bar keeps being locked to the player you spied. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]

@@ -5215,8 +5215,7 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 	// If we were a spectator and looking through this player's eyes, revert them.
 	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ))
 	{
-		players[consoleplayer].camera = players[consoleplayer].mo;
-//		ChangeSpy( true );
+		CLIENT_ResetConsolePlayerCamera();
 	}
 
 	// Don't lag anymore if we're a spectator.
