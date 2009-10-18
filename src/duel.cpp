@@ -57,6 +57,7 @@
 #include "duel.h"
 #include "g_game.h"
 #include "g_level.h"
+#include "gamemode.h"
 #include "gstrings.h"
 #include "network.h"
 #include "p_effect.h"
@@ -215,7 +216,6 @@ void DUEL_StartCountdown( ULONG ulTicks )
 //
 void DUEL_DoFight( void )
 {
-	ULONG				ulIdx;
 	DHUDMessageFadeOut	*pMsg;
 
 	// No longer waiting to duel.
@@ -262,32 +262,7 @@ void DUEL_DoFight( void )
 
 	// Reset the map.
 	GAME_ResetMap( );
-
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		// Respawn the players.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false ))
-			{
-				if ( players[ulIdx].mo )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-					players[ulIdx].mo->Destroy( );
-					players[ulIdx].mo = NULL;
-				}
-
-				players[ulIdx].playerstate = PST_ENTER;
-				G_DeathMatchSpawnPlayer( ulIdx, true );
-
-				if ( players[ulIdx].pSkullBot )
-					players[ulIdx].pSkullBot->PostEvent( BOTEVENT_DUEL_FIGHT );
-			}
-		}
-	}
+	GAMEMODE_RespawnAllPlayers( BOTEVENT_DUEL_FIGHT );
 
 	SCOREBOARD_RefreshHUD( );
 }

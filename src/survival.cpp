@@ -231,7 +231,6 @@ void SURVIVAL_StartCountdown( ULONG ulTicks )
 //
 void SURVIVAL_DoFight( void )
 {
-	ULONG				ulIdx;
 	DHUDMessageFadeOut	*pMsg;
 
 	// The battle is now in progress.
@@ -277,35 +276,7 @@ void SURVIVAL_DoFight( void )
 
 	// Revert the map to how it was in its original state.
 	GAME_ResetMap( );
-
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		// Respawn the players.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] == false ) ||
-				( PLAYER_IsTrueSpectator( &players[ulIdx] )))
-			{
-				continue;
-			}
-			
-			if ( players[ulIdx].mo )
-			{
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-				players[ulIdx].mo->Destroy( );
-				players[ulIdx].mo = NULL;
-			}
-
-			players[ulIdx].playerstate = PST_ENTER;
-			G_CooperativeSpawnPlayer( ulIdx, true );
-
-			if ( players[ulIdx].pSkullBot )
-				players[ulIdx].pSkullBot->PostEvent( BOTEVENT_LMS_FIGHT );
-		}
-	}
+	GAMEMODE_RespawnAllPlayers( );
 
 	// [BB] To properly handle respawning of the consoleplayer in single player
 	// we need to put the game into a "fake multiplayer" mode.

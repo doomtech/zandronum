@@ -58,6 +58,7 @@
 #include "d_event.h"
 #include "g_game.h"
 #include "g_level.h"
+#include "gamemode.h"
 #include "gstrings.h"
 #include "joinqueue.h"
 #include "lastmanstanding.h"
@@ -433,7 +434,6 @@ void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 //
 void LASTMANSTANDING_DoFight( void )
 {
-	ULONG				ulIdx;
 	DHUDMessageFadeOut	*pMsg;
 
 	// The match is now in progress.
@@ -480,32 +480,7 @@ void LASTMANSTANDING_DoFight( void )
 
 	// Reset the map.
 	GAME_ResetMap( );
-
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		// Respawn the players.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false ))
-			{
-				if ( players[ulIdx].mo )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-					players[ulIdx].mo->Destroy( );
-					players[ulIdx].mo = NULL;
-				}
-
-				players[ulIdx].playerstate = PST_ENTER;
-				G_DeathMatchSpawnPlayer( ulIdx, true );
-
-				if ( players[ulIdx].pSkullBot )
-					players[ulIdx].pSkullBot->PostEvent( BOTEVENT_LMS_FIGHT );
-			}
-		}
-	}
+	GAMEMODE_RespawnAllPlayers( BOTEVENT_LMS_FIGHT );
 
 	SCOREBOARD_RefreshHUD( );
 }
