@@ -2266,7 +2266,16 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			if (( pPlayer->mo ) &&
 				( pOldBody ))
 			{
+				// [BB] It's possible that the old body is at a place that's inaccessible to spectators
+				// (whatever source killed the player possibly moved the body after the player's death).
+				// If that's the case, don't move the spectator to the old body position, but to the place
+				// where G_DoReborn spawned him.
+				fixed_t playerSpawnX = pPlayer->mo->x;
+				fixed_t playerSpawnY = pPlayer->mo->y;
+				fixed_t playerSpawnZ = pPlayer->mo->z;
 				pPlayer->mo->SetOrigin( pOldBody->x, pOldBody->y, pOldBody->z );
+				if ( P_TestMobjLocation ( pPlayer->mo ) == false )
+					pPlayer->mo->SetOrigin( playerSpawnX, playerSpawnY, playerSpawnZ );
 
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_MoveLocalPlayer( ULONG( pPlayer - players ));
