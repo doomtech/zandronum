@@ -324,46 +324,9 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		// Zero out the countdown ticker.
 		SURVIVAL_SetCountdownTicks( 0 );
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ) &&
-			( survival ))
+		if ( survival )
 		{
-			// Respawn any players who were downed during the previous round.
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if (( playeringame[ulIdx] == false ) ||
-					( PLAYER_IsTrueSpectator( &players[ulIdx] )))
-				{
-					continue;
-				}
-
-				// We don't want to respawn players as soon as the map starts; we only
-				// want to respawn dead spectators.
-				if (( players[ulIdx].mo ) &&
-					( players[ulIdx].mo->health > 0 ) &&
-					( players[ulIdx].bDeadSpectator == false ))
-				{
-					continue;
-				}
-
-				players[ulIdx].bSpectating = false;
-				players[ulIdx].bDeadSpectator = false;
-				players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
-
-				if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-					players[ulIdx].mo->Destroy( );
-					players[ulIdx].mo = NULL;
-				}
-
-				G_CooperativeSpawnPlayer( ulIdx, true );
-			}
-
-			// Let anyone who's been waiting in line join now.
-			JOINQUEUE_PopQueue( -1 );
+			GAMEMODE_RespawnDeadSpectatorsAndPopQueue( );
 		}
 		break;
 	case SURVS_NEWMAP:
