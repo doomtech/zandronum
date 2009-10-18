@@ -291,7 +291,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void )
 
 //*****************************************************************************
 //
-void GAMEMODE_RespawnAllPlayers( void )
+void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent )
 {
 	// [BB] This is server side.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -316,7 +316,10 @@ void GAMEMODE_RespawnAllPlayers( void )
 			}
 
 			players[ulIdx].playerstate = PST_ENTER;
-			G_CooperativeSpawnPlayer( ulIdx, true );
+			GAMEMODE_SpawnPlayer( ulIdx );
+
+			if ( players[ulIdx].pSkullBot && ( BotEvent < NUM_BOTEVENTS ) )
+				players[ulIdx].pSkullBot->PostEvent( BotEvent );
 		}
 	}
 }

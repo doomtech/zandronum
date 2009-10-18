@@ -51,6 +51,7 @@
 #ifndef __GAMEMODE_H__
 #define __GAMEMODE_H__
 
+#include "bots.h"
 #include "c_cvars.h"
 #include "doomtype.h"
 #include "doomdef.h"
@@ -137,7 +138,7 @@ char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void );
-void		GAMEMODE_RespawnAllPlayers( void );
+void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 
