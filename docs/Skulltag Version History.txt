@@ -137,6 +137,7 @@ latestzdoom branch
 -	- Fixed: Spectators could trigger hit floor/ceiling sector actions offline. [Torr Samaho]
 -	- Fixed: If you are spying someone online while the spied one is turning into a spectator, your eyes return to your body, but your status bar keeps being locked to the player you spied. [Torr Samaho]
 -	- Hopefully fixed: When a player dies and turns into a dead spectator (e.g. in survival/survival invasion/(T)LMS), the spectator body possibly gets stuck. [Torr Samaho]
+-	- Fixed: In cooperative game modes, ArtiTeleport only works properly for players that have designated starts on the current map. [Torr Samaho]
 !	- Increased Software's freelook to +-56 degrees (in otherwords you can now look up as much as you could down). This is done to reduce the advantage of OpenGL. The old limit can be restored with the new CVAR cl_oldfreelooklimit (default false). [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 !	- The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]

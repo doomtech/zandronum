@@ -15,6 +15,8 @@
 #include "teaminfo.h"
 #include "gamemode.h"
 #include "team.h"
+#include "g_game.h"
+#include "i_system.h"
 
 static FRandom pr_tele ("TeleportSelf");
 
@@ -51,8 +53,8 @@ bool AArtiTeleport::Use (bool pickup)
 	{
 		unsigned int selections = teams[ownerTeam].TeamStarts.Size ();
 		unsigned int i = pr_tele() % selections;
-		destX = teams[ownerTeam].TeamStarts[i].x << FRACBITS;
-		destY = teams[ownerTeam].TeamStarts[i].y << FRACBITS;
+		destX = teams[ownerTeam].TeamStarts[i].x;
+		destY = teams[ownerTeam].TeamStarts[i].y;
 		destAngle = ANG45 * (teams[ownerTeam].TeamStarts[i].angle/45);
 	}
 	else if (deathmatch)
@@ -65,9 +67,22 @@ bool AArtiTeleport::Use (bool pickup)
 	}
 	else
 	{
-		destX = playerstarts[Owner->player - players].x;
-		destY = playerstarts[Owner->player - players].y;
-		destAngle = ANG45 * (playerstarts[Owner->player - players].angle/45);
+		FMapThing *pSpot = NULL;
+		// [BB] If there is a designated start for this player use it.
+		if ( playerstarts[Owner->player - players].type != 0 )
+			pSpot = &playerstarts[Owner->player - players];
+		// [BB] Otherwise we just have to select a start at random from all available player starts.
+		else
+			pSpot = SelectRandomCooperativeSpot( Owner->player - players );
+
+		if ( pSpot != NULL )
+		{
+			destX = pSpot->x;
+			destY = pSpot->y;
+			destAngle = ANG45 * (pSpot->angle/45);
+		}
+		else
+			I_Error( "ArtiTeleport: No player start found!" );
 	}
 	P_Teleport (Owner, destX, destY, ONFLOORZ, destAngle, true, true, false);
 	bool canlaugh = true;
