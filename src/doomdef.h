@@ -340,6 +340,11 @@ enum
 	// script to check for buttons bigger than BT_ZOOM. Otherwise this information is completely
 	// useless for the server and the additional net traffic to send it should be avoided.
 	COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO		= 1 << 1,
+	// [BB] Players are not allowed to use the land CCMD. Because of Skulltag's default amount
+	// of air control, flying players can get a huge speed boast with the land CCMD. Disallowing
+	// players to land, allows to keep the default air control most people are used to while not
+	// giving flying players too much of an advantage.
+	COMPATF2_NO_LAND						= 1 << 2,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

@@ -64,6 +64,7 @@ latestzdoom branch
 +	- The name and location of Skulltag's data file (skulltag_data.pk3/skulltag.wad) can be specified with "-skulldata NAME". [Torr Samaho]
 +	- When the Windows server crashes, it tries to kick all clients before it shuts down. That way the clients have a chance to notice that the server crashed instead of seeing the "waiting for server" message forever. (implementation for Linux planned). [Torr Samaho]
 +	- Added new compatflag "clients send full button info", controlled by the new CVAR compat_clientssendfullbuttoninfo. This needs to be enabled to make the ACS function GetPlayerInput work on server side scripts with buttons other than BT_ATTACK, BT_USE, BT_JUMP, BT_CROUCH, BT_TURN180, BT_ALTATTACK, BT_RELOAD and BT_ZOOM. Because it increases net traffic, it should only be activated if needed. [Torr Samaho]
++	- Added new compatflag "no land", controlled by the new CVAR compat_noland. If this is enabled, players are not allowed to use the land CCMD anymore. [Torr Samaho]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 -	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
