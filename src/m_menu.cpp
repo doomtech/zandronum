@@ -1635,7 +1635,7 @@ void M_DrawReadThis ()
 	fixed_t alpha;
 
 	// [BB] Is there a built in texture for this gamemode?
-	if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
+	if ( ( NETWORK_GetState( ) != NETSTATE_SINGLE ) && TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
 		tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
 
 	// Did the mapper choose a custom help page via MAPINFO?

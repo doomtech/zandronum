@@ -161,6 +161,7 @@ latestzdoom branch
 !	- skulltag_data.pk3 is now loaded instead of skulltag.wad. If skulltag_data.pk3 is not found, Skulltag tries to load skulltag.wad. [Torr Samaho]
 ! 	- A player whose IP is on the admin list can't be targeted by a kickvote anymore. [Torr Samaho]
 ! 	- The CVAR name can't exceed 31 characters (the netname length limit) anymore. [Torr Samaho]
+! 	- In true single player mode (i.e. offline and with no multiplayer emulation) if there is no custom F1 textures defined via MAPINFO for the current map, the standard help screen is shown instead of Skulltag's game-sensitive F1 help screens. [Torr Samaho]
 
 
 <trunk>
