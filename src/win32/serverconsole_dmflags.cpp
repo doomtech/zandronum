@@ -323,6 +323,11 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 				break;
 			}
 		}
+		else if ( HIWORD( wParam ) == EN_KILLFOCUS )
+		{
+			flags_UpdateFlagsFromCheckboxes( );
+			flags_UpdateValueLabels( );
+		}
 		
 		switch ( LOWORD( wParam ))
 		{
