@@ -1236,27 +1236,6 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBlasterPL1)
 		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
 	}
 
-
-	// [BC] If we're the server, tell clients that a weapon is being fired.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/blastershoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
-
-	// [BC] If we're the client, just play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
-		return;
-	}
-
-
-	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
-	{
-		P_SpawnPlayerMissile( self, RUNTIME_CLASS( ABlasterFX1 ), self->angle + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile( self, RUNTIME_CLASS( ABlasterFX1 ), self->angle - ( ANGLE_45 / 3 ));
-	}
-
 	S_Sound (self, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
