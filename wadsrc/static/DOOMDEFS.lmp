@@ -178,7 +178,11 @@ object BFGBall
     frame BFE1D { light BFGBALL_X1 }
     frame BFE1E { light BFGBALL_X4 }
     frame BFE1F { light BFGBALL_X5 }
+}
 
+
+object BFGExtra
+{
     frame BFE2A { light BFGBALL    }
     frame BFE2B { light BFGBALL_X1 }
     frame BFE2C { light BFGBALL_X4 }
