@@ -599,16 +599,13 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// [BB] Testing server and what's the binary name?
 	if ( ulBits & SQF_TESTING_SERVER )
 	{
-		if ( BUILD_ID == BUILD_RELEASE )
-		{
-			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 0 );
-			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, "" );
-		}
-		else
-		{
-			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 1 );
-			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, sv_testingbinary.GetGenericRep( CVAR_String ).String );
-		}
+#if ( BUILD_ID == BUILD_RELEASE )
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 0 );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, "" );
+#else
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 1 );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, sv_testingbinary.GetGenericRep( CVAR_String ).String );
+#endif
 	}
 
 	// [BB] Send the MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
