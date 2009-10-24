@@ -199,6 +199,7 @@ pulselight BARREL
     secondarySize 21
     interval 0.5
     offset 0 36 0
+	dontlightself 1
 }
 
 object ExplosiveBarrel
@@ -540,6 +541,7 @@ pulselight ARMORBONUS
     size 16
     secondarySize 14
     interval 1.0
+	dontlightself 1
 }
 
 object ArmorBonus
