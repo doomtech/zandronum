@@ -157,6 +157,44 @@ void FindStateLabelAndOffset( const PClass *pClass, FState *pState, FString &sta
 
 //*****************************************************************************
 //
+// [BB]
+bool ActorOwnsState( const AActor *pActor, const FState *pState )
+{
+	if ( ( pState == NULL ) || ( pActor == NULL ) )
+		return false;
+
+	const PClass *pStateOwnerClass = FState::StaticFindStateOwner ( pState );
+
+	if ( pStateOwnerClass == NULL )
+		return false;
+
+	if ( pStateOwnerClass == pActor->GetClass() )
+		return true;
+
+	return false;
+}
+
+//*****************************************************************************
+//
+// [BB] Helper function for SERVERCOMMANDS_SetThingFrame.
+bool OffsetAndStateOwnershipValidityCheck ( const LONG lOffset, const AActor *pActor, const FState *pState )
+{
+	// [BB] The offset is out of range.
+	if (( lOffset < 0 ) || ( lOffset > 255 ) )
+		return false;
+
+	// [BB] If the offset is zero, it doesn't matter whether the actor owns the state.
+	if ( lOffset == 0 )
+		return true;
+
+	if ( ActorOwnsState( pActor, pActor->SpawnState ) )
+		return true;
+
+	// [BB] A non-zero but otherwise valid offset can only be used of the actor owns the state.
+	return false;
+}
+//*****************************************************************************
+//
 // [BB] Mark the actor as updated according to ulBits.
 void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
 {
@@ -2477,19 +2515,19 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	if ( stateLabel.IsEmpty() )
 	{
 		lOffset = LONG( pState - pActor->SpawnState );
-		if (( lOffset < 0 ) || ( lOffset > 255 ))
+		if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pActor, pActor->SpawnState ) == false )
 		{
 			// [BB] SpawnState doesn't work. Try MissileState.
 			lOffset = LONG( pState - pActor->MissileState );
-			if (( lOffset < 0 ) || ( lOffset > 255 ))
+			if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pActor, pActor->MissileState ) == false )
 			{
 				// [BB] Try SeeState.
 				lOffset = LONG( pState - pActor->SeeState );
-				if (( lOffset < 0 ) || ( lOffset > 255 ))
+				if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pActor, pActor->SeeState ) == false )
 				{
 					// [BB] Try MeleeState.
 					lOffset = LONG( pState - pActor->MeleeState );
-					if (( lOffset < 0 ) || ( lOffset > 255 ))
+					if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pActor, pActor->MeleeState ) == false )
 					{
 						// [BB] Apparently pActor doesn't own the state. Find out who does.
 						const PClass *pStateOwnerClass = FState::StaticFindStateOwner ( pState );
