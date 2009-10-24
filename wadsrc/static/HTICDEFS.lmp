@@ -221,16 +221,12 @@ pointlight CLAWPUFF4
     size 8
 }
 
-object BlasterPuff1
+object BlasterPuff
 {
     frame FX17A { light CLAWPUFF1 }
     frame FX17B { light CLAWPUFF2 }
     frame FX17C { light CLAWPUFF3 }
     frame FX17D { light CLAWPUFF4 }
-}
-
-object BlasterPuff2
-{
     frame FX17F { light CLAWPUFF1 }
     frame FX17G { light CLAWPUFF2 }
     frame FX17H { light CLAWPUFF3 }
@@ -721,7 +717,7 @@ pointlight REDAXE
 
 flickerlight REDAXE_X1
 {
-    color 7.0 0.0 0.0
+    color 0.7 0.0 0.0
     size 32
     secondarySize 48
     chance 0.3
@@ -729,7 +725,7 @@ flickerlight REDAXE_X1
 
 flickerlight REDAXE_X2
 {
-    color 4.0 0.0 0.0
+    color 0.4 0.0 0.0
     size 48
     secondarySize 56
     chance 0.3
@@ -737,7 +733,7 @@ flickerlight REDAXE_X2
 
 flickerlight REDAXE_X3
 {
-    color 2.0 0.0 0.0
+    color 0.2 0.0 0.0
     size 56
     secondarySize 64
     chance 0.3
@@ -829,10 +825,10 @@ flickerlight IRONLICH4
 
 object Ironlich
 {
-    frame HEADD { light IRONLICH1 }
-    frame HEADE { light IRONLICH2 }
-    frame HEADF { light IRONLICH3 }
-    frame HEADG { light IRONLICH4 }
+    frame LICHD { light IRONLICH1 }
+    frame LICHE { light IRONLICH2 }
+    frame LICHF { light IRONLICH3 }
+    frame LICHG { light IRONLICH4 }
 }
 
 // IronLich frost ball
@@ -1542,7 +1538,7 @@ pointlight BLUESTATUE
 
 object KeyGizmoBlue
 {
-    frame KGZ { light BLUESTATUE }
+    frame KGZ1 { light BLUESTATUE }
 }
 
 // Yellow Key Statue
@@ -1555,7 +1551,7 @@ pointlight YELLOWSTATUE
 
 object KeyGizmoYellow
 {
-    frame KGZ { light YELLOWSTATUE }
+    frame KGZ1 { light YELLOWSTATUE }
 }
 
 // Green Key Statue
@@ -1568,7 +1564,7 @@ pointlight GREENSTATUE
 
 object KeyGizmoGreen
 {
-    frame KGZ { light GREENSTATUE }
+    frame KGZ1 { light GREENSTATUE }
 }
 
 // -------------------
