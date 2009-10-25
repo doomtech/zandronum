@@ -12,13 +12,13 @@
 ===============================================================================================================
 
 
-latestzdoom branch
+98a
 ------
 
-*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1551). [Torr Samaho]
+*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1551)! [Torr Samaho]
 *+	- Upgraded the GZDoom renderer to 1.1.04 (revision 127, maintenance fixes from up to revision 322)! [Torr Samaho]
 *+	- Added support for voodoo dolls online, controlled by the new CVARs sv_coopspawnvoodoodolls (default false), sv_coopunassignedvoodoodolls (default true) and sv_coopunassignedvoodoodollsfornplayers (default 32). One of the limitations currently is, that the clients know nothing about the dolls, only the server does. Because of this the dolls are invisible on the clients. [Torr Samaho, SuperGod]
-*+	- Revamped the ping calculation code. [Torr Samaho, SuperGod]
+*+	- Revamped the ping calculation code! [Torr Samaho, SuperGod]
 		- Freed the ping from the shackles of Doom's fixed ticrate, i.e. the ping is not forced to be a multiple of 28 anymore, but calculated precisely.
 		- The displayed ping of the clients is now averaged over multiple measurements.
 		- The ping of the clients is now measured every second instead of every three seconds.
