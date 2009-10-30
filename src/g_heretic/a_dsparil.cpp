@@ -125,6 +125,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_Srcr1Attack)
 			else
 			{ // Set state to attack again
 				self->special1 = 1;
+
+				// [BB] Update the thing's state on the clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingFrame( self, self->FindState("Missile2") );
+
 				self->SetState (self->FindState("Missile2"));
 			}
 		}
@@ -155,9 +160,12 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcererRise)
 	mo->angle = self->angle;
 	mo->CopyFriendliness (self, true);
 
-	// [BC] If we're the server, spawn the sorcerer for clients.
+	// [BC/BB] If we're the server, spawn the sorcerer for clients and also set the state.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_SpawnThing( mo );
+		SERVERCOMMANDS_SetThingFrame( mo, mo->FindState("Rise") );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -201,6 +209,8 @@ void P_DSparilTeleport (AActor *actor)
 			SERVERCOMMANDS_SpawnThing( mo );
 			SERVERCOMMANDS_SoundActor( mo, CHAN_BODY, "misc/teleport", 1, ATTN_NORM );
 			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "misc/teleport", 1, ATTN_NORM );
+			// [BB] Also notify the clients of the state change.
+			SERVERCOMMANDS_SetThingFrame( actor, actor->FindState("Teleport") );
 		}
 
 		actor->SetState (actor->FindState("Teleport"));
@@ -208,6 +218,11 @@ void P_DSparilTeleport (AActor *actor)
 		actor->z = actor->floorz;
 		actor->angle = spot->angle;
 		actor->momx = actor->momy = actor->momz = 0;
+
+		// [BB] Tell clients of the new position of "actor".
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 	}
 }
 

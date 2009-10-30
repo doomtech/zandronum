@@ -12,8 +12,14 @@
 ===============================================================================================================
 
 
+latestzdoom branch
+------------------
+
+-	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
+
+
 98a
-------
+---
 
 *+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1551)! [Torr Samaho]
 *+	- Upgraded the GZDoom renderer to 1.1.04 (revision 127, maintenance fixes from up to revision 322)! [Torr Samaho]
