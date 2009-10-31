@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include "announcer.h"
+#include "c_dispatch.h"
 #include "c_cvars.h"
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -400,4 +401,39 @@ LONG JOINQUEUE_GetPositionInLine( ULONG ulPlayer )
 void JOINQUEUE_SetClientPositionInLine( LONG lPosition )
 {
 	g_lClientQueuePosition = lPosition;
+}
+
+//*****************************************************************************
+//
+void JOINQUEUE_PrintQueue( void )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		Printf ( "Only the server can print the join queue\n" );
+		return;
+	}
+
+	bool bQueueEmpty = true;
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( g_lJoinQueue[ulIdx].ulPlayer < MAXPLAYERS )
+		{
+			player_t* pPlayer = &players[ulIdx];
+			bQueueEmpty = false;
+			Printf ( "%02d - %s", ulIdx + 1, pPlayer->userinfo.netname );
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+				Printf ( " - %s", TEAM_CheckIfValid ( g_lJoinQueue[ulIdx].ulTeam ) ? TEAM_GetName ( g_lJoinQueue[ulIdx].ulTeam ) : "auto team selection" );
+			Printf ( "\n" );
+		}
+	}
+
+	if ( bQueueEmpty )
+		Printf ( "The join queue is empty\n" );
+}
+
+//*****************************************************************************
+//
+CCMD( printjoinqueue )
+{
+	JOINQUEUE_PrintQueue();
 }
