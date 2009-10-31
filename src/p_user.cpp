@@ -1337,7 +1337,7 @@ void APlayerPawn::GiveDefaultInventory ()
 				pType = PClass::m_Types[ulIdx];
 
 				// [BB] Don't give anything that is not allowed for our game.
-				if ( pType->ActorInfo && ( ( pType->ActorInfo->GameFilter & gameinfo.gametype ) == 0 ) )
+				if ( pType->ActorInfo && ( pType->ActorInfo->GameFilter != GAME_Any ) && ( ( pType->ActorInfo->GameFilter & gameinfo.gametype ) == 0 ) )
 					continue;
 
 				// Potentially disallow certain weapons.

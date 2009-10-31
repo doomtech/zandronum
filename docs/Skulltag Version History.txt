@@ -16,6 +16,7 @@ latestzdoom branch
 ------------------
 
 -	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
+-	- Fixed: In lms/teamlms players didn't get weapons whose game property is "any". [Torr Samaho]
 
 
 98a
