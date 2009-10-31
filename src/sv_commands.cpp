@@ -6693,12 +6693,9 @@ void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		lPosition = JOINQUEUE_GetPositionInLine( ulIdx );
-		if ( lPosition != -1 )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 2, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETQUEUEPOSITION );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
-		}
+		SERVER_CheckClientBuffer( ulIdx, 2, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETQUEUEPOSITION );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( lPosition != -1  ) ? lPosition : 255 );
 	}
 }
 

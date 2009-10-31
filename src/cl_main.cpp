@@ -11278,8 +11278,19 @@ static void client_SetQueuePosition( BYTESTREAM_s *pByteStream )
 	// Read in our position in the join queue.
 	lPosition = NETWORK_ReadByte( pByteStream );
 
-	if ( lPosition == MAXPLAYERS )
+	// [BB] We were removed from the queue for whatever reason.
+	if ( lPosition == 255 )
+	{
+		JOINQUEUE_SetClientPositionInLine( -1 );
+		return;
+	}
+	// [BB] This should never happen!
+	else if ( lPosition == MAXPLAYERS )
+	{
 		Printf( "Join queue full!\n" );
+		JOINQUEUE_SetClientPositionInLine( -1 );
+		return;
+	}
 	else
 		Printf( "Your position in line is: %d\n", static_cast<int> (lPosition + 1) );
 

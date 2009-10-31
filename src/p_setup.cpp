@@ -4066,6 +4066,9 @@ void P_SetupLevel (char *lumpname, int position)
 
 					// [BB] If the player was in the join queue, remove him.
 					JOINQUEUE_RemovePlayerFromQueue ( i, false );
+					// [BB] Tell the client about the removal.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetQueuePosition( i, SVCF_ONLYTHISCLIENT );
 
 					// If this bot spawned as a spectator, let him know.
 					if ( players[i].pSkullBot )
