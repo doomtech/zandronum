@@ -3134,6 +3134,14 @@ bool AActor::Slam (AActor *thing)
 {
 	flags &= ~MF_SKULLFLY;
 	momx = momy = momz = 0;
+
+	// [BB] If we are the server, tell clients about MF_SKULLFLY and the momentum change.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SetThingFlags( this, FLAGSET_FLAGS );
+		SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+	}
+
 	if (health > 0)
 	{
 		if (!(flags2 & MF2_DORMANT))
@@ -3142,24 +3150,18 @@ bool AActor::Slam (AActor *thing)
 			P_DamageMobj (thing, this, this, dam, NAME_Melee);
 			P_TraceBleed (dam, thing, this);
 
-			// [BC] If we are the server, tell clients about the state change and momentum change.
+			// [BC] If we are the server, tell clients about the state change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
 				SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
-			}
 
 			if (SeeState != NULL) SetState (SeeState);
 			else SetIdle();
 		}
 		else
 		{
-			// [BB] If we are the server, tell clients about the state change and momentum change.
+			// [BB] If we are the server, tell clients about the state change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
 				SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
-				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
-			}
 
 			SetIdle();
 			tics = -1;

@@ -17,6 +17,7 @@ latestzdoom branch
 
 -	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
 -	- Fixed: In lms/teamlms players didn't get weapons whose game property is "any". [Torr Samaho]
+-	- Fixed: If an actor with MF_SKULLFLY slams into something online, it possibly stops moving on the clients and starts to teleport around (This affected the Minotaur). [Torr Samaho]
 
 
 98a

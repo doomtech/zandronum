@@ -312,6 +312,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurDecide)
 		if (!friendly)
 		{ // Heretic's Minotaur is invulnerable during charge attack
 			self->flags2 |= MF2_INVULNERABLE;
+
+			// [BB] If we're the server, tell clients to update this thing's flags.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS2 );
 		}
 		A_FaceTarget (self);
 		angle = self->angle>>ANGLETOFINESHIFT;
@@ -550,7 +554,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk3)
 	{
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Hammer") );
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("HammerLoop") );
 
 		self->SetState (self->FindState ("HammerLoop"));
 		self->special2 = 1;
@@ -845,7 +849,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurChase)
 	{
 		// [BC] If we're the server, update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingState( self, STATE_MISSILE );
+			SERVERCOMMANDS_SetThingState( self1, STATE_MISSILE );
 
 		self1->SetState (self1->MissileState);
 		return;
