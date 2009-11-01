@@ -951,6 +951,26 @@ void BOTS_PostWeaponFiredEvent( ULONG ulPlayer, BOTEVENT_e EventIfSelf, BOTEVENT
 }
 
 //*****************************************************************************
+//
+void BOTS_RemoveGoal( AActor* pGoal )
+{
+	// If this is a bot's goal object, tell the bot it's been removed.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ) || ( g_bBotIsInitialized[ulIdx] == false ))
+			continue;
+
+		if ( pGoal == players[ulIdx].pSkullBot->m_pGoalActor )
+		{
+			players[ulIdx].pSkullBot->m_pGoalActor = NULL;
+			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_GOAL_REMOVED );
+			players[ulIdx].pSkullBot->m_ulPathType = BOTPATHTYPE_NONE;
+//			ASTAR_ClearPath( ulIdx );
+		}
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void bots_ParseBotInfoLump( FScanner &sc )

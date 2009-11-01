@@ -642,6 +642,7 @@ void		BOTS_RestoreRevealedBotsAndSkins( FConfigFile &config );
 bool		BOTS_IsBotInitialized( ULONG ulBot );
 BOTSKILL_e	BOTS_AdjustSkill( CSkullBot *pBot, BOTSKILL_e Skill );
 void		BOTS_PostWeaponFiredEvent( ULONG ulPlayer, BOTEVENT_e EventIfSelf, BOTEVENT_e EventIfEnemy, BOTEVENT_e EventIfPlayer );
+void		BOTS_RemoveGoal( AActor* pGoal );
 
 // Botinfo access functions.
 ULONG			BOTINFO_GetNumBotInfos( void );

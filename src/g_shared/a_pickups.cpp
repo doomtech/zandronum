@@ -886,22 +886,7 @@ void AInventory::Hide ()
 	FState *HideSpecialState = NULL, *HideDoomishState = NULL;
 
 	// [BC] If this is a bot's goal object, tell the bot it's been removed.
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( playeringame[ulIdx] == false )
-			continue;
-
-		if ( players[ulIdx].pSkullBot == NULL )
-			continue;
-
-		if ( this == players[ulIdx].pSkullBot->m_pGoalActor )
-		{
-			players[ulIdx].pSkullBot->m_pGoalActor = NULL;
-			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_GOAL_REMOVED );
-			players[ulIdx].pSkullBot->m_ulPathType = BOTPATHTYPE_NONE;
-//			ASTAR_ClearPath( ulIdx );
-		}
-	}
+	BOTS_RemoveGoal ( this );
 
  	flags = (flags & ~MF_SPECIAL) | MF_NOGRAVITY;
 	renderflags |= RF_INVISIBLE;
@@ -952,22 +937,8 @@ void AInventory::Hide ()
 
 void AInventory::HideIndefinitely ()
 {
-	ULONG	ulIdx;
-
-	// If this is a bot's goal object, tell the bot it's been removed.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
-			continue;
-
-		if ( this == players[ulIdx].pSkullBot->m_pGoalActor )
-		{
-			players[ulIdx].pSkullBot->m_pGoalActor = NULL;
-			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_GOAL_REMOVED );
-			players[ulIdx].pSkullBot->m_ulPathType = BOTPATHTYPE_NONE;
-//			ASTAR_ClearPath( ulIdx );
-		}
-	}
+	// [BB] If this is a bot's goal object, tell the bot it's been removed.
+	BOTS_RemoveGoal ( this );
 
 	flags = (flags & ~MF_SPECIAL) | MF_NOGRAVITY;
 	renderflags |= RF_INVISIBLE;

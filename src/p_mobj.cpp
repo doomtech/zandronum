@@ -4389,8 +4389,6 @@ bool AActor::IsActive( void )
 
 void AActor::Destroy ()
 {
-	ULONG	ulIdx;
-
 	// [BC] Free it's network ID.
 	// [BB] Actors may have lNetID == -1. 
 	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
@@ -4406,23 +4404,7 @@ void AActor::Destroy ()
 		INVASION_ClearMonsterCorpsePointer( this );
 
 	// [BC] If this is a bot's goal object, tell the bot it's been removed.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] == false ) ||
-			( players[ulIdx].pSkullBot == NULL ) ||
-			( BOTS_IsBotInitialized( ulIdx ) == false ))
-		{
-			continue;
-		}
-
-		if ( this == players[ulIdx].pSkullBot->m_pGoalActor )
-		{
-			players[ulIdx].pSkullBot->m_pGoalActor = NULL;
-			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_GOAL_REMOVED );
-			players[ulIdx].pSkullBot->m_ulPathType = BOTPATHTYPE_NONE;
-//			ASTAR_ClearPath( ulIdx );
-		}
-	}
+	BOTS_RemoveGoal ( this );
 
 	// [RH] Destroy any inventory this actor is carrying
 	DestroyAllInventory ();
