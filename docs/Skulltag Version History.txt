@@ -21,6 +21,7 @@ latestzdoom branch
 -	- Fixed: If an actor with MF_SKULLFLY slams into something online, it possibly stops moving on the clients and starts to teleport around (This affected the Minotaur). [Torr Samaho]
 -	- Fixed: If a client was removed from the join queue after a map change without being allowed to join, the client was not informed about the removal. [Torr Samaho]
 -	- Fixed: The join queue was cleared in duel after a "changemap" map change. [Torr Samaho]
+-	- Fixed: Inventory items that insert themselves into the player's inventory are not restored after a map reset after being used by the player. [Torr Samaho]
 
 
 98a
