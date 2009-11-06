@@ -6899,7 +6899,7 @@ static void client_RespawnDoomThing( BYTESTREAM_s *pByteStream )
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_RespawnDoomThing: Couldn't find thing: %d\n", sID );
+		Printf( "client_RespawnDoomThing: Couldn't find thing: %d\n", lID );
 #endif
 		return; 
 	}
@@ -6929,7 +6929,7 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_RespawnSpecialThing1: Couldn't find thing: %d\n", sID );
+		Printf( "client_RespawnSpecialThing1: Couldn't find thing: %d\n", lID );
 #endif
 		return; 
 	}
@@ -8037,7 +8037,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-//		Printf( "client_MissileExplode: Couldn't find thing: %d\n", lID );
+		Printf( "client_MissileExplode: Couldn't find thing: %d\n", lID );
 #endif
 		return;
 	}
@@ -8197,7 +8197,7 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 	if ( pSector == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorFloorPlane: Couldn't find sector: %d\n", ulSectorIdx );
+		Printf( "client_SetSectorFloorPlane: Couldn't find sector: %d\n", lSectorID );
 #endif
 		return;
 	}
@@ -8239,7 +8239,7 @@ static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
 	if ( pSector == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorCeilingPlane: Couldn't find sector: %d\n", ulSectorIdx );
+		Printf( "client_SetSectorCeilingPlane: Couldn't find sector: %d\n", lSectorID );
 #endif
 		return;
 	}
@@ -8280,7 +8280,7 @@ static void client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream )
 	if ( pSector == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %d\n", ulSectorIdx );
+		Printf( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %d\n", lSectorID );
 #endif
 		return;
 	}
@@ -8314,7 +8314,7 @@ static void client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream )
 	if ( pSector == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %d\n", ulSectorIdx );
+		Printf( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %d\n", lSectorID );
 #endif
 		return;
 	}
@@ -8388,7 +8388,7 @@ static void client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySect
 		if ( pSector == NULL )
 		{ 
 #ifdef CLIENT_WARNING_MESSAGES
-			Printf( "client_SetSectorColor: Cannot find sector: %d\n", lSectorID );
+			Printf( "client_SetSectorColor: Cannot find sector: %d\n", lSectorIDOrTag );
 #endif
 			return; 
 		}
@@ -8431,7 +8431,7 @@ static void client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySecto
 		if ( pSector == NULL )
 		{ 
 #ifdef CLIENT_WARNING_MESSAGES
-			Printf( "client_SetSectorFade: Cannot find sector: %d\n", lSectorID );
+			Printf( "client_SetSectorFade: Cannot find sector: %d\n", lSectorIDOrTag );
 #endif
 			return; 
 		}
@@ -8469,7 +8469,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	if ( pSector == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorFlat: Couldn't find sector: %d\n", lID );
+		Printf( "client_SetSectorFlat: Couldn't find sector: %d\n", lSectorID );
 #endif
 		return; 
 	}
@@ -11333,7 +11333,7 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 		if (( lAffectee < 0 ) || ( lAffectee >= numsides ))
 		{
 #ifdef CLIENT_WARNING_MESSAGES
-			Printf( "client_DoScroller: Invalid side ID: %d!\n", (LONG)lSector );
+			Printf( "client_DoScroller: Invalid side ID: %d!\n", lAffectee );
 #endif
 			return;
 		}
@@ -11341,7 +11341,7 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	else if (( lAffectee < 0 ) || ( lAffectee >= numsectors ))
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_DoScroller: Invalid sector ID: %d!\n", (LONG)lSector );
+		Printf( "client_DoScroller: Invalid sector ID: %d!\n", lAffectee );
 #endif
 		return;
 	}
