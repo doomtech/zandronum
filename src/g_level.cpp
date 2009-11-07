@@ -1424,8 +1424,19 @@ void G_DoLoadLevel (int position, bool autosave)
 	// Make sure the game isn't frozen.
 	level.flags2 &= ~LEVEL2_FROZEN;
 
-	// Initialize/clear the free network ID list.
-	ACTOR_ClearNetIDList( );
+	// [BB] Initialize/clear the free network ID list, but only if there are no level snapshots.
+	// The actors stored in these snapshots still have their NetIDs, so as long as snapshots exist,
+	// we may not clear the NetID list.
+	{
+		bool bSnapshotFound = false;
+		for (unsigned int i = 0; i < wadlevelinfos.Size(); i++)
+		{
+			if ( wadlevelinfos[i].snapshot )
+				bSnapshotFound = true;
+		}
+		if ( bSnapshotFound == false )
+			ACTOR_ClearNetIDList( );
+	}
 
 	P_SetupLevel (level.mapname, position);
 

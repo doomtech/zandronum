@@ -22,6 +22,7 @@ latestzdoom branch
 -	- Fixed: If a client was removed from the join queue after a map change without being allowed to join, the client was not informed about the removal. [Torr Samaho]
 -	- Fixed: The join queue was cleared in duel after a "changemap" map change. [Torr Samaho]
 -	- Fixed: Inventory items that insert themselves into the player's inventory are not restored after a map reset after being used by the player. [Torr Samaho]
+-	- Fixed: When traveling between maps in a hub online, two different actors possibly use the same network id. Among other things, this can cause clients to crash. [Torr Samaho]
 
 
 98a
