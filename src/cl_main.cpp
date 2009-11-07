@@ -2821,15 +2821,13 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	pActor = CLIENT_FindThingByNetID( lNetID );
 	if ( pActor )
 	{
-/*
+#ifdef	_DEBUG
 		if ( pActor == players[consoleplayer].mo )
 		{
-#ifdef CLIENT_WARNING_MESSAGES
-			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body!\n" );
-#endif
-			return;
+			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body! lNetID = %d\n", lNetID );
+			return NULL;
 		}
-*/
+#endif
 		pActor->Destroy( );
 	}
 
