@@ -561,7 +561,11 @@ CCMD (invdrop)
 
 CCMD (weapdrop)
 {
-	SendItemDrop = players[consoleplayer].ReadyWeapon;
+	// [BB/BC] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_RequestInventoryDrop( players[consoleplayer].ReadyWeapon );
+	else
+		SendItemDrop = players[consoleplayer].ReadyWeapon;
 }
 
 CCMD (drop)
