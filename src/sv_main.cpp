@@ -5033,6 +5033,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		return ( true );
 	}
 
+	// [BB] Update the client's state according to the successful authenticaion.
+	if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
+		SERVER_GetClient( g_lCurrentClient )->State = CLS_SPAWNED;
+
 	// Now that the level has been authenticated, send all the level data for the client.
 
 	// Send skill level.

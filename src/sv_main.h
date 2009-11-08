@@ -154,6 +154,9 @@ typedef enum
 	// Client has authenticated his level.
 	CLS_AUTHENTICATED,
 
+	// [BB] Client is spawned, but needs to reauthenticate because the map was changed.
+	CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION,
+
 	// Client is in the game.
 	CLS_SPAWNED,
 

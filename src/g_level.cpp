@@ -1393,7 +1393,12 @@ void G_DoLoadLevel (int position, bool autosave)
 
 		// If we're the server, update the console.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
 			SERVERCONSOLE_UpdatePlayerInfo( i, UDF_FRAGS|UDF_PING|UDF_TIME );
+			// [BB] Since the map was changed, the players who are already spawned need to reauthenticate.
+			if ( SERVER_GetClient( i )->State == CLS_SPAWNED )
+				SERVER_GetClient( i )->State = CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION;
+		}
 
 //		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( PLAYER_ShouldSpawnAsSpectator( &players[i] )))
 //			players[i].bSpectating = true;
