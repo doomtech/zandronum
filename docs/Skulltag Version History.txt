@@ -25,6 +25,7 @@ latestzdoom branch
 -	- Fixed: When traveling between maps in a hub online, two different actors possibly use the same network id. Among other things, this can cause clients to crash. [Torr Samaho]
 -	- Fixed: The weapdrop command doesn't work online. [Torr Samaho]
 -	- Fixed: CLIENTSIDE enter scripts are not executed after a "changemap" map change. The fix changes the timing of enter scripts: Instead of running them when the server finished loading the level, they are run when the client finished loading the level. This means though that there is a time gap between spawning a player and running the corresponding enter scripts. [Torr Samaho]
+-	- Fixed: If the server instructed the clients to start a CLIENTSIDE ACS script, each argument was transferred as byte instead of as long. [Torr Samaho]
 
 
 98a

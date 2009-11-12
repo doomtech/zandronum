@@ -9244,9 +9244,9 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	bBackSide = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the script's arguments.
-	ulArg0 = NETWORK_ReadByte( pByteStream );
-	ulArg1 = NETWORK_ReadByte( pByteStream );
-	ulArg2 = NETWORK_ReadByte( pByteStream );
+	ulArg0 = NETWORK_ReadLong( pByteStream );
+	ulArg1 = NETWORK_ReadLong( pByteStream );
+	ulArg2 = NETWORK_ReadLong( pByteStream );
 
 	bAlways = !!NETWORK_ReadByte( pByteStream );
 
