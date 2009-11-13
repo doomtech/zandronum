@@ -331,38 +331,11 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		break;
 	case SURVS_NEWMAP:
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ) &&
-			( survival ))
+		if ( survival )
 		{
-			// Respawn any players who were downed during the previous round.
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if (( playeringame[ulIdx] == false ) ||
-					( PLAYER_IsTrueSpectator( &players[ulIdx] )) ||
-					( players[ulIdx].bSpectating == false ))
-				{
-					continue;
-				}
-
-				players[ulIdx].bSpectating = false;
-				players[ulIdx].bDeadSpectator = false;
-				players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
-
-				if ( players[ulIdx].mo )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-					players[ulIdx].mo->Destroy( );
-					players[ulIdx].mo = NULL;
-				}
-
-				G_CooperativeSpawnPlayer( ulIdx, true );
-			}
-
-			// Also, let anyone who's been waiting in line join now.
-			JOINQUEUE_PopQueue( -1 );
+			// [BB] Since the new map just started and the dead spectators already were dead spectators
+			// when the last map ended, the respawned dead spectators now enter the map.
+			GAMEMODE_RespawnDeadSpectatorsAndPopQueue( PST_ENTER );
 		}
 
 		// Now, go back to the "in progress" state.

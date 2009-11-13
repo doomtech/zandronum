@@ -137,7 +137,7 @@ ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
-void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void );
+void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );

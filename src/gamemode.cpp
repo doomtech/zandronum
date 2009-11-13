@@ -238,7 +238,7 @@ void GAMEMODE_DetermineGameMode( void )
 
 //*****************************************************************************
 //
-void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void )
+void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 {
 	// [BB] This is server side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -271,7 +271,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void )
 		{
 			players[ulIdx].ulLivesLeft = sv_maxlives - 1;
 		}
-		players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
+		players[ulIdx].playerstate = Playerstate;
 
 		if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
 		{
