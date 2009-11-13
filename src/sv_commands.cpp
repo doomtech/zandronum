@@ -4893,7 +4893,7 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG u
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, ULONG ulArg0, ULONG ulArg1, ULONG ulArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 	LONG	lActivatorID;
@@ -4921,9 +4921,9 @@ void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLineIdx );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMap );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bBackSide );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg0 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg1 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg2 );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg0 );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg1 );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg2 );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAlways );
 	}
 }

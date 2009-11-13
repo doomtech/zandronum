@@ -9222,9 +9222,9 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	LONG		lLineIdx;
 	const char	*pszMap;
 	bool		bBackSide;
-	ULONG		ulArg0;
-	ULONG		ulArg1;
-	ULONG		ulArg2;
+	int			iArg0;
+	int			iArg1;
+	int			iArg2;
 	bool		bAlways;
 	AActor		*pActor;
 	line_t		*pLine;
@@ -9244,9 +9244,9 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	bBackSide = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the script's arguments.
-	ulArg0 = NETWORK_ReadLong( pByteStream );
-	ulArg1 = NETWORK_ReadLong( pByteStream );
-	ulArg2 = NETWORK_ReadLong( pByteStream );
+	iArg0 = NETWORK_ReadLong( pByteStream );
+	iArg1 = NETWORK_ReadLong( pByteStream );
+	iArg2 = NETWORK_ReadLong( pByteStream );
 
 	bAlways = !!NETWORK_ReadByte( pByteStream );
 
@@ -9271,7 +9271,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	else
 		pLine = &lines[lLineIdx];
 
-	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, ulArg0, ulArg1, ulArg2, bAlways, false );
+	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, iArg0, iArg1, iArg2, bAlways, false );
 }
 
 //*****************************************************************************
