@@ -120,6 +120,9 @@ typedef struct
 	// Flags for this game mode.
 	ULONG	ulFlags;
 
+	// [RC] The name of this game mode.
+	char	szName[32];
+
 	// This is what's displayed in the internal browser for a server's game mode.
 	char	szShortName[9];
 
@@ -134,7 +137,9 @@ typedef struct
 
 void		GAMEMODE_Construct( void );
 ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );
+ULONG		GAMEMODE_GetCurrentFlags( void );
 char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
+char		*GAMEMODE_GetName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
