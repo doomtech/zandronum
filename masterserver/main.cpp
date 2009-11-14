@@ -298,37 +298,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	switch ( lCommand )
 	{
 
-	// Server is telling master server of its existance.
+	// Server is telling master server of its existence.
 	case SERVER_MASTER_CHALLENGE:
-	case SERVER_MASTER_CHALLENGE_OVERRIDE:
 		{
-			NETADDRESS_s	Address;
-
-//			if ( lCommand == SERVER_MASTER_CHALLENGE )
-				Address = AddressFrom;
-/*			else
-			{
-				char	szAddress[32];
-
-				// Read in the overridden IP that the server is sending us.
-				ULONG	ulIP1 = NETWORK_ReadByte( pByteStream );
-				ULONG	ulIP2 = NETWORK_ReadByte( pByteStream );
-				ULONG	ulIP3 = NETWORK_ReadByte( pByteStream );
-				ULONG	ulIP4 = NETWORK_ReadByte( pByteStream );
-				ULONG	ulPort = NETWORK_ReadShort( pByteStream );
-
-				// Make sure it's valid.
-				if (( ulIP1 > 255 ) || ( ulIP2 > 255 ) || ( ulIP3 > 255 ) || ( ulIP4 > 255 ) || ( ulPort > 65535 ))
-				{
-					printf( "* Invalid overriden IP (%d.%d.%d.%d:%d) from %s.\n", ulIP1, ulIP2, ulIP3, ulIP4, ulPort, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
-					return;
-				}
-
-				// Build the IP string.
-				sprintf( szAddress, "%d.%d.%d.%d:%d", ulIP1, ulIP2, ulIP3, ulIP4, ulPort );
-				NETWORK_StringToAddress( szAddress, &Address );
-			}
-*/
 			// Certain IPs can be blocked from just hosting.
 			if ( !g_BannedIPExemptions.isIPInList( AddressFrom ) && g_BlockedIPs.isIPInList( AddressFrom ))
 			{
@@ -341,7 +313,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				return;
 			}
 			SERVER_s newServer;
-			newServer.Address = Address;
+			newServer.Address = AddressFrom;
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
@@ -353,12 +325,12 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				// First count the number of servers from this IP.
 				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					if ( NETWORK_CompareAddress( it->Address, Address, true ))
+					if ( NETWORK_CompareAddress( it->Address, AddressFrom, true ))
 						iNumOtherServers++;
 				}
 
-				if ( iNumOtherServers >= 10 && !g_MultiServerExceptions.isIPInList( Address ))
-					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( Address ));
+				if ( iNumOtherServers >= 10 && !g_MultiServerExceptions.isIPInList( AddressFrom ))
+					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( AddressFrom ));
 				else
 				{
 					std::set<SERVER_s, SERVERCompFunc>::iterator addedServer = g_Servers.insert ( newServer ).first;

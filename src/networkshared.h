@@ -100,15 +100,18 @@ enum
 //*****************************************************************************
 enum
 {
-	// Server is letting master server of its existance.
+	// Server is letting master server of its existence.
 	SERVER_MASTER_CHALLENGE = 5660020,
 
-	// Server is letting master server of its existance, along with sending an IP the master server
-	// should use for this server.
-	SERVER_MASTER_CHALLENGE_OVERRIDE,
+	// [RC] This is no longer used.
+	/*
+		// Server is letting master server of its existence, along with sending an IP the master server
+		// should use for this server.
+		SERVER_MASTER_CHALLENGE_OVERRIDE = 5660021,
+	*/
 
 	// Server is sending some statistics to the master server.
-	SERVER_MASTER_STATISTICS,
+	SERVER_MASTER_STATISTICS = 5660022,
 
 	// Server is sending its info to the launcher.
 	SERVER_LAUNCHER_CHALLENGE,

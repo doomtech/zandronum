@@ -27,6 +27,7 @@ latestzdoom branch
 -	- Fixed: CLIENTSIDE enter scripts are not executed after a "changemap" map change. The fix changes the timing of enter scripts: Instead of running them when the server finished loading the level, they are run when the client finished loading the level. This means though that there is a time gap between spawning a player and running the corresponding enter scripts. [Torr Samaho]
 -	- Fixed: If the server instructed the clients to start a CLIENTSIDE ACS script, each argument was transferred as byte instead of as long. [Torr Samaho]
 -	- Fixed: Dead spectators that automatically reenter the game after a "changemap" map change in survival don't trigger enter scripts. [Torr Samaho]
+-	- Removed the unused sv_masteroverrideip. [Rivecoder]
 
 
 98a

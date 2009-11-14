@@ -1019,9 +1019,9 @@ unsigned int I_MakeRNGSeed()
 	return seed;
 }
 
-// [RC] Lunches the path given. This was encapsulated to make wragling with #includes easier.
+// [RC] Lunches the path given. This was encapsulated to make wrangling with #includes easier.
 void I_RunProgram( const char *szPath )
 {
-	ShellExecute( NULL, "open", szPath, NULL, NULL, 0 );
+	ShellExecute( NULL, "open", szPath, NULL, NULL, SW_SHOW );
 }
 

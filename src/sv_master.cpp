@@ -162,22 +162,7 @@ void SERVER_MASTER_Tick( void )
 	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
 	// Write to our packet a challenge to the master server.
-	Val = sv_masteroverrideip.GetGenericRep( CVAR_String );
-	if ( Val.String[0] == '\0' )
-		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE );
-	else
-	{
-		NETADDRESS_s	OverrideIP;
-
-		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE_OVERRIDE );
-
-		NETWORK_StringToAddress( Val.String, &OverrideIP );
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[0] );
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[1] );
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[2] );
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[3] );
-		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, NETWORK_GetLocalPort( ));
-	}
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE );
 
 	// Send the master server our packet.
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer, true );
@@ -677,9 +662,6 @@ CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
 CVAR( String, skulltag_masterip, "skulltag.servegame.com", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
-
-// IP that the master server should use for this server.
-CVAR( String, sv_masteroverrideip, "", CVAR_ARCHIVE )
 
 CCMD( wads )
 {
