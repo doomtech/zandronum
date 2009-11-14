@@ -1,7 +1,7 @@
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // Skulltag Source
-// Copyright (C) 2003 Brad Carney
+// Copyright (C) 2009 Rivecoder
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //
@@ -39,49 +39,32 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+// Date created: 10/7/09
 //
 //
-// Filename: maprotation.h
+// Filename: serconsole_settings.h
 //
-// Description: The server's list of maps to play.
+// Description: Win32 code for the server's new "Settings" dialog.
+// Note: This file uses an experimental coding style.
 //
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef	__MAPROTATION_H__
-#define	__MAPROTATION_H__
+#ifndef	__SERVERCONSOLE_SETTINGS_H__
+#define	__SERVERCONSOLE_SETTINGS_H__
 
-#include "g_level.h"
+#include "network.h"
 
-//*****************************************************************************
-//	STRUCTURES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-typedef struct
-{
-	// The map.
-	level_info_t	*pMap;
+#define NUM_SKILLS			5
+#define NUM_BOTSKILLS		5
 
-	// Has this map already been used in the rotation?
-	bool	bUsed;
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-} MAPROTATIONENTRY_t;
+void	SERVERCONSOLE_SETTINGS_Display( HWND hDlg );
 
-//*****************************************************************************
-//	PROTOTYPES
-
-void			MAPROTATION_Construct( void );
-
-ULONG			MAPROTATION_GetNumEntries( void );
-void			MAPROTATION_AdvanceMap( void );
-level_info_t	*MAPROTATION_GetNextMap( void );
-level_info_t	*MAPROTATION_GetMap( ULONG ulIdx );
-void			MAPROTATION_SetPositionToMap( const char *pszMapName );
-bool			MAPROTATION_IsMapInRotation( const char *pszMapName );
-void			MAPROTATION_AddMap( char *pszMapName, bool bSilent );
-
-//*****************************************************************************
-//  EXTERNAL CONSOLE VARIABLES
-
-EXTERN_CVAR( Bool, sv_maprotation )
-EXTERN_CVAR( Bool, sv_randommaprotation )
-
-#endif	// __MAPROTATION_H__
+#endif	// __SERVERCONSOLE_SETTINGS_H__

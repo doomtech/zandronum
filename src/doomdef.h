@@ -180,6 +180,7 @@ enum ESkillLevels
 //#define JOYAXIS_ROLL			6		// Ha ha. No roll for you.
 
 // [RH] dmflags bits (based on Q2's)
+// [RC] NOTE: If adding a flag, be sure to add a stub in serverconsole_dmflags.cpp.
 enum
 {
 	DF_NO_HEALTH			= 1 << 0,	// Do not spawn health items (DM)
@@ -219,6 +220,7 @@ enum
 };
 
 // [BC] More dmflags. w00p!
+// [RC] NOTE: If adding a flag, be sure to add a stub in serverconsole_dmflags.cpp.
 enum
 {
 //	DF2_YES_IMPALING		= 1 << 0,	// Player gets implaed on MF2_IMPALE items
@@ -264,6 +266,7 @@ enum
 };
 
 // [RH] Compatibility flags.
+// [RC] NOTE: If adding a flag, be sure to add a stub in serverconsole_dmflags.cpp.
 enum
 {
 	COMPATF_SHORTTEX		= 1 << 0,	// Use Doom's shortest texture around behavior?

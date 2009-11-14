@@ -486,15 +486,7 @@ void SERVER_Destruct( void )
 
 //DWORD	g_LastMS, g_LastSec, g_FrameCount, g_LastCount, g_LastTic;
 
-void			SERVERCONSOLE_UpdateTotalOutboundDataTransfer( QWORD qwData );
-void			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( QWORD qwData );
-void			SERVERCONSOLE_UpdatePeakOutboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateTotalInboundDataTransfer( QWORD qwData );
-void			SERVERCONSOLE_UpdateAverageInboundDataTransfer( QWORD qwData );
-void			SERVERCONSOLE_UpdatePeakInboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateTotalUptime( LONG lData );
+void			SERVERCONSOLE_UpdateStatistics( void );
 
 //*****************************************************************************
 //
@@ -538,6 +530,7 @@ void SERVER_Tick( void )
 		SERVER_DeleteCommand( );
 #endif
 	
+	int iOldTime = level.time;
 	while ( lCurTics-- )
 	{
 		//DObject::BeginFrame ();
@@ -548,8 +541,11 @@ void SERVER_Tick( void )
 		G_Ticker ();
 
 		// Update the scoreboard if we have a new second to display.
-		if ( timelimit && (( level.time % TICRATE ) == 0 ))
+		if ( timelimit && (( level.time % TICRATE ) == 0 ) && ( level.time != iOldTime ))
+		{
 			SERVERCONSOLE_UpdateScoreboard( );
+			iOldTime = level.time;
+		}
 
 		if ( g_lMapRestartTimer > 0 )
 		{
@@ -604,54 +600,36 @@ void SERVER_Tick( void )
 		// Do some statistic stuff every second.
 		if (( gametic % TICRATE ) == 0 )
 		{
-			LONG	lCurrentNumPlayers;
-
 			// Increase the number of seconds the server has been active.
 			g_lTotalServerSeconds++;
-			SERVERCONSOLE_UpdateTotalUptime( g_lTotalServerSeconds );
 
-			lCurrentNumPlayers = 0;
+			// Count the number of active players.
+			LONG lCurrentNumPlayers = 0;
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 			{
 				if ( SERVER_IsValidClient( ulIdx ) == false )
 					continue;
 
-				// Increase the total number of players. This is divided by the number of
-				// seconds the server has been active to find the average number of players
-				// on the server.
-				g_lTotalNumPlayers++;
-
-				// Increase the current number of players on the servers. This is used for the
-				// "maximum number of players on the server at one time" statistic.
+				g_lTotalNumPlayers++; // Divided by g_lTotalServerSeconds to form an average.
 				lCurrentNumPlayers++;
 			}
 
+			// Check for new peak records!
 			if ( lCurrentNumPlayers > g_lMaxNumPlayers )
 				g_lMaxNumPlayers = lCurrentNumPlayers;
-
 			if ( g_lCurrentOutboundDataTransfer > g_lMaxOutboundDataTransfer )
-			{
 				g_lMaxOutboundDataTransfer = g_lCurrentOutboundDataTransfer;
-				SERVERCONSOLE_UpdatePeakOutboundDataTransfer( g_lMaxOutboundDataTransfer );
-			}
+			if ( g_lCurrentInboundDataTransfer > g_lMaxInboundDataTransfer )
+				g_lMaxInboundDataTransfer = g_lCurrentInboundDataTransfer;
 
+			// Update "current" outbound data.
 			g_lOutboundDataTransferLastSecond = g_lCurrentOutboundDataTransfer;
 			g_lCurrentOutboundDataTransfer = 0;
-
-			SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( g_lOutboundDataTransferLastSecond );
-			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
-
-			if ( g_lCurrentInboundDataTransfer > g_lMaxInboundDataTransfer )
-			{
-				g_lMaxInboundDataTransfer = g_lCurrentInboundDataTransfer;
-				SERVERCONSOLE_UpdatePeakInboundDataTransfer( g_lMaxInboundDataTransfer );
-			}
-
 			g_lInboundDataTransferLastSecond = g_lCurrentInboundDataTransfer;
 			g_lCurrentInboundDataTransfer = 0;
 
-			SERVERCONSOLE_UpdateCurrentInboundDataTransfer( g_lInboundDataTransferLastSecond );
-			SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_qwTotalInboundDataTransferred );
+			// Update the form.
+			SERVERCONSOLE_UpdateStatistics( );
 		}
 
 		//DObject::EndFrame ();
@@ -3549,7 +3527,7 @@ void SERVER_STATISTIC_AddToOutboundDataTransfer( ULONG ulNumBytes )
 	g_qwTotalOutboundDataTransferred += ulNumBytes;
 	g_lCurrentOutboundDataTransfer += ulNumBytes;
 
-	SERVERCONSOLE_UpdateTotalOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
+	SERVERCONSOLE_UpdateStatistics( );
 }
 
 //*****************************************************************************
@@ -3580,7 +3558,7 @@ void SERVER_STATISTIC_AddToInboundDataTransfer( ULONG ulNumBytes )
 	g_qwTotalInboundDataTransferred += ulNumBytes;
 	g_lCurrentInboundDataTransfer += ulNumBytes;
 
-	SERVERCONSOLE_UpdateTotalInboundDataTransfer( g_qwTotalInboundDataTransferred );
+	SERVERCONSOLE_UpdateStatistics( );
 }
 
 //*****************************************************************************

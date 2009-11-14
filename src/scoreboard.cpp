@@ -2122,106 +2122,88 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	if ( gamestate != GS_LEVEL )
 		return ( 0 );
 
-	// [BB] In a team game with only empty teams, just return the appropriate limit.
-	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	// [BB] In a team game with only empty teams or if there are no players at all, just return the appropriate limit.
+	if ( ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	     && ( TEAM_TeamsWithPlayersOn() == 0 ) )
+		 || ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) == 0 ) )
 	{
-		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 			return winlimit;
-		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 			return pointlimit;
-		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 			return fraglimit;
 		else
 			return 0;
 	}
 
 	// FRAG-based mode.
-	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && ( fraglimit > 0 ))
+	if ( fraglimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 	{
 		LONG	lHighestFragcount;
-		
-		// If we're in a teamplay, just go by whichever team has the most frags.
+				
 		if ( teamplay )
-		{
-			lHighestFragcount = TEAM_GetHighestFragCount( );
-		}
-		// Otherwise, find the player with the most frags.
+			lHighestFragcount = TEAM_GetHighestFragCount( );		
 		else
 		{
 			lHighestFragcount = INT_MIN;
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( players[ulIdx].fragcount > lHighestFragcount )
+				if ( playeringame[ulIdx] && !players[ulIdx].bSpectating && players[ulIdx].fragcount > lHighestFragcount )
 					lHighestFragcount = players[ulIdx].fragcount;
 			}
 		}
 
 		return ( fraglimit - lHighestFragcount );
 	}
+
 	// POINT-based mode.
-	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ))
+	else if ( pointlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
-		ULONG	ulPointsLeft;
-		ULONG	ulIdx;
-		LONG	lHighestPointCount;
-
 		if ( teamgame || teampossession )
+			return ( pointlimit - TEAM_GetHighestScoreCount( ));		
+		else // Must be possession mode.
 		{
-			ulPointsLeft = pointlimit - TEAM_GetHighestScoreCount( );
-		}
-		// Must be possession mode.
-		else
-		{
-			lHighestPointCount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			LONG lHighestPointCount = INT_MIN;
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( (LONG)players[ulIdx].lPointCount > lHighestPointCount )
+				if ( playeringame[ulIdx] && !players[ulIdx].bSpectating && players[ulIdx].lPointCount > lHighestPointCount )
 					lHighestPointCount = players[ulIdx].lPointCount;
 			}
 
-			ulPointsLeft = pointlimit - (ULONG)lHighestPointCount;
+			return pointlimit - (ULONG) lHighestPointCount;
 		}
-		return ulPointsLeft;
 	}
+
 	// KILL-based mode.
-	else if (( deathmatch == false ) && ( teamgame == false ))
+	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
 		if ( invasion )
-			return (LONG)INVASION_GetNumMonstersLeft( );
-		else if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
-			return ( level.total_monsters - level.killed_monsters );
-		else
+			return (LONG) INVASION_GetNumMonstersLeft( );
+		else if ( dmflags2 & DF2_KILL_MONSTERS )
 		{
 			if ( level.total_monsters > 0 )
 				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
 			else
 				return 0;
 		}
+		else
+			return ( level.total_monsters - level.killed_monsters );
 	}
+
 	// WIN-based mode (LMS).
-	else if (( lastmanstanding || teamlms ) && ( winlimit > 0 ))
+	else if ( winlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 	{
 		bool	bFoundPlayer = false;
 		LONG	lHighestWincount = 0;
 
-		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamlms )
-		{
 			lHighestWincount = TEAM_GetHighestWinCount( );
-		}
-		// Otherwise, find the player with the most frags.
 		else
 		{
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 			{
-				if ( playeringame[ulIdx] == false )
+				if ( playeringame[ulIdx] == false || players[ulIdx].bSpectating )
 					continue;
 
 				if ( bFoundPlayer == false )
@@ -2702,85 +2684,40 @@ static void scoreboard_DrawHeader( void )
 }
 
 //*****************************************************************************
+// [RC] Helper method for SCOREBOARD_BuildLimitStrings. Creates a "x things remaining" message.
 //
-static void scoreboard_DrawLimits( void )
+void scoreboard_AddSingleLimit( std::list<FString> &lines, bool condition, int remaining, const char *pszUnitName )
 {
-	LONG	lNumDuels;
-	LONG	lWinner;
-	LONG	lFragsLeft;
-	ULONG	ulIdx;
-	bool	bDraw;
+	if ( condition && remaining > 0 )
+	{
+		char	szString[128];
+		sprintf( szString, "%d %s%s remain%s", static_cast<int> (remaining), pszUnitName, ( remaining == 1 ) ? "" : "s", ( remaining == 1 ) ? "s" : "" );
+		lines.push_back( szString );
+	}
+}
+
+//*****************************************************************************
+//
+// [RC] Builds the series of "x frags left / 3rd match between the two / 15:10 remain" strings. Used here and in serverconsole.cpp
+//
+void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors )
+{
 	char	szString[128];
 
-	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit )
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	LONG remaining = SCOREBOARD_GetLeftToLimit( );
+
+	// Build the fraglimit and/or duellimit strings.
+	scoreboard_AddSingleLimit( lines, ( fraglimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS ), remaining, "frag" );
+	scoreboard_AddSingleLimit( lines, ( duellimit && duel ), remaining, "duel" );
+
+	// Build the "wins" string.
+	if ( duel && duellimit )
 	{
-		lFragsLeft = SCOREBOARD_GetLeftToLimit( );
-
-		if ( lFragsLeft > 0 )
-		{
-			if ( lFragsLeft < 0 )
-				lFragsLeft = 0;
-
-			sprintf( szString, "%d frag%s remain%s", static_cast<int> (lFragsLeft), ( lFragsLeft != 1 ) ? "s" : "", ( lFragsLeft == 1 ) ? "s" : "" );
-
-			if ( g_bScale )
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					g_ulCurYPos,
-					szString,
-					DTA_VirtualWidth, g_ValWidth.Int,
-					DTA_VirtualHeight, g_ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					g_ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-
-			g_ulCurYPos += 10;
-		}
-	}
-
-	// Render the duellimit string.
-	if ( duellimit && duel )
-	{
-		// Get the number of duels that have been played.
-		lNumDuels = DUEL_GetNumDuels( );
-
-		sprintf( szString, "%d duel%s remain%s", static_cast<int> (duellimit - lNumDuels), (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
-
-		if ( g_bScale )
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				g_ulCurYPos,
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				g_ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		g_ulCurYPos += 10;
-	}
-
-	// Render the "wins" string.
-	if ( duel && gamestate == GS_LEVEL )
-	{
-		lWinner = -1;
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		LONG lWinner = -1;
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( playeringame[ulIdx] && players[ulIdx].ulWins )
 			{
@@ -2789,7 +2726,7 @@ static void scoreboard_DrawLimits( void )
 			}
 		}
 
-		bDraw = true;
+		bool bDraw = true;
 		if ( lWinner == -1 )
 		{
 			if ( DUEL_CountActiveDuelers( ) == 2 )
@@ -2803,129 +2740,23 @@ static void scoreboard_DrawLimits( void )
 		if ( bDraw )
 		{
 			V_ColorizeString( szString );
-
-			if ( g_bScale )
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					g_ulCurYPos,
-					szString,
-					DTA_VirtualWidth, g_ValWidth.Int,
-					DTA_VirtualHeight, g_ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					g_ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-			
-			g_ulCurYPos += 10;
+			if ( !bAcceptColors )
+				V_StripColors( szString );
+			lines.push_back( szString );
 		}
 	}
 
-	// Render the pointlimit string.
-	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
-	{
-		ULONG	ulPointsLeft;
-		
-		ulPointsLeft = SCOREBOARD_GetLeftToLimit( );
-		if ( ulPointsLeft > 0 )
-		{
-			sprintf( szString, "%d point%s remain%s", static_cast<unsigned int> (ulPointsLeft), ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
+	// Build the pointlimit, winlimit, and/or wavelimit strings.
+	scoreboard_AddSingleLimit( lines, ( pointlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS ), remaining, "point" );
+	scoreboard_AddSingleLimit( lines, (( lastmanstanding || teamlms ) && winlimit ), remaining, "win" );
+	scoreboard_AddSingleLimit( lines, ( invasion && wavelimit ), wavelimit - INVASION_GetCurrentWave( ), "wave" );
 
-			if ( g_bScale )
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					g_ulCurYPos,
-					szString,
-					DTA_VirtualWidth, g_ValWidth.Int,
-					DTA_VirtualHeight, g_ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					g_ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-
-			g_ulCurYPos += 10;
-		}
-	}
-
-	// Render the winlimit string.
-	if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
-	{
-		ULONG	ulWinsLeft = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d win%s remain%s", static_cast<unsigned int> (ulWinsLeft), ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
-		
-		if ( g_bScale )
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				g_ulCurYPos,
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				g_ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		g_ulCurYPos += 10;
-	}
-
-	// Render the wavelimit string.
-	if ( invasion && wavelimit && gamestate == GS_LEVEL )
-	{
-		ULONG	ulWavesLeft;
-
-		ulWavesLeft = wavelimit - INVASION_GetCurrentWave( );
-		sprintf( szString, "%d wave%s remain%s", static_cast<unsigned int> (ulWavesLeft), ( ulWavesLeft != 1 ) ? "s" : "", ( ulWavesLeft == 1 ) ? "s" : "" );
-		
-		if ( g_bScale )
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				g_ulCurYPos,
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				g_ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		g_ulCurYPos += 10;
-	}
-
-	// Render the timelimit string.
-	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
-	if (/*( deathmatch || teamgame ) &&*/ timelimit && gamestate == GS_LEVEL )
+	// Render the timelimit string. - [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
+	if ( timelimit )
 	{
 		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
-		ULONG	ulHours;
-		ULONG	ulMinutes;
-		ULONG	ulSeconds;
+		ULONG	ulHours, ulMinutes, ulSeconds;
+		const char *szRound = ( lastmanstanding || teamlms ) ? "Round" : "Level";
 
 		if ( lTimeLeft <= 0 )
 			ulHours = ulMinutes = ulSeconds = 0;
@@ -2938,70 +2769,42 @@ static void scoreboard_DrawLimits( void )
 			ulSeconds = lTimeLeft / TICRATE;
 		}
 
-		if ( lastmanstanding || teamlms )
-		{
-			if ( ulHours )
-				sprintf( szString, "Round ends in %02d:%02d:%02d", static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
-			else
-				sprintf( szString, "Round ends in %02d:%02d", static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
-		}
+		if ( ulHours )
+			sprintf( szString, "%s ends in %02d:%02d:%02d", szRound, static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
 		else
-		{
-			if ( ulHours )
-				sprintf( szString, "Level ends in %02d:%02d:%02d", static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
-			else
-				sprintf( szString, "Level ends in %02d:%02d", static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
-		}
-		
-		if ( g_bScale )
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				g_ulCurYPos,
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				g_ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		g_ulCurYPos += 10;
+			sprintf( szString, "%s ends in %02d:%02d", szRound, static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
+		lines.push_back( szString );
 	}
 
 	// Render the number of monsters left in coop.
-	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
-		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
-		if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
-			sprintf( szString, "%d monster%s remaining", static_cast<int> (lNumMonstersRemaining), lNumMonstersRemaining == 1 ? "" : "s" );
+		if ( dmflags2 & DF2_KILL_MONSTERS )
+			sprintf( szString, "%d%% remaining", static_cast<int> (remaining) );		
 		else
-			sprintf( szString, "%d%% remaining", static_cast<int> (lNumMonstersRemaining) );
-		
+			sprintf( szString, "%d monster%s remaining", static_cast<int> (remaining), remaining == 1 ? "" : "s" );
+		lines.push_back( szString );
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_DrawLimits( void )
+{
+	// Generate the strings.
+	std::list<FString> lines;
+	SCOREBOARD_BuildLimitStrings( lines, true );
+
+	// Now, draw them.
+	for ( std::list<FString>::iterator i = lines.begin(); i != lines.end(); ++i )
+	{
 		if ( g_bScale )
 		{
-			screen->DrawText( SmallFont, CR_GREY,
-				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				g_ulCurYPos,
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
+			screen->DrawText( SmallFont, CR_GREY, (LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( *i ) / 2 )),
+				g_ulCurYPos, *i, DTA_VirtualWidth, g_ValWidth.Int, DTA_VirtualHeight, g_ValHeight.Int, TAG_DONE );
 		}
 		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				g_ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
+			screen->DrawText( SmallFont, CR_GREY, ( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( *i ) / 2 ), g_ulCurYPos, *i, TAG_DONE );
 
 		g_ulCurYPos += 10;
 	}

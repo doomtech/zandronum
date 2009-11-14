@@ -966,19 +966,15 @@ int PrintString (int printlevel, const char *outline)
 	// For servers, dump message to console window.
 	if ( Args->CheckParm( "-host" ))
 	{
-		if ( printlevel == PRINT_LOW ){
-			const int length = static_cast<int>(strlen (outlinecopy));
-			delete [] outlinecopy;
-			return length;
+		if ( printlevel != PRINT_LOW )
+		{			
+			// [RC] Send this to any connected RCON clients.
+			SERVER_RCON_Printf( outlinecopy );
+			if ( g_ulRCONPlayer != MAXPLAYERS )
+				SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outlinecopy );
+
+			SERVERCONSOLE_Print( outlinecopy );
 		}
-
-		if ( g_ulRCONPlayer != MAXPLAYERS )
-			SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outlinecopy );
-
-		SERVERCONSOLE_Print( outlinecopy );
-
-		// [RC] Send this to any connected RCON clients.
-		SERVER_RCON_Printf( outlinecopy );
 		
 		const int length = static_cast<int>(strlen (outlinecopy));
 		delete [] outlinecopy;

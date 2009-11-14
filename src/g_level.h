@@ -506,6 +506,8 @@ void G_InitLevelLocals (void);
 
 void G_AirControlChanged ();
 
+// [RC] Finds a level given its name.
+level_info_t *FindLevelByName( const char *mapname );
 cluster_info_t *FindClusterInfo (int cluster);
 level_info_t *FindLevelInfo (const char *mapname);
 level_info_t *FindLevelByNum (int num);

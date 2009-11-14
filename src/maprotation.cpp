@@ -43,12 +43,12 @@
 //
 // Filename: maprotation.cpp
 //
-// Description: Contains maprotation functions
+// Description: The server's list of maps to play.
 //
 //-----------------------------------------------------------------------------
 
 #include <string.h>
-
+#include <vector>
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "g_level.h"
@@ -59,94 +59,69 @@
 //*****************************************************************************
 //	VARIABLES
 
-static	MAPROTATIONENTRY_t		g_MapRotationEntries[MAX_MAPROTATIONLIST_ENTRIES];
+std::vector<MAPROTATIONENTRY_t>	g_MapRotationEntries;
+
 static	ULONG					g_ulCurMapInList;
 static	ULONG					g_ulNextMapInList;
-
-//*****************************************************************************
-//	PROTOTYPES
-
-static	void		maprotation_AddMap( char *pszMapName );
 
 //*****************************************************************************
 //	FUNCTIONS
 
 void MAPROTATION_Construct( void )
 {
-	ULONG	ulIdx;
-
-	g_ulCurMapInList = 0;
-	g_ulNextMapInList = 0;
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
-	{
-		g_MapRotationEntries[ulIdx].szMapName[0] = 0;
-		g_MapRotationEntries[ulIdx].bUsed = false;
-	}
+	g_MapRotationEntries.clear( );
+	g_ulCurMapInList = g_ulNextMapInList = 0;
 }
 
 //*****************************************************************************
 //
 ULONG MAPROTATION_GetNumEntries( void )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
-	{
-		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-			return ( ulIdx );
-	}
-
-	return ( ulIdx );
+	return g_MapRotationEntries.size( );
 }
 
 //*****************************************************************************
 //
 static void MAPROTATION_CalcNextMap( void )
 {
-	if ( MAPROTATION_GetNumEntries( ) <= 1 )
+	if ( g_MapRotationEntries.empty( ))
 		return;
 
 	if ( sv_randommaprotation )
 	{
-		ULONG	ulNumEntriesLeft;
-		ULONG	ulIdx;
-
 		// Mark the current map in the list as being used.
 		g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 
-		ulNumEntriesLeft = 0;
-		for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+		// If all the maps have been played, make them all available again. 
 		{
-			if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-				break;
-
-			if ( g_MapRotationEntries[ulIdx].bUsed == false )
-				ulNumEntriesLeft++;
-		}
-
-		// If all of the maps in this list have been used, flag them all as being unused, so that
-		// they're all selectable once again in the random map rotation list.
-		if ( ulNumEntriesLeft == 0 )
-		{
-			for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+			bool bAllMapsPlayed = true;
+			for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
 			{
-				if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
+				if ( !g_MapRotationEntries[ulIdx].bUsed )			
+				{
+					bAllMapsPlayed = false;
 					break;
-
-				g_MapRotationEntries[ulIdx].bUsed = false;
+				}
+			}
+			
+			if ( bAllMapsPlayed )
+			{
+				for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
+					g_MapRotationEntries[ulIdx].bUsed = false;
 			}
 		}
 
+		// Select a new map.
 		do
 		{
-			g_ulNextMapInList = M_Random.Random( ) % MAX_MAPROTATIONLIST_ENTRIES;
-		} while (( g_MapRotationEntries[g_ulNextMapInList].szMapName[0] == 0 ) ||
-				 ( g_MapRotationEntries[g_ulNextMapInList].bUsed == true ) ||
+			g_ulNextMapInList = M_Random.Random( ) % g_MapRotationEntries.size( );
+		}
+		while (( g_MapRotationEntries[g_ulNextMapInList].bUsed == true ) ||
 				 ( g_ulNextMapInList == g_ulCurMapInList ));
 	}
 	else
 	{
-		g_ulNextMapInList = g_ulCurMapInList + 1; //Increment the varaible here to satisfy GCC.
+		g_ulNextMapInList = g_ulCurMapInList + 1;
 		g_ulNextMapInList = ( g_ulNextMapInList % MAPROTATION_GetNumEntries( ));
 	}
 }
@@ -160,43 +135,36 @@ void MAPROTATION_AdvanceMap( void )
 
 //*****************************************************************************
 //
-const char *MAPROTATION_GetNextMapName( void )
+level_info_t *MAPROTATION_GetNextMap( void )
 {
 	// [BB] If we don't want to use the rotation, there is no scheduled next map.
-	if ( sv_maprotation == false )
+	if (( sv_maprotation == false ) || ( g_MapRotationEntries.empty( )))
 		return NULL;
 
-	// [BB] The first time this is called after calling MAPROTATION_AdvanceMap(),
-	// we need need to calculate the next map.
+	// [BB] See if we need to calculate the next map.
 	if ( g_ulNextMapInList == g_ulCurMapInList )
 		MAPROTATION_CalcNextMap();
 
-	// [BB] It should be save to return this without any checks to g_ulNextMapInList.
-	return ( g_MapRotationEntries[g_ulNextMapInList].szMapName );
+	return ( g_MapRotationEntries[g_ulNextMapInList].pMap );
 }
 
 //*****************************************************************************
 //
-const char *MAPROTATION_GetMapName( ULONG ulIdx )
+level_info_t *MAPROTATION_GetMap( ULONG ulIdx )
 {
-	if ( ulIdx > MAX_MAPROTATIONLIST_ENTRIES )
+	if ( ulIdx >= g_MapRotationEntries.size( ))
 		return ( NULL );
 
-	return ( g_MapRotationEntries[ulIdx].szMapName );
+	return ( g_MapRotationEntries[ulIdx].pMap );
 }
 
 //*****************************************************************************
 //
 void MAPROTATION_SetPositionToMap( const char *pszMapName )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
 	{
-		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-			break;
-
-		if ( stricmp( g_MapRotationEntries[ulIdx].szMapName, pszMapName ) == 0 )
+		if ( stricmp( g_MapRotationEntries[ulIdx].pMap->mapname, pszMapName ) == 0 )
 		{
 			g_ulCurMapInList = ulIdx;
 			break;
@@ -209,48 +177,35 @@ void MAPROTATION_SetPositionToMap( const char *pszMapName )
 //
 bool MAPROTATION_IsMapInRotation( const char *pszMapName )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
 	{
-		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-			return false;
-
-		if ( stricmp( g_MapRotationEntries[ulIdx].szMapName, pszMapName ) == 0 )
-		{
+		if ( stricmp( g_MapRotationEntries[ulIdx].pMap->mapname, pszMapName ) == 0 )
 			return true;
-		}
 	}
 	return false;
 }
 
 //*****************************************************************************
-//*****************************************************************************
 //
-static void maprotation_AddMap( char *pszMapName )
+void MAPROTATION_AddMap( char *pszMapName, bool bSilent )
 {
-	// [BB] Check if the wads contain the map at all. If not, don't add it to the map rotation.
-	if( !P_CheckIfMapExists( pszMapName ) )
+	// Find the map.
+	level_info_t *pMap = FindLevelByName( pszMapName );
+	if ( pMap == NULL )
 	{
-		Printf( "map %s not found!\n", pszMapName );
+		Printf( "map %s doesn't exist.\n", pszMapName );
 		return;
 	}
 
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
-	{
-		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
-			break;
-	}
-
-	if ( ulIdx == MAX_MAPROTATIONLIST_ENTRIES )
-		return;
-
-	sprintf( g_MapRotationEntries[ulIdx].szMapName, "%s", pszMapName );
-	g_MapRotationEntries[ulIdx].bUsed = false;
+	// Add it to the queue.
+	MAPROTATIONENTRY_t newEntry;
+	newEntry.pMap = pMap;
+	newEntry.bUsed = false;
+	g_MapRotationEntries.push_back( newEntry );
 
 	MAPROTATION_SetPositionToMap( level.mapname );
+	if ( !bSilent )
+		Printf( "%s (%s) added to map rotation list.\n", pMap->mapname, pMap->LookupLevelName( ).GetChars( ));
 }
 
 //*****************************************************************************
@@ -259,23 +214,30 @@ static void maprotation_AddMap( char *pszMapName )
 CCMD( addmap )
 {
 	if ( argv.argc( ) > 1 )
-		maprotation_AddMap( argv[1] );
+		MAPROTATION_AddMap( argv[1], false );
 	else
 		Printf( "addmap <lumpname>: Adds a map to the map rotation list.\n" );
+}
+
+CCMD( addmapsilent ) // Backwards API needed for server console, RCON.
+{
+	if ( argv.argc( ) > 1 )
+		MAPROTATION_AddMap( argv[1], true );
+	else
+		Printf( "addmapsilent <lumpname>: Silently adds a map to the map rotation list.\n" );
 }
 
 //*****************************************************************************
 //
 CCMD( maplist )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+	if ( g_MapRotationEntries.size( ) == 0 )
+		Printf( "The map rotation list is empty.\n" );
+	else
 	{
-		if ( g_MapRotationEntries[ulIdx].szMapName[0] == '\0' )
-			return;
-		
-		Printf( "%s\n", g_MapRotationEntries[ulIdx].szMapName );
+		Printf( "Map rotation list: \n" );
+		for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
+			Printf( "%d. %s - %s\n", ulIdx + 1, g_MapRotationEntries[ulIdx].pMap->mapname, g_MapRotationEntries[ulIdx].pMap->LookupLevelName( ).GetChars( ));
 	}
 }
 

@@ -67,7 +67,6 @@
 #include "maprotation.h"
 #include "network.h"
 #include "resource.h"
-#include "dmflags/resource.h"
 #include "serverconsole.h"
 #include "serverconsole_dmflags.h"
 #include "sv_ban.h"
@@ -94,22 +93,27 @@ extern	value_t			DF_Jump[3];
 //-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-// References to the dialog.
+// References to the dialogs.
 static	HWND			g_hDlg = NULL;
+static	HWND			g_hDlg_LMS = NULL;
 
-// Stored values of cvars (only send updates them if they change!)
+// Stored values of cvars (we update them when the user hits "OK" (if they changed))
 static	ULONG			g_ulCompatFlags;
 static	ULONG			g_ulCompatFlags2;
 static	ULONG			g_ulDMFlags;
 static	ULONG			g_ulDMFlags2;
+static	ULONG			g_ulLMSAllowedWeapons;
+static	ULONG			g_ulLMSSpectatorSettings;
 
 //==================================================================================
 // [RC] This big map of fun ties all of the DMFlags to their respective checkboxes.
 //==================================================================================
-#define NUMBER_OF_FLAGS 81
+#define NUMBER_OF_FLAGS 93
+
 static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] = 
 {
-//	{ DF_NO_ITEMS,						IDC_NO_ITEMS,					&g_ulDMFlags, },
+	// If a flag does not have a checkbox, simply use NULL:
+	// { DF_NO_ITEMS,					NULL,							&g_ulDMFlags, },
 	{ DF_NO_HEALTH,						IDC_NO_HEALTH1,					&g_ulDMFlags, },	
 	{ DF_WEAPONS_STAY,					IDC_WEAPONS_STAY,				&g_ulDMFlags, },		
 	{ DF_SPAWN_FARTHEST,				IDC_SPAWN_FARTHEST,				&g_ulDMFlags, },	
@@ -191,6 +195,18 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ COMPATF_NO_CROSSHAIR,				IDC_COMPATF_NO_CROSSHAIR,		&g_ulCompatFlags, },
 	{ COMPATF_OLD_WEAPON_SWITCH,		IDC_COMPATF_OLD_WEAPON_SWITCH,	&g_ulCompatFlags, },
 	{ COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE,IDC_COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE, &g_ulCompatFlags2, },
+	{ LMS_AWF_CHAINSAW,					IDC_LMS_ALLOWCHAINSAW,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_PISTOL,					IDC_LMS_ALLOWPISTOL,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_SHOTGUN,					IDC_LMS_ALLOWSHOTGUN,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_SSG,						IDC_LMS_ALLOWSSG,				&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_CHAINGUN,					IDC_LMS_ALLOWCHAINGUN,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_MINIGUN,					IDC_LMS_ALLOWMINIGUN,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_ROCKETLAUNCHER,			IDC_LMS_ALLOWROCKETLAUNCHER,	&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_GRENADELAUNCHER,			IDC_LMS_ALLOWGRENADELAUNCHER,	&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_PLASMA,					IDC_LMS_ALLOWPLASMA,			&g_ulLMSAllowedWeapons, },
+	{ LMS_AWF_RAILGUN,					IDC_LMS_ALLOWRAILGUN,			&g_ulLMSAllowedWeapons, },
+	{ LMS_SPF_VIEW,						IDC_LMS_SPECTATORVIEW,			&g_ulLMSSpectatorSettings, },
+	{ LMS_SPF_CHAT,						IDC_LMS_SPECTATORTALK,			&g_ulLMSSpectatorSettings, },
 };
 
 //================================================
@@ -233,9 +249,8 @@ static MULTIFLAG_t g_MultiFlags[NUMBER_OF_DROPDOWNS] =
 // (Uxtheme) Styles tabs in Windows XP and up. 
 static	HRESULT			(__stdcall *pEnableThemeDialogTexture)( HWND hwnd, DWORD dwFlags );
 
-static	void			flags_UpdateFlagsFromCheckboxes( void );
-static	void			flags_UpdateValueLabels( void );
-static	void			flags_UpdateCheckboxesFromFlags( void );
+static	void			flags_ReadValuesFromForm( void );
+static	void			flags_WriteValuesToForm( void );
 static	void			flags_ReadNewValue( HWND hDlg, int iControlID, ULONG &ulFlags );
 static	BOOL			flags_HandleTabSwitch( HWND hDlg, LPNMHDR nmhdr );
 static	void			flags_InsertTab( char *pszTitle, int iResource, HWND hDlg, TCITEM tcitem, HWND edit, RECT tabrect, RECT tcrect, int &index );
@@ -272,6 +287,8 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			g_ulDMFlags = dmflags;
 			g_ulDMFlags2 = dmflags2;
 			g_ulCompatFlags = compatflags;
+			g_ulLMSAllowedWeapons = lmsallowedweapons;
+			g_ulLMSSpectatorSettings = lmsspectatorsettings;
 
 			SendDlgItemMessage( hDlg, IDC_DMFLAGS_VALUE, EM_SETLIMITTEXT, 12, 0 );
 			SendDlgItemMessage( hDlg, IDC_DMFLAGS2_VALUE, EM_SETLIMITTEXT, 12, 0 );
@@ -294,8 +311,18 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			flags_InsertTab( "General", IDD_DMFLAGS_GENERAL, hDlg, tcitem, edit, tabrect, tcrect, index );
 			flags_InsertTab( "Players", IDD_DMFLAGS_PLAYERS, hDlg, tcitem, edit, tabrect, tcrect, index );
 			flags_InsertTab( "Cooperative", IDD_DMFLAGS_COOP, hDlg, tcitem, edit, tabrect, tcrect, index );
-			flags_InsertTab( "Deathmatch", IDD_DMFLAGS_DM, hDlg, tcitem, edit, tabrect, tcrect, index );			
+			flags_InsertTab( "Deathmatch", IDD_DMFLAGS_DM, hDlg, tcitem, edit, tabrect, tcrect, index );
+			flags_InsertTab( "LMS", IDD_DMFLAGS_LMS, hDlg, tcitem, edit, tabrect, tcrect, index );
 			flags_InsertTab( "Compatibility", IDD_DMFLAGS_COMPAT, hDlg, tcitem, edit, tabrect, tcrect, index );
+			
+			// Check for any orphan flags that don't have checkboxes.
+			for ( unsigned int i = 0; i < NUMBER_OF_FLAGS; i++ )
+			{
+				if ( g_Flags[i].hObject == NULL )
+					g_Flags[i].bStaticValue = !!( *g_Flags[i].ulFlagVariable & g_Flags[i].ulThisFlag );				
+			}
+
+			flags_ReadValuesFromForm( ); // Repair damaged flags. Also updates the textboxes.
 		}
 		break;
 	case WM_COMMAND:
@@ -324,11 +351,8 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			}
 		}
 		else if ( HIWORD( wParam ) == EN_KILLFOCUS )
-		{
-			flags_UpdateFlagsFromCheckboxes( );
-			flags_UpdateValueLabels( );
-		}
-		
+			flags_ReadValuesFromForm( );
+
 		switch ( LOWORD( wParam ))
 		{
 		case IDOK:
@@ -342,8 +366,16 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 				compatflags = g_ulCompatFlags;
 			if ( compatflags2 != g_ulCompatFlags2 )
 				compatflags2 = g_ulCompatFlags2;
+			if ( lmsallowedweapons != g_ulLMSAllowedWeapons )
+				lmsallowedweapons = g_ulLMSAllowedWeapons;
+			if ( lmsspectatorsettings != g_ulLMSSpectatorSettings )
+				lmsspectatorsettings = g_ulLMSSpectatorSettings;
 
 			EndDialog( hDlg, -1 );
+
+			// These might have changed.
+			SERVERCONSOLE_SetupColumns( );
+			SERVERCONSOLE_ReListPlayers( );
 			break;
 		case IDCANCEL:
 
@@ -370,84 +402,13 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 
 //==========================================================================
 //
-// flags_UpdateFlagsFromCheckboxes
+// flags_WriteValuesToForm
 //
-// Regenerates the flags' values from the checkboxes.
-//
-//==========================================================================
-
-static void flags_UpdateFlagsFromCheckboxes( void )
-{
-	g_ulDMFlags = 0;
-	g_ulDMFlags2 = 0;
-	g_ulCompatFlags = 0;
-	g_ulCompatFlags2 = 0;
-
-	for ( unsigned int i = 0; i < NUMBER_OF_FLAGS; i++ )
-	{
-		if ( SendMessage( g_Flags[i].hObject, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
-			*g_Flags[i].ulFlagVariable |= g_Flags[i].ulThisFlag;
-	}
-
-	// Update the drop-downs.
-	for ( unsigned int i = 0; i < NUMBER_OF_DROPDOWNS; i++ )
-	{
-		int selectedIndex = SendMessage( g_MultiFlags[i].hObject, CB_GETCURSEL, 0, 0 );
-		*g_MultiFlags[i].ulFlagVariable |= (int)( g_MultiFlags[i].dataPairings[selectedIndex].value );
-	}
-}
-
-//==========================================================================
-//
-// flags_UpdateValueLabels
-//
-// Updates the numbers inside the "flags: ##" textboxes.
+// Regenerates the checkboxes' and dropdowns' values FROM the flags.
 //
 //==========================================================================
 
-static void flags_UpdateValueLabels( void )
-{
-	FString fsLabel;
-
-	fsLabel.Format( "%ld", g_ulDMFlags );
-	SetDlgItemText( g_hDlg, IDC_DMFLAGS_VALUE, fsLabel.GetChars( ));
-
-	fsLabel.Format( "%ld", g_ulDMFlags2 );
-	SetDlgItemText( g_hDlg, IDC_DMFLAGS2_VALUE, fsLabel.GetChars( ));
-
-	fsLabel.Format( "%ld", g_ulCompatFlags );
-	SetDlgItemText( g_hDlg, IDC_COMPATFLAGS_VALUE, fsLabel.GetChars( ));
-
-	fsLabel.Format( "%ld", g_ulCompatFlags2 );
-	SetDlgItemText( g_hDlg, IDC_COMPATFLAGS2_VALUE, fsLabel.GetChars( ));
-}
-
-//==========================================================================
-//
-// flags_ReadNewValue
-//
-// Reads an entirely new flag from the "flags: ##" textboxes.
-//
-//==========================================================================
-
-void flags_ReadNewValue( HWND hDlg, int iControlID, ULONG &ulFlags )
-{
-	char	szBuffer[1024];
-
-	GetDlgItemText( hDlg, iControlID, szBuffer, 1024 );
-	ulFlags = atoi( szBuffer );
-	flags_UpdateCheckboxesFromFlags( );
-}
-
-//==========================================================================
-//
-// flags_UpdateCheckboxesFromFlags
-//
-// Resets the checkboxes' values from the flags.
-//
-//==========================================================================
-
-static void flags_UpdateCheckboxesFromFlags( void )
+static void flags_WriteValuesToForm( void )
 {
 	for ( unsigned int i = 0; i < NUMBER_OF_FLAGS; i++ )
 		SendMessage( g_Flags[i].hObject, BM_SETCHECK, ( *g_Flags[i].ulFlagVariable & g_Flags[i].ulThisFlag ) ? BST_CHECKED : BST_UNCHECKED, 0 );
@@ -471,6 +432,87 @@ static void flags_UpdateCheckboxesFromFlags( void )
 
 		SendMessage( g_MultiFlags[i].hObject, CB_SETCURSEL, largestIndex, 0 );
 	}
+}
+
+//==========================================================================
+// Updates the numbers inside a "flags: ##" textbox.
+// (Helper method for flags_ReadValuesFromForm.)
+//
+static void flags_UpdateValueLabel( int iControlID, HWND hDlg, ULONG ulValue )
+{
+	FString fsLabel;
+
+	fsLabel.Format( "%ld", ulValue );
+	SetDlgItemText( hDlg, iControlID, fsLabel.GetChars( ));
+}
+
+//==========================================================================
+//
+// flags_ReadValuesFromForm
+//
+// Recreates the flags' values FROM the checkboxes and drop-downs.
+//
+//==========================================================================
+
+static void flags_ReadValuesFromForm( void )
+{
+	g_ulDMFlags = 0;
+	g_ulDMFlags2 = 0;
+	g_ulCompatFlags = 0;
+	g_ulCompatFlags2 = 0;
+	g_ulLMSAllowedWeapons = 0;
+	g_ulLMSSpectatorSettings = 0;
+
+	for ( unsigned int i = 0; i < NUMBER_OF_FLAGS; i++ )
+	{
+		if ( g_Flags[i].hObject == NULL )
+		{
+			if ( g_Flags[i].bStaticValue ) // Restore the values of any orphan flags that don't have checkboxes.
+				*g_Flags[i].ulFlagVariable |= g_Flags[i].ulThisFlag;
+		}
+		else if ( SendMessage( g_Flags[i].hObject, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+			*g_Flags[i].ulFlagVariable |= g_Flags[i].ulThisFlag;
+	}
+	
+	// Update the drop-downs.
+	for ( unsigned int i = 0; i < NUMBER_OF_DROPDOWNS; i++ )
+	{
+		int selectedIndex = SendMessage( g_MultiFlags[i].hObject, CB_GETCURSEL, 0, 0 );
+		*g_MultiFlags[i].ulFlagVariable |= (int)( g_MultiFlags[i].dataPairings[selectedIndex].value );
+	}
+
+	// Update the textboxes.
+	flags_UpdateValueLabel( IDC_DMFLAGS_VALUE, g_hDlg, g_ulDMFlags );
+	flags_UpdateValueLabel( IDC_DMFLAGS2_VALUE, g_hDlg, g_ulDMFlags2 );
+	flags_UpdateValueLabel( IDC_COMPATFLAGS_VALUE, g_hDlg, g_ulCompatFlags );
+	flags_UpdateValueLabel( IDC_COMPATFLAGS2_VALUE, g_hDlg, g_ulCompatFlags2 );
+	flags_UpdateValueLabel( IDC_LMSWEAPONS_VALUE, g_hDlg_LMS, g_ulLMSAllowedWeapons );
+	flags_UpdateValueLabel( IDC_LMSSPECTATORS_VALUE, g_hDlg_LMS, g_ulLMSSpectatorSettings );
+}
+
+//==========================================================================
+//
+// flags_ReadNewValue
+//
+// Reads an entirely new flag from the "flags: ##" textboxes.
+//
+//==========================================================================
+
+void flags_ReadNewValue( HWND hDlg, int iControlID, ULONG &ulFlags )
+{
+	char	szBuffer[1024];
+
+	GetDlgItemText( hDlg, iControlID, szBuffer, 1024 );
+	ulFlags = atoi( szBuffer );
+
+	// Update the orphan flags that don't have checkboxes.
+	for ( unsigned int i = 0; i < NUMBER_OF_FLAGS; i++ )
+	{
+		if ( g_Flags[i].hObject == NULL )
+			g_Flags[i].bStaticValue = !!( *g_Flags[i].ulFlagVariable & g_Flags[i].ulThisFlag );				
+	}
+
+	flags_WriteValuesToForm( );
 }
 
 //==========================================================================
@@ -569,8 +611,15 @@ BOOL CALLBACK flags_GenericTabCallback( HWND hDlg, UINT Message, WPARAM wParam, 
 			}
 		}
 
-		flags_UpdateCheckboxesFromFlags( );
-		flags_UpdateValueLabels( );
+		// Are the LMS textboxes on this tab?
+		if ( GetDlgItem( hDlg, IDC_LMSSPECTATORS_VALUE ) != NULL )
+		{
+			g_hDlg_LMS = hDlg;
+			SendDlgItemMessage( hDlg, IDC_LMSWEAPONS_VALUE, EM_SETLIMITTEXT, 12, 0 );
+			SendDlgItemMessage( hDlg, IDC_LMSSPECTATORS_VALUE, EM_SETLIMITTEXT, 12, 0 );
+		}
+
+		flags_WriteValuesToForm( );		
 		break;
 	case WM_COMMAND:
 
@@ -580,8 +629,7 @@ BOOL CALLBACK flags_GenericTabCallback( HWND hDlg, UINT Message, WPARAM wParam, 
 			// They did! Update the flags.
 			if ( g_Flags[i].iControlID == LOWORD( wParam ) )
 			{
-				flags_UpdateFlagsFromCheckboxes( );
-				flags_UpdateValueLabels( );
+				flags_ReadValuesFromForm( );
 				break;
 			}
 		}
@@ -592,8 +640,23 @@ BOOL CALLBACK flags_GenericTabCallback( HWND hDlg, UINT Message, WPARAM wParam, 
 			// They did! Update the flags.
 			if ( g_MultiFlags[i].iControlID == LOWORD( wParam ) && HIWORD( wParam ) == CBN_SELCHANGE )
 			{
-				flags_UpdateFlagsFromCheckboxes( );
-				flags_UpdateValueLabels( );
+				flags_ReadValuesFromForm( );
+				break;
+			}
+		}
+
+		// User is typing in some new flags.
+		if ( HIWORD ( wParam ) == EN_CHANGE )
+		{
+			switch ( LOWORD( wParam ))
+			{
+			case IDC_LMSSPECTATORS_VALUE:
+
+				flags_ReadNewValue( hDlg, LOWORD( wParam ), g_ulLMSSpectatorSettings );
+				break;
+			case IDC_LMSWEAPONS_VALUE:
+
+				flags_ReadNewValue( hDlg, LOWORD( wParam ), g_ulLMSAllowedWeapons );
 				break;
 			}
 		}

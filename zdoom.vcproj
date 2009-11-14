@@ -5107,38 +5107,6 @@
 			Name="Win32 Files"
 			>
 			<File
-				RelativePath=".\src\win32\boing1.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing2.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing3.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing4.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing5.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing6.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing7.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\boing8.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\src\win32\critsec.h"
 				>
 			</File>
@@ -5454,26 +5422,37 @@
 				RelativePath=".\src\win32\resource.h"
 				>
 			</File>
-			<File
-				RelativePath=".\src\win32\dmflags\resource.h"
-				>
-			</File>			
-			<File
-				RelativePath=".\src\win32\serverconsole.cpp"
-				>
-			</File>			
-			<File
-				RelativePath=".\src\win32\serverconsole.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32\serverconsole_dmflags.cpp"
-				>
-			</File>			
-			<File
-				RelativePath=".\src\win32\serverconsole_dmflags.h"
-				>
-			</File>			
+			<Filter
+				Name="Server Console">	
+				<File
+					RelativePath=".\src\win32\serverconsole\resource.h"
+					>
+				</File>							
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole.cpp"
+					>
+				</File>			
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.cpp"
+					>
+				</File>			
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.h"
+					>
+				</File>	
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_settings.cpp"
+					>
+				</File>			
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_settings.h"
+					>
+				</File>						
+			</Filter>
 			<File
 				RelativePath=".\src\win32\st_start.cpp"
 				>
@@ -9793,14 +9772,14 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\win32\dmflags\dmflags.rc"
+				RelativePath=".\src\win32\serverconsole\serverconsole.rc"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -9809,7 +9788,7 @@
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
-						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -9817,7 +9796,7 @@
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -9826,7 +9805,7 @@
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
-						AdditionalIncludeDirectories="src\win32\dmflags;$(NoInherit)"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
 					/>
 				</FileConfiguration>
 			</File>

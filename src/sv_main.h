@@ -96,6 +96,7 @@
 #define	HOUR						( MINUTE * 60 )
 #define	DAY							( HOUR * 24 )
 #define WEEK						( DAY * 7 )
+#define YEAR						( DAY * 365 )
 
 // Server query flags.
 #define	SQF_NAME					0x00000001

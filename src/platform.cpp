@@ -85,22 +85,11 @@ void SERVERCONSOLE_UpdateTitleString( const char *pszString ) {}
 void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress ) {}
 void SERVERCONSOLE_UpdateBroadcasting( void ) {}
 void SERVERCONSOLE_UpdateScoreboard( void ) {}
-void SERVERCONSOLE_UpdateTotalOutboundDataTransfer( QWORD qwData ) {}
-void SERVERCONSOLE_UpdateAverageOutboundDataTransfer( QWORD qwData ) {}
-void SERVERCONSOLE_UpdatePeakOutboundDataTransfer( LONG lData ) {}
-void SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( LONG lData ) {}
-void SERVERCONSOLE_UpdateTotalInboundDataTransfer( QWORD qwData ) {}
-void SERVERCONSOLE_UpdateAverageInboundDataTransfer( QWORD qwData ) {}
-void SERVERCONSOLE_UpdatePeakInboundDataTransfer( LONG lData ) {}
-void SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData ) {}
-void SERVERCONSOLE_UpdateTotalUptime( LONG lData ) {}
+void SERVERCONSOLE_UpdateStatistics( void ) {}
 void SERVERCONSOLE_SetCurrentMapname( const char *pszString ) {}
 void SERVERCONSOLE_SetupColumns( void ) {}
 void SERVERCONSOLE_ReListPlayers( void ) {}
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags ) {}
-void SERVERCONSOLE_UpdateOperatingSystem( char *pszString ) {}
-void SERVERCONSOLE_UpdateCPUSpeed( char *pszString ) {}
-void SERVERCONSOLE_UpdateVendor( char *pszString ) {}
 void SERVERCONSOLE_Print( char *pszString )
 {
 	V_StripColors( pszString );

@@ -640,14 +640,23 @@ NETADDRESS_s SERVER_MASTER_GetMasterAddress( void )
 //-- CONSOLE ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Should the server inform the master server of its existance?
-CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO )
+// [BB] Unless all the declarations of the SERVERCONSOLE_* functions are moved to a platfrom independent header,
+// we need to keep those awful declarations everywhere.
+void SERVERCONSOLE_UpdateBroadcasting( void );
+void SERVERCONSOLE_UpdateTitleString( const char *pszString );
+// Should the server inform the master server of its existence?
+CUSTOM_CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO )
+{
+	SERVERCONSOLE_UpdateBroadcasting( );
+}
 
 // Should the server broadcast so LAN clients can hear it?
-CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE )
+CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE )
+{
+	SERVERCONSOLE_UpdateBroadcasting( );
+}
 
 // Name of this server on launchers.
-void	SERVERCONSOLE_UpdateTitleString( const char *pszString );
 CUSTOM_CVAR( String, sv_hostname, "Unnamed Skulltag server", CVAR_ARCHIVE )
 {
 	SERVERCONSOLE_UpdateTitleString( (const char *)self );

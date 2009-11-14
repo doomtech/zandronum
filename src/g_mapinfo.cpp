@@ -96,6 +96,21 @@ level_info_t *FindLevelInfo (const char *mapname)
 		return &TheDefaultLevelInfo;
 	}
 }
+//==========================================================================
+//
+// [RC] Finds a level given its name.
+// Like FindLevelInfo but returns NULL if the level wasn't found.
+//
+//==========================================================================
+
+level_info_t *FindLevelByName( const char *mapname )
+{
+	int i = FindWadLevelInfo( mapname );
+	if ( i > -1 )
+		return &wadlevelinfos[i];
+	else
+		return NULL;
+}
 
 //==========================================================================
 //

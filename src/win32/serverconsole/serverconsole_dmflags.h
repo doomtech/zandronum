@@ -76,6 +76,9 @@ typedef struct
 	// Pointer to the checkbox handle. (In case the checkboxes are on separate tabs.)
 	HWND		hObject;
 
+	// If there isn't a checkbox on the form (iControlID == NULL), we safely store the value here.
+	bool		bStaticValue;
+
 } FLAGMAPPING_t;
 
 // A mapping between a series of related (dm)flags and a win32 combobox.

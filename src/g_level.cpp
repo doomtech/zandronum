@@ -722,8 +722,8 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 		// [BB] It's possible that the selected next map doesn't coincide with the next map
 		// in the rotation, e.g. exiting to a secret map allows to leave the rotation.
 		// In this case, we may not advance to the next map in the rotation.
-		if ( ( MAPROTATION_GetNextMapName( ) != NULL )
-			&& ( stricmp ( MAPROTATION_GetNextMapName( ), nextlevel.GetChars() ) == 0 ) )
+		if ( ( MAPROTATION_GetNextMap( ) != NULL )
+			&& ( stricmp ( MAPROTATION_GetNextMap( )->mapname, nextlevel.GetChars() ) == 0 ) )
 			MAPROTATION_AdvanceMap();
 	}
 
@@ -810,7 +810,7 @@ const char *G_GetExitMap()
 	{
 		// [BB] It's possible that G_GetExitMap() is called multiple times before a map change.
 		// Therefore we may not advance the map, but just peek at it.
-		return ( MAPROTATION_GetNextMapName( ));
+		return ( MAPROTATION_GetNextMap( )->mapname );
 	}
 
 	return level.nextmap;

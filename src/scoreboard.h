@@ -105,6 +105,7 @@ void	SCOREBOARD_RenderStats_Holders( void );
 void	SCOREBOARD_RenderStats_TeamScores( void );
 void	SCOREBOARD_RenderStats_RankSpread( void );
 void	SCOREBOARD_RenderInvasionStats( void );
+void	SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors );
 void	SCOREBOARD_RenderInVote( void );
 void	SCOREBOARD_RenderInVoteClassic( void );
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );

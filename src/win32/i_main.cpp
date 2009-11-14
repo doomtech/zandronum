@@ -77,7 +77,7 @@
 #include "doomstat.h"
 #include "r_main.h"
 // [BB] New #includes.
-#include "serverconsole.h"
+#include "serverconsole/serverconsole.h"
 #include "network.h"
 
 #include "stats.h"
