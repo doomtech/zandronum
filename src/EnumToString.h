@@ -54,7 +54,7 @@
     #define END_ENUM( ENUM_NAME ) ; \
 			char* GetString##ENUM_NAME(enum tag##ENUM_NAME index) \
 			{ \
-				for (int i = 0; i < sizeof(gs_##ENUM_NAME)/sizeof(EnumDesc_t); i++) \
+				for (unsigned int i = 0; i < sizeof(gs_##ENUM_NAME)/sizeof(EnumDesc_t); i++) \
 				{ \
 					if ((int)index == gs_##ENUM_NAME [i].type) \
 						return gs_##ENUM_NAME [i].desc; \
@@ -63,7 +63,7 @@
 			} \
 			int GetValue##ENUM_NAME( const char* Name ) \
 			{ \
-				for (int i = 0; i < sizeof(gs_##ENUM_NAME)/sizeof(EnumDesc_t); i++) { \
+				for (unsigned int i = 0; i < sizeof(gs_##ENUM_NAME)/sizeof(EnumDesc_t); i++) { \
 					if (strcmp (Name, gs_##ENUM_NAME [i].desc) == 0 ) \
 						return (gs_##ENUM_NAME [i].type); \
 				} \
