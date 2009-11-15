@@ -80,6 +80,11 @@ static	GAMEMODE_s				g_GameModes[NUM_GAMEMODES];
 // Our current game mode.
 static	GAMEMODE_e				g_CurrentGameMode;
 
+// [BB] Implement the string table and the conversion functions for the GMF enums.
+#define GENERATE_ENUM_STRINGS  // Start string generation
+#include "gamemode_enums.h"
+#undef GENERATE_ENUM_STRINGS   // Stop string generation
+
 //*****************************************************************************
 //	FUNCTIONS
 

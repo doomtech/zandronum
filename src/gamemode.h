@@ -59,18 +59,9 @@
 //*****************************************************************************
 //	DEFINES
 
-#define	GMF_COOPERATIVE					0x00000001
-#define	GMF_DEATHMATCH					0x00000002
-#define	GMF_TEAMGAME					0x00000004
-#define	GMF_PLAYERSEARNKILLS			0x00000010
-#define	GMF_PLAYERSEARNFRAGS			0x00000020
-#define	GMF_PLAYERSEARNPOINTS			0x00000040
-#define	GMF_PLAYERSEARNWINS				0x00000080
-#define	GMF_DONTSPAWNMAPTHINGS			0x00000100
-#define	GMF_MAPRESETS					0x00000200
-#define	GMF_DEADSPECTATORS				0x00000400
-#define	GMF_PLAYERSONTEAMS				0x00000800
-#define	GMF_USEMAXLIVES					0x00001000
+// [BB] The GMF_* defines are now enums with "EnumToString" support and need
+// to go into a separate header for technical reasons.
+#include "gamemode_enums.h"
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

@@ -4472,6 +4472,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\EnumToString.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\f_finale.h"
 				>
 			</File>
@@ -4505,6 +4509,10 @@
 			</File>
 			<File
 				RelativePath=".\src\gamemode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\gamemode_enums.h"
 				>
 			</File>
 			<File
@@ -5422,37 +5430,6 @@
 				RelativePath=".\src\win32\resource.h"
 				>
 			</File>
-			<Filter
-				Name="Server Console">	
-				<File
-					RelativePath=".\src\win32\serverconsole\resource.h"
-					>
-				</File>							
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole.cpp"
-					>
-				</File>			
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.cpp"
-					>
-				</File>			
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.h"
-					>
-				</File>	
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole_settings.cpp"
-					>
-				</File>			
-				<File
-					RelativePath=".\src\win32\serverconsole\serverconsole_settings.h"
-					>
-				</File>						
-			</Filter>
 			<File
 				RelativePath=".\src\win32\st_start.cpp"
 				>
@@ -5501,6 +5478,38 @@
 				RelativePath=".\src\win32\wrappers.asm"
 				>
 			</File>
+			<Filter
+				Name="Server Console"
+				>
+				<File
+					RelativePath=".\src\win32\serverconsole\resource.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_dmflags.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_settings.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\serverconsole\serverconsole_settings.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Shared Game"
@@ -9730,6 +9739,44 @@
 			Name="Versioning"
 			>
 			<File
+				RelativePath=".\src\win32\serverconsole\serverconsole.rc"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
+						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\src\version.h"
 				>
 			</File>
@@ -9771,45 +9818,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\src\win32\serverconsole\serverconsole.rc"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
-						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						PreprocessorDefinitions="_DEBUG;NO_MANIFEST"
-						AdditionalIncludeDirectories="src\win32\serverconsole;$(NoInherit)"
-					/>
-				</FileConfiguration>
-			</File>
-			
 		</Filter>
 		<Filter
 			Name="Audio Files"
