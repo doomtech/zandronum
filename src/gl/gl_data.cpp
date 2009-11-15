@@ -281,8 +281,10 @@ DEFINE_MAP_OPTION(skyrotate, false)
 	parse.ParseAssign();
 	parse.sc.MustGetFloat();
 	opt->skyrotatevector.X = (float)parse.sc.Float;
+	if (parse.format_type == FMapInfoParser::FMT_New) parse.sc.MustGetStringName(","); 
 	parse.sc.MustGetFloat();
 	opt->skyrotatevector.Y = (float)parse.sc.Float;
+	if (parse.format_type == FMapInfoParser::FMT_New) parse.sc.MustGetStringName(","); 
 	parse.sc.MustGetFloat();
 	opt->skyrotatevector.Z = (float)parse.sc.Float;
 	opt->skyrotatevector.MakeUnit();
