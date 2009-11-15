@@ -202,7 +202,7 @@ enum ELevelFlags
 	LEVEL2_NOBOTNODES			= 0x02000000,	// [BC] Level does not use bot nodes.
 	// [BB] Ceartain game modes are supposed to behave differently on
 	// the map. For example in duel mode the countdown and the map reset are skipped.
-	LEVEL2_ISLOBBY				= 0x02000000,
+	LEVEL2_ISLOBBY				= 0x04000000,
 };
 
 
