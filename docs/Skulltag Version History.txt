@@ -11,8 +11,9 @@
 =
 ===============================================================================================================
 
-serverdialogs branch
-------
+
+latestzdoom branch
+------------------
 
 +	- Greatly improved the windows server dialog! [Rivecoder]
 
@@ -21,7 +22,7 @@ serverdialogs branch
 				- NOTE: The command box now acts like the in-game console: you no longer have to precede your commands with a "/" to send them. (This was confusing too many people.)
 			- "File|Join server" lets you immediately play on your server!
 			- Added a HELP menu! This provides information for newbies and veterans alike.
-		
+
 		- Things that are now much easier to use:
 			- Completely redid the CONFIGURATION DIALOG! It is now MUCH more intuitively designed, and easier to use.
 				- Settings are grouped into tabs!
@@ -30,7 +31,7 @@ serverdialogs branch
 			- Rewrote the STATISTICS DIALOG! You can read everything much more easily.
 			- In the CHANGE MAP and MAP ROTATION dialogs, there is now a a list of available maps to choose from! It even autocompletes for you.
 			- The dialog itself! The console is bigger, you can now see what game mode the server's using, and it's just more intuitive overall.
-			
+
 		- Smaller things:			
 			- You can click the status bar to quickly adjust who can see your server and copy its IP.
 				- You can also click the labels at the top of the dialog, to quickly change the map or adjust settings.
@@ -40,18 +41,11 @@ serverdialogs branch
 			- You can now add bots by right-clicking the scoreboard.
 				- This menu also now supports temporary bans, and copying IPs is also simpler.
 			- You can now very easily tell if you're running a public version because the status bar will simply show the version as "98a", "98b", and so on. Only in testing builds are the SVN revisions shown.
-		
+
 		- Bug fixes:
 			- Fixed: the scoreboard would flicker if a timelimit was set, but no players were present.
 			- Removed several unneeded or defunct dialogs.
-			- The scoreboard and player list have been updated to support newer Skulltag features (like the "award damage instead of kills" DMFlag).					
-			
--	- Removed the unused sv_masteroverrideip. [Rivecoder]
--	- Fixed: If all players have negative frags and there are spectators in the game, the number of frags remaining shown on the scoreboard is not properly calculated. [Torr Samaho]
-!	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
-
-latestzdoom branch
-------------------
+			- The scoreboard and player list have been updated to support newer Skulltag features (like the "award damage instead of kills" DMFlag).
 
 +	- Added new CCMD printjoinqueue that allows the server to list the full join queue. [Torr Samaho]
 +	- Added new dmflag "only spawn sp actors in coop", controlled by the new CVAR sv_coop_spactorspawn, based on a code submission by TIHan. If this is true in a cooperative game mode, map actors are spawned as if the game was single player. [Torr Samaho]
@@ -72,6 +66,8 @@ latestzdoom branch
 -	- Fixed: The Windows server DMFlags dialog didn't read the compatflags2 value when opened. [Torr Samaho]
 -	- Fixed: Internally the mapinfo properties islobby and nobotnodes used the same value. Thus, when one of them was set, the other was automatically also set. [Torr Samaho]
 -	- Fixed: SBARINFO draws things marked as COOPERATIVE also in game modes where the CVAR teamgame is true. [Torr Samaho]
+-	- Fixed: If all players have negative frags and there are spectators in the game, the number of frags remaining shown on the scoreboard is not properly calculated. [Torr Samaho]
+!	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 
 
