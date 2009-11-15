@@ -60,6 +60,7 @@
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cooperative.h"
+#include "gamemode.h"
 #include "team.h"
 
 static FRandom pr_chainwiggle; //use the same method of chain wiggling as heretic.
@@ -1322,7 +1323,8 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 			case SBARINFO_GAMEMODE:
 				if(((cmd.flags & GAMETYPE_SINGLEPLAYER) && (NETWORK_GetState( ) == NETSTATE_SINGLE)) ||
 					((cmd.flags & GAMETYPE_DEATHMATCH) && deathmatch) ||
-					((cmd.flags & GAMETYPE_COOPERATIVE) && (NETWORK_GetState( ) != NETSTATE_SINGLE) && !deathmatch) ||
+					// [BB] Skulltag needs to check for more than just !deathmatch.
+					((cmd.flags & GAMETYPE_COOPERATIVE) && (NETWORK_GetState( ) != NETSTATE_SINGLE) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) ) ||
 					((cmd.flags & GAMETYPE_TEAMGAME) && teamplay) ||
 					((cmd.flags & GAMETYPE_CTF) && ctf) ||
 					((cmd.flags & GAMETYPE_ONEFLAGCTF) && oneflagctf) ||
