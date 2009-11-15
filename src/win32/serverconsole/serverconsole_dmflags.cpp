@@ -108,7 +108,7 @@ static	ULONG			g_ulLMSSpectatorSettings;
 //==================================================================================
 // [RC] This big map of fun ties all of the DMFlags to their respective checkboxes.
 //==================================================================================
-#define NUMBER_OF_FLAGS 94
+#define NUMBER_OF_FLAGS 96
 
 static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] = 
 {
@@ -196,6 +196,8 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ COMPATF_NO_CROSSHAIR,				IDC_COMPATF_NO_CROSSHAIR,		&g_ulCompatFlags, },
 	{ COMPATF_OLD_WEAPON_SWITCH,		IDC_COMPATF_OLD_WEAPON_SWITCH,	&g_ulCompatFlags, },
 	{ COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE,IDC_COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE, &g_ulCompatFlags2, },
+	{ COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO, NULL,						&g_ulCompatFlags2, },
+	{ COMPATF2_NO_LAND,					NULL,							&g_ulCompatFlags2, },
 	{ LMS_AWF_CHAINSAW,					IDC_LMS_ALLOWCHAINSAW,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_PISTOL,					IDC_LMS_ALLOWPISTOL,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_SHOTGUN,					IDC_LMS_ALLOWSHOTGUN,			&g_ulLMSAllowedWeapons, },
@@ -288,6 +290,7 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			g_ulDMFlags = dmflags;
 			g_ulDMFlags2 = dmflags2;
 			g_ulCompatFlags = compatflags;
+			g_ulCompatFlags2 = compatflags2;
 			g_ulLMSAllowedWeapons = lmsallowedweapons;
 			g_ulLMSSpectatorSettings = lmsspectatorsettings;
 

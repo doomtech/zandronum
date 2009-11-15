@@ -68,6 +68,7 @@ latestzdoom branch
 -	- Fixed: Dead spectators that automatically reenter the game after a "changemap" map change in survival don't trigger enter scripts. [Torr Samaho]
 -	- Fixed: The standing assault gun in Strife can only be picked up once (ported from ZDoom revision 1671). [Torr Samaho]
 -	- Fixed: The MAPINFO property skyrotate is not parsed properly if the MAPINFO lump uses the new format (ported from GZDoom revision 403). [Torr Samaho]
+-	- Fixed: The Windows server DMFlags dialog didn't read the compatflags2 value when opened. [Torr Samaho]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 
 
