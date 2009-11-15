@@ -337,7 +337,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					}
 					else if ( szBuffer[0] == '/' ) // If the text in the send buffer begins with a slash, error out -- Skulltag used to require you to do this to send commands.
 					{
-						Printf( "You longer have to prefix commands with a / to send them.\n" );
+						Printf( "You no longer have to prefix commands with a / to send them.\n" );
 						SetDlgItemText( hDlg, IDC_INPUTBOX, szBuffer + 1 );
 						SendMessage( GetDlgItem( hDlg, IDC_INPUTBOX ), EM_SETSEL, strlen( szBuffer ) - 1, strlen( szBuffer ) - 1 );
 						break;
