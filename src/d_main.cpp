@@ -474,6 +474,7 @@ CVAR (Flag, sv_forcegldefaults,		dmflags2, DF2_FORCE_GL_DEFAULTS);
 CVAR (Flag, sv_norocketjumping,		dmflags2, DF2_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
+CVAR (Flag, sv_coop_spactorspawn,	dmflags2, DF2_COOP_SP_ACTOR_SPAWN);
 
 CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);

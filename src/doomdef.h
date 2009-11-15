@@ -263,6 +263,9 @@ enum
 
 	// [BB] Enforces clients to display alpha, i.e. render as if r_drawtrans == 1.
 	DF2_FORCE_ALPHA		= 1 << 21,
+
+	// [BB] Spawn map actors in coop as if the game was single player.
+	DF2_COOP_SP_ACTOR_SPAWN		= 1 << 29,
 };
 
 // [RH] Compatibility flags.

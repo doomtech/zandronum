@@ -108,7 +108,7 @@ static	ULONG			g_ulLMSSpectatorSettings;
 //==================================================================================
 // [RC] This big map of fun ties all of the DMFlags to their respective checkboxes.
 //==================================================================================
-#define NUMBER_OF_FLAGS 93
+#define NUMBER_OF_FLAGS 94
 
 static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] = 
 {
@@ -163,6 +163,7 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ DF2_NO_ROCKET_JUMPING,			IDC_DF2_NO_ROCKET_JUMPING,		&g_ulDMFlags2, },
 	{ DF2_AWARD_DAMAGE_INSTEAD_KILLS,	IDC_DF2_AWARD_DAMAGE_INSTEAD_KILLS,	&g_ulDMFlags2, },
 	{ DF2_FORCE_ALPHA,					IDC_DF2_FORCE_ALPHA,			&g_ulDMFlags2, },
+	{ DF2_COOP_SP_ACTOR_SPAWN,			NULL,							&g_ulDMFlags2, },
 	{ COMPATF_SHORTTEX,					IDC_SHORTTEX,					&g_ulCompatFlags, },
 	{ COMPATF_STAIRINDEX,				IDC_STAIRINDEX,					&g_ulCompatFlags, },
 	{ COMPATF_LIMITPAIN,				IDC_LIMITPAIN,					&g_ulCompatFlags, },

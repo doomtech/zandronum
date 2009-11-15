@@ -3431,7 +3431,8 @@ void P_RemoveThings( void )
 			{
 				lMask = MTF_DEATHMATCH;
 			}
-			else if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
+			// [TIHan/BB] only spawn single-player actors in coop if desired.
+			else if ( ( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !(dmflags2 & DF2_COOP_SP_ACTOR_SPAWN) )
 			{
 				lMask = MTF_COOPERATIVE;
 			}
