@@ -2122,6 +2122,22 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	if ( gamestate != GS_LEVEL )
 		return ( 0 );
 
+	// KILL-based mode. [BB] This works indepently of any players in game.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
+	{
+		if ( invasion )
+			return (LONG) INVASION_GetNumMonstersLeft( );
+		else if ( dmflags2 & DF2_KILL_MONSTERS )
+		{
+			if ( level.total_monsters > 0 )
+				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
+			else
+				return 0;
+		}
+		else
+			return ( level.total_monsters - level.killed_monsters );
+	}
+
 	// [BB] In a team game with only empty teams or if there are no players at all, just return the appropriate limit.
 	if ( ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	     && ( TEAM_TeamsWithPlayersOn() == 0 ) )
@@ -2173,22 +2189,6 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 
 			return pointlimit - (ULONG) lHighestPointCount;
 		}
-	}
-
-	// KILL-based mode.
-	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
-	{
-		if ( invasion )
-			return (LONG) INVASION_GetNumMonstersLeft( );
-		else if ( dmflags2 & DF2_KILL_MONSTERS )
-		{
-			if ( level.total_monsters > 0 )
-				return ( 100 * ( level.total_monsters - level.killed_monsters ) / level.total_monsters );
-			else
-				return 0;
-		}
-		else
-			return ( level.total_monsters - level.killed_monsters );
 	}
 
 	// WIN-based mode (LMS).
