@@ -2522,10 +2522,9 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 	// Players entering a teamplay game must choose a team first before joining the fray.
 	if (( pPlayer->bOnTeam == false ) || ( playeringame[pPlayer - players] == false ))
 	{
-		if (( teamplay && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
-			( teamlms && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
-			( teampossession && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
-			( teamgame && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ) && ( TemporaryTeamStarts.Size( ) == 0 )))
+		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+			( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) &&
+			(( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
 		{
 			return ( true );
 		}
