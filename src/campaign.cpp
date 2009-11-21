@@ -210,40 +210,40 @@ bool CAMPAIGN_DidPlayerBeatMap( void )
 		// If the console player isn't on a team, he DEFINITELY lost.
 		if ( players[consoleplayer].bOnTeam == false )
 			return ( false );
-	}
 
-	// If this is teamplay, compare the fragcount of the two teams.
-	if ( teamplay )
-	{
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		// If this is teamplay, compare the fragcount of the two teams.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 		{
-			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) < TEAM_GetFragCount( i ))
-				return ( false );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+			{
+				if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) < TEAM_GetFragCount( i ))
+					return ( false );
+			}
 		}
-	}
 
-	// If this is a teamgame or team possession, compare the team scores.
-	if ( teamgame || teampossession )
-	{
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		// If this is a teamgame or team possession, compare the team scores.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		{
-			if ( TEAM_GetScore( players[consoleplayer].ulTeam ) < TEAM_GetScore( i ))
-				return ( false );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+			{
+				if ( TEAM_GetScore( players[consoleplayer].ulTeam ) < TEAM_GetScore( i ))
+					return ( false );
+			}
 		}
-	}
 
-	// If this is teamlms, compare the team wins.
-	if ( teamlms )
-	{
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		// If this is teamlms, compare the team wins.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		{
-			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) < TEAM_GetWinCount( i ))
-				return ( false );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+			{
+				if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) < TEAM_GetWinCount( i ))
+					return ( false );
+			}
 		}
 	}
 
 	// If it's a deathmatch, check the player's spread.
-	if (( deathmatch ) && ( teampossession == false ) && ( teamlms == false ) && ( teamplay == false ))
+	else if ( deathmatch )
 	{
 		if ( SCOREBOARD_CalcSpread( consoleplayer ) < 0 )
 			return ( false );

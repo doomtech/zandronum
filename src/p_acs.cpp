@@ -72,6 +72,7 @@
 #include "m_png.h"
 // [BB] New #includes.
 #include "deathmatch.h"
+#include "gamemode.h"
 #include "team.h"
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -4829,18 +4830,18 @@ int DLevelScript::RunScript ()
 			break;
 		case PCD_BLUETEAMSCORE:
 			
-			if ( teamplay )
+			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 				PushToStack( TEAM_GetFragCount( 0 ));
-			else if ( teamlms )
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 				PushToStack( TEAM_GetWinCount( 0 ));
 			else
 				PushToStack( TEAM_GetScore( 0 ));
 			break;
 		case PCD_REDTEAMSCORE:
 			
-			if ( teamplay )
+			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 				PushToStack( TEAM_GetFragCount( 1 ));
-			else if ( teamlms )
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 				PushToStack( TEAM_GetWinCount( 1 ));
 			else
 				PushToStack( TEAM_GetScore( 1 ));
@@ -6461,9 +6462,9 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GETTEAMSCORE:
-			if ( teamplay )
+			 if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 				STACK( 1 ) = TEAM_GetFragCount( STACK( 1 ));
-			else if ( teamlms )
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 				STACK( 1 ) = TEAM_GetWinCount( STACK( 1 ));
 			else
 				STACK( 1 ) = TEAM_GetScore( STACK( 1 ));

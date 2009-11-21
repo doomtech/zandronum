@@ -1275,9 +1275,7 @@ void TEAM_SetFragCount( ULONG ulTeamIdx, LONG lFragCount, bool bAnnounce )
 	// Potentially play some announcer sounds resulting from this frag ("Teams are tied!"),
 	// etc.
 	if (( bAnnounce ) &&
-		( teamlms == false ) &&
-		( teampossession == false ) &&
-		( teamgame == false ))
+		(GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ))
 	{
 		ANNOUNCER_PlayTeamFragSounds( ulTeamIdx, teams[ulTeamIdx].lFragCount, lFragCount );
 	}
@@ -1997,7 +1995,7 @@ CUSTOM_CVAR( Bool, domination, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 CCMD( team )
 {
 	// Not a valid team mode. Ignore.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
+	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
 		return;
 
 	// If the played inputted a team they'd like to join (such as, "team red"), handle that

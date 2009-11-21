@@ -2615,12 +2615,15 @@ static void botcmd_GetGameMode( CSkullBot *pBot )
 //
 static void botcmd_GetSpread( CSkullBot *pBot )
 {
-	if (( teamgame || teampossession ) && ( pBot->GetPlayer( )->bOnTeam ))
-		g_iReturnInt = TEAM_GetScoreCountSpread( pBot->GetPlayer( )->ulTeam );
-	else if ( teamplay )
-		g_iReturnInt = TEAM_GetFragCountSpread( pBot->GetPlayer( )->ulTeam );
-	else if ( teamlms )
-		g_iReturnInt = TEAM_GetWinCountSpread( pBot->GetPlayer( )->ulTeam );
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	{
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+			g_iReturnInt = TEAM_GetScoreCountSpread( pBot->GetPlayer( )->ulTeam );
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+			g_iReturnInt = TEAM_GetFragCountSpread( pBot->GetPlayer( )->ulTeam );
+		else if ( teamlms )
+			g_iReturnInt = TEAM_GetWinCountSpread( pBot->GetPlayer( )->ulTeam );
+	}
 	else
 		g_iReturnInt = SCOREBOARD_CalcSpread( pBot->GetPlayer( ) - players );
 }

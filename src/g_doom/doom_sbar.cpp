@@ -225,7 +225,7 @@ private:
 		DrawFace ();
 		DrawKeys ();
 
-		if ( possession || teampossession || teamgame )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		{
 			if ( OldPoints != CPlayer->lPointCount )
 			{
@@ -1100,12 +1100,12 @@ void DrawFullHUD_GameInformation()
 	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		LONG	lPoints[MAX_TEAMS]; // Frags or points
-		if ( teamlms )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
 				lPoints[i] = TEAM_GetWinCount( i );
 		}			
-		else if ( teamplay )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
 				lPoints[i] = TEAM_GetFragCount( i );;

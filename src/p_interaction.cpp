@@ -579,7 +579,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			}
 
 			// Play announcer sounds for amount of frags remaining.
-			if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit )
+			if ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) && fraglimit )
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
@@ -1872,12 +1872,8 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 	// Don't announce events related to frag changes during teamplay, LMS,
 	// or possession games.
 	if (( bAnnounce ) &&
-		( deathmatch ) &&
-		( teamplay == false ) &&
-		( lastmanstanding == false ) &&
-		( teamlms == false ) &&
-		( possession == false ) &&
-		( teampossession == false ))
+		( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) &&
+		!( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ))
 	{
 		ANNOUNCER_PlayFragSounds( pPlayer - players, pPlayer->fragcount, lFragCount );
 	}

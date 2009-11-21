@@ -1572,7 +1572,7 @@ LONG SCOREBOARD_CalcSpread( ULONG ulPlayerNum )
 	// First, find the highest fragcount that isn't ours.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( lastmanstanding )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		{
 			if (( ulPlayerNum == ulIdx ) || ( playeringame[ulIdx] == false ) || ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
 				continue;
@@ -1586,7 +1586,7 @@ LONG SCOREBOARD_CalcSpread( ULONG ulPlayerNum )
 			if ( players[ulIdx].ulWins > (ULONG)lHighestFrags )
 				lHighestFrags = players[ulIdx].ulWins;
 		}
-		else if ( possession )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		{
 			if (( ulPlayerNum == ulIdx ) || ( playeringame[ulIdx] == false ) || ( players[ulIdx].bSpectating ))
 				continue;
@@ -1619,18 +1619,18 @@ LONG SCOREBOARD_CalcSpread( ULONG ulPlayerNum )
 	// If we're the only person in the game...
 	if ( bInit )
 	{
-		if ( lastmanstanding )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 			lHighestFrags = players[ulPlayerNum].ulWins;
-		else if ( possession )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 			lHighestFrags = players[ulPlayerNum].lPointCount;
 		else
 			lHighestFrags = players[ulPlayerNum].fragcount;
 	}
 
 	// Finally, simply return the difference.
-	if ( lastmanstanding )
+	if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		return ( players[ulPlayerNum].ulWins - lHighestFrags );
-	else if ( possession )
+	else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		return ( players[ulPlayerNum].lPointCount - lHighestFrags );
 	else
 		return ( players[ulPlayerNum].fragcount - lHighestFrags );
@@ -2158,7 +2158,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	{
 		LONG	lHighestFragcount;
 				
-		if ( teamplay )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS )
 			lHighestFragcount = TEAM_GetHighestFragCount( );		
 		else
 		{
@@ -2748,7 +2748,7 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 
 	// Build the pointlimit, winlimit, and/or wavelimit strings.
 	scoreboard_AddSingleLimit( lines, ( pointlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS ), remaining, "point" );
-	scoreboard_AddSingleLimit( lines, (( lastmanstanding || teamlms ) && winlimit ), remaining, "win" );
+	scoreboard_AddSingleLimit( lines, ( winlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS ), remaining, "win" );
 	scoreboard_AddSingleLimit( lines, ( invasion && wavelimit ), wavelimit - INVASION_GetCurrentWave( ), "wave" );
 
 	// Render the timelimit string. - [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
@@ -2821,9 +2821,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 		if ( gamestate != GS_LEVEL )
 			g_ulCurYPos += 10;
 
-		if ( teamplay )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 			SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
-		else if ( teamlms )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 			SCOREBOARD_BuildPointString( szString, "win", &TEAM_CheckAllTeamsHaveEqualWins, &TEAM_GetHighestWinCount, &TEAM_GetWinCount );
 		else
 			SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
@@ -2861,7 +2861,7 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 	bool	bIsTied;
 
 	// Render the current ranking string.
-	if ( deathmatch && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && ( PLAYER_IsTrueSpectator( &players[ulPlayer] ) == false ))
+	if ( deathmatch && !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( PLAYER_IsTrueSpectator( &players[ulPlayer] ) == false ))
 	{
 		bIsTied	= SCOREBOARD_IsTied( ulPlayer );
 
@@ -2893,9 +2893,9 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 		}
 
 		// Tack on the rest of the string.
-		if ( lastmanstanding )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 			sprintf( szString, "%s\\c-place with %d win%s", szString, static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
-		else if ( possession )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );

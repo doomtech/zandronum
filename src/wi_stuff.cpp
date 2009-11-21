@@ -319,46 +319,49 @@ ULONG WI_CalcRank( void )
 	if ( deathmatch == false )
 		return ( 2 );
 
-	// In teamplay deathmatch, go by the team's score to determine what this player's
-	// rank is.
-	if ( teamplay )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		// Not being on a team in teamplay is an automatic loss!
-		if ( players[consoleplayer].bOnTeam == false )
-			return ( 2 );
+		// In teamplay deathmatch, go by the team's score to determine what this player's
+		// rank is.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+		{
+			// Not being on a team in teamplay is an automatic loss!
+			if ( players[consoleplayer].bOnTeam == false )
+				return ( 2 );
 
-		if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestFragCount( ))
-			return ( 1 );
-		else
-			return ( 2 );
-	}
+			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestFragCount( ))
+				return ( 1 );
+			else
+				return ( 2 );
+		}
 
-	// In team LMS, go by the team's wins to determine what this player's
-	// rank is.
-	if ( teamlms )
-	{
-		// Not being on a team in teamplay is an automatic loss!
-		if ( players[consoleplayer].bOnTeam == false )
-			return ( 2 );
+		// In team LMS, go by the team's wins to determine what this player's
+		// rank is.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		{
+			// Not being on a team in teamplay is an automatic loss!
+			if ( players[consoleplayer].bOnTeam == false )
+				return ( 2 );
 
-		if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestWinCount( ))
-			return ( 1 );
-		else
-			return ( 2 );
-	}
+			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestWinCount( ))
+				return ( 1 );
+			else
+				return ( 2 );
+		}
 
-	// In team possession, go by the team's points to determine what this player's
-	// rank is.
-	if ( teampossession )
-	{
-		// Not being on a team in teamplay is an automatic loss!
-		if ( players[consoleplayer].bOnTeam == false )
-			return ( 2 );
+		// In team possession, go by the team's points to determine what this player's
+		// rank is.
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+		{
+			// Not being on a team in teamplay is an automatic loss!
+			if ( players[consoleplayer].bOnTeam == false )
+				return ( 2 );
 
-		if ( TEAM_GetScore( players[consoleplayer].ulTeam ) == TEAM_GetHighestScoreCount( ))
-			return ( 1 );
-		else
-			return ( 2 );
+			if ( TEAM_GetScore( players[consoleplayer].ulTeam ) == TEAM_GetHighestScoreCount( ))
+				return ( 1 );
+			else
+				return ( 2 );
+		}
 	}
 
 	// Go through all the players, and check which ones have a higher score than the
@@ -374,13 +377,13 @@ ULONG WI_CalcRank( void )
 		}
 
 		// In LMS, use wins to determine the player's score.
-		if ( lastmanstanding )
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		{
 			if ( players[ulIdx].ulWins > players[consoleplayer].ulWins )
 				ulRank++;
 		}
 		// In possession, use points to determine the player's score.
-		else if ( possession )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		{
 			if ( players[ulIdx].lPointCount > players[consoleplayer].lPointCount )
 				ulRank++;

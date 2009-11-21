@@ -3305,14 +3305,7 @@ void M_ClearBotSlotList( void )
 	char		szCVarName[32];
 
 	// Initialize bot spawn times.
-	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-		( menu_gamemode == GAMEMODE_CTF ) ||
-		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-		( menu_gamemode == GAMEMODE_DOMINATION ))
+	if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 	{
 		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
@@ -3424,14 +3417,7 @@ void M_StartSkirmishGame( void )
 	M_ClearMenus( );
 
 	// Initialize bot spawn times.
-	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-		( menu_gamemode == GAMEMODE_CTF ) ||
-		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-		( menu_gamemode == GAMEMODE_DOMINATION ))
+	if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 	{
 		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
@@ -3662,14 +3648,7 @@ void M_BotSetup( void )
 	UCVarValue	Val;
 	char		szCVarName[32];
 
-	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-		( menu_gamemode == GAMEMODE_CTF ) ||
-		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-		( menu_gamemode == GAMEMODE_DOMINATION ))
+	if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 	{
 		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
@@ -4351,7 +4330,9 @@ bool M_JoinMenu ( void )
 	}
 
 	// ST/CTF/domination without a selection room, or another team game.
-	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+		( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) &&
+		(( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
 	{
 		M_StartControlPanel( true );
 		M_StartJoinTeamMenu( );
@@ -4978,14 +4959,7 @@ void M_OptDrawer ()
 					char		szCVarName[32];
 					char		szBuffer[256];
 
-					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-						( menu_gamemode == GAMEMODE_CTF ) ||
-						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-						( menu_gamemode == GAMEMODE_DOMINATION ))
+					if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 					{
 						// [CW] Add to this when bumping 'MAX_TEAMS'.
 						switch( i )
@@ -5851,14 +5825,7 @@ void M_OptResponder (event_t *ev)
 					UCVarValue	Val;
 					char		szCVarName[32];
 
-					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-						( menu_gamemode == GAMEMODE_CTF ) ||
-						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-						( menu_gamemode == GAMEMODE_DOMINATION ))
+					if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 					{
 						// [CW] Add to this when bumping 'MAX_TEAMS'.
 						switch( CurrentItem )
@@ -6289,14 +6256,7 @@ void M_OptResponder (event_t *ev)
 					UCVarValue	Val;
 					char		szCVarName[32];
 
-					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-						( menu_gamemode == GAMEMODE_CTF ) ||
-						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
-						( menu_gamemode == GAMEMODE_DOMINATION ))
+					if ( GAMEMODE_GetFlags( static_cast<GAMEMODE_e>(menu_gamemode.GetGenericRep( CVAR_Int ).Int) ) & GMF_PLAYERSONTEAMS )
 					{
 						// [CW] Add to this when bumping 'MAX_TEAMS'.
 						switch( CurrentItem )
