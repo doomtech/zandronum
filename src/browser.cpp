@@ -636,13 +636,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				// Is bot.
 				NETWORK_ReadByte( pByteStream );
 
-				if (( GameMode == GAMEMODE_TEAMPLAY ) ||
-					( GameMode == GAMEMODE_TEAMLMS ) ||
-					( GameMode == GAMEMODE_TEAMPOSSESSION ) ||
-					( GameMode == GAMEMODE_SKULLTAG ) ||
-					( GameMode == GAMEMODE_CTF ) ||
-					( GameMode == GAMEMODE_ONEFLAGCTF ) ||
-					( GameMode == GAMEMODE_DOMINATION ))
+				if ( GAMEMODE_GetFlags( GameMode ) & GMF_PLAYERSONTEAMS )
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
@@ -863,13 +857,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				// Read in whether or not the player is a bot.
 				g_BrowserServerList[lServer].Players[ulIdx].bIsBot = !!NETWORK_ReadByte( pByteStream );
 
-				if (( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMPLAY ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMLMS ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMPOSSESSION ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_SKULLTAG ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_CTF ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_ONEFLAGCTF ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_DOMINATION ))
+				if ( GAMEMODE_GetFlags( g_BrowserServerList[lServer].GameMode ) & GMF_PLAYERSONTEAMS )
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
