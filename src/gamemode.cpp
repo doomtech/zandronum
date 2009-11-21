@@ -192,6 +192,62 @@ void GAMEMODE_Construct( void )
 
 //*****************************************************************************
 //
+int GAMEMODE_ParserMustGetEnumName ( FScanner &sc, const char *EnumName, const char *FlagPrefix, int (*GetValueFromName) ( const char *Name ), const bool StringAlreadyParse = false )
+{
+	if ( StringAlreadyParse == false )
+		sc.MustGetString ();
+	FString flagname = FlagPrefix;
+	flagname += sc.String;
+	flagname.ToUpper();
+	const int flagNum = GetValueFromName ( flagname.GetChars() );
+	if ( flagNum == -1 )
+		sc.ScriptError ( "Unknown %s '%s', on line %d in GAMEMINF.", EnumName, sc.String, sc.Line );
+	return flagNum;
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
+{
+	TEAMINFO team;
+
+	sc.MustGetStringName("{");
+	while (!sc.CheckString("}"))
+	{
+		sc.MustGetString();
+
+		if (0 == stricmp (sc.String, "removeflag"))
+		{
+			g_GameModes[GameMode].ulFlags &= ~GAMEMODE_ParserMustGetEnumName( sc, "flag", "GMF_", GetValueGMF );
+		}
+		else if (0 == stricmp (sc.String, "addflag"))
+		{
+			g_GameModes[GameMode].ulFlags |= GAMEMODE_ParserMustGetEnumName( sc, "flag", "GMF_", GetValueGMF );
+		}
+		else
+			sc.ScriptError ( "Unknown option '%s', on line %d in GAMEMINF.", sc.String, sc.Line );
+	}
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_ParseGamemodeInfo( void )
+{
+	int lastlump = 0, lump;
+
+	while ((lump = Wads.FindLump ("GAMEMINF", &lastlump)) != -1)
+	{
+		FScanner sc(lump);
+		while (sc.GetString ())
+		{
+			GAMEMODE_e GameMode = static_cast<GAMEMODE_e>( GAMEMODE_ParserMustGetEnumName( sc, "gamemode", "GAMEMODE_", GetValueGAMEMODE_e, true ) );
+			GAMEMODE_ParseGamemodeInfoLump ( sc, GameMode );
+		}
+	}
+}
+
+//*****************************************************************************
+//
 ULONG GAMEMODE_GetFlags( GAMEMODE_e GameMode )
 {
 	if ( GameMode >= NUM_GAMEMODES )

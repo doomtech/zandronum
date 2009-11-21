@@ -103,6 +103,8 @@ typedef struct
 //	PROTOTYPES
 
 void		GAMEMODE_Construct( void );
+void		GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode );
+void		GAMEMODE_ParseGamemodeInfo( void );
 ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );
 ULONG		GAMEMODE_GetCurrentFlags( void );
 char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
