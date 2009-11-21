@@ -59,7 +59,7 @@
 //*****************************************************************************
 //	DEFINES
 
-// [BB] The GMF_* defines are now enums with "EnumToString" support and need
+// [BB] The GMF_* and GAMEMODE_* defines are now enums with "EnumToString" support and need
 // to go into a separate header for technical reasons.
 #include "gamemode_enums.h"
 
@@ -67,30 +67,6 @@
 //  EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Bool, sv_suddendeath )
-
-//*****************************************************************************
-typedef enum
-{
-	GAMEMODE_COOPERATIVE,
-	GAMEMODE_SURVIVAL,
-	GAMEMODE_INVASION,
-	GAMEMODE_DEATHMATCH,
-	GAMEMODE_TEAMPLAY,
-	GAMEMODE_DUEL,
-	GAMEMODE_TERMINATOR,
-	GAMEMODE_LASTMANSTANDING,
-	GAMEMODE_TEAMLMS,
-	GAMEMODE_POSSESSION,
-	GAMEMODE_TEAMPOSSESSION,
-	GAMEMODE_TEAMGAME,
-	GAMEMODE_CTF,
-	GAMEMODE_ONEFLAGCTF,
-	GAMEMODE_SKULLTAG,
-	GAMEMODE_DOMINATION,
-
-	NUM_GAMEMODES
-
-} GAMEMODE_e;
 
 //*****************************************************************************
 typedef enum
