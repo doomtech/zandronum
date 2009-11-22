@@ -341,6 +341,12 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		return;
 	}
 
+	// [BB] Any player spawning in this game state would fail.
+	if ( gamestate == GS_FULLCONSOLE )
+	{
+		return;
+	}
+
 	// Respawn any players who were downed during the previous round.
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -376,7 +382,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 			players[ulIdx].mo = NULL;
 		}
 
-		G_CooperativeSpawnPlayer( ulIdx, true );
+		GAMEMODE_SpawnPlayer( ulIdx );
 	}
 
 	// Let anyone who's been waiting in line join now.
