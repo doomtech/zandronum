@@ -4479,7 +4479,8 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
-	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession )
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+		( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_TEAMGAME ) || ( TemporaryTeamStarts.Size( ) == 0 ) ) )
 	{
 		players[g_lCurrentClient].bOnTeam = true;
 		players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
