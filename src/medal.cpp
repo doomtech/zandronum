@@ -1098,7 +1098,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 		if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
 		{
-			if ( ( ctf == false && skulltag == false ) || ( teamgame == false ) || ( pPlayer->bOnTeam == false )
+			if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM ) || ( pPlayer->bOnTeam == false )
 			     || ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pPlayer ) == NULL ) )
 			{
 				pPlayer->pIcon->Destroy( );
@@ -1142,7 +1142,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// Draw a flag/skull above this player if he's carrying one.
-		if ( teamgame )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
 		{
 			if ( pPlayer->bOnTeam )
 			{
@@ -1156,7 +1156,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 					}
 				}
 
-				if ( ctf || skulltag )
+				else
 				{
 					for ( ULONG ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
 					{

@@ -1262,7 +1262,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.
-	if ( ctf || skulltag )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
 		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 /*
 	// Send the map name, and have the client load it.
@@ -1443,7 +1443,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
-	if ( teamgame )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
 	{
 		// In ST/CTF games, let the incoming player know who has flags/skulls.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5034,7 +5034,7 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	}
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.
-	if ( ctf || skulltag )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
 		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map name, and have the client load it.

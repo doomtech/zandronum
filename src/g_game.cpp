@@ -2835,10 +2835,11 @@ void GAME_CheckMode( void )
 	// scripts necessary is missing and works because of the break further down.
 	for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams( ); i++ )
 	{
-		if (( FBehavior::StaticCountTypedScripts( SCRIPT_Pickup ) == 0 ) ||
-			( FBehavior::StaticCountTypedScripts( TEAM_GetReturnScriptOffset( i ) ) == 0 ))
+		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM ) &&
+			(( FBehavior::StaticCountTypedScripts( SCRIPT_Pickup ) == 0 ) ||
+			( FBehavior::StaticCountTypedScripts( TEAM_GetReturnScriptOffset( i ) ) == 0 )) )
 		{
-			if ( ctf || oneflagctf )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEFLAGASTEAMITEM )
 			{
 				TEAM_SetSimpleCTFSTMode( true );
 
@@ -2871,7 +2872,7 @@ void GAME_CheckMode( void )
 				}
 			}
 			// We found skulls but no flags. Set Skulltag mode.
-			else if ( skulltag )
+			else
 			{
 				TEAM_SetSimpleCTFSTMode( true );
 

@@ -100,7 +100,7 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 	AInventory	*pInventory;
 
 	// If we're not in teamgame mode, just use the default pickup handling.
-	if ( teamgame == false )
+	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM ) )
 		return ( Super::TryPickup( pToucher ));
 
 	// First, check to see if any of the toucher's inventory items want to

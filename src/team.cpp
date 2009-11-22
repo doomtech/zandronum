@@ -1057,7 +1057,7 @@ const char *TEAM_GetSmallHUDIcon( ULONG ulTeamIdx )
 {
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 	{
-		if ( ctf || oneflagctf )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEFLAGASTEAMITEM )
 			return ( teams[ulTeamIdx].SmallFlagHUDIcon.GetChars( ));
 		else
 			return ( teams[ulTeamIdx].SmallSkullHUDIcon.GetChars( ) );
@@ -1085,7 +1085,7 @@ const char *TEAM_GetLargeHUDIcon( ULONG ulTeamIdx )
 {
 	if ( ulTeamIdx < teams.Size( ))
 	{
-		if ( ctf || oneflagctf )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEFLAGASTEAMITEM )
 			return ( teams[ulTeamIdx].LargeFlagHUDIcon.GetChars( ));
 		else
 			return ( teams[ulTeamIdx].LargeSkullHUDIcon.GetChars( ) );
@@ -1146,7 +1146,7 @@ const PClass *TEAM_GetItem( ULONG ulTeamIdx )
 {
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 	{
-		if ( ctf || oneflagctf )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEFLAGASTEAMITEM )
 			return ( PClass::FindClass( teams[ulTeamIdx].FlagItem.GetChars( )));
 		else
 			return ( PClass::FindClass( teams[ulTeamIdx].SkullItem.GetChars( )));
