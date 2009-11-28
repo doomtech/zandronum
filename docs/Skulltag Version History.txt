@@ -68,6 +68,7 @@ latestzdoom branch
 -	- Fixed: SBARINFO draws things marked as COOPERATIVE also in game modes where the CVAR teamgame is true. [Torr Samaho]
 -	- Fixed: If all players have negative frags and there are spectators in the game, the number of frags remaining shown on the scoreboard is not properly calculated. [Torr Samaho]
 -	- Fixed: Skulltag can't be started with certain command line options, e.g. "+map d2inv1 +invasion 1". [Torr Samaho]
+-	- Fixed: Sprites from a fullbright frame with a brightmap disabling fullbright did not Process dynamic lights touching them (ported from GZDoom revision 635). [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 
