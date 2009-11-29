@@ -71,6 +71,7 @@ latestzdoom branch
 -	- Fixed: Sprites from a fullbright frame with a brightmap disabling fullbright did not Process dynamic lights touching them (ported from GZDoom revision 635). [Torr Samaho]
 -	- Fixed: demo_skiptonextmap has problems when the demo contains map changes that were made with the map CCMD. [Torr Samaho]
 -	- Fixed: When using demo_skiptonextmap, some of the sounds that were supposed to be played during the skipped part of the demo were played while skipping. [Torr Samaho]
+-	- Fixed: AxeBlood and Bloodsplatter didn't work online. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 

@@ -5528,6 +5528,10 @@ void P_BloodSplatter (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 	{
 		P_DrawSplash2 (40, x, y, z, R_PointToAngle2 (x, y, originator->x, originator->y), 2, bloodcolor);
 	}
+
+	// [BB] Tell the clients to spawn the splatter.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnBloodSplatter( x, y, z, originator, false );
 }
 
 //===========================================================================
@@ -5561,6 +5565,10 @@ void P_BloodSplatter2 (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 	{
 		P_DrawSplash2 (100, x, y, z, R_PointToAngle2 (0, 0, originator->x - x, originator->y - y), 2, bloodcolor);
 	}
+
+	// [BB] Tell the clients to spawn the splatter.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnBloodSplatter( x, y, z, originator, true );
 }
 
 //---------------------------------------------------------------------------

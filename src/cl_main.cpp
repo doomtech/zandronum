@@ -226,6 +226,7 @@ static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnBlood( BYTESTREAM_s *pByteStream );
+static	void	client_SpawnBloodSplatter( BYTESTREAM_s *pByteStream, bool bIsBloodSplatter2 );
 static	void	client_SpawnPuff( BYTESTREAM_s *pByteStream );
 
 // Print commands.
@@ -727,7 +728,8 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_GENERICCHEAT",
 	"SVC_SETCAMERATOTEXTURE",
 	"SVC_CREATETRANSLATION",
-
+	"SVC_SPAWNBLOODSPLATTER",
+	"SVC_SPAWNBLOODSPLATTER2",
 };
 #endif
 
@@ -1989,6 +1991,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SPAWNBLOOD:
 
 		client_SpawnBlood( pByteStream );
+		break;
+	case SVC_SPAWNBLOODSPLATTER:
+
+		client_SpawnBloodSplatter( pByteStream, false );
+		break;
+	case SVC_SPAWNBLOODSPLATTER2:
+
+		client_SpawnBloodSplatter( pByteStream, true );
 		break;
 	case SVC_SPAWNPUFF:
 
@@ -6958,6 +6968,30 @@ static void client_SpawnBlood( BYTESTREAM_s *pByteStream )
 	// [BB] P_SpawnBlood crashes if pOriginator is a NULL pointer.
 	if ( pOriginator )
 		P_SpawnBlood (X, Y, Z, Dir, Damage, pOriginator);
+}
+
+//*****************************************************************************
+//
+static void client_SpawnBloodSplatter( BYTESTREAM_s *pByteStream, bool bIsBloodSplatter2 )
+{
+	// Read in the XYZ location of the blood.
+	fixed_t X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	fixed_t Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	fixed_t Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Read in the NetID of the originator.
+	LONG lID = NETWORK_ReadShort( pByteStream );
+
+	// Find the originator by its NetID.
+	AActor *pOriginator = CLIENT_FindThingByNetID( lID );
+
+	if ( pOriginator )
+	{
+		if ( bIsBloodSplatter2 )
+			P_BloodSplatter2 (X, Y, Z, pOriginator);
+		else
+			P_BloodSplatter (X, Y, Z, pOriginator);
+	}
 }
 
 //*****************************************************************************
