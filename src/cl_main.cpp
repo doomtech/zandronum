@@ -2325,7 +2325,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// [BB] We are about to change the map, so if we are playing a demo right now
 		// and wanted to skip the current map, we are done with it now.
-		CLIENTDEMO_SetSkippingToNextMap ( false );
+		if ( CLIENTDEMO_IsSkippingToNextMap() == true )
+		{
+			// [BB] All the skipping seems to mess up the information which player is in game.
+			// Clearing everything will take care of this.
+			CLIENT_ClearAllPlayers();
+			CLIENTDEMO_SetSkippingToNextMap ( false );
+		}
 		client_MapNew( pByteStream );
 		break;
 	case SVC_MAPEXIT:
