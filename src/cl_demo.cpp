@@ -479,8 +479,6 @@ void CLIENTDEMO_DoPlayDemo( const char *pszDemoName )
 //
 void CLIENTDEMO_FinishPlaying( void )
 {
-	ULONG	ulIdx;
-
 //	C_RestoreCVars ();		// [RH] Restore cvars demo might have changed
 
 	// Free our demo buffer.
@@ -493,13 +491,7 @@ void CLIENTDEMO_FinishPlaying( void )
 	CLIENTDEMO_SetSkippingToNextMap ( false );
 
 	// Clear out the existing players.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
+	CLIENT_ClearAllPlayers();
 
 	consoleplayer = 0;
 //	playeringame[consoleplayer] = true;

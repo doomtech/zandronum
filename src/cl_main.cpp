@@ -736,12 +736,24 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 
 //*****************************************************************************
 //
+void CLIENT_ClearAllPlayers( void )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		playeringame[ulIdx] = false;
+
+		// Zero out all the player information.
+		CLIENT_ResetPlayerData( &players[ulIdx] );
+	}
+}
+
+//*****************************************************************************
+//
 void CLIENT_Construct( void )
 {
     char		*pszPort;
 	char		*pszIPAddress;
 	char		*pszDemoName;
-	ULONG		ulIdx;
 	USHORT		usPort;
 	UCVarValue	Val;
 
@@ -797,13 +809,7 @@ void CLIENT_Construct( void )
 		// Make sure our visibility is normal.
 		R_SetVisibility( 8.0f );
 
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			playeringame[ulIdx] = false;
-
-			// Zero out all the player information.
-			CLIENT_ResetPlayerData( &players[ulIdx] );
-		}
+		CLIENT_ClearAllPlayers();
 
 		// If we've elected to record a demo, begin that process now.
 		pszDemoName = Args->CheckValue( "-record" );
@@ -1098,8 +1104,6 @@ void CLIENT_AttemptConnection( void )
 //
 void CLIENT_AttemptAuthentication( char *pszMapName )
 {
-	ULONG	ulIdx;
-
 	if ( g_ulRetryTicks )
 	{
 		g_ulRetryTicks--;
@@ -1118,21 +1122,13 @@ void CLIENT_AttemptAuthentication( char *pszMapName )
 	CLIENT_AuthenticateLevel( pszMapName );
 
 	// Make sure all players are gone from the level.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
+	CLIENT_ClearAllPlayers();
 }
 
 //*****************************************************************************
 //
 void CLIENT_RequestSnapshot( void )
 {
-	ULONG	ulIdx;
-
 	if ( g_ulRetryTicks )
 	{
 		g_ulRetryTicks--;
@@ -1150,13 +1146,7 @@ void CLIENT_RequestSnapshot( void )
 	CLIENTCOMMANDS_UserInfo( USERINFO_ALL );
 
 	// Make sure all players are gone from the level.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
+	CLIENT_ClearAllPlayers();
 }
 
 //*****************************************************************************
@@ -2652,19 +2642,11 @@ void CLIENT_PrintCommand( LONG lCommand )
 //
 void CLIENT_QuitNetworkGame( const char *pszString )
 {
-	ULONG	ulIdx;
-
 	if ( pszString )
 		Printf( "%s\n", pszString );
 
 	// Clear out the existing players.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
+	CLIENT_ClearAllPlayers();
 
 	// If we're connected in any way, send a disconnect signal.
 	if ( g_ConnectionState != CTS_DISCONNECTED )
@@ -11636,19 +11618,12 @@ CCMD( disconnect )
 #ifdef	_DEBUG
 CCMD( timeout )
 {
-	ULONG	ulIdx;
-
 	// Nothing to do if we're not in client mode!
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		return;
 
 	// Clear out the existing players.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		// Zero out all the player information.
-		playeringame[ulIdx] = false;
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
+	CLIENT_ClearAllPlayers();
 /*
 	// If we're connected in any way, send a disconnect signal.
 	if ( g_ConnectionState != CTS_DISCONNECTED )
