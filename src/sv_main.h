@@ -278,6 +278,9 @@ typedef struct
 	// Which index in the list of translations is this?
 	ULONG			ulIdx;
 
+	// [BB] Type of the translation, i.e. PCD_TRANSLATIONRANGE1 or PCD_TRANSLATIONRANGE2
+	ULONG			ulType;
+
 	// The start/end range of the translation.
 	ULONG			ulStart;
 	ULONG			ulEnd;
@@ -285,6 +288,15 @@ typedef struct
 	// translation using palette shifting (compare PCD_TRANSLATIONRANGE1)
 	ULONG			ulPal1;
 	ULONG			ulPal2;
+
+	// [BB] translation like PCD_TRANSLATIONRANGE2
+	ULONG			ulR1;
+	ULONG			ulG1;
+	ULONG			ulB1;
+	ULONG			ulR2;
+	ULONG			ulG2;
+	ULONG			ulB2;
+
 
 } EDITEDTRANSLATION_s;
 
@@ -353,6 +365,7 @@ char		*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 );
+void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2 );
 void		SERVER_ClearEditedTranslations( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );

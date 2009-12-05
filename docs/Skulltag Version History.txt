@@ -72,6 +72,7 @@ latestzdoom branch
 -	- Fixed: demo_skiptonextmap has problems when the demo contains map changes that were made with the map CCMD. [Torr Samaho]
 -	- Fixed: When using demo_skiptonextmap, some of the sounds that were supposed to be played during the skipped part of the demo were played while skipping. [Torr Samaho]
 -	- Fixed: AxeBlood and Bloodsplatter didn't work online. [Torr Samaho]
+-	- Fixed: ACS translations of type "CreateTranslation(x, a:b=[red1,green1,blue1]:[red2,green2,blue2])" didn't work online. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 

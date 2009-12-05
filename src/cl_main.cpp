@@ -419,7 +419,7 @@ static	void	client_SetWallScroller( BYTESTREAM_s *pByteStream );
 static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
-static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream );
+static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo );
 
 //*****************************************************************************
 //	VARIABLES
@@ -730,6 +730,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_CREATETRANSLATION",
 	"SVC_SPAWNBLOODSPLATTER",
 	"SVC_SPAWNBLOODSPLATTER2",
+	"SVC_CREATETRANSLATION2",
 };
 #endif
 
@@ -2585,7 +2586,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVC_CREATETRANSLATION:
 
-		client_CreateTranslation( pByteStream );
+		client_CreateTranslation( pByteStream, false );
+		break;
+	case SVC_CREATETRANSLATION2:
+
+		client_CreateTranslation( pByteStream, true );
 		break;
 	case SVC_IGNOREPLAYER:
 
@@ -11530,41 +11535,54 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
+static void client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo )
 {
-	ULONG	ulTranslation;
-	ULONG	ulStart;
-	ULONG	ulEnd;
-	ULONG	ulPal1;
-	ULONG	ulPal2;
+	EDITEDTRANSLATION_s	Translation;
 	FRemapTable	*pTranslation;
 
 	// Read in which translation is being created.
-	ulTranslation = NETWORK_ReadShort( pByteStream );
+	Translation.ulIdx = NETWORK_ReadShort( pByteStream );
 
 	// Read in the range that's being translated.
-	ulStart = NETWORK_ReadByte( pByteStream );
-	ulEnd = NETWORK_ReadByte( pByteStream );
+	Translation.ulStart = NETWORK_ReadByte( pByteStream );
+	Translation.ulEnd = NETWORK_ReadByte( pByteStream );
 
-	ulPal1 = NETWORK_ReadByte( pByteStream );
-	ulPal2 = NETWORK_ReadByte( pByteStream );
+	if ( bIsTypeTwo == false )
+	{
+		Translation.ulPal1 = NETWORK_ReadByte( pByteStream );
+		Translation.ulPal2 = NETWORK_ReadByte( pByteStream );
+		Translation.ulType = DLevelScript::PCD_TRANSLATIONRANGE1;
+	}
+	else
+	{
+		Translation.ulR1 = NETWORK_ReadByte( pByteStream );
+		Translation.ulG1 = NETWORK_ReadByte( pByteStream );
+		Translation.ulB1 = NETWORK_ReadByte( pByteStream );
+		Translation.ulR2 = NETWORK_ReadByte( pByteStream );
+		Translation.ulG2 = NETWORK_ReadByte( pByteStream );
+		Translation.ulB2 = NETWORK_ReadByte( pByteStream );
+		Translation.ulType = DLevelScript::PCD_TRANSLATIONRANGE2;
+	}
 
 	// [BB] We need to do this check here, otherwise the client could be crashed
 	// by sending a SVC_CREATETRANSLATION packet with an illegal tranlation number.
-	if ( ulTranslation < 1 || ulTranslation > MAX_ACS_TRANSLATIONS )
+	if ( Translation.ulIdx < 1 || Translation.ulIdx > MAX_ACS_TRANSLATIONS )
 	{
 		return;
 	}
 
-	pTranslation = translationtables[TRANSLATION_LevelScripted].GetVal(ulTranslation - 1);
+	pTranslation = translationtables[TRANSLATION_LevelScripted].GetVal(Translation.ulIdx - 1);
 
 	if (pTranslation == NULL)
 	{
 		pTranslation = new FRemapTable;
-		translationtables[TRANSLATION_LevelScripted].SetVal(ulTranslation - 1, pTranslation);
+		translationtables[TRANSLATION_LevelScripted].SetVal(Translation.ulIdx - 1, pTranslation);
+		pTranslation->MakeIdentity();
 	}
-	pTranslation->MakeIdentity();
-	pTranslation->AddIndexRange(ulStart, ulEnd, ulPal1, ulPal2);
+	if ( Translation.ulType == DLevelScript::PCD_TRANSLATIONRANGE1 )
+		pTranslation->AddIndexRange( Translation.ulStart, Translation.ulEnd, Translation.ulPal1, Translation.ulPal2 );
+	else
+		pTranslation->AddColorRange( Translation.ulStart, Translation.ulEnd, Translation.ulR1, Translation.ulG1, Translation.ulB1, Translation.ulR2, Translation.ulG2, Translation.ulB2 );
 	pTranslation->UpdateNative();
 }
 

@@ -2475,7 +2475,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 	// Send out any translations that have been edited since the start of the level.
 	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.Size( ); ulIdx++ )
-		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulPal1, g_EditedTranslationList[ulIdx].ulPal2 );
+	{
+		if ( g_EditedTranslationList[ulIdx].ulType == DLevelScript::PCD_TRANSLATIONRANGE1 )
+			SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulPal1, g_EditedTranslationList[ulIdx].ulPal2 );
+		else
+			SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulR1, g_EditedTranslationList[ulIdx].ulG1, g_EditedTranslationList[ulIdx].ulB1, g_EditedTranslationList[ulIdx].ulR2, g_EditedTranslationList[ulIdx].ulG2, g_EditedTranslationList[ulIdx].ulB2 );
+	}
 
 	// [BB] If the sky differs from the standard sky, let the client know about it.
 	if ( level.info 
@@ -3430,10 +3435,30 @@ void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEn
 	Translation.ulEnd = ulEnd;
 	Translation.ulPal1 = ulPal1;
 	Translation.ulPal2 = ulPal2;
+	Translation.ulType = DLevelScript::PCD_TRANSLATIONRANGE1;
 
 	g_EditedTranslationList.Push( Translation );
 }
 
+//*****************************************************************************
+//
+void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2 )
+{
+	EDITEDTRANSLATION_s	Translation;
+
+	Translation.ulIdx = ulTranslation;
+	Translation.ulStart = ulStart;
+	Translation.ulEnd = ulEnd;
+	Translation.ulR1 = ulR1;
+	Translation.ulG1 = ulG1;
+	Translation.ulB1 = ulB1;
+	Translation.ulR2 = ulR2;
+	Translation.ulG2 = ulG2;
+	Translation.ulB2 = ulB2;
+	Translation.ulType = DLevelScript::PCD_TRANSLATIONRANGE2;
+
+	g_EditedTranslationList.Push( Translation );
+}
 //*****************************************************************************
 //
 void SERVER_ClearEditedTranslations( void )
