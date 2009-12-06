@@ -726,7 +726,9 @@ void gl_ParseFrame(FScanner &sc, FString name)
 				break;
 			case LIGHTTAG_LIGHT:
 				gl_ParseString(sc);
-				gl_AddLightAssociation(new FLightAssociation(name.GetChars(), frameName.GetChars(), sc.String));
+				// [BB] The server just ignores all light associations.
+				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+					gl_AddLightAssociation(new FLightAssociation(name.GetChars(), frameName.GetChars(), sc.String));
 				break;
 			default:
 				sc.ScriptError("Unknown tag: %s\n", sc.String);

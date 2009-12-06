@@ -74,6 +74,7 @@ latestzdoom branch
 -	- Fixed: AxeBlood and Bloodsplatter didn't work online. [Torr Samaho]
 -	- Fixed: ACS translations of type "CreateTranslation(x, a:b=[red1,green1,blue1]:[red2,green2,blue2])" didn't work online. [Torr Samaho]
 -	- Fixed: ACS translations created by CreateTranslation that remap more than one range didn't properly work online. [Torr Samaho]
+-	- Fixed server side crashes that can happen during a map reset. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 
