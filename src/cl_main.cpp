@@ -11543,6 +11543,8 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo
 	// Read in which translation is being created.
 	Translation.ulIdx = NETWORK_ReadShort( pByteStream );
 
+	const bool bIsEdited = !!NETWORK_ReadByte( pByteStream );
+
 	// Read in the range that's being translated.
 	Translation.ulStart = NETWORK_ReadByte( pByteStream );
 	Translation.ulEnd = NETWORK_ReadByte( pByteStream );
@@ -11577,8 +11579,11 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo
 	{
 		pTranslation = new FRemapTable;
 		translationtables[TRANSLATION_LevelScripted].SetVal(Translation.ulIdx - 1, pTranslation);
-		pTranslation->MakeIdentity();
 	}
+
+	if ( bIsEdited == false )
+		pTranslation->MakeIdentity();
+
 	if ( Translation.ulType == DLevelScript::PCD_TRANSLATIONRANGE1 )
 		pTranslation->AddIndexRange( Translation.ulStart, Translation.ulEnd, Translation.ulPal1, Translation.ulPal2 );
 	else

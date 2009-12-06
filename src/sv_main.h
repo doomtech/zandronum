@@ -366,6 +366,8 @@ void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2 );
+void		SERVER_RemoveEditedTranslation( ULONG ulTranslation );
+bool		SERVER_IsTranslationEdited( ULONG ulTranslation );
 void		SERVER_ClearEditedTranslations( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );

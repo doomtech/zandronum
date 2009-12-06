@@ -800,6 +800,7 @@ bool	ACS_IsCalledFromConsoleCommand( void );
 bool	ACS_IsScriptClientSide( ULONG ulScript );
 bool	ACS_IsScriptClientSide( const ScriptPtr *pScriptData );
 bool	ACS_IsScriptPukeable( ULONG ulScript );
+int		ACS_GetTranslationIndex( FRemapTable *pTranslation );
 
 // [BL] Export DoClearInv
 void	DoClearInv(AActor *actor);

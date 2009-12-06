@@ -5660,6 +5660,12 @@ int DLevelScript::RunScript ()
 						translationtables[TRANSLATION_LevelScripted].SetVal(i - 1, translation);
 					}
 					translation->MakeIdentity();
+
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					{
+						const int translationindex = ACS_GetTranslationIndex( translation );
+						SERVER_RemoveEditedTranslation ( translationindex );
+					}
 				}
 			}
 			break;
@@ -5681,14 +5687,9 @@ int DLevelScript::RunScript ()
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					// [BB] Obtain the index of the translation.
-					int translationindex;
-					for ( translationindex = 1; translationindex <= MAX_ACS_TRANSLATIONS; translationindex++ )
-					{
-						if ( translation == translationtables[TRANSLATION_LevelScripted].GetVal(translationindex - 1) )
-							break;
-					}
-					SERVER_AddEditedTranslation(translationindex, start, end, pal1, pal2 );
+					const int translationindex = ACS_GetTranslationIndex( translation );
 					SERVERCOMMANDS_CreateTranslation(translationindex, start, end, pal1, pal2 );
+					SERVER_AddEditedTranslation(translationindex, start, end, pal1, pal2 );
 				}
 			}
 			break;
@@ -5715,14 +5716,9 @@ int DLevelScript::RunScript ()
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					// [BB] Obtain the index of the translation.
-					int translationindex;
-					for ( translationindex = 1; translationindex <= MAX_ACS_TRANSLATIONS; translationindex++ )
-					{
-						if ( translation == translationtables[TRANSLATION_LevelScripted].GetVal(translationindex - 1) )
-							break;
-					}
-					SERVER_AddEditedTranslation( translationindex, start, end, r1, g1, b1, r2, g2, b2 );
+					const int translationindex = ACS_GetTranslationIndex( translation );
 					SERVERCOMMANDS_CreateTranslation( translationindex, start, end, r1, g1, b1, r2, g2, b2 );
+					SERVER_AddEditedTranslation( translationindex, start, end, r1, g1, b1, r2, g2, b2 );
 				}
 			}
 			break;
@@ -6836,4 +6832,17 @@ bool ACS_IsScriptPukeable( ULONG ulScript )
 		return ( true );
 
 	return ( false );
+}
+
+//*****************************************************************************
+//
+int ACS_GetTranslationIndex( FRemapTable *pTranslation )
+{
+	int translationindex;
+	for ( translationindex = 1; translationindex <= MAX_ACS_TRANSLATIONS; translationindex++ )
+	{
+		if ( pTranslation == translationtables[TRANSLATION_LevelScripted].GetVal(translationindex - 1) )
+			break;
+	}
+	return translationindex;
 }

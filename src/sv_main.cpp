@@ -3459,6 +3459,34 @@ void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEn
 
 	g_EditedTranslationList.Push( Translation );
 }
+
+//*****************************************************************************
+//
+void SERVER_RemoveEditedTranslation( ULONG ulTranslation )
+{
+	const int numEntries = g_EditedTranslationList.Size();
+
+	for ( int i = numEntries; i > 0; --i )
+	{
+		if ( g_EditedTranslationList[i-1].ulIdx == ulTranslation )
+		{
+			g_EditedTranslationList.Delete ( i - 1 );
+		}
+	}
+}
+
+//*****************************************************************************
+//
+bool SERVER_IsTranslationEdited( ULONG ulTranslation )
+{
+	for ( int i = 0; i < g_EditedTranslationList.Size(); ++i )
+	{
+		if ( g_EditedTranslationList[i].ulIdx == ulTranslation )
+			return true;
+	}
+	return false;
+}
+
 //*****************************************************************************
 //
 void SERVER_ClearEditedTranslations( void )
