@@ -3196,7 +3196,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			sectors[ulIdx].floorplane = sectors[ulIdx].SavedFloorPlane;
 			sectors[ulIdx].SetPlaneTexZ(sector_t::floor, sectors[ulIdx].SavedFloorTexZ);
 			sectors[ulIdx].bFloorHeightChange = false;
-
+			// [BB] Break any stair locks. This does not happen when the corresponding movers are destroyed.
+			sectors[ulIdx].stairlock = 0;
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorFloorPlane( ulIdx );
 		}
