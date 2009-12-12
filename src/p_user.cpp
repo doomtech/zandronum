@@ -3847,8 +3847,12 @@ void player_t::Serialize (FArchive &arc)
 		<< BlendB
 		<< BlendA
 		<< accuracy << stamina
+		// [BB] Skulltag additions - start
+		<< bChatting
+		<< bInConsole
 		<< (DWORD &)ulRailgunShots
 		<< (DWORD &)lMaxHealthBonus
+		// [BB] Skulltag additions - end
 		<< LogText
 		<< ConversationNPC
 		<< ConversationPC
