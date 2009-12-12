@@ -369,8 +369,8 @@ enum
 	STFL_NODE			= 0x00010000,
 
 	// *** END OF IDENTIFIERS ***
-	// Object falls at 1/4 the amount of gravity.
-	STFL_QUARTERGRAVITY		= 0x00020000,
+	// [BB] Object uses "weapons/grbnce" as bounce sound.
+	STFL_USESTBOUNCESOUND		= 0x00020000,
 
 	// Object explodes on death.
 	STFL_EXPLODEONDEATH		= 0x00040000,

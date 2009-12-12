@@ -993,7 +993,6 @@ bool AGrenade::FloorBounceMissile( secplane_t &plane )
 void AGrenade::PreExplode( )
 {
 	// Prevent the explosing from "falling".
-	this->ulSTFlags &= ~STFL_QUARTERGRAVITY;
 	this->flags |= MF_NOGRAVITY;
 	this->special1 = 0;
 }

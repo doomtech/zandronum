@@ -1500,7 +1500,7 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 	angle = R_PointToAngle2 (0, 0, momx, momy);
 
 	// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-	if ( this->GetClass( ) == PClass::FindClass( "Grenade" ) )
+	if ( ulSTFlags & STFL_USESTBOUNCESOUND )
 		S_Sound( this, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 	else if (SeeSound && !(flags4 & MF4_NOBOUNCESOUND))
 	{
@@ -1962,7 +1962,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							mo->momx = FixedMul (speed, finecosine[angle]);
 							mo->momy = FixedMul (speed, finesine[angle]);
 							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( mo->GetClass( ) == PClass::FindClass( "Grenade" ) )
+							if ( mo->ulSTFlags & STFL_USESTBOUNCESOUND )
 								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 							else if (mo->SeeSound && !(mo->flags4&MF4_NOBOUNCESOUND))
 							{
@@ -1997,7 +1997,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 						if (( mo->ObjectFlags & OF_EuthanizeMe ) == false )
 						{
 							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( mo->GetClass( ) == PClass::FindClass( "Grenade" ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
+							if ( ( mo->ulSTFlags & STFL_USESTBOUNCESOUND ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
 								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 							else if (mo->SeeSound && !(mo->flags3 & MF3_NOWALLBOUNCESND))
 							{
@@ -2508,7 +2508,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			!(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove)))
 		{
 			fixed_t grav = (fixed_t)(level.gravity * mo->Sector->gravity *
-				(( mo->ulSTFlags & STFL_QUARTERGRAVITY ) ? 20.48 : (FIXED2FLOAT(mo->gravity) * 81.92)));
+				FIXED2FLOAT(mo->gravity) * 81.92);
 
 			// [RH] Double gravity only if running off a ledge. Coming down from
 			// an upward thrust (e.g. a jump) should not double it.

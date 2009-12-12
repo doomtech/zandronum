@@ -221,8 +221,7 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(STFL, SUPERARMOR, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, SCOREPILLAR, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, NODE, AActor, ulSTFlags),
-	// [BB] Now a deprecated ZDoom flag.
-	//DEFINE_FLAG(STFL, QUARTERGRAVITY, AActor, ulSTFlags),
+	DEFINE_FLAG(STFL, USESTBOUNCESOUND, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, EXPLODEONDEATH, AActor, ulSTFlags),
 
 	// [BB] New DECORATE network related flag defines here.

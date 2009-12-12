@@ -273,6 +273,7 @@ ACTOR Grenade native
 	+GRENADETRAIL
 	+QUARTERGRAVITY
 	+EXPLODEONDEATH
+	+USESTBOUNCESOUND
 	SeeSound "weapons/grenlf"
 	DeathSound "weapons/grenlx"
 	Obituary "$OB_GRENADE"
