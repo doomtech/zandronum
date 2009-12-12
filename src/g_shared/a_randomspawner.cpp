@@ -102,7 +102,8 @@ class ARandomSpawner : public AActor
 		}
 		if ((newmobj != NULL) && ((newmobj->flags4 & MF4_BOSSDEATH) || (newmobj->flags2 & MF2_BOSS)))
 			this->target = newmobj; // If the spawned actor has either of those flags, it's a boss.
-		else Destroy();	// "else" because a boss-replacing spawner must wait until it can call A_BossDeath.
+		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+		else HideOrDestroyIfSafe();	// "else" because a boss-replacing spawner must wait until it can call A_BossDeath.
 	}
 
 	void Tick()	// This function is needed for handling boss replacers
@@ -112,7 +113,8 @@ class ARandomSpawner : public AActor
 		{
 			health = 0;
 			CALL_ACTION(A_BossDeath, this);
-			Destroy();
+			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+			HideOrDestroyIfSafe();
 		}
 	}
 
