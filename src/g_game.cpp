@@ -2443,8 +2443,12 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	{
 		P_PlayerStartStomp(mo);
 		// [BL] Say goodbye to selection room pistol-fights! I'm fed up with them!
-		players[ulPlayer].bUnarmed = true;
-		DoClearInv(players[ulPlayer].mo);
+		// [BB] Spectators have to be excluded from this (they don't have any inventory anyway).
+		if ( players[ulPlayer].bSpectating == false )
+		{
+			players[ulPlayer].bUnarmed = true;
+			DoClearInv(players[ulPlayer].mo);
+		}
 	}
 }
 

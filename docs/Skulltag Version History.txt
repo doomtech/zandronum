@@ -78,6 +78,7 @@ latestzdoom branch
 -	- Fixed: If stairs are being build while the map is reset, these stairs won't build properly anymore after the reset. [Torr Samaho]
 -	- Fixed: The console floating icon is possibly not removed when a saved game is loaded. [Torr Samaho]
 -	- Fixed: Map spawned RandomSpawner actors don't spawn anything after a map reset. [Torr Samaho]
+-	- Fixed: On maps with a team selection room, the server possibly crashed when a spectator tried to join a team directly with the team CCMD. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]

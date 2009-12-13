@@ -2215,6 +2215,8 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Flag this player as being a spectator.
 	pPlayer->bSpectating = true;
 	pPlayer->bDeadSpectator = bDeadSpectator;
+	// [BB] Spectators have to be excluded from the special handling that prevents selection room pistol-fights.
+	pPlayer->bUnarmed = false;
 
 	// Run the disconnect scripts if the player is leaving the game.
 	if (( bDeadSpectator == false ) &&
