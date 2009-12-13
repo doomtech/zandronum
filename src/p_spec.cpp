@@ -469,9 +469,13 @@ bool P_TestActivateLine (line_t *line, AActor *mo, int side, int activationType)
 //
 void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 {
-	// [BB] Check this!
+	// [BB] Some restructuring compared to the ZDoom code to handle the client case.
+	bool bSectorWasNull = false;
 	if (sector == NULL)
+	{
 		sector = player->mo->Sector;
+		bSectorWasNull = true;
+	}
 	int special = sector->special & ~SECRET_MASK;
 
 	// [BC] Sector specials are server-side.
@@ -494,11 +498,15 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 		return;
 	}
 
-	// Falling, not all the way down yet?
-	if (player->mo->z != sector->floorplane.ZatPoint (player->mo->x, player->mo->y)
-		&& !player->mo->waterlevel)
+	// [BB] Replaced check.
+	if ( bSectorWasNull )
 	{
-		return;
+		// Falling, not all the way down yet?
+		if (player->mo->z != sector->floorplane.ZatPoint (player->mo->x, player->mo->y)
+			&& !player->mo->waterlevel)
+		{
+			return;
+		}
 	}
 
 	// Has hit ground.
