@@ -1237,6 +1237,8 @@ void R_InitSprites ()
 					}
 				}
 			}
+			// [BB] The skin doesn't seem to belong to any of the the available player classes, so just check it against the standard player class.
+			classSkinIdx = 0;
 		}
 		else
 		{
