@@ -264,12 +264,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_MLightningAttack)
 {
 	AActor *fmo, *cmo;
 
-	// [BC] Weapons are handled by the server.
+	// [BC/BB] The projectile spawning is handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_Sound (self, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
-		return;
+		goto spawningdone;
 	}
 
 	fmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningFloor"));
@@ -322,6 +321,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_MLightningAttack)
 		}
 	}
 
+	// [BB] Added label so that the clients can skip the stuff above.
+spawningdone:
 	S_Sound (self, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play sound for clients.
