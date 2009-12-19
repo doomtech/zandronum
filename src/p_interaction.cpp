@@ -429,7 +429,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 */
 	// [BC] Since the player loses his terminator status after we tell his inventory
 	// that we died, check for it before doing so.
-	bPossessedTerminatorArtifact = !!(( player ) && ( player->cheats & CF_TERMINATORARTIFACT ));
+	bPossessedTerminatorArtifact = !!(( player ) && ( player->cheats2 & CF2_TERMINATORARTIFACT ));
 
 	// [BC] Check to see if any medals need to be awarded.
 	if (( player ) &&

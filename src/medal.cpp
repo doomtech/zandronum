@@ -852,7 +852,7 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 		case ( S_TERMINATORARTIFACT + 2 ):
 		case ( S_TERMINATORARTIFACT + 3 ):
 
-			if (( terminator == false ) || (( pPlayer->cheats & CF_TERMINATORARTIFACT ) == false ))
+			if (( terminator == false ) || (( pPlayer->cheats2 & CF2_TERMINATORARTIFACT ) == false ))
 				bInvalid = true;
 			break;
 		// Possession artifact icon. Delete it if the player no longer has it.
@@ -861,7 +861,7 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 		case ( S_POSSESSIONARTIFACT + 2 ):
 		case ( S_POSSESSIONARTIFACT + 3 ):
 
-			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats & CF_POSSESSIONARTIFACT ) == false ))
+			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats2 & CF2_POSSESSIONARTIFACT ) == false ))
 				bInvalid = true;
 			break;
 		default:
@@ -1053,7 +1053,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_TERMINATORARTIFACT + 2 ):
 		case ( S_TERMINATORARTIFACT + 3 ):
 
-			if (( terminator == false ) || (( pPlayer->cheats & CF_TERMINATORARTIFACT ) == false ))
+			if (( terminator == false ) || (( pPlayer->cheats2 & CF2_TERMINATORARTIFACT ) == false ))
 			{
 				pPlayer->pIcon->Destroy( );
 				pPlayer->pIcon = NULL;
@@ -1080,7 +1080,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_POSSESSIONARTIFACT + 2 ):
 		case ( S_POSSESSIONARTIFACT + 3 ):
 
-			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats & CF_POSSESSIONARTIFACT ) == false ))
+			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats2 & CF2_POSSESSIONARTIFACT ) == false ))
 			{
 				pPlayer->pIcon->Destroy( );
 				pPlayer->pIcon = NULL;
@@ -1173,14 +1173,14 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// Draw the terminator artifact over the terminator.
-		if ( terminator && ( pPlayer->cheats & CF_TERMINATORARTIFACT ))
+		if ( terminator && ( pPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
 		{
 			ulFrame = S_TERMINATORARTIFACT;
 			ulDesiredSprite = SPRITE_TERMINATORARTIFACT;
 		}
 
 		// Draw the possession artifact over the player.
-		if (( possession || teampossession ) && ( pPlayer->cheats & CF_POSSESSIONARTIFACT ))
+		if (( possession || teampossession ) && ( pPlayer->cheats2 & CF2_POSSESSIONARTIFACT ))
 		{
 			ulFrame = S_POSSESSIONARTIFACT;
 			ulDesiredSprite = SPRITE_POSSESSIONARTIFACT;
@@ -1334,7 +1334,7 @@ void medal_CheckForExcellent( ULONG ulPlayer )
 void medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer )
 {
 	// If the target player is the terminatior, award a "termination" medal.
-	if ( players[ulDeadPlayer].cheats & CF_TERMINATORARTIFACT )
+	if ( players[ulDeadPlayer].cheats2 & CF2_TERMINATORARTIFACT )
 		medal_GiveMedal( ulPlayer, MEDAL_TERMINATION );
 }
 

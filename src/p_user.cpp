@@ -258,6 +258,7 @@ player_t::player_t()
   ReadyWeapon(0),
   PendingWeapon(0),
   cheats(0),
+  cheats2(0), // [BB]
   refire(0),
   killcount(0),
   itemcount(0),
@@ -1655,8 +1656,8 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	// the player is carrying certain powerups before we call the super function.
 	if ( player )
 	{
-		bCarryingTerminatorArtifact = !!( player->cheats & CF_TERMINATORARTIFACT );
-		bCarryingPossessionArtifact = !!( player->cheats & CF_POSSESSIONARTIFACT );
+		bCarryingTerminatorArtifact = !!( player->cheats2 & CF2_TERMINATORARTIFACT );
+		bCarryingPossessionArtifact = !!( player->cheats2 & CF2_POSSESSIONARTIFACT );
 	}
 	else
 	{
@@ -2010,7 +2011,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 	// artifact with him.
 	if ( terminator )
 	{
-		if ( player->cheats & CF_TERMINATORARTIFACT )
+		if ( player->cheats2 & CF2_TERMINATORARTIFACT )
 		{
 			P_DropItem( this, PClass::FindClass( "Terminator" ), -1, 256 );
 
@@ -2026,7 +2027,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 	// artifact with him.
 	if ( possession || teampossession )
 	{
-		if ( player->cheats & CF_POSSESSIONARTIFACT )
+		if ( player->cheats2 & CF2_POSSESSIONARTIFACT )
 		{
 			P_DropItem( this, PClass::FindClass( "PossessionStone" ), -1, 256 );
 

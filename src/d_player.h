@@ -215,20 +215,27 @@ typedef enum
 	CF_EXTREMELYDEAD	= 1 << 22,		// [RH] Reliably let the status bar know about extreme deaths.
 
 	CF_WEAPONBOBBING	= 1 << 24,		// [HW] Bob weapon while the player is moving
-	// [BC] Player can move freely while the game is in freeze mode.
-	CF_FREEZE			= 1 << 25,
 
-	// [BC] Powerups added by Skulltag.
-	CF_POSSESSIONARTIFACT	= 1 << 26,
-	CF_TERMINATORARTIFACT	= 1 << 27,
+	// [BC] Player can move freely while the game is in freeze mode.
+	CF_FREEZE			= 1 << 27,
 
 	// [BC] Rune effects.
-	CF_SPREAD				= 1 << 28,
-	CF_SPEED25				= 1 << 29,
+	CF_SPREAD			= 1 << 28,
+	CF_SPEED25			= 1 << 29,
 	
-	CF_FIRERESISTANT		= 1 << 30,
+	CF_FIRERESISTANT	= 1 << 30,
 
 } cheat_t;
+
+//
+// [BB] More player internal flags, for cheats and debug.
+//
+typedef enum
+{
+	// [BC] Powerups added by Skulltag.
+	CF2_POSSESSIONARTIFACT	= 1 << 0,
+	CF2_TERMINATORARTIFACT	= 1 << 1,
+} cheat2_t;
 
 #define WPIECE1		1
 #define WPIECE2		2
@@ -324,6 +331,7 @@ public:
 	AWeapon	   *PendingWeapon;			// WP_NOCHANGE if not changing
 
 	int			cheats;					// bit flags
+	int			cheats2;				// [BB] More bit flags
 	short		refire;					// refired shots are less accurate
 	int			killcount, itemcount, secretcount;		// for intermission
 	int			damagecount, bonuscount;// for screen flashing

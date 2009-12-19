@@ -439,7 +439,7 @@ int FMugShot::UpdateState(player_t *player, int stateflags)
 				good = SetState((stateflags & DRAWMUGSHOT_ANIMATEDGODMODE) ? "godanimated" : "god");
 			}
 			// [BB] Quad damage!
-			else if (( player->cheats & CF_TERMINATORARTIFACT ) ||
+			else if (( player->cheats2 & CF2_TERMINATORARTIFACT ) ||
 				(( player->mo != NULL ) && ( player->mo->FindInventory( PClass::FindClass( "PowerQuadDamage" )))))
 				good = SetState("quad");
 			else

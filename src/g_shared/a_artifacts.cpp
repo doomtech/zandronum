@@ -1865,7 +1865,7 @@ IMPLEMENT_CLASS( APowerPossessionArtifact )
 void APowerPossessionArtifact::InitEffect( )
 {
 	// Flag the player as carrying the possession artifact.
-	Owner->player->cheats |= CF_POSSESSIONARTIFACT;
+	Owner->player->cheats2 |= CF2_POSSESSIONARTIFACT;
 
 	// Tell the possession module that the artifact has been picked up.
 	if (( possession || teampossession ) &&
@@ -1911,7 +1911,7 @@ void APowerPossessionArtifact::EndEffect( )
 	}
 
 	// Take away the possession artifact flag.
-	Owner->player->cheats &= ~CF_POSSESSIONARTIFACT;
+	Owner->player->cheats2 &= ~CF2_POSSESSIONARTIFACT;
 }
 
 // Terminator artifact powerup -------------------------------------------------
@@ -1931,7 +1931,7 @@ void APowerTerminatorArtifact::InitEffect( )
 		return;
 
 	// Flag the player as carrying the terminator artifact.
-	Owner->player->cheats |= CF_TERMINATORARTIFACT;
+	Owner->player->cheats2 |= CF2_TERMINATORARTIFACT;
 
 	// Also, give the player a megasphere as part of the bonus.
 	// [BB] The server handles giving the megasphere.
@@ -1970,7 +1970,7 @@ void APowerTerminatorArtifact::EndEffect( )
 	}
 
 	// Take away the terminator artifact flag.
-	Owner->player->cheats &= ~CF_TERMINATORARTIFACT;
+	Owner->player->cheats2 &= ~CF2_TERMINATORARTIFACT;
 }
 
 //===========================================================================
