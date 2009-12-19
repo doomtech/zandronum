@@ -655,6 +655,7 @@ void AWeapon::PostMorphWeapon ()
 	Owner->player->PendingWeapon = WP_NOCHANGE;
 	Owner->player->ReadyWeapon = this;
 	Owner->player->psprites[ps_weapon].sy = WEAPONBOTTOM;
+	Owner->player->refire = 0;
 	P_SetPsprite (Owner->player, ps_weapon, GetUpState());
 }
 
