@@ -31,6 +31,10 @@ const int LOF_DONTCHASEGOAL = 4;
 const int LOF_NOSEESOUND = 8;
 const int LOF_FULLVOLSEESOUND = 16;
 
+// Flags for A_WeaponReady
+const int WRF_NoBob = 1;
+const int WRF_NoFire = 2;
+
 // Morph constants
 const int MRF_ADDSTAMINA = 1;
 const int MRF_FULLHEALTH = 2;
