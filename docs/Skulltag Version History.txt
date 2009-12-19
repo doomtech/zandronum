@@ -50,7 +50,7 @@ latestzdoom branch
 +	- Added new CCMD printjoinqueue that allows the server to list the full join queue. [Torr Samaho]
 +	- Added new dmflag "only spawn sp actors in coop", controlled by the new CVAR sv_coop_spactorspawn, based on a code submission by TIHan. If this is true in a cooperative game mode, map actors are spawned as if the game was single player. [Torr Samaho]
 +	- Extended the effect of the MAPINFO flag "islobby": Maps with this flag now behave as if sv_noexit is false (except for A_BossDeath and A_BrainDie). [Torr Samaho]
-+	- Backported A_WeaponReady from ZDoom revisions 1698, 1711, 1720, 1723. [Torr Samaho]
++	- Backported A_WeaponReady from ZDoom revisions 1698, 1711, 1720, 1723, 1789. [Torr Samaho]
 -	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
 -	- Fixed: In lms/teamlms players didn't get weapons whose game property is "any". [Torr Samaho]
 -	- Fixed: If an actor with MF_SKULLFLY slams into something online, it possibly stops moving on the clients and starts to teleport around (This affected the Minotaur). [Torr Samaho]
