@@ -214,18 +214,19 @@ typedef enum
 	CF_DOUBLEFIRINGSPEED= 1 << 21,
 	CF_EXTREMELYDEAD	= 1 << 22,		// [RH] Reliably let the status bar know about extreme deaths.
 
+	CF_WEAPONBOBBING	= 1 << 24,		// [HW] Bob weapon while the player is moving
 	// [BC] Player can move freely while the game is in freeze mode.
-	CF_FREEZE			= 0x800000,
+	CF_FREEZE			= 1 << 25,
 
 	// [BC] Powerups added by Skulltag.
-	CF_POSSESSIONARTIFACT	= 0x01000000,
-	CF_TERMINATORARTIFACT	= 0x02000000,
+	CF_POSSESSIONARTIFACT	= 1 << 26,
+	CF_TERMINATORARTIFACT	= 1 << 27,
 
 	// [BC] Rune effects.
-	CF_SPREAD				= 0x08000000,
-	CF_SPEED25				= 0x20000000,
+	CF_SPREAD				= 1 << 28,
+	CF_SPEED25				= 1 << 29,
 	
-	CF_FIRERESISTANT		= 0x40000000,
+	CF_FIRERESISTANT		= 1 << 30,
 
 } cheat_t;
 
