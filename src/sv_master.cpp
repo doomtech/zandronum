@@ -92,8 +92,8 @@ extern	NETADDRESS_s		g_LocalAddress;
 //	CONSOLE VARIABLES
 
 #if (BUILD_ID != BUILD_RELEASE)
-// [BB] Name of the testing binary archive found in http://skulltag.com/testing/files/
-CVAR( String, sv_testingbinary, "builds/97e/SkullDev97E-" SVN_REVISION_STRING "windows.zip", CVAR_SERVERINFO )
+// [BB] Name of the testing binary archive found in http://skulltag.net/
+CVAR( String, sv_testingbinary, "download/files/testing/" STVER_STRING "/SkullDev" STVER_STRING "-" SVN_REVISION_STRING "windows.zip", CVAR_SERVERINFO )
 #endif
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
