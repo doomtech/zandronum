@@ -127,6 +127,8 @@ EXTERN_CVAR( Int, cl_pufftype )
 EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
 EXTERN_CVAR( Bool, cl_oldfreelooklimit )
+EXTERN_CVAR( Float, turbo )
+EXTERN_CVAR( Int, gl_nearclip )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
@@ -748,6 +750,16 @@ void CLIENT_ClearAllPlayers( void )
 		// Zero out all the player information.
 		CLIENT_ResetPlayerData( &players[ulIdx] );
 	}
+}
+
+//*****************************************************************************
+//
+void CLIENT_LimitProtectedCVARs( void )
+{
+	if ( turbo > 100.f )
+		turbo = 100.f;
+	if ( gl_nearclip != 5 )
+		gl_nearclip = 5;
 }
 
 //*****************************************************************************

@@ -174,6 +174,7 @@ LONG				CLIENT_AdjustElevatorDirection( LONG lDirection );
 void				CLIENT_LogHUDMessage( char *pszString, LONG lColor );
 void				CLIENT_UpdatePendingWeapon( const player_t *pPlayer );
 void				CLIENT_ClearAllPlayers( void );
+void				CLIENT_LimitProtectedCVARs( void );
 
 void				CLIENT_PREDICT_PlayerPredict( void );
 void				CLIENT_PREDICT_SaveCmd( void );

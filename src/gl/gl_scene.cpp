@@ -66,7 +66,13 @@
 //==========================================================================
 CVAR(Bool, gl_texture, true, 0)
 CVAR(Bool, gl_no_skyclear, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+// [BB] Clients may not alter gl_nearclip.
+CUSTOM_CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	// [BB] Limit CVAR turbo on clients to 100.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( self != 5 ) )
+		self = 5;
+}
 CVAR(Float, gl_mask_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_forcemultipass, false, 0)
 
