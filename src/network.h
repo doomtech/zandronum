@@ -569,6 +569,8 @@ NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
 ULONG			NETWORK_ntohs( ULONG ul );
 USHORT			NETWORK_GetLocalPort( void );
 
+std::list<FString>	*NETWORK_GetPWADList( void ); // [RC]
+const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );

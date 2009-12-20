@@ -1164,17 +1164,23 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 				NETWORK_ClearBuffer( &g_MessageBuffer );
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, CLRC_COMMAND );
 
-				// If the text in the send buffer doesn't begin with a slash, the admin is just talking.
-				if ( szCommand[0] != '/' )
+				if ( szCommand[0] == ':' ) // If the text in the send buffer begins with a :, the admin is just talking.
 				{
 					char	szBuffer2[256 + 4];
 
-					sprintf( szBuffer2, "say %s", szCommand );
+					sprintf( szBuffer2, "say %s", szCommand + 1 );
 					NETWORK_WriteString( &g_MessageBuffer.ByteStream, szBuffer2 );
+					break;
+				}
+				else if ( szCommand[0] == '/' ) // If the text in the send buffer begins with a slash, error out -- Skulltag used to require you to do this to send commands.
+				{
+					Printf( "You longer have to prefix commands with a / to send them.\n" );
+					SetDlgItemText( hDlg, IDC_INPUTBOX, szCommand + 1 );
+					SendMessage( GetDlgItem( hDlg, IDC_INPUTBOX ), EM_SETSEL, strlen( szCommand ) - 1, strlen( szCommand ) - 1 );
+					break;
 				}
 				else
-					NETWORK_WriteString( &g_MessageBuffer.ByteStream, szCommand + 1 );
-				
+					NETWORK_WriteString( &g_MessageBuffer.ByteStream, szCommand );				
 				
 				NETWORK_LaunchPacket( &g_MessageBuffer, g_ServerAddress );
 				time( &g_tLastSentCommand );

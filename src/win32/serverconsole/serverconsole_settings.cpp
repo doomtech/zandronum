@@ -377,6 +377,7 @@ BOOL CALLBACK settings_Dialog_Callback( HWND hDlg, UINT Message, WPARAM wParam, 
 	{
 	case WM_INITDIALOG:
 
+		g_hDlg_Dialog = hDlg;
 		uxtheme = LoadLibrary ("uxtheme.dll");
 		if ( uxtheme != NULL )
 			pEnableThemeDialogTexture = (HRESULT (__stdcall *)(HWND,DWORD))GetProcAddress (uxtheme, "EnableThemeDialogTexture");
@@ -593,55 +594,23 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 		SendMessage( GetDlgItem( hDlg, IDC_PWADS ), WM_SETFONT, (WPARAM) CreateFont( 12, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
 		{
 			char		szString[256];
-
-			// Find the IWAD index.
-			ULONG ulNumPWADs = 0, ulRealIWADIdx;
-			for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-			{
-				if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL ) // Since WADs can now be loaded within pk3 files, we have to skip over all the ones automatically loaded. To my knowledge, the only way to do this is to skip wads that have a colon in them.
-				{
-					if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
-					{
-						ulRealIWADIdx = ulIdx;
-						break;
-					}
-
-					ulNumPWADs++;
-				}
-			}
-
-			// List all the PWADs in a string.
-			ulNumPWADs = 0;
+			
 			int iNumChars = 0;
 			sprintf( szString, "PWADs:" );
-			for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+			for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
 			{
-				// Skip the IWAD, skulltag.wad/pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
-				if (( ulIdx == ulRealIWADIdx ) ||
-					( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-					( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
-					( stricmp( Wads.GetWadName( ulIdx ), "skulltag_data.pk3" ) == 0 ) ||
-					( Wads.GetLoadedAutomatically( ulIdx )) ||
-					( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
-				{
-					continue;
-				}
-
-				iNumChars += strlen( Wads.GetWadName( ulIdx ));
+				iNumChars += i->Len( );
 				if ( iNumChars > 50 - 3 ) // Determined by width of label
 				{
-					sprintf( szString, "%s...", szString, Wads.GetWadName( ulIdx ));
+					sprintf( szString, "%s...", szString, *i->GetChars( ));
 					break;
 				}
 				else
-				{
-					sprintf( szString, "%s %s", szString, Wads.GetWadName( ulIdx ));
-					ulNumPWADs++;					
-				}
+					sprintf( szString, "%s %s", szString, *i );
 			}
 
-			g_ulNumPWADs = ulNumPWADs;
-			if ( ulNumPWADs == 0 )
+			g_ulNumPWADs = NETWORK_GetPWADList( )->size( );
+			if ( g_ulNumPWADs == 0 )
 			{
 				ShowWindow( GetDlgItem( hDlg, IDC_WADURL ), SW_HIDE );
 				ShowWindow( GetDlgItem( hDlg, IDC_WADURLLABEL ), SW_HIDE );

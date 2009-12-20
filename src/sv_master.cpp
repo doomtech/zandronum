@@ -233,8 +233,6 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	char		szAddress[4][4];
 	ULONG		ulIdx;
 	ULONG		ulBits;
-	ULONG		ulNumPWADs;
-	ULONG		ulRealIWADIdx = 0;
 
 	// Let's just use the master server buffer! It gets cleared again when we need it anyway!
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
@@ -305,24 +303,6 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
 		if ( g_lStoredQueryIPTail == g_lStoredQueryIPHead )
 			Printf( "SERVER_MASTER_SendServerInfo: WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
-	}
-
-	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
-	// to skip over all the ones automatically loaded. To my knowledge, the only way to
-	// do this is to skip wads that have a colon in them.
-	ulNumPWADs = 0;
-	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-	{
-		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL )
-		{
-			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
-			{
-				ulRealIWADIdx = ulIdx;
-				break;
-			}
-
-			ulNumPWADs++;
-		}
 	}
 
 	// Write our header.
@@ -408,41 +388,9 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// Send out the PWAD information.
 	if ( ulBits & SQF_PWADS )
 	{
-		ulNumPWADs = 0;
-		for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-		{
-			// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
-			// loaded from subdirectories (such as skin files), and WADs loaded automatically
-			// within pk3 files.
-			if (( ulIdx == ulRealIWADIdx ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
-				( Wads.GetLoadedAutomatically( ulIdx )) ||
-				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
-			{
-				continue;
-			}
-
-			ulNumPWADs++;
-		}
-
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, ulNumPWADs );
-		for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-		{
-			// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
-			// loaded from subdirectories (such as skin files), and WADs loaded automatically
-			// within pk3 files.
-			if (( ulIdx == ulRealIWADIdx ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
-				( Wads.GetLoadedAutomatically( ulIdx )) ||
-				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
-			{
-				continue;
-			}
-
-			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, (char *)Wads.GetWadName( ulIdx ));
-		}
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, NETWORK_GetPWADList( )->size( ));
+		for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, i->GetChars( ));
 	}
 
 	if ( ulBits & SQF_GAMETYPE )
@@ -456,7 +404,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_GetGameName( ));
 
 	if ( ulBits & SQF_IWAD )
-		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, (char *)Wads.GetWadName( ulRealIWADIdx ));
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, NETWORK_GetIWAD( ));
 
 	if ( ulBits & SQF_FORCEPASSWORD )
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_forcepassword );
@@ -674,62 +622,8 @@ CVAR( String, skulltag_masterip, "skulltag.servegame.com", CVAR_ARCHIVE|CVAR_GLO
 
 CCMD( wads )
 {
-	ULONG		ulIdx;
-	ULONG		ulRealIWADIdx = 0;
-	ULONG		ulNumPWADs;
-
-	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
-	// to skip over all the ones automatically loaded. To my knowledge, the only way to
-	// do this is to skip wads that have a colon in them.
-	ulNumPWADs = 0;
-	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-	{
-		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL )
-		{
-			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
-			{
-				ulRealIWADIdx = ulIdx;
-				Printf( "IWAD: %s\n", Wads.GetWadName( ulRealIWADIdx ));
-				break;
-			}
-
-			ulNumPWADs++;
-		}
-	}
-
-	ulNumPWADs = 0;
-	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-	{
-		// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
-		// loaded from subdirectories (such as skin files), and WADs loaded automatically
-		// within pk3 files.
-		if (( ulIdx == ulRealIWADIdx ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )) ||
-			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
-		{
-			continue;
-		}
-
-		ulNumPWADs++;
-	}
-
-	Printf( "Num PWADs: %d\n", static_cast<unsigned int> (ulNumPWADs) );
-	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
-	{
-		// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
-		// loaded from subdirectories (such as skin files), and WADs loaded automatically
-		// within pk3 files.
-		if (( ulIdx == ulRealIWADIdx ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )) ||
-			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
-		{
-			continue;
-		}
-
-		Printf( "PWAD: %s\n", Wads.GetWadName( ulIdx ));
-	}
+	Printf( "IWAD: %s\n", NETWORK_GetIWAD( ) );
+	Printf( "Num PWADs: %d\n", static_cast<unsigned int> (NETWORK_GetPWADList( )->size( )));
+	for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
+		Printf( "PWAD: %s\n", *i );
 }

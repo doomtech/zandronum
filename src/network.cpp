@@ -66,6 +66,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <list>
 
 #include "c_dispatch.h"
 #include "cl_main.h"
@@ -89,6 +90,9 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 //*****************************************************************************
 //	VARIABLES
+
+static	std::list<FString>	g_PWADs;
+static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
 
@@ -132,6 +136,7 @@ EXTERN_CVAR (Float, turbo)
 //*****************************************************************************
 //	PROTOTYPES
 
+static	void			network_InitPWADList( void );
 static	void			network_Error( char *pszError );
 static	SOCKET			network_AllocateSocket( void );
 static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
@@ -373,6 +378,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		else
 			cls->ActorNetworkIndex = 0;
 	}
+
+	// [RC/BB] Init the list of PWADs.
+	network_InitPWADList( );
 
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
@@ -796,6 +804,20 @@ USHORT NETWORK_GetLocalPort( void )
 
 //*****************************************************************************
 //
+std::list<FString> *NETWORK_GetPWADList( void )
+{
+	return &g_PWADs;
+}
+
+//*****************************************************************************
+//
+const char *NETWORK_GetIWAD( void )
+{
+	return g_IWAD.GetChars( );
+}
+
+//*****************************************************************************
+//
 void NETWORK_AddLumpForAuthentication( const LONG LumpNumber )
 {
 	if ( LumpNumber == -1 )
@@ -952,6 +974,47 @@ void NETWORK_SetState( LONG lState )
 //*****************************************************************************
 //*****************************************************************************
 //
+//*****************************************************************************
+// [RC]
+static void network_InitPWADList( void )
+{
+	g_PWADs.clear( );
+
+	// Find the IWAD index.
+	ULONG ulNumPWADs = 0, ulRealIWADIdx;
+	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+	{
+		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL ) // Since WADs can now be loaded within pk3 files, we have to skip over all the ones automatically loaded. To my knowledge, the only way to do this is to skip wads that have a colon in them.
+		{
+			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
+			{
+				ulRealIWADIdx = ulIdx;
+				break;
+			}
+
+			ulNumPWADs++;
+		}
+	}
+
+	g_IWAD = Wads.GetWadName( ulRealIWADIdx );
+
+	// Collect all the PWADs into a list.
+	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+	{
+		// Skip the IWAD, skulltag.wad/pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
+		if (( ulIdx == ulRealIWADIdx ) ||
+			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
+			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
+			( Wads.GetLoadedAutomatically( ulIdx )) ||
+			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
+		{
+			continue;
+		}
+
+		g_PWADs.push_back( Wads.GetWadName( ulIdx ));
+	}
+}
+
 void network_Error( char *pszError )
 {
 	Printf( "\\cd%s\n", pszError );

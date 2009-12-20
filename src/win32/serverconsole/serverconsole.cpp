@@ -473,13 +473,9 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				if ( g_bServerLoaded )
 				{
 					// Take this instance's arguments, and replace "-host" with "-connect".
-					FString arguments = "";
-					for ( int i = 1; i < Args->NumArgs(); i++ )
-					{
-						if ( stricmp( Args->GetArg(i), "-host" ))
-							arguments.AppendFormat( "%s ", Args->GetArg(i) );
-					}
-					arguments.AppendFormat( "-connect %s", NETWORK_AddressToString( g_LocalAddress ));
+					FString arguments = NETWORK_GetPWADList( )->size() ? "-file " : "";
+					for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
+						arguments.AppendFormat( "%s ", *i );
 
 					// Run it!
 					ShellExecute( hDlg, "open", Args->GetArg( 0 ), arguments.GetChars( ), NULL, SW_SHOW );
