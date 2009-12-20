@@ -137,8 +137,9 @@ static inline const char *MakeSaveSig()
 // More stuff that needs to be different for derivatives.
 #define GAMENAME "Skulltag"
 #define GAMENAMELOWERCASE "skulltag"
-#define FORUM_URL "http://www.skulltag.com/forum/"
-#define BUGS_FORUM_URL	"http://www.skulltag.com/forum/"
+#define DOMAIN_NAME "skulltag.net"
+#define FORUM_URL "http://www." DOMAIN_NAME "/forum/"
+#define BUGS_FORUM_URL	"http://www." DOMAIN_NAME "/forum/"
 
 #ifdef unix
 #define HOME_DIR "~/." GAMENAMELOWERCASE

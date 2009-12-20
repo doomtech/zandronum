@@ -1609,11 +1609,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 			case NETWORK_ERRORCODE_WRONGVERSION:
 
-				sprintf( szErrorString, "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www.skulltag.com/ for updates.", NETWORK_ReadString( pByteStream ));
+				sprintf( szErrorString, "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www." DOMAIN_NAME "/ for updates.", NETWORK_ReadString( pByteStream ));
 				break;
 			case NETWORK_ERRORCODE_WRONGPROTOCOLVERSION:
 
-				sprintf( szErrorString, "Failed connect. Your version uses outdated network code.\nPlease check http://www.skulltag.com/ for updates." );
+				sprintf( szErrorString, "Failed connect. Your version uses outdated network code.\nPlease check http://www." DOMAIN_NAME "/ for updates." );
 				break;
 			case NETWORK_ERRORCODE_BANNED:
 
@@ -1661,7 +1661,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 			default:
 
-				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", static_cast<unsigned int> (ulErrorCode) );
+				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www." DOMAIN_NAME "/ for updates.", static_cast<unsigned int> (ulErrorCode) );
 				break;
 			}
 

@@ -982,12 +982,12 @@ BOOL CALLBACK NoIWADBox_NoDoom_Callback (HWND hDlg, UINT message, WPARAM wParam,
 	{
 		if ( LOWORD( wParam ) == IDC_USESTEAM )
 		{
-			I_RunProgram( "http://skulltag.com/go/buydoom/" );
+			I_RunProgram( "http://" DOMAIN_NAME "/go/buydoom/" );
 			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After you've downloaded Doom 2, simply restart Skulltag." );
 		}
 		else if ( LOWORD( wParam ) == IDC_USEFREEDOOM )
 		{
-			I_RunProgram( "http://skulltag.com/go/freedoom/" );
+			I_RunProgram( "http://" DOMAIN_NAME "/go/freedoom/" );
 			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After downloading, simply extract doom2.wad into the Skulltag directory." );
 			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_RESTART, "Done" );
 		}
