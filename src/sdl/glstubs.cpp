@@ -37,6 +37,7 @@ DEFINE_CLASS_PROPERTY(type, S, DynamicLight)
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 CVAR(Bool, gl_nogl, true, CVAR_NOSET)
+CVAR(Int, gl_nearclip, 5, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
