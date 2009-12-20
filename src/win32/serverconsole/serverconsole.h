@@ -90,6 +90,7 @@ void			SERVERCONSOLE_ReListPlayers( void );
 void			SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void			SERVERCONSOLE_Print( char *pszString );
 void			SERVERCONSOLE_Quit( void );
+void			SERVERCONSOLE_Hide( void );
 
 DWORD WINAPI	MainDoomThread( LPVOID );
 

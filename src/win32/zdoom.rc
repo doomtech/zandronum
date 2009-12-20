@@ -521,6 +521,60 @@ BEGIN
                     NOT WS_VISIBLE | WS_BORDER,33,22,147,9
 END
 
+//
+// [RC] Skulltag's "no IWAD" setup screen.
+//
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+IDD_NOIWADS DIALOG 0, 0, 279, 124
+STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_VISIBLE | WS_BORDER | WS_CAPTION | WS_DLGFRAME | WS_POPUP | WS_SYSMENU
+CAPTION "Welcome"
+FONT 8, "Tahoma"
+{
+	CONTROL         IDB_SETUP, IDC_STATIC, "Static", SS_BITMAP, 7, 4, 45, 42
+    LTEXT           "Welcome to Skulltag!", IDC_STTITLE, 48, 10, 235, 19, SS_LEFT
+    CONTROL         "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 4294967276, 34, 373, 1
+}
+
+
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+IDD_NOIWADS_NODOOM DIALOG 0, 0, 265, 87
+STYLE DS_3DLOOK | DS_CENTER | DS_SHELLFONT | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
+FONT 8, "Ms Shell Dlg 2"
+{
+    LTEXT           "Don't have Doom? That's OK! Here are your options:", IDC_STATIC, 19, 12, 169, 8, SS_LEFT
+    PUSHBUTTON      "Buy for $10", IDC_USESTEAM, 42, 33, 64, 16
+    LTEXT           "from Steam", IDC_STATIC, 112, 36, 38, 8, SS_LEFT
+    PUSHBUTTON      "Use FreeDoom", IDC_USEFREEDOOM, 42, 59, 64, 16
+    LTEXT           "a free community re-creation", IDC_STATIC, 111, 62, 94, 8, SS_LEFT
+}
+
+
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+IDD_NOIWADS_REDIRECT DIALOG 0, 0, 265, 87
+STYLE DS_3DLOOK | DS_CENTER | DS_SHELLFONT | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
+FONT 8, "Ms Shell Dlg 2"
+{
+    LTEXT           "Redirecting you...", IDC_REDIRECTING1, 19, 12, 238, 8, SS_LEFT
+    PUSHBUTTON      "Restart", IDC_RESTART, 19, 41, 54, 16
+    LTEXT           "After you've downloaded Doom 2, simply restart Skulltag.", IDC_REDIRECTING2, 19, 24, 238, 8, SS_LEFT
+}
+
+
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+IDD_NOIWADS_WELCOME DIALOG 0, 0, 298, 93
+STYLE DS_3DLOOK | DS_CENTER | DS_SHELLFONT | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
+FONT 8, "Ms Shell Dlg 2"
+{
+    LTEXT           "To play, please point us to your Doom directory.", IDC_STATIC, 22, 15, 156, 8, SS_LEFT
+    PUSHBUTTON      "I don't have Doom!", IDC_NODOOM, 19, 62, 72, 17
+    PUSHBUTTON      "Browse...", IDC_BROWSE, 187, 11, 46, 16
+    LTEXT           "Doom 2 is recommended for online play.\nYou can also use Heretic, Hexen, or Strife.", IDC_STATIC, 103, 63, 138, 16, SS_LEFT
+    CONTROL         "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 4294967239, 53, 398, 1
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Cursor
@@ -534,6 +588,7 @@ IDC_INVISIBLECURSOR     CURSOR  DISCARDABLE     "cursor1.cur"
 //
 
 IDB_DEADGUY             BITMAP  MOVEABLE PURE   "deadguy.bmp"
+IDB_SETUP				BITMAP  MOVEABLE PURE   "setup.bmp"
 
 
 #endif    // English (U.S.) resources

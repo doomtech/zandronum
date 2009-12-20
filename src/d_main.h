@@ -108,4 +108,7 @@ struct IWADInfo
 extern const IWADInfo IWADInfos[NUM_IWAD_TYPES];
 extern EIWADType gameiwad;
 
+// [RC] Checks if a directory contains IWADs. Used by "no IWAD" setup screen in I_system.cpp.
+bool D_DoesDirectoryHaveIWADs( const char *pszPath );
+
 #endif

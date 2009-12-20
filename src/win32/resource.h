@@ -16,8 +16,8 @@
 #define IDD_DIALOG3                     127
 #define IDD_DIALOG4                     128
 #define IDD_SAVEEAX                     128
-#define IDB_BITMAP1                     131
 #define IDB_DEADGUY                     131
+#define IDB_SETUP			            132
 #define IDD_CRASHDETAILS                133
 #define IDI_BOING1                      137
 #define IDI_BOING2                      138
@@ -53,6 +53,10 @@
 #define IDD_SERVERSTATISTICS            168
 #define IDD_ERRORPANE                   148
 #define IDD_NETSTARTPANE                149
+#define IDD_NOIWADS_WELCOME             170
+#define IDD_NOIWADS_NODOOM              171
+#define IDD_NOIWADS			            172
+#define IDD_NOIWADS_REDIRECT            173
 #define IDC_ERRORMESSAGE                1004
 #define IDQUIT                          1005
 #define IDC_IWADLIST                    1006
@@ -191,7 +195,7 @@
 #define IDC_SPIN9                       1232
 #define UWM_TRAY_TRAYID                 32769
 #define UWM_TRAY_NOP                    32770
-#define IDC_WELCOME_VERSION				4019
+#define IDC_WELCOME_VERSION				4019 // [RC] "Welcome" screen.
 #define IDC_WELCOME_OPENGL				4020
 #define IDC_WELCOME_SOFTWARE			4021
 #define IDC_WELCOME_FULLSCREEN			4022
@@ -199,13 +203,22 @@
 #define IDC_WELCOME_SHIFTLABEL			4024
 #define IDC_SPIN2                       4043
 #define IDC_SPIN3                       4044
-#define G15_ICON_ORION					4045
+#define G15_ICON_ORION					4045 // [RC] G15 LCD console.
 #define G15_ICON_ARMOR					4046
 #define G15_ICON_STIMPACK				4047
 #define G15_ICON_SHELLS					4048
-#define IDC_HISTORY_MENU				4050
+#define IDC_HISTORY_MENU				4050 // [RC] "No IWADs" setup screen.
 #define IDC_SERVER_STATUSBAR			4051
+#define IDC_STTITLE                     4052
+#define IDC_BROWSE                      4053
+#define IDC_USESTEAM                    4054
+#define IDC_USEFREEDOOM                 4055
+#define IDC_NODOOM		                4056
+#define IDC_REDIRECTING1                4057
+#define IDC_REDIRECTING2	            4058
+#define IDC_RESTART		                4059
 
+// [RC] Dynamic IDs.
 #define IDR_BOT_ADD                              109
 #define IDR_BOT_CLONE                            110
 #define IDR_BOT_REMOVE                           111

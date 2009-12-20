@@ -47,6 +47,7 @@ latestzdoom branch
 			- Removed several unneeded or defunct dialogs.
 			- The scoreboard and player list have been updated to support newer Skulltag features (like the "award damage instead of kills" DMFlag).
 
++	- Added an IWAD setup screen that is shown instead of the fatal error message when no IWAD is found. [Rivecoder]
 +	- Added new CCMD printjoinqueue that allows the server to list the full join queue. [Torr Samaho]
 +	- Added new dmflag "only spawn sp actors in coop", controlled by the new CVAR sv_coop_spactorspawn, based on a code submission by TIHan. If this is true in a cooperative game mode, map actors are spawned as if the game was single player. [Torr Samaho]
 +	- Extended the effect of the MAPINFO flag "islobby": Maps with this flag now behave as if sv_noexit is false (except for A_BossDeath and A_BrainDie). [Torr Samaho]

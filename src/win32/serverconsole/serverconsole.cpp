@@ -602,6 +602,13 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 //*****************************************************************************
 //
+void SERVERCONSOLE_Hide( void )
+{
+	ShowWindow( g_hDlg, SW_HIDE );
+}
+
+//*****************************************************************************
+//
 void serverconsole_ScoreboardRightClicked( void )
 {
 	char	szString[64];

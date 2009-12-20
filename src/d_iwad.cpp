@@ -45,6 +45,7 @@
 #include "c_cvars.h"
 #include "gameconfigfile.h"
 // [BB] New #includes.
+#include "doomerrors.h"
 #include "version.h"
 
 
@@ -478,6 +479,19 @@ static int CheckIWADinEnvDir (const char *str, WadStuff *wads)
 	return false;
 }
 
+//==========================================================================
+//
+// [RC] D_DoesDirectoryHaveIWADs
+//
+// Checks if a directory contains any IWADs.
+// 
+//==========================================================================
+
+bool D_DoesDirectoryHaveIWADs( const char *pszPath )
+{
+	WadStuff wads[countof( IWADNames )];
+	return ( CheckIWAD( pszPath, wads ) > 0 );
+}
 
 //==========================================================================
 //
@@ -616,6 +630,8 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 	}
 
 	if (numwads == 0)
+		throw CNoIWADError(); // [RC]
+	/* [BB] Skulltag uses Rivecoder's IWAD setup screen now.
 	{
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"
 					  "Did you install "GAMENAME" properly? You can do either of the following:\n"
@@ -624,6 +640,7 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 					  "2. Edit your "GAMENAMELOWERCASE"-username.ini and add the directories of your iwads\n"
 					  "to the list beneath [IWADSearch.Directories]");
 	}
+	*/
 
 	pickwad = 0;
 

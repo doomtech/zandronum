@@ -132,6 +132,9 @@ void I_GetWelcomeScreenKeyString( char *pszString );
 struct IWADInfo;
 void I_SetIWADInfo (const IWADInfo *title);
 
+// [RC] Show a helpful dialog when no IWADs were found.
+void I_ShowNoIWADsScreen( void );
+
 // Pick from multiple IWADs to use
 int I_PickIWad (WadStuff *wads, int numwads, bool queryiwad, int defaultiwad);
 

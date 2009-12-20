@@ -40,6 +40,7 @@
 #include <wincrypt.h>
 // [BB] New #includes.
 #include <shellapi.h>
+#include <shlobj.h>
 
 #define USE_WINDOWS_DWORD
 #include "hardware.h"
@@ -889,6 +890,201 @@ void I_GetWelcomeScreenKeyString( char *pszString )
 		case VK_SHIFT:
 			strcpy(pszString, "SHIFT");
 	}
+}
+
+//==========================================================================
+// "No IWAD" setup dialog
+//==========================================================================
+
+static	HWND		g_hDlg_NoIWAD;
+static	HWND		g_hDlg_NoIWAD_Welcome;
+static	HWND		g_hDlg_NoIWAD_NoDoom;
+static	HWND		g_hDlg_NoIWAD_Redirect;
+static	HBRUSH		g_hWhiteBrush;
+
+//==========================================================================
+//
+// I_ShowDirectoryBrowser
+//
+// Shows the Windows "select a directory" dialog.
+// Returns whether successful; if so, copies the path into pszBuffer.
+//
+//==========================================================================
+
+bool I_ShowDirectoryBrowser( HWND hDlg, char *pszBuffer, const char *pszDisplayTitle )
+{
+	BROWSEINFO   bi;
+	ZeroMemory( &bi, sizeof( bi )); 
+	TCHAR   szDisplayName[MAX_PATH]; 
+	szDisplayName[0] = 0;  
+
+	bi.hwndOwner        =   hDlg; 
+	bi.pidlRoot         =   NULL; 
+	bi.pszDisplayName   =   szDisplayName; 
+	bi.lpszTitle        =   pszDisplayTitle; 
+	bi.ulFlags          =   BIF_RETURNONLYFSDIRS;
+	bi.lParam           =   NULL; 
+	bi.iImage           =   0;  
+
+	LPITEMIDLIST pidl = SHBrowseForFolder( &bi );
+	if ( pidl && SHGetPathFromIDList( pidl, pszBuffer ))
+		return true;
+	else
+		return false;
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK NoIWADBox_Welcome_Callback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	// "I don't have Doom!" clicked. Advance to the next screen.
+	if ( message == WM_COMMAND && LOWORD( wParam ) == IDC_NODOOM )
+	{
+		SetWindowPos( g_hDlg_NoIWAD_Welcome, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_HIDEWINDOW );			
+		SetWindowPos( g_hDlg_NoIWAD_NoDoom, NULL, 0, 55, 450, 200, SWP_NOZORDER );
+		return FALSE; 
+	}
+	// "Browse" button clicked.
+	else if ( message == WM_COMMAND && LOWORD( wParam ) == IDC_BROWSE )
+	{
+		char szPathName[MAX_PATH]; 
+		if ( !I_ShowDirectoryBrowser( hDlg, szPathName, "Please select the folder where Doom is installed.\nWe're looking for doom.wad or doom2.wad." ))
+			return FALSE;
+
+		// See if this directory contains any IWADs.
+		if ( D_DoesDirectoryHaveIWADs( szPathName ))
+		{
+			// Add this directory to the user's profile, restart, and play!
+			if ( GameConfig->SetSection ("IWADSearch.Directories"))
+			{
+				GameConfig->SetValueForKey ("Path", szPathName, true);
+				GameConfig->WriteConfigFile();
+
+				FString arguments = "";
+				for ( int i = 1; i < Args->NumArgs(); i++ )
+					arguments.AppendFormat( "%s ", Args->GetArg(i) );
+				ShellExecute( hDlg, "open", Args->GetArg( 0 ), arguments.GetChars( ), NULL, SW_SHOW );
+
+				exit( 0 );
+			}
+		}
+		else
+			MessageBox( hDlg, "No IWADs were found in that folder.\n\nPlease select the folder that contains your copy of doom.wad or doom2.wad.", "Couldn't find Doom", MB_ICONEXCLAMATION );
+	}
+	return FALSE;
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK NoIWADBox_NoDoom_Callback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	if ( message == WM_COMMAND && (( LOWORD( wParam ) == IDC_USESTEAM ) || ( LOWORD( wParam ) == IDC_USEFREEDOOM )))
+	{
+		if ( LOWORD( wParam ) == IDC_USESTEAM )
+		{
+			I_RunProgram( "http://skulltag.com/go/buydoom/" );
+			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After you've downloaded Doom 2, simply restart Skulltag." );
+		}
+		else if ( LOWORD( wParam ) == IDC_USEFREEDOOM )
+		{
+			I_RunProgram( "http://skulltag.com/go/freedoom/" );
+			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After downloading, simply extract doom2.wad into the Skulltag directory." );
+			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_RESTART, "Done" );
+		}
+
+		// Advance to the redirect page.
+		SendMessage( GetDlgItem( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING1 ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+		SetWindowPos( g_hDlg_NoIWAD_NoDoom, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_HIDEWINDOW );			
+		SetWindowPos( g_hDlg_NoIWAD_Redirect, NULL, 0, 55, 450, 200, SWP_NOZORDER );
+	}
+	return FALSE; 
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK NoIWADBox_Redirect_Callback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	// "Restart" button clicked.
+	if ( message == WM_COMMAND && LOWORD( wParam ) == IDC_RESTART )
+	{
+		FString arguments = "";
+		for ( int i = 1; i < Args->NumArgs(); i++ )
+			arguments.AppendFormat( "%s ", Args->GetArg(i) );
+		ShellExecute( hDlg, "open", Args->GetArg( 0 ), arguments.GetChars( ), NULL, SW_SHOW );
+		exit( 0 );
+	}
+	return FALSE;
+}
+
+//*****************************************************************************
+//
+void main_PaintRectangle( HDC hDC, RECT *rect, COLORREF color )
+{
+	COLORREF oldcr = SetBkColor( hDC, color );
+	ExtTextOut( hDC, 0, 0, ETO_OPAQUE, rect, "", 0, 0 );
+	SetBkColor( hDC, oldcr );
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK NoIWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_CLOSE:
+
+		EndDialog( hDlg, -1 );
+		break;
+	case WM_INITDIALOG:
+		{
+			g_hDlg_NoIWAD = hDlg;
+
+			// Format the top of the dialog.
+			SendMessage( GetDlgItem( hDlg, IDC_STTITLE ), WM_SETFONT, (WPARAM) CreateFont( 19, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+			LOGBRUSH LogBrush;
+			LogBrush.lbStyle = BS_SOLID;
+			LogBrush.lbColor = RGB( 255, 255, 255 );
+			g_hWhiteBrush = CreateBrushIndirect( &LogBrush );
+
+			// Create the child dialogs.
+			if ( g_hDlg_NoIWAD_Welcome == NULL )
+			{
+				g_hDlg_NoIWAD_Welcome = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_WELCOME ), hDlg, NoIWADBox_Welcome_Callback, NULL );
+				g_hDlg_NoIWAD_NoDoom = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_NODOOM ), hDlg, NoIWADBox_NoDoom_Callback, NULL );
+				g_hDlg_NoIWAD_Redirect = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_REDIRECT ), hDlg, NoIWADBox_Redirect_Callback, NULL );
+				SetParent( g_hDlg_NoIWAD_Welcome, hDlg );
+				SetParent( g_hDlg_NoIWAD_NoDoom, hDlg );
+				SetParent( g_hDlg_NoIWAD_Redirect, hDlg );
+				SetWindowPos( g_hDlg_NoIWAD_Welcome, NULL, 0, 55, 450, 250, SWP_NOZORDER );
+			}
+		}
+		break;
+	case WM_CTLCOLORSTATIC:
+
+		if ( GetDlgCtrlID( (HWND)lParam ) == IDC_STTITLE || GetDlgCtrlID( (HWND)lParam ) == IDI_ICONST ) // Paint the title label's background white.
+			return (LRESULT) g_hWhiteBrush;			
+		else
+			return NULL;
+	case WM_PAINT:
+		{
+			// Paint the top of the form white.
+			PAINTSTRUCT Ps;
+			RECT r;
+			r.left = 0;
+			r.top = 0;
+			r.bottom = 55;
+			r.right = 500;
+			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
+		}
+	}
+	return FALSE;
+}
+
+//*****************************************************************************
+//
+void I_ShowNoIWADsScreen( void )
+{
+	DialogBox( g_hInst, MAKEINTRESOURCE(IDD_NOIWADS), NULL, (DLGPROC)NoIWADBoxCallback );
 }
 
 int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
