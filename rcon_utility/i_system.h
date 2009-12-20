@@ -53,11 +53,13 @@
 #define __I_SYSTEM__
 
 #include <stdio.h>
-#include "../src/m_alloc.h"
 
 #define atterm atexit
 #define I_FatalError printf
 #define Printf printf
+
+#define M_Malloc(s) malloc(s)
+#define M_Free(s) free(s)
 
 // [RC] Remove some tedious warnings.
 #define stricmp _stricmp

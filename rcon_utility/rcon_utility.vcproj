@@ -200,10 +200,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\m_alloc.cpp"
-				>
-			</File>
-			<File
 				RelativePath="main.cpp"
 				>
 				<FileConfiguration
@@ -253,11 +249,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\zstrformat.cpp"
+				RelativePath="zstrformat.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\src\zstring.cpp"
+				RelativePath="zstring.cpp"
 				>
 			</File>
 		</Filter>
@@ -295,7 +291,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\zstring.h"
+				RelativePath="zstring.h"
 				>
 			</File>
 		</Filter>

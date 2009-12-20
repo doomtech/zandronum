@@ -54,7 +54,7 @@
 #include <time.h>
 #include "../src/networkheaders.h"
 #include "../masterserver/network.h"
-#include "../src/zstring.h"
+#include "zstring.h"
 #include "../src/configfile.h"
 #include "../src/sv_rcon.h"
 #include "../src/MD5/MD5Checksum.h"
