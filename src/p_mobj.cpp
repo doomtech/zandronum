@@ -5041,7 +5041,9 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 
 		// [BC] We can't use the value of 32 for MAXPLAYERS here, otherwise it
 		// messes with Strife items.
-		if (mthing->type >= base && mthing->type < base + /*MAXPLAYERS*/8 - 4)
+		// [BB] Only apply the restriction if we actually play Strife.
+		const int maxPlayerStarts = (gameinfo.gametype == GAME_Strife) ? 8 : MAXPLAYERS;
+		if (mthing->type >= base && mthing->type < base + maxPlayerStarts - 4)
 		{
 			pnum = mthing->type - base + 4;
 		}
