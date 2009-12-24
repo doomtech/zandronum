@@ -15,7 +15,7 @@
 latestzdoom branch
 ------------------
 
-+	- Greatly improved the windows server dialog! [Rivecoder]
+*+	- Greatly improved the windows server dialog! [Rivecoder]
 
 		- Things that are entirely new:
 			- Added COMMAND HISTORY! Made a mistake entering a command? Want to retrieve a previously-entered command? Just hit the "..." button!
@@ -47,6 +47,10 @@ latestzdoom branch
 			- Removed several unneeded or defunct dialogs.
 			- The scoreboard and player list have been updated to support newer Skulltag features (like the "award damage instead of kills" DMFlag).
 
+*+	- Added support for Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm, like Scale2x/3x/4x controlled by the CVAR gl_texture_hqresize. In compliance with the LGPL, the upsampling code itself resides in a dynamically linked library. [Torr Samaho]
+		gl_texture_hqresize == 4 : hq2x algorithm
+		gl_texture_hqresize == 5 : hq3x algorithm
+		gl_texture_hqresize == 6 : hq4x algorithm
 +	- Added an IWAD setup screen that is shown instead of the fatal error message when no IWAD is found. [Rivecoder]
 +	- Added new CCMD printjoinqueue that allows the server to list the full join queue. [Torr Samaho]
 +	- Added new dmflag "only spawn sp actors in coop", controlled by the new CVAR sv_coop_spactorspawn, based on a code submission by TIHan. If this is true in a cooperative game mode, map actors are spawned as if the game was single player. [Torr Samaho]

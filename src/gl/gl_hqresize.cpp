@@ -1,11 +1,11 @@
 /*
 ** gl_hqresize.cpp
 ** Contains high quality upsampling functions.
-** So far Scale2x/3x/4x as described in http://scale2x.sourceforge.net/
-** are implemented.
+** So far supports Scale2x/3x/4x as described in http://scale2x.sourceforge.net/
+** and Maxim Stepin's hq2x/3x/4x.
 **
 **---------------------------------------------------------------------------
-** Copyright 2008 Benjamin Berkels
+** Copyright 2008-2009 Benjamin Berkels
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,19 @@
 #include "gl_hqresize.h"
 #include "gl_intern.h"
 #include "c_cvars.h"
+// [BB] hqnx scaling is only supported with the MS compiler.
+#ifdef _MSC_VER
+#include "../hqnx/hqnx.h"
+#endif
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	if (self < 0 || self > 3) self = 0;
+#ifdef _MSC_VER
+	if (self < 0 || self > 6)
+#else
+	if (self < 0 || self > 3)
+#endif
+		self = 0;
 	FGLTexture::FlushAll();
 }
 
@@ -176,6 +185,30 @@ static unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32*
 	return newBuffer;
 }
 
+// [BB] hqnx scaling is only supported with the MS compiler.
+#ifdef _MSC_VER
+static unsigned char *hqNxHelper( void (*hqNxFunction) ( int*, unsigned char*, int, int, int ),
+							  const int N,
+							  unsigned char *inputBuffer,
+							  const int inWidth,
+							  const int inHeight,
+							  int &outWidth,
+							  int &outHeight )
+{
+	outWidth = N * inWidth;
+	outHeight = N *inHeight;
+
+	CImage cImageIn;
+	cImageIn.SetImage(inputBuffer, inWidth, inHeight, 32);
+	cImageIn.Convert32To17();
+
+	unsigned char * newBuffer = new unsigned char[outWidth*outHeight*4];
+	hqNxFunction( reinterpret_cast<int*>(cImageIn.m_pBitmap), newBuffer, cImageIn.m_Xres, cImageIn.m_Yres, outWidth*4 );
+	delete[] inputBuffer;
+	return newBuffer;
+}
+#endif
+
 //===========================================================================
 // 
 // [BB] Upsamples the texture in inputBuffer, frees inputBuffer and returns
@@ -232,6 +265,15 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 			return scaleNxHelper( &scale3x, 3, inputBuffer, inWidth, inHeight, outWidth, outHeight );
 		case 3:
 			return scaleNxHelper( &scale4x, 4, inputBuffer, inWidth, inHeight, outWidth, outHeight );
+// [BB] hqnx scaling is only supported with the MS compiler.
+#ifdef _MSC_VER
+		case 4:
+			return hqNxHelper( &hq2x_32, 2, inputBuffer, inWidth, inHeight, outWidth, outHeight );
+		case 5:
+			return hqNxHelper( &hq3x_32, 3, inputBuffer, inWidth, inHeight, outWidth, outHeight );
+		case 6:
+			return hqNxHelper( &hq4x_32, 4, inputBuffer, inWidth, inHeight, outWidth, outHeight );
+#endif
 		}
 	}
 	return inputBuffer;

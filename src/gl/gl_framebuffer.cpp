@@ -55,6 +55,10 @@
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_translate.h"
 #include "vectors.h"
+// [BB] Added include.
+#ifdef _MSC_VER
+#include "../hqnx/hqnx.h"
+#endif
 
 IMPLEMENT_CLASS(OpenGLFrameBuffer)
 EXTERN_CVAR (Float, vid_brightness)
@@ -83,6 +87,10 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	InitializeState();
 	gl_GenerateGlobalBrightmapFromColormap();
 	gl_InitSpecialTextures();
+#ifdef _MSC_VER
+	// [BB] Necessary for the hqnx resizing.
+	InitLUTs();
+#endif
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
