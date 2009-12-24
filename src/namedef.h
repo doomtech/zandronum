@@ -418,5 +418,6 @@ xx(lightabsolute)
 xx(nofakecontrast)
 xx(smoothlighting)
 xx(blockprojectiles)
+xx(blockuse)
 
 xx(Renderstyle)
