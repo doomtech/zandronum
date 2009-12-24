@@ -23,8 +23,8 @@
 #include <string.h>
 #include "hqnx.h"
 
-static int   LUT16to32[65536*2];
-static int   RGBtoYUV[65536*2];
+int   LUT16to32[65536*2];
+int   RGBtoYUV[65536*2];
 
 static const __int64 reg_blank = 0;
 static const __int64 const3    = 0x0003000300030003;
