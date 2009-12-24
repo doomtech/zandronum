@@ -91,6 +91,7 @@ latestzdoom branch
 -	- Fixed: A_MLightningAttack didn't update the ammo amount displayed on the clients online. [Torr Samaho]
 -	- Fixed: The server possibly crashed when a player is spawned and respawn invulnerability is on. [Torr Samaho]
 -	- Fixed: Changing the dmflags2 value could crash the server. [Torr Samaho]
+-	- Fixed: Players were told that they can't pick up the flag, when trying to pick up a team's skull if there are no people on the corresponding team. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]

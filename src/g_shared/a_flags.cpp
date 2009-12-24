@@ -290,7 +290,12 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 	// [BB] If the team the item belongs to doesn't have any players, don't let it be picked up.
 	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
 	{
-		FString message = "You can't pick up the flag\nof a team with no players!";
+		FString message = "You can't pick up the ";
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEFLAGASTEAMITEM )
+			message += "flag";
+		else
+			message += "skull";
+		message += "\nof a team with no players!";
 		GAMEMODE_DisplaySUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
 		return ( DENY_PICKUP );
 	}
