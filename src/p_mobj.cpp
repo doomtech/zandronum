@@ -4535,7 +4535,9 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	const BYTE oldPlayerClass = p->CurrentPlayerClass;
 
 	// [BB] The (p->userinfo.PlayerClass != p->CurrentPlayerClass) check allows the player to change its class when respawning.
-	if (p->cls == NULL || (p->userinfo.PlayerClass != p->CurrentPlayerClass))
+	// We have to make sure though that the class is not changed when traveling from one map to the next, because a travelling
+	// player gets its inventory from the last map (which of course belongs to the previous class) after being spawned completely.
+	if (p->cls == NULL || ( (p->userinfo.PlayerClass != p->CurrentPlayerClass) && ( p->playerstate != PST_LIVE ) ) )
 	{
 		// [GRB] Pick a class from player class list
 		if (PlayerClasses.Size () > 1)
