@@ -4774,28 +4774,26 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		( p->bSpectating == false ))
 	{
 		APowerup *invul = static_cast<APowerup*>(p->mo->GiveInventoryType (RUNTIME_CLASS(APowerInvulnerable)));
-		invul->EffectTics = 3*TICRATE;
-		invul->BlendColor = 0;				// don't mess with the view
-/*
-		AInventory	*pInventory;
-
-		// If we're the server, send the powerup update to clients.
-		pInventory = actor->FindInventory( RUNTIME_CLASS( APowerInvulnerable ));
-		if (( pInventory ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-			SERVERCOMMANDS_GiveInventory( p - players, pInventory );
-*/
-		// Apply respawn invulnerability effect.
-		switch ( cl_respawninvuleffect )
+		// [BB] It's possible that giving the powerup fails, e.g. in Cutman's Level Master.
+		if ( invul != NULL )
 		{
-		case 1:
+			invul->EffectTics = 3*TICRATE;
+			invul->BlendColor = 0;				// don't mess with the view
+			// [BB] The clients are informed about the powerup and these adjustments later.
 
-			p->mo->RenderStyle = STYLE_Translucent;
-			p->mo->effects |= FX_VISIBILITYFLICKER;
-			break;
-		case 2:
+			// Apply respawn invulnerability effect.
+			switch ( cl_respawninvuleffect )
+			{
+			case 1:
 
-			p->mo->effects |= FX_RESPAWNINVUL;	// [RH] special effect
-			break;
+				p->mo->RenderStyle = STYLE_Translucent;
+				p->mo->effects |= FX_VISIBILITYFLICKER;
+				break;
+			case 2:
+
+				p->mo->effects |= FX_RESPAWNINVUL;	// [RH] special effect
+				break;
+			}
 		}
 	}
 
