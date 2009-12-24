@@ -589,6 +589,7 @@ public:
 		PCD_CLASSIFYACTOR,
 		PCD_PRINTBINARY,
 /*350*/	PCD_PRINTHEX,
+		PCD_CALLFUNC,
 		// [BB] We need to fix the number for the new commands!
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
@@ -724,6 +725,7 @@ protected:
 	static int DoSpawnSpot (int type, int spot, int tid, int angle);
 	static int DoSpawnSpotFacing (int type, int spot, int tid);
 	int DoClassifyActor (int tid);
+	int CallFunction(int argCount, int funcIndex, SDWORD *args);
 
 	void DoFadeTo (int r, int g, int b, int a, fixed_t time);
 	void DoFadeRange (int r1, int g1, int b1, int a1,
@@ -733,6 +735,9 @@ protected:
 	void DoSetActorProperty (AActor *actor, int property, int value);
 	int GetActorProperty (int tid, int property);
 	int GetPlayerInput (int playernum, int inputnum);
+
+	int LineFromID(int id);
+	int SideFromID(int id, int side);
 
 private:
 	DLevelScript ();
