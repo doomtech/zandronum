@@ -429,10 +429,14 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 				p->camera = p->mo;
 
 				S_UpdateSounds (p->camera);
-				StatusBar->AttachToPlayer (p);
+				// [BB] The server doesn't have a status bar.
+				if ( StatusBar != NULL )
+				{
+					StatusBar->AttachToPlayer (p);
 
-				if (demoplayback || (NETWORK_GetState( ) != NETSTATE_SINGLE) )
-					StatusBar->ShowPlayerName ();
+					if (demoplayback || (NETWORK_GetState( ) != NETSTATE_SINGLE) )
+						StatusBar->ShowPlayerName ();
+				}
 			}
 		}
 
