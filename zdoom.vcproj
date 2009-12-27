@@ -6657,10 +6657,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\g_doom\a_doomarmor.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\g_doom\a_doomartifacts.cpp"
 				>
 				<FileConfiguration

@@ -1401,16 +1401,6 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			}
 		}
 
-		// [BC] For the red armor's special fire resistance, potentially reduce the amount
-		// of damage taken AFTER the player's armor has been depleted.
-		if (( player->cheats & CF_FIRERESISTANT ) &&
-			(( mod == NAME_Fire ) ||
-			( mod == NAME_Grenade ) ||
-			( mod == NAME_Rocket )))
-		{
-			damage /= 8;
-		}
-
 		if (damage >= player->health
 			&& (G_SkillProperty(SKILLP_AutoUseHealth) || deathmatch)
 			&& !player->morphTics)

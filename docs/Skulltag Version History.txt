@@ -98,6 +98,7 @@ latestzdoom branch
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]
 !	- Changed: Clients can't set the CVAR gl_nearclip to anything but 5 anymore. [Torr Samaho, SuperGod]
+!	- Removed all custom code for RedArmor. It uses the DamageFactor feature from ZDoom revision 1661 now. [Torr Samaho]
 
 
 98a

@@ -142,11 +142,6 @@ void ABasicArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 			// The armor has become useless
 			SavePercent = 0;
 			ArmorType = NAME_None; // Not NAME_BasicArmor.
-
-			// [BC] Take away the power of fire resistance.
-			if ( Owner->player )
-				Owner->player->cheats &= ~CF_FIRERESISTANT;
-
 			// Now see if the player has some more armor in their inventory
 			// and use it if so. As in Strife, the best armor is used up first.
 			ABasicArmorPickup *best = NULL;
@@ -289,12 +284,6 @@ bool ABasicArmorPickup::Use (bool pickup)
 	armor->MaxAbsorb = MaxAbsorb;
 	armor->MaxFullAbsorb = MaxFullAbsorb;
 	armor->ArmorType = this->GetClass()->TypeName;
-
-	// [BC] Take away the power of fire resistance since we're changing
-	// the armor type.
-	if ( Owner->player )
-		Owner->player->cheats &= ~CF_FIRERESISTANT;
-
 	return true;
 }
 

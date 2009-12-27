@@ -37,7 +37,7 @@ ACTOR MaxArmorBonus : BasicArmorBonus 5091
 //
 //=================================================================================================
 
-ACTOR RedArmor : BasicArmorPickup 5040 native
+ACTOR RedArmor : BasicArmorPickup 5040
 {
 	Game Doom
 	SpawnID 168
@@ -47,6 +47,9 @@ ACTOR RedArmor : BasicArmorPickup 5040 native
 	Armor.Saveamount 200
 	Inventory.Icon "ARM3A0"
 	Inventory.Pickupmessage "$PICKUP_REDARMOR"
+	DamageFactor "Fire", 0.125
+	DamageFactor "Rocket", 0.125
+	DamageFactor "Grenade", 0.125
 	States
 	{
 	Spawn:

@@ -224,8 +224,6 @@ typedef enum
 	// [BC] Rune effects.
 	CF_SPREAD			= 1 << 28,
 	CF_SPEED25			= 1 << 29,
-	
-	CF_FIRERESISTANT	= 1 << 30,
 
 } cheat_t;
 
