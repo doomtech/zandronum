@@ -619,7 +619,7 @@ void D_Display ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (nodrawers)
+	if (nodrawers || screen == NULL)
 		return; 				// for comparative timing / profiling
 	
 	cycle_t cycles;
