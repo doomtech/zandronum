@@ -527,7 +527,7 @@ void P_RemoveThing(AActor * actor)
 	}
 }
 
-void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add)
+void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add, bool setbob)
 {
 	if (actor != NULL)
 	{
@@ -539,7 +539,7 @@ void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool
 		actor->momx += vx;
 		actor->momy += vy;
 		actor->momz += vz;
-		if (actor->player != NULL)
+		if (setbob && actor->player != NULL)
 		{
 			actor->player->momx += vx;
 			actor->player->momy += vy;
