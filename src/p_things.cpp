@@ -527,6 +527,26 @@ void P_RemoveThing(AActor * actor)
 	}
 }
 
+void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add)
+{
+	if (actor != NULL)
+	{
+		if (!add)
+		{
+			actor->momx = actor->momy = actor->momz = 0;
+			if (actor->player != NULL) actor->player->momx = actor->player->momy = 0;
+		}
+		actor->momx += vx;
+		actor->momy += vy;
+		actor->momz += vz;
+		if (actor->player != NULL)
+		{
+			actor->player->momx += vx;
+			actor->player->momy += vy;
+		}
+	}
+}
+
 
 CCMD (dumpspawnables)
 {
