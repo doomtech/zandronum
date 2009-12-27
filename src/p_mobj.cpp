@@ -6156,11 +6156,13 @@ AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type)
 	return P_SpawnPlayerMissile (source, 0, 0, 0, type, source->angle);
 }
 
+// [BC/BB] Added bSpawnSound.
 AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type, angle_t angle, bool bSpawnSound )
 {
-	return P_SpawnPlayerMissile (source, 0, 0, 0, type, angle, NULL, NULL, bSpawnSound );
+	return P_SpawnPlayerMissile (source, 0, 0, 0, type, angle, NULL, NULL, false, bSpawnSound );
 }
 
+// [BC/BB] Added bSpawnSound.
 AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 							  const PClass *type, angle_t angle, AActor **pLineTarget, AActor **pMissileActor,
 							  bool nofreeaim, bool bSpawnSound)
