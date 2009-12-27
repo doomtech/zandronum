@@ -2388,7 +2388,7 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 	}
 }
 
-int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, int angle)
+int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, int angle, bool force)
 {
 	const PClass *info = PClass::FindClass (FBehavior::StaticLookupString (type));
 	AActor *actor = NULL;
@@ -2401,7 +2401,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 		{
 			DWORD oldFlags2 = actor->flags2;
 			actor->flags2 |= MF2_PASSMOBJ;
-			if (P_TestMobjLocation (actor))
+			if (force || P_TestMobjLocation (actor))
 			{
 				actor->angle = angle << 24;
 				actor->tid = tid;
@@ -2444,7 +2444,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 	return spawncount;
 }
 
-int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle)
+int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle, bool force)
 {
 	FActorIterator iterator (spot);
 	AActor *aspot;
@@ -2452,12 +2452,12 @@ int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle)
 
 	while ( (aspot = iterator.Next ()) )
 	{
-		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, angle);
+		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, angle, force);
 	}
 	return spawned;
 }
 
-int DLevelScript::DoSpawnSpotFacing (int type, int spot, int tid)
+int DLevelScript::DoSpawnSpotFacing (int type, int spot, int tid, bool force)
 {
 	FActorIterator iterator (spot);
 	AActor *aspot;
@@ -2465,7 +2465,7 @@ int DLevelScript::DoSpawnSpotFacing (int type, int spot, int tid)
 
 	while ( (aspot = iterator.Next ()) )
 	{
-		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, aspot->angle >> 24);
+		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, aspot->angle >> 24, force);
 	}
 	return spawned;
 }
@@ -3045,6 +3045,8 @@ enum EACSFunctions
 	ACSF_SetAirSupply,
 	ACSF_SetSkyScrollSpeed,
 	ACSF_GetArmorType,
+	ACSF_SpawnSpotForced,
+	ACSF_SpawnSpotFacingForced,
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -3202,6 +3204,12 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 			return 0;
 		}
+
+		case ACSF_SpawnSpotForced:
+			return DoSpawnSpot(args[0], args[1], args[2], args[3], true);
+
+		case ACSF_SpawnSpotFacingForced:
+			return DoSpawnSpotFacing(args[0], args[1], args[2], true);
 
 		default:
 			break;
@@ -5415,27 +5423,27 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_SPAWN:
-			STACK(6) = DoSpawn (STACK(6), STACK(5), STACK(4), STACK(3), STACK(2), STACK(1));
+			STACK(6) = DoSpawn (STACK(6), STACK(5), STACK(4), STACK(3), STACK(2), STACK(1), false);
 			sp -= 5;
 			break;
 
 		case PCD_SPAWNDIRECT:
-			PushToStack (DoSpawn (pc[0], pc[1], pc[2], pc[3], pc[4], pc[5]));
+			PushToStack (DoSpawn (pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], false));
 			pc += 6;
 			break;
 
 		case PCD_SPAWNSPOT:
-			STACK(4) = DoSpawnSpot (STACK(4), STACK(3), STACK(2), STACK(1));
+			STACK(4) = DoSpawnSpot (STACK(4), STACK(3), STACK(2), STACK(1), false);
 			sp -= 3;
 			break;
 
 		case PCD_SPAWNSPOTDIRECT:
-			PushToStack (DoSpawnSpot (pc[0], pc[1], pc[2], pc[3]));
+			PushToStack (DoSpawnSpot (pc[0], pc[1], pc[2], pc[3], false));
 			pc += 4;
 			break;
 
 		case PCD_SPAWNSPOTFACING:
-			STACK(3) = DoSpawnSpotFacing (STACK(3), STACK(2), STACK(1));
+			STACK(3) = DoSpawnSpotFacing (STACK(3), STACK(2), STACK(1), false);
 			sp -= 2;
 			break;
 
