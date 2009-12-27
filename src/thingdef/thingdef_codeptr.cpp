@@ -708,6 +708,25 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfInTargetInventory)
 
 //==========================================================================
 //
+// State jump function
+//
+//==========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfArmorType)
+{
+	ACTION_PARAM_START(3);
+	ACTION_PARAM_NAME(Type, 0);
+	ACTION_PARAM_STATE(JumpOffset, 1);
+
+	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
+
+	ABasicArmor * armor = (ABasicArmor *) self->FindInventory(NAME_BasicArmor);
+
+	if (armor && armor->ArmorType == Type)
+		ACTION_JUMP(JumpOffset, false);	// [BB] Clients know the player's inventory, so this is hopefully okay.
+}
+
+//==========================================================================
+//
 // Parameterized version of A_Explode
 //
 //==========================================================================
