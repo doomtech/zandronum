@@ -2237,6 +2237,10 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			pPlayer->mo->DropImportantItems( false );
 
+		// Take away all of the player's inventory.
+		// [BB] Needs to be done before G_DoReborn is called for dead spectators. Otherwise ReadyWeapon is not NULLed.
+		pPlayer->mo->DestroyAllInventory( );
+
 		// Is this player tagged as a dead spectator, give him life.
 		pPlayer->playerstate = PST_LIVE;
 		if ( bDeadSpectator == false )
@@ -2272,9 +2276,6 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 		// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
 		PLAYER_SetDefaultSpectatorValues ( pPlayer );
-
-		// Take away all of the player's inventory.
-		pPlayer->mo->DestroyAllInventory( );
 
 		// [BB] We also need to stop all sounds associated to the player pawn, spectators
 		// aren't supposed to make any sounds. This is especially crucial if a looping sound
