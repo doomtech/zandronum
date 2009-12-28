@@ -1364,13 +1364,14 @@ void A_FireCustomMissileHelper ( AActor * self,
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 {
-	ACTION_PARAM_START(6);
+	ACTION_PARAM_START(7);
 	ACTION_PARAM_CLASS(ti, 0);
 	ACTION_PARAM_ANGLE(Angle, 1);
 	ACTION_PARAM_BOOL(UseAmmo, 2);
 	ACTION_PARAM_INT(SpawnOfs_XY, 3);
 	ACTION_PARAM_FIXED(SpawnHeight, 4);
 	ACTION_PARAM_BOOL(AimAtAngle, 5);
+	ACTION_PARAM_ANGLE(pitch, 6);
 
 	if (!self->player) return;
 
@@ -1401,6 +1402,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 
 		if (AimAtAngle) shootangle+=Angle;
 
+		// Temporarily adjusts the pitch
+		fixed_t SavedPlayerPitch = self->pitch;
+		self->pitch -= pitch;
+
 		A_FireCustomMissileHelper( self, x, y, z, shootangle, ti, Angle , AimAtAngle, linetarget );
 
 		if (NULL != self->player )
@@ -1412,8 +1417,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 			}
 		}
 
+		//AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget);
+		self->pitch = SavedPlayerPitch;
 /*
-		AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget);
 		// automatic handling of seeker missiles
 		if (misl)
 		{
