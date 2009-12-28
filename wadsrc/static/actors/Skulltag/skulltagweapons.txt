@@ -244,7 +244,7 @@ ACTOR GrenadeLauncher : DoomWeapon 5011
 		loop
 	Fire: 
 		GRLG B 8 A_GunFlash
-		GRLG B 12 A_FireSTGrenade
+		GRLG B 12 A_FireCustomMissile ( "Grenade", 0, 1, 0, 0, 0, 6.328125 )
 		GRLG B 0 A_ReFire
 		goto Ready 
 	Flash: 
