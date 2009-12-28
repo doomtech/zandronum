@@ -1748,29 +1748,36 @@ bool TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer )
 
 //****************************************************************************
 //
+bool TEAM_CheckTeamRestriction( ULONG ulTeam, ULONG ulTeamRestriction )
+{
+	// [BB] No teamgame, so no team restrictions apply.
+	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+		return true;
+
+	// [BB] Not restricted to a certain team.
+	if ( ulTeamRestriction == 0 )
+		return true;
+
+	// [BB] Allow everything to "no team".
+	if ( ulTeam == teams.Size( ) )
+		return true;
+
+	// [BB] The team is the one specified by ulTeamRestriction.
+	if ( ulTeam == (ulTeamRestriction - 1) )
+		return true;
+	
+	return false;
+}
+
+//****************************************************************************
+//
 bool TEAM_IsActorAllowedForTeam( AActor *pActor, ULONG ulTeam )
 {
 	// [BB] Safety checks.
 	if ( (pActor == NULL) )
 		return false;
 
-	// [BB] No teamgame, so no team restrictions apply.
-	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
-		return true;
-
-	// [BB] This actor is not restricted to a certain team.
-	if ( pActor->ulLimitedToTeam == 0 )
-		return true;
-
-	// [BB] Allow all actors to "no team".
-	if ( ulTeam == teams.Size( ) )
-		return true;
-
-	// [BB] The team is the one to which this actor is restricted to.
-	if ( ulTeam == (pActor->ulLimitedToTeam - 1) )
-		return true;
-	
-	return false;
+	return TEAM_CheckTeamRestriction( ulTeam, pActor->ulLimitedToTeam );
 }
 
 //****************************************************************************
