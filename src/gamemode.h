@@ -115,6 +115,7 @@ void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNO
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
+bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );

@@ -56,6 +56,7 @@
 #include "deathmatch.h"
 #include "lastmanstanding.h"
 #include "network.h"
+#include "gamemode.h"
 
 
 extern FTexture *CrosshairImage;
@@ -1569,6 +1570,10 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	{
 		return;
 	}
+
+	// [BB] If the actor is supposed to be invisible to the player, skip it here.
+	if ( GAMEMODE_IsActorVisibleToConsoleplayersCamera( thing ) == false )
+		return;
 
 	// [RH] Interpolate the sprite's position to make it look smooth
 	fx = thing->PrevX + FixedMul (r_TicFrac, thing->x - thing->PrevX);

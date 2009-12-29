@@ -776,6 +776,9 @@ public:
 	// [BB] If 0, not limited to any team, if > 0, limited to the team with number (ulLimitedToTeam-1).
 	ULONG			ulLimitedToTeam;
 
+	// [BB] If 0, everybody can see the actor, if > 0, only members of team (ulVisibleToTeam-1) can see it.
+	ULONG			ulVisibleToTeam;
+
 	// [BC] A new set of flags that ST uses.
 	ULONG			ulSTFlags;
 

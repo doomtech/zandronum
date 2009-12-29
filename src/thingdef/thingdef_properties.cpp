@@ -1005,6 +1005,15 @@ DEFINE_PROPERTY(limitedtoteam, I, Actor)
 }
 
 //==========================================================================
+// [BB]
+//==========================================================================
+DEFINE_PROPERTY(visibletoteam, I, Actor)
+{
+	PROP_INT_PARM(i, 0);
+	defaults->ulVisibleToTeam=i+1;
+}
+
+//==========================================================================
 //
 // Special inventory properties
 //

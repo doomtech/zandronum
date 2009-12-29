@@ -1865,6 +1865,26 @@ LONG TEAM_SelectRandomValidPlayerClass( ULONG ulTeam )
 	return _availablePlayerClasses[ M_Random() % _availablePlayerClasses.Size () ];
 }
 
+//****************************************************************************
+//
+bool TEAM_IsActorVisibleToPlayer( const AActor *pActor, player_t *pPlayer )
+{
+	// [BB] Safety checks.
+	if ( pActor == NULL )
+		return false;
+
+	// [BB] Non-player actors are allowed to see everything. 
+	if ( pPlayer == NULL )
+		return true;
+
+	// [BB] Allow all actors to be seen by players not on a team.
+	if ( pPlayer->bOnTeam == false )
+		return true;
+
+	// [BB] Finally check the team restricion.
+	return TEAM_CheckTeamRestriction( pPlayer->ulTeam, pActor->ulVisibleToTeam );
+}
+
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 

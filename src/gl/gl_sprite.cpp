@@ -52,6 +52,8 @@
 #include "gl/gl_models.h"
 #include "gl/gl_shader.h"
 #include "r_sky.h"
+// [BB] New #includes.
+#include "gamemode.h"
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
@@ -422,6 +424,10 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		if (!(thing->flags & MF_STEALTH) || !gl_fixedcolormap || !gl_enhanced_nightvision)
 			return; 
 	}
+
+	// [BB] If the actor is supposed to be invisible to the player, skip it here.
+	if ( GAMEMODE_IsActorVisibleToConsoleplayersCamera( thing ) == false )
+		return;
 
 	// [RH] Interpolate the sprite's position to make it look smooth
 	fixed_t thingx = thing->PrevX + FixedMul (r_TicFrac, thing->x - thing->PrevX);

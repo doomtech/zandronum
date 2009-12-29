@@ -470,7 +470,20 @@ void GAMEMODE_ResetPlayersKillCount( const bool bInformClients )
 		}
 	}
 }
+//*****************************************************************************
+//
+bool GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor )
+{
+	// [BB] Safety check. This should never be NULL. Nevertheless, we return true to leave the default ZDoom behavior unaltered.
+	if ( players[consoleplayer].camera == NULL )
+		return true;
 
+	if ( TEAM_IsActorVisibleToPlayer( pActor, players[consoleplayer].camera->player ) == false )
+		return false;
+
+	// [BB] Passed all checks.
+	return true;
+}
 //*****************************************************************************
 //
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
