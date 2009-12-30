@@ -855,6 +855,12 @@ void G_AddViewPitch (int look)
 		return;
 	}
 	look <<= 16;
+	if (players[consoleplayer].playerstate != PST_DEAD &&		// No adjustment while dead.
+		players[consoleplayer].ReadyWeapon != NULL &&			// No adjustment if no weapon.
+		players[consoleplayer].ReadyWeapon->FOVScale > 0)		// No adjustment if it is non-positive.
+	{
+		look = int(look * players[consoleplayer].ReadyWeapon->FOVScale);
+	}
 	// [BB] Allow spectators to freelook no matter what. Note: This probably causes some
 	// sky rendering errors in software mode.
 	if (!level.IsFreelookAllowed() && ( players[consoleplayer].bSpectating == false ))
@@ -897,7 +903,14 @@ void G_AddViewAngle (int yaw)
 	{
 		return;
 	}
-	LocalViewAngle -= yaw << 16;
+	yaw <<= 16;
+	if (players[consoleplayer].playerstate != PST_DEAD &&	// No adjustment while dead.
+		players[consoleplayer].ReadyWeapon != NULL &&		// No adjustment if no weapon.
+		players[consoleplayer].ReadyWeapon->FOVScale > 0)	// No adjustment if it is non-positive.
+	{
+		yaw = int(yaw * players[consoleplayer].ReadyWeapon->FOVScale);
+	}
+	LocalViewAngle -= yaw;
 	if (yaw != 0)
 	{
 		LocalKeyboardTurner = smooth_mouse;
