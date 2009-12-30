@@ -1014,6 +1014,15 @@ DEFINE_PROPERTY(visibletoteam, I, Actor)
 }
 
 //==========================================================================
+// [BB]
+//==========================================================================
+DEFINE_PROPERTY(visibletoplayerclass, S, Actor)
+{
+	PROP_STRING_PARM(n, 0);
+	defaults->VisibleToPlayerClass = n;
+}
+
+//==========================================================================
 //
 // Special inventory properties
 //

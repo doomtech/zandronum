@@ -481,6 +481,12 @@ bool GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor )
 	if ( TEAM_IsActorVisibleToPlayer( pActor, players[consoleplayer].camera->player ) == false )
 		return false;
 
+	const player_t* pPlayer = players[consoleplayer].camera->player;
+
+	if ( ( pActor->VisibleToPlayerClass != NAME_None )
+		&& pPlayer && pPlayer->mo && ( pActor->VisibleToPlayerClass != pPlayer->mo->GetClass()->TypeName ) )
+		return false;
+
 	// [BB] Passed all checks.
 	return true;
 }

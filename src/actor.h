@@ -779,6 +779,9 @@ public:
 	// [BB] If 0, everybody can see the actor, if > 0, only members of team (ulVisibleToTeam-1) can see it.
 	ULONG			ulVisibleToTeam;
 
+	// [BB] If NAME_None, all players can see the actor, else only players whose playerclass name is VisibleToPlayerClass can see it.
+	FNameNoInit		VisibleToPlayerClass;
+
 	// [BC] A new set of flags that ST uses.
 	ULONG			ulSTFlags;
 

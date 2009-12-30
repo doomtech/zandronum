@@ -57,7 +57,7 @@ latestzdoom branch
 +	- Extended the effect of the MAPINFO flag "islobby": Maps with this flag now behave as if sv_noexit is false (except for A_BossDeath and A_BrainDie). [Torr Samaho]
 +	- Backported A_WeaponReady from ZDoom revisions 1698, 1711, 1720, 1723, 1776, 1789. [Torr Samaho]
 +	- Re-added support for 32 player starts for non Strife games. [Torr Samaho]
-+	- Added new actor property "visibletoteam". Only players that are in the specified team can see this actor, it is invisible to all other teams. [Torr Samaho]
++	- Added new actor properties "visibletoteam" and "visibletoplayerclass". Only players that are in the team specified by "visibletoteam" can see this actor, it is invisible to all other teams. "visibletoplayerclass" is the counterpart for playerclass based visibility. [Torr Samaho]
 -	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
 -	- Fixed: In lms/teamlms players didn't get weapons whose game property is "any". [Torr Samaho]
 -	- Fixed: If an actor with MF_SKULLFLY slams into something online, it possibly stops moving on the clients and starts to teleport around (This affected the Minotaur). [Torr Samaho]
