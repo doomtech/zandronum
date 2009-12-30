@@ -2280,6 +2280,7 @@ void P_CheckPlayerSprites()
 		{
 			int crouchspriteno;
 			fixed_t defscaleY = mo->GetDefault()->scaleY;
+			fixed_t defscaleX = mo->GetDefault()->scaleX;
 			
 			// [BC] Because of cl_skins, we might not necessarily use the player's
 			// desired skin.
@@ -2305,9 +2306,10 @@ void P_CheckPlayerSprites()
 				mo->sprite = skins[lSkin].sprite;
 			}
 
-			if (lSkin != 0)
+			if (lSkin != 0 && !(player->mo->flags4 & MF4_NOSKIN))
 			{
 				defscaleY = skins[lSkin].ScaleY;
+				defscaleX = skins[lSkin].ScaleX;
 			}
 			
 			// Set the crouch sprite
@@ -2318,8 +2320,9 @@ void P_CheckPlayerSprites()
 				{
 					crouchspriteno = mo->crouchsprite;
 				}
-				else if (mo->sprite == skins[lSkin].sprite ||
-						 mo->sprite == skins[lSkin].crouchsprite)
+				else if (!(player->mo->flags4 & MF4_NOSKIN) &&
+						(mo->sprite == skins[lSkin].sprite ||
+						 mo->sprite == skins[lSkin].crouchsprite))
 				{
 					crouchspriteno = skins[lSkin].crouchsprite;
 				}
@@ -2351,6 +2354,7 @@ void P_CheckPlayerSprites()
 				}
 				mo->scaleY = defscaleY;
 			}
+			mo->scaleX = defscaleX;
 		}
 	}
 }
