@@ -2832,9 +2832,9 @@ void SERVER_UpdateSectors( ULONG ulClient )
 
 		// Update the panning.
 		if (( pSector->GetXOffset(sector_t::ceiling) != 0 ) ||
-			( pSector->GetYOffset(sector_t::ceiling) != 0 ) ||
+			( pSector->GetYOffset(sector_t::ceiling,false) != 0 ) ||
 			( pSector->GetXOffset(sector_t::floor) != 0 ) ||
-			( pSector->GetYOffset(sector_t::floor) != 0 ))
+			( pSector->GetYOffset(sector_t::floor,false) != 0 ))
 		{
 			SERVERCOMMANDS_SetSectorPanning( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		}
@@ -2857,7 +2857,7 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		}
 
 		// Update the sector's ceiling/floor rotation.
-		if (( pSector->GetAngle(sector_t::ceiling) != 0 ) || ( pSector->GetAngle(sector_t::floor) != 0 ))
+		if (( pSector->GetAngle(sector_t::ceiling,false) != 0 ) || ( pSector->GetAngle(sector_t::floor,false) != 0 ))
 			SERVERCOMMANDS_SetSectorRotation( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Update the sector's ceiling/floor scale.

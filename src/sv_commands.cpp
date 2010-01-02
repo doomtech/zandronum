@@ -4281,9 +4281,9 @@ void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORPANNING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling) / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor) / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
 	}
 }
 
@@ -4310,8 +4310,8 @@ void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULON
 		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORROTATION );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::ceiling) / ANGLE_1 ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::floor) / ANGLE_1 ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::ceiling,false) / ANGLE_1 ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::floor,false) / ANGLE_1 ));
 	}
 }
 

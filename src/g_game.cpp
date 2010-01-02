@@ -3250,9 +3250,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		}
 
 		if (( sectors[ulIdx].SavedFloorXOffset != sectors[ulIdx].GetXOffset(sector_t::floor) ) ||
-			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].GetYOffset(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].GetYOffset(sector_t::floor,false) ) ||
 			( sectors[ulIdx].SavedCeilingXOffset != sectors[ulIdx].GetXOffset(sector_t::ceiling) ) ||
-			( sectors[ulIdx].SavedCeilingYOffset != sectors[ulIdx].GetYOffset(sector_t::ceiling) ))
+			( sectors[ulIdx].SavedCeilingYOffset != sectors[ulIdx].GetYOffset(sector_t::ceiling,false) ))
 		{
 			sectors[ulIdx].SetXOffset(sector_t::floor, sectors[ulIdx].SavedFloorXOffset);
 			sectors[ulIdx].SetYOffset(sector_t::floor, sectors[ulIdx].SavedFloorYOffset);
@@ -3277,8 +3277,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				SERVERCOMMANDS_SetSectorScale( ulIdx );
 		}
 
-		if (( sectors[ulIdx].SavedFloorAngle != static_cast<signed> (sectors[ulIdx].GetAngle(sector_t::floor)) ) ||
-			( sectors[ulIdx].SavedCeilingAngle != static_cast<signed> (sectors[ulIdx].GetAngle(sector_t::ceiling)) ))
+		if (( sectors[ulIdx].SavedFloorAngle != static_cast<signed> (sectors[ulIdx].GetAngle(sector_t::floor,false)) ) ||
+			( sectors[ulIdx].SavedCeilingAngle != static_cast<signed> (sectors[ulIdx].GetAngle(sector_t::ceiling,false)) ))
 		{
 			sectors[ulIdx].SetAngle(sector_t::floor, sectors[ulIdx].SavedFloorAngle);
 			sectors[ulIdx].SetAngle(sector_t::ceiling, sectors[ulIdx].SavedCeilingAngle);
