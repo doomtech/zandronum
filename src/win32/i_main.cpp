@@ -1016,7 +1016,7 @@ void DoMain (HINSTANCE hInstance)
 		I_DetectOS ();
 		D_DoomMain ();
 	}
-	catch (class CNoIWADError &error) // [RC] No IWADs were found! Show a setup dialog.
+	catch (class CNoIWADError &/*error*/) // [RC] No IWADs were found! Show a setup dialog.
 	{
 		ShowWindow( Window, SW_HIDE );
 		I_ShutdownGraphics( );
@@ -1373,7 +1373,7 @@ DWORD WINAPI MainDoomThread( LPVOID )
 	{
 		D_DoomMain( );
 	}
-	catch (class CNoIWADError &error) // [RC] No IWADs were found! Show a setup dialog.
+	catch (class CNoIWADError &/*error*/) // [RC] No IWADs were found! Show a setup dialog.
 	{
 		SERVERCONSOLE_Hide( );
 		I_ShowNoIWADsScreen( );
