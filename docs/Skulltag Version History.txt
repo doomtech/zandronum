@@ -96,6 +96,7 @@ latestzdoom branch
 -	- Fixed: When traveling from one map to the next online players with the class "random" were spawned as a new random class, but with the inventory they had on the previous map, causing numerous problems. Now the players keep their class and inventory. [Torr Samaho]
 -	- Fixed: The secondary shots of Heretic's crossbow were not aimed according to the player's pitch. [Torr Samaho]
 -	- Fixed: When a player turns into a dead spectator his ready weapon is not cleared properly. If the dead spectator then turns into a true spectator, this causes the clients to think that the last weapon he used is still in his inventory. [Torr Samaho]
+-	- Fixed: Teleportation could mess up the client side player prediction. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]

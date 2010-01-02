@@ -2984,6 +2984,16 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 
 //*****************************************************************************
 //
+void CLIENT_AdjustPredictionToServerSideConsolePlayerMove( fixed_t X, fixed_t Y, fixed_t Z )
+{
+	players[consoleplayer].ServerXYZ[0] = X;
+	players[consoleplayer].ServerXYZ[1] = Y;
+	players[consoleplayer].ServerXYZ[2] = Z;
+	CLIENT_PREDICT_PlayerTeleported( );
+}
+
+//*****************************************************************************
+//
 // :(. This is needed so that the MOTD can be printed in the color the user wishes to print
 // mid-screen messages in.
 extern	int PrintColors[7];
@@ -6809,6 +6819,10 @@ static void client_TeleportThing( BYTESTREAM_s *pByteStream )
 	{
 		pActor->player->momx = NewMomX;
 		pActor->player->momy = NewMomY;
+
+		// [BB] If the server is teleporting us, don't let our prediction get messed up.
+		if ( pActor == players[consoleplayer].mo )
+			CLIENT_AdjustPredictionToServerSideConsolePlayerMove( NewX, NewY, NewZ );
 	}
 
 	// Reset the thing's new reaction time.
