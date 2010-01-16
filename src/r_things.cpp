@@ -1205,14 +1205,14 @@ void R_InitSprites ()
 				FTexture *tex = (texnum.Exists()) ? TexMan[ texnum ] : NULL;
 				if ( tex )
 				{
-					if ( tex->GetHeight() > maxheight )
+					if ( tex->GetScaledHeight() > maxheight )
 					{
-						maxheight = tex->GetHeight();
+						maxheight = tex->GetScaledHeight();
 						maxheightSprite = szTempLumpName;
 					}
-					if ( tex->GetWidth() > maxwidth )
+					if ( tex->GetScaledWidth() > maxwidth )
 					{
-						maxwidth = tex->GetWidth();
+						maxwidth = tex->GetScaledWidth();
 						maxwidthSprite = szTempLumpName;
 					}
 				}
@@ -1239,7 +1239,8 @@ void R_InitSprites ()
 				}
 			}
 			// [BB] The skin doesn't seem to belong to any of the the available player classes, so just check it against the standard player class.
-			classSkinIdx = 0;
+			if ( classSkinIdx == -1 )
+				classSkinIdx = 0;
 		}
 		else
 		{
