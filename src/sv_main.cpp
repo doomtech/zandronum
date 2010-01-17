@@ -191,6 +191,10 @@ static	IPList			g_AdminIPList;
 // List of IP address that we want to ignore for a short amount of time.
 static	QueryIPQueue	g_floodProtectionIPQueue( 10 );
 
+// [BB] String to verify that the ban list was actually sent from the master server.
+// It's generated randomly on startup by the server.
+static	FString			g_MasterBanlistVerificationString;
+
 // Statistics.
 static	LONG		g_lTotalServerSeconds = 0;
 static	LONG		g_lTotalNumPlayers = 0;
@@ -418,6 +422,15 @@ void SERVER_Construct( void )
 #ifndef NO_SERVER_GUI
 	g_ServerCommandQueue.Clear( );
 #endif
+
+	// [BB] Initialize g_MasterBanlistVerificationString.
+	{
+		FString randomString;
+		for ( int i = 0; i < 100; ++i )
+			randomString += static_cast<char>(M_Random( ));
+
+		CMD5Checksum::GetMD5( reinterpret_cast<const BYTE*>(randomString.GetChars()), randomString.Len(), g_MasterBanlistVerificationString );
+	}
 
 	g_lMapRestartTimer = 0;
 
@@ -1619,7 +1632,13 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case MASTER_SERVER_BANLIST:
 
 			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
-				SERVERBAN_ReadMasterServerBans( pByteStream );
+			{
+				FString MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
+				if ( SERVER_GetMasterBanlistVerificationString().Compare ( MasterBanlistVerificationString ) == 0 )
+					SERVERBAN_ReadMasterServerBans( pByteStream );
+				else
+					Printf ( "Banlist with wrong verification string received. Ignoring\n" );
+			}
 			return;
 		// Ignore; possibly a client who thinks he's still in a game, but isn't.
 		case CLC_USERINFO:
@@ -3336,6 +3355,12 @@ IPList *SERVER_GetAdminList( void )
 	return &g_AdminIPList;
 }
 
+//*****************************************************************************
+//
+const FString& SERVER_GetMasterBanlistVerificationString( void )
+{
+	return g_MasterBanlistVerificationString;
+}
 //*****************************************************************************
 //
 void SERVER_SetMapMusic( const char *pszMusic )

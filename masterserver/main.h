@@ -78,6 +78,9 @@ typedef struct
 	// [BB] Does the server have the latest version of the holy banlist?
 	mutable bool	bHasLatestBanList;
 
+	// [BB] String the server has sent to use to verify ban list packets.
+	std::string		MasterBanlistVerificationString;
+
 } SERVER_s;
 
 #endif	// __MAIN_H__

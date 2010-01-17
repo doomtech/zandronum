@@ -163,6 +163,8 @@ void SERVER_MASTER_Tick( void )
 
 	// Write to our packet a challenge to the master server.
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE );
+	// [BB] Also send a string that will allow us to verify that a master banlist was actually sent from the master.
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
 
 	// Send the master server our packet.
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer, true );

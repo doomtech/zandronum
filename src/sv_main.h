@@ -378,6 +378,7 @@ void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInvento
 void		SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPosition );
 void		SERVER_IgnoreIP( NETADDRESS_s Address );
 IPList		*SERVER_GetAdminList( void );
+const FString& SERVER_GetMasterBanlistVerificationString( void );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

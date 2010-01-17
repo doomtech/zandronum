@@ -144,6 +144,11 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 #ifndef STAY_97D2_COMPATIBLE
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
+	// [BB] If the server sent us a verification string, send it along with the ban list.
+	// This allows the server to verify that the list actually was sent from our master
+	// (and is not just a packet with forged source IP).
+	if ( Server.MasterBanlistVerificationString.size() )
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, Server.MasterBanlistVerificationString.c_str() );
 
 	// Write all the bans.
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
@@ -314,6 +319,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			}
 			SERVER_s newServer;
 			newServer.Address = AddressFrom;
+			// [BB] If no verification string was send, NETWORK_ReadString just returns an empty string.
+			// Thus, this is still compatible with older servers that don't send the string.
+			newServer.MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
@@ -348,7 +356,11 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 
 			// Command is from a server already on the list. It's just sending us a heartbeat.
 			else
+			{
 				currentServer->lLastReceived = g_lCurrentTime;
+				// [BB] Also update MasterBanlistVerificationString.
+				currentServer->MasterBanlistVerificationString = newServer.MasterBanlistVerificationString;
+			}
 
 			// Ignore IP for 10 seconds.
 		//	if ( !g_MultiServerExceptions.isIPInList( Address ) )
