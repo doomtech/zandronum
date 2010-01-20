@@ -67,15 +67,21 @@ void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * glt
 {
 	float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE);
 	float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE);
-	float xscale=TO_GL(secplane->xscale)/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)*64.0f;
-	float yscale=TO_GL(secplane->yscale)/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)*64.0f;
+
+	float xscale1=TO_GL(secplane->xscale);
+	float yscale1=TO_GL(secplane->yscale);
+
+	float xscale2=64.f/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE);
+	float yscale2=64.f/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE);
+
 	float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
 	gl.MatrixMode(GL_TEXTURE);
 
 	gl.PushMatrix();
-	gl.Scalef(xscale ,yscale,1.0f);
+	gl.Scalef(xscale1 ,yscale1,1.0f);
 	gl.Translatef(uoffs,voffs,0.0f);
+	gl.Scalef(xscale2 ,yscale2,1.0f);
 	gl.Rotatef(angle,0.0f,0.0f,1.0f);
 }
 
