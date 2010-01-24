@@ -3681,8 +3681,8 @@ void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG
 {
 	ULONG	ulIdx;
 
-	// Allow NUM_TEAMS here, since we could be updating the return ticks of the white flag.
-	if ( TEAM_CheckIfValid ( ulTeam ) == false )
+	// [BB] Allow teams.Size( ) here, this handles the white flag.
+	if ( ( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size( ) ) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3709,7 +3709,8 @@ void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG u
 {
 	ULONG	ulIdx;
 
-	if ( TEAM_CheckIfValid ( ulTeam ) == false )
+	// [BB] Allow teams.Size( ) here, this handles the white flag.
+	if ( ( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size( ) ) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

@@ -268,7 +268,8 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	const PClass				*pClass;
 	TThinkerIterator<AActor>	Iterator;
 
-	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
+	// [BB] Allow teams.Size( ) here, this handles the white flag.
+	if ( ( TEAM_CheckIfValid( ulTeamIdx ) == false ) && ( ulTeamIdx != teams.Size( ) ) )
 		return;
 
 	// Execute the return scripts.

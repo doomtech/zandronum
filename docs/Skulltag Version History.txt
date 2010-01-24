@@ -101,6 +101,7 @@ latestzdoom branch
 -	- Fixed: The code to check the maximal allowed effective skin sprite width/height didn't take into account high res sprite replacements. [Torr Samaho]
 -	- Fixed an exploit that allowed to manipulate the master ban list on a server using a forged UDP packet. [Torr Samaho, SuperGod]
 -	- Fixed problems with the flat alignment in the GL renderer (ported from GZDoom revisions 384+414). [Torr Samaho]
+-	- Fixed: Automatic returning of the white flag in one flag CTF didn't work. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]
