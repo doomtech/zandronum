@@ -175,7 +175,11 @@ bool FMD3Model::Load(const char * path, const char * buffer, int length)
 
 		for(int i=0;i<s->numSkins;i++)
 		{
-			s->skins[i] = LoadSkin(path, shader[i].Name);
+			// [BB] According to the MD3 spec, Name is supposed to include the full path.
+			s->skins[i] = LoadSkin("", shader[i].Name);
+			// [BB] Fall back and check if Name is relative.
+			if ( s->skins[i] == NULL )
+				s->skins[i] = LoadSkin(path, shader[i].Name);
 		}
 
 		// Load texture coordinates
@@ -251,14 +255,17 @@ void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm, Matrix3x4 *mod
 	{
 		MD3Surface * surf = &surfaces[i];
 
-		if (!skin)
+		// [BB] In case no skin is specified via MODELDEF, check if the MD3 has a skin for the current surface.
+		// Note: Each surface may have a different skin.
+		FTexture *surfaceSkin = skin;
+		if (!surfaceSkin)
 		{
 			if (surf->numSkins==0) return;
-			skin = surf->skins[0];
-			if (!skin) return;
+			surfaceSkin = surf->skins[0];
+			if (!surfaceSkin) return;
 		}
 
-		FGLTexture * tex = FGLTexture::ValidateTexture(skin);
+		FGLTexture * tex = FGLTexture::ValidateTexture(surfaceSkin);
 
 		tex->Bind(cm, 0, translation);
 		RenderTriangles(surf, surf->vertices + frameno * surf->numVertices, modeltoworld);
@@ -273,14 +280,17 @@ void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 	{
 		MD3Surface * surf = &surfaces[i];
 
-		if (!skin)
+		// [BB] In case no skin is specified via MODELDEF, check if the MD3 has a skin for the current surface.
+		// Note: Each surface may have a different skin.
+		FTexture *surfaceSkin = skin;
+		if (!surfaceSkin)
 		{
 			if (surf->numSkins==0) return;
-			skin = surf->skins[0];
-			if (!skin) return;
+			surfaceSkin = surf->skins[0];
+			if (!surfaceSkin) return;
 		}
 
-		FGLTexture * tex = FGLTexture::ValidateTexture(skin);
+		FGLTexture * tex = FGLTexture::ValidateTexture(surfaceSkin);
 
 		tex->Bind(cm, 0, translation);
 
