@@ -193,6 +193,9 @@ void SERVER_MASTER_Broadcast( void )
 	broadcast_addr.sin_port = htons( DEFAULT_BROADCAST_PORT );
 	NETWORK_SocketAddressToNetAddress( &broadcast_addr, &AddressBroadcast );
 
+	// [BB] Under all Windows versions broadcasts to INADDR_BROADCAST seem to work fine
+	// while class A broadcasts don't work under Vista/7. So just use INADDR_BROADCAST.
+#ifndef _WIN32
 	// [BB] Based on the local adress, we find out the class
 	// of the network, we are in and set the broadcast address
 	// accordingly. Broadcasts to INADDR_BROADCAST = 255.255.255.255
@@ -220,6 +223,7 @@ void SERVER_MASTER_Broadcast( void )
 
 	for( int i = 0; i < classIndex; i++ )
 		AddressBroadcast.abIP[i] = g_LocalAddress.abIP[i];
+#endif
 
 	// Broadcast our packet.
 	SERVER_MASTER_SendServerInfo( AddressBroadcast, SQF_ALL, 0, true );
