@@ -451,10 +451,23 @@ static FRandom pr_gethurt ("HurtMe!");
 
 DEFINE_ACTION_FUNCTION(AActor, A_GetHurt)
 {
+	// [BB] The server handles this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+			return;
+	}
+
 	self->flags4 |= MF4_INCOMBAT;
 	if ((pr_gethurt() % 5) == 0)
 	{
 		S_Sound (self, CHAN_VOICE, self->PainSound, 1, ATTN_NORM);
+
+		// [BB] If we're the server, tell clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, S_GetName( self->PainSound ), 1, ATTN_NORM );
+
 		self->health--;
 	}
 	if (self->health <= 0)
