@@ -11605,6 +11605,9 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo
 	{
 		pTranslation = new FRemapTable;
 		translationtables[TRANSLATION_LevelScripted].SetVal(Translation.ulIdx - 1, pTranslation);
+		// [BB] It's mandatory to initialize the translation with the identity, because the server can only send
+		// "bIsEdited == false" if the client is already in the game when the translation is created.
+		pTranslation->MakeIdentity();
 	}
 
 	if ( bIsEdited == false )
