@@ -595,6 +595,18 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 		gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
 
+		// [BB] Workaround for the missing pitch information.
+		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		{
+			const double x = static_cast<double>(spr->actor->momx);
+			const double y = static_cast<double>(spr->actor->momy);
+			const double z = static_cast<double>(spr->actor->momz);
+			// [BB] Calculate the pitch using spherical coordinates.
+			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+			gl.Rotatef(pitch, 0, 0, 1);
+		}
+
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.
 		// The rotation angle is based on the elapsed time.
@@ -608,18 +620,6 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			gl.Rotatef(offsetAngle, smf->xrotate, smf->yrotate, smf->zrotate);
 			gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
 		} 		
-
-		// [BB] Workaround for the missing pitch information.
-		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
-		{
-			const double x = static_cast<double>(spr->actor->momx);
-			const double y = static_cast<double>(spr->actor->momy);
-			const double z = static_cast<double>(spr->actor->momz);
-			// [BB] Calculate the pitch using spherical coordinates.
-			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
-
-			gl.Rotatef(pitch, 0, 0, 1);
-		}
 
 		// Scaling and model space offset.
 		gl.Scalef(	
@@ -642,6 +642,18 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		ModelToWorld.Translate(spr->x, spr->z, spr->y);
 		ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT(spr->actor->angle));
 
+		// [BB] Workaround for the missing pitch information.
+		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		{
+			const double x = static_cast<double>(spr->actor->momx);
+			const double y = static_cast<double>(spr->actor->momy);
+			const double z = static_cast<double>(spr->actor->momz);
+			// [BB] Calculate the pitch using spherical coordinates.
+			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+			ModelToWorld.Rotate(0,0,1,pitch);
+		}
+
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.
 		// The rotation angle is based on the elapsed time.
@@ -655,18 +667,6 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			ModelToWorld.Translate(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
 			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, smf->rotationSpeed);
 			ModelToWorld.Translate(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
-		}
-
-		// [BB] Workaround for the missing pitch information.
-		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
-		{
-			const double x = static_cast<double>(spr->actor->momx);
-			const double y = static_cast<double>(spr->actor->momy);
-			const double z = static_cast<double>(spr->actor->momz);
-			// [BB] Calculate the pitch using spherical coordinates.
-			const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
-
-			ModelToWorld.Rotate(0,0,1,pitch);
 		}
 
 		ModelToWorld.Scale(TO_GL(spr->actor->scaleX) * smf->xscale,
