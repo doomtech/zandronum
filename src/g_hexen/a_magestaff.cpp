@@ -126,7 +126,8 @@ bool AMageStaffFX2::IsOkayToAttack (AActor *link)
 		{
 			return false;
 		}
-		if (P_CheckSight (this, link))
+		// [BB] Added the target check. Note: This will lead to conflicts when porting the changes from ZDoom revision 1905.
+		if (target != NULL && P_CheckSight (this, link))
 		{
 			AActor *master = target;
 			angle_t angle = R_PointToAngle2 (master->x, master->y,
