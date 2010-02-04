@@ -548,7 +548,7 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 					}
 				}
 				if ( inter != 0.0 )
-					smfNext = gl_FindModelFrame(ti, nextState->sprite, nextState->Frame);
+					smfNext = gl_FindModelFrame(ti, nextState->sprite, nextState->GetFrame() );
 			}
 		}
 	}
