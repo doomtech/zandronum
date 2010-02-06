@@ -349,8 +349,13 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 				// Or remove it, as it's a duplicate.
 				else
 				{
-					g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal		= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulMedal;
-					g_MedalQueue[ulPlayer][ulQueueIdx].ulTick		= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulTick;
+					// [BB] This is not the most optimal way to remove the medal because also empty slots are copied.
+					for ( ULONG ulIdx = ulQueueIdx; ulIdx < MEDALQUEUE_DEPTH - 1; ++ulIdx ) {
+						g_MedalQueue[ulPlayer][ulIdx].ulMedal		= g_MedalQueue[ulPlayer][ulIdx + 1].ulMedal;
+						g_MedalQueue[ulPlayer][ulIdx].ulTick		= g_MedalQueue[ulPlayer][ulIdx + 1].ulTick;
+					}
+					g_MedalQueue[ulPlayer][MEDALQUEUE_DEPTH - 1].ulMedal = 0;
+					g_MedalQueue[ulPlayer][MEDALQUEUE_DEPTH - 1].ulTick = 0;
 				}
 			}
 			else
