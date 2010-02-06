@@ -1974,7 +1974,7 @@ void D_DoomMain (void)
 				wad = BaseFileSearch( "skulltag.wad", NULL, true );
 				g_SkulltagDataFileName = "skulltag.wad";
 				if ( wad == NULL )
-					I_FatalError( "Cannot find skulltag.wad" );
+					I_FatalError( "Cannot find skulltag_data.pk3 (formerly known as skulltag.wad)." );
 			}
 		}
 

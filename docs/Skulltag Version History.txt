@@ -115,6 +115,7 @@ latestzdoom branch
 !	- Changed: Clients can't set the CVAR gl_nearclip to anything but 5 anymore. [Torr Samaho, SuperGod]
 !	- Removed all custom code for RedArmor. It uses the DamageFactor feature from ZDoom revision 1661 now. [Torr Samaho]
 !	- GrenadeLauncher doesn't use A_FireSTGrenade anymore. Instead, it uses A_FireCustomMissile with the pitch parameter from ZDoom revision 1685. [Torr Samaho]
+-	- Clarified the error message that is shown when skulltag_data.pk3/skulltag.wad is not found. [Torr Samaho]
 
 
 98a
