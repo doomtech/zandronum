@@ -109,6 +109,7 @@ latestzdoom branch
 -	- Fixed rendering problems when the MODELDEF flags ROTATING and PITCHFROMMOMENTUM were both used on the same model. [Torr Samaho]
 -	- Fixed: The model frame interpolation didn't work for frames with the bright flag. [Torr Samaho]
 -	- Fixed: The medal code could get stuck in an infinite loop. Special thanks to Cannonfodder for finding out how to trigger the freeze. [Torr Samaho]
+-	- Improved the handling of random state jumps on player weapons online. This hopefully fixes some client side crashes. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]

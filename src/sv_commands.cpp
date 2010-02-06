@@ -1012,13 +1012,13 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 	// Couldn't find the state, so just try to go based off the spawn state.
 	if ( stateLabel.IsEmpty() )
 	{
-		stateLabel = "Ready";
 		lOffset = LONG( pState - players[ulPlayer].ReadyWeapon->GetReadyState( ));
-		if (( lOffset < 0 ) ||
-			( lOffset > 255 ))
+		if ( OffsetAndStateOwnershipValidityCheck ( lOffset, players[ulPlayer].ReadyWeapon, players[ulPlayer].ReadyWeapon->GetReadyState( ) ) == false )
 		{
 			return;
 		}
+		else
+			stateLabel = ":R";
 	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

@@ -4881,17 +4881,33 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	if ( gamestate != GS_LEVEL )
 		return;
 
+	// Check to make sure everything is valid. If not, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
 	if ( players[ulPlayer].ReadyWeapon == NULL )
 		return;
 
-	// Build the state name list.
-	TArray<FName> &StateList = MakeStateNameList( pszState );
+	// [BB] In this case lOffset is just the offset from the ready state.
+	// Handle this accordingly.
+	if ( stricmp( pszState, ":R" ) == 0 )
+	{
+		pNewState = players[ulPlayer].ReadyWeapon->GetReadyState( );
+		// [BB] The offset is only guaranteed to work if the actor owns the state.
+		if ( ( lOffset != 0 ) && ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState ) == false ) )
+			return;
+	}
+	else
+	{
+		// Build the state name list.
+		TArray<FName> &StateList = MakeStateNameList( pszState );
 
-	// [BB] Obviously, we can't access StateList[0] if StateList is empty.
-	if ( StateList.Size( ) == 0 )
-		return;
+		// [BB] Obviously, we can't access StateList[0] if StateList is empty.
+		if ( StateList.Size( ) == 0 )
+			return;
 
-	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
+		pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
+	}
 	if ( pNewState )
 		P_SetPsprite( &players[ulPlayer], lPosition, pNewState + lOffset );
 }
