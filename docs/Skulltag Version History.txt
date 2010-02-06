@@ -116,6 +116,7 @@ latestzdoom branch
 !	- Removed all custom code for RedArmor. It uses the DamageFactor feature from ZDoom revision 1661 now. [Torr Samaho]
 !	- GrenadeLauncher doesn't use A_FireSTGrenade anymore. Instead, it uses A_FireCustomMissile with the pitch parameter from ZDoom revision 1685. [Torr Samaho]
 -	- Clarified the error message that is shown when skulltag_data.pk3/skulltag.wad is not found. [Torr Samaho]
+-	- Negative movebob values are not allowed anymore. [Torr Samaho]
 
 
 98a

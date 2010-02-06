@@ -599,6 +599,15 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	}
 	else if (( cvar == &playerclass ) && ( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ))
 		ulUpdateFlags |= USERINFO_PLAYERCLASS;
+	// [BB] Negative movebob values cause graphic glitches.
+	else if ( cvar == &movebob )
+	{
+		if ( movebob < 0 )
+		{
+			movebob = 0;
+			return;
+		}
+	}
 
 	val = cvar->GetGenericRep (CVAR_String);
 	escaped_val = D_EscapeUserInfo(val.String);
