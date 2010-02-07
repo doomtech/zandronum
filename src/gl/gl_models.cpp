@@ -351,6 +351,14 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_NOINTERPOLATION;
 					}
+					else if (sc.Compare("alignangle"))
+					{
+						smf.flags |= MDL_ALIGNANGLE;
+					}
+					else if (sc.Compare("alignpitch"))
+					{
+						smf.flags |= MDL_ALIGNPITCH;
+					}
 					else if (sc.Compare("skin"))
 					{
 						sc.MustGetNumber();
@@ -593,10 +601,21 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		// Model space => World space
 		gl.Translatef(spr->x, spr->z, spr->y );
 
-		gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
+		if ( !(smf->flags & MDL_ALIGNANGLE) )
+			gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
+		// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
+		else
+			gl.Rotatef( -ANGLE_TO_FLOAT ( R_PointToAngle ( spr->actor->x, spr->actor->y ) ), 0, 1, 0);
 
+		// [BB] Change the pitch so that the object is vertically facing the camera (only makes sense combined with MDL_ALIGNANGLE).
+		if ( (smf->flags & MDL_ALIGNPITCH) )
+		{
+			const fixed_t distance = R_PointToDist2( spr->actor->x - viewx, spr->actor->y - viewy );
+			const float pitch = RAD_TO_FLOAT ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
+			gl.Rotatef(pitch, 0, 0, 1);
+		}
 		// [BB] Workaround for the missing pitch information.
-		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		else if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
 		{
 			const double x = static_cast<double>(spr->actor->momx);
 			const double y = static_cast<double>(spr->actor->momy);
@@ -640,10 +659,22 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 		// Model space => World space
 		ModelToWorld.Translate(spr->x, spr->z, spr->y);
-		ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT(spr->actor->angle));
 
+		if ( !(smf->flags & MDL_ALIGNANGLE) )
+			ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT(spr->actor->angle));
+		// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
+		else
+			ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT ( R_PointToAngle ( spr->actor->x, spr->actor->y ) ) );
+
+		// [BB] Change the pitch so that the object is vertically facing the camera (only makes sense combined with MDL_ALIGNANGLE).
+		if ( (smf->flags & MDL_ALIGNPITCH) )
+		{
+			const fixed_t distance = R_PointToDist2( spr->actor->x - viewx, spr->actor->y - viewy );
+			const float pitch = RAD_TO_FLOAT ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
+			ModelToWorld.Rotate(0,0,1,pitch);
+		}
 		// [BB] Workaround for the missing pitch information.
-		if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+		else if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
 		{
 			const double x = static_cast<double>(spr->actor->momx);
 			const double y = static_cast<double>(spr->actor->momy);

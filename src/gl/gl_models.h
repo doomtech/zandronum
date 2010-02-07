@@ -248,6 +248,8 @@ typedef enum
 	MDL_ROTATING					= 4,
 	MDL_INTERPOLATEDOUBLEDFRAMES	= 8,
 	MDL_NOINTERPOLATION				= 16,
+	MDL_ALIGNANGLE					= 32,
+	MDL_ALIGNPITCH					= 64,
 };
 
 struct FSpriteModelFrame
