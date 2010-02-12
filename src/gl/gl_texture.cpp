@@ -85,7 +85,10 @@ static FRemapTable GlobalBrightmap;
 
 void gl_GenerateGlobalBrightmapFromColormap()
 {
-	FMemLump cmap = Wads.ReadLump("COLORMAP");
+	int lump = Wads.CheckNumForName("COLORMAP");
+	if (lump == -1) lump = Wads.CheckNumForName("COLORMAP", ns_colormaps);
+	if (lump == -1) return;
+	FMemLump cmap = Wads.ReadLump(lump);
 	FMemLump palette = Wads.ReadLump("PLAYPAL");
 	const unsigned char *cmapdata = (const unsigned char *)cmap.GetMem();
 	const unsigned char *paldata = (const unsigned char *)palette.GetMem();
