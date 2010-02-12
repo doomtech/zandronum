@@ -1004,7 +1004,8 @@ ULONG IPList::getEntryIndex( const NETADDRESS_s &Address ) const
 //
 const char *IPList::getEntryComment( const NETADDRESS_s &Address ) const
 {
-	ULONG ulIdx = getEntryIndex( Address );
+	// [BB] Take IP ranges into account.
+	ULONG ulIdx = getFirstMatchingEntryIndex( Address );
 	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].szComment : NULL;
 }
 
@@ -1012,7 +1013,8 @@ const char *IPList::getEntryComment( const NETADDRESS_s &Address ) const
 //
 time_t IPList::getEntryExpiration( const NETADDRESS_s &Address ) const
 {
-	ULONG ulIdx = getEntryIndex( Address );
+	// [BB] Take IP ranges into account.
+	ULONG ulIdx = getFirstMatchingEntryIndex( Address );
 	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].tExpirationDate : 0;
 }
 
