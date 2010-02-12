@@ -64,11 +64,31 @@ CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 //*****************************************************************************
 //	FUNCTIONS
 
-void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale, const int VirtualWidth, const int VirtualHeight )
 {
 	if ( Scale )
 	{
-		screen->DrawText( SmallFont, Normalcolor,
+		screen->DrawTexture( Img,
+			X,
+			Y,
+			DTA_VirtualWidth, VirtualWidth,
+			DTA_VirtualHeight, VirtualHeight,
+			TAG_DONE );
+	}
+	else
+	{
+		screen->DrawTexture( Img,
+			X,
+			Y,
+			TAG_DONE );
+	}
+}
+
+void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+{
+	if ( Scale )
+	{
+		screen->DrawText( Font, Normalcolor,
 			X,
 			Y,
 			String,
@@ -78,12 +98,17 @@ void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool
 	}
 	else
 	{
-		screen->DrawText( SmallFont, Normalcolor,
+		screen->DrawText( Font, Normalcolor,
 			X,
 			Y,
 			String,
 			TAG_DONE );
 	}
+}
+
+void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+{
+	HUD_DrawText( SmallFont, Normalcolor, X, Y, String, Scale, VirtualWidth, VirtualHeight );
 }
 
 void HUD_DrawTextAligned( int Normalcolor, int Y, const char *String, bool AlignLeft, const bool Scale, const int VirtualWidth, const int VirtualHeight )

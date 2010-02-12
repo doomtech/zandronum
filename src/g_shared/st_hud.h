@@ -50,8 +50,13 @@
 #ifndef __ST_HUD_H__
 #define __ST_HUD_H__
 
+#include "v_font.h"
+
 //*****************************************************************************
 //	PROTOTYPES
+
+void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale, const int VirtualWidth, const int VirtualHeight );
+void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight );
 
 void DrawHUD_CoopInfo();
 
