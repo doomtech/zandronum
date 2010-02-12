@@ -224,6 +224,10 @@ typedef struct
 
 } NETBUFFER_s;
 
+//*****************************************************************************
+// [BB] Allows to easily use char[4][4] references as function arguments.
+typedef char IPStringArray[4][4];
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -251,6 +255,7 @@ bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
 void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+void			NETWORK_AddressToIPStringArray( const NETADDRESS_s &Address, IPStringArray &szAddress );
 const char		*NETWORK_GetHostByIPAddress( NETADDRESS_s Address );
 std::string		GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
 
@@ -319,7 +324,9 @@ class IPList
 //*************************************************************************
 public:
 	bool			clearAndLoadFromFile( const char *Filename );
-	bool			isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	ULONG			getFirstMatchingEntryIndex( const IPStringArray &szAddress ) const;
+	ULONG			getFirstMatchingEntryIndex( const NETADDRESS_s &Address ) const;
+	bool			isIPInList( const IPStringArray &szAddress ) const;
 	bool			isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG			doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s	getEntry( const ULONG ulIdx ) const;

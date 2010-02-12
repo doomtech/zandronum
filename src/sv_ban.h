@@ -58,7 +58,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 void			SERVERBAN_Tick( void );
-bool			SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+bool			SERVERBAN_IsIPBanned( const IPStringArray &szAddress );
 bool			SERVERBAN_IsIPBanned( const NETADDRESS_s &Address );
 void			SERVERBAN_ClearBans( void );
 void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );

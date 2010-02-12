@@ -133,14 +133,14 @@ void SERVERBAN_Tick( void )
 
 //*****************************************************************************
 //
-bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
+bool SERVERBAN_IsIPBanned( const IPStringArray &szAddress )
 {
 	// Is this address is banned on the master server?
-	if ( sv_enforcemasterbanlist && g_MasterServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) && !g_MasterServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ))
+	if ( sv_enforcemasterbanlist && g_MasterServerBans.isIPInList( szAddress ) && !g_MasterServerBanExemptions.isIPInList( szAddress ))
 		return true;
 
 	// If not, let the server decide.
-	return ( g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) && !g_ServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ));
+	return ( g_ServerBans.isIPInList( szAddress ) && !g_ServerBanExemptions.isIPInList( szAddress ));
 }
 
 //*****************************************************************************

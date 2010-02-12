@@ -1892,11 +1892,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	}
 
 	// Check if this IP has been banned.
-	itoa( g_aClients[lClient].Address.abIP[0], szAddress[0], 10 );
-	itoa( g_aClients[lClient].Address.abIP[1], szAddress[1], 10 );
-	itoa( g_aClients[lClient].Address.abIP[2], szAddress[2], 10 );
-	itoa( g_aClients[lClient].Address.abIP[3], szAddress[3], 10 );
-	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
+	NETWORK_AddressToIPStringArray( g_aClients[lClient].Address, szAddress );
+	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress )))
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );

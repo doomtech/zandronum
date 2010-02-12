@@ -278,11 +278,8 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		}
 	
 		// Now, check to see if this IP has been banend from this server.
-		itoa( Address.abIP[0], szAddress[0], 10 );
-		itoa( Address.abIP[1], szAddress[1], 10 );
-		itoa( Address.abIP[2], szAddress[2], 10 );
-		itoa( Address.abIP[3], szAddress[3], 10 );
-		if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
+		NETWORK_AddressToIPStringArray( Address, szAddress );
+		if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress )))
 		{
 			// Write our header.
 			NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_BANNED );

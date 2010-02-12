@@ -493,6 +493,14 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 
 //*****************************************************************************
 //
+void NETWORK_AddressToIPStringArray( const NETADDRESS_s &Address, IPStringArray &szAddress )
+{
+	for ( int i = 0; i < 4; ++i )
+		itoa( Address.abIP[i], szAddress[i], 10 );
+}
+
+//*****************************************************************************
+//
 const char *NETWORK_GetHostByIPAddress( NETADDRESS_s Address )
 {
 	//gethostbyaddr();
@@ -899,34 +907,45 @@ void IPList::removeExpiredEntries( void )
 
 //*****************************************************************************
 //
-bool IPList::isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
+ULONG IPList::getFirstMatchingEntryIndex( const IPStringArray &szAddress ) const
 {
 	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
 	{
-		if ((( _ipVector[ulIdx].szIP[0][0] == '*' ) || ( stricmp( pszIP0, _ipVector[ulIdx].szIP[0] ) == 0 )) &&
-			(( _ipVector[ulIdx].szIP[1][0] == '*' ) || ( stricmp( pszIP1, _ipVector[ulIdx].szIP[1] ) == 0 )) &&
-			(( _ipVector[ulIdx].szIP[2][0] == '*' ) || ( stricmp( pszIP2, _ipVector[ulIdx].szIP[2] ) == 0 )) &&
-			(( _ipVector[ulIdx].szIP[3][0] == '*' ) || ( stricmp( pszIP3, _ipVector[ulIdx].szIP[3] ) == 0 )))
+		if ((( _ipVector[ulIdx].szIP[0][0] == '*' ) || ( stricmp( szAddress[0], _ipVector[ulIdx].szIP[0] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[1][0] == '*' ) || ( stricmp( szAddress[1], _ipVector[ulIdx].szIP[1] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[2][0] == '*' ) || ( stricmp( szAddress[2], _ipVector[ulIdx].szIP[2] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[3][0] == '*' ) || ( stricmp( szAddress[3], _ipVector[ulIdx].szIP[3] ) == 0 )))
 		{
-			return ( true );
+			return ( ulIdx );
 		}
 	}
 
-	return ( false );
+	return ( size() );
+}
+
+//*****************************************************************************
+//
+ULONG IPList::getFirstMatchingEntryIndex( const NETADDRESS_s &Address ) const
+{
+	IPStringArray szAddress;
+	NETWORK_AddressToIPStringArray( Address, szAddress );
+	return getFirstMatchingEntryIndex( szAddress );
+}
+
+//*****************************************************************************
+//
+bool IPList::isIPInList( const IPStringArray &szAddress ) const
+{
+	return ( getFirstMatchingEntryIndex ( szAddress ) != size() );
 }
 
 //*****************************************************************************
 //
 bool IPList::isIPInList( const NETADDRESS_s &Address ) const
 {
-	char szAddress[4][4];
-
-	itoa( Address.abIP[0], szAddress[0], 10 );
-	itoa( Address.abIP[1], szAddress[1], 10 );
-	itoa( Address.abIP[2], szAddress[2], 10 );
-	itoa( Address.abIP[3], szAddress[3], 10 );
-
-	return isIPInList( szAddress[0], szAddress[1], szAddress[2], szAddress[3] );
+	IPStringArray szAddress;
+	NETWORK_AddressToIPStringArray( Address, szAddress );
+	return isIPInList( szAddress );
 }
 
 //*****************************************************************************
