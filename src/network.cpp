@@ -320,7 +320,17 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	{
 		switch ( lumpsToAuthenticateMode[i] ){
 			case LAST_LUMP:
-				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), lumpsToAuthenticate[i].c_str(), checksum ) )
+				int lump;
+				lump = Wads.CheckNumForName(lumpsToAuthenticate[i].c_str());
+				// [BB] Possibly we find the COLORMAP lump only in the colormaps name space.
+				if ( ( lump == -1 ) && ( lumpsToAuthenticate[i].compare ( "COLORMAP" ) == 0 ) )
+					lump = Wads.CheckNumForName("COLORMAP", ns_colormaps);
+				if ( lump == -1 )
+				{
+					Printf ( PRINT_BOLD, "Warning: Can't find lump %s for authentication!\n", lumpsToAuthenticate[i].c_str() );
+					continue;
+				}
+				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( lump, lumpsToAuthenticate[i].c_str(), checksum ) )
 					noProtectedLumpsAutoloaded = false;
 
 				// [BB] To make Doom and Freedoom network compatible, substitue the Freedoom PLAYPAL/COLORMAP hash
