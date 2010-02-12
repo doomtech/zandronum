@@ -354,12 +354,10 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 	}
 
 	{
-		LONG	lRet;
-
-		lRet = inet_addr( copy );
+		const ULONG ulRet = inet_addr( copy );
 
 		// If our return value is INADDR_NONE, the IP specified is not a valid IPv4 string.
-		if ( lRet == INADDR_NONE )
+		if ( ulRet == INADDR_NONE )
 		{
 			// If the string cannot be resolved to a valid IP address, return false.
 			if (( h = gethostbyname( copy )) == NULL )
@@ -367,7 +365,7 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 			*(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
 		}
 		else
-			*(int *)&sadr.sin_addr = lRet;
+			*(int *)&sadr.sin_addr = ulRet;
 	}
 
 	NETWORK_SocketAddressToNetAddress (&sadr, a);
@@ -637,7 +635,7 @@ bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s
 
 	fclose( pFile );
 	if ( _numberOfEntries > 0 )
-		Printf( "%s: %d entr%s loaded.\n", FileName, _numberOfEntries, ( _numberOfEntries == 1 ) ? "y" : "ies" );
+		Printf( "%s: %d entr%s loaded.\n", FileName, static_cast<unsigned int>(_numberOfEntries), ( _numberOfEntries == 1 ) ? "y" : "ies" );
 	return true;
 }
 
