@@ -84,6 +84,11 @@ void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale, const int V
 	}
 }
 
+void HUD_DrawTexture( FTexture *Img, int X, int Y )
+{
+	HUD_DrawTexture( Img, X, Y, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ), con_virtualwidth, con_virtualheight );
+}
+
 void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
 {
 	if ( Scale )
@@ -104,6 +109,11 @@ void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *Strin
 			String,
 			TAG_DONE );
 	}
+}
+
+void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String )
+{
+	HUD_DrawText( Font, Normalcolor, X, Y, String, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ), con_virtualwidth, con_virtualheight );
 }
 
 void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )

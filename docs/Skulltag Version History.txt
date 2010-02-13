@@ -113,6 +113,7 @@ latestzdoom branch
 -	- Improved the handling of random state jumps on player weapons online. This hopefully fixes some client side crashes. [Torr Samaho]
 -	- Fixed: The authentication mechanism for non-map related lumps couldn't find the COLORMAP lump if it was only available in the colormaps namespace. [Torr Samaho]
 -	- Fixed: Clients that can't enter a server because of a range ban were not told the ban reason or the ban expiration date. [Torr Samaho, SuperGod]
+-	- Fixed: The team scores in non CTS/ST games are not displayed properly in the new fullscreen HUD if text scaling is activated. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]
