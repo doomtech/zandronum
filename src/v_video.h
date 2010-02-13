@@ -113,6 +113,9 @@ enum
 	DTA_CellY,			// vertical size of character cell
 
 	DTA_IsText,			// [BC] Handle the drawing slightly differently for text.
+
+	// [BB] bool: Set DTA_VirtualWidth and DTA_VirtualHeight to con_virtualwidth and con_virtualheight respectively (not limited to text).
+	DTA_UseVirtualScreen,
 };
 
 enum

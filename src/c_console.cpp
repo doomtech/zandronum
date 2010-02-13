@@ -1213,34 +1213,17 @@ static void C_DrawNotifyText ()
 				color = PrintColors[NotifyStrings[i].PrintLevel];
 
 			// [BC] If we want scaling, handle that here.
-			if ( bScale )
-			{
-				if (!center)
-					screen->DrawText (SmallFont, color, 0, line, NotifyStrings[i].Text,
-						DTA_Alpha, alpha,
-						DTA_VirtualWidth, ValWidth.Int,
-						DTA_VirtualHeight, ValHeight.Int,
-						TAG_DONE);
-				else
-					screen->DrawText (SmallFont, color, (ValWidth.Int -
-						SmallFont->StringWidth (NotifyStrings[i].Text))/2,
-						line, NotifyStrings[i].Text,
-						DTA_Alpha, alpha,
-						DTA_VirtualWidth, ValWidth.Int,
-						DTA_VirtualHeight, ValHeight.Int,
-						TAG_DONE);
-			}
+			if (!center)
+				screen->DrawText (SmallFont, color, 0, line, NotifyStrings[i].Text,
+					DTA_UseVirtualScreen, bScale, // [BB]
+					DTA_Alpha, alpha, TAG_DONE);
 			else
-			{
-				if (!center)
-					screen->DrawText (SmallFont, color, 0, line, NotifyStrings[i].Text,
-						DTA_Alpha, alpha, TAG_DONE);
-				else
-					screen->DrawText (SmallFont, color, (SCREENWIDTH -
-						SmallFont->StringWidth (NotifyStrings[i].Text))/2,
-						line, NotifyStrings[i].Text,
-						DTA_Alpha, alpha, TAG_DONE);
-			}
+				screen->DrawText (SmallFont, color, ( ( bScale ? ValWidth.Int : SCREENWIDTH ) -
+					SmallFont->StringWidth (NotifyStrings[i].Text))/2,
+					line, NotifyStrings[i].Text,
+					DTA_UseVirtualScreen, bScale, // [BB]
+					DTA_Alpha, alpha, TAG_DONE);
+
 			line += lineadv;
 			canskip = false;
 		}

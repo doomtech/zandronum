@@ -64,67 +64,44 @@ CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 //*****************************************************************************
 //	FUNCTIONS
 
-void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale )
 {
-	if ( Scale )
-	{
-		screen->DrawTexture( Img,
-			X,
-			Y,
-			DTA_VirtualWidth, VirtualWidth,
-			DTA_VirtualHeight, VirtualHeight,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawTexture( Img,
-			X,
-			Y,
-			TAG_DONE );
-	}
+	screen->DrawTexture( Img,
+		X,
+		Y,
+		DTA_UseVirtualScreen, Scale,
+		TAG_DONE );
 }
 
 void HUD_DrawTexture( FTexture *Img, int X, int Y )
 {
-	HUD_DrawTexture( Img, X, Y, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ), con_virtualwidth, con_virtualheight );
+	HUD_DrawTexture( Img, X, Y, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ) );
 }
 
-void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale )
 {
-	if ( Scale )
-	{
-		screen->DrawText( Font, Normalcolor,
-			X,
-			Y,
-			String,
-			DTA_VirtualWidth, VirtualWidth,
-			DTA_VirtualHeight, VirtualHeight,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawText( Font, Normalcolor,
-			X,
-			Y,
-			String,
-			TAG_DONE );
-	}
+	screen->DrawText( Font, Normalcolor,
+		X,
+		Y,
+		String,
+		DTA_UseVirtualScreen, Scale,
+		TAG_DONE );
 }
 
 void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String )
 {
-	HUD_DrawText( Font, Normalcolor, X, Y, String, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ), con_virtualwidth, con_virtualheight );
+	HUD_DrawText( Font, Normalcolor, X, Y, String, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ) );
 }
 
-void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale )
 {
-	HUD_DrawText( SmallFont, Normalcolor, X, Y, String, Scale, VirtualWidth, VirtualHeight );
+	HUD_DrawText( SmallFont, Normalcolor, X, Y, String, Scale );
 }
 
-void HUD_DrawTextAligned( int Normalcolor, int Y, const char *String, bool AlignLeft, const bool Scale, const int VirtualWidth, const int VirtualHeight )
+void HUD_DrawTextAligned( int Normalcolor, int Y, const char *String, bool AlignLeft, const bool Scale )
 {
-	int screenWidthSacled = Scale ? VirtualWidth : SCREENWIDTH;
-	HUD_DrawText ( Normalcolor, AlignLeft ? 0 : ( screenWidthSacled - SmallFont->StringWidth ( String ) ) , Y, String, Scale, VirtualWidth, VirtualHeight );
+	int screenWidthSacled = Scale ? con_virtualwidth : SCREENWIDTH;
+	HUD_DrawText ( Normalcolor, AlignLeft ? 0 : ( screenWidthSacled - SmallFont->StringWidth ( String ) ) , Y, String, Scale );
 }
 
 void DrawHUD_CoopInfo()
@@ -137,8 +114,6 @@ void DrawHUD_CoopInfo()
 		return;
 
 	bool bScale;
-	const int virtualWidth = con_virtualwidth.GetGenericRep( CVAR_Int ).Int;
-	const int virtualHeight = con_virtualheight.GetGenericRep( CVAR_Int ).Int;
 
 	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
 		bScale = true;
@@ -170,7 +145,7 @@ void DrawHUD_CoopInfo()
 		// [BB] Draw player name.
 		drawString = players[i].userinfo.netname;
 		V_ColorizeString( drawString );
-		HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
+		HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale );
 		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BL] Draw the player's location, [BB] but only if the map has any SectorInfo.
@@ -181,7 +156,7 @@ void DrawHUD_CoopInfo()
 			else
 				drawString = FString("\\cmUnknown Location\\c-");
 			V_ColorizeString( drawString );
-			HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
+			HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale );
 			curYPos += SmallFont->GetHeight( ) + 1;
 		}
 
@@ -200,7 +175,7 @@ void DrawHUD_CoopInfo()
 		}
 		else
 			drawString = "dead";
-		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
+		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale );
 		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BB] Draw player weapon and Ammo1/Ammo2, but only if the player is alive.
@@ -214,7 +189,7 @@ void DrawHUD_CoopInfo()
 			if ( players[i].ReadyWeapon->Ammo2 )
 				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo2->Amount );
 			V_ColorizeString( drawString );
-			HUD_DrawTextAligned ( CR_GREEN, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
+			HUD_DrawTextAligned ( CR_GREEN, curYPos, drawString.GetChars(), drawLeft, bScale );
 		}
 
 		playersDrawn++;

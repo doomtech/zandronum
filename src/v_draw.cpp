@@ -52,6 +52,7 @@
 #include "d_net.h"
 #include "colormatcher.h"
 // [BB] New #includes.
+#include "chat.h"
 #include "v_font.h"
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
@@ -602,6 +603,15 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 		// [BC] Is what we're drawing text? If so, handle it differently.
 		case DTA_IsText:
 			bIsText = !!va_arg( tags, INTBOOL );
+			break;
+
+		// [BB]
+		case DTA_UseVirtualScreen:
+			if ( !!va_arg( tags, INTBOOL ) )
+			{
+				parms->virtWidth = con_virtualwidth;
+				parms->virtHeight = con_virtualheight;
+			}
 			break;
 		}
 		tag = va_arg (tags, DWORD);
