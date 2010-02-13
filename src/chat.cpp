@@ -74,6 +74,7 @@
 #include "w_wad.h"
 #include "lastmanstanding.h"
 #include "sbar.h"
+#include "st_hud.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -315,75 +316,29 @@ void CHAT_Render( void )
 	// Temporarily h4x0r the chat buffer string to include the cursor.
 	g_szChatBuffer[g_lStringLength] = gameinfo.gametype == GAME_Doom ? '_' : '[';
 	g_szChatBuffer[g_lStringLength+1] = 0;
-	if ( bScale )
+	if ( g_ulChatMode == CHATMODE_GLOBAL )
 	{
-		if ( g_ulChatMode == CHATMODE_GLOBAL )
-		{
-			screen->DrawText( SmallFont, CR_GREEN,
-				0,
-				(LONG)( ulYPos * fYScale ),
-				g_pszChatPrompt,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
+		HUD_DrawText( SmallFont, CR_GREEN,
+			0,
+			(LONG)( ulYPos * fYScale ),
+			g_pszChatPrompt );
 
-			screen->DrawText( SmallFont, CR_GRAY,
-				SmallFont->StringWidth( g_pszChatPrompt ),
-				(LONG)( ulYPos * fYScale ),
-				g_szChatBuffer + lIdx,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				0,
-				(LONG)( ulYPos * fYScale ),
-				g_pszChatPrompt,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-
-			screen->DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
-				SmallFont->StringWidth( g_pszChatPrompt ),
-				(LONG)( ulYPos * fYScale ),
-				g_szChatBuffer + lIdx,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
+		HUD_DrawText( SmallFont, CR_GRAY,
+			SmallFont->StringWidth( g_pszChatPrompt ),
+			(LONG)( ulYPos * fYScale ),
+			g_szChatBuffer + lIdx );
 	}
 	else
 	{
-		if ( g_ulChatMode == CHATMODE_GLOBAL )
-		{
-			screen->DrawText( SmallFont, CR_GREEN,
-				0,
-				ulYPos,
-				g_pszChatPrompt,
-				TAG_DONE );
+		HUD_DrawText( SmallFont, CR_GREY,
+			0,
+			(LONG)( ulYPos * fYScale ),
+			g_pszChatPrompt );
 
-			screen->DrawText( SmallFont, CR_GRAY,
-				SmallFont->StringWidth( g_pszChatPrompt ),
-				ulYPos,
-				g_szChatBuffer + lIdx,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GREY,
-				0,
-				ulYPos,
-				g_pszChatPrompt,
-				TAG_DONE );
-
-			screen->DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
-				SmallFont->StringWidth( g_pszChatPrompt ),
-				ulYPos,
-				g_szChatBuffer + lIdx,
-				TAG_DONE );
-		}
+		HUD_DrawText( SmallFont, (TEAM_GetTextColor (players[consoleplayer].ulTeam)),
+			SmallFont->StringWidth( g_pszChatPrompt ),
+			(LONG)( ulYPos * fYScale ),
+			g_szChatBuffer + lIdx );
 	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
@@ -393,53 +348,15 @@ void CHAT_Render( void )
 	{
 		// Is this the spectator talking?
 		if ( players[consoleplayer].bSpectating )
-		{
 			sprintf( szString, "\\cdNOTE: \\ccPlayers cannot hear you chat" );
-
-			V_ColorizeString( szString );
-			if ( bScale )
-			{
-				screen->DrawText( SmallFont, CR_UNTRANSLATED,
-					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_UNTRANSLATED,
-					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
-					szString,
-					TAG_DONE );
-			}
-		}
 		else
-		{
 			sprintf( szString, "\\cdNOTE: \\ccSpectators cannot talk to you" );
 
-			V_ColorizeString( szString );
-			if ( bScale )
-			{
-				screen->DrawText( SmallFont, CR_UNTRANSLATED,
-					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_UNTRANSLATED,
-					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
-					szString,
-					TAG_DONE );
-			}
-		}
+		V_ColorizeString( szString );
+		HUD_DrawText( SmallFont, CR_UNTRANSLATED,
+			(LONG)(( ( bScale ? ValWidth.Int : SCREENWIDTH )/ 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+			(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+			szString );
 	}
 
 	g_szChatBuffer[g_lStringLength] = 0;
