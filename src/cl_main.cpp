@@ -6559,15 +6559,33 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 				return;
 			}
 			// [BB] The offset is only guaranteed to work if the actor owns the state.
-			if ( ( lOffset != 0 ) && ( ActorOwnsState ( pActor, pBaseState ) == false ) )
+			if ( ( lOffset != 0 ) && ( ( ActorOwnsState ( pActor, pBaseState ) == false ) || ( ActorOwnsState ( pActor, pBaseState + lOffset ) == false ) ) )
+			{
+#ifdef CLIENT_WARNING_MESSAGES
+				if ( ActorOwnsState ( pActor, pBaseState ) == false )
+					Printf ( "client_SetThingFrame: %s doesn't own %s\n", pActor->GetClass()->TypeName.GetChars(), pszState );
+				if ( ActorOwnsState ( pActor, pBaseState + lOffset ) == false )
+					Printf ( "client_SetThingFrame: %s doesn't own %s + %d\n", pActor->GetClass()->TypeName.GetChars(), pszState, lOffset );
+#endif
 				return;
+			}
 		}
 		else if ( pszState[0] == ';' )
 		{
 			const PClass *pStateOwnerClass = PClass::FindClass ( pszState+1 );
 			const AActor *pStateOwner = ( pStateOwnerClass != NULL ) ? GetDefaultByType ( pStateOwnerClass ) : NULL;
 			if ( pStateOwner )
+			{
 				pBaseState = pStateOwner->SpawnState;
+				// [BB] The offset is only guaranteed to work if the actor owns the state.
+				if ( ( lOffset != 0 ) && ( ActorOwnsState ( pStateOwner, pBaseState + lOffset ) == false ) )
+				{
+#ifdef CLIENT_WARNING_MESSAGES
+					Printf ( "client_SetThingFrame: %s doesn't own %s + %d\n", pStateOwner->GetClass()->TypeName.GetChars(), pszState, lOffset );
+#endif
+					return;
+				}
+			}
 		}
 
 		// [BB] We can only set the state, if the actor has pBaseState. But unless the server
