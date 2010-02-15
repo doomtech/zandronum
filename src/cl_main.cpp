@@ -118,6 +118,7 @@ void	P_CrouchMove(player_t * player, int direction);
 bool	DoThingRaise( AActor *thing, bool bIgnorePositionCheck );
 extern	bool	SpawningMapThing;
 extern FILE *Logfile;
+bool	ClassOwnsState( const PClass *pClass, const FState *pState );
 bool	ActorOwnsState( const AActor *pActor, const FState *pState );
 
 EXTERN_CVAR( Bool, telezoom )
@@ -6595,10 +6596,11 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 			{
 				pBaseState = pStateOwner->SpawnState;
 				// [BB] The offset is only guaranteed to work if the actor owns the state.
-				if ( ( lOffset != 0 ) && ( ActorOwnsState ( pStateOwner, pBaseState + lOffset ) == false ) )
+				// Note: Looks like one can't call GetClass() on an actor pointer obtained by GetDefaultByType.
+				if ( ( lOffset != 0 ) && ( ClassOwnsState ( pStateOwnerClass, pBaseState + lOffset ) == false ) )
 				{
 #ifdef CLIENT_WARNING_MESSAGES
-					Printf ( "client_SetThingFrame: %s doesn't own %s + %d\n", pStateOwner->GetClass()->TypeName.GetChars(), pszState, lOffset );
+					Printf ( "client_SetThingFrame: %s doesn't own %s + %d\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
 #endif
 					return;
 				}

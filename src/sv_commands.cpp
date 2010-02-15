@@ -158,9 +158,9 @@ void FindStateLabelAndOffset( const PClass *pClass, FState *pState, FString &sta
 //*****************************************************************************
 //
 // [BB]
-bool ActorOwnsState( const AActor *pActor, const FState *pState )
+bool ClassOwnsState( const PClass *pClass, const FState *pState )
 {
-	if ( ( pState == NULL ) || ( pActor == NULL ) )
+	if ( ( pState == NULL ) || ( pClass == NULL ) )
 		return false;
 
 	const PClass *pStateOwnerClass = FState::StaticFindStateOwner ( pState );
@@ -168,10 +168,19 @@ bool ActorOwnsState( const AActor *pActor, const FState *pState )
 	if ( pStateOwnerClass == NULL )
 		return false;
 
-	if ( pStateOwnerClass == pActor->GetClass() )
+	if ( pStateOwnerClass == pClass )
 		return true;
 
 	return false;
+}
+
+// [BB]
+bool ActorOwnsState( const AActor *pActor, const FState *pState )
+{
+	if ( pActor == NULL )
+		return false;
+
+	return ClassOwnsState( pActor->GetClass(), pState );
 }
 
 //*****************************************************************************
