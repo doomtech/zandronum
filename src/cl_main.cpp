@@ -4893,9 +4893,6 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	if ( stricmp( pszState, ":R" ) == 0 )
 	{
 		pNewState = players[ulPlayer].ReadyWeapon->GetReadyState( );
-		// [BB] The offset is only guaranteed to work if the actor owns the state.
-		if ( ( lOffset != 0 ) && ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState ) == false ) )
-			return;
 	}
 	else
 	{
@@ -4909,7 +4906,27 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 		pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	}
 	if ( pNewState )
+	{
+		// [BB] The offset is only guaranteed to work if the actor owns the state.
+		if ( lOffset != 0 )
+		{
+			if ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState ) == false )
+			{
+#ifdef CLIENT_WARNING_MESSAGES
+				Printf ( "client_SetPlayerPSprite: %s doesn't own %s\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState );
+#endif
+				return;
+			}
+			if ( ActorOwnsState ( players[ulPlayer].ReadyWeapon, pNewState + lOffset ) == false )
+			{
+#ifdef CLIENT_WARNING_MESSAGES
+				Printf ( "client_SetPlayerPSprite: %s doesn't own %s + %d\n", players[ulPlayer].ReadyWeapon->GetClass()->TypeName.GetChars(), pszState, lOffset );
+#endif
+				return;
+			}
+		}
 		P_SetPsprite( &players[ulPlayer], lPosition, pNewState + lOffset );
+	}
 }
 
 //*****************************************************************************
