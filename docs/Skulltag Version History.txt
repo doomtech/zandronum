@@ -124,6 +124,7 @@ latestzdoom branch
 !	- GrenadeLauncher doesn't use A_FireSTGrenade anymore. Instead, it uses A_FireCustomMissile with the pitch parameter from ZDoom revision 1685. [Torr Samaho]
 -	- Clarified the error message that is shown when skulltag_data.pk3/skulltag.wad is not found. [Torr Samaho]
 -	- Negative movebob values are not allowed anymore. [Torr Samaho]
+-	- Fixed: Duel Scoreboard displayed the incorrect number of duels remaining. [Vortex Cortex]
 
 
 98a

@@ -2711,7 +2711,8 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 
 	// Build the fraglimit and/or duellimit strings.
 	scoreboard_AddSingleLimit( lines, ( fraglimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS ), remaining, "frag" );
-	scoreboard_AddSingleLimit( lines, ( duellimit && duel ), remaining, "duel" );
+	// [TL] The number of duels left is the maximum number of duels less the number of duels fought.
+	scoreboard_AddSingleLimit( lines, ( duellimit && duel ), duellimit - DUEL_GetNumDuels( ), "duel" );
 
 	// Build the "wins" string.
 	if ( duel && duellimit )
