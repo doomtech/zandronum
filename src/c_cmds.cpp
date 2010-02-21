@@ -1077,25 +1077,38 @@ CCMD(nextmap)
 		return;
 	}
 
-	// Fuck that DEM shit!
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		G_ExitLevel( 0, false );
-	}
-	else
-	{
-		if (argv.argc() > 1)
+	// [TL] Get the next map if available.
+	const char * next = G_GetExitMap( );	
+	
+	if ( next && strncmp(next, "enDSeQ", 6) )
+	{	
+		// Fuck that DEM shit!
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			Net_WriteByte (DEM_CHANGEMAP2);
-			Net_WriteByte (atoi(argv[1]));
+			G_ExitLevel( 0, false );
 		}
 		else
 		{
-			Net_WriteByte (DEM_CHANGEMAP);
+			if (argv.argc() > 1)
+			{
+				Net_WriteByte (DEM_CHANGEMAP2);
+				Net_WriteByte (atoi(argv[1]));
+			}
+			else
+			{
+				Net_WriteByte (DEM_CHANGEMAP);
+			}			
+
+			Net_WriteString( next );
 		}
-		Net_WriteString( level.nextmap );
 	}
+	else
+	{
+		Printf( "No next map!\n" );
+	}
+
 /* [BB] For the time being I'll keep ST's nextmap version.
+// [TL] I think it's safe to remove this (I've factored it in above).
 	char * next=NULL;
 	
 	if (*level.nextmap) next = level.nextmap;
@@ -1118,17 +1131,46 @@ CCMD(nextmap)
 //-----------------------------------------------------------------------------
 CCMD(nextsecret)
 {
-	char * next=NULL;
-	
-	if (*level.secretmap) next = level.secretmap;
-
-	if (next != NULL && strncmp(next, "enDSeQ", 6))
+	// [TL] Ensure a level is loaded.
+	if ( level.info == NULL )
 	{
-		G_DeferedInitNew(next);
+		Printf( "You can't use nextsecret, when not in a level.\n" );
+		return;
+	}
+
+	// [TL] Prevent clients from changing the map.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		Printf( "Only the server can change the map.\n" );
+		return;
+	}
+
+	// [TL] Get the secret level or next map if not available.
+	const char * next = G_GetSecretExitMap();
+	
+	if ( next && strncmp(next, "enDSeQ", 6) )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			G_SecretExitLevel( 0 );
+		}
+		else
+		{
+			if (argv.argc() > 1)
+			{
+				Net_WriteByte (DEM_CHANGEMAP2);
+				Net_WriteByte (atoi(argv[1]));
+			}
+			else
+			{
+				Net_WriteByte (DEM_CHANGEMAP);
+			}
+			Net_WriteString( next );
+		}
 	}
 	else
 	{
-		Printf("no next secret map!\n");
+		Printf( "No next secret map!\n" );
 	}
 }
 

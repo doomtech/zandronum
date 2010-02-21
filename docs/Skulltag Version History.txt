@@ -125,6 +125,8 @@ latestzdoom branch
 -	- Clarified the error message that is shown when skulltag_data.pk3/skulltag.wad is not found. [Torr Samaho]
 -	- Negative movebob values are not allowed anymore. [Torr Samaho]
 -	- Fixed: Duel Scoreboard displayed the incorrect number of duels remaining. [Vortex Cortex]
+-	- Fixed: CCMD "nextsecret" doesn't show intermission and can not be used in online games. [Vortex Cortex]
+-	- Fixed: CCMD "nextmap" did not handle "enDSeQ" when used on maps such as ExM8 and MAP30. [Vortex Cortex]
 
 
 98a

@@ -818,7 +818,8 @@ const char *G_GetExitMap()
 
 const char *G_GetSecretExitMap()
 {
-	const char *nextmap = level.nextmap;
+	// [TL] No need to fetch a reference to level.nextmap anymore.
+	const char *nextmap = NULL;
 
 	if (level.secretmap[0] != 0)
 	{
@@ -827,7 +828,9 @@ const char *G_GetSecretExitMap()
 			nextmap = level.secretmap;
 		}
 	}
-	return nextmap;
+	
+	// [TL] Advance to the next map in the rotation if no secret level.
+	return (nextmap) ? nextmap : G_GetExitMap( );
 }
 
 //==========================================================================
@@ -853,7 +856,16 @@ void G_ExitLevel (int position, bool keepFacing)
 
 void G_SecretExitLevel (int position) 
 {
-	G_ChangeLevel(G_GetSecretExitMap(), position, false);
+	// [TL] Prevent ending a map during survival countdown.
+	if (( survival ) &&
+		( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
+	{
+		return;
+	}
+	
+	// [TL] Pass additional parameters to make "nextsecret" CCMD work online.
+	G_ChangeLevel(G_GetSecretExitMap(), position, false
+	              /*int nextSkill=*/-1, /*bool nointermission=*/false, /*bool resetinventory=*/false, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) );
 }
 
 //==========================================================================
