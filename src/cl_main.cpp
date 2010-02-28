@@ -6212,25 +6212,6 @@ static void client_SetThingTranslation( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-
-// These are directly pasted from p_acs.cpp. This list needs to be updated whenever
-// that changes.
-#define APROP_Health		0
-#define APROP_Speed			1
-#define APROP_Damage		2
-#define APROP_Alpha			3
-#define APROP_RenderStyle	4
-#define APROP_Ambush		10
-#define APROP_Invulnerable	11
-#define APROP_JumpZ			12	// [GRB]
-#define APROP_ChaseGoal		13
-#define APROP_Frightened	14
-#define APROP_SeeSound		5	// Sounds can only be set, not gotten
-#define APROP_AttackSound	6
-#define APROP_PainSound		7
-#define APROP_DeathSound	8
-#define APROP_ActiveSound	9
-
 static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 {
 	LONG	lID;

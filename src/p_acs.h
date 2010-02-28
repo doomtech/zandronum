@@ -152,6 +152,32 @@ enum
 
 enum ACSFormat { ACS_Old, ACS_Enhanced, ACS_LittleEnhanced, ACS_Unknown };
 
+// [BB] Moved here from p_acs.cpp
+enum
+{
+	APROP_Health		= 0,
+	APROP_Speed			= 1,
+	APROP_Damage		= 2,
+	APROP_Alpha			= 3,
+	APROP_RenderStyle	= 4,
+	APROP_SeeSound		= 5,	// Sounds can only be set, not gotten
+	APROP_AttackSound	= 6,
+	APROP_PainSound		= 7,
+	APROP_DeathSound	= 8,
+	APROP_ActiveSound	= 9,
+	APROP_Ambush		= 10,
+	APROP_Invulnerable	= 11,
+	APROP_JumpZ			= 12,	// [GRB]
+	APROP_ChaseGoal		= 13,
+	APROP_Frightened	= 14,
+	APROP_Gravity		= 15,
+	APROP_Friendly		= 16,
+	APROP_SpawnHealth   = 17,
+	APROP_Dropped		= 18,
+	APROP_Notarget		= 19,
+	APROP_Species		= 20,
+};	
+
 class FBehavior
 {
 public:

@@ -2619,6 +2619,7 @@ void DLevelScript::DoSetFont (int fontnum)
 	}
 }
 
+/* [BB] Moved to p_acs.h. Skulltag also needs this enum outside p_acs.cpp.
 enum
 {
 	APROP_Health		= 0,
@@ -2643,6 +2644,7 @@ enum
 	APROP_Notarget		= 19,
 	APROP_Species		= 20,
 };	
+*/
 
 // These are needed for ACS's APROP_RenderStyle
 static const int LegacyRenderStyleIndices[] =
