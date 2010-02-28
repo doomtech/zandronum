@@ -67,13 +67,10 @@
 
 CVAR(Bool, gl_portals, true, 0)
 
-// [BB] For some reason values of r_mirror_recursions bigger than 2 cause rendering
-// defects and serious performance problems. Till this is fixed, limit the value to 2.
-CUSTOM_CVAR(Int, r_mirror_recursions,2,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 {
 	if (self<0) self=0;
-	// [BB] Limit changed to 2, see above.
-	if (self>2) self=2;
+	if (self>10) self=10;
 }
 bool gl_plane_reflection_i;	// This is needed in a header that cannot include the CVAR stuff...
 CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
@@ -716,8 +713,12 @@ void GLMirrorPortal::DrawContents()
 	angle_t af = gl_FrustumAngle();
 	if (af<ANGLE_180) clipper.SafeAddClipRange(viewangle+af, viewangle-af);
 
-	angle_t a2 = mirrorline->v1->GetViewAngle();
-	angle_t a1 = mirrorline->v2->GetViewAngle();
+	// [BB] Spleen found out that the caching of the view angles doesn't work for mirrors
+	// (kills performance and causes rendering defects).
+	//angle_t a2 = mirrorline->v1->GetViewAngle();
+	//angle_t a1 = mirrorline->v2->GetViewAngle();
+	angle_t a2=R_PointToAngle(mirrorline->v1->x, mirrorline->v1->y);
+	angle_t a1=R_PointToAngle(mirrorline->v2->x, mirrorline->v2->y);
 	clipper.SafeAddClipRange(a1,a2);
 
 	gl_DrawScene();
