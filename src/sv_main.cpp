@@ -2445,7 +2445,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 			// Update the actor's speed if it's changed.
 			if ( pActor->Speed != pActor->GetDefault( )->Speed )
-				SERVERCOMMANDS_SetThingProperty( pActor, 1, ulClient, SVCF_ONLYTHISCLIENT  ); // Yuck
+				SERVERCOMMANDS_SetThingProperty( pActor, APROP_Speed, ulClient, SVCF_ONLYTHISCLIENT  );
 
 			// [BB] Update the actor's RenderStyle if it's changed.
 			if ( pActor->RenderStyle.AsDWORD != pActor->GetDefault( )->RenderStyle.AsDWORD )
