@@ -2447,6 +2447,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if ( pActor->Speed != pActor->GetDefault( )->Speed )
 				SERVERCOMMANDS_SetThingProperty( pActor, 1, ulClient, SVCF_ONLYTHISCLIENT  ); // Yuck
 
+			// [BB] Update the actor's RenderStyle if it's changed.
+			if ( pActor->RenderStyle.AsDWORD != pActor->GetDefault( )->RenderStyle.AsDWORD )
+				SERVERCOMMANDS_SetThingProperty( pActor, APROP_RenderStyle, ulClient, SVCF_ONLYTHISCLIENT  );
+
+			// [BB] Update the actor's alpha if it's changed.
+			if ( pActor->alpha != pActor->GetDefault( )->alpha )
+				SERVERCOMMANDS_SetThingProperty( pActor, APROP_Alpha, ulClient, SVCF_ONLYTHISCLIENT  );
+
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
 /*

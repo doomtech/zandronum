@@ -117,6 +117,7 @@ latestzdoom branch
 -	- Fixed: Clients could crash during a "nextmap" map change. [Torr Samaho]
 -	- Fixed: Loading a saved game could cause a crash (fixed by backporting the info.h changes from ZDoom revision 1824). [Torr Samaho]
 -	- Fixed: Mirrors caused severe performance drops and rendering artifacts in GL. Kudos to Spleen for dissecting the GZDoom SVN and finding out what was causing the mirror problems. [Torr Samaho]
+-	- Fixed: Newly connecting clients were not informed about the actual RenderStyle and Alpha of the actors in the map and used the default values instead. [Torr Samaho]
 !	- You can now have an unlimited number of maps in the map rotation (previously 64). [Rivecoder]
 !	- Removed the unused sv_masteroverrideip. [Rivecoder]
 !	- The bounce sound of Skulltag's grenade is not hard coded to the actor name "grenade" anymore, but is controlled by the new actor flag USESTBOUNCESOUND. This way actors derived from Skulltag's grenade should inherit the bounce sound, while new actors called grenade don't automatically get the bounce sound. [Torr Samaho]
