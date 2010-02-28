@@ -72,6 +72,7 @@
 #include "cl_demo.h"
 #include "invasion.h"
 #include "sv_commands.h"
+#include "p_acs.h"
 
 static FRandom pr_camissile ("CustomActorfire");
 static FRandom pr_camelee ("CustomMelee");
@@ -2303,10 +2304,30 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_FIXED(reduce, 0);
 
+	// [BB] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+			return;
+	}
+
 	if (reduce == 0) reduce = FRACUNIT/10;
+
+	// [BB] If the RenderStyle is changed, we have to inform the clients.
+	const bool renderStyleChanged = !!( self->RenderStyle.Flags & STYLEF_Alpha1 );
 
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 	self->alpha += reduce;
+
+	// [BB] Inform the clients about the alpha change and possibly about RenderStyle.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if ( renderStyleChanged )
+			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
+		SERVERCOMMANDS_SetThingProperty( self, APROP_Alpha );
+	}
+
 	//if (self->alpha<=0) self->Destroy();
 }
 
@@ -2322,12 +2343,46 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_FIXED(reduce, 0);
 	
+	// [BB] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+			return;
+	}
+
 	if (reduce == 0) reduce = FRACUNIT/10;
+
+	// [BB] If the RenderStyle is changed, we have to inform the clients.
+	const bool renderStyleChanged = !!( self->RenderStyle.Flags & STYLEF_Alpha1 );
 
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 	self->alpha -= reduce;
+
+	// [BB] Inform the clients about the alpha change and possibly about RenderStyle.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if ( renderStyleChanged )
+			SERVERCOMMANDS_SetThingProperty( self, APROP_RenderStyle );
+		SERVERCOMMANDS_SetThingProperty( self, APROP_Alpha );
+	}
+
 	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-	if (self->alpha<=0) self->HideOrDestroyIfSafe ();
+	if (self->alpha<=0)
+	{
+		// [BB] Deleting player bodies is a very bad idea.
+		if ( self->player && ( self->player->mo == self ) )
+		{
+			Printf ( PRINT_BOLD, "Warning: A_FadeOut may not delete player bodies that are still associated to a player!\n" );
+			return;
+		}
+
+		// [BB] Tell clients to destroy the actor.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_DestroyThing( self );
+
+		self->HideOrDestroyIfSafe ();
+	}
 }
 
 //===========================================================================
