@@ -373,7 +373,8 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 	// Compare that to what he sent us.
 	// Printf("Mine: %s\nTheirs: %s\n", fsCorrectHash, pszHash );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
-	if ( fsCorrectHash.Compare( pszHash ))
+	// [BB] Do not allow the server to let anybody use RCON in case sv_rconpassword is empty.
+	if ( fsCorrectHash.Compare( pszHash ) || ( strlen( sv_rconpassword.GetGenericRep(CVAR_String).String ) == 0 ) )
 	{
 		// Wrong password.
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_INVALIDPASSWORD );
