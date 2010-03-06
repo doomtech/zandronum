@@ -59,6 +59,7 @@ latestzdoom branch
 +	- Re-added support for 32 player starts for non Strife games. [Torr Samaho]
 +	- Added new actor properties "visibletoteam" and "visibletoplayerclass". Only players that are in the team specified by "visibletoteam" can see this actor, it is invisible to all other teams. "visibletoplayerclass" is the counterpart for playerclass based visibility. [Torr Samaho]
 +	- Added flags ALIGNANGLE and ALIGNPITCH to MODELDEF. If both are set, the model always faces the camera. If only ALIGNANGLE is set, the model faces the camera in the x/y plane. Note: ALIGNPITCH is not supposed to be used without ALIGNANGLE. [Torr Samaho]
++	- Added flag ROLLAGAINSTANGLE to MODELDEF, a special flag for flat, beam like models. [Torr Samaho]
 -	- Fixed several problems with D'Sparil (Sorcerer1/Sorcerer2) online. [Torr Samaho]
 -	- Fixed: In lms/teamlms players didn't get weapons whose game property is "any". [Torr Samaho]
 -	- Fixed: If an actor with MF_SKULLFLY slams into something online, it possibly stops moving on the clients and starts to teleport around (This affected the Minotaur). [Torr Samaho]

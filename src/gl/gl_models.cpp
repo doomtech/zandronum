@@ -359,6 +359,10 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_ALIGNPITCH;
 					}
+					else if (sc.Compare("rollagainstangle"))
+					{
+						smf.flags |= MDL_ROLLAGAINSTANGLE;
+					}
 					else if (sc.Compare("skin"))
 					{
 						sc.MustGetNumber();
@@ -575,6 +579,21 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 	}
 }
 
+// [BB] Small helper function for MDL_ROLLAGAINSTANGLE.
+float gl_RollAgainstAngleHelper ( const AActor *actor )
+{
+	float angleDiff = ANGLE_TO_FLOAT ( R_PointToAngle ( actor->x, actor->y ) ) - ANGLE_TO_FLOAT ( actor->angle );
+	if ( angleDiff > 180 )
+		angleDiff -= 360;
+	else if ( angleDiff < -180 )
+		angleDiff += 360;
+	if ( actor->z > viewz )
+		angleDiff *= -1;
+	if ( ( angleDiff < 90 ) && ( angleDiff > - 90 ) )
+		angleDiff *= -1;
+	return angleDiff;
+}
+
 void gl_RenderModel(GLSprite * spr, int cm)
 {
 	FSpriteModelFrame * smf = spr->modelframe;
@@ -625,6 +644,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 			gl.Rotatef(pitch, 0, 0, 1);
 		}
+
+		// [BB] Special flag for flat, beam like models.
+		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
+			gl.Rotatef( gl_RollAgainstAngleHelper ( spr->actor ), 1, 0, 0);
 
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.
@@ -684,6 +707,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 			ModelToWorld.Rotate(0,0,1,pitch);
 		}
+
+		// [BB] Special flag for flat, beam like models.
+		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
+			ModelToWorld.Rotate(1, 0, 0, gl_RollAgainstAngleHelper ( spr->actor ));
 
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.

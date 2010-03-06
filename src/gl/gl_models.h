@@ -250,6 +250,7 @@ typedef enum
 	MDL_NOINTERPOLATION				= 16,
 	MDL_ALIGNANGLE					= 32,
 	MDL_ALIGNPITCH					= 64,
+	MDL_ROLLAGAINSTANGLE			= 128,
 };
 
 struct FSpriteModelFrame
