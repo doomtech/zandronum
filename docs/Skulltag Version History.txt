@@ -14,6 +14,11 @@
 
 latestzdoom branch
 ------------------
+-   - Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
+
+
+98b
+---
 
 *+	- Greatly improved the windows server dialog! [Rivecoder]
 

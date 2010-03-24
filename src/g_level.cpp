@@ -864,7 +864,7 @@ void G_SecretExitLevel (int position)
 	}
 	
 	// [TL] Pass additional parameters to make "nextsecret" CCMD work online.
-	G_ChangeLevel(G_GetSecretExitMap(), position, false
+	G_ChangeLevel(G_GetSecretExitMap(), position, false,
 	              /*int nextSkill=*/-1, /*bool nointermission=*/false, /*bool resetinventory=*/false, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) );
 }
 
