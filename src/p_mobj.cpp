@@ -5257,6 +5257,12 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		return NULL;
 	}
 
+	// [BB] The server doesn't spawn CLIENTSIDEONLY actors.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( info->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
+	{
+		return NULL;
+	}
+
 	// spawn it
 	x = mthing->x;
 	y = mthing->y;
