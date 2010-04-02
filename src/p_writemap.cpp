@@ -5,6 +5,9 @@
 #include "r_defs.h"
 #include "m_swap.h"
 #include "doomstat.h"
+// [BB] New #includes.
+#include "m_png.h"
+#include "p_acs.h"
 
 static int WriteTHINGS (FILE *file);
 static int WriteLINEDEFS (FILE *file);
@@ -27,6 +30,10 @@ CCMD (dumpmap)
 {
 	const char *mapname;
 	FILE *file;
+
+	// [BB] This function can overwrite arbitrary files and thus may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
 
 	// [BB] The server can't do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

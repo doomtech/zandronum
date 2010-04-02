@@ -75,6 +75,9 @@
 
 #include "gameconfigfile.h"
 
+// [BB] New #includes.
+#include "p_acs.h"
+
 FGameConfigFile *GameConfig;
 
 CVAR(Bool, screenshot_quiet, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
@@ -758,6 +761,10 @@ void M_ScreenShot (const char *filename)
 
 CCMD (screenshot)
 {
+	// [BB] This function can overwrite arbitrary files and thus may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if (argv.argc() == 1)
 		G_ScreenShot (NULL);
 	else
