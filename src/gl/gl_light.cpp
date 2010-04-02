@@ -113,6 +113,11 @@ CUSTOM_CVAR(Int, gl_lightmode, 3 ,CVAR_ARCHIVE|CVAR_NOINITCALL)
 		glset.lightmode = self;
 }
 
+// [BB]
+int gl_GetLightMode () {
+	return ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 3 : gl_lightmode;
+}
+
 static float distfogtable[2][256];	// light to fog conversion table for black fog
 
 static int fogdensity;

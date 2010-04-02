@@ -80,6 +80,9 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cm, bool isadditive);
 
+// [BB] Get value of gl_lightmode, respecting DF2_FORCE_GL_DEFAULTS.
+int gl_GetLightMode ( );
+
 // textures + sprites
 
 void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture);

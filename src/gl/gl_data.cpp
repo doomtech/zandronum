@@ -309,7 +309,8 @@ static void InitGLRMapinfoData()
 		glset.skyrotatevector = FVector3(0,0,1);
 	}
 
-	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
+	// [SP/BB] Don't access gl_lightmode directly.
+	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_GetLightMode();
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
@@ -317,7 +318,8 @@ static void InitGLRMapinfoData()
 
 CCMD(gl_resetmap)
 {
-	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_lightmode;
+	// [SP/BB] Don't access gl_lightmode directly.
+	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_GetLightMode();
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
