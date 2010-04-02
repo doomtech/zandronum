@@ -1113,12 +1113,26 @@ static void FinishChangeSpy( int pnum )
 
 CCMD (spynext)
 {
+	// [BB] The server can't use this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		Printf ( "CCMD spynext can't be used on the server\n" );
+		return;
+	}
+
 	// allow spy mode changes even during the demo
 	ChangeSpy (true);
 }
 
 CCMD (spyprev)
 {
+	// [BB] The server can't use this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		Printf ( "CCMD spyprev can't be used on the server\n" );
+		return;
+	}
+
 	// allow spy mode changes even during the demo
 	ChangeSpy (false);
 }
