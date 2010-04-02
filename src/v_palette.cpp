@@ -866,6 +866,13 @@ CCMD (testcolor)
 	DWORD color;
 	int desaturate;
 
+	// [BB] Without cheats, Client's may not use this.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( sv_cheats == false ) )
+	{
+		Printf ( "If cheats are disabled, clients are not allowed to use testcolor.\n" );
+		return;
+	}
+
 	if (argv.argc() < 2)
 	{
 		Printf ("testcolor <color> [desaturation]\n");
