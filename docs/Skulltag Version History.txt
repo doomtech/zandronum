@@ -19,6 +19,7 @@ latestzdoom branch
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
 -	- Fixed: Executing spynext/spyprev on the server caused the server to crash. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
+!	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 
 
 98b
