@@ -2273,6 +2273,12 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 					SERVERCOMMANDS_MoveLocalPlayer( ULONG( pPlayer - players ));
 			}
 		}
+		// [BB] In case the player is not respawned as dead spectator, we have to manually clear its TID.
+		else
+		{
+			pPlayer->mo->RemoveFromHash ();
+			pPlayer->mo->tid = 0;
+		}
 
 		// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
 		PLAYER_SetDefaultSpectatorValues ( pPlayer );
