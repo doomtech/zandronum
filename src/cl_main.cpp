@@ -9403,7 +9403,7 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the channel.
-	lChannel = NETWORK_ReadByte( pByteStream );
+	lChannel = NETWORK_ReadShort( pByteStream );
 
 	// Read in the name of the sound to play.
 	pszSoundString = NETWORK_ReadString( pByteStream );
