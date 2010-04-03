@@ -4776,6 +4776,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	// spawn what he was carrying on the ground.
 	players[g_lCurrentClient].mo->DropImportantItems( false );
 
+	// [BB] Morphed players need to be unmorphed before changing teams.
+	if ( players[g_lCurrentClient].morphTics )
+		P_UndoPlayerMorph ( &players[g_lCurrentClient], &players[g_lCurrentClient] );
+
 	// Save this. This will determine our message.
 	bOnTeam = players[g_lCurrentClient].bOnTeam;
 

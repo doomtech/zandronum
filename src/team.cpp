@@ -2201,6 +2201,10 @@ CCMD( changeteam )
 		if ( players[consoleplayer].mo )
 			players[consoleplayer].mo->DropImportantItems( false );
 
+		// [BB] Morphed players need to be unmorphed before changing teams.
+		if ( players[consoleplayer].morphTics )
+			P_UndoPlayerMorph ( &players[consoleplayer], &players[consoleplayer] );
+
 		// Save this. This will determine our message.
 		bOnTeam = players[consoleplayer].bOnTeam;
 
