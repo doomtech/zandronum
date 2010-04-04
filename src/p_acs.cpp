@@ -79,6 +79,7 @@
 #include "cooperative.h"
 #include "invasion.h"
 #include "sv_commands.h"
+#include "network/nettraffic.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -3380,6 +3381,9 @@ int DLevelScript::RunScript ()
 	ScriptFunction *activeFunction = NULL;
 	FRemapTable *translation = 0;
 	int resultValue = 1;
+
+	// [BB] Start to measure how much outbound net traffic this call of DLevelScript::RunScript() needs.
+	NETWORK_StartTrafficMeasurement ( );
 
 	switch (state)
 	{
@@ -6850,6 +6854,9 @@ int DLevelScript::RunScript ()
 	// other way.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVER_SetCurrentFont( "SmallFont" );
+
+	// [BB] Stop the net traffic measurement and add the result to this script's traffic.
+	NETTRAFFIC_AddACSScriptTraffic ( script, NETWORK_StopTrafficMeasurement ( ) );
 
 	return resultValue;
 }

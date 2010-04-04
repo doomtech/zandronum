@@ -75,6 +75,8 @@
 #include "sv_commands.h"
 #include "cl_demo.h"
 #include "survival.h"
+#include "network/nettraffic.h"
+
 // MACROS ------------------------------------------------------------------
 
 #define WATER_SINK_FACTOR		3
@@ -3283,6 +3285,9 @@ void AActor::SetShade (int r, int g, int b)
 //
 void AActor::Tick ()
 {
+	// [BB] Start to measure how much outbound net traffic this call of AActor::Tick() needs.
+	NETWORK_StartTrafficMeasurement ( );
+
 	// [RH] Data for Heretic/Hexen scrolling sectors
 	static const BYTE HexenScrollDirs[8] = { 64, 0, 192, 128, 96, 32, 224, 160 };
 	static const BYTE HexenSpeedMuls[3] = { 5, 10, 25 };
@@ -3852,6 +3857,9 @@ void AActor::Tick ()
 
 		P_NightmareRespawn (this);
 	}
+
+	// [BB] Stop the net traffic measurement and add the result to this actor's traffic.
+	NETTRAFFIC_AddActorTraffic ( this, NETWORK_StopTrafficMeasurement ( ) );
 }
 
 //==========================================================================

@@ -15,6 +15,7 @@
 latestzdoom branch
 ------------------
 
++	- Added basic outbound net traffic analysis code for the server. This code allows to find out which actor classes and which ACS scripts use how much net traffic and should greatly simply the identification of network bandwidth hogs in custom mods. [Torr Samaho]
 -	- Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
 -	- Fixed: Executing spynext/spyprev on the server caused the server to crash. [Torr Samaho]

@@ -100,6 +100,7 @@
 #include "win32/g15/g15.h"
 #include "gi.h"
 #include "survival.h"
+#include "network/nettraffic.h"
 
 #include "g_hub.h"
 
@@ -1070,6 +1071,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	char				szString[256];
 	CAMPAIGNINFO_s		*pInfo;
 	UCVarValue			Val;
+
+	// [BB] Reset the net traffic measurements when a new map starts.
+	NETTRAFFIC_Reset();
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )

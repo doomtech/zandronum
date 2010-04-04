@@ -2143,6 +2143,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\network\nettraffic.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\network.cpp"
 				>
 			</File>
@@ -4649,6 +4653,10 @@
 			</File>
 			<File
 				RelativePath=".\src\namedef.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\network\nettraffic.h"
 				>
 			</File>
 			<File

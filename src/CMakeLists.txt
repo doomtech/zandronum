@@ -675,6 +675,7 @@ add_executable( zdoom WIN32
 	name.cpp
 	network.cpp #ST
 	networkshared.cpp #ST
+	network/nettraffic.cpp #ST
 	nodebuild.cpp
 	nodebuild_classify_nosse2.cpp
 	nodebuild_classify_sse2.cpp
