@@ -238,6 +238,9 @@ void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
 LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
 void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
 
+void			NETWORK_StartTrafficMeasurement ( );
+int				NETWORK_StopTrafficMeasurement ( );
+
 int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
 int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
 int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
