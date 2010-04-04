@@ -3642,7 +3642,10 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	// Kill the player's old icon if necessary.
 	if ( pPlayer->pIcon )
+	{
 		pPlayer->pIcon->Destroy( );
+		pPlayer->pIcon = NULL;
+	}
 
 	// If the console player is being respawned, and watching another player in demo
 	// mode, allow the player to continue watching that player.
