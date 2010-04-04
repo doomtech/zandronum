@@ -51,6 +51,9 @@
 
 #include <map>
 
+//*****************************************************************************
+//	VARIABLES
+
 struct ltstr
 {
   bool operator()(const char* s1, const char* s2) const
@@ -62,11 +65,16 @@ struct ltstr
 std::map<const char*, int, ltstr> g_actorTrafficMap;
 std::map<int, int> g_ACSScriptTrafficMap;
 
+CVAR( Bool, sv_measureoutboundtraffic, false, 0 )
+
 //*****************************************************************************
 //
 void NETTRAFFIC_AddActorTraffic ( const AActor* pActor, const int BytesUsed )
 {
 	if ( ( pActor == NULL ) || ( BytesUsed == 0 ) )
+		return;
+
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( sv_measureoutboundtraffic == false ) )
 		return;
 
 	g_actorTrafficMap [ pActor->GetClass()->TypeName.GetChars() ] += BytesUsed;
@@ -77,6 +85,9 @@ void NETTRAFFIC_AddActorTraffic ( const AActor* pActor, const int BytesUsed )
 void NETTRAFFIC_AddACSScriptTraffic ( const int ScriptNum, const int BytesUsed )
 {
 	if ( BytesUsed == 0 )
+		return;
+
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( sv_measureoutboundtraffic == false ) )
 		return;
 
 	g_ACSScriptTrafficMap [ ScriptNum ] += BytesUsed;
