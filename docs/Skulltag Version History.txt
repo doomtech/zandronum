@@ -22,6 +22,7 @@ latestzdoom branch
 -	- Fixed: Players that turn into spectators kept their TID. [Torr Samaho]
 -	- Fixed: A_PlaySound/A_PlaySoundEx did not loop properly online. [Torr Samaho]
 -	- Fixed: If a morphed player defected to another team, a voodoo doll was left behind. [Torr Samaho]
+-	- Fixed: After morphing/demorphing, clients don't properly display the health corresponding to their new form. [Eruanna, Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

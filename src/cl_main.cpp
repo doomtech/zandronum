@@ -3754,6 +3754,9 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		G_PlayerReborn( ulPlayer );
 	}
+	// [BB] The player possibly changed the player class, so we have to correct the health (usually done in G_PlayerReborn).
+	else if ( lPlayerState == PST_LIVE )
+		pPlayer->health = pPlayer->mo->GetDefault ()->health;
 
 	// Give all cards in death match mode.
 	if ( deathmatch )
