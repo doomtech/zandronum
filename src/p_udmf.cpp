@@ -1259,7 +1259,7 @@ struct UDMFParser
 
 		for(int line = 0, side = 0; line < numlines; line++)
 		{
-			short tempalpha[2] = {-1,-1};
+			short tempalpha[2] = { SHRT_MIN, SHRT_MIN };
 
 			lines[line] = ParsedLines[line];
 
