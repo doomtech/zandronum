@@ -668,17 +668,15 @@ void V_CleanPlayerName( char *pszString )
 	// quite a bit from the string, it's possible that those are there now.
 	// Note: We need to work on pszStart now, by now pszString only contains a pointer
 	// to the end of the string.
-	ulStringLength = static_cast<ULONG>(strlen( pszStart ));
-	while ( ulStringLength > 0 )
-	{
-		if ( pszStart[ulStringLength-1] == TEXTCOLOR_ESCAPE )
-		{
-			pszStart[ulStringLength-1] = 0;
-			ulStringLength--;
-		}
-		else
-			break;
-	}
+	// [BB] I don't want to implement the trailing crap removement for escaped and
+	// unescaped color codes, so I have to uncolorize, clean and colorize the name here.
+	// Not so efficient, but V_CleanPlayerName is called seldom enough so that this
+	// doesn't matter.
+	FString tempString = pszStart;
+	V_UnColorizeString ( tempString );
+	V_RemoveTrailingCrapFromFString ( tempString );
+	V_ColorizeString ( tempString );
+	sprintf ( pszStart, "%s", tempString.GetChars() );
 
 	// Determine the name's actual length.
 	strncpy( szColorlessName, pszStart, 256 );
@@ -779,8 +777,24 @@ void V_RemoveTrailingCrap( char *pszString )
 			else
 				break;
 		}
+		// [BB] Remove trailing incomplete color code of type "\c[X".
 		else
-			break;
+		{
+			const char* pChar = strrchr(pszString, '[');
+			if ( pChar > strrchr(pszString, ']') )
+			{
+				const int index = pChar - pszString;
+				if ( ( index > 2 ) && V_ColorCodeStart ( pszString, index-2 ) )
+				{
+					pszString[index-2] = 0;
+					ulStringLength = static_cast<ULONG>(strlen( pszString ));
+				}
+				else
+					break;
+			}
+			else
+				break;
+		}
 	}
 }
 
