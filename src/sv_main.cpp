@@ -1036,6 +1036,11 @@ void SERVER_GetPackets( void )
 EXTERN_CVAR( Bool, sv_logfiletimestamp )
 void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
+	// [BB] Ignore any chat messages with invalid chat mode. This is crucial because
+	// the rest of the code assumes that only valid chat modes are used.
+	if ( ( ulMode == CHATMODE_NONE ) || ( ulMode >= NUM_CHATMODES ) )
+		return;
+
 	bool	bFordidChatToPlayers;
 
 	// Potentially prevent spectators from talking to active players during LMS games.

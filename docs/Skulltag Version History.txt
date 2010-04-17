@@ -25,6 +25,7 @@ latestzdoom branch
 -	- Fixed: If a morphed player defected to another team, a voodoo doll was left behind. [Torr Samaho]
 -	- Fixed: After morphing/demorphing, clients don't properly display the health corresponding to their new form. [Eruanna, Torr Samaho]
 -	- Fixed problems with player names containing incomplete color codes of type "\c[X". [Torr Samaho]
+-	- Fixed: Malformed net packets could be used to disguise chat messages as normal console messages. [Torr Samaho, SuperGod]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
