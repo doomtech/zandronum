@@ -2634,6 +2634,32 @@ void PLAYER_AwardDamagePointsForAllPlayers( void )
 	}
 }
 
+//*****************************************************************************
+//
+void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon )
+{
+	// [BB] Validity check.
+	if ( pPlayer == NULL )
+		return;
+
+	// Set the ready and pending weapon.
+	// [BB] When playing a client side demo, the weapon for the consoleplayer will
+	// be selected by a recorded CLD_INVUSE command.
+	if ( ( CLIENTDEMO_IsPlaying() == false ) || ( pPlayer - players ) != consoleplayer )
+		pPlayer->ReadyWeapon = pPlayer->PendingWeapon = pWeapon;
+
+	// [BC] If we're a client, tell the server we're switching weapons.
+	// [BB] It's possible, that a mod doesn't give the player any weapons. Therefore we also must check pWeapon
+	// and can allow PLAYER_SetWeapon to be called with pWeapon == NULL.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( pPlayer - players ) == consoleplayer ) && pWeapon )
+	{
+		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( ));
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pWeapon->GetClass( )->TypeName.GetChars( ) );
+	}
+}
+
 CCMD (kill)
 {
 	// Only allow it in a level.

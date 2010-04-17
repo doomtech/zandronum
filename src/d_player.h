@@ -571,6 +571,7 @@ bool	PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer );
 bool	PLAYER_Taunt( player_t *pPlayer );
 LONG	PLAYER_GetRailgunColor( player_t *pPlayer );
 void	PLAYER_AwardDamagePointsForAllPlayers( void );
+void	PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon );
 
 void P_CheckPlayerSprites();
 

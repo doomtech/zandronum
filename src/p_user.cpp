@@ -1456,17 +1456,8 @@ void APlayerPawn::GiveDefaultInventory ()
 				player->health = 1;
 
 			// Finally, set the ready and pending weapon.
-			player->ReadyWeapon = player->PendingWeapon = pPendingWeapon;
-
-			// [BC] If we're a client, tell the server we're switching weapons.
-			// [BB] It's possible, that a mod doesn't give the player any weapons. Therefore we also must check pPendingWeapon.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && pPendingWeapon )
-			{
-				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( ));
-
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPendingWeapon->GetClass( )->TypeName.GetChars( ) );
-			}
+			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+			PLAYER_SetWeapon( player, pPendingWeapon );
 		}
 		// [BC] If the user has the shotgun start flag set, do that!
 		else if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
@@ -1476,12 +1467,15 @@ void APlayerPawn::GiveDefaultInventory ()
 			pInventory = player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "Shotgun" ) );
 			if ( pInventory )
 			{
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+				PLAYER_SetWeapon( player, static_cast<AWeapon *>( pInventory ) );
 
 				// Start them off with two clips.
-				pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" )->ActorInfo->GetReplacement( )->Class );
-				if ( pInventory != NULL )
-					pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
+				// [BB] PLAYER_SetWeapon doesn't set the consoleplayer's ReadyWeapon/PendingWeapon.
+				// Thus, we can't use those pointers, but need to rely on pInventory.
+				AInventory *pAmmo = player->mo->FindInventory( PClass::FindClass( "Shell" )->ActorInfo->GetReplacement( )->Class );
+				if ( pAmmo != NULL )
+					pAmmo->Amount = static_cast<AWeapon *>( pInventory )->AmmoGive1 * 2;
 			}
 		}
 		else if (!Inventory)
@@ -1585,16 +1579,8 @@ void APlayerPawn::GiveDefaultInventory ()
 				player->health = 1;
 
 			// Finally, set the ready and pending weapon.
-			player->ReadyWeapon = player->PendingWeapon = pPendingWeapon;
-
-			// [BC] If we're a client, tell the server we're switching weapons.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-			{
-				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( ));
-
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPendingWeapon->GetClass( )->TypeName.GetChars( ) );
-			}
+			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+			PLAYER_SetWeapon( player, pPendingWeapon );
 		}
 	}
 }
