@@ -737,6 +737,8 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 				break;
 			}
 		}
+		if ( ifc.ifc_req != NULL )
+			free ( ifc.ifc_req );
 #else
 		struct ifreq       *ifr;
 		struct ifconf      ifc;
