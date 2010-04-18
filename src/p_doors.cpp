@@ -481,11 +481,11 @@ DDoor::DDoor (sector_t *sec, EVlDoor type, fixed_t speed, int delay, int lightTa
 	}
 	m_OldFloorDist = sec->floorplane.d;
 
+	// [BB] We need to initialize the ID, because P_GetFirstFreeDoorID relies on this.
+	m_lDoorID = -1;
 	// [BC] Assign the door's network ID.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		m_lDoorID = P_GetFirstFreeDoorID( );
-	else
-		m_lDoorID = -1;
 }
 
 LONG DDoor::GetID( void )
