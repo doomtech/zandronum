@@ -1950,10 +1950,12 @@ void D_DoomMain (void)
 	{
 		I_FatalError ("Cannot find " BASEWAD);
 	}
-	D_AddFile( wad, false );
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
+		// [BB] This loads skulltag.pk3. skulltag_data.pk3 will be loaded by D_FindIWAD.
+		D_AddFile( wad, false );
+
 		// [BB] Check if the user wants to look for skulltag_data.pk3 / skulltag.wad elsewhere.
 		const char* skulldataFilename = Args->CheckValue( "-skulldata" );
 		if ( skulldataFilename )
