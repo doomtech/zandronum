@@ -719,11 +719,11 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		if( smf->flags & MDL_ROTATING )
 		{
 			float offsetAngle = 0.;
-			const float time = GetTimeFloat()/200.;
+			const float time = smf->rotationSpeed*GetTimeFloat()/200.;
 			offsetAngle = ( (time - static_cast<int>(time)) *360. );
 
 			ModelToWorld.Translate(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, smf->rotationSpeed);
+			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, offsetAngle);
 			ModelToWorld.Translate(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
 		}
 
