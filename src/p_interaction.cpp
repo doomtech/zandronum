@@ -2244,7 +2244,12 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// Is this player tagged as a dead spectator, give him life.
 		pPlayer->playerstate = PST_LIVE;
 		if ( bDeadSpectator == false )
+		{
 			pPlayer->health = pPlayer->mo->health = deh.StartHealth;
+			// [BB] Spectators don't crouch. We don't need to uncrouch dead spectators, that is done automatically
+			// when they are reborn as dead spectator.
+			pPlayer->Uncrouch();
+		}
 
 		// If this player is being forced into spectatorship, don't destroy his or her
 		// old body.
