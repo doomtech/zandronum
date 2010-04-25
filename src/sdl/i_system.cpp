@@ -528,7 +528,7 @@ bool I_WriteIniFailed ()
 
 static const char *pattern;
 
-#ifdef __FreeBSD__
+#if defined ( __APPLE__ ) || defined ( __FreeBSD__ )
 static int matchfile (struct dirent *ent)
 #else
 static int matchfile (const struct dirent *ent)
@@ -664,3 +664,16 @@ unsigned int I_MakeRNGSeed()
 	return seed;
 }
 
+#if !defined(__amd64__) && !defined(__i386__)
+extern "C" CPUInfo CPU;
+
+void CheckCPUID(CPUInfo *cpu)
+{
+	memset(cpu, 0, sizeof(*cpu));
+	cpu->DataL1LineSize = 32;	// Assume a 32-byte cache line
+}
+
+void DumpCPUInfo(const CPUInfo *cpu)
+{
+}
+#endif

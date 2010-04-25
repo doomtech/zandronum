@@ -1946,8 +1946,8 @@ void DACSThinker::Serialize (FArchive &arc)
 			if (RunningScripts[i])
 				arc << RunningScripts[i] << i;
 		}
-		DLevelScript *nil = NULL;
-		arc << nil;
+		DLevelScript *nilptr = NULL;
+		arc << nilptr;
 	}
 	else
 	{

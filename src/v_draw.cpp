@@ -597,7 +597,7 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 			break;
 
 		case DTA_RenderStyle:
-			parms->style = va_arg (tags, FRenderStyle);
+			parms->style.AsDWORD = va_arg (tags, DWORD);
 			break;
 
 		// [BC] Is what we're drawing text? If so, handle it differently.
