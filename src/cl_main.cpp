@@ -5161,7 +5161,9 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Create a little disconnect particle effect thingamabobber!
-	P_DisconnectEffect( players[ulPlayer].mo );
+	// [BB] Only do this if a non-spectator disconnects.
+	if ( players[ulPlayer].bSpectating == false )
+		P_DisconnectEffect( players[ulPlayer].mo );
 
 	// Destroy the actor associated with the player.
 	if ( players[ulPlayer].mo )
@@ -5260,6 +5262,12 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 	// If this is an invalid player, break out.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
+
+	// [BB] If the player turns into a true spectator, create the disconnect particle effect.
+	// Note: We have to do this before the player is actually turned into a spectator, because
+	// the tiny height of a spectator's body would alter the effect.
+	if ( ( bDeadSpectator == false ) && players[ulPlayer].mo )
+		P_DisconnectEffect( players[ulPlayer].mo );
 
 	// Make the player a spectator.
 	PLAYER_SetSpectator( &players[ulPlayer], false, bDeadSpectator );
