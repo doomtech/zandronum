@@ -73,6 +73,7 @@
 #include "r_translate.h"
 #include "domination.h"
 #include "p_acs.h"
+#include "templates.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
@@ -503,6 +504,9 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 	else
 		lInflictorID = -1;
 
+	// [BB] We only send the health as short, so make sure that it doesn't exceed the corresponding range.
+	WORD wHealth = clamp ( players[ulPlayer].mo->health, SHRT_MIN, SHRT_MAX );
+
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
@@ -514,7 +518,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, wHealth );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
