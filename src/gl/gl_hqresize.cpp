@@ -215,7 +215,7 @@ static unsigned char *hqNxHelper( void (*hqNxFunction) ( int*, unsigned char*, i
 //  the upsampled buffer.
 //
 //===========================================================================
-unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight )
+unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight, bool hasAlpha )
 {
 	// [BB] Make sure that outWidth and outHeight denote the size of
 	// the returned buffer even if we don't upsample the input buffer.
@@ -224,10 +224,6 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 
 	// [BB] Don't resample if the width or height of the input texture is bigger than gl_texture_hqresize_maxinputsize.
 	if ( ( inWidth > gl_texture_hqresize_maxinputsize ) || ( inHeight > gl_texture_hqresize_maxinputsize ) )
-		return inputBuffer;
-
-	// [BB] The hqnx upsampling (not the scaleN one) destroys partial transparency, don't upsamle textures using it.
-	if ( inputGLTexture->bIsTransparent == 1 )
 		return inputBuffer;
 
 	// [BB] Don't try to upsample textures based off FCanvasTexture.
@@ -257,6 +253,12 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 	if (inputBuffer)
 	{
 		int type = gl_texture_hqresize;
+		// hqNx does not preserve the alpha channel so fall back to ScaleNx for such textures
+		if (hasAlpha && type > 3)
+		{
+			type -= 3;
+		}
+
 		switch (type)
 		{
 		case 1:

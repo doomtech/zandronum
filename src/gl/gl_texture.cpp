@@ -1171,7 +1171,7 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 
 	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
 	// w, h are set to the width and height of the buffer.
-	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h );
+	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
 
 	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && w <= 256 && h <= 256)
 	{
