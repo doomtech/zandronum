@@ -1322,6 +1322,10 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 			( line->special != Line_Horizon ))
 		{
 			SERVERCOMMANDS_MissileExplode( mo, line );
+			// [BB] Since SERVERCOMMANDS_MissileExplode doesn't tell the clients the target, the clients
+			// always select the Death state. In case another state is used, inform the clients.
+			if ( ( nextstate != NULL ) && ( nextstate != mo->FindState(NAME_Death) ) )
+				SERVERCOMMANDS_SetThingFrame( mo, nextstate );
 		}
 	}
 
