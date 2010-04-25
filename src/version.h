@@ -142,8 +142,9 @@ static inline const char *MakeSaveSig()
 #define BUGS_FORUM_URL	"http://www." DOMAIN_NAME "/forum/"
 
 #ifdef unix
-#define HOME_DIR "~/." GAMENAMELOWERCASE
 #define GAME_DIR "." GAMENAMELOWERCASE
+#elif defined(__APPLE__)
+#define GAME_DIR GAMENAME
 #else
 #define CDROM_DIR "C:\\ZDOOMDAT"
 #endif
