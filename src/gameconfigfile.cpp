@@ -26,7 +26,7 @@
 ** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 ** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 ** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OFf
 ** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **---------------------------------------------------------------------------
 **
@@ -34,6 +34,10 @@
 
 #include <stdio.h>
 #include <time.h>
+
+#ifdef __APPLE__
+#include <CoreServices/CoreServices.h>
+#endif
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -592,6 +596,19 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 		path += "skulltag.ini";
 	}
 	return path;
+#elif defined(__APPLE__)
+	char cpath[PATH_MAX];
+	FSRef folder;
+	
+	if (noErr == FSFindFolder(kUserDomain, kPreferencesFolderType, kCreateFolder, &folder) &&
+		noErr == FSRefMakePath(&folder, (UInt8*)cpath, PATH_MAX))
+	{
+		path = cpath;
+		path += "/zdoom.ini";
+		return path;
+	}
+	// Ungh.
+	return "zdoom.ini";
 #else
 	return GetUserFile ("skulltag.ini");
 #endif

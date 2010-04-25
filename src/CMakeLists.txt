@@ -520,6 +520,9 @@ else( WIN32 )
 		sdl/sdlglvideo.cpp
 		sdl/sdlvideo.cpp
 		sdl/st_start.cpp )
+	if( APPLE )
+		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} sdl/SDLMain.m )
+	endif( APPLE )
 endif( WIN32 )
 
 if( NO_ASM )
@@ -555,8 +558,9 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 if( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 	set( X86_SOURCES )
+	set( NOT_X86 ON )
 else( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
-	set( X86_SOURCES nodebuild_classify_sse2.cpp x86.cpp )
+	set( X86_SOURCES nodebuild_classify_sse2.cpp )
 endif( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 
 # [BB] Only complile the gl sources, if we want GL support.
@@ -612,7 +616,8 @@ add_executable( zdoom WIN32
 	autostart.cpp
 	${ASM_SOURCES}
 	${SYSTEM_SOURCES}
-	${SSE_SOURCES}
+	${X86_SOURCES}
+	x86.cpp
 	am_map.cpp
 	announcer.cpp #ST
 	astar.cpp #ST
@@ -978,7 +983,9 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set_source_files_properties( nodebuild_classify_sse2.cpp PROPERTIES COMPILE_FLAGS "-msse2 -mfpmath=sse" )
 
 	# Need to enable intrinsics for this file.
-	set_source_files_properties( x86.cpp PROPERTIES COMPILE_FLAGS "-msse2 -mmmx" )
+	if( NOT NOT_X86 )
+		set_source_files_properties( x86.cpp PROPERTIES COMPILE_FLAGS "-msse2 -mmmx" )
+	endif( NOT NOT_X86 )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
 if( MSVC )
