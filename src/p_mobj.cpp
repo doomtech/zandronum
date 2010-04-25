@@ -3144,6 +3144,13 @@ void AActor::HitFloor ()
 
 bool AActor::Slam (AActor *thing)
 {
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return false;
+	}
+
 	flags &= ~MF_SKULLFLY;
 	momx = momy = momz = 0;
 
