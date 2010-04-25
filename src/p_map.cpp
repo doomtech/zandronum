@@ -3829,7 +3829,8 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	x2 = t1->x + (distance>>FRACBITS)*finecosine[angle];
 	y2 = t1->y + (distance>>FRACBITS)*finesine[angle];
 	aim.shootz = t1->z + (t1->height>>1) - t1->floorclip;
-	if (t1->player != NULL)
+	// [BB] In ST, right after a map change, mo apparently can be zero.
+	if ( ( t1->player != NULL ) && ( t1->player->mo != NULL ) )
 	{
 		aim.shootz += FixedMul (t1->player->mo->AttackZOffset, t1->player->crouchfactor);
 	}
