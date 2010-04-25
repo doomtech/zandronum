@@ -172,7 +172,7 @@ struct PalEntry
 	operator DWORD () const { return *(DWORD *)this; }
 	PalEntry &operator= (DWORD other) { *(DWORD *)this = other; return *this; }
 	PalEntry InverseColor() const { PalEntry nc; nc.a = a; nc.r = 255 - r; nc.g = 255 - g; nc.b = 255 - b; return nc; }
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 	PalEntry (BYTE ir, BYTE ig, BYTE ib) : a(0), r(ir), g(ig), b(ib) {}
 	PalEntry (BYTE ia, BYTE ir, BYTE ig, BYTE ib) : a(ia), r(ir), g(ig), b(ib) {}
 	BYTE a,r,g,b;

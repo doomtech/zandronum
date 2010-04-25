@@ -887,7 +887,7 @@ bool FGLTexture::FindHoles(const unsigned char * buffer, int w, int h)
 // taking the value of one of the neighboring pixels is fully sufficient
 //
 //===========================================================================
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 #define MSB 0
 #define SOME_MASK 0xffffff00
 #else
