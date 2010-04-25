@@ -131,7 +131,8 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	bool	bPop = true;
 
 	// If we're in a duel, revert to the "waiting for players" state.
-	if ( duel )
+	// [BB] But only do so if there are less then two duelers left (probably JOINQUEUE_PlayerLeftGame was called mistakenly).
+	if ( duel && ( DUEL_CountActiveDuelers( ) < 2 ) )
 		DUEL_SetState( DS_WAITINGFORPLAYERS );
 
 	// If only one (or zero) person is left, go back to "waiting for players".
