@@ -30,26 +30,37 @@ int main(int argc, char **argv)
 	// Use svnversion to get the revision number. If that fails, pretend it's
 	// revision 0. Note that this requires you have the command-line svn tools installed.
 	sprintf (run, "svnversion -cn %s", argv[1]);
-	if ((name = tmpnam(NULL)) != NULL &&
-		(stream = freopen(name, "w+b", stdout)) != NULL &&
-		system(run) == 0 &&
-#ifndef __FreeBSD__
-		errno == 0 &&
-#endif
-		fseek(stream, 0, SEEK_SET) == 0 &&
-		fgets(currev, sizeof currev, stream) == currev &&
-		(isdigit(currev[0]) || (currev[0] == '-' && currev[1] == '1')))
+	if ((name = tempnam(NULL, "svnout")) != NULL)
 	{
-		gotrev = 1;
+#ifdef __APPLE__
+		// tempnam will return errno of 2 even though it is successful for our purposes.
+		errno = 0;
+#endif
+		if((stream = freopen(name, "w+b", stdout)) != NULL &&
+		   system(run) == 0 &&
+#ifndef __FreeBSD__
+		   errno == 0 &&
+#endif
+		   fseek(stream, 0, SEEK_SET) == 0 &&
+		   fgets(currev, sizeof currev, stream) == currev &&
+		   (isdigit(currev[0]) || (currev[0] == '-' && currev[1] == '1')))
+		{
+			gotrev = 1;
+		}
 	}
 	if (stream != NULL)
 	{
 		fclose (stream);
 		remove (name);
 	}
+	if (name != NULL)
+	{
+		free (name);
+	}
 
 	if (!gotrev)
 	{
+		fprintf (stderr, "Failed to get current revision: %s\n", strerror(errno));
 		strcpy (currev, "0");
 		rev = currev;
 	}
