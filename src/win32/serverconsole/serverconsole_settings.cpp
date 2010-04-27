@@ -801,6 +801,11 @@ BOOL CALLBACK settings_AdminTab_Callback( HWND hDlg, UINT Message, WPARAM wParam
 		SendDlgItemMessage( hDlg, IDC_LOGFILENAME_TIMESTAMP, BM_SETCHECK, ( sv_logfilenametimestamp ) ? BST_CHECKED : BST_UNCHECKED, 0 );
 		SendDlgItemMessage( hDlg, IDC_ENABLELOGGING, BM_SETCHECK, ( Logfile ) ? BST_CHECKED : BST_UNCHECKED, 0 );
 		SetDlgItemText( hDlg, IDC_LOGFILE, g_szDesiredLogFilename );		
+
+		// [BB] Initialize the "Server control" checkbox.
+		SendDlgItemMessage( hDlg, IDC_ALLOWRCON, BM_SETCHECK, ( strlen ( sv_rconpassword ) > 4 ) ? BST_CHECKED : BST_UNCHECKED, 0 );
+		SetDlgItemText( hDlg, IDC_RCONPASSWORD, sv_rconpassword );
+
 		settings_AdminTab_ShowOrHideItems( hDlg );
 		break;
 	case WM_COMMAND:
