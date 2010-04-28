@@ -8,6 +8,8 @@ include( CheckCXXSourceCompiles )
 include( CheckFunctionExists )
 include( FindPkgConfig )
 include( FindOpenGL )
+# [BL] I can't seem to find where ZDoom gets this
+include( CheckLibraryExists )
 
 option( NO_ASM "Disable assembly code" )
 if( CMAKE_COMPILER_IS_GNUCXX )
@@ -118,6 +120,11 @@ else( WIN32 )
 		set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 		set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
 		set( NO_GTK ON )
+
+		# [BL] We need to compile without OpenGL for now.
+		# Same goes for the ASM code.
+		set( NO_GL ON )
+		set( NO_ASM ON )
 	else( APPLE )
 		option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
 		option( VALGRIND "Add special Valgrind sequences to self-modifying code" )

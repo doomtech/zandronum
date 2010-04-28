@@ -844,7 +844,7 @@ void FWadCollection::AddFile (const char *filename, const char *data, int length
 		fileinfo2free = NULL;
 		fileinfo = &singleinfo;
 		singleinfo.FilePos = 0;
-		singleinfo.Size = LittleLong(wadinfo->GetLength());
+		singleinfo.Size = LittleLong((int) wadinfo->GetLength()); // [BL] Fix Mac compilation problem until we get the new resource code.
 		FString name(ExtractFileBase (filename));
 		uppercopy(singleinfo.Name, name);
 		NumLumps++;
