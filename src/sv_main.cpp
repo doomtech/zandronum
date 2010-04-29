@@ -4878,8 +4878,8 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 	{
 		cht_DoCheat( &players[g_lCurrentClient], ulCheat );
 
-		// Tell clients about this cheat.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		// Tell clients about this cheat. [BB] CHT_MORPH is completely server side.
+		if ( ulCheat != CHT_MORPH )
 		{
 			// [BB] You only need to notify the client who wants to use chasecam about it.
 			// If you tell it to all clients, it looks weird for a client spying someone with chasecam on.

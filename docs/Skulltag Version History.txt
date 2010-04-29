@@ -15,6 +15,7 @@
 latestzdoom branch
 ------------------
 
+*+	- Skulltag now supports Intel based Macintoshes (mainly done by backporting ZDoom revisions 1571, 1581, 1607, 1736, 1779, 1780, 1786-1788, 1793, 1807, 1814, 2122). [Blzut3, Torr Samaho]
 +	- Added basic outbound net traffic analysis code for the server. This code allows to find out which actor classes and which ACS scripts use how much net traffic and should greatly simply the identification of network bandwidth hogs in custom mods. [Torr Samaho]
 -	- Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
@@ -35,10 +36,10 @@ latestzdoom branch
 -	- Fixed: Spectators could bump non-teleport line specials offline. [Torr Samaho]
 -	- Fixed: If a player turned into a spectator while crouching, the spectator kept the slow crouching speed. [Torr Samaho]
 -	- Fixed: Actors like LostSoul that deal damage by slamming could cause player health desyncs on the clients. [Torr Samaho]
+-	- Fixed: Unmorphing with the morphme cheat didn't work properly online. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
-!	- Skulltag now works under Intel based Macintoshes. [Blzut3]
 
 
 98b
