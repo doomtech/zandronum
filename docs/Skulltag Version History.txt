@@ -37,6 +37,7 @@ latestzdoom branch
 -	- Fixed: If a player turned into a spectator while crouching, the spectator kept the slow crouching speed. [Torr Samaho]
 -	- Fixed: Actors like LostSoul that deal damage by slamming could cause player health desyncs on the clients. [Torr Samaho]
 -	- Fixed: Unmorphing with the morphme cheat didn't work properly online. [Torr Samaho]
+-	- Fixed: A morphed player using the slot command online could cause weapon desync issues. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

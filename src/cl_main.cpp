@@ -3918,7 +3918,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		// [BB] Bring up the weapon of the morphed class.
 		pPlayer->mo->ActivateMorphWeapon();
+		// [BB] This marks the player as morphed. The client doesn't need to know the real
+		// morph time since the server handles the timing of the unmorphing.
+		pPlayer->morphTics = -1;
 	}
+	else 
+		pPlayer->morphTics = 0;
 
 	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
 	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
