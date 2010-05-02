@@ -1635,14 +1635,20 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		// [RC] Master server is sending us the holy banlist.
 		case MASTER_SERVER_BANLIST:
+		case MASTER_SERVER_VERIFICATION:
 
 			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
 			{
 				FString MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
 				if ( SERVER_GetMasterBanlistVerificationString().Compare ( MasterBanlistVerificationString ) == 0 )
-					SERVERBAN_ReadMasterServerBans( pByteStream );
+				{
+					if ( lCommand == MASTER_SERVER_BANLIST )
+						SERVERBAN_ReadMasterServerBans( pByteStream );
+					else
+						SERVER_MASTER_HandleVerificationRequest( pByteStream );
+				}
 				else
-					Printf ( "Banlist with wrong verification string received. Ignoring\n" );
+					Printf ( "Master server message with wrong verification string received. Ignoring\n" );
 			}
 			return;
 		// Ignore; possibly a client who thinks he's still in a game, but isn't.

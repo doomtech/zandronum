@@ -84,6 +84,7 @@ public:
 
 // Global server list.
 static	std::set<SERVER_s, SERVERCompFunc> g_Servers;
+static	std::set<SERVER_s, SERVERCompFunc> g_UnverifiedServers;
 
 // Message buffer we write our commands to.
 static	NETBUFFER_s				g_MessageBuffer;
@@ -168,6 +169,16 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 #endif
 }
 
+//*****************************************************************************
+//
+void MASTERSERVER_RequestServerVerification( const SERVER_s &Server )
+{
+	NETWORK_ClearBuffer( &g_MessageBuffer );
+	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_VERIFICATION );
+	NETWORK_WriteString( &g_MessageBuffer.ByteStream, Server.MasterBanlistVerificationString.c_str() );
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, Server.ServerVerificationInt );
+	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
+}
 //*****************************************************************************
 //
 void MASTERSERVER_SendServerIPToLauncher( const NETADDRESS_s &Address, BYTESTREAM_s *pByteStream )
@@ -274,6 +285,27 @@ void MASTERSERVER_InitializeBans( void )
 
 //*****************************************************************************
 //
+void MASTERSERVER_AddServer( const SERVER_s &Server, std::set<SERVER_s, SERVERCompFunc> &ServerSet )
+{
+	std::set<SERVER_s, SERVERCompFunc>::iterator addedServer = ServerSet.insert ( Server ).first;
+
+	if ( addedServer == ServerSet.end() )
+		printf( "ERROR: Adding new entry to the set failed. This should not happen!\n" );
+	else
+	{
+		addedServer->lLastReceived = g_lCurrentTime;						
+		if ( &ServerSet == &g_Servers )
+		{
+			printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( addedServer->Address ));
+			MASTERSERVER_SendBanlistToServer( *addedServer );
+		}
+		else
+			printf( "+ Adding %s to the verification list.\n", NETWORK_AddressToString( addedServer->Address ));
+	}
+}
+
+//*****************************************************************************
+//
 void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 {
 	long			lCommand;
@@ -327,7 +359,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// [BB] If no value was send, NETWORK_ReadByte just returns -1.
 			// Thus, this is still compatible with older servers that don't tell us whether they enforce our bans
 			// and gives them the benefit of the doubt, i.e. it assumes that they enforce our bans.
-			newServer.bEnforcesBanList = ( NETWORK_ReadByte( pByteStream ) != 0 );
+			const int temp = NETWORK_ReadByte( pByteStream );
+			newServer.bEnforcesBanList = ( temp != 0 );
+			const bool bNewFormatServer = ( temp != -1 );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
@@ -347,31 +381,62 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( AddressFrom ));
 				else
 				{
-					std::set<SERVER_s, SERVERCompFunc>::iterator addedServer = g_Servers.insert ( newServer ).first;
-
-					if ( addedServer == g_Servers.end() )
-						printf( "ERROR: Adding new entry to the set failed. This should not happen!\n" );
-					else
+					if ( bNewFormatServer )
 					{
-						addedServer->lLastReceived = g_lCurrentTime;						
-						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( addedServer->Address ));
-						MASTERSERVER_SendBanlistToServer( *addedServer );
+						std::set<SERVER_s, SERVERCompFunc>::iterator currentUnverifiedServer = g_UnverifiedServers.find ( newServer );
+						// [BB] This is a new server, but we still need to verify it.
+						if ( currentUnverifiedServer == g_UnverifiedServers.end() )
+						{
+							srand ( time(NULL) );
+							newServer.ServerVerificationInt = rand() + rand() * rand() + rand() * rand() * rand();
+							// [BB] We don't send the ban list to unverified servers, so just pretent the server already has the list.
+							newServer.bHasLatestBanList = true;
+
+							MASTERSERVER_RequestServerVerification ( newServer );
+							MASTERSERVER_AddServer( newServer, g_UnverifiedServers );
+						}
 					}
+					else
+						MASTERSERVER_AddServer( newServer, g_Servers );
 				}
 			}
 
 			// Command is from a server already on the list. It's just sending us a heartbeat.
 			else
 			{
-				currentServer->lLastReceived = g_lCurrentTime;
-				// [BB] Also update MasterBanlistVerificationString and bEnforcesBanList.
-				currentServer->MasterBanlistVerificationString = newServer.MasterBanlistVerificationString;
-				currentServer->bEnforcesBanList = newServer.bEnforcesBanList;
+				// [BB] Only if the verification string matches.
+				if ( stricmp ( currentServer->MasterBanlistVerificationString.c_str(), newServer.MasterBanlistVerificationString.c_str() ) == 0 )
+				{
+					currentServer->lLastReceived = g_lCurrentTime;
+					// [BB] The server possibly changed the ban setting, so update it.
+					currentServer->bEnforcesBanList = newServer.bEnforcesBanList;
+				}
 			}
 
 			// Ignore IP for 10 seconds.
 		//	if ( !g_MultiServerExceptions.isIPInList( Address ) )
 		//		g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
+			return;
+		}
+	case SERVER_MASTER_VERIFICATION:
+		{
+			SERVER_s newServer;
+			newServer.Address = AddressFrom;
+			newServer.MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
+			newServer.ServerVerificationInt = NETWORK_ReadLong( pByteStream );
+
+			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_UnverifiedServers.find ( newServer );
+
+			// [BB] Apparently, we didn't request any verification from this server, so ignore it.
+			if ( currentServer == g_UnverifiedServers.end() )
+				return;
+
+			if ( ( stricmp ( newServer.MasterBanlistVerificationString.c_str(), currentServer->MasterBanlistVerificationString.c_str() ) == 0 )
+				&& ( newServer.ServerVerificationInt == currentServer->ServerVerificationInt ) )
+			{
+				MASTERSERVER_AddServer( *currentServer, g_Servers );
+				g_UnverifiedServers.erase ( currentServer );
+			}
 			return;
 		}
 	// Launcher is asking master server for server list.
@@ -491,19 +556,19 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-void MASTERSERVER_CheckTimeouts( void )
+void MASTERSERVER_CheckTimeouts( std::set<SERVER_s, SERVERCompFunc> &ServerSet )
 {
 	// [BB] Because we are erasing entries from the set, the iterator has to be incremented inside
 	// the loop, depending on whether and element was erased or not.
-	for( std::set<SERVER_s, SERVERCompFunc>::iterator it = g_Servers.begin(); it != g_Servers.end(); )
+	for( std::set<SERVER_s, SERVERCompFunc>::iterator it = ServerSet.begin(); it != ServerSet.end(); )
 	{
 		// If the server has timed out, make it an open slot!
 		if (( g_lCurrentTime - it->lLastReceived ) >= 60 )
 		{
-			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( it->Address ));
+			printf( "- %server at %s timed out.\n", ( &ServerSet == &g_UnverifiedServers ) ? "Unverified s" : "S", NETWORK_AddressToString( it->Address ));
 			// [BB] The standard does not require set::erase to return the incremented operator,
 			// that's why we must use the post increment operator here.
-			g_Servers.erase ( it++ );
+			ServerSet.erase ( it++ );
 			continue;
 		}
 		else
@@ -517,6 +582,14 @@ void MASTERSERVER_CheckTimeouts( void )
 			++it;
 		}
 	}
+}
+
+//*****************************************************************************
+//
+void MASTERSERVER_CheckTimeouts( void )
+{
+	MASTERSERVER_CheckTimeouts ( g_Servers );
+	MASTERSERVER_CheckTimeouts ( g_UnverifiedServers );
 }
 
 //*****************************************************************************

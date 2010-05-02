@@ -130,6 +130,9 @@ enum
 
 	// [BB] Launcher is querying the master server for a full server list, possibly split into several packets.
 	LAUNCHER_MASTER_CHALLENGE,
+
+	// [BB] Server is answering a MasterBanlistVerificationString verification request.
+	SERVER_MASTER_VERIFICATION,
 };
 
 // [BB] Protocol version of the master server, currently only used in conjunction with LAUNCHER_MASTER_CHALLENGE.
@@ -140,6 +143,8 @@ enum
 
 // Master server is sending its banlist to a server.
 #define MASTER_SERVER_BANLIST		205
+// [BB] Master is asking the server to verify its MasterBanlistVerificationString.
+#define MASTER_SERVER_VERIFICATION	206
 
 #define	DEFAULT_SERVER_PORT			10666
 #define	DEFAULT_CLIENT_PORT			10667

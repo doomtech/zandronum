@@ -388,6 +388,7 @@ void		SERVER_MASTER_Broadcast( void );
 void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, bool bBroadcasting );
 const char	*SERVER_MASTER_GetGameName( void );
 NETADDRESS_s SERVER_MASTER_GetMasterAddress( void );
+void		SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream );
 
 // Statistic functions.
 LONG		SERVER_STATISTIC_GetTotalSecondsElapsed( void );

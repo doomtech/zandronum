@@ -589,6 +589,21 @@ NETADDRESS_s SERVER_MASTER_GetMasterAddress( void )
 	return g_AddressMasterServer;
 }
 
+//*****************************************************************************
+//
+void SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream  )
+{
+	LONG lVerificationNumber = NETWORK_ReadLong( pByteStream );
+
+	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_VERIFICATION );
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, lVerificationNumber );
+
+	// [BB] Send the master server our packet.
+	NETWORK_LaunchPacket( &g_MasterServerBuffer, SERVER_MASTER_GetMasterAddress () );
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CONSOLE ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
