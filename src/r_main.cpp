@@ -60,6 +60,9 @@
 
 // [BC] New #includes.
 #include "sv_commands.h"
+
+EXTERN_CVAR(Int, vid_renderer)
+
 // MACROS ------------------------------------------------------------------
 
 #if 0
@@ -1460,7 +1463,10 @@ void R_SetupBuffer ()
 			dc_pitch = pitch;
 			R_InitFuzzTable (pitch);
 #if defined(X86_ASM) || defined(X64_ASM)
-			ASM_PatchPitch ();
+			if (vid_renderer == 0)
+			{
+				ASM_PatchPitch ();
+			}
 #endif
 		}
 		dc_destorg = lineptr;
