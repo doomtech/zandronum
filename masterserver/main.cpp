@@ -104,6 +104,8 @@ static	QueryIPQueue			g_queryIPQueue( 10 );
 static	QueryIPQueue			g_floodProtectionIPQueue( 10 );
 static	QueryIPQueue			g_ShortFloodQueue( 3 );
 
+// [BB] Do we want to hide servers that ignore our ban list?
+static	bool					g_bHideBanIgnoringServers = false;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -322,6 +324,10 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// [BB] If no verification string was send, NETWORK_ReadString just returns an empty string.
 			// Thus, this is still compatible with older servers that don't send the string.
 			newServer.MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
+			// [BB] If no value was send, NETWORK_ReadByte just returns -1.
+			// Thus, this is still compatible with older servers that don't tell us whether they enforce our bans
+			// and gives them the benefit of the doubt, i.e. it assumes that they enforce our bans.
+			newServer.bEnforcesBanList = ( NETWORK_ReadByte( pByteStream ) != 0 );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
@@ -358,8 +364,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			else
 			{
 				currentServer->lLastReceived = g_lCurrentTime;
-				// [BB] Also update MasterBanlistVerificationString.
+				// [BB] Also update MasterBanlistVerificationString and bEnforcesBanList.
 				currentServer->MasterBanlistVerificationString = newServer.MasterBanlistVerificationString;
+				currentServer->bEnforcesBanList = newServer.bEnforcesBanList;
 			}
 
 			// Ignore IP for 10 seconds.
@@ -410,7 +417,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
 				for( std::set<SERVER_s, SERVERCompFunc>::const_iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
 				{
-					MASTERSERVER_SendServerIPToLauncher ( it->Address, &g_MessageBuffer.ByteStream );
+					// [BB] Possibly omit servers that don't enforce our ban list.
+					if ( ( it->bEnforcesBanList == true ) || ( g_bHideBanIgnoringServers == false ) )
+						MASTERSERVER_SendServerIPToLauncher ( it->Address, &g_MessageBuffer.ByteStream );
 				}
 
 				// Tell the launcher that we're done sending servers.
@@ -438,9 +447,15 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					std::vector<USHORT> serverPortList;
 
 					do {
-						serverPortList.push_back ( it->Address.usPort );
+						// [BB] Possibly omit servers that don't enforce our ban list.
+						if ( ( it->bEnforcesBanList == true ) || ( g_bHideBanIgnoringServers == false ) )
+							serverPortList.push_back ( it->Address.usPort );
 						++it;
 					} while ( ( it != g_Servers.end() ) && NETWORK_CompareAddress( it->Address, serverAddress, true ) );
+
+					// [BB] All servers on this IP ignore the list, nothing to send.
+					if ( serverPortList.size() == 0 )
+						continue;
 
 					const unsigned long ulServerBlockNetSize = MASTERSERVER_CalcServerIPBlockNetSize( serverAddress, serverPortList );
 
@@ -506,7 +521,7 @@ void MASTERSERVER_CheckTimeouts( void )
 
 //*****************************************************************************
 //
-int main( )
+int main( int argc, char **argv )
 {
 	BYTESTREAM_s	*pByteStream;
 
@@ -531,6 +546,18 @@ int main( )
 	std::cerr << "Initializing ban list...\n";
 	MASTERSERVER_InitializeBans( );
 	int lastParsingTime = I_GetTime( );
+
+	// [BB] Do we want to hide servers that ignore our ban list?
+	if ( ( argc >= 2 ) && ( stricmp ( argv[1], "-HideBanIgnoringServers" ) == 0 ) )
+	{
+		std::cerr << "Note: Servers that do not enforce our ban list are hidden." << std::endl;
+		g_bHideBanIgnoringServers = true;
+	}
+	else
+	{
+		std::cerr << "Note: Servers that do not enforce our ban list are shown." << std::endl;
+		g_bHideBanIgnoringServers = false;
+	}
 
 	// Done setting up!
 	std::cerr << "\n=== Master server started! ===\n";

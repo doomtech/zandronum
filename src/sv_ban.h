@@ -72,6 +72,7 @@ void			SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 EXTERN_CVAR( Bool, sv_enforcebans );
+EXTERN_CVAR( Bool, sv_enforcemasterbanlist );
 EXTERN_CVAR( String, sv_banfile );
 EXTERN_CVAR( String, sv_banexemptionfile );
 EXTERN_CVAR( String, sv_adminlistfile );
