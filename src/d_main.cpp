@@ -1929,7 +1929,6 @@ void D_DoomMain (void)
 		I_FatalError ("Cannot find " BASEWAD);
 	}
 
-	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
 		// [BB] This loads skulltag.pk3. skulltag_data.pk3 will be loaded by D_FindIWAD.
 		D_AddFile( wad, false );
