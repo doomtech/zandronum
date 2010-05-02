@@ -83,7 +83,18 @@ static	time_t	serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tN
 
 CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE )
 CVAR( Int, sv_banfilereparsetime, 0, CVAR_ARCHIVE )
-CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE )
+
+//*****************************************************************************
+//
+CUSTOM_CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	// [BB] If we are enforcing the master bans, make sure master bannded players are kicked now.
+	if ( self == true )
+		serverban_KickBannedPlayers( );
+}
 
 //*****************************************************************************
 //
@@ -200,6 +211,10 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 
 		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, NULL );
 	}
+
+	// [BB] If we are enforcing the master bans, make sure newly master bannded players are kicked now.
+	if ( sv_enforcemasterbanlist )
+		serverban_KickBannedPlayers( );
 
 	// Printf( "Imported %d bans, %d exceptions from the master.\n", g_MasterServerBans.size( ), g_MasterServerBanExemptions.size( ));
 }
