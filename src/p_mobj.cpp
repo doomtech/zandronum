@@ -2623,7 +2623,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		{
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
-			if (( mo->flags & MF_MISSILE ) && ( mo->Sector->GetTexture(sector_t::floor) == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ))
+			// [BB] But only do this for bouncy things!
+			if (( mo->flags & MF_MISSILE ) && ( mo->Sector->GetTexture(sector_t::floor) == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->flags2 & MF2_BOUNCETYPE ))
 			{
 				// Player didn't strike another player with this missile.
 				if ( mo->target && mo->target->player )
@@ -2753,7 +2754,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		{
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
-			if (( mo->flags & MF_MISSILE ) && ( mo->ceilingpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ))
+			// [BB] But only do this for bouncy things!
+			if (( mo->flags & MF_MISSILE ) && ( mo->ceilingpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->flags2 & MF2_BOUNCETYPE ))
 			{
 				// Player didn't strike another player with this missile.
 				if ( mo->target && mo->target->player )
