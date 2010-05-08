@@ -92,6 +92,7 @@ extern char g_szActualLogFilename[256];
 CVAR (Bool, sv_cheats, false, CVAR_SERVERINFO | CVAR_LATCH)
 CVAR (Bool, sv_unlimited_pickup, false, CVAR_SERVERINFO)
 CVAR (Bool, sv_logfilenametimestamp, true, CVAR_ARCHIVE)
+CVAR (Bool, sv_logfile_append, false, CVAR_ARCHIVE)
 
 CCMD (toggleconsole)
 {
@@ -130,7 +131,7 @@ void StartLogging( const char *szFileName )
 	else
 		strncpy( logfilename, szFileName, 256 );
 
-	if (( Logfile = fopen( logfilename, "w" )))
+	if (( Logfile = fopen( logfilename, sv_logfile_append ? "a" : "w" )))
 	{
 		sprintf( g_szDesiredLogFilename, "%s", szFileName );
 		sprintf( g_szActualLogFilename, "%s", logfilename );
