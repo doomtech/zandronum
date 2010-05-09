@@ -3387,6 +3387,11 @@ void M_StartSkirmishGame( void )
 	GAMEMODE_SetCurrentMode( (GAMEMODE_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
 	GAMEMODE_SetModifier( (MODIFIER_e) menu_modifier.GetGenericRep( CVAR_Int ).Int );
 
+	// [BB] In non-cooperative game modes we need to enable multiplayer emulation,
+	// otherwise respawning and player class selection won't work properly.
+	if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+		NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
+
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
 

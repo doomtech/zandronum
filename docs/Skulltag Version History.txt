@@ -43,6 +43,7 @@ latestzdoom branch
 -	- Fixed: When servers that enforce the master ban list received an updated ban list from the master, they didn't automatically kick newly banned players already in game. [Torr Samaho, SuperGod]
 -	- Fixed: The AC value in Hexen is not displayed properly anymore on a client after an inter-hub map change. [Torr Samaho]
 -	- Fixed: Non-bouncy missiles disappeared when hitting the sky. [Torr Samaho]
+-	- Fixed some player class selection problems in non-cooperative offline skirmishes. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
