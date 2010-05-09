@@ -597,6 +597,18 @@ ACTOR ArtiBanishmentDeviceSpot : CustomPickupInvasionSpot 5547
 
 //=================================================================================================
 //
+// Icon of the defender spawner
+//
+//=================================================================================================
+
+ACTOR ArtiInvulnerability2Spot : CustomPickupInvasionSpot 5444
+{
+   Game Hexen
+   DropItem "ArtiInvulnerability2"
+}
+
+//=================================================================================================
+//
 // Random Hexen artifact spawner
 //
 //=================================================================================================
@@ -611,7 +623,7 @@ ACTOR RandomHexenArtifactSpot : CustomPickupInvasionSpot 5548
 	DropItem "ArtiFly"
 	DropItem "ArtiHealingRadius"
 	DropItem "ArtiHealth"
-	DropItem "ArtiInvulnerability"
+	DropItem "ArtiInvulnerability2"
 	DropItem "ArtiPoisonBag"
 	DropItem "ArtiPork"
 	DropItem "ArtiSuperHealth"

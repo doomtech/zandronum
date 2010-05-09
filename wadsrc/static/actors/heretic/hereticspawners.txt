@@ -538,7 +538,6 @@ ACTOR ArtiInvisibilitySpot : CustomPickupInvasionSpot 5443
 ACTOR ArtiInvulnerabilitySpot : CustomPickupInvasionSpot 5444
 {
 	Game Heretic
-	Game Hexen
 	DropItem "ArtiInvulnerability"
 }
 
