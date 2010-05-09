@@ -822,7 +822,9 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 		sprintf( szString, "\\c%c%s %s!", V_GetColorChar( TEAM_GetTextColor( players[ulPlayer].ulTeam )), TEAM_GetName( players[ulPlayer].ulTeam ) ,bPointLimitReached ? "WINS" : "SCORES" );
 		sprintf( szScorer, "\\c%cScored by: %s", V_GetColorChar( TEAM_GetTextColor( players[ulPlayer].ulTeam )), players[ulPlayer].userinfo.netname );
 
-		V_RemoveColorCodes( szScorer );
+		// [BB] I don't see why we should remove the player name's color codes here. It's not done in CTF either
+		// and the player's team is apparent from the rest of the message.
+		//V_RemoveColorCodes( szScorer );
 		V_ColorizeString( szScorer );
 	}
 	else

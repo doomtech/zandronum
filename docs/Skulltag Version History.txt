@@ -50,6 +50,7 @@ latestzdoom branch
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
 !	- The master server now can hide servers that don't enforce the master ban list. [Torr Samaho, SuperGod]
 !	- skulltag_data.pk3 is not loaded automatically anymore if a non-Doom IWAD is used. [Torr Samaho]
+!	- The player name in team possession score messages is not striped of its color codes anymore. [Torr Samaho]
 
 
 98b
