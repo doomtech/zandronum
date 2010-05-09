@@ -3244,7 +3244,7 @@ void CSkullBot::PushToStack( LONG lValue )
 	m_ScriptData.alStack[m_ScriptData.lStackPosition++] = lValue;
 	
 	if ( botdebug_showstackpushes )
-		Printf( "%s: PushToStack: %d\n", m_pPlayer->userinfo.netname, static_cast<int> (m_ScriptData.lStackPosition) );
+		Printf( "%s: PushToStack: pos %d val %d\n", m_pPlayer->userinfo.netname, static_cast<int> (m_ScriptData.lStackPosition), static_cast<int> (lValue) );
 
 	if ( m_ScriptData.lStackPosition >= BOTSCRIPT_STACK_SIZE )
 		I_Error( "PushToStack: Stack size exceeded in bot %s's script!", m_pPlayer->userinfo.netname );
