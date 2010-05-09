@@ -32,7 +32,6 @@ class ARandomSpawner : public AActor
 		int n=0;
 
 		Super::PostBeginPlay();
-
 		// [BB] This is server-side.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
@@ -62,7 +61,7 @@ class ARandomSpawner : public AActor
 				if (di->Name != NAME_None)
 				{
 					n -= di->amount;
-					if (di->Next != NULL) di = di->Next; else n=0;
+					if ((di->Next != NULL) && (n > -1)) di = di->Next; else n = -1;
 				}
 			}
 			// So now we can spawn the dropped item.
@@ -91,6 +90,22 @@ class ARandomSpawner : public AActor
 				newmobj->tracer = tracer;
 				newmobj->CopyFriendliness(this, false);
 				if (!(flags & MF_DROPPED)) newmobj->flags &= ~MF_DROPPED;
+
+				// Handle special altitude flags
+				if (newmobj->flags & MF_SPAWNCEILING)
+				{
+					newmobj->z = newmobj->ceilingz - newmobj->height;
+				}
+				else if (newmobj->flags2 & MF2_SPAWNFLOAT) 
+				{
+					fixed_t space = newmobj->ceilingz - newmobj->height - newmobj->floorz;
+					if (space > 48*FRACUNIT)
+					{
+						space -= 40*FRACUNIT;
+						newmobj->z = MulScale8 (space, pr_randomspawn()) + newmobj->floorz + 40*FRACUNIT;
+					}
+				}
+
 				// Special1 is used to count how many recursions we're in.
 				if (newmobj->IsKindOf(PClass::FindClass("RandomSpawner")))
 					newmobj->special1 = ++special1;
