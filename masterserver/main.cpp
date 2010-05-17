@@ -621,15 +621,15 @@ int main( int argc, char **argv )
 	int lastParsingTime = I_GetTime( );
 
 	// [BB] Do we want to hide servers that ignore our ban list?
-	if ( ( argc >= 2 ) && ( stricmp ( argv[1], "-HideBanIgnoringServers" ) == 0 ) )
-	{
-		std::cerr << "Note: Servers that do not enforce our ban list are hidden." << std::endl;
-		g_bHideBanIgnoringServers = true;
-	}
-	else
+	if ( ( argc >= 2 ) && ( stricmp ( argv[1], "-DontHideBanIgnoringServers" ) == 0 ) )
 	{
 		std::cerr << "Note: Servers that do not enforce our ban list are shown." << std::endl;
 		g_bHideBanIgnoringServers = false;
+	}
+	else
+	{
+		std::cerr << "Note: Servers that do not enforce our ban list are hidden." << std::endl;
+		g_bHideBanIgnoringServers = true;
 	}
 
 	// Done setting up!
