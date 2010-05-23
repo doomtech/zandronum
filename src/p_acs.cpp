@@ -2276,19 +2276,12 @@ void DLevelScript::ChangeFlat (int tag, int name, bool floorOrCeiling)
 		int pos = floorOrCeiling? sector_t::ceiling : sector_t::floor;
 		sectors[secnum].SetTexture(pos, flat);
 
-				// [BC] Update clients about this flat change.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetSectorFlat( secnum );
+		// [BC] Update clients about this flat change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetSectorFlat( secnum );
 
-				// [BC] Also, mark this sector as having its flat changed.
-				sectors[secnum].bFlatChange = true;
-
-			// [BC] Update clients about this flat change.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetSectorFlat( secnum );
-
-			// [BC] Also, mark this sector as having its flat changed.
-			sectors[secnum].bFlatChange = true;
+		// [BC] Also, mark this sector as having its flat changed.
+		sectors[secnum].bFlatChange = true;
 	}
 }
 
