@@ -47,6 +47,7 @@ latestzdoom branch
 -	- Fixed: The Hexen invasion spawners still used ArtiInvulnerability instead of ArtiInvulnerability2. Thanks to Gez for submitting a patch for this. [Torr Samaho]
 -	- Fixed: When there are only two teams, the scoreboard only shows the score of the leading team instead of both scores. [Torr Samaho]
 -	- Fixed: A_FireGoldWandPL1 and A_FireBlasterPL1 did not award accuracy / precision medals. [Torr Samaho]
+-	- Fixed: The ACS function ReplaceTextures didn't work properly online and its effects were not reverted during a map reset. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

@@ -2396,8 +2396,20 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 				if (!(flags & bits[j]) && wal->GetTexture(j) == picnum1)
 				{
 					wal->SetTexture(j, picnum2);
+
+					// [BB] We have to mark the texture as changed to restore it when the map resets.
+					ULONG ulShift = 0;
+					ulShift += j;
+					if ( lines[wal->linenum].sidenum[1] == i )
+						ulShift += 3;
+					lines[wal->linenum].ulTexChangeFlags |= 1 << ulShift;
 				}
 			}
+
+			// [BB] If we're the server, potentially inform the clients about the texture change.
+			// Note: SERVERCOMMANDS_SetLineTexture checks ulTexChangeFlags and does nothing if it's zero.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ))
+				SERVERCOMMANDS_SetLineTexture ( wal->linenum );
 		}
 	}
 	if ((flags ^ (NOT_FLOOR | NOT_CEILING)) != 0)
@@ -2410,9 +2422,23 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 			sector_t *sec = &sectors[i];
 
 			if (!(flags & NOT_FLOOR) && sec->GetTexture(sector_t::floor) == picnum1) 
+			{
 				sec->SetTexture(sector_t::floor, picnum2);
+
+				// [BB] Mark this sector as having its flat changed.
+				sec->bFlatChange = true;
+			}
 			if (!(flags & NOT_CEILING) && sec->GetTexture(sector_t::ceiling) == picnum1)	
+			{
 				sec->SetTexture(sector_t::ceiling, picnum2);
+
+				// [BB] Mark this sector as having its flat changed.
+				sec->bFlatChange = true;
+			}
+
+			// [BB] Potentially update clients about this flat change.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && sec->bFlatChange )
+				SERVERCOMMANDS_SetSectorFlat( i );
 		}
 	}
 }
