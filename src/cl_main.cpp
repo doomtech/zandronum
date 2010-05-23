@@ -2651,15 +2651,17 @@ void CLIENT_PrintCommand( LONG lCommand )
 	}
 	else
 	{
-		lCommand -= NUM_SERVERCONNECT_COMMANDS;
-		if ( lCommand < 0 )
-			return;
-
 		if (( cl_showcommands >= 2 ) && ( lCommand == SVC_MOVELOCALPLAYER ))
 			return;
 		if (( cl_showcommands >= 3 ) && ( lCommand == SVC_MOVEPLAYER ))
 			return;
 		if (( cl_showcommands >= 4 ) && ( lCommand == SVC_UPDATEPLAYEREXTRADATA ))
+			return;
+		if (( cl_showcommands >= 5 ) && ( lCommand == SVC_UPDATEPLAYERPING ))
+			return;
+
+		lCommand -= NUM_SERVERCONNECT_COMMANDS;
+		if ( lCommand < 0 )
 			return;
 
 		pszString = g_pszHeaderNames[lCommand];
