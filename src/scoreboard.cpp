@@ -1743,7 +1743,7 @@ void SCOREBOARD_BuildPointString( char *pszString, const char *pszPointName, boo
 			}
 		}
 
-		if ( teams.Size( ) > 2 )
+		if ( TEAM_GetNumAvailableTeams( ) > 2 )
 		{
 			if ( gamestate == GS_LEVEL )
 			{
