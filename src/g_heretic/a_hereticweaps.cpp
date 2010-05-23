@@ -175,6 +175,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL1)
 		P_LineAttack(self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "GoldWandPuff1");
 	}
 
+	// [BB] If the player hit a player with his attack, potentially give him a medal.
+	PLAYER_CheckStruckPlayer ( self );
+
 	S_Sound (self, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
@@ -1235,6 +1238,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBlasterPL1)
 		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
 		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
 	}
+
+	// [BB] If the player hit a player with his attack, potentially give him a medal.
+	PLAYER_CheckStruckPlayer ( self );
 
 	S_Sound (self, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
 

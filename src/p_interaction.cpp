@@ -2440,6 +2440,19 @@ bool PLAYER_IsTrueSpectator( player_t *pPlayer )
 
 //*****************************************************************************
 //
+void PLAYER_CheckStruckPlayer( AActor *pActor )
+{
+	if ( pActor && pActor->player )
+	{
+		if ( pActor->player->bStruckPlayer )
+			PLAYER_StruckPlayer( pActor->player );
+		else
+			pActor->player->ulConsecutiveHits = 0;
+	}
+}
+
+//*****************************************************************************
+//
 void PLAYER_StruckPlayer( player_t *pPlayer )
 {
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))

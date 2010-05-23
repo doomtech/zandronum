@@ -566,6 +566,7 @@ void	PLAYER_SpectatorJoinsGame ( player_t *pPlayer );
 void	PLAYER_SetWins( player_t *pPlayer, ULONG ulWins );
 void	PLAYER_GetName( player_t *pPlayer, char *pszOutBuf );
 bool	PLAYER_IsTrueSpectator( player_t *pPlayer );
+void	PLAYER_CheckStruckPlayer( AActor *pActor );
 void	PLAYER_StruckPlayer( player_t *pPlayer );
 bool	PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer );
 bool	PLAYER_Taunt( player_t *pPlayer );
