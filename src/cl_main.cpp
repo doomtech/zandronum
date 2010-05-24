@@ -1550,6 +1550,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			CLIENT_SetConnectionState( CTS_ATTEMPTINGAUTHENTICATION );
 			CLIENT_AttemptAuthentication( g_szMapName );
 		}
+		// [BB] Make sure there is no old player information left. This is possible if
+		// the demo shows a "map" map change.
+		else
+			CLIENT_ClearAllPlayers();
 		break;
 	case SVCC_MAPLOAD:
 		{

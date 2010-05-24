@@ -49,6 +49,7 @@ latestzdoom branch
 -	- Fixed: A_FireGoldWandPL1 and A_FireBlasterPL1 did not award accuracy / precision medals. [Torr Samaho]
 -	- Fixed: The ACS function ReplaceTextures didn't work properly online and its effects were not reverted during a map reset. [Torr Samaho]
 -	- Fixed: If the packet with the client's map change authentication is lost, the client stayed on the old map locally. [Torr Samaho]
+-	- Fixed: When playing a client side demo with a "map" map change, the console could be flooded by "No body for player" errors and Skulltag could crash. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
