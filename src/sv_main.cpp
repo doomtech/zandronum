@@ -605,6 +605,11 @@ void SERVER_Tick( void )
 				g_aClients[ulIdx].lOverMovementLevel--;
 //					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
 			}
+
+			// [BB] If the client didn't authenticate the new map by now, likely his authentication packet was lost.
+			// Ask him to authenticate again.
+			if ( ( SERVER_GetClient( ulIdx )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) && ( ( level.maptime % ( 2 * TICRATE ) ) == 0 ) )
+				SERVERCOMMANDS_MapAuthenticate ( level.mapname, ulIdx, SVCF_ONLYTHISCLIENT );
 		}
 
 		gametic++;
@@ -5109,6 +5114,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		SERVER_KickPlayer( g_lCurrentClient, "Level authentication failed." );
 		return ( true );
 	}
+
+	// [BB] The client is already authenticated, no need to authenticate again.
+	if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED )
+		return ( false );
 
 	// [BB] Update the client's state according to the successful authenticaion.
 	if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
