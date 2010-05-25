@@ -352,10 +352,11 @@ static void crash_catcher(int signum, siginfo_t *siginfo, void *context)
 			if(f != stderr)
 			{
 				fclose(f);
-#if (defined __unix__)
+#if (defined __unix__) && !(defined SERVER_ONLY) // [BB] The Linux server doesn't have a GUI, so don't bother it with a window.
 				if(cc_logfile)
 				{
-					char buf[256];
+					// [BB] Depending on the length of cc_logfile, 256 is not enough to store the full string.
+					char buf[512];
 					snprintf(buf, sizeof(buf),
 					         "if (which gxmessage > /dev/null 2>&1);"
 					             "then gxmessage -buttons \"Damn it:0\" -center -title \"Very Fatal Error\" -file %s;"
