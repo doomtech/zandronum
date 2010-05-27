@@ -591,8 +591,10 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 	}
 
 	if (numwads == 0)
+// [BB] Skulltag uses Rivecoder's IWAD setup screen now (only available under Windows).
+#ifdef _WIN32
 		throw CNoIWADError(); // [RC]
-	/* [BB] Skulltag uses Rivecoder's IWAD setup screen now.
+#else
 	{
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"
 					  "Did you install "GAMENAME" properly? You can do either of the following:\n"
@@ -601,7 +603,7 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 					  "2. Edit your "GAMENAMELOWERCASE"-username.ini and add the directories of your iwads\n"
 					  "to the list beneath [IWADSearch.Directories]");
 	}
-	*/
+#endif
 
 	pickwad = 0;
 
