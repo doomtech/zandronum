@@ -44,15 +44,15 @@
     #define ENUM_ELEMENT2( element, val ) element = val
     #define BEGIN_ENUM( ENUM_NAME ) typedef enum tag##ENUM_NAME
     #define END_ENUM( ENUM_NAME ) ENUM_NAME; \
-            extern char* GetString##ENUM_NAME(enum tag##ENUM_NAME index); \
+            extern const char* GetString##ENUM_NAME(enum tag##ENUM_NAME index); \
 			extern int GetValue##ENUM_NAME( const char* Name );
 #else
-    typedef struct { char * desc; int type;} EnumDesc_t;
+    typedef struct { const char * desc; int type;} EnumDesc_t;
     #define ENUM_ELEMENT( element ) { #element, (int)(element) }
     #define ENUM_ELEMENT2( element, val ) { #element, val }
     #define BEGIN_ENUM( ENUM_NAME ) EnumDesc_t gs_##ENUM_NAME [] =
     #define END_ENUM( ENUM_NAME ) ; \
-			char* GetString##ENUM_NAME(enum tag##ENUM_NAME index) \
+			const char* GetString##ENUM_NAME(enum tag##ENUM_NAME index) \
 			{ \
 				for (unsigned int i = 0; i < sizeof(gs_##ENUM_NAME)/sizeof(EnumDesc_t); i++) \
 				{ \
