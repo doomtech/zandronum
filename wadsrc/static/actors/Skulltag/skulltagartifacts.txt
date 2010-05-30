@@ -4,6 +4,12 @@
 //
 //=================================================================================================
 
+// [BB] This shows a HUD icon while the Turbosphere is active.
+ACTOR PowerTurbo : PowerSpeed
+{
+	Inventory.Icon "ARTITU1"
+}
+
 ACTOR Turbosphere : PowerupGiver 5030
 {
 	Game Doom
@@ -15,7 +21,7 @@ ACTOR Turbosphere : PowerupGiver 5030
 	+INVENTORY.AUTOACTIVATE
 	+INVENTORY.ALWAYSPICKUP
 	Inventory.MaxAmount 0
-	Powerup.Type Speed
+	Powerup.Type Turbo
 	Powerup.Duration 1050
 	Inventory.PickupMessage "$PICKUP_TURBOSPHERE"
 	Inventory.PickupAnnouncerEntry "turbosphere"

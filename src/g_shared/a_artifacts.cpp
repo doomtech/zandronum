@@ -1224,17 +1224,6 @@ void APowerSpeed::DoEffect ()
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
 
-	// [BC] In Skulltag, display a little message saying that the powerup is about to wear off,
-	// since there isn't any screen blend that we can blink.
-	if ( gameinfo.gametype == GAME_Doom )
-	{
-		if (( EffectTics == ( 4 * TICRATE )) && ( Owner ) && ( Owner->CheckLocalView( consoleplayer )))
-		{
-//			Printf( "%s wearing off...\n", this->GetClass( )->TypeName.GetChars( ));
-			Printf( "Turbosphere wearing off...\n" );
-		}
-	}
-
 	if (level.time & 1)
 		return;
 
