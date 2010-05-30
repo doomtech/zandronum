@@ -172,6 +172,13 @@ static void sys_info(void)
 	system("echo \"System: `uname -a`\"");
 #endif
 	system("echo \"GCC version: `gcc -dumpversion`\"");
+	// [BB] Also log the gdb version.
+	FILE *IN = popen ( "gdb --version", "r" );
+	if ( IN )  {
+		char gdbversion[1024];
+		if ( fgets(gdbversion, 1024, IN) )
+			puts(gdbversion);
+	}
 	putchar('\n');
 	fflush(stdout);
 }
