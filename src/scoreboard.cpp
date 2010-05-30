@@ -1860,7 +1860,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 	{
 		LONG	lMenLeftStanding;
 
-		lMenLeftStanding = GAME_CountLivingPlayers( ) - 1;
+		lMenLeftStanding = GAME_CountLivingAndRespawnablePlayers( ) - 1;
 		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
 	}
 	else if (( teamlms ) && ( players[consoleplayer].bOnTeam ))
@@ -2069,7 +2069,7 @@ void SCOREBOARD_RefreshHUD( void )
 
 		//  "x opponents left", "x allies alive", etc
 		if ( lastmanstanding )
-			g_lNumOpponentsLeft = GAME_CountLivingPlayers( ) - 1;
+			g_lNumOpponentsLeft = GAME_CountLivingAndRespawnablePlayers( ) - 1;
 
 		if ( teamlms )
 		{
@@ -2087,7 +2087,7 @@ void SCOREBOARD_RefreshHUD( void )
 		}
 
 		if ( survival )
-			g_lNumAlliesLeft = GAME_CountLivingPlayers( ) - 1;
+			g_lNumAlliesLeft = GAME_CountLivingAndRespawnablePlayers( ) - 1;
 	}
 }
 

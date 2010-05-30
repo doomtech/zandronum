@@ -139,7 +139,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	if ( lastmanstanding )
 	{
 		// Someone just won by default!
-		if (( GAME_CountLivingPlayers( ) == 1 ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+		if (( GAME_CountLivingAndRespawnablePlayers( ) == 1 ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
 		{
 			LONG	lWinner;
 

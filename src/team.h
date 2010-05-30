@@ -83,7 +83,7 @@ void		TEAM_Construct( void );
 void		TEAM_Tick( void );
 void		TEAM_Reset( void );
 ULONG		TEAM_CountPlayers( ULONG ulTeamIdx );
-ULONG		TEAM_CountLivingPlayers( ULONG ulTeamIdx );
+ULONG		TEAM_CountLivingAndRespawnablePlayers( ULONG ulTeamIdx );
 ULONG		TEAM_TeamsWithPlayersOn( void );
 void		TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner );
 ULONG		TEAM_ChooseBestTeamForPlayer( void );

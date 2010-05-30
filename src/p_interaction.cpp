@@ -2678,6 +2678,17 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon )
 	}
 }
 
+//*****************************************************************************
+//
+bool PLAYER_IsAliveOrCanRespawn( player_t *pPlayer )
+{
+	// [BB] Validity check.
+	if ( pPlayer == NULL )
+		return false;
+
+	return ( ( pPlayer->health > 0 ) || ( pPlayer->ulLivesLeft > 0 ) || ( pPlayer->bSpawnTelefragged == true ) );
+}
+
 CCMD (kill)
 {
 	// Only allow it in a level.

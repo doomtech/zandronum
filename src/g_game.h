@@ -63,8 +63,8 @@ ULONG	GAME_GetEndLevelDelay( void );
 void	GAME_SetLevelIntroTicks( USHORT usTicks );
 USHORT	GAME_GetLevelIntroTicks( void );
 
-// [BC] Rivecoder's function.
-LONG	GAME_CountLivingPlayers( void );
+ULONG	GAME_CountLivingAndRespawnablePlayers( void );
+ULONG	GAME_CountActivePlayers( void );
 
 // [BC] End changes.
 

@@ -221,7 +221,7 @@ ULONG TEAM_CountPlayers( ULONG ulTeamIdx )
 
 //*****************************************************************************
 //
-ULONG TEAM_CountLivingPlayers( ULONG ulTeamIdx )
+ULONG TEAM_CountLivingAndRespawnablePlayers( ULONG ulTeamIdx )
 {
 	ULONG	ulIdx;
 	ULONG	ulCount;
@@ -233,8 +233,8 @@ ULONG TEAM_CountLivingPlayers( ULONG ulTeamIdx )
 		if (( playeringame[ulIdx] == false ) || ( PLAYER_IsTrueSpectator( &players[ulIdx] )) || ( players[ulIdx].bDeadSpectator == true ))
 			continue;
 
-		// Don't count dead players.
-		if ( players[ulIdx].health <= 0 )
+		// Don't count dead players. [BB] Only if they can't respawn.
+		if ( PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) == false )
 			continue;
 
 		if ( players[ulIdx].bOnTeam && ( players[ulIdx].ulTeam == ulTeamIdx ))

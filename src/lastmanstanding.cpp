@@ -113,7 +113,7 @@ void LASTMANSTANDING_Tick( void )
 		if ( lastmanstanding )
 		{
 			// Two players are here now, being the countdown!
-			if ( LASTMANSTANDING_CountActivePlayers( ) >= 2 )
+			if ( GAME_CountActivePlayers( ) >= 2 )
 			{
 				if ( sv_lmscountdowntime > 0 )
 					LASTMANSTANDING_StartCountdown(( sv_lmscountdowntime * TICRATE ) - 1 );
@@ -167,7 +167,7 @@ void LASTMANSTANDING_Tick( void )
 		if ( lastmanstanding )
 		{
 			// If only one man is left standing, somebody just won!
-			if ( GAME_CountLivingPlayers( ) == 1 )
+			if ( GAME_CountLivingAndRespawnablePlayers( ) == 1 )
 			{
 				LONG	lWinner;
 
@@ -193,7 +193,7 @@ void LASTMANSTANDING_Tick( void )
 				}
 			}
 			// If NOBODY is left standing, it's a draw game!
-			else if ( GAME_CountLivingPlayers( ) == 0 )
+			else if ( GAME_CountLivingAndRespawnablePlayers( ) == 0 )
 			{
 				ULONG	ulIdx;
 
@@ -277,23 +277,6 @@ void LASTMANSTANDING_Tick( void )
 
 //*****************************************************************************
 //
-ULONG LASTMANSTANDING_CountActivePlayers( void )
-{
-	ULONG	ulIdx;
-	ULONG	ulPlayers;
-
-	ulPlayers = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ))
-			ulPlayers++;
-	}
-
-	return ( ulPlayers );
-}
-
-//*****************************************************************************
-//
 ULONG LASTMANSTANDING_TeamCountActivePlayers( ULONG ulTeam )
 {
 	ULONG	ulIdx;
@@ -320,7 +303,7 @@ LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 		return ( -1 );
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].ulTeam == ulTeam ))
+		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) == true ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].ulTeam == ulTeam ))
 			ulNumMenStanding++;
 
 	return ( ulNumMenStanding );
@@ -331,7 +314,7 @@ LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 LONG LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam )
 {
 	// Total living players - team living players
-	return ( GAME_CountLivingPlayers( ) - LASTMANSTANDING_TeamCountMenStanding( ulTeam ));
+	return ( GAME_CountLivingAndRespawnablePlayers( ) - LASTMANSTANDING_TeamCountMenStanding( ulTeam ));
 }
 
 //*****************************************************************************
@@ -380,7 +363,7 @@ LONG LASTMANSTANDING_TeamsWithAlivePlayersOn( void )
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		if (TEAM_CountLivingPlayers (i) > 0)
+		if (TEAM_CountLivingAndRespawnablePlayers (i) > 0)
 			lTeamsWithAlivePlayersOn ++;
 	}
 
@@ -634,7 +617,7 @@ void LASTMANSTANDING_TimeExpired( void )
 		{
 			for ( ULONG i = 0; i < teams.Size( ); i++ )
 			{
-				if ( TEAM_CountLivingPlayers( i ) )
+				if ( TEAM_CountLivingAndRespawnablePlayers( i ) )
 					lWinner = i;
 			}
 		}

@@ -3797,19 +3797,34 @@ USHORT GAME_GetLevelIntroTicks( void )
 
 //*****************************************************************************
 //
-LONG GAME_CountLivingPlayers( void )
+ULONG GAME_CountLivingAndRespawnablePlayers( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumLivingPlayers;
+	ULONG	ulPlayers;
 
-	ulNumLivingPlayers = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	ulPlayers = 0;
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
-			ulNumLivingPlayers++;
+		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) == true ))
+			ulPlayers++;
 	}
 
-	return ( ulNumLivingPlayers );
+	return ( ulPlayers );
+}
+
+//*****************************************************************************
+//
+ULONG GAME_CountActivePlayers( void )
+{
+	ULONG	ulPlayers;
+
+	ulPlayers = 0;
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ))
+			ulPlayers++;
+	}
+
+	return ( ulPlayers );
 }
 
 void G_ScreenShot (char *filename)
