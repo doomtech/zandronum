@@ -379,7 +379,11 @@ static void crash_catcher(int signum, siginfo_t *siginfo, void *context)
 
 		default:
 			/* Wait and let the child attach gdb */
-			waitpid(dbg_pid, NULL, 0);
+			//waitpid(dbg_pid, NULL, 0);
+			// [BB] This doesn't seem to work anymore with recent gdb versions. So instead of waiting for SIGCHLD,
+			// we just wait a fixed short amount of time. This is hopefully enough to let the child attach gdb to
+			// parent.
+			system ( "sleep 2");
 	}
 }
 
