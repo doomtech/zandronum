@@ -1749,7 +1749,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	// For now, bots always switch weapons on pickup.
 	m_pPlayer->userinfo.switchonpickup = 2;
 	m_pPlayer->userinfo.StillBob = 0;
-	m_pPlayer->userinfo.MoveBob = 0.25;
+	m_pPlayer->userinfo.MoveBob = static_cast<fixed_t>(65536.f * 0.25);
 
 	// If we've added the bot to a single player game, enable "fake multiplayer" mode.
 	if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
