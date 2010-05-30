@@ -576,6 +576,9 @@ void GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode )
 	// (Hopefully Blzut's update will save us from this garbage.)
 
 	Val.Bool = false;
+	// [BB] Even though setting deathmatch and teamgame to false will set cooperative to true,
+	// we need to set cooperative to false here first to clear survival and invasion.
+	cooperative.ForceSet( Val, CVAR_Bool );
 	deathmatch.ForceSet( Val, CVAR_Bool );
 	teamgame.ForceSet( Val, CVAR_Bool );
 	instagib.ForceSet( Val, CVAR_Bool );
