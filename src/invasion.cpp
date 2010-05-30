@@ -728,7 +728,7 @@ void INVASION_Tick( void )
 
 		// [BB] If everyone is dead, the mission has failed!
 		// [BB] Invasion with (sv_maxlives == 0) allows unlimited respawns.
-		if ( ( sv_maxlives > 0 ) && ( SURVIVAL_CountActivePlayers( true ) == 0 ) )
+		if ( ( sv_maxlives > 0 ) && ( GAME_CountLivingAndRespawnablePlayers( ) == 0 ) )
 		{
 			// Put the game state in the mission failed state.
 			INVASION_SetState( IS_MISSIONFAILED );

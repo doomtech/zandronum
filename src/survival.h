@@ -72,7 +72,6 @@ typedef enum
 void	SURVIVAL_Construct( void );
 void	SURVIVAL_Tick( void );
 
-ULONG	SURVIVAL_CountActivePlayers( bool bLiving );
 void	SURVIVAL_StartCountdown( ULONG ulTicks );
 void	SURVIVAL_DoFight( void );
 //void	SURVIVAL_DoMissionFailed( void );

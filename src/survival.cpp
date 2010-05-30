@@ -115,7 +115,7 @@ void SURVIVAL_Tick( void )
 		}
 
 		// Someone is here! Begin the countdown.
-		if ( SURVIVAL_CountActivePlayers( false ) > 0 )
+		if ( GAME_CountActivePlayers( ) > 0 )
 		{
 			if ( sv_survivalcountdowntime > 0 )
 				SURVIVAL_StartCountdown(( sv_survivalcountdowntime * TICRATE ) - 1 );
@@ -154,7 +154,7 @@ void SURVIVAL_Tick( void )
 		}
 
 		// If everyone is dead, the mission has failed!
-		if ( SURVIVAL_CountActivePlayers( true ) == 0 )
+		if ( GAME_CountLivingAndRespawnablePlayers( ) == 0 )
 		{
 			// Put the game state in the mission failed state.
 			SURVIVAL_SetState( SURVS_MISSIONFAILED );
@@ -165,28 +165,6 @@ void SURVIVAL_Tick( void )
 	default:
 		break;
 	}
-}
-
-//*****************************************************************************
-//
-ULONG SURVIVAL_CountActivePlayers( bool bLiving )
-{
-	ULONG	ulIdx;
-	ULONG	ulPlayers;
-
-	ulPlayers = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ))
-		{
-			if (( bLiving ) && ( players[ulIdx].health == 0 ) && ( players[ulIdx].ulLivesLeft == 0 ))
-				continue;
-
-			ulPlayers++;
-		}
-	}
-
-	return ( ulPlayers );
 }
 
 //*****************************************************************************
