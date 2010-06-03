@@ -1443,7 +1443,6 @@ void C_ArchiveCVars (FConfigFile *f, int type)
 	}
 }
 
-void SERVERCONSOLE_UpdateScoreboard( void );
 void FBaseCVar::CmdSet (const char *newval)
 {
 	UCVarValue val;
