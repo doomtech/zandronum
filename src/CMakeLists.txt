@@ -657,7 +657,11 @@ add_executable( zdoom WIN32
 	compatibility.cpp
 	configfile.cpp
 	#ct_chat.cpp
-	cooperative.cpp #ST
+	# [BB] Unforunately Skulltag's system that ensures that only one of the cvars cooperative, deathmatch and teamgame
+	# is true at any time makes it important in which order the object files are linked. Otherwise using "+deathmatch 1" as
+	# argument will not work properly. This definitely is absolutely awful and should ne made independent of the linking order.
+	# For the time being, the linking order is changed to fix the problems.
+	#cooperative.cpp #ST
 	d_dehacked.cpp
 	d_iwad.cpp
 	d_main.cpp
@@ -806,6 +810,7 @@ add_executable( zdoom WIN32
 	wi_stuff.cpp
 	zstrformat.cpp
 	zstring.cpp
+	cooperative.cpp #ST [BB] This needs to be linked after deathmatch.cpp and team.cpp (see above).
 	g_doom/a_doomartifacts.cpp #ST
 	g_doom/a_doommisc.cpp
 	g_doom/doom_sbar.cpp #ST doesn't use the SBARINFO version of the Doom status bar yet.
