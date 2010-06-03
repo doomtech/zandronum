@@ -43,6 +43,7 @@
 #ifndef NO_GTK
 #include <gtk/gtk.h>
 #endif
+#include <locale.h>
 
 #include "doomerrors.h"
 #include "m_argv.h"
@@ -217,6 +218,8 @@ int main (int argc, char **argv)
 	GtkAvailable = gtk_init_check (&argc, &argv);
 #endif
 	
+	setlocale (LC_ALL, "C");
+
 	Args = new DArgs(argc, argv);
 
 #ifdef SERVER_ONLY
