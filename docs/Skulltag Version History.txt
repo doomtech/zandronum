@@ -59,6 +59,7 @@ latestzdoom branch
 -	- Fixed: Powerup HUD icons overlap the HUD corner score. [Torr Samaho]
 -	- Fixed parsing problems with floats when the language setting uses ',' instead of '.' as float seperator under Linux. [Torr Samaho]
 -	- Fixed: Using "+deathmatch 1" as command line argument didn't work with non Windows binaries. [Torr Samaho]
+-	- Fixed: Under some circumstances, the wrong obituaries were displayed online. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

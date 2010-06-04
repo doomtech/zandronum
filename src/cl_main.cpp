@@ -4138,7 +4138,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the means of death.
-	MOD = ENamedName(NETWORK_ReadByte( pByteStream ));
+	MOD = NETWORK_ReadString( pByteStream );
 
 	// Read in the thing's damage type.
 	DamageType = NETWORK_ReadString( pByteStream );

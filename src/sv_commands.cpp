@@ -466,7 +466,7 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD )
+void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, FName MOD )
 {
 	ULONG	ulIdx;
 	USHORT	usActorNetworkIndex = 0;
@@ -512,14 +512,14 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_CheckClientBuffer( ulIdx, 11 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
+		SERVER_CheckClientBuffer( ulIdx, 10 + static_cast<ULONG> ( strlen ( MOD.GetChars() ) ) + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
 
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, wHealth );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, MOD.GetChars() );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}

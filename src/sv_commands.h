@@ -76,7 +76,7 @@ void	SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer );
 void	SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0, bool bMorph = false );
 void	SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer );
-void	SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD );
+void	SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, FName MOD );
 void	SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer );
 void	SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
