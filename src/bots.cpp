@@ -68,6 +68,7 @@
 #include "joinqueue.h"
 #include "m_random.h"
 #include "network.h"
+#include "p_acs.h"
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "r_data.h"
@@ -627,6 +628,13 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 
 	playeringame[ulPlayerIdx] = false;
 	
+	// [BB] Run the disconnect scripts now that the bot is leaving the game.
+	if (( players[ulPlayerIdx].bSpectating == false ) ||
+		( players[ulPlayerIdx].bDeadSpectator ))
+	{
+		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayerIdx );
+	}
+
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		// Redo the scoreboard.
