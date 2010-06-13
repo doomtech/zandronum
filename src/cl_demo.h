@@ -106,5 +106,6 @@ bool		CLIENTDEMO_IsInFreeSpectateMode( void );
 void		CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd );
 void		CLIENTDEMO_FreeSpectatorPlayerThink( void );
 bool		CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer );
+void		CLIENTDEMO_ClearFreeSpectatorPlayer( void );
 
 #endif // __CL_DEMO__

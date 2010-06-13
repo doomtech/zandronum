@@ -627,6 +627,25 @@ bool CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer )
 }
 
 //*****************************************************************************
+//
+void CLIENTDEMO_ClearFreeSpectatorPlayer( void )
+{
+	if ( g_demoCameraPlayer.mo != NULL )
+	{
+		if ( players[consoleplayer].camera == g_demoCameraPlayer.mo )
+			players[consoleplayer].camera = players[consoleplayer].mo;
+
+		g_demoCameraPlayer.mo->Destroy();
+		g_demoCameraPlayer.mo = NULL;
+	}
+
+	player_t *p = &g_demoCameraPlayer;
+	// Reset player structure to its defaults
+	p->~player_t();
+	::new(p) player_t;
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void clientdemo_CheckDemoBuffer( ULONG ulSize )
@@ -658,16 +677,8 @@ CCMD( demo_spectatefreely )
 	const AActor *pCamera = players[consoleplayer].camera;
 	if ( pCamera != g_demoCameraPlayer.mo )
 	{
-		if ( g_demoCameraPlayer.mo != NULL )
-		{
-			g_demoCameraPlayer.mo->Destroy();
-			g_demoCameraPlayer.mo = NULL;
-		}
-
+		CLIENTDEMO_ClearFreeSpectatorPlayer();
 		player_t *p = &g_demoCameraPlayer;
-		// Reset player structure to its defaults
-		p->~player_t();
-		::new(p) player_t;
 		p->bSpectating = true;
 		p->cls = PlayerClasses[p->CurrentPlayerClass].Type;
 		p->mo = static_cast<APlayerPawn *> (Spawn (p->cls, pCamera->x, pCamera->y, pCamera->z + pCamera->height , NO_REPLACE));

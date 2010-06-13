@@ -454,6 +454,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	bool wantFast;
 	int i;
 
+	// [BB] If there is a free spectator player from the last map, be sure to get rid of it.
+	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+		CLIENTDEMO_ClearFreeSpectatorPlayer();
+
 	// [BC] Clients need to keep their snapshots around for hub purposes, and since
 	// they always use G_InitNew (which they probably shouldn't).
 	if ((!savegamerestore) &&
