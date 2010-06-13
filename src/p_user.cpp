@@ -2560,7 +2560,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 {
 	// [BB] A client doesn't know enough about the other players to make their movement.
 	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
-		(( player - players ) != consoleplayer ))
+		(( player - players ) != consoleplayer ) && !CLIENTDEMO_IsFreeSpectatorPlayer ( player ))
 	{
 		return;
 	}

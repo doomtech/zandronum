@@ -334,6 +334,11 @@ void P_Ticker (void)
 			P_PlayerThink( &players[ulIdx] );
 	}
 
+	// [BB] If we are playing a demo in free spectate mode, we also need to let the special free
+	// spectator player think. That's necessary to move this player and thus to move the camera.
+	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+		CLIENTDEMO_FreeSpectatorPlayerThink();
+
 	level.Tick ();			// [RH] let the level tick
 
 	// [BB] Some things like AMovingCamera rely on the AActor tid in the PostBeginPlay functions,

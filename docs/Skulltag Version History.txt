@@ -19,6 +19,7 @@ latestzdoom branch
 +	- Added basic outbound net traffic analysis code for the server. This code allows to find out which actor classes and which ACS scripts use how much net traffic and should greatly simply the identification of network bandwidth hogs in custom mods. [Torr Samaho]
 +	- Added a verification system that allows the master server to verify that a server-master-challenge came from an existing server. [Torr Samaho]
 +	- Added new CVAR sv_logfile_append (default false). If enabled, a logfile is started and there already is a file with the specified name, the new log is appended to the existing file. [Torr Samaho]
++	- Added free spectate mode for client side demos, started with the new CCMD demo_spectatefreely. In this mode, you can move freely while the demo is played as if you were a spectator while the game was recorded. [Torr Samaho]
 -	- Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
 -	- Fixed: Executing spynext/spyprev on the server caused the server to crash. [Torr Samaho]

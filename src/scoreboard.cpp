@@ -292,8 +292,11 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 	g_BottomString = "";
 
+	// [BB] Draw a message to show that the free spectate mode is active.
+	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+		g_BottomString.AppendFormat( "FREE SPECTATE MODE" );
 	// If the console player is looking through someone else's eyes, draw the following message.
-	if ( static_cast<signed> (SCOREBOARD_GetViewPlayer()) != consoleplayer )
+	else if ( static_cast<signed> (SCOREBOARD_GetViewPlayer()) != consoleplayer )
 	{
 		char cColor = V_GetColorChar( CR_RED );
 
@@ -351,7 +354,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	}
 
 	// If the console player is spectating, draw the spectator message.
-	if (( players[consoleplayer].bSpectating ) && r_drawspectatingstring)
+	// [BB] Only when not in free spectate mode.
+	if (( players[consoleplayer].bSpectating ) && r_drawspectatingstring && !CLIENTDEMO_IsInFreeSpectateMode())
 	{
 		g_BottomString += "\n";
 		lPosition = JOINQUEUE_GetPositionInLine( ULONG( ulDisplayPlayer ));

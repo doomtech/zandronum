@@ -63,6 +63,7 @@
 #include "m_random.h"
 #include "network.h"
 #include "networkshared.h"
+#include "p_local.h"
 #include "r_draw.h"
 #include "r_state.h"
 #include "sbar.h"
@@ -105,6 +106,9 @@ static	LONG				g_lGameticOffset;
 
 // Maximum length our current demo can be.
 static	LONG				g_lMaxDemoLength;
+
+// [BB] Special player that is used to control the camera when playing demos in free spectate mode.
+static	player_t			g_demoCameraPlayer;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -595,6 +599,34 @@ void CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap )
 }
 
 //*****************************************************************************
+//
+bool CLIENTDEMO_IsInFreeSpectateMode( void )
+{
+	const AActor *pCamera = players[consoleplayer].camera;
+	return ( pCamera && ( pCamera == g_demoCameraPlayer.mo ) );
+}
+//*****************************************************************************
+//
+void CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd )
+{
+	memcpy( &(g_demoCameraPlayer.cmd), pCmd, sizeof( ticcmd_t ));
+}
+
+//*****************************************************************************
+//
+void CLIENTDEMO_FreeSpectatorPlayerThink( void )
+{
+	P_PlayerThink ( &g_demoCameraPlayer );
+}
+
+//*****************************************************************************
+//
+bool CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer )
+{
+	return ( &g_demoCameraPlayer == pPlayer );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void clientdemo_CheckDemoBuffer( ULONG ulSize )
@@ -621,3 +653,30 @@ CCMD( demo_skiptonextmap )
 	CLIENTDEMO_SetSkippingToNextMap ( true );
 }
 
+CCMD( demo_spectatefreely )
+{
+	const AActor *pCamera = players[consoleplayer].camera;
+	if ( pCamera != g_demoCameraPlayer.mo )
+	{
+		if ( g_demoCameraPlayer.mo != NULL )
+		{
+			g_demoCameraPlayer.mo->Destroy();
+			g_demoCameraPlayer.mo = NULL;
+		}
+
+		player_t *p = &g_demoCameraPlayer;
+		// Reset player structure to its defaults
+		p->~player_t();
+		::new(p) player_t;
+		p->bSpectating = true;
+		p->cls = PlayerClasses[p->CurrentPlayerClass].Type;
+		p->mo = static_cast<APlayerPawn *> (Spawn (p->cls, pCamera->x, pCamera->y, pCamera->z + pCamera->height , NO_REPLACE));
+		p->mo->angle = pCamera->angle;
+		p->mo->flags |= (MF_NOGRAVITY);
+		p->mo->player = p;
+		p->DesiredFOV = p->FOV = 90.f;
+		p->crouchfactor = FRACUNIT;
+		PLAYER_SetDefaultSpectatorValues ( p );
+		players[consoleplayer].camera = g_demoCameraPlayer.mo;
+	}
+}

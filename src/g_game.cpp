@@ -1150,9 +1150,9 @@ bool G_Responder (event_t *ev)
 {
 	// any other key pops up menu if in demos
 	// [RH] But only if the key isn't bound to a "special" command
-	// [BC] Support for client-side demos.
+	// [BC] Support for client-side demos [BB] and free spectate mode.
 	if (gameaction == ga_nothing && 
-		(demoplayback || CLIENTDEMO_IsPlaying( ) || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
+		(demoplayback || ( CLIENTDEMO_IsPlaying( ) && !CLIENTDEMO_IsInFreeSpectateMode() ) || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
 	{
 		const char *cmd = C_GetBinding (ev->data1);
 
@@ -1385,6 +1385,10 @@ void G_Ticker ()
 //		memcpy( cmd, &netcmds[consoleplayer][buf], sizeof( ticcmd_t ));
 		memcpy( cmd, &netcmds[0][buf], sizeof( ticcmd_t ));
 	}
+
+	// [BB] If we are playing a demo in free spectate mode, hand the player's ticcmd to the free spectator player.
+	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+		CLIENTDEMO_SetFreeSpectatorTiccmd ( &netcmds[0][buf] );
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{

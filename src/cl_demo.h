@@ -102,5 +102,9 @@ bool		CLIENTDEMO_IsPlaying( void );
 void		CLIENTDEMO_SetPlaying( bool bPlaying );
 bool		CLIENTDEMO_IsSkippingToNextMap( void );
 void		CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap );
+bool		CLIENTDEMO_IsInFreeSpectateMode( void );
+void		CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd );
+void		CLIENTDEMO_FreeSpectatorPlayerThink( void );
+bool		CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer );
 
 #endif // __CL_DEMO__

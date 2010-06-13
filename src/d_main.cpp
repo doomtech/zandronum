@@ -790,8 +790,8 @@ void D_Display ()
 				// [BC] Handle rendering for the possession module.
 				POSSESSION_Render( );
 
-				// [BC] Render the scoreboard.
-				if (( players[consoleplayer].camera != NULL ) && ( players[consoleplayer].camera->player != NULL ))
+				// [BC] Render the scoreboard [BB] respecting free spectate mode.
+				if (( players[consoleplayer].camera != NULL ) && ( players[consoleplayer].camera->player != NULL ) && !CLIENTDEMO_IsInFreeSpectateMode())
 					SCOREBOARD_Render( players[consoleplayer].camera->player - players );
 				else
 					SCOREBOARD_Render( consoleplayer );
