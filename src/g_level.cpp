@@ -455,7 +455,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	int i;
 
 	// [BB] If there is a free spectator player from the last map, be sure to get rid of it.
-	if ( CLIENTDEMO_IsInFreeSpectateMode() )
+	if ( CLIENTDEMO_IsPlaying() )
 		CLIENTDEMO_ClearFreeSpectatorPlayer();
 
 	// [BC] Clients need to keep their snapshots around for hub purposes, and since
