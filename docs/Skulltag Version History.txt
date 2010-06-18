@@ -20,6 +20,7 @@ latestzdoom branch
 +	- Added a verification system that allows the master server to verify that a server-master-challenge came from an existing server. [Torr Samaho]
 +	- Added new CVAR sv_logfile_append (default false). If enabled, a logfile is started and there already is a file with the specified name, the new log is appended to the existing file. [Torr Samaho]
 +	- Added free spectate mode for client side demos, started with the new CCMD demo_spectatefreely. In this mode, you can move freely while the demo is played as if you were a spectator while the game was recorded. [Torr Samaho]
++	- Added new DECORATE actor flag SERVERSIDEONLY. The clients don't spawn such actors, only the server does. Therefore, spawning or manipulating these actors does not need network bandwidth. Only use it on actors that are always invisible and don't block the movement of players. [Torr Samaho]
 -	- Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
 -	- Fixed: Executing spynext/spyprev on the server caused the server to crash. [Torr Samaho]

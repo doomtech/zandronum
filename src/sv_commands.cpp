@@ -91,7 +91,7 @@ bool EnsureActorHasNetID( AActor *pActor )
 
 	if ( pActor->lNetID == -1 )
 	{
-		if ( sv_showwarnings )
+		if ( sv_showwarnings && !( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY ) )
 			Printf ( "Warning: Actor %s doesn't have a netID and therefore can't be manipulated online!\n", pActor->GetClass()->TypeName.GetChars() );
 		return false;
 	}
@@ -1579,6 +1579,9 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
+		return;
+
+	if ( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
 	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
@@ -5513,6 +5516,9 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 	if ( pInventory == NULL )
 		return;
 
+	if ( pInventory->ulNetworkFlags & NETFL_SERVERSIDEONLY )
+		return;
+
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
@@ -5560,6 +5566,10 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 	ULONG	ulIdx;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	const PClass *pType = PClass::FindClass( pszClassName );
+	if ( pType == NULL || ( GetDefaultByType ( pType )->ulNetworkFlags & NETFL_SERVERSIDEONLY ) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

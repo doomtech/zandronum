@@ -404,6 +404,11 @@ enum
 	// Only use it on actors that don't affect the game in any way (visuals aside).
 	NETFL_CLIENTSIDEONLY		= 0x00000010,
 
+	// [BB] This actor was only spawned by the server or is supposed to be.
+	// The clients don't spawn it at all.
+	// Only use it on actors that are always invisible and don't block the movement of players.
+	NETFL_SERVERSIDEONLY		= 0x00000020,
+
 	// [BC] End of new ST flags.
 
 // --- mobj.renderflags ---
