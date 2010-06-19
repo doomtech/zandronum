@@ -63,6 +63,7 @@ latestzdoom branch
 -	- Fixed: Using "+deathmatch 1" as command line argument didn't work with non Windows binaries. [Torr Samaho]
 -	- Fixed: Under some circumstances, the wrong obituaries were displayed online. [Torr Samaho]
 -	- Fixed: When a bot was removed from the game, it didn't execute its disconnect scripts. [Torr Samaho]
+-	- Fixed an exploit that could turn a client into some kind of ghost mode. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
