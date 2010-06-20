@@ -1527,7 +1527,15 @@ void G_DoLoadLevel (int position, bool autosave)
 		for ( int i = 0; i < MAXPLAYERS; ++i )
 		{
 			if ( playeringame[i] && ( players[i].bSpectating == false ) && ( players[i].mo ) && ( players[i].mo->Inventory == NULL ) )
+			{
 				players[i].mo->GiveDefaultInventory();
+				// [BB] GiveDefaultInventory() also restores the default health, but we don't want to revive dead players.
+				if ( players[i].playerstate == PST_DEAD )
+				{
+					players[i].health = 0;
+					players[i].mo->health = 0;
+				}
+			}
 		}
 	}
 
