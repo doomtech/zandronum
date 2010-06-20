@@ -2564,9 +2564,6 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 //
 void G_DoReborn (int playernum, bool freshbot)
 {
-//	int i;
-	AActor	*pOldBody;
-
 	// All of this is done remotely.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -2592,11 +2589,12 @@ void G_DoReborn (int playernum, bool freshbot)
 	else
 	{
 		// respawn at the start
-//		int i;
+		// [BB] ST doesn't need this variable.
+		// int i;
 
 		// first disassociate the corpse
-		pOldBody = players[playernum].mo;
-		if ( players[playernum].mo )
+		AActor *pOldBody = players[playernum].mo; // [BB] ST still needs the old body pointer.
+		if (players[playernum].mo)
 		{
 			// [BB] Skulltag has its own body queue. If G_QueueBody is used, the
 			// STFL_OBSOLETE_SPECTATOR_BODY code below has to be adapted.
@@ -2614,52 +2612,56 @@ void G_DoReborn (int playernum, bool freshbot)
 			pOldBody = NULL;
 		}
 
+		/* [BB] ST has its own way of doing this.
 		// spawn at random spot if in death match
-		if ( deathmatch )
+		if (deathmatch)
 		{
-			G_DeathMatchSpawnPlayer( playernum, true );
-
-			// If the player fired a missile before he died, update its target so he gets
-			// credit if it kills someone.
-			if ( pOldBody )
-			{
-				AActor						*pActor;
-				TThinkerIterator<AActor>	Iterator;
-				
-				while ( (pActor = Iterator.Next( )))
-				{
-					if ( pActor->target == pOldBody )
-						pActor->target = players[playernum].mo;
-				}
-			}
+			G_DeathMatchSpawnPlayer (playernum);
 			return;
 		}
 
-		// Spawn the player at their appropriate team start.
-		if ( teamgame )
+		if (G_CheckSpot (playernum, &playerstarts[playernum]) )
 		{
-			if ( players[playernum].bOnTeam )
-				G_TeamgameSpawnPlayer( playernum, players[playernum].ulTeam, true );
-			else
-				G_TemporaryTeamSpawnPlayer( playernum, true );
-
-			// If the player fired a missile before he died, update its target so he gets
-			// credit if it kills someone.
-			if ( pOldBody )
-			{
-				AActor						*pActor;
-				TThinkerIterator<AActor>	Iterator;
-				
-				while ( (pActor = Iterator.Next( )))
-				{
-					if ( pActor->target == pOldBody )
-						pActor->target = players[playernum].mo;
-				}
-			}
-			return;
+			AActor *mo = P_SpawnPlayer (&playerstarts[playernum]);
+			if (mo != NULL) P_PlayerStartStomp(mo);
 		}
+		else
+		{
+			// try to spawn at one of the other players' spots
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (G_CheckSpot (playernum, &playerstarts[i]) )
+				{
+					int oldtype = playerstarts[i].type;
 
-		G_CooperativeSpawnPlayer( playernum, true );
+					// fake as other player
+					// [RH] These numbers should be common across all games. Or better yet, not
+					// used at all outside P_SpawnMapThing().
+					if (playernum < 4 || gameinfo.gametype == GAME_Strife)
+					{
+						playerstarts[i].type = playernum + 1;
+					}
+					else if (gameinfo.gametype == GAME_Hexen)
+					{
+						playerstarts[i].type = playernum + 9100 - 4;
+					}
+					else
+					{
+						playerstarts[i].type = playernum + 4001 - 4;
+					}
+					AActor *mo = P_SpawnPlayer (&playerstarts[i]);
+					if (mo != NULL) P_PlayerStartStomp(mo);
+					playerstarts[i].type = oldtype; 			// restore 
+					return;
+				}
+				// he's going to be inside something.  Too bad.
+			}
+			AActor *mo = P_SpawnPlayer (&playerstarts[playernum]);
+			if (mo != NULL) P_PlayerStartStomp(mo);
+		}
+		*/
+
+		GAMEMODE_SpawnPlayer( playernum );
 
 		// If the player fired a missile before he died, update its target so he gets
 		// credit if it kills someone.
