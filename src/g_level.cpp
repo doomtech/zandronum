@@ -1503,7 +1503,34 @@ void G_DoLoadLevel (int position, bool autosave)
 	level.starttime = gametic;
 	level.maptime = 0;
 	G_UnSnapshotLevel (!savegamerestore);	// [RH] Restore the state of the level.
+
+	// [BB] If the snapshot was taken with less players than we have now (possible due to ingame joining),
+	// the new ones don't have a body. Just give them one.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		for ( int i = 0; i < MAXPLAYERS; ++i )
+		{
+			if ( playeringame[i] && ( players[i].mo == NULL ) )
+			{
+				players[i].playerstate = PST_ENTER;
+				GAMEMODE_SpawnPlayer ( i, false );
+			}
+		}
+	}
+
 	G_FinishTravel ();
+
+	// [BB] If anybody doesn't have any inventory at all by now (players should always have the Hexen Armor stuff for instance),
+	// something went wrong. Make sure that they have at least their default inventory.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		for ( int i = 0; i < MAXPLAYERS; ++i )
+		{
+			if ( playeringame[i] && ( players[i].bSpectating == false ) && ( players[i].mo ) && ( players[i].mo->Inventory == NULL ) )
+				players[i].mo->GiveDefaultInventory();
+		}
+	}
+
 	if (players[consoleplayer].camera == NULL ||
 		players[consoleplayer].camera->player != NULL)
 	{ // If we are viewing through a player, make sure it is us.

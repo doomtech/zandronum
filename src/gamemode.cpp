@@ -431,22 +431,22 @@ void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent )
 
 //*****************************************************************************
 //
-void GAMEMODE_SpawnPlayer( const ULONG ulPlayer )
+void GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate )
 {
 	// Spawn the player at their appropriate team start.
 	if ( teamgame )
 	{
 		if ( players[ulPlayer].bOnTeam )
-			G_TeamgameSpawnPlayer( ulPlayer, players[ulPlayer].ulTeam, true );
+			G_TeamgameSpawnPlayer( ulPlayer, players[ulPlayer].ulTeam, bClientUpdate );
 		else
-			G_TemporaryTeamSpawnPlayer( ulPlayer, true );
+			G_TemporaryTeamSpawnPlayer( ulPlayer, bClientUpdate );
 	}
 	// If deathmatch, just spawn at a random spot.
 	else if ( deathmatch )
-		G_DeathMatchSpawnPlayer( ulPlayer, true );
+		G_DeathMatchSpawnPlayer( ulPlayer, bClientUpdate );
 	// Otherwise, just spawn at their normal player start.
 	else
-		G_CooperativeSpawnPlayer( ulPlayer, true );
+		G_CooperativeSpawnPlayer( ulPlayer, bClientUpdate );
 }
 
 //*****************************************************************************
