@@ -216,6 +216,9 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 	if ( sv_enforcemasterbanlist )
 		serverban_KickBannedPlayers( );
 
+	// [BB] Inform the master that we received the banlist.
+	SERVER_MASTER_SendBanlistReceipt();
+
 	// Printf( "Imported %d bans, %d exceptions from the master.\n", g_MasterServerBans.size( ), g_MasterServerBanExemptions.size( ));
 }
 

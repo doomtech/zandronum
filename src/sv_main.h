@@ -389,6 +389,7 @@ void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG u
 const char	*SERVER_MASTER_GetGameName( void );
 NETADDRESS_s SERVER_MASTER_GetMasterAddress( void );
 void		SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream );
+void		SERVER_MASTER_SendBanlistReceipt( void );
 
 // Statistic functions.
 LONG		SERVER_STATISTIC_GetTotalSecondsElapsed( void );

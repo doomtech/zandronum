@@ -604,6 +604,18 @@ void SERVER_MASTER_HandleVerificationRequest( BYTESTREAM_s *pByteStream  )
 	NETWORK_LaunchPacket( &g_MasterServerBuffer, SERVER_MASTER_GetMasterAddress () );
 }
 
+//*****************************************************************************
+//
+void SERVER_MASTER_SendBanlistReceipt ( void )
+{
+	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_BANLIST_RECEIPT );
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
+
+	// [BB] Send the master server our packet.
+	NETWORK_LaunchPacket( &g_MasterServerBuffer, SERVER_MASTER_GetMasterAddress () );
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CONSOLE ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------

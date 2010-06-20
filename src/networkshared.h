@@ -133,6 +133,9 @@ enum
 
 	// [BB] Server is answering a MasterBanlistVerificationString verification request.
 	SERVER_MASTER_VERIFICATION,
+
+	// [BB] Server is acknowledging the receipt of a ban list.
+	SERVER_MASTER_BANLIST_RECEIPT,
 };
 
 // [BB] Protocol version of the master server, currently only used in conjunction with LAUNCHER_MASTER_CHALLENGE.

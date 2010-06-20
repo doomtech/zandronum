@@ -165,6 +165,7 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 
 	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
 	Server.bHasLatestBanList = true;
+	Server.bVerifiedLatestBanList = false;
 	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
 #endif
 }
@@ -266,7 +267,10 @@ void MASTERSERVER_InitializeBans( void )
 	{
 		// [BB] The ban list was changed, so no server has the latest list anymore.
 		for( std::set<SERVER_s, SERVERCompFunc>::iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
+		{
 			it->bHasLatestBanList = false;
+			it->bVerifiedLatestBanList = false;
+		}
 
 		std::cerr << "Ban lists were changed since last refresh\n";
 	}
@@ -361,7 +365,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// and gives them the benefit of the doubt, i.e. it assumes that they enforce our bans.
 			const int temp = NETWORK_ReadByte( pByteStream );
 			newServer.bEnforcesBanList = ( temp != 0 );
-			const bool bNewFormatServer = ( temp != -1 );
+			newServer.bNewFormatServer = ( temp != -1 );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
@@ -381,7 +385,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( AddressFrom ));
 				else
 				{
-					if ( bNewFormatServer )
+					if ( newServer.bNewFormatServer )
 					{
 						std::set<SERVER_s, SERVERCompFunc>::iterator currentUnverifiedServer = g_UnverifiedServers.find ( newServer );
 						// [BB] This is a new server, but we still need to verify it.
@@ -439,6 +443,25 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			}
 			return;
 		}
+	case SERVER_MASTER_BANLIST_RECEIPT:
+		{
+			SERVER_s server;
+			server.Address = AddressFrom;
+			server.MasterBanlistVerificationString = NETWORK_ReadString( pByteStream );
+
+			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( server );
+
+			// [BB] We don't know the server. Just ignore it.
+			if ( currentServer == g_Servers.end() )
+				return;
+
+			if ( stricmp ( server.MasterBanlistVerificationString.c_str(), currentServer->MasterBanlistVerificationString.c_str() ) == 0 )
+			{
+				currentServer->bVerifiedLatestBanList = true;
+				std::cerr << NETWORK_AddressToString ( AddressFrom ) << " acknowledged receipt of the banlist.\n";
+			}
+		}
+		return;
 	// Launcher is asking master server for server list.
 	case LAUNCHER_SERVER_CHALLENGE:
 	case LAUNCHER_MASTER_CHALLENGE:
@@ -619,6 +642,7 @@ int main( int argc, char **argv )
 	std::cerr << "Initializing ban list...\n";
 	MASTERSERVER_InitializeBans( );
 	int lastParsingTime = I_GetTime( );
+	int lastBanlistVerificationTimeout = lastParsingTime;
 
 	// [BB] Do we want to hide servers that ignore our ban list?
 	if ( ( argc >= 2 ) && ( stricmp ( argv[1], "-DontHideBanIgnoringServers" ) == 0 ) )
@@ -658,6 +682,19 @@ int main( int argc, char **argv )
 
 		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );
+
+		if ( g_lCurrentTime > lastBanlistVerificationTimeout + 10 )
+		{
+			for( std::set<SERVER_s, SERVERCompFunc>::iterator it = g_Servers.begin(); it != g_Servers.end(); ++it )
+			{
+				if ( ( it->bVerifiedLatestBanList == false ) && ( it->bNewFormatServer == true ) )
+				{
+					it->bHasLatestBanList = false;
+					std::cerr << "No receipt received from " << NETWORK_AddressToString ( it->Address ) << ". Resending banlist.\n";
+				}
+			}
+			lastBanlistVerificationTimeout = g_lCurrentTime;
+		}
 
 		// [BB] Reparse the ban list every 15 minutes.
 		if ( g_lCurrentTime > lastParsingTime + 15*60 )

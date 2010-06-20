@@ -78,8 +78,14 @@ typedef struct
 	// [BB] Does the server have the latest version of the holy banlist?
 	mutable bool	bHasLatestBanList;
 
+	// [BB] Did the server acknowledge the receipt the holy banlist?
+	mutable bool	bVerifiedLatestBanList;
+
 	// [BB] Does the server enforce the holy banlist locally?
 	bool	bEnforcesBanList;
+
+	// [BB] Is the server using the latest Skulltag version
+	bool	bNewFormatServer;
 
 	// [BB] String the server has sent to use to verify ban list packets.
 	std::string		MasterBanlistVerificationString;
