@@ -65,6 +65,7 @@ latestzdoom branch
 -	- Fixed: When a bot was removed from the game, it didn't execute its disconnect scripts. [Torr Samaho]
 -	- Fixed an exploit that could turn a client into some kind of ghost mode. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho]
 -	- Fixed: When re-entering a hub map online with more players than there were when leaving that map, the server could crash. [Torr Samaho, SuperGod]
+-	- Fixed: Trying to use chasecam on a non-coop server with sv_chasecam true and sv_cheats false caused the player to be kicked. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

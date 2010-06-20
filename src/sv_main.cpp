@@ -4889,7 +4889,7 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 
 	// If it's legal, do the cheat.
 	if (( sv_cheats ) ||
-		(( ulCheat == CHT_CHASECAM ) &&	(( ( deathmatch == false ) && ( teamgame == false ) ) || (players[g_lCurrentClient].bSpectating) )))
+		(( ulCheat == CHT_CHASECAM ) &&	(( ( deathmatch == false ) && ( teamgame == false ) ) || (players[g_lCurrentClient].bSpectating) || (dmflags2 & DF2_CHASECAM) )))
 	{
 		cht_DoCheat( &players[g_lCurrentClient], ulCheat );
 
@@ -4898,7 +4898,7 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 		{
 			// [BB] You only need to notify the client who wants to use chasecam about it.
 			// If you tell it to all clients, it looks weird for a client spying someone with chasecam on.
-			if (( ulCheat == CHT_CHASECAM ) &&	( deathmatch == false ) && ( teamgame == false ))
+			if ( ulCheat == CHT_CHASECAM )
 				SERVERCOMMANDS_GenericCheat( g_lCurrentClient, ulCheat, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 			else
 				SERVERCOMMANDS_GenericCheat( g_lCurrentClient, ulCheat );
