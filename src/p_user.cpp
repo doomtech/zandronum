@@ -1399,7 +1399,12 @@ void APlayerPawn::GiveDefaultInventory ()
 					pInventory = player->mo->GiveInventoryTypeRespectingReplacements( pType );
 
 					// Make this weapon the player's pending weapon if it ranks higher.
-					pWeapon = static_cast<AWeapon *>( pInventory );
+					// [BB] We obviously only can do the cast when the possible replacement is still a weapon.
+					if ( pInventory && pInventory->GetClass()->IsDescendantOf( RUNTIME_CLASS( AWeapon )) )
+						pWeapon = static_cast<AWeapon *>( pInventory );
+					else
+						pWeapon = NULL;
+
 					if ( pWeapon != NULL )
 					{
 						if ( pWeapon->WeaponFlags & WIF_NOLMS )
