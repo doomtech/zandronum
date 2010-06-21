@@ -616,7 +616,10 @@ CCMD (useflechette)
 		AInventory *item;
 		if ( (item = who->FindInventory (bagnames[(i+j)%3])) )
 		{
-			SendItemUse = item;
+			if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+				CLIENTCOMMANDS_RequestInventoryUse( item );
+			else
+				SendItemUse = item;
 			break;
 		}
 	}
