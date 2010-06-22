@@ -770,6 +770,9 @@ private:
 	DLevelScript ();
 
 	friend class DACSThinker;
+
+	// [BB] The clients need to call some of the static functions from DLevelScript.
+	friend class STClient;
 };
 
 inline FArchive &operator<< (FArchive &arc, DLevelScript::EScriptState &state)

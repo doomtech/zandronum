@@ -424,6 +424,12 @@ static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo );
 
+class STClient {
+public:
+	// [BB] Needs to be encapsulated in STClient, because STClient is friend of DLevelScript.
+	static void ReplaceTextures( BYTESTREAM_s *pByteStream );
+};
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -735,6 +741,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SPAWNBLOODSPLATTER",
 	"SVC_SPAWNBLOODSPLATTER2",
 	"SVC_CREATETRANSLATION2",
+	"SVC_REPLACETEXTURES",
 };
 #endif
 
@@ -2609,6 +2616,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_CREATETRANSLATION2:
 
 		client_CreateTranslation( pByteStream, true );
+		break;
+	case SVC_REPLACETEXTURES:
+
+		STClient::ReplaceTextures( pByteStream );
 		break;
 	case SVC_IGNOREPLAYER:
 
@@ -11696,6 +11707,17 @@ static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
 
 		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.netname, players[ulPlayer].userinfo.gender == GENDER_MALE ? "his" : players[ulPlayer].userinfo.gender == GENDER_FEMALE ? "her" : "its" );
 	}
+}
+
+//*****************************************************************************
+//
+void STClient::ReplaceTextures( BYTESTREAM_s *pByteStream )
+{
+	int iFromname = NETWORK_ReadShort( pByteStream );
+	int iToname = NETWORK_ReadShort( pByteStream );
+	int iTexFlags = NETWORK_ReadByte( pByteStream );
+
+	DLevelScript::ReplaceTextures ( iFromname, iToname, iTexFlags );
 }
 
 //*****************************************************************************

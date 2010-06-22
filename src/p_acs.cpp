@@ -2374,6 +2374,12 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 	if (fromname == NULL)
 		return;
 
+	// [BB] If we're the server, tell the clients to call DLevelScript::ReplaceTextures with the same
+	// arguments. This way the amount of nettraffic needed is fixed and doesn't depend of the number
+	// of lines or sectors that use the replaced texture.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ))
+		SERVERCOMMANDS_ReplaceTextures ( fromnamei, tonamei, flags );
+
 	if ((flags ^ (NOT_BOTTOM | NOT_MIDDLE | NOT_TOP)) != 0)
 	{
 		picnum1 = TexMan.GetTexture (fromname, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
@@ -2398,11 +2404,6 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 					lines[wal->linenum].ulTexChangeFlags |= 1 << ulShift;
 				}
 			}
-
-			// [BB] If we're the server, potentially inform the clients about the texture change.
-			// Note: SERVERCOMMANDS_SetLineTexture checks ulTexChangeFlags and does nothing if it's zero.
-			if (( NETWORK_GetState( ) == NETSTATE_SERVER ))
-				SERVERCOMMANDS_SetLineTexture ( wal->linenum );
 		}
 	}
 	if ((flags ^ (NOT_FLOOR | NOT_CEILING)) != 0)
@@ -2428,10 +2429,6 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 				// [BB] Mark this sector as having its flat changed.
 				sec->bFlatChange = true;
 			}
-
-			// [BB] Potentially update clients about this flat change.
-			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && sec->bFlatChange )
-				SERVERCOMMANDS_SetSectorFlat( i );
 		}
 	}
 }
