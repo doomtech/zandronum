@@ -268,6 +268,13 @@ enum
 	DF2_COOP_SP_ACTOR_SPAWN		= 1 << 29,
 };
 
+// [BB] Even more dmflags...
+enum
+{
+	// [BB] Enforces clients not to identify players, i.e. behave as if cl_identifytarget == 0.
+	DF3_NO_IDENTIFY_TARGET		= 1 << 0,
+};
+
 // [RH] Compatibility flags.
 // [RC] NOTE: If adding a flag, be sure to add a stub in serverconsole_dmflags.cpp.
 enum

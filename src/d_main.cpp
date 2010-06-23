@@ -488,6 +488,24 @@ CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 
 //==========================================================================
 //
+// [BB] CVAR dmflags3
+//
+//==========================================================================
+
+CUSTOM_CVAR (Int, dmflags3, 0, CVAR_SERVERINFO)
+{
+	// [BB] If we're the server, tell clients that the dmflags changed.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
+		SERVERCOMMANDS_SetGameDMFlags( );
+	}
+}
+
+CVAR (Flag, sv_noidentifytarget,			dmflags3, DF3_NO_IDENTIFY_TARGET);
+
+//==========================================================================
+//
 // CVAR compatflags
 //
 //==========================================================================

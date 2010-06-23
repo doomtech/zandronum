@@ -7629,6 +7629,10 @@ static void client_SetGameDMFlags( BYTESTREAM_s *pByteStream )
 	// [BB] ... and compatflags2.
 	Value.Int = NETWORK_ReadLong( pByteStream );
 	compatflags2.ForceSet( Value, CVAR_Int );
+
+	// [BB] ... and dmflags3.
+	Value.Int = NETWORK_ReadLong( pByteStream );
+	dmflags3.ForceSet( Value, CVAR_Int );
 }
 
 //*****************************************************************************
