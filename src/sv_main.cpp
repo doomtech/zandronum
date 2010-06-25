@@ -5261,8 +5261,11 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 
 	// If this player travelled from the last level, we need to reset his inventory so that
 	// he still has it on the client end.
-	if ( G_AllowTravel( ))
-		SERVER_ResetInventory( g_lCurrentClient );
+	//if ( G_AllowTravel( ))
+	// [BB] We have to do this in any case, because he could have gotten something during the time after
+	// the map was started on the server, but before it was loaded on the client (APowerInvulnerable for
+	// instance in DM games with respawn invulnerability).
+	SERVER_ResetInventory( g_lCurrentClient );
 
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );

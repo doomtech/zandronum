@@ -69,6 +69,7 @@ latestzdoom branch
 -	- Fixed: Trying to use chasecam on a non-coop server with sv_chasecam true and sv_cheats false caused the player to be kicked. [Torr Samaho]
 -	- Fixed: LMS crashed on startup when a weapon was replaced via DECORATE with a non-weapon inventory actor. [Torr Samaho]
 -	- Fixed: CCMD useflechette doesn't work online. [Torr Samaho]
+-	- Fixed: After a map change online with respawn invulnerability turned on, clients keep the invulnerability mugshot even after the respawn invulnerability runs out. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]
