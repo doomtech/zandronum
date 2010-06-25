@@ -1021,8 +1021,8 @@ static void ChangeSpy (bool forward)
 		return;
 	}
 
-	// [BC] Always allow spectator spying.
-	if ( players[consoleplayer].bSpectating )
+	// [BC] Always allow spectator spying. [BB] Same when playing a demo.
+	if ( players[consoleplayer].bSpectating || CLIENTDEMO_IsPlaying( ) )
 	{
 		// Loop through all the players, and stop when we find one.
 		do
