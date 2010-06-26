@@ -23,6 +23,7 @@ latestzdoom branch
 +	- Added new DECORATE actor flag SERVERSIDEONLY. The clients don't spawn such actors, only the server does. Therefore, spawning or manipulating these actors does not need network bandwidth. Only use it on actors that are always invisible and don't block the movement of players. [Torr Samaho]
 +	- Added new dmflag "don't identify target player", controlled by the new CVAR sv_noidentifytarget. If this is true, clients are enforced not to identify players, i.e. behave as if cl_identifytarget == 0. [Torr Samaho]
 +	- Added new dmflag "always apply lmsspectatorsettings", controlled by the new CVAR sv_applylmsspectatorsettings. If this is true, lms_spectatorchat will be respected in all game modes. [Torr Samaho]
++	- Added the invasion spawners for Strife made by GorpusMorpus. Also thanks to Archfile for cleaning the doomednums. [Torr Samaho]
 -	- Fixed: G_SecretExitLevel causes a skill change to 0 due to a typo by VC in G_ChangeLevel parameter list [Eruanna]
 -	- Fixed: sv_forcegldefaults 1 doesn't properly enforce the default GL lighting mode after a map change. [Eruanna, Torr Samaho]
 -	- Fixed: Executing spynext/spyprev on the server caused the server to crash. [Torr Samaho]

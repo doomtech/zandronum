@@ -187,6 +187,8 @@
 #include "actors/strife/templar.txt"
 #include "actors/strife/zombie.txt"
 #include "actors/strife/sigil.txt"
+// [BB] Strife invasion spawners.
+#include "actors/strife/strifespawners.txt"
 
 #include "actors/chex/chexmonsters.txt"
 #include "actors/chex/chexkeys.txt"
