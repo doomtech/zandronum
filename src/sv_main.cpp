@@ -1046,19 +1046,8 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	if ( ( ulMode == CHATMODE_NONE ) || ( ulMode >= NUM_CHATMODES ) )
 		return;
 
-	bool	bFordidChatToPlayers;
-
 	// Potentially prevent spectators from talking to active players during LMS games.
-	if (( teamlms || lastmanstanding ) &&
-		(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
-		( ulPlayer < MAXPLAYERS ) &&
-		( players[ulPlayer].bSpectating ) &&
-		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
-	{
-		bFordidChatToPlayers = true;
-	}
-	else
-		bFordidChatToPlayers = false;
+	const bool bFordidChatToPlayers = GAMEMODE_IsClientFordiddenToChatToPlayers( ulPlayer );
 
 	FString cleanedChatString = pszString;
 

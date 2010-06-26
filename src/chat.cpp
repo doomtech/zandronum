@@ -342,9 +342,7 @@ void CHAT_Render( void )
 	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
-	if (( lastmanstanding || teamlms ) && 
-		(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
-		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+	if ( GAMEMODE_AreSpectatorsFordiddenToChatToPlayers() )
 	{
 		// Is this the spectator talking?
 		if ( players[consoleplayer].bSpectating )

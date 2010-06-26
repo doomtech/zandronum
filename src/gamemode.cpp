@@ -59,6 +59,7 @@
 #include "joinqueue.h"
 #include "cl_demo.h"
 #include "survival.h"
+#include "lastmanstanding.h"
 // [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
 #include "sbar.h"
 #include "v_video.h"
@@ -490,6 +491,37 @@ bool GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor )
 	// [BB] Passed all checks.
 	return true;
 }
+
+//*****************************************************************************
+//
+bool GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void )
+{
+	if (( teamlms || lastmanstanding ) &&
+		(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
+		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//*****************************************************************************
+//
+bool GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient )
+{
+	// [BB] If it's not a valid client, there are no restrictions. Note:
+	// ulClient == MAXPLAYERS means the server wants to say something.
+	if ( ulClient >= MAXPLAYERS )
+		return false;
+
+	// [BB] Ingame players are allowed to chat to other players.
+	if ( players[ulClient].bSpectating == false )
+		return false;
+
+	return GAMEMODE_AreSpectatorsFordiddenToChatToPlayers();
+}
+
 //*****************************************************************************
 //
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )

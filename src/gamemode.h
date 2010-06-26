@@ -116,6 +116,8 @@ void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
+bool		GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void );
+bool		GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );
