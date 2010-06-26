@@ -781,7 +781,7 @@ CCMD( say_team )
 //
 // [RC] Lets clients ignore an annoying player's chat messages.
 //
-CCMD( ignore )
+void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 {
 	// Print the explanation message.
 	if ( argv.argc( ) < 2 )
@@ -798,8 +798,6 @@ CCMD( ignore )
 		return;
 	}
 	
-	// Find the player and ignore him.
-	ULONG	ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
 	LONG	lTicks = -1;
 	
 	// Did the user specify a set duration?
@@ -831,11 +829,27 @@ CCMD( ignore )
 	}
 }
 
+CCMD( ignore )
+{
+	// Find the player and ignore him.
+	chat_IgnorePlayer( argv, argv.argc( ) >= 2 ? SERVER_GetPlayerIndexFromName( argv[1], true, true ) : MAXPLAYERS );
+}
+
+CCMD( ignore_idx )
+{
+	const ULONG ulPlayer = ( argv.argc( ) >= 2 ) ? atoi( argv[1] ) : MAXPLAYERS;
+
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false ) 
+		return;
+
+	chat_IgnorePlayer( argv, ulPlayer );
+}
+
 //*****************************************************************************
 //
 // [RC] Undos "ignore".
 //
-CCMD( unignore )
+void chat_UnignorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 {
 	// Print the explanation message.
 	if ( argv.argc( ) < 2 )
@@ -852,8 +866,6 @@ CCMD( unignore )
 		return;
 	}
 	
-	// Find the player.
-	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
 	else if ( ulPlayer == consoleplayer )
@@ -871,3 +883,19 @@ CCMD( unignore )
 			CLIENTCOMMANDS_Ignore( ulPlayer, false );
 	}
 }
+
+CCMD( unignore )
+{
+	chat_UnignorePlayer( argv, argv.argc( ) >= 2 ? SERVER_GetPlayerIndexFromName( argv[1], true, true ) : MAXPLAYERS );
+}
+
+CCMD( unignore_idx )
+{
+	const ULONG ulPlayer = ( argv.argc( ) >= 2 ) ? atoi( argv[1] ) : MAXPLAYERS;
+
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false ) 
+		return;
+
+	chat_UnignorePlayer( argv, ulPlayer );
+}
+
