@@ -3,9 +3,10 @@
   SKULLTAG Launcher Protocol
   ==========================
 
-  v0.56
+  v0.57
 
   Version history:
+    - v0.57: Added SQF_ALL_DMFLAGS [Torr Samaho]
     - v0.56: Fine tuned the altered master server protocol [Torr Samaho]
     - v0.55: Altered master server protocol (sending servers in blocks, supporting master server protocol version) [Torr Samaho]
     - v0.54: Formatted for wiki. Some tweaks. [Rivecoder]
@@ -114,7 +115,7 @@ The flags are:
 	SQF_FORCEJOINPASSWORD	                0x00000800
 	SQF_GAMESKILL				0x00001000
 	SQF_BOTSKILL				0x00002000
-	SQF_DMFLAGS				0x00004000
+	SQF_DMFLAGS				0x00004000 // Deprecated
 	SQF_LIMITS				0x00010000
 	SQF_TEAMDAMAGE				0x00020000
 	SQF_TEAMSCORES				0x00040000 // Deprecated
@@ -126,6 +127,7 @@ The flags are:
 	SQF_TEAMINFO_SCORE			0x01000000
 	SQF_TESTING_SERVER			0x02000000
 	SQF_DATA_MD5SUM				0x04000000
+	SQF_ALL_DMFLAGS				0x08000000
 </pre>
 For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS). Use these flags appropriately; doing so saves your users' and server hosters' bandwidth.
 
@@ -217,6 +219,9 @@ Followed by:
                                     archive found in http://skulltag.com/testing/files/
   String  SQF_DATA_MD5SUM       A string with the MD5 sum of the main data file
                                     (skulltag.wad/skulltag_data.pk3) the server uses.
+  Byte    SQF_ALL_DMFLAGS       The number of flags that will be sent.
+  Long    SQF_ALL_DMFLAGS       The value of the flags (Sent for each flag in the order
+                                    dmflags, dmflags2, dmflags3, compatflags, compatflags2)
 
 And that's it!
 

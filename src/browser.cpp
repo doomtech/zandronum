@@ -682,6 +682,15 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		// [BB] MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
 		if ( ulFlags & SQF_DATA_MD5SUM )
 			NETWORK_ReadString( pByteStream );
+
+		// [BB] All dmflags and compatflags.
+		if ( ulFlags & SQF_ALL_DMFLAGS )
+		{
+			const ULONG ulNumFlags = NETWORK_ReadByte( pByteStream );
+			for ( ULONG ulIdx = 0; ulIdx < ulNumFlags; ulIdx++ )
+				NETWORK_ReadLong( pByteStream );
+		}
+
 		return;
 	}
 
@@ -904,6 +913,14 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	// [BB] MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
 	if ( ulFlags & SQF_DATA_MD5SUM )
 		NETWORK_ReadString( pByteStream );
+
+	// [BB] All dmflags and compatflags.
+	if ( ulFlags & SQF_ALL_DMFLAGS )
+	{
+		const ULONG ulNumFlags = NETWORK_ReadByte( pByteStream );
+		for ( ULONG ulIdx = 0; ulIdx < ulNumFlags; ulIdx++ )
+			NETWORK_ReadLong( pByteStream );
+	}
 
 	// Now that this server has been read in, resort the servers in the menu.
 	if ( bResortList )

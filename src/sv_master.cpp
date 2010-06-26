@@ -550,6 +550,17 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( ulBits & SQF_DATA_MD5SUM )
 		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, g_SkulltagDataFileMD5Sum.GetChars() );
 
+	// [BB] Send all dmflags and compatflags.
+	if ( ulBits & SQF_ALL_DMFLAGS )
+	{
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 5 );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags2 );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags3 );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags2 );
+	}
+
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
 	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 }
