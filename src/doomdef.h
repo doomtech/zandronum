@@ -273,6 +273,9 @@ enum
 {
 	// [BB] Enforces clients not to identify players, i.e. behave as if cl_identifytarget == 0.
 	DF3_NO_IDENTIFY_TARGET		= 1 << 0,
+
+	// [BB] Apply lmsspectatorsettings in all game modes.
+	DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS		= 1 << 1,
 };
 
 // [RH] Compatibility flags.

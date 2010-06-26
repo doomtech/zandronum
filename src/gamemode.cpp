@@ -59,7 +59,10 @@
 #include "joinqueue.h"
 #include "cl_demo.h"
 #include "survival.h"
+#include "duel.h"
+#include "invasion.h"
 #include "lastmanstanding.h"
+#include "possession.h"
 // [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
 #include "sbar.h"
 #include "v_video.h"
@@ -333,6 +336,28 @@ void GAMEMODE_DetermineGameMode( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsGameInProgress( void )
+{
+	// [BB] Since there is currently no way unified way to check the state of
+	// the active game mode, we have to do it manually.
+	if ( survival )
+		return ( SURVIVAL_GetState( ) == SURVS_INPROGRESS );
+	else if ( invasion )
+		return ( INVASION_GetState( ) == IS_INPROGRESS );
+	else if ( duel )
+		return ( DUEL_GetState( ) == DS_INDUEL );
+	else if ( teamlms || lastmanstanding )
+		return ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS );
+	else if ( possession || teampossession )
+		return ( POSSESSION_GetState( ) == PSNS_INPROGRESS );
+	// [BB] In the game modes without warmup phase, we just says the game is
+	// in progress when there are two or more players.
+	else
+		return ( GAME_CountActivePlayers( ) >= 2 );
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 {
 	// [BB] This is server side.
@@ -496,11 +521,13 @@ bool GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor )
 //
 bool GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void )
 {
-	if (( teamlms || lastmanstanding ) &&
-		(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
-		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+	if ( ( lmsspectatorsettings & LMS_SPF_CHAT ) == false )
 	{
-		return true;
+		if (( teamlms || lastmanstanding ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+			return true;
+
+		if ( ( dmflags3 & DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS ) && GAMEMODE_IsGameInProgress() )
+			return true;
 	}
 
 	return false;
