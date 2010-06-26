@@ -1103,7 +1103,16 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	ulIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
 	if ( ulIdx != _ipVector.size() )
 	{
-		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list.\n";
+		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list";
+		if ( getEntry ( ulIdx ).tExpirationDate != tExpiration )
+		{
+			messageStream << ". Just updating the expiration date.\n";
+			_ipVector[ulIdx].tExpirationDate = tExpiration;
+			rewriteListToFile();
+		}
+		else
+			messageStream << " with same expiration. \n";
+
 		Message = messageStream.str();
 		return;
 	}

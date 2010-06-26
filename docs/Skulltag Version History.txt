@@ -82,6 +82,7 @@ latestzdoom branch
 !	- The player name in team possession score messages is not striped of its color codes anymore. [Torr Samaho]
 !	- The crash catcher in non Windows binaries now also logs the GDB version. [Torr Samaho]
 !	- Removed the hard coded "Turbosphere wearing off..." message from PowerSpeed. Instead the power granted by Turbosphere has an HUD icon now. [Torr Samaho]
+!	- When adding a ban for an address that is already banned, the expiration time of the existing ban is now updated instead of ignoring the addition. [Torr Samaho, SuperGod]
 
 
 98b
