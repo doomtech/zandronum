@@ -1159,6 +1159,10 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 			else if (damage < 0)
 			{
 				P_GiveBody (thing, -damage);
+
+				// [BB] If this affected a player, let the clients know.
+				if ( thing->player && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+					SERVERCOMMANDS_SetPlayerHealth ( static_cast<ULONG> ( thing->player - players ) );
 			}
 		}
 		return false;		// don't traverse any more
