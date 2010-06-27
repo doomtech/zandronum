@@ -85,6 +85,7 @@ latestzdoom branch
 !	- The crash catcher in non Windows binaries now also logs the GDB version. [Torr Samaho]
 !	- Removed the hard coded "Turbosphere wearing off..." message from PowerSpeed. Instead the power granted by Turbosphere has an HUD icon now. [Torr Samaho]
 !	- When adding a ban for an address that is already banned, the expiration time of the existing ban is now updated instead of ignoring the addition. [Torr Samaho, SuperGod]
+!	- ArtiFly now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary for instance to escape the pit in E2M2 in survival in multiplayer with sv_itemrespawn == false. [Torr Samaho, SuperGod]
 
 
 98b
