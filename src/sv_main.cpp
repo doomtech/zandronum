@@ -4093,9 +4093,26 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 	// Read in the chat string.
 	const char	*pszChatString = NETWORK_ReadString( pByteStream );
 
+	// [BB] If the client is flooding the server with commands, the client is
+	// kicked and we don't need to handle the command.
+	// Note: Despite the auto muting, this is necessary. Otherwise the client
+	// could force the server to countlessly tell him that he is muted.
+	if ( server_CheckForClientMinorCommandFlood ( g_lCurrentClient ) == true )
+		return ( true );
+
 	// [RC] Are this player's chats ignored?
 	if ( players[ulPlayer].bIgnoreChat )
+	{
+		// [BB] Tell the player that (and for how long) he is muted.
+		FString message = "The server has muted you. Nobody can hear you chat";
+		if ( players[ulPlayer].lIgnoreChatTicks != -1 )
+			message.AppendFormat ( " for the next %d minutes.\n", 1 + players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE ) );
+		else
+			message += ".\n";
+
+		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, message.GetChars() );
 		return ( false );
+	}
 
 	//==========================
 	// Check for chat flooding.

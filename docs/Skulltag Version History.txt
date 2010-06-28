@@ -88,6 +88,7 @@ latestzdoom branch
 !	- Removed the hard coded "Turbosphere wearing off..." message from PowerSpeed. Instead the power granted by Turbosphere has an HUD icon now. [Torr Samaho]
 !	- When adding a ban for an address that is already banned, the expiration time of the existing ban is now updated instead of ignoring the addition. [Torr Samaho, SuperGod]
 !	- ArtiFly now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary for instance to escape the pit in E2M2 in survival in multiplayer with sv_itemrespawn == false. [Torr Samaho, SuperGod]
+!	- When a server side muted client tries to chat, the server messages the client that it's muted and (if applicable) when the mute will run out. [Torr Samaho, SuperGod]
 
 
 98b
