@@ -365,6 +365,9 @@ CCMD (turn180)
 // [BB] If possible use team starts in deathmatch game modes with teams, e.g. TDM, TLMS.
 CVAR( Bool, sv_useteamstartsindm, false, CVAR_SERVERINFO )
 
+// [BB] In cooperative game modes players are spawned at random player starts instead of the one designated for them.
+CVAR( Bool, sv_randomcoopstarts, false, CVAR_SERVERINFO )
+
 // [BC] New cvar that shows the name of the weapon we're cycling to.
 CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 
@@ -2516,7 +2519,8 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer )
 {
 	// If there's a valid start for this player, spawn him there.
-	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
+	// [BB] Don't do this, if we want to randomize starts.
+	if (( sv_randomcoopstarts == false ) && ( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
 		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL, bTempPlayer );
 		if (mo != NULL) P_PlayerStartStomp(mo);
