@@ -1014,10 +1014,15 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 			gl.Enable ( GL_DEPTH_TEST );
 			gl.Begin( GL_TRIANGLE_STRIP );
 			gl.End();
-			GLboolean value;
-			glGetBooleanv ( GL_DEPTH_TEST, &value );
+			GLboolean valueTrue;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueTrue );
 
-			if ( value == false )
+			// [BB] Also check if glGetBooleanv simply always returns true.
+			gl.Disable ( GL_DEPTH_TEST );
+			GLboolean valueFalse;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueFalse );
+
+			if ( ( valueTrue == false ) || ( valueFalse == true ) )
 			{
 				I_FatalError ( "OpenGL malfunction encountered.\n" );
 			}
