@@ -80,6 +80,7 @@ latestzdoom branch
 -	- Fixed: In game modes where players earn "wins", the server returned the number of kills instead the number of wins for each players when asked for SQF_PLAYERDATA. [Torr Samaho]
 -	- Fixed: When a projectile with negative damage hit a player online, the clients were not informed about the health increase. [Torr Samaho]
 -	- Fixed: The server couldn't mute the first player with the ignore command. [Torr Samaho]
+-	- Fixed an exploit that allowed to create line breaks in chat messages. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

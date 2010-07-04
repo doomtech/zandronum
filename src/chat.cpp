@@ -437,6 +437,10 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	// [RC] ...but allow chat colors.
 	ChatString.Substitute("\\\\c", "\\c");
 
+	// [BB] This seems to get rid of incomplete color codes (not only trailing ones).
+	V_ColorizeString( ChatString );
+	V_UnColorizeString( ChatString );
+
 	// [RC] ...if the user wants them.
 	if ( con_colorinmessages == 2)
 		V_RemoveColorCodes( ChatString );
