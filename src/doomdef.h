@@ -276,6 +276,9 @@ enum
 
 	// [BB] Apply lmsspectatorsettings in all game modes.
 	DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS		= 1 << 1,
+
+	// [BB] Enforces clients not to draw coop info, i.e. behave as if cl_drawcoopinfo == 0.
+	DF3_NO_COOP_INFO		= 1 << 2,
 };
 
 // [RH] Compatibility flags.

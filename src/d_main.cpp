@@ -504,6 +504,7 @@ CUSTOM_CVAR (Int, dmflags3, 0, CVAR_SERVERINFO)
 
 CVAR (Flag, sv_noidentifytarget,			dmflags3, DF3_NO_IDENTIFY_TARGET);
 CVAR (Flag, sv_applylmsspectatorsettings,	dmflags3, DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS);
+CVAR (Flag, sv_nocoopinfo,			dmflags3, DF3_NO_COOP_INFO);
 
 //==========================================================================
 //
