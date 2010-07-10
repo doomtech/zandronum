@@ -93,6 +93,7 @@ latestzdoom branch
 !	- When adding a ban for an address that is already banned, the expiration time of the existing ban is now updated instead of ignoring the addition. [Torr Samaho, SuperGod]
 !	- ArtiFly now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary for instance to escape the pit in E2M2 in survival in multiplayer with sv_itemrespawn == false. [Torr Samaho, SuperGod]
 !	- When a server side muted client tries to chat, the server messages the client that it's muted and (if applicable) when the mute will run out. [Torr Samaho, SuperGod]
+!	- Removed the definition of CVAR cl_maxcorpses (it had no effect since 98a anymore anyway). [Torr Samaho]
 
 
 98b
