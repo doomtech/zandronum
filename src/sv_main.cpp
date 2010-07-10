@@ -4280,6 +4280,14 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
 	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
 
+	// [BB] Instead of kicking players that send too many movement commands, we just ignroe the excessive commands.
+	// Note: The kick code is still there, but isn't triggered anymore since we are reducing lOverMovementLevel here.
+	if ( g_aClients[g_lCurrentClient].lOverMovementLevel >= ( MAX_OVERMOVEMENT_LEVEL - 1 ) )
+	{
+		g_aClients[g_lCurrentClient].lOverMovementLevel--;
+		return false;
+	}
+
 	if ( gamestate == GS_LEVEL )
 	{
 		if ( pPlayer->mo )
