@@ -458,6 +458,9 @@ nolead:						mobj->angle = R_PointToAngle2 (mobj->x, mobj->y, targ->x, targ->y);
 							SERVERCOMMANDS_SetThingFlags( mobj, FLAGSET_FLAGS5 );
 						if ( mobj->ulSTFlags != mobj->GetDefault( )->ulSTFlags )
 							SERVERCOMMANDS_SetThingFlags( mobj, FLAGSET_FLAGSST );
+						// [BB] If necessary, also adjust gravity.
+						if ( mobj->gravity != mobj->GetDefault( )->gravity )
+							SERVERCOMMANDS_SetThingGravity( mobj );
 
 						// For missiles that exploded when P_CheckMissileSpawn() was
 						// called, we need to tell clients to explode the missile since
