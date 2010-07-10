@@ -6371,7 +6371,8 @@ bool AActor::IsFriend (AActor *other)
 {
 	if (flags & other->flags & MF_FRIENDLY)
 	{
-		return !deathmatch ||
+		// [BB] Added teamgame
+		return !( deathmatch || teamgame ) ||
 			FriendPlayer == other->FriendPlayer ||
 			FriendPlayer == 0 ||
 			other->FriendPlayer == 0;
