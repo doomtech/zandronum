@@ -84,6 +84,7 @@ latestzdoom branch
 -	- Fixed an exploit that allowed to create line breaks in chat messages. [Torr Samaho]
 -	- Fixed online sync problems with ACS spawned projectiles that are affected by gravity. [Torr Samaho]
 -	- Fixed problems with target switching in gamemodes with teamgame == 1. [Torr Samaho]
+-	- Fixed: Sector_SetLink didn't work online. [Torr Samaho]
 !	- For security reasons, the commands "screenshot" and "dumpmap" can't be called by ConsoleCommand anymore. Thanks to Spleen for reporting this. [Torr Samaho]
 !	- Raised the default value of sv_maxpacketsize to 1400. [Torr Samaho, SuperGod]
 !	- If cheats are disabled, clients are not allowed to use the CCMD testcolor anymore. [Torr Samaho, SuperGod]

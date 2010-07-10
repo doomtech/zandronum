@@ -222,6 +222,9 @@ static	ULONG		g_ulMaxPacketSize = 0;
 // List of all translations edited by level scripts.
 static	TArray<EDITEDTRANSLATION_s>		g_EditedTranslationList;
 
+// [BB] List of all sector links created by calls to Sector_SetLink.
+static	TArray<SECTORLINK_s>		g_SectorLinkList;
+
 // [RC] File to log packets to.
 #ifdef CREATE_PACKET_LOG
 static	FILE		*PacketLogFile = NULL;
@@ -2515,6 +2518,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulR1, g_EditedTranslationList[ulIdx].ulG1, g_EditedTranslationList[ulIdx].ulB1, g_EditedTranslationList[ulIdx].ulR2, g_EditedTranslationList[ulIdx].ulG2, g_EditedTranslationList[ulIdx].ulB2 );
 	}
 
+	// [BB] Same for sector links.
+	for ( ulIdx = 0; ulIdx < g_SectorLinkList.Size( ); ++ulIdx )
+		SERVERCOMMANDS_SetSectorLink( g_SectorLinkList[ulIdx].ulSector, g_SectorLinkList[ulIdx].iArg1, g_SectorLinkList[ulIdx].iArg2, g_SectorLinkList[ulIdx].iArg3, ulClient, SVCF_ONLYTHISCLIENT );
+
 	// [BB] If the sky differs from the standard sky, let the client know about it.
 	if ( level.info 
 	     && ( ( stricmp( level.skypic1, level.info->skypic1 ) != 0 )
@@ -3531,6 +3538,27 @@ bool SERVER_IsTranslationEdited( ULONG ulTranslation )
 void SERVER_ClearEditedTranslations( void )
 {
 	g_EditedTranslationList.Clear( );
+}
+
+//*****************************************************************************
+//
+void SERVER_AddSectorLink( ULONG ulSector, int iArg1, int iArg2, int iArg3 )
+{
+	SECTORLINK_s sectorLink;
+
+	sectorLink.ulSector = ulSector;
+	sectorLink.iArg1 = iArg1;
+	sectorLink.iArg2 = iArg2;
+	sectorLink.iArg3 = iArg3;
+
+	g_SectorLinkList.Push( sectorLink );
+}
+
+//*****************************************************************************
+//
+void SERVER_ClearSectorLinks( void )
+{
+	g_SectorLinkList.Clear( );
 }
 
 //*****************************************************************************

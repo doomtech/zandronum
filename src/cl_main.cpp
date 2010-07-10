@@ -105,6 +105,7 @@
 #include "r_sky.h"
 #include "r_translate.h"
 #include "domination.h"
+#include "p_3dmidtex.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -299,6 +300,7 @@ static	void	client_SetSectorGravity( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorReflection( BYTESTREAM_s *pByteStream );
 static	void	client_StopSectorLightEffect( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorLink( BYTESTREAM_s *pByteStream );
 
 // Sector light commands.
 static	void	client_DoSectorLightFireFlicker( BYTESTREAM_s *pByteStream );
@@ -742,6 +744,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SPAWNBLOODSPLATTER2",
 	"SVC_CREATETRANSLATION2",
 	"SVC_REPLACETEXTURES",
+	"SVC_SETSECTORLINK",
 };
 #endif
 
@@ -2620,6 +2623,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_REPLACETEXTURES:
 
 		STClient::ReplaceTextures( pByteStream );
+		break;
+
+	case SVC_SETSECTORLINK:
+
+		client_SetSectorLink( pByteStream );
 		break;
 	case SVC_IGNOREPLAYER:
 
@@ -8940,6 +8948,29 @@ static void client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream )
 			sectors[ulIdx].floordata = NULL;
 		}
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetSectorLink( BYTESTREAM_s *pByteStream )
+{
+	// [BB] Read in the sector network ID.
+	ULONG ulSector = NETWORK_ReadShort( pByteStream );
+	int iArg1 = NETWORK_ReadShort( pByteStream );
+	int iArg2 = NETWORK_ReadByte( pByteStream );
+	int iArg3 = NETWORK_ReadByte( pByteStream );
+
+	// [BB] Find the sector associated with this network ID.
+	sector_t *pSector = CLIENT_FindSectorByID( ulSector );
+	if ( pSector == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetSectorLink: Couldn't find sector: %d\n", ulSector );
+#endif
+		return;
+	}
+
+	P_AddSectorLinks( pSector, iArg1, iArg2, iArg3);
 }
 
 //*****************************************************************************

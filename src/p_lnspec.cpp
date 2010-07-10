@@ -2178,6 +2178,13 @@ FUNC(LS_Sector_SetLink)
 		int control = P_FindSectorFromTag(arg0, -1);
 		if (control != 0)
 		{
+			// [BB] Inform the clients and remember the link to inform future clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVER_AddSectorLink( control, arg1, arg2, arg3 );
+				SERVERCOMMANDS_SetSectorLink( control, arg1, arg2, arg3 );
+			}
+
 			return P_AddSectorLinks(&sectors[control], arg1, arg2, arg3);
 		}
 	}

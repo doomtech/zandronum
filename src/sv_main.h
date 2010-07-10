@@ -302,6 +302,19 @@ typedef struct
 } EDITEDTRANSLATION_s;
 
 //*****************************************************************************
+typedef struct
+{
+	// [BB] Which sector is linked?
+	ULONG			ulSector;
+
+	// [BB] Link arguments.
+	int				iArg1;
+	int				iArg2;
+	int				iArg3;
+
+} SECTORLINK_s;
+
+//*****************************************************************************
 //	PROTOTYPES
 
 void		SERVER_Construct( void );
@@ -370,6 +383,8 @@ void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulE
 void		SERVER_RemoveEditedTranslation( ULONG ulTranslation );
 bool		SERVER_IsTranslationEdited( ULONG ulTranslation );
 void		SERVER_ClearEditedTranslations( void );
+void		SERVER_AddSectorLink( ULONG ulSector, int iArg1, int iArg2, int iArg3 );
+void		SERVER_ClearSectorLinks( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );
 bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );

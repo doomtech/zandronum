@@ -3744,7 +3744,11 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// [BC] Also clear out the edited translation list that servers keep.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVER_ClearEditedTranslations( );
+		// [BB] And the stored sector links.
+		SERVER_ClearSectorLinks( );
+	}
 
 	// Initial height of PointOfView will be set by player think.
 	players[consoleplayer].viewz = 1; 
