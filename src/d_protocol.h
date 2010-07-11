@@ -67,14 +67,7 @@ struct zdemoheader_s {
 struct usercmd_t
 {
 	// [BB] Added unused dummy variables to prevent sthook from working at all.
-	BYTE	dummy1;
-	BYTE	dummy2;
-	short	dummy3;
-	short	dummy4;
-	short	dummy5;
-	short	dummy6;
-	short	dummy7;
-	short	dummy8;
+	BYTE	dummy[28];
 	DWORD	buttons;
 	short	pitch;			// up/down
 	short	yaw;			// left/right

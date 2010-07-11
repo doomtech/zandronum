@@ -1106,6 +1106,8 @@ typedef BYTE lighttable_t;	// This could be wider for >8 bit display.
 // I.e. a sprite object that is partly visible.
 struct vissprite_t
 {
+	// [BB] Dummy variable to stop wallhacks.
+	BYTE			dummy;
 	short			x1, x2;
 	fixed_t			cx;				// for line side calculation
 	fixed_t			gx, gy;			// for fake floor clipping
