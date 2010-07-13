@@ -97,6 +97,9 @@ static bool MoveCeiling(sector_t *sector, int crush, fixed_t move)
 	sector->ceilingplane.ChangeHeight (move);
 	sector->ChangePlaneTexZ(sector_t::ceiling, move);
 
+	// [BB] Ceiling height was changed.
+	sector->bCeilingHeightChange = true;
+
 	if (P_ChangeSector(sector, crush, move, 1, true)) return false;
 
 	// Don't let the ceiling go below the floor
@@ -111,6 +114,9 @@ static bool MoveFloor(sector_t *sector, int crush, fixed_t move)
 {
 	sector->floorplane.ChangeHeight (move);
 	sector->ChangePlaneTexZ(sector_t::floor, move);
+
+	// [BB] Floor height was changed.
+	sector->bFloorHeightChange = true;
 
 	if (P_ChangeSector(sector, crush, move, 0, true)) return false;
 

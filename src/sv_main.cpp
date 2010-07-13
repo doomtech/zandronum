@@ -2518,10 +2518,6 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulR1, g_EditedTranslationList[ulIdx].ulG1, g_EditedTranslationList[ulIdx].ulB1, g_EditedTranslationList[ulIdx].ulR2, g_EditedTranslationList[ulIdx].ulG2, g_EditedTranslationList[ulIdx].ulB2 );
 	}
 
-	// [BB] Same for sector links.
-	for ( ulIdx = 0; ulIdx < g_SectorLinkList.Size( ); ++ulIdx )
-		SERVERCOMMANDS_SetSectorLink( g_SectorLinkList[ulIdx].ulSector, g_SectorLinkList[ulIdx].iArg1, g_SectorLinkList[ulIdx].iArg2, g_SectorLinkList[ulIdx].iArg3, ulClient, SVCF_ONLYTHISCLIENT );
-
 	// [BB] If the sky differs from the standard sky, let the client know about it.
 	if ( level.info 
 	     && ( ( stricmp( level.skypic1, level.info->skypic1 ) != 0 )
@@ -2853,6 +2849,10 @@ void SERVER_UpdateSectors( ULONG ulClient )
 
 	if ( SERVER_IsValidClient( ulClient ) == false )
 		return;
+
+	// [BB] Set all existing sector links.
+	for ( ulIdx = 0; ulIdx < g_SectorLinkList.Size( ); ++ulIdx )
+		SERVERCOMMANDS_SetSectorLink( g_SectorLinkList[ulIdx].ulSector, g_SectorLinkList[ulIdx].iArg1, g_SectorLinkList[ulIdx].iArg2, g_SectorLinkList[ulIdx].iArg3, ulClient, SVCF_ONLYTHISCLIENT );
 
 	for ( ulIdx = 0; static_cast<signed> (ulIdx) < numsectors; ulIdx++ )
 	{
