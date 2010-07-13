@@ -15,6 +15,12 @@
 latestzdoom branch
 ------------------
 
+-	- Fixed: Sector_SetFloorPanning with negative offsets didn't work properly online. [Torr Samaho]
+
+
+98c
+---
+
 *+	- Skulltag now supports Intel based Macintoshes (mainly done by backporting ZDoom revisions 1571, 1581, 1607, 1736, 1779, 1780, 1786-1788, 1793, 1807, 1814, 2122). [Blzut3, Torr Samaho]
 +	- Added basic outbound net traffic analysis code for the server. This code allows to find out which actor classes and which ACS scripts use how much net traffic and should greatly simply the identification of network bandwidth hogs in custom mods. [Torr Samaho]
 +	- Added a verification system that allows the master server to verify that a server-master-challenge came from an existing server. Furthermore, servers now acknowledge the receipt of the ban list to account for packet loss. [Torr Samaho]

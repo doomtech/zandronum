@@ -8630,16 +8630,16 @@ static void client_SetSectorPanning( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read it's ceiling X offset.
-	lCeilingXOffset = NETWORK_ReadByte( pByteStream );
+	lCeilingXOffset = NETWORK_ReadShort( pByteStream );
 
 	// Read it's ceiling Y offset.
-	lCeilingYOffset = NETWORK_ReadByte( pByteStream );
+	lCeilingYOffset = NETWORK_ReadShort( pByteStream );
 
 	// Read it's floor X offset.
-	lFloorXOffset = NETWORK_ReadByte( pByteStream );
+	lFloorXOffset = NETWORK_ReadShort( pByteStream );
 
 	// Read it's floor Y offset.
-	lFloorYOffset = NETWORK_ReadByte( pByteStream );
+	lFloorYOffset = NETWORK_ReadShort( pByteStream );
 
 	// Now find the sector.
 	pSector = CLIENT_FindSectorByID( lSectorID );

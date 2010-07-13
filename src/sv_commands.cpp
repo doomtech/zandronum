@@ -4277,13 +4277,13 @@ void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
+		SERVER_CheckClientBuffer( ulIdx, 11, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORPANNING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
 	}
 }
 
