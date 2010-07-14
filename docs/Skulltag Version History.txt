@@ -17,6 +17,7 @@ latestzdoom branch
 
 -	- Fixed: Sector_SetFloorPanning with negative offsets didn't work properly online. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about altered floor and ceiling heights of linked sectors. [Torr Samaho]
+-	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]
 
 
 98c

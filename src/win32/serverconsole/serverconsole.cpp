@@ -472,10 +472,12 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 				if ( g_bServerLoaded )
 				{
-					// Take this instance's arguments, and replace "-host" with "-connect".
+					// [BB] Load all wads the server loaded and connect to it.
 					FString arguments = NETWORK_GetPWADList( )->size() ? "-file " : "";
 					for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
 						arguments.AppendFormat( "%s ", *i );
+					arguments.AppendFormat( "-iwad %s ", NETWORK_GetIWAD( ) );
+					arguments.AppendFormat( "-connect %s ", NETWORK_AddressToString( g_LocalAddress ));
 
 					// Run it!
 					ShellExecute( hDlg, "open", Args->GetArg( 0 ), arguments.GetChars( ), NULL, SW_SHOW );
