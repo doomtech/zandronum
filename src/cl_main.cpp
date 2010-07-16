@@ -11748,8 +11748,8 @@ static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
 //
 void STClient::ReplaceTextures( BYTESTREAM_s *pByteStream )
 {
-	int iFromname = NETWORK_ReadShort( pByteStream );
-	int iToname = NETWORK_ReadShort( pByteStream );
+	int iFromname = NETWORK_ReadLong( pByteStream );
+	int iToname = NETWORK_ReadLong( pByteStream );
 	int iTexFlags = NETWORK_ReadByte( pByteStream );
 
 	DLevelScript::ReplaceTextures ( iFromname, iToname, iTexFlags );

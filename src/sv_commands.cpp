@@ -6979,10 +6979,10 @@ void SERVERCOMMANDS_ReplaceTextures( int iFromname, int iToname, int iTexFlags, 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
+		SERVER_CheckClientBuffer( ulIdx, 10, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_REPLACETEXTURES );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iFromname );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iToname );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iFromname );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iToname );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iTexFlags );
 	}
 }
