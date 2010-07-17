@@ -71,6 +71,7 @@
 
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "v_text.h"
 
 EXTERN_CVAR (String, language)
 
@@ -307,7 +308,10 @@ void I_SetIWADInfo (const IWADInfo *info)
 
 void I_PrintStr (const char *cp)
 {
-	fputs (cp, stdout);
+	// [BB] The color codes don't seem to be compatible with stdout under Linux, so just remove them.
+	FString copy = cp;
+	V_RemoveColorCodes ( copy );
+	fputs (copy.GetChars(), stdout);
 	fflush (stdout);
 }
 
