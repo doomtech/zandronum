@@ -924,6 +924,7 @@ int PrintString (int printlevel, const char *outline)
 	{
 		// Strip out any color escape sequences before writing to the log file
 		char * copy = new char[strlen(outlinecopy)+1];
+/* [BB] ST handles color codes a little differently (not all of them are converted to TEXTCOLOR_ESCAPE yet), so we strip them differently.
 		const char * srcp = outlinecopy;
 		char * dstp = copy;
 
@@ -940,6 +941,10 @@ int PrintString (int printlevel, const char *outline)
 			}
 		}
 		*dstp=0;
+*/
+		strcpy (copy,outlinecopy);
+		V_ColorizeString( copy );
+		V_RemoveColorCodes( copy );
 
 		if( sv_logfiletimestamp )
 		{

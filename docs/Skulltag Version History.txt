@@ -19,6 +19,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients were not informed about altered floor and ceiling heights of linked sectors. [Torr Samaho]
 -	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]
 -	- Fixed: Under some circumstances the ACS function ReplaceTextures didn't work properly online. [Torr Samaho]
+-	- Fixed: Some color codes were not properly removed from the logfile output. [Torr Samaho]
 
 
 98c
