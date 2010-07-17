@@ -401,7 +401,10 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						}
 					}
 					else
-						MASTERSERVER_AddServer( newServer, g_Servers );
+					{
+						printf( "* Received server challenge from old server (%s). Ignoring IP for 10 seconds.\n", NETWORK_AddressToString( newServer.Address ));
+						g_queryIPQueue.addAddress( newServer.Address, g_lCurrentTime, &std::cerr );
+					}
 				}
 			}
 
