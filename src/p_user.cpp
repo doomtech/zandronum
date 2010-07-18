@@ -685,6 +685,18 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	}
 	if (!Super::UseInventory (item))
 	{
+		// [BB] The server won't call SERVERCOMMANDS_PlayerUseInventory in this case, so we have to 
+		// notify the clients when a weapon change happened because of the use. Probably it would be better 
+		// to do this in AWeapon::Use, but it's not obvious how to prevent the server from doing it there
+		// when the client calls AWeapon::Use for other reasons than APlayerPawn::UseInventory. 
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && item->Owner && item->Owner->player && item->IsKindOf ( RUNTIME_CLASS(AWeapon) ) )
+		{
+			const player_t *pPlayer = item->Owner->player;
+			const ULONG ulPlayer = static_cast<ULONG> ( pPlayer - players );
+			if ( ( pPlayer->PendingWeapon == item ) && ( pPlayer->ReadyWeapon != item ) )
+				SERVERCOMMANDS_SetPlayerPendingWeapon( ulPlayer );
+		}
+
 		// Heretic and Hexen advance the inventory cursor if the use failed.
 		// Should this behavior be retained?
 		return false;

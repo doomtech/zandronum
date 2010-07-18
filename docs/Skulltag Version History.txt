@@ -20,6 +20,7 @@ latestzdoom branch
 -	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]
 -	- Fixed: Under some circumstances the ACS function ReplaceTextures didn't work properly online. [Torr Samaho]
 -	- Fixed: Some color codes were not properly removed from the logfile output and the output of the SDL client to stdout. [Torr Samaho]
+-	- Fixed: "use weaponname" didn't bring up the chosen weapon online. [Torr Samaho]
 
 
 98c
