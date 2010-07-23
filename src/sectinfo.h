@@ -5,6 +5,7 @@
 
 void SECTINFO_Load();
 void SECTINFO_Parse(int lump);
+FString SECTINFO_GetPlayerLocation( const ULONG ulPlayer );
 
 struct SectInfo
 {

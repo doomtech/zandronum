@@ -75,6 +75,7 @@
 #include "lastmanstanding.h"
 #include "sbar.h"
 #include "st_hud.h"
+#include "sectinfo.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -687,6 +688,11 @@ void chat_DoSubstitution( FString &Input )
 					Output.AppendFormat( "no weapon" );
 
 				pszString += 6;
+			}
+			else if ( !strncmp( pszString, "$location", 9 ))
+			{
+				Output += SECTINFO_GetPlayerLocation( consoleplayer );
+				pszString += 8;
 			}
 			else
 			{
