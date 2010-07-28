@@ -55,6 +55,7 @@
 #include "gamemode.h"
 #include "g_level.h"
 #include "doomstat.h"
+#include "team.h"
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -107,9 +108,10 @@ void HUD_DrawTextAligned( int Normalcolor, int Y, const char *String, bool Align
 void DrawHUD_CoopInfo()
 {
 	// [BB] Only draw the info if the user wishes to see it (cl_drawcoopinfo)
-	// and if this is a cooperative game mode. Further don't draw this in single player.
+	// and if this is a cooperative or team based game mode. Further don't draw this in single player.
 	if ( ( cl_drawcoopinfo == false ) || ( dmflags3 & DF3_NO_COOP_INFO )
-		|| !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
+		|| ! ( (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
+			|| (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS) )
 		|| NETWORK_GetState() == NETSTATE_SINGLE )
 		return;
 
@@ -138,6 +140,11 @@ void DrawHUD_CoopInfo()
 		if ( players[i].mo->CheckLocalView( consoleplayer ) )
 			continue;
 
+		// [BB] Only display team mates (in coop all players are team mates). Spectators see everybody.
+		if ( players[consoleplayer].camera && !players[consoleplayer].camera->IsTeammate ( players[i].mo )
+			&& !( players[consoleplayer].camera->player && players[consoleplayer].camera->player->bSpectating ) )
+			continue;
+
 		int curYPos = yOffset + (playersDrawn/2) * ( 4 * SmallFont->GetHeight( ) + 3 ) ;
 
 		const bool drawLeft = ( playersDrawn % 2 == 0 );
@@ -145,7 +152,11 @@ void DrawHUD_CoopInfo()
 		// [BB] Draw player name.
 		drawString = players[i].userinfo.netname;
 		V_ColorizeString( drawString );
-		HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale );
+		EColorRange nameColor = CR_GREY;
+		// [BB] If the player is on a team, use the team's text color.
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+			nameColor = static_cast<EColorRange> ( TEAM_GetTextColor ( players[i].ulTeam ) );
+		HUD_DrawTextAligned ( nameColor, curYPos, drawString.GetChars(), drawLeft, bScale );
 		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BL] Draw the player's location, [BB] but only if the map has any SectorInfo.
