@@ -59,6 +59,7 @@
 #include "g_game.h"
 #include "g_level.h"
 #include "gamemode.h"
+#include "gi.h"
 #include "gstrings.h"
 #include "joinqueue.h"
 #include "lastmanstanding.h"
@@ -685,6 +686,69 @@ void LASTMANSTANDING_TimeExpired( void )
 		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 
 	GAME_SetEndLevelDelay( 5 * TICRATE );
+}
+
+//*****************************************************************************
+//
+bool LASTMANSTANDING_IsWeaponDisallowed( const PClass *pType )
+{
+	// [BB] Not in LMS mode, everything is allowed.
+	if (( lastmanstanding == false ) && ( teamlms == false ))
+		return false;
+
+	if ((( lmsallowedweapons & LMS_AWF_CHAINSAW ) == false ) &&
+		( pType == PClass::FindClass( "Chainsaw" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_PISTOL ) == false ) &&
+		( pType == PClass::FindClass( "Pistol" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_SHOTGUN ) == false ) &&
+		( pType == PClass::FindClass( "Shotgun" )))
+	{
+		return true;
+	}
+	if (( pType == PClass::FindClass( "SuperShotgun" )) &&
+		((( lmsallowedweapons & LMS_AWF_SSG ) == false ) ||
+		(( gameinfo.flags & GI_MAPxx ) == false )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_CHAINGUN ) == false ) &&
+		( pType == PClass::FindClass( "Chaingun" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_MINIGUN ) == false ) &&
+		( pType == PClass::FindClass( "Minigun" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_ROCKETLAUNCHER ) == false ) &&
+		( pType == PClass::FindClass( "RocketLauncher" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_GRENADELAUNCHER ) == false ) &&
+		( pType == PClass::FindClass( "GrenadeLauncher" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_PLASMA ) == false ) &&
+		( pType == PClass::FindClass( "PlasmaRifle" )))
+	{
+		return true;
+	}
+	if ((( lmsallowedweapons & LMS_AWF_RAILGUN ) == false ) &&
+		( pType == PClass::FindClass( "Railgun" )))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 //*****************************************************************************

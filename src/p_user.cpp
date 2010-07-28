@@ -1279,7 +1279,8 @@ void APlayerPawn::GiveDefaultInventory ()
 	while (di)
 	{
 		const PClass *ti = PClass::FindClass (di->Name);
-		if (ti)
+		// [BB] Don't give out weapons in LMS that are supposed to be forbidden.
+		if (ti && ( LASTMANSTANDING_IsWeaponDisallowed ( ti ) == false ) )
 		{
 			AInventory *item = FindInventory (ti);
 			if (item != NULL)
@@ -1354,57 +1355,8 @@ void APlayerPawn::GiveDefaultInventory ()
 					continue;
 
 				// Potentially disallow certain weapons.
-				if ((( lmsallowedweapons & LMS_AWF_CHAINSAW ) == false ) &&
-					( pType == PClass::FindClass( "Chainsaw" )))
-				{
+				if ( LASTMANSTANDING_IsWeaponDisallowed ( pType ) )
 					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_PISTOL ) == false ) &&
-					( pType == PClass::FindClass( "Pistol" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_SHOTGUN ) == false ) &&
-					( pType == PClass::FindClass( "Shotgun" )))
-				{
-					continue;
-				}
-				if (( pType == PClass::FindClass( "SuperShotgun" )) &&
-					((( lmsallowedweapons & LMS_AWF_SSG ) == false ) ||
-					(( gameinfo.flags & GI_MAPxx ) == false )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_CHAINGUN ) == false ) &&
-					( pType == PClass::FindClass( "Chaingun" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_MINIGUN ) == false ) &&
-					( pType == PClass::FindClass( "Minigun" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_ROCKETLAUNCHER ) == false ) &&
-					( pType == PClass::FindClass( "RocketLauncher" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_GRENADELAUNCHER ) == false ) &&
-					( pType == PClass::FindClass( "GrenadeLauncher" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_PLASMA ) == false ) &&
-					( pType == PClass::FindClass( "PlasmaRifle" )))
-				{
-					continue;
-				}
-				if ((( lmsallowedweapons & LMS_AWF_RAILGUN ) == false ) &&
-					( pType == PClass::FindClass( "Railgun" )))
-				{
-					continue;
-				}
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{

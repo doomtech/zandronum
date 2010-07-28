@@ -23,6 +23,7 @@ latestzdoom branch
 -	- Fixed: Under some circumstances the ACS function ReplaceTextures didn't work properly online. [Torr Samaho]
 -	- Fixed: Some color codes were not properly removed from the logfile output and the output of the SDL client to stdout. [Torr Samaho]
 -	- Fixed: "use weaponname" didn't bring up the chosen weapon online. [Torr Samaho]
+-	- Fixed: "lms_allow* false" didn't prevent the player from getting the corresponding weapon if it belonged to the default inventory of the player class. [Torr Samaho]
 
 
 98c

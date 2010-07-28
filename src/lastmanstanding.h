@@ -99,6 +99,7 @@ void	LASTMANSTANDING_StartCountdown( ULONG ulTicks );
 void	LASTMANSTANDING_DoFight( void );
 void	LASTMANSTANDING_DoWinSequence( ULONG ulWinner );
 void	LASTMANSTANDING_TimeExpired( void );
+bool	LASTMANSTANDING_IsWeaponDisallowed( const PClass *pType );
 
 // Access functions.
 ULONG	LASTMANSTANDING_GetCountdownTicks( void );
