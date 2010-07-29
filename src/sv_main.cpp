@@ -1824,6 +1824,11 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	// Read in the client version info.
 	clientVersion = NETWORK_ReadString( pByteStream );
+	// [BB] Hijack the player name cleaning system to get rid of inappropriate chars in the version string.
+	// Tampered clients can put in anything here!
+	V_CleanPlayerName ( clientVersion );
+	// [BB] Version strings also will never be incredibly long.
+	clientVersion = clientVersion.Left ( 32 );
 
 	// Read in the client's password.
 	clientPassword = NETWORK_ReadString( pByteStream );

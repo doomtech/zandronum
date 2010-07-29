@@ -24,6 +24,7 @@ latestzdoom branch
 -	- Fixed: Some color codes were not properly removed from the logfile output and the output of the SDL client to stdout. [Torr Samaho]
 -	- Fixed: "use weaponname" didn't bring up the chosen weapon online. [Torr Samaho]
 -	- Fixed: "lms_allow* false" didn't prevent the player from getting the corresponding weapon if it belonged to the default inventory of the player class. [Torr Samaho]
+-	- Fixed: The server didn't do any sanity checks on the version string connecting clients send before printing the string. [Torr Samaho]
 
 
 98c
