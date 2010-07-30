@@ -411,6 +411,10 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		GAMEMODE_SpawnPlayer( ulIdx );
 	}
 
+	// [BB] Dead spectators were allowed to use chasecam, but are not necessarily allowed to use it
+	// when alive again. Re-applying dmflags2 takes care of this.
+	dmflags2 = dmflags2;
+
 	// Let anyone who's been waiting in line join now.
 	JOINQUEUE_PopQueue( -1 );
 }
