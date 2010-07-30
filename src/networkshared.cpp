@@ -1099,23 +1099,7 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	ULONG		ulIdx;
 	std::stringstream messageStream;
 
-	// Address is already in the list.
-	ulIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
-	if ( ulIdx != _ipVector.size() )
-	{
-		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list";
-		if ( getEntry ( ulIdx ).tExpirationDate != tExpiration )
-		{
-			messageStream << ". Just updating the expiration date.\n";
-			_ipVector[ulIdx].tExpirationDate = tExpiration;
-			rewriteListToFile();
-		}
-		else
-			messageStream << " with same expiration. \n";
-
-		Message = messageStream.str();
-		return;
-	}
+	// [BB] Before we can check whether the ban already exists, we need to build the full, cleaned comment string.
 
 	// [BB] The comment may not contain line breaks or feeds, so we create a cleaned copy of the comment argument here.
 	char *pszComment = NULL;
@@ -1150,6 +1134,25 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	}
 	if ( pszComment )
 		sprintf( szOutString, "%s%s", szOutString, pszComment );
+
+	// Address is already in the list.
+	ulIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
+	if ( ulIdx != _ipVector.size() )
+	{
+		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list";
+		if ( ( getEntry ( ulIdx ).tExpirationDate != tExpiration ) || ( stricmp ( getEntry ( ulIdx ).szComment, szOutString ) ) )
+		{
+			messageStream << ". Just updating the expiration date and reason.\n";
+			_ipVector[ulIdx].tExpirationDate = tExpiration;
+			strcpy( _ipVector[ulIdx].szComment, szOutString );
+			rewriteListToFile();
+		}
+		else
+			messageStream << " with same expiration and reason.\n";
+
+		Message = messageStream.str();
+		return;
+	}
 
 	// Add the entry and comment into memory.
 	IPADDRESSBAN_s newIPEntry;
