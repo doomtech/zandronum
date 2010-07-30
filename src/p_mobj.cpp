@@ -136,6 +136,13 @@ FRandom pr_spawnmobj ("SpawnActor");
 CUSTOM_CVAR (Float, sv_gravity, 800.f, CVAR_SERVERINFO|CVAR_NOSAVE)
 {
 	level.gravity = self;
+
+	// [BB] Notify the clients about the change.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %f\n", self.GetName( ), self.GetGenericRep( CVAR_Float ).Float );
+		SERVERCOMMANDS_SetGameModeLimits( );
+	}
 }
 
 CVAR (Bool, cl_missiledecals, true, CVAR_ARCHIVE)

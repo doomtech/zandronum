@@ -131,6 +131,7 @@ EXTERN_CVAR( Int, am_cheat )
 EXTERN_CVAR( Bool, cl_oldfreelooklimit )
 EXTERN_CVAR( Float, turbo )
 EXTERN_CVAR( Int, gl_nearclip )
+EXTERN_CVAR( Float, sv_gravity )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
@@ -7688,6 +7689,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// Read in, and set the value for sv_maxteams.
 	Value.Int = NETWORK_ReadByte( pByteStream );
 	sv_maxteams.ForceSet( Value, CVAR_Int );
+
+	// [BB] Read in, and set the value for sv_gravity.
+	Value.Float = NETWORK_ReadFloat( pByteStream );
+	sv_gravity.ForceSet( Value, CVAR_Float );
 }
 
 //*****************************************************************************
