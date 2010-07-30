@@ -17,6 +17,7 @@ latestzdoom branch
 
 +	- Extended the chat substitution by $location, the name of the current player position as specified by SECTINFO. [Torr Samaho]
 +	- Extended coop info to work in team games (only info about the team-mates is shown). [Torr Samaho]
++	- Added kgsws' Weapon DropItem patch. [Torr Samaho]
 -	- Fixed: Sector_SetFloorPanning with negative offsets didn't work properly online. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about altered floor and ceiling heights of linked sectors. [Torr Samaho]
 -	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]
