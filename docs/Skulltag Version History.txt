@@ -27,6 +27,7 @@ latestzdoom branch
 -	- Fixed: "lms_allow* false" didn't prevent the player from getting the corresponding weapon if it belonged to the default inventory of the player class. [Torr Samaho]
 -	- Fixed: The server didn't do any sanity checks on the version string connecting clients send before printing the string. [Torr Samaho]
 -	- Fixed: sv_gravity is not synchronized between clients and server. [Torr Samaho]
+-	- Fixed: A_ReFire didn't work properly online for morphed players. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 
 
