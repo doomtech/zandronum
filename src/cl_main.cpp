@@ -7179,13 +7179,6 @@ static void client_Print( BYTESTREAM_s *pByteStream )
 
 	// Print out the message.
 	Printf( ulPrintLevel, "%s", pszString );
-    
-	// If the server is saying something to us, play the chat sound.
-	if (( strnicmp( "<server>", pszString, 8 ) == 0 ) || ( strnicmp( "* <server>", pszString, 10 ) == 0 ))
-		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
-	// If a player is saying something to us, play the chat sound.
-	else if ( ulPrintLevel == PRINT_CHAT || ulPrintLevel == PRINT_TEAMCHAT )
-		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
 }
 
 //*****************************************************************************
