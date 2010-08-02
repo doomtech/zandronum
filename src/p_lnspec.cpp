@@ -2605,11 +2605,12 @@ FUNC(LS_Sector_SetRotation)
 	{
 		sectors[secnum].SetAngle(sector_t::floor, floor);
 		sectors[secnum].SetAngle(sector_t::ceiling, ceiling);
-
-		// [BC] Tell clients about the rotation update.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetSectorRotation( secnum );
 	}
+
+	// [BB] Tell clients to set the the rotation for all sectors with tag arg0.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetSectorRotationByTag( arg0, arg1, arg2 );
+
 	return true;
 }
 

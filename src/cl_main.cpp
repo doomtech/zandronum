@@ -292,7 +292,7 @@ static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream, bool bIdentifySect
 static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorScale( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorSpecial( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorFriction( BYTESTREAM_s *pByteStream );
@@ -648,6 +648,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORFLAT",
 	"SVC_SETSECTORPANNING",
 	"SVC_SETSECTORROTATION",
+	"SVC_SETSECTORROTATIONBYTAG",
 	"SVC_SETSECTORSCALE",
 	"SVC_SETSECTORSPECIAL",
 	"SVC_SETSECTORFRICTION",
@@ -2233,6 +2234,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORROTATION:
 
 		client_SetSectorRotation( pByteStream );
+		break;
+	case SVC_SETSECTORROTATIONBYTAG:
+
+		client_SetSectorRotation( pByteStream, true );
 		break;
 	case SVC_SETSECTORSCALE:
 
@@ -8659,34 +8664,41 @@ static void client_SetSectorPanning( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetSectorRotation( BYTESTREAM_s *pByteStream )
+static void client_SetSectorRotation( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
 {
-	LONG		lSectorID;
-	LONG		lCeilingRotation;
-	LONG		lFloorRotation;
-	sector_t	*pSector;
-	PalEntry	Color;
-
 	// Read in the sector to have its panning altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
+	const LONG lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
 
 	// Read in the ceiling and floor rotation.
-	lCeilingRotation = NETWORK_ReadShort( pByteStream );
-	lFloorRotation = NETWORK_ReadShort( pByteStream );
+	const LONG lCeilingRotation = NETWORK_ReadShort( pByteStream );
+	const LONG lFloorRotation = NETWORK_ReadShort( pByteStream );
 
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{ 
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorRotation: Cannot find sector: %d\n", lSectorID );
-#endif
-		return; 
+	if ( bIdentifySectorsByTag )
+	{
+		int secnum = -1;
+
+		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
+		{
+			sectors[secnum].SetAngle(sector_t::floor, lFloorRotation * ANGLE_1);
+			sectors[secnum].SetAngle(sector_t::ceiling, lCeilingRotation * ANGLE_1);
+		}
 	}
+	else
+	{
+		// Now find the sector.
+		sector_t *pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
+		if ( pSector == NULL )
+		{ 
+#ifdef CLIENT_WARNING_MESSAGES
+			Printf( "client_SetSectorRotation: Cannot find sector: %d\n", lSectorID );
+#endif
+			return; 
+		}
 
-	// Finally, set the rotation.
-	pSector->SetAngle(sector_t::ceiling, ( lCeilingRotation * ANGLE_1 ) );
-	pSector->SetAngle(sector_t::floor, ( lFloorRotation * ANGLE_1 ) );
+		// Finally, set the rotation.
+		pSector->SetAngle(sector_t::ceiling, ( lCeilingRotation * ANGLE_1 ) );
+		pSector->SetAngle(sector_t::floor, ( lFloorRotation * ANGLE_1 ) );
+	}
 }
 
 //*****************************************************************************
