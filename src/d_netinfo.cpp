@@ -1105,15 +1105,17 @@ CCMD (playerinfo)
 		{
 			if (playeringame[i])
 			{
-				Printf ("%d. %s", i, players[i].userinfo.netname);
+				// [BB] Only call Printf once to prevent problems with sv_logfiletimestamp.
+				FString infoString;
+				infoString.AppendFormat("%d. %s", i, players[i].userinfo.netname);
 
 				// [RC] Are we the server? Draw their IPs as well.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					Printf("\\cj - IP %s", NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
+					infoString.AppendFormat("\\cj - IP %s", NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
 				}
 
-				Printf("\n");
+				Printf("%s\n", infoString.GetChars());
 			}
 		}
 	}
