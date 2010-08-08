@@ -1541,6 +1541,12 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				source = source->tracer;
 			}
 		}
+		// kgKILL start
+		else if ( source && source->FriendPlayer ) {
+			const player_t *pl = &players[source->FriendPlayer - 1];
+			if (pl) source = pl->mo;
+		}
+		// kgKILL end
 
 		// Deaths are server side.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
