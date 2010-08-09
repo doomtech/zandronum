@@ -73,6 +73,7 @@
 #include "invasion.h"
 #include "sv_commands.h"
 #include "p_acs.h"
+#include "unlagged.h"
 
 static FRandom pr_camissile ("CustomActorfire");
 static FRandom pr_camelee ("CustomMelee");
@@ -1549,8 +1550,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 	}
 
 	// [BC] Don't actually do the attack in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	// [Spleen] Railgun is handled by the server unless unlagged
+	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+		&& !UnlaggedDrawRailClientside( self ) )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;

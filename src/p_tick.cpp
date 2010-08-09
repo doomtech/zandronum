@@ -40,6 +40,7 @@
 #include "cl_main.h"
 #include "astar.h"
 #include "botpath.h"
+#include "unlagged.h"
 
 extern gamestate_t wipegamestate;
 
@@ -293,6 +294,9 @@ void P_Ticker (void)
 			StatusBar->AttachMessage( pMsg, MAKE_ID('O','B','S','T') );
 		}
 	}
+
+	// [Spleen] record sectors soon before they are reconciled/restored
+	UnlaggedRecordSectors( );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

@@ -18,6 +18,7 @@
 #include "gamemode.h"
 #include "deathmatch.h"
 #include "team.h"
+#include "unlagged.h"
 
 // Include all the other Doom stuff here to reduce compile time
 #include "a_arachnotron.cpp"

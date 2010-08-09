@@ -63,6 +63,7 @@
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "gamemode.h"
+#include "unlagged.h"
 
 //[BL] New Include
 #include "domination.h"
@@ -3988,6 +3989,8 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	vy = FixedMul (finecosine[pitch], finesine[angle]);
 	vz = -finesine[pitch];
 
+	UnlaggedReconcile( t1 );
+
 	shootz = t1->z - t1->floorclip + (t1->height>>1);
 	if (t1->player != NULL)
 	{
@@ -4002,9 +4005,13 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		t1->player->ReadyWeapon != NULL &&
 		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST));
 
-	if (!Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
+	bool hitSomething = Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
 		MF_SHOOTABLE, ML_BLOCKEVERYTHING, t1, trace,
-		TRACE_NoSky|TRACE_Impact, hitGhosts ? CheckForGhost : CheckForSpectral))
+		TRACE_NoSky|TRACE_Impact, hitGhosts ? CheckForGhost : CheckForSpectral);
+
+	UnlaggedRestore( t1 );
+
+	if (!hitSomething)
 	{ // hit nothing
 		// [BB] No decal will be spawned, so the client stops here. 
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -4389,6 +4396,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	fixed_t shootz;
 	bool			bHitPlayer;
 
+	UnlaggedReconcile( source );
+
 	if (puffclass == NULL) puffclass = PClass::FindClass(NAME_BulletPuff);
 
 	pitch = (angle_t)(-source->pitch) >> ANGLETOFINESHIFT;
@@ -4425,83 +4434,90 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		8192*FRACUNIT, MF_SHOOTABLE, ML_BLOCKEVERYTHING, source, trace,
 		TRACE_PCross|TRACE_Impact, ProcessRailHit);
 
-	// Hurt anything the trace hit
-	unsigned int i;
-	AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
-	FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
-
-	// Initialize bHitPlayer.
-	bHitPlayer = false;
-
-	for (i = 0; i < RailHits.Size (); i++)
+	UnlaggedRestore( source );
+	
+	// [Spleen] Don't do damage, don't award medals, don't spawn puffs,
+	// and don't spawn blood in clients on a network.
+	if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
-		fixed_t x, y, z;
+		// Hurt anything the trace hit
+		unsigned int i;
+		AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
+		FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
 
-		x = x1 + FixedMul (RailHits[i].Distance, vx);
-		y = y1 + FixedMul (RailHits[i].Distance, vy);
-		z = shootz + FixedMul (RailHits[i].Distance, vz);
+		// Initialize bHitPlayer.
+		bHitPlayer = false;
 
-		if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
-			(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
+		for (i = 0; i < RailHits.Size (); i++)
 		{
-			if (puffclass != NULL) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
-		}
-		else
-		{
-			P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
-			P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
-		}
-		// [BC] Damage is server side.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
-		{
-			// Support for instagib.
-			if ( instagib )
-				P_DamageMobj (RailHits[i].HitActor, source, source, 999, damagetype, DMG_NO_ARMOR);
-			else
-				P_DamageMobj (RailHits[i].HitActor, source, source, damage, damagetype, DMG_NO_ARMOR);
-		}
+			fixed_t x, y, z;
 
-		if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
-		{
-			bHitPlayer = true;
-			if ( source->player )
+			x = x1 + FixedMul (RailHits[i].Distance, vx);
+			y = y1 + FixedMul (RailHits[i].Distance, vy);
+			z = shootz + FixedMul (RailHits[i].Distance, vz);
+
+			if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
+				(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
 			{
-				source->player->ulConsecutiveRailgunHits++;
+				if (puffclass != NULL) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
+			}
+			else
+			{
+				P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
+				P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
+			}
+			// [BC] Damage is server side.
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
+				// Support for instagib.
+				if ( instagib )
+					P_DamageMobj (RailHits[i].HitActor, source, source, 999, damagetype, DMG_NO_ARMOR);
+				else
+					P_DamageMobj (RailHits[i].HitActor, source, source, damage, damagetype, DMG_NO_ARMOR);
+			}
 
-				// If the player has made 2 straight consecutive hits with the railgun, award a medal.
-				if (( source->player->ulConsecutiveRailgunHits % 2 ) == 0 )
+			if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
+			{
+				bHitPlayer = true;
+				if ( source->player )
 				{
-					// If the player gets 4+ straight hits with the railgun, award a "Most Impressive" medal.
-					if ( source->player->ulConsecutiveRailgunHits >= 4 )
-					{
-						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-							MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
+					source->player->ulConsecutiveRailgunHits++;
 
-						// Tell clients about the medal that been given.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
-					}
-					// Otherwise, award an "Impressive" medal.
-					else
+					// If the player has made 2 straight consecutive hits with the railgun, award a medal.
+					if (( source->player->ulConsecutiveRailgunHits % 2 ) == 0 )
 					{
-						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-							MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
+						// If the player gets 4+ straight hits with the railgun, award a "Most Impressive" medal.
+						if ( source->player->ulConsecutiveRailgunHits >= 4 )
+						{
+							if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
 
-						// Tell clients about the medal that been given.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
+							// Tell clients about the medal that been given.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
+						}
+						// Otherwise, award an "Impressive" medal.
+						else
+						{
+							if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
+
+							// Tell clients about the medal that been given.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_GivePlayerMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
+						}
 					}
 				}
 			}
 		}
-	}
 
-	if ( source->player )
-	{
-		// Player did not strike a player with his railgun. Reset consecutive hits to 0.
-		if ( bHitPlayer == false )
-			source->player->ulConsecutiveRailgunHits = 0;
+		if ( source->player )
+		{
+			// Player did not strike a player with his railgun. Reset consecutive hits to 0.
+			if ( bHitPlayer == false )
+				source->player->ulConsecutiveRailgunHits = 0;
+		}
 	}
 
 	// Spawn a decal or puff at the point where the trace ended.
@@ -4538,7 +4554,10 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 	// [BC] If we're the server, tell clients to create a railgun trail.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent );
+	{
+		const ULONG ulPlayer = source->player ? static_cast<ULONG> ( source->player - players ) : MAXPLAYERS;
+		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent, ulPlayer, ( dmflags3 & DF3_UNLAGGED ) ? SVCF_SKIPTHISCLIENT : 0 );
+	}
 }
 
 void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff)

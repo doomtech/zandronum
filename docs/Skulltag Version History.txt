@@ -15,6 +15,7 @@
 latestzdoom branch
 ------------------
 
+*+	- Added Spleen's patch for basic unlagged support. [Torr Samaho]
 +	- Extended the chat substitution by $location, the name of the current player position as specified by SECTINFO. [Torr Samaho]
 +	- Extended coop info to work in team games (only info about the team-mates is shown). [Torr Samaho]
 +	- Added kgsws' Weapon DropItem patch. [Torr Samaho]

@@ -1133,8 +1133,9 @@ static void FireRailgun(AActor *self, int RailOffset)
 	}
 
 	// Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	// [Spleen] But railgun is an exception if it's unlagged, to make it look nicer
+	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+		&& !UnlaggedDrawRailClientside( self ) )
 	{
 		return;
 	}

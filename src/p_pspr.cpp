@@ -32,6 +32,7 @@
 #include "cl_demo.h"
 #include "p_effect.h"
 #include "sv_commands.h"
+#include "unlagged.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -785,6 +786,8 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 	angle_t pitch;
 	AActor *linetarget;
 
+	UnlaggedReconcile( mo );
+
 	// see which target is to be aimed at
 	i = 2;
 	do
@@ -803,6 +806,9 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 	{
 		*pLineTarget = linetarget;
 	}
+
+	UnlaggedRestore( mo );
+
 	return pitch;
 }
 

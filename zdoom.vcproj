@@ -3857,6 +3857,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\unlagged.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\v_collection.cpp"
 				>
 				<FileConfiguration
@@ -4829,6 +4833,10 @@
 			</File>
 			<File
 				RelativePath=".\src\templates.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\unlagged.h"
 				>
 			</File>
 			<File

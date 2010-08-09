@@ -207,6 +207,10 @@ struct secplane_t
 
 	fixed_t a, b, c, d, ic;
 
+	// [Spleen] Store the old D's of the plane for unlagged support
+	fixed_t		unlaggedD[UNLAGGEDTICS];
+	fixed_t		restoreD;
+
 	// Returns the value of z at (x,y)
 	fixed_t ZatPoint (fixed_t x, fixed_t y) const
 	{

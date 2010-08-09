@@ -76,6 +76,7 @@
 #include "cl_demo.h"
 #include "survival.h"
 #include "network/nettraffic.h"
+#include "unlagged.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -4945,6 +4946,10 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	}
 
 	SCOREBOARD_RefreshHUD( );
+
+	// [Spleen] Reset reconciliation buffer when player gets spawned
+	UnlaggedResetPlayer( p );
+
 	return mobj;
 }
 

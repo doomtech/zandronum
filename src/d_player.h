@@ -524,6 +524,17 @@ public:
 	// [BL] Should the player be able to use weapons?
 	bool		bUnarmed;
 
+	// [Spleen] Store old information about the player for unlagged support
+	fixed_t		unlaggedX[UNLAGGEDTICS];
+	fixed_t		unlaggedY[UNLAGGEDTICS];
+	fixed_t		unlaggedZ[UNLAGGEDTICS];
+
+	fixed_t		restoreX;
+	fixed_t		restoreY;
+	fixed_t		restoreZ;
+
+	fixed_t		restoreFloorZ;
+
 	// [BC] End of ST additions.
 
 	fixed_t GetDeltaViewHeight() const

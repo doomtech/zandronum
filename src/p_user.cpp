@@ -75,6 +75,7 @@
 #include "cl_commands.h"
 #include "gamemode.h"
 #include "invasion.h"
+#include "unlagged.h"
 
 // [BB] Use ZDoom's freelook limit for the sotfware renderer.
 // Note: ZDoom's limit is chosen such that the sky is rendered properly.
@@ -3567,6 +3568,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				P_UndoPlayerMorph (player, player);
 			}
 		}
+
+		// [Spleen] record player
+		UnlaggedRecordPlayer( player );
+
 		// Cycle psprites
 		P_MovePsprites (player);
 

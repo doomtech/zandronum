@@ -59,6 +59,12 @@ typedef enum
 // State updates, number of tics / second.
 #define TICRATE 		35
 
+// [Spleen] Milliseconds per second, used for ping calculations.
+#define MS_PER_SECOND	1000
+
+// [Spleen] The amount of ticks of old positions to store for unlagged support
+#define UNLAGGEDTICS	35
+
 // The current state of the game: whether we are
 // playing, gazing at the intermission screen,
 // the game final animation, or a demo. 
@@ -279,6 +285,9 @@ enum
 
 	// [BB] Enforces clients not to draw coop info, i.e. behave as if cl_drawcoopinfo == 0.
 	DF3_NO_COOP_INFO		= 1 << 2,
+
+	// Ping-based backwards reconciliation is used for player-fired hitscans and rails.
+	DF3_UNLAGGED			= 1 << 3,
 };
 
 // [RH] Compatibility flags.
