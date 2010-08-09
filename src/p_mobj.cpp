@@ -4948,7 +4948,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	SCOREBOARD_RefreshHUD( );
 
 	// [Spleen] Reset reconciliation buffer when player gets spawned
-	UnlaggedResetPlayer( p );
+	UNLAGGED_ResetPlayer( p );
 
 	return mobj;
 }

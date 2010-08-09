@@ -3989,7 +3989,8 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	vy = FixedMul (finecosine[pitch], finesine[angle]);
 	vz = -finesine[pitch];
 
-	UnlaggedReconcile( t1 );
+	// [Spleen]
+	UNLAGGED_Reconcile( t1 );
 
 	shootz = t1->z - t1->floorclip + (t1->height>>1);
 	if (t1->player != NULL)
@@ -4005,11 +4006,13 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		t1->player->ReadyWeapon != NULL &&
 		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST));
 
-	bool hitSomething = Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
+	// [Spleen]
+	const bool hitSomething = Trace (t1->x, t1->y, shootz, t1->Sector, vx, vy, vz, distance,
 		MF_SHOOTABLE, ML_BLOCKEVERYTHING, t1, trace,
 		TRACE_NoSky|TRACE_Impact, hitGhosts ? CheckForGhost : CheckForSpectral);
 
-	UnlaggedRestore( t1 );
+	// [Spleen]
+	UNLAGGED_Restore( t1 );
 
 	if (!hitSomething)
 	{ // hit nothing
@@ -4396,7 +4399,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	fixed_t shootz;
 	bool			bHitPlayer;
 
-	UnlaggedReconcile( source );
+	// [Spleen]
+	UNLAGGED_Reconcile( source );
 
 	if (puffclass == NULL) puffclass = PClass::FindClass(NAME_BulletPuff);
 
@@ -4434,7 +4438,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		8192*FRACUNIT, MF_SHOOTABLE, ML_BLOCKEVERYTHING, source, trace,
 		TRACE_PCross|TRACE_Impact, ProcessRailHit);
 
-	UnlaggedRestore( source );
+	// [Spleen]
+	UNLAGGED_Restore( source );
 	
 	// [Spleen] Don't do damage, don't award medals, don't spawn puffs,
 	// and don't spawn blood in clients on a network.

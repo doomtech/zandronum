@@ -786,7 +786,8 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 	angle_t pitch;
 	AActor *linetarget;
 
-	UnlaggedReconcile( mo );
+	// [Spleen]
+	UNLAGGED_Reconcile( mo );
 
 	// see which target is to be aimed at
 	i = 2;
@@ -807,7 +808,8 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 		*pLineTarget = linetarget;
 	}
 
-	UnlaggedRestore( mo );
+	// [Spleen]
+	UNLAGGED_Restore( mo );
 
 	return pitch;
 }

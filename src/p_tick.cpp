@@ -296,7 +296,7 @@ void P_Ticker (void)
 	}
 
 	// [Spleen] record sectors soon before they are reconciled/restored
-	UnlaggedRecordSectors( );
+	UNLAGGED_RecordSectors( );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

@@ -1552,7 +1552,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 	// [BC] Don't actually do the attack in client mode.
 	// [Spleen] Railgun is handled by the server unless unlagged
 	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
-		&& !UnlaggedDrawRailClientside( self ) )
+		&& !UNLAGGED_DrawRailClientside( self ) )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;

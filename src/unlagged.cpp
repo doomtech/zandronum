@@ -48,7 +48,6 @@
 //
 //-----------------------------------------------------------------------------
 
-
 #include "unlagged.h"
 #include "doomstat.h"
 #include "doomdef.h"
@@ -62,14 +61,10 @@
 CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
 
 //Figure out which tic to use for reconciliation
-int		UnlaggedGametic( player_t *player )
+int UNLAGGED_Gametic( player_t *player )
 {
-	int ulPing, unlaggedGametic;
+	int unlaggedGametic = ( gametic - ( player->ulPing * TICRATE / MS_PER_SECOND ) );
 
-
-	ulPing = player->ulPing;
-	unlaggedGametic = ( gametic - ( ulPing * TICRATE / MS_PER_SECOND ) );
-	
 	//don't look up tics that are too old
 	if ( (gametic - unlaggedGametic) >= UNLAGGEDTICS)
 		unlaggedGametic = gametic - UNLAGGEDTICS + 1;
@@ -78,34 +73,29 @@ int		UnlaggedGametic( player_t *player )
 	if (unlaggedGametic < 0)
 		unlaggedGametic = 0;
 
-
 	return unlaggedGametic;
 }
 
 // Shift stuff back in time before doing hitscan calculations
-// Call UnlaggedRestore afterwards to restore everything
-void	UnlaggedReconcile( AActor *actor )
+// Call UNLAGGED_Restore afterwards to restore everything
+void UNLAGGED_Reconcile( AActor *actor )
 {
 	//Only do anything if the actor to be reconciled is a player
 	//and it's on a server with unlagged on
 	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) )
 		return;
-	
-	int unlaggedGametic, unlaggedIndex;
-	
 
-	unlaggedGametic = UnlaggedGametic( actor->player );
+	const int unlaggedGametic = UNLAGGED_Gametic( actor->player );
 
 	//find the index
-	unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
+	const int unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
 
-	
 	//reconcile the sectors
-	for (int i = 0; i < numsectors; i++)
+	for (int i = 0; i < numsectors; ++i)
 	{
 		sectors[i].floorplane.restoreD = sectors[i].floorplane.d;
 		sectors[i].ceilingplane.restoreD = sectors[i].ceilingplane.d;
-		
+
 		//Don't reconcile if the unlagged gametic is the same as the current
 		//because unlagged data for this tic may not be completely recorded yet
 		if (gametic != unlaggedGametic)
@@ -114,21 +104,20 @@ void	UnlaggedReconcile( AActor *actor )
 			sectors[i].ceilingplane.d = sectors[i].ceilingplane.unlaggedD[unlaggedIndex];
 		}
 	}
-	
-	
+
 	//reconcile the players
-	for (int i = 0; i < MAXPLAYERS; i++)
+	for (int i = 0; i < MAXPLAYERS; ++i)
 	{
 		if (playeringame[i] && players[i].mo && !players[i].bSpectating)
 		{
 			players[i].restoreX = players[i].mo->x;
 			players[i].restoreY = players[i].mo->y;
 			players[i].restoreZ = players[i].mo->z;
-			
+
 			//Work around limitations of SetOrigin to prevent players
 			//from getting stuck in ledges
 			players[i].restoreFloorZ = players[i].mo->floorz;
-			
+
 			//Don't reconcile if the unlagged gametic is the same as the current
 			//because unlagged data for this tic may not be completely recorded yet
 			if (gametic == unlaggedGametic)
@@ -145,17 +134,15 @@ void	UnlaggedReconcile( AActor *actor )
 				);
 			}
 			else
-			//However, the client sometimes mispredicts itself if it's on a moving sector.
-			//We need to correct for that.
+				//However, the client sometimes mispredicts itself if it's on a moving sector.
+				//We need to correct for that.
 			{
 				//current server floorz/ceilingz before reconciliation
 				fixed_t serverFloorZ = actor->floorz;
 				fixed_t serverCeilingZ = actor->ceilingz;
-				
 
 				//reset floorz/ceilingz with SetOrigin call
 				actor->SetOrigin( actor->x, actor->y, actor->z );
-
 
 				//force the shooter out of the floor/ceiling - a client has to mispredict in this case,
 				//because not mispredicting would mean the client would think he's inside the floor/ceiling
@@ -164,7 +151,6 @@ void	UnlaggedReconcile( AActor *actor )
 
 				if (actor->z < actor->floorz)
 					actor->z = actor->floorz;
-
 
 				//floor moved up - a client might have mispredicted himself too low due to gravity
 				//and the client thinking the floor is lower than it actually is
@@ -178,7 +164,6 @@ void	UnlaggedReconcile( AActor *actor )
 					//todo: more correction for floor moving up
 				}
 
-
 				//todo: more correction for client misprediction
 			}
 		}
@@ -187,25 +172,23 @@ void	UnlaggedReconcile( AActor *actor )
 
 
 // Restore everything that has been shifted
-// back in time by UnlaggedReconcile
-void	UnlaggedRestore( AActor *actor )
+// back in time by UNLAGGED_Reconcile
+void UNLAGGED_Restore( AActor *actor )
 {
 	//Only do anything if the actor to be restored is a player
 	//and it's on a server with unlagged on
 	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) )
 		return;
-	
-	
+
 	//restore the sectors
-	for (int i = 0; i < numsectors; i++)
+	for (int i = 0; i < numsectors; ++i)
 	{
 		sectors[i].floorplane.d = sectors[i].floorplane.restoreD;
 		sectors[i].ceilingplane.d = sectors[i].ceilingplane.restoreD;
 	}
 
-
 	//restore the players
-	for (int i = 0; i < MAXPLAYERS; i++)
+	for (int i = 0; i < MAXPLAYERS; ++i)
 	{
 		if (playeringame[i] && players[i].mo && !players[i].bSpectating)
 		{
@@ -218,18 +201,14 @@ void	UnlaggedRestore( AActor *actor )
 
 // Record the positions of just one player
 // in order to be able to reconcile them later
-void	UnlaggedRecordPlayer( player_t *player )
+void UNLAGGED_RecordPlayer( player_t *player )
 {
 	//Only do anything if it's on a server
 	if (NETWORK_GetState() != NETSTATE_SERVER)
 		return;
 
-	
-	int unlaggedIndex;
-
 	//find the index
-	unlaggedIndex = gametic % UNLAGGEDTICS;
-
+	const int unlaggedIndex = gametic % UNLAGGEDTICS;
 
 	//record the player
 	player->unlaggedX[unlaggedIndex] = player->mo->x;
@@ -240,13 +219,13 @@ void	UnlaggedRecordPlayer( player_t *player )
 
 // Reset the reconciliation buffers of a player
 // Should be called when a player is spawned
-void	UnlaggedResetPlayer( player_t *player )
+void UNLAGGED_ResetPlayer( player_t *player )
 {
 	//Only do anything if it's on a server
 	if (NETWORK_GetState() != NETSTATE_SERVER)
 		return;
 
-	for (int unlaggedIndex = 0; unlaggedIndex < UNLAGGEDTICS; unlaggedIndex++)
+	for (int unlaggedIndex = 0; unlaggedIndex < UNLAGGEDTICS; ++unlaggedIndex)
 	{
 		player->unlaggedX[unlaggedIndex] = player->mo->x;
 		player->unlaggedY[unlaggedIndex] = player->mo->y;
@@ -256,28 +235,24 @@ void	UnlaggedResetPlayer( player_t *player )
 
 
 // Record the positions of the sectors
-void	UnlaggedRecordSectors( )
+void UNLAGGED_RecordSectors( )
 {
 	//Only do anything if it's on a server
 	if (NETWORK_GetState() != NETSTATE_SERVER)
 		return;
 
-	
-	int unlaggedIndex;
-
 	//find the index
-	unlaggedIndex = gametic % UNLAGGEDTICS;
-
+	const int unlaggedIndex = gametic % UNLAGGEDTICS;
 
 	//record the sectors
-	for (int i = 0; i < numsectors; i++)
+	for (int i = 0; i < numsectors; ++i)
 	{
 		sectors[i].floorplane.unlaggedD[unlaggedIndex] = sectors[i].floorplane.d;
 		sectors[i].ceilingplane.unlaggedD[unlaggedIndex] = sectors[i].ceilingplane.d;
 	}
 }
 
-bool UnlaggedDrawRailClientside ( AActor *attacker )
+bool UNLAGGED_DrawRailClientside ( AActor *attacker )
 {
 	if ( ( attacker == NULL ) || ( attacker->player == NULL ) )
 		return false;

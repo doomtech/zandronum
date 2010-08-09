@@ -3570,7 +3570,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 
 		// [Spleen] record player
-		UnlaggedRecordPlayer( player );
+		UNLAGGED_RecordPlayer( player );
 
 		// Cycle psprites
 		P_MovePsprites (player);

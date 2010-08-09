@@ -54,13 +54,11 @@
 #include "d_player.h"
 #include "doomdef.h"
 
+void	UNLAGGED_Reconcile( AActor *actor );
+void	UNLAGGED_Restore( AActor *actor );
+void	UNLAGGED_RecordPlayer( player_t *player );
+void	UNLAGGED_ResetPlayer( player_t *player );
+void	UNLAGGED_RecordSectors( );
+bool	UNLAGGED_DrawRailClientside ( AActor *attacker );
 
-void	UnlaggedReconcile( AActor *actor );
-void	UnlaggedRestore( AActor *actor );
-void	UnlaggedRecordPlayer( player_t *player );
-void	UnlaggedResetPlayer( player_t *player );
-void	UnlaggedRecordSectors( );
-bool	UnlaggedDrawRailClientside ( AActor *attacker );
-
-
-#endif // __I_UNLAGGED_H__
+#endif // __UNLAGGED_H__
