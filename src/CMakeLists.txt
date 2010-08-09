@@ -799,6 +799,7 @@ add_executable( zdoom WIN32
 	team.cpp #ST
 	teaminfo.cpp
 	tempfiles.cpp
+	unlagged.cpp #ST
 	v_collection.cpp
 	v_draw.cpp
 	v_font.cpp
