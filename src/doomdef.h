@@ -59,9 +59,6 @@ typedef enum
 // State updates, number of tics / second.
 #define TICRATE 		35
 
-// [Spleen] Milliseconds per second, used for ping calculations.
-#define MS_PER_SECOND	1000
-
 // [Spleen] The amount of ticks of old positions to store for unlagged support
 #define UNLAGGEDTICS	35
 

@@ -63,7 +63,7 @@ CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
 //Figure out which tic to use for reconciliation
 int UNLAGGED_Gametic( player_t *player )
 {
-	int unlaggedGametic = ( gametic - ( player->ulPing * TICRATE / MS_PER_SECOND ) );
+	int unlaggedGametic = ( gametic - ( player->ulPing * TICRATE / 1000 ) );
 
 	//don't look up tics that are too old
 	if ( (gametic - unlaggedGametic) >= UNLAGGEDTICS)
