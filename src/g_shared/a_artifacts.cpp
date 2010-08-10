@@ -456,7 +456,14 @@ void APowerInvulnerable::EndEffect ()
 		Owner->effects &= ~FX_VISIBILITYFLICKER;
 		// [BC] If the owner is a spectating player, don't make him visible!
 		if (( Owner->player == NULL ) || ( Owner->player->bSpectating == false ))
-			Owner->RenderStyle = STYLE_Normal;
+		{
+			// [BB] Restore the default alpha value and set RenderStyle accordingly.
+			Owner->alpha = Owner->GetDefault()->alpha;
+			if ( Owner->alpha == OPAQUE )
+				Owner->RenderStyle = STYLE_Normal;
+			else
+				Owner->RenderStyle = STYLE_Translucent;
+		}
 		else
 			Owner->RenderStyle = STYLE_None;
 	}
