@@ -647,6 +647,10 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 	while ( g_PreviousVotes.size( ) > 0 && (( tNow - g_PreviousVotes.front( ).tTimeCalled ) > VOTE_LONGEST_INTERVAL * MINUTE ))
 		g_PreviousVotes.pop_front( );
 
+	// [BB] If the server doesn't want to limit the number of votes, there is no check anything.
+	if ( sv_limitnumvotes == false )
+		return true;
+
 	// Run through the vote cache (backwards, from recent to old) and search for grounds on which to reject the vote.
 	for( std::list<VOTE_s>::reverse_iterator i = g_PreviousVotes.rbegin(); i != g_PreviousVotes.rend(); ++i )
 	{
@@ -855,6 +859,7 @@ CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE );
+CVAR( Bool, sv_limitnumvotes, true, CVAR_ARCHIVE );
 CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );
 
 CCMD( callvote )
