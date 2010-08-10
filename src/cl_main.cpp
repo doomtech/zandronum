@@ -2689,6 +2689,8 @@ void CLIENT_PrintCommand( LONG lCommand )
 			return;
 		if (( cl_showcommands >= 5 ) && ( lCommand == SVC_UPDATEPLAYERPING ))
 			return;
+		if (( cl_showcommands >= 6 ) && ( lCommand == SVC_PING ))
+			return;
 
 		lCommand -= NUM_SERVERCONNECT_COMMANDS;
 		if ( lCommand < 0 )
