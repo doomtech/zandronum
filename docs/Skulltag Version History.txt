@@ -35,6 +35,7 @@ latestzdoom branch
 -	- Fixed: The network traffic needed by Sector_SetRotation increased linearly with the number of sectors that have the given tag instead of being constant. [Torr Samaho]
 -	- Fixed: With sv_logfiletimestamp == true, the timestamp appeared multiple times per line when calling playerinfo. [Torr Samaho]
 -	- Fixed: When the respawn invulnerability runs out, the player body becomes opaque instead of returning to its default alpha value. [Torr Samaho]
+-	- Fixed: The ACS command TakeInventory didn't work properly online if it was used to take a bigger inventory amount than the target actually had. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 
