@@ -8355,6 +8355,9 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 
 	// Finally, adjust textures.
 	pSector->SetPlaneTexZ(sector_t::floor, pSector->GetPlaneTexZ(sector_t::floor) + pSector->floorplane.HeightDiff( lLastPos ) );
+
+	// [BB] We also need to move any linked sectors.
+	P_MoveLinkedSectors(pSector, false, -lDelta, false);
 }
 
 //*****************************************************************************
