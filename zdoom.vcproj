@@ -4740,6 +4740,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\platform.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\possession.h"
 				>
 			</File>
