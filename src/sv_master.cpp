@@ -281,7 +281,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	
 		// Now, check to see if this IP has been banend from this server.
 		NETWORK_AddressToIPStringArray( Address, szAddress );
-		if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress )))
+		if ( SERVERBAN_IsIPBanned( szAddress ))
 		{
 			// Write our header.
 			NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_BANNED );

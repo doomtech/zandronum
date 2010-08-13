@@ -1910,7 +1910,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	// Check if this IP has been banned.
 	NETWORK_AddressToIPStringArray( g_aClients[lClient].Address, szAddress );
-	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress )))
+	if ( SERVERBAN_IsIPBanned( szAddress ))
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );

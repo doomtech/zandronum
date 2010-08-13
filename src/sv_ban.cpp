@@ -151,7 +151,7 @@ bool SERVERBAN_IsIPBanned( const IPStringArray &szAddress )
 		return true;
 
 	// If not, let the server decide.
-	return ( g_ServerBans.isIPInList( szAddress ) && !g_ServerBanExemptions.isIPInList( szAddress ));
+	return ( sv_enforcebans && g_ServerBans.isIPInList( szAddress ) && !g_ServerBanExemptions.isIPInList( szAddress ));
 }
 
 //*****************************************************************************
@@ -163,7 +163,7 @@ bool SERVERBAN_IsIPBanned( const NETADDRESS_s &Address )
 		return true;
 
 	// If not, let the server decide.
-	return ( g_ServerBans.isIPInList( Address ) && !g_ServerBanExemptions.isIPInList( Address ));
+	return ( sv_enforcebans && g_ServerBans.isIPInList( Address ) && !g_ServerBanExemptions.isIPInList( Address ));
 }
 
 //*****************************************************************************
