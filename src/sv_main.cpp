@@ -1354,7 +1354,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 			players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
 
 		}
-		else
+		// [BB] Non-spectators in team games are always on a team. Under normal circumstances it shouldn't
+		// be possible for a non-sectator to trigger this. It will happen though if a non-spectator sends
+		// CLCC_REQUESTSNAPSHOT (e.g. by packet injection) again while still in the game.
+		else if ( players[g_lCurrentClient].bSpectating )
 			players[g_lCurrentClient].bOnTeam = false;
 	}
 
