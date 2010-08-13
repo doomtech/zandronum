@@ -57,8 +57,11 @@
 #include "network.h"
 #include "r_state.h"
 #include "p_local.h"
+#include "i_system.h"
 
 CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
+
+bool reconciledGame = false;
 
 //Figure out which tic to use for reconciliation
 int UNLAGGED_Gametic( player_t *player )
@@ -85,7 +88,24 @@ void UNLAGGED_Reconcile( AActor *actor )
 	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) )
 		return;
 
+	//Something went wrong, reconciliation was attempted when the gamestate
+	//was already reconciled!
+	if (reconciledGame)
+	{
+		// [BB] I_Error terminates the current game, so we need to reset the value of reconciledGame,
+		// otherwise UNLAGGED_Reconcile will always trigger this error from now on.
+		reconciledGame = false;
+		I_Error("UNLAGGED_Reconcile called while reconciledGame is true");
+	}
+
 	const int unlaggedGametic = UNLAGGED_Gametic( actor->player );
+
+	//Don't reconcile if the unlagged gametic is the same as the current
+	//because unlagged data for this tic may not be completely recorded yet
+	if (unlaggedGametic == gametic)
+		return;
+
+	reconciledGame = true;
 
 	//find the index
 	const int unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
@@ -96,13 +116,8 @@ void UNLAGGED_Reconcile( AActor *actor )
 		sectors[i].floorplane.restoreD = sectors[i].floorplane.d;
 		sectors[i].ceilingplane.restoreD = sectors[i].ceilingplane.d;
 
-		//Don't reconcile if the unlagged gametic is the same as the current
-		//because unlagged data for this tic may not be completely recorded yet
-		if (gametic != unlaggedGametic)
-		{
-			sectors[i].floorplane.d = sectors[i].floorplane.unlaggedD[unlaggedIndex];
-			sectors[i].ceilingplane.d = sectors[i].ceilingplane.unlaggedD[unlaggedIndex];
-		}
+		sectors[i].floorplane.d = sectors[i].floorplane.unlaggedD[unlaggedIndex];
+		sectors[i].ceilingplane.d = sectors[i].ceilingplane.unlaggedD[unlaggedIndex];
 	}
 
 	//reconcile the players
@@ -117,11 +132,6 @@ void UNLAGGED_Reconcile( AActor *actor )
 			//Work around limitations of SetOrigin to prevent players
 			//from getting stuck in ledges
 			players[i].restoreFloorZ = players[i].mo->floorz;
-
-			//Don't reconcile if the unlagged gametic is the same as the current
-			//because unlagged data for this tic may not be completely recorded yet
-			if (gametic == unlaggedGametic)
-				continue;
 
 			//Also, don't reconcile the shooter because the client is supposed
 			//to predict him
@@ -175,9 +185,10 @@ void UNLAGGED_Reconcile( AActor *actor )
 // back in time by UNLAGGED_Reconcile
 void UNLAGGED_Restore( AActor *actor )
 {
-	//Only do anything if the actor to be restored is a player
-	//and it's on a server with unlagged on
-	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) )
+	//Only do anything if the game is currently reconciled
+	// [BB] Since reconciledGame can only be true if all necessary checks in UNLAGGED_Reconcile were passed,
+	// we don't need to check anything but reconciledGame here.
+	if ( !reconciledGame )
 		return;
 
 	//restore the sectors
@@ -196,6 +207,8 @@ void UNLAGGED_Restore( AActor *actor )
 			players[i].mo->floorz = players[i].restoreFloorZ;
 		}
 	}
+
+	reconciledGame = false;
 }
 
 
