@@ -6264,7 +6264,8 @@ int DLevelScript::RunScript ()
 			}
 			else
 			{
-				STACK(1) = playeringame[STACK(1)];
+				// [BB] Skulltag doesn't count spectators as players.
+				STACK(1) = playeringame[STACK(1)] && ( players[STACK(1)].bSpectating == false );
 			}
 			break;
 
