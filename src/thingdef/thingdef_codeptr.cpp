@@ -2566,6 +2566,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_KillSiblings)
 	TThinkerIterator<AActor> it;
 	AActor * mo;
 
+	// [BB] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+			return;
+	}
+
 	while ( (mo = it.Next()) )
 	{
 		if (mo->master == self->master && mo != self)
