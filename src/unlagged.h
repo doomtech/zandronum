@@ -53,6 +53,7 @@
 
 #include "d_player.h"
 #include "doomdef.h"
+#include "p_trace.h"
 
 void	UNLAGGED_Reconcile( AActor *actor );
 void	UNLAGGED_Restore( AActor *actor );
@@ -60,5 +61,6 @@ void	UNLAGGED_RecordPlayer( player_t *player );
 void	UNLAGGED_ResetPlayer( player_t *player );
 void	UNLAGGED_RecordSectors( );
 bool	UNLAGGED_DrawRailClientside ( AActor *attacker );
+void	UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace, TVector3<fixed_t> &hitOffset );
 
 #endif // __UNLAGGED_H__

@@ -280,3 +280,30 @@ bool UNLAGGED_DrawRailClientside ( AActor *attacker )
 
 	return true;
 }
+
+// [BB] If reconciliation moved the actor we hit, this function calculates the offset.
+void UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace, TVector3<fixed_t> &hitOffset )
+{
+	hitOffset.Zero();
+
+	// [BB] The game is not reconciled, so no offset.
+	if ( reconciledGame == false )
+		return;
+
+	const int unlaggedGametic = UNLAGGED_Gametic( attacker->player );
+
+	// [BB] No reconciliation no offset.
+	if ( unlaggedGametic == gametic )
+		return;
+
+	if ( ( trace.HitType == TRACE_HitActor ) && trace.Actor && trace.Actor->player )
+	{
+		const int unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
+
+		const player_t *hitPlayer = trace.Actor->player;
+
+		hitOffset[0] = hitPlayer->restoreX - hitPlayer->unlaggedX[unlaggedIndex];
+		hitOffset[1] = hitPlayer->restoreY - hitPlayer->unlaggedY[unlaggedIndex];
+		hitOffset[2] = hitPlayer->restoreZ - hitPlayer->unlaggedZ[unlaggedIndex];
+	}
+}
