@@ -452,6 +452,8 @@ EXTERN_CVAR (Bool, invertmouse)
 EXTERN_CVAR (Bool, lookspring)
 EXTERN_CVAR (Bool, lookstrafe)
 EXTERN_CVAR (Bool, m_noprescale)
+// [BB] Added m_filter.
+EXTERN_CVAR (Bool, m_filter)
 
 static menuitem_t MouseItems[] =
 {
@@ -459,7 +461,8 @@ static menuitem_t MouseItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ slider,	"Overall sensitivity",	{&mouse_sensitivity},	{0.5}, {2.5},	{0.1}, {NULL} },
 	{ discrete,	"Prescale mouse movement",{&m_noprescale},		{2.0}, {0.0},	{0.0}, {NoYes} },
-	{ discrete, "Smooth mouse movement",{&smooth_mouse},			{2.0}, {0.0},	{0.0}, {YesNo} },
+	// [BB] smooth_mouse doesn't do anything in Skulltag (Carn deactivated it long ago), so link this to m_filter.
+	{ discrete, "Smooth mouse movement",{&m_filter},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ slider,	"Turning speed",		{&m_yaw},				{0.5}, {2.5},	{0.1}, {NULL} },
 	{ slider,	"Mouselook speed",		{&m_pitch},				{0.5}, {2.5},	{0.1}, {NULL} },

@@ -43,6 +43,7 @@ latestzdoom branch
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
 !	- The ACS function PlayerInGame() now returns false for spectators. [Torr Samaho]
+!	- Changed the 'Smooth mouse movement' menu option from smooth_mouse to m_filter. smooth_mouse doesn't have any effect in Skulltag, so it doesn't need a menu entry. [Torr Samaho]
 
 
 98c
