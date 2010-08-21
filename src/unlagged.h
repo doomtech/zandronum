@@ -55,6 +55,8 @@
 #include "doomdef.h"
 #include "p_trace.h"
 
+void	UNLAGGED_Tick( void );
+int		UNLAGGED_Gametic( player_t *player );
 void	UNLAGGED_Reconcile( AActor *actor );
 void	UNLAGGED_Restore( AActor *actor );
 void	UNLAGGED_RecordPlayer( player_t *player );

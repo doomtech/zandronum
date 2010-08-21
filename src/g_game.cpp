@@ -106,6 +106,7 @@
 #include "domination.h"
 #include "win32/g15/g15.h"
 #include "gl/gl_lights.h"
+#include "unlagged.h"
 
 #include <zlib.h>
 
@@ -1573,6 +1574,9 @@ void G_Ticker ()
 			// Is there a better place to put this?
 			PLAYER_AwardDamagePointsForAllPlayers( );
 		}
+
+		// [BB] Tick the unlagged module.
+		UNLAGGED_Tick( );
 
 		// [BB] Don't call P_Ticker on the server if there are no players.
 		// This significantly reduces CPU usage on maps with many monsters

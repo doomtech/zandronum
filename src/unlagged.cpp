@@ -58,10 +58,21 @@
 #include "r_state.h"
 #include "p_local.h"
 #include "i_system.h"
+#include "sv_commands.h"
 
 CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
 
 bool reconciledGame = false;
+
+void UNLAGGED_Tick( void )
+{
+	// [BB] Only the server has to do anything here.
+	if ( NETWORK_GetState() != NETSTATE_SERVER )
+		return;
+
+	// [Spleen] record sectors soon before they are reconciled/restored
+	UNLAGGED_RecordSectors( );
+}
 
 //Figure out which tic to use for reconciliation
 int UNLAGGED_Gametic( player_t *player )
