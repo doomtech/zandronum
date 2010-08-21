@@ -4129,6 +4129,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			hity = t1->y + FixedMul (vy, trace.Distance);
 			hitz = shootz + FixedMul (vz, trace.Distance);
 
+			// [BB] If reconciliation moved the actor we hit, move the hit accordingly.
+			hitx += trace.unlaggedHitOffset[0];
+			hity += trace.unlaggedHitOffset[1];
+			hitz += trace.unlaggedHitOffset[2];
+
 			// Spawn bullet puffs or blood spots, depending on target type.
 			AActor *puffDefaults = GetDefaultByType (pufftype);
 			if ((puffDefaults->flags3 & MF3_PUFFONACTORS) ||

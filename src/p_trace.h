@@ -75,6 +75,9 @@ struct FTraceResults
 	ETraceResult HitType;
 	sector_t *CrossedWater;
 	F3DFloor * ffloor;
+
+	// [BB] If Actor was reconciled while hit, we store the reconciliation offset here.
+	TVector3<fixed_t> unlaggedHitOffset;
 };
 
 enum

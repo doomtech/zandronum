@@ -37,6 +37,8 @@
 #include "i_system.h"
 #include "r_sky.h"
 #include "doomstat.h"
+// [BB] New #includes.
+#include "unlagged.h"
 
 struct FTraceInfo
 {
@@ -209,6 +211,9 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 			res.HitTexture = inf.CurSector->GetTexture(sector_t::ceiling);
 		}
 	}
+
+	// [BB] Keep track of a potential offset caused by the reconciliation (assuming that 'ignore' is the attacker).
+	UNLAGGED_GetHitOffset ( ignore, res, res.unlaggedHitOffset );
 
 	if (res.HitType != TRACE_HitNone)
 	{
