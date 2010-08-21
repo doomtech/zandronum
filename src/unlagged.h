@@ -66,5 +66,6 @@ bool	UNLAGGED_DrawRailClientside ( AActor *attacker );
 void	UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace, TVector3<fixed_t> &hitOffset );
 void	UNLAGGED_AddReconciliationBlocker ( );
 void	UNLAGGED_RemoveReconciliationBlocker ( );
+void	UNLAGGED_SpawnDebugActors ( );
 
 #endif // __UNLAGGED_H__

@@ -61,6 +61,7 @@
 #include "sv_commands.h"
 
 CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
+CVAR( Bool, sv_unlagged_debugactors, false, 0 )
 
 bool reconciledGame = false;
 int reconciliationBlockers = 0;
@@ -73,6 +74,10 @@ void UNLAGGED_Tick( void )
 
 	// [Spleen] record sectors soon before they are reconciled/restored
 	UNLAGGED_RecordSectors( );
+
+	// [BB] Spawn debug actors if the server runner wants them.
+	if ( sv_unlagged_debugactors )
+		UNLAGGED_SpawnDebugActors( );
 }
 
 //Figure out which tic to use for reconciliation
@@ -333,4 +338,46 @@ void UNLAGGED_RemoveReconciliationBlocker ( )
 		I_Error("UNLAGGED_RemoveReconciliationBlocker called when reconciliationBlockers == 0");
 	else
 		reconciliationBlockers--;
+}
+
+void UNLAGGED_SpawnDebugActors ( )
+{
+	const PClass *pType = PClass::FindClass( "UnlaggedDebugActor" );
+	if ( pType == NULL )
+		I_FatalError( "To spawn unlagged debug actors a DECORATE actor called \"UnlaggedDebugActor\" needs to be defined!\n" );
+
+	// [BB] Since there is no function that lets the server instruct a client to spawn an actor
+	// of a certain type at a specified position without actually having such an actor at that
+	// position (and I don't feel like adding such a thing just for this debug function) we
+	// create and move a dummy actor here.
+	AActor *pActor = Spawn( pType, 0, 0, 0, NO_REPLACE );
+	if ( pActor )
+	{
+		for ( ULONG ulPlayer = 0; ulPlayer < MAXPLAYERS; ++ulPlayer )
+		{
+			if ( SERVER_IsValidClient( ulPlayer ) == false )
+				continue;
+
+			const int unlaggedGametic = UNLAGGED_Gametic( &players[ulPlayer] );
+
+			if ( unlaggedGametic == gametic )
+				continue;
+
+			const int unlaggedIndex = unlaggedGametic % UNLAGGEDTICS;
+
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+			{
+				if ( ( ulPlayer == ulIdx ) || ( SERVER_IsValidPlayer ( ulIdx ) == false ) || players[ulIdx].bSpectating )
+					continue;
+
+				pActor->x = players[ulIdx].unlaggedX[unlaggedIndex];
+				pActor->y = players[ulIdx].unlaggedY[unlaggedIndex];
+				pActor->z = players[ulIdx].unlaggedZ[unlaggedIndex];
+
+				SERVERCOMMANDS_SpawnThingNoNetID( pActor, ulPlayer, SVCF_ONLYTHISCLIENT );
+			}
+		}
+		// [BB] Get rid ot the dummy actor.
+		pActor->Destroy();
+	}
 }
