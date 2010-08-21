@@ -64,5 +64,7 @@ void	UNLAGGED_ResetPlayer( player_t *player );
 void	UNLAGGED_RecordSectors( );
 bool	UNLAGGED_DrawRailClientside ( AActor *attacker );
 void	UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace, TVector3<fixed_t> &hitOffset );
+void	UNLAGGED_AddReconciliationBlocker ( );
+void	UNLAGGED_RemoveReconciliationBlocker ( );
 
 #endif // __UNLAGGED_H__

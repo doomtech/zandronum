@@ -3827,6 +3827,9 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	fixed_t y2;
 	aim_t aim;
 
+	// [Spleen]
+	UNLAGGED_Reconcile( t1 );
+
 	angle >>= ANGLETOFINESHIFT;
 	aim.shootthing = t1;
 	aim.check3d = check3d;
@@ -3916,6 +3919,10 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 		}
 	}
 	if (pLineTarget) *pLineTarget = aim.linetarget;
+
+	// [Spleen]
+	UNLAGGED_Restore( t1 );
+
 	return aim.linetarget ? aim.aimpitch : t1->pitch;
 }
 

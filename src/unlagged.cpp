@@ -63,6 +63,7 @@
 CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
 
 bool reconciledGame = false;
+int reconciliationBlockers = 0;
 
 void UNLAGGED_Tick( void )
 {
@@ -94,9 +95,10 @@ int UNLAGGED_Gametic( player_t *player )
 // Call UNLAGGED_Restore afterwards to restore everything
 void UNLAGGED_Reconcile( AActor *actor )
 {
-	//Only do anything if the actor to be reconciled is a player
-	//and it's on a server with unlagged on
-	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) )
+	//Only do anything if the actor to be reconciled is a player,
+	//it's on a server with unlagged on, and reconciliation is not being blocked
+	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) ||
+		 ( reconciliationBlockers > 0 ) )
 		return;
 
 	//Something went wrong, reconciliation was attempted when the gamestate
@@ -199,7 +201,8 @@ void UNLAGGED_Restore( AActor *actor )
 	//Only do anything if the game is currently reconciled
 	// [BB] Since reconciledGame can only be true if all necessary checks in UNLAGGED_Reconcile were passed,
 	// we don't need to check anything but reconciledGame here.
-	if ( !reconciledGame )
+	// [Spleen] Also need to check for any reconciliationBlockers
+	if ( !reconciledGame || ( reconciliationBlockers > 0 ) )
 		return;
 
 	//restore the sectors
@@ -317,4 +320,17 @@ void UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace,
 		hitOffset[1] = hitPlayer->restoreY - hitPlayer->unlaggedY[unlaggedIndex];
 		hitOffset[2] = hitPlayer->restoreZ - hitPlayer->unlaggedZ[unlaggedIndex];
 	}
+}
+
+void UNLAGGED_AddReconciliationBlocker ( )
+{
+	reconciliationBlockers++;
+}
+
+void UNLAGGED_RemoveReconciliationBlocker ( )
+{
+	if ( reconciliationBlockers == 0 )
+		I_Error("UNLAGGED_RemoveReconciliationBlocker called when reconciliationBlockers == 0");
+	else
+		reconciliationBlockers--;
 }
