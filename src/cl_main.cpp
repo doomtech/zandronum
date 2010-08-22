@@ -9514,7 +9514,8 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 	}
 
 	// [BB] If instructed to, check whether the actor is already playing something.
-	if ( bRespectActorPlayingSomething && S_IsActorPlayingSomething (pActor, lChannel, S_FindSound ( pszSoundString ) ) )
+	// Note: The checking may not include CHAN_LOOP.
+	if ( bRespectActorPlayingSomething && S_IsActorPlayingSomething (pActor, lChannel & (~CHAN_LOOP), S_FindSound ( pszSoundString ) ) )
 		return;
 
 	// Finally, play the sound.
