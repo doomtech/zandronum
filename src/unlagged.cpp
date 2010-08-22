@@ -72,8 +72,15 @@ void UNLAGGED_Tick( void )
 	if ( NETWORK_GetState() != NETSTATE_SERVER )
 		return;
 
-	// [Spleen] record sectors soon before they are reconciled/restored
+	// [Spleen] Record sectors soon before they are reconciled/restored
 	UNLAGGED_RecordSectors( );
+
+	// [Spleen] Record players
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		if ( SERVER_IsValidPlayerWithMo( ulIdx ) )
+			UNLAGGED_RecordPlayer( &players[ulIdx] );
+	}
 
 	// [BB] Spawn debug actors if the server runner wants them.
 	if ( sv_unlagged_debugactors )
