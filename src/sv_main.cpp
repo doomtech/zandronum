@@ -4037,6 +4037,25 @@ void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPositio
 }
 
 //*****************************************************************************
+// [BB]
+void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
+{
+	ULONG ulBits = 0;
+
+	if ( pActor->angle != 0 )
+		ulBits |= CM_ANGLE;
+	if ( pActor->momx != 0 )
+		ulBits |= CM_MOMX;
+	if ( pActor->momy != 0 )
+		ulBits |= CM_MOMY;
+	if ( pActor->momz != 0 )
+		ulBits |= CM_MOMZ;
+
+	if ( ulBits )
+		SERVERCOMMANDS_MoveThingExact( pActor, ulBits );
+}
+
+//*****************************************************************************
 //
 static bool server_Ignore( BYTESTREAM_s *pByteStream )
 {

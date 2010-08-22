@@ -2063,19 +2063,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 			SERVERCOMMANDS_SpawnThing( mo );
 
 			// [BB] Set the angle and momentum if necessary.
-			ULONG ulBits = 0;
-
-			if ( mo->angle != 0 )
-				ulBits |= CM_ANGLE;
-			if ( mo->momx != 0 )
-				ulBits |= CM_MOMX;
-			if ( mo->momy != 0 )
-				ulBits |= CM_MOMY;
-			if ( mo->momz != 0 )
-				ulBits |= CM_MOMZ;
-
-			if ( ulBits )
-				SERVERCOMMANDS_MoveThingExact( mo, ulBits );
+			SERVER_SetThingNonZeroAngleAndMomentum( mo );
 
 			if ( mo->Translation )
 				SERVERCOMMANDS_SetThingTranslation( mo );

@@ -112,7 +112,11 @@ class ARandomSpawner : public AActor
 
 				// [BB] If we're the server, tell clients to spawn the actor.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
 					SERVERCOMMANDS_SpawnThing( newmobj );
+					// [BB] Also set the angle and momentum if necessary.
+					SERVER_SetThingNonZeroAngleAndMomentum( newmobj );
+				}
 			}
 		}
 		if ((newmobj != NULL) && ((newmobj->flags4 & MF4_BOSSDEATH) || (newmobj->flags2 & MF2_BOSS)))
