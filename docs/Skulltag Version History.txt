@@ -41,6 +41,7 @@ latestzdoom branch
 -	- Fixed problems with A_KillSiblings online. [Torr Samaho]
 -	- Fixed: Clients are not informed about the momentum or the angle of actors spawned by RandomSpawner online. [Torr Samaho]
 -	- Fixed more problems with A_PlaySoundEx and looping sounds online. [Torr Samaho]
+-	- Fixed: Client sided RandomSpawners didn't work. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

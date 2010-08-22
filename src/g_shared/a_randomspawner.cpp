@@ -36,7 +36,8 @@ class ARandomSpawner : public AActor
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			return;
+			if (( this->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
+				return;
 		}
 
 		drop = di = GetDropItems();
@@ -117,6 +118,9 @@ class ARandomSpawner : public AActor
 					// [BB] Also set the angle and momentum if necessary.
 					SERVER_SetThingNonZeroAngleAndMomentum( newmobj );
 				}
+				// [BB] The client did the spawning, so this has to be a client side only actor.
+				else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+					newmobj->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 			}
 		}
 		if ((newmobj != NULL) && ((newmobj->flags4 & MF4_BOSSDEATH) || (newmobj->flags2 & MF2_BOSS)))
