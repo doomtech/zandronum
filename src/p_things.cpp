@@ -522,8 +522,24 @@ void P_RemoveThing(AActor * actor)
 			SERVERCOMMANDS_DestroyThing( actor );
 
 		// be friendly to the level statistics. ;)
-		if (actor->CountsAsKill() && actor->health > 0) level.total_monsters--;
-		if (actor->flags&MF_COUNTITEM) level.total_items--;
+		// [BB] Added client update.
+		if (actor->CountsAsKill() && actor->health > 0)
+		{
+			level.total_monsters--;
+
+			// [BB] Inform the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapNumTotalMonsters( );
+		}
+		// [BB] Added client update.
+		if (actor->flags&MF_COUNTITEM)
+		{
+			level.total_items--;
+
+			// [BB] Inform the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapNumTotalItems( );
+		}
 
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 		actor->HideOrDestroyIfSafe ();
