@@ -241,6 +241,13 @@ void LASTMANSTANDING_Tick( void )
 					// Give the team a win.
 					TEAM_SetWinCount( lWinner, TEAM_GetWinCount( lWinner ) + 1, false );
 
+					// [BB] Every player who is still alive also gets a win.
+					for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+					{
+						if ( playeringame[ulIdx] && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].bSpectating == false ))
+							PLAYER_SetWins( &players[ulIdx], players[ulIdx].ulWins + 1 );
+					}
+
 					// Pause for five seconds for the win sequence.
 					LASTMANSTANDING_DoWinSequence( lWinner );
 					GAME_SetEndLevelDelay( 5 * TICRATE );

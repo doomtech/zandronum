@@ -46,6 +46,7 @@ latestzdoom branch
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
 !	- The ACS function PlayerInGame() now returns false for spectators. [Torr Samaho]
 !	- Changed the 'Smooth mouse movement' menu option from smooth_mouse to m_filter. smooth_mouse doesn't have any effect in Skulltag, so it doesn't need a menu entry. [Torr Samaho]
+!	- In TLMS all players in the winning team that are still alive at the end of the round get awarded a win. Furthermore, the wins are displayed in the scoreboard in TLMS like already done in LMS. [Torr Samaho]
 
 
 98c

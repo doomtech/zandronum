@@ -587,7 +587,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 	}
 
 	// The 5 column display is only availible for modes that support it.
-	if (( ulNumIdealColumns == 5 ) && !( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS ) || lastmanstanding ))
+	if (( ulNumIdealColumns == 5 ) && !( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & (GMF_PLAYERSEARNPOINTS|GMF_PLAYERSEARNWINS) ))
 		ulNumIdealColumns = 4;
 
 	if ( ulNumIdealColumns == 5 )
@@ -2980,7 +2980,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_FRAGS;
@@ -3073,23 +3073,11 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_FRAGS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-			g_aulColumnType[2] = COLUMN_PING;
-		g_aulColumnType[3] = COLUMN_TIME;
-
-		// Sort players based on their wincount.
-		scoreboard_SortPlayers( ST_WINCOUNT );
-	}
-	if ( teamlms )
-	{
-		g_aulColumnType[0] = COLUMN_FRAGS;
-		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_EMPTY;
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
@@ -3149,16 +3137,9 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
-
-		// Sort players based on their wincount.
-		scoreboard_SortPlayers( ST_WINCOUNT );
-	}
-	if ( teamlms )
-	{
-		g_aulColumnType[0] = COLUMN_FRAGS;
 
 		// Sort players based on their wincount.
 		scoreboard_SortPlayers( ST_WINCOUNT );
