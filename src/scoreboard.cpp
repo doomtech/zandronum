@@ -587,7 +587,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 	}
 
 	// The 5 column display is only availible for modes that support it.
-	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || lastmanstanding || domination ))
+	if (( ulNumIdealColumns == 5 ) && !( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS ) || lastmanstanding ))
 		ulNumIdealColumns = 4;
 
 	if ( ulNumIdealColumns == 5 )
@@ -3042,7 +3042,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn frags.
-	if ( deathmatch || teamplay )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 	{
 		g_aulColumnType[0] = COLUMN_FRAGS;
 		g_aulColumnType[1] = COLUMN_NAME;
@@ -3128,7 +3128,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn frags.
-	if ( deathmatch || teamplay )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 	{
 		g_aulColumnType[0] = COLUMN_FRAGS;
 
