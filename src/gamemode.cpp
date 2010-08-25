@@ -205,7 +205,7 @@ int GAMEMODE_ParserMustGetEnumName ( FScanner &sc, const char *EnumName, const c
 	flagname.ToUpper();
 	const int flagNum = GetValueFromName ( flagname.GetChars() );
 	if ( flagNum == -1 )
-		sc.ScriptError ( "Unknown %s '%s', on line %d in GAMEMINF.", EnumName, sc.String, sc.Line );
+		sc.ScriptError ( "Unknown %s '%s', on line %d in GAMEMODE.", EnumName, sc.String, sc.Line );
 	return flagNum;
 }
 
@@ -229,7 +229,7 @@ void GAMEMODE_ParseGamemodeInfoLump ( FScanner &sc, const GAMEMODE_e GameMode )
 			g_GameModes[GameMode].ulFlags |= GAMEMODE_ParserMustGetEnumName( sc, "flag", "GMF_", GetValueGMF );
 		}
 		else
-			sc.ScriptError ( "Unknown option '%s', on line %d in GAMEMINF.", sc.String, sc.Line );
+			sc.ScriptError ( "Unknown option '%s', on line %d in GAMEMODE.", sc.String, sc.Line );
 	}
 }
 
@@ -239,7 +239,7 @@ void GAMEMODE_ParseGamemodeInfo( void )
 {
 	int lastlump = 0, lump;
 
-	while ((lump = Wads.FindLump ("GAMEMINF", &lastlump)) != -1)
+	while ((lump = Wads.FindLump ("GAMEMODE", &lastlump)) != -1)
 	{
 		FScanner sc(lump);
 		while (sc.GetString ())
