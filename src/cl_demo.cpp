@@ -669,11 +669,19 @@ static void clientdemo_CheckDemoBuffer( ULONG ulSize )
 
 CCMD( demo_skiptonextmap )
 {
+	// [Spleen] This command shouldn't do anything if a demo isn't playing.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		return;
+
 	CLIENTDEMO_SetSkippingToNextMap ( true );
 }
 
 CCMD( demo_spectatefreely )
 {
+	// [Spleen] This command shouldn't do anything if a demo isn't playing.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		return;
+
 	const AActor *pCamera = players[consoleplayer].camera;
 	if ( pCamera != g_demoCameraPlayer.mo )
 	{
