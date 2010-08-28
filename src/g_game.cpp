@@ -512,8 +512,11 @@ CCMD (invuse)
 	{
 		if ( players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife )
 		{
-			AInventory *item = players[consoleplayer].mo->InvSel;
-			CLIENTCOMMANDS_RequestInventoryUse( item );
+			if (players[consoleplayer].mo)
+			{
+				AInventory *item = players[consoleplayer].mo->InvSel;
+				CLIENTCOMMANDS_RequestInventoryUse( item );
+			}
 		}
 		players[consoleplayer].inventorytics = 0;
 	}
