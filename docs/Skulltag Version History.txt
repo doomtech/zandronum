@@ -46,6 +46,7 @@ latestzdoom branch
 -	- Fixed a particular instance of a weapon desync that happened when a player picked up a weapon with compat_oldweaponswitch enabled in the server. [Spleen]
 -	- Fixed: invuse could crash the client when called before the player has a body. [Torr Samaho]
 -	- Fixed: the demo_spectatefreely and demo_skiptonextmap commands could be used while a demo was not playing. [Spleen]
+-	- Fixed: Obituaries on puffs didn't work online on the clients. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

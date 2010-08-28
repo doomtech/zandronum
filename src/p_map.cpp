@@ -4199,7 +4199,9 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				{ 
 					// Since the puff is the damage inflictor we need it here 
 					// regardless of whether it is displayed or not.
-					puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING|PF_TEMPORARY, false);
+					// [BB] In case the puff has a custom obituary, the clients need to spawn it too.
+					const bool bTellClientToSpawn = pufftype && ( pufftype->Meta.GetMetaString (AMETA_Obituary) != NULL );
+					puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING|PF_TEMPORARY, bTellClientToSpawn );
 					killPuff = true;
 				}
 				P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
@@ -4218,6 +4220,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 	if (killPuff && puff != NULL)
 	{
+		// [BB] Remove the temporary puff from the clients.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( puff->lNetID != -1 ) )
+			SERVERCOMMANDS_DestroyThing( puff );
+
 		puff->Destroy();
 		puff = NULL;
 	}

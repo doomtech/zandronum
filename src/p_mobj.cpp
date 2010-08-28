@@ -5372,6 +5372,10 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	puff = Spawn (pufftype, x, y, z, ALLOW_REPLACE);
 	if (puff == NULL) return NULL;
 
+	// [BB] If the clients don't spawn it, make sure it doesn't have a netID.
+	if ( bTellClientToSpawn == false )
+		puff->FreeNetID();
+
 	// If a puff has a crash state and an actor was not hit,
 	// it will enter the crash state. This is used by the StrifeSpark
 	// and BlasterPuff.
@@ -5414,7 +5418,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 		// In certain other conditions, we need to spawn the puff with a network
 		// ID so that things like sounds work.
 		else if (( (flags & PF_HITTHING) && puff->SeeSound ) ||
-				 ( puff->AttackSound ))
+				 ( puff->AttackSound ) || ( ( puff->GetClass()->Meta.GetMetaString (AMETA_Obituary) != NULL ) && ( flags & PF_TEMPORARY ) ) )
 		{
 			if ( puff->lNetID == -1 )
 			{
