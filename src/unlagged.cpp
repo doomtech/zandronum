@@ -60,7 +60,7 @@
 #include "i_system.h"
 #include "sv_commands.h"
 
-CVAR(Flag, sv_unlagged, dmflags3, DF3_UNLAGGED);
+CVAR(Flag, sv_nounlagged, dmflags3, DF3_NOUNLAGGED);
 CVAR( Bool, sv_unlagged_debugactors, false, 0 )
 
 bool reconciledGame = false;
@@ -109,7 +109,7 @@ void UNLAGGED_Reconcile( AActor *actor )
 {
 	//Only do anything if the actor to be reconciled is a player,
 	//it's on a server with unlagged on, and reconciliation is not being blocked
-	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || !( dmflags3 & DF3_UNLAGGED ) ||
+	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || ( dmflags3 & DF3_NOUNLAGGED ) ||
 		 ( reconciliationBlockers > 0 ) )
 		return;
 
@@ -297,7 +297,7 @@ bool UNLAGGED_DrawRailClientside ( AActor *attacker )
 		return false;
 
 	// [BB] Rails are only client side when unlagged is on.
-	if ( !( dmflags3 & DF3_UNLAGGED ) )
+	if ( dmflags3 & DF3_NOUNLAGGED )
 		return false;
 
 	// [BB] A client should only draw rails for its own player.

@@ -283,8 +283,8 @@ enum
 	// [BB] Enforces clients not to draw coop info, i.e. behave as if cl_drawcoopinfo == 0.
 	DF3_NO_COOP_INFO		= 1 << 2,
 
-	// Ping-based backwards reconciliation is used for player-fired hitscans and rails.
-	DF3_UNLAGGED			= 1 << 3,
+	// [Spleen] Don't use ping-based backwards reconciliation for player-fired hitscans and rails.
+	DF3_NOUNLAGGED			= 1 << 3,
 };
 
 // [RH] Compatibility flags.

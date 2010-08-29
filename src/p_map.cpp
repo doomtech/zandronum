@@ -4579,7 +4579,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		const ULONG ulPlayer = source->player ? static_cast<ULONG> ( source->player - players ) : MAXPLAYERS;
-		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent, ulPlayer, ( dmflags3 & DF3_UNLAGGED ) ? SVCF_SKIPTHISCLIENT : 0 );
+		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent, ulPlayer, ( dmflags3 & DF3_NOUNLAGGED ) ? 0 : SVCF_SKIPTHISCLIENT );
 	}
 }
 
