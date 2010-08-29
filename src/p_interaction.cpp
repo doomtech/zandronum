@@ -766,7 +766,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		}
 						
 		// [BC] Increment team deathcount.
-		if (( teamplay || teampossession ) && ( player->bOnTeam ))
+		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( player->bOnTeam ))
 			TEAM_SetDeathCount( player->ulTeam, TEAM_GetDeathCount( player->ulTeam ) + 1 );
 	}
 
