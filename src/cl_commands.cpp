@@ -301,6 +301,9 @@ void CLIENTCOMMANDS_RequestJoin( char *pszJoinPassword )
 	g_ulLastJoinTime = gametic;
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_REQUESTJOIN );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszJoinPassword );
+
+	// [BB/Spleen] Send the gametic so that the client doesn't think it's lagging.
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, gametic );
 }
 
 //*****************************************************************************

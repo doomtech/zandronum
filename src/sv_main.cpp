@@ -4603,10 +4603,14 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
 	FString		clientJoinPassword;
+	ULONG		ulGametic;
 
 	// Read in the join password.
 	clientJoinPassword = NETWORK_ReadString( pByteStream );
 	clientJoinPassword.ToUpper();
+
+	// [BB/Spleen] Read in the client's gametic.
+	ulGametic = NETWORK_ReadLong( pByteStream );
 
 	// Player can't rejoin game if he's not spectating!
 	if (( playeringame[g_lCurrentClient] == false ) || ( players[g_lCurrentClient].bSpectating == false ))
@@ -4656,6 +4660,10 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 
 	// Everything's okay! Go ahead and join!
 	PLAYER_SpectatorJoinsGame ( &players[g_lCurrentClient] );
+
+	// [BB/Spleen] Set the client's gametic so that it doesn't think it's lagging.
+	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
+
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
