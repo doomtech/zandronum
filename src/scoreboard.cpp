@@ -1786,6 +1786,57 @@ void SCOREBOARD_BuildPointString( char *pszString, const char *pszPointName, boo
 
 //*****************************************************************************
 //
+void SCOREBOARD_BuildPlaceString ( char* pszString )
+{
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNFRAGS ) )
+	{
+		// Build the score message.
+		SCOREBOARD_BuildPointString( pszString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
+	}
+	else if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS ) )
+	{
+		// Build the score message.
+		SCOREBOARD_BuildPointString( pszString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
+	}
+	else if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & (GMF_PLAYERSEARNFRAGS|GMF_PLAYERSEARNPOINTS) ) )
+	{
+		// If the player is tied with someone else, add a "tied for" to their string.
+		if ( SCOREBOARD_IsTied( consoleplayer ) )
+			sprintf( pszString, "Tied for " );
+		else
+			pszString[0] = 0;
+
+		// Determine  what color and number to print for their rank.
+		switch ( g_ulRank )
+		{
+		case 0:
+
+			sprintf( pszString, "%s\\cH1st ", pszString );
+			break;
+		case 1:
+
+			sprintf( pszString, "%s\\cG2nd ", pszString );
+			break;
+		case 2:
+
+			sprintf( pszString, "%s\\cD3rd ", pszString );
+			break;
+		default:
+
+			sprintf( pszString, "%s%dth ", pszString, static_cast<unsigned int> ( g_ulRank + 1 ));
+			break;
+		}
+
+		// Tack on the rest of the string.
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
+			sprintf( pszString, "%s\\c-place with %d point%s", pszString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
+		else
+			sprintf( pszString, "%s\\c-place with %d frag%s", pszString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
+	}
+}
+
+//*****************************************************************************
+//
 void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 {
 	char	szString[128];
@@ -1811,56 +1862,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 
 	szString[0] = 0;
 
-	if ( teamplay )
-	{
-		// Build the score message.
-		SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
-	}
-	else if ( teamgame || teampossession )
-	{
-		// Build the score message.
-		SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
-	}
-	else if (( deathmatch ) && ( lastmanstanding == false ) && ( teamlms == false ))
-	{
-		bool	bIsTied;
-
-		bIsTied	= SCOREBOARD_IsTied( consoleplayer );
-
-		// If the player is tied with someone else, add a "tied for" to their string.
-		if ( bIsTied )
-			sprintf( szString, "Tied for " );
-		else
-			szString[0] = 0;
-
-		// Determine  what color and number to print for their rank.
-		switch ( g_ulRank )
-		{
-		case 0:
-
-			sprintf( szString, "%s\\cH1st ", szString );
-			break;
-		case 1:
-
-			sprintf( szString, "%s\\cG2nd ", szString );
-			break;
-		case 2:
-
-			sprintf( szString, "%s\\cD3rd ", szString );
-			break;
-		default:
-
-			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
-			break;
-		}
-
-		// Tack on the rest of the string.
-		if ( possession || teampossession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
-		else
-			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
-	}
-	else if ( lastmanstanding )
+	if ( lastmanstanding )
 	{
 		LONG	lMenLeftStanding;
 
@@ -1884,6 +1886,8 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 
 		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
 	}
+	else
+		SCOREBOARD_BuildPlaceString ( szString );
 
 	if ( szString[0] != 0 )
 	{
@@ -1926,79 +1930,12 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 
 	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 
-	if ( teamplay )
+	szString[0] = 0;
+
+	SCOREBOARD_BuildPlaceString ( szString );
+
+	if ( szString[0] != 0 )
 	{
-		// Build the score message.
-		SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
-	}
-	else if ( teamgame || teampossession )
-	{
-		// Build the score message.
-		SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
-	}
-	else if (( deathmatch ) && ( lastmanstanding == false ) && ( teamlms == false ))
-	{
-		bool	bIsTied;
-
-		bIsTied	= SCOREBOARD_IsTied( consoleplayer );
-
-		// If the player is tied with someone else, add a "tied for" to their string.
-		if ( bIsTied )
-			sprintf( szString, "Tied for " );
-		else
-			szString[0] = 0;
-
-		// Determine  what color and number to print for their rank.
-		switch ( g_ulRank )
-		{
-		case 0:
-
-			sprintf( szString, "%s\\cH1st ", szString );
-			break;
-		case 1:
-
-			sprintf( szString, "%s\\cG2nd ", szString );
-			break;
-		case 2:
-
-			sprintf( szString, "%s\\cD3rd ", szString );
-			break;
-		default:
-
-			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
-			break;
-		}
-
-		// Tack on the rest of the string.
-		if ( possession || teampossession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
-		else
-			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
-
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
 			1.5f,
