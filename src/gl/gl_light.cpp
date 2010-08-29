@@ -372,6 +372,8 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 	// This allows to implement DF2_FORCE_GL_DEFAULTS without any further changes in this function.
 	const float gl_light_ambient_CVAR_value = gl_light_ambient;
 	const float gl_light_ambient = ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
+	// [BB] Take care of gl_fogmode and DF2_FORCE_GL_DEFAULTS.
+	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	PalEntry fogcolor;
 	float fogdensity;
