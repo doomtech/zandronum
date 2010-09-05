@@ -4531,7 +4531,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
-	
+
 	if ( ulFlags & USERINFO_UNLAGGED )
 		pPlayer->userinfo.bUnlagged = bUnlagged;
 

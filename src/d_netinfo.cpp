@@ -1078,7 +1078,7 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 			case INFO_PlayerClass:
 				info->PlayerClass = D_PlayerClassToInt (value);
 				break;
-			
+
 			// [Spleen] The player's unlagged preference.
 			case INFO_Unlagged:
 				info->bUnlagged = cl_unlagged;
