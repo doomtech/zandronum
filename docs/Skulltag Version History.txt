@@ -51,6 +51,7 @@ latestzdoom branch
 -	- Fixed: Obituaries on puffs didn't work online on the clients. [Torr Samaho]
 -	- Fixed: The client thought it was lagging when a player joined a game using the "join" command. [Torr Samaho, Spleen]
 -	- Fixed: Grenades could explode twice. The fix also moves part of the hard coded grenade implementation to DECORATE. [Torr Samaho]
+-	- Fixed: When a player gets rid of a weapon/inventory item via the 'drop' console command online, a duplicate of the object that cannot be picked up appears at 0,0 on the map grid on the clients. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

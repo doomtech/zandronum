@@ -706,6 +706,14 @@ AInventory *AInventory::CreateTossable ()
 	}
 	if (Amount == 1 && !(ItemFlags & IF_KEEPDEPLETED))
 	{
+		// [BB] Don't convert the item to a pickup in client mode, the server tells us to spawn the item.
+		// Just remove it from the owner's inventory.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		{
+			if (Owner != NULL) Owner->RemoveInventory (this);
+			return ( NULL );
+		}
+
 		BecomePickup ();
 		DropTime = 30;
 		flags &= ~(MF_SPECIAL|MF_SOLID);
