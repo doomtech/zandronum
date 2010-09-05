@@ -57,9 +57,6 @@
 // This is the maximum number of servers we can store in our list. Hopefully ST won't grow so big that this number can't hold them all!
 #define	MAX_SERVERS						512
 
-// [RC] If this is defined, the server won't send out the banlist to servers.
-// #define STAY_97D2_COMPATIBLE
-
 //*****************************************************************************
 //	STRUCTURES
 

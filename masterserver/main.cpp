@@ -144,7 +144,6 @@ int I_GetTime (void)
 //
 void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 {
-#ifndef STAY_97D2_COMPATIBLE
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
 	// [BB] If the server sent us a verification string, send it along with the ban list.
@@ -167,7 +166,6 @@ void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 	Server.bHasLatestBanList = true;
 	Server.bVerifiedLatestBanList = false;
 	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
-#endif
 }
 
 //*****************************************************************************
@@ -627,11 +625,6 @@ int main( int argc, char **argv )
 	std::cerr << "=== S K U L L T A G | Master ===\n";
 	std::cerr << "Revision: "SVN_REVISION_STRING"\n";
 
-#ifdef STAY_97D2_COMPATIBLE
-	std::cerr << "Compatible with: 0.97d2" << std::endl;
-#else
-	std::cerr << "Compatible with: 0.97d3" << std::endl;
-#endif
 	std::cerr << "Port: " << DEFAULT_MASTER_PORT << std::endl << std::endl;
 
 	// Initialize the network system.
