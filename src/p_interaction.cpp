@@ -2695,6 +2695,48 @@ bool PLAYER_IsAliveOrCanRespawn( player_t *pPlayer )
 	return ( ( pPlayer->health > 0 ) || ( pPlayer->ulLivesLeft > 0 ) || ( pPlayer->bSpawnTelefragged == true ) );
 }
 
+//*****************************************************************************
+//
+void PLAYER_RemoveFriends( const ULONG ulPlayer )
+{
+	// [BB] Validity check.
+	if ( ulPlayer >= MAXPLAYERS )
+		return;
+
+	AActor *pActor = NULL;
+	TThinkerIterator<AActor> iterator;
+
+	while ( (pActor = iterator.Next ()) )
+	{
+		if ((pActor->flags3 & MF3_ISMONSTER) &&
+			(pActor->flags & MF_FRIENDLY) &&
+			pActor->FriendPlayer &&
+			( ( pActor->FriendPlayer - 1 ) == ulPlayer) )
+		{
+			pActor->FriendPlayer = 0;
+			if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+				pActor->flags &= ~MF_FRIENDLY; // this is required in DM or monsters will be friendly to all players
+		}
+	}
+}
+
+//*****************************************************************************
+//
+void PLAYER_LeavesGame( const ULONG ulPlayer )
+{
+	// [BB] Validity check.
+	if ( ulPlayer >= MAXPLAYERS )
+		return;
+
+	// Run the disconnect scripts now that the player is leaving.
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayer );
+		PLAYER_RemoveFriends ( ulPlayer );
+	}
+}
+
 CCMD (kill)
 {
 	// Only allow it in a level.
