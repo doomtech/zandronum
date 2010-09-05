@@ -898,11 +898,7 @@ class AGrenade : public AActor
 {
 	DECLARE_CLASS (AGrenade, AActor)
 public:
-	void BeginPlay ();
-	void Tick ();
 	bool	FloorBounceMissile( secplane_t &plane );
-
-	void	PreExplode( );
 };
 
 IMPLEMENT_CLASS ( AGrenade )
@@ -940,30 +936,6 @@ IMPLEMENT_ACTOR (AGrenade, Doom, -1, 216)
 
 END_DEFAULTS
 */
-void AGrenade::BeginPlay ()
-{
-	Super::BeginPlay ();
-	this->special1 = (( 5 * TICRATE ) / 2 );
-}
-
-void AGrenade::Tick( )
-{
-	Super::Tick( );
-
-	// Server takes care of exploding missiles.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	if ( this->special1 && !(level.flags2 & LEVEL2_FROZEN) )
-	{
-		this->special1--;
-		if ( this->special1 == 0 )
-			P_ExplodeMissile( this, NULL, NULL );
-	}
-}
 
 bool AGrenade::FloorBounceMissile( secplane_t &plane )
 {
@@ -988,13 +960,6 @@ bool AGrenade::FloorBounceMissile( secplane_t &plane )
 //	}
 	
 	return true;
-}
-
-void AGrenade::PreExplode( )
-{
-	// Prevent the explosing from "falling".
-	this->flags |= MF_NOGRAVITY;
-	this->special1 = 0;
 }
 
 //

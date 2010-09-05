@@ -282,9 +282,14 @@ ACTOR Grenade native
 	States
 	{
 	Spawn:
-		SGRN A 1 bright 
-		loop
+		SGRN A 87 bright 
+		// [BB] Prevent the explosion from moving.
+		SGRN A 0 A_Stop
+		// [BB] Play DeathSound. This isn't done automatically when we just go to
+		// the Death state below, i.e. when the timer runs out.
+		SGRN A 0 A_PlayerScream
 	Death:
+		MISL B 0 Bright A_ChangeFlag ( "NoGravity", 1 )
 		MISL B 8 bright A_Explode
 		MISL C 6 bright
 		MISL D 4 bright
