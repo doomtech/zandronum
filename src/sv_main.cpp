@@ -1640,6 +1640,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		// [RC] Master server is sending us the holy banlist.
 		case MASTER_SERVER_BANLIST:
 		case MASTER_SERVER_VERIFICATION:
+		case MASTER_SERVER_BANLISTPART:
 
 			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
 			{
@@ -1648,6 +1649,8 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 				{
 					if ( lCommand == MASTER_SERVER_BANLIST )
 						SERVERBAN_ReadMasterServerBans( pByteStream );
+					else if ( lCommand == MASTER_SERVER_BANLISTPART )
+						SERVERBAN_ReadMasterServerBanlistPart( pByteStream );
 					else
 						SERVER_MASTER_HandleVerificationRequest( pByteStream );
 				}

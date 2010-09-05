@@ -224,6 +224,58 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+void SERVERBAN_ReadMasterServerBanlistPart( BYTESTREAM_s *pByteStream )
+{
+	const ULONG ulPacketNum = NETWORK_ReadByte ( pByteStream );
+
+	// [BB] The implementation assumes that the packets arrive in the correct order.
+	if ( ulPacketNum == 0 )
+	{
+		g_MasterServerBans.clear( );
+		g_MasterServerBanExemptions.clear( );
+	}
+
+	while ( 1 )
+	{
+		const LONG lCommand = NETWORK_ReadByte( pByteStream );
+
+		// [BB] End of packet (shouldn't be triggered for proper packets).
+		if ( lCommand == -1 )
+			break;
+
+		switch ( lCommand )
+		{
+		case MSB_BAN:
+		case MSB_BANEXEMPTION:
+			{
+				const char *pszBan = NETWORK_ReadString( pByteStream );
+				std::string Message;
+
+				if ( lCommand == MSB_BAN )
+					g_MasterServerBans.addEntry( pszBan, "", "", Message, NULL );
+				else
+					g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, NULL );
+			}
+			break;
+
+		case MSB_ENDBANLISTPART:
+			return;
+
+		case MSB_ENDBANLIST:
+			{
+				// [BB] If we are enforcing the master bans, make sure newly master bannded players are kicked now.
+				if ( sv_enforcemasterbanlist )
+					serverban_KickBannedPlayers( );
+
+				// [BB] Inform the master that we received the banlist.
+				SERVER_MASTER_SendBanlistReceipt();
+			}
+			return;
+		}
+	}
+}
+//*****************************************************************************
+//
 // Parses the given ban expiration string, returnining either the time_t, NULL for infinite, or -1 for an error.
 time_t SERVERBAN_ParseBanLength( const char *szLengthString )
 {

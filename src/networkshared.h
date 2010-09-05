@@ -144,10 +144,26 @@ enum
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199
 
-// Master server is sending its banlist to a server.
-#define MASTER_SERVER_BANLIST		205
-// [BB] Master is asking the server to verify its MasterBanlistVerificationString.
-#define MASTER_SERVER_VERIFICATION	206
+enum
+{
+	// Master server is sending its banlist to a server.
+	MASTER_SERVER_BANLIST = 205,
+
+	// [BB] Master is asking the server to verify its MasterBanlistVerificationString.
+	MASTER_SERVER_VERIFICATION,
+
+	// [BB] Master server is sending a part of its banlist to a server.
+	MASTER_SERVER_BANLISTPART,
+};
+
+// [BB] Various enums used in MASTER_SERVER_BANLISTPART packets.
+enum
+{
+	MSB_BAN,
+	MSB_BANEXEMPTION,
+	MSB_ENDBANLISTPART,
+	MSB_ENDBANLIST,
+};
 
 #define	DEFAULT_SERVER_PORT			10666
 #define	DEFAULT_CLIENT_PORT			10667
