@@ -109,6 +109,84 @@ static	QueryIPQueue			g_ShortFloodQueue( 3 );
 static	bool					g_bHideBanIgnoringServers = false;
 
 //*****************************************************************************
+//	CLASSES
+
+//==========================================================================
+//
+// BanlistPacketSender
+//
+// Sends master bans and exemptions to a server. Automatically splits the
+// data over several packets if necessary.
+// 
+// @author Benjamin Berkels
+//
+//==========================================================================
+
+class BanlistPacketSender {
+	const unsigned long _ulMaxPacketSize;
+	unsigned long _ulPacketNum;
+	unsigned long _ulSizeOfPacket;
+	NETBUFFER_s _netBuffer;
+	const SERVER_s &_destServer;
+
+public:
+	BanlistPacketSender ( const SERVER_s &DestServer )
+		: _ulMaxPacketSize ( 1024 ),
+			_ulPacketNum ( 0 ),
+			_ulSizeOfPacket ( 0 ),
+			_destServer ( DestServer )
+	{
+		NETWORK_InitBuffer( &_netBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		NETWORK_ClearBuffer( &_netBuffer );
+	}
+
+	~BanlistPacketSender ( )
+	{
+		NETWORK_FreeBuffer( &_netBuffer );
+	}
+
+	void writeBanEntry ( const char *BanEntry, const int EntryType )
+	{
+		const unsigned long ulCommandSize = 1 + strlen ( BanEntry );
+
+		// [BB] If this command doesn't fit into the current packet, start a new one.
+		if ( _ulSizeOfPacket + ulCommandSize > _ulMaxPacketSize - 1 )
+			finishCurrentAndStartNewPacket();
+
+		NETWORK_WriteByte( &_netBuffer.ByteStream, EntryType );
+		NETWORK_WriteString( &_netBuffer.ByteStream, BanEntry );
+		_ulSizeOfPacket += ulCommandSize;
+	}
+
+	void start ( ) {
+		startPacket ( );
+	}
+
+	void end ( ) {
+		finishAndLaunchPacket ( true );
+	}
+private:
+	void startPacket ( ) {
+		NETWORK_ClearBuffer( &_netBuffer );
+		NETWORK_WriteByte( &_netBuffer.ByteStream, MASTER_SERVER_BANLISTPART );
+		NETWORK_WriteString( &_netBuffer.ByteStream, _destServer.MasterBanlistVerificationString.c_str() );
+		NETWORK_WriteByte( &_netBuffer.ByteStream, _ulPacketNum );
+		_ulSizeOfPacket = 2 + _destServer.MasterBanlistVerificationString.length();
+		++_ulPacketNum;
+	}
+
+	void finishAndLaunchPacket ( const bool bIsFinal ) {
+		NETWORK_WriteByte( &_netBuffer.ByteStream, bIsFinal ? MSB_ENDBANLIST : MSB_ENDBANLISTPART );
+		NETWORK_LaunchPacket( &_netBuffer, _destServer.Address );
+	}
+
+	void finishCurrentAndStartNewPacket ( ) {
+		finishAndLaunchPacket ( false );
+		startPacket ( );
+	}
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 // Returns time in seconds
@@ -144,25 +222,44 @@ int I_GetTime (void)
 //
 void MASTERSERVER_SendBanlistToServer( const SERVER_s &Server )
 {
-	NETWORK_ClearBuffer( &g_MessageBuffer );
-	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
-	// [BB] If the server sent us a verification string, send it along with the ban list.
-	// This allows the server to verify that the list actually was sent from our master
-	// (and is not just a packet with forged source IP).
-	if ( Server.MasterBanlistVerificationString.size() )
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, Server.MasterBanlistVerificationString.c_str() );
+	// [BB] If the server supports it, potentially split the ban list over multiple packets.
+	if ( Server.iServerRevision >= 2907 )
+	{
+		BanlistPacketSender sender ( Server );
+		sender.start();
 
-	// Write all the bans.
-	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
-	for ( ULONG i = 0; i < g_BannedIPs.size( ); i++ )
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false, false, false ).c_str( ));
+		// Write all the bans.
+		for ( unsigned int i = 0; i < g_BannedIPs.size( ); ++i )
+			sender.writeBanEntry ( g_BannedIPs.getEntryAsString( i, false, false, false ).c_str( ), MSB_BAN );
 
-	// Write all the exceptions.
-	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.size( ));
-	for ( ULONG i = 0; i < g_BannedIPExemptions.size( ); i++ )
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false, false, false ).c_str( ));
+		// Write all the exceptions.
+		for ( unsigned int i = 0; i < g_BannedIPExemptions.size( ); ++i )
+			sender.writeBanEntry ( g_BannedIPExemptions.getEntryAsString( i, false, false, false ).c_str( ), MSB_BANEXEMPTION );
 
-	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
+		sender.end();
+	}
+	else
+	{
+		NETWORK_ClearBuffer( &g_MessageBuffer );
+		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
+		// [BB] If the server sent us a verification string, send it along with the ban list.
+		// This allows the server to verify that the list actually was sent from our master
+		// (and is not just a packet with forged source IP).
+		if ( Server.MasterBanlistVerificationString.size() )
+			NETWORK_WriteString( &g_MessageBuffer.ByteStream, Server.MasterBanlistVerificationString.c_str() );
+
+		// Write all the bans.
+		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
+		for ( ULONG i = 0; i < g_BannedIPs.size( ); i++ )
+			NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false, false, false ).c_str( ));
+
+		// Write all the exceptions.
+		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.size( ));
+		for ( ULONG i = 0; i < g_BannedIPExemptions.size( ); i++ )
+			NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false, false, false ).c_str( ));
+
+		NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
+	}
 	Server.bHasLatestBanList = true;
 	Server.bVerifiedLatestBanList = false;
 	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
