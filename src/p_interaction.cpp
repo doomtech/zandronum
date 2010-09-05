@@ -2173,11 +2173,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				pPlayer->bDeadSpectator = false;
 
 				// Run the disconnect scripts now that the player is leaving.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					( CLIENTDEMO_IsPlaying( ) == false ))
-				{
-					FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, pPlayer - players );
-				}
+				PLAYER_LeavesGame ( pPlayer - players );
 
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 					( CLIENTDEMO_IsPlaying( ) == false ))
@@ -2215,11 +2211,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	pPlayer->bUnarmed = false;
 
 	// Run the disconnect scripts if the player is leaving the game.
-	if (( bDeadSpectator == false ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( bDeadSpectator == false )
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, pPlayer - players );
+		PLAYER_LeavesGame( pPlayer - players );
 	}
 
 	// If this player was eligible to get an assist, cancel that.

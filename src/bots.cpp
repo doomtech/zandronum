@@ -632,7 +632,7 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	if (( players[ulPlayerIdx].bSpectating == false ) ||
 		( players[ulPlayerIdx].bDeadSpectator ))
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayerIdx );
+		PLAYER_LeavesGame( ulPlayerIdx );
 	}
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

@@ -2727,7 +2727,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	if (( players[ulClient].bSpectating == false ) ||
 		( players[ulClient].bDeadSpectator ))
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulClient );
+		PLAYER_LeavesGame( ulClient );
 	}
 
 	// Redo the scoreboard.
