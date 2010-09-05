@@ -553,7 +553,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					if ( ulSizeOfPacket + ulServerBlockNetSize > ulMaxPacketSize - 1 )
 					{
 						// [BB] ... close the current packet and start a new one.
-						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
+						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 ); // [BB] Terminate MSC_SERVERBLOCK by sending 0 ports.
 						NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLISTPART );
 						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
@@ -567,7 +567,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					ulSizeOfPacket += ulServerBlockNetSize;
 					MASTERSERVER_SendServerIPBlockToLauncher ( serverAddress, serverPortList, &g_MessageBuffer.ByteStream );
 				}
-				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, 0 ); // [BB] Terminate MSC_SERVERBLOCK by sending 0 ports.
 				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 				return;
