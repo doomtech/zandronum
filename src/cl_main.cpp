@@ -5170,9 +5170,9 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	}
 	else
 	{
-		pPlayer->mo->x = X;
-		pPlayer->mo->y = Y;
-		pPlayer->mo->z = Z;
+		// [BB] Calling CLIENT_MoveThing instead of setting the x,y,z position directly should make
+		// sure that the spectator body doesn't get stuck.
+		CLIENT_MoveThing ( pPlayer->mo, X, Y, Z );
 
 		pPlayer->mo->momx = MomX;
 		pPlayer->mo->momy = MomY;
