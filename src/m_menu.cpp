@@ -580,6 +580,7 @@ EXTERN_CVAR( Bool, cl_run )
 EXTERN_CVAR( Int, menu_handicap )
 EXTERN_CVAR( Int, menu_railcolor )
 EXTERN_CVAR( Float, menu_autoaim )
+EXTERN_CVAR( Bool, cl_unlagged )
 EXTERN_CVAR( Int, cl_announcer )
 
 // Menu option values used in this menu defined in m_options.cpp.
@@ -614,6 +615,7 @@ menuitem_t PlayerSetupItems[] = {
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ discrete, "Railgun color",			{&menu_railcolor},		{11.0}, {0.0}, {0.0}, {TrailColorVals} },
 	{ discrete,	"Autoaim",					{&menu_autoaim},			{7.0}, {0.0}, {0.0}, {AutoaimVals} },
+	{ discrete,	"Unlagged",					{&cl_unlagged},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ more,		"Weapon setup",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_WeaponSetup} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ announcer,"Announcer",				{&cl_announcer},			{0.0}, {0.0}, {0.0}, {NULL} },

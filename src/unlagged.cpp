@@ -110,7 +110,7 @@ void UNLAGGED_Reconcile( AActor *actor )
 	//Only do anything if the actor to be reconciled is a player,
 	//it's on a server with unlagged on, and reconciliation is not being blocked
 	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || ( dmflags3 & DF3_NOUNLAGGED ) ||
-		 ( reconciliationBlockers > 0 ) )
+		 ( actor->player->userinfo.bUnlagged == false ) || ( reconciliationBlockers > 0 ) )
 		return;
 
 	//Something went wrong, reconciliation was attempted when the gamestate
@@ -297,11 +297,11 @@ bool UNLAGGED_DrawRailClientside ( AActor *attacker )
 		return false;
 
 	// [BB] Rails are only client side when unlagged is on.
-	if ( dmflags3 & DF3_NOUNLAGGED )
+	if ( ( dmflags3 & DF3_NOUNLAGGED ) || ( attacker->player->userinfo.bUnlagged == false ) )
 		return false;
 
 	// [BB] A client should only draw rails for its own player.
-	if ( ( attacker->player - players ) != consoleplayer )
+	if ( ( NETWORK_GetState() != NETSTATE_SERVER ) && ( ( attacker->player - players ) != consoleplayer ) )
 		return false;
 
 	return true;

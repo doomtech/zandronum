@@ -4411,6 +4411,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	LONG		lRailgunTrailColor = 0;
 	LONG		lHandicap = 0;
 	LONG		lSkin;
+	bool		bUnlagged;
 
 	// Read in the player whose userinfo is being sent to us.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -4444,6 +4445,10 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	// Read in the player's handicap.
 	if ( ulFlags & USERINFO_HANDICAP )
 		lHandicap = NETWORK_ReadByte( pByteStream );
+
+	// [Spleen] Read in the player's unlagged preference.
+	if ( ulFlags & USERINFO_UNLAGGED )
+		bUnlagged = NETWORK_ReadByte( pByteStream );
 
 	// If this isn't a valid player, break out.
 	// We actually send the player's userinfo before he gets spawned, thus putting him in
@@ -4526,6 +4531,9 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
+	
+	if ( ulFlags & USERINFO_UNLAGGED )
+		pPlayer->userinfo.bUnlagged = bUnlagged;
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( ulPlayer );

@@ -2112,6 +2112,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
 
+	// [Spleen] Read in the player's unlagged preference.
+	if ( ulFlags & USERINFO_UNLAGGED )
+		pPlayer->userinfo.bUnlagged = NETWORK_ReadByte( pByteStream );
+
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
 		strncpy( szClass, NETWORK_ReadString( pByteStream ), 63 );

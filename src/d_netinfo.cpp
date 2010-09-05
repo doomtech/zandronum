@@ -85,6 +85,8 @@ CVAR (String,	playerclass,			"Fighter",	CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] New userinfo entries for Skulltag.
 CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
+// [Spleen] Let the user enable or disable unlagged shots for themselves.
+CVAR (Bool,		cl_unlagged,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
 
 // [BB] Two variables to keep track of client side name changes.
 static	ULONG	g_ulLastNameChangeTime = 0;
@@ -104,6 +106,9 @@ enum
 	INFO_MoveBob,
 	INFO_StillBob,
 	INFO_PlayerClass,
+
+	// [Spleen] The player's unlagged preference.
+	INFO_Unlagged
 };
 
 const char *GenderNames[3] = { "male", "female", "other" };
@@ -122,6 +127,9 @@ static const char *UserInfoStrings[] =
 	"movebob",
 	"stillbob",
 	"playerclass",
+
+	// [Spleen] The player's unlagged preference.
+	"unlagged",
 	NULL
 };
 
@@ -498,6 +506,9 @@ void D_SetupUserInfo ()
 	else if ( coninfo->lHandicap > deh.MaxSoulsphere )
 		coninfo->lHandicap = deh.MaxSoulsphere;
 
+	// [Spleen] Handle cl_unlagged.
+	coninfo->bUnlagged = cl_unlagged;
+
 	R_BuildPlayerTranslation (consoleplayer);
 }
 
@@ -607,6 +618,11 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			movebob = 0;
 			return;
 		}
+	}
+	// [Spleen] User changed his unlagged setting.
+	else if ( cvar == &cl_unlagged )
+	{
+		ulUpdateFlags |= USERINFO_UNLAGGED;
 	}
 
 	val = cvar->GetGenericRep (CVAR_String);
@@ -1062,6 +1078,11 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 			case INFO_PlayerClass:
 				info->PlayerClass = D_PlayerClassToInt (value);
 				break;
+			
+			// [Spleen] The player's unlagged preference.
+			case INFO_Unlagged:
+				info->bUnlagged = cl_unlagged;
+				break;
 
 			default:
 				break;
@@ -1144,6 +1165,9 @@ CCMD (playerinfo)
 		Printf ("PlayerClass:    %s (%d)\n",
 			ui->PlayerClass == -1 ? "Random" : PlayerClasses[ui->PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName),
 			ui->PlayerClass);
+
+		// [Spleen] The player's unlagged preference.
+		Printf ("Unlagged:       %s\n", ui->bUnlagged ? "on" : "off");
 	}
 }
 

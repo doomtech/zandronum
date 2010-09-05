@@ -642,6 +642,9 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 
 		if ( ulUserInfoFlags & USERINFO_HANDICAP )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lHandicap );
+
+		if ( ulUserInfoFlags & USERINFO_UNLAGGED )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bUnlagged );
 	}
 }
 

@@ -158,10 +158,11 @@ typedef enum
 #define	USERINFO_RAILCOLOR			32
 #define	USERINFO_HANDICAP			64
 #define	USERINFO_PLAYERCLASS		128
+#define	USERINFO_UNLAGGED			256
 
 #define	USERINFO_ALL				( USERINFO_NAME | USERINFO_GENDER | USERINFO_COLOR | \
 									USERINFO_AIMDISTANCE | USERINFO_SKIN | USERINFO_RAILCOLOR | \
-									USERINFO_HANDICAP | USERINFO_PLAYERCLASS )
+									USERINFO_HANDICAP | USERINFO_PLAYERCLASS | USERINFO_UNLAGGED )
 
 // [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
 // just send some key letter that identifies the actor, instead of the full name.

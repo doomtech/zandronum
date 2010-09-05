@@ -271,6 +271,9 @@ struct userinfo_t
 	// [BC] New Skulltag userinfo settings.
 	LONG		lRailgunTrailColor;
 	LONG		lHandicap;
+
+	// [Spleen] Let the user enable or disable unlagged shots for themselves.
+	bool		bUnlagged;
 };
 
 FArchive &operator<< (FArchive &arc, userinfo_t &info);
