@@ -20,6 +20,7 @@ latestzdoom branch
 +	- Extended coop info to work in team games (only info about the team-mates is shown). [Torr Samaho]
 +	- Added kgsws' Weapon DropItem patch. [Torr Samaho]
 +	- Added new CVAR sv_limitnumvotes (default true) that allows to turn of the vote flooding protection. [Torr Samaho]
++	- The server-master challenge now includes the revision number of the server. [Torr Samaho]
 -	- Fixed: Sector_SetFloorPanning with negative offsets didn't work properly online. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about altered floor and ceiling heights of linked sectors. [Torr Samaho]
 -	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]

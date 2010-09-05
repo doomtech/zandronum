@@ -167,6 +167,8 @@ void SERVER_MASTER_Tick( void )
 	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_GetMasterBanlistVerificationString().GetChars() );
 	// [BB] Also tell the master whether we are enforcing its ban list.
 	NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_enforcemasterbanlist );
+	// [BB] And tell which code revision number the server was built with.
+	NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, SVN_REVISION_NUMBER );
 
 	// Send the master server our packet.
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer, true );

@@ -298,11 +298,11 @@ void MASTERSERVER_AddServer( const SERVER_s &Server, std::set<SERVER_s, SERVERCo
 		addedServer->lLastReceived = g_lCurrentTime;						
 		if ( &ServerSet == &g_Servers )
 		{
-			printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( addedServer->Address ));
+			printf( "+ Adding %s (revision %d) to the server list.\n", NETWORK_AddressToString( addedServer->Address ), addedServer->iServerRevision );
 			MASTERSERVER_SendBanlistToServer( *addedServer );
 		}
 		else
-			printf( "+ Adding %s to the verification list.\n", NETWORK_AddressToString( addedServer->Address ));
+			printf( "+ Adding %s (revision %d) to the verification list.\n", NETWORK_AddressToString( addedServer->Address ), addedServer->iServerRevision );
 	}
 }
 
@@ -364,6 +364,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			const int temp = NETWORK_ReadByte( pByteStream );
 			newServer.bEnforcesBanList = ( temp != 0 );
 			newServer.bNewFormatServer = ( temp != -1 );
+			newServer.iServerRevision = NETWORK_ReadShort( pByteStream );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
