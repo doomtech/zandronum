@@ -339,8 +339,8 @@ void AWeapon::AttachToOwner (AActor *other)
 			// we always want to switch our weapon when we pickup a new one.
 			if ( (Owner->player->userinfo.switchonpickup >= 2) || ( compatflags & COMPATF_OLD_WEAPON_SWITCH ) )
 			{
-				// [Spleen] Weapon switching is done client-side.
-				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+				// [Spleen] Weapon switching is done client-side unless it's a bot.
+				if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( Owner->player->bIsBot ) )
 					Owner->player->PendingWeapon = this;
 
 				// [BC] If we're a client, tell the server we're switching weapons.
@@ -361,8 +361,8 @@ void AWeapon::AttachToOwner (AActor *other)
 				if( (WeaponFlags & WIF_POWERED_UP && Owner->FindInventory (RUNTIME_CLASS(APowerWeaponLevel2)))
 					|| !(WeaponFlags & WIF_POWERED_UP) )
 				{
-					// [Spleen] Weapon switching is done client-side.
-					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+					// [Spleen] Weapon switching is done client-side unless it's a bot.
+					if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( Owner->player->bIsBot ) )
 						Owner->player->PendingWeapon = this;
 
 					// [BC] If we're a client, tell the server we're switching weapons.
