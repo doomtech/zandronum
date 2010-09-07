@@ -90,6 +90,10 @@ void UNLAGGED_Tick( void )
 //Figure out which tic to use for reconciliation
 int UNLAGGED_Gametic( player_t *player )
 {
+	// [BB] Sanity check.
+	if ( player == NULL )
+		return gametic;
+
 	int unlaggedGametic = ( gametic - ( player->ulPing * TICRATE / 1000 ) );
 
 	//don't look up tics that are too old
@@ -242,6 +246,10 @@ void UNLAGGED_Restore( AActor *actor )
 // in order to be able to reconcile them later
 void UNLAGGED_RecordPlayer( player_t *player )
 {
+	// [BB] Sanity check.
+	if ( player == NULL )
+		return;
+
 	//Only do anything if it's on a server
 	if (NETWORK_GetState() != NETSTATE_SERVER)
 		return;
@@ -260,6 +268,10 @@ void UNLAGGED_RecordPlayer( player_t *player )
 // Should be called when a player is spawned
 void UNLAGGED_ResetPlayer( player_t *player )
 {
+	// [BB] Sanity check.
+	if ( player == NULL )
+		return;
+
 	//Only do anything if it's on a server
 	if (NETWORK_GetState() != NETSTATE_SERVER)
 		return;
@@ -312,8 +324,8 @@ void UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace,
 {
 	hitOffset.Zero();
 
-	// [BB] The game is not reconciled, so no offset.
-	if ( reconciledGame == false )
+	// [BB] The game is not reconciled, so no offset. If the attacker is unknown, we can't calculate the offset.
+	if ( ( reconciledGame == false ) || ( attacker == NULL ) )
 		return;
 
 	const int unlaggedGametic = UNLAGGED_Gametic( attacker->player );
