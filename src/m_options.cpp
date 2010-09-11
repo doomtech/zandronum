@@ -5310,6 +5310,9 @@ void M_OptResponder (event_t *ev)
 							g_szStringInputBuffer[ulLength] = *clip++;
 							g_szStringInputBuffer[ulLength + 1] = '\0';
 						}
+						// [BB] We still need to increment the pointer, otherwise the while loop never ends.
+						else
+							*clip++;
 					}
 				}
 			}
