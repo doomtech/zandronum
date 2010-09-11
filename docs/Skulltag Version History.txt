@@ -54,6 +54,7 @@ latestzdoom branch
 -	- Fixed: When a player gets rid of a weapon/inventory item via the 'drop' console command online, a duplicate of the object that cannot be picked up appears at 0,0 on the map grid on the clients. [Torr Samaho]
 -	- Fixed: When a player turned into a dead spectator online, the spectator body could get stuck in the floor or the ceiling. [Torr Samaho]
 -	- Fixed: Pasting from clipboard into menu string fields could freeze the game. [Torr Samaho]
+-	- Fixed: The client thought it was lagging when a player joined a game from the join queue. [Torr Samaho, Spleen]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

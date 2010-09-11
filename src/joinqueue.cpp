@@ -292,6 +292,11 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		{
 			PLAYER_SpectatorJoinsGame ( &players[g_lJoinQueue[ulIdx].ulPlayer] );
 
+			// [BB/Spleen] The "lag interval" is only half of the "spectate info send" interval. Account for this here.
+			if (( gametic - SERVER_GetClient( g_lJoinQueue[ulIdx].ulPlayer )->ulLastCommandTic ) <= 2*TICRATE )
+				SERVER_GetClient( g_lJoinQueue[ulIdx].ulPlayer )->ulClientGameTic +=
+				( gametic - SERVER_GetClient( g_lJoinQueue[ulIdx].ulPlayer )->ulLastCommandTic );
+
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				if ( TEAM_CheckIfValid ( g_lJoinQueue[ulIdx].ulTeam ) )
