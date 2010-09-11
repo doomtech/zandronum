@@ -836,6 +836,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\movebob\\%g"
 					 "\\stillbob\\%g"
 					 "\\playerclass\\%s"
+					 "\\unlagged\\%s" // [Spleen]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -850,7 +851,10 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 (float)(info->MoveBob) / 65536.f,
 					 (float)(info->StillBob) / 65536.f,
 					 info->PlayerClass == -1 ? "Random" :
-						D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars()
+						D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
+
+					 // [Spleen] Write the player's unlagged preference.
+					 info->bUnlagged ? "on" : "off"
 				);
 		}
 		else
@@ -869,6 +873,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%g"			// movebob
 				"\\%g"			// stillbob
 				"\\%s"			// playerclass
+				"\\%s"			// [Spleen] unlagged
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -883,7 +888,10 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				(float)(info->MoveBob) / 65536.f,
 				(float)(info->StillBob) / 65536.f,
 				info->PlayerClass == -1 ? "Random" :
-					D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars()
+					D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
+
+				// [Spleen] Write the player's unlagged preference.
+				info->bUnlagged ? "on" : "off"
 			);
 		}
 	}
@@ -1079,9 +1087,12 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				info->PlayerClass = D_PlayerClassToInt (value);
 				break;
 
-			// [Spleen] The player's unlagged preference.
+			// [Spleen] Read the player's unlagged preference.
 			case INFO_Unlagged:
-				info->bUnlagged = cl_unlagged;
+				if ( ( stricmp( value, "on" ) == 0 ) || ( stricmp( value, "true" ) == 0 ) || ( atoi( value ) > 0 ) )
+					info->bUnlagged = true;
+				else
+					info->bUnlagged = false;
 				break;
 
 			default:
