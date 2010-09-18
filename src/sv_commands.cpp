@@ -190,7 +190,7 @@ bool ActorOwnsState( const AActor *pActor, const FState *pState )
 //*****************************************************************************
 //
 // [BB] Helper function for SERVERCOMMANDS_SetThingFrame.
-bool OffsetAndStateOwnershipValidityCheck ( const LONG lOffset, const AActor *pActor, const FState *pState )
+bool OffsetAndStateOwnershipValidityCheck ( const LONG lOffset, const PClass *pClass, const FState *pState )
 {
 	// [BB] The offset is out of range.
 	if (( lOffset < 0 ) || ( lOffset > 255 ) )
@@ -200,11 +200,22 @@ bool OffsetAndStateOwnershipValidityCheck ( const LONG lOffset, const AActor *pA
 	if ( lOffset == 0 )
 		return true;
 
-	if ( ActorOwnsState( pActor, pActor->SpawnState ) )
+	if ( ClassOwnsState( pClass, pState ) )
 		return true;
 
 	// [BB] A non-zero but otherwise valid offset can only be used of the actor owns the state.
 	return false;
+}
+
+//*****************************************************************************
+//
+// [BB] Helper function for SERVERCOMMANDS_SetThingFrame.
+bool OffsetAndStateOwnershipValidityCheck ( const LONG lOffset, const AActor *pActor, const FState *pState )
+{
+	if ( pActor == NULL )
+		return false;
+
+	return OffsetAndStateOwnershipValidityCheck ( lOffset, pActor->GetClass(), pState );
 }
 //*****************************************************************************
 //
@@ -2538,17 +2549,32 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 						if ( pStateOwner )
 						{
 							lOffset = LONG( pState - pStateOwner->SpawnState );
-						}
-						if (( lOffset < 0 ) || ( lOffset > 255 ))
-						{
-							if ( sv_showwarnings )
-								Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s.\n", pActor->GetClass()->TypeName.GetChars() );
-							return;
+							if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pStateOwnerClass, pStateOwner->SpawnState ) == false )
+							{
+								lOffset = LONG( pState - pStateOwnerClass->ActorInfo->FindState(NAME_Death) );
+								if ( OffsetAndStateOwnershipValidityCheck ( lOffset, pStateOwnerClass, pStateOwnerClass->ActorInfo->FindState(NAME_Death) ) == false )
+								{
+									if ( sv_showwarnings )
+										Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s.\n", pActor->GetClass()->TypeName.GetChars() );
+									return;
+								}
+								{
+									stateLabel = "+";
+									stateLabel += pStateOwnerClass->TypeName;
+								}
+							}
+							else
+							{
+								stateLabel = ";";
+								stateLabel += pStateOwnerClass->TypeName;
+							}
+
 						}
 						else
 						{
-							stateLabel = ";";
-							stateLabel += pStateOwnerClass->TypeName;
+							if ( sv_showwarnings )
+								Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s (can't find state owner).\n", pActor->GetClass()->TypeName.GetChars() );
+							return;
 						}
 					}
 					else

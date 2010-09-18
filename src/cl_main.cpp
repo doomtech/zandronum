@@ -6590,7 +6590,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 
 	// [BB] In this case lOffset is just the offset from one of the default states of the actor or the state owner.
 	// Handle this accordingly.
-	if ( pszState[0] == ':' || pszState[0] == ';' )
+	if ( pszState[0] == ':' || pszState[0] == ';' || pszState[0] == '+' )
 	{
 		FState* pBaseState = NULL;
 
@@ -6630,16 +6630,19 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 				return;
 			}
 		}
-		else if ( pszState[0] == ';' )
+		else if ( pszState[0] == ';' || pszState[0] == '+' )
 		{
 			const PClass *pStateOwnerClass = PClass::FindClass ( pszState+1 );
 			const AActor *pStateOwner = ( pStateOwnerClass != NULL ) ? GetDefaultByType ( pStateOwnerClass ) : NULL;
 			if ( pStateOwner )
 			{
-				pBaseState = pStateOwner->SpawnState;
-				// [BB] The offset is only guaranteed to work if the actor owns the state.
+				if ( pszState[0] == ';' )
+					pBaseState = pStateOwner->SpawnState;
+				else
+					pBaseState = pStateOwnerClass->ActorInfo->FindState(NAME_Death);
+				// [BB] The offset is only guaranteed to work if the actor owns the state and pBaseState.
 				// Note: Looks like one can't call GetClass() on an actor pointer obtained by GetDefaultByType.
-				if ( ( lOffset != 0 ) && ( ClassOwnsState ( pStateOwnerClass, pBaseState + lOffset ) == false ) )
+				if ( ( lOffset != 0 ) && ( ( ClassOwnsState ( pStateOwnerClass, pBaseState ) == false ) || ( ClassOwnsState ( pStateOwnerClass, pBaseState + lOffset ) == false ) ) )
 				{
 #ifdef CLIENT_WARNING_MESSAGES
 					Printf ( "client_SetThingFrame: %s doesn't own %s + %d\n", pStateOwnerClass->TypeName.GetChars(), pszState, lOffset );
