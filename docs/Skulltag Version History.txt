@@ -39,7 +39,7 @@ latestzdoom branch
 -	- Fixed: When the respawn invulnerability runs out, the player body becomes opaque instead of returning to its default alpha value. [Torr Samaho]
 -	- Fixed: The ACS command TakeInventory didn't work properly online if it was used to take a bigger inventory amount than the target actually had. [Torr Samaho]
 -	- Fixed an exploit that allowed a player to get rid of its team in a team based game mode. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho]
--	- Fixed some online sync issues with moving floors linked with Sector_SetLink. [Torr Samaho]
+-	- Fixed some online sync issues with moving floors and ceilings linked with Sector_SetLink. [Torr Samaho]
 -	- Fixed problems with A_KillSiblings online. [Torr Samaho]
 -	- Fixed: Clients are not informed about the momentum or the angle of actors spawned by RandomSpawner online. [Torr Samaho]
 -	- Fixed more problems with A_PlaySoundEx and looping sounds online. [Torr Samaho]

@@ -8408,6 +8408,9 @@ static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
 
 	// Finally, adjust textures.
 	pSector->SetPlaneTexZ(sector_t::ceiling, pSector->GetPlaneTexZ(sector_t::ceiling) + pSector->ceilingplane.HeightDiff( lLastPos ) );
+
+	// [BB] We also need to move any linked sectors.
+	P_MoveLinkedSectors(pSector, false, lDelta, true);
 }
 
 //*****************************************************************************
