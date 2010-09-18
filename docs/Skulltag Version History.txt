@@ -44,7 +44,7 @@ latestzdoom branch
 -	- Fixed: Clients are not informed about the momentum or the angle of actors spawned by RandomSpawner online. [Torr Samaho]
 -	- Fixed more problems with A_PlaySoundEx and looping sounds online. [Torr Samaho]
 -	- Fixed: Client sided RandomSpawners didn't work. [Torr Samaho]
--	- Fixed: When the server removed a monster or an item with Thing_Remove the total monster and item count was not adjusted accordingly on the clients. [Torr Samaho]
+-	- Fixed: When the server removed a monster or an item with Thing_Remove the total monster and item count was not adjusted accordingly on the clients. Furthermore, removing a monster with Thing_Remove in invasion prevented the current wave from ending. [Torr Samaho]
 -	- Fixed a particular instance of a weapon desync that happened when a player picked up a weapon with compat_oldweaponswitch enabled in the server. [Spleen]
 -	- Fixed: invuse could crash the client when called before the player has a body. [Torr Samaho]
 -	- Fixed: The demo_spectatefreely and demo_skiptonextmap commands could be used while a demo was not playing. [Spleen]

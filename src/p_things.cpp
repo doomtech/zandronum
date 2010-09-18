@@ -50,6 +50,7 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "a_keys.h"
+#include "invasion.h"
 
 // List of spawnable things for the Thing_Spawn and Thing_Projectile specials.
 const PClass *SpawnableThings[MAX_SPAWNABLES];
@@ -526,6 +527,9 @@ void P_RemoveThing(AActor * actor)
 		if (actor->CountsAsKill() && actor->health > 0)
 		{
 			level.total_monsters--;
+
+			// [BB] Since a monster was removed, we also need to correct the number of monsters in invasion mode.
+			INVASION_UpdateMonsterCount( actor, true );
 
 			// [BB] Inform the clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
