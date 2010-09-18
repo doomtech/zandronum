@@ -51,6 +51,10 @@
 #ifndef	__MAIN_H__
 #define	__MAIN_H__
 
+#ifndef _WIN32
+typedef int32_t __int32;
+#endif
+
 //*****************************************************************************
 //	DEFINES
 
@@ -79,7 +83,7 @@ typedef struct
 	mutable bool	bVerifiedLatestBanList;
 
 	// [BB] Does the server enforce the holy banlist locally?
-	bool	bEnforcesBanList;
+	mutable bool	bEnforcesBanList;
 
 	// [BB] Is the server using the latest Skulltag version
 	bool	bNewFormatServer;
