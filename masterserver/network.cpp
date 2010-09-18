@@ -84,12 +84,12 @@ static	UCHAR			g_ucHuffmanBuffer[131072];
 
 static	void			network_Error( char *pszError );
 static	SOCKET			network_AllocateSocket( void );
-static	bool			network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
+static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
 
 //*****************************************************************************
 //	FUNCTIONS
 
-void NETWORK_Construct( USHORT usPort )
+void NETWORK_Construct( USHORT usPort, const char *pszIPAddress )
 {
 	char			szString[128];
 	ULONG			ulArg;
@@ -109,20 +109,42 @@ void NETWORK_Construct( USHORT usPort )
 	printf( "Winsock initialization succeeded!\n" );
 #endif
 
+	ULONG ulInAddr = INADDR_ANY;
+	// [BB] An IP was specfied. Check if it's valid and if it is, try to bind our socket to it.
+	if ( pszIPAddress )
+	{
+		ULONG requestedIP = inet_addr( pszIPAddress );
+		if ( requestedIP == INADDR_NONE )
+		{
+			sprintf( szString, "NETWORK_Construct: %s is not a valid IP address\n", pszIPAddress );
+			network_Error( szString );
+		}
+		else
+			ulInAddr = requestedIP;
+	}
+
 	g_usLocalPort = usPort;
 
 	// Allocate a socket, and attempt to bind it to the given port.
 	g_NetworkSocket = network_AllocateSocket( );
-	if ( network_BindSocketToPort( g_NetworkSocket, g_usLocalPort, false ) == false )
+	if ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, g_usLocalPort, false ) == false )
 	{
 		bSuccess = true;
+		bool bSuccessIP = true;
 		usNewPort = g_usLocalPort;
-		while ( network_BindSocketToPort( g_NetworkSocket, ++usNewPort, false ) == false )
+		while ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, ++usNewPort, false ) == false )
 		{
 			// Didn't find an available port. Oh well...
 			if ( usNewPort == g_usLocalPort )
 			{
-				usNewPort = false;
+				// [BB] We couldn't use the specified IP, so just try any.
+				if ( ulInAddr != INADDR_ANY )
+				{
+					ulInAddr = INADDR_ANY;
+					bSuccessIP = false;
+					continue;
+				}
+				bSuccess = false;
 				break;
 			}
 		}
@@ -130,6 +152,11 @@ void NETWORK_Construct( USHORT usPort )
 		if ( bSuccess == false )
 		{
 			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to port: %d\n", g_usLocalPort );
+			network_Error( szString );
+		}
+		else if ( bSuccessIP == false )
+		{
+			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to IP %s, using the default IP instead:\n", pszIPAddress );
 			network_Error( szString );
 		}
 		else
@@ -151,8 +178,17 @@ void NETWORK_Construct( USHORT usPort )
 	NETWORK_InitBuffer( &g_NetworkMessage, ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
+	// [BB] Get and save our local IP.
+	if ( ( ulInAddr == INADDR_ANY ) || ( pszIPAddress == NULL ) )
+		LocalAddress = NETWORK_GetLocalAddress( );
+	// [BB] We are using a specified IP, so we don't need to figure out what IP we have, but just use the specified one.
+	else
+	{
+		NETWORK_StringToAddress ( pszIPAddress, &LocalAddress );
+		LocalAddress.usPort = htons ( NETWORK_GetLocalPort() );
+	}
+
 	// Print out our local IP address.
-	LocalAddress = NETWORK_GetLocalAddress( );
 	printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
 
 	printf( "UDP Initialized.\n" );
@@ -404,7 +440,7 @@ static SOCKET network_AllocateSocket( void )
 
 //*****************************************************************************
 //
-bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
+bool network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse )
 {
 	int		iErrorCode;
 	struct sockaddr_in address;
@@ -412,7 +448,7 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 
 	memset (&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_addr.s_addr = ulInAddr;
 	address.sin_port = htons( usPort );
 
 	// Allow the network socket to broadcast.

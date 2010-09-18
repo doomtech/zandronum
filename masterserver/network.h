@@ -67,7 +67,7 @@
 //*****************************************************************************
 //	PROTOTYPES
 
-void			NETWORK_Construct( USHORT usPort );
+void			NETWORK_Construct( USHORT usPort, const char *pszIPAddress = NULL );
 
 int				NETWORK_GetPackets( void );
 int				NETWORK_GetLANPackets( void );
