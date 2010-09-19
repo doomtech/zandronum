@@ -78,6 +78,8 @@
 #include "team.h"
 #include "maprotation.h"
 #include "cl_commands.h"
+#include "cooperative.h"
+#include "survival.h"
 
 extern FILE *Logfile;
 extern bool insave;
@@ -500,6 +502,16 @@ CCMD (changemap)
 		}
 		else
 		{
+			// [BB] We cannot end the map during survival's countdown, so just end the map after the countdown ends.
+			if ( ( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ) )
+			{
+				char commandString[128];
+				sprintf ( commandString, "wait %d;changemap %s", SURVIVAL_GetCountdownTicks() + TICRATE, argv[1] );
+				Printf ( "changemap called during a survival countdown. Delaying the map change till the countdown ends.\n" );
+				AddCommandString ( commandString );
+				return;
+			}
+
 			// Fuck that DEM shit!
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
