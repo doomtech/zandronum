@@ -4243,20 +4243,30 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	if ( NETWORK_GetClassFromIdentification( usActorNetworkIndex ) == NULL )
-		players[ulSourcePlayer].ReadyWeapon = NULL;
-	else if (( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].mo ))
-	{
-		pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->FindInventory( NETWORK_GetClassFromIdentification( usActorNetworkIndex )));
-		if ( pWeapon == NULL )
-			pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->GiveInventoryType( NETWORK_GetClassFromIdentification( usActorNetworkIndex )));
+	// [BB] Temporarily change the ReadyWeapon of ulSourcePlayer to the one the server told us.
+	AWeapon *pSavedReadyWeapon = ( ulSourcePlayer < MAXPLAYERS ) ? players[ulSourcePlayer].ReadyWeapon : NULL;
 
-		if ( pWeapon )
-			players[ulSourcePlayer].ReadyWeapon = pWeapon;
+	if ( ulSourcePlayer < MAXPLAYERS )
+	{
+		if ( NETWORK_GetClassFromIdentification( usActorNetworkIndex ) == NULL )
+			players[ulSourcePlayer].ReadyWeapon = NULL;
+		else if ( players[ulSourcePlayer].mo )
+		{
+			pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->FindInventory( NETWORK_GetClassFromIdentification( usActorNetworkIndex )));
+			if ( pWeapon == NULL )
+				pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->GiveInventoryType( NETWORK_GetClassFromIdentification( usActorNetworkIndex )));
+
+			if ( pWeapon )
+				players[ulSourcePlayer].ReadyWeapon = pWeapon;
+		}
 	}
 
 	// Finally, print the obituary string.
 	ClientObituary( players[ulPlayer].mo, pInflictor, pSource, MOD );
+
+	// [BB] Restore the weapon the player actually is using now.
+	if ( ( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].ReadyWeapon != pSavedReadyWeapon ) )
+		players[ulSourcePlayer].ReadyWeapon = pSavedReadyWeapon;
 /*
 	if ( ulSourcePlayer < MAXPLAYERS )
 		ClientObituary( players[ulPlayer].mo, pInflictor, players[ulSourcePlayer].mo, MOD );

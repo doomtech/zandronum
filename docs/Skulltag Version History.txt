@@ -59,6 +59,7 @@ latestzdoom branch
 -	- Fixed: The console command "crouch" didn't have any effect online. Note: It sill doesn't behave exactly online as it does offline but it should work sufficiently well. [Torr Samaho]
 -	- Fixed: When picking up a weapon that uses some special type of ammo online for the first time, a client didn't get the correct ammo type the weapon was supposed to give. [Torr Samaho]
 -	- Fixed: A client wrongly assumed that players who were dead while the client connected still had their default health. [Torr Samaho]
+-	- Fixed: When a player with a high ping killed a player with the last available shot of a missile weapon (e.g. BFG), the client locally switched back to that weapon after the obituary was displayed. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
