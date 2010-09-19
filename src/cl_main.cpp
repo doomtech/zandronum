@@ -6805,7 +6805,11 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 
 	// If this is a player, put the player in his dead state.
 	if ( pActor->player )
+	{
 		pActor->player->playerstate = PST_DEAD;
+		// [BB] Also set the health to 0.
+		pActor->player->health = pActor->health = 0;
+	}
 }
 
 //*****************************************************************************
