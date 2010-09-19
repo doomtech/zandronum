@@ -82,6 +82,7 @@ static	ULONG		g_ulGameTick;
 static	ticcmd_t	g_SavedTiccmd[MAXSAVETICS];
 static	angle_t		g_SavedAngle[MAXSAVETICS];
 static	fixed_t		g_SavedPitch[MAXSAVETICS];
+static	fixed_t		g_SavedCrouchfactor[MAXSAVETICS];
 static	LONG		g_lSavedJumpTicks[MAXSAVETICS];
 static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
 static	LONG		g_lSavedReactionTime[MAXSAVETICS];
@@ -104,6 +105,14 @@ static	void	client_predict_EndPrediction( player_t *pPlayer );
 //*****************************************************************************
 //	FUNCTIONS
 
+void CLIENT_PREDICT_Construct( void )
+{
+	for ( int i = 0; i < MAXSAVETICS; ++i )
+		g_SavedCrouchfactor[i] = FRACUNIT;
+}
+
+//*****************************************************************************
+//
 void CLIENT_PREDICT_PlayerPredict( void )
 {
 	player_t	*pPlayer;
@@ -272,6 +281,7 @@ static void client_predict_BeginPrediction( player_t *pPlayer )
 {
 	g_SavedAngle[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->angle;
 	g_SavedPitch[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->pitch;
+	g_SavedCrouchfactor[g_ulGameTick % MAXSAVETICS] = pPlayer->crouchfactor;
 	g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->jumpTics;
 	g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->turnticks;
 	g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->reactiontime;
@@ -294,6 +304,9 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		// Use backed up values for prediction.
 		pPlayer->mo->angle = g_SavedAngle[lTick % MAXSAVETICS];
 		pPlayer->mo->pitch = g_SavedPitch[lTick % MAXSAVETICS];
+		// [BB] Crouch prediction seems to be very tricky. While predicting, we don't recalculate
+		// crouchfactor, but just use the value we already calculated before.
+		pPlayer->crouchfactor = g_SavedCrouchfactor[( lTick + 1 )% MAXSAVETICS];
 		pPlayer->jumpTics = g_lSavedJumpTicks[lTick % MAXSAVETICS];
 		pPlayer->turnticks = g_lSavedTurnTicks[lTick % MAXSAVETICS];
 		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
@@ -316,6 +329,7 @@ static void client_predict_EndPrediction( player_t *pPlayer )
 {
 	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % MAXSAVETICS];
+	pPlayer->crouchfactor = g_SavedCrouchfactor[g_ulGameTick % MAXSAVETICS];
 	pPlayer->jumpTics = g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS];
 	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS];

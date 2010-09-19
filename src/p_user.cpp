@@ -3354,10 +3354,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	{
 		player->cmd.ucmd.buttons &= ~BT_CROUCH;
 	}
-	// [BC] Added a variable to allow people to use crouching if they REALLY want it, no
-	// matter how gay and retarded it is.
-	// [BC] Also, don't do this for clients other than ourself in client mode.
-	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || (( player - players ) == consoleplayer ))
+	// [BC] Don't do this for clients other than ourself in client mode.
+	// [BB] Also, don't do this while predicting.
+	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( (( player - players ) == consoleplayer ) && ( CLIENT_PREDICT_IsPredicting( ) == false ) ))
 	{
 		if (player->morphTics == 0 && player->health > 0 && level.IsCrouchingAllowed())
 		{

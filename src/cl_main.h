@@ -176,6 +176,7 @@ void				CLIENT_UpdatePendingWeapon( const player_t *pPlayer );
 void				CLIENT_ClearAllPlayers( void );
 void				CLIENT_LimitProtectedCVARs( void );
 
+void				CLIENT_PREDICT_Construct( void );
 void				CLIENT_PREDICT_PlayerPredict( void );
 void				CLIENT_PREDICT_SaveCmd( void );
 void				CLIENT_PREDICT_PlayerTeleported( void );

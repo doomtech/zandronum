@@ -2494,6 +2494,7 @@ void D_DoomMain (void)
 	else
 	{
 		CLIENT_Construct( );
+		CLIENT_PREDICT_Construct( );
 		CLIENTSTATISTICS_Construct( );
 	}
 
