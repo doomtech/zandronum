@@ -187,14 +187,15 @@ void DrawHUD_CoopInfo()
 		curYPos += SmallFont->GetHeight( ) + 1;
 
 		// [BB] Draw player weapon and Ammo1/Ammo2, but only if the player is alive.
+		// [Spleen] And don't draw ammo if sv_infiniteammo is enabled.
 		if ( players[i].ReadyWeapon && players[i].mo->health > 0 )
 		{
 			drawString = players[i].ReadyWeapon->GetClass()->TypeName;
-			if ( players[i].ReadyWeapon->Ammo1 )
+			if ( players[i].ReadyWeapon->Ammo1 && ( ( dmflags & DF_INFINITE_AMMO ) == false ) )
 				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo1->Amount );
 			else
 				drawString += " \\cg-";
-			if ( players[i].ReadyWeapon->Ammo2 )
+			if ( players[i].ReadyWeapon->Ammo2 && ( ( dmflags & DF_INFINITE_AMMO ) == false ) )
 				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo2->Amount );
 			V_ColorizeString( drawString );
 			HUD_DrawTextAligned ( CR_GREEN, curYPos, drawString.GetChars(), drawLeft, bScale );

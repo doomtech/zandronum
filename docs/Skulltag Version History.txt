@@ -70,6 +70,7 @@ latestzdoom branch
 !	- Extended sv_forcegldefaults to cover gl_fogmode: If sv_forcegldefaults is true, gl_fogmode == 0 is treated as if gl_fogmode == 1. [Torr Samaho]
 !	- When a player leaves the game, the FriendPlayer property of all monsters belonging to this player is cleared (based on a code submission from kgsws). [Torr Samaho]
 !	- When called from a CLIENTSIDEONLY actor, A_CheckSight now only checks whether the consoleplayer sees the actor. [Torr Samaho]
+!	- Weapon ammo is no longer displayed in coopinfo when sv_infiniteammo is enabled. [Spleen]
 
 
 98c
