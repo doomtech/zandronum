@@ -2893,14 +2893,18 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj)
 	if (!mo->player)
 		return;
 
+	// [BB] Don't do this while predicting.
+	if ( CLIENT_PREDICT_IsPredicting( ))
+		return;
+
 	if (mo->player->mo == mo)
 	{
 		mo->player->deltaviewheight = mo->momz>>3;
 	}
 
-	if ( CLIENT_PREDICT_IsPredicting( ))
-		return;
-/*
+/* [BB] I don't know why ZDoom needs to adjust deltaviewheight while predicting.
+        Skulltag may not do this, otherwise the view skins into the floor when
+        jumpding down a ledge with high ping.
 	if (mo->player->cheats & CF_PREDICTING)
 		return;
 */
