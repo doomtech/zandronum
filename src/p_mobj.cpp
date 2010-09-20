@@ -3182,13 +3182,16 @@ bool AActor::Slam (AActor *thing)
 			int dam = GetMissileDamage (7, 1);
 			P_DamageMobj (thing, this, this, dam, NAME_Melee);
 			P_TraceBleed (dam, thing, this);
+			// The charging monster may have died by the target's actions here.
+			if (health > 0)
+			{
+				// [BC] If we are the server, tell clients about the state change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
 
-			// [BC] If we are the server, tell clients about the state change.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-
-			if (SeeState != NULL) SetState (SeeState);
-			else SetIdle();
+				if (SeeState != NULL) SetState (SeeState);
+				else SetIdle();
+			}
 		}
 		else
 		{
