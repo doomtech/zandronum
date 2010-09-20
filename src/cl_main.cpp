@@ -5485,7 +5485,22 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, use the item.
-	players[ulPlayer].mo->UseInventory( pInventory );
+	const bool bSuccess = players[ulPlayer].mo->UseInventory( pInventory );
+
+	// [BB] The server only instructs the client to use the item, if the use was successful.
+	// So using it on the client also should be successful. If it is not, something went wrong,
+	// e.g. the use has a A_JumpIfHealthLower(100,"Success") check and a successful use heals the
+	// player such that the check will fail after the item was used. Since the server informs the
+	// client about the effects of the use before it tells the client to use the item, the use
+	// on the client will fail. In this case at least reduce the inventory amount according to a
+	// successful use.
+	if ( ( bSuccess == false ) && !( dmflags2 & DF2_INFINITE_INVENTORY ) )
+	{
+		if (--pInventory->Amount <= 0 && !(pInventory->ItemFlags & IF_KEEPDEPLETED))
+		{
+			pInventory->Destroy ();
+		}
+	}
 }
 
 //*****************************************************************************
