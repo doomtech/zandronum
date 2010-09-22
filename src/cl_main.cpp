@@ -9946,13 +9946,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 			//else
 			//	pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
 		}
-		// [BB] Some special precautions have to be taken if a player gets a certain ammo type for the first time.
-		if ( ( pType->IsDescendantOf( RUNTIME_CLASS( AAmmo ) ) ) &&  ( players[ulPlayer].mo->FindInventory( pType ) == NULL )  )
-		{
-			AAmmo *pAmmo = static_cast<AAmmo *>(pInventory);
-			pAmmo->AttachToOwner (players[ulPlayer].mo);
-		}
-		else if ( pInventory->CallTryPickup( players[ulPlayer].mo ) == false )
+		if ( pInventory->CallTryPickup( players[ulPlayer].mo ) == false )
 		{
 			pInventory->Destroy( );
 			pInventory = NULL;

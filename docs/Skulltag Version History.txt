@@ -58,7 +58,6 @@ latestzdoom branch
 -	- Fixed: The client thought it was lagging when a player joined a game from the join queue. [Torr Samaho, Spleen]
 -	- Fixed: Actors derived from actors that use A_Jump could cause clients to crash. [Torr Samaho]
 -	- Fixed: The console command "crouch" didn't have any effect online. Note: It sill doesn't behave exactly online as it does offline but it should work sufficiently well. [Torr Samaho]
--	- Fixed: When picking up a weapon that uses some special type of ammo online for the first time, a client didn't get the correct ammo type the weapon was supposed to give. [Torr Samaho]
 -	- Fixed: A client wrongly assumed that players who were dead while the client connected still had their default health. [Torr Samaho]
 -	- Fixed: When a player with a high ping killed a player with the last available shot of a missile weapon (e.g. BFG), the client locally switched back to that weapon after the obituary was displayed. [Torr Samaho]
 -	- Fixed: The console command "changemap" didn't have any effect when called during a survival countdown. Now the map change is done after the countdown ends. [Torr Samaho]
