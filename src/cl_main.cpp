@@ -3922,7 +3922,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 			g_bClientLagging = false;
 	}
-	else
+	// [BB] Don't spawn fog when receiving a snapshot.
+	else if ( CLIENT_GetConnectionState() != CTS_RECEIVINGSNAPSHOT )
 	{
 		// Spawn the respawn fog.
 		unsigned an = pActor->angle >> ANGLETOFINESHIFT;
