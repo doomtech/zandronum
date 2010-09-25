@@ -87,6 +87,8 @@ char	V_GetColorChar( ULONG ulColor );
 void	V_EscapeBacklashes( FString &String );
 void	V_RemoveTrailingCrap( char *pszString );
 void	V_RemoveTrailingCrapFromFString( FString &String );
+void	V_RemoveInvalidColorCodes( char *pszString );
+void	V_RemoveInvalidColorCodes( FString &String );
 
 // [RC] Functions related to user name cleaning.
 bool	v_IsCharAcceptableInNames ( char c );

@@ -804,6 +804,33 @@ void V_RemoveTrailingCrapFromFString( FString &String )
 	V_ApplyCharArrayFunctionToFString ( String, &V_RemoveTrailingCrap );
 }
 
+// [BB] Removes invalid color codes, i.e. \cX where X not in [a,u] or '-'.
+void V_RemoveInvalidColorCodes( char *pszString )
+{
+	if ( pszString == NULL )
+		return;
+
+	const ULONG ulStringLength = static_cast<ULONG>(strlen( pszString ));
+
+	for ( int i = 0; i < ulStringLength - 2; ++ i )
+	{
+		// [BB] If there is an color code start followed by an invalid char, remove the
+		// leading '\' to disable the color code.
+		if ( V_ColorCodeStart ( pszString, i )
+			&& ( pszString[i+2] != '-' )
+			&& ( pszString[i+2] != '[' )
+			&& ( ( pszString[i+2] < 'a' ) || ( pszString[i+2] > 'u' ) )
+			&& ( ( pszString[i+2] < 'A' ) || ( pszString[i+2] > 'U' ) ) )
+			pszString[i] = ' ';
+	}
+}
+
+// [BB] FString version of V_RemoveInvalidColorCodes.
+void V_RemoveInvalidColorCodes( FString &String )
+{
+	V_ApplyCharArrayFunctionToFString ( String, &V_RemoveInvalidColorCodes );
+}
+
 //
 // Break long lines of text into multiple lines no longer than maxwidth pixels
 //
