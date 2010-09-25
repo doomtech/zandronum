@@ -2441,7 +2441,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 		return;
 
 	// Player can't rejoin their LMS/survival game if they are dead.
-	if (( lastmanstanding || teamlms ) && ( pBot->GetPlayer( )->bDeadSpectator ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && ( pBot->GetPlayer( )->bDeadSpectator ))
 		return;
 
 	// If there aren't currently any slots available, just put the person in line.
