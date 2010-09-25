@@ -2295,6 +2295,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// [BB] It's possible that the MaxHealth property was changed dynamically with ACS, so send it.
 		SERVERCOMMANDS_SetPlayerMaxHealth( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [BB] If necessary, also tell this player's chat / console status to the new client.
+		if ( players[ulIdx].bChatting )
+			SERVERCOMMANDS_SetPlayerChatStatus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+		if ( players[ulIdx].bInConsole )
+			SERVERCOMMANDS_SetPlayerConsoleStatus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!

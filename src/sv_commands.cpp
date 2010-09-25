@@ -769,9 +769,9 @@ void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer )
+void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCHATSTATUS, players[ulPlayer].bChatting );
+	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCHATSTATUS, players[ulPlayer].bChatting, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -783,9 +783,9 @@ void SERVERCOMMANDS_SetPlayerLaggingStatus( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerConsoleStatus( ULONG ulPlayer )
+void SERVERCOMMANDS_SetPlayerConsoleStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCONSOLESTATUS, players[ulPlayer].bInConsole );
+	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCONSOLESTATUS, players[ulPlayer].bInConsole, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -798,7 +798,7 @@ void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer )
 //*****************************************************************************
 // [RC] Notifies all players about a player's boolean flag.
 //
-void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue )
+void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -809,6 +809,12 @@ void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
 
 		SERVER_CheckClientBuffer( ulIdx, 3, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iHeader );
