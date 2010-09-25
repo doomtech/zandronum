@@ -80,6 +80,7 @@
 #include "survival.h"
 #include "gamemode.h"
 #include "doomdata.h"
+#include "invasion.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -726,8 +727,8 @@ void P_UpdateSpecials ()
 //	int i;
 	
 	// LEVEL TIMER
-	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze.
-	if (/*( deathmatch || teamgame ) &&*/ timelimit )
+	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze, but its implementation conceptually doesn't work in invasion.
+	if (/*( deathmatch || teamgame ) &&*/ ( invasion == false ) && timelimit )
 	{
 		// [RC] Play the five minute warning.
 		if ( level.time == (int)( ( timelimit - 5 ) * TICRATE * 60 ) ) // I'm amazed this works so well without a flag.
