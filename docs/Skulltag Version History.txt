@@ -74,6 +74,7 @@ latestzdoom branch
 !	- The ACS function PlayerInGame() now returns false for spectators. [Torr Samaho]
 !	- Changed the 'Smooth mouse movement' menu option from smooth_mouse to m_filter. smooth_mouse doesn't have any effect in Skulltag, so it doesn't need a menu entry. [Torr Samaho]
 !	- In TLMS all players in the winning team that are still alive at the end of the round get awarded a win. Furthermore, the wins are displayed in the scoreboard in TLMS like already done in LMS. [Torr Samaho]
+!	- Fixed a crash problem with demo_spectatefreely. [Torr Samaho]
 !	- Extended sv_forcegldefaults to cover gl_fogmode: If sv_forcegldefaults is true, gl_fogmode == 0 is treated as if gl_fogmode == 1. [Torr Samaho]
 !	- When a player leaves the game, the FriendPlayer property of all monsters belonging to this player is cleared (based on a code submission from kgsws). [Torr Samaho]
 !	- When called from a CLIENTSIDEONLY actor, A_CheckSight now only checks whether the consoleplayer sees the actor. [Torr Samaho]

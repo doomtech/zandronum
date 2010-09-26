@@ -3261,6 +3261,10 @@ bool SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 )
 //
 bool SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 )
 {
+	// [BB] Sanity check.
+	if ( ( ulPlayer >= MAXPLAYERS ) || ( ulPlayer2 >= MAXPLAYERS ) )
+		return ( false );
+
 	// No bodies? Definitely not!
 	if (( players[ulPlayer].mo == NULL ) || ( players[ulPlayer2].mo == NULL ))
 		return ( false );
