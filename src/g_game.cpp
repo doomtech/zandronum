@@ -4014,6 +4014,9 @@ void G_DoLoadGame ()
 		return;
 	}
 
+	// [BB] Remove all bots that are currently used. This isn't done automatically.
+	BOTS_RemoveAllBots ( false );
+
 	// Read intermission data for hubs
 	G_ReadHubInfo(png);
 
