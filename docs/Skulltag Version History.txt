@@ -70,6 +70,7 @@ latestzdoom branch
 -	- Fixed: When entering a server, a client spawned a teleport fog at the position of each player already in the game. [Torr Samaho]
 -	- Fixed: Adding a bot in single player after loading a saved game may cause a crash. [Torr Samaho]
 -	- Fixed: When loading a saved game while already in a game with bots present, these bots are not removed. [Torr Samaho]
+-	- Fixed: Players couldn't join a team in the first ten seconds after a server was started. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
