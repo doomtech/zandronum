@@ -1069,6 +1069,8 @@ inline T *Spawn (fixed_t x, fixed_t y, fixed_t z, replace_t allowreplacement)
 
 // [BC] Network identification stuff for multiplayer.
 void	ACTOR_ClearNetIDList( );
+// [BB] Rebuild the global list of used / free NetIDs from scratch.
+void	ACTOR_RebuildNetIDList( void );
 
 #define	MAX_NETID				32768
 

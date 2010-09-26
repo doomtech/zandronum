@@ -4022,6 +4022,26 @@ void ACTOR_ClearNetIDList( void )
 
 //*****************************************************************************
 //
+void ACTOR_RebuildNetIDList( void )
+{
+	ACTOR_ClearNetIDList();
+
+	AActor *pActor;
+
+	TThinkerIterator<AActor> it;
+
+	while ( (pActor = it.Next()) )
+	{
+		if ( pActor->lNetID > 0 )
+		{
+			g_NetIDList[pActor->lNetID].bFree = false;
+			g_NetIDList[pActor->lNetID].pActor = pActor;
+		}
+	}
+}
+
+//*****************************************************************************
+//
 void CountActors ( ); // [BB]
 
 ULONG ACTOR_GetNewNetID( void )
