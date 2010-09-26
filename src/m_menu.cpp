@@ -1528,6 +1528,13 @@ void M_SaveGame (int choice)
 		return;
 	}
 
+	// [BB] Saving bots is not supported yet.
+	if ( BOTS_CountBots() > 0 )
+	{
+		M_StartMessage ("You cannot save the game\nwhile bots are in use.", NULL, false);
+		return;
+	}
+
 	if (gamestate != GS_LEVEL)
 		return;
 
@@ -1564,7 +1571,8 @@ void M_QuickSaveResponse (int ch)
 
 void M_QuickSave ()
 {
-	if (!usergame || (players[consoleplayer].health <= 0 && NETWORK_GetState( ) == NETSTATE_SINGLE ))
+	// [BB] Saving bots is not supported yet.
+	if (!usergame || (players[consoleplayer].health <= 0 && NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( BOTS_CountBots() > 0 ))
 	{
 		S_Sound (CHAN_VOICE | CHAN_UI, "menu/invalid", 1, ATTN_NONE);
 		return;

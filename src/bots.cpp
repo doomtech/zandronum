@@ -979,6 +979,21 @@ void BOTS_RemoveGoal( AActor* pGoal )
 }
 
 //*****************************************************************************
+//
+ULONG BOTS_CountBots( void )
+{
+	ULONG	ulNumBots = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		if ( playeringame[ulIdx] && players[ulIdx].bIsBot )
+			++ulNumBots;
+	}
+
+	return ( ulNumBots );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void bots_ParseBotInfoLump( FScanner &sc )

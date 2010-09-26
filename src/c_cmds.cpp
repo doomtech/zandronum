@@ -934,6 +934,14 @@ CCMD (save)
         Printf ("player is dead in a single-player game\n");
         return;
     }
+
+	// [BB] Saving bots is not supported yet.
+	if ( BOTS_CountBots() > 0 )
+	{
+		Printf ("You cannot save the game while bots are in use.");
+		return;
+	}
+
     FString fname = argv[1];
 	DefaultExtension (fname, ".zds");
 	G_SaveGame (fname, argv.argc() > 2 ? argv[2] : argv[1]);
