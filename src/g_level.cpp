@@ -1076,6 +1076,10 @@ void G_DoLoadLevel (int position, bool autosave)
 	CAMPAIGNINFO_s		*pInfo;
 	UCVarValue			Val;
 
+	// [BB] Going to a new level automatically stops any active vote.
+	if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
+		CALLVOTE_ClearVote();
+
 	// [BB] Reset the net traffic measurements when a new map starts.
 	NETTRAFFIC_Reset();
 
