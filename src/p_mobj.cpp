@@ -2090,6 +2090,9 @@ explode:
 				// [BB] Clients may not do this, the server tells them to explode the missile.
 				if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 					P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
+				// [BB] This should prevent the missile from getting stuck in the object it hit on the clients.
+				else
+					mo->flags &= ~MF_MISSILE;
 				return oldfloorz;
 			}
 			else
