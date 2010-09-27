@@ -810,9 +810,9 @@ void V_RemoveInvalidColorCodes( char *pszString )
 	if ( pszString == NULL )
 		return;
 
-	const ULONG ulStringLength = static_cast<ULONG>(strlen( pszString ));
+	const int iStringLength = static_cast<int>(strlen( pszString ));
 
-	for ( int i = 0; i < ulStringLength - 2; ++ i )
+	for ( int i = 0; i < iStringLength - 2; ++ i )
 	{
 		// [BB] If there is an color code start followed by an invalid char, remove the
 		// leading '\' to disable the color code.
