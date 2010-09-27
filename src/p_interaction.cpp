@@ -1807,6 +1807,9 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{
 		// Take half damage in trainer mode
 		damage = FixedMul(damage, G_SkillProperty(SKILLP_DamageFactor));
+
+		// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
+		ApplyCoopDamagefactor(damage, source);
 	}
 	if(damage < 1000 && ((player->cheats&CF_GODMODE)
 		|| (player->mo->flags2 & MF2_INVULNERABLE)))
@@ -1819,10 +1822,6 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{ // Try to use some inventory health
 		P_AutoUseHealth (player, damage - player->health+1);
 	}
-
-	// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
-	ApplyCoopDamagefactor(damage, source);
-
 	player->health -= damage; // mirror mobj health here for Dave
 	if (player->health < 50 && !deathmatch)
 	{
