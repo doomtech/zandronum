@@ -1094,6 +1094,19 @@ void P_AutoUseStrifeHealth (player_t *player)
 ==================
 */
 
+// [TIHan/Spleen] Factor for damage dealt to players by monsters.
+CUSTOM_CVAR (Float, sv_coop_damagefactor, 1.0f, CVAR_SERVERINFO|CVAR_ARCHIVE)
+{
+	if (self <= 0)
+		self = 1.0f;
+}
+
+// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
+void ApplyCoopDamagefactor(int &damage, AActor *source)
+{
+	if ((sv_coop_damagefactor != 1.0f) && (source != NULL) && (source->flags3 & MF3_ISMONSTER))
+		damage = int(damage * sv_coop_damagefactor);
+}
 
 void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage, FName mod, int flags)
 {
@@ -1353,6 +1366,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	lOldTargetHealth = target->health;
 	if (player)
 	{
+		// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
+		ApplyCoopDamagefactor(damage, source);
+
 		if ((target->flags2 & MF2_INVULNERABLE) && damage < 1000000)
 		{ // player is invulnerable, so don't hurt him
 			return;
@@ -1803,6 +1819,10 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{ // Try to use some inventory health
 		P_AutoUseHealth (player, damage - player->health+1);
 	}
+
+	// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
+	ApplyCoopDamagefactor(damage, source);
+
 	player->health -= damage; // mirror mobj health here for Dave
 	if (player->health < 50 && !deathmatch)
 	{

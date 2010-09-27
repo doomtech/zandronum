@@ -23,6 +23,7 @@ latestzdoom branch
 +	- The server-master challenge now includes the revision number of the server. [Torr Samaho]
 +	- Rewrote the master ban list sending code. If necessary, the ban list now can be sent split over multiple packets. [Torr Samaho, SuperGod]
 +	- Considerably improved client side crouch prediction. [Torr Samaho]
++	- Added new CVAR sv_coop_damagefactor (default 1.0). If set to any positive value other than 1.0, it multiplies the damage dealt to players by monsters with this value. [TIHan, Spleen]
 -	- Fixed: Sector_SetFloorPanning with negative offsets didn't work properly online. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about altered floor and ceiling heights of linked sectors. [Torr Samaho]
 -	- Fixed: The "Join server" command in the Windows server console didn't work properly. [Torr Samaho]
