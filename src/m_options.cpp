@@ -3538,8 +3538,6 @@ static menu_t SkirmishDMFlagsMenu =
  *=======================================*/
 
 static menuitem_t BotSetupItems[] = {
-	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {0.0}, {BotskillVals} },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
@@ -3584,8 +3582,6 @@ menu_t BotSetupMenu = {
 
 // [CW] Add to this when bumping 'MAX_TEAMS'.
 static menuitem_t TeamBotSetupItems[] = {
-	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {0.0}, {BotskillVals} },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	"Team 1",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
@@ -3624,7 +3620,7 @@ static menuitem_t TeamBotSetupItems[] = {
 
 menu_t TeamBotSetupMenu = {
 	"BOT SETUP",
-	0,
+	2,
 	countof(TeamBotSetupItems),
 	0,
 	TeamBotSetupItems,
@@ -4997,7 +4993,7 @@ void M_OptDrawer ()
 						}
 					}
 					else
-						sprintf( szCVarName, "menu_botspawn%d", i - 2 );
+						sprintf( szCVarName, "menu_botspawn%d", i );
 
 					pVar = FindCVar( szCVarName, NULL );
 
@@ -5866,7 +5862,7 @@ void M_OptResponder (event_t *ev)
 						}
 					}
 					else
-						sprintf( szCVarName, "menu_botspawn%d", CurrentItem - 2 );
+						sprintf( szCVarName, "menu_botspawn%d", CurrentItem );
 
 					pVar = FindCVar( szCVarName, NULL );
 
@@ -6297,7 +6293,7 @@ void M_OptResponder (event_t *ev)
 						}
 					}
 					else
-						sprintf( szCVarName, "menu_botspawn%d", CurrentItem - 2 );
+						sprintf( szCVarName, "menu_botspawn%d", CurrentItem );
 
 					pVar = FindCVar( szCVarName, NULL );
 
