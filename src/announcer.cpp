@@ -402,6 +402,10 @@ void ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFr
 	// Play the "teams are tied" sound if all active teams have equal scores.
 	if ( ulNumberOfPossibleTeams == ulMaxPossibleTeams )
 	{
+		// [BB] Make sure that the next leading team will be announced again.
+		for ( ULONG j = 0; j < teams.Size( ); ++j )
+			TEAM_SetAnnouncedLeadState( j, false );
+
 		ANNOUNCER_PlayEntry( cl_announcer, "TeamsAreTied");
 		return;
 	}
