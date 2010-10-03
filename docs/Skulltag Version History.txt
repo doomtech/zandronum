@@ -32,7 +32,7 @@ latestzdoom branch
 -	- Fixed: "use weaponname" didn't bring up the chosen weapon online. [Torr Samaho]
 -	- Fixed: "lms_allow* false" didn't prevent the player from getting the corresponding weapon if it belonged to the default inventory of the player class. [Torr Samaho]
 -	- Fixed: The server didn't do any sanity checks on the version string connecting clients send before printing the string. [Torr Samaho]
--	- Fixed: sv_gravity is not synchronized between clients and server. [Torr Samaho]
+-	- Fixed: sv_gravity and sv_aircontrol are not synchronized between clients and server. [Torr Samaho]
 -	- Fixed: A_ReFire didn't work properly online for morphed players. [Torr Samaho]
 -	- Fixed: Dead spectators using chasecam don't lose it when being reborn and chasecam is not allowed for non-spectators. [Torr Samaho]
 -	- Fixed: When a player was named "<server>" or "* <server>", certain messages generated chat sounds while they shouldn't have. [Torr Samaho]

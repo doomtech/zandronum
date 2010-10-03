@@ -2539,6 +2539,13 @@ CUSTOM_CVAR (Float, sv_aircontrol, 0.00390625f, CVAR_SERVERINFO|CVAR_NOSAVE)
 {
 	level.aircontrol = (fixed_t)(self * 65536.f);
 	G_AirControlChanged ();
+
+	// [BB] Let the clients know about the change.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %f\n", self.GetName( ), (float)self );
+		SERVERCOMMANDS_SetGameModeLimits( );
+	}
 }
 
 void P_MovePlayer (player_t *player, ticcmd_t *cmd)

@@ -132,6 +132,7 @@ EXTERN_CVAR( Bool, cl_oldfreelooklimit )
 EXTERN_CVAR( Float, turbo )
 EXTERN_CVAR( Int, gl_nearclip )
 EXTERN_CVAR( Float, sv_gravity )
+EXTERN_CVAR( Float, sv_aircontrol )
 
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
@@ -7734,6 +7735,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [BB] Read in, and set the value for sv_gravity.
 	Value.Float = NETWORK_ReadFloat( pByteStream );
 	sv_gravity.ForceSet( Value, CVAR_Float );
+
+	// [BB] Read in, and set the value for sv_aircontrol.
+	Value.Float = NETWORK_ReadFloat( pByteStream );
+	sv_aircontrol.ForceSet( Value, CVAR_Float );
 }
 
 //*****************************************************************************
