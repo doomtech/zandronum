@@ -3374,7 +3374,7 @@ void P_RemoveThings( void )
 			if ( pActor->flags & MF_SPECIAL )
 			{
 				// Don't destroy flags in teamgame modes.
-				if ((( ctf || oneflagctf || skulltag ) && ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "Flag" )))) == false )
+				if ((( ctf || oneflagctf || skulltag ) && ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "TeamItem" )))) == false )
 				{
 					P_RemoveThingLocal( pActor );
 					continue;
