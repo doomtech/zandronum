@@ -3218,7 +3218,6 @@ CVAR( Int, menu_winlimit, 0, CVAR_ARCHIVE );
 CVAR( Int, menu_wavelimit, 0, CVAR_ARCHIVE );
 CVAR( Int, menu_skill, 0, CVAR_ARCHIVE );
 CVAR( Int, menu_botskill, 0, CVAR_ARCHIVE );
-CVAR( Int, menu_team, 0, CVAR_ARCHIVE );
 CVAR( Int, menu_botspawn0, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_botspawn1, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_botspawn2, -1, CVAR_ARCHIVE );
@@ -3461,16 +3460,6 @@ void M_StartSkirmishGame( void )
 				}
 			}
 		}
-
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
-		{
-			if ( menu_team == static_cast<int> (i) )
-			{
-				players[consoleplayer].bOnTeam = true;
-				players[consoleplayer].ulTeam = menu_team;
-				break;
-			}
-		}
 	}
 	else
 	{
@@ -3596,7 +3585,6 @@ menu_t BotSetupMenu = {
 // [CW] Add to this when bumping 'MAX_TEAMS'.
 static menuitem_t TeamBotSetupItems[] = {
 	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {0.0}, {BotskillVals} },
-	{ discrete,	"Player team",				{&menu_team},			{MAX_TEAMS}, {0.0}, {0.0}, {TeamVals} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	"Team 1",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
@@ -4977,7 +4965,7 @@ void M_OptDrawer ()
 						case TEAM1_STARTMENUPOS + 2:
 						case TEAM1_STARTMENUPOS + 3:
 						case TEAM1_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", i - 5 );
+							sprintf( szCVarName, "menu_teambotspawn%d", i - TEAM1_STARTMENUPOS );
 							break;
 
 						case TEAM2_STARTMENUPOS:
@@ -4985,7 +4973,7 @@ void M_OptDrawer ()
 						case TEAM2_STARTMENUPOS + 2:
 						case TEAM2_STARTMENUPOS + 3:
 						case TEAM2_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", i - 8 );
+							sprintf( szCVarName, "menu_teambotspawn%d", i - TEAM2_STARTMENUPOS + 5 );
 							break;
 
 						case TEAM3_STARTMENUPOS:
@@ -4993,7 +4981,7 @@ void M_OptDrawer ()
 						case TEAM3_STARTMENUPOS + 2:
 						case TEAM3_STARTMENUPOS + 3:
 						case TEAM3_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", i - 11 );
+							sprintf( szCVarName, "menu_teambotspawn%d", i - TEAM3_STARTMENUPOS + 2*5 );
 							break;
 
 						case TEAM4_STARTMENUPOS:
@@ -5001,7 +4989,7 @@ void M_OptDrawer ()
 						case TEAM4_STARTMENUPOS + 2:
 						case TEAM4_STARTMENUPOS + 3:
 						case TEAM4_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", i - 14 );
+							sprintf( szCVarName, "menu_teambotspawn%d", i - TEAM4_STARTMENUPOS + 3*5 );
 							break;
 
 						default:
@@ -5846,7 +5834,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM1_STARTMENUPOS + 2:
 						case TEAM1_STARTMENUPOS + 3:
 						case TEAM1_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM1_STARTMENUPOS );
 							break;
 
 						case TEAM2_STARTMENUPOS:
@@ -5854,7 +5842,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM2_STARTMENUPOS + 2:
 						case TEAM2_STARTMENUPOS + 3:
 						case TEAM2_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 8 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM2_STARTMENUPOS + 5 );
 							break;
 
 						case TEAM3_STARTMENUPOS:
@@ -5862,7 +5850,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM3_STARTMENUPOS + 2:
 						case TEAM3_STARTMENUPOS + 3:
 						case TEAM3_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 11 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM3_STARTMENUPOS + 2*5 );
 							break;
 
 						case TEAM4_STARTMENUPOS:
@@ -5870,7 +5858,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM4_STARTMENUPOS + 2:
 						case TEAM4_STARTMENUPOS + 3:
 						case TEAM4_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 14 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM4_STARTMENUPOS + 3*5 );
 							break;
 
 						default:
@@ -6277,7 +6265,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM1_STARTMENUPOS + 2:
 						case TEAM1_STARTMENUPOS + 3:
 						case TEAM1_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM1_STARTMENUPOS );
 							break;
 
 						case TEAM2_STARTMENUPOS:
@@ -6285,7 +6273,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM2_STARTMENUPOS + 2:
 						case TEAM2_STARTMENUPOS + 3:
 						case TEAM2_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 8 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM2_STARTMENUPOS + 5 );
 							break;
 
 						case TEAM3_STARTMENUPOS:
@@ -6293,7 +6281,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM3_STARTMENUPOS + 2:
 						case TEAM3_STARTMENUPOS + 3:
 						case TEAM3_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 11 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM3_STARTMENUPOS + 2*5 );
 							break;
 
 						case TEAM4_STARTMENUPOS:
@@ -6301,7 +6289,7 @@ void M_OptResponder (event_t *ev)
 						case TEAM4_STARTMENUPOS + 2:
 						case TEAM4_STARTMENUPOS + 3:
 						case TEAM4_STARTMENUPOS + 4:
-							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 14 );
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - TEAM4_STARTMENUPOS + 3*5 );
 							break;
 
 						default:
