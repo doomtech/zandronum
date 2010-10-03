@@ -1528,6 +1528,13 @@ void M_SaveGame (int choice)
 		return;
 	}
 
+	// [BB] No saving in multiplayer.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		M_StartMessage (GStrings("SAVENET"), NULL, false);
+		return;
+	}
+
 	// [BB] Saving bots is not supported yet.
 	if ( BOTS_CountBots() > 0 )
 	{
@@ -1571,8 +1578,8 @@ void M_QuickSaveResponse (int ch)
 
 void M_QuickSave ()
 {
-	// [BB] Saving bots is not supported yet.
-	if (!usergame || (players[consoleplayer].health <= 0 && NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( BOTS_CountBots() > 0 ))
+	// [BB] Saving bots is not supported yet. Also no saving in multiplayer.
+	if (!usergame || (players[consoleplayer].health <= 0 && NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( BOTS_CountBots() > 0 ) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) )
 	{
 		S_Sound (CHAN_VOICE | CHAN_UI, "menu/invalid", 1, ATTN_NONE);
 		return;

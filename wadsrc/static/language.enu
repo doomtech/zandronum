@@ -721,6 +721,8 @@ STARTUP4 = "";
 STARTUP5 = "";
 
 // [BC] Start of Skulltag strings.
+// [BB] Save string.
+SAVENET = "you can't save while in a net game!\n\npress a key.";
 // Pickup strings.
 PICKUP_REDARMOR = "Picked up the red armor!";
 PICKUP_MAXHEALTHBONUS = "Picked up a max. health bonus.";
