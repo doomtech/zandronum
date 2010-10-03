@@ -336,7 +336,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 
 //*****************************************************************************
 //
-ULONG TEAM_ChooseBestTeamForPlayer( void )
+ULONG TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability )
 {
 	// Possible teams to select.
 	bool bPossibleTeams[MAX_TEAMS];
@@ -360,7 +360,7 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 		if ( TEAM_CheckIfValid( i ) == false )
 			continue;
 
-		if ( TEAM_ShouldUseTeam( i ) == false )
+		if ( ( bIgnoreTeamStartsAvailability == false ) && ( TEAM_ShouldUseTeam( i ) == false ) )
 			continue;
 
 		bPossibleTeams[i] = true;

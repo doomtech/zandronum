@@ -86,7 +86,7 @@ ULONG		TEAM_CountPlayers( ULONG ulTeamIdx );
 ULONG		TEAM_CountLivingAndRespawnablePlayers( ULONG ulTeamIdx );
 ULONG		TEAM_TeamsWithPlayersOn( void );
 void		TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner );
-ULONG		TEAM_ChooseBestTeamForPlayer( void );
+ULONG		TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability = false );
 void		TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar );
 void		TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer );
 void		TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx );
