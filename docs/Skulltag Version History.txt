@@ -79,6 +79,7 @@ latestzdoom branch
 -	- Fixed: Chat and team messages are printed as white in the console instead of the corresponding user selected message color. [Torr Samaho]
 -	- Fixed problems with the join command offline: If it was used while already in the game, the player was respwaned at a player start and left behind a dummy player at the old position. If it was used in a gamemode with teams while spectating, the player joined the game but wasn't put into a team. [Torr Samaho]
 -	- Fixed: When a player used the morphme cheat without argument in a game other than Heretic or Hexen, he lost his current weapon after morphing back. [Torr Samaho]
+-	- Fixed: Directly after using the disconnect command to manually disconnect from a server loading saved games didn't work. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

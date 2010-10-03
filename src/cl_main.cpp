@@ -121,6 +121,7 @@ extern	bool	SpawningMapThing;
 extern FILE *Logfile;
 bool	ClassOwnsState( const PClass *pClass, const FState *pState );
 bool	ActorOwnsState( const AActor *pActor, const FState *pState );
+void	D_ErrorCleanup ();
 
 EXTERN_CVAR( Bool, telezoom )
 EXTERN_CVAR( Bool, sv_cheats )
@@ -2750,6 +2751,9 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// If we're recording a demo, then finish it!
 	if ( CLIENTDEMO_IsRecording( ))
 		CLIENTDEMO_FinishRecording( );
+
+	// [BB] While disconnecting is not an error, D_ErrorCleanup is a convenient way to reset everything.
+	D_ErrorCleanup ();
 }
 
 //*****************************************************************************
