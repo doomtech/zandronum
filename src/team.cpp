@@ -347,8 +347,8 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 	// The lowest amount of players on any team.
 	ULONG ulLowestPlayerCount = ULONG_MAX;
 
-	// The amount of possible teams to choose from.
-	ULONG ulPossibleTeamCount = teams.Size( );
+	// The amount of possible teams to choose from. [BB] Properly set in the loop below.
+	ULONG ulPossibleTeamCount = 0;
 
 	// The lowest score on any team.
 	LONG lLowestScoreCount = LONG_MAX;
@@ -364,8 +364,13 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 			continue;
 
 		bPossibleTeams[i] = true;
+		++ulPossibleTeamCount;
 		lGotScore[i] = LONG_MIN;
 	}
+
+	// [BB] No possible team found (shouldn't happen), so we can't recommend any team.
+	if ( ulPossibleTeamCount == 0 )
+		return teams.Size( );
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
@@ -378,6 +383,9 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
+		if ( bPossibleTeams[i] == false )
+			continue;
+
 		if ( TEAM_CountPlayers( i ) != ulLowestPlayerCount )
 		{
 			bPossibleTeams[i] = false;
@@ -385,6 +393,7 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 		}
 	}
 
+	// [BB] A single team has the least amount of players, recommend this team for the player.
 	if ( ulPossibleTeamCount == 1 )
 	{
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
@@ -428,6 +437,9 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
+		if ( bPossibleTeams[i] == false )
+			continue;
+
 		if ( lGotScore[i] != lLowestScoreCount )
 		{
 			bPossibleTeams[i] = false;

@@ -1117,45 +1117,7 @@ void G_DoLoadLevel (int position, bool autosave)
 			players[i].bOnTeam = false;
 		}
 	}
-
-	if ( dmflags2 & DF2_NO_TEAM_SELECT )
-	{
-		LONG	lNumNeedingTeam;
-		LONG	lRand;
-		
-		do
-		{
-			lNumNeedingTeam = 0;
-			for ( i = 0; i < MAXPLAYERS; i++ )
-			{
-				if ( playeringame[i] == false )
-					continue;
-
-				if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == teams.Size( ) ))
-					lNumNeedingTeam++;
-			}
-
-			if ( lNumNeedingTeam > 0 )
-			{
-				do
-				{
-					lRand = ( M_Random( ) % MAXPLAYERS );
-				} while (( playeringame[lRand] == false ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
-
-				PLAYER_SetTeam( &players[lRand], TEAM_ChooseBestTeamForPlayer( ), true );
-			}
-
-		} while ( lNumNeedingTeam != 0 );
-	}
-	// Reset their team.
-	else
-	{
-		if ( bClearTeams )
-		{
-			for (i = 0; i < MAXPLAYERS; i++)
-				PLAYER_SetTeam( &players[i], teams.Size( ), true );
-		}
-	}
+	// [BB] Note: We can't select teams for the players yet, because the team starts for the new map are not initialized yet.
 
 	// If a campaign is allowed, see if there is one for this map.
 	if ( CAMPAIGN_AllowCampaign( ) && ( savegamerestore == false ))
@@ -1468,6 +1430,46 @@ void G_DoLoadLevel (int position, bool autosave)
 	}
 
 	P_SetupLevel (level.mapname, position);
+
+	// [BB] Now that the team starts are initialized properly, we can select teams for the players.
+	if ( dmflags2 & DF2_NO_TEAM_SELECT )
+	{
+		LONG	lNumNeedingTeam;
+		LONG	lRand;
+		
+		do
+		{
+			lNumNeedingTeam = 0;
+			for ( i = 0; i < MAXPLAYERS; i++ )
+			{
+				if ( playeringame[i] == false )
+					continue;
+
+				if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == teams.Size( ) ))
+					lNumNeedingTeam++;
+			}
+
+			if ( lNumNeedingTeam > 0 )
+			{
+				do
+				{
+					lRand = ( M_Random( ) % MAXPLAYERS );
+				} while (( playeringame[lRand] == false ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
+
+				PLAYER_SetTeam( &players[lRand], TEAM_ChooseBestTeamForPlayer( ), true );
+			}
+
+		} while ( lNumNeedingTeam != 0 );
+	}
+	// Reset their team.
+	else
+	{
+		if ( bClearTeams )
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+				PLAYER_SetTeam( &players[i], teams.Size( ), true );
+		}
+	}
 
 	AM_LevelInit();
 
