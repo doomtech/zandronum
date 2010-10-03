@@ -407,7 +407,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		}
 		else
 		{
-			OutString.AppendFormat( "%s\\c-: ", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "%s" TEXTCOLOR_CHAT ": ", players[ulPlayer].userinfo.netname );
 		}
 	}
 	else if ( ulMode == CHATMODE_TEAM )
@@ -426,7 +426,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		}
 		else
 		{
-			OutString.AppendFormat( "\\cd%s\\c-: ", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "\\cd%s" TEXTCOLOR_TEAMCHAT ": ", players[ulPlayer].userinfo.netname );
 		}
 	}
 
