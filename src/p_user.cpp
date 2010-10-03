@@ -3018,6 +3018,10 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 		return;
 	}
 
+	// [BB] Already joined, the player can't join again.
+	if ( players[consoleplayer].bSpectating == false )
+		return;
+
 	// If there's two people currently dueling, just put the person in line.
 	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
 		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))))
@@ -3040,6 +3044,10 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	players[consoleplayer].bDeadSpectator = false;
 	players[consoleplayer].camera = players[consoleplayer].mo;
 	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.netname );
+
+	// [BB] If players are supposed to be on teams, select one for the player now.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+		PLAYER_SetTeam( &players[consoleplayer], TEAM_ChooseBestTeamForPlayer( ), true );
 }
 
 CCMD( join ) {
