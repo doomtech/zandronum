@@ -9994,6 +9994,10 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 			pInventory->Destroy( );
 	}
 */
+	// [BB] Prevent the client from trying to switch to a different weapon while morphed.
+	if ( players[ulPlayer].morphTics )
+		players[ulPlayer].PendingWeapon = WP_NOCHANGE;
+
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
 }

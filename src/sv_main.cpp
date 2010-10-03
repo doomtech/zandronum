@@ -4539,13 +4539,9 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 
-	// [BB] Special morph workaround: If the player is morphed and tries to switch to his morph weapon
-	// and he is already using this weapon, just ignore the change.
-	{
-		const player_t *pPlayer = &players[g_lCurrentClient];
-		if ( pPlayer->morphTics && pPlayer->ReadyWeapon && pPlayer->ReadyWeapon->GivenAsMorphWeapon && ( pPlayer->ReadyWeapon == pInventory ) )
-			return false;
-	}
+	// [BB] Morph workaround: If the player is morphed, he can't change his weapon.
+	if ( players[g_lCurrentClient].morphTics )
+		return false;
 
 	// Finally, switch the player's pending weapon.
 	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
