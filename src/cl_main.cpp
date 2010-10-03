@@ -2751,9 +2751,6 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// If we're recording a demo, then finish it!
 	if ( CLIENTDEMO_IsRecording( ))
 		CLIENTDEMO_FinishRecording( );
-
-	// [BB] While disconnecting is not an error, D_ErrorCleanup is a convenient way to reset everything.
-	D_ErrorCleanup ();
 }
 
 //*****************************************************************************
@@ -11895,6 +11892,9 @@ CCMD( disconnect )
 
 	// Send disconnect signal, and end game.
 	CLIENT_QuitNetworkGame( NULL );
+
+	// [BB] While disconnecting is not an error, D_ErrorCleanup is a convenient way to reset everything.
+	D_ErrorCleanup ();
 }
 
 //*****************************************************************************
