@@ -74,7 +74,7 @@ latestzdoom branch
 -	- Fixed: Players couldn't join a team in the first ten seconds after a server was started. [Torr Samaho]
 -	- Fixed: When leaving a map with the nointermission MAPINFO flag any currently active vote is not stopped properly. [Torr Samaho]
 -	- Fixed: Skulls are not spawned in the Skulltag gamemode if either buckshot or instagib is selected. [Torr Samaho]
--	- Fixed: When a team takes the lead in TDM the corresponding announcer sound is not played if this team already was leading before the teams got tied. [Torr Samaho]
+-	- Fixed: When a team takes the lead in TDM the corresponding announcer sound is not played if this team already was leading before the teams got tied or the map was changed. The latter only happened when no other team took the lead at least once since the map change. [Torr Samaho]
 -	- Fixed: Starting an offline skirmish on a gamemode with teamgame == 1 with the "Server picks teams (ST/CTF)" flag enabled could cause the game to freeze. [Torr Samaho]
 -	- Fixed: Chat and team messages are printed as white in the console instead of the corresponding user selected message color. [Torr Samaho]
 -	- Fixed problems with the join command offline: If it was used while already in the game, the player was respwaned at a player start and left behind a dummy player at the old position. If it was used in a gamemode with teams while spectating, the player joined the game but wasn't put into a team. [Torr Samaho]
