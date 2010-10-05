@@ -943,14 +943,14 @@ CCMD (save)
 	// [BB] No saving in multiplayer.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		Printf ("You cannot save the game in multiplayer.");
+		Printf ("You cannot save the game in multiplayer.\n");
 		return;
 	}
 
 	// [BB] Saving bots is not supported yet.
 	if ( BOTS_CountBots() > 0 )
 	{
-		Printf ("You cannot save the game while bots are in use.");
+		Printf ("You cannot save the game while bots are in use.\n");
 		return;
 	}
 
