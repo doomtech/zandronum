@@ -818,9 +818,12 @@ void V_RemoveInvalidColorCodes( char *pszString )
 		// leading '\' to disable the color code.
 		if ( V_ColorCodeStart ( pszString, i )
 			&& ( pszString[i+2] != '-' )
+			&& ( pszString[i+2] != '!' )
+			&& ( pszString[i+2] != '*' )
+			&& ( pszString[i+2] != '+' )
 			&& ( pszString[i+2] != '[' )
-			&& ( ( pszString[i+2] < 'a' ) || ( pszString[i+2] > 'u' ) )
-			&& ( ( pszString[i+2] < 'A' ) || ( pszString[i+2] > 'U' ) ) )
+			&& ( ( pszString[i+2] < 'a' ) || ( pszString[i+2] > 'v' ) )
+			&& ( ( pszString[i+2] < 'A' ) || ( pszString[i+2] > 'V' ) ) )
 			pszString[i] = ' ';
 	}
 }
