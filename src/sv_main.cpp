@@ -4963,6 +4963,10 @@ static bool server_SpectateInfo( BYTESTREAM_s *pByteStream )
 	// Read in the client's gametic.
 	ulGametic = NETWORK_ReadLong( pByteStream );
 
+	// [BB] Only spectators may send spectate info. Otherwise the player would get a free "tick".
+	if ( pPlayer->bSpectating == false )
+		return ( false );
+
 	if ( gamestate == GS_LEVEL )
 	{
 		P_PlayerThink( pPlayer );
