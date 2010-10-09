@@ -367,12 +367,20 @@ void ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFr
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
+	// [BB] Don't announce anything if there is at most one team with players.
+	if ( TEAM_TeamsWithPlayersOn() < 2 )
+		return;
+
 	// Set all possible teams to false.
 	for ( ULONG i = 0; i < MAX_TEAMS; i++ )
+	{
 		bPossibleTeams[i] = false;
+		lScore[i] = LONG_MIN;
+	}
 
 	// Find the scores for each of the teams.
-	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	// [BB] Only set the frag count of the available teams (the others stay at LONG_MIN).
+	for ( ULONG i = 0; i < TEAM_GetNumAvailableTeams(); i++ )
 	{
 		if ( i == ulTeam )
 			lScore[i] = lNewFragCount;
