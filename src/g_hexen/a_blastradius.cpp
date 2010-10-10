@@ -40,6 +40,14 @@ bool AArtiBlastRadius::Use (bool pickup)
 	fixed_t dist;
 
 	S_Sound (Owner, CHAN_AUTO, "BlastRadius", 1, ATTN_NORM);
+
+	// [BB] The server handles anything except for the sound.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( true );
+	}
+
 	P_NoiseAlert (Owner, Owner);
 
 	while ( (mo = iterator.Next ()) )
@@ -71,6 +79,11 @@ bool AArtiBlastRadius::Use (bool pickup)
 		{ // A few things that would normally be blastable should not be blasted
 			continue;
 		}
+
+		// [BB] Don't affect spectators.
+		if ( mo->player && mo->player->bSpectating )
+			continue;
+
 		dist = P_AproxDistance (Owner->x - mo->x, Owner->y - mo->y);
 		if (dist > BLAST_RADIUS_DIST)
 		{ // Out of range
@@ -90,7 +103,7 @@ bool AArtiBlastRadius::Use (bool pickup)
 void AArtiBlastRadius::BlastActor (AActor *victim, fixed_t strength)
 {
 	angle_t angle,ang;
-	AActor *mo;
+	AActor *mo = NULL; // [BB] Initialize with NULL.
 	fixed_t x,y,z;
 
 	if (!victim->SpecialBlastHandling (Owner, strength))
@@ -161,6 +174,22 @@ void AArtiBlastRadius::BlastActor (AActor *victim, fixed_t strength)
 		else
 		{
 			victim->flags2 |= MF2_BLASTED;
+		}
+	}
+
+	// [BB] If we're the server, tell clients about all they need to know here.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_MoveThingExact( victim, CM_MOMX|CM_MOMY|CM_MOMZ );
+		// [BB] Non-players got the blasted flag above.
+		if ( victim->player == false )
+			SERVERCOMMANDS_SetThingFlags( victim, FLAGSET_FLAGS2 );
+		// [BB] Spawn the blast effect if necessary.
+		if ( mo )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
+			// [BB] Possibly set mo's momentum.
+			SERVER_SetThingNonZeroAngleAndMomentum( mo );
 		}
 	}
 }

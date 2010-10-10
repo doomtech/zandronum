@@ -83,6 +83,7 @@ latestzdoom branch
 -	- Fixed an exploit that allowed a player to greatly increase its speed. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho]
 -	- Fixed: The leading team is not announced properly if all teams with players on have negative frags and sv_maxteams is smaller than four. [Torr Samaho]
 -	- Fixed: When a client disconnects, the servers doesn't clear the cheats of the corresponding player slot. [Torr Samaho]
+-	- Fixed: ArtiBlastRadius didn't work properly online and affected spectators. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
