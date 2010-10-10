@@ -72,6 +72,16 @@ static	ULONG	g_ulLastDropTime = 0;
 //*****************************************************************************
 //	FUNCTIONS
 
+void CLIENT_ResetFloodTimers( void )
+{
+	g_ulLastChangeTeamTime = 0;
+	g_ulLastSuicideTime = 0;
+	g_ulLastJoinTime = 0;
+	g_ulLastDropTime = 0;
+}
+
+//*****************************************************************************
+//
 void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 {
 	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then

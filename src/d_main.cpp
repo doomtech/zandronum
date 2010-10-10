@@ -103,6 +103,7 @@
 #include "scoreboard.h"
 #include "team.h"
 #include "medal.h"
+#include "cl_commands.h"
 #include "cl_main.h"
 #include "cl_statistics.h"
 #include "maprotation.h"
@@ -1043,6 +1044,8 @@ void D_ErrorCleanup ()
 	insave = false;
 	// [BB] We are not in a level anymore.
 	level.info = NULL;
+	// [BB] Also reset the local flood timers of the client.
+	CLIENT_ResetFloodTimers();
 }
 
 //==========================================================================

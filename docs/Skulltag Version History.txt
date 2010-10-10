@@ -85,6 +85,7 @@ latestzdoom branch
 -	- Fixed: When a client disconnects, the servers doesn't clear the cheats of the corresponding player slot. [Torr Samaho]
 -	- Fixed: ArtiBlastRadius didn't work properly online and affected spectators. [Torr Samaho]
 -	- Fixed: Medals icons of enemies were not shown properly. [Torr Samaho]
+-	- Fixed: The local client flood timers (e.g. for "changeteam") are not reset during error clean up. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]

@@ -57,6 +57,7 @@
 //*****************************************************************************
 //	PROTOTYPES
 
+void	CLIENT_ResetFloodTimers( void );
 void	CLIENTCOMMANDS_UserInfo( ULONG ulFlags );
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );
