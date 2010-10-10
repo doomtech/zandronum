@@ -2713,6 +2713,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	// If this player was eligible to get an assist, cancel that.
 	TEAM_CancelAssistsOfPlayer ( ulClient );
 
+	// [BB] Clear any cheats the player had.
+	players[ulClient].cheats = players[ulClient].cheats2 = 0;
+
 	// Destroy the actor attached to the player.
 	if ( players[ulClient].mo )
 	{
