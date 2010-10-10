@@ -4930,12 +4930,16 @@ bool P_NoWayTraverse (AActor *usething, fixed_t endx, fixed_t endy)
 void P_UseLines (player_t *player)
 {
 	angle_t angle;
+	fixed_t x1, y1;
 	fixed_t x2, y2;
 	bool foundline;
 
 	foundline = false;
 
 	angle = player->mo->angle >> ANGLETOFINESHIFT;
+	x1 = player->mo->x + (USERANGE>>FRACBITS)*finecosine[angle];
+	y1 = player->mo->y + (USERANGE>>FRACBITS)*finesine[angle];
+
 	x2 = player->mo->x + (USERANGE>>FRACBITS)*finecosine[angle]*2;
 	y2 = player->mo->y + (USERANGE>>FRACBITS)*finesine[angle]*2;
 
@@ -4954,7 +4958,7 @@ void P_UseLines (player_t *player)
 		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )) ||
 			!sec->SecActTarget || !sec->SecActTarget->TriggerAction (player->mo, spac)) &&
-			P_NoWayTraverse (player->mo, x2, y2) )
+			P_NoWayTraverse (player->mo, x1, y1))
 		{
 			S_Sound (player->mo, CHAN_VOICE, "*usefail", 1, ATTN_IDLE);
 
