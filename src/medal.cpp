@@ -817,6 +817,10 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 	bool bInvalid = false;
 	bool bHasIcon = true;
 
+	// [BB] If the player has no icon, he obviously doesn't have a carrier icon.
+	if ( pPlayer->pIcon == NULL )
+		return false;
+
 	// Verify that our current icon is valid.
 	if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon == false )
 	{
