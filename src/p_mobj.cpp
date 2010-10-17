@@ -4878,7 +4878,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		( p->bDeadSpectator == false ) && ( p->bSpectating == false ) )
 	{
 		unsigned an = mobj->angle >> ANGLETOFINESHIFT;
-		Spawn ("TeleportFog", mobj->x+20*finecosine[an], mobj->y+20*finesine[an], mobj->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+		// [BB] Save the pointer.
+		AActor *pFog = Spawn ("TeleportFog", mobj->x+20*finecosine[an], mobj->y+20*finesine[an], mobj->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+		// [BB] Clients spawn the fog on their own. Giving the fog the NETFL_ALLOWCLIENTSPAWN flag will prevent
+		// the server from telling the clients to spawn the fog again during a full update.
+		if ( pFog && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			pFog->ulNetworkFlags |= NETFL_ALLOWCLIENTSPAWN;
 	}
 
 	// [BB] Moved the exec.wad MAP01 "fix" up.

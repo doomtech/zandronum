@@ -88,6 +88,7 @@ latestzdoom branch
 -	- Fixed: The local client flood timers (e.g. for "changeteam") are not reset during error clean up. [Torr Samaho]
 -	- Fixed: The angle of a player is not set according to the spawn point after a 'nointermission' map change online. [Torr Samaho]
 -	- Fixed problems with A_CustomMissile on CLIENTSIDEONLY actors that happened when the spawning was blocked. [Torr Samaho]
+-	- Fixed: After a "changemap" map change two teleport fogs were spawned for each non-spectator player. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
