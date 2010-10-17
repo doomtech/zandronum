@@ -4367,8 +4367,12 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	{
 		if ( pPlayer->mo )
 		{
-			pPlayer->mo->angle = Angle;
-			pPlayer->mo->pitch = Pitch;
+			// [BB] Ignore the angle and pitch sent by the client if the client isn't authenticated yet.
+			// In this case the client still sends these values based on the previous map.
+			if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) {
+				pPlayer->mo->angle = Angle;
+				pPlayer->mo->pitch = Pitch;
+			}
 
 			// Makes sure the pitch is valid (should we kick them if it's not?)
 			if ( pPlayer->mo->pitch < ( -ANGLE_1 * 90 ))
