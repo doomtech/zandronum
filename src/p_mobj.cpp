@@ -4873,8 +4873,9 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 
 	// [BC] Don't spawn fog for dead spectators. They are spawned when they leave their
 	// body to disassociate with their corpse.
+	// [BB] Don't spawn fog for spectators at all.
 	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) &&
-		( p->bDeadSpectator == false ))
+		( p->bDeadSpectator == false ) && ( p->bSpectating == false ) )
 	{
 		unsigned an = mobj->angle >> ANGLETOFINESHIFT;
 		Spawn ("TeleportFog", mobj->x+20*finecosine[an], mobj->y+20*finesine[an], mobj->z + TELEFOGHEIGHT, ALLOW_REPLACE);

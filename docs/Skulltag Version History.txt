@@ -103,6 +103,7 @@ latestzdoom branch
 !	- Removed the "Player team" option from the offline skirmish team bot setup menu. This didn't have any effect and the player is supposed to select the team from the in game join menu anyway. [Torr Samaho]
 !	- Removed the "Botskill" option from the offline skirmish bot setup menus. This already can be configured in the main offline skirmish menu. [Torr Samaho]
 !	- Re-enabled the "resurrect" command in single player. [Torr Samaho]
+!	- Spectators don't spawn a teleport fog anymore when entering a map. Other clients didn't see this fog anyway when the spectator initially joined the server. [Torr Samaho]
 
 
 98c
