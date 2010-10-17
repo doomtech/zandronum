@@ -955,6 +955,12 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 //		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 //			return ( true );
 
+		// [BB] Pass through all other actors.
+		if (tm.thing->ulSTFlags & STFL_THRUACTORS)
+		{
+			return true;
+		}
+
 		// Check for a non-shootable mobj
 		if (thing->flags2 & MF2_NONSHOOTABLE)
 		{

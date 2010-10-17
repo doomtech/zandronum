@@ -2087,12 +2087,12 @@ explode:
 					mo->Destroy ();
 					return oldfloorz;
 				}
-				// [BB] Clients may not do this, the server tells them to explode the missile.
-				if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
+				// [BB] Clients may not explode the missile if it hit another actor, the server tells them to do so.
+				if ( ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) ) || ( mo->BlockingLine != NULL ) )
 					P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
 				// [BB] This should prevent the missile from getting stuck in the object it hit on the clients.
 				else
-					mo->flags &= ~MF_MISSILE;
+					mo->ulSTFlags |= STFL_THRUACTORS;
 				return oldfloorz;
 			}
 			else
