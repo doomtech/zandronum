@@ -967,6 +967,13 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 				{
 					missile->health=-2;
 				}
+
+				// [BB] The client did the spawning, so this has to be a client side only actor.
+				// Needs to be done regardless of whether the spawn was successful.
+				if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+					missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+
+				// [BB] Save whether the spawn was successfull.
 				bool bSucces = P_CheckMissileSpawn(missile);
 
 				if ( bSucces )
@@ -974,9 +981,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 					// [BC] If we're the server, tell clients to spawn the missile.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_SpawnMissile( missile );
-					// [BB] The client did the spawning, so this has to be a client side only actor.
-					else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
-						missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 				}
 			}
 		}
