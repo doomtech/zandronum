@@ -80,7 +80,6 @@ CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 // :((((((
 FPolyObj	*GetPolyobj( int polyNum );
 
-EXTERN_CVAR( Float, sv_gravity )
 EXTERN_CVAR( Float, sv_aircontrol )
 
 //*****************************************************************************
@@ -3266,7 +3265,10 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_fastweapons );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_maxlives );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_maxteams );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_gravity );
+		// [BB] The value of sv_gravity is irrelevant when sv_gravity hasn't been changed since the map start
+		// and the map has a custom gravity value in MAPINFO. level.gravity always contains the used gravity value,
+		// so we just send this one instead of sv_gravity.
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.gravity );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_aircontrol );
     }
 }
