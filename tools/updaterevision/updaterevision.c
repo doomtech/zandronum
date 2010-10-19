@@ -12,6 +12,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+// [BB] New #includes.
+#include <sys/stat.h>
 
 int main(int argc, char **argv)
 {
@@ -20,6 +22,8 @@ int main(int argc, char **argv)
 	unsigned long urev;
 	FILE *stream = NULL;
 	int gotrev = 0, needupdate = 1;
+	// [BB] Are we working with a SVN checkout?
+	int svnCheckout = 0;
 
 	if (argc != 3)
 	{
@@ -27,9 +31,25 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	// [BB] Try to figure out whether this is a SVN or a Hg checkout.
+	{
+		struct stat st;
+		char filename[1024];
+		sprintf ( filename, "%s/.svn/entries", argv[1] );
+		if ( stat ( filename, &st ) == 0 )
+			svnCheckout = 1;
+		// [BB] If stat failed we have to manually clear errno, otherwise the code below doesn't work.
+		else
+			errno = 0;
+	}
+
 	// Use svnversion to get the revision number. If that fails, pretend it's
 	// revision 0. Note that this requires you have the command-line svn tools installed.
-	sprintf (run, "svnversion -cn %s", argv[1]);
+	// [BB] Depending on whether this is a SVN or Hg checkout we have to use the appropriate tool.
+	if ( svnCheckout )
+		sprintf (run, "svnversion -cn %s", argv[1]);
+	else
+		sprintf (run, "hg identify -n %s", argv[1]); 
 	if ((name = tempnam(NULL, "svnout")) != NULL)
 	{
 #ifdef __APPLE__
@@ -75,6 +95,17 @@ int main(int argc, char **argv)
 		{
 			rev += 1;
 		}
+	}
+
+	// [BB] Workaround to keep the old SVN numbering on Hg repos: Increase the revision number
+	// we parsed by the offset between the Hg and the SVN repo version. Will be removed
+	// once we decide to ditch SVN completely.
+	if ( gotrev && ( svnCheckout == 0 ) )
+	{
+		unsigned long hgOffSet = 141;
+		unsigned long parsedRev = strtoul(rev, NULL, 10);
+		unsigned int localChanges = ( rev[strlen(rev) - 1] == 'M' );
+		sprintf ( rev, "%d%s", parsedRev + hgOffSet, localChanges ? "M" : "" );
 	}
 
 	stream = fopen (argv[2], "r");
