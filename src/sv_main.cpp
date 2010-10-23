@@ -1362,11 +1362,16 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	lCommand = NETWORK_ReadByte( pByteStream );
-	if ( lCommand != CLC_USERINFO )
+	// [BB] Make sure that the joining client sends the full user info (sending player class is not mandatory though).
+	if ( ( lCommand != CLC_USERINFO ) || ( ( NETWORK_ReadShort( pByteStream ) | USERINFO_PLAYERCLASS ) != USERINFO_ALL ) )
 	{
 		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO );
 		return;
 	}
+	// [BB] Since we already peaked in the stream to check for USERINFO_ALL, rewind the stream so
+	// that SERVER_GetUserInfo can parse it again.
+	else
+		pByteStream->pbStream -= 2;
 
 	// Read in the user's userinfo. If it returns false, the player was kicked for flooding
 	// (though this shouldn't happen anymore).
