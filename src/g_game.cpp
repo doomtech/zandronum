@@ -888,7 +888,7 @@ void G_AddViewPitch (int look)
 	}
 	// [BB] Allow spectators to freelook no matter what. Note: This probably causes some
 	// sky rendering errors in software mode.
-	if (!level.IsFreelookAllowed() && ( players[consoleplayer].bSpectating == false ))
+	if (!level.IsFreelookAllowed() && ( players[consoleplayer].bSpectating == false ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ))
 	{
 		LocalViewPitch = 0;
 	}

@@ -92,6 +92,7 @@ latestzdoom branch
 -	- Fixed: The server didn't enforce connecting clients to send their full userinfo, e.g. name, color, skin, etc. [Torr Samaho]
 -	- Fixed: After a "changemap" map change from a competitive game mode to an invasion map 3D floors didn't work properly. [Torr Samaho]
 -	- Fixed: Joining and chatting was not disabled during demo playback. [Torr Samaho]
+-	- Fixed: The local spectator player created by demo_spectatefreely was affected by freelook restrictions of the player who recorded the demo. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
