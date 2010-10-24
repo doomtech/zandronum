@@ -1463,7 +1463,7 @@ bool INVASION_PreventPlayersFromJoining( void )
 
 //*****************************************************************************
 // [BB]
-bool INVASION_IsMapThingInvasionSpot( FMapThing *mthing )
+bool INVASION_IsMapThingInvasionSpot( const FMapThing *mthing )
 {
 	if ( mthing == NULL )
 		return false;
