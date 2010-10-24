@@ -3521,7 +3521,9 @@ void M_StartControlPanel (bool makeSound)
 		S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	}
 
-	players[consoleplayer].bInConsole = true;
+	// [BB] Don't change the displayed console status when a demo is played.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		players[consoleplayer].bInConsole = true;
 
 	// [RC] Tell the server so we get an "in console" icon.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -3713,7 +3715,9 @@ void M_ClearMenus ()
 	M_DemoNoPlay = false;
 	BorderNeedRefresh = screen->GetPageCount ();
 
-	players[consoleplayer].bInConsole = false;
+	// [BB] Don't change the displayed console status when a demo is played.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		players[consoleplayer].bInConsole = false;
 
 	// [RC] Tell the server so our "in console" icon is removed.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
