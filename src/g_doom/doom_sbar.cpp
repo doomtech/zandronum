@@ -740,7 +740,7 @@ void DrawFullHUD_GameInformation()
 				szString );
 
 		// [BB] In cooperative games we want to see the kill count and the keys.
-		if ( cooperative )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
 		{
 			DrawFullScreenKeysST( bScale, ValWidth, ValHeight, ulCurXPos, ulCurYPos, 10 );
 		}

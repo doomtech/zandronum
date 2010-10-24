@@ -55,6 +55,7 @@
 #include "d_player.h"
 #include "deathmatch.h"
 #include "doomtype.h"
+#include "gamemode.h"
 #include "i_system.h"
 #include "s_sound.h"
 #include "sc_man.h"
@@ -347,7 +348,7 @@ void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFrag
 	}
 
 	// Potentially play the "3 frags left", etc. announcer sounds.
-	if (( lastmanstanding == false ) && ( teamlms == false ) && ( deathmatch ) && ( fraglimit ))
+	if (( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) && ( fraglimit ))
 	{
 		ANNOUNCER_PotentiallyPlayFragsLeftSound( fraglimit - lNewFragCount );
 	}
