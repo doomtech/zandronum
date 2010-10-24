@@ -4035,6 +4035,25 @@ void P_SetupLevel (char *lumpname, int position)
 	for ( i = 0; i < MAXPLAYERS; i++ )
 		playerstarts[i].type = 0;
 
+	// [BB] In case the map has invasion spots, we automatically switch to invasion. Since invasion allows
+	// 3D floors, we have to check this before calling P_Spawn3DFloors() and can't wait for GAME_CheckMode to do this.
+	if ( invasion == false )
+	{
+		const int numThings = !buildmap ? MapThingsConverted.Size() : numbuildthings;
+		// [BB] Make use of the TArray memory layout, i.e. internally the data is just stored like in a C array.
+		const FMapThing *pThings = ( !buildmap && MapThingsConverted.Size() > 0 ) ? &MapThingsConverted[0] : buildthings;
+		for ( int i = 0; i < numThings; ++i)
+		{
+			if ( INVASION_IsMapThingInvasionSpot ( &pThings[i] ) )
+			{
+				UCVarValue Val;
+				Val.Bool = true;
+				invasion.ForceSet( Val, CVAR_Bool );
+				break;
+			}
+		}
+	}
+
 	// Spawn 3d floors - must be done before spawning things so it can't be done in P_SpawnSpecials
 	P_Spawn3DFloors();
 
