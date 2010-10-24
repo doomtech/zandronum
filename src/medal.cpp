@@ -1120,7 +1120,8 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+		// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
+		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
 		{
 			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
 			{
