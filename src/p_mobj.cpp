@@ -5047,22 +5047,9 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		return NULL;
 	}
 
-	// [BC] Count invasion starts.
-
-	// [BC] LOL, i?
-	// find which type to spawn
-	i = DoomEdMap.FindType( mthing->type );
-	if ( i )
-	{
-		i = i->ActorInfo->GetReplacement( )->Class;
-
-		if (( i->IsDescendantOf( PClass::FindClass( "BaseMonsterInvasionSpot" ))) ||
-			( i->IsDescendantOf( PClass::FindClass( "BasePickupInvasionSpot" ))) ||
-			( i->IsDescendantOf( PClass::FindClass( "BaseWeaponInvasionSpot" ))))
-		{
-			GenericInvasionStarts.Push( *mthing );
-		}
-	}
+	// [BC/BB] Count invasion starts.
+	if ( INVASION_IsMapThingInvasionSpot( mthing ) )
+		GenericInvasionStarts.Push( *mthing );
 
 	// Convert Strife starts to Hexen-style starts
 	if (gameinfo.gametype == GAME_Strife && mthing->type >= 118 && mthing->type <= 127)

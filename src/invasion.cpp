@@ -1462,6 +1462,28 @@ bool INVASION_PreventPlayersFromJoining( void )
 }
 
 //*****************************************************************************
+// [BB]
+bool INVASION_IsMapThingInvasionSpot( FMapThing *mthing )
+{
+	if ( mthing == NULL )
+		return false;
+
+	const PClass *pType = DoomEdMap.FindType( mthing->type );
+	if ( pType )
+	{
+		pType = pType->ActorInfo->GetReplacement( )->Class;
+
+		if (( pType->IsDescendantOf( PClass::FindClass( "BaseMonsterInvasionSpot" ))) ||
+			( pType->IsDescendantOf( PClass::FindClass( "BasePickupInvasionSpot" ))) ||
+			( pType->IsDescendantOf( PClass::FindClass( "BaseWeaponInvasionSpot" ))))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static ULONG invasion_GetNumThingsThisWave( ULONG ulNumOnFirstWave, ULONG ulWave, bool bMonster )

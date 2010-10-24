@@ -162,6 +162,7 @@ void	INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease );
 void	INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster ); 
 
 bool	INVASION_PreventPlayersFromJoining( void );
+bool	INVASION_IsMapThingInvasionSpot( FMapThing *mthing );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
