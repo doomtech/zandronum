@@ -3007,6 +3007,13 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	if ( iChar != 'y' )
 		return;
 
+	// [BB] No joining while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't join during demo playback.\n" );
+		return;
+	}
+
 	// Inform the server that we wish to join the current game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{

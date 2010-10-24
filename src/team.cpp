@@ -2065,6 +2065,13 @@ CCMD( changeteam )
 {
 	LONG	lDesiredTeam;
 
+	// [BB] No joining while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't join or change your team during demo playback.\n" );
+		return;
+	}
+
 	// The server can't do this!
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;

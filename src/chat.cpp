@@ -51,6 +51,7 @@
 #include "c_console.h"
 #include "c_dispatch.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "chat.h"
 #include "doomstat.h"
@@ -711,6 +712,13 @@ CCMD( say )
 	ULONG		ulIdx;
 	FString		ChatString;
 
+	// [BB] No chatting while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't chat during demo playback.\n" );
+		return;
+	}
+
 	if ( argv.argc( ) < 2 )
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -745,6 +753,13 @@ CCMD( say_team )
 {
 	ULONG		ulIdx;
 	FString		ChatString;
+
+	// [BB] No chatting while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't chat during demo playback.\n" );
+		return;
+	}
 
 	// Make sure we have teammates to talk to before we use team chat.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
