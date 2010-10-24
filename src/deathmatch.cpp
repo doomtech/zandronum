@@ -51,6 +51,7 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "cooperative.h"
 #include "deathmatch.h"
@@ -300,6 +301,13 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 //
 CCMD( spectate )
 {
+	// [BB] When playing a demo enter free spectate mode.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		C_DoCommand( "demo_spectatefreely" );
+		return;
+	}
+
 	// [BB] The server can't use this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
