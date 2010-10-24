@@ -2820,6 +2820,13 @@ CCMD (kill)
 //
 CCMD( taunt )
 {
+	// [BB] No taunting while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't taunt during demo playback.\n" );
+		return;
+	}
+
 	if ( PLAYER_Taunt( &players[consoleplayer] ))
 	{
 		// Tell the server we taunted!
