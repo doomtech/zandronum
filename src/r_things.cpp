@@ -2367,7 +2367,8 @@ void R_SortVisSprites (int (STACK_ARGS *compare)(const void *, const void *), si
 //
 // R_DrawSprite
 //
-void R_DrawSprite (vissprite_t *spr)
+// [BB] Added dummy argument to stop the current wallhack.
+void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 {
 	static short clipbot[MAXWIDTH];
 	static short cliptop[MAXWIDTH];
@@ -2599,7 +2600,8 @@ void R_DrawMasked (void)
 	{
 		for (i = vsprcount; i > 0; i--)
 		{
-			R_DrawSprite (spritesorter[i-1]);
+			// [BB] Added dummy argument to stop the current wallhack.
+			R_DrawSprite (NULL, spritesorter[i-1]);
 		}
 	}
 
