@@ -2361,7 +2361,7 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 
 	// Make the player unshootable, etc.
 	pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
-	pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
+	pPlayer->mo->flags &= ~(MF_CORPSE|MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
 	pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
 	pPlayer->mo->flags3 = MF3_NOBLOCKMONST;
 	pPlayer->mo->flags4 = 0;
