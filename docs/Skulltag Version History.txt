@@ -91,7 +91,7 @@ latestzdoom branch
 -	- Fixed: After a "changemap" map change two teleport fogs were spawned for each non-spectator player. [Torr Samaho]
 -	- Fixed: The server didn't enforce connecting clients to send their full userinfo, e.g. name, color, skin, etc. [Torr Samaho]
 -	- Fixed: After a "changemap" map change from a competitive game mode to an invasion map 3D floors didn't work properly. [Torr Samaho]
--	- Fixed: Joining, taunting and chatting was not disabled during demo playback. [Torr Samaho]
+-	- Fixed: Joining, taunting, chatting and weapnext/weapprev were not disabled during demo playback. [Torr Samaho]
 -	- Fixed: The local spectator player created by demo_spectatefreely was affected by freelook restrictions of the player who recorded the demo. [Torr Samaho]
 -	- Fixed: Opening / closing the console or the menu during demo playback affected the console icon status of the player who recorded the demo. [Torr Samaho]
 -	- When a dead player turned into a spectator, the spectator body still had the CORPSE flag. [Torr Samaho]

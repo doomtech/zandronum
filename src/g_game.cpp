@@ -386,6 +386,13 @@ CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 // [BB] Helper function that collects the duplicate code of weapnext and weapprev
 void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 {
+	// [BB] No weapnext/weapprev while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't use weapnext or weapprev during demo playback.\n" );
+		return;
+	}
+
 	// [BC] This can be NULL if we're a spectator.
 	if ( pSelectedWeapon == NULL )
 		return;
