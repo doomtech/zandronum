@@ -49,6 +49,8 @@
 #include "gl/gl_values.h"
 #include "thingdef/thingdef.h"
 #include "i_system.h"
+// [BB] New #includes.
+#include "network.h"
 
 EXTERN_CVAR (Float, gl_lights_size);
 EXTERN_CVAR (Bool, gl_lights_additive);
@@ -183,6 +185,13 @@ void ADynamicLight::PostBeginPlay()
 //==========================================================================
 void ADynamicLight::Activate(AActor *activator)
 {
+	// [BB] The server never displays dynamic light, so just keep them deactivated.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		flags2 |= MF2_DORMANT;
+		return;
+	}
+
 	//Super::Activate(activator);
 	flags2&=~MF2_DORMANT;	
 
