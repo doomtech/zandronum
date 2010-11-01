@@ -333,7 +333,7 @@ CUSTOM_CVAR( String, sv_rconpassword, "", CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( Int, sv_maxpacketsize, 1400, CVAR_ARCHIVE )
+CUSTOM_CVAR( Int, sv_maxpacketsize, 1024, CVAR_ARCHIVE )
 {
 	if ( self > MAX_UDP_PACKET )
 	{

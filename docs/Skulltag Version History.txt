@@ -114,6 +114,7 @@ latestzdoom branch
 !	- Re-enabled the "resurrect" command in single player. [Torr Samaho]
 !	- Spectators don't spawn a teleport fog anymore when entering a map. Other clients didn't see this fog anyway when the spectator initially joined the server. [Torr Samaho]
 !	- Using "spectate" while a client side demo is played now does the same as "demo_spectatefreely". [Torr Samaho]
+!	- Decreased the default value of sv_maxpacketsize to 1024 (the default used in 98b and earlier versions), the higher value used in 98c caused "waiting for server" problems on some servers. [Torr Samaho]
 
 
 98c
