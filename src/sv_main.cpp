@@ -1348,7 +1348,8 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// The server will decide his team!
-		if ( dmflags2 & DF2_NO_TEAM_SELECT )
+		// [BB] But don't put spectators on a team!
+		if ( ( dmflags2 & DF2_NO_TEAM_SELECT ) && ( players[g_lCurrentClient].bSpectating == false ) )
 		{
 			players[g_lCurrentClient].bOnTeam = true;
 			players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );

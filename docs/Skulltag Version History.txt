@@ -98,6 +98,7 @@ latestzdoom branch
 -	- Fixed: When a dead player turned into a spectator, the spectator body still had the CORPSE flag. [Torr Samaho]
 -	- Fixed: The ACS command UnMorphActor caused a crash when it was called with (tid == 0) and the world as activator. [Torr Samaho]
 -	- Fixed: When sv_noteamselect was true in a game mode without teams, every player (including spectators) was put on a team after a "changemap" map change. [Torr Samaho]
+-	- Fixed: When sv_noteamselect was true in a game mode with teams, players connecting as spectators were put on a team even though being a spectator. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
