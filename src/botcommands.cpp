@@ -2444,10 +2444,8 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && ( pBot->GetPlayer( )->bDeadSpectator ))
 		return;
 
-	// If there aren't currently any slots available, just put the person in line.
-	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
-		( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) ) ||
-		(( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )))
+	// [BB] If players aren't allowed to join at the moment, just put the bot in line.
+	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
 		JOINSLOT_t	JoinSlot;
 
