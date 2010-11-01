@@ -119,6 +119,7 @@ void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
 bool		GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void );
 bool		GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient );
+bool		GAMEMODE_PreventPlayersFromJoining( void );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );

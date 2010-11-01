@@ -555,6 +555,33 @@ bool GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient )
 
 //*****************************************************************************
 //
+bool GAMEMODE_PreventPlayersFromJoining( void )
+{
+	// [BB] No free player slots.
+	if ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) )
+		return true;
+
+	// [BB] Duel in progress.
+	if ( duel && ( DUEL_CountActiveDuelers( ) >= 2 ) )
+		return true;
+
+	// [BB] LMS in progress.
+	if (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
+		return true;
+
+	// [BB] Survival in progress.
+	if ( survival && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
+		return true;
+
+	// [BB] Check invasion.
+	if ( INVASION_PreventPlayersFromJoining() )
+		return true;
+
+	return false;
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
