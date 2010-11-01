@@ -376,9 +376,6 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 		if ( ulWhereToInsertMedal == 0 )
 		{
 			medal_TriggerMedal( ulPlayer, ulMedal );
-
-			if ( pPlayer->pIcon )
-				pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
 		}
 	}
 
