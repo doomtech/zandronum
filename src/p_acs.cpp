@@ -6774,7 +6774,8 @@ int DLevelScript::RunScript ()
 				bool force = !!STACK(1);
 				int changes = 0;
 
-				if (tag == 0)
+				// [BB] Added activator check.
+				if ( (tag == 0) && (activator != NULL) )
 				{
 					if (activator->player)
 					{
