@@ -1119,7 +1119,8 @@ void G_DoLoadLevel (int position, bool autosave)
 		}
 	}
 
-	if ( dmflags2 & DF2_NO_TEAM_SELECT )
+	// [BB] Only assign players to a team on a game mode that has teams.
+	if ( ( dmflags2 & DF2_NO_TEAM_SELECT ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
 	{
 		LONG	lNumNeedingTeam;
 		LONG	lRand;
