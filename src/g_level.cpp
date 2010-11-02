@@ -1146,7 +1146,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				do
 				{
 					lRand = ( M_Random( ) % MAXPLAYERS );
-				} while (( playeringame[lRand] == false ) || ( players[i].bSpectating ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
+				} while (( playeringame[lRand] == false ) || ( players[lRand].bSpectating ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
 
 
 				// [BB] Note: The team starts for the new map are not initialized yet, so we can't take them into account when selecting the team here.
