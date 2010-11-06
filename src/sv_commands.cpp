@@ -3269,7 +3269,8 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 		// and the map has a custom gravity value in MAPINFO. level.gravity always contains the used gravity value,
 		// so we just send this one instead of sv_gravity.
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.gravity );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_aircontrol );
+		// [BB] sv_aircontrol needs to be handled similarly to sv_gravity.
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, static_cast<float>(level.aircontrol) / 65536.f );
     }
 }
 
