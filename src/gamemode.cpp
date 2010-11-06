@@ -409,6 +409,10 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		}
 
 		GAMEMODE_SpawnPlayer( ulIdx );
+
+		// [BB] If he's a bot, tell him that he successfully joined.
+		if ( players[ulIdx].bIsBot && players[ulIdx].pSkullBot )
+			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
 	}
 
 	// [BB] Dead spectators were allowed to use chasecam, but are not necessarily allowed to use it
