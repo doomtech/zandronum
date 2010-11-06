@@ -347,7 +347,11 @@ void CLIENTDEMO_ReadPacket( void )
 
 		// End of message.
 		if ( lCommand == -1 )
+		{
+			// [BB] When we reach the end of the demo stream, we need to stop the demo.
+			CLIENTDEMO_FinishPlaying( );
 			break;
+		}
 
 		switch ( lCommand )
 		{

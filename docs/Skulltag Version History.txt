@@ -101,6 +101,7 @@ latestzdoom branch
 -	- Fixed: When sv_noteamselect was true in a game mode with teams, players connecting as spectators were put on a team even though being a spectator. The same happened after a "changemap" map change. [Torr Samaho]
 -	- Fixed: When a player carrying a flag/skull/terminator sphere/hellstone gets a medal, the medal isn't displayed as floaty icon, but the floaty icon corresponding to the carried item fades out when the awarded medal would. [Torr Samaho]
 -	- Fixed a crash problem of the Windows server related to dynamic lights. [Torr Samaho]
+-	- Fixed: The playback of improperly closed client side demos (a crash happening during the recording can cause demos to be improperly closed) was not properly stopped at the end of the demo. [Torr Samaho]
 !	- When adding a ban for an address that is already banned or when updating the expiration time of an existing ban, the comment of the existing ban is now updated. [Torr Samaho, SuperGod]
 !	- When a monster that is a friend of a player kills something, the corresponding player is treated as source of the kill (code submission from kgsws). [Torr Samaho]
 !	- The CVAR sv_enforcebans now only affects local bans, enforcement of master server bans is still controlled by the CVAR sv_enforcemasterbanlist. [Torr Samaho, SuperGod]
