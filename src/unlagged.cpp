@@ -180,8 +180,10 @@ void UNLAGGED_Reconcile( AActor *actor )
 				fixed_t serverFloorZ = actor->floorz;
 				fixed_t serverCeilingZ = actor->ceilingz;
 
-				//reset floorz/ceilingz with SetOrigin call
-				actor->SetOrigin( actor->x, actor->y, actor->z );
+				// [BB] Try to reset floorz/ceilingz to account for the fact that the sector the actor is in was possibly reconciled.
+				actor->floorz = actor->Sector->floorplane.ZatPoint (actor->x, actor->y);
+				actor->ceilingz = actor->Sector->ceilingplane.ZatPoint (actor->x, actor->y);
+				P_FindFloorCeiling(actor, false);
 
 				//force the shooter out of the floor/ceiling - a client has to mispredict in this case,
 				//because not mispredicting would mean the client would think he's inside the floor/ceiling
