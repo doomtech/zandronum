@@ -15,7 +15,7 @@
 latestzdoom branch
 ------------------
 
-*+	- Added Spleen's patch for basic unlagged support. [Torr Samaho]
+*+	- Added unlagged support for player positions (controlled by the new CVAR sv_nounlagged). Clients can deactivate unlagged for their own attacks by setting cl_unlagged to 0. [Spleen, Torr Samaho, Eruanna]
 +	- Extended the chat substitution by $location, the name of the current player position as specified by SECTINFO. [Torr Samaho]
 +	- Extended coop info to work in team games (only info about the team-mates is shown). [Torr Samaho]
 +	- Added kgsws' Weapon DropItem patch. [Torr Samaho]
