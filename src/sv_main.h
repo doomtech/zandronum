@@ -265,6 +265,12 @@ typedef struct
 	// When the client authenticates his level, should enter scripts be run as well?
 	bool			bRunEnterScripts;
 
+	// [BB] Did we notice anything suspicious about this client?
+	bool			bSuspicious;
+
+	// [BB] Amount of the consistency warnings the client caused since connecting to the server.
+	ULONG			ulNumConsistencyWarnings;
+
 	// What is the name of the client's skin?
 	char			szSkin[MAX_SKIN_NAME+1];
 

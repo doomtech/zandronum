@@ -909,6 +909,18 @@ const PClass *NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex )
 
 //*****************************************************************************
 //
+SDWORD NETWORK_Check ( ticcmd_t *pCmd )
+{
+	FString string;
+	string.AppendFormat ( "%d%d%d", pCmd->ucmd.pitch, pCmd->ucmd.yaw, pCmd->ucmd.roll );
+	FString hash;
+	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE*>(string.GetChars()), string.Len(), hash );
+
+	return hash[2] + ( hash[0] << 8 ) + ( hash[5] << 16 ) + ( hash[7] << 24 );
+}
+
+//*****************************************************************************
+//
 int NETWORK_AttenuationFloatToInt ( const float fAttenuation )
 {
 	if ( fAttenuation == ATTN_NONE )

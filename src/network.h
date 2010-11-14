@@ -582,6 +582,9 @@ void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 const char		*NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex );
 const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 
+// [BB] Generate a checksum from a ticcmd_t.
+SDWORD			NETWORK_Check ( ticcmd_t *pCmd );
+
 // [BB] Sound attenuation is a float, but we only want to sent a byte for the 
 // attenuation to instructs clients to play a sound. The enum is used for the
 // conversion of the neccessary attenuation values.

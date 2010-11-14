@@ -1145,6 +1145,9 @@ CCMD (playerinfo)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					infoString.AppendFormat("\\cj - IP %s", NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
+					// [BB] If we detected suspicious behavior of this client, print this now.
+					if ( SERVER_GetClient( i )->bSuspicious )
+						infoString.AppendFormat ( " * %d", SERVER_GetClient( i )->ulNumConsistencyWarnings );
 				}
 
 				Printf("%s\n", infoString.GetChars());
