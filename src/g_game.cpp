@@ -237,6 +237,9 @@ static	ULONG	g_ulEndLevelDelay = 0;
 // [BC] How many ticks until we announce various messages?
 static	ULONG	g_ulLevelIntroTicks = 0;
 
+// [BB]
+extern SDWORD g_sdwCheckCmd;
+
 EXTERN_CVAR (Int, team)
 
 // [RH] Allow turbo setting anytime during game
@@ -875,6 +878,11 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 
 	cmd->ucmd.forwardmove <<= 8;
 	cmd->ucmd.sidemove <<= 8;
+
+	// [BB] The client calculates a checksum of the ticcmd just built. This
+	// should allow us to detect if the ticcmd is manipulated later.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		g_sdwCheckCmd = NETWORK_Check ( cmd );
 }
 
 //[Graf Zahl] This really helps if the mouse update rate can't be increased!

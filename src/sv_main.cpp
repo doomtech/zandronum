@@ -4310,6 +4310,24 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	Angle = NETWORK_ReadLong( pByteStream );
 	Pitch = NETWORK_ReadLong( pByteStream );
 
+	// [BB] Extra scope to create a local variable.
+	{
+		const SDWORD check = NETWORK_ReadLong( pByteStream );
+#ifdef LOG_SUSPICIOUS_CLIENTS
+		// [BB] If the received checksum doesn't match the checksum of the received ticcmd,
+		// something (e.g. an aimbot) most likely manipulated the ticcmd after it was generated.
+		if ( check != NETWORK_Check ( pCmd ) )
+		{
+			if ( SERVER_GetClient( g_lCurrentClient )->bSuspicious == false )
+			{
+				Printf ( "Warning: Inconsistency in packet received from client %d (IP: %s, name: %s)\n", g_lCurrentClient, NETWORK_AddressToString( SERVER_GetClient( g_lCurrentClient )->Address ), players[g_lCurrentClient].userinfo.netname );
+				SERVER_GetClient( g_lCurrentClient )->bSuspicious = true;
+			}
+			SERVER_GetClient( g_lCurrentClient )->ulNumConsistencyWarnings++;
+		}
+#endif
+	}
+
 	// If the client is attacking, he always sends the name of the weapon he's using.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{

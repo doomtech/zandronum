@@ -68,6 +68,7 @@ static	ULONG	g_ulLastChangeTeamTime = 0;
 static	ULONG	g_ulLastSuicideTime = 0;
 static	ULONG	g_ulLastJoinTime = 0;
 static	ULONG	g_ulLastDropTime = 0;
+SDWORD g_sdwCheckCmd = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -236,6 +237,8 @@ void CLIENTCOMMANDS_ClientMove( void )
 
 	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].mo->angle );
 	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].mo->pitch );
+	// [BB] Send the checksum of our ticcmd we calculated when we originally generated the ticcmd from the user input.
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, g_sdwCheckCmd );
 
 	// Attack button.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
