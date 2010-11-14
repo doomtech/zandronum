@@ -562,7 +562,7 @@ bool GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient )
 bool GAMEMODE_PreventPlayersFromJoining( void )
 {
 	// [BB] No free player slots.
-	if ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) )
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) ) )
 		return true;
 
 	// [BB] Duel in progress.
