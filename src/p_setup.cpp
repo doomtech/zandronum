@@ -4132,6 +4132,10 @@ void P_SetupLevel (char *lumpname, int position)
 				{
 					players[i].bSpectating = true;
 
+					// [BB] If we turned a player on a team into a spectator, remove the team affiliation.
+					if ( players[i].bOnTeam && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+						PLAYER_SetTeam( &players[i], teams.Size( ), true );
+
 					// [BB] In duel the players should keep their position in line after a "changemap"
 					// map change.
 					if ( duel == false )
