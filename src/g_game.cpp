@@ -979,7 +979,9 @@ static void ChangeSpy (bool forward)
 	}
 
 	// We may not be allowed to spy on anyone.
-	if (dmflags2 & DF2_DISALLOW_SPYING)
+	// [SP] Ignore this condition if playing demo or spectating.
+	if ( (dmflags2 & DF2_DISALLOW_SPYING) && ( CLIENTDEMO_IsPlaying( ) == false ) &&
+		( players[consoleplayer].bSpectating == false ))
 		return;
 
 	// [BC] Check a wide array of conditions to see if this is legal.
@@ -1001,59 +1003,62 @@ static void ChangeSpy (bool forward)
 	int pnum = players[consoleplayer].camera->player - players;
 	int step = forward ? 1 : -1;
 
-	// [BC] Special conditions for team LMS.
-	if (( teamlms ) && (( lmsspectatorsettings & LMS_SPF_VIEW ) == false ))
+	// [SP] Let's ignore special LMS settigns if we're playing a demo. Otherwise, we need to enforce
+	// LMS rules for spectators using spy.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
 	{
-		// If this player is a true spectator (aka not on a team), don't allow him to change spy.
-		if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
+		// [BC] Special conditions for team LMS.
+		if (( teamlms ) && (( lmsspectatorsettings & LMS_SPF_VIEW ) == false ))
+		{
+			// If this player is a true spectator (aka not on a team), don't allow him to change spy.
+			if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
+			{
+				players[consoleplayer].camera = players[consoleplayer].mo;
+				FinishChangeSpy( consoleplayer );
+				return;
+			}
+
+			// Break if the player isn't on a team.
+			if ( players[consoleplayer].bOnTeam == false )
+			{
+				players[consoleplayer].camera = players[consoleplayer].mo;
+				FinishChangeSpy( consoleplayer );
+				return;
+			}
+
+			// Loop through all the players, and stop when we find one that's on our team.
+			do
+			{
+				pnum += step;
+				pnum &= MAXPLAYERS-1;
+
+				// Skip players not in the game.
+				if ( playeringame[pnum] == false )
+					continue;
+
+				// Skip other spectators.
+				if ( players[pnum].bSpectating )
+					continue;
+
+				// Skip players not on our team.
+				if (( players[pnum].bOnTeam == false ) || ( players[pnum].ulTeam != players[consoleplayer].ulTeam ))
+					continue;
+
+				break;
+			} while ( pnum != consoleplayer );
+
+			players[consoleplayer].camera = players[pnum].mo;
+			FinishChangeSpy( pnum );
+			return;
+		}
+		// [BC] Don't allow spynext in LMS when the spectator settings forbid it.
+		if (( lastmanstanding ) && (( lmsspectatorsettings & LMS_SPF_VIEW ) == false ))
 		{
 			players[consoleplayer].camera = players[consoleplayer].mo;
 			FinishChangeSpy( consoleplayer );
 			return;
 		}
-
-		// Break if the player isn't on a team.
-		if ( players[consoleplayer].bOnTeam == false )
-		{
-			players[consoleplayer].camera = players[consoleplayer].mo;
-			FinishChangeSpy( consoleplayer );
-			return;
-		}
-
-		// Loop through all the players, and stop when we find one that's on our team.
-		do
-		{
-			pnum += step;
-			pnum &= MAXPLAYERS-1;
-
-			// Skip players not in the game.
-			if ( playeringame[pnum] == false )
-				continue;
-
-			// Skip other spectators.
-			if ( players[pnum].bSpectating )
-				continue;
-
-			// Skip players not on our team.
-			if (( players[pnum].bOnTeam == false ) || ( players[pnum].ulTeam != players[consoleplayer].ulTeam ))
-				continue;
-
-			break;
-		} while ( pnum != consoleplayer );
-
-		players[consoleplayer].camera = players[pnum].mo;
-		FinishChangeSpy( pnum );
-		return;
 	}
-
-	// [BC] Don't allow spynext in LMS when the spectator settings forbid it.
-	if (( lastmanstanding ) && (( lmsspectatorsettings & LMS_SPF_VIEW ) == false ))
-	{
-		players[consoleplayer].camera = players[consoleplayer].mo;
-		FinishChangeSpy( consoleplayer );
-		return;
-	}
-
 	// [BC] Always allow spectator spying. [BB] Same when playing a demo.
 	if ( players[consoleplayer].bSpectating || CLIENTDEMO_IsPlaying( ) )
 	{
