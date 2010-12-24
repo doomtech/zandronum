@@ -2517,7 +2517,16 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 		// If there's a join password, the player should start as a spectator.
 		Val = sv_joinpassword.GetGenericRep( CVAR_String );
 		if (( sv_forcejoinpassword ) && ( strlen( Val.String )))
-			return ( true );
+		{
+			// [BB] Only force the player to start as spectator if he didn't already join.
+			// In that case the join password was already checked.
+			const ULONG ulPlayer = static_cast<ULONG> ( pPlayer - players );
+			if ( SERVER_IsValidClient( ulPlayer ) == false )
+				return ( true );
+
+			if ( ( SERVER_GetClient( ulPlayer )->State < CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) || pPlayer->bSpectating )
+				return ( true );
+		}
 
 		// If the number of players in the game exceeds sv_maxplayers, spawn as a spectator.
 		Val = sv_maxplayers.GetGenericRep( CVAR_Int );

@@ -19,6 +19,7 @@ latestzdoom branch
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
+!	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
 
 
 98d
