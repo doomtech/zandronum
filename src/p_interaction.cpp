@@ -2521,10 +2521,15 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 			// [BB] Only force the player to start as spectator if he didn't already join.
 			// In that case the join password was already checked.
 			const ULONG ulPlayer = static_cast<ULONG> ( pPlayer - players );
-			if ( SERVER_IsValidClient( ulPlayer ) == false )
+			if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 				return ( true );
 
-			if ( ( SERVER_GetClient( ulPlayer )->State < CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) || pPlayer->bSpectating )
+			// [BB] If the player is already spectating, he should still spawn as spectator.
+			if ( pPlayer->bSpectating )
+				return ( true );
+
+			// [BB] If this is a client that hasn't been spawned yet, he didn't pass the password check yet, so force him to start as spectator.
+			if ( ( pPlayer->bIsBot == false ) && ( SERVER_GetClient( ulPlayer )->State < CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
 				return ( true );
 		}
 
