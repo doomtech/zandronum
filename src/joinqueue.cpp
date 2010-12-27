@@ -248,18 +248,8 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	if ( g_lJoinQueue[0].ulPlayer == MAXPLAYERS )
 		return;
 
-	// Don't allow joining during LMS or team LMS games.
-	if (( lastmanstanding || teamlms ) &&
-		(( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
-		return;
-
-	// Don't allow joining during survival games.
-	if (( survival ) &&
-		(( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
-		return;
-
-	// [BB] Don't allow joining during survival invasion games.
-	if ( INVASION_PreventPlayersFromJoining() )
+	// [BB] Players are not allowed to join.
+	if ( GAMEMODE_PreventPlayersFromJoining() )
 		return;
 
 	// Try to find the next person in line.
@@ -274,18 +264,9 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 			break;
 		}
 
-		// No more room for an additional player.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( sv_maxplayers >= 0 ) &&
-			( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= (ULONG)sv_maxplayers ))
-		{
+		// [BB] Since we possibly just let somebody waiting in line join, check if more persons are allowed to join now.
+		if ( GAMEMODE_PreventPlayersFromJoining() )
 			break;
-		}
-		if (( duel ) &&
-			( DUEL_CountActiveDuelers( ) >= 2 ))
-		{
-			break;
-		}
 
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
