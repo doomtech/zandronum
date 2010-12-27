@@ -3051,6 +3051,24 @@ void GAME_CheckMode( void )
 		StatusBar->AttachToPlayer( &players[consoleplayer] );
 		StatusBar->NewGame( );
 	}
+
+	// [BB] Since we possibly just changed the game mode, make sure that players are not on a team anymore
+	// if the current game mode doesn't have teams.
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) == false )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			PLAYER_SetTeam( &players[ulIdx], teams.Size( ), true );
+	}
+	// [BB] If we are using teams and the teams are supposed to be selected automatically, select the team
+	// for all non-spectator players that are not on a team yet now.
+	else if ( dmflags2 & DF2_NO_TEAM_SELECT ) 
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].bOnTeam == false ) )
+				PLAYER_SetTeam( &players[ulIdx], TEAM_ChooseBestTeamForPlayer( ), true );
+		}
+	}
 }
 
 //*****************************************************************************
