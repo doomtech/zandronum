@@ -4685,13 +4685,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	}
 
 	// If there aren't currently any slots available, just put the person in line.
-	Val = sv_maxplayers.GetGenericRep( CVAR_Int );
-	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
-		( static_cast<signed> (SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS )) >= Val.Int ) ||
-		( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) ||
-		( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED ) ||
-		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
-		( INVASION_PreventPlayersFromJoining() ) )
+	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
 		JOINSLOT_t	JoinSlot;
 
