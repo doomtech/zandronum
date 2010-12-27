@@ -179,6 +179,7 @@ static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPSprite( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerBlend( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerMaxHealth( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerLivesLeft( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
@@ -547,6 +548,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERPSPRITE",
 	"SVC_SETPLAYERBLEND",
 	"SVC_SETPLAYERMAXHEALTH",
+	"SVC_SETPLAYERLIVESLEFT"
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
@@ -1816,6 +1818,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERMAXHEALTH:
 
 		client_SetPlayerMaxHealth( pByteStream );
+		break;
+	case SVC_SETPLAYERLIVESLEFT:
+
+		client_SetPlayerLivesLeft( pByteStream );
 		break;
 	case SVC_UPDATEPLAYERPING:
 
@@ -5034,6 +5040,21 @@ static void client_SetPlayerMaxHealth( BYTESTREAM_s *pByteStream )
 		return;
 
 	players[ulPlayer].mo->MaxHealth = lMaxHealth;
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerLivesLeft( BYTESTREAM_s *pByteStream )
+{
+	// [BB] Read in the player and the new LivesLeft.
+	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	ULONG ulLivesLeft =  NETWORK_ReadByte( pByteStream );
+
+	// [BB] Check to make sure everything is valid. If not, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	players[ulPlayer].ulLivesLeft = ulLivesLeft;
 }
 
 //*****************************************************************************
