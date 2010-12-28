@@ -754,7 +754,7 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 			// So restore ulLivesLeft after a map change.
 			if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
 			{
-				player->ulLivesLeft = sv_maxlives - 1;
+				PLAYER_SetLivesLeft ( player, sv_maxlives - 1 );
 			}
 
 			// If this is co-op, respawn any dead players now so they can

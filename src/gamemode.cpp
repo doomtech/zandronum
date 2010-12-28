@@ -395,7 +395,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		players[ulIdx].bDeadSpectator = false;
 		if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
 		{
-			players[ulIdx].ulLivesLeft = sv_maxlives - 1;
+			PLAYER_SetLivesLeft ( &players[ulIdx], sv_maxlives - 1 );
 		}
 		players[ulIdx].playerstate = Playerstate;
 

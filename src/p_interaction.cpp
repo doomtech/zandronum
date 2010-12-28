@@ -2713,6 +2713,20 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon )
 
 //*****************************************************************************
 //
+void PLAYER_SetLivesLeft( player_t *pPlayer, ULONG ulLivesLeft )
+{
+	// [BB] Validity check.
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->ulLivesLeft = ulLivesLeft;
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetPlayerLivesLeft ( static_cast<ULONG> ( pPlayer - players ) );
+}
+
+//*****************************************************************************
+//
 bool PLAYER_IsAliveOrCanRespawn( player_t *pPlayer )
 {
 	// [BB] Validity check.

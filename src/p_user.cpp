@@ -2973,7 +2973,7 @@ void P_DeathThink (player_t *player)
 			// [BB] The player will be reborn, so take a way one life.
 			if ( player->ulLivesLeft > 0 )
 			{
-				player->ulLivesLeft--;
+				PLAYER_SetLivesLeft ( player, player->ulLivesLeft - 1 );
 			}
 		}
 //		else if ( player->pSkullBot )
