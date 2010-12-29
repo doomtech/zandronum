@@ -668,7 +668,7 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 
 		// Now draw the patch.
 		HUD_DrawTexture( TexMan( pAmmo->Icon ),
-			( ( bScale ? ValWidth.Int : SCREENWIDTH )+ ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2,
+			( screenWidth + ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2,
 			ulCurYPos );
 	}
 
@@ -685,14 +685,8 @@ void DrawFullHUD_Rune()
 
 	if (( pInventory ) && ( pInventory->Icon.isValid() ))
 	{
-		if ( bScale )
-			ulCurXPos = ValWidth.Int * 1 / 4;
-		else
-			ulCurXPos = SCREENWIDTH * 1 / 4;
-		if ( bScale )
-			ulCurYPos = ValHeight.Int - 4;
-		else
-			ulCurYPos = SCREENHEIGHT - 4;
+		ulCurXPos = screenWidth * 1 / 4;
+		ulCurYPos = screenHeight - 4;
 
 		HUD_DrawTexture( TexMan( pInventory->Icon ),
 			ulCurXPos,
@@ -703,10 +697,7 @@ void DrawFullHUD_Rune()
 void DrawFullHUD_GameInformation()
 {
 	// Draw the fragcount/killcount/wincount, etc.
-	if ( bScale )
-		ulCurXPos = ValWidth.Int - 4;
-	else
-		ulCurXPos = SCREENWIDTH - 4;
+	ulCurXPos = screenWidth - 4;
 	ulCurYPos = 4;
 	if (deathmatch || teamgame || invasion || (cooperative && ( NETWORK_GetState( ) != NETSTATE_SINGLE )))
 	{
@@ -742,13 +733,13 @@ void DrawFullHUD_GameInformation()
 		// [BB] In cooperative games we want to see the kill count and the keys.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
 		{
-			DrawFullScreenKeysST( bScale, ValWidth, ValHeight, ulCurXPos, ulCurYPos, 10 );
+			DrawFullScreenKeysST( ulCurXPos, ulCurYPos, 10 );
 		}
 	}
 	// Otherwise, draw the keys.
 	else
 	{
-		DrawFullScreenKeysST( bScale, ValWidth, ValHeight, ulCurXPos, ulCurYPos );
+		DrawFullScreenKeysST( ulCurXPos, ulCurYPos );
 	}
 	// [RC] Restructured for greater intellegence
 
@@ -769,14 +760,8 @@ void DrawFullHUD_GameInformation()
 			// If the player is carrying any of these "flags", draw an indicator.
 			if ( pInventory )
 			{
-				if ( bScale )
-					ulCurXPos = ValWidth.Int * 3 / 4;
-				else
-					ulCurXPos = SCREENWIDTH * 3 / 4;
-				if ( bScale )
-					ulCurYPos = ValHeight.Int - 4;
-				else
-					ulCurYPos = SCREENHEIGHT - 4;
+				ulCurXPos = screenWidth * 3 / 4;
+				ulCurYPos = screenHeight - 4;
 
 				HUD_DrawTexture( TexMan( pInventory->Icon ),
 					ulCurXPos,
@@ -786,10 +771,7 @@ void DrawFullHUD_GameInformation()
 
 		// Also draw the current score in CTF/ST.
 		ulCurXPos = 8;
-		if ( bScale )
-			ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-		else
-			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+		ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
 		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
 		{
@@ -832,10 +814,7 @@ void DrawFullHUD_GameInformation()
 				lPoints[i] = TEAM_GetScore( i );
 		}
 		ulCurXPos = 4;
-		if ( bScale )
-			ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-		else
-			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+		ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
 		ulCurYPos -= ((ConFont->GetHeight( ) + 1) * 5);
 
@@ -862,10 +841,7 @@ void DrawFullHUD_GameInformation()
 	else if ( deathmatch && SCOREBOARD_GetNumPlayers( ) > 1 )
 	{
 		ulCurXPos = 4;
-		if ( bScale )
-			ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-		else
-			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+		ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 		
 		sprintf( szString, "spread: \\cC%s%d", SCOREBOARD_GetSpread( ) > 0 ? "+" : "", static_cast<int> (SCOREBOARD_GetSpread( )));
 		V_ColorizeString( szString );
@@ -894,10 +870,7 @@ void DrawFullHUD_GameInformation()
 		if (( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT ))
 		{
 			ulCurXPos = 4;
-			if ( bScale )
-				ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-			else
-				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+			ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 			
 			// Wave
 			sprintf( szString, "Wave: %d \\cbof %d", static_cast<unsigned int> (INVASION_GetCurrentWave( )), static_cast<unsigned int> (wavelimit));
@@ -1192,7 +1165,7 @@ void DrawFullHUD_GameInformation()
 	}
 
 	// [BB] Draws the keys in Skulltag's new fullscreen HUD.
-	void DrawFullScreenKeysST( const bool bScale, UCVarValue &ValWidth, UCVarValue &ValHeight, ULONG &ulCurXPos, ULONG &ulCurYPos, ULONG ulYOffset = 0 )
+	void DrawFullScreenKeysST( ULONG &ulCurXPos, ULONG &ulCurYPos, ULONG ulYOffset = 0 )
 	{
 		LONG			lKeyCount;
 		LONG			lMaxKeyWidth;
@@ -1230,8 +1203,8 @@ void DrawFullHUD_GameInformation()
 
 	// [BC] Skulltag's new fullscreen HUD.
 	bool			bScale;
-	UCVarValue		ValWidth;
-	UCVarValue		ValHeight;
+	int				screenWidth;
+	int				screenHeight;
 	float			fXScale;
 	float			fYScale;
 	ULONG			ulCurYPos;
@@ -1250,8 +1223,8 @@ void DrawFullHUD_GameInformation()
 		if ( CPlayer->bSpectating )
 			return;
 
-		ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-		ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
+		const UCVarValue ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
+		const UCVarValue ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
 
 		if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
 		{
@@ -1262,16 +1235,17 @@ void DrawFullHUD_GameInformation()
 		else
 			bScale = false;
 
+		// [BB] Store the screen width / height taking into account user selected scaling.
+		screenWidth = bScale ? ValWidth.Int : SCREENWIDTH;
+		screenHeight = bScale ? ValHeight.Int : SCREENHEIGHT;
+
 		/*=========================================================
 		Draw the bottom parts of the HUD - health, armor, and ammo.
 		=========================================================*/
 
 		// Configure our "pen". Use an 4 unit lip from the bottom and left edges of the screen.
 		ulCurXPos = 4;
-		if ( bScale )
-			ulCurYPos = ValHeight.Int - 4;
-		else
-			ulCurYPos = SCREENHEIGHT - 4;
+		ulCurYPos = screenHeight - 4;
 
 		// [RC] If we're spying and can't see health/armor/ammo, draw a nice little display to show this.
 		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
@@ -1292,16 +1266,9 @@ void DrawFullHUD_GameInformation()
 			// Now draw the ammo.
 			if(!(dmflags & DF_INFINITE_AMMO))  // [RC] Because then you wouldn't need this.
 			{
-				if ( bScale )
-				{
-					ulCurXPos = ValWidth.Int - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-					ulCurYPos = ValHeight.Int - 4;
-				}
-				else
-				{
-					ulCurXPos = SCREENWIDTH - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-					ulCurYPos = SCREENHEIGHT - 4;
-				}
+				ulCurXPos = screenWidth - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
+				ulCurYPos = screenHeight - 4;
+
 				GetCurrentAmmo( pAmmo1, pAmmo2, iAmmoCount1, iAmmoCount2 );
 				DrawFullHUD_Ammo(pAmmo1);
 				ulCurYPos -= 30;
