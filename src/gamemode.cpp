@@ -586,6 +586,21 @@ bool GAMEMODE_PreventPlayersFromJoining( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_AreLivesLimited( void )
+{
+	// [BB] Invasion is a special case: If sv_maxlives == 0 in invasion, players have infinite lives.
+	return ( ( ( sv_maxlives > 0 ) || ( invasion == false ) ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) );
+}
+
+//*****************************************************************************
+//
+unsigned int GAMEMODE_GetMaxLives( void )
+{
+	return ( ( sv_maxlives > 0 ) ? static_cast<unsigned int> ( sv_maxlives ) : 1 );
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

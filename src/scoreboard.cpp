@@ -76,6 +76,7 @@
 #include "w_wad.h"
 #include "c_bind.h"	// [RC] To tell user what key to press to vote.
 #include "domination.h"
+#include "st_hud.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -536,7 +537,16 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 				if( !(GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ))
 					if( (GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ))
 						SCOREBOARD_RenderStats_RankSpread( );
+
+				// [BB] Draw number of lives left.
+				if ( GAMEMODE_AreLivesLimited ( ) )
+				{
+					char szString[64];
+					sprintf( szString, "Lives: %d / %d", static_cast<unsigned int> (players[ulDisplayPlayer].ulLivesLeft+1), GAMEMODE_GetMaxLives() );
+					HUD_DrawText ( SmallFont, CR_RED, 0, static_cast<int> ( ( g_bScale ? g_rYScale : 1 ) * ( ST_Y - g_ulTextHeight + 1 ) ), szString );
+				}
 			}
+
 		}
 	}
 	

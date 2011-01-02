@@ -28,6 +28,7 @@
 #include "invasion.h"
 #include "gamemode.h"
 #include "st_hud.h"
+#include "survival.h"
 
 
 #define ST_EVILGRINCOUNT		(2*TICRATE)
@@ -892,6 +893,21 @@ void DrawFullHUD_GameInformation()
 			}
 		}
 	}		
+
+	// [BB] Draw number of lives left.
+	if ( GAMEMODE_AreLivesLimited() )
+	{
+		ulCurXPos = 4;
+		ulCurYPos = screenHeight - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+
+		sprintf( szString, "Lives: %d \\cb/ %d", static_cast<unsigned int> (CPlayer->ulLivesLeft+1), GAMEMODE_GetMaxLives() );
+		V_ColorizeString( szString );
+		HUD_DrawText( ConFont, CR_RED,
+			ulCurXPos,
+			ulCurYPos,
+			szString );
+	}
+
 }
 
 //---------------------------------------------------------------------------
