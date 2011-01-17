@@ -5747,7 +5747,7 @@ void M_OptResponder (event_t *ev)
 						value.Int = item->c.max;
 
 					item->a.cvar->SetGenericRep( value, CVAR_Int );
-					S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+					S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				}
 				break;
 			case skintype:
@@ -5795,7 +5795,7 @@ void M_OptResponder (event_t *ev)
 						g_bSwitchColorBack = false;
 					}
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case classtype:
 
@@ -5811,7 +5811,7 @@ void M_OptResponder (event_t *ev)
 
 					g_lPlayerSetupClass = lClass;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case botslot:
 				{
@@ -5883,7 +5883,7 @@ void M_OptResponder (event_t *ev)
 					Val.Int = lBotIdx;
 					pVar->SetGenericRep( Val, CVAR_Int );
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case announcer:
 				{
@@ -5897,7 +5897,7 @@ void M_OptResponder (event_t *ev)
 
 					*(item->a.intcvar) = lAnnouncerIdx;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case levelslot:
 				{
@@ -5911,7 +5911,7 @@ void M_OptResponder (event_t *ev)
 
 					*(item->a.intcvar) = sLevelIdx;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 
 			case txslider:
@@ -5950,7 +5950,7 @@ void M_OptResponder (event_t *ev)
 					else
 						item->a.cvar->SetGenericRep (newval, CVAR_Float);
 				}
-				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
 
 			default:
@@ -6178,7 +6178,7 @@ void M_OptResponder (event_t *ev)
 						value.Int = item->b.min;
 
 					item->a.cvar->SetGenericRep( value, CVAR_Int );
-					S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+					S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				}
 				break;
 			case skintype:
@@ -6226,7 +6226,7 @@ void M_OptResponder (event_t *ev)
 						g_bSwitchColorBack = false;
 					}
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case classtype:
 
@@ -6242,7 +6242,7 @@ void M_OptResponder (event_t *ev)
 
 					g_lPlayerSetupClass = lClass;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case botslot:
 				{
@@ -6314,7 +6314,7 @@ void M_OptResponder (event_t *ev)
 					Val.Int = lBotIdx;
 					pVar->SetGenericRep( Val, CVAR_Int );
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case announcer:
 				{
@@ -6328,7 +6328,7 @@ void M_OptResponder (event_t *ev)
 
 					*(item->a.intcvar) = lAnnouncerIdx;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 			case levelslot:
 				{
@@ -6342,7 +6342,7 @@ void M_OptResponder (event_t *ev)
 
 					*(item->a.intcvar) = sLevelIdx;
 				}
-				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
 
 			case txslider:
@@ -6381,7 +6381,7 @@ void M_OptResponder (event_t *ev)
 					else
 						item->a.cvar->SetGenericRep (newval, CVAR_Float);
 				}
-				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
 
 			default:
@@ -6546,7 +6546,7 @@ void M_OptResponder (event_t *ev)
 			if ( M_ShouldShowServer( item->f.lServer ))
 			{
 				g_lSelectedServer = item->f.lServer;
-				S_Sound (CHAN_VOICE, "menu/choose", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/choose", 1, ATTN_NONE);
 			}
 		}
 
