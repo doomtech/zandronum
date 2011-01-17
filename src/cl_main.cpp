@@ -9970,9 +9970,8 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 				else
 					pInventory->Amount = lAmount;
 			}
-			// [BB] TryPickup handles the MaxAmount.
-			//else
-			//	pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
+			else
+				pInventory->Amount = lAmount;
 		}
 		if ( pInventory->CallTryPickup( players[ulPlayer].mo ) == false )
 		{
