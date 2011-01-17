@@ -21,6 +21,7 @@ latestzdoom branch
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]
 -	- Fixed: Under some circumstances clients mispredicted the amount given by ammo dropped by monsters. [Torr Samaho]
 -	- Fixed: Various sliders in the player setup, the text scaling and the offline skirmish menu didn't play "menu/change" when toggled. [Torr Samaho]
+-	- Fixed: The RGB sliders for custom colors in "Options -> Display Options -> Automap Options -> Set Custom Colors" didn't work. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

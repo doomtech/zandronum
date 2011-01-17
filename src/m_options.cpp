@@ -5537,7 +5537,8 @@ void M_OptResponder (event_t *ev)
 			case absslider:
 			case intslider:
 				{
-					if (!stricmp (item->label, "Red"))
+					// [BB] Awful hack for the player color handling. Was already here when I joined ST.
+					if (!stricmp (item->label, "Red") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int red = RPART(cr);
@@ -5549,7 +5550,7 @@ void M_OptResponder (event_t *ev)
 
 						g_bSwitchColorBack = false;
 					}
-					else if (!stricmp (item->label, "Green"))
+					else if (!stricmp (item->label, "Green") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int green = GPART(cr);
@@ -5561,7 +5562,7 @@ void M_OptResponder (event_t *ev)
 
 						g_bSwitchColorBack = false;
 					}
-					else if (!stricmp (item->label, "Blue"))
+					else if (!stricmp (item->label, "Blue") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int blue = BPART(cr);
@@ -5965,7 +5966,8 @@ void M_OptResponder (event_t *ev)
 			case absslider:
 			case intslider:
 				{
-					if (!stricmp (item->label, "Red"))
+					// [BB] Awful hack for the player color handling. Was already here when I joined ST.
+					if (!stricmp (item->label, "Red") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int red = RPART(cr);
@@ -5977,7 +5979,7 @@ void M_OptResponder (event_t *ev)
 
 						g_bSwitchColorBack = false;
 					}
-					else if (!stricmp (item->label, "Green"))
+					else if (!stricmp (item->label, "Green") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int green = GPART(cr);
@@ -5989,7 +5991,7 @@ void M_OptResponder (event_t *ev)
 
 						g_bSwitchColorBack = false;
 					}
-					else if (!stricmp (item->label, "Blue"))
+					else if (!stricmp (item->label, "Blue") && (item->type == slider))
 					{
 						int cr = g_ulPlayerSetupColor;
 						int blue = BPART(cr);
