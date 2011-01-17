@@ -4591,10 +4591,11 @@ void M_OptDrawer ()
 			}
 			screen->DrawText (SmallFont, color, x, y, item->label, DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 
+			// [BC/BB] Skulltag's alignment handling.
 			if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
 				x = 32 + width + 6;
 			else
-				x = CurrentMenu->indent + 14;
+				x = indent + 14;
 
 			switch (item->type)
 			{
@@ -4668,22 +4669,23 @@ void M_OptDrawer ()
 					{
 						vals = (int)item->b.numvalues;
 					}
-				if (item->type != discretes)
-				{
-					v = M_FindCurVal (value.Float, item->e.values, vals);
-				}
-				else
-				{
-					v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
-				}
-				if (item->type == discrete)
-				{
-					if (item->d.graycheck != NULL && !(**item->d.graycheck))
+					if (item->type != discretes)
 					{
-						overlay = MAKEARGB(96,48,0,0);
+						v = M_FindCurVal (value.Float, item->e.values, vals);
 					}
-				}
+					else
+					{
+						v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
+					}
+					if (item->type == discrete)
+					{
+						if (item->d.graycheck != NULL && !(**item->d.graycheck))
+						{
+							overlay = MAKEARGB(96,48,0,0);
+						}
+					}
 
+					// [BB] To handle MNF_ALIGNLEFT, "x" is used instead of "indent + 14"
 					if (v == vals)
 					{
 						screen->DrawText (SmallFont, ValueColor, x, y, "Unknown",
@@ -4692,8 +4694,8 @@ void M_OptDrawer ()
 					else
 					{
 						screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
-						x, y,
-						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
+							x, y,
+							item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
 							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 					}
 				}
