@@ -4101,6 +4101,9 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 	lArmor = NETWORK_ReadShort( pByteStream );
 
+	// [BB] Read in the NetID of the damage inflictor and find the corresponding actor.
+	AActor *pAttacker = CLIENT_FindThingByNetID( NETWORK_ReadShort( pByteStream ) );
+
 	// Level not loaded, ignore...
 	if ( gamestate != GS_LEVEL )
 		return;
@@ -4122,6 +4125,9 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 	pArmor = players[ulPlayer].mo->FindInventory<ABasicArmor>( );
 	if ( pArmor )
 		pArmor->Amount = lArmor;
+
+	// [BB] Set the inflictor of the damage (necessary to let the HUD mugshot look in direction of the inflictor).
+	players[ulPlayer].attacker = pAttacker;
 
 	// Set the damagecount, for blood on the screen.
 	players[ulPlayer].damagecount += lDamage;

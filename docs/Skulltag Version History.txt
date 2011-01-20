@@ -24,6 +24,7 @@ latestzdoom branch
 -	- Fixed: The RGB sliders for custom colors in "Options -> Display Options -> Automap Options -> Set Custom Colors" didn't work. [Torr Samaho]
 -	- Fixed: The "Compatibility mode" value in the compatibility options menu was displayed too far on the right. [Torr Samaho]
 -	- Fixed: RandomSpawner didn't always spawn something after a map reset in survival. [Torr Samaho]
+-	- Fixed: The HUD mugshot never looked in direction of the last damage inflictor online. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

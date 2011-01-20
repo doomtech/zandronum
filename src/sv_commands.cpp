@@ -457,7 +457,7 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
+		SERVER_CheckClientBuffer( ulIdx, 8, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DAMAGEPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 
@@ -468,11 +468,13 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 		{
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].health );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArmorPoints );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
 		}
 		else
 		{
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
 		}
 	}
 }
