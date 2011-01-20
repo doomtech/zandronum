@@ -127,6 +127,9 @@ class ARandomSpawner : public AActor
 			this->target = newmobj; // If the spawned actor has either of those flags, it's a boss.
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 		else HideOrDestroyIfSafe();	// "else" because a boss-replacing spawner must wait until it can call A_BossDeath.
+
+		// [BB] Workaround to ensure that the spawner is properly reset in GAME_ResetMap.
+		this->ulSTFlags |= STFL_POSITIONCHANGED;
 	}
 
 	void Tick()	// This function is needed for handling boss replacers
