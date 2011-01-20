@@ -1359,6 +1359,22 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 	}
 
+	// [RH] Avoid friendly fire if enabled
+	if (source != NULL &&
+		((player && player != source->player) || !player) &&
+		target->IsTeammate (source))
+	{
+		// [BL] Some adjustments for Skulltag
+		if (player && (( teamlms || survival ) && ( MeansOfDeath == NAME_SpawnTelefrag )) == false )
+			FriendlyFire = true;
+		if (damage < 1000000)
+		{ // Still allow telefragging :-(
+			damage = (int)((float)damage * level.teamdamage);
+			if (damage <= 0)
+				return;
+		}
+	}
+
 	//
 	// player specific
 	//
@@ -1390,18 +1406,6 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			return;
 		}
 
-		// [RH] Avoid friendly fire if enabled
-		if (source != NULL && player != source->player && target->IsTeammate (source))
-		{
-			if ((( teamlms || survival ) && ( MeansOfDeath == NAME_SpawnTelefrag )) == false )
-				FriendlyFire = true;
-			if (damage < 1000000)
-			{ // Still allow telefragging :-(
-				damage = (int)((float)damage * level.teamdamage);
-				if (damage <= 0)
-					return;
-			}
-		}
 		if (!(flags & DMG_NO_ARMOR) && player->mo->Inventory != NULL)
 		{
 			int newdam = damage;

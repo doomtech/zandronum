@@ -68,6 +68,7 @@
 #include "a_morph.h"
 #include "colormatcher.h"
 #include "autosegs.h"
+#include "teaminfo.h"
 
 
 //==========================================================================
@@ -993,6 +994,18 @@ DEFINE_PROPERTY(projectile, 0, Actor)
 	defaults->flags|=MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE; 
 	defaults->flags2|=MF2_IMPACT|MF2_PCROSS|MF2_NOTELEPORT;
 	if (gameinfo.gametype&GAME_Raven) defaults->flags5|=MF5_BLOODSPLATTER;
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_PROPERTY(designatedteam, I, Actor)
+{
+	PROP_INT_PARM(val, 0);
+	// [BL] We need to use the actual number of teams not the sv_maxteams limit.
+	if(val < 0 || (val >= (signed) teams.Size() && val != TEAM_None))
+		I_Error("Invalid team designation.\n");
+	defaults->DesignatedTeam = val;
 }
 
 //==========================================================================

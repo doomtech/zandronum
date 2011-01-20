@@ -325,6 +325,7 @@ void AActor::Serialize (FArchive &arc)
 		<< smokecounter
 		<< BlockingMobj
 		<< BlockingLine
+		<< DesignatedTeam
 		<< (DWORD &)ulLimitedToTeam // [BB]
 		<< (DWORD &)ulVisibleToTeam // [BB]
 		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
@@ -1142,6 +1143,7 @@ void AActor::CopyFriendliness (AActor *other, bool changeTarget)
 	flags3 = (flags3 & ~(MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS)) | (other->flags3 & (MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS));
 	flags4 = (flags4 & ~MF4_NOHATEPLAYERS) | (other->flags4 & MF4_NOHATEPLAYERS);
 	FriendPlayer = other->FriendPlayer;
+	DesignatedTeam = other->DesignatedTeam;
 	if (changeTarget && other->target != NULL && !(other->target->flags3 & MF3_NOTARGET))
 	{
 		// LastHeard must be set as well so that A_Look can react to the new target if called
@@ -6339,8 +6341,12 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 
 bool AActor::IsTeammate (AActor *other)
 {
-	if (!player || !other || !other->player)
+	// [BL] Function is practically rewritten in Skulltag
+	if (!other)
 		return false;
+	// Allow co-op players to be teammates.
+	else if ((( deathmatch == false ) && ( teamgame == false )) && player && other->player)
+		return ( true );
 
 	// Can't be an enemy of ourselves!
 	if ( this == other )
@@ -6349,21 +6355,28 @@ bool AActor::IsTeammate (AActor *other)
 	// Teamplay deathmatch, CTF, Skulltag, etc.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		// If either player isn't on a team...
-		if ( player->bOnTeam == false || other->player->bOnTeam == false )
-			return ( false );
+		int myTeam = DesignatedTeam;
+		int otherTeam = other->DesignatedTeam;
+		if (player)
+		{
+			if (!player->bOnTeam)
+				return ( false );
+			myTeam = player->ulTeam;
+		}
+		if (other->player)
+		{
+			if (!other->player->bOnTeam)
+				return ( false );
+			otherTeam = other->player->ulTeam;
+		}
 
 		// If they're not on our team...
-		if ( player->ulTeam != other->player->ulTeam )
+		if ( myTeam == TEAM_None || myTeam != otherTeam )
 			return ( false );
 
 		// Passed checks. Player is on our team.
 		return ( true );
 	}
-
-	// Allow co-op players to be teammates.
-	if (( deathmatch == false ) && ( teamgame == false ))
-		return ( true );
 
 	return ( false );
 }
@@ -6413,6 +6426,12 @@ bool AActor::IsFriend (AActor *other)
 {
 	if (flags & other->flags & MF_FRIENDLY)
 	{
+		// [BL] Some adjsutments to possibly allow team coop.
+		if (deathmatch || teamgame)
+			return IsTeammate(other) ||
+				(FriendPlayer != 0 && other->FriendPlayer != 0 &&
+					players[FriendPlayer-1].mo->IsTeammate(players[other->FriendPlayer-1].mo));
+
 		// [BB] Added teamgame
 		return !( deathmatch || teamgame ) ||
 			FriendPlayer == other->FriendPlayer ||
@@ -6438,6 +6457,12 @@ bool AActor::IsHostile (AActor *other)
 	// Both monsters are friendly and belong to the same player if applicable.
 	if (flags & other->flags & MF_FRIENDLY)
 	{
+		// [BL] Some adjsutments to possibly allow team coop.
+		if (deathmatch || teamgame)
+			return !IsTeammate(other) &&
+				!(FriendPlayer != 0 && other->FriendPlayer != 0 &&
+					players[FriendPlayer-1].mo->IsTeammate(players[other->FriendPlayer-1].mo));
+
 		return deathmatch &&
 			FriendPlayer != other->FriendPlayer &&
 			FriendPlayer !=0 &&

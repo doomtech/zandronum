@@ -1417,9 +1417,7 @@ AActor *LookForEnemiesInBlock (AActor *lookee, int index)
 		other = NULL;
 		if (link->flags & MF_FRIENDLY)
 		{
-			if (deathmatch &&
-				lookee->FriendPlayer != 0 && link->FriendPlayer != 0 &&
-				lookee->FriendPlayer != link->FriendPlayer)
+			if (!lookee->IsFriend(link))
 			{
 				// This is somebody else's friend, so go after it
 				other = link;
@@ -1652,10 +1650,8 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 		// We're going to ignore our master, but go after his enemies.
 		if ( actor->flags & MF_FRIENDLY )
 		{
-			if ( actor->FriendPlayer == 0 )
-				continue; // I have no friends, I will ignore players.
-			if ( actor->FriendPlayer == player->mo->FriendPlayer )
-				continue; // This is my master.
+			if ( actor->IsFriend(player->mo) )
+				continue;
 		}
 
 		if (!allaround)
