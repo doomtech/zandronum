@@ -429,6 +429,7 @@ static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo );
+static	void	client_AdjustPusher( BYTESTREAM_s *pByteStream );
 
 class STClient {
 public:
@@ -751,6 +752,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_CREATETRANSLATION2",
 	"SVC_REPLACETEXTURES",
 	"SVC_SETSECTORLINK",
+	"SVC_ADJUSTPUSHER",
 };
 #endif
 
@@ -2643,6 +2645,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetSectorLink( pByteStream );
 		break;
+
+	case SVC_ADJUSTPUSHER:
+
+		client_AdjustPusher( pByteStream );
+		break;
+
 	case SVC_IGNOREPLAYER:
 
 		client_IgnorePlayer( pByteStream );
@@ -11843,6 +11851,18 @@ static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
 
 		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.netname, players[ulPlayer].userinfo.gender == GENDER_MALE ? "his" : players[ulPlayer].userinfo.gender == GENDER_FEMALE ? "her" : "its" );
 	}
+}
+
+//*****************************************************************************
+//
+void AdjustPusher (int tag, int magnitude, int angle, DPusher::EPusher type);
+static void client_AdjustPusher( BYTESTREAM_s *pByteStream )
+{
+	const int iTag = NETWORK_ReadShort( pByteStream );
+	const int iMagnitude = NETWORK_ReadLong( pByteStream );
+	const int iAngle = NETWORK_ReadLong( pByteStream );
+	const ULONG ulType = NETWORK_ReadByte( pByteStream );
+	AdjustPusher (iTag, iMagnitude, iAngle, static_cast<DPusher::EPusher> ( ulType ));
 }
 
 //*****************************************************************************
