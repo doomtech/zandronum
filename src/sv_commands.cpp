@@ -1051,9 +1051,17 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 	if ( stateLabel.IsEmpty() )
 	{
 		lOffset = LONG( pState - players[ulPlayer].ReadyWeapon->GetReadyState( ));
+		// [BB] Spawn state didn't work either, try flash state.
 		if ( OffsetAndStateOwnershipValidityCheck ( lOffset, players[ulPlayer].ReadyWeapon, players[ulPlayer].ReadyWeapon->GetReadyState( ) ) == false )
 		{
-			return;
+			const FState *pFlashState = players[ulPlayer].ReadyWeapon->FindState(NAME_Flash);
+			lOffset = LONG( pState - pFlashState );
+			if ( OffsetAndStateOwnershipValidityCheck ( lOffset, players[ulPlayer].ReadyWeapon, pFlashState ) == false )
+			{
+				return;
+			}
+			else
+				stateLabel = ":F";
 		}
 		else
 			stateLabel = ":R";

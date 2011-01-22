@@ -4973,6 +4973,11 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	{
 		pNewState = players[ulPlayer].ReadyWeapon->GetReadyState( );
 	}
+	// [BB] In this case lOffset is just the offset from the flash state.
+	else if ( stricmp( pszState, ":F" ) == 0 )
+	{
+		pNewState = players[ulPlayer].ReadyWeapon->FindState(NAME_Flash);
+	}
 	else
 	{
 		// Build the state name list.
