@@ -29,6 +29,7 @@ latestzdoom branch
 -	- Fixed some sync problems with A_Jump on weapons online. [Torr Samaho]
 -	- Fixed: Clients were not always informed about the armor amount and type of other non-opponent players. [Torr Samaho]
 -	- Fixed some client side display problems caused by the "give health" and the "give armor" cheats. [Torr Samaho]
+-	- Fixed: Dropping a backpack online crashed the clients. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

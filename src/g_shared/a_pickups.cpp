@@ -2015,7 +2015,10 @@ bool ABackpackItem::HandlePickup (AInventory *item)
 AInventory *ABackpackItem::CreateTossable ()
 {
 	ABackpackItem *pack = static_cast<ABackpackItem *>(Super::CreateTossable());
-	pack->bDepleted = true;
+	// [BB] Clients don't convert the item to a pickup, they just remove it from their inventory.
+	// Hence we need the following check.
+	if ( pack != NULL )
+		pack->bDepleted = true;
 	return pack;
 }
 
