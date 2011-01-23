@@ -651,11 +651,11 @@ void cht_Give (player_t *player, const char *name, int amount)
 	  
 			player->health = deh.GodHealth;
 		}
-		// [BB]: The server has to inform the player that its health has changed.
+		// [BB]: The server has to inform the clients that this player's health has changed.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			ULONG playerIdx = static_cast<ULONG> ( player - players );
-			SERVERCOMMANDS_SetPlayerHealth( playerIdx, playerIdx, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPlayerHealth( playerIdx );
 		}
 
 		if (!giveall)

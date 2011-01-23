@@ -7,6 +7,7 @@
 #include "templates.h"
 // [BB] New #includes.
 #include "doomstat.h"
+#include "sv_commands.h"
 
 
 IMPLEMENT_CLASS (AArmor)
@@ -60,6 +61,11 @@ void ABasicArmor::Tick ()
 		default:
 			break;
 		}
+
+		// [BB] If the icon is now valid, let the clients know about it. This is necessary because the
+		// clients don't necessarily know the correct SavePercent value.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && Icon.isValid() && Owner && Owner->player )
+			SERVERCOMMANDS_SetPlayerArmor( static_cast<ULONG>( Owner->player - players ) );
 	}
 }
 
