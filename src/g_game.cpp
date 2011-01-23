@@ -3172,6 +3172,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
+		// [BB] Clients still need to reset the automap.
+		for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
+			lines[ulIdx].flags &= ~ ML_MAPPED;
+
 		return;
 	}
 
