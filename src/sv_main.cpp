@@ -66,6 +66,7 @@
 #endif 
 
 #include "a_doomglobal.h"
+#include "a_keys.h"
 #include "a_pickups.h"
 #include "botcommands.h"
 #include "callvote.h"
@@ -2271,7 +2272,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SetPlayerTeam( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Check if we need to tell the incoming player about any powerups this player may have.
-		// [BB] Also tell about all the ammo this player has.
+		// [BB] Also tell about all the ammo, weapons, backpacks and keys this player has.
 		for ( pInventory = pPlayer->mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )
 		{
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
@@ -2283,7 +2284,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 					SERVERCOMMANDS_PlayerRespawnInvulnerability( ulIdx );
 				}
 			}
-			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )))
+			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )) || pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ))
+				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem )) || pInventory->IsKindOf( RUNTIME_CLASS( AKey )) )
 				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
