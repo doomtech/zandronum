@@ -293,9 +293,10 @@ static void client_predict_BeginPrediction( player_t *pPlayer )
 //
 static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 {
-	LONG		lTick;
+	TThinkerIterator<DPusher> pusherIt;
+	DPusher *pusher = NULL;
 
-	lTick = g_ulGameTick - ulTicks;
+	LONG lTick = g_ulGameTick - ulTicks;
 	while ( ulTicks )
 	{
 		// Disable bobbing, sounds, etc.
@@ -317,6 +318,11 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		// Tick the player.
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
 		pPlayer->mo->Tick( );
+
+		// [BB] The effect of all DPushers needs to be manually predicted.
+		pusherIt.Reinit();
+		while ( pusher = pusherIt.Next() )
+			pusher->Tick();
 
 		ulTicks--;
 		lTick++;

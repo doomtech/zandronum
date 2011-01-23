@@ -66,6 +66,7 @@
 #include "c_console.h"
 
 #include "r_interpolate.h"
+// [BB] New #includes.
 #include "announcer.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -75,6 +76,7 @@
 #include "sbar.h"
 #include "sv_commands.h"
 #include "cl_demo.h"
+#include "cl_main.h"
 #include "possession.h"
 #include "cooperative.h"
 #include "survival.h"
@@ -2124,6 +2126,10 @@ void DPusher::Tick ()
 
 		while ((thing = it.Next()))
 		{
+			// [BB] While predicting, only handle the body of the predicted player.
+			if ( CLIENT_PREDICT_IsPredicting() && ( ( thing->player == false ) || ( static_cast<int>( thing->player - players ) != consoleplayer ) ) )
+				continue;
+
 			if ((thing->flags2 & MF2_WINDTHRUST) && !(thing->flags & MF_NOCLIP))
 			{
 				int sx = m_X;
@@ -2156,6 +2162,11 @@ void DPusher::Tick ()
 		thing = node->m_thing;
 		if (!(thing->flags2 & MF2_WINDTHRUST) || (thing->flags & MF_NOCLIP))
 			continue;
+
+		// [BB] While predicting, only handle the body of the predicted player.
+		if ( CLIENT_PREDICT_IsPredicting() && ( ( thing->player == false ) || ( static_cast<int>( thing->player - players ) != consoleplayer ) ) )
+			continue;
+
 		if (m_Type == p_wind)
 		{
 			if (sec->heightsec == NULL ||

@@ -17,6 +17,7 @@ latestzdoom branch
 
 +	- Added live counter to the HUD for survival and survival invasion. As a prerequisite, the server now informs the clients about the lives each player has left. [Torr Samaho]
 +	- Added DesignatedTeam property which allows things to be assigned to teams for friendly fire calculations [Blzut3]
++	- Added basic client side prediction for "pushers", for instance used by Sector_SetWind. [Torr Samaho]
 -	- Fixed: After a "changemap" map change on a server with join password and a team based gamemode, players who were on a team on the previous map were turned into spectators but kept their team. [Torr Samaho]
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]
