@@ -1833,7 +1833,7 @@ void SERVERCONSOLE_SetupColumns( void )
 void SERVERCONSOLE_ReListPlayers( void )
 {
 	LVITEM		Item;
-	char		szString[32];
+	char		szString[MAXPLAYERNAME+1];
 	LONG		lIndex;
 	LONG		lIdx;
 
@@ -1876,7 +1876,7 @@ void SERVERCONSOLE_ReListPlayers( void )
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 {
 	LVITEM		Item;
-	char		szString[32];
+	char		szString[MAXPLAYERNAME+1];
 	LONG		lIndex = -1;
 	LONG		lIdx;
 
