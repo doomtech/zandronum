@@ -2390,6 +2390,26 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	pPlayer->bonuscount = 0;
 	pPlayer->poisoncount = 0;
 	pPlayer->inventorytics = 0;
+
+	// [BB] Reset any screen fade.
+	pPlayer->BlendR = 0;
+	pPlayer->BlendG = 0;
+	pPlayer->BlendB = 0;
+	pPlayer->BlendA = 0;
+
+	// [BB] Also cancel any active faders.
+	{
+		TThinkerIterator<DFlashFader> iterator;
+		DFlashFader *fader;
+
+		while ( (fader = iterator.Next()) )
+		{
+			if ( fader->WhoFor() == pPlayer->mo )
+			{
+				fader->Cancel ();
+			}
+		}
+	}
 }
 
 //*****************************************************************************
