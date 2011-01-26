@@ -359,6 +359,7 @@ void		SERVER_SendHeartBeat( void );
 void		STACK_ARGS SERVER_Printf( ULONG ulPrintLevel, const char *pszString, ... );
 void		STACK_ARGS SERVER_PrintfPlayer( ULONG ulPrintLevel, ULONG ulPlayer, const char *pszString, ... );
 void		SERVER_UpdateSectors( ULONG ulClient );
+void		SERVER_UpdateMovers( ULONG ulClient );
 void		SERVER_UpdateLines( ULONG ulClient );
 void		SERVER_UpdateSides( ULONG ulClient );
 void		SERVER_ReconnectNewLevel( const char *pszMapName );

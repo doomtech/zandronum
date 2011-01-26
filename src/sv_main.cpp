@@ -1195,22 +1195,6 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	ULONG								ulState;
 	ULONG								ulCountdownTicks;
 	AInventory							*pInventory;
-	DDoor								*pDoor;
-	DPlat								*pPlat;
-	DFloor								*pFloor;
-	DElevator							*pElevator;
-	DWaggleBase							*pWaggle;
-	DPillar								*pPillar;
-	DCeiling							*pCeiling;
-	DScroller							*pScroller;
-	TThinkerIterator<DDoor>				DoorIterator;
-	TThinkerIterator<DPlat>				PlatIterator;
-	TThinkerIterator<DFloor>			FloorIterator;
-	TThinkerIterator<DElevator>			ElevatorIterator;
-	TThinkerIterator<DWaggleBase>		WaggleIterator;
-	TThinkerIterator<DPillar>			PillarIterator;
-	TThinkerIterator<DCeiling>			CeilingIterator;
-	TThinkerIterator<DScroller>			ScrollerIterator;
 
 	// If the client hasn't authenticated his level, don't accept this connection.
 	if ( g_aClients[g_lCurrentClient].State < CLS_AUTHENTICATED )
@@ -1403,37 +1387,8 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Tell the client of any sectors that have been altered since the level start.
 	SERVER_UpdateSectors( g_lCurrentClient );
 
-	// Tell the client about any active doors.
-	while (( pDoor = DoorIterator.Next( )))
-		pDoor->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active plats.
-	while (( pPlat = PlatIterator.Next( )))
-		pPlat->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active floors.
-	while (( pFloor = FloorIterator.Next( )))
-		pFloor->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active elevators.
-	while (( pElevator = ElevatorIterator.Next( )))
-		pElevator->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active waggles.
-	while (( pWaggle = WaggleIterator.Next( )))
-		pWaggle->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active pillars.
-	while (( pPillar = PillarIterator.Next( )))
-		pPillar->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active ceilings.
-	while (( pCeiling = CeilingIterator.Next( )))
-		pCeiling->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active scrollers.
-	while (( pScroller = ScrollerIterator.Next( )))
-		pScroller->UpdateToClient( g_lCurrentClient );
+	// [BB] Tell the client of things derived from DMover and similar classes.
+	SERVER_UpdateMovers( g_lCurrentClient );
 
 	// Tell the client about any active rotate polyobjects.
 	{
@@ -3011,6 +2966,60 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		pGlow2->UpdateToClient( ulClient );
 	while (( pPhased = PhasedIterator.Next( )) != NULL )
 		pPhased->UpdateToClient( ulClient );
+}
+
+//*****************************************************************************
+//
+void SERVER_UpdateMovers( ULONG ulClient )
+{
+	DDoor								*pDoor;
+	DPlat								*pPlat;
+	DFloor								*pFloor;
+	DElevator							*pElevator;
+	DWaggleBase							*pWaggle;
+	DPillar								*pPillar;
+	DCeiling							*pCeiling;
+	DScroller							*pScroller;
+	TThinkerIterator<DDoor>				DoorIterator;
+	TThinkerIterator<DPlat>				PlatIterator;
+	TThinkerIterator<DFloor>			FloorIterator;
+	TThinkerIterator<DElevator>			ElevatorIterator;
+	TThinkerIterator<DWaggleBase>		WaggleIterator;
+	TThinkerIterator<DPillar>			PillarIterator;
+	TThinkerIterator<DCeiling>			CeilingIterator;
+	TThinkerIterator<DScroller>			ScrollerIterator;
+
+	// Tell the client about any active doors.
+	while (( pDoor = DoorIterator.Next( )) != NULL )
+		pDoor->UpdateToClient( ulClient );
+
+	// Tell the client about any active plats.
+	while (( pPlat = PlatIterator.Next( )) != NULL )
+		pPlat->UpdateToClient( ulClient );
+
+	// Tell the client about any active floors.
+	while (( pFloor = FloorIterator.Next( )) != NULL )
+		pFloor->UpdateToClient( ulClient );
+
+	// Tell the client about any active elevators.
+	while (( pElevator = ElevatorIterator.Next( )) != NULL )
+		pElevator->UpdateToClient( ulClient );
+
+	// Tell the client about any active waggles.
+	while (( pWaggle = WaggleIterator.Next( )) != NULL )
+		pWaggle->UpdateToClient( ulClient );
+
+	// Tell the client about any active pillars.
+	while (( pPillar = PillarIterator.Next( )) != NULL )
+		pPillar->UpdateToClient( ulClient );
+
+	// Tell the client about any active ceilings.
+	while (( pCeiling = CeilingIterator.Next( )) != NULL )
+		pCeiling->UpdateToClient( ulClient );
+
+	// Tell the client about any active scrollers.
+	while (( pScroller = ScrollerIterator.Next( )) != NULL )
+		pScroller->UpdateToClient( ulClient );
 }
 
 //*****************************************************************************
@@ -5211,22 +5220,6 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 {
 	ULONG								ulState;
 	ULONG								ulCountdownTicks;
-	DDoor								*pDoor;
-	DPlat								*pPlat;
-	DFloor								*pFloor;
-	DElevator							*pElevator;
-	DWaggleBase							*pWaggle;
-	DPillar								*pPillar;
-	DCeiling							*pCeiling;
-	DScroller							*pScroller;
-	TThinkerIterator<DDoor>				DoorIterator;
-	TThinkerIterator<DPlat>				PlatIterator;
-	TThinkerIterator<DFloor>			FloorIterator;
-	TThinkerIterator<DElevator>			ElevatorIterator;
-	TThinkerIterator<DWaggleBase>		WaggleIterator;
-	TThinkerIterator<DPillar>			PillarIterator;
-	TThinkerIterator<DCeiling>			CeilingIterator;
-	TThinkerIterator<DScroller>			ScrollerIterator;
 
 	// [BB] Read the name of the map, the client is trying to authenticate.
 	const FString mapnameString = NETWORK_ReadString( pByteStream );
@@ -5341,37 +5334,8 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// Tell the client of any sectors that have been altered since the level start.
 	SERVER_UpdateSectors( g_lCurrentClient );
 
-	// Tell the client about any active doors.
-	while (( pDoor = DoorIterator.Next( )) != NULL )
-		pDoor->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active plats.
-	while (( pPlat = PlatIterator.Next( )) != NULL )
-		pPlat->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active floors.
-	while (( pFloor = FloorIterator.Next( )) != NULL )
-		pFloor->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active elevators.
-	while (( pElevator = ElevatorIterator.Next( )))
-		pElevator->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active waggles.
-	while (( pWaggle = WaggleIterator.Next( )))
-		pWaggle->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active pillars.
-	while (( pPillar = PillarIterator.Next( )) != NULL )
-		pPillar->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active ceilings.
-	while (( pCeiling = CeilingIterator.Next( )) != NULL )
-		pCeiling->UpdateToClient( g_lCurrentClient );
-
-	// Tell the client about any active scrollers.
-	while (( pScroller = ScrollerIterator.Next( )) != NULL )
-		pScroller->UpdateToClient( g_lCurrentClient );
+	// [BB] Tell the client of things derived from DMover and similar classes.
+	SERVER_UpdateMovers( g_lCurrentClient );
 
 	// Tell client to spawn themselves (this doesn't happen in the full update).
 	if ( players[g_lCurrentClient].mo != NULL )
