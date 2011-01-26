@@ -245,7 +245,8 @@ typedef enum
 
 
 // [BC] Allow longer names since we can now colorize them and stuff.
-#define MAXPLAYERNAME	31
+// [BB] "+3" so that playernames can always be terminated by "\\c-"
+#define MAXPLAYERNAME	31+3
 
 enum
 {

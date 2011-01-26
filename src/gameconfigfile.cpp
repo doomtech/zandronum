@@ -500,11 +500,15 @@ void FGameConfigFile::ReadCVars (DWORD flags)
 		// This is mainly to ease the transition to the new standards.
 		// In later series (98? 99?), this can be removed to boost speed.
 		if(strcmp(key,"name") == 0) {
-			V_ColorizeString(val.String); // Convert \ to color escapes
-			V_CleanPlayerName(val.String);
-			V_UnColorizeString(val.String, 64);
+			FString cleanedName = val.String;
+			V_ColorizeString(cleanedName); // Convert \ to color escapes
+			V_CleanPlayerName(cleanedName);
+			V_UnColorizeString(cleanedName);
+			val.String = const_cast<char *>(cleanedName.GetChars());
+			cvar->SetGenericRep (val, CVAR_String);
 		}
-		cvar->SetGenericRep (val, CVAR_String);
+		else
+			cvar->SetGenericRep (val, CVAR_String);
 	}
 }
 

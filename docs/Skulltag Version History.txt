@@ -37,6 +37,7 @@ latestzdoom branch
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
+!	- Player names are now automatically terminated with "\c-". This ensures that using a player name in a string doesn't affect the color of the string after the player name. [Torr Samaho]
 
 
 98d

@@ -675,6 +675,19 @@ void V_CleanPlayerName( char *pszString )
 	FString tempString = pszStart;
 	V_UnColorizeString ( tempString );
 	V_RemoveTrailingCrapFromFString ( tempString );
+	// [BB] If the name uses color codes, make sure that it is terminated with "\\c-".
+	// V_RemoveTrailingCrapFromFString removes all trailing color codes including "\\c-".
+	// This is necessary to catch incomplete color codes before the trailing "\\c-".
+	// Hence, we have to re-add "\\c-" here.
+	if ( ( tempString.IndexOf ( "\\c" ) != -1 ) )
+	{
+		if ( tempString.Len() > MAXPLAYERNAME - 3 )
+		{
+			tempString = tempString.Left ( MAXPLAYERNAME - 3 );
+			V_RemoveTrailingCrapFromFString ( tempString );
+		}
+		tempString += "\\c-";
+	}
 	V_ColorizeString ( tempString );
 	sprintf ( pszStart, "%s", tempString.GetChars() );
 
@@ -699,7 +712,8 @@ void V_CleanPlayerName( char *pszString )
 void V_CleanPlayerName( FString &String )
 {
 	const int length = (int) String.Len();
-	char *tempCharArray = new char[length+1];
+	// [BB] V_CleanPlayerName possibly appends "\\c-", hence we need to reserve more memory than just "length + terminating 0".
+	char *tempCharArray = new char[length+4];
 	strncpy( tempCharArray, String.GetChars(), length );
 	tempCharArray[length] = 0;
 	V_CleanPlayerName( tempCharArray );
