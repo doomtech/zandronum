@@ -429,6 +429,7 @@ static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo );
+static	void	client_DoPusher( BYTESTREAM_s *pByteStream );
 static	void	client_AdjustPusher( BYTESTREAM_s *pByteStream );
 
 class STClient {
@@ -752,6 +753,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_CREATETRANSLATION2",
 	"SVC_REPLACETEXTURES",
 	"SVC_SETSECTORLINK",
+	"SVC_DOPUSHER",
 	"SVC_ADJUSTPUSHER",
 };
 #endif
@@ -2644,6 +2646,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORLINK:
 
 		client_SetSectorLink( pByteStream );
+		break;
+
+	case SVC_DOPUSHER:
+
+		client_DoPusher( pByteStream );
 		break;
 
 	case SVC_ADJUSTPUSHER:
@@ -11851,6 +11858,21 @@ static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
 
 		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.netname, players[ulPlayer].userinfo.gender == GENDER_MALE ? "his" : players[ulPlayer].userinfo.gender == GENDER_FEMALE ? "her" : "its" );
 	}
+}
+
+//*****************************************************************************
+//
+static void client_DoPusher( BYTESTREAM_s *pByteStream )
+{
+	const ULONG ulType = NETWORK_ReadByte( pByteStream );
+	const int iLineNum = NETWORK_ReadShort( pByteStream );
+	const int iMagnitude = NETWORK_ReadLong( pByteStream );
+	const int iAngle = NETWORK_ReadLong( pByteStream );
+	const LONG lSourceNetID = NETWORK_ReadShort( pByteStream );
+	const int iAffectee = NETWORK_ReadShort( pByteStream );
+
+	line_t *pLine = ( iLineNum >= 0 && iLineNum < numlines ) ? &lines[iLineNum] : NULL;
+	new DPusher ( static_cast<DPusher::EPusher> ( ulType ), pLine, iMagnitude, iAngle, CLIENT_FindThingByNetID( lSourceNetID ), iAffectee );
 }
 
 //*****************************************************************************
