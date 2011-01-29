@@ -2249,11 +2249,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_ThingIsCorpse( pPlayer->mo, ulClient, SVCF_ONLYTHISCLIENT );
 		// [BB] SERVERCOMMANDS_SpawnPlayer instructs the client to spawn a player
 		// with default health. So we still need to send the correct current health value
-		// (if the player is not dead). Also set the armor.
+		// (if the player is not dead). Also set the armor and the corresponding max bonuses.
 		else
 		{
-			SERVERCOMMANDS_SetPlayerHealth( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-			SERVERCOMMANDS_SetPlayerArmor( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
 		// If the client receiving the update is a spectator, send the player's
@@ -3470,6 +3470,10 @@ void SERVER_ResetInventory( ULONG ulClient )
 
 	// First, tell the client to delete his inventory.
 	SERVERCOMMANDS_DestroyAllInventory( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [BB] Inform the client about his max health and max armor bonus.
+	SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 
 	// Then, go through the client's inventory, and tell the client to give himself
 	// each item.

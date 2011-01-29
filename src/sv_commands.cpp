@@ -609,6 +609,51 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+		return;
+
+	// [BB] Workaround to set max health bonus for the player on the client(s).
+	if ( players[ulPlayer].lMaxHealthBonus > 0 ) {
+		AInventory *pInventory = Spawn<AMaxHealth>(0,0,0, NO_REPLACE);
+		if ( pInventory )
+		{
+			pInventory->Amount = players[ulPlayer].lMaxHealthBonus;
+			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, ulFlags );
+			pInventory->Destroy ();
+			pInventory = NULL;
+		}
+	}
+	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+		return;
+
+	// [BB] Workaround to set max armor bonus for the player on the client(s).
+	ABasicArmor *pArmor = players[ulPlayer].mo->FindInventory<ABasicArmor>( );
+
+	if ( pArmor && ( pArmor->BonusCount > 0 ) )
+	{
+		AInventory *pInventory = static_cast<AInventory*> ( Spawn( PClass::FindClass( "MaxArmorBonus" ), 0,0,0, NO_REPLACE) );
+		if ( pInventory ) 
+		{
+			pInventory->Amount = pArmor->BonusCount;
+			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, ulFlags );
+			pInventory->Destroy ();
+			pInventory = NULL;
+		}
+	}
+	SERVERCOMMANDS_SetPlayerArmor( ulPlayer, ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
