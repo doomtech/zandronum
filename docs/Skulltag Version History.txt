@@ -34,6 +34,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients were not informed about all the weapons, keys and backpacks players already in game have. [Torr Samaho]
 -	- Fixed: The automap was not reset during a map reset online on the clients. [Torr Samaho]
 -	- Fixed: When a player turns into a spectator the palette flash of this player is not reset. [Torr Samaho]
+-	- Fixed: Clients were not informed about "pusher" additions or changes. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

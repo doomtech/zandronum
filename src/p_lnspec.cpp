@@ -2141,6 +2141,10 @@ void AdjustPusher (int tag, int magnitude, int angle, DPusher::EPusher type)
 		}
 	}
 	Collection.Clear ();
+
+	// [BB] The server needs to tell the clients to do the same.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_AdjustPusher( tag, magnitude, angle, type );
 }
 
 FUNC(LS_Sector_SetWind)

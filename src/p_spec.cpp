@@ -99,6 +99,12 @@ IMPLEMENT_POINTY_CLASS (DPusher)
  DECLARE_POINTER (m_Source)
 END_POINTERS
 
+// [BB]
+void DPusher::UpdateToClient( ULONG ulClient )
+{
+	SERVERCOMMANDS_DoPusher( m_Type, m_pLine, m_Magnitude, m_Angle, m_Source, m_Affectee, ulClient, SVCF_ONLYTHISCLIENT );
+}
+
 DScroller::DScroller ()
 {
 }
@@ -2052,6 +2058,10 @@ void P_SetSectorFriction (int tag, int amount, bool alterFlag)
 DPusher::DPusher (DPusher::EPusher type, line_t *l, int magnitude, int angle,
 				  AActor *source, int affectee)
 {
+	// [BB] Save angle and line. This makes it easier to inform the clients about this pusher.
+	m_pLine = l;
+	m_Angle = angle;
+
 	m_Source = source;
 	m_Type = type;
 	if (l)

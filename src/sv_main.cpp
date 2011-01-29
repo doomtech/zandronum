@@ -3020,6 +3020,12 @@ void SERVER_UpdateMovers( ULONG ulClient )
 	// Tell the client about any active scrollers.
 	while (( pScroller = ScrollerIterator.Next( )) != NULL )
 		pScroller->UpdateToClient( ulClient );
+
+	// [BB] Tell the client about any active pusher.
+	DPusher *pPusher = NULL;
+	TThinkerIterator<DPusher> PusherIterator;
+	while (( pPusher = PusherIterator.Next( )) != NULL )
+		pPusher->UpdateToClient( ulClient );
 }
 
 //*****************************************************************************

@@ -134,6 +134,9 @@ public:
 	}
 	void ChangeValues (int magnitude, int angle)
 	{
+		// [BB] Save the original input angle value. This makes it easier to inform the clients about this pusher.
+		m_Angle = angle;
+
 		angle_t ang = ((angle_t)(angle<<24)) >> ANGLETOFINESHIFT;
 		m_Xmag = (magnitude * finecosine[ang]) >> FRACBITS;
 		m_Ymag = (magnitude * finesine[ang]) >> FRACBITS;
@@ -141,6 +144,9 @@ public:
 	}
 
 	void Tick ();
+
+	// [BB] Create this object for this new client entering the game.
+	void UpdateToClient( ULONG ulClient );
 
 protected:
 	EPusher m_Type;
@@ -152,6 +158,10 @@ protected:
 	int m_X;				// X of point source if point pusher
 	int m_Y;				// Y of point source if point pusher
 	int m_Affectee;			// Number of affected sector
+
+	// [BB]
+	line_t *m_pLine;
+	int m_Angle;
 
 	friend bool PIT_PushThing (AActor *thing);
 };
