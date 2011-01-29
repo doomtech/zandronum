@@ -2327,8 +2327,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 	// Go through all the items on the map, and tell the client to spawn those of which
 	// are important.
-    while (( pActor = Iterator.Next( )))
-    {
+	while (( pActor = Iterator.Next( )))
+	{
 		// If the actor doesn't have a network ID, don't spawn it (it
 		// probably isn't important).
 		if ( pActor->lNetID == -1 )
@@ -2466,8 +2466,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulClient, SVCF_ONLYTHISCLIENT );
 			if ( pActor->flags2 != pActor->GetDefault( )->flags2 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS2, ulClient, SVCF_ONLYTHISCLIENT );
+*/
+			// [BB] It is at least crucial for the clients to know about MF3_CRASHED. Otherwise,
+			// dead actors with a crash state locally crash on the client again while connecting.
 			if ( pActor->flags3 != pActor->GetDefault( )->flags3 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS3, ulClient, SVCF_ONLYTHISCLIENT );
+/*
 			if ( pActor->flags4 != pActor->GetDefault( )->flags4 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS4, ulClient, SVCF_ONLYTHISCLIENT );
 			if ( pActor->flags5 != pActor->GetDefault( )->flags5 )
@@ -2489,7 +2493,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// Spawned monster is a corpse.
 		if (( pActor->health <= 0 ) && ( pActor->flags & MF_COUNTKILL ))
 			SERVERCOMMANDS_ThingIsCorpse( pActor, ulClient, SVCF_ONLYTHISCLIENT );
-    }
+	}
 
 	// Tell clients the found/total item count.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
