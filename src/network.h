@@ -487,8 +487,20 @@ enum
 	SVC_SETSECTORLINK,
 	SVC_DOPUSHER,
 	SVC_ADJUSTPUSHER,
+	SVC_EXTENDEDCOMMAND,
 
 	NUM_SERVER_COMMANDS
+};
+
+//*****************************************************************************
+// [BB] We are almost at 255 normal commands. In order to prevent having to use a short to identify all of them,
+// collect less used ones in SVC2_* and mark those with SVC_EXTENDEDCOMMAND. Unless we need more than 512 commands,
+// this is more effective than indexing by a short.
+enum
+{
+	SVC2_SETINVENTORYICON,
+
+	NUM_SVC2_COMMANDS
 };
 
 //*****************************************************************************

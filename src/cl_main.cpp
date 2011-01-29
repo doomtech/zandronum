@@ -360,6 +360,7 @@ static	void	client_TakeInventory( BYTESTREAM_s *pByteStream );
 static	void	client_GivePowerup( BYTESTREAM_s *pByteStream );
 static	void	client_DoInventoryPickup( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyAllInventory( BYTESTREAM_s *pByteStream );
+static	void	client_SetInventoryIcon( BYTESTREAM_s *pByteStream );
 
 // Door commands.
 static	void	client_DoDoor( BYTESTREAM_s *pByteStream );
@@ -755,6 +756,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORLINK",
 	"SVC_DOPUSHER",
 	"SVC_ADJUSTPUSHER",
+	"SVC_EXTENDEDCOMMAND",
 };
 #endif
 
@@ -2662,6 +2664,26 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_IgnorePlayer( pByteStream );
 		break;
+
+	case SVC_EXTENDEDCOMMAND:
+		{
+			const LONG lExtCommand = NETWORK_ReadByte( pByteStream );
+
+			switch ( lExtCommand )
+			{
+			case SVC2_SETINVENTORYICON:
+
+				client_SetInventoryIcon( pByteStream );
+				break;
+
+			default:
+				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
+				CLIENT_QuitNetworkGame( szString );
+				return;
+			}
+		}
+		break;
+
 	default:
 
 #ifdef _DEBUG
@@ -10257,6 +10279,28 @@ static void client_DestroyAllInventory( BYTESTREAM_s *pByteStream )
 	// [BB] Be careful here, we may not use mo->DestroyAllInventory( ), otherwise
 	// AHexenArmor messes up.
 	DoClearInv ( players[ulPlayer].mo );
+}
+
+//*****************************************************************************
+//
+static void client_SetInventoryIcon( BYTESTREAM_s *pByteStream )
+{
+	const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	const ULONG usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
+	const FString iconTexName = NETWORK_ReadString( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+		return;
+
+	const PClass *pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
+	if ( pType == NULL )
+		return;
+
+	AInventory *pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	if ( pInventory )
+		pInventory->Icon = TexMan.GetTexture( iconTexName, 0 );
 }
 
 //*****************************************************************************
