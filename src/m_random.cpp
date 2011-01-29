@@ -68,6 +68,7 @@
 #include "c_dispatch.h"
 #include "files.h"
 // [BB] New #includes.
+#include "m_oldrandom.h"
 #include "doomdef.h"
 
 // MACROS ------------------------------------------------------------------
@@ -192,6 +193,26 @@ FRandom::~FRandom ()
 	{
 		*prev = rng->Next;
 	}
+}
+
+// [BB] Moved implementation here.
+int FRandom::operator()()
+{
+	// [BB] Use Doom's original random numbers if the user wants it.
+	if ( compatflags2 & COMPATF2_OLD_RANDOM_GENERATOR )
+		return P_Random();
+
+	return GenRand32() & 255;
+}
+
+// [BB] Moved implementation here.
+int FRandom::Random2()
+{
+	// [BB] Use Doom's original random numbers if the user wants it.
+	if ( compatflags2 & COMPATF2_OLD_RANDOM_GENERATOR )
+		return ( P_Random() - P_Random() );
+
+	return Random2(255);
 }
 
 //==========================================================================

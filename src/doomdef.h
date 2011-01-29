@@ -370,6 +370,8 @@ enum
 	// players to land, allows to keep the default air control most people are used to while not
 	// giving flying players too much of an advantage.
 	COMPATF2_NO_LAND						= 1 << 2,
+	// [BB] Use Doom's random table instead of ZDoom's random number generator.
+	COMPATF2_OLD_RANDOM_GENERATOR		= 1 << 3,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

@@ -1983,6 +1983,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\m_oldrandom.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\m_options.cpp"
 				>
 				<FileConfiguration
@@ -4617,6 +4621,10 @@
 			</File>
 			<File
 				RelativePath=".\src\m_misc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\m_oldrandom.h"
 				>
 			</File>
 			<File
