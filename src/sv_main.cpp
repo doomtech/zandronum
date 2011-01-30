@@ -3494,8 +3494,17 @@ void SERVER_ResetInventory( ULONG ulClient )
 
 	// Then, go through the client's inventory, and tell the client to give himself
 	// each item.
+	// [BB] To (mostly) keep the order of the inventory items (important for example when the player has different
+	// weapons with the same SelectionOrder value) we need to hand them out in reverse order.
+	TArray<AInventory *> inventory;
+	// [BB] First but the stuff into a TArray.
 	for ( pInventory = players[ulClient].mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )
+		inventory.Push ( pInventory );
+	// [BB] Then give them in reverse order.
+	while ( inventory.Size() )
 	{
+		inventory.Pop( pInventory );
+
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )))
 			continue;
 

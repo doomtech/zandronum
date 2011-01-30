@@ -42,6 +42,7 @@ latestzdoom branch
 -	- Fixed: When using the give weapons cheat online, the player possibly switched to one of the newly given weapons instead of keeping the current one. [Torr Samaho]
 -	- Fixed: For some of the cheats, clients other than the one who did the cheat printed printed the "is a cheater" line twice. [Torr Samaho]
 -	- Fixed: When picking up a dropped backpack online, clients wrongly assumed that the backpack gives ammo. [Torr Samaho]
+-	- Fixed: After a "changemap" map change the client side inventory ordering of the console player got reversed. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
