@@ -814,6 +814,27 @@ void cht_Give (player_t *player, const char *name, int amount)
 		}
 		player->PendingWeapon = savedpending;
 
+		// [BB] If we're the server, also tell the client to restore the original weapon.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			// [BB] We need to make sure that the client has its old weapon up instantly.
+			// Since there is no net command for this and I don't want to add another net command
+			// just for this cheat, we use a workaround here.
+			const bool playerHasInstantWeapSwitch = !!(player->cheats & CF_INSTANTWEAPSWITCH);
+			const ULONG ulPlayer = static_cast<ULONG>( player - players );
+			if ( playerHasInstantWeapSwitch == false )
+			{
+				player->cheats |= CF_INSTANTWEAPSWITCH;
+				SERVERCOMMANDS_SetPlayerCheats( ulPlayer );
+			}
+			SERVERCOMMANDS_WeaponChange( ulPlayer );
+			if ( playerHasInstantWeapSwitch == false )
+			{
+				player->cheats &= ~CF_INSTANTWEAPSWITCH;
+				SERVERCOMMANDS_SetPlayerCheats( ulPlayer );
+			}
+		}
+
 		if (!giveall)
 			return;
 	}
