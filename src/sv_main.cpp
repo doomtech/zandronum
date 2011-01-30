@@ -2228,6 +2228,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// Check if we need to tell the incoming player about any powerups this player may have.
 		// [BB] Also tell about all the ammo, weapons, backpacks and keys this player has.
+		// [BB] Keys need to be handled carefully. In order to display them properly in ST's fullscrenn HUD
+		// in coop spy, they need to be given in reverse order.
+		TArray<AInventory *> keys;
 		for ( pInventory = pPlayer->mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )
 		{
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
@@ -2240,7 +2243,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				}
 			}
 			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )) || pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ))
-				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem )) || pInventory->IsKindOf( RUNTIME_CLASS( AKey ))
+				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem ))
 				|| pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
 			{
 				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
@@ -2248,6 +2251,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				if ( pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
 					SERVERCOMMANDS_SetInventoryIcon( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 			}
+			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AKey )) )
+				keys.Push ( pInventory );
+		}
+		// [BB] Now give the keys we just collected from the inventory in reverse order.
+		while ( keys.Size() )
+		{
+			keys.Pop( pInventory );
+			SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
 		// Also if this player is currently dead, let the incoming player know that.
