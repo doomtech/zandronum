@@ -2240,8 +2240,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				}
 			}
 			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )) || pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ))
-				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem )) || pInventory->IsKindOf( RUNTIME_CLASS( AKey )) )
+				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem )) || pInventory->IsKindOf( RUNTIME_CLASS( AKey ))
+				|| pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
+			{
 				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+				// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
+				if ( pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
+					SERVERCOMMANDS_SetInventoryIcon( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 		}
 
 		// Also if this player is currently dead, let the incoming player know that.
@@ -3522,6 +3528,10 @@ void SERVER_ResetInventory( ULONG ulClient )
 			// the client thinks the armor is green and its amount is equal to 1.
 			if ( (pInventory->IsKindOf( RUNTIME_CLASS( AArmor ))) )
 				SERVERCOMMANDS_SetPlayerArmor( ulClient );
+
+			// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
+			if ( pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
+				SERVERCOMMANDS_SetInventoryIcon( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
 

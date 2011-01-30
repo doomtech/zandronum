@@ -38,6 +38,7 @@ latestzdoom branch
 -	- Fixed: Clients were not informed about "pusher" additions or changes. [Torr Samaho]
 -	- Fixed: Dead actors with a crash state locally crash on the client again while connecting. [Torr Samaho]
 -	- Fixed: After a "changemap" map change clients forgot about the max health and armor bonuses of players. Furthermore, newly connecting clients were not informed about these bonuses of players already in game. [Torr Samaho]
+-	- Fixed: After a "changemap" map change clients didn't draw the HUD icons of runes obtained in the previous level. Furthermore, newly connecting clients were not informed about the runes of players already in game. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
