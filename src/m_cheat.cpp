@@ -521,7 +521,8 @@ void cht_DoCheat (player_t *player, int cheat)
 			SERVER_Printf( PRINT_HIGH, "%s is a cheater: %s\n", player->userinfo.netname, msg );
 		else if (player == &players[consoleplayer])
 			Printf ("%s\n", msg);
-		else
+		// [BB] The server already ensures that all clients see the cheater message.
+		else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 			Printf ("%s is a cheater: %s\n", player->userinfo.netname, msg);
 	}
 }
