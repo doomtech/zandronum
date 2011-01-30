@@ -1235,6 +1235,24 @@ void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SyncPlayerAmmoAmount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+		return;
+
+	AInventory *pInventory = NULL;
+
+	for ( pInventory = players[ulPlayer].mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )
+	{
+		if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )) == false )
+			continue;
+
+		SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, ulFlags );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
@@ -5705,6 +5723,10 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->getActorNetworkIndex() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->Amount );
 	}
+
+	// [BB] Clients don't know that a BackpackItem may be depleted. In this case we have to resync the ammo count.
+	if ( pInventory->IsKindOf (RUNTIME_CLASS(ABackpackItem)) && static_cast<ABackpackItem*> ( pInventory )->bDepleted )
+		SERVERCOMMANDS_SyncPlayerAmmoAmount( ulPlayer, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
