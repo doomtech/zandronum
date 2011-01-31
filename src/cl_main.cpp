@@ -3386,6 +3386,7 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	pPlayer->ulDeathCount = 0;
 	PLAYER_ResetSpecialCounters ( pPlayer );
 	pPlayer->bChatting = 0;
+	pPlayer->bInConsole = 0;
 	pPlayer->bSpectating = 0;
 	pPlayer->bIgnoreChat = 0;
 	pPlayer->lIgnoreChatTicks = -1;
