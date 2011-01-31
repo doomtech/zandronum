@@ -44,6 +44,7 @@ latestzdoom branch
 -	- Fixed: When picking up a dropped backpack online, clients wrongly assumed that the backpack gives ammo. [Torr Samaho]
 -	- Fixed: After a "changemap" map change the client side inventory ordering of the console player got reversed. [Torr Samaho]
 -	- Fixed: Under some circumstances a client wrongly displayed an "in console" icon over a players head. [Torr Samaho]
+-	- Fixed: When coop spying another player for the first time the initial view height of that player was sometimes wrong. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
