@@ -681,9 +681,15 @@ void V_CleanPlayerName( char *pszString )
 	// Hence, we have to re-add "\\c-" here.
 	if ( ( tempString.IndexOf ( "\\c" ) != -1 ) )
 	{
-		if ( tempString.Len() > MAXPLAYERNAME - 3 )
+		// [BB] In the uncolorized string, color codes need one additional char, take this
+		// into account when checking whether the name is too long.
+		FString tempColorizedString = tempString.GetChars();
+		V_ColorizeString ( tempColorizedString );
+		const int numColorCodes = tempString.Len() - tempColorizedString.Len();
+
+		if ( tempString.Len() > MAXPLAYERNAME - 3 + numColorCodes )
 		{
-			tempString = tempString.Left ( MAXPLAYERNAME - 3 );
+			tempString = tempString.Left ( MAXPLAYERNAME - 3 + numColorCodes );
 			V_RemoveTrailingCrapFromFString ( tempString );
 		}
 		tempString += "\\c-";
