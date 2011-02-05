@@ -58,6 +58,7 @@
 //	PROTOTYPES
 
 void	CLIENT_ResetFloodTimers( void );
+void	CLIENT_IgnoreWeaponSelect( bool bIgnore );
 void	CLIENTCOMMANDS_UserInfo( ULONG ulFlags );
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );

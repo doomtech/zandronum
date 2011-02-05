@@ -68,6 +68,7 @@ static	ULONG	g_ulLastChangeTeamTime = 0;
 static	ULONG	g_ulLastSuicideTime = 0;
 static	ULONG	g_ulLastJoinTime = 0;
 static	ULONG	g_ulLastDropTime = 0;
+static	bool g_bIgnoreWeaponSelect = false;
 SDWORD g_sdwCheckCmd = 0;
 
 //*****************************************************************************
@@ -79,6 +80,13 @@ void CLIENT_ResetFloodTimers( void )
 	g_ulLastSuicideTime = 0;
 	g_ulLastJoinTime = 0;
 	g_ulLastDropTime = 0;
+}
+
+//*****************************************************************************
+//
+void CLIENT_IgnoreWeaponSelect( bool bIgnore )
+{
+	g_bIgnoreWeaponSelect = bIgnore;
 }
 
 //*****************************************************************************
@@ -282,7 +290,7 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 //
 void CLIENTCOMMANDS_WeaponSelect( const PClass *pType )
 {
-	if ( pType == NULL )
+	if ( ( pType == NULL ) || g_bIgnoreWeaponSelect )
 		return;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
