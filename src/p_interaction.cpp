@@ -2711,11 +2711,19 @@ void PLAYER_AwardDamagePointsForAllPlayers( void )
 
 //*****************************************************************************
 //
-void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon )
+void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponOnServer )
 {
 	// [BB] Validity check.
 	if ( pPlayer == NULL )
 		return;
+
+	// [BB] If the server should just clear the weapon, do so and return.
+	if ( bClearWeaponOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+	{
+		pPlayer->ReadyWeapon = NULL;
+		pPlayer->PendingWeapon = WP_NOCHANGE;
+		return;
+	}
 
 	// Set the ready and pending weapon.
 	// [BB] When playing a client side demo, the weapon for the consoleplayer will
