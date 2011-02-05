@@ -1224,16 +1224,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			if ( pInventory )
 			{
 				// Make the weapon the player's ready weapon.
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
-
-				// [BC] If we're a client, tell the server we're switching weapons.
-				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-				{
-					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( ));
-
-					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pInventory->GetClass( )->TypeName.GetChars( ) );
-				}
+				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ) );
 
 				// Find the player's ammo for the weapon in his inventory, and max. out the amount.
 				AInventory *ammo1 = player->mo->FindInventory( static_cast<AWeapon *> (pInventory)->AmmoType1 );
@@ -1256,16 +1248,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			if ( pInventory )
 			{
 				// Make the weapon the player's ready weapon.
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
-
-				// [BC] If we're a client, tell the server we're switching weapons.
-				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-				{
-					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( ));
-
-					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pInventory->GetClass( )->TypeName.GetChars( ) );
-				}
+				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ) );
 			}
 
 			// Find the player's ammo for the weapon in his inventory, and max. out the amount.
@@ -1457,19 +1441,9 @@ void APlayerPawn::GiveDefaultInventory ()
 			{
 				bullets->Amount = deh.StartBullets;		// [RH] Used to be 50
 			}
-			player->ReadyWeapon = player->PendingWeapon =
-				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist);
-
-			// [BC] If we're a client, tell the server we're switching weapons.
-			// [BB] Using custom player classes which don't have "Fist"
-			// and "Pistol" player->ReadyWeapon can be equal to NULL.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && player->ReadyWeapon )
-			{
-				CLIENTCOMMANDS_WeaponSelect( player->ReadyWeapon->GetClass( ));
-
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, player->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
-			}
+			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+			PLAYER_SetWeapon( player,
+				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist) );
 			return;
 		}
 	}
