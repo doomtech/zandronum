@@ -128,6 +128,8 @@ bool AWeapon::Use (bool pickup)
 			if ( CLIENTDEMO_IsRecording( ))
 				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, useweap->GetClass( )->TypeName.GetChars( ) );
 		}
+		else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
+			SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
 	}
 	// Return false so that the weapon is not removed from the inventory.
 	return false;
@@ -351,6 +353,8 @@ void AWeapon::AttachToOwner (AActor *other)
 					if ( CLIENTDEMO_IsRecording( ))
 						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
 				}
+				else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
+					SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
 			}
 			// If it's 1, then only switch if it ranks higher than our current weapon.
 			else if (( pCompareWeapon == NULL ) ||
@@ -373,6 +377,8 @@ void AWeapon::AttachToOwner (AActor *other)
 						if ( CLIENTDEMO_IsRecording( ))
 							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
 					}
+					else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
+						SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
 				}
 			}
 		}

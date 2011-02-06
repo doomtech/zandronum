@@ -50,6 +50,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients were not informed whether existing corpses were gibbed. [Torr Samaho]
 -	- Fixed: The ACS commands SetActorProperty( APROP_Gravity ), SetGravity and SetAircontrol didn't work properly online. [Torr Samaho]
 -	- Fixed client / server weapon sync issues after spawning / respawning. [Torr Samaho]
+-	- Fixed: The server didn't inform the clients about the weapon changes of bots. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

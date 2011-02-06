@@ -2048,7 +2048,13 @@ static void botcmd_ChangeWeapon( CSkullBot *pBot )
 		return;
 
 	if ( pBot->GetPlayer( )->ReadyWeapon != pWeapon )
+	{
 		pBot->GetPlayer( )->PendingWeapon = pWeapon;
+
+		// [BB] Inform the clients about the weapon change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( pBot->GetPlayer( ) - players ) );
+	}
 }
 
 //*****************************************************************************
