@@ -47,6 +47,7 @@ latestzdoom branch
 -	- Fixed: When coop spying another player for the first time the initial view height of that player was sometimes wrong. [Torr Samaho]
 -	- Fixed: Trying to pick up a white flag in one flag CTF while already carrying a white flag gave a point. [Torr Samaho]
 -	- Fixed: If a player carrying the flag/skull in CTF/ST suicided while "sv_instantreturn 1", the return message said "Returned by: playername" instead of "Returned automatically". [Torr Samaho]
+-	- Fixed: Newly connecting clients were not informed whether existing corpses were gibbed. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

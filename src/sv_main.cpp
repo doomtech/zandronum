@@ -2507,7 +2507,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// Spawned monster is a corpse.
 		if (( pActor->health <= 0 ) && ( pActor->flags & MF_COUNTKILL ))
+		{
 			SERVERCOMMANDS_ThingIsCorpse( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] If the corpse is gibbed, let the client know.
+			FState* pXDeath = pActor->FindState(NAME_Death, NAME_Extreme);
+			if ( pXDeath && pXDeath != pActor->FindState(NAME_Death) && pActor->InState ( pXDeath ) )
+				SERVERCOMMANDS_SetThingFrame( pActor, pActor->state, ulClient, SVCF_ONLYTHISCLIENT, false );
+		}
 	}
 
 	// Tell clients the found/total item count.

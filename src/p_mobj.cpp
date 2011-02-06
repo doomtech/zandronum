@@ -792,11 +792,11 @@ bool AActor::InDeathState()
 //
 //----------------------------------------------------------------------------
 
-bool AActor::InState(FName label) const
+bool AActor::InState(FState *pState) const
 {
 	if( state != NULL )
 	{
-		FState *pTempState = FindState(label);
+		FState *pTempState = pState;
 		std::vector<FState*> checkedFrames;
 		while ( pTempState != NULL )
 		{
@@ -821,6 +821,11 @@ bool AActor::InState(FName label) const
 		}
 	}
 	return false;
+}
+
+bool AActor::InState(FName label) const
+{
+	return InState ( FindState(label) );
 }
 
 //============================================================================
