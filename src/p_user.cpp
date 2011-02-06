@@ -1738,7 +1738,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 					if ( pTeamItem->Sector && (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false ))
 					{
 						if ( dmflags2 & DF2_INSTANT_RETURN )
-							TEAM_ExecuteReturnRoutine( i, inflictor );
+							TEAM_ExecuteReturnRoutine( i, NULL ); // [BB] Flags returned by DF2_INSTANT_RETURN are considered to have no "returner" player.
 						else
 						{
 							TEAM_SetReturnTicks( i, sv_flagreturntime * TICRATE );
