@@ -4102,6 +4102,20 @@ void G_DoLoadGame ()
 	if ( invasion )
 		INVASION_ReadSaveInfo( png );
 
+	// [BB] Restore the netstate.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) )
+	{
+		if (M_FindPNGChunk (png, MAKE_ID('m','p','E','m')) == 1)
+		{
+			BYTE multiplayerEmulation;
+			fread (&multiplayerEmulation, 1, 1, stdfile);
+			if ( multiplayerEmulation )
+				NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
+			else
+				NETWORK_SetState( NETSTATE_SINGLE );
+		}
+	}
+
 	NextSkill = -1;
 	if (M_FindPNGChunk (png, MAKE_ID('s','n','X','t')) == 1)
 	{
@@ -4364,6 +4378,13 @@ void G_DoSaveGame (bool okForQuicksave, FString filename, const char *descriptio
 	// [BC] Write the invasion state, etc.
 	if ( invasion )
 		INVASION_WriteSaveInfo( stdfile );
+
+	// [BB] Save the netstate.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) )
+	{
+		BYTE multiplayerEmulation = !!( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER );
+		M_AppendPNGChunk (stdfile, MAKE_ID('m','p','E','m'), &multiplayerEmulation, 1);
+	}
 
 	if (NextSkill != -1)
 	{
