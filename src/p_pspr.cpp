@@ -700,7 +700,8 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 	{
 		return;
 	}
-	if (player->PendingWeapon != WP_NOCHANGE)
+	// [BB] COMPATF_OLD_WEAPON_SWITCH also restores the original weapon switch cancellation behavior.
+	if (player->PendingWeapon != WP_NOCHANGE && !( compatflags & COMPATF_OLD_WEAPON_SWITCH ))
 	{
 		P_SetPsprite (player, ps_weapon, player->ReadyWeapon->GetDownState());
 		return;
