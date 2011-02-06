@@ -2823,6 +2823,10 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_Gravity:
 		actor->gravity = value;
+
+		// [BB] If we're the server, tell clients to update this actor's gravity.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingGravity( actor );
 		break;
 
 	case APROP_SeeSound:
@@ -5557,22 +5561,42 @@ int DLevelScript::RunScript ()
 
 		case PCD_SETGRAVITY:
 			level.gravity = (float)STACK(1) / 65536.f;
+
+			// [BB] The level gravity is handled as part of the gamemode limits.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetGameModeLimits( );
+
 			sp--;
 			break;
 
 		case PCD_SETGRAVITYDIRECT:
 			level.gravity = (float)pc[0] / 65536.f;
+
+			// [BB] The level gravity is handled as part of the gamemode limits.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetGameModeLimits( );
+
 			pc++;
 			break;
 
 		case PCD_SETAIRCONTROL:
 			level.aircontrol = STACK(1);
+
+			// [BB] The level aircontrol is handled as part of the gamemode limits.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetGameModeLimits( );
+
 			sp--;
 			G_AirControlChanged ();
 			break;
 
 		case PCD_SETAIRCONTROLDIRECT:
 			level.aircontrol = pc[0];
+
+			// [BB] The level aircontrol is handled as part of the gamemode limits.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetGameModeLimits( );
+
 			pc++;
 			G_AirControlChanged ();
 			break;

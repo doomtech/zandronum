@@ -6639,7 +6639,7 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Get the actor's gravity.
-	lGravity = NETWORK_ReadShort( pByteStream );
+	lGravity = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the corresponding actor.
 	pActor = CLIENT_FindThingByNetID( lID );

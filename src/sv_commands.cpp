@@ -2606,10 +2606,10 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGGRAVITY );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->gravity );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->gravity );
 	}
 }
 
