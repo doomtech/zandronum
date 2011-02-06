@@ -2711,14 +2711,14 @@ void PLAYER_AwardDamagePointsForAllPlayers( void )
 
 //*****************************************************************************
 //
-void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponOnServer )
+void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponForClientOnServer )
 {
 	// [BB] Validity check.
 	if ( pPlayer == NULL )
 		return;
 
-	// [BB] If the server should just clear the weapon, do so and return.
-	if ( bClearWeaponOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+	// [BB] If the server should just clear the weapon for the client (and this player is a client and not a bot), do so and return.
+	if ( bClearWeaponForClientOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == false ) )
 	{
 		pPlayer->ReadyWeapon = NULL;
 		pPlayer->PendingWeapon = WP_NOCHANGE;

@@ -994,7 +994,11 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 	ObtainInventory (oldplayer);
 
 	player->ReadyWeapon = NULL;
-	PickNewWeapon (NULL);
+	// [BB] The server waits for the client to select the weapon (but has to handle bots).
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || player->bIsBot )
+		PickNewWeapon (NULL);
+	else
+		player->PendingWeapon = WP_NOCHANGE;
 }
 
 //===========================================================================
@@ -1224,8 +1228,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			if ( pInventory )
 			{
 				// Make the weapon the player's ready weapon.
-				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
-				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ) );
+				// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
+				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ), true );
 
 				// Find the player's ammo for the weapon in his inventory, and max. out the amount.
 				AInventory *ammo1 = player->mo->FindInventory( static_cast<AWeapon *> (pInventory)->AmmoType1 );
@@ -1248,8 +1252,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			if ( pInventory )
 			{
 				// Make the weapon the player's ready weapon.
-				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
-				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ) );
+				// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
+				PLAYER_SetWeapon ( player, static_cast<AWeapon *>( pInventory ), true );
 			}
 
 			// Find the player's ammo for the weapon in his inventory, and max. out the amount.
@@ -1301,9 +1305,14 @@ void APlayerPawn::GiveDefaultInventory ()
 			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) &&
 				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
 			{
+				// [BB] The server waits for the client to select the weapon (but has to handle bots).
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player->bIsBot == false ) ) {
+					player->ReadyWeapon = NULL;
+					player->PendingWeapon = WP_NOCHANGE;
+				}
 				// [BB] When playing a client side demo, the default weapon for the consoleplayer
 				// will be selected by a recorded CLD_INVUSE command.
-				if ( ( CLIENTDEMO_IsPlaying() == false ) || ( player - players ) != consoleplayer )
+				else if ( ( CLIENTDEMO_IsPlaying() == false ) || ( player - players ) != consoleplayer )
 					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
 			}
 		}
@@ -1409,8 +1418,8 @@ void APlayerPawn::GiveDefaultInventory ()
 				player->health = 1;
 
 			// Finally, set the ready and pending weapon.
-			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
-			PLAYER_SetWeapon( player, pPendingWeapon );
+			// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
+			PLAYER_SetWeapon( player, pPendingWeapon, true );
 		}
 		// [BC] If the user has the shotgun start flag set, do that!
 		else if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
@@ -1420,8 +1429,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			pInventory = player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "Shotgun" ) );
 			if ( pInventory )
 			{
-				// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
-				PLAYER_SetWeapon( player, static_cast<AWeapon *>( pInventory ) );
+				// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
+				PLAYER_SetWeapon( player, static_cast<AWeapon *>( pInventory ), true );
 
 				// Start them off with two clips.
 				// [BB] PLAYER_SetWeapon doesn't set the consoleplayer's ReadyWeapon/PendingWeapon.
@@ -1441,9 +1450,9 @@ void APlayerPawn::GiveDefaultInventory ()
 			{
 				bullets->Amount = deh.StartBullets;		// [RH] Used to be 50
 			}
-			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
+			// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
 			PLAYER_SetWeapon( player,
-				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist) );
+				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist), true );
 			return;
 		}
 	}
@@ -1522,8 +1531,8 @@ void APlayerPawn::GiveDefaultInventory ()
 				player->health = 1;
 
 			// Finally, set the ready and pending weapon.
-			// [BB] PLAYER_SetWeapon takes care of the special client and demo handling.
-			PLAYER_SetWeapon( player, pPendingWeapon );
+			// [BB] PLAYER_SetWeapon takes care of the special client / server and demo handling.
+			PLAYER_SetWeapon( player, pPendingWeapon, true );
 		}
 	}
 }

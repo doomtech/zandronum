@@ -4642,8 +4642,16 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	if ( players[g_lCurrentClient].morphTics )
 		return false;
 
+	// [BB] Since the server is not giving the player a weapon while spawning, P_BringUpWeapon doesn't call A_Raise for
+	// the player's spawn weapon. If the player doesn't have a weapon right now, assume that he just selects his spawn
+	// weapon and call P_BringUpWeapon here.
+	const bool bFirstWeaponSelect = ( players[g_lCurrentClient].PendingWeapon == WP_NOCHANGE ) && ( players[g_lCurrentClient].ReadyWeapon == NULL );
+
 	// Finally, switch the player's pending weapon.
 	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+	if ( bFirstWeaponSelect )
+		P_BringUpWeapon ( &players[g_lCurrentClient] );
 
 	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
 	SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );

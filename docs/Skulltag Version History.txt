@@ -49,6 +49,7 @@ latestzdoom branch
 -	- Fixed: If a player carrying the flag/skull in CTF/ST suicided while "sv_instantreturn 1", the return message said "Returned by: playername" instead of "Returned automatically". [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed whether existing corpses were gibbed. [Torr Samaho]
 -	- Fixed: The ACS commands SetActorProperty( APROP_Gravity ), SetGravity and SetAircontrol didn't work properly online. [Torr Samaho]
+-	- Fixed client / server weapon sync issues after spawning / respawning. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
