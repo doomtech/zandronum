@@ -824,6 +824,10 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 	if ( oneflagctf == false )
 		return ( Super::HandlePickup( pItem ));
 
+	// [BB] Bringing a WhiteFlag to another WhiteFlag doesn't give a point.
+	if ( pItem->IsKindOf ( PClass::FindClass( "WhiteFlag" ) ) )
+		return ( false );
+
 	ulTeam = TEAM_GetTeamFromItem( this );
 
 	if ( TEAM_GetTeamFromItem( pItem ) == Owner->player->ulTeam )
@@ -929,7 +933,11 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 
 LONG AWhiteFlag::AllowFlagPickup( AActor *pToucher )
 {
-	return ( ALLOW_PICKUP );
+	// [BB] Carrying more than one WhiteFlag is not allowed.
+	if (( pToucher == NULL ) || ( pToucher->FindInventory( PClass::FindClass( "WhiteFlag" ) ) == NULL ) )
+		return ( ALLOW_PICKUP );
+	else
+		return ( DENY_PICKUP );
 }
 
 //===========================================================================
