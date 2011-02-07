@@ -54,6 +54,7 @@ latestzdoom branch
 -	- Fixed: The server didn't inform the clients about the weapon changes of bots. [Torr Samaho]
 -	- Fixed: Savegames didn't retain the multiplayer emulation state. [Torr Samaho]
 -	- Fixed: When a player carrying the terminator sphere/hellstone disconnected the terminator sphere/hellstone wasn't dropped. [Torr Samaho]
+-	- Fixed: Under certain rare circumstances the clients displayed friendly fire obituaries in DM. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
