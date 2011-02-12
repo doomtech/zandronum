@@ -807,6 +807,9 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
 			}
 		}
+		// [BB] The server needs to tell the clients about bot weapon changes.
+		else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player->bIsBot == true ) )
+			SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( player - players ) );
 	}
 	return best;
 }
