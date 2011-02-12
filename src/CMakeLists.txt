@@ -176,7 +176,9 @@ else( WIN32 )
 		message( SEND_ERROR "SDL is required for building." )
 	endif( NOT SDL_FOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${SDL_LIBRARY}" )
-	include_directories( "${SDL_INCLUDE_DIR}" )
+	# [BB] Don't put the SDL path in inverted commas. At least on FreeBSD 8.1 this
+	# variable contains two directories.
+	include_directories( ${SDL_INCLUDE_DIR} )
 
 	find_path( FPU_CONTROL_DIR fpu_control.h )
 	if( FPU_CONTROL_DIR )

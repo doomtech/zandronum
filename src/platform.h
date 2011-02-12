@@ -55,7 +55,7 @@ typedef bool BOOL;
 #endif
 
 // [BB] FreeBSD specific defines
-#ifdef __FreeBSD__
+#if defined ( __FreeBSD__ ) && ( __FreeBSD__ < 8 )
 #define __va_copy(x,y) va_copy(x,y)
 #endif	//__FreeBSD__
 
