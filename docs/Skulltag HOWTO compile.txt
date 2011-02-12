@@ -33,6 +33,7 @@ The above steps assume that you have all necessary libraries installed. Under Fr
   sdl
   mc
   jpeg
+  cmake
 
 Other useful packages are
 
