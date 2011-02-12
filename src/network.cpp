@@ -69,6 +69,7 @@
 #include <list>
 
 #include "c_dispatch.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "doomtype.h"
 #include "huffman.h"
@@ -905,6 +906,28 @@ const PClass *NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex )
 		return NULL;
 	else
 		return g_ActorNetworkIndexClassPointerMap[usActorNetworkIndex-1];
+}
+
+//*****************************************************************************
+//
+bool NETWORK_InClientMode( )
+{
+	return ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == true );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer )
+{
+	// [BB] Not in client mode, so just return true.
+	if ( NETWORK_InClientMode() == false )
+		return true;
+
+	// [BB] A null pointer is obviously not the console player.
+	if ( pPlayer == NULL )
+		return false;
+
+	return ( pPlayer == &players[consoleplayer] );
 }
 
 //*****************************************************************************

@@ -597,6 +597,10 @@ void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 const char		*NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex );
 const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 
+// [BB] Returns true if either "NETSTATE_CLIENT" or a client side demo is played.
+bool			NETWORK_InClientMode( );
+bool			NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer );
+
 // [BB] Generate a checksum from a ticcmd_t.
 SDWORD			NETWORK_Check ( ticcmd_t *pCmd );
 
