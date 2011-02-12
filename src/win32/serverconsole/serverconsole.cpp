@@ -1379,7 +1379,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 					// Get the text from the input box.
 					GetDlgItemText( hDlg, IDC_BANFILE, szBuffer, 256 );
 
-					sprintf( szString, "sv_banfile %s", szBuffer );
+					sprintf( szString, "sv_banfile \"%s\"", szBuffer );
 					SERVER_AddCommand( szString );
 
 					if ( SendDlgItemMessage( hDlg, IDC_ENFORCEBANS, BM_GETCHECK, BST_CHECKED, 0 ))
