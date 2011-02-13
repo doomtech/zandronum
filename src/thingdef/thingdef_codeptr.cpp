@@ -1204,7 +1204,8 @@ void A_CustomFireBullets( AActor *self,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
 						  bool UseAmmo,
-						  fixed_t Range){
+						  fixed_t Range,
+						  const bool pPlayAttacking = true ){
   	if ( self->player == NULL)
 		return;
 
@@ -1224,11 +1225,17 @@ void A_CustomFireBullets( AActor *self,
 	
 	if (Range == 0) Range = PLAYERMISSILERANGE;
 
-	// [BC] If we're the server, tell clients to update this player's state.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
-		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+	// [BB] Allow to disable the execution of PlayAttacking2.
+	if ( pPlayAttacking )
+	{
+		// [BC] If we're the server, tell clients to update this player's state.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
+			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-	static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
+		// [BB] Clients only do this for "their" player.
+		if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
+			static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
+	}
 
 	bslope = P_BulletSlope(self);
 	bangle = self->angle;

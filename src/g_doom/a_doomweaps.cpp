@@ -107,12 +107,13 @@ void A_CustomFireBullets( AActor *self,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
 						  bool UseAmmo = true,
-						  fixed_t Range = 0);
+						  fixed_t Range = 0,
+						  const bool pPlayAttacking = true );
 
 DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 {
 	// [BB] A_FirePistol is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff") );
+	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff"), true, 0, false );
 	CALL_ACTION ( A_GunFlash, self );
 /*
 	bool accurate;
@@ -300,7 +301,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 {
 	// [BB] A_FireShotgun is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5, PClass::FindClass("BulletPuff") );
+	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5, PClass::FindClass("BulletPuff"), true, 0, false );
 	CALL_ACTION ( A_GunFlash, self );
 /*
 	int i;
@@ -374,7 +375,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 {
 	// [BB] A_FireShotgun2 is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5, PClass::FindClass("BulletPuff") );
+	A_CustomFireBullets( self, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5, PClass::FindClass("BulletPuff"), true, 0, false );
 	CALL_ACTION ( A_GunFlash, self );
 /*
 	int 		i;
@@ -464,7 +465,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 
 DEFINE_ACTION_FUNCTION(AActor, A_OpenShotgun2)
 {
-	S_Sound (self, CHAN_WEAPON, "weapons/sshoto", 1, ATTN_NORM);
+	// [BB] Clients only do this for "their" player.
+	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+		S_Sound (self, CHAN_WEAPON, "weapons/sshoto", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( self->player ))
@@ -473,7 +476,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_OpenShotgun2)
 
 DEFINE_ACTION_FUNCTION(AActor, A_LoadShotgun2)
 {
-	S_Sound (self, CHAN_WEAPON, "weapons/sshotl", 1, ATTN_NORM);
+	// [BB] Clients only do this for "their" player.
+	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+		S_Sound (self, CHAN_WEAPON, "weapons/sshotl", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( self->player ))
@@ -482,7 +487,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_LoadShotgun2)
 
 DEFINE_ACTION_FUNCTION(AActor, A_CloseShotgun2)
 {
-	S_Sound (self, CHAN_WEAPON, "weapons/sshotc", 1, ATTN_NORM);
+	// [BB] Clients only do this for "their" player.
+	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+		S_Sound (self, CHAN_WEAPON, "weapons/sshotc", 1, ATTN_NORM);
 	CALL_ACTION(A_ReFire, self);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
@@ -1326,7 +1333,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BFGSpray)
 //
 DEFINE_ACTION_FUNCTION(AActor, A_BFGsound)
 {
-	S_Sound (self, CHAN_WEAPON, "weapons/bfgf", 1, ATTN_NORM);
+	// [BB] Clients only do this for "their" player.
+	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+		S_Sound (self, CHAN_WEAPON, "weapons/bfgf", 1, ATTN_NORM);
 
 	// [BC] Tell the clients to trigger the BFG firing sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

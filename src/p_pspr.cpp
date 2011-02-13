@@ -764,7 +764,15 @@ DEFINE_ACTION_FUNCTION(AInventory, A_GunFlash)
 	// the reflection rune, we need to make sure the player is alive before playing the
 	// attacking animation.
 	if ( player->mo->health > 0 )
-		player->mo->PlayAttacking2 ();
+	{
+		// [BB] If we're the server, tell clients to update this player's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
+		// [BB] Clients only do this for "their" player.
+		if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
+			player->mo->PlayAttacking2 ();
+	}
 
 	FState * flash=NULL;
 	if (player->ReadyWeapon->bAltFire) flash = player->ReadyWeapon->FindState(NAME_AltFlash);
