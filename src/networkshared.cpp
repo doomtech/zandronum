@@ -384,6 +384,7 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 		{
 			*colon = 0;
 			sadr.sin_port = htons(atoi(colon+1));
+			break;
 		}
 	}
 
