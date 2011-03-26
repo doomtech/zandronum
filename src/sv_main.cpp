@@ -2476,24 +2476,21 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
-/*
 			if ( pActor->flags != pActor->GetDefault( )->flags )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulClient, SVCF_ONLYTHISCLIENT );
 			if ( pActor->flags2 != pActor->GetDefault( )->flags2 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS2, ulClient, SVCF_ONLYTHISCLIENT );
-*/
 			// [BB] It is at least crucial for the clients to know about MF3_CRASHED. Otherwise,
 			// dead actors with a crash state locally crash on the client again while connecting.
 			if ( pActor->flags3 != pActor->GetDefault( )->flags3 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS3, ulClient, SVCF_ONLYTHISCLIENT );
-/*
 			if ( pActor->flags4 != pActor->GetDefault( )->flags4 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS4, ulClient, SVCF_ONLYTHISCLIENT );
 			if ( pActor->flags5 != pActor->GetDefault( )->flags5 )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS5, ulClient, SVCF_ONLYTHISCLIENT );
-			if ( pActor->ulSTFlags != pActor->GetDefault( )->ulSTFlags )
-				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGSST, ulClient, SVCF_ONLYTHISCLIENT );
-*/
+			//if ( pActor->ulSTFlags != pActor->GetDefault( )->ulSTFlags )
+			//	SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGSST, ulClient, SVCF_ONLYTHISCLIENT );
+
 			// [BB] Now that the ammo amount from weapon pickups is handled on the server
 			// this shouldn't be necessary anymore. Remove after thorough testing.
 			// If this is a weapon, tell the client how much ammo it gives.
