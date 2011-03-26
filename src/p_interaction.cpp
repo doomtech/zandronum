@@ -2745,6 +2745,20 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 
 //*****************************************************************************
 //
+void PLAYER_ClearWeapon( player_t *pPlayer )
+{
+	// [BB] Validity check.
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->ReadyWeapon = NULL;
+	pPlayer->PendingWeapon = WP_NOCHANGE;
+	pPlayer->psprites[ps_weapon].state = NULL;
+	pPlayer->psprites[ps_flash].state = NULL;
+}
+
+//*****************************************************************************
+//
 void PLAYER_SetLivesLeft( player_t *pPlayer, ULONG ulLivesLeft )
 {
 	// [BB] Validity check.

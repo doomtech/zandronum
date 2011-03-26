@@ -588,6 +588,7 @@ bool	PLAYER_Taunt( player_t *pPlayer );
 LONG	PLAYER_GetRailgunColor( player_t *pPlayer );
 void	PLAYER_AwardDamagePointsForAllPlayers( void );
 void	PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponForClientOnServer = false );
+void	PLAYER_ClearWeapon( player_t *pPlayer );
 void	PLAYER_SetLivesLeft( player_t *pPlayer, ULONG ulLivesLeft );
 bool	PLAYER_IsAliveOrCanRespawn( player_t *pPlayer );
 void	PLAYER_RemoveFriends( const ULONG ulPlayer );
