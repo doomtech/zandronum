@@ -1,3 +1,10 @@
+// [BB] As long as Skulltag is closed source, it can't use the OPL Code from MAME.
+void *YM3812Init(int clock, int rate) { return 0; }
+void YM3812Shutdown(void *chip) {}
+int YM3812Write(void *chip, int a, int v) { return 0; }
+void YM3812UpdateOne(void *chip, float *buffer, int length) {}
+
+#if 0
 /* 
 
 This file is based on fmopl.c from MAME 0.95. The non-YM3816 parts have been
@@ -2018,3 +2025,4 @@ FString YM3812GetVoiceString(void *chip)
 	}
 	return FString (out, 9*3);
 }
+#endif
