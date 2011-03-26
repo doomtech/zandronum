@@ -56,6 +56,7 @@ latestzdoom branch
 -	- Fixed: When a player carrying the terminator sphere/hellstone disconnected the terminator sphere/hellstone wasn't dropped. [Torr Samaho]
 -	- Fixed: Under certain rare circumstances the clients displayed friendly fire obituaries in DM. [Torr Samaho]
 -	- Fixed: The windows server GUI didn't properly handle spaces in the value sv_banfile. [Torr Samaho]
+-	- Fixed: When a player initially joins the game, he doesn't get the respawn invulnerability in DM. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

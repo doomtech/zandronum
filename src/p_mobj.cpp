@@ -4844,7 +4844,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	// [BC] Apply temporary invulnerability when respawned.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ) &&
-		(state == PST_REBORN || state == PST_ENTER) &&
+		// [BB] Added PST_REBORNNOINVENTORY, PST_ENTERNOINVENTORY.
+		(state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY) &&
 		(( dmflags2 & DF2_NO_RESPAWN_INVUL ) == false ) &&
 		( deathmatch || teamgame || alwaysapplydmflags ) &&
 		( p->bSpectating == false ))
