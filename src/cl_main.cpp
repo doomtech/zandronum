@@ -11782,6 +11782,10 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
+	// [BB] Sanity check.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
 	// Create the flash fader.
 	if ( players[ulPlayer].mo )
 		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[ulPlayer].mo );
