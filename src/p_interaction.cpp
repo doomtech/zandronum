@@ -2373,9 +2373,12 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	pPlayer->mo->RenderStyle = STYLE_None;
 
 	// [BB] Speed and viewheight of spectators should be independent of the player class.
+	pPlayer->mo->Speed = FRACUNIT;
 	pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
 	pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
 	pPlayer->mo->ViewHeight = 41*FRACUNIT;
+	// [BB] Also can't hurt to reset gravity.
+	pPlayer->mo->gravity = FRACUNIT;
 
 	// Make the player flat, so he can travel under doors and such.
 	pPlayer->mo->height = 0;
