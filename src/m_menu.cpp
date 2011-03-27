@@ -824,6 +824,8 @@ CCMD (menu_options)
 CCMD (menu_player)
 {
 	M_StartControlPanel (true);
+	// [BB] Due to the differences in Skulltag's player menu, we have to set OptionsActive to true here.
+	OptionsActive = true;
 	M_PlayerSetup ();
 }
 
