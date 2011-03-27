@@ -30,6 +30,7 @@
 #include "scoreboard.h"
 #include "gamemode.h"
 #include "cooperative.h"
+#include "p_acs.h"
 
 static FRandom pr_restore ("RestorePos");
 
@@ -1006,7 +1007,10 @@ void AInventory::Touch (AActor *toucher)
 		{
 			if ( ( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) )
 			{
-				Touch ( players[ulIdx].mo );
+				// [BB] Instead of letting everybody touch the item, we explicitly try to give this item to
+				// everybody. This solves some trouble that would happen with weapons and
+				// "alwaysapplydmflags 1" and "sv_weaponstay 0".
+				DoGiveInv ( players[ulIdx].mo, this->GetClass(), Amount );
 				bPlayerTouchedItem = true;
 			}
 		}

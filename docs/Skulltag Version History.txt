@@ -62,6 +62,7 @@ latestzdoom branch
 -	- Fixed: The server didn't inform the clients of flag changes made with A_ChangeFlag. [Torr Samaho]
 -	- Fixed: When a player turns into a spectator the Gravity and the Speed properties of the player body are not reset to the default values. [Torr Samaho]
 -	- Fixed: The menu_player command opened the main menu instead of the player setup menu. [Torr Samaho]
+-	- Fixed some weapons sync problems with unassigned voodoo dolls online that could happened with "alwaysapplydmflags 1" and "sv_weaponstay 0". [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
