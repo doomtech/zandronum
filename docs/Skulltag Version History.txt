@@ -59,6 +59,7 @@ latestzdoom branch
 -	- Fixed: When a player initially joins the game, he doesn't get the respawn invulnerability in DM. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about flag changes (compared to the initial spawn values) of the actors already in the game. [Torr Samaho]
 -	- Fixed: Friendly monster didn't play their active sound on the clients while chasing. [Torr Samaho]
+-	- Fixed: The server didn't inform the clients of flag changes made with A_ChangeFlag. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

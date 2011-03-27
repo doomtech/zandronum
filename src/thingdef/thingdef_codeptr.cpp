@@ -3071,6 +3071,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 		}
 		else
 		{
+			// [BB] The server handles the flag change.
+			if ( NETWORK_InClientMode( ) )
+				return;
+
 			DWORD *flagp = (DWORD*) (((char*)self) + fd->structoffset);
 
 			// If these 2 flags get changed we need to update the blockmap and sector links.
@@ -3086,6 +3090,23 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 				*flagp &= ~fd->flagbit;
 			}
 			if (linkchange) self->LinkToWorld();
+
+			// [BB] Let the clients know about the flag change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER ) {
+				ULONG ulFlagSet = 0;
+				if ( flagp == &self->flags )
+					ulFlagSet = FLAGSET_FLAGS;
+				else if ( flagp == &self->flags2 )
+					ulFlagSet = FLAGSET_FLAGS2;
+				else if ( flagp == &self->flags3 )
+					ulFlagSet = FLAGSET_FLAGS3;
+				else if ( flagp == &self->flags4 )
+					ulFlagSet = FLAGSET_FLAGS4;
+				else if ( flagp == &self->flags5 )
+					ulFlagSet = FLAGSET_FLAGS5;
+
+				SERVERCOMMANDS_SetThingFlags( self, ulFlagSet );
+			}
 		}
 		kill_after = self->CountsAsKill();
 		item_after = self->flags & MF_COUNTITEM;
@@ -3101,6 +3122,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 			{ // It no longer counts as a kill.
 				level.total_monsters--;
 			}
+
+			// [BB] If we're the server, tell clients the new number of total monsters.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapNumTotalMonsters( );
 		}
 		// same for items
 		if (item_before != item_after)
@@ -3113,6 +3138,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 			{ // It no longer counts as an item
 				level.total_items--;
 			}
+
+			// [BB] If we're the server, tell clients the new number of total items.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetMapNumTotalItems( );
 		}
 	}
 	else
