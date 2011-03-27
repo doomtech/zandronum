@@ -164,7 +164,7 @@ void GAMEMODE_Construct( void )
 	g_GameModes[GAMEMODE_TEAMGAME].ulFlags = GMF_TEAMGAME|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS;
 	strcpy( g_GameModes[GAMEMODE_TEAMGAME].szName, "Team Game" );
 	strncpy( g_GameModes[GAMEMODE_TEAMGAME].szShortName, "TM GAME", 8 );
-	strncpy( g_GameModes[GAMEMODE_TEAMGAME].szF1Texture, "F1_POSS", 8 );
+	strncpy( g_GameModes[GAMEMODE_TEAMGAME].szF1Texture, "F1_TMGM", 8 );
 
 	// Capture the flag.
 	g_GameModes[GAMEMODE_CTF].ulFlags = GMF_TEAMGAME|GMF_USEFLAGASTEAMITEM|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS|GMF_USETEAMITEM;

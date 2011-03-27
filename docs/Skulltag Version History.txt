@@ -67,6 +67,7 @@ latestzdoom branch
 !	- Player names are now automatically terminated with "\c-". This ensures that using a player name in a string doesn't affect the color of the string after the player name. [Torr Samaho]
 !	- The linux binaries are now compiled with -fno-stack-protector in order to increase compatibility with distros using older glibc versions. [Torr Samaho]
 !	- For security reasons cl_password and cl_joinpassword are not archived in the ini anymore. Thanks to kgsws for pointing us to this potential security problem. [Torr Samaho]
+!	- The customizable "teamgame" game mode now uses the F1_TMGM lump as F1 help screen. [Torr Samaho]
 
 
 98d
