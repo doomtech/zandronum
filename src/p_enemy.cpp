@@ -2156,7 +2156,8 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			actor->flags &= ~MF_INCHASE;
 			return;
 		}
-		if (actor->target == NULL)
+		// [BC/BB] In client mode, just keep moving along.
+		if ( (actor->target == NULL) && ( NETWORK_InClientMode() == false ) )
 		{
 			if (actor->flags & MF_FRIENDLY)
 			{
@@ -2168,9 +2169,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 					return;
 				}
 			}
-			// [BC] In client mode, just keep moving along.
-			else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					 ( CLIENTDEMO_IsPlaying( ) == false ))
+			else
 			{
 				// [BC] If we are the server, tell clients about the state change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
