@@ -360,6 +360,9 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 	// [RC] Vote callers can cancel their votes by voting "no".
 	if ( ulPlayer == g_ulVoteCaller && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 	{
+		// [BB] If a player canceled his own vote, don't prevent others from making this type of vote again.
+		g_PreviousVotes.back( ).ulVoteType = NUM_VOTECMDS;
+
 		SERVER_Printf( PRINT_HIGH, "Vote caller cancelled the vote.\n" );
 		g_bVoteCancelled = true;
 		g_bVotePassed = false;

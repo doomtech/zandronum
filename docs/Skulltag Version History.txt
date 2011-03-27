@@ -69,6 +69,7 @@ latestzdoom branch
 !	- The linux binaries are now compiled with -fno-stack-protector in order to increase compatibility with distros using older glibc versions. [Torr Samaho]
 !	- For security reasons cl_password and cl_joinpassword are not archived in the ini anymore. Thanks to kgsws for pointing us to this potential security problem. [Torr Samaho]
 !	- The customizable "teamgame" game mode now uses the F1_TMGM lump as F1 help screen. [Torr Samaho]
+!	- When a player cancels a vote, the other players are not prevented from making this type of vote again anymore. [Torr Samaho]
 
 
 98d
