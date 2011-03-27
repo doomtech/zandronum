@@ -53,6 +53,8 @@
 #include "deathmatch.h"
 #include "doomstat.h"
 #include "gamemode.h"
+#include "g_level.h"
+#include "p_acs.h"
 #include "team.h"
 
 //*****************************************************************************
@@ -270,7 +272,6 @@ void COOP_ClearStoredUVDPickups ( )
 
 //*****************************************************************************
 //
-void DoGiveInv (AActor *actor, const PClass *info, int amount);
 void COOP_GiveStoredUVDPickupsToPlayer ( const ULONG ulPlayer )
 {
 	const TMap<FName, int>::Pair *pair;
