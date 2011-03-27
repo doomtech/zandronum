@@ -65,6 +65,10 @@ void AFloatyIcon::SetTracer( AActor *pTracer )
 {
 	tracer = pTracer;
 
+	// [BB] This only seems to happen if a player has an invalid body. Nevertheless, we should avoid a crash here. 
+	if ( tracer == NULL )
+		return;
+
 	// Make the icon float directly above the tracer's head.
 	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
 
