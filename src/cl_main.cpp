@@ -3868,6 +3868,11 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if ( pOldActor )
 		pOldActor->DestroyAllInventory( );
 
+	// [BB] If this if not "our" player, clear the weapn selected from the inventory and wait for
+	// the server to tell us the selected weapon.
+	if ( ( ( pPlayer - players ) != consoleplayer ) && ( pPlayer->bIsBot == false ) )
+		PLAYER_ClearWeapon ( pPlayer );
+
 	// If this is the console player, and he's spawned as a regular player, he's definitely not
 	// in line anymore!
 	if ((( pPlayer - players ) == consoleplayer ) && ( pPlayer->bSpectating == false ))
@@ -10008,6 +10013,9 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( !(pType->IsDescendantOf( RUNTIME_CLASS( AInventory ))) )
 		return;
 
+	// [BB] Keep track of whether the player had a weapon.
+	const bool playerHadNoWeapon = ( ( players[ulPlayer].ReadyWeapon == NULL ) &&  ( players[ulPlayer].PendingWeapon == WP_NOCHANGE ) );
+
 	// Try to give the player the item.
 	pInventory = static_cast<AInventory *>( Spawn( pType, 0, 0, 0, NO_REPLACE ));
 	if ( pInventory != NULL )
@@ -10084,6 +10092,13 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
+
+	// [BB] If this is not "our" player and this player didn't have a weapon before, we assume
+	// that he was just spawned and didn't tell the server yet which weapon he selected. In this
+	// case make sure that this pickup doesn't cause him to bring up a weapon and wait for the
+	// server to tell us which weapon the player uses.
+	if ( playerHadNoWeapon  && ( players[ulPlayer].bIsBot == false )&& ( ulPlayer != consoleplayer ) )
+		PLAYER_ClearWeapon ( &players[ulPlayer] );
 }
 
 //*****************************************************************************
