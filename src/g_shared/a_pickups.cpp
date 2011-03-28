@@ -1010,7 +1010,11 @@ void AInventory::Touch (AActor *toucher)
 				// [BB] Instead of letting everybody touch the item, we explicitly try to give this item to
 				// everybody. This solves some trouble that would happen with weapons and
 				// "alwaysapplydmflags 1" and "sv_weaponstay 0".
-				DoGiveInv ( players[ulIdx].mo, this->GetClass(), Amount );
+				const bool bSuccess = DoGiveInv ( players[ulIdx].mo, this->GetClass(), Amount );
+				// [BB] Since we don't call Touch, we have to initiate the pickup message manually.
+				if ( bSuccess && !(ItemFlags & IF_QUIET) && ( this->GetClass( )->IsDescendantOf( PClass::FindClass( "DehackedPickup" )) == false ) )
+					SERVERCOMMANDS_DoInventoryPickup( ulIdx, this->GetClass( )->TypeName.GetChars( ), this->PickupMessage( ));
+
 				bPlayerTouchedItem = true;
 			}
 		}

@@ -840,6 +840,6 @@ int		ACS_GetTranslationIndex( FRemapTable *pTranslation );
 // [BL] Export DoClearInv
 void	DoClearInv(AActor *actor);
 // [BB] Export DoGiveInv
-void	DoGiveInv(AActor *actor, const PClass *info, int amount);
+bool	DoGiveInv(AActor *actor, const PClass *info, int amount);
 
 #endif //__P_ACS_H__

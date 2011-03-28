@@ -441,9 +441,12 @@ static void ClearInventory (AActor *activator)
 //
 //============================================================================
 
-// [BB] I need this outside p_acs.cpp.
-/*static*/ void DoGiveInv (AActor *actor, const PClass *info, int amount)
+// [BB] I need this outside p_acs.cpp. Furthermore it now returns whether CallTryPickup was successful.
+/*static*/ bool DoGiveInv (AActor *actor, const PClass *info, int amount)
 {
+	// [BB]
+	bool bSuccess = true;
+
 	AWeapon *savedPendingWeap = actor->player != NULL
 		? actor->player->PendingWeapon : NULL;
 	bool hadweap = actor->player != NULL ? actor->player->ReadyWeapon != NULL : true;
@@ -480,6 +483,8 @@ static void ClearInventory (AActor *activator)
 		item->Destroy ();
 		// [BC] Also set item to NULL.
 		item = NULL;
+		// [BB] CallTryPickup was not successful.
+		bSuccess = false;
 	}
 	// If the item was a weapon, don't bring it up automatically
 	// unless the player was not already using a weapon.
@@ -508,6 +513,9 @@ static void ClearInventory (AActor *activator)
 		if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
 		  SERVERCOMMANDS_SetPlayerArmor( actor->player - players );
 	}
+
+	// [BB]
+	return bSuccess;
 }
 
 //============================================================================
