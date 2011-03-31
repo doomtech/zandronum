@@ -87,6 +87,8 @@ CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 // [Spleen] Let the user enable or disable unlagged shots for themselves.
 CVAR (Bool,		cl_unlagged,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [BB] Let the user decide whether he wants to respawn when pressing fire.
+CVAR (Bool,		cl_respawnonfire,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
 
 // [BB] Two variables to keep track of client side name changes.
 static	ULONG	g_ulLastNameChangeTime = 0;
@@ -108,7 +110,9 @@ enum
 	INFO_PlayerClass,
 
 	// [Spleen] The player's unlagged preference.
-	INFO_Unlagged
+	INFO_Unlagged,
+	// [BB]
+	INFO_Respawnonfire
 };
 
 const char *GenderNames[3] = { "male", "female", "other" };
@@ -509,6 +513,9 @@ void D_SetupUserInfo ()
 	// [Spleen] Handle cl_unlagged.
 	coninfo->bUnlagged = cl_unlagged;
 
+	// [BB]
+	coninfo->bRespawnonfire = cl_respawnonfire;
+
 	R_BuildPlayerTranslation (consoleplayer);
 }
 
@@ -623,6 +630,11 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	else if ( cvar == &cl_unlagged )
 	{
 		ulUpdateFlags |= USERINFO_UNLAGGED;
+	}
+	// [BB]
+	else if ( cvar == &cl_respawnonfire )
+	{
+		ulUpdateFlags |= USERINFO_RESPAWNONFIRE;
 	}
 
 	val = cvar->GetGenericRep (CVAR_String);
@@ -837,6 +849,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\stillbob\\%g"
 					 "\\playerclass\\%s"
 					 "\\unlagged\\%s" // [Spleen]
+					 "\\respawnonfire\\%s" // [BB]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -854,7 +867,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 						D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
 
 					 // [Spleen] Write the player's unlagged preference.
-					 info->bUnlagged ? "on" : "off"
+					 info->bUnlagged ? "on" : "off",
+					 // [BB]
+					 info->bRespawnonfire ? "on" : "off"
 				);
 		}
 		else
@@ -874,6 +889,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%g"			// stillbob
 				"\\%s"			// playerclass
 				"\\%s"			// [Spleen] unlagged
+				"\\%s"			// [BB] respawnonfire
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -891,7 +907,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
 
 				// [Spleen] Write the player's unlagged preference.
-				info->bUnlagged ? "on" : "off"
+				info->bUnlagged ? "on" : "off",
+				// [BB]
+				info->bRespawnonfire ? "on" : "off"
 			);
 		}
 	}
@@ -1095,6 +1113,14 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 					info->bUnlagged = false;
 				break;
 
+			// [BB]
+			case INFO_Respawnonfire:
+				if ( ( stricmp( value, "on" ) == 0 ) || ( stricmp( value, "true" ) == 0 ) || ( atoi( value ) > 0 ) )
+					info->bRespawnonfire = true;
+				else
+					info->bRespawnonfire = false;
+				break;
+
 			default:
 				break;
 			}
@@ -1182,6 +1208,8 @@ CCMD (playerinfo)
 
 		// [Spleen] The player's unlagged preference.
 		Printf ("Unlagged:       %s\n", ui->bUnlagged ? "on" : "off");
+		// [BB]
+		Printf ("Respawnonfire:  %s\n", ui->bRespawnonfire ? "on" : "off");
 	}
 }
 

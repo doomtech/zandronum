@@ -723,6 +723,9 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 
 		if ( ulUserInfoFlags & USERINFO_UNLAGGED )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bUnlagged );
+
+		if ( ulUserInfoFlags & USERINFO_RESPAWNONFIRE )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bRespawnonfire );
 	}
 }
 

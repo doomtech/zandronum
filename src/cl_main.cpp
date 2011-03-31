@@ -4494,6 +4494,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	LONG		lHandicap = 0;
 	LONG		lSkin;
 	bool		bUnlagged;
+	bool		bRespawnonfire;
 
 	// Read in the player whose userinfo is being sent to us.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -4531,6 +4532,10 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	// [Spleen] Read in the player's unlagged preference.
 	if ( ulFlags & USERINFO_UNLAGGED )
 		bUnlagged = NETWORK_ReadByte( pByteStream );
+
+	// [BB] Read in the player's respawnonfire setting.
+	if ( ulFlags & USERINFO_RESPAWNONFIRE )
+		bRespawnonfire = NETWORK_ReadByte( pByteStream );
 
 	// If this isn't a valid player, break out.
 	// We actually send the player's userinfo before he gets spawned, thus putting him in
@@ -4616,6 +4621,9 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 
 	if ( ulFlags & USERINFO_UNLAGGED )
 		pPlayer->userinfo.bUnlagged = bUnlagged;
+
+	if ( ulFlags & USERINFO_RESPAWNONFIRE )
+		pPlayer->userinfo.bRespawnonfire = bRespawnonfire;
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( ulPlayer );

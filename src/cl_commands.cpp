@@ -131,6 +131,8 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lHandicap );
 	if ( ulFlags & USERINFO_UNLAGGED )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bUnlagged );
+	if ( ulFlags & USERINFO_RESPAWNONFIRE )
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bRespawnonfire );
 	if (( PlayerClasses.Size( ) > 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
 	{
 		if ( players[consoleplayer].userinfo.PlayerClass == -1 )

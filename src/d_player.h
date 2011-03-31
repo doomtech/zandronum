@@ -275,6 +275,9 @@ struct userinfo_t
 
 	// [Spleen] Let the user enable or disable unlagged shots for themselves.
 	bool		bUnlagged;
+
+	// [BB] Let the user decide whether he wants to respawn when pressing fire.
+	bool		bRespawnonfire;
 };
 
 FArchive &operator<< (FArchive &arc, userinfo_t &info);
