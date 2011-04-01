@@ -310,6 +310,7 @@ player_t::player_t()
   ulDeathsWithoutFrag( 0 ),
   ulUnrewardedDamageDealt( 0 ),
   bChatting( 0 ),
+  bInConsole( 0 ),
   bSpectating( 0 ),
   bDeadSpectator( 0 ),
   ulLivesLeft( 0 ),
