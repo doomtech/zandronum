@@ -46,10 +46,7 @@
 #ifdef _3DFLOORS
 
 EXTERN_CVAR(Int, vid_renderer)
-#include "gamemode.h"
 
-// [BB] Specifies if the current map uses 3d floors.
-bool mapUses3DFloors;
 //==========================================================================
 //
 //  3D Floors
@@ -758,7 +755,6 @@ void P_Spawn3DFloors (void)
 	static int flagvals[] = {128+512, 2+512, 512};
 	int i;
 	line_t * line;
-	mapUses3DFloors = false;
 
 	for (i=0,line=lines;i<numlines;i++,line++)
 	{
@@ -776,23 +772,18 @@ void P_Spawn3DFloors (void)
 			break;
 
 		case Sector_Set3DFloor:
-			// [BB] Only spawn 3d floors in cooperative game modes.
-			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
+			if (line->args[1]&8)
 			{
-
-				if (line->args[1]&8)
-				{
-					line->id = line->args[4];
-				}
-				else
-				{
-					line->args[0]+=256*line->args[4];
-					line->args[4]=0;
-				}
-				P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
-				mapUses3DFloors = true;
-				break;
+				line->id = line->args[4];
 			}
+			else
+			{
+				line->args[0]+=256*line->args[4];
+				line->args[4]=0;
+			}
+			P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
+			break;
+
 		default:
 			continue;
 		}

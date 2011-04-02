@@ -103,8 +103,6 @@ void P_ParseTextMap(MapData *map);
 extern int numinterpolations;
 extern unsigned int R_OldBlend;
 
-extern bool mapUses3DFloors;
-
 CVAR (Bool, genblockmap, false, CVAR_SERVERINFO|CVAR_GLOBALCONFIG);
 CVAR (Bool, gennodes, false, CVAR_SERVERINFO|CVAR_GLOBALCONFIG);
 CVAR (Bool, genglnodes, false, CVAR_SERVERINFO);
@@ -4317,22 +4315,6 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// Call Init function to set sector colors if in Domination
 	DOMINATION_Init();
-
-	// [BB] Notify software users if 3d floors are present.
-	if( ( currentrenderer == 0) && (NETWORK_GetState( ) != NETSTATE_SERVER) && mapUses3DFloors && screen && StatusBar )
-	{
-		DHUDMessageFadeOut	*pMsg = new DHUDMessageFadeOut( BigFont, "This map uses 3D floors that are invisible in the software renderer.",
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			10.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg );
-	}
-
 }
 
 

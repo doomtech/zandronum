@@ -15,7 +15,7 @@
 latestzdoom branch
 ------------------
 
-*+	- Added kgsws' software 3D floors patch. Kudos to him for making a patched based on GZDoom revision 323, that made it easy to apply it to Skulltag. [Torr Samaho]
+*+	- Added kgsws' software 3D floors patch. Kudos to him for making a patched based on GZDoom revision 323, that made it easy to apply it to Skulltag. Furthermore, 3D floors are available in competitive modes now. [Torr Samaho]
 +	- Added live counter to the HUD for survival and survival invasion. As a prerequisite, the server now informs the clients about the lives each player has left. [Torr Samaho]
 +	- Added DesignatedTeam property which allows things to be assigned to teams for friendly fire calculations [Blzut3]
 +	- Added basic client side prediction for "pushers", for instance used by Sector_SetWind. [Torr Samaho]
