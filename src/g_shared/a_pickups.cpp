@@ -382,37 +382,34 @@ DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialPosition)
 	_y = self->SpawnPoint[1];
 	sec = P_PointInSector (_x, _y);
 
-	fixed_t floorz = sec->floorplane.ZatPoint (_x, _y);
-	fixed_t ceilingz = sec->ceilingplane.ZatPoint (_x, _y);
-
-	self->SetOrigin (_x, _y, floorz);
+	self->SetOrigin (_x, _y, sec->floorplane.ZatPoint (_x, _y));
+	P_CheckPosition (self, _x, _y);
 
 	if (self->flags & MF_SPAWNCEILING)
 	{
-		self->z = ceilingz - self->height - self->SpawnPoint[2];
+		self->z = self->ceilingz - self->height - self->SpawnPoint[2];
 	}
 	else if (self->flags2 & MF2_SPAWNFLOAT)
 	{
-		fixed_t space = ceilingz - self->height - floorz;
+		fixed_t space = self->ceilingz - self->height - self->floorz;
 		if (space > 48*FRACUNIT)
 		{
 			space -= 40*FRACUNIT;
-			self->z = ((space * pr_restore())>>8) + floorz + 40*FRACUNIT;
+			self->z = ((space * pr_restore())>>8) + self->floorz + 40*FRACUNIT;
 		}
 		else
 		{
-			self->z = floorz;
+			self->z = self->floorz;
 		}
 	}
 	else
 	{
-		self->z = self->SpawnPoint[2] + floorz;
+		self->z = self->SpawnPoint[2] + self->floorz;
 		if (self->flags2 & MF2_FLOATBOB)
 		{
 			self->z += FloatBobOffsets[(self->FloatBobPhase + level.maptime) & 63];
 		}
 	}
-	P_CheckPosition (self, _x, _y);
 }
 
 
