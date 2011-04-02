@@ -514,7 +514,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 				if (!(sector->GetFlags(sector_t::floor)&SECF_ABSLIGHTING) || light!=&x.lightlist[0])	
 					lightlevel = *light->p_lightlevel;
 
-				Colormap.CopyLightColor(*light->p_extra_colormap);
+				Colormap.CopyLightColor(light->extra_colormap);
 			}
 			renderstyle = STYLE_Translucent;
 			if (alpha!=0.0f) Process(frontsector, false, false);
@@ -552,7 +552,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 				light = P_GetPlaneLight(sector, &sector->ceilingplane, true);
 
 				if(!(sector->GetFlags(sector_t::ceiling)&SECF_ABSLIGHTING)) lightlevel = *light->p_lightlevel;
-				Colormap.CopyLightColor(*light->p_extra_colormap);
+				Colormap.CopyLightColor(light->extra_colormap);
 			}
 			renderstyle = STYLE_Translucent;
 			if (alpha!=0.0f) Process(frontsector, true, false);
@@ -606,8 +606,8 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								light=P_GetPlaneLight(sector, rover->top.plane,!!(rover->flags&FF_FOG));
 								lightlevel=*light->p_lightlevel;
 								
-								if (rover->flags&FF_FOG) Colormap.LightColor = (*light->p_extra_colormap)->Fade;
-								else Colormap.CopyLightColor(*light->p_extra_colormap);
+								if (rover->flags&FF_FOG) Colormap.LightColor = (light->extra_colormap)->Fade;
+								else Colormap.CopyLightColor(light->extra_colormap);
 
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 
@@ -628,8 +628,8 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								light=P_GetPlaneLight(sector, rover->bottom.plane,!(rover->flags&FF_FOG));
 								lightlevel=*light->p_lightlevel;
 
-								if (rover->flags&FF_FOG) Colormap.LightColor = (*light->p_extra_colormap)->Fade;
-								else Colormap.CopyLightColor(*light->p_extra_colormap);
+								if (rover->flags&FF_FOG) Colormap.LightColor = (light->extra_colormap)->Fade;
+								else Colormap.CopyLightColor(light->extra_colormap);
 
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 
@@ -669,8 +669,8 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 									light=P_GetPlaneLight(sector, rover->bottom.plane,!(rover->flags&FF_FOG));
 									lightlevel=*light->p_lightlevel;
 
-									if (rover->flags&FF_FOG) Colormap.LightColor = (*light->p_extra_colormap)->Fade;
-									else Colormap.CopyLightColor(*light->p_extra_colormap);
+									if (rover->flags&FF_FOG) Colormap.LightColor = (light->extra_colormap)->Fade;
+									else Colormap.CopyLightColor(light->extra_colormap);
 
 									Colormap.FadeColor=frontsector->ColorMap->Fade;
 								}
@@ -692,8 +692,8 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								light=P_GetPlaneLight(sector, rover->top.plane,!!(rover->flags&FF_FOG));
 								lightlevel=*light->p_lightlevel;
 
-								if (rover->flags&FF_FOG) Colormap.LightColor = (*light->p_extra_colormap)->Fade;
-								else Colormap.CopyLightColor(*light->p_extra_colormap);
+								if (rover->flags&FF_FOG) Colormap.LightColor = (light->extra_colormap)->Fade;
+								else Colormap.CopyLightColor(light->extra_colormap);
 
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 

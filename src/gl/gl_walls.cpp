@@ -236,12 +236,12 @@ void GLWall::PutWall(bool translucent)
 void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 {
 	bool fadewall = (!translucent && lightlist->caster && (lightlist->caster->flags&FF_FADEWALLS) && 
-		!gl_isBlack((*lightlist->p_extra_colormap)->Fade)) && gl_isBlack(Colormap.FadeColor);
+		!gl_isBlack((lightlist->extra_colormap)->Fade)) && gl_isBlack(Colormap.FadeColor);
 
 	lightlevel=*lightlist->p_lightlevel;
 	// relative light won't get changed here. It is constant across the entire wall.
 
-	Colormap.CopyLightColor(*lightlist->p_extra_colormap);
+	Colormap.CopyLightColor(lightlist->extra_colormap);
 	if (fadewall) lightlevel=255;
 	PutWall(translucent);
 
@@ -250,7 +250,7 @@ void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 		FGLTexture * tex = gltexture;
 		type = RENDERWALL_COLORLAYER;
 		gltexture = NULL;
-		Colormap.LightColor = (*lightlist->p_extra_colormap)->Fade;
+		Colormap.LightColor = (lightlist->extra_colormap)->Fade;
 		alpha = (255-(*lightlist->p_lightlevel))/255.f*1.f;
 		if (alpha>0.f) PutWall(true);
 
@@ -492,7 +492,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 				light = P_GetPlaneLight(fs, &fs->ceilingplane, true);
 
 				if(!(fs->GetFlags(sector_t::ceiling)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
-				hi.colormap.LightColor = (*light->p_extra_colormap)->Color;
+				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
 			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
@@ -521,7 +521,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 				light = P_GetPlaneLight(fs, &fs->floorplane, false);
 
 				if(!(fs->GetFlags(sector_t::floor)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
-				hi.colormap.LightColor = (*light->p_extra_colormap)->Color;
+				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
 			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
@@ -1026,7 +1026,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 			// this may not yet be done!
 			light=P_GetPlaneLight(rover->target, rover->top.plane,true);
 			Colormap.Clear();
-			Colormap.LightColor=(*light->p_extra_colormap)->Fade;
+			Colormap.LightColor=(light->extra_colormap)->Fade;
 			// the fog plane defines the light level, not the front sector!
 			lightlevel=*light->p_lightlevel;
 			gltexture=NULL;

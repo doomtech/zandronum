@@ -1,6 +1,7 @@
 #ifndef __SECTORE_H
 #define __SECTORE_H
 
+#include "v_palette.h"
 
 #define _3DFLOORS
 
@@ -34,7 +35,7 @@ typedef enum
   FF_FADEWALLS         = 0x8000000,	// Applies real fog to walls and doesn't blend the view		
   FF_ADDITIVETRANS	   = 0x10000000, // Render this floor with additive translucency
   FF_FLOOD			   = 0x20000000, // extends towards the next lowest flooding or solid 3D floor or the bottom of the sector
-  
+  FF_THISINSIDE			   = 0x40000000, // hack for software 3D with FF_BOTHPLANES
 } ffloortype_e;
 
 
@@ -70,19 +71,29 @@ struct F3DFloor
 	
 	int					lastlight;
 	int					alpha;
-	
+
+	// kg3D - for software
+	short	*floorclip;
+	short	*ceilingclip;
+	int	validcount;
+
+	FDynamicColormap *GetColormap();
+	void UpdateColormap(FDynamicColormap *&map);
+	PalEntry GetBlend();
 };
 
 
-struct FDynamicColormap;
+//struct FDynamicColormap;
 
 
 struct lightlist_t
 {
 	secplane_t				plane;
 	unsigned char *			p_lightlevel;
-	FDynamicColormap **		p_extra_colormap;
+	FDynamicColormap *		extra_colormap;
+	PalEntry				blend;
 	int						flags;
+	F3DFloor*				lightsource;
 	F3DFloor*				caster;
 };
 
@@ -98,6 +109,8 @@ void P_Recalculate3DFloors(sector_t *);
 void P_RecalculateAttached3DFloors(sector_t * sec);
 lightlist_t * P_GetPlaneLight(sector_t * , secplane_t * plane, bool underside);
 void P_Spawn3DFloors( void );
+void P_RecalculateLights(sector_t *sector);
+void P_RecalculateAttachedLights(sector_t *sector);
 
 struct FLineOpening;
 

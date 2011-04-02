@@ -199,7 +199,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 
 				if (lightbottom<player->viewz) 
 				{
-					cm = *lightlist[i].p_extra_colormap;
+					cm = lightlist[i].extra_colormap;
 					lightlevel = *lightlist[i].p_lightlevel;
 					break;
 				}

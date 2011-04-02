@@ -211,6 +211,12 @@ struct secplane_t
 	fixed_t		unlaggedD[UNLAGGEDTICS];
 	fixed_t		restoreD;
 
+	// Returns the value of z at (0,0) This is used by the 3D floor code which does not handle slopes
+	fixed_t Zat0 () const
+	{
+		return ic < 0? d:-d;
+	}
+
 	// Returns the value of z at (x,y)
 	fixed_t ZatPoint (fixed_t x, fixed_t y) const
 	{
@@ -1134,6 +1140,9 @@ struct vissprite_t
 	FRenderStyle	RenderStyle;
 	BYTE			FakeFlatStat;	// [RH] which side of fake/floor ceiling sprite is on
 	BYTE			bSplitSprite;	// [RH] Sprite was split by a drawseg
+
+	F3DFloor	*fakefloor;
+	F3DFloor	*fakeceiling;
 };
 
 enum

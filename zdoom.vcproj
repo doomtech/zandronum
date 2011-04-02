@@ -3369,6 +3369,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\r_3dfloors.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\s_advsound.cpp"
 				>
 				<FileConfiguration
@@ -4753,6 +4757,10 @@
 			</File>
 			<File
 				RelativePath=".\src\possession.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\r_3dfloors.h"
 				>
 			</File>
 			<File
