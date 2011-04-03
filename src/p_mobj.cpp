@@ -3859,6 +3859,14 @@ void AActor::Tick ()
 				Destroy();
 				return;
 			}
+
+			// [BB] Active player bodies my not be deleted!
+			if ( ( state->GetNextState() == NULL ) && player && ( player->mo == this ) ) {
+				Printf ( PRINT_BOLD, "WARNING: The active body of a player does not have a next state, but the current state has a finite duration! Freezing player body in its current state.\n" );
+				tics = -1;
+				return;
+			}
+
 			if (!SetState (state->GetNextState()))
 				return; 		// freed itself
 		}
