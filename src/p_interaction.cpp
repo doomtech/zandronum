@@ -2169,7 +2169,12 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 		// [BB] Since the clients never come here, tell them about their new inventory (includes bringing up the weapon on the client).
 		if ( NETWORK_GetState() == NETSTATE_SERVER )
-			SERVER_ResetInventory( static_cast<ULONG>( pPlayer-players ));
+		{
+			const ULONG ulPlayer = static_cast<ULONG>( pPlayer-players );
+			SERVER_ResetInventory( ulPlayer );
+			// [BB] SERVER_ResetInventory only informs the player ulPlayer. Let the others know of at least the ammo of the player.
+			SERVERCOMMANDS_SyncPlayerAmmoAmount ( ulPlayer, ulPlayer, SVCF_SKIPTHISCLIENT );
+		}
 
 		P_BringUpWeapon(pPlayer);
 	}
