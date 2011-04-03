@@ -3815,7 +3815,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 
 	// Spawn the body.
-	pActor = static_cast<APlayerPawn *>( Spawn( pPlayer->cls, X, Y, ONFLOORZ, NO_REPLACE ));
+	pActor = static_cast<APlayerPawn *>( Spawn( pPlayer->cls, X, Y, Z, NO_REPLACE ));
 
 	pPlayer->mo = pActor;
 	pActor->player = pPlayer;
@@ -4100,9 +4100,8 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].mo->renderflags &= ~RF_INVISIBLE;
 
 	// Set the player's XYZ position.
-	players[ulPlayer].mo->x = X;
-	players[ulPlayer].mo->y = Y;
-	players[ulPlayer].mo->z = Z;
+	// [BB] But don't just set the position, but also properly set floorz and ceilingz, etc.
+	CLIENT_MoveThing( players[ulPlayer].mo, X, Y, Z );
 
 	// Set the player's angle.
 	players[ulPlayer].mo->angle = Angle;
