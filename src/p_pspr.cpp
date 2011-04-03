@@ -181,6 +181,11 @@ void P_BringUpWeapon (player_t *player)
 
 	if (player->PendingWeapon == WP_NOCHANGE)
 	{
+		// [BB] There is nothing the player could bring up. This may happen on the server, since players are
+		// spawned with no weapon out (the server waits for the client to select the weapon).
+		if ( player->ReadyWeapon == NULL )
+			return;
+
 		player->psprites[ps_weapon].sy = WEAPONTOP;
 		P_SetPsprite (player, ps_weapon, player->ReadyWeapon->GetReadyState());
 		return;
