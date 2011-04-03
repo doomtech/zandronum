@@ -614,6 +614,10 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 			SERVER_Printf( PRINT_HIGH, "%s \\c-left the game.\n", players[ulPlayerIdx].userinfo.netname );
 	}
 
+	// [BB] Morphed bots need to be unmorphed before disconnecting.
+	if (players[ulPlayerIdx].morphTics)
+		P_UndoPlayerMorph (&players[ulPlayerIdx], &players[ulPlayerIdx]);
+
 	// Remove the bot from the game.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DisconnectPlayer( ulPlayerIdx, ulPlayerIdx, SVCF_SKIPTHISCLIENT );
