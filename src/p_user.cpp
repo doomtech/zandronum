@@ -678,6 +678,9 @@ void APlayerPawn::RemoveInventory (AInventory *item)
 
 bool APlayerPawn::UseInventory (AInventory *item)
 {
+	// [BB] Morphing clears the unmorphed actor's "player" field, so remember which player number we are.
+	const ULONG ulPlayer = static_cast<ULONG>( this->player - players );
+
 	const PClass *itemtype = item->GetClass();
 
 	if (player->cheats & CF_TOTALLYFROZEN)
@@ -706,7 +709,8 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	// the item. The sound and the status bar flashing are handled by the client.
 	if( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_PlayerUseInventory( ULONG( this->player - players ), item );
+		// [BB] Use the player number we stored above.
+		SERVERCOMMANDS_PlayerUseInventory( ulPlayer, item );
 	}
 	else if (player == &players[consoleplayer])
 	{
