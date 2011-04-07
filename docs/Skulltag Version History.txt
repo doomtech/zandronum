@@ -71,6 +71,7 @@ latestzdoom branch
 -	- Fixed some client side problems that happened online when a client connected while one of the in game players was morphed. [Torr Samaho]
 -	- Fixed some coop spy issues that happened online in levels with a team selection room. [Torr Samaho]
 -	- Fixed: PowerupGiver items with PowerMorph were not removed from the local inventory of a client online when they were activated. [Torr Samaho]
+-	- Fixed: When a grenade fell on a 3D floor over a real floor with a sky texture, it vanished instead of bounce. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
