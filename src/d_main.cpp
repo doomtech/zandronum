@@ -2361,6 +2361,9 @@ void D_DoomMain (void)
 		StartScreen->AppendStatusLine(temp);
 	}
 
+	// [RH] Load sound environments
+	S_ParseReverbDef ();
+
 	// [RH] Parse through all loaded mapinfo lumps
 	Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo (iwad_info->MapInfo);
@@ -2371,7 +2374,6 @@ void D_DoomMain (void)
 	// [RH] Parse any SNDINFO lumps
 	Printf ("S_InitData: Load sound definitions.\n");
 	S_InitData ();
-
 
 	Printf ("Texman.Init: Init texture manager.\n");
 	TexMan.Init();
