@@ -355,6 +355,7 @@ void S_ShrinkPlayerSoundLists ();
 void S_UnloadSound (sfxinfo_t *sfx);
 sfxinfo_t *S_LoadSound(sfxinfo_t *sfx);
 unsigned int S_GetMSLength(FSoundID sound);
+void S_ParseMusInfo();
 
 // [BC]
 const char	*S_GetName( LONG lSoundID );
@@ -378,9 +379,9 @@ enum EMidiDevice
 {
 	MDEV_DEFAULT = -1,
 	MDEV_MMAPI = 0,
-	MDEV_TIMIDITY = 1,
-	MDEV_OPL = 2,
-	MDEV_FMOD = 3,
+	MDEV_OPL = 1,
+	MDEV_FMOD = 2,
+	MDEV_TIMIDITY = 3,
 };
 
 typedef TMap<FName, int> MidiDeviceMap;
