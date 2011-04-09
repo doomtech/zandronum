@@ -372,6 +372,9 @@ enum
 	COMPATF2_NO_LAND						= 1 << 2,
 	// [BB] Use Doom's random table instead of ZDoom's random number generator.
 	COMPATF2_OLD_RANDOM_GENERATOR		= 1 << 3,
+	// [BB] Add NOGRAVITY to actors named InvulnerabilitySphere, Soulsphere, Megasphere and BlurSphere
+	// when spawned by the map.
+	COMPATF2_NOGRAVITY_SPHERES		= 1 << 4,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

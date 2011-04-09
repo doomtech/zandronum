@@ -1,4 +1,3 @@
-// [BC] I've applied +NOGRAVITY to all sphere powerups.
 // [BC] Applied announcer entries to some objects.
 
 // Invulnerability Sphere ---------------------------------------------------
@@ -8,7 +7,6 @@ ACTOR InvulnerabilitySphere : PowerupGiver 2022
 	Game Doom
 	SpawnID 133
 	+COUNTITEM
-	+NOGRAVITY
 	+INVENTORY.AUTOACTIVATE
 	+INVENTORY.ALWAYSPICKUP
 	+INVENTORY.BIGPOWERUP
@@ -32,7 +30,6 @@ ACTOR Soulsphere : Health 2013
 	Game Doom
 	SpawnID 25
 	+COUNTITEM
-	+NOGRAVITY
 	+INVENTORY.AUTOACTIVATE
 	+INVENTORY.ALWAYSPICKUP
 	+INVENTORY.FANCYPICKUPSOUND
@@ -70,7 +67,6 @@ ACTOR Megasphere : CustomInventory 83
 	Game Doom
 	SpawnID 132
 	+COUNTITEM
-	+NOGRAVITY
 	+INVENTORY.ALWAYSPICKUP
 	Inventory.PickupMessage "$GOTMSPHERE"
 	Inventory.PickupSound "misc/p_pkup"
@@ -94,7 +90,6 @@ ACTOR BlurSphere : PowerupGiver 2024
 	Game Doom
 	SpawnID 135
 	+COUNTITEM
-	+NOGRAVITY
 	+VISIBILITYPULSE
 	+INVENTORY.AUTOACTIVATE
 	+INVENTORY.ALWAYSPICKUP

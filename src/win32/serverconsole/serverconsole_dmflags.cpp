@@ -108,7 +108,7 @@ static	ULONG			g_ulLMSSpectatorSettings;
 //==================================================================================
 // [RC] This big map of fun ties all of the DMFlags to their respective checkboxes.
 //==================================================================================
-#define NUMBER_OF_FLAGS 97
+#define NUMBER_OF_FLAGS 98
 
 static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] = 
 {
@@ -199,6 +199,7 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO, NULL,						&g_ulCompatFlags2, },
 	{ COMPATF2_NO_LAND,					NULL,							&g_ulCompatFlags2, },
 	{ COMPATF2_OLD_RANDOM_GENERATOR,					NULL,							&g_ulCompatFlags2, },
+	{ COMPATF2_NOGRAVITY_SPHERES,					NULL,							&g_ulCompatFlags2, },
 	{ LMS_AWF_CHAINSAW,					IDC_LMS_ALLOWCHAINSAW,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_PISTOL,					IDC_LMS_ALLOWPISTOL,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_SHOTGUN,					IDC_LMS_ALLOWSHOTGUN,			&g_ulLMSAllowedWeapons, },

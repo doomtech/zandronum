@@ -623,6 +623,7 @@ CVAR (Flag, compat_netscriptsareclientside,		compatflags2, COMPATF2_NETSCRIPTS_A
 CVAR (Flag, compat_clientssendfullbuttoninfo,		compatflags2, COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO);
 CVAR (Flag, compat_noland,		compatflags2, COMPATF2_NO_LAND);
 CVAR (Flag, compat_oldrandom,		compatflags2, COMPATF2_OLD_RANDOM_GENERATOR);
+CVAR (Flag, compat_nogravity_spheres,		compatflags2, COMPATF2_NOGRAVITY_SPHERES);
 
 //==========================================================================
 //
