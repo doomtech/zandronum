@@ -219,8 +219,8 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 	// Read in the time we sent to the server.
 	NETWORK_ReadLong( pByteStream );
 
-	// If this isn't a 97 series server, ignore it.
-	if ( strnicmp( NETWORK_ReadString( pByteStream ), "0.97", 4 ) != 0 )
+	// If this isn't a 98 series server, ignore it.
+	if ( strnicmp( NETWORK_ReadString( pByteStream ), "0.98", 4 ) != 0 )
 	{
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
