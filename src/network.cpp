@@ -932,6 +932,16 @@ bool NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer )
 
 //*****************************************************************************
 //
+bool NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const player_t *pPlayer )
+{
+	if ( NETWORK_IsConsolePlayerOrNotInClientMode ( pPlayer ) )
+		return true;
+
+	return ( pPlayer && ( pPlayer->mo->CheckLocalView( consoleplayer ) ) );
+}
+
+//*****************************************************************************
+//
 SDWORD NETWORK_Check ( ticcmd_t *pCmd )
 {
 	FString string;

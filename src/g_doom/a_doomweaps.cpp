@@ -466,7 +466,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 DEFINE_ACTION_FUNCTION(AActor, A_OpenShotgun2)
 {
 	// [BB] Clients only do this for "their" player.
-	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( self->player ) )
 		S_Sound (self, CHAN_WEAPON, "weapons/sshoto", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
@@ -477,7 +477,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_OpenShotgun2)
 DEFINE_ACTION_FUNCTION(AActor, A_LoadShotgun2)
 {
 	// [BB] Clients only do this for "their" player.
-	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( self->player ) )
 		S_Sound (self, CHAN_WEAPON, "weapons/sshotl", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
@@ -488,7 +488,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LoadShotgun2)
 DEFINE_ACTION_FUNCTION(AActor, A_CloseShotgun2)
 {
 	// [BB] Clients only do this for "their" player.
-	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( self->player ) )
 		S_Sound (self, CHAN_WEAPON, "weapons/sshotc", 1, ATTN_NORM);
 	CALL_ACTION(A_ReFire, self);
 
@@ -1334,7 +1334,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BFGSpray)
 DEFINE_ACTION_FUNCTION(AActor, A_BFGsound)
 {
 	// [BB] Clients only do this for "their" player.
-	if ( NETWORK_IsConsolePlayerOrNotInClientMode( self->player ) )
+	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( self->player ) )
 		S_Sound (self, CHAN_WEAPON, "weapons/bfgf", 1, ATTN_NORM);
 
 	// [BC] Tell the clients to trigger the BFG firing sound.
