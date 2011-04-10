@@ -2749,6 +2749,9 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 		if ( CLIENTDEMO_IsRecording( ))
 			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pWeapon->GetClass( )->TypeName.GetChars( ) );
 	}
+	// [BB] Make sure to inform clients of bot weapon changes.
+	else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == true ) )
+		SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( pPlayer - players ) );
 }
 
 //*****************************************************************************
