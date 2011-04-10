@@ -4641,11 +4641,12 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	// Finally, switch the player's pending weapon.
 	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
 
-	if ( bFirstWeaponSelect )
-		P_BringUpWeapon ( &players[g_lCurrentClient] );
-
 	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
 	SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
+
+	// [BB] Needs to be done after calling SERVERCOMMANDS_SetPlayerPendingWeapon because P_BringUpWeapon clears PendingWeapon to WP_NOCHANGE.
+	if ( bFirstWeaponSelect )
+		P_BringUpWeapon ( &players[g_lCurrentClient] );
 
 	return ( false );
 }
