@@ -671,6 +671,10 @@ CCMD (puke)
 			{
 				P_StartScript (players[consoleplayer].mo, NULL, ulScript, level.mapname, false,
 					arg[0], arg[1], arg[2], (script < 0), false, true);
+
+				// [BB] If the server (and not any ACS script via ConsoleCommand) calls puke, let the clients know.
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ACS_IsCalledFromConsoleCommand( ) == false ) )
+					SERVER_Printf( PRINT_HIGH, "The Server host or an RCON user is possibly cheating by calling \"puke %d %d %d %d\"\n", script, arg[0], arg[1], arg[2] );
 			}
 			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ACS_IsScriptPukeable ( ulScript ) )
 			{
