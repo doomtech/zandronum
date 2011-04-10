@@ -122,6 +122,7 @@ bool		GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient );
 bool		GAMEMODE_PreventPlayersFromJoining( void );
 bool		GAMEMODE_AreLivesLimited( void );
 unsigned int	GAMEMODE_GetMaxLives( void );
+void		GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );

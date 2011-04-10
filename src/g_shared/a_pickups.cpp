@@ -1381,6 +1381,10 @@ bool AInventory::DoRespawn ()
 			z = floorz;
 		}
 	}
+
+	// [BB] Potentially adjust the default flags of this actor.
+	GAMEMODE_AdjustActorSpawnFlags ( this );
+
 	return true;
 }
 

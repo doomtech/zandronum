@@ -601,6 +601,24 @@ unsigned int GAMEMODE_GetMaxLives( void )
 
 //*****************************************************************************
 //
+void GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor )
+{
+	if ( pActor == NULL )
+		return;
+
+	// [BB] Since several Skulltag versions added NOGRAVITY to some spheres on default, allow the user to restore this behavior.
+	if ( compatflags2 & COMPATF2_NOGRAVITY_SPHERES )
+	{
+		if ( ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "InvulnerabilitySphere" ) == 0 )
+			|| ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "Soulsphere" ) == 0 )
+			|| ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "Megasphere" ) == 0 ) 
+			|| ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "BlurSphere" ) == 0 ) )
+			pActor->flags |= MF_NOGRAVITY;
+	}
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

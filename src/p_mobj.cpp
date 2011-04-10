@@ -5391,15 +5391,8 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		mobj->LevelSpawned ();
 	}
   
-	// [BB] Since several Skulltag versions added NOGRAVITY to some spheres on default, allow the user to restore this behavior.
-	if ( compatflags2 & COMPATF2_NOGRAVITY_SPHERES )
-	{
-		if ( ( stricmp ( mobj->GetClass()->TypeName.GetChars(), "InvulnerabilitySphere" ) == 0 )
-			|| ( stricmp ( mobj->GetClass()->TypeName.GetChars(), "Soulsphere" ) == 0 )
-			|| ( stricmp ( mobj->GetClass()->TypeName.GetChars(), "Megasphere" ) == 0 ) 
-			|| ( stricmp ( mobj->GetClass()->TypeName.GetChars(), "BlurSphere" ) == 0 ) )
-			mobj->flags |= MF_NOGRAVITY;
-	}
+	// [BB] Potentially adjust the default flags of this actor.
+	GAMEMODE_AdjustActorSpawnFlags ( mobj );
 
 	return mobj;
 }
