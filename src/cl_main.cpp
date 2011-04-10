@@ -3868,11 +3868,6 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if ( pOldActor )
 		pOldActor->DestroyAllInventory( );
 
-	// [BB] If this if not "our" player, clear the weapn selected from the inventory and wait for
-	// the server to tell us the selected weapon.
-	if ( ( ( pPlayer - players ) != consoleplayer ) && ( pPlayer->bIsBot == false ) )
-		PLAYER_ClearWeapon ( pPlayer );
-
 	// If this is the console player, and he's spawned as a regular player, he's definitely not
 	// in line anymore!
 	if ((( pPlayer - players ) == consoleplayer ) && ( pPlayer->bSpectating == false ))
@@ -3880,6 +3875,11 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	// Set the player's bot status.
 	pPlayer->bIsBot = bIsBot;
+
+	// [BB] If this if not "our" player, clear the weapon selected from the inventory and wait for
+	// the server to tell us the selected weapon.
+	if ( ( ( pPlayer - players ) != consoleplayer ) && ( pPlayer->bIsBot == false ) )
+		PLAYER_ClearWeapon ( pPlayer );
 
 	// [GRB] Reset skin
 	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
