@@ -2226,6 +2226,10 @@ void R_StoreWallRange (int start, int stop)
 
 			maskedtexture = true;
 
+			// kg3D - backup for mid and fake walls
+			ds_p->bkup = R_NewOpening (stop - start);
+			memcpy (openings + ds_p->bkup, &ceilingclip[start], sizeof(short)*(stop-start));
+
 			ds_p->bFogBoundary = IsFogBoundary (frontsector, backsector);
 			if (sidedef->GetTexture(side_t::mid).isValid() || ds_p->bFakeBoundary)
 			{
@@ -2321,9 +2325,6 @@ void R_StoreWallRange (int start, int stop)
 	{
 		ds_p->sprtopclip = R_NewOpening (stop - start);
 		memcpy (openings + ds_p->sprtopclip, &ceilingclip[start], sizeof(short)*(stop-start));
-		// kg3D - backup for mid and fake walls
-		ds_p->bkup = R_NewOpening (stop - start);
-		memcpy (openings + ds_p->bkup, &ceilingclip[start], sizeof(short)*(stop-start));
 	}
 
 	if ( ((ds_p->silhouette & SIL_BOTTOM) || maskedtexture) && ds_p->sprbottomclip == -1)
