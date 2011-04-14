@@ -191,6 +191,9 @@ typedef struct
 	// Is this port enabled?
 	bool					bEnabled;
 
+	// [BB] How often did we retry non-responding servers since starting this query?
+	ULONG					ulNumRetries;
+
 	// List of servers for this port.
 	TArray<SERVER_s>		aServerInfo;
 

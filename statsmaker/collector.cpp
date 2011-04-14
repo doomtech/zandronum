@@ -163,6 +163,7 @@ static void collector_StartNewQuery( PORT_s &Port )
 	Port.pvQueryMasterServer( );
 	Port.MasterServerInfo.ulActiveState = AS_WAITINGFORREPLY;
 	Port.MasterServerInfo.tLastQuery = tNow;
+	Port.ulNumRetries = 0;
 }
 
 //==========================================================================
@@ -187,9 +188,11 @@ static void collector_RetryServers( PORT_s &Port )
 			iNumServersToRetry++;
 	}
 
-	// Requery them.
-	if ( iNumServersToRetry > 0 )
+	// Requery them. [BB] but give up when they don't answer too often.
+	if ( ( iNumServersToRetry > 0 ) && ( Port.ulNumRetries < SERVER_MAX_RETRY_AMOUNT ) )
 	{
+		++Port.ulNumRetries;
+
 		Printf( "Retrying %d non-responding %s servers...\n", iNumServersToRetry, Port.szName );
 		for ( unsigned int s = 0; s < Port.aServerInfo.Size( ); s++ )
 		{
