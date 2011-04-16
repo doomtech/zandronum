@@ -3632,6 +3632,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			pNewActor->SpawnPoint[2] = pActor->SpawnPoint[2];
 			pNewActor->SpawnAngle = pActor->SpawnAngle;
 			pNewActor->SpawnFlags = pActor->SpawnFlags;
+			// [BB] Make sure that floorz and ceilingz are set properly, critical if something is
+			// spawned on a 3D floor. For some reason we can't use "true" as second argument like P_SpawnMapThing does.
+			P_FindFloorCeiling ( pNewActor, false );
 			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 			pNewActor->tid = pActor->tid;
 			pNewActor->special = pActor->SavedSpecial;
