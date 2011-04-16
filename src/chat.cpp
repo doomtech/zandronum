@@ -73,7 +73,6 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "w_wad.h"
-#include "lastmanstanding.h"
 #include "sbar.h"
 #include "st_hud.h"
 #include "sectinfo.h"

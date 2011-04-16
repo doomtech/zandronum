@@ -56,7 +56,6 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "team.h"
-#include "lastmanstanding.h"
 #include "campaign.h"
 #include "sv_commands.h"
 #include "network.h"

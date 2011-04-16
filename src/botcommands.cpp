@@ -64,7 +64,6 @@
 #include "gamemode.h"
 #include "gi.h"
 #include "joinqueue.h"
-#include "lastmanstanding.h"
 #include "m_random.h"
 #include "network.h"
 #include "p_local.h"
