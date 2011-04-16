@@ -686,7 +686,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		}
 
 		// If the player got telefragged by a player trying to spawn, allow him to respawn.
-		if (( player ) && ( lastmanstanding || teamlms || survival ) && ( MeansOfDeath == NAME_SpawnTelefrag ))
+		if (( player ) && ( GAMEMODE_AreLivesLimited ( ) ) && ( MeansOfDeath == NAME_SpawnTelefrag ))
 			player->bSpawnTelefragged = true;
 	}
 	else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && (CountsAsKill()))

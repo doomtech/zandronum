@@ -2954,8 +2954,8 @@ void P_DeathThink (player_t *player)
 			{
 				player->mo->special1 = 0;
 			}
-			// [BB] The player will be reborn, so take a way one life.
-			if ( player->ulLivesLeft > 0 )
+			// [BB] The player will be reborn, so take away one life, but only if the game is already in progress.
+			if ( ( player->ulLivesLeft > 0 ) && GAMEMODE_IsGameInProgress ( ) )
 			{
 				PLAYER_SetLivesLeft ( player, player->ulLivesLeft - 1 );
 			}
