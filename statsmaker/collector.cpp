@@ -48,8 +48,9 @@
 //
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#include "..\src\networkheaders.h"
-#include "..\src\networkshared.h"
+#include "i_system.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 
 #include "collector.h"
 #include "main.h"

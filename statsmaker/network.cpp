@@ -48,8 +48,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "..\src\networkheaders.h"
-#include "..\src\networkshared.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 #include "network.h"
 
 #include <stdlib.h>
@@ -207,29 +207,29 @@ int NETWORK_GetPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return FALSE;
+            return false;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return FALSE;
+			return false;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return FALSE;
+             return false;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return FALSE;
+		return false;
 #else
         if ( errno == EWOULDBLOCK )
-            return FALSE;
+            return false;
 
         if ( errno == ECONNREFUSED )
-            return FALSE;
+            return false;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return FALSE;
+        return false;
 #endif
     }
 
@@ -293,29 +293,29 @@ int NETWORK_GetLANPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return FALSE;
+            return false;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return FALSE;
+			return false;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return FALSE;
+             return false;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return FALSE;
+		return false;
 #else
         if ( errno == EWOULDBLOCK )
-            return FALSE;
+            return false;
 
         if ( errno == ECONNREFUSED )
-            return FALSE;
+            return false;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return FALSE;
+        return false;
 #endif
     }
 
@@ -539,9 +539,9 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 
 	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
 	if ( iErrorCode == SOCKET_ERROR )
-		return FALSE;
+		return false;
 
-	return TRUE;
+	return true;
 }
 
 

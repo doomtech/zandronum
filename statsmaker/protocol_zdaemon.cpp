@@ -48,8 +48,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "..\src\networkheaders.h"
-#include "..\src\networkshared.h"
+#include "i_system.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 #include "main.h"
 #include "protocol_zdaemon.h"
 
@@ -148,10 +149,10 @@ bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER
 		}
 */
 		// Since we got the server list, return true.
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 //*****************************************************************************
@@ -187,7 +188,7 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, 
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return FALSE;
+		return false;
 	}
 
 	// This server is now active.
@@ -264,5 +265,5 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, 
 	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumServers++;
 
 	// Success!
-	return TRUE;
+	return true;
 }

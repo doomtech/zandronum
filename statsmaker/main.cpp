@@ -48,8 +48,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "..\src\networkheaders.h"
-#include "..\src\networkshared.h"
+#include "i_system.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 #include "main.h"
 #include "gui.h"
 #include "collector.h"
@@ -63,11 +64,13 @@
 //-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifndef NO_GUI
 extern HWND						g_hDlg_Overview;
 
 // Thread handle for the main thread that gathers stats.
 HANDLE							g_hThread;
 HINSTANCE						g_hInst;
+#endif
 
 // Data for each of the port we're gathering stats for.
 PORT_s							g_PortInfo[NUM_PORTS];

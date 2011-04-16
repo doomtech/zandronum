@@ -51,10 +51,12 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include "network.h"
 #include "i_system.h"
-#include "..\src\tarray.h"
+#include "../src/tarray.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
@@ -206,8 +208,10 @@ typedef struct
 	// Does this port use Huffman compression?
 	bool					bHuffman;
 
+#ifndef NO_GUI
 	// Dialog that contains the labels showing this port's statistics.
 	HWND					hDlg;
+#endif
 
 	// Control ID of the port's labels for number of players on the "Overview" tab.
 	int						iOverviewNowLabelID, iOverviewTodayLabelID;

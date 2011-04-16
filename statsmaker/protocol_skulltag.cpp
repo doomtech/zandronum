@@ -48,8 +48,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "..\src\networkheaders.h"
-#include "..\src\networkshared.h"
+#include "i_system.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 #include <time.h>
 #include "main.h"
 #include "protocol_skulltag.h"
@@ -156,10 +157,10 @@ bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVE
 		Printf( "Received %d Skulltag servers.\n", aServerInfo.Size( ));
 
 		// Since we got the server list, return true.
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return true;
 }
 
 //*****************************************************************************
@@ -196,12 +197,12 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 	case SERVER_LAUNCHER_IGNORING:
 
 //		pServer->ulActiveState = AS_IGNORED;
-		return FALSE;
+		return true;
 	case SERVER_LAUNCHER_BANNED:
 
 		pServer->ulActiveState = AS_BANNED;
 		Printf( "We're BANNED! AAAAHH!\n" );
-		return FALSE;
+		return true;
 	}
 
 	// Make sure this is a server we're actually waiting for a reply from.
@@ -210,7 +211,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return FALSE;
+		return true;
 	}
 
 	// This server is now active.
@@ -225,7 +226,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return FALSE;
+		return true;
 	}
 
 	// Read in the bits.
@@ -384,5 +385,5 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 	aQueryInfo[aQueryInfo.Size( ) - 1].qByGameMode[lGameType].lNumServers++;
 
 	// Success!
-	return TRUE;
+	return true;
 }
