@@ -207,7 +207,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 	int			i;
 	sector_t	tempsec;		// killough 4/13/98
 	fixed_t		texheight, textop;
-assert(ds->fake == 0);
+
 	sprflipvert = false;
 
 	curline = ds->curline;

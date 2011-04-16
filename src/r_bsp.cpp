@@ -793,9 +793,9 @@ void R_AddLine (seg_t *line)
 			|| backsector->GetAngle(sector_t::floor) != frontsector->GetAngle(sector_t::floor)
 			|| backsector->GetAngle(sector_t::ceiling) != frontsector->GetAngle(sector_t::ceiling)
 
-			// kg3D - and fake floors
-			|| (frontsector->e && frontsector->e->XFloor.ffloors.Size())
-			|| (backsector->e && backsector->e->XFloor.ffloors.Size())
+			// kg3D - and fake lights
+			|| (frontsector->e && frontsector->e->XFloor.lightlist.Size())
+			|| (backsector->e && backsector->e->XFloor.lightlist.Size())
 			)
 		{
 			solid = false;
@@ -1159,7 +1159,6 @@ void R_Subsector (subsector_t *sub)
 					) : NULL;
 
 	// kg3D - fake planes rendering
-	fake3D = 0;
 	if (frontsector->e && frontsector->e->XFloor.ffloors.Size())
 	{
 		backupfp = floorplane;
@@ -1250,10 +1249,8 @@ void R_Subsector (subsector_t *sub)
 				fake3D = FAKE3D_FAKECEILING;
 				tempsec = *fakeFloor->model;
 				tempsec.ceilingplane = *fakeFloor->bottom.plane;
-				if (!(fakeFloor->flags & FF_THISINSIDE) &&
-					!(fakeFloor->flags & FF_INVERTSECTOR) ||
-					fakeFloor->flags & FF_THISINSIDE &&
-					fakeFloor->flags & FF_INVERTSECTOR)
+				if ((!(fakeFloor->flags & FF_THISINSIDE) && !(fakeFloor->flags & FF_INVERTSECTOR)) ||
+					(fakeFloor->flags & FF_THISINSIDE && fakeFloor->flags & FF_INVERTSECTOR))
 				{
 					tempsec.SetTexture(sector_t::ceiling, tempsec.GetTexture(sector_t::floor));
 				}
