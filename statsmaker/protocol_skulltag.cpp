@@ -364,7 +364,8 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 					( lGameType == GAMETYPE_TEAMPOSSESSION ) ||
 					( lGameType == GAMETYPE_SKULLTAG ) ||
 					( lGameType == GAMETYPE_CTF ) ||
-					( lGameType == GAMETYPE_ONEFLAGCTF ))
+					( lGameType == GAMETYPE_ONEFLAGCTF ) ||
+					( lGameType == GAMEMODE_DOMINATION ) )
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
