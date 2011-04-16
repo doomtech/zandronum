@@ -107,7 +107,11 @@ static	SERVER_s			*collector_FindServerByAddress( NETADDRESS_s Address );
 //
 //==========================================================================
 
+#ifdef NO_GUI
+int COLLECTOR_StartCollecting( void )
+#else
 DWORD WINAPI COLLECTOR_StartCollecting( LPVOID )
+#endif
 {	
 	// Look for a partial stats file from today.
 	collector_ImportFromFile( );

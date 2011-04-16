@@ -48,6 +48,13 @@
 //
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifdef NO_GUI
+void GUI_CreateDialog( ) { };
+void GUI_UpdateStatisticsDisplay( void ) { };
+void GUI_SetWritingMode( bool bWriting ) { };
+void GUI_UpdateTrayTooltip( const char *szTooltip ) { };
+#else
+
 #include "..\src\networkheaders.h"
 #include "..\src\networkshared.h"
 #include "main.h"
@@ -566,3 +573,4 @@ static void gui_ToggleWindow( HWND hDlg )
 		SetForegroundWindow( hDlg );
 	}
 }
+#endif

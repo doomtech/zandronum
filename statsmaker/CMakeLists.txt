@@ -1,0 +1,12 @@
+CMAKE_MINIMUM_REQUIRED ( VERSION 2.6 ) 
+
+INCLUDE_DIRECTORIES ( ${CMAKE_CURRENT_SOURCE_DIR} )
+
+FILE ( GLOB HDRS *.h )
+FILE ( GLOB SRCS *.cpp )
+SET ( SRCS ${SRCS} ../src/huffman.cpp ../src/networkshared.cpp )
+
+ADD_DEFINITIONS ( -DNO_GUI )
+
+ADD_EXECUTABLE ( statsmaker ${HDRS} ${SRCS} )
+TARGET_LINK_LIBRARIES( statsmaker wsock32 )

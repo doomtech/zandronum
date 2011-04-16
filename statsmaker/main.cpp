@@ -76,30 +76,11 @@ PORT_s							g_PortInfo[NUM_PORTS];
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-static	void					main_MainLoop( void );
-static	void					main_ExportStats( void );
-static	void					main_ClearServerList( void );
-static	void					main_ParsePartialStatsFile( void );
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//==========================================================================
-//
-// WinMain
-//
-// Application entry point.
-//
-//==========================================================================
-
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd )
-{
-	g_hInst = hInstance;
-
-	// First, start networking.
-	NETWORK_Construct( DEFAULT_STATS_PORT, false );
-
+void main_SetupProtocols ( ) {
 	//=====================	
 	// Setup the protocols.
 	//=====================
@@ -118,7 +99,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	g_PortInfo[PORT_SKULLTAG].iOnTopTodayIconID = IDC_ONTOPTODAY_ST;
 	NETWORK_StringToAddress( "skulltag.servegame.com", &g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address );
 	g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address.usPort = htons( 15300 );	
-		SKULLTAG_Construct( );
+	SKULLTAG_Construct( );
 
 	// ZDaemon (www.zdaemon.org)
 	g_PortInfo[PORT_ZDAEMON].pvQueryMasterServer			= ZDAEMON_QueryMasterServer;
@@ -134,8 +115,34 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	g_PortInfo[PORT_ZDAEMON].iOnTopTodayIconID = IDC_ONTOPTODAY_ZD;
 	NETWORK_StringToAddress( "zdaemon.ath.cx", &g_PortInfo[PORT_ZDAEMON].MasterServerInfo.Address );
 	g_PortInfo[PORT_ZDAEMON].MasterServerInfo.Address.usPort = htons( 15300 );
-		ZDAEMON_Construct( );
-	
+	ZDAEMON_Construct( );
+}
+
+#ifdef NO_GUI
+int main ( ) {
+	NETWORK_Construct( DEFAULT_STATS_PORT, false );
+	main_SetupProtocols ( );
+  COLLECTOR_StartCollecting ( );
+}
+#else
+
+//==========================================================================
+//
+// WinMain
+//
+// Application entry point.
+//
+//==========================================================================
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd )
+{
+	g_hInst = hInstance;
+
+	// First, start networking.
+	NETWORK_Construct( DEFAULT_STATS_PORT, false );
+
+	main_SetupProtocols ( );
+
 	// Create the dialog, which will call COLLECTOR_StartCollecting.
 	GUI_CreateDialog( );
 
@@ -272,3 +279,4 @@ void MAIN_Print( char *pszString )
 			SendDlgItemMessage( g_hDlg_Overview, IDC_CONSOLEBOX, EM_LINESCROLL, 0, lVisibleLine );
 	}
 }
+#endif

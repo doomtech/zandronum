@@ -62,7 +62,11 @@
 #define M_Malloc_Dbg(s, y, z) malloc(s)
 #define M_Realloc_Dbg(p,s, y, z) realloc(p,s)
 
+#ifdef NO_GUI
+#define Printf printf
+#else
 // [BB] Implemented in main.cpp
 void			Printf( const char *pszString, ... );
+#endif
 
 #endif
