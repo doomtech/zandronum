@@ -2903,11 +2903,8 @@ void P_DeathThink (player_t *player)
 		return;
 	}
 
-	// [BC] If this is LMS or survival, put him in spectator mode.
-	// [BB] Do this in general, if the gamemode currently prevents people from joining.
-	if ((( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) ||
-		(( survival ) && ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )) ||
-		( INVASION_PreventPlayersFromJoining() ))
+	// [BB] If lives are limited and the game is in progess, possibly put the player in dead spectator mode.
+	if ( GAMEMODE_AreLivesLimited ( ) && GAMEMODE_IsGameInProgress ( ) )
 	{
 		if ( level.time >= player->respawn_time )
 		{
@@ -2945,9 +2942,7 @@ void P_DeathThink (player_t *player)
 			return;
 	}
 
-	if (( level.time >= player->respawn_time ) &&
-		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS ) &&
-		( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ))) == false )
+	if ( level.time >= player->respawn_time )
 	{
 		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.bRespawnonfire == true ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
 			(( deathmatch || teamgame || alwaysapplydmflags ) &&

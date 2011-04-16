@@ -23,6 +23,7 @@ latestzdoom branch
 +	- The compatflag compat_oldweaponswitch now also restores the weapon switch cancellation behavior from Vanilla Doom. [Torr Samaho]
 +	- Added new CVAR cl_respawnonfire that allows the player to decide whether to respawn when pressing the fire key. [Torr Samaho]
 +	- Removed NOGRAVITY from InvulnerabilitySphere, Soulsphere, Megasphere and BlurSphere and added the new compatflag "nogravity spheres", controlled by the new CVAR compat_nogravity_spheres. The compatflag gives these spheres the NOGRAVITY flag again, but only when they are spawned by the map. [Torr Samaho]
++	- Added sv_maxlives support for lastmanstanding and teamlms. [Torr Samaho]
 -	- Fixed: After a "changemap" map change on a server with join password and a team based gamemode, players who were on a team on the previous map were turned into spectators but kept their team. [Torr Samaho]
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]
