@@ -2564,41 +2564,10 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 			if ( ( pPlayer->bIsBot == false ) && ( SERVER_GetClient( ulPlayer )->State < CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
 				return ( true );
 		}
-
-		// If the number of players in the game exceeds sv_maxplayers, spawn as a spectator.
-		Val = sv_maxplayers.GetGenericRep( CVAR_Int );
-		if ( SERVER_CalcNumNonSpectatingPlayers( pPlayer - players ) >= static_cast<unsigned> (Val.Int) )
-			return ( true );
 	}
 
-	// If an LMS game is in progress, the player should start as a spectator.
-	if (( lastmanstanding || teamlms ) &&
-		(( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )) &&
-		( gameaction != ga_worlddone ))
-	{
-		return ( true );
-	}
-
-	// If the duel isn't in the "waiting for players" state, the player should start as a spectator.
-	if ( duel )
-	{
-		if (( DUEL_GetState( ) != DS_WAITINGFORPLAYERS ) ||
-			( SERVER_CalcNumNonSpectatingPlayers( pPlayer - players ) >= 2 ))
-		{
-			return ( true );
-		}
-	}
-
-	// If a survival game is in progress, the player should start as a spectator.
-	if (( survival ) &&
-		(( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )) &&
-		( gameaction != ga_worlddone ))
-	{
-		return ( true );
-	}
-
-	// [RC] If an invasion game is in progress with sv_maxlives, the player should start as a spectator.
-	if ( INVASION_PreventPlayersFromJoining() )
+	// [BB] Check if the any reason prevents this particular player from joining.
+	if ( GAMEMODE_PreventPlayersFromJoining( static_cast<ULONG> ( pPlayer - players ) ) )
 		return ( true );
 
 	// Players entering a teamplay game must choose a team first before joining the fray.

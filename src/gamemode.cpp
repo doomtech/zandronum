@@ -51,6 +51,7 @@
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "doomstat.h"
+#include "d_event.h"
 #include "gamemode.h"
 #include "team.h"
 #include "network.h"
@@ -559,27 +560,31 @@ bool GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient )
 
 //*****************************************************************************
 //
-bool GAMEMODE_PreventPlayersFromJoining( void )
+bool GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer )
 {
 	// [BB] No free player slots.
-	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) ) )
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumNonSpectatingPlayers( ulExcludePlayer ) >= static_cast<unsigned> (sv_maxplayers) ) )
 		return true;
 
 	// [BB] Duel in progress.
 	if ( duel && ( DUEL_CountActiveDuelers( ) >= 2 ) )
 		return true;
 
-	// [BB] LMS in progress.
-	if (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
-		return true;
+	// [BB] The ga_worlddone check makes sure that in game players (at least in survival and survival invasion) aren't forced to spectate after a "changemap" map change.
+	if ( gameaction != ga_worlddone )
+	{
+		// [BB] LMS in progress.
+		if (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
+			return true;
 
-	// [BB] Survival in progress.
-	if ( survival && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
-		return true;
+		// [BB] Survival in progress.
+		if ( survival && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
+			return true;
 
-	// [BB] Check invasion.
-	if ( INVASION_PreventPlayersFromJoining() )
-		return true;
+		// [BB] Check invasion.
+		if ( INVASION_PreventPlayersFromJoining() )
+			return true;
+	}
 
 	return false;
 }

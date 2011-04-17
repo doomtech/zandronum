@@ -119,7 +119,7 @@ void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
 bool		GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void );
 bool		GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient );
-bool		GAMEMODE_PreventPlayersFromJoining( void );
+bool		GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer = MAXPLAYERS );
 bool		GAMEMODE_AreLivesLimited( void );
 unsigned int	GAMEMODE_GetMaxLives( void );
 void		GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor );
