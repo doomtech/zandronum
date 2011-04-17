@@ -344,7 +344,7 @@ bool GAMEMODE_IsGameInProgress( void )
 	if ( survival )
 		return ( SURVIVAL_GetState( ) == SURVS_INPROGRESS );
 	else if ( invasion )
-		return ( INVASION_GetState( ) == IS_INPROGRESS );
+		return ( ( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT ) || ( INVASION_GetState( ) == IS_WAVECOMPLETE ) || ( INVASION_GetState( ) == IS_COUNTDOWN ) );
 	else if ( duel )
 		return ( DUEL_GetState( ) == DS_INDUEL );
 	else if ( teamlms || lastmanstanding )
