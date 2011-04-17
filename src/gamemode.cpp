@@ -359,6 +359,31 @@ bool GAMEMODE_IsGameInProgress( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsGameInResultSequence( void )
+{
+	if ( survival )
+		return ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED );
+	else if ( invasion )
+		return ( INVASION_GetState( ) == IS_MISSIONFAILED );
+	else if ( duel )
+		return ( DUEL_GetState( ) == DS_WINSEQUENCE );
+	else if ( teamlms || lastmanstanding )
+		return ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE );
+	// [BB] The other game modes don't have such a sequnce. Arguably, possession
+	// with PSNS_HOLDERSCORED could also be considered for this.
+	else
+		return ( false );
+}
+
+//*****************************************************************************
+//
+bool GAMEMODE_IsGameInProgressOrResultSequence( void )
+{
+	return ( GAMEMODE_IsGameInProgress() || GAMEMODE_IsGameInResultSequence() );
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 {
 	// [BB] This is server side.
@@ -570,21 +595,10 @@ bool GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer )
 	if ( duel && ( DUEL_CountActiveDuelers( ) >= 2 ) )
 		return true;
 
+	// [BB] If lives are limited, players are not allowed to join most of the time.
 	// [BB] The ga_worlddone check makes sure that in game players (at least in survival and survival invasion) aren't forced to spectate after a "changemap" map change.
-	if ( gameaction != ga_worlddone )
-	{
-		// [BB] LMS in progress.
-		if (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
+	if ( ( gameaction != ga_worlddone ) && GAMEMODE_AreLivesLimited() && GAMEMODE_IsGameInProgressOrResultSequence() )
 			return true;
-
-		// [BB] Survival in progress.
-		if ( survival && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
-			return true;
-
-		// [BB] Check invasion.
-		if ( INVASION_PreventPlayersFromJoining() )
-			return true;
-	}
 
 	return false;
 }

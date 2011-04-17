@@ -4937,8 +4937,8 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 
-	// Don't allow players to switch teams in the middle of a team LMS game.
-	if ( teamlms && ( players[g_lCurrentClient].bSpectating == false ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
+	// [BB] Don't allow players to switch teams in the middle of a game with limited lives.
+	if ( ( players[g_lCurrentClient].bSpectating == false ) && GAMEMODE_AreLivesLimited() && GAMEMODE_IsGameInProgressOrResultSequence() )
 	{
 		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You cannot switch teams in the middle of a match!\n" );
 		return ( false );

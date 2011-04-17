@@ -112,6 +112,8 @@ char		*GAMEMODE_GetName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
 bool		GAMEMODE_IsGameInProgress( void );
+bool		GAMEMODE_IsGameInResultSequence( void );
+bool		GAMEMODE_IsGameInProgressOrResultSequence( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );
