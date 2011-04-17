@@ -4962,10 +4962,8 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	Val = sv_maxplayers.GetGenericRep( CVAR_Int );
-	if (( players[g_lCurrentClient].bSpectating ) && 
-		(( static_cast<signed> (SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS )) >= Val.Int ) ||		
-		( teamlms && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] )))))
+	// [BB] If this is a spectator and players are not allowed to join at the moment, put him in line.
+	if ( PLAYER_IsTrueSpectator ( &players[g_lCurrentClient] ) && GAMEMODE_PreventPlayersFromJoining ( g_lCurrentClient ) )
 	{
 		JOINSLOT_t	JoinSlot;
 
