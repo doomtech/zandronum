@@ -62,6 +62,7 @@
 #include "g_game.h"
 #include "g_level.h"
 #include "info.h"
+#include "joinqueue.h"
 #include "m_random.h"
 #include "network.h"
 #include "p_acs.h"
@@ -2210,6 +2211,13 @@ CCMD( changeteam )
 	if (( players[consoleplayer].bOnTeam ) && ( lDesiredTeam == static_cast<signed> (players[consoleplayer].ulTeam) )
 		&& !(players[consoleplayer].bSpectating) )
 	{
+		return;
+	}
+
+	// [BB] If players aren't allowed to join at the moment, just put the consoleplayer in line.
+	if ( GAMEMODE_PreventPlayersFromJoining() )
+	{
+		JOINQUEUE_AddConsolePlayer ( lDesiredTeam );
 		return;
 	}
 

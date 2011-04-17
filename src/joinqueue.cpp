@@ -392,6 +392,19 @@ void JOINQUEUE_SetClientPositionInLine( LONG lPosition )
 
 //*****************************************************************************
 //
+void JOINQUEUE_AddConsolePlayer( ULONG ulDesiredTeam )
+{
+	JOINSLOT_t	JoinSlot;
+	JoinSlot.ulPlayer = consoleplayer;
+	JoinSlot.ulTeam = ulDesiredTeam;
+	const ULONG ulResult = JOINQUEUE_AddPlayer( JoinSlot );
+	if ( ulResult == MAXPLAYERS )
+		Printf( "Join queue full!\n" );
+	else
+		Printf( "Your position in line is: %d\n", static_cast<unsigned int> (ulResult + 1) );
+}
+//*****************************************************************************
+//
 void JOINQUEUE_PrintQueue( void )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

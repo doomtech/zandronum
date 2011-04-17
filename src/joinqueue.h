@@ -79,5 +79,6 @@ ULONG	JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot );
 void	JOINQUEUE_ClearList( void );
 LONG	JOINQUEUE_GetPositionInLine( ULONG ulPlayer );
 void	JOINQUEUE_SetClientPositionInLine( LONG lPosition );
+void	JOINQUEUE_AddConsolePlayer( ULONG ulDesiredTeam );
 
 #endif	// __JOINQUEUE_H__

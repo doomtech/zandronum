@@ -3016,16 +3016,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	// [BB] If players aren't allowed to join at the moment, just put the consoleplayer in line.
 	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
-		ULONG		ulResult;
-		JOINSLOT_t	JoinSlot;
-
-		JoinSlot.ulPlayer = consoleplayer;
-		JoinSlot.ulTeam = teams.Size( );
-		ulResult = JOINQUEUE_AddPlayer( JoinSlot );
-		if ( ulResult == MAXPLAYERS )
-			Printf( "Join queue full!\n" );
-		else
-			Printf( "Your position in line is: %d\n", static_cast<unsigned int> (ulResult + 1) );
+		JOINQUEUE_AddConsolePlayer ( teams.Size( ) );
 		return;
 	}
 
