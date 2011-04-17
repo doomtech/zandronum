@@ -3013,9 +3013,8 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	if ( players[consoleplayer].bSpectating == false )
 		return;
 
-	// If there's two people currently dueling, just put the person in line.
-	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
-		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))))
+	// [BB] If players aren't allowed to join at the moment, just put the consoleplayer in line.
+	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
 		ULONG		ulResult;
 		JOINSLOT_t	JoinSlot;

@@ -76,6 +76,7 @@ latestzdoom branch
 -	- Fixed: When a grenade fell on a 3D floor over a real floor with a sky texture, it vanished instead of bounce. [Torr Samaho]
 -	- Fixed: Players lost a life when being spawned telefragged in survival invasion. [Torr Samaho]
 -	- Fixed some problems with the Z positioning of map spawned actors on 3D floors after a map reset. [Torr Samaho]
+-	- Fixed: Offline, the player could join in progress survival and survival invasion games with the "join" command. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
