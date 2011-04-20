@@ -2026,8 +2026,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 		if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED )
 		{
-			char	szPlayerNameNoColor[32];
-			char	szOldPlayerNameNoColor[32];
+			char	szPlayerNameNoColor[MAXPLAYERNAME+1];
+			char	szOldPlayerNameNoColor[MAXPLAYERNAME+1];
 
 			sprintf( szPlayerNameNoColor, "%s", pPlayer->userinfo.netname );
 			sprintf( szOldPlayerNameNoColor, "%s", szOldPlayerName );
