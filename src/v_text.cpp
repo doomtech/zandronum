@@ -500,8 +500,11 @@ void V_RemoveColorCodes( char *pszString )
 			if ( *pszEnd != 0 )
 				pszEnd++;
 
-			// Make sure we copy the terminating null character, too.
-			memcpy( p, pszEnd, strlen( pszEnd ) + 1 );
+			// [BB] Don't use memcpy here, source and dest would be overlapping.
+			const ULONG ulLength = strlen( pszEnd );
+			for ( ULONG i = 0; i < ulLength; ++i )
+			  p[i] = pszEnd[i];
+			p[ulLength] = 0;
 		}
 		// Otherwise, look at the next character.
 		else
