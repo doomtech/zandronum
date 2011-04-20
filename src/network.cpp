@@ -119,6 +119,8 @@ static	SOCKET			g_NetworkSocket;
 
 // Socket for listening for LAN games.
 static	SOCKET			g_LANSocket;
+// [BB] Did binding the LAN socket fail?
+static	bool				g_bLANSocketInvalid = false;
 
 // Our local port.
 static	USHORT			g_usLocalPort;
@@ -233,6 +235,8 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		{
 			sprintf( szString, "network_BindSocketToPort: Couldn't bind LAN socket to port: %d. You will not be able to see LAN servers in the browser.", DEFAULT_BROADCAST_PORT );
 			network_Error( szString );
+			// [BB] The socket won't work in this case, make sure not to use it.
+			g_bLANSocketInvalid = true;
 		}
 
 		if ( ioctlsocket( g_LANSocket, FIONBIO, &ulArg ) == -1 )
@@ -483,6 +487,10 @@ int NETWORK_GetPackets( void )
 //
 int NETWORK_GetLANPackets( void )
 {
+	// [BB] If we know that there is a problem with the socket don't try to use it.
+	if ( g_bLANSocketInvalid )
+		return 0;
+
 	LONG				lNumBytes;
 	INT					iDecodedNumBytes;
 	struct sockaddr_in	SocketFrom;
