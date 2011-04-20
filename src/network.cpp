@@ -857,7 +857,7 @@ void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FStrin
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
-	delete ( pbData );
+	delete[] pbData;
 }
 
 //*****************************************************************************
@@ -874,7 +874,7 @@ void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lumpSize, MD5Hash );
-	delete ( pbData );
+	delete[] pbData;
 }
 
 //*****************************************************************************
