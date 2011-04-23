@@ -4331,14 +4331,9 @@ void P_SetupLevel (char *lumpname, int position)
 		POSSESSION_SetState( PSNS_WAITINGFORPLAYERS );
 		INVASION_SetState( IS_WAITINGFORPLAYERS );
 
-		// I could do SURVS_NEWMAP here, but how do we know if this was a map change done via
-		// completing the map, using the map command, or what?
-//		SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
-//		SURVIVAL_SetState( SURVS_NEWMAP );
-
-		if ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )
-			SURVIVAL_SetState( SURVS_NEWMAP );
-		else
+		// [BB] Unless the game is in survival's countdown, we can keep the state (survival allows to
+		// advance to the next map without an additional countdown after the map change).
+		if ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN )
 			SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 	}
 

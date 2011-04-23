@@ -1076,6 +1076,10 @@ void G_DoLoadLevel (int position, bool autosave)
 	CAMPAIGNINFO_s		*pInfo;
 	UCVarValue			Val;
 
+	// [BB] Make sure that dead spectators are respawned before moving to the next map.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
+		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( );
+
 	// [BB] Going to a new level automatically stops any active vote.
 	if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
 		CALLVOTE_ClearVote();

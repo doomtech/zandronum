@@ -307,18 +307,6 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 			GAMEMODE_RespawnDeadSpectatorsAndPopQueue( );
 		}
 		break;
-	case SURVS_NEWMAP:
-
-		if ( survival )
-		{
-			// [BB] Since the new map just started and the dead spectators already were dead spectators
-			// when the last map ended, the respawned dead spectators now enter the map.
-			GAMEMODE_RespawnDeadSpectatorsAndPopQueue( PST_ENTER );
-		}
-
-		// Now, go back to the "in progress" state.
-		SURVIVAL_SetState( SURVS_INPROGRESS );
-		break;
 	case SURVS_MISSIONFAILED:
 
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
