@@ -295,8 +295,8 @@ static	int			g_iReturnInt = -1;
 static	bool		g_bReturnBool = false;
 static	char		g_szReturnString[BOTCMD_RETURNSTRING_SIZE] = { 0 };
 static	char		g_szLastChatString[256] = { 0 };
-static	char		g_szLastChatPlayer[32] = { 0 };
-static	char		g_szLastJoinedPlayer[32] = { 0 };
+static	char		g_szLastChatPlayer[MAXPLAYERNAME+1] = { 0 };
+static	char		g_szLastJoinedPlayer[MAXPLAYERNAME+1] = { 0 };
 static	FRandom		g_RandomBotCmdSeed( "RandomBotCmdSeed" );
 static	FRandom		g_RandomBotChatSeed( "RandomBotChatSeed" );
 
@@ -611,15 +611,16 @@ void BOTCMD_SetLastChatString( const char *pszString )
 //
 void BOTCMD_SetLastChatPlayer( const char *pszString )
 {
-	strncpy( g_szLastChatPlayer, pszString, 31 );
-	g_szLastChatPlayer[31] = 0;
+	strncpy( g_szLastChatPlayer, pszString, MAXPLAYERNAME );
+	g_szLastChatPlayer[MAXPLAYERNAME] = 0;
 }
 
 //*****************************************************************************
 //
 void BOTCMD_SetLastJoinedPlayer( const char *pszString )
 {
-	sprintf( g_szLastJoinedPlayer, "%s", pszString );
+	strncpy( g_szLastJoinedPlayer, pszString, MAXPLAYERNAME );
+	g_szLastJoinedPlayer[MAXPLAYERNAME] = 0;
 }
 
 //*****************************************************************************

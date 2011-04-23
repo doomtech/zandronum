@@ -59,7 +59,7 @@
 typedef struct
 {
 	// Name of the player.
-	char			szName[32];
+	char			szName[MAXPLAYERNAME+1];
 
 	// Address of the player whose information is being saved.
 	NETADDRESS_s	Address;
