@@ -1008,9 +1008,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 			break;
 
 		// Ally icon. Delete it if the player is now our enemy or if we're spectating.
+		// [BB] Dead spectators shall keep the icon for their teammates.
 		case S_ALLY:
 
-			if ( ( players[ SCOREBOARD_GetViewPlayer() ].bSpectating ) || ( !pPlayer->mo->IsTeammate( players[ SCOREBOARD_GetViewPlayer() ].mo ) ) )
+			if ( PLAYER_IsTrueSpectator ( &players[ SCOREBOARD_GetViewPlayer() ] ) || ( !pPlayer->mo->IsTeammate( players[ SCOREBOARD_GetViewPlayer() ].mo ) ) )
 			{
 				pPlayer->pIcon->Destroy( );
 				pPlayer->pIcon = NULL;
