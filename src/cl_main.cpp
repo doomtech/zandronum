@@ -7662,77 +7662,11 @@ static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Value;
 
-	Value.Bool = true;
-	switch ( NETWORK_ReadByte( pByteStream ))
-	{
-	case GAMEMODE_COOPERATIVE:
+	GAMEMODE_SetCurrentMode ( static_cast<GAMEMODE_e> ( NETWORK_ReadByte( pByteStream ) ) );
 
-		cooperative.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_SURVIVAL:
-
-		survival.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_INVASION:
-
-		invasion.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_DEATHMATCH:
-
-		deathmatch.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMPLAY:
-
-		teamplay.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_DUEL:
-
-		duel.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_TERMINATOR:
-
-		terminator.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_LASTMANSTANDING:
-
-		lastmanstanding.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMLMS:
-
-		teamlms.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_POSSESSION:
-
-		possession.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMPOSSESSION:
-
-		teampossession.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMGAME:
-
-		teamgame.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_CTF:
-
-		ctf.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_ONEFLAGCTF:
-
-		oneflagctf.ForceSet( Value, CVAR_Bool );
-		break;
-	case GAMEMODE_SKULLTAG:
-
-		skulltag.ForceSet( Value, CVAR_Bool );
-		break;
-
-	case GAMEMODE_DOMINATION:
-	
-		domination.ForceSet( Value, CVAR_Bool );
-		// [BB] The client doesn't necessarily know the game mode in P_SetupLevel, so we have to call this here.
+	// [BB] The client doesn't necessarily know the game mode in P_SetupLevel, so we have to call this here.
+	if ( domination )
 		DOMINATION_Init();
-		break;
-	}
 
 	Value.Bool = !!NETWORK_ReadByte( pByteStream );
 	instagib.ForceSet( Value, CVAR_Bool );
