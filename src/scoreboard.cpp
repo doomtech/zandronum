@@ -1821,27 +1821,27 @@ void SCOREBOARD_BuildPlaceString ( char* pszString )
 		{
 		case 0:
 
-			sprintf( pszString, "%s\\cH1st ", pszString );
+			sprintf( pszString + strlen ( pszString ), "\\cH1st " );
 			break;
 		case 1:
 
-			sprintf( pszString, "%s\\cG2nd ", pszString );
+			sprintf( pszString + strlen ( pszString ), "\\cG2nd " );
 			break;
 		case 2:
 
-			sprintf( pszString, "%s\\cD3rd ", pszString );
+			sprintf( pszString + strlen ( pszString ), "\\cD3rd " );
 			break;
 		default:
 
-			sprintf( pszString, "%s%dth ", pszString, static_cast<unsigned int> ( g_ulRank + 1 ));
+			sprintf( pszString + strlen ( pszString ), "%dth ", static_cast<unsigned int> ( g_ulRank + 1 ));
 			break;
 		}
 
 		// Tack on the rest of the string.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
-			sprintf( pszString, "%s\\c-place with %d point%s", pszString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
+			sprintf( pszString + strlen ( pszString ), "\\c-place with %d point%s", static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
 		else
-			sprintf( pszString, "%s\\c-place with %d frag%s", pszString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
+			sprintf( pszString + strlen ( pszString ), "\\c-place with %d frag%s", players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
 	}
 }
 
@@ -2828,29 +2828,29 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 		{
 		case 0:
 
-			sprintf( szString, "%s\\cH1st ", szString );
+			sprintf( szString + strlen ( szString ), "\\cH1st " );
 			break;
 		case 1:
 
-			sprintf( szString, "%s\\cG2nd ", szString );
+			sprintf( szString + strlen ( szString ), "\\cG2nd " );
 			break;
 		case 2:
 
-			sprintf( szString, "%s\\cD3rd ", szString );
+			sprintf( szString + strlen ( szString ), "\\cD3rd " );
 			break;
 		default:
 
-			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
+			sprintf( szString + strlen ( szString ), "%dth ", static_cast<unsigned int> ( g_ulRank + 1 ));
 			break;
 		}
 
 		// Tack on the rest of the string.
 		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
-			sprintf( szString, "%s\\c-place with %d win%s", szString, static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c-place with %d win%s",  static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
 		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c-place with %d point%s", static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
 		else
-			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c-place with %d frag%s", players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
 		V_ColorizeString( szString );
 
 		if ( g_bScale )

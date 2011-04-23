@@ -1723,7 +1723,6 @@ void DBaseStatusBar::DrawTargetName ()
 			return;
 
 		// Build the string and text color;
-		sprintf( szString, "%s", pTargetPlayer->userinfo.netname );
 		ulTextColor = CR_GRAY;
 
 		// [RC] Assume everyone's your enemy to create consistency, even in deathmatch when you have no allies.
@@ -1743,17 +1742,15 @@ void DBaseStatusBar::DrawTargetName ()
 		{
 			// If this player is carrying the terminator artifact, display his name in red.
 			if ( (terminator) && (pTargetPlayer->cheats2 & CF2_TERMINATORARTIFACT) )
-					ulTextColor = CR_RED;
+				ulTextColor = CR_RED;
 		}
-
 
 		// In cooperative modes, all players are allies.
 		if(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
 			strcpy(szDiplomacyStatus, "\\cqAlly");
 
-
-
-		sprintf(szString, "%s\\n%s", szString, szDiplomacyStatus);
+		// [BB] Be sure not to use szString as destination and as part of the argument!
+		sprintf(szString, "%s\\n%s", pTargetPlayer->userinfo.netname, szDiplomacyStatus);
 		V_ColorizeString(szString);
 
 		pMsg = new DHUDMessageFadeOut( SmallFont, szString,

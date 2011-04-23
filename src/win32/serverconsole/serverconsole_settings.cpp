@@ -602,11 +602,11 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 				iNumChars += i->Len( );
 				if ( iNumChars > 50 - 3 ) // Determined by width of label
 				{
-					sprintf( szString, "%s...", szString, *i->GetChars( ));
+					sprintf( szString + strlen ( szString ), "...", *i->GetChars( ));
 					break;
 				}
 				else
-					sprintf( szString, "%s %s", szString, *i );
+					sprintf( szString + strlen ( szString ), " %s", *i );
 			}
 
 			g_ulNumPWADs = NETWORK_GetPWADList( )->size( );

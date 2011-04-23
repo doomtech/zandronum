@@ -5131,7 +5131,7 @@ void M_OptDrawer ()
 				strncpy( szString, BROWSER_GetHostName( lServer ), 12 );
 				szString[12] = 0;
 				if ( strlen( BROWSER_GetHostName( lServer )) > 12 )
-					sprintf( szString, "%s...", szString );
+					sprintf( szString + strlen ( szString ), "..." );
 				screen->DrawText( SmallFont, lColor, 48, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw map.

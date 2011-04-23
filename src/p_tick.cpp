@@ -190,57 +190,57 @@ void P_Ticker (void)
 				if ( ulFlags & BOTPATH_OBSTRUCTED )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sOBSTRUCTED", szString );
+					sprintf( szString + strlen ( szString ), "OBSTRUCTED" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_STAIRS )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sSTAIRS", szString );
+					sprintf( szString + strlen ( szString ), "STAIRS" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_JUMPABLELEDGE )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sJUMPABLELEDGE", szString );
+					sprintf( szString + strlen ( szString ), "JUMPABLELEDGE" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_DAMAGINGSECTOR )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sDAMAGINGSECTOR", szString );
+					sprintf( szString + strlen ( szString ), "DAMAGINGSECTOR" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_DROPOFF )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sDROPOFF", szString );
+					sprintf( szString + strlen ( szString ), "DROPOFF" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_TELEPORT )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sTELEPORT", szString );
+					sprintf( szString + strlen ( szString ), "TELEPORT" );
 					bNeedMark = true;
 				}
 				if ( ulFlags & BOTPATH_DOOR )
 				{
 					if ( bNeedMark )
-						sprintf( szString, "%s ", szString );
+						sprintf( szString + strlen ( szString ), " " );
 					
-					sprintf( szString, "%sDOOR", szString );
+					sprintf( szString + strlen ( szString ), "DOOR" );
 					bNeedMark = true;
 				}
 

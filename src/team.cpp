@@ -562,9 +562,9 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	if ( bAssisted )
 	{
 		if ( bSelfAssisted )
-			sprintf( szString, "%s\\n\\c%c( Self-Assisted )", szString, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ) );
+			sprintf( szString + strlen ( szString ), "\\n\\c%c( Self-Assisted )", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ) );
 		else
-			sprintf( szString, "%s\\n\\c%cAssisted by: %s", szString, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
+			sprintf( szString + strlen ( szString ), "\\n\\c%cAssisted by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
 	}
 	
 	V_ColorizeString( szString );

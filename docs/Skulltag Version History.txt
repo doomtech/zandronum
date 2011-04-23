@@ -82,6 +82,7 @@ latestzdoom branch
 -	- Fixed: When adding a bot in a team game while players can't join, the bot was added as spectator but still assigned to a team. [Torr Samaho]
 -	- Fixed: Dead spectators are not properly handled if a changemap map change is made while a TLMS game is in progress and sv_keepteams is true. [Torr Samaho]
 -	- Fixed: Dead spectators in TLMS didn't see the ally icon for their teammates. [Torr Samaho]
+-	- Fixed: Various strings (the cl_identifytarget message, "assist" messages, several parts of the scoreboard, etc.) were not displayed properly on some platforms. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

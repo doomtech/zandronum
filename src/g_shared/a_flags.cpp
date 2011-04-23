@@ -483,9 +483,9 @@ bool AFlag::HandlePickup( AInventory *pItem )
 							selfAssist = true;
 
 				if ( selfAssist )
-					sprintf( szString, "%s\\n\\c%c[ Self-Assisted ]", szString, V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )));
+					sprintf( szString + strlen ( szString ), "\\n\\c%c[ Self-Assisted ]", V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )));
 				else
-					sprintf( szString, "%s\\n\\c%cAssisted by: %s", szString, V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.netname);
+					sprintf( szString + strlen ( szString ), "\\n\\c%cAssisted by: %s", V_GetColorChar( TEAM_GetTextColor( Owner->player->ulTeam )), players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.netname);
 			}
 
 			V_ColorizeString( szString );

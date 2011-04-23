@@ -718,10 +718,11 @@ void DrawFullHUD_GameInformation()
 		LONG left = SCOREBOARD_GetLeftToLimit( );
 		if(left > 0)
 		{
+			// [BB Be careful when using sprintf to append something.
 			if ( ( dmflags2 & DF2_KILL_MONSTERS) == false )
-				sprintf( szString, "%s \\cb(%d left)", szString, static_cast<int> (left) );
+				sprintf( szString + strlen(szString), " \\cb(%d left)", static_cast<int> (left) );
 			else
-				sprintf( szString, "%s \\cb(%d%% left)", szString, static_cast<int> (left) );
+				sprintf( szString + strlen(szString), " \\cb(%d%% left)", static_cast<int> (left) );
 		}
 		
 		V_ColorizeString( szString );
