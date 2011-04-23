@@ -1121,7 +1121,8 @@ void medal_SelectIcon( ULONG ulPlayer )
 		// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
 		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
 		{
-			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
+			// [BB] Dead spectators shall see the icon for their teammates.
+			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !PLAYER_IsTrueSpectator ( &players[SCOREBOARD_GetViewPlayer()] ) )
 			{
 				ulFrame = S_ALLY;
 				ulDesiredSprite = SPRITE_ALLY;
