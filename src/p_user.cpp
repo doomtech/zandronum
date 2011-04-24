@@ -3299,9 +3299,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	player->original_oldbuttons = player->original_cmd.buttons;
 	player->original_cmd = cmd->ucmd;
 
-	if ( GAME_GetEndLevelDelay( ))
-		memset( cmd, 0, sizeof( ticcmd_t ));
-
 	if (player->mo->flags & MF_JUSTATTACKED &&
 		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
 	{ // Chainsaw/Gauntlets attack auto forward motion
@@ -3344,6 +3341,11 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	// If this is a bot, run its logic.
 	if ( player->pSkullBot )
 		player->pSkullBot->Tick( );
+
+	// [BB] Since the game is currently suspended, prevent the player from doing anything.
+	// Note: This needs to be done after ticking the bot, otherwise the bot could still act.
+	if ( GAME_GetEndLevelDelay( ) )
+		memset( cmd, 0, sizeof( ticcmd_t ));
 
 	// Handle crouching
 	if (player->cmd.ucmd.buttons & BT_JUMP)
