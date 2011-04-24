@@ -2456,7 +2456,8 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 		JOINSLOT_t	JoinSlot;
 
 		JoinSlot.ulPlayer = pBot->GetPlayer( ) - players;
-		JoinSlot.ulTeam = TEAM_ChooseBestTeamForPlayer( );
+		// [BB] Don't chose the team before the bot actually joins.
+		JoinSlot.ulTeam = teams.Size( );
 		JOINQUEUE_AddPlayer( JoinSlot );	
 		return;
 	}
