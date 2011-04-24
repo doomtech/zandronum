@@ -464,6 +464,9 @@ static	bool				g_bServerLagging;
 // What's the time of the last message the server got from us?
 static	bool				g_bClientLagging;
 
+// [BB] Time we received the end of the last full update from the server.
+static ULONG				g_ulEndFullUpdateTic = 0;
+
 // Used for item respawning client-side.
 static	FRandom				g_RestorePositionSeed( "ClientRestorePos" );
 
@@ -2679,6 +2682,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			case SVC2_SETINVENTORYICON:
 
 				client_SetInventoryIcon( pByteStream );
+				break;
+
+			case SVC2_FULLUPDATECOMPLETED:
+
+				// [BB] The server doesn't send any info with this packet, it's just there to allow us
+				// keeping track of the current time so that we don't think we are lagging immediately after receiving a full update.
+				g_ulEndFullUpdateTic = gametic;
+
 				break;
 
 			default:
@@ -5264,7 +5275,8 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	CLIENT_SetLastConsolePlayerUpdateTick( ulClientTicOnServerEnd );
 
 	// If the last time the server heard from us exceeds one second, the client is lagging!
-	if (( gametic - CLIENTDEMO_GetGameticOffset( ) - ulClientTicOnServerEnd >= TICRATE ) && (( gametic + CLIENTDEMO_GetGameticOffset( )) > TICRATE ))
+	// [BB] But don't think we are lagging immediately after receiving a full update.
+	if (( gametic - CLIENTDEMO_GetGameticOffset( ) - ulClientTicOnServerEnd >= TICRATE ) && (( gametic + CLIENTDEMO_GetGameticOffset( ) - g_ulEndFullUpdateTic ) > TICRATE ))
 		g_bClientLagging = true;
 	else
 		g_bClientLagging = false;

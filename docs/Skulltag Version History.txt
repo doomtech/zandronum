@@ -85,6 +85,7 @@ latestzdoom branch
 -	- Fixed: Various strings (the cl_identifytarget message, "assist" messages, several parts of the scoreboard, etc.) were not displayed properly on some platforms. [Torr Samaho]
 -	- Fixed: After a changemap map change from an invasion level to a non-invasion level online, the clients still thought the gamemode was invasion. [Torr Samaho]
 -	- Fixed: If bots were put in the join queue in a team based game mode, they possibly all joined the same team after a changemap map change. [Torr Samaho]
+-	- Fixed: Immediately after joining a server with cl_startasspectator set to false or after a changemap map change while being in the game, the client thought is was lagging. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

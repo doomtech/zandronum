@@ -2535,6 +2535,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	{
 		SERVERCOMMANDS_SetMapSky( ulClient, SVCF_ONLYTHISCLIENT );
 	}
+
+	// [BB] Let the client know that the full update is completed.
+	SERVERCOMMANDS_FullUpdateCompleted( ulClient );
 }
 
 //*****************************************************************************

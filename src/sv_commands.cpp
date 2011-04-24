@@ -5907,6 +5907,15 @@ void SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, UL
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
+{
+	SERVER_CheckClientBuffer( ulClient, 2, true );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
+	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC2_FULLUPDATECOMPLETED );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
