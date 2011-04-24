@@ -395,7 +395,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 
 	// [BB] Any player spawning in this game state would fail.
 	// [BB] The same is true when we are starting a new game at the moment.
-	if ( ( gamestate == GS_FULLCONSOLE ) || ( gameaction == ga_newgame ) )
+	if ( ( gamestate == GS_FULLCONSOLE ) || ( gameaction == ga_newgame )  || ( gameaction == ga_newgame2 ) )
 	{
 		return;
 	}
