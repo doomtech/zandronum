@@ -598,7 +598,9 @@ bool GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer )
 
 	// [BB] If lives are limited, players are not allowed to join most of the time.
 	// [BB] The ga_worlddone check makes sure that in game players (at least in survival and survival invasion) aren't forced to spectate after a "changemap" map change.
-	if ( ( gameaction != ga_worlddone ) && GAMEMODE_AreLivesLimited() && GAMEMODE_IsGameInProgressOrResultSequence() )
+	// [BB] The ga_newgame check fixes some problem when starting a survival invasion skirmish with bots while already in a survival invasion game with bots
+	// (the consoleplayer is spawned as spectator in this case and leaves a ghost player upon joining)
+	if ( ( gameaction != ga_worlddone ) && ( gameaction != ga_newgame ) && GAMEMODE_AreLivesLimited() && GAMEMODE_IsGameInProgressOrResultSequence() )
 			return true;
 
 	return false;
