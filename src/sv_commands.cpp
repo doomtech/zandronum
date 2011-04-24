@@ -5896,7 +5896,7 @@ void SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, UL
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulPlayer, 5 + (ULONG)strlen( iconTexName.GetChars() ), true );
+		SERVER_CheckClientBuffer( ulIdx, 5 + (ULONG)strlen( iconTexName.GetChars() ), true );
 
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_SETINVENTORYICON );
