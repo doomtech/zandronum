@@ -4333,7 +4333,8 @@ void P_SetupLevel (char *lumpname, int position)
 
 		// [BB] Unless the game is in survival's countdown, we can keep the state (survival allows to
 		// advance to the next map without an additional countdown after the map change).
-		if ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN )
+		// [BB] We have to reset the state though when this is a new game.
+		if ( ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ) || ( gameaction == ga_newgame ) )
 			SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 	}
 
