@@ -3672,6 +3672,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			// Handle the spawn flags of the item.
 			pNewActor->HandleSpawnFlags( );
 
+			// [BB] Potentially adjust the default flags of this actor.
+			GAMEMODE_AdjustActorSpawnFlags ( pNewActor );
+
 			// If the old actor counts as an item, remove it from the total item count
 			// since it's being deleted.
 			if ( pActor->flags & MF_COUNTITEM )
@@ -3693,6 +3696,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				// Check and see if it's important that the client know the angle of the object.
 				if ( pNewActor->angle != 0 )
 					SERVERCOMMANDS_SetThingAngle( pNewActor );
+
+				// [BB] Since we called GAMEMODE_AdjustActorSpawnFlags, we possibly need to let the clients know about its effects.
+				SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pNewActor, MAXPLAYERS, 0 );
 			}
 
 			pActor->Destroy( );
