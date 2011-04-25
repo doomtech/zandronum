@@ -158,6 +158,11 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	// Use a version of gametic that's appropriate for both the current game and demos.
 	g_ulGameTick = gametic - CLIENTDEMO_GetGameticOffset( );
 
+	// [BB] This would mean that a negative amount of prediction tics is needed, so something is wrong.
+	// So far it looks like the "lagging at connect / map start" prevented this from happening before.
+	if ( CLIENT_GetLastConsolePlayerUpdateTick() > g_ulGameTick )
+		return;
+
 	// How many ticks of prediction do we need?
 	ulPredictionTicks = g_ulGameTick - CLIENT_GetLastConsolePlayerUpdateTick( );
 	if ( ulPredictionTicks )
