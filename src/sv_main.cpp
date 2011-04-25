@@ -4396,7 +4396,11 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		{
 			// If the name of the weapon the client is using doesn't match the name of the
 			// weapon we think he's using, do something to rectify the situation.
-			if ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != usActorNetworkIndex )
+			// [BB] Directly after a map change this workaround seems to do more harm than good,
+			// (client and server are possibly changing weapons and one of them is slightly ahead)
+			// so don't use it when the level just started. The inventory reset that the server does
+			// on the clients after a map change most likely has to do with this slight sync issues.
+			if ( ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != usActorNetworkIndex ) && ( level.maptime > 3*TICRATE ) )
 			{
 				pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
 				if (( pType ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
