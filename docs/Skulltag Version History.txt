@@ -89,6 +89,7 @@ latestzdoom branch
 -	- Fixed: Bots were not properly frozen during the special game mode result sequences, e.g. the "mission failed" screen in survival. [Torr Samaho]
 -	- Fixed: When starting a survival invasion skirmish with bots while already in a survival invasion game with bots, the consoleplayer is spawned as spectator and leaves a ghost player upon joining. [Torr Samaho]
 -	- Fixed: A "map" map change possibly triggered the "mission failed" screen in survival. [Torr Samaho]
+-	- Fixed: Switch sounds were played with the wrong z position online. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

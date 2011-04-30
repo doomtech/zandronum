@@ -9647,7 +9647,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Finally, play the sound.
-	S_Sound ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
+	S_Sound ( X, Y, Z, lChannel, S_FindSound(pszSoundString), (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
 }
 
 //*****************************************************************************
