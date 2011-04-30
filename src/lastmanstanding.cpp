@@ -802,47 +802,9 @@ void LASTMANSTANDING_SetState( LMSSTATE_e State )
 		// Zero out the countdown ticker.
 		LASTMANSTANDING_SetCountdownTicks( 0 );
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ) &&
-			( lastmanstanding || teamlms ) &&
-			( gamestate != GS_FULLCONSOLE ))
-		{
-			// Respawn any players who were downed during the previous round.
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if (( playeringame[ulIdx] == false ) ||
-					( PLAYER_IsTrueSpectator( &players[ulIdx] )))
-				{
-					continue;
-				}
+		if ( lastmanstanding || teamlms )
+			GAMEMODE_RespawnDeadSpectatorsAndPopQueue();
 
-				if ( gameaction != ga_worlddone )
-				{
-					players[ulIdx].bSpectating = false;
-					players[ulIdx].bDeadSpectator = false;
-					players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
-
-					if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
-					{
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-						players[ulIdx].mo->Destroy( );
-						players[ulIdx].mo = NULL;
-					}
-
-					G_DeathMatchSpawnPlayer( ulIdx, true );
-				}
-				else
-				{
-					if ( players[ulIdx].bDeadSpectator )
-						players[ulIdx].bDeadSpectator = false;
-				}
-			}
-
-			// Let anyone who's been waiting in line join now.
-			JOINQUEUE_PopQueue( -1 );
-		}
 		break;
 	default:
 		break;
