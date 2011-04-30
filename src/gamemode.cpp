@@ -452,7 +452,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 
 //*****************************************************************************
 //
-void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent )
+void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent, playerstate_t PlayerState )
 {
 	// [BB] This is server side.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -473,7 +473,7 @@ void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent )
 			APlayerPawn* pOldPlayerBody = players[ulIdx].mo;
 			players[ulIdx].mo = NULL;
 
-			players[ulIdx].playerstate = PST_ENTER;
+			players[ulIdx].playerstate = PlayerState;
 			GAMEMODE_SpawnPlayer( ulIdx );
 
 			if ( pOldPlayerBody )

@@ -115,7 +115,7 @@ bool		GAMEMODE_IsGameInProgress( void );
 bool		GAMEMODE_IsGameInResultSequence( void );
 bool		GAMEMODE_IsGameInProgressOrResultSequence( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
-void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS );
+void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS, playerstate_t PlayerState = PST_ENTER );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
 bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
