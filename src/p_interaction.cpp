@@ -2159,7 +2159,8 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 	// [BL] If the player was "unarmed" give back his inventory now.
 	// [BB] Note: On the clients bUnarmed is never true!
-	if ( pPlayer->bUnarmed )
+	// [BB] This may be called to set team of a player who wasn't spawned yet (for instance in the CSkullBot constructor).
+	if ( pPlayer->bUnarmed && pPlayer->mo )
 	{
 		pPlayer->mo->GiveDefaultInventory();
 		if ( deathmatch )
