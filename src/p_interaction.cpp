@@ -2803,6 +2803,10 @@ void PLAYER_LeavesGame( const ULONG ulPlayer )
 		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayer );
 		PLAYER_RemoveFriends ( ulPlayer );
 	}
+
+	// [BB] Clear the players medals and the medal related counters. The former is something also clients need to do.
+	memset( players[ulPlayer].ulMedalCount, 0, sizeof( ULONG ) * NUM_MEDALS );
+	PLAYER_ResetSpecialCounters ( &players[ulPlayer] );
 }
 
 CCMD (kill)
