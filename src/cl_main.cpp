@@ -58,6 +58,7 @@
 #include "cl_demo.h"
 #include "cl_statistics.h"
 #include "cooperative.h"
+#include "doomerrors.h"
 #include "doomtype.h"
 #include "doomstat.h"
 #include "d_player.h"
@@ -11994,11 +11995,8 @@ CCMD( disconnect )
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		return;
 
-	// Send disconnect signal, and end game.
-	CLIENT_QuitNetworkGame( NULL );
-
-	// [BB] While disconnecting is not an error, D_ErrorCleanup is a convenient way to reset everything.
-	D_ErrorCleanup ();
+	// [BB] While disconnecting is not an error, I_Error is a convenient way to abort the current game and reset everything.
+	I_Error ( "" );
 }
 
 //*****************************************************************************
