@@ -134,6 +134,7 @@
 #include "v_palette.h"
 #include "m_cheat.h"
 #include "compatibility.h"
+#include "r_3dfloors.h"
 
 #include "win32/g15/g15.h"
 EXTERN_CVAR(Bool, hud_althud)
@@ -1044,6 +1045,16 @@ void D_ErrorCleanup ()
 	gameaction = ga_fullconsole;
 	menuactive = MENU_Off;
 	insave = false;
+	fakeActive = 0;
+	fake3D = 0;
+	while (CurrentSkybox)
+	{
+		R_3D_DeleteHeights();
+		R_3D_LeaveSkybox();
+	}
+	R_3D_ResetClip();
+	R_3D_DeleteHeights();
+
 	// [BB] We are not in a level anymore.
 	level.info = NULL;
 	// [BB] Also reset the local flood timers of the client.
