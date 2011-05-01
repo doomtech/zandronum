@@ -1108,64 +1108,68 @@ void G_DoLoadLevel (int position, bool autosave)
 	for (i = 0; i < MAXPLAYERS; i++)
 		players[i].bUnarmed = false;
 
-	// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
-	const level_info_t *info = FindLevelInfo (level.mapname);
-	// [BB] We clear the teams if either DF2_YES_KEEP_TEAMS is not on or if the new level is a lobby.
-	const bool bClearTeams = ( !(dmflags2 & DF2_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
-
-	if ( bClearTeams )
+	// [BB] Clients shouldn't mess with the team settings on their own.
+	if ( NETWORK_InClientMode ( ) == false )
 	{
-		// Clear everyone's team.
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			players[i].ulTeam = teams.Size( );
-			players[i].bOnTeam = false;
-		}
-	}
+		// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
+		const level_info_t *info = FindLevelInfo (level.mapname);
+		// [BB] We clear the teams if either DF2_YES_KEEP_TEAMS is not on or if the new level is a lobby.
+		const bool bClearTeams = ( !(dmflags2 & DF2_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
 
-	// [BB] Only assign players to a team on a game mode that has teams.
-	if ( ( dmflags2 & DF2_NO_TEAM_SELECT ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
-	{
-		LONG	lNumNeedingTeam;
-		LONG	lRand;
-		
-		do
-		{
-			lNumNeedingTeam = 0;
-			for ( i = 0; i < MAXPLAYERS; i++ )
-			{
-				if ( playeringame[i] == false )
-					continue;
-
-				// [BB] Don't put spectators on a team.
-				if ( players[i].bSpectating )
-					continue;
-
-				if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == teams.Size( ) ))
-					lNumNeedingTeam++;
-			}
-
-			if ( lNumNeedingTeam > 0 )
-			{
-				do
-				{
-					lRand = ( M_Random( ) % MAXPLAYERS );
-				} while (( playeringame[lRand] == false ) || ( players[lRand].bSpectating ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
-
-
-				// [BB] Note: The team starts for the new map are not initialized yet, so we can't take them into account when selecting the team here.
-				PLAYER_SetTeam( &players[lRand], TEAM_ChooseBestTeamForPlayer( true ), true );
-			}
-
-		} while ( lNumNeedingTeam != 0 );
-	}
-	// Reset their team.
-	else
-	{
 		if ( bClearTeams )
 		{
+			// Clear everyone's team.
 			for (i = 0; i < MAXPLAYERS; i++)
-				PLAYER_SetTeam( &players[i], teams.Size( ), true );
+			{
+				players[i].ulTeam = teams.Size( );
+				players[i].bOnTeam = false;
+			}
+		}
+
+		// [BB] Only assign players to a team on a game mode that has teams.
+		if ( ( dmflags2 & DF2_NO_TEAM_SELECT ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+		{
+			LONG	lNumNeedingTeam;
+			LONG	lRand;
+
+			do
+			{
+				lNumNeedingTeam = 0;
+				for ( i = 0; i < MAXPLAYERS; i++ )
+				{
+					if ( playeringame[i] == false )
+						continue;
+
+					// [BB] Don't put spectators on a team.
+					if ( players[i].bSpectating )
+						continue;
+
+					if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == teams.Size( ) ))
+						lNumNeedingTeam++;
+				}
+
+				if ( lNumNeedingTeam > 0 )
+				{
+					do
+					{
+						lRand = ( M_Random( ) % MAXPLAYERS );
+					} while (( playeringame[lRand] == false ) || ( players[lRand].bSpectating ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
+
+
+					// [BB] Note: The team starts for the new map are not initialized yet, so we can't take them into account when selecting the team here.
+					PLAYER_SetTeam( &players[lRand], TEAM_ChooseBestTeamForPlayer( true ), true );
+				}
+
+			} while ( lNumNeedingTeam != 0 );
+		}
+		// Reset their team.
+		else
+		{
+			if ( bClearTeams )
+			{
+				for (i = 0; i < MAXPLAYERS; i++)
+					PLAYER_SetTeam( &players[i], teams.Size( ), true );
+			}
 		}
 	}
 
