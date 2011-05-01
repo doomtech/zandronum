@@ -107,6 +107,7 @@ latestzdoom branch
 !	- When a player cancels a vote, the other players are not prevented from making this type of vote again anymore. [Torr Samaho]
 !	- Skulltag now refuses to delete the active body of a player if it does not have a next state, but the current state has a finite duration. Instead a warning is printed and the body is frozen in its current state. This should fix the Neodoom crashes. [Torr Samaho]
 !	- The clients are now informed whenever the server uses the puke command. [Torr Samaho]
+!	- Players can't join during intermission anymore. Instead they are put in line and will join immediately after intermission ends (if there free player spots only of course). [Torr Samaho]
 
 
 98d

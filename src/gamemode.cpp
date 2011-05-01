@@ -592,6 +592,10 @@ bool GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer )
 	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumNonSpectatingPlayers( ulExcludePlayer ) >= static_cast<unsigned> (sv_maxplayers) ) )
 		return true;
 
+	// [BB] Don't let players join during intermission. They will be put in line and the queue is popped once intermission ends.
+	if ( gamestate == GS_INTERMISSION )
+		return true;
+
 	// [BB] Duel in progress.
 	if ( duel && ( DUEL_CountActiveDuelers( ) >= 2 ) )
 		return true;

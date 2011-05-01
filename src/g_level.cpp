@@ -1079,6 +1079,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	// [BB] Make sure that dead spectators are respawned before moving to the next map.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
 		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( );
+	// [BB] If we don't have dead spectators, still pop the queue. Possibly somone tried to join during intermission or the server admin increased sv_maxplayers during intermission.
+	else if ( NETWORK_InClientMode() == false )
+		JOINQUEUE_PopQueue( -1 );
 
 	// [BB] Going to a new level automatically stops any active vote.
 	if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
