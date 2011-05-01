@@ -2482,6 +2482,58 @@ void PLAYER_GetName( player_t *pPlayer, char *pszOutBuf )
 
 //*****************************************************************************
 //
+LONG PLAYER_GetHealth( ULONG ulPlayer )
+{
+	return players[ulPlayer].health;
+}
+
+//*****************************************************************************
+//
+LONG PLAYER_GetLivesLeft( ULONG ulPlayer )
+{
+	return players[ulPlayer].ulLivesLeft;
+}
+
+//*****************************************************************************
+//
+void PLAYER_SelectPlayersWithHighestValue ( LONG (*GetValue) ( ULONG ulPlayer ), TArray<ULONG> &Players )
+{
+	LONG lHighestValue;
+
+	TArray<ULONG> selectedPlayers;
+
+	for ( unsigned int i = 0; i < Players.Size(); ++i )
+	{
+		const ULONG ulIdx = Players[i];
+
+		if (( playeringame[ulIdx] == false ) ||
+			( players[ulIdx].bSpectating ))
+		{
+			continue;
+		}
+
+		if ( selectedPlayers.Size() == 0 )
+		{
+			lHighestValue = GetValue ( ulIdx );
+			selectedPlayers.Push ( ulIdx );
+		}
+		else
+		{
+			if ( GetValue ( ulIdx ) > lHighestValue )
+			{
+				lHighestValue = players[ulIdx].health;
+				selectedPlayers.Clear();
+				selectedPlayers.Push ( ulIdx );
+			}
+			else if ( GetValue ( ulIdx ) == lHighestValue )
+				selectedPlayers.Push ( ulIdx );
+		}
+	}
+	Players = selectedPlayers;
+}
+
+//*****************************************************************************
+//
 bool PLAYER_IsTrueSpectator( player_t *pPlayer )
 {
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
