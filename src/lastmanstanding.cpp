@@ -686,6 +686,9 @@ void LASTMANSTANDING_TimeExpired( void )
 	// Give the winner a win.
 	if ( lastmanstanding )
 		PLAYER_SetWins( &players[lWinner], players[lWinner].ulWins + 1 );
+	// [BB] In a team game of course give the win to the winning team.
+	if ( teamlms )
+		TEAM_SetWinCount( lWinner, TEAM_GetWinCount( lWinner ) + 1, false );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
