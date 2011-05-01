@@ -285,23 +285,6 @@ void LASTMANSTANDING_Tick( void )
 
 //*****************************************************************************
 //
-ULONG LASTMANSTANDING_TeamCountActivePlayers( ULONG ulTeam )
-{
-	ULONG	ulIdx;
-	ULONG	ulPlayers;
-
-	ulPlayers = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].ulTeam == ulTeam ))
-			ulPlayers++;
-	}
-
-	return ( ulPlayers );
-}
-
-//*****************************************************************************
-//
 LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 {
 	ULONG	ulNumMenStanding = 0;
