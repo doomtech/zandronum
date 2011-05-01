@@ -2812,7 +2812,7 @@ bool PLAYER_IsAliveOrCanRespawn( player_t *pPlayer )
 	if ( pPlayer == NULL )
 		return false;
 
-	return ( ( pPlayer->health > 0 ) || ( pPlayer->ulLivesLeft > 0 ) || ( pPlayer->bSpawnTelefragged == true ) );
+	return ( ( pPlayer->health > 0 ) || ( pPlayer->ulLivesLeft > 0 ) || ( pPlayer->bSpawnTelefragged == true ) || ( pPlayer->playerstate != PST_DEAD ) );
 }
 
 //*****************************************************************************
