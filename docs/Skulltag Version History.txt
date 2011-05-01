@@ -95,7 +95,7 @@ latestzdoom branch
 -	- Fixed: When sv_maxplayers was set to a value lower than the numbers of players currently in the game during a team game mode online, some players ended up as spectators while still being on a team after a "changemap" map change. [Torr Samaho]
 -	- Fixed some problems online when sv_maxplayers is increased while players are in the join queue. [Torr Samaho]
 -	- Fixed: If a team won a round in teamlms after the game entered sudden death, this team wasn't awarded a win. [Torr Samaho]
--	- Fixed some bugs caused by the spawning of the hellstone: When it was spawned the first player possibly tried to pickup whatever he was standing on at this moment. Furthermore, it was possibly spawned at the location of the first player even though there was still a free spawn spot. [Torr Samaho]
+-	- Fixed some bugs caused by the spawning of the hellstone and the terminator sphere: When it was spawned the first player possibly tried to pickup whatever he was standing on at this moment. Furthermore, it was possibly spawned at the location of the first player even though there was still a free spawn spot. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

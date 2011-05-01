@@ -2292,28 +2292,6 @@ static FMapThing *SelectRandomDeathmatchSpot (int playernum, unsigned int select
 	return &deathmatchstarts[i];
 }
 
-// [RC] Select a terminator start
-static FMapThing *SelectRandomTerminatorSpot (int playernum, unsigned int selections)
-{
-	unsigned int i, j;
-
-	for (j = 0; j < 20; j++)
-	{
-
-		i = pr_dmspawn() % selections;
-
-		if (G_CheckSpot (playernum, &TerminatorStarts[i]) )
-		{
-			return &TerminatorStarts[i];
-		}
-	}
-		
-	// [RC] All spots are occupied (though they really shouldn't)
-	// This will give the player the sphere at the start
-	return &TerminatorStarts[i];
-}
-
-
 // Select a temporary team spawn spot at random.
 static FMapThing *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
 {
@@ -3793,31 +3771,19 @@ AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TA
 //
 void GAME_SpawnTerminatorArtifact( void )
 {
-	ULONG		ulIdx;
 	AActor		*pTerminatorBall;
-	FMapThing	*pSpot;
 
+	// [BB] One can't hijack SelectRandomDeathmatchSpot to find a free spot for the artifact!
 	// [RC] Spawn it at a Terminator start, or a deathmatch spot
 	if(TerminatorStarts.Size() > 0) 	// Use the terminator starts, if the mapper added them
-		pSpot = SelectRandomTerminatorSpot(0, TerminatorStarts.Size());
+		pTerminatorBall = GAME_SelectRandomSpotForArtifact( PClass::FindClass( "Terminator" ), TerminatorStarts );
 	else if(deathmatchstarts.Size() > 0) // Or use a deathmatch start, if one exists
-		pSpot = SelectRandomDeathmatchSpot(0, deathmatchstarts.Size());
+		pTerminatorBall = GAME_SelectRandomSpotForArtifact( PClass::FindClass( "Terminator" ), deathmatchstarts );
 	else // Or return! Be that way!
 		return;
 
-	// Since G_CheckSpot() clears players' MF_SOLID flag for whatever reason, we have
-	// to restore it manually here.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].mo ))
-			players[ulIdx].mo->flags |= MF_SOLID;
-	}
-
-	if ( pSpot == NULL )
+	if ( pTerminatorBall == NULL )
 		return;
-
-	// Spawn the ball.
-	pTerminatorBall = Spawn( PClass::FindClass( "Terminator" ), pSpot->x, pSpot->y, ONFLOORZ, NO_REPLACE );
 
 	// If we're the server, tell clients to spawn the new ball.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
