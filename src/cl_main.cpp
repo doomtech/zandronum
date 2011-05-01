@@ -3408,6 +3408,7 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	pPlayer->bIgnoreChat = 0;
 	pPlayer->lIgnoreChatTicks = -1;
 	pPlayer->bDeadSpectator = 0;
+	pPlayer->ulLivesLeft = 0;
 	pPlayer->bStruckPlayer = 0;
 	pPlayer->pIcon = 0;
 	pPlayer->lMaxHealthBonus = 0;
