@@ -2291,26 +2291,6 @@ static FMapThing *SelectRandomDeathmatchSpot (int playernum, unsigned int select
 	// [RH] return a spot anyway, since we allow telefragging when a player spawns
 	return &deathmatchstarts[i];
 }
-// [RC] Select a possession start
-static FMapThing *SelectRandomPossessionSpot (int playernum, unsigned int selections)
-{
-	unsigned int i, j;
-
-	for (j = 0; j < 20; j++)
-	{
-
-		i = pr_dmspawn() % selections;
-
-		if (G_CheckSpot (playernum, &PossessionStarts[i]) )
-		{
-			return &PossessionStarts[i];
-		}
-	}
-		
-	// [RC] All spots are occupied (though they really shouldn't)
-	// This will give the player the sphere at the start
-	return &PossessionStarts[i];
-}
 
 // [RC] Select a terminator start
 static FMapThing *SelectRandomTerminatorSpot (int playernum, unsigned int selections)
@@ -3777,6 +3757,40 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 //*****************************************************************************
 //
+AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TArray<FMapThing> &Spots )
+{
+	if ( Spots.Size() == 0 )
+		return NULL;
+
+	AActor *pArtifact = NULL;
+
+	// [BB] Try to select a random spot sufficiently often so that hopefully all available spots are checked at least once.
+	for (int j = 0; j < 2*Spots.Size(); ++j)
+	{
+		const int i = pr_dmspawn() % Spots.Size();
+
+		pArtifact = Spawn( pArtifactType, Spots[i].x, Spots[i].y, ONFLOORZ, NO_REPLACE );
+		const DWORD spawnFlags = pArtifact->flags;
+		// [BB] Ensure that the artifact is solid, otherwise P_TestMobjLocation won't complain if a player already is at the proposed position.
+		pArtifact->flags |= MF_SOLID;
+
+		if ( !P_TestMobjLocation (pArtifact) )
+			pArtifact->Destroy ();
+		else
+		{
+			// [BB] Restore the original spawn flags, possibly removing MF_SOLID if we added it.
+			pArtifact->flags = spawnFlags;
+			return pArtifact;
+		}
+	}
+
+	// [BB] If there is no free spot, just select one and spawn the artifact there.
+	const int spotNum = pr_dmspawn() % Spots.Size();
+	return Spawn( pArtifactType, Spots[spotNum].x, Spots[spotNum].y, ONFLOORZ, NO_REPLACE );
+}
+
+//*****************************************************************************
+//
 void GAME_SpawnTerminatorArtifact( void )
 {
 	ULONG		ulIdx;
@@ -3814,31 +3828,19 @@ void GAME_SpawnTerminatorArtifact( void )
 //
 void GAME_SpawnPossessionArtifact( void )
 {
-	ULONG		ulIdx;
-	AActor		*pPossessionStone;
-	FMapThing	*pSpot;
+	AActor *pPossessionStone = NULL;
 
+	// [BB] One can't hijack SelectRandomDeathmatchSpot to find a free spot for the artifact!
 	// [RC] Spawn it at a Possession start, or a deathmatch spot
 	if(PossessionStarts.Size() > 0) 	// Did the mapper place possession starts? Use those
-		pSpot = SelectRandomPossessionSpot(0, PossessionStarts.Size());
+		pPossessionStone = GAME_SelectRandomSpotForArtifact( PClass::FindClass( "PossessionStone" ), PossessionStarts );
 	else if(deathmatchstarts.Size() > 0) // Or use a deathmatch start, if one exists
-		pSpot = SelectRandomDeathmatchSpot(0, deathmatchstarts.Size());
+		pPossessionStone = GAME_SelectRandomSpotForArtifact( PClass::FindClass( "PossessionStone" ), deathmatchstarts );
 	else // Or return! Be that way!
 		return;
 
-	// Since G_CheckSpot() clears players' MF_SOLID flag for whatever reason, we have
-	// to restore it manually here.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] ) && ( players[ulIdx].mo ))
-			players[ulIdx].mo->flags |= MF_SOLID;
-	}
-
-	if ( pSpot == NULL )
+	if ( pPossessionStone == NULL )
 		return;
-
-	// Spawn the ball.
-	pPossessionStone = Spawn( PClass::FindClass( "PossessionStone" ), pSpot->x, pSpot->y, ONFLOORZ, NO_REPLACE );
 
 	// If we're the server, tell clients to spawn the possession stone.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
