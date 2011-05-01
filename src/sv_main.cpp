@@ -297,6 +297,9 @@ CUSTOM_CVAR( Int, sv_maxplayers, MAXPLAYERS, CVAR_ARCHIVE )
 		Printf( "sv_maxplayers must be less than or equal to %d.\n", MAXPLAYERS );
 		self = MAXPLAYERS;
 	}
+
+	// [BB] Possibly the new sv_maxplayers value allows some players from the queue to join.
+	JOINQUEUE_PopQueue( -1 );
 }
 
 //*****************************************************************************
