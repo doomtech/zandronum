@@ -337,7 +337,7 @@ LONG LASTMANSTANDING_GetLastManStanding( void )
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( playeringame[ulIdx] && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bSpectating == false ))
+		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) )
 			return ( ulIdx );
 	}
 
