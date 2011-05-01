@@ -244,7 +244,7 @@ void LASTMANSTANDING_Tick( void )
 					// [BB] Every player who is still alive also gets a win.
 					for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 					{
-						if ( playeringame[ulIdx] && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].bSpectating == false ))
+						if ( playeringame[ulIdx] && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].bSpectating == false ) && PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) )
 							PLAYER_SetWins( &players[ulIdx], players[ulIdx].ulWins + 1 );
 					}
 
@@ -339,7 +339,7 @@ LONG LASTMANSTANDING_TeamGetLastManStanding( void )
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( playeringame[ulIdx] && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].bSpectating == false ))
+		if ( playeringame[ulIdx] && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].bSpectating == false ) && PLAYER_IsAliveOrCanRespawn ( &players[ulIdx] ) )
 			return ( players[ulIdx].ulTeam );
 	}
 
@@ -560,7 +560,6 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 //
 void LASTMANSTANDING_TimeExpired( void )
 {
-	ULONG				ulIdx;
 	LONG				lHighestHealth = 0;
 	bool				bTie = false;
 	bool				bFoundPlayer = false;
@@ -575,32 +574,21 @@ void LASTMANSTANDING_TimeExpired( void )
 	// Try to find the player with the highest health.
 	if ( lastmanstanding )
 	{
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] == false ) ||
-				( players[ulIdx].bSpectating ))
-			{
-				continue;
-			}
+		TArray<ULONG> possibleWinners;
+		for ( unsigned int i = 0; i < MAXPLAYERS; ++i )
+			possibleWinners.Push ( i );
 
-			if ( bFoundPlayer == false )
-			{
-				lHighestHealth = players[ulIdx].health;
-				bFoundPlayer = true;
-				lWinner = ulIdx;
-			}
-			else
-			{
-				if ( players[ulIdx].health > lHighestHealth )
-				{
-					lHighestHealth = players[ulIdx].health;
-					bTie = false;
-					lWinner = ulIdx;
-				}
-				else if ( players[ulIdx].health == lHighestHealth )
-					bTie = true;
-			}
-		}
+		// [BB] Find the player with the most lives left.
+		PLAYER_SelectPlayersWithHighestValue ( PLAYER_GetLivesLeft, possibleWinners );
+		// [BB] If more than one player has the most lives left, select the player with the highest lives.
+		if ( possibleWinners.Size() != 1 )
+			PLAYER_SelectPlayersWithHighestValue ( PLAYER_GetHealth, possibleWinners );
+
+		// [BB] If more then one player have the most lives and also the same health, then the game it a tie.
+		if ( possibleWinners.Size() == 1 )
+			lWinner = possibleWinners[0];
+		else
+			bTie = true;
 	}
 	else if ( teamlms )
 	{
