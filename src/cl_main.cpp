@@ -124,6 +124,7 @@ bool	ClassOwnsState( const PClass *pClass, const FState *pState );
 bool	ActorOwnsState( const AActor *pActor, const FState *pState );
 void	D_ErrorCleanup ();
 extern bool FriendlyFire;
+DECLARE_ACTION(A_RestoreSpecialPosition)
 
 EXTERN_CVAR( Bool, telezoom )
 EXTERN_CVAR( Bool, sv_cheats )
@@ -2984,6 +2985,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 
 		pActor->SpawnPoint[0] = X;
 		pActor->SpawnPoint[1] = Y;
+		pActor->SpawnPoint[2] = Z;
 
 		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
 		if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
@@ -3146,45 +3148,7 @@ AActor *CLIENT_FindThingByNetID( LONG lNetID )
 //
 void CLIENT_RestoreSpecialPosition( AActor *pActor )
 {
-	// Move item back to its original location
-	fixed_t _x, _y;
-	sector_t *sec;
-
-	_x = pActor->SpawnPoint[0];
-	_y = pActor->SpawnPoint[1];
-	sec = P_PointInSector (_x, _y);
-
-	fixed_t floorz = sec->floorplane.ZatPoint (_x, _y);
-	fixed_t ceilingz = sec->ceilingplane.ZatPoint (_x, _y);
-
-	pActor->SetOrigin (_x, _y, floorz);
-
-	if ( pActor->flags & MF_SPAWNCEILING )
-	{
-		pActor->z = ceilingz - pActor->height - ( pActor->SpawnPoint[2] );
-	}
-	else if ( pActor->flags2 & MF2_SPAWNFLOAT )
-	{
-		fixed_t space = ceilingz - pActor->height - floorz;
-		if (space > 48*FRACUNIT)
-		{
-			space -= 40*FRACUNIT;
-			pActor->z = ((space * g_RestorePositionSeed())>>8) + floorz + 40*FRACUNIT;
-		}
-		else
-		{
-			pActor->z = floorz;
-		}
-	}
-	else
-	{
-		pActor->z = (pActor->SpawnPoint[2]) + floorz;
-		if (pActor->flags2 & MF2_FLOATBOB)
-		{
-			pActor->z += FloatBobOffsets[(pActor->FloatBobPhase + level.time) & 63];
-		}
-	}
-	P_CheckPosition (pActor, _x, _y);
+	CALL_ACTION(A_RestoreSpecialPosition, pActor);
 }
 
 //*****************************************************************************
