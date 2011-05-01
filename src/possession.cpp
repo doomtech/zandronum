@@ -56,6 +56,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "g_level.h"
+#include "gamemode.h"
 #include "gstrings.h"
 #include "p_effect.h"
 #include "possession.h"
@@ -383,7 +384,6 @@ void POSSESSION_StartNextRoundCountdown( ULONG ulTicks )
 //
 void POSSESSION_DoFight( void )
 {
-	ULONG				ulIdx;
 	DHUDMessageFadeOut	*pMsg;
 	AActor				*pActor;
 
@@ -472,34 +472,11 @@ void POSSESSION_DoFight( void )
 		}
 	}
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		// Respawn the players.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) && ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false ))
-			{
-				if ( players[ulIdx].mo )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
-
-					players[ulIdx].mo->Destroy( );
-					players[ulIdx].mo = NULL;
-				}
-
-				// Normally, we set the playerstate to PST_ENTER so that enter scripts
-				// are executed. However, we don't actually reset the map in possession, so
-				// that is not necessary.
-				players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
-				G_DeathMatchSpawnPlayer( ulIdx, true );
-
-				if ( players[ulIdx].pSkullBot )
-					players[ulIdx].pSkullBot->PostEvent( BOTEVENT_LMS_FIGHT );
-			}
-		}
-	}
+	// Normally, we set the playerstate to PST_ENTER so that enter scripts
+	// are executed. However, we don't actually reset the map in possession, so
+	// that is not necessary.
+	// [BB] For some reason Skulltag always sent BOTEVENT_LMS_FIGHT on this occasion.
+	GAMEMODE_RespawnAllPlayers ( BOTEVENT_LMS_FIGHT, PST_REBORNNOINVENTORY );
 
 	// Also, spawn the possession artifact so that we can actually play!
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
