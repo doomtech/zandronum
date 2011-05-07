@@ -672,5 +672,5 @@ CCMD( wads )
 	Printf( "IWAD: %s\n", NETWORK_GetIWAD( ) );
 	Printf( "Num PWADs: %d\n", static_cast<unsigned int> (NETWORK_GetPWADList( )->size( )));
 	for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
-		Printf( "PWAD: %s\n", *i );
+		Printf( "PWAD: %s\n", i->GetChars() );
 }
