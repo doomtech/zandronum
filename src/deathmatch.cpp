@@ -370,6 +370,18 @@ CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 //
 CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 {
+	// [BB] SHRT_MAX is a pretty arbitrary limit considering that timelimit is a float,
+	// Nevertheless, we should put some limit here. SHRT_MAX allows for a limit of
+	// a bit more than three weeks, that's more than enough.
+	if ( self > SHRT_MAX ) {
+		self = SHRT_MAX;
+		return;
+	}
+	else if ( self < 0 ) {
+		self = 0;
+		return;
+	}
+
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
