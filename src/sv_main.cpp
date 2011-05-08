@@ -2297,6 +2297,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [BB] Also tell this player's chat / console status to the new client.
 		SERVERCOMMANDS_SetPlayerChatStatus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetPlayerConsoleStatus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [BB] If this player has any cheats, also inform the new client.
+		if( players[ulIdx].cheats )
+			SERVERCOMMANDS_SetPlayerCheats(  ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
