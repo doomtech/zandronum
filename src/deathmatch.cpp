@@ -351,8 +351,8 @@ CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 		}
 	}
 */
-	if ( self >= 65536 )
-		self = 65535;
+	if ( self > SHRT_MAX )
+		self = SHRT_MAX;
 	if ( self < 0 )
 		self = 0;
 
