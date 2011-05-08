@@ -351,10 +351,14 @@ CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 		}
 	}
 */
-	if ( self > SHRT_MAX )
+	if ( self > SHRT_MAX ) {
 		self = SHRT_MAX;
-	if ( self < 0 )
+		return;
+	}
+	else if ( self < 0 ) {
 		self = 0;
+		return;
+	}
 
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
