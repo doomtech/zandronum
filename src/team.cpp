@@ -2081,8 +2081,12 @@ CCMD( changeteam )
 		return;
 
 	// Not in a level.
-	if ( gamestate != GS_LEVEL )
+	// [BB] Still allow spectators to join the queue (that's what happens if you try to join during intermission).
+	if ( ( gamestate != GS_LEVEL ) && ( ( players[consoleplayer].bSpectating == false ) || ( gamestate != GS_INTERMISSION ) ) )
+	{
+		Printf( "You can only change your team while in a level.\n" );
 		return;
+	}
 
 	// Not a team mode.
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) == false )

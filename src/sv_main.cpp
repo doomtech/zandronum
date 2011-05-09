@@ -4915,7 +4915,8 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Not in a level.
-	if ( gamestate != GS_LEVEL )
+	// [BB] Still allow spectators to join the queue (that's what happens if you try to join during intermission).
+	if ( ( gamestate != GS_LEVEL ) && ( ( players[g_lCurrentClient].bSpectating == false ) || ( gamestate != GS_INTERMISSION ) ) )
 		return ( false );
 
 	// Not a teamgame.
