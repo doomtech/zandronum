@@ -114,6 +114,7 @@ void		GAMEMODE_DetermineGameMode( void );
 bool		GAMEMODE_IsGameInProgress( void );
 bool		GAMEMODE_IsGameInResultSequence( void );
 bool		GAMEMODE_IsGameInProgressOrResultSequence( void );
+bool		GAMEMODE_IsTimelimitActive( void );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS, playerstate_t PlayerState = PST_ENTER );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );

@@ -384,6 +384,13 @@ bool GAMEMODE_IsGameInProgressOrResultSequence( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsTimelimitActive( void )
+{
+	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze, but its implementation conceptually doesn't work in invasion or survival.
+	return (/*( deathmatch || teamgame ) &&*/ ( invasion == false ) && ( survival == false ) && timelimit );
+}
+//*****************************************************************************
+//
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 {
 	// [BB] This is server side.

@@ -2703,8 +2703,8 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 	scoreboard_AddSingleLimit( lines, ( winlimit && GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS ), remaining, "win" );
 	scoreboard_AddSingleLimit( lines, ( invasion && wavelimit ), wavelimit - INVASION_GetCurrentWave( ), "wave" );
 
-	// Render the timelimit string. - [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze, but its implementation conceptually doesn't work in invasion or survival.
-	if ( ( invasion == false ) && ( survival == false ) && timelimit )
+	// Render the timelimit string. - [BB] if the gamemode uses it.
+	if ( GAMEMODE_IsTimelimitActive() )
 	{
 		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
 		ULONG	ulHours, ulMinutes, ulSeconds;
