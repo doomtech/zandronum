@@ -7728,6 +7728,8 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// Read in, and set the value for sv_cheats.
 	Value.Int = NETWORK_ReadByte( pByteStream );
 	sv_cheats.ForceSet( Value, CVAR_Int );
+	// [BB] This ensures that am_cheat respects the sv_cheats value we just set.
+	am_cheat = am_cheat;
 
 	// Read in, and set the value for sv_fastweapons.
 	Value.Int = NETWORK_ReadByte( pByteStream );
