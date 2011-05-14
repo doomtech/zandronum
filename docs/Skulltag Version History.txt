@@ -116,6 +116,7 @@ latestzdoom branch
 !	- The CVAR fraglimt now can't be made bigger than 32767 (SHRT_MAX) anymore. Furthermore, the CVAR timelimit is now limited to the same range as fraglimt. [Torr Samaho]
 !	- If a spectator uses "team/changeteam teamname" during intermission, he is now put on the join queue instead of the command being ignored completely. [Torr Samaho]
 !	- Since TLMS just went on as usual when the timelimit was hit (although claiming to enter sudden death mode), timelimit is now deactivated in this gamemode. [Torr Samaho]
+!	- In gamemodes that reset the map time during a map reset, the timelimit counter is now hidden on the score board while the game is not in progress. [Torr Samaho]
 
 
 98d
