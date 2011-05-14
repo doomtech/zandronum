@@ -2160,7 +2160,10 @@ CCMD( changeteam )
 		{
 			// Can't toggle our teams if we're not on a team!
 			if ( players[consoleplayer].bOnTeam == false )
+			{
+				Printf( "You can only toggle your team if you are on a team.\n" );
 				return;
+			}
 
 			lDesiredTeam = TEAM_GetNextTeam( players[consoleplayer].ulTeam );
 		}
