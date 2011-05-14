@@ -386,6 +386,10 @@ bool GAMEMODE_IsGameInProgressOrResultSequence( void )
 //
 bool GAMEMODE_IsTimelimitActive( void )
 {
+	// [BB] Teamlms doesn't support timelimit, so just turn it off in this mode.
+	if ( teamlms )
+		return false;
+
 	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze, but its implementation conceptually doesn't work in invasion or survival.
 	return (/*( deathmatch || teamgame ) &&*/ ( invasion == false ) && ( survival == false ) && timelimit );
 }
