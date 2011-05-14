@@ -3832,6 +3832,8 @@ void player_t::Serialize (FArchive &arc)
 		<< BlendA
 		<< accuracy << stamina
 		// [BB] Skulltag additions - start
+		<< bOnTeam
+		<< (DWORD &)ulTeam
 		<< bChatting
 		<< bInConsole
 		<< (DWORD &)ulRailgunShots
