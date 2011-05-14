@@ -909,7 +909,9 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	{ // For people who just can't play without a silent BFG.
 		channel = CHAN_WEAPON;
 	}
-	else if ((chanflags & CHAN_MAYBE_LOCAL) && (i_compatflags & COMPATF_SILENTPICKUP))
+
+	// [BB] COMPATF_SILENTPICKUP needs to be checked no matter if COMPATF_MAGICSILENCE is set or not.
+	if ((chanflags & CHAN_MAYBE_LOCAL) && (i_compatflags & COMPATF_SILENTPICKUP))
 	{
 		if (actor != NULL && actor != players[consoleplayer].camera)
 		{

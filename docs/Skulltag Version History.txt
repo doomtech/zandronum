@@ -99,6 +99,7 @@ latestzdoom branch
 -	- Fixed: Clients mispredicted the Z position of things respawning above a 3D floor. [Torr Samaho]
 -	- Fixed: When a server admin tried to set the CVAR fraglimit to a value beyond its bounds, the "fraglimit changed to" message appeared twice. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about the cheats players already in game have. [Torr Samaho]
+-	- Fixed: "compat_silentpickup" had no effect if "compat_soundslots" is true. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
