@@ -3126,6 +3126,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// Unload decals.
 	DECAL_ClearDecals( );
 
+	// [BB] Possibly reset level time to 0.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESET_RESETS_MAPTIME )
+		level.time = 0;
+
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))

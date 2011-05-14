@@ -228,9 +228,6 @@ void DUEL_DoFight( void )
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulDuelCountdownTicks = 0;
 
-	// Reset level time to 0.
-	level.time = 0;
-
 	// Since the level time is being reset, also reset the last frag/excellent time for
 	// each player.
 	PLAYER_ResetAllPlayersSpecialCounters();

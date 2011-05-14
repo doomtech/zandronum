@@ -221,9 +221,6 @@ void SURVIVAL_DoFight( void )
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulSurvivalCountdownTicks = 0;
 
-	// Reset level time to 0.
-	level.time = 0;
-
 	// Reset everyone's kill count.
 	GAMEMODE_ResetPlayersKillCount ( false );
 
