@@ -2246,10 +2246,9 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 		szString[0] = 0;
 
 		ulColor = CR_GRAY;
-		if (( terminator ) && ( players[ulIdx].cheats2 & CF2_TERMINATORARTIFACT ))
+		if (( terminator ) && ( players[ulPlayer].cheats2 & CF2_TERMINATORARTIFACT ))
 			ulColor = CR_RED;
-
-		if ( players[ulPlayer].bOnTeam == true )
+		else if ( players[ulPlayer].bOnTeam == true )
 			ulColor = TEAM_GetTextColor( players[ulPlayer].ulTeam );
 		else if ( ulDisplayPlayer == ulPlayer )
 			ulColor = demoplayback ? CR_GOLD : CR_GREEN;

@@ -102,6 +102,7 @@ latestzdoom branch
 -	- Fixed: "compat_silentpickup" had no effect if "compat_soundslots" is true. [Torr Samaho]
 -	- Fixed: Savegames didn't store the player's team. [Torr Samaho]
 -	- Fixed: Clients didn't set am_cheats to 0 after a "map" map change if sv_cheats was changed from to true to false. [Torr Samaho]
+-	- Fixed: The scoreboard line of the player currently carrying the terminator sphere wasn't drawn in red. Instead, some seemingly random parts of the scoreboard were drawn red when someone had the terminator sphere. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
