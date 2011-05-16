@@ -54,39 +54,6 @@
 #include "doomtype.h"
 
 //*****************************************************************************
-//  DEFINES
-
-// Maximum amount of announcer profiles that can be loaded.
-#define	MAX_ANNOUNCERPROFILES			32
-
-// Maximum number of entries that can be defined within each announcer profile.
-#define	MAX_ANNOUNCERPROFILE_ENTRIES	128
-
-//*****************************************************************************
-//  STRUCTURES
-
-typedef struct
-{
-	// The text name of this entry.
-	char	szName[32];
-
-	// The sound name for this entry.
-	char	szSound[64];
-
-} ANNOUNCERENTRY_s;
-
-//*****************************************************************************
-typedef struct
-{
-	// The name of this announcer profile.
-	char				szName[64];
-
-	// The list of announcer entries present in this profile.
-	ANNOUNCERENTRY_s	**paAnnouncerEntries;
-
-} ANNOUNCERPROFILE_s;
-
-//*****************************************************************************
 //  PROTOTYPES
 
 void	ANNOUNCER_Construct( void );
@@ -103,7 +70,7 @@ void	ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFr
 void	ANNOUNCER_AllowNumFragsAndPointsLeftSounds( void );
 
 // Access functions.
-char	*ANNOUNCER_GetName( ULONG ulIdx );
+const char	*ANNOUNCER_GetName( ULONG ulIdx );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

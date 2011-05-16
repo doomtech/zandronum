@@ -63,9 +63,68 @@
 #include "w_wad.h"
 
 //*****************************************************************************
+//  STRUCTURES
+
+class AnnouncerProfile
+{
+	public:
+		AnnouncerProfile() : name("UNNAMED ANNOUNCER")
+		{
+		}
+
+		// Adds an entry to the announcer.
+		void AddEntry(const FName &entry, const FString &sound)
+		{
+			entries[entry] = sound;
+		}
+
+		// Returns true if the entry has a sound for this announcer.
+		bool EntryExists(const FName &entry) const
+		{
+			return entries.CheckKey(entry) != NULL;
+		}
+
+		// Returns the sound for an announcer entry or an null string if no
+		// sound is set.
+		FString FindEntry(const FName &entry) const
+		{
+			if ( EntryExists(entry) )
+				return *entries.CheckKey(entry);
+			return FString();
+		}
+
+		const FString &GetName() const
+		{
+			return name;
+		}
+
+		// Pull in all defined sounds.
+		void Merge(const AnnouncerProfile &other)
+		{
+			EntryMap::ConstIterator iter(other.entries);
+			EntryMap::ConstPair *pair;
+
+			while ( iter.NextPair(pair) )
+				entries.Insert(pair->Key, pair->Value);
+		}
+
+		void SetName(const FString &name)
+		{
+			this->name = name;
+		}
+
+	private:
+		typedef TMap<FName, FString> EntryMap;
+
+		FString		name;
+		EntryMap	entries;
+};
+
+//*****************************************************************************
 //	VARIABLES
 
-static	ANNOUNCERPROFILE_s	*g_AnnouncerProfile[MAX_ANNOUNCERPROFILES];
+static	TArray<AnnouncerProfile>	g_AnnouncerProfile;
+static	AnnouncerProfile			*g_DefaultAnnouncer;
 
 // Have the "Three frags left!", etc. sounds been played yet?
 static	bool			g_bThreeFragsLeftSoundPlayed;
@@ -86,57 +145,23 @@ CVAR (Bool, cl_allowmultipleannouncersounds, true, CVAR_ARCHIVE|CVAR_GLOBALCONFI
 //	PROTOTYPES
 
 static	void					announcer_ParseAnnouncerInfoLump( FScanner &sc );
-static	bool					announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo );
-static	void					announcer_AddProfileEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry, const char *pszSound );
-static	ANNOUNCERENTRY_s		*announcer_FindEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry );
-static	void					announcer_FinishAddingEntries( ANNOUNCERPROFILE_s *pInfo );
 
 //*****************************************************************************
 //	FUNCTIONS
 
 void ANNOUNCER_Construct( void )
 {
-	ULONG	ulIdx;
+	AnnouncerProfile def;
+	def.SetName("Default");
+	g_AnnouncerProfile.Push(def);
 
-	// Initialize all announcer info pointers.
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILES; ulIdx++ )
-		g_AnnouncerProfile[ulIdx] = NULL;
-
-	// Call ANNOUNCER_Destruct() when Skulltag closes.
-	atterm( ANNOUNCER_Destruct );
+	g_DefaultAnnouncer = &g_AnnouncerProfile[0];
 }
 
 //*****************************************************************************
 //
 void ANNOUNCER_Destruct( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
-
-	// First, go through and free all additional announcer info's.
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILES; ulIdx++ )
-	{
-		if ( g_AnnouncerProfile[ulIdx] != NULL )
-		{
-			if ( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries != NULL )
-			{
-				for ( ulIdx2 = 0; ulIdx2 < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx2++ )
-				{
-					if ( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] )
-					{
-						M_Free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] );
-						g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = NULL;
-					}
-				}
-
-				M_Free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries );
-				g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = NULL;
-			}
-
-			M_Free( g_AnnouncerProfile[ulIdx] );
-			g_AnnouncerProfile[ulIdx] = NULL;
-		}
-	}
 }
 
 //*****************************************************************************
@@ -161,55 +186,39 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 //
 ULONG ANNOUNCER_GetNumProfiles( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumProfiles = 0;
-
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILES; ulIdx++ )
-	{
-		if ( g_AnnouncerProfile[ulIdx] != NULL )
-			ulNumProfiles++;
-		else
-			return ( ulNumProfiles );
-	}
-
-	return ( ulNumProfiles );
+	return g_AnnouncerProfile.Size();
 }
 
 //*****************************************************************************
 //
+
 bool ANNOUNCER_DoesEntryExist( ULONG ulProfileIdx, const char *pszEntry )
 {
-	// Return false if the profile index is invalid, or a profile doesn't exist on this index.
-	if (( ulProfileIdx >= MAX_ANNOUNCERPROFILES ) || ( g_AnnouncerProfile[ulProfileIdx] == NULL ))
-		return ( false );
-
-	// If the profile doesn't have any entries defined, return false.
-	if ( g_AnnouncerProfile[ulProfileIdx]->paAnnouncerEntries == NULL )
+	// Return false if the profile index is invalid.
+	if ( ulProfileIdx >= ANNOUNCER_GetNumProfiles() )
 		return ( false );
 
 	// If the entry exists in the profile, return true.
-	return ( announcer_FindEntry( g_AnnouncerProfile[ulProfileIdx], pszEntry ) != NULL );
+	return g_AnnouncerProfile[ulProfileIdx].EntryExists(pszEntry);
 }
 
 //*****************************************************************************
 //
+
 void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 {
-	ANNOUNCERENTRY_s	*pEntry;
-
-	// Return false if the profile index is invalid, or a profile doesn't exist on this index.
-	if (( ulProfileIdx >= MAX_ANNOUNCERPROFILES ) || ( g_AnnouncerProfile[ulProfileIdx] == NULL ))
+	// Return false if the profile index is invalid
+	if ( ulProfileIdx >= ANNOUNCER_GetNumProfiles() )
 		return;
 
-	// If the profile doesn't have any entries defined, return false.
-	if ( g_AnnouncerProfile[ulProfileIdx]->paAnnouncerEntries == NULL )
-		return;
+	FString sound;
+	if ( g_AnnouncerProfile[ulProfileIdx].EntryExists(pszEntry) )
+		sound = g_AnnouncerProfile[ulProfileIdx].FindEntry(pszEntry);
+	else if ( g_DefaultAnnouncer->EntryExists(pszEntry) )
+		sound = g_DefaultAnnouncer->FindEntry(pszEntry);
 
 	// If the entry exists and has a sound, play it.
-	pEntry = announcer_FindEntry( g_AnnouncerProfile[ulProfileIdx], pszEntry );
-	if (( pEntry ) &&
-		( pEntry->szSound ) &&
-		( strlen( pEntry->szSound ) > 0 ))
+	if ( !sound.IsEmpty() )
 	{
 		// Stop any existing announcer sounds.
 		// [BB] Only do this, if the user doesn't like multiple announcer sounds at once
@@ -217,8 +226,8 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 			S_StopSoundID( g_lLastSoundID, CHAN_VOICE );
 
 		// Play the sound.
-		g_lLastSoundID = S_FindSound( pEntry->szSound );
-		S_Sound( CHAN_VOICE, pEntry->szSound, 1, ATTN_NONE );
+		g_lLastSoundID = S_FindSound( sound );
+		S_Sound( CHAN_VOICE, sound, 1, ATTN_NONE );
 	}
 }
 
@@ -584,12 +593,12 @@ void ANNOUNCER_AllowNumFragsAndPointsLeftSounds( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-char *ANNOUNCER_GetName( ULONG ulIdx )
+const char *ANNOUNCER_GetName( ULONG ulIdx )
 {
-	if ( ulIdx >= MAX_ANNOUNCERPROFILES || ( g_AnnouncerProfile[ulIdx] == NULL ))
+	if ( ulIdx >= ANNOUNCER_GetNumProfiles() )
 		return ( NULL );
 
-	return ( g_AnnouncerProfile[ulIdx]->szName );
+	return ( g_AnnouncerProfile[ulIdx].GetName() );
 }
 
 //*****************************************************************************
@@ -597,27 +606,14 @@ char *ANNOUNCER_GetName( ULONG ulIdx )
 //
 static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 {
-	char				szKey[64];
-	char				szValue[64];
 	ULONG				ulIdx;
-	ANNOUNCERPROFILE_s	AnnouncerProfile;
 
 	// Begin parsing that text. COM_Parse will create a token (com_token), and
 	// pszBotInfo will skip past the token.
 	while ( sc.GetString( ))
 	{
 		// Initialize our announcer info variable.
-		strncpy( AnnouncerProfile.szName, "UNNAMED ANNOUNCER", 63 );
-		AnnouncerProfile.szName[63] = 0;
-
-		AnnouncerProfile.paAnnouncerEntries = (ANNOUNCERENTRY_s **)M_Malloc( sizeof( ANNOUNCERENTRY_s ** ) * MAX_ANNOUNCERPROFILE_ENTRIES );
-		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-		{
-			AnnouncerProfile.paAnnouncerEntries[ulIdx] = (ANNOUNCERENTRY_s *)M_Malloc( sizeof( ANNOUNCERENTRY_s ));
-
-			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szName[0] = '\0';
-			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szSound[0] = '\0';
-		}
+		AnnouncerProfile prof;
 
 		while ( sc.String[0] != '{' )
 			sc.GetString( );
@@ -627,151 +623,40 @@ static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 		{
 			// The current token should be our key. (key = value) If it's an end bracket, break.
 			sc.GetString( );
-			strncpy( szKey, sc.String, 63 );
-			szKey[63] = 0;
 			if ( sc.String[0] == '}' )
 				break;
+			FString key = sc.String;
 
 			// The following key must be an = sign. If not, the user made an error!
 			sc.GetString( );
-			if ( stricmp( sc.String, "=" ) != 0 )
-					I_Error( "ANNOUNCER_ParseAnnouncerInfo: Missing \"=\" in ANCRINFO lump for field \"%s\".\n", szKey );
+			if ( stricmp(sc.String, "=") != 0 )
+					I_Error( "ANNOUNCER_ParseAnnouncerInfo: Missing \"=\" in ANCRINFO lump for field \"%s\".\n", key.GetChars() );
 
 			// The last token should be our value.
 			sc.GetString( );
-			strncpy( szValue, sc.String, 63 );
-			szValue[63] = 0;
+			FString value = sc.String;
 
 			// If we're specifying the name of the profile, set it here.
-			if ( stricmp( szKey, "name" ) == 0 )
-			{
-				strncpy( AnnouncerProfile.szName, szValue, 63 );
-				AnnouncerProfile.szName[63] = 0;
-			}
+			if ( key.CompareNoCase("name") == 0 )
+				prof.SetName(value);
 			// Add the new key, along with its value to the profile.
 			else
-				announcer_AddProfileEntry( &AnnouncerProfile, (const char *)szKey, (const char *)szValue );
-		}
+			{
+				prof.AddEntry(key, value);
 
-		// Now that we're done adding entries, sort them alphabetically.
-		announcer_FinishAddingEntries( &AnnouncerProfile );
+				// Populate the default announcer with the first occurace of
+				// any sound unless it is explicity defined.
+				if ( !g_DefaultAnnouncer->EntryExists(key) )
+					g_DefaultAnnouncer->AddEntry(key, value);
+			}
+		}
 
 		// Add our completed announcer profile.
-		announcer_AddAnnouncerProfile( &AnnouncerProfile );
-
-		// Finally, free all the memory allocated for this temporary profile.
-		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-		{
-			M_Free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
-			AnnouncerProfile.paAnnouncerEntries[ulIdx] = NULL;
-		}
-
-		M_Free( AnnouncerProfile.paAnnouncerEntries );
-		AnnouncerProfile.paAnnouncerEntries = NULL;
+		if (prof.GetName().CompareNoCase(g_DefaultAnnouncer->GetName()) == 0)
+			g_DefaultAnnouncer->Merge(prof);
+		else
+			g_AnnouncerProfile.Push(prof);
 	}
-}
-
-//*****************************************************************************
-//
-static bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo )
-{
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
-
-	// First, find a free slot to add the announcer profile.
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILES; ulIdx++ )
-	{
-		if ( g_AnnouncerProfile[ulIdx] != NULL )
-			continue;
-
-		// Allocate some memory for this new block.
-		g_AnnouncerProfile[ulIdx] = (ANNOUNCERPROFILE_s *)M_Malloc( sizeof( ANNOUNCERPROFILE_s ));
-
-		// Now copy all the data we passed in into this block.
-		strncpy( g_AnnouncerProfile[ulIdx]->szName, pInfo->szName, 63 );
-		g_AnnouncerProfile[ulIdx]->szName[63] = 0;
-
-		g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = (ANNOUNCERENTRY_s **)M_Malloc( sizeof( ANNOUNCERENTRY_s ) * MAX_ANNOUNCERPROFILE_ENTRIES );
-		for ( ulIdx2 = 0; ulIdx2 < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx2++ )
-		{
-			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = (ANNOUNCERENTRY_s *)M_Malloc( sizeof( ANNOUNCERENTRY_s ));
-
-			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName, pInfo->paAnnouncerEntries[ulIdx2]->szName, 31 );
-			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound, pInfo->paAnnouncerEntries[ulIdx2]->szSound, 63 );
-			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName[31] = 0;
-			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound[63] = 0;
-		}
-
-		return ( true );
-	}
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-static void announcer_AddProfileEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry, const char *pszSound )
-{
-	ULONG	ulIdx;
-
-	// Invalid profile.
-	if ( pInfo == NULL )
-		return;
-
-	// The profile has no entries.
-	if ( pInfo->paAnnouncerEntries == NULL )
-		return;
-
-	// Add the entry to the first available slot.
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-	{
-		// Entry already exists.
-		if ( stricmp( pInfo->paAnnouncerEntries[ulIdx]->szName, pszEntry ) == 0 )
-			return;
-
-		if ( pInfo->paAnnouncerEntries[ulIdx]->szName[0] == '\0' )
-		{
-			strncpy( pInfo->paAnnouncerEntries[ulIdx]->szName, pszEntry, 31 );
-			strncpy( pInfo->paAnnouncerEntries[ulIdx]->szSound, pszSound, 63 );
-			pInfo->paAnnouncerEntries[ulIdx]->szName[31] = 0;
-			pInfo->paAnnouncerEntries[ulIdx]->szSound[63] = 0;
-
-			// All done.
-			return;
-		}
-	}
-}
-
-//*****************************************************************************
-//
-static ANNOUNCERENTRY_s *announcer_FindEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry )
-{
-	ULONG	ulIdx;
-
-	// Invalid profile.
-	if ( pInfo == NULL )
-		return ( NULL );
-
-	// The profile has no entries.
-	if ( pInfo->paAnnouncerEntries == NULL )
-		return ( NULL );
-
-	// Search the announcer profile for the entry. If it exists, return it.
-	// FIXME: Use the binary search here.
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-	{
-		if ( stricmp( pInfo->paAnnouncerEntries[ulIdx]->szName, pszEntry ) == 0 )
-			return ( pInfo->paAnnouncerEntries[ulIdx] );
-	}
-
-	return ( NULL );
-}
-
-//*****************************************************************************
-//
-static void announcer_FinishAddingEntries( ANNOUNCERPROFILE_s *pInfo )
-{
-	// FIXME: Sort this list alphabetically.
 }
 
 //*****************************************************************************
@@ -785,13 +670,10 @@ CCMD( announcers )
 	ULONG	ulIdx;
 	ULONG	ulNumProfiles = 0;
 
-	for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILES; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < ANNOUNCER_GetNumProfiles(); ulIdx++ )
 	{
-		if ( g_AnnouncerProfile[ulIdx] != NULL )
-		{
-			Printf( "%d. %s\n", static_cast<unsigned int> (ulIdx + 1), g_AnnouncerProfile[ulIdx]->szName );
-			ulNumProfiles++;
-		}
+		Printf( "%d. %s\n", static_cast<unsigned int> (ulIdx + 1), g_AnnouncerProfile[ulIdx].GetName().GetChars() );
+		ulNumProfiles++;
 	}
 
 	Printf( "\n%d announcer profile(s) loaded.\n", static_cast<unsigned int> (ulNumProfiles) );
