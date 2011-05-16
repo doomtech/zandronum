@@ -136,7 +136,7 @@ CVAR( Bool, cl_icons, true, CVAR_ARCHIVE )
 
 ULONG	medal_AddToQueue( ULONG ulPlayer, ULONG ulMedal );
 void	medal_PopQueue( ULONG ulPlayer );
-ULONG	medal_GetDesiredIcon( const player_t *pPlayer, AInventory *&pTeamItem );
+ULONG	medal_GetDesiredIcon( player_t *pPlayer, AInventory *&pTeamItem );
 void	medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal );
 void	medal_SelectIcon( ULONG ulPlayer );
 void	medal_GiveMedal( ULONG ulPlayer, ULONG ulMedal );
@@ -885,7 +885,7 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 
 	if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
 	{
-		if ( ctf || oneflagctf || skulltag )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
 			bInvalid = ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pPlayer ) == NULL );
 	}
 
@@ -954,7 +954,7 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 
 //*****************************************************************************
 //
-ULONG medal_GetDesiredIcon( const player_t *pPlayer, AInventory *&pTeamItem )
+ULONG medal_GetDesiredIcon( player_t *pPlayer, AInventory *&pTeamItem )
 {
 	ULONG ulDesiredSprite = NUM_SPRITES;
 
@@ -993,15 +993,9 @@ ULONG medal_GetDesiredIcon( const player_t *pPlayer, AInventory *&pTeamItem )
 
 			else
 			{
-				for ( ULONG ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
-				{
-					pTeamItem = pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam ));
-					if ( pTeamItem )
-					{
-						ulDesiredSprite = SPRITE_TEAMITEM;
-						break;
-					}
-				}
+				pTeamItem = TEAM_FindOpposingTeamsItemInPlayersInventory ( pPlayer );
+				if ( pTeamItem )
+					ulDesiredSprite = SPRITE_TEAMITEM;
 			}
 		}
 	}
