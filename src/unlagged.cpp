@@ -195,7 +195,8 @@ void UNLAGGED_Reconcile( AActor *actor )
 
 				//floor moved up - a client might have mispredicted himself too low due to gravity
 				//and the client thinking the floor is lower than it actually is
-				if (serverFloorZ > actor->floorz)
+				// [BB] But only do this if the sector actually moved. Note: This adjustment seems to break on some kind of non-moving 3D floors.
+				if ( (serverFloorZ > actor->floorz) && ( actor->Sector->floorplane.restoreD != actor->Sector->floorplane.d ) || ( actor->Sector->ceilingplane.restoreD != actor->Sector->ceilingplane.d ) )
 				{
 					//shooter was standing on the floor, let's pull him down to his floor if
 					//he wasn't falling
