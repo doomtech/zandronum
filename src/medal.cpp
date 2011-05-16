@@ -112,11 +112,12 @@ enum
 	SPRITE_CHAT,
 	SPRITE_INCONSOLE,
 	SPRITE_ALLY,
+	SPRITE_LAG,
 	SPRITE_WHITEFLAG,
 	SPRITE_TERMINATORARTIFACT,
-	SPRITE_LAG,
 	SPRITE_POSSESSIONARTIFACT,
-	SPRITE_TEAMITEM
+	SPRITE_TEAMITEM,
+	NUM_SPRITES
 };
 
 static	MEDALQUEUE_t	g_MedalQueue[MAXPLAYERS][MEDALQUEUE_DEPTH];
@@ -135,6 +136,7 @@ CVAR( Bool, cl_icons, true, CVAR_ARCHIVE )
 
 ULONG	medal_AddToQueue( ULONG ulPlayer, ULONG ulMedal );
 void	medal_PopQueue( ULONG ulPlayer );
+ULONG	medal_GetDesiredIcon( const player_t *pPlayer, AInventory *&pTeamItem );
 void	medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal );
 void	medal_SelectIcon( ULONG ulPlayer );
 void	medal_GiveMedal( ULONG ulPlayer, ULONG ulMedal );
@@ -187,9 +189,14 @@ void MEDAL_Tick( void )
 				medal_PopQueue( ulIdx );
 		}
 
+		// [BB] We don't need to know what medal_GetDesiredIcon puts into pTeamItem, but we still need to supply it as argument.
+		AInventory *pTeamItem;
+		const ULONG ulDesiredSprite = medal_GetDesiredIcon( &players[ulIdx], pTeamItem );
+
 		// If we're not currently displaying a medal for the player, potentially display
 		// some other type of icon.
-		if ( g_MedalQueue[ulIdx][0].ulTick == 0 )
+		// [BB] Also let carrier icons override medals.
+		if ( ( g_MedalQueue[ulIdx][0].ulTick == 0 ) || ( ( ulDesiredSprite >= SPRITE_WHITEFLAG ) && ( ulDesiredSprite <= SPRITE_TEAMITEM ) ) )
 			medal_SelectIcon( ulIdx );
 
 		// [BB] Remove any old carrier icons.
@@ -947,11 +954,76 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 
 //*****************************************************************************
 //
+ULONG medal_GetDesiredIcon( const player_t *pPlayer, AInventory *&pTeamItem )
+{
+	ULONG ulDesiredSprite = NUM_SPRITES;
+
+	// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
+	// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
+	{
+		// [BB] Dead spectators shall see the icon for their teammates.
+		if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !PLAYER_IsTrueSpectator ( &players[SCOREBOARD_GetViewPlayer()] ) )
+			ulDesiredSprite = SPRITE_ALLY;
+	}
+
+	// Draw a chat icon over the player if they're typing.
+	if ( pPlayer->bChatting )
+		ulDesiredSprite = SPRITE_CHAT;
+
+	// Draw a console icon over the player if they're in the console.
+	if ( pPlayer->bInConsole )
+		ulDesiredSprite = SPRITE_INCONSOLE;
+
+	// Draw a lag icon over their head if they're lagging.
+	if ( pPlayer->bLagging )
+		ulDesiredSprite = SPRITE_LAG;
+
+	// Draw a flag/skull above this player if he's carrying one.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
+	{
+		if ( pPlayer->bOnTeam )
+		{
+			if ( oneflagctf )
+			{
+				AInventory *pInventory = pPlayer->mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
+				if ( pInventory )
+					ulDesiredSprite = SPRITE_WHITEFLAG;
+			}
+
+			else
+			{
+				for ( ULONG ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
+				{
+					pTeamItem = pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam ));
+					if ( pTeamItem )
+					{
+						ulDesiredSprite = SPRITE_TEAMITEM;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Draw the terminator artifact over the terminator.
+	if ( terminator && ( pPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
+		ulDesiredSprite = SPRITE_TERMINATORARTIFACT;
+
+	// Draw the possession artifact over the player.
+	if (( possession || teampossession ) && ( pPlayer->cheats2 & CF2_POSSESSIONARTIFACT ))
+		ulDesiredSprite = SPRITE_POSSESSIONARTIFACT;
+
+	return ulDesiredSprite;
+}
+
+//*****************************************************************************
+//
 void medal_SelectIcon( ULONG ulPlayer )
 {
 	AInventory	*pInventory;
 	player_t	*pPlayer;
-	ULONG		ulActualSprite = 65535;
+	ULONG		ulActualSprite = NUM_SPRITES;
 	// [BB] If ulPlayer carries a TeamItem, e.g. flag or skull, we store a pointer
 	// to it in pTeamItem and set the floaty icon to the carry (or spawn) state of
 	// the TeamItem. We also need to copy the Translation of the TeamItem to the
@@ -1100,9 +1172,6 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 	// Check if we need to have an icon above us, or change the current icon.
 	{
-		ULONG	ulFrame = 65535;
-		ULONG	ulDesiredSprite = 65535;
-
 		if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
 		{
 			if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM ) || ( pPlayer->bOnTeam == false )
@@ -1117,87 +1186,58 @@ void medal_SelectIcon( ULONG ulPlayer )
 			}
 		}
 
-		// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
-		// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
-		if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
-		{
-			// [BB] Dead spectators shall see the icon for their teammates.
-			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !PLAYER_IsTrueSpectator ( &players[SCOREBOARD_GetViewPlayer()] ) )
-			{
-				ulFrame = S_ALLY;
-				ulDesiredSprite = SPRITE_ALLY;
-			}
-		}
+		ULONG	ulFrame = 65535;
+		const ULONG ulDesiredSprite = medal_GetDesiredIcon ( pPlayer, pTeamItem );
 
-		// Draw a chat icon over the player if they're typing.
-		if ( pPlayer->bChatting )
+		// [BB] Determine the frame based on the desired sprite.
+		switch ( ulDesiredSprite )
 		{
+		case SPRITE_ALLY:
+			ulFrame = S_ALLY;
+			break;
+
+		case SPRITE_CHAT:
 			ulFrame = S_CHAT;
-			ulDesiredSprite = SPRITE_CHAT;
-		}
+			break;
 
-		// Draw a console icon over the player if they're in the console.
-		if ( pPlayer->bInConsole )
-		{
+		case SPRITE_INCONSOLE:
 			ulFrame = S_INCONSOLE;
-			ulDesiredSprite = SPRITE_INCONSOLE;
-		}
+			break;
 
-		// Draw a lag icon over their head if they're lagging.
-		if ( pPlayer->bLagging )
-		{
+		case SPRITE_LAG:
 			ulFrame = S_LAG;
-			ulDesiredSprite = SPRITE_LAG;
-		}
+			break;
 
-		// Draw a flag/skull above this player if he's carrying one.
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USETEAMITEM )
-		{
-			if ( pPlayer->bOnTeam )
-			{
-				if ( oneflagctf )
-				{
-					pInventory = pPlayer->mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
-					if ( pInventory )
-					{
-						ulFrame = S_WHITEFLAG;
-						ulDesiredSprite = SPRITE_WHITEFLAG;
-					}
-				}
+		case SPRITE_WHITEFLAG:
+			ulFrame = S_WHITEFLAG;
+			break;
 
-				else
-				{
-					for ( ULONG ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
-					{
-						pTeamItem = pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam ));
-						if ( pTeamItem )
-						{
-							ulFrame = 0;
-							ulDesiredSprite = SPRITE_TEAMITEM;
-							break;
-						}
-					}
-				}
-			}
-		}
+		case SPRITE_TEAMITEM:
+			ulFrame = 0;
+			break;
 
-		// Draw the terminator artifact over the terminator.
-		if ( terminator && ( pPlayer->cheats2 & CF2_TERMINATORARTIFACT ))
-		{
+		case SPRITE_TERMINATORARTIFACT:
 			ulFrame = S_TERMINATORARTIFACT;
-			ulDesiredSprite = SPRITE_TERMINATORARTIFACT;
-		}
+			break;
 
-		// Draw the possession artifact over the player.
-		if (( possession || teampossession ) && ( pPlayer->cheats2 & CF2_POSSESSIONARTIFACT ))
-		{
+		case SPRITE_POSSESSIONARTIFACT:
 			ulFrame = S_POSSESSIONARTIFACT;
-			ulDesiredSprite = SPRITE_POSSESSIONARTIFACT;
+			break;
+
+		default:
+			break;
 		}
 
 		// We have an icon that needs to be spawned.
-		if ((( ulFrame != 65535 ) && ( ulDesiredSprite != 65535 )))
+		if ((( ulFrame != 65535 ) && ( ulDesiredSprite != NUM_SPRITES )))
 		{
+			// [BB] If a TeamItem icon replaces an existing non-team icon, we have to delete the old icon first.
+			if ( pPlayer->pIcon && ( pPlayer->pIcon->bTeamItemFloatyIcon == false ) && pTeamItem )
+			{
+				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
+
 			if (( pPlayer->pIcon == NULL ) || ( ulDesiredSprite != ulActualSprite ))
 			{
 				if ( pPlayer->pIcon == NULL )
@@ -1227,6 +1267,8 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 				if ( pPlayer->pIcon )
 				{
+					// [BB] Potentially the new icon overrides an existing medal, so make sure that it doesn't fade out.
+					pPlayer->pIcon->lTick = 0;
 					pPlayer->pIcon->SetTracer( pPlayer->mo );
 
 					if ( pPlayer->pIcon->bTeamItemFloatyIcon == false )
