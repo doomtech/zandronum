@@ -72,6 +72,7 @@
 #include "m_png.h"
 #include "p_setup.h"
 // [BB] New #includes.
+#include "announcer.h"
 #include "deathmatch.h"
 #include "gamemode.h"
 #include "team.h"
@@ -3178,6 +3179,7 @@ enum EACSFunctions
 	ACSF_SpawnSpotFacingForced,
 	ACSF_CheckActorProperty,
     ACSF_SetActorVelocity,
+	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -3374,6 +3376,24 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 					P_Thing_SetVelocity(actor, args[1], args[2], args[3], !!args[4], !!args[5]);
                 }
             }
+			return 0;
+
+		// [BL] Skulltag function
+		case ACSF_AnnouncerSound:
+			if (args[1] == 0)
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]));
+			}
+			else
+			{
+				// Local announcement, needs player to activate.
+				if (activator == NULL || activator->player == NULL)
+					break;
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]), activator->player - players, SVCF_ONLYTHISCLIENT);
+			}
+			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
 			return 0;
 
 		default:

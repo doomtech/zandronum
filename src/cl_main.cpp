@@ -333,6 +333,7 @@ static	void	client_ACSScriptExecute( BYTESTREAM_s *pByteStream );
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
 static	void	client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlayingSomething = false );
 static	void	client_SoundPoint( BYTESTREAM_s *pByteStream );
+static	void	client_AnnouncerSound( BYTESTREAM_s *pByteSream );
 
 // Sector sequence commands.
 static	void	client_StartSectorSequence( BYTESTREAM_s *pByteStream );
@@ -762,6 +763,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORLINK",
 	"SVC_DOPUSHER",
 	"SVC_ADJUSTPUSHER",
+	"SVC_ANNOUNCERSOUND",
 	"SVC_EXTENDEDCOMMAND",
 };
 #endif
@@ -2673,6 +2675,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_IGNOREPLAYER:
 
 		client_IgnorePlayer( pByteStream );
+		break;
+
+	case SVC_ANNOUNCERSOUND:
+
+		client_AnnouncerSound( pByteStream );
 		break;
 
 	case SVC_EXTENDEDCOMMAND:
@@ -9615,6 +9622,16 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 
 	// Finally, play the sound.
 	S_Sound ( X, Y, Z, lChannel, S_FindSound(pszSoundString), (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
+}
+
+//*****************************************************************************
+//
+static void client_AnnouncerSound( BYTESTREAM_s *pByteStream )
+{
+	const char	*pszEntry;
+
+	pszEntry = NETWORK_ReadString( pByteStream );
+	ANNOUNCER_PlayEntry ( cl_announcer, pszEntry );
 }
 
 //*****************************************************************************
