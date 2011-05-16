@@ -606,8 +606,6 @@ const char *ANNOUNCER_GetName( ULONG ulIdx )
 //
 static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 {
-	ULONG				ulIdx;
-
 	// Begin parsing that text. COM_Parse will create a token (com_token), and
 	// pszBotInfo will skip past the token.
 	while ( sc.GetString( ))
