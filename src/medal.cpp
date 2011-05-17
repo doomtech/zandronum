@@ -937,18 +937,23 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 		}
 	}
 
-	// Also, locally play the announcer sound associated with this medal.
-	if ( pPlayer - players == consoleplayer )
+	// [BB] Only announce the medal when it reaches the top of the queue. Otherwise it could be
+	// announced multiple times (for instance when a carrier dies).
+	if ( g_MedalQueue[ulPlayer][0].ulTick == MEDAL_ICON_DURATION )
 	{
-		if ( g_Medals[ulMedal].szAnnouncerEntry[0] )
-			ANNOUNCER_PlayEntry( cl_announcer, (const char *)g_Medals[ulMedal].szAnnouncerEntry );
-	}
-	// If a player besides the console player got the medal, play the remote sound.
-	else
-	{
-		// Play the sound effect associated with this medal type.
-		if ( g_Medals[ulMedal].szSoundName[0] != '\0' )
-			S_Sound( pPlayer->mo, CHAN_AUTO, g_Medals[ulMedal].szSoundName, 1, ATTN_NORM );
+		// Also, locally play the announcer sound associated with this medal.
+		if ( pPlayer - players == consoleplayer )
+		{
+			if ( g_Medals[ulMedal].szAnnouncerEntry[0] )
+				ANNOUNCER_PlayEntry( cl_announcer, (const char *)g_Medals[ulMedal].szAnnouncerEntry );
+		}
+		// If a player besides the console player got the medal, play the remote sound.
+		else
+		{
+			// Play the sound effect associated with this medal type.
+			if ( g_Medals[ulMedal].szSoundName[0] != '\0' )
+				S_Sound( pPlayer->mo, CHAN_AUTO, g_Medals[ulMedal].szSoundName, 1, ATTN_NORM );
+		}
 	}
 }
 

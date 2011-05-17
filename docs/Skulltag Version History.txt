@@ -107,6 +107,7 @@ latestzdoom branch
 -	- Fixed: The scoreboard line of the player currently carrying the terminator sphere wasn't drawn in red. Instead, some seemingly random parts of the scoreboard were drawn red when someone had the terminator sphere. [Torr Samaho]
 -	- Fixed: When a player got a flag/skull/terminator sphere/hellstone while he still had a medal icon, the carrier icon was not shown until the medal faded away. [Torr Samaho]
 -	- Fixed some problems with unlagged when the player was standing on a 3D floor. [Torr Samaho]
+-	- Fixed: If a player carrying a flag/skull/terminator sphere/hellstone dies while being awarded a medal, the medal is announced a second time. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
