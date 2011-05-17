@@ -3654,6 +3654,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SpawnThing( pNewActor );
+				// [BB] The clients assume that the current Z position of the actor is SpawnPoint[2].
+				// If it's not, we need to inform them about the actual SpawnPoint.
+				if ( pNewActor->z != pActor->SpawnPoint[2] )
+					SERVERCOMMANDS_SetThingSpawnPoint( pNewActor, MAXPLAYERS, 0 );
 
 				// Check and see if it's important that the client know the angle of the object.
 				if ( pNewActor->angle != 0 )
