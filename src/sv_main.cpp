@@ -1229,7 +1229,12 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// of ghost mode if it connects with "cl_startasspectator 0", turns to a spectator after joining and then sends
 	// CLCC_REQUESTSNAPSHOT (e.g. by packet injection) again while still in the game.
 	if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
+	{
+		// [BB] Since PLAYER_ShouldSpawnAsSpectator calls GAMEMODE_PreventPlayersFromJoining which then calls DUEL_CountActiveDuelers,
+		// we need to initialize bSpectating with true, otherwise this player could prevent itself from joining.
+		players[g_lCurrentClient].bSpectating = true;
 		players[g_lCurrentClient].bSpectating = (( PLAYER_ShouldSpawnAsSpectator( &players[g_lCurrentClient] )) || ( g_aClients[g_lCurrentClient].bWantStartAsSpectator ));
+	}
 
 	// Don't restart the map! There's people here!
 	g_lMapRestartTimer = 0;
