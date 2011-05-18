@@ -963,6 +963,10 @@ ULONG medal_GetDesiredIcon( player_t *pPlayer, AInventory *&pTeamItem )
 {
 	ULONG ulDesiredSprite = NUM_SPRITES;
 
+	// [BB] Invalid players certainly don't need any icon.
+	if ( ( pPlayer == NULL ) || ( pPlayer->mo == NULL ) )
+		return NUM_SPRITES;
+
 	// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
 	// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
 	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
