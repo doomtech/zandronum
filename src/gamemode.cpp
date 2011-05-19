@@ -660,13 +660,13 @@ void GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor )
 
 //*****************************************************************************
 //
-void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
+void GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		DHUDMessageFadeOut	*pMsg;
 
-		// Display "%s WINS!" HUD message.
+		// Display the HUD message.
 		pMsg = new DHUDMessageFadeOut( BigFont, pszMessage,
 			160.4f,
 			75.0f,
@@ -677,6 +677,11 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 			2.0f );
 
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+	}
+	// If necessary, send it to clients.
+	else if ( bInformClients )
+	{
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 	}
 }
 

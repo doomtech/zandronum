@@ -653,7 +653,6 @@ bool POSSESSION_ShouldRespawnArtifact( void )
 //
 void POSSESSION_TimeExpired( void )
 {
-	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];
 
 	// Don't end the level if we're not playing.
@@ -672,27 +671,9 @@ void POSSESSION_TimeExpired( void )
 		// Only print the message the instant we reach sudden death.
 		if ( level.time == (int)( timelimit * TICRATE * 60 ))
 		{
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				sprintf( szString, "\\cdSUDDEN DEATH!" );
-				V_ColorizeString( szString );
-
-				// Display the HUD message.
-				pMsg = new DHUDMessageFadeOut( BigFont, szString,
-					160.4f,
-					75.0f,
-					320,
-					200,
-					CR_RED,
-					3.0f,
-					2.0f );
-
-				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-			}
-			else
-			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
-			}
+			sprintf( szString, "\\cdSUDDEN DEATH!" );
+			V_ColorizeString( szString );
+			GAMEMODE_DisplayStandardMessage ( szString, true );
 		}
 
 		return;
