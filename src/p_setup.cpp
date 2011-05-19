@@ -4323,8 +4323,9 @@ void P_SetupLevel (char *lumpname, int position)
 	MapThingsConverted.Clear();
 
 	// Set these modules' state to "waiting for players", which may or may not begin the next match.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	// [BB] The clients also need to reset the gamemode state. Otherwise, for instance, when making
+	// a "map" map change during possessions hold countdown to a CTF/ST map, the counter would stay
+	// on the screen of the clients after the map change.
 	{
 		DUEL_SetState( DS_WAITINGFORPLAYERS );
 		LASTMANSTANDING_SetState( LMSS_WAITINGFORPLAYERS );
