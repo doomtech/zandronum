@@ -199,6 +199,11 @@ void MEDAL_Tick( void )
 		if ( ( g_MedalQueue[ulIdx][0].ulTick == 0 ) || ( ( ulDesiredSprite >= SPRITE_WHITEFLAG ) && ( ulDesiredSprite <= SPRITE_TEAMITEM ) ) )
 			medal_SelectIcon( ulIdx );
 
+		// [BB] If the player is being awarded a medal at the moment but has no icon, restore the medal.
+		// This happens when the player respawns while being awarded a medal.
+		if ( ( g_MedalQueue[ulIdx][0].ulTick > 0 ) && ( players[ulIdx].pIcon == NULL ) )
+			medal_TriggerMedal( ulIdx, g_MedalQueue[ulIdx][0].ulMedal );
+
 		// [BB] Remove any old carrier icons.
 		medal_PlayerHasCarrierIcon ( ulIdx );
 
@@ -932,7 +937,10 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 		if ( pPlayer->pIcon )
 		{
 			pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + g_Medals[ulMedal].usFrame );
-			pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
+			// [BB] Instead of MEDAL_ICON_DURATION only use the remaining ticks of the medal as ticks for the icon.
+			// It is possible that the medal is just restored because the player respawned or that the medal was
+			// suppressed by a carrier icon.
+			pPlayer->pIcon->lTick = g_MedalQueue[ulPlayer][0].ulTick;
 			pPlayer->pIcon->SetTracer( pPlayer->mo );
 		}
 	}
