@@ -150,13 +150,14 @@ void GAMEMODE_Construct( void )
 	strncpy( g_GameModes[GAMEMODE_TEAMLMS].szF1Texture, "F1_TLMS", 8 );
 
 	// Possession DM.
-	g_GameModes[GAMEMODE_POSSESSION].ulFlags = GMF_DEATHMATCH|GMF_PLAYERSEARNPOINTS;
+	// [BB] Even though possession doesn't do a full map reset, it still resets the map time during its partial reset.
+	g_GameModes[GAMEMODE_POSSESSION].ulFlags = GMF_DEATHMATCH|GMF_PLAYERSEARNPOINTS|GMF_MAPRESET_RESETS_MAPTIME;
 	strcpy( g_GameModes[GAMEMODE_POSSESSION].szName, "Possession" );
 	strncpy( g_GameModes[GAMEMODE_POSSESSION].szShortName, "POSS", 8 );
 	strncpy( g_GameModes[GAMEMODE_POSSESSION].szF1Texture, "F1_POSS", 8 );
 
 	// Team possession.
-	g_GameModes[GAMEMODE_TEAMPOSSESSION].ulFlags = GMF_DEATHMATCH|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS;
+	g_GameModes[GAMEMODE_TEAMPOSSESSION].ulFlags = GMF_DEATHMATCH|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS|GMF_MAPRESET_RESETS_MAPTIME;
 	strcpy( g_GameModes[GAMEMODE_TEAMPOSSESSION].szName, "Team Possession" );
 	strncpy( g_GameModes[GAMEMODE_TEAMPOSSESSION].szShortName, "TM POSS", 8 );
 	strncpy( g_GameModes[GAMEMODE_TEAMPOSSESSION].szF1Texture, "F1_TPOSS", 8 );
@@ -350,7 +351,7 @@ bool GAMEMODE_IsGameInProgress( void )
 	else if ( teamlms || lastmanstanding )
 		return ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS );
 	else if ( possession || teampossession )
-		return ( POSSESSION_GetState( ) == PSNS_INPROGRESS );
+		return ( ( POSSESSION_GetState( ) == PSNS_INPROGRESS ) || ( POSSESSION_GetState( ) == PSNS_ARTIFACTHELD ) );
 	// [BB] In the game modes without warmup phase, we just says the game is
 	// in progress when there are two or more players.
 	else
