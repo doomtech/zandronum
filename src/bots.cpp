@@ -1713,6 +1713,8 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	playeringame[ulPlayerNum] = true;
 
 	// Setup the player's userinfo based on the bot's botinfo.
+	// [BB] First clear the userinfo.
+	memset (&m_pPlayer->userinfo, 0, sizeof(m_pPlayer->userinfo));
 	strncpy( m_pPlayer->userinfo.netname, g_BotInfo[m_ulBotInfoIdx]->szName, MAXPLAYERNAME );
 	m_pPlayer->userinfo.netname[MAXPLAYERNAME] = 0;
 
