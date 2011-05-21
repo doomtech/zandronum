@@ -397,7 +397,7 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 20, false );
+		SERVER_CheckClientBuffer( ulIdx, 24, false );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_MOVEPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
 
@@ -411,8 +411,10 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, PLAYER_VISIBLE|ulPlayerAttackFlags );
 
 			// Write position.
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x >> FRACBITS );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->y >> FRACBITS );
+			// [BB] The x/y position has to be sent at full precision, otherwise the player may be rounded to a neighboring sector
+			// on the clients, potentially completely changing its Z position.
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x );
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->y );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->z >> FRACBITS );
 
 			// Write angle.

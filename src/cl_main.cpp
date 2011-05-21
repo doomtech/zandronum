@@ -4052,8 +4052,9 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	if ( bVisible )
 	{
 		// Read in the player's XYZ position.
-		X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-		Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		// [BB] The x/y position has to be sent at full precision.
+		X = NETWORK_ReadLong( pByteStream );
+		Y = NETWORK_ReadLong( pByteStream );
 		Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 		// Read in the player's angle.
