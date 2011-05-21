@@ -171,7 +171,9 @@ void DrawHUD_CoopInfo()
 		// [BB] Draw player health (color coded) and armor.
 		EColorRange healthColor = CR_RED;
 		// [BB] Player is alive.
-		if ( players[i].mo->health > 0 )
+		if ( players[i].mo->health <= 0 )
+			drawString = "dead";
+		else if ( SERVER_IsPlayerAllowedToKnowHealth ( consoleplayer, i ) )
 		{
 			AInventory* pArmor = players[i].mo->FindInventory(RUNTIME_CLASS(ABasicArmor));
 			drawString.Format( "%d \\cD/ %d", players[i].mo->health, pArmor ? pArmor->Amount : 0 );
@@ -182,7 +184,7 @@ void DrawHUD_CoopInfo()
 				healthColor = CR_GOLD;
 		}
 		else
-			drawString = "dead";
+			drawString = "??? / ???";
 		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale );
 		curYPos += SmallFont->GetHeight( ) + 1;
 

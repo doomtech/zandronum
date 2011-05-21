@@ -129,6 +129,7 @@ latestzdoom branch
 !	- If a spectator uses "team/changeteam teamname" during intermission, he is now put on the join queue instead of the command being ignored completely. [Torr Samaho]
 !	- Since TLMS just went on as usual when the timelimit was hit (although claiming to enter sudden death mode), timelimit is now deactivated in this gamemode. [Torr Samaho]
 !	- In gamemodes that reset the map time during a map reset, the timelimit counter is now hidden on the score board while the game is not in progress. [Torr Samaho]
+!	- If a client isn't allowed to know the health and armor of another player due to the gamemode, health and armor of this player are not displayed in coop info anymore. [Torr Samaho]
 
 
 98d
