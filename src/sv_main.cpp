@@ -2231,9 +2231,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		if ( pPlayer->mo == NULL )
 			continue;
 
+		// [BB] To properly spawn the players the client already needs to know the userinfo, e.g. the handicap value.
+		SERVERCOMMANDS_SetPlayerUserInfo( ulIdx, USERINFO_ALL, ulClient, SVCF_ONLYTHISCLIENT );
 		// [BB] Make sure that morphed players are spawned as morphed.
 		SERVERCOMMANDS_SpawnPlayer( ulIdx, PST_REBORNNOINVENTORY, ulClient, SVCF_ONLYTHISCLIENT, ( pPlayer->morphTics ) );
-		SERVERCOMMANDS_SetPlayerUserInfo( ulIdx, USERINFO_ALL, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Also send this player's team.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
