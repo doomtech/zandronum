@@ -208,8 +208,9 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 			LASTMANSTANDING_SetState( LMSS_WAITINGFORPLAYERS );
 	}
 
-	// If we're in possession mode, revert to the "waiting for players" state.
-	if ( possession && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 1 ))
+	// If we're in possession mode, revert to the "waiting for players" state
+	// [BB] when there are less than two players now.
+	if ( possession && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 2 ))
 		POSSESSION_SetState( PSNS_WAITINGFORPLAYERS );
 
 	if ( teampossession && ( TEAM_TeamsWithPlayersOn( ) <= 1 ) )
