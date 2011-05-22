@@ -4278,17 +4278,16 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	if (( deathmatch || teamgame ) &&
+	if (( (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) == false ) &&
 		( cl_showlargefragmessages ) &&
 		( ulSourcePlayer < MAXPLAYERS ) &&
 		( ulPlayer != ulSourcePlayer ) &&
 		( MOD != NAME_SpawnTelefrag ) &&
-		((( duel ) && (( DUEL_GetState( ) == DS_WINSEQUENCE ) || ( DUEL_GetState( ) == DS_COUNTDOWN ))) == false ) &&
-		((( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ) || ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ))) == false ))
+		( GAMEMODE_IsGameInProgress() ))
 	{
 		if ((( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) == false ) || (( fraglimit == 0 ) || ( players[ulSourcePlayer].fragcount < fraglimit ))) &&
-			(( lastmanstanding == false ) || (( winlimit == 0 ) || ( players[ulSourcePlayer].ulWins < static_cast<ULONG>(winlimit) ))) &&
-			(( teamlms == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( players[ulSourcePlayer].ulTeam ) < winlimit ))))
+			(( ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS ) && !( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( players[ulSourcePlayer].ulWins < static_cast<ULONG>(winlimit) ))) &&
+			(( ( ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS ) && ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ) ) == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( players[ulSourcePlayer].ulTeam ) < winlimit ))))
 		{
 			// Display a large "You were fragged by <name>." message in the middle of the screen.
 			if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
