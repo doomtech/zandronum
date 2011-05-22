@@ -2717,7 +2717,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 
 			if (mo->momz < 0)
 			{
-				const fixed_t minmom = -9*FRACUNIT;	// landing speed from a jump with normal gravity
+				const fixed_t minmom = -8*FRACUNIT;	// landing speed from a jump with normal gravity
 
 				// Spawn splashes, etc.
 				P_HitFloor (mo);
