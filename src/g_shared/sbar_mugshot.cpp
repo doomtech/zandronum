@@ -481,7 +481,8 @@ FTexture *FMugShot::GetFace(player_t *player, const char *default_face, int accu
 {
 	int angle = UpdateState(player, stateflags);
 	int level = 0;
-	while (player->health < (accuracy-1-level) * (player->mo->GetMaxHealth()/accuracy))
+	// [BB] If the consoleplayer isn't allowed to know this player's healt, pretend he is at full health for the mugshot.
+	while ( ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, static_cast<ULONG>( player - players )) ? player->health : player->mo->GetMaxHealth() ) < (accuracy-1-level) * (player->mo->GetMaxHealth()/accuracy))
 	{
 		level++;
 	}
