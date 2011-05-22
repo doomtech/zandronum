@@ -5436,6 +5436,9 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// the map was started on the server, but before it was loaded on the client (APowerInvulnerable for
 	// instance in DM games with respawn invulnerability).
 	SERVER_ResetInventory( g_lCurrentClient );
+	// [BB] To sync the weapon state clear the player's weapon on the server now. The client informs
+	// us that he is bringing up a wepoaon since SERVER_ResetInventory calls SERVERCOMMANDS_WeaponChange.
+	PLAYER_ClearWeapon( &players[g_lCurrentClient] );
 
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );

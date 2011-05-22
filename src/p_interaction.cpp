@@ -2748,7 +2748,8 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 		return;
 
 	// [BB] If the server should just clear the weapon for the client (and this player is a client and not a bot), do so and return.
-	if ( bClearWeaponForClientOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == false ) )
+	// [BB] The server also has to do the weapon change if the coressponding client is still loading the level.
+	if ( bClearWeaponForClientOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == false ) && ( SERVER_GetClient( pPlayer - players )->State != CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
 	{
 		pPlayer->ReadyWeapon = NULL;
 		pPlayer->PendingWeapon = WP_NOCHANGE;

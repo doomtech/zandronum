@@ -1313,8 +1313,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) &&
 				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
 			{
-				// [BB] The server waits for the client to select the weapon (but has to handle bots).
-				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player->bIsBot == false ) ) {
+				// [BB] The server waits for the client to select the weapon (but has to handle bots and clients that are still loading the level).
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player->bIsBot == false ) && ( SERVER_GetClient( player - players )->State != CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) ) {
 					player->ReadyWeapon = NULL;
 					player->PendingWeapon = WP_NOCHANGE;
 				}
