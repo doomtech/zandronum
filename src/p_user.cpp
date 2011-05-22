@@ -2432,7 +2432,10 @@ void P_CalcHeight (player_t *player)
 			else
 				player->bob = FixedMul (player->bob, player->userinfo.MoveBob);
 
-			if (player->bob > MAXBOB)
+			// [BB] I've seen bob becoming negative for a high ping clients (250+) on low gravity servers (sv_gravity 200)
+			// when moving forward in the air for too long. Overflow problem? Nevertheless, setting negative values
+			// to MAXBOB seems to fix the issue.
+			if ( (player->bob > MAXBOB) || player->bob < 0 )
 				player->bob = MAXBOB;
 		}
 	}
