@@ -26,6 +26,7 @@ latestzdoom branch
 +	- Added sv_maxlives support for lastmanstanding and teamlms. [Torr Samaho]
 +	- General improvements to announcer code to allow for default announcer sounds. [Blzut3]
 +	- Added AnnouncerSound(str entry, int flags) function to allow custom announcer events. [Blzut3]
++	- Considerably improved client side prediction when the player is standing/jumping/moving/landing on another actor, e.g. a bridge thing. [Torr Samaho]
 -	- Fixed: After a "changemap" map change on a server with join password and a team based gamemode, players who were on a team on the previous map were turned into spectators but kept their team. [Torr Samaho]
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]

@@ -88,6 +88,7 @@ static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
 static	LONG		g_lSavedReactionTime[MAXSAVETICS];
 static	LONG		g_lSavedWaterLevel[MAXSAVETICS];
 static	bool		g_bSavedOnFloor[MAXSAVETICS];
+static	bool		g_bSavedOnMobj[MAXSAVETICS];
 static	fixed_t		g_SavedFloorZ[MAXSAVETICS];
 
 #ifdef	_DEBUG
@@ -195,8 +196,20 @@ void CLIENT_PREDICT_PlayerPredict( void )
 
 	// Save the player's "on the floor" status. If the player was on the floor prior to moving
 	// back to the player's saved position, move him back onto the floor after moving him.
-	g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->z == pPlayer->mo->floorz;
-	g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->floorz;
+	// [BB] Standing on an actor (like a bridge) needs special treatment.
+	const AActor *pActor = (pPlayer->mo->flags2 & MF2_ONMOBJ) ? P_CheckOnmobj ( pPlayer->mo ) : NULL;
+	if ( pActor == NULL ) {
+		g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->z == pPlayer->mo->floorz;
+		g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->floorz;
+	}
+	else
+	{
+		g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = ( pPlayer->mo->z == pActor->z + pActor->height );
+		g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pActor->z + pActor->height;
+	}
+
+	// [BB] Remember whether the player was standing on another actor.
+	g_bSavedOnMobj[g_ulGameTick % MAXSAVETICS] = (pPlayer->mo->flags2 & MF2_ONMOBJ);
 
 	// Set the player's position as told to him by the server.
 	CLIENT_MoveThing( pPlayer->mo,
@@ -317,8 +330,14 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		pPlayer->turnticks = g_lSavedTurnTicks[lTick % MAXSAVETICS];
 		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
 		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % MAXSAVETICS];
+		// [BB] Using g_SavedFloorZ when the player is on a lowering floor seems to make things very laggy,
+		// this does not happen when using mo->floorz.
 		if ( g_bSavedOnFloor[lTick % MAXSAVETICS] )
-			pPlayer->mo->z = pPlayer->mo->floorz;//g_SavedFloorZ[lTick % MAXSAVETICS];
+			pPlayer->mo->z = g_bSavedOnMobj[lTick % MAXSAVETICS] ? g_SavedFloorZ[lTick % MAXSAVETICS] : pPlayer->mo->floorz;
+		if ( g_bSavedOnMobj[lTick % MAXSAVETICS] )
+			pPlayer->mo->flags2 |= MF2_ONMOBJ;
+		else
+			pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
 
 		// Tick the player.
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
@@ -347,4 +366,8 @@ static void client_predict_EndPrediction( player_t *pPlayer )
 	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS];
 	if ( g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] )
 		pPlayer->mo->z = g_SavedFloorZ[g_ulGameTick % MAXSAVETICS];
+	if ( g_bSavedOnMobj[g_ulGameTick % MAXSAVETICS] )
+		pPlayer->mo->flags2 |= MF2_ONMOBJ;
+	else
+		pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
 }
