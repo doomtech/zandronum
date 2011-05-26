@@ -4387,6 +4387,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	{
 		const SDWORD check = NETWORK_ReadLong( pByteStream );
 #ifdef LOG_SUSPICIOUS_CLIENTS
+		const bool angleCheckFailed = ( ( pCmd->ucmd.yaw == 0 ) && ( pPlayer->mo->reactiontime == 0 ) && ( pPlayer->playerstate == PST_LIVE ) && ( pPlayer->mo ) && ( Angle != pPlayer->mo->angle ) && ( ( g_aClients[g_lCurrentClient].ulClientGameTic + 1 ) == ulGametic ) );
 		// [BB] If the received checksum doesn't match the checksum of the received ticcmd,
 		// something (e.g. an aimbot) most likely manipulated the ticcmd after it was generated.
 		if ( check != NETWORK_Check ( pCmd ) )
