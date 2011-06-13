@@ -1067,9 +1067,9 @@ void R_Subsector (subsector_t *sub)
 	sector_t     tempsec;				// killough 3/7/98: deep water hack
 	int          floorlightlevel;		// killough 3/16/98: set floor lightlevel
 	int          ceilinglightlevel;		// killough 4/11/98
+	int	fll, cll;
 
 	// kg3D - fake floor stuff
-	int	fll, cll;
 	visplane_t *backupfp;
 	visplane_t *backupcp;
 	//secplane_t templane;
