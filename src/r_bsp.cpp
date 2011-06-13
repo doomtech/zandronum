@@ -1067,7 +1067,7 @@ void R_Subsector (subsector_t *sub)
 	sector_t     tempsec;				// killough 3/7/98: deep water hack
 	int          floorlightlevel;		// killough 3/16/98: set floor lightlevel
 	int          ceilinglightlevel;		// killough 4/11/98
-	int	fll, cll;
+	int	fll, cll, position;
 
 	// kg3D - fake floor stuff
 	visplane_t *backupfp;
@@ -1190,10 +1190,12 @@ void R_Subsector (subsector_t *sub)
 				fake3D = FAKE3D_FAKEFLOOR;
 				tempsec = *fakeFloor->model;
 				tempsec.floorplane = *fakeFloor->top.plane;
+				tempsec.ceilingplane = *fakeFloor->bottom.plane;
 				if (!(fakeFloor->flags & FF_THISINSIDE) && !(fakeFloor->flags & FF_INVERTSECTOR))
 				{
 					tempsec.SetTexture(sector_t::floor, tempsec.GetTexture(sector_t::ceiling));
-				}
+					position = sector_t::ceiling;
+				} else position = sector_t::floor;
 				frontsector = &tempsec;
 
 				if (!fixedlightlev && sub->sector->e->XFloor.lightlist.Size())
@@ -1207,11 +1209,11 @@ void R_Subsector (subsector_t *sub)
 				floorplane = R_FindPlane(frontsector->floorplane,
 					frontsector->GetTexture(sector_t::floor),
 					floorlightlevel + r_actualextralight,				// killough 3/16/98
-					frontsector->GetXOffset(sector_t::floor),		// killough 3/7/98
-					frontsector->GetYOffset(sector_t::floor),		// killough 3/7/98
-					frontsector->GetXScale(sector_t::floor),
-					frontsector->GetYScale(sector_t::floor),
-					frontsector->GetAngle(sector_t::floor),
+					frontsector->GetXOffset(position),		// killough 3/7/98
+					frontsector->GetYOffset(position),		// killough 3/7/98
+					frontsector->GetXScale(position),
+					frontsector->GetYScale(position),
+					frontsector->GetAngle(position),
 					frontsector->sky,
 					NULL);
 
@@ -1248,12 +1250,14 @@ void R_Subsector (subsector_t *sub)
 			{
 				fake3D = FAKE3D_FAKECEILING;
 				tempsec = *fakeFloor->model;
+				tempsec.floorplane = *fakeFloor->top.plane;
 				tempsec.ceilingplane = *fakeFloor->bottom.plane;
 				if ((!(fakeFloor->flags & FF_THISINSIDE) && !(fakeFloor->flags & FF_INVERTSECTOR)) ||
 					(fakeFloor->flags & FF_THISINSIDE && fakeFloor->flags & FF_INVERTSECTOR))
 				{
 					tempsec.SetTexture(sector_t::ceiling, tempsec.GetTexture(sector_t::floor));
-				}
+					position = sector_t::floor;
+				} else position = sector_t::ceiling;
 				frontsector = &tempsec;
 
 				tempsec.ceilingplane.ChangeHeight(-1);
@@ -1269,11 +1273,11 @@ void R_Subsector (subsector_t *sub)
 				ceilingplane = R_FindPlane(frontsector->ceilingplane,		// killough 3/8/98
 					frontsector->GetTexture(sector_t::ceiling),
 					ceilinglightlevel + r_actualextralight,				// killough 4/11/98
-					frontsector->GetXOffset(sector_t::ceiling),		// killough 3/7/98
-					frontsector->GetYOffset(sector_t::ceiling),		// killough 3/7/98
-					frontsector->GetXScale(sector_t::ceiling),
-					frontsector->GetYScale(sector_t::ceiling),
-					frontsector->GetAngle(sector_t::ceiling),
+					frontsector->GetXOffset(position),		// killough 3/7/98
+					frontsector->GetYOffset(position),		// killough 3/7/98
+					frontsector->GetXScale(position),
+					frontsector->GetYScale(position),
+					frontsector->GetAngle(position),
 					frontsector->sky,
 					NULL);
 
