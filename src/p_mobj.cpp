@@ -3968,7 +3968,6 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 			// even non-swimmable deep water must be checked here to do the splashes correctly
 			// But the water level must be reset when this function returns
 			if (!(hsec->MoreFlags&SECF_UNDERWATERMASK)) reset=true;
-
 			}
 #ifdef _3DFLOORS
 			else
