@@ -91,6 +91,12 @@ void AInterpolationPoint::HandleSpawnFlags ()
 
 void AInterpolationPoint::FormChain ()
 {
+	// [BB] Try to handle this locally on the clients. Otherwise the server would notify
+	// the clients that this actor already has MF_AMBUSH when they connect, preventing them
+	// from executing the code below.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (flags & MF_AMBUSH)
 		return;
 
