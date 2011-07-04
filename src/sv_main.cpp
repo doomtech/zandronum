@@ -2496,7 +2496,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
-			SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] InterpolationPoint abuses the MF_AMBUSH flag, so we have to exclude this class here.
+			if ( pActor->IsKindOf( PClass::FindClass( "InterpolationPoint" ) ) == false )
+				SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// [BB] Now that the ammo amount from weapon pickups is handled on the server
 			// this shouldn't be necessary anymore. Remove after thorough testing.
