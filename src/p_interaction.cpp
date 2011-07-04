@@ -2521,7 +2521,7 @@ void PLAYER_SelectPlayersWithHighestValue ( LONG (*GetValue) ( ULONG ulPlayer ),
 		{
 			if ( GetValue ( ulIdx ) > lHighestValue )
 			{
-				lHighestValue = players[ulIdx].health;
+				lHighestValue = GetValue ( ulIdx );
 				selectedPlayers.Clear();
 				selectedPlayers.Push ( ulIdx );
 			}

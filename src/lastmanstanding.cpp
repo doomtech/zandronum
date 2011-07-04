@@ -585,7 +585,10 @@ void LASTMANSTANDING_TimeExpired( void )
 		if ( possibleWinners.Size() == 1 )
 			lWinner = possibleWinners[0];
 		else
+		{
+			lWinner = MAXPLAYERS;
 			bTie = true;
+		}
 	}
 	else if ( teamlms )
 	{
