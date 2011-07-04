@@ -3595,8 +3595,11 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			pNewActor->SpawnAngle = pActor->SpawnAngle;
 			pNewActor->SpawnFlags = pActor->SpawnFlags;
 			// [BB] Make sure that floorz and ceilingz are set properly, critical if something is
-			// spawned on a 3D floor. For some reason we can't use "true" as second argument like P_SpawnMapThing does.
-			P_FindFloorCeiling ( pNewActor, false );
+			// spawned on a 3D floor. For some reason we can't use "true" as second argument like P_SpawnMapThing does
+			// if the actor is on a 3D floor: Using "true" causes clients to mispredict their height when teleported
+			// onto a 3D floor (see MAP07.wad). On the other hand, some maps like thing_z_misprediction_test_02.wad
+			// require this to be true.
+			P_FindFloorCeiling ( pNewActor, pNewActor->Sector ? !(pNewActor->Sector->e->XFloor.ffloors.Size()) : true );
 			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 			pNewActor->tid = pActor->tid;
 			pNewActor->special = pActor->SavedSpecial;
