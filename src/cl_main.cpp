@@ -2983,6 +2983,10 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	pActor = Spawn( pType, X, Y, Z, NO_REPLACE );
 	if ( pActor )
 	{
+		// [BB] Make sure that the thing is at the position the server told use. In particular
+		// this also properly sets floorz.
+		CLIENT_MoveThing( pActor, X, Y, Z );
+
 		pActor->lNetID = lNetID;
 		if ( lNetID != -1 )
 		{
