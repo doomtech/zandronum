@@ -1006,7 +1006,7 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || player->bIsBot )
 		PickNewWeapon (NULL);
 	else
-		player->PendingWeapon = WP_NOCHANGE;
+		PLAYER_ClearWeapon( player );
 }
 
 //===========================================================================
@@ -1315,8 +1315,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			{
 				// [BB] The server waits for the client to select the weapon (but has to handle bots and clients that are still loading the level).
 				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player->bIsBot == false ) && ( SERVER_GetClient( player - players )->State != CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) ) {
-					player->ReadyWeapon = NULL;
-					player->PendingWeapon = WP_NOCHANGE;
+					PLAYER_ClearWeapon ( player );
+					player->StartingWeaponName = item ? item->GetClass()->TypeName : NAME_None;
 				}
 				// [BB] When playing a client side demo, the default weapon for the consoleplayer
 				// will be selected by a recorded CLD_INVUSE command.

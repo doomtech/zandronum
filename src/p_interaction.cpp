@@ -2751,8 +2751,11 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 	// [BB] The server also has to do the weapon change if the coressponding client is still loading the level.
 	if ( bClearWeaponForClientOnServer && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == false ) && ( SERVER_GetClient( pPlayer - players )->State != CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
 	{
-		pPlayer->ReadyWeapon = NULL;
-		pPlayer->PendingWeapon = WP_NOCHANGE;
+		PLAYER_ClearWeapon ( pPlayer );
+		// [BB] Since PLAYER_SetWeapon is hopefully only called with bClearWeaponForClientOnServer == true in 
+		// APlayerPawn::GiveDefaultInventory() assume that the weapon here is the player's starting weapon.
+		// PLAYER_SetWeapon is possibly called multiple times, but the last call should be the starting weapon.
+		pPlayer->StartingWeaponName = pWeapon ? pWeapon->GetClass()->TypeName : NAME_None;
 		return;
 	}
 
@@ -2789,6 +2792,9 @@ void PLAYER_ClearWeapon( player_t *pPlayer )
 	pPlayer->PendingWeapon = WP_NOCHANGE;
 	pPlayer->psprites[ps_weapon].state = NULL;
 	pPlayer->psprites[ps_flash].state = NULL;
+	// [BB] Assume that it was not the client's decision to clear the weapon.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		pPlayer->bClientSelectedWeapon = false;
 }
 
 //*****************************************************************************

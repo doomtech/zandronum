@@ -518,6 +518,13 @@ public:
 	// Save the old pending weapon. If the current one differs, update some clients.
 	AWeapon		*OldPendingWeapon;
 
+	// [BB] Name of the weapon the player had after APlayerPawn::GiveDefaultInventory() was called.
+	// Note: This is used for a workaround of the weaponn selection code and only the server keeps track of this.
+	FName		StartingWeaponName;
+
+	// [BB] Did the client already select a weapon with CLIENTCOMMANDS_WeaponSelect? (only the server keeps track of this)
+	bool		bClientSelectedWeapon;
+
 	// Is this player lagging to the server?
 	bool		bLagging;
 
