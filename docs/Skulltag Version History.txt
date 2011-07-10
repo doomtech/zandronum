@@ -119,6 +119,7 @@ latestzdoom branch
 -	- Fixed: "cl_showlargefragmessages 1" was ignored in (T)LMS if fraglimit was bigger than zero and the player had at least "fraglimit - 1" frags. [Torr Samaho]
 -	- Fixed a problem with the client side prediction for a high ping clients (250+) on low gravity servers (sv_gravity 200). [Torr Samaho]
 -	- Fixed: Clients possibly mispredicted the Z position of items that that are directly on a linedef between two sectors of different height. [Torr Samaho]
+-	- Fixed: Clients with cl_startasspectator == 0 were not informed about which weapons the players already in game are using while joining the server. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -2289,10 +2289,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pPlayer->mo, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
-		// If the client receiving the update is a spectator, send the player's
-		// ready weapon.
-		if ( PLAYER_IsTrueSpectator( &players[ulClient] ))
-			SERVERCOMMANDS_WeaponChange( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+		// [BB] Clients need to know the active weapons of other players, so send it.
+		SERVERCOMMANDS_WeaponChange( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [BB] It's possible that the MaxHealth property was changed dynamically with ACS, so send it.
 		SERVERCOMMANDS_SetPlayerMaxHealth( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
