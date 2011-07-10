@@ -1779,6 +1779,10 @@ void G_StartTravel ()
 			// [BC] Same goes for spectators.
 			if ((players[i].health > 0) && ( players[i].bSpectating == false ))
 			{
+				// [BB] The server saves whatever weapon this player had here.
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( players[i].ReadyWeapon ) )
+					players[i].StartingWeaponName = players[i].ReadyWeapon->GetClass()->TypeName;
+
 				pawn->UnlinkFromWorld ();
 				P_DelSector_List ();
 				int tid = pawn->tid;	// Save TID
