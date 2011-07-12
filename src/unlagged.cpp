@@ -59,6 +59,7 @@
 #include "p_local.h"
 #include "i_system.h"
 #include "sv_commands.h"
+#include "templates.h"
 
 CVAR(Flag, sv_nounlagged, dmflags3, DF3_NOUNLAGGED);
 CVAR( Bool, sv_unlagged_debugactors, false, 0 )
@@ -212,6 +213,17 @@ void UNLAGGED_Reconcile( AActor *actor )
 	}	
 }
 
+void UNLAGGED_SwapSectorUnlaggedStatus( )
+{
+	if ( reconciledGame == false )
+		return;
+
+	for (int i = 0; i < numsectors; ++i)
+	{
+		swap ( sectors[i].floorplane.d, sectors[i].floorplane.restoreD );
+		swap ( sectors[i].ceilingplane.d, sectors[i].ceilingplane.restoreD );
+	}
+}
 
 // Restore everything that has been shifted
 // back in time by UNLAGGED_Reconcile
@@ -347,6 +359,11 @@ void UNLAGGED_GetHitOffset ( const AActor *attacker, const FTraceResults &trace,
 		hitOffset[1] = hitPlayer->restoreY - hitPlayer->unlaggedY[unlaggedIndex];
 		hitOffset[2] = hitPlayer->restoreZ - hitPlayer->unlaggedZ[unlaggedIndex];
 	}
+}
+
+bool UNLAGGED_IsReconciled ( )
+{
+  return reconciledGame;
 }
 
 void UNLAGGED_AddReconciliationBlocker ( )
