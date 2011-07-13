@@ -2137,6 +2137,9 @@ void D_DoomMain (void)
 	CAMPAIGN_Construct( );
 	CAMPAIGN_ParseCampaignInfo( );
 
+	// [BB] Parse the GAMEMODE lump.
+	GAMEMODE_ParseGamemodeInfo( );
+
 	// [RH] Initialize localizable strings.
 	GStrings.LoadStrings (false);
 
