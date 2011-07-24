@@ -231,6 +231,9 @@ FString BackupSaveName;
 bool SendLand;
 const AInventory *SendItemUse, *SendItemDrop;
 
+// [BB] Shall the map be reset as soon as possible?
+static	bool	g_bResetMap = false;
+
 // [BC] How many ticks of the end level delay remain?
 static	ULONG	g_ulEndLevelDelay = 0;
 
@@ -1607,6 +1610,14 @@ void G_Ticker ()
 			// [BB] Possibly award points for the damage players dealt.
 			// Is there a better place to put this?
 			PLAYER_AwardDamagePointsForAllPlayers( );
+
+			// [BB] If we are supposed to reset the map, do that now.
+			if ( GAME_IsMapRestRequested() )
+			{
+				GAME_ResetMap( );
+				GAMEMODE_RespawnAllPlayers ( );
+			}
+
 		}
 
 		// [BB] Tick the unlagged module.
@@ -3130,6 +3141,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESET_RESETS_MAPTIME )
 		level.time = 0;
 
+	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
+	g_bResetMap = false;
+
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -3742,6 +3756,20 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	}
 
 	delete ( pMap );
+}
+
+//*****************************************************************************
+//
+void GAME_RequestMapRest( void )
+{
+	g_bResetMap = true;
+}
+
+//*****************************************************************************
+//
+bool GAME_IsMapRestRequested( void )
+{
+	return g_bResetMap;
 }
 
 //*****************************************************************************

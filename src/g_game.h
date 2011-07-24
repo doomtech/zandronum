@@ -50,6 +50,11 @@ void	GAME_BackupLineProperties ( line_t *li );
 // actually reloading the map.
 void	GAME_ResetMap( bool bRunEnterScripts = false );
 
+// [BB] Allows to request a map reset at a time when GAME_ResetMap can't be called,
+// e.g. while executing a ACS function.
+void	GAME_RequestMapRest( void );
+bool	GAME_IsMapRestRequested( void );
+
 // [BC] Spawn the terminator artifact at a random deathmatch spot for terminator games.
 void	GAME_SpawnTerminatorArtifact( void );
 
