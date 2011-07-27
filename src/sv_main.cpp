@@ -3486,7 +3486,7 @@ void SERVER_SetMapMusic( const char *pszMusic )
 
 //*****************************************************************************
 //
-void SERVER_ResetInventory( ULONG ulClient )
+void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon )
 {
 	AInventory	*pInventory;
 
@@ -3576,7 +3576,8 @@ void SERVER_ResetInventory( ULONG ulClient )
 	}
 	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
 	// This at least partly fixes the "Using unknown weapon type" bug.
-	SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
+	if ( bChangeClientWeapon )
+		SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
@@ -5408,6 +5409,12 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// [BB] Tell the client of things derived from DMover and similar classes.
 	SERVER_UpdateMovers( g_lCurrentClient );
 
+	// [BB] When spawning a player and resetting its inventory, the client changes its weapon
+	// several times. In order to keep weapon sync, tell the client not to send us his local
+	// weapon changes. We will tell him to do so, once he has the full inventory and received
+	// the full update.
+	SERVERCOMMANDS_SetIgnoreWeaponSelect( g_lCurrentClient, true );
+
 	// Tell client to spawn themselves (this doesn't happen in the full update).
 	if ( players[g_lCurrentClient].mo != NULL )
 	{
@@ -5438,13 +5445,20 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// [BB] We have to do this in any case, because he could have gotten something during the time after
 	// the map was started on the server, but before it was loaded on the client (APowerInvulnerable for
 	// instance in DM games with respawn invulnerability).
-	SERVER_ResetInventory( g_lCurrentClient );
-	// [BB] To sync the weapon state clear the player's weapon on the server now. The client informs
-	// us that he is bringing up a wepoaon since SERVER_ResetInventory calls SERVERCOMMANDS_WeaponChange.
-	PLAYER_ClearWeapon( &players[g_lCurrentClient] );
+	// [BB] Don't tell the client to change the weapon, we do this after the full update.
+	SERVER_ResetInventory( g_lCurrentClient, false );
+	// [BB] The client is now spawned and has its inventory back, so he may send us
+	// weapon changes again.
+	SERVERCOMMANDS_SetIgnoreWeaponSelect( g_lCurrentClient, false );
 
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );
+
+	// [BB] To sync the weapon state clear the player's weapon on the server now. Before this
+	// tell the client which weapon he is using. This will also make him tell us that he is bringing
+	// up a wepaon.
+	SERVERCOMMANDS_WeaponChange( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	PLAYER_ClearWeapon( &players[g_lCurrentClient] );
 
 	// If we need to start this client's enter scripts, do that now.
 	if ( g_aClients[g_lCurrentClient].bRunEnterScripts )

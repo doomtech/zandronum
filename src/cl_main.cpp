@@ -3714,6 +3714,9 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		g_NetIDList[lID].bFree = true;
 	}
 
+	// [BB] Remember if we were already ignoring WeaponSelect commands. If so, the server
+	// told us to ignore them and we need to continue to do so after spawning the player.
+	const bool bSavedIgnoreWeaponSelect = CLIENT_GetIgnoreWeaponSelect ();
 	// [BB] Don't let the client send the server WeaponSelect commands for all weapons that
 	// are temporarily selected while getting the inventory. 
 	CLIENT_IgnoreWeaponSelect ( true );
@@ -4026,9 +4029,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 
 	// [BB] Now that we have our inventory, tell the server the weapon we selected from it.
-	CLIENT_IgnoreWeaponSelect ( false );
-	if ((( pPlayer - players ) == consoleplayer ) && ( pPlayer->ReadyWeapon ) )
-		CLIENTCOMMANDS_WeaponSelect( pPlayer->ReadyWeapon->GetClass( ));
+	// [BB] Only do this if the server didn't tell us to ignore the WeaponSelect commands.
+	if ( bSavedIgnoreWeaponSelect == false ) {
+		CLIENT_IgnoreWeaponSelect ( false );
+		if ((( pPlayer - players ) == consoleplayer ) && ( pPlayer->ReadyWeapon ) )
+			CLIENTCOMMANDS_WeaponSelect( pPlayer->ReadyWeapon->GetClass( ));
+	}
 
 	// Refresh the HUD because this is potentially a new player.
 	SCOREBOARD_RefreshHUD( );

@@ -384,7 +384,7 @@ LONG		SERVER_AdjustElevatorDirection( LONG lDirection );
 ULONG		SERVER_GetMaxPacketSize( void );
 char		*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
-void		SERVER_ResetInventory( ULONG ulClient );
+void		SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon = true );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2 );
 void		SERVER_RemoveEditedTranslation( ULONG ulTranslation );
