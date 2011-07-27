@@ -2702,6 +2702,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				break;
 
+			case SVC2_SETIGNOREWEAPONSELECT:
+				{
+					const bool bIgnoreWeaponSelect = NETWORK_ReadByte( pByteStream );
+					CLIENT_IgnoreWeaponSelect ( bIgnoreWeaponSelect );
+				}
+
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

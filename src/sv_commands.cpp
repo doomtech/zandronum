@@ -5939,6 +5939,16 @@ void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect )
+{
+	SERVER_CheckClientBuffer( ulClient, 3, true );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
+	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC2_SETIGNOREWEAPONSELECT );
+	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, bIgnoreWeaponSelect );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
