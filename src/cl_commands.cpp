@@ -91,6 +91,13 @@ void CLIENT_IgnoreWeaponSelect( bool bIgnore )
 
 //*****************************************************************************
 //
+bool CLIENT_GetIgnoreWeaponSelect( void )
+{
+	return g_bIgnoreWeaponSelect;
+}
+
+//*****************************************************************************
+//
 void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 {
 	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
