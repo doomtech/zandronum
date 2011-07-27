@@ -2698,6 +2698,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				// [BB] The server doesn't send any info with this packet, it's just there to allow us
 				// keeping track of the current time so that we don't think we are lagging immediately after receiving a full update.
 				g_ulEndFullUpdateTic = gametic;
+				g_bClientLagging = false;
 
 				break;
 
