@@ -4019,9 +4019,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
 	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 	{
-		pPlayer->ServerXYZ[0] = pPlayer->mo->x;
-		pPlayer->ServerXYZ[1] = pPlayer->mo->y;
-		pPlayer->ServerXYZ[2] = pPlayer->mo->z;
+		CLIENT_AdjustPredictionToServerSideConsolePlayerMove( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z );
 
 		pPlayer->ServerXYZMom[0] = 0;
 		pPlayer->ServerXYZMom[1] = 0;

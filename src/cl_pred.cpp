@@ -279,6 +279,7 @@ void CLIENT_PREDICT_PlayerTeleported( void )
 
 	for ( ulIdx = 0; ulIdx < MAXSAVETICS; ulIdx++ )
 	{
+		memset( &g_SavedTiccmd[ulIdx], 0, sizeof( ticcmd_t ));
 		g_SavedFloorZ[ulIdx] = players[consoleplayer].mo->z;
 		g_bSavedOnFloor[ulIdx] = false;
 	}
