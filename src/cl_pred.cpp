@@ -166,6 +166,9 @@ void CLIENT_PREDICT_PlayerPredict( void )
 
 	// How many ticks of prediction do we need?
 	ulPredictionTicks = g_ulGameTick - CLIENT_GetLastConsolePlayerUpdateTick( );
+	// [BB] We can't predict more tics than we store.
+	if ( ulPredictionTicks > MAXSAVETICS )
+		ulPredictionTicks = MAXSAVETICS;
 	if ( ulPredictionTicks )
 		ulPredictionTicks--;
 
