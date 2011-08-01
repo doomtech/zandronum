@@ -230,7 +230,13 @@ bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 
 	// [BC] If we're the server, update clients about this teleport.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_TeleportThing( thing, sourceFog, useFog, ( useFog && bHaltMomentum ));
+
+		// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
+		if ( thing->player && thing->reactiontime )
+			SERVER_AdjustPlayersReactiontime ( static_cast<ULONG> ( thing->player - players ) );
+	}
 
 	return true;
 }
@@ -574,7 +580,13 @@ bool EV_SilentLineTeleport (line_t *line, int side, AActor *thing, int id, INTBO
 			// [BC] If we're the server, send the message that this thing has been tele-
 			// ported.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
 				SERVERCOMMANDS_TeleportThing( thing, false, false, false );
+
+				// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
+				if ( thing->player && thing->reactiontime )
+					SERVER_AdjustPlayersReactiontime ( static_cast<ULONG> ( thing->player - players ) );
+			}
 
 			return true;
 		}

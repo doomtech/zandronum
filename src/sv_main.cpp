@@ -2658,6 +2658,16 @@ bool SERVER_IsValidPlayerWithMo( ULONG ulPlayer )
 
 //*****************************************************************************
 //
+void SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer )
+{
+	// [BB] After adjusting the reactiontime on the server, the reactiontime on
+	// client and server should approximately end at the same time.
+	if ( SERVER_IsValidPlayerWithMo ( ulPlayer ) && ( players[ulPlayer].bIsBot == false ) )
+		players[ulPlayer].mo->reactiontime += ( players[ulPlayer].ulPing * TICRATE / 1000 );
+}
+
+//*****************************************************************************
+//
 void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 {
 	ULONG	ulIdx;

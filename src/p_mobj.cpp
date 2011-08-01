@@ -4913,6 +4913,9 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	// Tell clients about the respawning player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
+		// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
+		SERVER_AdjustPlayersReactiontime ( playernum );
+
 		pInventory = mobj->FindInventory( RUNTIME_CLASS( APowerInvulnerable ));
 		if (( pInventory ) && ( p->bSpectating == false ))
 		{

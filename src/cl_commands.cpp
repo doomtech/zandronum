@@ -209,6 +209,16 @@ void CLIENTCOMMANDS_ClientMove( void )
 	// Decide what additional information needs to be sent.
 	ulBits = 0;
 	pCmd = &players[consoleplayer].cmd;
+
+	// [BB] If we think that we can't move, don't even try to tell the server that we
+	// want to move.
+	if ( players[consoleplayer].mo->reactiontime )
+	{
+		pCmd->ucmd.forwardmove = 0;
+		pCmd->ucmd.sidemove = 0;
+		pCmd->ucmd.buttons &= ~BT_JUMP;
+	}
+
 	if ( pCmd->ucmd.yaw )
 		ulBits |= CLIENT_UPDATE_YAW;
 	if ( pCmd->ucmd.pitch )
