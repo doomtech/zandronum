@@ -140,6 +140,8 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bUnlagged );
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bRespawnonfire );
+	if ( ulFlags & USERINFO_TICSPERUPDATE )
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.ulTicsPerUpdate );
 	if (( PlayerClasses.Size( ) > 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
 	{
 		if ( players[consoleplayer].userinfo.PlayerClass == -1 )

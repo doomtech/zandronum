@@ -89,6 +89,8 @@ CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Bool,		cl_unlagged,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user decide whether he wants to respawn when pressing fire.
 CVAR (Bool,		cl_respawnonfire,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [BB] Let the user control how often the server sends updated player positions to him.
+CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 
 // [BB] Two variables to keep track of client side name changes.
 static	ULONG	g_ulLastNameChangeTime = 0;
@@ -112,7 +114,9 @@ enum
 	// [Spleen] The player's unlagged preference.
 	INFO_Unlagged,
 	// [BB]
-	INFO_Respawnonfire
+	INFO_Respawnonfire,
+	// [BB]
+	INFO_Ticsperupdate
 };
 
 const char *GenderNames[3] = { "male", "female", "other" };
@@ -516,6 +520,9 @@ void D_SetupUserInfo ()
 	// [BB]
 	coninfo->bRespawnonfire = cl_respawnonfire;
 
+	// [BB]
+	coninfo->ulTicsPerUpdate = cl_ticsperupdate;
+
 	R_BuildPlayerTranslation (consoleplayer);
 }
 
@@ -635,6 +642,22 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	else if ( cvar == &cl_respawnonfire )
 	{
 		ulUpdateFlags |= USERINFO_RESPAWNONFIRE;
+	}
+	// [BB]
+	else if ( cvar == &cl_ticsperupdate )
+	{
+		if ( cl_ticsperupdate < 1 )
+		{
+			cl_ticsperupdate = 1;
+			return;
+		}
+		if ( cl_ticsperupdate > 3 )
+		{
+			cl_ticsperupdate = 3;
+			return;
+		}
+
+		ulUpdateFlags |= USERINFO_TICSPERUPDATE;
 	}
 
 	val = cvar->GetGenericRep (CVAR_String);
@@ -850,6 +873,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\playerclass\\%s"
 					 "\\unlagged\\%s" // [Spleen]
 					 "\\respawnonfire\\%s" // [BB]
+					 "\\ticsperupdate\\%d" // [BB]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -869,7 +893,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 // [Spleen] Write the player's unlagged preference.
 					 info->bUnlagged ? "on" : "off",
 					 // [BB]
-					 info->bRespawnonfire ? "on" : "off"
+					 info->bRespawnonfire ? "on" : "off",
+					 // [BB]
+					 info->ulTicsPerUpdate
 				);
 		}
 		else
@@ -890,6 +916,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%s"			// playerclass
 				"\\%s"			// [Spleen] unlagged
 				"\\%s"			// [BB] respawnonfire
+				"\\%d"			// [BB] ticsperupdate
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -909,7 +936,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				// [Spleen] Write the player's unlagged preference.
 				info->bUnlagged ? "on" : "off",
 				// [BB]
-				info->bRespawnonfire ? "on" : "off"
+				info->bRespawnonfire ? "on" : "off",
+				// [BB]
+				info->ulTicsPerUpdate
 			);
 		}
 	}
@@ -1121,6 +1150,11 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 					info->bRespawnonfire = false;
 				break;
 
+			// [BB]
+			case INFO_Ticsperupdate:
+				info->ulTicsPerUpdate = clamp ( atoi (value), 1, 3 );
+				break;
+
 			default:
 				break;
 			}
@@ -1210,6 +1244,8 @@ CCMD (playerinfo)
 		Printf ("Unlagged:       %s\n", ui->bUnlagged ? "on" : "off");
 		// [BB]
 		Printf ("Respawnonfire:  %s\n", ui->bRespawnonfire ? "on" : "off");
+		// [BB]
+		Printf ("Ticsperupdate:  %d\n", ui->ulTicsPerUpdate);
 	}
 }
 

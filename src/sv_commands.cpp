@@ -728,6 +728,9 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 
 		if ( ulUserInfoFlags & USERINFO_RESPAWNONFIRE )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bRespawnonfire );
+
+		if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.ulTicsPerUpdate );
 	}
 }
 

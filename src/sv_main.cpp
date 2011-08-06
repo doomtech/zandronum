@@ -2092,6 +2092,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
 		pPlayer->userinfo.bRespawnonfire = NETWORK_ReadByte( pByteStream );
 
+	// [BB]
+	if ( ulFlags & USERINFO_TICSPERUPDATE )
+		pPlayer->userinfo.ulTicsPerUpdate = NETWORK_ReadByte( pByteStream );
+
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
 		strncpy( szClass, NETWORK_ReadString( pByteStream ), 63 );
@@ -2557,59 +2561,66 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 //
 void SERVER_WriteCommands( void )
 {
-	AActor		*pActor;
-	ULONG		ulIdx;
-	
 	// Ping clients and stuff.
 	SERVER_SendHeartBeat( );
 
-	// Don't need to update origin every tic. The server sends origin and velocity of a 
-	// player and the client always knows origin on the next tic.
-	if (( gametic % 3 ) == 0 )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 	{
-		// See if any players need to be updated to clients.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		// [BB] Only clients need to be informed about player movement.
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		// Don't need to update origin every tic. 
+		// [BB] The client decides how often he wants to be updated.
+		// The server sends origin and velocity of a 
+		// player and the client always knows origin on the next tic.
+		if (( gametic % players[ulIdx].userinfo.ulTicsPerUpdate ) != 0 )
+			continue;
+
+		// [BB] You can be watching through the eyes of someone, even if you are not a spectator.
+		// If this player is watching through the eyes of another player, send this
+		// player some extra info about that player to make for a better watching
+		// experience.
+		if (( g_aClients[ulIdx].ulDisplayPlayer != ulIdx ) &&
+			( g_aClients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
+			( players[g_aClients[ulIdx].ulDisplayPlayer].mo != NULL ))
 		{
-			if ( playeringame[ulIdx] == false )
-				continue;
-
-			// [BB] You can be watching through the eyes of someone, even if you are not a spectator.
-			// If this player is watching through the eyes of another player, send this
-			// player some extra info about that player to make for a better watching
-			// experience.
-			if (( g_aClients[ulIdx].ulDisplayPlayer != ulIdx ) &&
-				( g_aClients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
-				( players[g_aClients[ulIdx].ulDisplayPlayer].mo != NULL ))
-			{
-				SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, g_aClients[ulIdx].ulDisplayPlayer );
-			}
-
-			// Spectators can move around freely, without us telling it what to do (lag-less).
-			if ( players[ulIdx].bSpectating ) 
-			{
-				// Don't send this to bots.
-				if ((( gametic % ( 3 * TICRATE )) == 0 ) && ( players[ulIdx].bIsBot == false ) ) 
-				{
-					// Just send them one byte to let them know they're still alive.
-					SERVERCOMMANDS_Nothing( ulIdx );
-				}
-
-				continue;
-			}
-
-			pActor = players[ulIdx].mo;
-			if ( pActor == NULL )
-				continue;
-
-			SERVERCOMMANDS_MovePlayer( ulIdx, ulIdx, SVCF_SKIPTHISCLIENT );
-			SERVERCOMMANDS_MoveLocalPlayer( ulIdx );
+			SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, g_aClients[ulIdx].ulDisplayPlayer );
 		}
+
+		// See if any players need to be updated to clients.
+		for ( ULONG ulPlayer = 0; ulPlayer < MAXPLAYERS; ulPlayer++ )
+		{
+			if ( ( playeringame[ulPlayer] == false ) || players[ulPlayer].bSpectating )
+				continue;
+
+			// [BB] The consoleplayer on a client has to be moved differently.
+			if ( ulPlayer == ulIdx )
+				continue;
+
+			SERVERCOMMANDS_MovePlayer( ulPlayer, ulIdx, SVCF_ONLYTHISCLIENT );
+		}
+
+		// Spectators can move around freely, without us telling it what to do (lag-less).
+		if ( players[ulIdx].bSpectating ) 
+		{
+			// Don't send this to bots.
+			if ((( gametic % ( players[ulIdx].userinfo.ulTicsPerUpdate * TICRATE )) == 0 ) && ( players[ulIdx].bIsBot == false ) ) 
+			{
+				// Just send them one byte to let them know they're still alive.
+				SERVERCOMMANDS_Nothing( ulIdx );
+			}
+
+			continue;
+		}
+
+		SERVERCOMMANDS_MoveLocalPlayer( ulIdx );
 	}
 
 	// Once every four seconds, update each player's ping.
 	if (( gametic % ( 4 * TICRATE )) == 0 )
 	{
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( SERVER_IsValidClient( ulIdx ) == false )
 				continue;

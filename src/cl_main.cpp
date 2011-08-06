@@ -4491,6 +4491,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	LONG		lSkin;
 	bool		bUnlagged;
 	bool		bRespawnonfire;
+	ULONG		ulTicsPerUpdate;
 
 	// Read in the player whose userinfo is being sent to us.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -4532,6 +4533,10 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	// [BB] Read in the player's respawnonfire setting.
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
 		bRespawnonfire = NETWORK_ReadByte( pByteStream );
+
+	// [BB] Read in the player's respawnonfire setting.
+	if ( ulFlags & USERINFO_TICSPERUPDATE )
+		ulTicsPerUpdate = NETWORK_ReadByte( pByteStream );
 
 	// If this isn't a valid player, break out.
 	// We actually send the player's userinfo before he gets spawned, thus putting him in
@@ -4620,6 +4625,9 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
 		pPlayer->userinfo.bRespawnonfire = bRespawnonfire;
+
+	if ( ulFlags & USERINFO_TICSPERUPDATE )
+		pPlayer->userinfo.ulTicsPerUpdate = ulTicsPerUpdate;
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( ulPlayer );

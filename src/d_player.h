@@ -278,6 +278,9 @@ struct userinfo_t
 
 	// [BB] Let the user decide whether he wants to respawn when pressing fire.
 	bool		bRespawnonfire;
+
+	// [BB] Let the user decide how often he wants the player positions to be updated.
+	ULONG		ulTicsPerUpdate;
 };
 
 FArchive &operator<< (FArchive &arc, userinfo_t &info);
