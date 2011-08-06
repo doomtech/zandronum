@@ -377,7 +377,7 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 	ULONG	ulIdx;
 	ULONG ulPlayerAttackFlags = 0;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// [BB] Check if ulPlayer is pressing any attack buttons.
@@ -1336,6 +1336,9 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 {
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
+		return;
+
+	if ( players[ulPlayer].mo == NULL )
 		return;
 
 	SERVER_CheckClientBuffer( ulPlayer, 29, false );
