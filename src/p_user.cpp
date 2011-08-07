@@ -1003,7 +1003,7 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 
 	player->ReadyWeapon = NULL;
 	// [BB] The server waits for the client to select the weapon (but has to handle bots).
-	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || player->bIsBot )
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || player->bIsBot || ( SERVER_GetClient( player - players )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
 		PickNewWeapon (NULL);
 	else
 		PLAYER_ClearWeapon( player );
