@@ -2023,6 +2023,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	ULONG		ulWins;
 	ULONG		ulTime;
 	LONG		lCheats;
+	FName		StartingWeaponName;
 
 	p = &players[player];
 
@@ -2057,6 +2058,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	ulWins = p->ulWins;
 	ulTime = p->ulTime;
 	lCheats = p->cheats;
+	StartingWeaponName = p->StartingWeaponName;
 
 	// Reset player structure to its defaults
 	p->~player_t();
@@ -2101,7 +2103,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	// should also be able to do so after being reborn.
 	if ( lCheats & CF_TIMEFREEZE )
 		p->cheats |= CF_TIMEFREEZE;
-
+	p->StartingWeaponName = StartingWeaponName;
 	p->bIsBot = p->pSkullBot ? true : false;
 
 	p->playerstate = PST_LIVE;

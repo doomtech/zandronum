@@ -5475,6 +5475,14 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );
 
+	// [BB] If the player doesn't have a ReadyWeapon for some reason, try to give him
+	// his starting weapon so that we can tell him to select it.
+	if ( ( players[g_lCurrentClient].ReadyWeapon == NULL ) && ( players[g_lCurrentClient].bClientSelectedWeapon == false ) && players[g_lCurrentClient].mo )
+	{
+		AInventory *pInventory = players[g_lCurrentClient].mo->FindInventory ( players[g_lCurrentClient].StartingWeaponName );
+		if ( pInventory && pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
+			players[g_lCurrentClient].ReadyWeapon =  static_cast<AWeapon *>( pInventory );
+	}
 	// [BB] To sync the weapon state clear the player's weapon on the server now. Before this
 	// tell the client which weapon he is using. This will also make him tell us that he is bringing
 	// up a wepaon.
