@@ -277,13 +277,13 @@ void SERVERCOMMANDS_Ping( ULONG ulTime )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Nothing( ULONG ulPlayer )
+void SERVERCOMMANDS_Nothing( ULONG ulPlayer, bool bReliable )
 {
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1, false );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_NOTHING );
+	SERVER_CheckClientBuffer( ulPlayer, 1, bReliable );
+	NETWORK_WriteHeader( bReliable ? &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream : &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_NOTHING );
 }
 
 //*****************************************************************************
