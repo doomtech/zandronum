@@ -265,6 +265,12 @@ typedef struct
 	// When the client authenticates his level, should enter scripts be run as well?
 	bool			bRunEnterScripts;
 
+	// [BB] Did we just ask the client to change its weapon?
+	bool			bWeaponChangeRequested;
+
+	// [BB] Last tick we asked the client to change its weapon.
+	LONG			bLastWeaponChangeRequestTick;
+
 	// [BB] Did we notice anything suspicious about this client?
 	bool			bSuspicious;
 

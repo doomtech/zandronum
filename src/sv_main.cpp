@@ -2570,6 +2570,13 @@ void SERVER_WriteCommands( void )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
+		// [BB] If we requested the client to change his weapon, keep bugging him till the change is confirmed.
+		// This is necessary because the client doesn't notice when the last packet is missing. He only
+		// notices that he misses a packet when receiving a packet with a number higher than the last
+		// received number + 1.
+		if ( SERVER_GetClient ( ulIdx )->bWeaponChangeRequested && ( ( gametic - SERVER_GetClient ( ulIdx )->bLastWeaponChangeRequestTick ) > 2 ) )
+			SERVERCOMMANDS_Nothing( ulIdx, true );
+
 		// Don't need to update origin every tic. 
 		// [BB] The client decides how often he wants to be updated.
 		// The server sends origin and velocity of a 
@@ -4428,15 +4435,18 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
 		usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
-		if ( pPlayer->ReadyWeapon )
+		// If the name of the weapon the client is using doesn't match the name of the
+		// weapon we think he's using, do something to rectify the situation.
+		// [BB] Only do this if the client is fully spawned and authenticated.
+		if ( ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) && ( ( pPlayer->ReadyWeapon == NULL ) || ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != usActorNetworkIndex ) ) )
 		{
-			// If the name of the weapon the client is using doesn't match the name of the
-			// weapon we think he's using, do something to rectify the situation.
 			// [BB] Directly after a map change this workaround seems to do more harm than good,
 			// (client and server are possibly changing weapons and one of them is slightly ahead)
 			// so don't use it when the level just started. The inventory reset that the server does
 			// on the clients after a map change most likely has to do with this slight sync issues.
-			if ( ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != usActorNetworkIndex ) && ( level.maptime > 3*TICRATE ) )
+			// [BB] Do this anyway if the server thinks that the player doesn't have any weapon.
+			if ( ( level.maptime > 3*TICRATE )
+				|| ( ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) && ( pPlayer->ReadyWeapon == NULL ) && ( pPlayer->PendingWeapon == WP_NOCHANGE ) ) )
 			{
 				pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
 				if (( pType ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
@@ -4447,6 +4457,9 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 						if ( pInventory )
 						{
 							pPlayer->PendingWeapon = static_cast<AWeapon *>( pInventory );
+							// [BB] Since the client tells us that he is attacking with this weapon,
+							// we can assume this to be client selected.
+							pPlayer->bClientSelectedWeapon = true;
 
 							// Update other spectators with this info.
 							SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
@@ -5468,6 +5481,9 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// instance in DM games with respawn invulnerability).
 	// [BB] Don't tell the client to change the weapon, we do this after the full update.
 	SERVER_ResetInventory( g_lCurrentClient, false );
+	// [BB] Make sure that the client doesn't bring up a weapon on from the inventory we just
+	// gave him before we tell him which weapon to select after the full update.
+	SERVERCOMMANDS_ClearConsoleplayerWeapon( g_lCurrentClient );
 	// [BB] The client is now spawned and has its inventory back, so he may send us
 	// weapon changes again.
 	SERVERCOMMANDS_SetIgnoreWeaponSelect( g_lCurrentClient, false );
@@ -5477,7 +5493,7 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 
 	// [BB] If the player doesn't have a ReadyWeapon for some reason, try to give him
 	// his starting weapon so that we can tell him to select it.
-	if ( ( players[g_lCurrentClient].ReadyWeapon == NULL ) && ( players[g_lCurrentClient].bClientSelectedWeapon == false ) && players[g_lCurrentClient].mo )
+	if ( ( players[g_lCurrentClient].ReadyWeapon == NULL ) && players[g_lCurrentClient].mo )
 	{
 		AInventory *pInventory = players[g_lCurrentClient].mo->FindInventory ( players[g_lCurrentClient].StartingWeaponName );
 		if ( pInventory && pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
@@ -5487,6 +5503,15 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// tell the client which weapon he is using. This will also make him tell us that he is bringing
 	// up a wepaon.
 	SERVERCOMMANDS_WeaponChange( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
+	// [BB] If the client has a weapon, we just requested him to bring it up.
+	if ( players[g_lCurrentClient].ReadyWeapon )
+	{
+			SERVER_GetClient ( g_lCurrentClient )->bWeaponChangeRequested = true;
+			SERVER_GetClient ( g_lCurrentClient )->bLastWeaponChangeRequestTick = gametic;
+	}
+
+	// [BB] Clear the weapon on the server. It will be brought up when the client tells us.
 	PLAYER_ClearWeapon( &players[g_lCurrentClient] );
 
 	// If we need to start this client's enter scripts, do that now.
