@@ -368,5 +368,6 @@ void	SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int i
 void	SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ulType, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient );
 void	SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect );
+void	SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient );
 
 #endif	// __SV_COMMANDS_H__
