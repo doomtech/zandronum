@@ -4698,6 +4698,7 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
 	// [BB] Keep in mind that the client selected a weapon.
 	players[g_lCurrentClient].bClientSelectedWeapon = true;
+	SERVER_GetClient ( g_lCurrentClient )->bWeaponChangeRequested = false;
 
 	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
 	SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
