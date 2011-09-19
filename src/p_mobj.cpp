@@ -6483,7 +6483,7 @@ FName AActor::GetSpecies()
 				break;
 		}
 	}
-	return thistype->TypeName;
+	return Species = thistype->TypeName; // [GZ] Speeds up future calls.
 }
 
 //==========================================================================
