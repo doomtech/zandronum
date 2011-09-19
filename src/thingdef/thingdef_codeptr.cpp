@@ -1843,6 +1843,7 @@ enum SIX_Flags
 	// [BB] Added flag which allows client side spawning.
 	SIXF_CLIENTSIDESPAWN=128,
 	SIXF_TRANSFERAMBUSHFLAG=256,
+	SIXF_TRANSFERPITCH=512,
 };
 
 
@@ -1859,6 +1860,7 @@ static bool InitSpawnedItem(AActor *self, AActor *mo, int flags)
 		}
 
 		mo->angle=self->angle;
+		if (flags & SIXF_TRANSFERPITCH) mo->pitch = self->pitch;
 		while (originator && isMissile(originator)) originator = originator->target;
 
 		if (flags & SIXF_TELEFRAG) 

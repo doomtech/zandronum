@@ -49,6 +49,7 @@
 #include "g_level.h"
 #include "d_event.h"
 #include "v_palette.h"
+#include "d_main.h"
 // [BB] New #includes.
 #include "network.h"
 
@@ -1294,6 +1295,9 @@ void F_Drawer (void)
 			break;
 		case END_Demon:
 			F_DemonScroll ();
+			break;
+		case END_TitleScreen:
+			D_StartTitle ();
 			break;
 		}
 		break;

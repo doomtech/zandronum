@@ -156,7 +156,7 @@ enum
 
 	MF2_DONTREFLECT		= 0x00000001,	// this projectile cannot be reflected
 	MF2_WINDTHRUST		= 0x00000002,	// gets pushed around by the wind specials
-	//MF2_BOUNCE1			= 0x00000004,
+	MF2_DONTSEEKINVISIBLE=0x00000004,	// For seeker missiles: Don't home in on invisible/shadow targets
 	MF2_BLASTED			= 0x00000008,	// actor will temporarily take damage from impact
 	MF2_FLY				= 0x00000010,	// fly mode is active
 	MF2_FLOORCLIP		= 0x00000020,	// if feet are allowed to be clipped
@@ -177,7 +177,7 @@ enum
 	MF2_NODMGTHRUST		= 0x00020000,	// does not thrust target when damaging
 	MF2_TELESTOMP		= 0x00040000,	// mobj can stomp another
 	MF2_FLOATBOB		= 0x00080000,	// use float bobbing z movement
-	//MF2_BOUNCE2			= 0x00100000,
+	MF2_THRUACTORS		= 0x00100000,	// performs no actor<->actor collision checks
 	MF2_IMPACT			= 0x00200000, 	// an MF_MISSILE mobj can activate SPAC_IMPACT
 	MF2_PUSHWALL		= 0x00400000, 	// mobj can push walls
 	MF2_MCROSS			= 0x00800000,	// can activate monster cross lines
@@ -304,6 +304,8 @@ enum
 	MF5_INCONVERSATION	= 0x20000000,	// Actor is having a conversation
 	MF5_PAINLESS		= 0x40000000,	// Actor always inflicts painless damage.
 	MF5_MOVEWITHSECTOR	= 0x80000000,	// P_ChangeSector() will still process this actor if it has MF_NOBLOCKMAP
+
+	MF6_NOBOSSRIP		= 0x00000001,	// For rippermissiles: Don't rip through bosses.
 
 	// [BC] More object flags for Skulltag.
 
@@ -758,6 +760,8 @@ public:
 	// Calculate amount of missile damage
 	virtual int GetMissileDamage(int mask, int add);
 
+	bool CanSeek(AActor *target) const;
+
 // info for drawing
 // NOTE: The first member variable *must* be x.
 	fixed_t	 		x,y,z;
@@ -795,6 +799,7 @@ public:
 	DWORD			flags3;			// [RH] Hexen/Heretic actor-dependant behavior made flaggable
 	DWORD			flags4;			// [RH] Even more flags!
 	DWORD			flags5;			// OMG! We need another one.
+	DWORD			flags6;			// Shit! Where did all the flags go?
 
 	// [BB] If 0, not limited to any team, if > 0, limited to the team with number (ulLimitedToTeam-1).
 	ULONG			ulLimitedToTeam;
