@@ -1002,7 +1002,8 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 			return true;
 		}
 
-		if (tm.thing->flags2 & MF2_BOUNCE2)
+		int bt = tm.thing->bouncetype & BOUNCE_TypeMask;
+		if (bt == BOUNCE_Doom || bt == BOUNCE_Hexen)
 		{
 			if (tm.thing->Damage == 0)
 			{
@@ -2337,7 +2338,7 @@ bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
 				}
 			}
 
-			if (thing->flags2 & MF2_BOUNCE2 &&    // killough 8/13/98
+			if (thing->bouncetype != BOUNCE_None &&    // killough 8/13/98
 			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
 			/*!sentient(thing) &&*/ tm.floorz - thing->z > 16*FRACUNIT)
 				return false; // too big a step up for bouncers under gravity
@@ -3380,7 +3381,8 @@ bool FSlide::BounceWall (AActor *mo)
 	fixed_t         movelen;
 	line_t			*line;
 
-	if (!(mo->flags2 & MF2_BOUNCE2))
+	int bt = mo->bouncetype & BOUNCE_TypeMask;
+	if (bt != BOUNCE_Doom && bt != BOUNCE_Hexen)
 	{
 		return false;
 	}

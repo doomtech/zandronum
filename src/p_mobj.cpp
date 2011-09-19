@@ -302,6 +302,8 @@ void AActor::Serialize (FArchive &arc)
 		<< DeathSound
 		<< ActiveSound
 		<< UseSound
+		<< BounceSound
+		<< WallBounceSound
 		<< Speed
 		<< FloatSpeed
 		<< Mass
@@ -312,6 +314,7 @@ void AActor::Serialize (FArchive &arc)
 		<< MissileState
 		<< MaxDropOffHeight 
 		<< MaxStepHeight
+		<< bouncetype
 		<< bouncefactor
 		<< wallbouncefactor
 		<< bouncecount
@@ -1474,6 +1477,39 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	}
 }
 
+
+void AActor::PlayBounceSound(bool onfloor)
+{
+	// [BB] Skulltag's old hacky bounce sound code. Should be removed eventually.
+	// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
+	if ( ulSTFlags & STFL_USESTBOUNCESOUND )
+	{
+		S_Sound( this, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
+		return;
+	}
+
+	if (!onfloor && (flags3 & MF3_NOWALLBOUNCESND))
+	{
+		return;
+	}
+
+	if (!(flags4 & MF4_NOBOUNCESOUND))
+	{
+		if (bouncetype & BOUNCE_UseSeeSound)
+		{
+			S_Sound (this, CHAN_VOICE, SeeSound, 1, ATTN_IDLE);
+		}
+		else if (onfloor || WallBounceSound <= 0)
+		{
+			S_Sound (this, CHAN_VOICE, BounceSound, 1, ATTN_IDLE);
+		}
+		else
+		{
+			S_Sound (this, CHAN_VOICE, WallBounceSound, 1, ATTN_IDLE);
+		}
+	}
+}
+
 //----------------------------------------------------------------------------
 //
 // PROC P_FloorBounceMissile
@@ -1506,8 +1542,10 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 	}
 
 	fixed_t dot = TMulScale16 (momx, plane.a, momy, plane.b, momz, plane.c);
+	int bt = bouncetype & BOUNCE_TypeMask;
 
-	if ((flags2 & MF2_BOUNCETYPE) == MF2_HERETICBOUNCE)
+
+	if (bt == BOUNCE_Heretic)
 	{
 		momx -= MulScale15 (plane.a, dot);
 		momy -= MulScale15 (plane.b, dot);
@@ -1526,19 +1564,12 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 	momz = MulScale30 (momz - MulScale15 (plane.c, dot), bouncescale);
 	angle = R_PointToAngle2 (0, 0, momx, momy);
 
-	// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-	if ( ulSTFlags & STFL_USESTBOUNCESOUND )
-		S_Sound( this, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
-	else if (SeeSound && !(flags4 & MF4_NOBOUNCESOUND))
-	{
-		S_Sound (this, CHAN_VOICE, SeeSound, 1, ATTN_IDLE);
-	}
-
-	if ((flags2 & MF2_BOUNCETYPE) == MF2_DOOMBOUNCE)
+	PlayBounceSound(true);
+	if (bt == BOUNCE_Doom)
 	{
 		if (!(flags & MF_NOGRAVITY) && (momz < 3*FRACUNIT))
 		{
-			flags2 &= ~MF2_BOUNCETYPE;
+			bouncetype = BOUNCE_None;
 		}
 	}
 	return false;
@@ -1970,7 +2001,8 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				steps = 0;
 				if (BlockingMobj)
 				{
-					if (mo->flags2 & MF2_BOUNCE2)
+					int bt = mo->bouncetype & BOUNCE_TypeMask;
+					if (bt == BOUNCE_Doom || bt == BOUNCE_Hexen)
 					{
 						if (mo->flags5&MF5_BOUNCEONACTORS ||
 							(BlockingMobj->flags2 & MF2_REFLECTIVE) ||
@@ -1988,13 +2020,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							angle >>= ANGLETOFINESHIFT;
 							mo->momx = FixedMul (speed, finecosine[angle]);
 							mo->momy = FixedMul (speed, finesine[angle]);
-							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( mo->ulSTFlags & STFL_USESTBOUNCESOUND )
-								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
-							else if (mo->SeeSound && !(mo->flags4&MF4_NOBOUNCESOUND))
-							{
-								S_Sound (mo, CHAN_VOICE, mo->SeeSound, 1, ATTN_IDLE);
-							}
+							mo->PlayBounceSound(true);
 							return oldfloorz;
 						}
 						else
@@ -2023,13 +2049,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 						// the bounce sound.
 						if (( mo->ObjectFlags & OF_EuthanizeMe ) == false )
 						{
-							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( ( mo->ulSTFlags & STFL_USESTBOUNCESOUND ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
-								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
-							else if (mo->SeeSound && !(mo->flags3 & MF3_NOWALLBOUNCESND))
-							{
-								S_Sound (mo, CHAN_VOICE, mo->SeeSound, 1, ATTN_IDLE);
-							}
+							mo->PlayBounceSound(false);
 						}
 						return oldfloorz;
 					}
@@ -2644,7 +2664,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
 			// [BB] But only do this for bouncy things!
-			if (( mo->flags & MF_MISSILE ) && ( mo->floorpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->flags2 & MF2_BOUNCETYPE ))
+			if (( mo->flags & MF_MISSILE ) && ( mo->floorpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->bouncetype != BOUNCE_None ))
 			{
 				// Player didn't strike another player with this missile.
 				if ( mo->target && mo->target->player )
@@ -2658,7 +2678,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 			{
 				mo->z = mo->floorz;
-				if (mo->flags2 & MF2_BOUNCETYPE)
+				if (mo->bouncetype != BOUNCE_None)
 				{
 					mo->FloorBounceMissile (mo->floorsector->floorplane);
 					return;
@@ -2775,7 +2795,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
 			// [BB] But only do this for bouncy things!
-			if (( mo->flags & MF_MISSILE ) && ( mo->ceilingpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->flags2 & MF2_BOUNCETYPE ))
+			if (( mo->flags & MF_MISSILE ) && ( mo->ceilingpic == skyflatnum ) && (( mo->flags3 & MF3_SKYEXPLODE ) == false ) && ( mo->bouncetype != BOUNCE_None ))
 			{
 				// Player didn't strike another player with this missile.
 				if ( mo->target && mo->target->player )
@@ -2786,7 +2806,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			}
 
 			mo->z = mo->ceilingz - mo->height;
-			if (mo->flags2 & MF2_BOUNCETYPE)
+			if (mo->bouncetype != BOUNCE_None)
 			{	// ceiling bounce
 				mo->FloorBounceMissile (mo->ceilingsector->ceilingplane);
 				return;
