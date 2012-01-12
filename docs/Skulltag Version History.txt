@@ -126,6 +126,7 @@ latestzdoom branch
 -	- Fixed: When a sector movement was triggered by an unlagged client shooting at a linedef, the sector movement was possibly messed up. [Torr Samaho]
 -	- Fixed: When respawning or teleporting the client side prediction didn't clear the old movement commands recorded before the respawn/teleport. [Torr Samaho]
 -	- Fixed a vote related server crash. [Torr Samaho]
+-	- Fixed: On a Mac "zdoom.ini" instead of "skulltag.ini" was used as name foe the config file. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -652,11 +652,11 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 		noErr == FSRefMakePath(&folder, (UInt8*)cpath, PATH_MAX))
 	{
 		path = cpath;
-		path += "/zdoom.ini";
+		path += "/skulltag.ini";
 		return path;
 	}
 	// Ungh.
-	return "zdoom.ini";
+	return "skulltag.ini";
 #else
 	return GetUserFile ("skulltag.ini");
 #endif
