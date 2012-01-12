@@ -665,15 +665,18 @@ void SetTexture (sector_t *sector, int index, int position, const char *name8)
 //===========================================================================
 
 bool P_CheckIfMapExists(const char * mapname){
+	bool mapExists = true;
 	MapData* map = P_OpenMapData( mapname );
-	if( map == NULL )
+	// [BB] P_OpenMapData returns a valid pointer if a lump named mapname exists, no matter
+	// if the lump is a map or not. So we must check if the lump actually contains valid map data.
+	if( ( map == NULL ) || ( ( map->isText == false ) && ( map->MapLumps[ML_VERTEXES].Size == 0 ) ) )
 	{
-		return false;
+		mapExists = false;
 	}
 	// We only created the map pointer to check if we have the map.
 	// We don't need it anymore.
 	delete map;
-	return true;
+	return mapExists;
 }
 
 
