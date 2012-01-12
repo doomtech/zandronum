@@ -1654,6 +1654,11 @@ object BelphegorBall
     frame BAL7E { light BELPHEGORBALL_X3 }
 }
 
+object SuperShotgunGuy
+{
+    frame GPOSF { light ZOMBIEATK }
+}
+
 // ------------------
 // -- Items --
 // ------------------
