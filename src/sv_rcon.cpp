@@ -387,6 +387,11 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 	}
 	else
 	{		
+		// [BB] Since we log when RCON clients disconnect, we should also log when they connect.
+		// Do this before we do anything else so that this message is sent to the new RCON client
+		// with the console history.
+		Printf( "RCON client at %s connected.\n", NETWORK_AddressToString( g_Candidates[iCandidateIndex].Address ));
+
 		// Correct password. Promote him to an authed client.
 		RCONCLIENT_s Client;
 		Client.Address = g_Candidates[iCandidateIndex].Address;
