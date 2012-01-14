@@ -180,8 +180,10 @@ void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s
 		if ( iIndex != -1 )
 		{
 			const char *szCommand = NETWORK_ReadString( pByteStream );
-			SERVER_AddCommand( szCommand );
+			// [BB] Log the command before adding it. If we don't have a server GUI, the command
+			// is executed immediately and may cause Skulltag to exit before the command is logged.
 			Printf( "-> %s (RCON by %s)\n", szCommand, NETWORK_AddressToString( Address ) );
+			SERVER_AddCommand( szCommand );
 			g_AuthedClients[iIndex].iLastMessageTic = gametic;
 		}
 		break;

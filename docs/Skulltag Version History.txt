@@ -129,6 +129,7 @@ latestzdoom branch
 -	- Fixed: On a Mac "zdoom.ini" instead of "skulltag.ini" was used as name foe the config file. [Torr Samaho]
 -	- Fixed: The command line argument "+sv_maxteams 1" didn't have any effect. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not informed about gravity changes of the actors already in the game. [Torr Samaho]
+-	- Fixed: When an RCON client executed exit or quit on the server, the command was not logged to the console on non-Windows servers. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
