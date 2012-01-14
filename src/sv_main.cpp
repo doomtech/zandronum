@@ -2496,6 +2496,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if ( pActor->alpha != pActor->GetDefault( )->alpha )
 				SERVERCOMMANDS_SetThingProperty( pActor, APROP_Alpha, ulClient, SVCF_ONLYTHISCLIENT  );
 
+			// [BB] Update the actor's gravity if it's changed.
+			if ( pActor->gravity != pActor->GetDefault( )->gravity )
+				SERVERCOMMANDS_SetThingGravity ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
 			// [BB] InterpolationPoint abuses the MF_AMBUSH flag, so we have to exclude this class here.
