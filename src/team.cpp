@@ -2302,6 +2302,11 @@ CVAR( Int, sv_flagreturntime, 15, CVAR_CAMPAIGNLOCK );
 
 CUSTOM_CVAR( Int, sv_maxteams, 2, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_LATCH )
 {
+	// [BB] We didn't initialize TEAMINFO yet, so we can't use teams.Size() to clamp sv_maxteams right now.
+	// In order to ensure that sv_maxteams stays in its limits, we have to clamp it in TEAMINFO_Init.
+	if ( teams.Size() == 0 )
+		return;
+
 	int value = clamp<int>(self, 2, teams.Size());
 	if(value != self)
 		self = value;

@@ -123,6 +123,9 @@ void TEAMINFO_Init ()
 
 	if ( teams.Size( ) > MAX_TEAMS )
 		I_FatalError ( "Only %d teams can be defined in TEAMINFO", MAX_TEAMS );
+
+	// [BB] Now that teams.Size() is known, make sure that sv_maxteams is in its allowed bounds.
+	sv_maxteams = sv_maxteams;
 }
 
 //==========================================================================
