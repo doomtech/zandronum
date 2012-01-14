@@ -4668,7 +4668,13 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 // [RH] P_AimCamera
 //
 CVAR (Float, chase_height, -8.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Float, chase_dist, 90.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+// [BB] Negative chase_dist values don't make sense, you wouldn't be chasing anymore.
+CUSTOM_CVAR (Float, chase_dist, 90.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	// [BB] Don't allow negative chase_dist values. 
+	if ( self < 0 )
+		self = 0;
+}
 
 void P_AimCamera (AActor *t1, fixed_t &CameraX, fixed_t &CameraY, fixed_t &CameraZ, sector_t *&CameraSector)
 {
