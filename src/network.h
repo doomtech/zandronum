@@ -112,6 +112,7 @@ enum
 #define	STATE_RAISE				8
 #define	STATE_HEAL				9
 #define	STATE_CRASH				10
+#define	STATE_IDLE				11
 
 // Identifying player states (again, cheap & easy)
 typedef enum

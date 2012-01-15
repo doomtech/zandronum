@@ -6080,6 +6080,11 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 			return;
 
 		break;
+
+	case STATE_IDLE:
+
+		pActor->SetIdle();
+		return;
 	default:
 
 #ifdef CLIENT_WARNING_MESSAGES
