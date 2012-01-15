@@ -2726,6 +2726,29 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				break;
 
+			case SVC2_CANCELFADE:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					AActor *activator = NULL;
+					// [BB] ( ulPlayer == MAXPLAYERS ) means that CancelFade was called with NULL as activator.
+					if ( CLIENT_IsValidPlayer ( ulPlayer ) )
+						activator = players[ulPlayer].mo;
+
+					// [BB] Needed to copy the code below from the implementation of PCD_CANCELFADE.
+					TThinkerIterator<DFlashFader> iterator;
+					DFlashFader *fader;
+
+					while ( (fader = iterator.Next()) )
+					{
+						if (activator == NULL || fader->WhoFor() == activator)
+						{
+							fader->Cancel ();
+						}
+					}
+				}
+
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );
