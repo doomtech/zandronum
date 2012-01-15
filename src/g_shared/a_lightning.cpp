@@ -223,6 +223,13 @@ void P_StartLightning ()
 
 void P_ForceLightning (int mode)
 {
+	// [BB] The server just tells the clients to call P_ForceLightning.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_ForceLightning ( mode );
+		return;
+	}
+
 	DLightningThinker *lightning = LocateLightning ();
 	if (lightning == NULL)
 	{
