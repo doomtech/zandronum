@@ -2254,8 +2254,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			}
 		}
 
-		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			PLAYER_SetFragcount( pPlayer, 0, false, false );
+		// [BB] Make sure the player loses his frags, wins and points.
+		if ( NETWORK_InClientMode( ) == false )
+			PLAYER_ResetAllScoreCounters ( pPlayer );
 
 		return;
 	}
@@ -2366,8 +2367,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Player's lose all their frags when they become a spectator.
 	if ( bDeadSpectator == false )
 	{
-		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			PLAYER_SetFragcount( pPlayer, 0, false, false );
+		// [BB] Make sure the player loses his frags, wins and points.
+		if ( NETWORK_InClientMode( ) == false )
+			PLAYER_ResetAllScoreCounters ( pPlayer );
 
 		// Also, tell the joinqueue module that a player has left the game.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
@@ -2379,10 +2381,6 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		if ( pPlayer->pSkullBot )
 			pPlayer->pSkullBot->PostEvent( BOTEVENT_SPECTATING );
 	}
-
-	// Player's also lose all of their wins in duel mode.
-	if (( duel || ( lastmanstanding && ( bDeadSpectator == false ))) && ( pPlayer->ulWins > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-		PLAYER_SetWins( pPlayer, 0 );
 
 	// Update this player's info on the scoreboard.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

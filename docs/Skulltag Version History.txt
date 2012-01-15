@@ -133,6 +133,7 @@ latestzdoom branch
 -	- Fixed: Clients were not informed about the value of lmsspectatorsettings in non-LMS games even though it is possibly necessary due to sv_applylmsspectatorsettings. [Torr Samaho]
 -	- Fixed: The ACS command CancelFade didn't work properly online. [Torr Samaho]
 -	- Fixed: The sounds of A_CustomMeleeAttack didn't work properly online. [Torr Samaho]
+-	- Fixed: When a player turned into a true spectator (i.e. not a dead spectator) in possession or TLMS or turned from dead spectator to true spectator in LMS, the points/wins of that player where not reset. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
