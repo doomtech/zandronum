@@ -5957,6 +5957,14 @@ int DLevelScript::RunScript ()
 
 		case PCD_CANCELFADE:
 			{
+				// [BB] Tell the clients to cancel the fade.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					// [BB] Encode "activator == NULL" as MAXPLAYERS.
+					const ULONG ulPlayer = ( activator && activator->player ) ? static_cast<ULONG> ( activator->player - players ) : MAXPLAYERS;
+					SERVERCOMMANDS_CancelFade ( ulPlayer );
+				}
+
 				TThinkerIterator<DFlashFader> iterator;
 				DFlashFader *fader;
 
