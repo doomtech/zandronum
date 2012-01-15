@@ -855,8 +855,8 @@ CUSTOM_CVAR( Int, lmsspectatorsettings, LMS_SPF_VIEW, CVAR_SERVERINFO )
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
-		if ( lastmanstanding || teamlms )
-			SERVERCOMMANDS_SetLMSSpectatorSettings( );
+		// [BB] Due to DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS, this is necessary in all game modes.
+		SERVERCOMMANDS_SetLMSSpectatorSettings( );
 	}
 }
 CVAR( Flag, lms_spectatorchat, lmsspectatorsettings, LMS_SPF_CHAT );
