@@ -1053,6 +1053,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMeleeAttack)
 	ACTION_PARAM_NAME(DamageType, 3);
 	ACTION_PARAM_BOOL(bleed, 4);
 
+	// [BB] This is handled by the server.
+	if ( NETWORK_InClientMode( ) && ( ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) )
+		return;
+
 	if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
 
 	if (!self->target)
@@ -1061,13 +1065,29 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMeleeAttack)
 	A_FaceTarget (self);
 	if (self->CheckMeleeRange ())
 	{
-		if (MeleeSound) S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+		// [BB] Added brackets to add server code.
+		if (MeleeSound)
+		{
+			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+
+			// [BB] If we're the server, make the sound on the client end.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
+		}
 		P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (damage, self->target, self);
 	}
 	else
 	{
-		if (MissSound) S_Sound (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
+		// [BB] Added brackets to add server code.
+		if (MissSound)
+		{
+			S_Sound (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
+
+			// [BB] If we're the server, make the sound on the client end.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MissSound ), 1, ATTN_NORM );
+		}
 	}
 }
 
