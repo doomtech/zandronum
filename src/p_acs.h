@@ -616,13 +616,14 @@ public:
 		PCD_PRINTBINARY,
 /*350*/	PCD_PRINTHEX,
 		PCD_CALLFUNC,
+		PCD_SAVESTRING,			// [FDARI]
 		// [BB] We need to fix the number for the new commands!
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
 		PCD_GETTEAMSCORE,
 		// [CW] End team additions.
 
-/*351*/	PCODE_COMMAND_COUNT
+/*353*/	PCODE_COMMAND_COUNT
 	};
 
 	// Some constants used by ACS scripts
