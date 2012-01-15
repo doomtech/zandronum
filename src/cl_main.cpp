@@ -4723,13 +4723,7 @@ static void client_SetPlayerPoints( BYTESTREAM_s *pByteStream )
 	// If this isn't a valid player, break out.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
-/*
-	if (( g_ConnectionState == CTS_ACTIVE ) &&
-		( possession ))
-	{
-		ANNOUNCER_PlayScoreSounds( ulPlayer, players[ulPlayer].lPointCount, lPointCount );
-	}
-*/
+
 	// Finally, set the player's point count, and refresh the HUD.
 	players[ulPlayer].lPointCount = lPointCount;
 	SCOREBOARD_RefreshHUD( );

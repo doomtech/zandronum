@@ -65,7 +65,6 @@ ULONG	ANNOUNCER_GetNumProfiles( void );
 bool	ANNOUNCER_DoesEntryExist( ULONG ulProfileIdx, const char *pszEntry );
 void	ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry );
 void	ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFragCount );
-//void	ANNOUNCER_PlayScoreSounds( ULONG ulPlayer, LONG lOldPointCount, LONG lNewPointCount );
 void	ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFragCount );
 void	ANNOUNCER_AllowNumFragsAndPointsLeftSounds( void );
 

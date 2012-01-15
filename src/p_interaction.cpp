@@ -1985,9 +1985,6 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 	char				szString[64];
 	DHUDMessageFadeOut	*pMsg;
 
-//	if ( possession )
-//		ANNOUNCER_PlayScoreSounds( pPlayer - players, pPlayer->lPointCount, pPlayer->lPointCount + 1 );
-
 	// If we're in possession mode, give the player a point. Also, determine if the player's lead
 	// state changed. If it did, announce it.
 	if ( possession )
