@@ -1929,6 +1929,30 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 
 //*****************************************************************************
 //
+void PLAYER_ResetAllScoreCounters( player_t *pPlayer )
+{
+	// [BB] Sanity check.
+	if ( pPlayer == NULL )
+		return;
+
+	// [BB] Do this first, PLAYER_SetFragcount / PLAYER_SetWins will update the scoreboard and the serverconsole.
+	if ( pPlayer->lPointCount > 0 )
+	{
+		pPlayer->lPointCount = 0;
+
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerPoints( pPlayer - players );
+	}
+
+	if ( pPlayer->fragcount > 0 )
+		PLAYER_SetFragcount( pPlayer, 0, false, false );
+
+	if ( pPlayer->ulWins > 0 )
+		PLAYER_SetWins( pPlayer, 0 );
+}
+
+//*****************************************************************************
+//
 void PLAYER_ResetAllPlayersFragcount( void )
 {
 	ULONG	ulIdx;
