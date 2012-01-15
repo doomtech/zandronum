@@ -2291,6 +2291,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 			// [BB] Also send all non-default flag values.
 			SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pPlayer->mo, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] If the player is in its SeeState, let the client know.
+			if ( ( pPlayer->mo->SeeState != NULL ) && ( pPlayer->mo->InStateSequence(pPlayer->mo->state, pPlayer->mo->SeeState) ) )
+				SERVERCOMMANDS_SetPlayerState( ulIdx, STATE_PLAYER_SEE, ulClient, SVCF_ONLYTHISCLIENT);
 		}
 
 		// [BB] Clients need to know the active weapons of other players, so send it.
