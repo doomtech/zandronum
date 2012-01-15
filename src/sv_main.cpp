@@ -2239,6 +2239,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_SetPlayerUserInfo( ulIdx, USERINFO_ALL, ulClient, SVCF_ONLYTHISCLIENT );
 		// [BB] Make sure that morphed players are spawned as morphed.
 		SERVERCOMMANDS_SpawnPlayer( ulIdx, PST_REBORNNOINVENTORY, ulClient, SVCF_ONLYTHISCLIENT, ( pPlayer->morphTics ) );
+		// [BB] Since the player possibly lost something from his default inventory, destory everything
+		// he is spawned with on the client. Everything the client has to know about the inventory is
+		// handled below.
+		SERVERCOMMANDS_DestroyAllInventory( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Also send this player's team.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
