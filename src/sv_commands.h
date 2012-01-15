@@ -369,5 +369,6 @@ void	SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ul
 void	SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient );
 void	SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect );
 void	SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient );
+void	SERVERCOMMANDS_ForceLightning( const int Mode, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
 #endif	// __SV_COMMANDS_H__

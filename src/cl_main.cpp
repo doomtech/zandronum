@@ -107,6 +107,7 @@
 #include "r_translate.h"
 #include "domination.h"
 #include "p_3dmidtex.h"
+#include "a_lightning.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2710,9 +2711,17 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				break;
 
-		case SVC2_CLEARCONSOLEPLAYERWEAPON:
+			case SVC2_CLEARCONSOLEPLAYERWEAPON:
 				{
 					PLAYER_ClearWeapon ( &players[consoleplayer] );
+				}
+
+				break;
+
+			case SVC2_FORCELIGHTNING:
+				{
+					const int mode = NETWORK_ReadByte( pByteStream );
+					P_ForceLightning ( mode );
 				}
 
 				break;
