@@ -806,7 +806,8 @@ void P_UpdateSpecials ()
 					bTied = false;
 					for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 					{
-						if ( playeringame[ulIdx] == false )
+						// [BB] Spectators can't win.
+						if ( ( playeringame[ulIdx] == false ) || players[ulIdx].bSpectating )
 							continue;
 
 						if ( players[ulIdx].fragcount > lHighestFrags )
@@ -819,7 +820,8 @@ void P_UpdateSpecials ()
 							bTied = true;
 					}
 
-					if ( bTied )
+					// [BB] In case there are no active players (only spectators), lWinner is -1.
+					if ( bTied || ( lWinner == -1 ) )
 						sprintf( szString, "\\cdDRAW GAME!" );
 					else
 					{
