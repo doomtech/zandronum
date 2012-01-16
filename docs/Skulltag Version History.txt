@@ -138,6 +138,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients didn't properly display the running animation of players already in the game who were running while the new client was receiving the snapshot of the level. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about the parts of the default inventory players already in the game lost before the new client connected. [Torr Samaho]
 -	- Fixed: Spectators were treated like normal players while determining the winner of a DM game when the timelimit was hit. Thus a spectator could be declared to be the winner of the map. [Torr Samaho]
+-	- Fixed: When the countdown for a new round in (team)possession started, clients played the "PrepareToFight" announcer entry instead of the "NextRoundIn" one. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

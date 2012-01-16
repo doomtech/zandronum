@@ -342,7 +342,12 @@ void POSSESSION_StartCountdown( ULONG ulTicks )
 	POSSESSION_SetCountdownTicks( ulTicks );
 
 	// Announce that the fight will soon start.
-	ANNOUNCER_PlayEntry( cl_announcer, "PrepareToFight" );
+	// [BB] The server makes the clients call POSSESSION_StartCountdown even when
+	// the next round countdown begins. So they need to select the proper announcer here.
+	if ( NETWORK_InClientMode() && ( POSSESSION_GetState() == PSNS_NEXTROUNDCOUNTDOWN ) )
+		ANNOUNCER_PlayEntry( cl_announcer, "NextRoundIn" );
+	else
+		ANNOUNCER_PlayEntry( cl_announcer, "PrepareToFight" );
 
 	// Tell clients to start the countdown.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
