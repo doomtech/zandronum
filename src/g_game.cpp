@@ -3579,6 +3579,25 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			continue;
 		}
 
+		// [BB] Special handling for PointPusher/PointPuller: We can't just destroy and respawn them
+		// since DPushers may store a pointer to them and rely on this pointer. Instead of
+		// adjusting the DPushers to new pointers (which would need additional netcode)
+		// we just move the PointPusher/PointPuller to its original location.
+		if ( ( pActor->GetClass()->TypeName == NAME_PointPusher ) || ( pActor->GetClass()->TypeName == NAME_PointPuller ) )
+		{
+			if ( ( pActor->x != pActor->SpawnPoint[0] )
+				|| ( pActor->y != pActor->SpawnPoint[1] )
+				|| ( pActor->z != pActor->SpawnPoint[2] ) )
+			{
+				pActor->SetOrigin ( pActor->SpawnPoint[0], pActor->SpawnPoint[1], pActor->SpawnPoint[2] );
+
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThingExact( pActor, CM_X|CM_Y|CM_Z );
+			}
+
+			continue;
+		}
+
 		// Spawn the new actor.
 		X = pActor->SpawnPoint[0];
 		Y = pActor->SpawnPoint[1];
