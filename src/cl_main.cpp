@@ -2864,6 +2864,12 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// [BB] This prevents the status bar from showing up shortly, if you start a new game, while connected to a server.
 	gamestate = GS_FULLCONSOLE;
 
+	// [BB] Reset gravity to its default, discarding the setting the server used.
+	// Although this is not done for any other sv_* CVAR, it is necessary here,
+	// since the server sent us level.gravity instead of its own sv_gravity value,
+	// see SERVERCOMMANDS_SetGameModeLimits.
+	sv_gravity = sv_gravity.GetGenericRepDefault( CVAR_Float ).Float;
+
 	// If we're recording a demo, then finish it!
 	if ( CLIENTDEMO_IsRecording( ))
 		CLIENTDEMO_FinishRecording( );

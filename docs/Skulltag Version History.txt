@@ -156,6 +156,7 @@ latestzdoom branch
 !	- If a client isn't allowed to know the health and armor of another player due to the gamemode, health and armor of this player are not displayed in coop info anymore. Furthermore, the mugshot of these players through coop spy is displayed as if the player had full health. [Torr Samaho]
 !	- The server now logs RCON connects to the console. It already logged RCON disconnects, so it should log connects, too. [Torr Samaho]
 !	- The CVAR chase_dist now can't be made smaller than 0 anymore. [Torr Samaho]
+!	- When a client disconnects from a server, sv_gravity on the client is reset to its default value, discarding the value the server told the client to use before. [Torr Samaho]
 
 
 98d
