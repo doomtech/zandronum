@@ -2866,7 +2866,9 @@ void PLAYER_RemoveFriends( const ULONG ulPlayer )
 			( ( pActor->FriendPlayer - 1 ) == ulPlayer) )
 		{
 			pActor->FriendPlayer = 0;
-			if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+			if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
+				// [BB] In a gamemode with teams, monsters with DesignatedTeam need to keep MF_FRIENDLY.
+				&& ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS) || !TEAM_CheckIfValid ( pActor->DesignatedTeam ) ) )
 				pActor->flags &= ~MF_FRIENDLY; // this is required in DM or monsters will be friendly to all players
 		}
 	}
