@@ -2022,7 +2022,7 @@ void limitvotemenu_Vote( void )
 	FString		Reason = menu_votereason.GetGenericRep( CVAR_String ).String;
 	V_EscapeBacklashes( Reason );
 
-	if ( iVoteType >= 4 || iVoteType < 0 )
+	if ( iVoteType >= 5 || iVoteType < 0 )
 		return;
 
 	// Execute the command.
@@ -2036,7 +2036,7 @@ void limitvotemenu_Vote( void )
 //
 static menuitem_t limitvotemenu_Items[] =
 {
-	{ discrete,	"Type of limit",	{&menu_limitvote_type},			{4.0}, {0.0},	{0.0}, {limitvote_Types} },
+	{ discrete,	"Type of limit",	{&menu_limitvote_type},			{5.0}, {0.0},	{0.0}, {limitvote_Types} },
 	{ string,	"New value",		{&menu_limitvote_value},		{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Reason for change:",{&menu_votereason},			{0.0}, {0.0},	{0.0}, {NULL} },	
