@@ -665,7 +665,7 @@ CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
 
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
-CVAR( String, skulltag_masterip, "skulltag.servegame.com", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
+CVAR( String, skulltag_masterip, "master.skulltag.net", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
 
 CCMD( wads )
 {
