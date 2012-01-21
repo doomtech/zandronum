@@ -4703,7 +4703,11 @@ static void client_SetPlayerFrags( BYTESTREAM_s *pByteStream )
 		( lastmanstanding == false ) &&
 		( teamlms == false ) &&
 		( possession == false ) &&
-		( teampossession == false ))
+		( teampossession == false ) &&
+		// [BB] If we are still in the first tic of the level, we are receiving the frag count
+		// as part of the full update (that is not considered as a snapshot after a "changemap"
+		// map change). Thus don't announce anything in this case.
+		( level.time != 0 ))
 	{
 		ANNOUNCER_PlayFragSounds( ulPlayer, players[ulPlayer].fragcount, lFragCount );
 	}
