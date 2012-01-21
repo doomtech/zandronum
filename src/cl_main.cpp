@@ -4696,14 +4696,9 @@ static void client_SetPlayerFrags( BYTESTREAM_s *pByteStream )
 		return;
 
 	if (( g_ConnectionState == CTS_ACTIVE ) &&
-		( deathmatch ) &&
-		(( duel == false ) || ( DUEL_GetState( ) == DS_INDUEL )) &&
-		((( lastmanstanding == false ) && ( teamlms == false )) || ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) &&
-		( teamplay == false ) &&
-		( lastmanstanding == false ) &&
-		( teamlms == false ) &&
-		( possession == false ) &&
-		( teampossession == false ) &&
+		( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ) &&
+		!( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+		( GAMEMODE_IsGameInProgress() ) &&
 		// [BB] If we are still in the first tic of the level, we are receiving the frag count
 		// as part of the full update (that is not considered as a snapshot after a "changemap"
 		// map change). Thus don't announce anything in this case.
