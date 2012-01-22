@@ -625,10 +625,19 @@ DEFINE_ACTION_FUNCTION(AActor, A_FLoopActiveSound)
 
 DEFINE_ACTION_FUNCTION(AActor, A_Countdown)
 {
+	// [BB] The server handles this.
+	if ( NETWORK_InClientMode() )
+		return;
+
 	if (--self->reactiontime <= 0)
 	{
 		P_ExplodeMissile (self, NULL, NULL);
 		self->flags &= ~MF_SKULLFLY;
+
+		// [BB] The server tells the client when to explode in P_ExplodeMissile, but we
+		// still need to tell them about the MF_SKULLFLY change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
 	}
 }
 
