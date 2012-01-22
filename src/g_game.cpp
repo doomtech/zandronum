@@ -3154,6 +3154,19 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
 			lines[ulIdx].flags &= ~ ML_MAPPED;
 
+		// [BB] Remove all CLIENTSIDEONLY actors not spawned by the map.
+		while (( pActor = ActorIterator.Next( )) != NULL )
+		{
+			if ( ( ( pActor->ulSTFlags & STFL_LEVELSPAWNED ) == false ) && ( pActor->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
+			{
+				// [BB] This caused problems on the non-client code, so until we discover what
+				// exactly happnes there, just do the same workaround here.
+				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+					pActor->Destroy( );
+				continue;
+			}
+		}
+
 		return;
 	}
 
