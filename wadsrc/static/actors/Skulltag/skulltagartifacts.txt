@@ -176,11 +176,21 @@ ACTOR PowerTerminatorArtifact : Powerup native
 
 //=================================================================================================
 //
+// [BB] ReturningPowerupGiver - Handles auto return of Terminator and PossessionStone
+//
+//=================================================================================================
+
+ACTOR ReturningPowerupGiver : PowerupGiver native
+{
+}
+
+//=================================================================================================
+//
 // Terminator
 //
 //=================================================================================================
 
-ACTOR Terminator : PowerupGiver -1
+ACTOR Terminator : ReturningPowerupGiver -1
 {
 	Game Doom
 	Game Heretic
@@ -219,7 +229,7 @@ ACTOR PowerPossessionArtifact : Powerup native
 //
 //=================================================================================================
 
-ACTOR PossessionStone : PowerupGiver -1
+ACTOR PossessionStone : ReturningPowerupGiver -1
 {
 	Game Doom
 	Game Heretic

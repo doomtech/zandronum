@@ -1848,6 +1848,51 @@ void APowerMorph::EndEffect( )
 	Player = NULL;
 }
 
+//===========================================================================
+//
+// AReturningPowerupGiver
+//
+// [BB] Base class for the Terminator and PossessionStone that handles
+// the automatic return of these objects to a spawn point.
+//===========================================================================
+
+CVAR( Int, sv_artifactreturntime, 30, CVAR_SERVERINFO );
+
+class AReturningPowerupGiver : public APowerupGiver
+{
+	DECLARE_CLASS (AReturningPowerupGiver, APowerupGiver)
+
+	int ReturnTics;
+public:
+	virtual void BeginPlay () {
+		Super::BeginPlay ();
+		ReturnTics = sv_artifactreturntime * TICRATE;
+	}
+	virtual void Tick () {
+		Super::Tick ();
+		if ( NETWORK_InClientMode() )
+			return;
+
+		if ( ReturnTics > 0 )
+		{
+			ReturnTics--;
+			if ( ReturnTics == 0 )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyThing ( this );
+				
+				Destroy();
+				if ( this->IsKindOf ( PClass::FindClass( "Terminator" ) ) )
+					GAME_SpawnTerminatorArtifact( );
+				else if ( this->IsKindOf ( PClass::FindClass( "PossessionStone" ) ) )
+					GAME_SpawnPossessionArtifact( );
+			}
+		}
+	}
+};
+
+IMPLEMENT_CLASS (AReturningPowerupGiver)
+
 // Possession artifact powerup -------------------------------------------------
 
 IMPLEMENT_CLASS( APowerPossessionArtifact )
