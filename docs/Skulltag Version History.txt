@@ -145,6 +145,7 @@ latestzdoom branch
 -	- Fixed: After a "changemap" map change online, a client played the "x frags left" announcer sounds if fraglimit was between 1 and 3. [Torr Samaho]
 -	- Fixed: non-"map spawned", CLIENTSIDEONLY actors were not removed during a map reset on the clients online. [Torr Samaho]
 -	- Fixed: A_Countdown could lead to sync problem online. [Torr Samaho]
+-	- Fixed: Grenades that exploded due to the timer didn't have transparency applied to their explosion. Thanks to Popsoap for submitting the DECORATE fix for this. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
