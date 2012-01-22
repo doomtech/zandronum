@@ -2173,7 +2173,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			{
 				// [BC] If we are the server, tell clients about the state change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingState( actor, STATE_SPAWN );
+					SERVERCOMMANDS_SetThingState( actor, STATE_IDLE );
 
 				actor->SetIdle();
 				actor->flags &= ~MF_INCHASE;
@@ -2246,7 +2246,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 
 				// [BC] Send the state change to clients.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingState( actor, STATE_SPAWN );
+					SERVERCOMMANDS_SetThingState( actor, STATE_IDLE );
 
 				actor->SetIdle();
 			}
