@@ -3925,11 +3925,14 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// [GRB] Reset skin
 	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
 
-	// [RH] Be sure the player has the right translation
-	R_BuildPlayerTranslation ( ulPlayer );
+	if (!(pActor->flags2 & MF2_DONTTRANSLATE))
+	{
+		// [RH] Be sure the player has the right translation
+		R_BuildPlayerTranslation ( ulPlayer );
 
-	// [RH] set color translations for player sprites
-	pActor->Translation = TRANSLATION( TRANSLATION_Players, ulPlayer );
+		// [RH] set color translations for player sprites
+		pActor->Translation = TRANSLATION( TRANSLATION_Players, ulPlayer );
+	}
 	pActor->angle = Angle;
 	pActor->pitch = pActor->roll = 0;
 	pActor->health = pPlayer->health;
