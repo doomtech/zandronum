@@ -109,7 +109,9 @@ bool CheckCheatmode ()
 		( NETWORK_GetState( ) == NETSTATE_SERVER )) &&
 		( sv_cheats == false ))
 	{
-		Printf ("sv_cheats must be true to enable this command.\n");
+		// [BB] Don't allow clients to lag themself by flooding the cheat message.
+		if ( ( NETWORK_InClientMode() == false ) || CLIENT_AllowSVCheatMessage( ) )
+			Printf ("sv_cheats must be true to enable this command.\n");
 		return true;
 	}
 	else

@@ -68,6 +68,7 @@ static	ULONG	g_ulLastChangeTeamTime = 0;
 static	ULONG	g_ulLastSuicideTime = 0;
 static	ULONG	g_ulLastJoinTime = 0;
 static	ULONG	g_ulLastDropTime = 0;
+static	ULONG	g_ulLastSVCheatMessageTime = 0;
 static	bool g_bIgnoreWeaponSelect = false;
 SDWORD g_sdwCheckCmd = 0;
 
@@ -80,6 +81,7 @@ void CLIENT_ResetFloodTimers( void )
 	g_ulLastSuicideTime = 0;
 	g_ulLastJoinTime = 0;
 	g_ulLastDropTime = 0;
+	g_ulLastSVCheatMessageTime = 0;
 }
 
 //*****************************************************************************
@@ -94,6 +96,19 @@ void CLIENT_IgnoreWeaponSelect( bool bIgnore )
 bool CLIENT_GetIgnoreWeaponSelect( void )
 {
 	return g_bIgnoreWeaponSelect;
+}
+
+//*****************************************************************************
+//
+bool CLIENT_AllowSVCheatMessage( void )
+{
+	if ( ( g_ulLastSVCheatMessageTime > 0 ) && ( (ULONG)gametic < ( g_ulLastSVCheatMessageTime + ( TICRATE * 1 ))))
+		return false;
+	else
+	{
+		g_ulLastSVCheatMessageTime = gametic;
+		return true;
+	}
 }
 
 //*****************************************************************************
