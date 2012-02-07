@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	if ( svnCheckout )
 		sprintf (run, "svnversion -cn %s", argv[1]);
 	else
-		sprintf (run, "hg identify -n %s", argv[1]); 
+		sprintf (run, "hg identify -n"); 
 	if ((name = tempnam(NULL, "svnout")) != NULL)
 	{
 #ifdef __APPLE__
@@ -102,9 +102,10 @@ int main(int argc, char **argv)
 	// once we decide to ditch SVN completely.
 	if ( gotrev && ( svnCheckout == 0 ) )
 	{
-		unsigned long hgOffSet = 141;
-		unsigned long parsedRev = strtoul(rev, NULL, 10);
-		unsigned int localChanges = ( rev[strlen(rev) - 1] == 'M' );
+		unsigned long hgOffSet = 158;
+		char *endptr;
+		unsigned long parsedRev = strtoul(rev, &endptr, 10);
+		unsigned int localChanges = ( *endptr == '+' );
 		sprintf ( rev, "%d%s", parsedRev + hgOffSet, localChanges ? "M" : "" );
 	}
 
