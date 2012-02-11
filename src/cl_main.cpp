@@ -3569,6 +3569,26 @@ void CLIENT_UpdatePendingWeapon( const player_t *pPlayer )
 }
 
 //*****************************************************************************
+//
+void CLIENT_SetActorToLastDeathStateFrame ( AActor *pActor )
+{
+	FState	*pDeadState = pActor->FindState( NAME_Death );
+	FState	*pBaseState = NULL;
+
+	do
+	{
+		pBaseState = pDeadState;
+		if ( pBaseState != NULL )
+		{
+			pActor->SetStateNF( pBaseState );
+			pDeadState = pBaseState->GetNextState( );
+		}
+	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
+	// [BB] The "pBaseState->GetTics() != -1" check prevents jumping over frames with ininite duration.
+	// This matters if the death state is not ended by "Stop".
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void client_Header( BYTESTREAM_s *pByteStream )
@@ -3798,22 +3818,10 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		// frame of its death state.
 		if ( pOldActor->health > 0 )
 		{
-			FState	*pDeadState;
-			FState	*pBaseState;
-
 			CALL_ACTION(A_NoBlocking, pOldActor);
 
 			// Put him in the last frame of his death state.
-			pDeadState = pOldActor->FindState(NAME_Death);
-			do
-			{
-				pBaseState = pDeadState;
-				if ( pDeadState != NULL )
-				{
-					pOldActor->SetStateNF( pDeadState );
-					pDeadState = pDeadState->GetNextState( );
-				}
-			} while (( pDeadState != NULL ) && ( pBaseState == pDeadState + 1 ));
+			CLIENT_SetActorToLastDeathStateFrame ( pOldActor );
 		}
 
 		// Check to see if the console player is spectating through this player's eyes.
@@ -6936,8 +6944,6 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 {
 	AActor	*pActor;
 	LONG	lID;
-	FState	*pDeadState;
-	FState	*pBaseState;
 	bool	bIsMonster;
 
 	// Read in the network ID of the thing to make dead.
@@ -6963,18 +6969,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	pActor->height >>= 2;
 
 	// Set the thing to the last frame of its death state.
-	pDeadState = pActor->FindState( NAME_Death );
-	do
-	{
-		pBaseState = pDeadState;
-		if ( pBaseState != NULL )
-		{
-			pActor->SetStateNF( pBaseState );
-			pDeadState = pBaseState->GetNextState( );
-		}
-	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
-	// [BB] The "pBaseState->GetTics() != -1" check prevents jumping over frames with ininite duration.
-	// This matters if the death state is not ended by "Stop".
+	CLIENT_SetActorToLastDeathStateFrame ( pActor );
 
 	if ( bIsMonster )
 		level.killed_monsters++;

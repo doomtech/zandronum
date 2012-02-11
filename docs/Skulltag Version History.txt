@@ -147,6 +147,7 @@ latestzdoom branch
 -	- Fixed: A_Countdown could lead to sync problem online. [Torr Samaho]
 -	- Fixed: Grenades that exploded due to the timer didn't have transparency applied to their explosion. Thanks to Popsoap for submitting the DECORATE fix for this. [Torr Samaho]
 -	- Fixed: When A_Chase should have set an actor to the idle state, on the clients online that actor was set to the spawn state instead. [Torr Samaho]
+-	- Fixed: When a player was spawned on the client, under some circumstances the client locally played the death animation of the previous player body. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
