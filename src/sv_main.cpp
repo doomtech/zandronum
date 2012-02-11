@@ -55,8 +55,6 @@
 #include <time.h>
 
 #include "networkheaders.h"
-#include "MD5Checksum.h"
-#include "MD5ChecksumDefines.h"
 
 #include "../upnpnat/upnpnat.h"
 

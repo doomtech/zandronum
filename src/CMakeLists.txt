@@ -870,7 +870,6 @@ add_executable( zdoom WIN32
 	g_shared/shared_sbar.cpp
 	g_shared/st_hud.cpp #ST
 	${GL_SOURCES}
-	MD5/MD5Checksum.cpp #ST
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp
@@ -964,7 +963,6 @@ include_directories( .
 	g_shared
 	fragglescript
 	Linux
-	MD5 #ST
 	oplsynth
 	sound
 	textures

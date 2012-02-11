@@ -668,4 +668,11 @@ LONG NETWORK_GetFirstFreeID ( void )
 	return ( -1 );
 }
 
+// [BB] Legacy interface that redirects all calls to Skulltag's old MD5 code to the ZDoom MD5 code.
+class CMD5Checksum  
+{
+public:
+	static void GetMD5 ( const BYTE* pBuf, UINT nLength, FString &OutString );
+};
+
 #endif	// __NETWORK_H__

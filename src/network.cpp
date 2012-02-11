@@ -80,7 +80,7 @@
 #include "sbar.h"
 #include "v_video.h"
 
-#include "MD5Checksum.h"
+#include "md5.h"
 
 enum LumpAuthenticationMode {
 	LAST_LUMP,
@@ -1167,6 +1167,25 @@ void I_DoSelect (void)
     stdin_ready = FD_ISSET(0, &fdset);
 #endif
 } 
+
+//*****************************************************************************
+// [BB] Let Skulltag's existing code use ZDoom's MD5 code.
+void CMD5Checksum::GetMD5(const BYTE* pBuf, UINT nLength, FString &OutString)
+{
+	MD5Context md5;
+	BYTE readbuf[16];
+	char MD5SumFull[33];
+	char *MD5Sum = MD5SumFull;
+	md5.Update(pBuf, nLength);
+	md5.Final(readbuf);
+	for(int j = 0; j < 16; ++j)
+	{
+		mysnprintf(MD5Sum, sizeof(MD5Sum), "%02x", readbuf[j]);
+		++++MD5Sum;
+	}
+	*MD5Sum = 0;
+	OutString = MD5SumFull;
+}
 
 //*****************************************************************************
 //	CONSOLE COMMANDS
