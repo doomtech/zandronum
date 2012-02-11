@@ -2249,7 +2249,8 @@ void P_CheckPlayerSprites()
 			// desired skin.
 			lSkin = player->userinfo.skin;
 
-			if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))))
+			// [BB] MF4_NOSKIN should force the player to have the base skin too.
+			if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))) || (player->mo->flags4 & MF4_NOSKIN) )
 				lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
 
 			// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
