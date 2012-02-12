@@ -1372,7 +1372,8 @@ void medal_CheckForFisting( ULONG ulPlayer )
 void medal_CheckForExcellent( ULONG ulPlayer )
 {
 	// If the player has gotten two Excelents within two seconds, award an "Incredible" medal.
-	if (( players[ulPlayer].ulLastExcellentTick + ( 2 * TICRATE )) > (ULONG)level.time )
+	// [BB] Check that the player actually got an excellent medal.
+	if ( ( ( players[ulPlayer].ulLastExcellentTick + ( 2 * TICRATE )) > (ULONG)level.time ) && players[ulPlayer].ulLastExcellentTick )
 	{
 		// Award the incredible.
 		medal_GiveMedal( ulPlayer, MEDAL_INCREDIBLE );
@@ -1381,7 +1382,8 @@ void medal_CheckForExcellent( ULONG ulPlayer )
 		players[ulPlayer].ulLastFragTick = level.time;
 	}
 	// If this player has gotten two frags within two seconds, award an "Excellent" medal.
-	else if (( players[ulPlayer].ulLastFragTick + ( 2 * TICRATE )) > (ULONG)level.time )
+	// [BB] Check that the player actually got a frag.
+	else if ( ( ( players[ulPlayer].ulLastFragTick + ( 2 * TICRATE )) > (ULONG)level.time ) && players[ulPlayer].ulLastFragTick )
 	{
 		// Award the excellent.
 		medal_GiveMedal( ulPlayer, MEDAL_EXCELLENT );
