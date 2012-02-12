@@ -862,7 +862,7 @@ CCMD( ignore_idx )
 {
 	const ULONG ulPlayer = ( argv.argc( ) >= 2 ) ? atoi( argv[1] ) : MAXPLAYERS;
 
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false ) 
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false ) 
 		return;
 
 	chat_IgnorePlayer( argv, ulPlayer );
@@ -916,7 +916,7 @@ CCMD( unignore_idx )
 {
 	const ULONG ulPlayer = ( argv.argc( ) >= 2 ) ? atoi( argv[1] ) : MAXPLAYERS;
 
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false ) 
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false ) 
 		return;
 
 	chat_UnignorePlayer( argv, ulPlayer );

@@ -2731,7 +2731,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
 					AActor *activator = NULL;
 					// [BB] ( ulPlayer == MAXPLAYERS ) means that CancelFade was called with NULL as activator.
-					if ( CLIENT_IsValidPlayer ( ulPlayer ) )
+					if ( PLAYER_IsValidPlayer ( ulPlayer ) )
 						activator = players[ulPlayer].mo;
 
 					// [BB] Needed to copy the code below from the implementation of PCD_CANCELFADE.
@@ -3333,18 +3333,6 @@ sector_t *CLIENT_FindSectorByID( ULONG ulID )
 		return ( NULL );
 
 	return ( &sectors[ulID] );
-}
-
-//*****************************************************************************
-//
-bool CLIENT_IsValidPlayer( ULONG ulPlayer )
-{
-	// If the player index is out of range, or this player is not in the game, then the
-	// player index is not valid.
-	if (( ulPlayer >= MAXPLAYERS ) || ( playeringame[ulPlayer] == false ))
-		return ( false );
-
-	return ( true );
 }
 
 //*****************************************************************************
@@ -4139,7 +4127,7 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ) || ( gamestate != GS_LEVEL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ) || ( gamestate != GS_LEVEL ))
 		return;
 
 	// If we're not allowed to know the player's location, then just make him invisible.
@@ -4219,7 +4207,7 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	// Calculate the amount of damage being taken based on the old health value, and the
@@ -4300,7 +4288,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	// Find the actor associated with the source. It's okay if this actor does not exist.
@@ -4416,7 +4404,7 @@ static void client_SetPlayerHealth( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	players[ulPlayer].health = lHealth;
@@ -4441,7 +4429,7 @@ static void client_SetPlayerArmor( BYTESTREAM_s *pByteStream )
 	pszArmorIconName = NETWORK_ReadString( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	pArmor = players[ulPlayer].mo ? players[ulPlayer].mo->FindInventory<ABasicArmor>( ) : NULL;
@@ -4466,7 +4454,7 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 	ulState = static_cast<PLAYERSTATE_e>(NETWORK_ReadByte( pByteStream ));
 
 	// If this isn't a valid player, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 	{
 #ifdef CLIENT_WARNING_MESSAGES
 		Printf( "client_SetPlayerState: No player object for player: %d\n", ulPlayer );
@@ -4598,7 +4586,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	// We actually send the player's userinfo before he gets spawned, thus putting him in
 	// the game. Therefore, this call won't work unless the way the server sends the data
 	// changes.
-//	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+//	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 //		return;
 	if ( ulPlayer >= MAXPLAYERS )
 		return;
@@ -4703,7 +4691,7 @@ static void client_SetPlayerFrags( BYTESTREAM_s *pByteStream )
 	lFragCount = NETWORK_ReadShort( pByteStream );
 
 	// If this isn't a valid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if (( g_ConnectionState == CTS_ACTIVE ) &&
@@ -4737,7 +4725,7 @@ static void client_SetPlayerPoints( BYTESTREAM_s *pByteStream )
 	lPointCount = NETWORK_ReadShort( pByteStream );
 
 	// If this isn't a valid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Finally, set the player's point count, and refresh the HUD.
@@ -4759,7 +4747,7 @@ static void client_SetPlayerWins( BYTESTREAM_s *pByteStream )
 	lWins = NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Finally, set the player's win count, and refresh the HUD.
@@ -4781,7 +4769,7 @@ static void client_SetPlayerKillCount( BYTESTREAM_s *pByteStream )
 	lKillCount = NETWORK_ReadShort( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Finally, set the player's kill count, and refresh the HUD.
@@ -4798,7 +4786,7 @@ void client_SetPlayerChatStatus( BYTESTREAM_s *pByteStream )
 	bool bChatting = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his chat status.
@@ -4814,7 +4802,7 @@ void client_SetPlayerConsoleStatus( BYTESTREAM_s *pByteStream )
 	bool bInConsole = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his "in console" status.
@@ -4830,7 +4818,7 @@ void client_SetPlayerLaggingStatus( BYTESTREAM_s *pByteStream )
 	bool bLagging = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his lag status.
@@ -4846,7 +4834,7 @@ static void client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream )
 	bool bReadyToGoOn = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his "ready to go on" status.
@@ -4867,7 +4855,7 @@ static void client_SetPlayerTeam( BYTESTREAM_s *pByteStream )
 	ulTeam = NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Update the player's team.
@@ -4925,7 +4913,7 @@ static void client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream )
 	// Read in the poison count.
 	ulPoisonCount = NETWORK_ReadShort( pByteStream );
 
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Finally, set the player's poison count.
@@ -4951,7 +4939,7 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	lMaxAmount = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, NETWORK_GetClassFromIdentification( usActorNetworkIndex ));
@@ -4983,7 +4971,7 @@ static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
 	ulCheats = NETWORK_ReadLong( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	players[ulPlayer].cheats = ulCheats;
@@ -5079,7 +5067,7 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Check to make sure everything is valid. If not, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( players[ulPlayer].ReadyWeapon == NULL )
@@ -5165,7 +5153,7 @@ static void client_SetPlayerMaxHealth( BYTESTREAM_s *pByteStream )
 	LONG lMaxHealth =  NETWORK_ReadLong( pByteStream );
 
 	// [BB] Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	players[ulPlayer].mo->MaxHealth = lMaxHealth;
@@ -5180,7 +5168,7 @@ static void client_SetPlayerLivesLeft( BYTESTREAM_s *pByteStream )
 	ULONG ulLivesLeft =  NETWORK_ReadByte( pByteStream );
 
 	// [BB] Check to make sure everything is valid. If not, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	players[ulPlayer].ulLivesLeft = ulLivesLeft;
@@ -5200,7 +5188,7 @@ static void client_UpdatePlayerPing( BYTESTREAM_s *pByteStream )
 	ulPing = NETWORK_ReadShort( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Finally, set the player's ping.
@@ -5276,7 +5264,7 @@ static void client_UpdatePlayerTime( BYTESTREAM_s *pByteStream )
 	ulTime = NETWORK_ReadShort( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	players[ulPlayer].ulTime = ulTime * ( TICRATE * 60 );
@@ -5362,7 +5350,7 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// If we were a spectator and looking through this player's eyes, revert them.
@@ -5442,7 +5430,7 @@ static void client_GivePlayerMedal( BYTESTREAM_s *pByteStream )
 	ulMedal = NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Award the medal.
@@ -5471,7 +5459,7 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 	bDeadSpectator = !!NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// [BB] If the player turns into a true spectator, create the disconnect particle effect.
@@ -5515,7 +5503,7 @@ static void client_PlayerSay( BYTESTREAM_s *pByteStream )
 	if ( ulPlayer != MAXPLAYERS )
 	{
 		// If this is an invalid player, break out.
-		if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 			return;
 	}
 
@@ -5537,7 +5525,7 @@ static void client_PlayerTaunt( BYTESTREAM_s *pByteStream )
 		return;
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if (( players[ulPlayer].bSpectating ) ||
@@ -5569,7 +5557,7 @@ static void client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream )
 		return;
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// We can't apply the effect to the player's body if the player's body doesn't exist!
@@ -5615,7 +5603,7 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
@@ -5673,7 +5661,7 @@ static void client_PlayerDropInventory( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
@@ -7962,7 +7950,7 @@ static void client_DoPossessionArtifactPickedUp( BYTESTREAM_s *pByteStream )
 	ulTicks = NETWORK_ReadShort( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// If we're not playing possession, there's no need to do this.
@@ -8075,7 +8063,7 @@ static void client_SetDominationPointOwnership( BYTESTREAM_s *pByteStream )
 	unsigned int ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	DOMINATION_SetOwnership(ulPoint, &players[ulPlayer]);
@@ -8331,7 +8319,7 @@ static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 
 	// Check to make sure everything is valid. If not, break out. Also, don't
 	// play the sound if the console player is spying through this player's eyes.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) ||
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
 		( players[ulPlayer].mo == NULL ) ||
 		( players[ulPlayer].mo->CheckLocalView( consoleplayer )))
 	{
@@ -10002,7 +9990,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	lAmount = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
@@ -10121,7 +10109,7 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 	lAmount = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pType = PClass::FindClass( pszName );
@@ -10182,7 +10170,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	lEffectTics = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
@@ -10246,7 +10234,7 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 	pszPickupMessage = NETWORK_ReadString( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	// If the player doesn't have this inventory item, break out.
@@ -10302,7 +10290,7 @@ static void client_DestroyAllInventory( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	// Finally, destroy the player's inventory.
@@ -10320,7 +10308,7 @@ static void client_SetInventoryIcon( BYTESTREAM_s *pByteStream )
 	const FString iconTexName = NETWORK_ReadString( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
 	const PClass *pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
@@ -11798,7 +11786,7 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// [BB] Sanity check.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Create the flash fader.

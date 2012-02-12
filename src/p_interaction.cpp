@@ -2561,7 +2561,8 @@ void PLAYER_SelectPlayersWithHighestValue ( LONG (*GetValue) ( ULONG ulPlayer ),
 //
 bool PLAYER_IsValidPlayer( const ULONG ulPlayer )
 {
-	// Only transmit data about valid players.
+	// If the player index is out of range, or this player is not in the game, then the
+	// player index is not valid.
 	if (( ulPlayer >= MAXPLAYERS ) || ( playeringame[ulPlayer] == false ))
 		return ( false );
 
