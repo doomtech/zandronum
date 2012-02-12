@@ -315,7 +315,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	USHORT usActorNetworkIndex = 0;
@@ -377,7 +377,7 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 	ULONG	ulIdx;
 	ULONG ulPlayerAttackFlags = 0;
 
-	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// [BB] Check if ulPlayer is pressing any attack buttons.
@@ -439,7 +439,7 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 	ULONG		ulArmorPoints;
 	AInventory	*pArmor;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Determine how much armor the damaged player now has, so we can send that information.
@@ -490,7 +490,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -548,7 +548,7 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -576,7 +576,7 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 //
 void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
@@ -613,7 +613,7 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// [BB] Workaround to set max health bonus for the player on the client(s).
@@ -634,7 +634,7 @@ void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPl
 //
 void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// [BB] Workaround to set max armor bonus for the player on the client(s).
@@ -660,7 +660,7 @@ void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -687,7 +687,7 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 {
 	ULONG		ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -740,7 +740,7 @@ void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 {
 	ULONG		ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -767,7 +767,7 @@ void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG		ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -794,7 +794,7 @@ void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -821,7 +821,7 @@ void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -877,7 +877,7 @@ void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue, U
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -904,7 +904,7 @@ void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -947,7 +947,7 @@ void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, U
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -974,7 +974,7 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( pAmmo == NULL )
@@ -1008,7 +1008,7 @@ void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1036,7 +1036,7 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if (( players[ulPlayer].PendingWeapon != WP_NOCHANGE ) &&
@@ -1078,7 +1078,7 @@ void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG		ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1109,7 +1109,7 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 	ULONG			ulIdx;
 	const PClass	*pClass;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( players[ulPlayer].ReadyWeapon == NULL )
@@ -1164,7 +1164,7 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 //
 void SERVERCOMMANDS_SetPlayerBlend( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1192,7 +1192,7 @@ void SERVERCOMMANDS_SetPlayerBlend( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_SetPlayerMaxHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( players[ulPlayer].mo == NULL )
@@ -1220,7 +1220,7 @@ void SERVERCOMMANDS_SetPlayerMaxHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 //
 void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1245,7 +1245,7 @@ void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 //
 void SERVERCOMMANDS_SyncPlayerAmmoAmount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayerWithMo( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	AInventory *pInventory = NULL;
@@ -1265,7 +1265,7 @@ void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1290,7 +1290,7 @@ void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 //
 void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer )
 {
-	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( SERVER_IsValidPlayer( ulDisplayPlayer ) == false ))
+	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( PLAYER_IsValidPlayer( ulDisplayPlayer ) == false ))
 		return;
 
 	SERVER_CheckClientBuffer( ulPlayer, 18, false );
@@ -1313,7 +1313,7 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1366,7 +1366,7 @@ void SERVERCOMMANDS_DisconnectPlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1415,7 +1415,7 @@ void SERVERCOMMANDS_GivePlayerMedal( ULONG ulPlayer, ULONG ulMedal, ULONG ulPlay
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1464,7 +1464,7 @@ void SERVERCOMMANDS_PlayerIsSpectator( ULONG ulPlayer, ULONG ulPlayerExtra, ULON
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1493,7 +1493,7 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 
 	if ( ulPlayer != MAXPLAYERS )
 	{
-		if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 			return;
 	}
 
@@ -1544,7 +1544,7 @@ void SERVERCOMMANDS_PlayerTaunt( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFl
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1570,7 +1570,7 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1597,7 +1597,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
-	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
 	{
 		return;
@@ -1632,7 +1632,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
-	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
 	{
 		return;
@@ -3598,7 +3598,7 @@ void SERVERCOMMANDS_DoPossessionArtifactPickedUp( ULONG ulPlayer, ULONG ulTicks,
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3907,7 +3907,7 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlaye
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -4058,7 +4058,7 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -4086,7 +4086,7 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 	ULONG	ulIdx;
 	USHORT	usActorNetworkIndex = 0;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( players[ulPlayer].ReadyWeapon != NULL )
@@ -5359,7 +5359,7 @@ void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameter
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5388,7 +5388,7 @@ void SERVERCOMMANDS_PlayerVote( ULONG ulPlayer, bool bVoteYes, ULONG ulPlayerExt
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5729,7 +5729,7 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( pInventory == NULL )
@@ -5788,7 +5788,7 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	const PClass *pType = PClass::FindClass( pszClassName );
@@ -5820,7 +5820,7 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( pPowerup == NULL )
@@ -5860,7 +5860,7 @@ void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName,
 	if ( pszPickupMessage )
 		lLength += (LONG)strlen( pszPickupMessage );
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -7179,7 +7179,7 @@ void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerE
 {
 	ULONG	ulIdx;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

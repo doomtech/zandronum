@@ -79,7 +79,7 @@ void UNLAGGED_Tick( void )
 	// [Spleen] Record players
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 	{
-		if ( SERVER_IsValidPlayerWithMo( ulIdx ) )
+		if ( PLAYER_IsValidPlayerWithMo( ulIdx ) )
 			UNLAGGED_RecordPlayer( &players[ulIdx] );
 	}
 
@@ -406,7 +406,7 @@ void UNLAGGED_SpawnDebugActors ( )
 
 			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 			{
-				if ( ( ulPlayer == ulIdx ) || ( SERVER_IsValidPlayer ( ulIdx ) == false ) || players[ulIdx].bSpectating )
+				if ( ( ulPlayer == ulIdx ) || ( PLAYER_IsValidPlayer ( ulIdx ) == false ) || players[ulIdx].bSpectating )
 					continue;
 
 				pActor->x = players[ulIdx].unlaggedX[unlaggedIndex];

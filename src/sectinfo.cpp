@@ -286,7 +286,7 @@ void SECTINFO_ParsePoints(FScanner &sc, TArray< TArray<unsigned int> *> &Points,
 
 FString SECTINFO_GetPlayerLocation( const ULONG ulPlayer )
 {
-	if ( ( SERVER_IsValidPlayerWithMo( ulPlayer ) == true )
+	if ( ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == true )
 		&& ( level.info->SectorInfo.Names.Size() > static_cast<unsigned> (players[ulPlayer].mo->Sector->sectornum) )
 		&& ( level.info->SectorInfo.Names[players[ulPlayer].mo->Sector->sectornum] != NULL ) )
 		return *level.info->SectorInfo.Names[players[ulPlayer].mo->Sector->sectornum];

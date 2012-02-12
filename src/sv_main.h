@@ -358,8 +358,6 @@ void		SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
 void		SERVER_SendFullUpdate( ULONG ulClient );
 void		SERVER_WriteCommands( void );
 bool		SERVER_IsValidClient( ULONG ulClient );
-bool		SERVER_IsValidPlayer( ULONG ulPlayer );
-bool		SERVER_IsValidPlayerWithMo( ULONG ulPlayer );
 void		SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer );
 void		SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo );
 void		SERVER_SendHeartBeat( void );

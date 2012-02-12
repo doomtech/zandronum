@@ -2668,29 +2668,11 @@ bool SERVER_IsValidClient( ULONG ulClient )
 
 //*****************************************************************************
 //
-bool SERVER_IsValidPlayer( ULONG ulPlayer )
-{
-	// Only transmit data about valid players.
-	if (( ulPlayer >= MAXPLAYERS ) || ( playeringame[ulPlayer] == false ))
-		return ( false );
-
-	return ( true );
-}
-
-//*****************************************************************************
-//
-bool SERVER_IsValidPlayerWithMo( ULONG ulPlayer )
-{
-	return ( SERVER_IsValidPlayer ( ulPlayer ) && players[ulPlayer].mo );
-}
-
-//*****************************************************************************
-//
 void SERVER_AdjustPlayersReactiontime( const ULONG ulPlayer )
 {
 	// [BB] After adjusting the reactiontime on the server, the reactiontime on
 	// client and server should approximately end at the same time.
-	if ( SERVER_IsValidPlayerWithMo ( ulPlayer ) && ( players[ulPlayer].bIsBot == false ) )
+	if ( PLAYER_IsValidPlayerWithMo ( ulPlayer ) && ( players[ulPlayer].bIsBot == false ) )
 		players[ulPlayer].mo->reactiontime += ( players[ulPlayer].ulPing * TICRATE / 1000 );
 }
 
@@ -4153,7 +4135,7 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 // [BB]
 void SERVER_HandleWeaponStateJump( ULONG ulPlayer, FState *pState, LONG lPosition )
 {
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	AWeapon *pReadyWeapon = players[ulPlayer].ReadyWeapon;
@@ -5657,7 +5639,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 //
 static bool server_InventoryUseAll( BYTESTREAM_s *pByteStream )
 {
-	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
+	if (gamestate == GS_LEVEL && !paused && PLAYER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
 		AInventory *item = players[g_lCurrentClient].mo->Inventory;
 
@@ -5680,7 +5662,7 @@ static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 {
 	USHORT usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
-	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
+	if (gamestate == GS_LEVEL && !paused && PLAYER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
 		AInventory *item = players[g_lCurrentClient].mo->FindInventory (NETWORK_GetClassNameFromIdentification( usActorNetworkIndex));
 		if (item != NULL)
@@ -5708,7 +5690,7 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 
-	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
+	if (gamestate == GS_LEVEL && !paused && PLAYER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
 		pItem = players[g_lCurrentClient].mo->FindInventory( NETWORK_GetClassNameFromIdentification( usActorNetworkIndex ));
 		if ( pItem )

@@ -2559,6 +2559,24 @@ void PLAYER_SelectPlayersWithHighestValue ( LONG (*GetValue) ( ULONG ulPlayer ),
 
 //*****************************************************************************
 //
+bool PLAYER_IsValidPlayer( const ULONG ulPlayer )
+{
+	// Only transmit data about valid players.
+	if (( ulPlayer >= MAXPLAYERS ) || ( playeringame[ulPlayer] == false ))
+		return ( false );
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+bool PLAYER_IsValidPlayerWithMo( const ULONG ulPlayer )
+{
+	return ( PLAYER_IsValidPlayer ( ulPlayer ) && players[ulPlayer].mo );
+}
+
+//*****************************************************************************
+//
 bool PLAYER_IsTrueSpectator( player_t *pPlayer )
 {
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
@@ -2631,7 +2649,7 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 			// [BB] Only force the player to start as spectator if he didn't already join.
 			// In that case the join password was already checked.
 			const ULONG ulPlayer = static_cast<ULONG> ( pPlayer - players );
-			if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+			if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 				return ( true );
 
 			// [BB] If the player is already spectating, he should still spawn as spectator.
