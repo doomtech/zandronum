@@ -577,7 +577,10 @@ void APlayerPawn::SetupWeaponSlots()
 	if (player != NULL && player->mo == this)
 	{
 		player->weapons.StandardSetup(GetClass());
-		if (player - players == consoleplayer)
+		// [BB] Since ST doesn't use the DEM_* stuff let clients do this
+		// for all players. Otherwise the KEYCONF lump would be completely ignored
+		// on clients for all players other than the consoleplayer.
+		if ( (player - players == consoleplayer) || NETWORK_InClientMode() )
 		{ // If we're the local player, then there's a bit more work to do.
 			FWeaponSlots local_slots(player->weapons);
 			local_slots.LocalSetup(GetClass());
