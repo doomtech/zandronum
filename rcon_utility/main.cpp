@@ -57,7 +57,7 @@
 #include "zstring.h"
 #include "../src/configfile.h"
 #include "../src/sv_rcon.h"
-#include "../src/MD5/MD5Checksum.h"
+#include "MD5Checksum.h"
 #include "main.h"
 #include "resource.h"
 

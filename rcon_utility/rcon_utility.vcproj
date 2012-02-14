@@ -220,25 +220,8 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\MD5\MD5Checksum.cpp"
+				RelativePath=".\MD5Checksum.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\masterserver\network.cpp"
