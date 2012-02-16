@@ -372,7 +372,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// [BB] Warn the user about problematic auto-loaded files.
 	if ( noProtectedLumpsAutoloaded == false )
 	{
-		Printf ( PRINT_BOLD, "Warning: Above auto-laded files contain protected lumps.\n" );
+		Printf ( PRINT_BOLD, "Warning: Above auto-loaded files contain protected lumps.\n" );
 		if ( Args->CheckParm( "-host" ) )
 			Printf ( PRINT_BOLD, "Clients without these files can't connect to this server.\n" );
 		else

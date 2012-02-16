@@ -151,6 +151,7 @@ latestzdoom branch
 -	- Fixed: NOSKIN didn't work properly on player classes. [Torr Samaho]
 -	- Fixed: If a player fragged another player during the first two seconds after the map was started, that player got an incredible medal. [Torr Samaho]
 -	- Fixed: Clients online only used the KEYCONF lump for their own player but ignored it for all other players locally. [Torr Samaho]
+-	- Fixed a typo in the protected lumps warning. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
