@@ -1110,7 +1110,7 @@ void ApplyCoopDamagefactor(int &damage, AActor *source)
 void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage, FName mod, int flags)
 {
 	unsigned ang;
-	player_t *player;
+	player_t *player = NULL;
 	fixed_t thrust;
 	int temp;
 	// [BC]
