@@ -5843,6 +5843,14 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 	if ( lBits & CM_MOMZ )
 		pActor->momz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
+	// [Dusk] if the actor that's being moved is a player and his momentum
+	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
+	// as well.
+	if ((pActor->player != NULL) && (pActor->momx == 0) && (pActor->momy == 0)) {
+		pActor->player->momx = 0;
+		pActor->player->momy = 0;
+	}
+
 	// Read in the pitch data.
 	if ( lBits & CM_PITCH )
 		pActor->pitch = NETWORK_ReadLong( pByteStream );
@@ -5923,6 +5931,14 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		pActor->momy = NETWORK_ReadLong( pByteStream );
 	if ( lBits & CM_MOMZ )
 		pActor->momz = NETWORK_ReadLong( pByteStream );
+
+	// [Dusk] if the actor that's being moved is a player and his momentum
+	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
+	// as well.
+	if ((pActor->player != NULL) && (pActor->momx == 0) && (pActor->momy == 0)) {
+		pActor->player->momx = 0;
+		pActor->player->momy = 0;
+	}
 
 	// Read in the pitch data.
 	if ( lBits & CM_PITCH )

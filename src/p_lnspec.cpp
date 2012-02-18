@@ -1587,6 +1587,11 @@ FUNC(LS_Thing_Stop)
 		{
 			it->momx = it->momy = it->momz = 0;
 			if (it->player != NULL) it->player->momx = it->player->momy = 0;
+
+			// [Dusk] tell the clients about this
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThingExact( it, ( ( it->player == NULL ) ? (CM_X|CM_Y|CM_Z) : 0 )|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 			ok = true;
 		}
 	}
@@ -1598,6 +1603,11 @@ FUNC(LS_Thing_Stop)
 		{
 			target->momx = target->momy = target->momz = 0;
 			if (target->player != NULL) target->player->momx = target->player->momy = 0;
+
+			// [Dusk] tell the clients about this
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThingExact( target, ( ( target->player == NULL ) ? (CM_X|CM_Y|CM_Z) : 0 )|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 			ok = true;
 		}
 	}
