@@ -153,6 +153,7 @@ latestzdoom branch
 -	- Fixed: Clients online only used the KEYCONF lump for their own player but ignored it for all other players locally. [Torr Samaho]
 -	- Fixed a typo in the protected lumps warning. [Torr Samaho]
 -	- Fixed: Clients applied TERRAIN damage by themselves leading to sync problem online. [Dusk, Torr Samaho]
+-	- Fixed: Additive translucent lines were not additive translucent after a map reset anymore. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

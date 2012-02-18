@@ -1964,12 +1964,8 @@ void P_FinishLoadingLineDef(line_t *ld, int alpha)
 				ld->flags |= ML_ADDTRANS;
 			}
 
-			// [BC] Back up the side's flags here.
-			sides[ld->sidenum[0]].SavedFlags = sides[ld->sidenum[0]].Flags;
-			if (ld->sidenum[1] != NO_SIDE)
-			{
-				sides[ld->sidenum[1]].SavedFlags = sides[ld->sidenum[1]].Flags;
-			}
+			// [Dusk] back up the line's flags here
+			ld->SavedFlags = ld->flags;
 		}
 		else
 		{
@@ -1987,12 +1983,8 @@ void P_FinishLoadingLineDef(line_t *ld, int alpha)
 						lines[j].flags |= ML_ADDTRANS;
 					}
 
-					// [BC] Back up the side's flags here.
-					sides[lines[j].sidenum[0]].SavedFlags = sides[lines[j].sidenum[0]].Flags;
-					if (lines[j].sidenum[1] != NO_SIDE)
-					{
-						sides[lines[j].sidenum[1]].SavedFlags = sides[lines[j].sidenum[1]].Flags;
-					}
+					// [Dusk] back up the line's flags here
+					lines[j].SavedFlags = lines[j].flags;
 				}
 			}
 		}
