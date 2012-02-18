@@ -2933,6 +2933,11 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int 
 
 			mo->flags |= MF_DROPPED;
 			mo->flags &= ~MF_NOGRAVITY;	// [RH] Make sure it is affected by gravity
+
+			// [Dusk] and be sure to tell the clients about that!
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
+
 			if (!(i_compatflags & COMPATF_NOTOSSDROPS))
 			{
 				P_TossItem (mo);

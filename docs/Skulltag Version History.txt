@@ -154,6 +154,7 @@ latestzdoom branch
 -	- Fixed a typo in the protected lumps warning. [Torr Samaho]
 -	- Fixed: Clients applied TERRAIN damage by themselves leading to sync problem online. [Dusk, Torr Samaho]
 -	- Fixed: Additive translucent lines were not additive translucent after a map reset anymore. [Dusk]
+-	- Fixed: Clients weren't told about -NOGRAVITY or +DROPPED that is explicitly set for dropped items. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
