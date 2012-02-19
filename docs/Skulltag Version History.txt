@@ -178,6 +178,7 @@ latestzdoom branch
 !	- Changed the default value of the CVAR skulltag_masterip to master.skulltag.net. [Torr Samaho]
 !	- The "sv_cheats must be true to enable this command." message is not displayed more than once per second on a client online anymore. [Torr Samaho]
 !	- Being killed by a teammate doesn't count towards "You Fail It" or YSINE medals anymore, making it consistent with excellent/incredible medals that ignore team kills. [Torr Samaho]
+!	- When a connecting client is disconnected due to an error, any further net packet from its IP are now ignored for 10 seconds to prevent log flooding. [Torr Samaho]
 
 
 98d

@@ -2205,7 +2205,10 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	// Send the packet off.
 	SERVER_SendClientPacket( ulClient, true );
 
-	Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
+	Printf( "%s \\c-disconnected. Ignoring IP for 10 seconds.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
+
+	// [BB] Block this IP for ten seconds to prevent log flooding.
+	g_floodProtectionIPQueue.addAddress ( g_aClients[ulClient].Address, g_lGameTime / 1000 );
 
 	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
 	g_aClients[ulClient].State = CLS_FREE;
