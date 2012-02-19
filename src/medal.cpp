@@ -721,17 +721,11 @@ void MEDAL_ClearMedalQueue( ULONG ulPlayer )
 //
 void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 {
-	if (( ulPlayer >= MAXPLAYERS ) ||
-		( playeringame[ulPlayer] == false ) ||
-		( players[ulPlayer].mo == NULL ))
-	{
+	if ( PLAYER_IsValidPlayerWithMo ( ulPlayer ) == false )
 		return;
-	}
 
 	// Check for domination and first frag medals.
-	if (( ulSourcePlayer < MAXPLAYERS ) &&
-		( playeringame[ulSourcePlayer] ) &&
-		( players[ulSourcePlayer].mo ) &&
+	if ( PLAYER_IsValidPlayerWithMo ( ulSourcePlayer ) &&
 		( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ))
 	{
 		players[ulSourcePlayer].ulFragsWithoutDeath++;
