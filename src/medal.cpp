@@ -748,10 +748,16 @@ void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 	}
 
 	players[ulPlayer].ulDeathCount++;
-	players[ulPlayer].ulDeathsWithoutFrag++;
 	players[ulPlayer].ulFragsWithoutDeath = 0;
 
-	medal_CheckForYouFailIt( ulPlayer );
+	// [BB] Don't punish being killed by a teammate (except if a player kills himself).
+	if ( ( ulPlayer == ulSourcePlayer )
+		|| ( PLAYER_IsValidPlayerWithMo ( ulSourcePlayer ) == false )
+		|| ( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ) )
+	{
+		players[ulPlayer].ulDeathsWithoutFrag++;
+		medal_CheckForYouFailIt( ulPlayer );
+	}
 }
 
 //*****************************************************************************
