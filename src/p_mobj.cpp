@@ -2023,7 +2023,8 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				if (BlockingMobj)
 				{
 					int bt = mo->bouncetype & BOUNCE_TypeMask;
-					if (bt == BOUNCE_Doom || bt == BOUNCE_Hexen)
+					// [BB] The server handles this.
+					if ( (bt == BOUNCE_Doom || bt == BOUNCE_Hexen) && !NETWORK_InClientMode() )
 					{
 						if (mo->flags5&MF5_BOUNCEONACTORS ||
 							(BlockingMobj->flags2 & MF2_REFLECTIVE) ||
@@ -2042,6 +2043,14 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							mo->momx = FixedMul (speed, finecosine[angle]);
 							mo->momy = FixedMul (speed, finesine[angle]);
 							mo->PlayBounceSound(true);
+
+							// [BB] Inform the clients.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							{
+								SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ|CM_ANGLE );
+								SERVERCOMMANDS_PlayBounceSound( mo, true );
+							}
+
 							return oldfloorz;
 						}
 						else
