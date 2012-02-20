@@ -2749,6 +2749,15 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				break;
 
+			case SVC2_PLAYBOUNCESOUND:
+				{
+					AActor *pActor = CLIENT_FindThingByNetID( NETWORK_ReadShort( pByteStream ) );
+					const bool bOnfloor = !!NETWORK_ReadByte( pByteStream );
+					if ( pActor )
+						pActor->PlayBounceSound ( bOnfloor );
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

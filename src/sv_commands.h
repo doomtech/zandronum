@@ -371,5 +371,6 @@ void	SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWea
 void	SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient );
 void	SERVERCOMMANDS_ForceLightning( const int Mode, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
 #endif	// __SV_COMMANDS_H__

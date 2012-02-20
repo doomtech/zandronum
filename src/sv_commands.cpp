@@ -86,7 +86,7 @@ EXTERN_CVAR( Float, sv_aircontrol )
 //	FUNCTIONS
 
 // [BB] Check if the actor has a valid net ID. Returns true if it does, returns false and prints a warning if not.
-bool EnsureActorHasNetID( AActor *pActor )
+bool EnsureActorHasNetID( const AActor *pActor )
 {
 	if ( pActor == NULL )
 		return false;
@@ -6006,6 +6006,33 @@ void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_CANCELFADE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( !EnsureActorHasNetID (pActor) )
+		return;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_PLAYBOUNCESOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bOnfloor );
 	}
 }
 
