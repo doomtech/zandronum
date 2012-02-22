@@ -6325,9 +6325,10 @@ AActor *P_SpawnPlayerMissile (AActor *source, const PClass *type, angle_t angle,
 }
 
 // [BC/BB] Added bSpawnSound.
+// [BB] Added bSpawnOnClient.
 AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 							  const PClass *type, angle_t angle, AActor **pLineTarget, AActor **pMissileActor,
-							  bool nofreeaim, bool bSpawnSound)
+							  bool nofreeaim, bool bSpawnSound, bool bSpawnOnClient)
 {
 	static const int angdiff[3] = { -1<<26, 1<<26, 0 };
 	int i;
@@ -6413,8 +6414,8 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	if (MissileActor->flags4 & MF4_SPECTRAL)
 		MissileActor->health = -1;
 
-	// [BC] Tell clients to spawn this missile.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BC/BB] Possibly tell clients to spawn this missile.
+	if ( bSpawnOnClient && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 		SERVERCOMMANDS_SpawnMissileExact( MissileActor );
 	
 	if (P_CheckMissileSpawn (MissileActor))

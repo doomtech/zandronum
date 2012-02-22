@@ -1371,7 +1371,9 @@ void A_FireCustomMissileHelper ( AActor * self,
 								 const INTBOOL AimAtAngle,
 								 AActor *&linetarget )
 {
-	AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget);
+	// [BB] Don't tell the clients to spawn the missile yet. This is done later
+	// after we are done manipulating angle and momentum.
+	AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget,	NULL, false, true, false);
 	// automatic handling of seeker missiles
 	if (misl)
 	{
@@ -1391,7 +1393,7 @@ void A_FireCustomMissileHelper ( AActor * self,
 
 		// [BC] If we're the server, tell clients to spawn this missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnMissile( misl );
+			SERVERCOMMANDS_SpawnMissileExact( misl );
 	}
 }
 
