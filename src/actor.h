@@ -411,6 +411,9 @@ enum
 	// Only use it on actors that are always invisible and don't block the movement of players.
 	NETFL_SERVERSIDEONLY		= 0x00000020,
 
+	// [BB] This actor just bounced off another actor and needs special treatment.
+	NETFL_BOUNCED_OFF_ACTOR		= 0x00000040,
+
 	// [BC] End of new ST flags.
 
 // --- mobj.renderflags ---

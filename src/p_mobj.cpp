@@ -2047,8 +2047,10 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							// [BB] Inform the clients.
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
-								SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ|CM_ANGLE );
 								SERVERCOMMANDS_PlayBounceSound( mo, true );
+								// [BB] We need to inform the clients about the new momentum and sync the position,
+								// but can only do this after calling P_ZMovement. Mark the actor accordingly.
+								mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
 							}
 
 							return oldfloorz;
@@ -2875,6 +2877,14 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		}
 	}
 	P_CheckFakeFloorTriggers (mo, oldz);
+
+	// [TIHan/BB] If it's a missile that is bounceable and it bounced, send info to the client
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( mo->ulNetworkFlags & NETFL_BOUNCED_OFF_ACTOR ) )
+	{
+		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ|CM_ANGLE );
+		// [BB] Remove the mark, the syncing is done now.
+		mo->ulNetworkFlags &= ~NETFL_BOUNCED_OFF_ACTOR;
+	}
 }
 
 void P_CheckFakeFloorTriggers (AActor *mo, fixed_t oldz, bool oldz_has_viewheight)

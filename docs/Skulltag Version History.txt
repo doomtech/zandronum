@@ -156,7 +156,7 @@ latestzdoom branch
 -	- Fixed: Additive translucent lines were not additive translucent after a map reset anymore. [Dusk]
 -	- Fixed: Clients weren't told about -NOGRAVITY or +DROPPED that is explicitly set for dropped items. [Dusk]
 -	- Fixed: The line special Thing_Stop didn't work properly online. [Dusk]
--	- Improved synchronicity on the clients when a grenade bounces off another actor online. [Torr Samaho]
+-	- Fixed: The position of grenades bouncing off another actor online got out of sync on the clients. [Dusk, TIHan, Torr Samaho]
 -	- Fixed: A_FireCustomMissile played the SeeSound on the clients twice, wasted network bandwidth and spawned the missile on the clients imprecisely. [Dusk, TIHan, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
