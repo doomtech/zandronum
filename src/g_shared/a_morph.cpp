@@ -175,6 +175,8 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS );
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS2 );
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS3 );
+		if ( morphed->tid != 0 )
+			SERVERCOMMANDS_SetThingTID( morphed );
 	}
 
 	return true;
@@ -381,6 +383,8 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS );
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS2 );
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS3 );
+		if ( player->mo->tid != 0 )
+			SERVERCOMMANDS_SetThingTID( player->mo );
 	}
 	return true;
 }
