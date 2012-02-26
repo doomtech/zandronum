@@ -12200,6 +12200,10 @@ CCMD( send_password )
 }
 
 //*****************************************************************************
+// [Dusk] Redisplay the MOTD
+CCMD( motd ) {CLIENT_DisplayMOTD();}
+
+//*****************************************************************************
 //	CONSOLE VARIABLES
 
 CVAR( Bool, cl_predict_players, true, CVAR_ARCHIVE )
