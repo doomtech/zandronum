@@ -215,7 +215,6 @@ static	void	client_SetThingTarget( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngleExact( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingMoveDir( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingWaterLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingFlags( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
@@ -588,7 +587,6 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DESTROYTHING",
 	"SVC_SETTHINGANGLE",
 	"SVC_SETTHINGANGLEEXACT",
-	"SVC_SETTHINGMOVEDIR",
 	"SVC_SETTHINGWATERLEVEL",
 	"SVC_SETTHINGFLAGS",
 	"SVC_SETTHINGARGUMENTS",
@@ -1953,10 +1951,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGANGLEEXACT:
 
 		client_SetThingAngleExact( pByteStream );
-		break;
-	case SVC_SETTHINGMOVEDIR:
-
-		client_SetThingMoveDir( pByteStream );
 		break;
 	case SVC_SETTHINGWATERLEVEL:
 
@@ -6278,34 +6272,6 @@ static void client_SetThingAngleExact( BYTESTREAM_s *pByteStream )
 
 	// Finally, set the angle.
 	pActor->angle = Angle;
-}
-
-//*****************************************************************************
-//
-static void client_SetThingMoveDir( BYTESTREAM_s *pByteStream )
-{
-	LONG		lID;
-	LONG		lMoveDir;
-	AActor		*pActor;
-
-	// Read in the thing's network ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the thing's movement direction.
-	lMoveDir = NETWORK_ReadByte( pByteStream );
-
-	// Now try to find the thing.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetThingMoveDir: Couldn't find thing: %d\n", lID );
-#endif
-		return;
-	}
-
-	// Finally, set the movement direction.
-	pActor->movedir = lMoveDir;
 }
 
 //*****************************************************************************

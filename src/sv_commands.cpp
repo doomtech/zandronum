@@ -2183,33 +2183,6 @@ void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULO
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingMoveDir( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-	ULONG	ulIdx;
-
-	if ( !EnsureActorHasNetID (pActor) )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGMOVEDIR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
-	}
-}
-
-//*****************************************************************************
-//
 void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
