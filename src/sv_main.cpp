@@ -2446,6 +2446,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				if ( pActor->momz != 0 )
 					ulBits |= CM_MOMZ;
 
+				if ( pActor->movedir != 0 )
+					ulBits |= CM_MOVEDIR;
+
 				if ( ulBits != 0 )
 					SERVERCOMMANDS_MoveThingExact( pActor, ulBits, ulClient, SVCF_ONLYTHISCLIENT );
 			}

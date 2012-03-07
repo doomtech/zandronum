@@ -160,6 +160,7 @@ latestzdoom branch
 -	- Fixed: The position of grenades bouncing off another actor online got out of sync on the clients. [Dusk, TIHan, Torr Samaho]
 -	- Fixed: A_FireCustomMissile played the SeeSound on the clients twice, wasted network bandwidth and spawned the missile on the clients imprecisely. [Dusk, TIHan, Torr Samaho]
 -	- Fixed: If a player with a TID is morphed/unmorphed, clients assumed the TID is reverted to 0. [Torr Samaho]
+-	- Fixed: Newly connecting clients were not informed about the current movedir of the actors already in the game. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
