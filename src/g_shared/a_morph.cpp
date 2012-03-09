@@ -383,6 +383,8 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS );
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS2 );
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS3 );
+		// [WS] Inform clients the state of the unmorphed player.
+		SERVERCOMMANDS_SetThingFrame( player->mo, player->mo->state, MAXPLAYERS, 0, false );
 		if ( player->mo->tid != 0 )
 			SERVERCOMMANDS_SetThingTID( player->mo );
 	}
