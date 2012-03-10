@@ -55,6 +55,7 @@
 //*****************************************************************************
 //	PROTOTYPES
 
+bool HUD_IsScaled ( );
 void HUD_DrawTexture( FTexture *Img, int X, int Y );
 void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String );
 

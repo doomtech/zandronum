@@ -65,6 +65,11 @@ CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 //*****************************************************************************
 //	FUNCTIONS
 
+bool HUD_IsScaled ( )
+{
+	return ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 );
+}
+
 void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale )
 {
 	screen->DrawTexture( Img,
@@ -76,7 +81,7 @@ void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale )
 
 void HUD_DrawTexture( FTexture *Img, int X, int Y )
 {
-	HUD_DrawTexture( Img, X, Y, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ) );
+	HUD_DrawTexture( Img, X, Y, HUD_IsScaled() );
 }
 
 void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String, const bool Scale )
@@ -91,7 +96,7 @@ void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *Strin
 
 void HUD_DrawText( FFont* Font, int Normalcolor, int X, int Y, const char *String )
 {
-	HUD_DrawText( Font, Normalcolor, X, Y, String, ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ) );
+	HUD_DrawText( Font, Normalcolor, X, Y, String, HUD_IsScaled() );
 }
 
 void HUD_DrawText( int Normalcolor, int X, int Y, const char *String, const bool Scale )
@@ -115,12 +120,7 @@ void DrawHUD_CoopInfo()
 		|| NETWORK_GetState() == NETSTATE_SINGLE )
 		return;
 
-	bool bScale;
-
-	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
-		bScale = true;
-	else
-		bScale = false;
+	const bool bScale = HUD_IsScaled();
 
 	FString drawString;
 
