@@ -284,6 +284,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	else
 	{
 		g_bScale		= false;
+		g_rXScale		= 1;
+		g_rYScale		= 1;
 		g_ulTextHeight	= SmallFont->GetHeight( ) + 1;
 	}
 
@@ -543,7 +545,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 				{
 					char szString[64];
 					sprintf( szString, "Lives: %d / %d", static_cast<unsigned int> (players[ulDisplayPlayer].ulLivesLeft+1), GAMEMODE_GetMaxLives() );
-					HUD_DrawText ( SmallFont, CR_RED, 0, static_cast<int> ( ( g_bScale ? g_rYScale : 1 ) * ( ST_Y - g_ulTextHeight + 1 ) ), szString );
+					HUD_DrawText ( SmallFont, CR_RED, 0, static_cast<int> ( g_rYScale * ( ST_Y - g_ulTextHeight + 1 ) ), szString );
 				}
 			}
 
@@ -866,101 +868,32 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	sprintf( szString, "\\cGRANK: \\cC%d/%s%d", static_cast<unsigned int> (g_ulRank + 1), g_bIsTied ? "\\cG" : "", static_cast<unsigned int> (g_ulNumPlayers) );
 	V_ColorizeString( szString );
 
-	if ( g_bScale )
-	{
-		screen->DrawText( SmallFont, CR_GRAY,
-			0,
-			(LONG)( ulYPos * g_rYScale ),
-			szString,
-			DTA_VirtualWidth, g_ValWidth.Int,
-			DTA_VirtualHeight, g_ValHeight.Int,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawText( SmallFont, CR_GRAY,
-			0,
-			ulYPos,
-			szString,
-			TAG_DONE );
-	}
+	HUD_DrawText( SmallFont, CR_GRAY,
+		0,
+		(LONG)( ulYPos * g_rYScale ),
+		szString );
 
 	ulYPos += g_ulTextHeight;
 
 	sprintf( szString, "\\cGSPREAD: \\cC%s%d", g_lSpread > 0 ? "+" : "", static_cast<int> (g_lSpread) );
 	V_ColorizeString( szString );
 
-	if ( g_bScale )
-	{
-		screen->DrawText( SmallFont, CR_GRAY,
-			0,
-			(LONG)( ulYPos * g_rYScale ),
-			szString,
-			DTA_VirtualWidth, g_ValWidth.Int,
-			DTA_VirtualHeight, g_ValHeight.Int,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawText( SmallFont, CR_GRAY,
-			0,
-			ulYPos,
-			szString,
-			TAG_DONE );
-	}
+	HUD_DrawText( SmallFont, CR_GRAY,
+		0,
+		(LONG)( ulYPos * g_rYScale ),
+		szString );
 
 	// 'Wins' isn't an entry on the statusbar, so we have to draw this here.
-	if (( duel ) && ( players[consoleplayer].camera->player->ulWins > 0 ))
+	// [BB] Note: SCOREBOARD_RenderStats_RankSpread is not called in LMS, so the LMS check can be removed...
+	if (( duel || lastmanstanding ) && ( players[consoleplayer].camera->player->ulWins > 0 ))
 	{
 		sprintf( szString, "\\cGWINS: \\cC%d", static_cast<unsigned int> (players[consoleplayer].camera->player->ulWins) );
 		V_ColorizeString( szString );
 
-		if ( g_bScale )
-		{
-			screen->DrawText( SmallFont, CR_GRAY,
-				g_ValWidth.Int - SmallFont->StringWidth( szString ),
-				(LONG)( ulYPos * g_rYScale ),
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( SmallFont, CR_GRAY,
-				SCREENWIDTH - SmallFont->StringWidth( szString ),
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
-	}
-
-	if ( lastmanstanding )
-	{
-		if ( players[consoleplayer].camera->player->ulWins > 0 )
-		{
-			sprintf( szString, "\\cGWINS: \\cC%d", static_cast<unsigned int> (players[consoleplayer].camera->player->ulWins) );
-			V_ColorizeString( szString );
-
-			if ( g_bScale )
-			{
-				screen->DrawText( SmallFont, CR_GRAY,
-					g_ValWidth.Int - SmallFont->StringWidth( szString ),
-					(LONG)( ulYPos * g_rYScale ),
-					szString,
-					DTA_VirtualWidth, g_ValWidth.Int,
-					DTA_VirtualHeight, g_ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( SmallFont, CR_GRAY,
-					SCREENWIDTH - SmallFont->StringWidth( szString ),
-					ulYPos,
-					szString,
-					TAG_DONE );
-			}
-		}
+		HUD_DrawText( SmallFont, CR_GRAY,
+			HUD_GetWidth() - SmallFont->StringWidth( szString ),
+			(LONG)( ulYPos * g_rYScale ),
+			szString );
 	}
 }
 

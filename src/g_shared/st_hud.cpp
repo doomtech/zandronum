@@ -70,6 +70,11 @@ bool HUD_IsScaled ( )
 	return ( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 );
 }
 
+int HUD_GetWidth ( )
+{
+	return ( HUD_IsScaled() ? con_virtualwidth : SCREENWIDTH );
+}
+
 void HUD_DrawTexture( FTexture *Img, int X, int Y, const bool Scale )
 {
 	screen->DrawTexture( Img,
