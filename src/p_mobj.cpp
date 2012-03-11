@@ -796,7 +796,7 @@ bool AActor::InDeathState()
 //
 //----------------------------------------------------------------------------
 
-bool AActor::InState(FState *pState) const
+bool AActor::InState(FState *pState, unsigned int *pOffset ) const
 {
 	if( state != NULL )
 	{
@@ -805,7 +805,11 @@ bool AActor::InState(FState *pState) const
 		while ( pTempState != NULL )
 		{
 			if ( state == pTempState )
+			{
+				if ( pOffset != NULL )
+					*pOffset = checkedFrames.size();
 				return true;
+			}
 
 			bool breakLoop = false;
 			// [BB] Check if we already encountered pTempState.
