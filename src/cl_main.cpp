@@ -418,6 +418,7 @@ static	void	client_DestroyMovePoly( BYTESTREAM_s *pByteStream );
 static	void	client_DoPolyDoor( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyPolyDoor( BYTESTREAM_s *pByteStream );
 static	void	client_SetPolyDoorSpeedPosition( BYTESTREAM_s *pByteStream );
+static  void	client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream );
 
 // Generic polyobject commands.
 static	void	client_PlayPolyobjSound( BYTESTREAM_s *pByteStream );
@@ -2594,6 +2595,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPOLYDOORSPEEDPOSITION:
 
 		client_SetPolyDoorSpeedPosition( pByteStream );
+		break;
+	case SVC_SETPOLYDOORSPEEDROTATION:
+
+		client_SetPolyDoorSpeedRotation( pByteStream );
 		break;
 	case SVC_PLAYPOLYOBJSOUND:
 
@@ -11434,6 +11439,39 @@ static void client_SetPolyDoorSpeedPosition( BYTESTREAM_s *pByteStream )
 
 	static_cast<DPolyDoor *>( pPoly->specialdata )->SetXSpeed( lXSpeed );
 	static_cast<DPolyDoor *>( pPoly->specialdata )->SetYSpeed( lYSpeed );
+}
+
+//*****************************************************************************
+//
+static void client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream )
+{
+	LONG			lPolyID;
+	LONG			lSpeed;
+	LONG			lAngle;
+	FPolyObj		*pPoly;
+	LONG			lDeltaAngle;
+
+	// Read in the polyobject ID.
+	lPolyID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the polyobject speed.
+	lSpeed = NETWORK_ReadLong( pByteStream );
+
+	// Read in the polyobject angle.
+	lAngle = NETWORK_ReadLong( pByteStream );
+
+	pPoly = GetPolyobj( lPolyID );
+	if ( pPoly == NULL )
+		return;
+
+	lDeltaAngle = lAngle - pPoly->angle;
+
+	PO_RotatePolyobj( lPolyID, lDeltaAngle );
+
+	if ( pPoly->specialdata == NULL )
+		return;
+
+	static_cast<DPolyDoor *>( pPoly->specialdata )->SetSpeed( lSpeed );
 }
 
 //*****************************************************************************
