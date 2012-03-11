@@ -163,6 +163,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients were not informed about the current movedir of the actors already in the game. [Torr Samaho]
 -	- Fixed: If a morphed player is unmorphed while running, its animation got stuck. [TIHan]
 -	- Fixed: Newly connecting clients were not properly informed about the current state of dehacked actors. [Torr Samaho]
+-	- Fixed: Sliding polyobject doors broke during a map reset. [TIHan, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

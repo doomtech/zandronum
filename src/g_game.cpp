@@ -3177,6 +3177,31 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( pPoly == NULL )
 			continue;
 
+		// [WS] Did the door move or rotate?
+		if (pPoly->bMoved || pPoly->bRotated)
+		{
+			// [WS] Is the poly object a door?
+			DPolyAction *pPolyDoor = static_cast<DPolyDoor*>(pPoly->specialdata);
+
+			// [WS] We have a poly object door, lets destroy it.
+			if (pPolyDoor)
+			{
+				pPoly->specialdata = NULL;
+
+				// [WS] Tell clients to destroy the door and stop its sound.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_DestroyPolyDoor( pPolyDoor->GetPolyObj() );
+					SERVERCOMMANDS_PlayPolyobjSound( pPolyDoor->GetPolyObj(), POLYSOUND_STOPSEQUENCE );
+				}
+
+				// [BB] Stop all sounds associated with this object. Shouldn't we
+				// destroy all sounds for all poly objects, not only for the doors?
+				SN_StopSequence( pPoly );
+				pPolyDoor->Destroy();
+			}
+		}
+
 		if ( pPoly->bMoved )
 		{
 
