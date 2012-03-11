@@ -6850,34 +6850,6 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 		else
 			pActor->SetStateNF( pNewState );
 	}
-/*
-	LONG		lID;
-	LONG		lFrame;
-	AActor		*pActor;
-	FState		*pFrame;
-
-	// Read in the network ID for the object to have its state changed.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the frame.
-	lFrame = NETWORK_ReadShort( pByteStream );
-
-	// Not in a level; nothing to do (shouldn't happen!)
-	if ( gamestate != GS_LEVEL )
-		return;
-
-	// Find the actor associated with the ID.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-		// There should probably be the potential for a warning message here.
-		return;
-	}
-
-	pFrame = pActor->SpawnState + lFrame;
-	if ( pFrame )
-		pActor->SetState( pFrame );
-*/
 }
 
 //*****************************************************************************
