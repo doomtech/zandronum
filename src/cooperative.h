@@ -77,5 +77,6 @@ EXTERN_CVAR( Bool, survival )
 EXTERN_CVAR( Bool, invasion )
 EXTERN_CVAR( Bool, cl_drawcoopinfo )
 EXTERN_CVAR( Bool, sv_coopunassignedvoodoodolls );
+EXTERN_CVAR( Float, sv_coop_damagefactor )
 
 #endif	// __COOPERATIVE_H__

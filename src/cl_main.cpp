@@ -7775,6 +7775,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [BB] Read in, and set the value for sv_aircontrol.
 	Value.Float = NETWORK_ReadFloat( pByteStream );
 	sv_aircontrol.ForceSet( Value, CVAR_Float );
+
+	// [WS] Read in, and set the value for sv_coop_damagefactor.
+	Value.Float = NETWORK_ReadFloat( pByteStream );
+	sv_coop_damagefactor.ForceSet( Value, CVAR_Float );
 }
 
 //*****************************************************************************

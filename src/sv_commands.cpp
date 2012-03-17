@@ -3394,38 +3394,26 @@ void SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 24, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODELIMITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, timelimit );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pointlimit );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, duellimit );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, winlimit );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, wavelimit );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_cheats );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_fastweapons );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_maxlives );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_maxteams );
-		// [BB] The value of sv_gravity is irrelevant when sv_gravity hasn't been changed since the map start
-		// and the map has a custom gravity value in MAPINFO. level.gravity always contains the used gravity value,
-		// so we just send this one instead of sv_gravity.
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.gravity );
-		// [BB] sv_aircontrol needs to be handled similarly to sv_gravity.
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, static_cast<float>(level.aircontrol) / 65536.f );
-    }
+	NetCommand command ( SVC_SETGAMEMODELIMITS );
+	command.addShort( fraglimit );
+	command.addFloat( timelimit );
+	command.addShort( pointlimit );
+	command.addByte( duellimit );
+	command.addByte( winlimit );
+	command.addByte( wavelimit );
+	command.addByte( sv_cheats );
+	command.addByte( sv_fastweapons );
+	command.addByte( sv_maxlives );
+	command.addByte( sv_maxteams );
+	// [BB] The value of sv_gravity is irrelevant when sv_gravity hasn't been changed since the map start
+	// and the map has a custom gravity value in MAPINFO. level.gravity always contains the used gravity value,
+	// so we just send this one instead of sv_gravity.
+	command.addFloat( level.gravity );
+	// [BB] sv_aircontrol needs to be handled similarly to sv_gravity.
+	command.addFloat( static_cast<float>(level.aircontrol) / 65536.f );
+	// [WS] Send in sv_coop_damagefactor.
+	command.addFloat( sv_coop_damagefactor );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
