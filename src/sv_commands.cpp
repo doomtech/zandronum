@@ -213,19 +213,10 @@ public:
 	}
 
 	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 ) const {
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
 		{
-			if ( SERVER_IsValidClient( ulIdx ) == false )
-				continue;
-
-			if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-				(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-			{
-				continue;
-			}
-
-			SERVER_CheckClientBuffer( ulIdx, _buffer.ulCurrentSize, true );
-			writeCommandToStream ( SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream );
+			SERVER_CheckClientBuffer( *it, _buffer.ulCurrentSize, true );
+			writeCommandToStream ( SERVER_GetClient( *it )->PacketBuffer.ByteStream );
 		}
 	}
 };
