@@ -333,8 +333,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySound)
 			S_Sound (self, channel | CHAN_LOOP, soundid, volume, attenuation);
 
 			// [BC] If we're the server, tell clients to play the sound.
+			// [Dusk] We need to respect existing sound play since this is a looped sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, channel | CHAN_LOOP, S_GetName( soundid ), volume, attenuation );
+				SERVERCOMMANDS_SoundActor( self, channel | CHAN_LOOP, S_GetName( soundid ), volume, attenuation, MAXPLAYERS, 0, true );
 		}
 	}
 }
