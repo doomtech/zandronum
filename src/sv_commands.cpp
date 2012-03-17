@@ -86,6 +86,58 @@ EXTERN_CVAR( Float, sv_aircontrol )
 //	CLASSES
 
 /**
+ * \brief Iterate over all clients, possibly skipping one or all but one.
+ *
+ * \author Benjamin Berkels
+ */
+class ClientIterator {
+	const ULONG _ulPlayerExtra;
+	const ULONG _ulFlags;
+	ULONG _current;
+
+	bool isCurrentValid ( ) const {
+		if ( SERVER_IsValidClient( _current ) == false )
+			return false;
+
+		if ((( _ulFlags & SVCF_SKIPTHISCLIENT ) && ( _ulPlayerExtra == _current )) ||
+			(( _ulFlags & SVCF_ONLYTHISCLIENT ) && ( _ulPlayerExtra != _current )))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void incremntCurrentTillValid ( ) {
+		while ( ( isCurrentValid() == false ) && notAtEnd() )
+			++_current;
+	}
+
+public:
+  ClientIterator ( const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 )
+		: _ulPlayerExtra ( ulPlayerExtra ),
+			_ulFlags ( ulFlags ),
+			_current ( 0 )
+	{
+		incremntCurrentTillValid();
+	}
+
+	inline bool notAtEnd ( ) const {
+		return ( _current < MAXPLAYERS );
+	}
+
+	const ULONG operator* ( ) const {
+		return ( _current );
+	}
+
+	const ULONG operator++ ( ) {
+		++_current;
+		incremntCurrentTillValid();
+		return ( _current );
+	}
+};
+
+/**
  * \brief Creates and sends network commands to the clients.
  *
  * \author Benjamin Berkels
