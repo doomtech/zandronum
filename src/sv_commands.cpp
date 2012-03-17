@@ -83,6 +83,102 @@ FPolyObj	*GetPolyobj( int polyNum );
 EXTERN_CVAR( Float, sv_aircontrol )
 
 //*****************************************************************************
+//	CLASSES
+
+/**
+ * \brief Creates and sends network commands to the clients.
+ *
+ * \author Benjamin Berkels
+ */
+class NetCommand {
+	NETBUFFER_s _buffer;
+public:
+	NetCommand ( const int Header )
+	{
+		NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		NETWORK_ClearBuffer( &_buffer );
+		addInteger<BYTE> ( Header );
+	}
+	~NetCommand ( )
+	{
+		NETWORK_FreeBuffer ( &_buffer );
+	}
+
+	template <typename IntType>
+	void addInteger( const IntType IntValue )
+	{
+		if ( ( _buffer.ByteStream.pbStream + sizeof ( IntType ) ) > _buffer.ByteStream.pbStreamEnd )
+		{
+			Printf( "NetCommand::AddInteger: Overflow!\n" );
+			return;
+		}
+
+		for ( int i = 0; i < sizeof ( IntType ); ++i )
+			_buffer.ByteStream.pbStream[i] = ( IntValue >> ( 8*i ) ) & 0xff;
+
+		_buffer.ByteStream.pbStream += sizeof ( IntType );
+		_buffer.ulCurrentSize = NETWORK_CalcBufferSize ( &_buffer );
+	}
+
+	void addByte ( const int ByteValue )
+	{
+		addInteger<BYTE> ( static_cast<BYTE> ( ByteValue ) );
+	}
+
+	void addShort ( const int ShortValue )
+	{
+		addInteger<SWORD> ( static_cast<SWORD> ( ShortValue ) );
+	}
+
+	void addLong ( const SDWORD LongValue )
+	{
+		addInteger<SDWORD> ( LongValue );
+	}
+
+	void addFloat ( const float FloatValue )
+	{
+		addInteger<SDWORD> ( *(reinterpret_cast<const SDWORD*> ( &FloatValue )) );
+	}
+
+	void addString ( const char *pszString )
+	{
+		const int len = ( pszString != NULL ) ? strlen( pszString ) : 0;
+
+		if ( len > MAX_NETWORK_STRING )
+		{
+			Printf( "NETWORK_WriteString: String exceeds %d characters!\n", MAX_NETWORK_STRING );
+			return;
+		}
+
+		for ( int i = 0; i < len; ++i )
+			addByte( pszString[i] );
+		addByte( 0 );
+	}
+
+	void writeCommandToStream ( BYTESTREAM_s &ByteStream ) const {
+		// [BB] This also handles the traffic counting (NETWORK_StartTrafficMeasurement/NETWORK_StopTrafficMeasurement).
+		NETWORK_WriteBuffer( &ByteStream, _buffer.pbData, _buffer.ulCurrentSize );
+	}
+
+	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 ) const {
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( SERVER_IsValidClient( ulIdx ) == false )
+				continue;
+
+			if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+				(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+			{
+				continue;
+			}
+
+			SERVER_CheckClientBuffer( ulIdx, _buffer.ulCurrentSize, true );
+			writeCommandToStream ( SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream );
+		}
+	}
+};
+
+//*****************************************************************************
 //	FUNCTIONS
 
 // [BB] Check if the actor has a valid net ID. Returns true if it does, returns false and prints a warning if not.
