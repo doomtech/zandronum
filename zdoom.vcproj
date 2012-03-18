@@ -4680,6 +4680,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\network_enums.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\networkheaders.h"
 				>
 			</File>

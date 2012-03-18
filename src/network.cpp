@@ -87,6 +87,13 @@ enum LumpAuthenticationMode {
 	ALL_LUMPS
 };
 
+// [BB] Implement the string table and the conversion functions for the SVC and SVC2 enums (so far only needed in debug mode).
+#ifdef _DEBUG
+#define GENERATE_ENUM_STRINGS  // Start string generation
+#include "network_enums.h"
+#undef GENERATE_ENUM_STRINGS   // Stop string generation
+#endif
+
 void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 //*****************************************************************************
