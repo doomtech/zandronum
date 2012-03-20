@@ -2668,6 +2668,13 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 		else
 			sprintf( szString, "%d monster%s remaining", static_cast<int> (remaining), remaining == 1 ? "" : "s" );
 		lines.push_back( szString );
+
+		// [WS] Show the damage factor.
+		if ( sv_coop_damagefactor != 1.0f )
+		{
+			sprintf( szString, "damage factor %.2f", static_cast<float> (sv_coop_damagefactor) );
+			lines.push_back( szString );
+		}
 	}
 }
 

@@ -1103,6 +1103,7 @@ CUSTOM_CVAR (Float, sv_coop_damagefactor, 1.0f, CVAR_SERVERINFO|CVAR_ARCHIVE)
 	{
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %.2f\n", self.GetName( ), (float)self );
 		SERVERCOMMANDS_SetGameModeLimits( );
+		SERVERCONSOLE_UpdateScoreboard();
 	}
 }
 
