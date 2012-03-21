@@ -165,6 +165,7 @@ latestzdoom branch
 -	- Fixed: Newly connecting clients were not properly informed about the current state of dehacked actors. [Torr Samaho]
 -	- Fixed: Sliding polyobject doors broke during a map reset. [TIHan, Torr Samaho]
 -	- Fixed: Replaying a sound on the same channel with A_PlaySound restarted the sound on the clients online. [Dusk]
+-	- Fixed: The "oof" sound was played multiple times on a client when bumping into walls in low friction sectors online. [TIHan, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
