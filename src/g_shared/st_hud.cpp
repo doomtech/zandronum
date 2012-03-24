@@ -150,7 +150,8 @@ void DrawHUD_CoopInfo()
 			&& !( players[consoleplayer].camera->player && players[consoleplayer].camera->player->bSpectating ) )
 			continue;
 
-		int curYPos = yOffset + (playersDrawn/2) * ( 4 * SmallFont->GetHeight( ) + 3 ) ;
+		// [BB] We need more spacing if there is SECTINFO.
+		int curYPos = yOffset + (playersDrawn/2) * ( ( 4 + ( level.info->SectorInfo.Names.Size() > 0 ) ) * SmallFont->GetHeight( ) + 3 ) ;
 
 		const bool drawLeft = ( playersDrawn % 2 == 0 );
 
