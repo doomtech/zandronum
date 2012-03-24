@@ -3259,7 +3259,7 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 	char	szName[64];
 
 	// Make sure the target is valid and applicable.
-	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] )) {
+	if ( PLAYER_IsValidPlayer ( ulPlayer ) == false ) {
 		Printf( "No such player!\n" );
 		return;
 	}
@@ -5885,7 +5885,6 @@ CCMD( kickfromgame_idx )
 //
 CCMD( kickfromgame )
 {
-	ULONG	ulIdx;
 	char	szPlayerName[64];
 
 	// Only the server can boot players!
@@ -5901,7 +5900,7 @@ CCMD( kickfromgame )
 	bool bAlreadySpectating = false;
 
 	// Loop through all the players, and try to find one that matches the given name.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( playeringame[ulIdx] == false )
 			continue;
