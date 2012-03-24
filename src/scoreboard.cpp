@@ -3167,10 +3167,9 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 	// Other modes: Just players and spectators.
 	else
 	{
-		// In LMS or Survival, dead players are drawn after living ones.
-		if (( gamestate != GS_INTERMISSION ) && (
-			(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
-			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))))
+		// [WS] Does the gamemode we are in use lives?
+		// If so, dead players are drawn after living ones.
+		if (( gamestate != GS_INTERMISSION ) && GAMEMODE_AreLivesLimited( ) && GAMEMODE_IsGameInProgress( ) )
 		{
 			scoreboard_DoRankingListPass( ulPlayer, 1, 1, 1, 0, 0, 0 ); // Living
 			scoreboard_DoRankingListPass( ulPlayer, 1, 2, 1, 0, 0, 0 ); // Dead
