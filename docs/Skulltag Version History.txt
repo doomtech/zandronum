@@ -191,6 +191,7 @@ latestzdoom branch
 !	- When a connecting client is disconnected due to an error, any further net packet from its IP are now ignored for 10 seconds to prevent log flooding. [Torr Samaho]
 !	- Clients are now informed about the server's sv_coop_damagefactor value and, if not 1, the value is displayed on the scoreboard. [TIHan]
 !	- Adjusted kickfromgame commands to have more verbosity in error messages. [Dusk]
+!	- The ally and chat sprites are now also available in non-Doom games. [Torr Samaho]
 
 
 98d
