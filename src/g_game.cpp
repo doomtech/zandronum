@@ -1240,7 +1240,7 @@ bool G_Responder (event_t *ev)
 
 		// [RC] If the player hits the spacebar, and they aren't in the game, ask them if they'd like to join.
 		// [BB] This "eats" the key, therefore we must return true here.
-		if ( ( ev->type != EV_GUI_Event ) && ( ev->data1 == KEY_SPACE ) && players[consoleplayer].bSpectating )
+		if ( ( ev->type == EV_KeyDown ) && ( ev->data1 == KEY_SPACE ) && players[consoleplayer].bSpectating )
 		{
 			M_JoinMenu();
 			return true;
