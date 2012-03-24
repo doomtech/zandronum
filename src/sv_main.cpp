@@ -3259,11 +3259,19 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 	char	szName[64];
 
 	// Make sure the target is valid and applicable.
-	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
+	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] )) {
+		Printf( "No such player!\n" );
 		return;
+	}
 
 	sprintf( szName, "%s", players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
+
+	// Already a spectator! This should not happen.
+	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] )) {
+		Printf( "%s is already a spectator!\n", szName );
+		return;
+	}
 
 	// Build the full kick string.
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", szName, pszReason );
@@ -3271,10 +3279,6 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 
 	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
-
-	// Already a spectator! This should not happen.
-	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
-		return;
 
 	// Make this player a spectator.
 	PLAYER_SetSpectator( &players[ulPlayer], true, false );
@@ -5894,6 +5898,8 @@ CCMD( kickfromgame )
 		return;
 	}
 
+	bool bAlreadySpectating = false;
+
 	// Loop through all the players, and try to find one that matches the given name.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -5904,24 +5910,36 @@ CCMD( kickfromgame )
 		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 		V_RemoveColorCodes( szPlayerName );
 
-		if ( stricmp( szPlayerName, argv[1] ) == 0 )
-		{
-			// Already a spectator!
-			if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
-				continue;
+		if ( stricmp( szPlayerName, argv[1] ) != 0 )
+			continue;
 
-			// If we provided a reason, give it.
-			if ( argv.argc( ) >= 3 )
-				SERVER_KickPlayerFromGame( ulIdx, argv[2] );
-			else
-				SERVER_KickPlayerFromGame( ulIdx, "None given" );
+		// Already a spectator!
+		if ( PLAYER_IsTrueSpectator( &players[ulIdx] )) {
+			// [Dusk] Note down that we found a player but he's
+			// already spectating. If we find no valid player,
+			// display that the player is already a spectator.
 
-			return;
+			bAlreadySpectating = true;
+			continue;
 		}
+
+		// By now the player is known and valid - kick him from
+		// game. If we provided a reason, give it.
+		if ( argv.argc( ) >= 3 )
+			SERVER_KickPlayerFromGame( ulIdx, argv[2] );
+		else
+			SERVER_KickPlayerFromGame( ulIdx, "None given" );
+
+		return;
 	}
 
-	// Didn't find a player that matches the name.
-	Printf( "Unknown player: %s\n", argv[1] );
+	if (bAlreadySpectating) {
+		// [Dusk] Only matched player(s) were spectators.
+		Printf( "%s is already a spectator!\n", argv[1]);
+	} else {
+		// Didn't find a player that matches the name.
+		Printf( "Unknown player: %s\n", argv[1] );
+	}
 	return;
 }
 
