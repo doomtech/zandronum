@@ -2987,7 +2987,8 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj)
 	P_FallingDamage (mo);
 
 	// [RH] only make noise if alive
-	if (!mo->player->morphTics && mo->health > 0)
+	// [WS/BB] As client only play the sound for the consoleplayer.
+	if (!mo->player->morphTics && mo->health > 0 && NETWORK_IsConsolePlayerOrNotInClientMode( mo->player ))
 	{
 		grunted = false;
 		// Why should this number vary by gravity?
