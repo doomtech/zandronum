@@ -2276,6 +2276,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			}
 			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AKey )) )
 				keys.Push ( pInventory );
+			else if ( pInventory->IsA( RUNTIME_CLASS( AWeaponHolder )) )
+			{
+				// [Dusk] Inform the client of weapon holders
+				SERVERCOMMANDS_GiveWeaponHolder( ulIdx, static_cast<AWeaponHolder *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
+			}
 		}
 		// [BB] Now give the keys we just collected from the inventory in reverse order.
 		while ( keys.Size() )
@@ -3550,11 +3555,15 @@ void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon )
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )))
 			continue;
 
-		// [BB] The collection of weapon pieces is handled on the server, so there is
-		// no need to tell the client of its WeaponHolders. In fact a weapon holder
-		// without PieceMask and PieceWeapon properly set is completely useless.
+		// [Dusk] Weapon holders need special treatment. While the server manages
+		// weapon pieces, holders need to be synced as the client uses it for
+		// weapon piece HUD display.
 		if ( pInventory->IsKindOf( PClass::FindClass( "WeaponHolder" )) )
+		{
+			SERVERCOMMANDS_GiveWeaponHolder( ulClient, static_cast<AWeaponHolder *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] This item was taken care of, move to the next.
 			continue;
+		}
 
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
 		{

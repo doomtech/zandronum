@@ -171,6 +171,7 @@ latestzdoom branch
 -	- Fixed: The "You cannot rejoin the game until the round is over!" message is printed twice, once when pressing space and once when releasing space. Thanks to Dusk and Edward-san for suggesting the fix. [Torr Samaho]
 -	- Fixed: Clients didn't reset their join queue position on a "map" map change. [Dusk]
 -	- Fixed: Louder/duplicate DSOOF sounds from other players online landing on things. [TIHan]
+-	- Fixed: Weapon pieces vanish from the status bar on clients after map changes online. Furthermore, newly connecting clients were not informed about the weapon pieces of the players already in the game. [Dusk, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
