@@ -9567,6 +9567,9 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 	// Also, the view is no longer active.
 	viewactive = false;
 
+	// [Dusk] We're also no longer in line at this point.
+	JOINQUEUE_SetClientPositionInLine( -1 );
+
 	Printf( "Connecting to %s\n%s\n", NETWORK_AddressToString( g_AddressServer ), pszMapName );
 
 	// Update the connection state, and begin trying to reconnect.

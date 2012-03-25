@@ -169,6 +169,7 @@ latestzdoom branch
 -	- Fixed: Dead players/bots are not separated from the rest on the scoreboard in survival invasion. [TIHan, Torr Samaho]
 -	- Fixed: The vertical spacing between two players in coop info was too small on maps with SECTINFO. [Torr Samaho]
 -	- Fixed: The "You cannot rejoin the game until the round is over!" message is printed twice, once when pressing space and once when releasing space. Thanks to Dusk and Edward-san for suggesting the fix. [Torr Samaho]
+-	- Fixed: Clients didn't reset their join queue position on a "map" map change. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
