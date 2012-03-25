@@ -2518,6 +2518,36 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_GIVEWEAPONHOLDER:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					const int iPieceMask = NETWORK_ReadShort( pByteStream );
+					const USHORT usNetIndex = NETWORK_ReadShort( pByteStream );
+
+					if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
+						return;
+
+					const PClass *pPieceWeapon = NETWORK_GetClassFromIdentification( usNetIndex );
+					if ( !pPieceWeapon ) return;
+
+					AWeaponHolder *holder = static_cast<AWeaponHolder *>( players[ulPlayer].mo->FindInventory( RUNTIME_CLASS( AWeaponHolder ) ) );
+					if ( holder == NULL )
+						holder = static_cast<AWeaponHolder *>( players[ulPlayer].mo->GiveInventoryType( RUNTIME_CLASS( AWeaponHolder ) ) );
+
+					if (!holder)
+					{
+#ifdef CLIENT_WARNING_MESSAGES
+						Printf( "GIVEWEAPONHOLDER: Failed to give AWeaponHolder!\n");
+#endif
+						return;
+					}
+
+					// Set the special fields. This is why this function exists in the first place.
+					holder->PieceMask = iPieceMask;
+					holder->PieceWeapon = pPieceWeapon;
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

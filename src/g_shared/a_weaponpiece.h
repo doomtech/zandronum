@@ -1,3 +1,7 @@
+// [Dusk] Added header guard here to prevent multi-definition errors.
+// sv_commands.h refers to this file, and a lot of files refer to it.
+#ifndef __A_WEAPONPIECE_H__
+#define __A_WEAPONPIECE_H__
 
 class AWeaponPiece : public AInventory
 {
@@ -29,3 +33,5 @@ public:
 
 	void Serialize (FArchive &arc);
 };
+
+#endif // __A_WEAPONPIECE_H__

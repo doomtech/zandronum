@@ -5890,6 +5890,27 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 }
 
 //*****************************************************************************
+// [Dusk]
+void SERVERCOMMANDS_GiveWeaponHolder( ULONG ulPlayer, AWeaponHolder *pHolder, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if ( pHolder == NULL )
+		return;
+
+	if ( pHolder->ulNetworkFlags & NETFL_SERVERSIDEONLY )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_GIVEWEAPONHOLDER );
+	command.addByte( ulPlayer );
+	command.addShort( pHolder->PieceMask );
+	command.addShort( pHolder->PieceWeapon->getActorNetworkIndex() );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 //
 void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName, const char *pszPickupMessage, ULONG ulPlayerExtra, ULONG ulFlags )
 {
