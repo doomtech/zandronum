@@ -2525,10 +2525,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					const USHORT usNetIndex = NETWORK_ReadShort( pByteStream );
 
 					if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
-						return;
+						break;
 
 					const PClass *pPieceWeapon = NETWORK_GetClassFromIdentification( usNetIndex );
-					if ( !pPieceWeapon ) return;
+					if ( !pPieceWeapon ) break;
 
 					AWeaponHolder *holder = static_cast<AWeaponHolder *>( players[ulPlayer].mo->FindInventory( RUNTIME_CLASS( AWeaponHolder ) ) );
 					if ( holder == NULL )
@@ -2539,7 +2539,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 #ifdef CLIENT_WARNING_MESSAGES
 						Printf( "GIVEWEAPONHOLDER: Failed to give AWeaponHolder!\n");
 #endif
-						return;
+						break;
 					}
 
 					// Set the special fields. This is why this function exists in the first place.
