@@ -2327,7 +2327,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [Dusk] Hexen armor values
 		{
 			AHexenArmor *aHXArmor = static_cast<AHexenArmor *>( pPlayer->mo->FindInventory( RUNTIME_CLASS( AHexenArmor )));
-			SERVERCOMMANDS_SetHexenArmorSlots( ulIdx, aHXArmor, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetHexenArmorSlots( ulIdx, aHXArmor, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
 
