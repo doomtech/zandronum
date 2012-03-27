@@ -173,6 +173,7 @@ latestzdoom branch
 -	- Fixed: Louder/duplicate DSOOF sounds from other players online landing on things. [TIHan]
 -	- Fixed: Weapon pieces vanish from the status bar on clients after map changes online. Furthermore, newly connecting clients were not informed about the weapon pieces of the players already in the game. [Dusk, Torr Samaho]
 -	- Fixed: When a dead player turned into a spectator after A_SkullPop was called, the spectator couldn't slide on walls. [Torr Samaho]
+-	- Fixed: Clients were not properly informed about Hexen armor values. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -2323,6 +2323,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [BB] If this player has any cheats, also inform the new client.
 		if( players[ulIdx].cheats )
 			SERVERCOMMANDS_SetPlayerCheats(  ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [Dusk] Hexen armor values
+		{
+			AHexenArmor *aHXArmor = static_cast<AHexenArmor *>( pPlayer->mo->FindInventory( RUNTIME_CLASS( AHexenArmor )));
+			SERVERCOMMANDS_SetHexenArmorSlots( ulIdx, aHXArmor, SVCF_ONLYTHISCLIENT );
+		}
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
@@ -3617,6 +3623,11 @@ void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon )
 	// This at least partly fixes the "Using unknown weapon type" bug.
 	if ( bChangeClientWeapon )
 		SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [Dusk] Also inform the client about his Hexen armor values as
+	// SERVERCOMMANDS_DestroyAllInventory clears it from the client.
+	AHexenArmor *aHXarmor = static_cast<AHexenArmor *>( players[ulClient].mo->FindInventory( PClass::FindClass( "HexenArmor" )));
+	SERVERCOMMANDS_SetHexenArmorSlots ( ulClient, aHXarmor, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************

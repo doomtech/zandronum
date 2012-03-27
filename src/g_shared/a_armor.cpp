@@ -512,6 +512,8 @@ bool AHexenArmor::AddArmorToSlot (AActor *actor, int slot, int amount)
 
 void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 {
+	bool bAbsorbed; // [Dusk]
+
 	if (damageType != NAME_Drowning)
 	{
 		fixed_t savedPercent = Slots[0] + Slots[1] + Slots[2] + Slots[3] + Slots[4];
@@ -540,6 +542,10 @@ void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 					{
 						Slots[i] = 0;
 					}
+
+					// [Dusk] mark down that we need to update the armor
+					// values back to the client afterwards
+					bAbsorbed = true;
 				}
 			}
 			int saved = Scale (damage, savedPercent, 100*FRACUNIT);
@@ -555,5 +561,8 @@ void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 	{
 		Inventory->AbsorbDamage (damage, damageType, newdamage);
 	}
+
+	if (bAbsorbed) // [Dusk]
+		SERVERCOMMANDS_SetHexenArmorSlots( Owner->player - players, this );
 }
 
