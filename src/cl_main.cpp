@@ -6213,8 +6213,10 @@ static void client_SetThingArguments( BYTESTREAM_s *pByteStream )
 
 	// Gross hack for invisible bridges, since they set their height/radius
 	// based on their args the instant they're spawned.
-	if (( pActor->GetClass( ) == PClass::FindClass( "InvisibleBridge" )) ||
-		( pActor->GetClass( ) == PClass::FindClass( "AmbientSound" )))
+	// [WS] Added check for CustomBridge
+	if (( pActor->IsKindOf( PClass::FindClass( "InvisibleBridge" ) )) ||
+		( pActor->IsKindOf( PClass::FindClass( "AmbientSound" ) )) ||
+		( pActor->IsKindOf( PClass::FindClass( "CustomBridge" ) )))
 	{
 		pActor->BeginPlay( );
 	}
