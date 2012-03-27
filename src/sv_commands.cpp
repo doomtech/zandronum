@@ -6017,6 +6017,16 @@ void SERVERCOMMANDS_SetHexenArmorSlots( ULONG ulPlayer, AHexenArmor *aHXArmor, U
 }
 
 //*****************************************************************************
+void SERVERCOMMANDS_SyncHexenArmorSlots( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
+		return;
+
+	AHexenArmor *aHXArmor = static_cast<AHexenArmor *>( players[ulPlayer].mo->FindInventory( RUNTIME_CLASS( AHexenArmor )));
+	SERVERCOMMANDS_SetHexenArmorSlots( ulPlayer, aHXArmor, ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 //
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {

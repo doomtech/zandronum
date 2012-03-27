@@ -741,6 +741,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 				{
 					// [BB] This construction is more or less a hack, but at least the give cheats are now working.
 					SERVER_GiveInventoryToPlayer( player, armor );
+					SERVERCOMMANDS_SyncHexenArmorSlots ( static_cast<ULONG> ( player - players ) );
 				}
 			}
 		}
