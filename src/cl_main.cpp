@@ -2548,6 +2548,25 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			// [Dusk]
+			case SVC2_SETHEXENARMORSLOTS:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					AHexenArmor *aHXArmor = PLAYER_IsValidPlayerWithMo( ulPlayer ) ? static_cast<AHexenArmor *>( players[ulPlayer].mo->FindInventory( RUNTIME_CLASS (AHexenArmor ))) : NULL;
+
+					if ( aHXArmor == NULL )
+					{
+						// [BB] Even if we can't set the values, we still have to parse them.
+						for (int i = 0; i <= 4; i++) NETWORK_ReadLong( pByteStream );
+						break;
+					}
+					
+					for (int i = 0; i <= 4; i++)
+						aHXArmor->Slots[i] = NETWORK_ReadLong( pByteStream );
+				}
+
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

@@ -5999,6 +5999,24 @@ void SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, UL
 }
 
 //*****************************************************************************
+// [Dusk]
+void SERVERCOMMANDS_SetHexenArmorSlots( ULONG ulPlayer, AHexenArmor *aHXArmor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if ( aHXArmor == NULL )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETHEXENARMORSLOTS );
+	command.addByte( ulPlayer );
+	for (short i = 0; i <= 4; i++)
+		command.addLong( aHXArmor->Slots[i] );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 //
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
