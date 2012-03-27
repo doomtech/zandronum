@@ -2325,10 +2325,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SetPlayerCheats(  ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// [Dusk] Hexen armor values
-		{
-			AHexenArmor *aHXArmor = static_cast<AHexenArmor *>( pPlayer->mo->FindInventory( RUNTIME_CLASS( AHexenArmor )));
-			SERVERCOMMANDS_SetHexenArmorSlots( ulIdx, aHXArmor, ulClient, SVCF_ONLYTHISCLIENT );
-		}
+			SERVERCOMMANDS_SyncHexenArmorSlots( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
@@ -3626,8 +3623,7 @@ void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon )
 
 	// [Dusk] Also inform the client about his Hexen armor values as
 	// SERVERCOMMANDS_DestroyAllInventory clears it from the client.
-	AHexenArmor *aHXarmor = static_cast<AHexenArmor *>( players[ulClient].mo->FindInventory( PClass::FindClass( "HexenArmor" )));
-	SERVERCOMMANDS_SetHexenArmorSlots ( ulClient, aHXarmor, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SyncHexenArmorSlots ( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
