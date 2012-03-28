@@ -158,7 +158,14 @@ void SERVER_MASTER_Tick( void )
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	Val = skulltag_masterip.GetGenericRep( CVAR_String );
-	NETWORK_StringToAddress( Val.String, &g_AddressMasterServer );
+
+	// [BB] If we can't find the master address, we can't tick the master.
+	if ( NETWORK_StringToAddress( Val.String, &g_AddressMasterServer ) == false )
+	{
+		Printf ( "Warning: Can't find skulltag_masterip %s! Either correct skulltag_masterip or set sv_updatemaster to false.\n", Val.String );
+		return;
+	}
+
 	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
 	// Write to our packet a challenge to the master server.

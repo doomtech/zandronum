@@ -175,6 +175,7 @@ latestzdoom branch
 -	- Fixed: When a dead player turned into a spectator after A_SkullPop was called, the spectator couldn't slide on walls. [Torr Samaho]
 -	- Fixed: Clients were not properly informed about Hexen armor values. [Dusk, Torr Samaho]
 -	- Fixed: Client's didn't properly respect the arguments of bridges. [TIHan]
+-	- Fixed: The server doesn't try to tick the master anymore if skulltag_masterip can't be resolved, but prints a warning instead. Previoulsly, an invalid skulltag_masterip setting led to WSAEADDRENOTAVAIL errors. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
