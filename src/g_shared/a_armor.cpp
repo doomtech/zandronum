@@ -562,7 +562,7 @@ void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 		Inventory->AbsorbDamage (damage, damageType, newdamage);
 	}
 
-	if (bAbsorbed) // [Dusk]
+	if ( bAbsorbed && ( NETWORK_GetState( ) == NETSTATE_SERVER ) ) // [Dusk]
 		SERVERCOMMANDS_SetHexenArmorSlots( Owner->player - players, this );
 }
 
