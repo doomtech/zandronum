@@ -512,7 +512,7 @@ bool AHexenArmor::AddArmorToSlot (AActor *actor, int slot, int amount)
 
 void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 {
-	bool bAbsorbed; // [Dusk]
+	bool bAbsorbed = false; // [Dusk]
 
 	if (damageType != NAME_Drowning)
 	{
