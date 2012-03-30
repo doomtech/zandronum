@@ -14,6 +14,7 @@
 #include <errno.h>
 // [BB] New #includes.
 #include <sys/stat.h>
+#include <time.h>
 
 int main(int argc, char **argv)
 {
@@ -24,6 +25,8 @@ int main(int argc, char **argv)
 	int gotrev = 0, needupdate = 1;
 	// [BB] Are we working with a SVN checkout?
 	int svnCheckout = 0;
+	char hgdateString[64];
+	time_t hgdate = 0;
 
 	if (argc != 3)
 	{
@@ -66,6 +69,14 @@ int main(int argc, char **argv)
 		   (isdigit(currev[0]) || (currev[0] == '-' && currev[1] == '1')))
 		{
 			gotrev = 1;
+			// [BB] Find the date the revision of the working copy was created.
+			if ( ( svnCheckout == 0 ) &&
+				( system("hg log -r. --template \"{date|hgdate}\"") == 0 ) &&
+				( fseek(stream, strlen(currev), SEEK_SET) == 0 ) &&
+				( fgets(hgdateString, sizeof ( hgdateString ), stream) == hgdateString ) )
+			{
+				hgdate = atoi ( hgdateString );
+			}
 		}
 	}
 	if (stream != NULL)
@@ -97,16 +108,17 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// [BB] Workaround to keep the old SVN numbering on Hg repos: Increase the revision number
-	// we parsed by the offset between the Hg and the SVN repo version. Will be removed
-	// once we decide to ditch SVN completely.
+	// [BB] Create date version string.
 	if ( gotrev && ( svnCheckout == 0 ) )
 	{
-		unsigned long hgOffSet = 158;
 		char *endptr;
 		unsigned long parsedRev = strtoul(rev, &endptr, 10);
 		unsigned int localChanges = ( *endptr == '+' );
-		sprintf ( rev, "%d%s", parsedRev + hgOffSet, localChanges ? "M" : "" );
+		struct tm	*lt = localtime( &hgdate );
+		if ( localChanges )
+			sprintf ( rev, "%d_%02d_%02d %02d:%02dM", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
+		else
+			sprintf ( rev, "%d_%02d_%02d %02d:%02d", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
 	}
 
 	stream = fopen (argv[2], "r");
@@ -142,7 +154,11 @@ int main(int argc, char **argv)
 		{
 			return 1;
 		}
-		urev = strtoul(rev, NULL, 10);
+		// [BB] Use hgdate as revision number.
+		if ( hgdate )
+			urev = hgdate;
+		else
+			urev = strtoul(rev, NULL, 10);
 		fprintf (stream,
 "// %s\n"
 "//\n"

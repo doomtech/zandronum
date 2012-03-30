@@ -780,7 +780,7 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 		char	szString[256];
 
 		// Set up our version string.
-		sprintf(szString, "You are running version %s.", DOTVERSIONSTR_REV);
+		sprintf(szString, "Version %s.", DOTVERSIONSTR_REV);
 		SetDlgItemText (hDlg, IDC_WELCOME_VERSION, szString);
 
 		// Check the current video settings.
