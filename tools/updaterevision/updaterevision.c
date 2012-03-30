@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		char *endptr;
 		unsigned long parsedRev = strtoul(rev, &endptr, 10);
 		unsigned int localChanges = ( *endptr == '+' );
-		struct tm	*lt = localtime( &hgdate );
+		struct tm	*lt = gmtime( &hgdate );
 		if ( localChanges )
 			sprintf ( rev, "%d_%02d_%02d %02d:%02dM", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
 		else
