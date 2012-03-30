@@ -388,7 +388,7 @@ CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
-		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %.2f\n", self.GetName( ), static_cast<float>(self) );
 		SERVERCOMMANDS_SetGameModeLimits( );
 
 		// Update the scoreboard.
