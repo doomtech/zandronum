@@ -2618,13 +2618,15 @@ void FSlide::HitSlideLine (line_t* ld)
 		{
 			tmxmove = -tmxmove/2; // absorb half the momentum
 			tmymove /= 2;
-			if (slidemo->player && ( slidemo->player->bSpectating == false ) && slidemo->health > 0)// && !(slidemo->player->cheats & CF_PREDICTING))
+			// [BB/WS] Adapted to Skulltag's prediction.
+			if (slidemo->player && ( slidemo->player->bSpectating == false ) && slidemo->health > 0 && ( CLIENT_PREDICT_IsPredicting( ) == false ) )// && !(slidemo->player->cheats & CF_PREDICTING))
 			{
-				// [BC] Tell clients of the "oof" sound.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE );
-
 				S_Sound (slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE); // oooff!//   ^
+
+				// [BC] Tell clients of the "oof" sound.
+				// [BB/WS] Skip the player who made the sound, he plays it himself while predicting.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE, static_cast<ULONG> ( slidemo->player - players ), SVCF_SKIPTHISCLIENT );
 			}
 		}																		//   |
 		else																	// phares
@@ -2652,9 +2654,15 @@ void FSlide::HitSlideLine (line_t* ld)
 	{
 		moveangle = lineangle - deltaangle;
 		movelen /= 2; // absorb
-		if (slidemo->player && ( slidemo->player->bSpectating == false ) && slidemo->health > 0)// && !(slidemo->player->cheats & CF_PREDICTING))
+		// [BB/WS] Adapted to Skulltag's prediction.
+		if (slidemo->player && ( slidemo->player->bSpectating == false ) && slidemo->health > 0 && ( CLIENT_PREDICT_IsPredicting( ) == false ) )// && !(slidemo->player->cheats & CF_PREDICTING))
 		{
 			S_Sound (slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE); // oooff!
+
+			// [WS] Tell clients of the "oof" sound.
+			// [BB/WS] Skip the player who made the sound, he plays it himself while predicting.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE, static_cast<ULONG> ( slidemo->player - players ), SVCF_SKIPTHISCLIENT );
 		}
 		moveangle >>= ANGLETOFINESHIFT;
 		tmxmove = FixedMul (movelen, finecosine[moveangle]);
