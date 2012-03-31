@@ -2518,7 +2518,7 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 

@@ -3156,23 +3156,23 @@ void SERVER_UpdateActorProperties( AActor *pActor, ULONG ulClient )
 
 	// [WS] Update the actor's see sound if it's changed.
 	if ( strcmp( S_GetName( pActor->SeeSound ), S_GetName( pActor->GetDefault()->SeeSound ) ) != 0 )
-		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_SEESOUND, (char *)S_GetName( pActor->SeeSound ), ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_SEESOUND, S_GetName( pActor->SeeSound ), ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [WS] Update the actor's active sound if it's changed.
 	if ( strcmp( S_GetName( pActor->ActiveSound ), S_GetName( pActor->GetDefault()->ActiveSound ) ) != 0 )
-		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ACTIVESOUND, (char *)S_GetName( pActor->ActiveSound ), ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ACTIVESOUND, S_GetName( pActor->ActiveSound ), ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [WS] Update the actor's attack sound if it's changed.
 	if ( strcmp( S_GetName( pActor->AttackSound ), S_GetName( pActor->GetDefault()->AttackSound ) ) != 0 )
-		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ATTACKSOUND, (char *)S_GetName( pActor->AttackSound ), ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ATTACKSOUND, S_GetName( pActor->AttackSound ), ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [WS] Update the actor's pain sound if it's changed.
 	if ( strcmp( S_GetName( pActor->PainSound ), S_GetName( pActor->GetDefault()->PainSound ) ) != 0 )
-		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_PAINSOUND, (char *)S_GetName( pActor->PainSound ), ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_PAINSOUND, S_GetName( pActor->PainSound ), ulClient, SVCF_ONLYTHISCLIENT );
 
 	// [WS] Update the actor's death sound if it's changed.
 	if ( strcmp( S_GetName( pActor->DeathSound ), S_GetName( pActor->GetDefault()->DeathSound ) ) != 0 )
-		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_DEATHSOUND, (char *)S_GetName( pActor->DeathSound ), ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_DEATHSOUND, S_GetName( pActor->DeathSound ), ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************

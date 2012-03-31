@@ -2877,7 +2877,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_SEESOUND, (char *)FBehavior::StaticLookupString( value ));
+			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_SEESOUND, FBehavior::StaticLookupString( value ));
 		break;
 
 	case APROP_AttackSound:
@@ -2885,7 +2885,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_ATTACKSOUND, (char *)FBehavior::StaticLookupString( value ));
+			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_ATTACKSOUND, FBehavior::StaticLookupString( value ));
 		break;
 
 	case APROP_PainSound:
@@ -2893,7 +2893,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_PAINSOUND, (char *)FBehavior::StaticLookupString( value ));
+			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_PAINSOUND, FBehavior::StaticLookupString( value ));
 		break;
 
 	case APROP_DeathSound:
@@ -2901,7 +2901,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_DEATHSOUND, (char *)FBehavior::StaticLookupString( value ));
+			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_DEATHSOUND, FBehavior::StaticLookupString( value ));
 		break;
 
 	case APROP_ActiveSound:
@@ -2909,7 +2909,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_ACTIVESOUND, (char *)FBehavior::StaticLookupString( value ));
+			SERVERCOMMANDS_SetThingSound( actor, ACTORSOUND_ACTIVESOUND, FBehavior::StaticLookupString( value ));
 		break;
 
 	case APROP_Species:
