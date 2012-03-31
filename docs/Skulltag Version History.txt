@@ -182,6 +182,7 @@ latestzdoom branch
 -	- Fixed: In offline mode for team games, RESPAWN scripts were fired upon player entering the game instead of ENTER scripts. [TIHan]
 -	- Fixed: Player kept his custom skin color after morphing online. [TIHan]
 -	- Fixed: A morphed player possibly changed his skin back to his unmorphed custom skin online after starting to move. [Torr Samaho]
+-	- Fixed: Clients were not informed of MorphFlash and UnMorphFlash. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

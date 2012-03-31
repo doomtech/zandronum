@@ -3797,6 +3797,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pPlayer->refire = 0;
 	pPlayer->damagecount = 0;
 	pPlayer->bonuscount = 0;
+	// [BB] Remember if the player was morphed.
+	const bool bPlayerWasMorphed = ( pPlayer->morphTics != 0 );
 	pPlayer->morphTics = 0;
 	pPlayer->extralight = 0;
 	pPlayer->fixedcolormap = 0;
@@ -3841,7 +3843,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			g_bClientLagging = false;
 	}
 	// [BB] Don't spawn fog when receiving a snapshot.
-	else if ( CLIENT_GetConnectionState() != CTS_RECEIVINGSNAPSHOT )
+	// [WS] Don't spawn fog when a player is morphing. The server will tell us.
+	else if ( CLIENT_GetConnectionState() != CTS_RECEIVINGSNAPSHOT && !bMorph && !bPlayerWasMorphed )
 	{
 		// Spawn the respawn fog.
 		unsigned an = pActor->angle >> ANGLETOFINESHIFT;
