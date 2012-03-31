@@ -2326,6 +2326,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// [Dusk] Hexen armor values
 			SERVERCOMMANDS_SyncHexenArmorSlots( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [WS] Update the player's properties if they changed.
+		SERVER_UpdateActorProperties( players[ulIdx].mo, ulClient );
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
@@ -2504,21 +2507,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if (( pActor->waterlevel > 0 ) && ( pActor->player == NULL ))
 				SERVERCOMMANDS_SetThingWaterLevel( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
-			// Update the actor's speed if it's changed.
-			if ( pActor->Speed != pActor->GetDefault( )->Speed )
-				SERVERCOMMANDS_SetThingProperty( pActor, APROP_Speed, ulClient, SVCF_ONLYTHISCLIENT  );
-
-			// [BB] Update the actor's RenderStyle if it's changed.
-			if ( pActor->RenderStyle.AsDWORD != pActor->GetDefault( )->RenderStyle.AsDWORD )
-				SERVERCOMMANDS_SetThingProperty( pActor, APROP_RenderStyle, ulClient, SVCF_ONLYTHISCLIENT  );
-
-			// [BB] Update the actor's alpha if it's changed.
-			if ( pActor->alpha != pActor->GetDefault( )->alpha )
-				SERVERCOMMANDS_SetThingProperty( pActor, APROP_Alpha, ulClient, SVCF_ONLYTHISCLIENT  );
-
-			// [BB] Update the actor's gravity if it's changed.
-			if ( pActor->gravity != pActor->GetDefault( )->gravity )
-				SERVERCOMMANDS_SetThingGravity ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			// [WS] Update the actor's properties if they changed.
+			SERVER_UpdateActorProperties( pActor, ulClient );
 
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
@@ -3135,6 +3125,54 @@ void SERVER_UpdateSides( ULONG ulClient )
 		if ( sides[ulSide].Flags != sides[ulSide].SavedFlags )
 			SERVERCOMMANDS_SetSideFlags( ulSide, ulClient, SVCF_ONLYTHISCLIENT );
 	}
+}
+
+//*****************************************************************************
+//
+void SERVER_UpdateActorProperties( AActor *pActor, ULONG ulClient )
+{
+	// [WS] Sanity Check
+	if ( !pActor )
+		return;
+
+	if ( SERVER_IsValidClient( ulClient ) == false )
+		return;
+
+	// Update the actor's speed if it's changed.
+	if ( pActor->Speed != pActor->GetDefault( )->Speed )
+		SERVERCOMMANDS_SetThingProperty( pActor, APROP_Speed, ulClient, SVCF_ONLYTHISCLIENT  );
+
+	// [BB] Update the actor's RenderStyle if it's changed.
+	if ( pActor->RenderStyle.AsDWORD != pActor->GetDefault( )->RenderStyle.AsDWORD )
+		SERVERCOMMANDS_SetThingProperty( pActor, APROP_RenderStyle, ulClient, SVCF_ONLYTHISCLIENT  );
+
+	// [BB] Update the actor's alpha if it's changed.
+	if ( pActor->alpha != pActor->GetDefault( )->alpha )
+		SERVERCOMMANDS_SetThingProperty( pActor, APROP_Alpha, ulClient, SVCF_ONLYTHISCLIENT  );
+
+	// [BB] Update the actor's gravity if it's changed.
+	if ( pActor->gravity != pActor->GetDefault( )->gravity )
+		SERVERCOMMANDS_SetThingGravity ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's see sound if it's changed.
+	if ( strcmp( S_GetName( pActor->SeeSound ), S_GetName( pActor->GetDefault()->SeeSound ) ) != 0 )
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_SEESOUND, (char *)S_GetName( pActor->SeeSound ), ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's active sound if it's changed.
+	if ( strcmp( S_GetName( pActor->ActiveSound ), S_GetName( pActor->GetDefault()->ActiveSound ) ) != 0 )
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ACTIVESOUND, (char *)S_GetName( pActor->ActiveSound ), ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's attack sound if it's changed.
+	if ( strcmp( S_GetName( pActor->AttackSound ), S_GetName( pActor->GetDefault()->AttackSound ) ) != 0 )
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_ATTACKSOUND, (char *)S_GetName( pActor->AttackSound ), ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's pain sound if it's changed.
+	if ( strcmp( S_GetName( pActor->PainSound ), S_GetName( pActor->GetDefault()->PainSound ) ) != 0 )
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_PAINSOUND, (char *)S_GetName( pActor->PainSound ), ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's death sound if it's changed.
+	if ( strcmp( S_GetName( pActor->DeathSound ), S_GetName( pActor->GetDefault()->DeathSound ) ) != 0 )
+		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_DEATHSOUND, (char *)S_GetName( pActor->DeathSound ), ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
