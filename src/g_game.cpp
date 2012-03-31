@@ -5113,6 +5113,12 @@ bool G_CheckDemoStatus (void)
 //
 CCMD( freeze )
 {
+	// [Dusk] Don't allow freeze while playing a demo
+	if ( CLIENTDEMO_IsPlaying( ) == true ) {
+		Printf ("Cannot freeze during demo playback!\n");
+		return;
+	}
+
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
 	{
 		// Toggle the freeze mode.
