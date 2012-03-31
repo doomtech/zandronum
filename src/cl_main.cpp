@@ -3738,7 +3738,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// [GRB] Reset skin
 	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
 
-	if (!(pActor->flags2 & MF2_DONTTRANSLATE))
+	// [WS] Don't set custom skin color when the player is morphed.
+	if (!(pActor->flags2 & MF2_DONTTRANSLATE) && !bMorph)
 	{
 		// [RH] Be sure the player has the right translation
 		R_BuildPlayerTranslation ( ulPlayer );

@@ -180,6 +180,7 @@ latestzdoom branch
 -	- Fixed: Newly connected clients were not properly informed of certain properties of players and other actors. [TIHan]
 -	- Fixed: Rapidly activating 'chase' before joining a game with high ping results 'chase' being activated even with sv_cheats 0. [TIHan, Torr Samaho]
 -	- Fixed: In offline mode for team games, RESPAWN scripts were fired upon player entering the game instead of ENTER scripts. [TIHan]
+-	- Fixed: Player kept his custom skin color after morphing online. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
