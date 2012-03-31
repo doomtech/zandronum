@@ -27,6 +27,8 @@ int main(int argc, char **argv)
 	int svnCheckout = 0;
 	char hgdateString[64];
 	time_t hgdate = 0;
+	char hgHash[13];
+	hgHash[0] = '\0';
 
 	if (argc != 3)
 	{
@@ -71,10 +73,15 @@ int main(int argc, char **argv)
 			gotrev = 1;
 			// [BB] Find the date the revision of the working copy was created.
 			if ( ( svnCheckout == 0 ) &&
-				( system("hg log -r. --template \"{date|hgdate}\"") == 0 ) &&
+				( system("hg log -r. --template \"{date|hgdate} {node|short}\"") == 0 ) &&
 				( fseek(stream, strlen(currev), SEEK_SET) == 0 ) &&
 				( fgets(hgdateString, sizeof ( hgdateString ), stream) == hgdateString ) )
 			{
+				// [BB] Find the hash in the output and store it.
+				char *p = strrchr ( hgdateString, ' ' );
+				strncpy ( hgHash, p ? ( p+1 ) : "hashnotfound" , sizeof( hgHash ) - 1 );
+				hgHash[ sizeof ( hgHash ) - 1 ] = '\0';
+				// [BB] Extract the date from the output and store it.
 				hgdate = atoi ( hgdateString );
 			}
 		}
@@ -168,6 +175,11 @@ int main(int argc, char **argv)
 "#define SVN_REVISION_STRING \"%s\"\n"
 "#define SVN_REVISION_NUMBER %lu\n",
 			rev, rev, urev);
+
+		// [BB] Also save the hg hash.
+		if ( svnCheckout == 0 )
+			fprintf (stream, "#define HG_REVISION_HASH_STRING \"%s\"\n", hgHash);
+
 		fclose (stream);
 		fprintf (stderr, "%s updated to revision %s.\n", argv[2], rev);
 	}
