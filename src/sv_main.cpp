@@ -3555,7 +3555,10 @@ const FString& SERVER_GetMasterBanlistVerificationString( void )
 void SERVER_SetMapMusic( const char *pszMusic )
 {
 	if ( pszMusic )
-		sprintf( g_szMapMusic, "%s", pszMusic );
+	{
+		strncpy (g_szMapMusic,pszMusic,sizeof(g_szMapMusic)-1);
+		g_szMapMusic[sizeof(g_szMapMusic)-1]='\0';
+	}
 	else
 		g_szMapMusic[0] = 0;
 }
