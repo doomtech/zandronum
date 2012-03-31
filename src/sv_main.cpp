@@ -4349,8 +4349,9 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 	{
 		// [BB] Tell the player that (and for how long) he is muted.
 		FString message = "The server has muted you. Nobody can hear you chat";
+		int iMinutes = 1 + players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
 		if ( players[ulPlayer].lIgnoreChatTicks != -1 )
-			message.AppendFormat ( " for the next %d minutes.\n", 1 + players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE ) );
+			message.AppendFormat ( " for the next %d minute%s.\n", iMinutes, (iMinutes == 1) ? "" : "s");
 		else
 			message += ".\n";
 

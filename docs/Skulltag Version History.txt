@@ -185,6 +185,7 @@ latestzdoom branch
 -	- Fixed: Clients were not informed of MorphFlash and UnMorphFlash. [TIHan]
 -	- Fixed: The server could crash if changemus was called with a too long argument. [Edward-san]
 -	- Fixed: The freeze cheat could be activated during demo playback. [Dusk]
+-	- Fixed "1 minutes" typo in muting message. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
