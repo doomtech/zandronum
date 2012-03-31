@@ -1265,6 +1265,18 @@ CCMD( singleplayer )
 // [BB]
 //
 //-----------------------------------------------------------------------------
+CCMD(version_info)
+{
+	Printf ( "changeset: %s\n", HG_REVISION_HASH_STRING );
+	const time_t hgDate = SVN_REVISION_NUMBER;
+	Printf ( "date:      %s\n", asctime ( gmtime ( &hgDate ) ) );
+}
+
+//-----------------------------------------------------------------------------
+//
+// [BB]
+//
+//-----------------------------------------------------------------------------
 void CountActors ( )
 {
 	TMap<FName, int> actorCountMap;
