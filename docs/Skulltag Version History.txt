@@ -178,6 +178,7 @@ latestzdoom branch
 -	- Fixed: The server doesn't try to tick the master anymore if skulltag_masterip can't be resolved, but prints a warning instead. Previoulsly, an invalid skulltag_masterip setting led to WSAEADDRENOTAVAIL errors. [Torr Samaho]
 -	- Fixed: When the value of timelimit was changed online, the notification messaged displayed the new value as integer instead of as float. [Torr Samaho]
 -	- Fixed: Newly connected clients were not properly informed of certain properties of players and other actors. [TIHan]
+-	- Fixed: Rapidly activating 'chase' before joining a game with high ping results 'chase' being activated even with sv_cheats 0. [TIHan, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

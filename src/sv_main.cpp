@@ -5199,7 +5199,7 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 
 	// If it's legal, do the cheat.
 	if (( sv_cheats ) ||
-		(( ulCheat == CHT_CHASECAM ) &&	(( ( deathmatch == false ) && ( teamgame == false ) ) || (players[g_lCurrentClient].bSpectating) || (dmflags2 & DF2_CHASECAM) )))
+		(( ulCheat == CHT_CHASECAM ) &&	((players[g_lCurrentClient].bSpectating) || (dmflags2 & DF2_CHASECAM) )))
 	{
 		cht_DoCheat( &players[g_lCurrentClient], ulCheat );
 
@@ -5215,7 +5215,9 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 		}
 	}
 	// If not, boot their ass!
-	else
+	// [BB] Due to timing issues, honest clients may try to use CHT_CHASECAM because they
+	// think they are still a spectator. Don't kick them for this.
+	else if ( ulCheat != CHT_CHASECAM )
 	{
 		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
 		return ( true );
