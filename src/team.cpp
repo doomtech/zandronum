@@ -2264,7 +2264,12 @@ CCMD( changeteam )
 
 		// Now respawn the player at the appropriate spot. Set the player state to
 		// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
-		players[consoleplayer].playerstate = PST_REBORNNOINVENTORY;
+		// [BB/WS] If the player was a spectator, we have to set the state to
+		// PST_ENTERNOINVENTORY. Otherwise the enter scripts are not executed.
+		if ( players[consoleplayer].bSpectating )
+			players[consoleplayer].playerstate = PST_ENTERNOINVENTORY;
+		else
+			players[consoleplayer].playerstate = PST_REBORNNOINVENTORY;
 
 		// Also, take away spectator status.
 		players[consoleplayer].bSpectating = false;
