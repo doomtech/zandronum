@@ -646,7 +646,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 	ULONG		ulYPos;
 	char		szString[160];
 	char		szPatchName[9];
-	char		szName[32];
+	char		szName[MAXPLAYERNAME+1];
 
 	// Draw the carrier information for ONE object (POS, TERM, OFCTF).
 	if ( oneflagctf || terminator || possession || teampossession)
