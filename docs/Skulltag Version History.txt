@@ -190,6 +190,7 @@ latestzdoom branch
 -	- Fixed: Mystic Ambit Incant use code was executed on the clients and the server did not tell clients about its usage properly. [Dusk]
 -	- Fixed: A malformed launcher packet could crash the client. [Torr Samaho]
 -	- Fixed: The server sent broken launcher challenges to the clients if timelimit was smaller than one and bigger than zero. [Torr Samaho]
+-	- Fixed: Opening the "Configure server" window in the Windows server console rounded the timelimit value to integer. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

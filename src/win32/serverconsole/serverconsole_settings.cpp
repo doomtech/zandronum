@@ -250,8 +250,8 @@ void settings_Dialog_SaveSettings( )
 
 	// Timelimit is a float.
 	GetDlgItemText( hDlg, IDC_TIMELIMIT, szBuffer, 1024 );
-	if ( timelimit != atoi( szBuffer ) )
-		timelimit = atoi( szBuffer );
+	if ( timelimit != atof( szBuffer ) )
+		timelimit = atof( szBuffer );
 
 	// Save game mode.
 	if ( (LONG) GAMEMODE_GetCurrentMode( ) != SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_GETCURSEL, 0, 0 ))
