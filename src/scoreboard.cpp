@@ -1311,22 +1311,9 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 	char				szString[128];
 	ULONG				ulCurYPos = 0;
 
-	if ( possession )
+	if ( possession || teampossession )
 	{
 		// Start the "POSSESSION" title.
-		ulCurYPos = 32;
-		if ( gamestate == GS_LEVEL )
-		{
-			sprintf( szString, "%s", pszString );
-			screen->DrawText( BigFont, gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
-				160 - ( BigFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				DTA_Clean, true, TAG_DONE );
-		}
-	}
-	else if ( teampossession )
-	{
 		ulCurYPos = 32;
 		if ( gamestate == GS_LEVEL )
 		{
