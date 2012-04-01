@@ -442,8 +442,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( ulBits & SQF_LIMITS )
 	{
 		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, fraglimit );
-		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, (SHORT)timelimit );
-		if ( timelimit )
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, static_cast<SHORT>(timelimit) );
+		// [BB] We have to base the decision on whether to send "time left" on the same rounded
+		// timelimit value we just sent to the client.
+		if ( static_cast<SHORT>(timelimit) )
 		{
 			LONG	lTimeLeft;
 
