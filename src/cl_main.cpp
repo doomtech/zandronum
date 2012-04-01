@@ -3739,7 +3739,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
 
 	// [WS] Don't set custom skin color when the player is morphed.
-	if (!(pActor->flags2 & MF2_DONTTRANSLATE) && !bMorph)
+	// [BB] In team games (where we assume that all players are on a team), we allow the team color for morphed players.
+	if (!(pActor->flags2 & MF2_DONTTRANSLATE) && ( !bMorph || ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )))
 	{
 		// [RH] Be sure the player has the right translation
 		R_BuildPlayerTranslation ( ulPlayer );

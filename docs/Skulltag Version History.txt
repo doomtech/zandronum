@@ -181,7 +181,7 @@ latestzdoom branch
 -	- Fixed: Newly connected clients were not properly informed of certain properties of players and other actors. [TIHan]
 -	- Fixed: Rapidly activating 'chase' before joining a game with high ping results 'chase' being activated even with sv_cheats 0. [TIHan, Torr Samaho]
 -	- Fixed: In offline mode for team games, RESPAWN scripts were fired upon player entering the game instead of ENTER scripts. [TIHan]
--	- Fixed: Player kept his custom skin color after morphing online. [TIHan]
+-	- Fixed: Player kept his custom skin color after morphing online. [TIHan, Torr Samaho]
 -	- Fixed: A morphed player possibly changed his skin back to his unmorphed custom skin online after starting to move. [Torr Samaho]
 -	- Fixed: Clients were not informed of MorphFlash and UnMorphFlash. [TIHan]
 -	- Fixed: The server could crash if changemus was called with a too long argument. [Edward-san]
