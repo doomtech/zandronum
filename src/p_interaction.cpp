@@ -1370,7 +1370,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	// [RH] Avoid friendly fire if enabled
 	if (source != NULL &&
-		((player && player != source->player) || !player) &&
+		((player && player != source->player) || (!player && target != source)) &&
 		target->IsTeammate (source))
 	{
 		// [BL] Some adjustments for Skulltag
