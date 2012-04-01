@@ -29,6 +29,13 @@ IMPLEMENT_CLASS (AArtiHealingRadius)
 
 bool AArtiHealingRadius::Use (bool pickup)
 {
+	// [Dusk] If we got here as the client, this function returned  true on the server.
+	// Thus, it shall return true here as well. Furthermore, the client shouldn't
+	// actually execute anything here, since the effects include manipulating health/armor
+	// and stuff like that. Therefore, just return true.
+	if ( NETWORK_InClientMode( ) == true )
+		return true;
+
 	bool effective = false;
 	int mode = Owner->GetClass()->Meta.GetMetaInt(APMETA_HealingRadius);
 
@@ -57,6 +64,10 @@ bool AArtiHealingRadius::Use (bool pickup)
 					else
 					{
 						gotsome = true;
+
+						// [Dusk] As the server, sync the new armor values
+						if ( NETWORK_GetState () == NETSTATE_SERVER )
+							SERVERCOMMANDS_SyncHexenArmorSlots( i );
 					}
 				}
 				break;
@@ -69,6 +80,10 @@ bool AArtiHealingRadius::Use (bool pickup)
 					players[i].mo->GiveAmmo (PClass::FindClass(NAME_Mana2), amount))
 				{
 					gotsome = true;
+
+					// [Dusk] As the server, sync the new ammo counts.
+					if ( NETWORK_GetState () == NETSTATE_SERVER )
+						SERVERCOMMANDS_SyncPlayerAmmoAmount( i );
 				}
 				break;
 			}
@@ -76,12 +91,20 @@ bool AArtiHealingRadius::Use (bool pickup)
 			default:
 			//case NAME_Health:
 				gotsome = P_GiveBody (players[i].mo, 50 + (pr_healradius()%50));
+
+				// [Dusk] As the server, sync the new health count
+				if ( NETWORK_GetState () == NETSTATE_SERVER && gotsome )
+					SERVERCOMMANDS_SetPlayerHealth( i );
 				break;
 			}
 			if (gotsome)
 			{
 				S_Sound (players[i].mo, CHAN_AUTO, "MysticIncant", 1, ATTN_NORM);
 				effective=true;
+
+				// [Dusk] As the server, tell clients to play the sound
+				if ( NETWORK_GetState () == NETSTATE_SERVER )
+					SERVERCOMMANDS_SoundActor( players[i].mo, CHAN_AUTO, "MysticIncant", 1, ATTN_NORM );
 			}
 		}
 	}
