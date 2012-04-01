@@ -123,9 +123,9 @@ int main(int argc, char **argv)
 		unsigned int localChanges = ( *endptr == '+' );
 		struct tm	*lt = gmtime( &hgdate );
 		if ( localChanges )
-			sprintf ( rev, "%d_%02d_%02d %02d:%02dM", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
+			sprintf ( rev, "%d%02d%02d-%02d%02dM", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
 		else
-			sprintf ( rev, "%d_%02d_%02d %02d:%02d", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
+			sprintf ( rev, "%d%02d%02d-%02d%02d", lt->tm_year - 100, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min);
 	}
 
 	stream = fopen (argv[2], "r");
