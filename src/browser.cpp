@@ -56,6 +56,8 @@
 #include "doomtype.h"
 #include "gamemode.h"
 #include "i_system.h"
+#include "teaminfo.h"
+#include "templates.h"
 #include "version.h"
 
 //*****************************************************************************
@@ -648,8 +650,9 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		}
 
 		// [CW] Read in the number of the teams.
+		// [BB] Make sure that the number is valid!
 		if ( ulFlags & SQF_TEAMINFO_NUMBER )
-			g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
+			g_ulNumberOfTeams = clamp ( NETWORK_ReadByte( pByteStream ), 2, MAX_TEAMS );
 
 		// [CW] Read in the name of the teams.
 		if ( ulFlags & SQF_TEAMINFO_NAME )
@@ -879,8 +882,9 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	}
 
 	// [CW] Read in the number of the teams.
+	// [BB] Make sure that the number is valid!
 	if ( ulFlags & SQF_TEAMINFO_NUMBER )
-		g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
+		g_ulNumberOfTeams = clamp ( NETWORK_ReadByte( pByteStream ), 2, MAX_TEAMS );
 
 	// [CW] Read in the name of the teams.
 	if ( ulFlags & SQF_TEAMINFO_NAME )
