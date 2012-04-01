@@ -250,7 +250,8 @@ void settings_Dialog_SaveSettings( )
 
 	// Timelimit is a float.
 	GetDlgItemText( hDlg, IDC_TIMELIMIT, szBuffer, 1024 );
-	if ( timelimit != atof( szBuffer ) )
+	// [BB] We shouldn't compare two floats with "!=".
+	if ( abs( timelimit - atof( szBuffer ) ) > 1e-8 )
 		timelimit = atof( szBuffer );
 
 	// Save game mode.
