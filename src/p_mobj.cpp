@@ -101,7 +101,6 @@ EXTERN_CVAR (Int,  cl_rockettrails)
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-/*static*/ bool SpawningMapThing;
 static FRandom pr_explodemissile ("ExplodeMissile");
 static FRandom pr_bounce ("Bounce");
 static FRandom pr_reflect ("Reflect");
@@ -4183,7 +4182,7 @@ void AActor::FreeNetID ()
 //
 //==========================================================================
 
-AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t iz, replace_t allowreplacement)
+AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t iz, replace_t allowreplacement, bool SpawningMapThing)
 {
 	g_lSpawnCount++;
 	g_SpawnCycles.Clock();
@@ -5431,9 +5430,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	else
 		z = ONFLOORZ;
 
-	SpawningMapThing = true;
-	mobj = Spawn (i, x, y, z, NO_REPLACE);
-	SpawningMapThing = false;
+	mobj = AActor::StaticSpawn (i, x, y, z, NO_REPLACE, true);
 
 	if (z == ONFLOORZ)
 		mobj->z += mthing->z;
