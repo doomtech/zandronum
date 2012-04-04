@@ -2908,6 +2908,10 @@ void PLAYER_LeavesGame( const ULONG ulPlayer )
 	if ( ulPlayer >= MAXPLAYERS )
 		return;
 
+	// [BB] Offline we need to create the disconnect particle effect here.
+	if ( ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) ) && players[ulPlayer].mo )
+		P_DisconnectEffect( players[ulPlayer].mo );
+
 	// Run the disconnect scripts now that the player is leaving.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
