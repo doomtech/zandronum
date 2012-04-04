@@ -2265,9 +2265,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 					SERVERCOMMANDS_PlayerRespawnInvulnerability( ulIdx );
 				}
 			}
+			// [WS] Inform clients of their PowerupGiver items.
 			else if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )) || pInventory->IsKindOf( RUNTIME_CLASS( AWeapon ))
 				|| pInventory->IsKindOf( RUNTIME_CLASS( ABackpackItem ))
-				|| pInventory->IsKindOf( RUNTIME_CLASS( ARune )) )
+				|| pInventory->IsKindOf( RUNTIME_CLASS( ARune ))
+				|| pInventory->IsKindOf( RUNTIME_CLASS( APowerupGiver )) )
 			{
 				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 				// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
