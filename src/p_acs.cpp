@@ -75,6 +75,7 @@
 #include "announcer.h"
 #include "deathmatch.h"
 #include "gamemode.h"
+#include "g_game.h"
 #include "team.h"
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -3213,6 +3214,9 @@ enum EACSFunctions
 	ACSF_CheckActorProperty,
     ACSF_SetActorVelocity,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
+
+	// [BB] Skulltag functions
+	ACSF_ResetMap = 100,
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -3429,6 +3433,18 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
 			return 0;
 
+		// [BB]
+		case ACSF_ResetMap:
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS )
+			{
+				GAME_RequestMapRest ( );
+				return 1;
+			}
+			else
+			{
+				Printf ( "ResetMap can only be used in game modes that support map resets.\n" );
+				return 0;
+			}
 		default:
 			break;
 	}
