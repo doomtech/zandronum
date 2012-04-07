@@ -386,6 +386,9 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 	// [BB] Tell the clients to unmorph the player, also give back the original inventory to the player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
+		// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
+		SERVER_AdjustPlayersReactiontime ( static_cast<ULONG> ( player - players ) );
+
 		SERVERCOMMANDS_SpawnPlayer( ULONG( player-players ), PST_LIVE );
 		SERVER_ResetInventory( ULONG( player-players ));
 		SERVERCOMMANDS_SetThingFlags( player->mo, FLAGSET_FLAGS );

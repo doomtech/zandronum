@@ -3879,8 +3879,15 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		// morph time since the server handles the timing of the unmorphing.
 		pPlayer->morphTics = -1;
 	}
-	else 
+	else
+	{
 		pPlayer->morphTics = 0;
+
+		// [BB] If the player was just unmorphed, we need to set reactiontime to the same value P_UndoPlayerMorph uses.
+		if ( bPlayerWasMorphed )
+			pPlayer->mo->reactiontime = 18;
+	}
+
 
 	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
 	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )

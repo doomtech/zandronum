@@ -195,6 +195,7 @@ latestzdoom branch
 -	- Fixed: The gameplay tab of the "Configure server" window in the Windows server console didn't allow non-integer timelimit values to be entered. [Torr Samaho]
 -	- Fixed: When a player turned into a spectator offline, the disconnect particle effect was missing. [Torr Samaho]
 -	- Fixed: Newly connected clients are not informed of other clients' PowerupGiver. [TIHan]
+-	- Fixed: The player's view could bob on a client after unmorphing online while the player was still frozen due to rectiontime. [TIHan, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
