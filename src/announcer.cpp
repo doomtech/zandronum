@@ -141,6 +141,15 @@ static	LONG			g_lLastSoundID = 0;
 CVAR (Bool, cl_alwaysplayfragsleft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, cl_allowmultipleannouncersounds, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
+// [WS] Adjusts the announcer's volume.
+CUSTOM_CVAR (Float, snd_announcervolume, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (self < 0.f)
+		self = 0.f;
+	else if (self > 1.f)
+		self = 1.f;
+}
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -227,7 +236,8 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 
 		// Play the sound.
 		g_lLastSoundID = S_FindSound( sound );
-		S_Sound( CHAN_VOICE, sound, 1, ATTN_NONE );
+		// [WS] Added snd_announcervolume.
+		S_Sound( CHAN_VOICE, sound, snd_announcervolume, ATTN_NONE );
 	}
 }
 

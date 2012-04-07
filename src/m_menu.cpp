@@ -582,6 +582,7 @@ EXTERN_CVAR( Int, menu_railcolor )
 EXTERN_CVAR( Float, menu_autoaim )
 EXTERN_CVAR( Bool, cl_unlagged )
 EXTERN_CVAR( Int, cl_announcer )
+EXTERN_CVAR(Float, snd_announcervolume)	// [WS] Skulltag's announcer volume.
 
 // Menu option values used in this menu defined in m_options.cpp.
 extern	value_t		GenderVals[3];
@@ -619,6 +620,7 @@ menuitem_t PlayerSetupItems[] = {
 	{ more,		"Weapon setup",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_WeaponSetup} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ announcer,"Announcer",				{&cl_announcer},			{0.0}, {0.0}, {0.0}, {NULL} },
+	{ slider,	"Announcer volume",			{&snd_announcervolume},	{0.0}, {1.0},	{0.05}, {NULL} },	// [WS] Skulltag Announcer volume.
 // [RC] Moved switch team to the Multiplayer menu
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ more,		"Undo changes",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_UndoPlayerSetupChanges} },
