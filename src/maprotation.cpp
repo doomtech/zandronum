@@ -308,14 +308,15 @@ CCMD (delmap_idx) {
 		return;
 	}
 
-	int idx = atoi(argv[1]);
-	if (idx <= 0 || idx > static_cast<int>(g_MapRotationEntries.size()))
+	unsigned int idx = static_cast<unsigned int> ( ( atoi(argv[1]) - 1 ) );
+	if ( idx >= g_MapRotationEntries.size() )
 	{
 		Printf ("No such map!\n");
 		return;
 	}
 
-	MAPROTATION_DelMap (g_MapRotationEntries[idx-1].pMap->mapname, false);
+	Printf ("%s (%s) has been removed from map rotation list.\n",	g_MapRotationEntries[idx].pMap->mapname, g_MapRotationEntries[idx].pMap->LookupLevelName().GetChars());
+	g_MapRotationEntries.erase (g_MapRotationEntries.begin()+idx);
 }
 
 //*****************************************************************************
