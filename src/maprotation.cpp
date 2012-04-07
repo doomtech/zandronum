@@ -209,6 +209,41 @@ void MAPROTATION_AddMap( char *pszMapName, bool bSilent )
 }
 
 //*****************************************************************************
+// [Dusk] Removes a map from map rotation
+void MAPROTATION_DelMap (char *pszMapName, bool bSilent)
+{
+	// look up the map
+	level_info_t *pMap = FindLevelByName (pszMapName);
+	if (pMap == NULL)
+	{
+		Printf ("map %s doesn't exist.\n", pszMapName);
+		return;
+	}
+
+	// search the map in the map rotation and throw it to trash
+	level_info_t entry;
+	std::vector<MAPROTATIONENTRY_t>::iterator iterator;
+	bool gotcha = false;
+	for (iterator = g_MapRotationEntries.begin (); iterator < g_MapRotationEntries.end (); iterator++)
+	{
+		entry = *iterator->pMap;
+		if (!stricmp(entry.mapname, pszMapName)) {
+			g_MapRotationEntries.erase (iterator);
+			gotcha = true;
+			break;
+		}
+	}
+
+	if (gotcha && !bSilent)
+	{
+		Printf ("%s (%s) has been removed from map rotation list.\n",
+			pMap->mapname, pMap->LookupLevelName().GetChars());
+	}
+	else if (!gotcha)
+		Printf ("Map %s is not in rotation.\n", pszMapName);
+}
+
+//*****************************************************************************
 //	CONSOLE COMMANDS
 
 CCMD( addmap )
@@ -249,6 +284,38 @@ CCMD( clearmaplist )
 	MAPROTATION_Construct( );
 
 	Printf( "Map rotation list cleared.\n" );
+}
+
+// [Dusk] delmap
+CCMD (delmap) {
+	if (argv.argc() > 1)
+		MAPROTATION_DelMap (argv[1], false);
+	else
+		Printf ("delmap <lumpname>: Removes a map from the map rotation list.\n");
+}
+
+CCMD (delmapsilent) {
+	if (argv.argc() > 1)
+		MAPROTATION_DelMap (argv[1], true);
+	else
+		Printf ("delmapsilent <lumpname>: Silently removes a map from the map rotation list.\n");
+}
+
+CCMD (delmap_idx) {
+	if (argv.argc() <= 1)
+	{
+		Printf ("delmap_idx <idx>: Removes a map from the map rotation list based in index number.\nUse maplist to list the rotation with index numbers.\n");
+		return;
+	}
+
+	int idx = atoi(argv[1]);
+	if (idx <= 0 || idx > static_cast<int>(g_MapRotationEntries.size()))
+	{
+		Printf ("No such map!\n");
+		return;
+	}
+
+	MAPROTATION_DelMap (g_MapRotationEntries[idx-1].pMap->mapname, false);
 }
 
 //*****************************************************************************

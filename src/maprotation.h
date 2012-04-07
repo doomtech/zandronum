@@ -77,6 +77,7 @@ level_info_t	*MAPROTATION_GetMap( ULONG ulIdx );
 void			MAPROTATION_SetPositionToMap( const char *pszMapName );
 bool			MAPROTATION_IsMapInRotation( const char *pszMapName );
 void			MAPROTATION_AddMap( char *pszMapName, bool bSilent );
+void			MAPROTATION_DelMap (char *pszMapName, bool bSilent);
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
