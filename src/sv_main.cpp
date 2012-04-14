@@ -3175,6 +3175,10 @@ void SERVER_UpdateActorProperties( AActor *pActor, ULONG ulClient )
 	// [WS] Update the actor's death sound if it's changed.
 	if ( strcmp( S_GetName( pActor->DeathSound ), S_GetName( pActor->GetDefault()->DeathSound ) ) != 0 )
 		SERVERCOMMANDS_SetThingSound( pActor, ACTORSOUND_DEATHSOUND, S_GetName( pActor->DeathSound ), ulClient, SVCF_ONLYTHISCLIENT );
+
+	// [WS] Update the actor's reaction time if it's changed.
+	if ( pActor->reactiontime != pActor->GetDefault()->reactiontime )
+		SERVERCOMMANDS_SetThingReactionTime( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************

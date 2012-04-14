@@ -2654,6 +2654,20 @@ void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulF
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingReactionTime( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( !EnsureActorHasNetID (pActor) )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETTHINGREACTIONTIME );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->reactiontime );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
