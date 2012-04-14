@@ -15,6 +15,9 @@
 #include <string>
 #include <cstring>
 #include <stdio.h>
+#ifndef WIN32
+#include <unistd.h>
+#endif
 
 #include "upnpnat.h"
 #include "xmlParser.h"
