@@ -199,6 +199,7 @@ latestzdoom branch
 -	- Fixed: Newly connected clients are not informed of other clients' PowerupGiver. [TIHan]
 -	- Fixed: The player's view could bob on a client after unmorphing online while the player was still frozen due to rectiontime. [TIHan, Torr Samaho]
 -	- Fixed: Newly connected clients were not informed of other actors' reaction time. [TIHan]
+-	- Fixed: Morphed players turning into spectators leave dummy players behind. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

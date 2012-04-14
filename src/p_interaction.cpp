@@ -2268,6 +2268,15 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		return;
 	}
 
+	// [BB] Morphed players need to be unmorphed before being changed to spectators.
+	// [WS] This needs to be done before we turn our player into a spectator.
+	if (( pPlayer->morphTics ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		P_UndoPlayerMorph ( pPlayer, pPlayer );
+	}
+
 	// Flag this player as being a spectator.
 	pPlayer->bSpectating = true;
 	pPlayer->bDeadSpectator = bDeadSpectator;
@@ -2283,14 +2292,6 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// If this player was eligible to get an assist, cancel that.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		TEAM_CancelAssistsOfPlayer ( static_cast<unsigned>( pPlayer - players ) );
-
-	// [BB] Morphed players need to be unmorphed before being changed to spectators.
-	if (( pPlayer->morphTics ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		P_UndoPlayerMorph ( pPlayer, pPlayer );
-	}
 
 	if ( pPlayer->mo )
 	{
