@@ -2959,7 +2959,14 @@ void GAME_CheckMode( void )
 						// Replace this skull with skulltag mode's version of the skull.
 						pNewSkull = Spawn( PClass::FindClass( "BlueSkullST" ), pItem->x, pItem->y, pItem->z, NO_REPLACE );
 						if ( pNewSkull )
+						{
 							pNewSkull->flags &= ~MF_DROPPED;
+
+							// [BB] If we replace a map spawned item, the new item still needs to
+							// be considered map spawned. Otherwise it vanishes in a map reset.
+							if ( pItem->ulSTFlags & STFL_LEVELSPAWNED )
+								pNewSkull->ulSTFlags |= STFL_LEVELSPAWNED ;
+						}
 
 						Origin.x = pItem->x;
 						Origin.y = pItem->y;
@@ -2976,7 +2983,14 @@ void GAME_CheckMode( void )
 						// Replace this skull with skulltag mode's version of the skull.
 						pNewSkull = Spawn( PClass::FindClass( "RedSkullST" ), pItem->x, pItem->y, pItem->z, NO_REPLACE );
 						if ( pNewSkull )
+						{
 							pNewSkull->flags &= ~MF_DROPPED;
+
+							// [BB] If we replace a map spawned item, the new item still needs to
+							// be considered map spawned. Otherwise it vanishes in a map reset.
+							if ( pItem->ulSTFlags & STFL_LEVELSPAWNED )
+								pNewSkull->ulSTFlags |= STFL_LEVELSPAWNED ;
+						}
 
 						Origin.x = pItem->x;
 						Origin.y = pItem->y;
