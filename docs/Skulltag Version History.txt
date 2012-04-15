@@ -206,6 +206,7 @@ latestzdoom branch
 -	- Fixed: Clients weren't told of pigplayers' bite sound. [Dusk]
 -	- Fixed: Stray Hexen bridge balls (and other actors spawned by A_BridgeInit) were included in snapshots the server sends to connecting clients. [Dusk]
 -	- Fixed: Clients were not informed of alwaysapplydmflags' value. [TIHan]
+-	- Fixed: Some scrolling textures were not handled properly between client and server. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -1758,11 +1758,8 @@ static void P_SpawnScrollers(void)
 		case Scroll_Ceiling:
 
 			// [BC] The server will update these for us.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
-			{
+			if ( NETWORK_InClientMode( ) )
 				break;
-			}
 
 			for (s=-1; (s = P_FindSectorFromTag (l->args[0],s)) >= 0;)
 				new DScroller (DScroller::sc_ceiling, -dx, dy, control, s, accel);
@@ -1771,11 +1768,8 @@ static void P_SpawnScrollers(void)
 		case Scroll_Floor:
 
 			// [BC] The server will update these for us.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
-			{
+			if ( NETWORK_InClientMode( ) )
 				break;
-			}
 
 			if (l->args[2] != 1)
 			{ // scroll the floor texture
@@ -1793,12 +1787,22 @@ static void P_SpawnScrollers(void)
 		// killough 3/1/98: scroll wall according to linedef
 		// (same direction and speed as scrolling floors)
 		case Scroll_Texture_Model:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			for (s=-1; (s = P_FindLineFromID (l->args[0],s)) >= 0;)
 				if (s != i)
 					new DScroller (dx, dy, lines+s, control, accel);
 			break;
 
 		case Scroll_Texture_Offsets:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			// killough 3/2/98: scroll according to sidedef offsets
 			s = lines[i].sidenum[0];
 			new DScroller (DScroller::sc_side, -sides[s].GetTextureXOffset(side_t::mid),
@@ -1806,26 +1810,51 @@ static void P_SpawnScrollers(void)
 			break;
 
 		case Scroll_Texture_Left:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			new DScroller (DScroller::sc_side, l->args[0] * (FRACUNIT/64), 0,
 						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Right:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			new DScroller (DScroller::sc_side, l->args[0] * (-FRACUNIT/64), 0,
 						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Up:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (FRACUNIT/64),
 						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Down:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (-FRACUNIT/64),
 						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Both:
+
+			// [WS] The server will update these for us.
+			if ( NETWORK_InClientMode( ) )
+				break;
+
 			if (l->args[0] == 0) {
 				dx = (l->args[1] - l->args[2]) * (FRACUNIT/64);
 				dy = (l->args[4] - l->args[3]) * (FRACUNIT/64);
