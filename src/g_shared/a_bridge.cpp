@@ -4,6 +4,9 @@
 #include "m_random.h"
 #include "thingdef/thingdef.h"
 
+// [Dusk]
+#include "network.h"
+
 static FRandom pr_orbit ("Orbit");
 
 
@@ -126,6 +129,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BridgeInit)
 		ball->angle = startangle + (ANGLE_45/32) * (256/ballcount) * i;
 		ball->target = self;
 		CALL_ACTION(A_BridgeOrbit, ball);
+
+		// [Dusk] bridge balls should not be included in full updates
+		// as the bridge thing will spawn them instead.
+		if (NETWORK_GetState() == NETSTATE_SERVER)
+			ball->ulNetworkFlags |= NETFL_ALLOWCLIENTSPAWN;
 	}
 }
 
