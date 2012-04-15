@@ -187,7 +187,7 @@ bool MAPROTATION_IsMapInRotation( const char *pszMapName )
 
 //*****************************************************************************
 //
-void MAPROTATION_AddMap( char *pszMapName, bool bSilent )
+void MAPROTATION_AddMap( char *pszMapName, bool bSilent, int iPosition )
 {
 	// Find the map.
 	level_info_t *pMap = FindLevelByName( pszMapName );
@@ -197,15 +197,33 @@ void MAPROTATION_AddMap( char *pszMapName, bool bSilent )
 		return;
 	}
 
-	// Add it to the queue.
 	MAPROTATIONENTRY_t newEntry;
 	newEntry.pMap = pMap;
 	newEntry.bUsed = false;
-	g_MapRotationEntries.push_back( newEntry );
+
+	// [Dusk] iPosition of 0 implies the end of the maplist.
+	if (iPosition == 0) {
+		// Add it to the queue.
+		g_MapRotationEntries.push_back( newEntry );
+		
+		// [Dusk] note down the position for output
+		iPosition = g_MapRotationEntries.end() - g_MapRotationEntries.begin();
+	} else {
+		// [Dusk] insert the map into a certain position
+		std::vector<MAPROTATIONENTRY_t>::iterator itPosition = g_MapRotationEntries.begin() + iPosition - 1;
+
+		// sanity check.
+		if (itPosition < g_MapRotationEntries.begin () || itPosition > g_MapRotationEntries.end ()) {
+			Printf ("Bad index specified!\n");
+			return;
+		}
+
+		g_MapRotationEntries.insert( itPosition, 1, newEntry );
+	}
 
 	MAPROTATION_SetPositionToMap( level.mapname );
 	if ( !bSilent )
-		Printf( "%s (%s) added to map rotation list.\n", pMap->mapname, pMap->LookupLevelName( ).GetChars( ));
+		Printf( "%s (%s) added to map rotation list at position %d.\n", pMap->mapname, pMap->LookupLevelName( ).GetChars( ), iPosition);
 }
 
 //*****************************************************************************
@@ -317,6 +335,22 @@ CCMD (delmap_idx) {
 
 	Printf ("%s (%s) has been removed from map rotation list.\n",	g_MapRotationEntries[idx].pMap->mapname, g_MapRotationEntries[idx].pMap->LookupLevelName().GetChars());
 	g_MapRotationEntries.erase (g_MapRotationEntries.begin()+idx);
+}
+
+//*****************************************************************************
+// [Dusk] insertmap
+CCMD (insertmap) {
+	if ( argv.argc( ) > 2 )
+		MAPROTATION_AddMap( argv[1], false, atoi( argv[2] ));
+	else
+		Printf( "insertmap <lumpname> <position>: Inserts a map to the map rotation list, after <position>.\nUse maplist to list the rotation with index numbers.\n" );
+}
+
+CCMD (insertmapsilent) {
+	if ( argv.argc( ) > 2 )
+		MAPROTATION_AddMap( argv[1], true, atoi( argv[2] ));
+	else
+		Printf( "insertmapsilent <lumpname> <position>: Inserts a map to the map rotation list, after <position>.\nUse maplist to list the rotation with index numbers.\n" );
 }
 
 //*****************************************************************************
