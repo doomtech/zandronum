@@ -795,15 +795,16 @@ bool AActor::InDeathState()
 //
 //----------------------------------------------------------------------------
 
-bool AActor::InState(FState *pState, unsigned int *pOffset ) const
+bool AActor::InState(FState *pState, unsigned int *pOffset, FState *pCurrentActorStateOverride ) const
 {
-	if( state != NULL )
+	FState *pCurrentActorState =  ( pCurrentActorStateOverride != NULL ) ? pCurrentActorStateOverride : state;
+	if( pCurrentActorState != NULL )
 	{
 		FState *pTempState = pState;
 		std::vector<FState*> checkedFrames;
 		while ( pTempState != NULL )
 		{
-			if ( state == pTempState )
+			if ( pCurrentActorState == pTempState )
 			{
 				if ( pOffset != NULL )
 					*pOffset = checkedFrames.size();

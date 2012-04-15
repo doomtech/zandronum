@@ -991,7 +991,7 @@ public:
 	bool InSpawnState( );
 	bool InDeathState();
 	// [BB]
-	bool InState(FState *pState, unsigned int *pOffset = NULL) const;
+	bool InState(FState *pState, unsigned int *pOffset = NULL, FState *pCurrentActorStateOverride = NULL ) const;
 	bool InState(FName label) const;
 
 	virtual bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
