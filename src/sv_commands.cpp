@@ -3470,6 +3470,8 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 	command.addFloat( static_cast<float>(level.aircontrol) / 65536.f );
 	// [WS] Send in sv_coop_damagefactor.
 	command.addFloat( sv_coop_damagefactor );
+	// [WS] Send in alwaysapplydmflags.
+	command.addByte( alwaysapplydmflags );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 

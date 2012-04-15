@@ -29,6 +29,8 @@
 #include "i_system.h"
 #include "g_level.h"
 #include "p_local.h"
+// [WS] New includes
+#include "sv_commands.h"
 
 int SaveVersion;
 
@@ -45,7 +47,15 @@ CVAR (Bool, developer, false, 0)
 CVAR (Bool, var_friction, true, CVAR_SERVERINFO);
 CVAR (Bool, var_pushers, true, CVAR_SERVERINFO);
 
-CVAR (Bool, alwaysapplydmflags, false, CVAR_SERVERINFO);
+// [WS] Changed CVAR to CUSTOM_CVAR as we need to send clients the updated state of this.
+CUSTOM_CVAR (Bool, alwaysapplydmflags, false, CVAR_SERVERINFO)
+{
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (bool)self );
+		SERVERCOMMANDS_SetGameModeLimits( );
+	}
+}
 
 CUSTOM_CVAR (Float, teamdamage, 0.f, CVAR_SERVERINFO)
 {
