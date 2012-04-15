@@ -1807,6 +1807,10 @@ void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poi
 void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	bool playPainSound)
 {
+	// [Dusk] clients shouldn't execute any of this
+	if (NETWORK_InClientMode())
+		return;
+
 	AActor *target;
 	AActor *inflictor;
 
@@ -1849,6 +1853,10 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 		player->health = 0;
 	}
 	player->attacker = source;
+
+	// [Dusk] Update the player health
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetPlayerHealth( player - players );
 
 	//
 	// do the damage

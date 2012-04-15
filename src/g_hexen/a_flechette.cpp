@@ -277,6 +277,10 @@ int APoisonCloud::DoSpecialDamage (AActor *victim, int damage)
 				P_PoisonPlayer (victim->player, this, this->target, 50);
 
 				S_Sound (victim, CHAN_VOICE, "*poison", 1, ATTN_NORM);
+
+				// [Dusk] Play the sound on the clients
+				if( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SoundActor( victim, CHAN_VOICE, "*poison", 1, ATTN_NORM );
 			}
 		}	
 		return -1;
