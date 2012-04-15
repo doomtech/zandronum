@@ -4940,6 +4940,21 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 			return;
 
 		pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
+
+		// [BB] The offset was calculated by FindStateLabelAndOffset using GetNextState(),
+		// so we have to use this here, too, to propely find the target state.
+		// Note: The same loop is used in client_SetThingFrame and could be moved to a new function.
+		for ( int i = 0; i < lOffset; i++ )
+		{
+			if ( pNewState != NULL )
+				pNewState = pNewState->GetNextState( );
+		}
+
+		if ( pNewState == NULL )
+			return;
+
+		P_SetPsprite( &players[ulPlayer], lPosition, pNewState );
+		return;
 	}
 	if ( pNewState )
 	{
