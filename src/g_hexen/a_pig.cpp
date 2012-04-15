@@ -77,12 +77,25 @@ DEFINE_ACTION_FUNCTION(AActor, A_SnoutAttack)
 	slope = P_AimLineAttack(player->mo, angle, MELEERANGE, &linetarget);
 	puff = P_LineAttack(player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, "SnoutPuff", true);
 	S_Sound(player->mo, CHAN_VOICE, "PigActive", 1, ATTN_NORM);
+
+	// [Dusk] clients aren't properly aware of linetarget, thus they stop here.
+	if (NETWORK_InClientMode()) return;
+
 	if(linetarget)
 	{
 		AdjustPlayerAngle(player->mo, linetarget);
+
+		// [Dusk] update angle
+		if (NETWORK_GetState() == NETSTATE_SERVER)
+			SERVERCOMMANDS_MoveThing(player->mo, CM_ANGLE);
+
 		if(puff != NULL)
 		{ // Bit something
 			S_Sound(player->mo, CHAN_VOICE, "PigAttack", 1, ATTN_NORM);
+
+			// [Dusk] tell clients of the attack sound
+			if (NETWORK_GetState() == NETSTATE_SERVER)
+				SERVERCOMMANDS_SoundActor (player->mo, CHAN_VOICE, "PigAttack", 1, ATTN_NORM);
 		}
 	}
 }
