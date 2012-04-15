@@ -276,7 +276,7 @@ void FindStateLabelAndOffset( const AActor *pActor, FState *pState, FString &sta
 	for ( ULONG ulIdx = 0; ulIdx < static_cast<ULONG> ( pStateList->NumLabels ); ++ulIdx )
 	{
 		unsigned int offset;
-		if ( pActor->InState ( pStateList->Labels[ulIdx].State, &offset ) && ( offset <= 255 ) )
+		if ( pActor->InState ( pStateList->Labels[ulIdx].State, &offset, pState ) && ( offset <= 255 ) )
 		{
 			lOffset = static_cast<LONG> ( offset );
 			stateLabel = pStateList->Labels[ulIdx].Label.GetChars();
