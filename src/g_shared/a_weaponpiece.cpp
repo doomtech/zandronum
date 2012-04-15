@@ -99,11 +99,8 @@ bool AWeaponPiece::TryPickup (AActor *&toucher)
 			// [BB] The collection of weapon pieces is handled on the server, so we
 			// need to tell the client that the weapon is completed.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( toucher ) && ( toucher->player ))
-			{
 				SERVERCOMMANDS_GiveInventory( ULONG( toucher->player - players ), FullWeapon );
-				// [BB] The above command gives ammo to the client, but the AttachToOwner command
-				// below fixes the amount.
-			}
+
 			// The weapon itself should not give more ammo to the player!
 			FullWeapon->AmmoGive1=0;
 			FullWeapon->AmmoGive2=0;
@@ -112,6 +109,11 @@ bool AWeaponPiece::TryPickup (AActor *&toucher)
 			FullWeapon->AmmoGive2=Defaults->AmmoGive2;
 		}
 	}
+
+	// [Dusk] Update the ammo counts to the client
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( toucher ) && ( toucher->player ))
+		SERVERCOMMANDS_SyncPlayerAmmoAmount( ULONG( toucher->player - players ));
+
 	GoAwayAndDie();
 	return true;
 }

@@ -201,6 +201,7 @@ latestzdoom branch
 -	- Fixed: Newly connected clients were not informed of other actors' reaction time. [TIHan]
 -	- Fixed: Morphed players turning into spectators leave dummy players behind. [TIHan]
 -	- Fixed: Clients weren't informed of damage caused by initial poisoning or of the accompanying cough sound caused by PoisonCloud. Clients were calling poison-caused Pain states on their own. [Dusk]
+-	- Fixed: Picking up a weapon piece caused the local ammo count on the client to go out of sync. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
