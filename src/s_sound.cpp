@@ -383,6 +383,11 @@ void S_Shutdown ()
 		delete PlayList;
 		PlayList = NULL;
 	}
+	S_StopMusic (true);
+	mus_playing.name = "";
+	LastSong = "";
+
+	// [BC/BB]
 	if ( g_aOriginalSoundCurve )
 	{
 		delete[] ( g_aOriginalSoundCurve );
