@@ -1571,36 +1571,33 @@ object DarkImpBall
 }
 
 // Hectabus Fireball
-flickerlight HECTSHOT
+pointlight HECTSHOT
 {
-    color 0.0 0.5 0.0
-    size 20
-    secondarySize 25
-    chance 0.5
+    color 0.0 1.0 0.0
+    size 48
 }
-
 flickerlight HECTSHOT_X1
 {
-    color 0.0 0.5 0.0
-    size 20
-    secondarySize 25
-    chance 0.25
+    color 0.0 1.0 0.0
+    size 48
+    secondarySize 56
+    chance 0.3
 }
 
 flickerlight HECTSHOT_X2
 {
-    color 0.0 0.3 0.0
-    size 20
-    secondarySize 25
-    chance 0.25
+    color 0.0 0.5 0.0
+    size 64
+    secondarySize 72
+    chance 0.3
 }
 
 flickerlight HECTSHOT_X3
 {
-    color 0.0 0.1 0.0
-    size 20
-    secondarySize 25
-    chance 0.25
+    color 0.0 0.3 0.0
+    size 80
+    secondarySize 88
+    chance 0.3
 }
 
 object HectShot
