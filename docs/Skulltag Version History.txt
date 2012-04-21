@@ -182,7 +182,7 @@ latestzdoom branch
 -	- Fixed: Client's didn't properly respect the arguments of bridges. [TIHan]
 -	- Fixed: The server doesn't try to tick the master anymore if skulltag_masterip can't be resolved, but prints a warning instead. Previoulsly, an invalid skulltag_masterip setting led to WSAEADDRENOTAVAIL errors. [Torr Samaho]
 -	- Fixed: When the value of timelimit was changed online, the notification messaged displayed the new value as integer instead of as float. [Torr Samaho]
--	- Fixed: Newly connected clients were not properly informed of certain properties of players and other actors. [TIHan]
+-	- Fixed: Newly connected clients were not properly informed of certain properties of players and other actors. The same happened after "changemap" map changes to the client's consoleplayer. [TIHan]
 -	- Fixed: Rapidly activating 'chase' before joining a game with high ping results 'chase' being activated even with sv_cheats 0. [TIHan, Torr Samaho]
 -	- Fixed: In offline mode for team games, RESPAWN scripts were fired upon player entering the game instead of ENTER scripts. [TIHan]
 -	- Fixed: Player kept his custom skin color after morphing online. [TIHan, Torr Samaho]

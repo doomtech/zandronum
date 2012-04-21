@@ -5530,6 +5530,8 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetPlayerHealth( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		// [BB] It's possible that the MaxHealth property was changed dynamically with ACS, so send it.
 		SERVERCOMMANDS_SetPlayerMaxHealth( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		// [WS] Inform the client about its player's properties.
+		SERVER_UpdateActorProperties( players[g_lCurrentClient].mo, g_lCurrentClient );
 
 		/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 		// If the client has weapon pieces, tell them.
