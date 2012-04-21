@@ -2588,7 +2588,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			case SVC2_SETFASTCHASESTRAFECOUNT:
 				{
 					const LONG lID = NETWORK_ReadShort( pByteStream );
-					const LONG lStrafeCount = NETWORK_ReadShort( pByteStream ); 
+					const LONG lStrafeCount = NETWORK_ReadByte( pByteStream ); 
 					AActor *pActor = CLIENT_FindThingByNetID( lID );
 
 					if ( pActor == NULL )

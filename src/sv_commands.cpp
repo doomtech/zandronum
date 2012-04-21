@@ -6052,7 +6052,7 @@ void SERVERCOMMANDS_SetFastChaseStrafeCount( AActor *mobj, ULONG ulPlayerExtra, 
 	NetCommand command( SVC_EXTENDEDCOMMAND );
 	command.addByte( SVC2_SETFASTCHASESTRAFECOUNT );
 	command.addShort( mobj->lNetID );
-	command.addShort( mobj->FastChaseStrafeCount );
+	command.addByte( mobj->FastChaseStrafeCount );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 

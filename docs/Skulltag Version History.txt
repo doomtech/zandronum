@@ -207,7 +207,7 @@ latestzdoom branch
 -	- Fixed: Stray Hexen bridge balls (and other actors spawned by A_BridgeInit) were included in snapshots the server sends to connecting clients. [Dusk]
 -	- Fixed: Clients were not informed of alwaysapplydmflags' value. [TIHan]
 -	- Fixed: Some scrolling textures were not handled properly between client and server. [TIHan]
--	- Fixed: Clients weren't told of monsters' strafe counts, causing desyncs in 'fast-chasing' monster movement. [Dusk]
+-	- Fixed: Clients weren't told of monsters' strafe counts, causing desyncs in 'fast-chasing' monster movement. [Dusk, Torr Samaho]
 -	- Fixed: Zedek's Quietus attack was not handled properly, appearing silent and invisible. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
