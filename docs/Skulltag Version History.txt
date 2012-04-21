@@ -209,6 +209,7 @@ latestzdoom branch
 -	- Fixed: Some scrolling textures were not handled properly between client and server. [TIHan]
 -	- Fixed: Clients weren't told of monsters' strafe counts, causing desyncs in 'fast-chasing' monster movement. [Dusk, Torr Samaho]
 -	- Fixed: Zedek's Quietus attack was not handled properly, appearing silent and invisible. [Dusk]
+-	- Fixed: Puzzle item usage was handled improperly on the clientside, causing no item use sound when a puzzle was solved with it. Also changed puzzle item fail message to only print on the client that activated it, rather than to everybody. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

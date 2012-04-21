@@ -34,11 +34,9 @@ bool APuzzleItem::HandlePickup (AInventory *item)
 bool APuzzleItem::Use (bool pickup)
 {
 	// [BC] Puzzle item usage is done server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return ( false );
-	}
+	// [Dusk] If we got here as the client, the puzzle item was used successfully.
+	if ( NETWORK_InClientMode( ) )
+		return true;
 
 	if (P_UsePuzzleItem (Owner, PuzzleItemNumber))
 	{
@@ -62,8 +60,10 @@ bool APuzzleItem::Use (bool pickup)
 		// [BB] If we're the server, print the message. This sends the message to all players.
 		// Should be tweaked so that it only is shown to those who are watching through the
 		// eyes of Owner-player.
+		// [Dusk] printing the message to everybody is a little annoying - changed this to
+		// print only to this player instead.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_PrintMid( message, true );
+			SERVERCOMMANDS_PrintMid( message, true, Owner->player - players, SVCF_ONLYTHISCLIENT );
 	}
 
 	return false;
