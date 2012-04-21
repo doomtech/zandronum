@@ -6043,6 +6043,20 @@ void SERVERCOMMANDS_SyncHexenArmorSlots( ULONG ulPlayer, ULONG ulPlayerExtra, UL
 }
 
 //*****************************************************************************
+// [Dusk]
+void SERVERCOMMANDS_SetFastChaseStrafeCount( AActor *mobj, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( !EnsureActorHasNetID (mobj) )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETFASTCHASESTRAFECOUNT );
+	command.addShort( mobj->lNetID );
+	command.addShort( mobj->FastChaseStrafeCount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 //
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {

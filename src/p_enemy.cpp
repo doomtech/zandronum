@@ -2270,6 +2270,10 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		if (actor->FastChaseStrafeCount > 0)
 		{
 			actor->FastChaseStrafeCount--;
+
+			// [Dusk] update strafecount
+			if ( actor->FastChaseStrafeCount == 0 && NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetFastChaseStrafeCount( actor );
 		}
 		else
 		{
@@ -2287,6 +2291,12 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 					actor->momx = 13 * finecosine[ang>>ANGLETOFINESHIFT];
 					actor->momy = 13 * finesine[ang>>ANGLETOFINESHIFT];
 					actor->FastChaseStrafeCount = 3;		// strafe time
+
+					// [Dusk] Update the strafecount to the clients. It is necessary
+					// to let clients know of this variable so that they can
+					// prevent the chasing during strafing
+					if( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetFastChaseStrafeCount( actor );
 				}
 			}
 
