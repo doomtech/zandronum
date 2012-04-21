@@ -194,15 +194,33 @@ DEFINE_ACTION_FUNCTION(AActor, A_FSwordFlames)
 
 DEFINE_ACTION_FUNCTION(AActor, A_FighterAttack)
 {
+	// [Dusk] Zedek's attack is handled by the server
+	if ( NETWORK_InClientMode( )) return;
+
 	if (!self->target) return;
 
 	angle_t angle = self->angle;
 
+	// [Dusk] Using a for-loop to avoid a copy/paste nightmare here.
+	/*
 	P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/4, 0);
 	P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/8, 0);
 	P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle,         0);
 	P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/8, 0);
 	P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/4, 0);
+	*/
+
+	AActor *aMissile;
+	for (int i = -2; i <= 2; i++) {
+		aMissile = P_SpawnMissileAngle (self, RUNTIME_CLASS(AFSwordMissile), angle + (i*ANG45)/8, 0);
+		if( NETWORK_GetState( ) == NETSTATE_SERVER && aMissile )
+			SERVERCOMMANDS_SpawnMissile( aMissile );
+	}
+
 	S_Sound (self, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);
+
+	// [Dusk] inform of the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER && aMissile )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM );
 }
 
