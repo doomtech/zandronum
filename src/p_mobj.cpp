@@ -6014,8 +6014,8 @@ bool P_HitFloor (AActor *thing)
 // explodes it and returns false.
 //
 //---------------------------------------------------------------------------
-
-bool P_CheckMissileSpawn (AActor* th)
+// [WS] Added bExplode.
+bool P_CheckMissileSpawn (AActor* th, bool bExplode)
 {
 	int shift, count = 1;
 
@@ -6084,8 +6084,9 @@ bool P_CheckMissileSpawn (AActor* th)
 					else
 						th->target->player->ulConsecutiveHits = 0;
 				}
-
-					P_ExplodeMissile (th, NULL, th->BlockingMobj);
+					// [WS] Can we explode the missile?
+					if (bExplode)
+						P_ExplodeMissile (th, NULL, th->BlockingMobj);
 				}
 				return false;
 			}
@@ -6427,14 +6428,22 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	if (MissileActor->flags4 & MF4_SPECTRAL)
 		MissileActor->health = -1;
 
+	// [WS] Redid some logic here for ST to handle when we should spawn a missile
+	// as well as exploding the missile and informing the clients.
+	bool bValidSpawn = P_CheckMissileSpawn (MissileActor, false);
+
 	// [BC/BB] Possibly tell clients to spawn this missile.
-	if ( bSpawnOnClient && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+	// [WS] If we know the missile is going to explode,
+	// we need to spawn the missile for the clients.
+	if ( ( bSpawnOnClient || !bValidSpawn ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 		SERVERCOMMANDS_SpawnMissileExact( MissileActor );
 	
-	if (P_CheckMissileSpawn (MissileActor))
+	if (bValidSpawn)
 	{
 		return MissileActor;
 	}
+	// [WS] We are handling the explosion of the missile here instead of in P_CheckMissileSpawn.
+	P_ExplodeMissile(MissileActor, NULL, MissileActor->BlockingMobj);
 	return NULL;
 }
 

@@ -411,7 +411,7 @@ void	P_RailAttack (AActor *source, int damage, int offset, int color1 = 0, int c
 void	P_RailAttackWithPossibleSpread(AActor *source, int damage, int offset, int color1 = 0, int color2 = 0, float maxdiff = 0, bool silent = false, const PClass *puff = NULL);	// [BB] Shoot a railgun with spread applied if necessary
 bool	P_HitFloor (AActor *thing);
 bool	P_HitWater (AActor *thing, sector_t *sec, fixed_t splashx = FIXED_MIN, fixed_t splashy = FIXED_MIN, fixed_t splashz=FIXED_MIN, bool checkabove = false);
-bool	P_CheckMissileSpawn (AActor *missile);
+bool	P_CheckMissileSpawn (AActor *missile, bool bExplode = true);
 void	P_PlaySpawnSound(AActor *missile, AActor *spawner);
 
 // [RH] Position the chasecam
