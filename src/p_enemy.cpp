@@ -2580,10 +2580,14 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			// [BB] The STFL_LEVELSPAWNED flag may not be removed by the default flags.
 			// Otherwise level spawned actors revived by an Archvile won't be restored
 			// during a call of GAME_ResetMap.
+			// [WS] We also need this similar treatment for STFL_POSITIONCHANGED.
 			const bool actorWasLevelSpawned = !!(corpsehit->ulSTFlags & STFL_LEVELSPAWNED);
+			const bool actorHasPositionChanged = !!(corpsehit->ulSTFlags & STFL_POSITIONCHANGED);
 			corpsehit->ulSTFlags = info->ulSTFlags;
 			if ( actorWasLevelSpawned )
 				corpsehit->ulSTFlags |= STFL_LEVELSPAWNED;
+			if ( actorHasPositionChanged )
+				corpsehit->ulSTFlags |= STFL_POSITIONCHANGED;
 			corpsehit->ulNetworkFlags = info->ulNetworkFlags;
 
 			corpsehit->health = info->health;
