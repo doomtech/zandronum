@@ -2304,7 +2304,8 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	if ( pPlayer->mo )
 	{
 		// [BB] Stop all scripts of the player that are still running.
-		FBehavior::StaticStopMyScripts ( pPlayer->mo );
+		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+			FBehavior::StaticStopMyScripts ( pPlayer->mo );
 		// Before we start fucking with the player's body, drop important items
 		// like flags, etc.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))

@@ -375,6 +375,8 @@ enum
 	// [BB] Add NOGRAVITY to actors named InvulnerabilitySphere, Soulsphere, Megasphere and BlurSphere
 	// when spawned by the map.
 	COMPATF2_NOGRAVITY_SPHERES		= 1 << 4,
+	// [BB] When a player leaves the game, don't stop any scripts of that player that are still running.
+	COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT		= 1 << 5,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar
