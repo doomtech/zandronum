@@ -68,6 +68,18 @@
 //[BL] New Include
 #include "domination.h"
 
+// [BB] Helper function to handle DF3_UNBLOCK_PLAYERS.
+bool ActorHasThruspecies ( const AActor *pActor )
+{
+	if ( pActor == NULL )
+		return false;
+
+	if ( ( dmflags3 & DF3_UNBLOCK_PLAYERS ) && ( pActor->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) )
+		return true;
+
+	return !!( pActor->flags6 & MF6_THRUSPECIES );
+}
+
 #define WATER_SINK_FACTOR		3
 #define WATER_SINK_SMALL_FACTOR	4
 #define WATER_SINK_SPEED		(FRACUNIT/2)
@@ -883,7 +895,8 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	if ((thing->flags2 | tm.thing->flags2) & MF2_THRUACTORS) 
 		return true;
 
-	if ((tm.thing->flags6 & MF6_THRUSPECIES) && (tm.thing->GetSpecies() == thing->GetSpecies()))
+	// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+	if (ActorHasThruspecies(tm.thing) && (tm.thing->GetSpecies() == thing->GetSpecies()))
 		return true;
 
 	if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE)) )
@@ -1789,7 +1802,8 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 		{
 			continue;
 		}
-		if ((actor->flags6 & MF6_THRUSPECIES) && (thing->GetSpecies() == actor->GetSpecies()))
+		// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+		if (ActorHasThruspecies(actor) && (thing->GetSpecies() == actor->GetSpecies()))
 		{
 			continue;
 		}
@@ -5829,7 +5843,8 @@ int P_PushUp (AActor *thing, FChangePosition *cpos)
 		// Should there be MF2_THRUGHOST / MF3_GHOST checks there too for consistency?
 		// Or would that risk breaking established behavior? THRUGHOST, like MTHRUSPECIES,
 		// is normally for projectiles which would have exploded by now anyway...
-		if (thing->flags6 & MF6_THRUSPECIES && thing->GetSpecies() == intersect->GetSpecies())
+		// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+		if (ActorHasThruspecies(thing) && thing->GetSpecies() == intersect->GetSpecies())
 			continue;
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||
 			(!(intersect->flags3 & MF3_ISMONSTER) &&

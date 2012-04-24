@@ -285,6 +285,9 @@ enum
 
 	// [Spleen] Don't use ping-based backwards reconciliation for player-fired hitscans and rails.
 	DF3_NOUNLAGGED			= 1 << 3,
+
+	// [BB] Handle player bodies as if they had MF6_THRUSPECIES.
+	DF3_UNBLOCK_PLAYERS			= 1 << 4,
 };
 
 // [RH] Compatibility flags.
