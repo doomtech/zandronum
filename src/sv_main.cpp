@@ -3153,6 +3153,11 @@ void SERVER_UpdateActorProperties( AActor *pActor, ULONG ulClient )
 	if ( pActor->alpha != pActor->GetDefault( )->alpha )
 		SERVERCOMMANDS_SetThingProperty( pActor, APROP_Alpha, ulClient, SVCF_ONLYTHISCLIENT  );
 
+	// [WS] Update the player's jumpz if it's changed.
+	if ( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn ) )
+		&& static_cast<APlayerPawn *>( pActor )->JumpZ != static_cast<APlayerPawn *>( pActor->GetDefault( ) )->JumpZ )
+		SERVERCOMMANDS_SetThingProperty( pActor, APROP_JumpZ, ulClient, SVCF_ONLYTHISCLIENT );
+
 	// [BB] Update the actor's gravity if it's changed.
 	if ( pActor->gravity != pActor->GetDefault( )->gravity )
 		SERVERCOMMANDS_SetThingGravity ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
