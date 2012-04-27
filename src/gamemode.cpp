@@ -661,6 +661,23 @@ void GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor )
 
 //*****************************************************************************
 //
+void GAMEMODE_SpawnSpecialGamemodeThings ( void )
+{
+	// [BB] The server will let the clients know of any necessary spawns.
+	if ( NETWORK_InClientMode( ) == false )
+	{
+		// Spawn the terminator artifact in terminator mode.
+		if ( terminator )
+			GAME_SpawnTerminatorArtifact( );
+
+		// Spawn the possession artifact in possession/team possession mode.
+		if ( possession || teampossession )
+			GAME_SpawnPossessionArtifact( );
+	}
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

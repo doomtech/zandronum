@@ -1578,18 +1578,8 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	C_FlushDisplay ();
 
-	// [BC] Spawn various necessary game objects at the start of the map.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		// Spawn the terminator artifact in terminator mode.
-		if ( terminator )
-			GAME_SpawnTerminatorArtifact( );
-
-		// Spawn the possession artifact in possession/team possession mode.
-		if ( possession || teampossession )
-			GAME_SpawnPossessionArtifact( );
-	}
+	// [BC/BB] Spawn various necessary game objects at the start of the map.
+	GAMEMODE_SpawnSpecialGamemodeThings();
 
 	// [BC] If we're the server, potentially check if we should use some campaign settings
 	// for this map.

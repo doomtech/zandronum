@@ -3761,6 +3761,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		}
 	}
 
+	// [BB] Restore the special gamemode actors that were not spawned by the map, e.g. terminator sphere or hellstone.
+	GAMEMODE_SpawnSpecialGamemodeThings();
+
 	// If we're the server, tell clients the new number of total items/monsters.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
