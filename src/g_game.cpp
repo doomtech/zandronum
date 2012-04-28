@@ -1614,6 +1614,11 @@ void G_Ticker ()
 			// [BB] If we are supposed to reset the map, do that now.
 			if ( GAME_IsMapRestRequested() )
 			{
+				// [BB] Tell the clients to do their part of the map reset and do so
+				// before doing the map reset on the server.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_ResetMap();
+
 				GAME_ResetMap( );
 				GAMEMODE_RespawnAllPlayers ( );
 			}

@@ -6067,6 +6067,15 @@ void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_RESETMAP );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect )
 {
 	SERVER_CheckClientBuffer( ulClient, 3, true );
