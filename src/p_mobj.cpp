@@ -1352,10 +1352,14 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		}
 	}
 
+	// [BB] We need to keep track if the state change changes the flags.
+	const DWORD dwSavedMoFlags = mo->flags;
 	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
 	// returns false and we have to break out here.
 	if (!(mo->SetState (nextstate)))
 		return;
+	// [BB] If the flags were just changed, we'll have to take special care later.
+	const bool bFlagsChanged = ( mo->flags != dwSavedMoFlags );
 	
 	if (mo->ObjectFlags & OF_EuthanizeMe)
 	{
@@ -1473,6 +1477,14 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		}
 
 		mo->flags &= ~MF_MISSILE;
+
+		// [BB] Even though the client removes the missle flag on its own, due to timing issues
+		// (e.g. A_ChangeFlag at the beginning of the death state of the missile) we have to
+		// resync the flags in case mo->SetState (nextstate) altered the flags. This is because
+		// the server tells the client to explode the missile before the server calls
+		// mo->SetState (nextstate).
+		if ( bFlagsChanged && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
 
 		if (mo->DeathSound)
 		{
