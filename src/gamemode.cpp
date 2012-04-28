@@ -684,6 +684,14 @@ void GAMEMODE_ResetSpecalGamemodeStates ( void )
 	// [BB] If playing Domination reset ownership, even the clients can do this.
 	if ( domination )
 		DOMINATION_Reset();
+
+	// [BB] If playing possession make sure to end the held countdown, even the clients can do this.
+	if ( possession || teampossession )
+	{
+		POSSESSION_SetArtifactHoldTicks ( 0 );
+		if ( POSSESSION_GetState() == PSNS_ARTIFACTHELD )
+			POSSESSION_SetState( PSNS_PRENEXTROUNDCOUNTDOWN );
+	}
 }
 
 //*****************************************************************************
