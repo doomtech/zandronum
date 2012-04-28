@@ -50,6 +50,7 @@
 
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "domination.h"
 #include "doomstat.h"
 #include "d_event.h"
 #include "gamemode.h"
@@ -674,6 +675,15 @@ void GAMEMODE_SpawnSpecialGamemodeThings ( void )
 		if ( possession || teampossession )
 			GAME_SpawnPossessionArtifact( );
 	}
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_ResetSpecalGamemodeStates ( void )
+{
+	// [BB] If playing Domination reset ownership, even the clients can do this.
+	if ( domination )
+		DOMINATION_Reset();
 }
 
 //*****************************************************************************
