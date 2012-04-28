@@ -5709,6 +5709,12 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 				gib->alpha = thing->alpha;
 				gib->height = 0;
 				gib->radius = 0;
+
+				// [BB] Apparently Skulltag always has let the clients spawn the gibs.
+				// Whether or not this is intentional, if the clients spawn the gibs on
+				// their own, they have to mark them as CLIENTSIDEONLY.
+				if( NETWORK_InClientMode( ) )
+					gib->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 			}
 			S_Sound (thing, CHAN_BODY, "misc/fallingsplat", 1, ATTN_IDLE);
 

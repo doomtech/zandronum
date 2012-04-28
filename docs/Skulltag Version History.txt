@@ -214,6 +214,7 @@ latestzdoom branch
 -	- Fixed: Puzzle item usage was handled improperly on the clientside, causing no item use sound when a puzzle was solved with it. Also changed puzzle item fail message to only print on the client that activated it, rather than to everybody. [Dusk]
 -	- Fixed: Under certain circumstances after a monster was resurrected, it did not get reset when the map reset. [TIHan]
 -	- Fixed: Spectators were blocked by SOLID things on steps. [Torr Samaho]
+-	- Fixed: The remains of crushed actors were not removed on the clients online by a map reset. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
