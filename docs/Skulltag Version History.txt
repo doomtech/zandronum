@@ -217,6 +217,7 @@ latestzdoom branch
 -	- Fixed: The remains of crushed actors were not removed on the clients online by a map reset. [Torr Samaho]
 -	- Fixed: Poly object doors were not handled properly online. [TIHan]
 -	- Fixed: Newly connected clients were not properly informed of poly objects. [TIHan]
+-	- Fixed some Z position sync problems of floating monsters online. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

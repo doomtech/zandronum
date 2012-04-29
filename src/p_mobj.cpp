@@ -2662,16 +2662,18 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				mo->z -= mo->FloatSpeed, mo->momz = 0;
 
 				// [BC] If we're the server, tell clients to update the thing's Z position.
+				// [WS] Inform clients of the momentum.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThingExact( mo, CM_Z );
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_MOMZ );
 			}
 			else if (delta > 0 && dist < (delta*3))
 			{
 				mo->z += mo->FloatSpeed, mo->momz = 0;
 
 				// [BC] If we're the server, tell clients to update the thing's Z position.
+				// [WS] Inform clients of the momentum.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_MoveThingExact( mo, CM_Z );
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z|CM_MOMZ );
 			}
 		}
 	}
