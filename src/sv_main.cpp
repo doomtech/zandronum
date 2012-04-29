@@ -1396,33 +1396,6 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// [BB] Tell the client of things derived from DMover and similar classes.
 	SERVER_UpdateMovers( g_lCurrentClient );
 
-	// Tell the client about any active rotate polyobjects.
-	{
-		DRotatePoly	*pRotatePoly;
-		TThinkerIterator<DRotatePoly>	Iterator;
-
-		while (( pRotatePoly = Iterator.Next( )))
-			pRotatePoly->UpdateToClient( g_lCurrentClient );
-	}
-
-	// Tell the client about any move polyobjects.
-	{
-		DMovePoly	*pMovePoly;
-		TThinkerIterator<DMovePoly>		Iterator;
-
-		while (( pMovePoly = Iterator.Next( )))
-			pMovePoly->UpdateToClient( g_lCurrentClient );
-	}
-
-	// Tell the client about any active door polyobjects.
-	{
-		DPolyDoor	*pPolyDoor;
-		TThinkerIterator<DPolyDoor>		Iterator;
-
-		while (( pPolyDoor = Iterator.Next( )))
-			pPolyDoor->UpdateToClient( g_lCurrentClient );
-	}
-
 	// Send a snapshot of the level.
 	SERVER_SendFullUpdate( g_lCurrentClient );
 
@@ -2887,6 +2860,8 @@ void SERVER_UpdateSectors( ULONG ulClient )
 	ULONG							ulIdx;
 	sector_t						*pSector;
 	FPolyObj						*pPoly;
+	TThinkerIterator<DPolyAction>	PolyActionIterator;
+	DPolyAction						*pPolyAction;
 	TThinkerIterator<DFireFlicker>	FireFlickerIterator;
 	DFireFlicker					*pFireFlicker;
 	TThinkerIterator<DFlicker>		FlickerIterator;
@@ -3010,6 +2985,11 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		if ( pPoly->bRotated )
 			SERVERCOMMANDS_SetPolyobjRotation( pPoly->tag, ulClient, SVCF_ONLYTHISCLIENT );
 	}
+
+	// [WS] Because poly objects can potentially have more than one thinker,
+	// we need to iterate through every thinker and tell the client about it.
+	while (( pPolyAction = PolyActionIterator.Next( )) != NULL )
+		pPolyAction->UpdateToClient( ulClient );
 
 	// Check for various sector light effects. If we find any, tell the client about them.
 	while (( pFireFlicker = FireFlickerIterator.Next( )) != NULL )

@@ -215,6 +215,8 @@ latestzdoom branch
 -	- Fixed: Under certain circumstances after a monster was resurrected, it did not get reset when the map reset. [TIHan]
 -	- Fixed: Spectators were blocked by SOLID things on steps. [Torr Samaho]
 -	- Fixed: The remains of crushed actors were not removed on the clients online by a map reset. [Torr Samaho]
+-	- Fixed: Poly object doors were not handled properly online. [TIHan]
+-	- Fixed: Newly connected clients were not properly informed of poly objects. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

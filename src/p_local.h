@@ -548,6 +548,8 @@ public:
 	void	SetDist( LONG lDist );
 
 	LONG	GetPolyObj( void );
+
+	virtual void UpdateToClient( ULONG ulClient ); // [WS] We need this here.
 protected:
 	DPolyAction ();
 	int m_PolyObj;
@@ -582,7 +584,7 @@ public:
 	DMovePoly (int polyNum);
 	void Serialize (FArchive &arc);
 	void Tick ();
-	void UpdateToClient( ULONG ulClient );
+	virtual void UpdateToClient( ULONG ulClient ); // [WS] This needs to be virtual.
 
 	LONG	GetAngle( void );
 	void	SetAngle( LONG lAngle );

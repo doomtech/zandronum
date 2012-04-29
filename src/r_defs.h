@@ -1050,9 +1050,6 @@ struct FPolyObj
 
 	// Has this polyobject rotated at all? If so, we need to tell connecting clients of its new position.
 	bool		bRotated;
-
-	// Was the polyobject blocked the last time it tried to move?
-	bool		bBlocked;
 };
 extern FPolyObj *polyobjs;		// list of all poly-objects on the level
 
