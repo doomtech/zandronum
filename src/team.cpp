@@ -2095,6 +2095,13 @@ CCMD( changeteam )
 		return;
 	}
 
+	// [WS] "No team select" dmflag is set. Ignore this.
+	if ( players[consoleplayer].bSpectating && ( dmflags2 & DF2_NO_TEAM_SELECT ) )
+	{
+		Printf( "You are not allowed to choose your team!\n" );
+		return;
+	}
+
 	// "No team change" dmflag is set. Ignore this.
 	if (( players[consoleplayer].bOnTeam ) &&
 		( dmflags2 & DF2_NO_TEAM_SWITCH ))

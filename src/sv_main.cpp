@@ -5024,6 +5024,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	if ( teamlms && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
+	// [WS] "No team select" dmflag is set. Ignore this.
+	if ( players[g_lCurrentClient].bSpectating && ( dmflags2 & DF2_NO_TEAM_SELECT ) )
+		return ( false );
+
 	// "No team change" dmflag is set. Ignore this.
 	if ( players[g_lCurrentClient].bOnTeam && ( dmflags2 & DF2_NO_TEAM_SWITCH ))
 		return ( false );
