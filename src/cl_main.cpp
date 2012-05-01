@@ -5245,7 +5245,13 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 	// Create a little disconnect particle effect thingamabobber!
 	// [BB] Only do this if a non-spectator disconnects.
 	if ( players[ulPlayer].bSpectating == false )
+	{
 		P_DisconnectEffect( players[ulPlayer].mo );
+
+		// [BB] Stop all CLIENTSIDE scripts of the player that are still running.
+		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+			FBehavior::StaticStopMyScripts ( players[ulPlayer].mo );
+	}
 
 	// Destroy the actor associated with the player.
 	if ( players[ulPlayer].mo )
