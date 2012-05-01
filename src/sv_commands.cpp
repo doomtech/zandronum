@@ -1795,7 +1795,6 @@ void SERVERCOMMANDS_PotentiallyIgnorePlayer( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
@@ -1810,32 +1809,19 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 
 	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command ( SVC_SPAWNTHING );
+	command.addShort( pActor->x >> FRACBITS );
+	command.addShort( pActor->y >> FRACBITS );
+	command.addShort( pActor->z >> FRACBITS );
+	command.addShort( usActorNetworkIndex );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
@@ -1846,31 +1832,18 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 
 	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 9, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGNONETID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command ( SVC_SPAWNTHINGNONETID );
+	command.addShort( pActor->x >> FRACBITS );
+	command.addShort( pActor->y >> FRACBITS );
+	command.addShort( pActor->z >> FRACBITS );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
@@ -1885,32 +1858,19 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 
 	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 17, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACT );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command ( SVC_SPAWNTHINGEXACT );
+	command.addLong( pActor->x );
+	command.addLong( pActor->y );
+	command.addLong( pActor->z );
+	command.addShort( usActorNetworkIndex );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
@@ -1918,33 +1878,18 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 
 	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 15, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACTNONETID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command ( SVC_SPAWNTHINGEXACTNONETID );
+	command.addLong( pActor->x );
+	command.addLong( pActor->y );
+	command.addLong( pActor->z );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	ULONG	ulSize;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
@@ -1952,76 +1897,43 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	if ( ulFlags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
 
-	ulSize = 0;
-	if ( ulBits & CM_X )
-		ulSize += 2;
-	if ( ulBits & CM_Y )
-		ulSize += 2;
-	if ( ulBits & CM_Z )
-		ulSize += 2;
-	if ( ulBits & CM_ANGLE )
-		ulSize += 4;
-	if ( ulBits & CM_MOMX )
-		ulSize += 2;
-	if ( ulBits & CM_MOMY )
-		ulSize += 2;
-	if ( ulBits & CM_MOMZ )
-		ulSize += 2;
-	if ( ulBits & CM_PITCH )
-		ulSize += 4;
-	if ( ulBits & CM_MOVEDIR )
-		ulSize += 1;
-
 	// Nothing to update.
-	if ( ulSize == 0 )
+	if ( ulBits == 0 )
 		return;
 
-	ulSize += 5;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{ 
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command ( SVC_MOVETHING );
+	command.addShort( pActor->lNetID );
+	command.addShort( ulBits );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	// Write position.
+	if ( ulBits & CM_X )
+		command.addShort( pActor->x >> FRACBITS );
+	if ( ulBits & CM_Y )
+		command.addShort( pActor->y >> FRACBITS );
+	if ( ulBits & CM_Z )
+		command.addShort( pActor->z >> FRACBITS );
 
-		SERVER_CheckClientBuffer( ulIdx, ulSize, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MOVETHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+	// Write angle.
+	if ( ulBits & CM_ANGLE )
+		command.addLong( pActor->angle );
 
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBits );
+	// Write velocity.
+	if ( ulBits & CM_MOMX )
+		command.addShort( pActor->momx >> FRACBITS );
+	if ( ulBits & CM_MOMY )
+		command.addShort( pActor->momy >> FRACBITS );
+	if ( ulBits & CM_MOMZ )
+		command.addShort( pActor->momz >> FRACBITS );
 
-		// Write position.
-		if ( ulBits & CM_X )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
-		if ( ulBits & CM_Y )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
-		if ( ulBits & CM_Z )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
+	// Write pitch.
+	if ( ulBits & CM_PITCH )
+		command.addLong( pActor->pitch );
 
-		// Write angle.
-		if ( ulBits & CM_ANGLE )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
+	// Write movedir.
+	if ( ulBits & CM_MOVEDIR )
+		command.addByte( pActor->movedir );
 
-		// Write velocity.
-		if ( ulBits & CM_MOMX )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momx >> FRACBITS );
-		if ( ulBits & CM_MOMY )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy >> FRACBITS );
-		if ( ulBits & CM_MOMZ )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz >> FRACBITS );
-
-		// Write pitch.
-		if ( ulBits & CM_PITCH )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
-
-		// Write movedir.
-		if ( ulBits & CM_MOVEDIR )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
 	if ( ulFlags == 0 )
@@ -2032,9 +1944,6 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 //
 void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	ULONG	ulSize;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
@@ -2042,76 +1951,43 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 	if ( ulFlags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
 
-	ulSize = 0;
-	if ( ulBits & CM_X )
-		ulSize += 4;
-	if ( ulBits & CM_Y )
-		ulSize += 4;
-	if ( ulBits & CM_Z )
-		ulSize += 4;
-	if ( ulBits & CM_ANGLE )
-		ulSize += 4;
-	if ( ulBits & CM_MOMX )
-		ulSize += 4;
-	if ( ulBits & CM_MOMY )
-		ulSize += 4;
-	if ( ulBits & CM_MOMZ )
-		ulSize += 4;
-	if ( ulBits & CM_PITCH )
-		ulSize += 4;
-	if ( ulBits & CM_MOVEDIR )
-		ulSize += 1;
-
 	// Nothing to update.
-	if ( ulSize == 0 )
+	if ( ulBits == 0 )
 		return;
 
-	ulSize += 5;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{ 
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command ( SVC_MOVETHINGEXACT );
+	command.addShort( pActor->lNetID );
+	command.addShort( ulBits );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	// Write position.
+	if ( ulBits & CM_X )
+		command.addLong( pActor->x );
+	if ( ulBits & CM_Y )
+		command.addLong( pActor->y );
+	if ( ulBits & CM_Z )
+		command.addLong( pActor->z );
 
-		SERVER_CheckClientBuffer( ulIdx, ulSize, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MOVETHINGEXACT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+	// Write angle.
+	if ( ulBits & CM_ANGLE )
+		command.addLong( pActor->angle );
 
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBits );
+	// Write velocity.
+	if ( ulBits & CM_MOMX )
+		command.addLong( pActor->momx );
+	if ( ulBits & CM_MOMY )
+		command.addLong( pActor->momy );
+	if ( ulBits & CM_MOMZ )
+		command.addLong( pActor->momz );
 
-		// Write position.
-		if ( ulBits & CM_X )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
-		if ( ulBits & CM_Y )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
-		if ( ulBits & CM_Z )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
+	// Write pitch.
+	if ( ulBits & CM_PITCH )
+		command.addLong( pActor->pitch );
 
-		// Write angle.
-		if ( ulBits & CM_ANGLE )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
+	// Write movedir.
+	if ( ulBits & CM_MOVEDIR )
+		command.addByte( pActor->movedir );
 
-		// Write velocity.
-		if ( ulBits & CM_MOMX )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momx );
-		if ( ulBits & CM_MOMY )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy );
-		if ( ulBits & CM_MOMZ )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz );
-
-		// Write pitch.
-		if ( ulBits & CM_PITCH )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
-
-		// Write movedir.
-		if ( ulBits & CM_MOVEDIR )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
 	if ( ulFlags == 0 )
