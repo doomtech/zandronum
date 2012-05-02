@@ -232,6 +232,8 @@ $limit weapons/rocklf 0		// because normal running is almost as fast as a rocket
 $limit weapons/rocklx 0		// and the cyberdemon shoots 3 at once
 // [BC] Don't limit the number of BFG10K explosions we can hear.
 $limit weapons/bfg10kx 0
+// [Dusk] Neither do limit the grenade launcher explosions
+$limit weapons/grenlx 0
 
 //===========================================================================
 //
