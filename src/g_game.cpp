@@ -3165,6 +3165,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// [BB] Reset special stuff for the current gamemode, like control point ownership in Domination.
 	GAMEMODE_ResetSpecalGamemodeStates();
 
+	// [BB] If a PowerTimeFreezer was in effect, the sound could be paused. Make sure that it is resumed.
+	S_ResumeSound();
+
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;
 
