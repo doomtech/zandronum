@@ -125,6 +125,9 @@ static	MEDALQUEUE_t	g_MedalQueue[MAXPLAYERS][MEDALQUEUE_DEPTH];
 // Has the first frag medal been awarded this round?
 static	bool			g_bFirstFragAwarded;
 
+// [Dusk] Need this from p_interaction.cpp for spawn telefrag checking
+extern FName MeansOfDeath;
+
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
@@ -726,7 +729,9 @@ void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 
 	// Check for domination and first frag medals.
 	if ( PLAYER_IsValidPlayerWithMo ( ulSourcePlayer ) &&
-		( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ))
+		( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ) &&
+		// [Dusk] As players do not get frags for spawn telefrags, they shouldn't get medals for that either
+		( MeansOfDeath != NAME_SpawnTelefrag ))
 	{
 		players[ulSourcePlayer].ulFragsWithoutDeath++;
 		players[ulSourcePlayer].ulDeathsWithoutFrag = 0;

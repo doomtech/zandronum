@@ -223,6 +223,7 @@ latestzdoom branch
 -	- Fixed: When a non-spectator player disconnected his running CLIENTSIDE scripts were not terminated. [Torr Samaho]
 -	- Fixed: When a map reset was done while a PowerTimeFreezer was in effect, the sound was not resumed after the reset. [Torr Samaho]
 -	- Fixed: Grenade explosion sound was not unlimited. [Dusk]
+-	- Fixed: Players could get medals from spawn telefrags. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
