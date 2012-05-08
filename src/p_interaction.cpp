@@ -1263,6 +1263,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			if (olddam != damage && damage <= 0) return;
 		}
 
+		// [Dusk] Unblocked players don't telefrag each other, they
+		// just pass through each other.
+		if (( dmflags3 & DF3_UNBLOCK_PLAYERS ) &&
+			( source != NULL ) && ( source->player ) && ( target->player ) &&
+			( mod == NAME_Telefrag || mod == NAME_SpawnTelefrag ))
+			return;
+
 		DmgFactors * df = target->GetClass()->ActorInfo->DamageFactors;
 		if (df != NULL)
 		{
