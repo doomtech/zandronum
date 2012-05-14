@@ -444,7 +444,9 @@ bool network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, boo
 {
 	int		iErrorCode;
 	struct sockaddr_in address;
-	bool	bBroadCast = true;
+
+	// setsockopt needs an int, bool won't work
+	int		enable = 1;
 
 	memset (&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
@@ -452,9 +454,9 @@ bool network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, boo
 	address.sin_port = htons( usPort );
 
 	// Allow the network socket to broadcast.
-	setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (const char *)&bBroadCast, sizeof( bBroadCast ));
+	setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (const char *)&enable, sizeof( enable ));
 	if ( bReUse )
-		setsockopt( Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&bBroadCast, sizeof( bBroadCast ));
+		setsockopt( Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&enable, sizeof( enable ));
 
 	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
 	if ( iErrorCode == SOCKET_ERROR )

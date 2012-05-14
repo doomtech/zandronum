@@ -168,7 +168,7 @@ bool UPNPNAT::tcp_connect(const char * _host,unsigned short int _port)
 	struct timeval tv;
 	tv.tv_sec = 3;
 	tv.tv_usec = 0;
-	ret=setsockopt(tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof ( tv ) ); 
+	ret=setsockopt(tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof ( tv ) ); 
 
 	struct sockaddr_in r_address;
 
@@ -210,11 +210,8 @@ bool UPNPNAT::discovery()
 	r_address.sin_port=htons(HTTPMU_HOST_PORT);
 	r_address.sin_addr.s_addr=inet_addr(HTTPMU_HOST_ADDRESS);
 
-	bool bOptVal = true;
-	int bOptLen = sizeof(bool);
-	int iOptLen = sizeof(int);
-
-	ret=setsockopt(udp_socket_fd, SOL_SOCKET, SO_BROADCAST, (char*)&bOptVal, bOptLen); 
+	int enable = 1;
+	ret=setsockopt(udp_socket_fd, SOL_SOCKET, SO_BROADCAST, (const char *)&enable, sizeof(enable)); 
 
 	ret=sendto(udp_socket_fd,send_buff.c_str(),send_buff.size(),0,(struct sockaddr*)&r_address,sizeof(struct sockaddr_in));
 
