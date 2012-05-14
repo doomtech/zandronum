@@ -5432,6 +5432,9 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 			}
 		}
 	}
+
+	// [BB] If the bombsource is a player and hit another player with his attack, potentially give him a medal.
+	PLAYER_CheckStruckPlayer( bombsource );
 }
 
 
