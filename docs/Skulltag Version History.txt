@@ -226,6 +226,7 @@ latestzdoom branch
 -	- Fixed: Players could get medals from spawn telefrags. [Dusk]
 -	- Fixed: Accuracy/Precision medals are now properly given when using the Rocket Launcher, Grenade Launcher, or BFG10K. [MP2E, Torr Samaho]
 -	- Fixed problems with the LAN broadcast under Linux. [Koromix]
+-	- Fixed: Console icon would stick on a player's head if the server missed the packet to remove the icon. [TIHan]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

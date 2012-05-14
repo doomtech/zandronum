@@ -4581,14 +4581,23 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 
 	// [RC] This actually isn't necessarily true. By using a joystick, a player can both move and chat.
 	// I'm not going to change it though, because since they can move, they shouldn't be protected by the llama medal. Also, it'd confuse people.
-	if (( pPlayer->bChatting ) &&
-		(( pCmd->ucmd.buttons != 0 ) ||
+	// [WS] I agree with Rive's statement above and we need the same treatment for the console status.
+	if (( pCmd->ucmd.buttons != 0 ) ||
 		( pCmd->ucmd.forwardmove != 0 ) ||
 		( pCmd->ucmd.sidemove != 0 ) ||
-		( pCmd->ucmd.upmove != 0 )))
+		( pCmd->ucmd.upmove != 0 ))
 	{
-		pPlayer->bChatting = false;
-		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+		if ( pPlayer->bChatting )
+		{
+			pPlayer->bChatting = false;
+			SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+		}
+
+		if ( pPlayer->bInConsole )
+		{
+			pPlayer->bInConsole = false;
+			SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+		}
 	}
 
 	return ( false );
