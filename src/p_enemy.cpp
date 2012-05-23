@@ -945,8 +945,8 @@ void P_RandomChaseDir (AActor *actor)
 		// [BB] The else block above possibly selects a spectating player. In that case
 		// don't try to move towards the spectator. This is not exactly the same as
 		// skipping spectators in the above loop, but should work well enough.
-		if ( (pr_newchasedir() & 1 || !P_CheckSight (actor, player))
-			&& player && player->player && ( player->player->bSpectating == false ) )
+		if ( player && (pr_newchasedir() & 1 || !P_CheckSight (actor, player))
+			&& player->player && ( player->player->bSpectating == false ) )
 		{
 			deltax = player->x - actor->x;
 			deltay = player->y - actor->y;
