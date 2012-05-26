@@ -955,7 +955,8 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 	if ( g_MedalQueue[ulPlayer][0].ulTick == MEDAL_ICON_DURATION )
 	{
 		// Also, locally play the announcer sound associated with this medal.
-		if ( pPlayer - players == consoleplayer )
+		// [Dusk] Check coop spy too
+		if ( pPlayer->mo->CheckLocalView( consoleplayer ) )
 		{
 			if ( g_Medals[ulMedal].szAnnouncerEntry[0] )
 				ANNOUNCER_PlayEntry( cl_announcer, (const char *)g_Medals[ulMedal].szAnnouncerEntry );
