@@ -2602,7 +2602,6 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 {
 	FString stateLabel;
 	LONG		lOffset = 0;
-	ULONG		ulIdx;
 
 	if ( !EnsureActorHasNetID (pActor) || (pState == NULL) )
 		return;
