@@ -2882,6 +2882,12 @@ FUNC(LS_SetPlayerProperty)
 
 		if (arg0 == 0)
 		{
+			// [WS] If the player is spectating, do nothing. The reason this check is put here and
+			// not at the beginning is because we may want the spectator to be able to puke a command
+			// that gets activated on all players that are currently spawned/(not spectating).
+			if ( it->player && it->player->bSpectating )
+				return false;
+
 			if (arg1)
 			{ // Give power to activator
 				if (power != 4)
@@ -2916,7 +2922,8 @@ FUNC(LS_SetPlayerProperty)
 
 			for (i = 0; i < MAXPLAYERS; i++)
 			{
-				if (!playeringame[i] || players[i].mo == NULL)
+				// [WS] Do not do this for spectators.
+				if (!playeringame[i] || players[i].mo == NULL || players[i].bSpectating)
 					continue;
 
 				if (arg1)

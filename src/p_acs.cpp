@@ -2748,6 +2748,11 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 	{
 		return;
 	}
+
+	// [WS/BB] Do not do this for spectators.
+	if ( actor->player && actor->player->bSpectating )
+		return;
+
 	switch (property)
 	{
 	case APROP_Health:
