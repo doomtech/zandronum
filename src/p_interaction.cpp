@@ -1639,7 +1639,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				{
 					// If we are the server, tell clients about the state change.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
+						SERVERCOMMANDS_SetThingFrame( target, painstate );
 
 					target->SetState (painstate);
 				}
@@ -1655,13 +1655,16 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 		else
 		{
-			// If we are the server, tell clients about the state change.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
-
 			target->flags |= MF_JUSTHIT; // fight back!
 			FState * painstate = target->FindState(NAME_Pain, mod);
-			if (painstate != NULL) target->SetState (painstate);
+			if (painstate != NULL)
+			{
+				// If we are the server, tell clients about the state change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingFrame( target, painstate );
+
+				target->SetState (painstate);
+			}
 			if (mod == NAME_PoisonCloud)
 			{
 				if ((target->flags3 & MF3_ISMONSTER) && pr_poison() < 128)
