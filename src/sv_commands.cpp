@@ -265,24 +265,43 @@ void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
 //*****************************************************************************
 //
 // [BB] Try to find the state label and the correspoding offset belonging to the target state.
-void FindStateLabelAndOffset( const AActor *pActor, FState *pState, FString &stateLabel, LONG &lOffset )
+// [Dusk] Pretty much rewrote this based on dumpstates code, this now recurses through state
+// children now to check them as well. This is needed to find stuff like custom pain states.
+
+bool FindStateAddressRecursor( AActor *pActor, FState *pState, FString prefix, FStateLabels *list, FString &label, LONG &lOffset )
+{
+	for ( int i = 0; i < list->NumLabels; ++i ) {
+		if ( list->Labels[i].State != NULL ) {
+			unsigned int offset;
+			if ( pActor->InState( list->Labels[i].State, &offset, pState ) && ( offset <= 255 ) ) {
+				// Found it!
+				label = prefix + list->Labels[i].Label.GetChars();
+				lOffset = static_cast<LONG>( offset );
+				return true;
+			}
+		}
+
+		// Not in there, check the children
+		if ( list->Labels[i].Children != NULL ) {
+			FString newprefix = prefix + list->Labels[i].Label.GetChars() + '.';
+			bool found = FindStateAddressRecursor( pActor, pState, newprefix, list->Labels[i].Children, label, lOffset );
+			if ( found == true )
+				return true;
+		}
+	}
+
+	return false;
+}
+
+void FindStateLabelAndOffset( AActor *pActor, FState *pState, FString &stateLabel, LONG &lOffset )
 {
 	stateLabel = "";
 	lOffset = 0;
 	FStateLabels *pStateList = pActor->GetClass()->ActorInfo->StateList;
 
-	// Begin searching through the actor's state labels to find the state that corresponds
-	// to the given state.
-	for ( ULONG ulIdx = 0; ulIdx < static_cast<ULONG> ( pStateList->NumLabels ); ++ulIdx )
-	{
-		unsigned int offset;
-		if ( pActor->InState ( pStateList->Labels[ulIdx].State, &offset, pState ) && ( offset <= 255 ) )
-		{
-			lOffset = static_cast<LONG> ( offset );
-			stateLabel = pStateList->Labels[ulIdx].Label.GetChars();
-			return;
-		}
-	}
+	bool found = FindStateAddressRecursor( pActor, pState, "", pStateList, stateLabel, lOffset );
+	if ( found == false && sv_showwarnings )
+		Printf ("FindStateLabelAndOffset: Couldn't find state!\n");
 }
 
 //*****************************************************************************
