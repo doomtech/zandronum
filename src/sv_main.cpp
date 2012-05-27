@@ -2507,9 +2507,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		{
 			SERVERCOMMANDS_ThingIsCorpse( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
-			// [BB] If the corpse is gibbed, let the client know.
-			FState* pXDeath = pActor->FindState(NAME_Death, NAME_Extreme);
-			if ( pXDeath && pXDeath != pActor->FindState(NAME_Death) && pActor->InState ( pXDeath ) )
+			// [Dusk/BB] Actor is not normally dead, let clients know the proper frame.
+			if ( pActor->InState (pActor->FindState (NAME_Death)) == false )
 				SERVERCOMMANDS_SetThingFrame( pActor, pActor->state, ulClient, SVCF_ONLYTHISCLIENT, false );
 		}
 	}
