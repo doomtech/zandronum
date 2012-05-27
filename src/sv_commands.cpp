@@ -2629,6 +2629,11 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 			SERVERCOMMANDS_SetThingState( pActor, STATE_WOUND );
 			return;
 		}
+		else if ( pState == pActor->FindState( NAME_Pain ))
+		{
+			SERVERCOMMANDS_SetThingState( pActor, STATE_PAIN );
+			return;
+		}
 	}
 
 	// [BB] Try to find the state label and the correspoding offset belonging to the target state.
