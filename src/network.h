@@ -113,6 +113,7 @@ enum
 #define	STATE_HEAL				9
 #define	STATE_CRASH				10
 #define	STATE_IDLE				11
+#define	STATE_WOUND				12 // [Dusk]
 
 // Identifying player states (again, cheap & easy)
 typedef enum

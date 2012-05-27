@@ -6020,6 +6020,12 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 
 		pActor->SetIdle();
 		return;
+
+	// [Dusk]
+	case STATE_WOUND:
+
+		pNewState = pActor->FindState( NAME_Wound );
+		break;
 	default:
 
 #ifdef CLIENT_WARNING_MESSAGES
