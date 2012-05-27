@@ -1598,12 +1598,17 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 
 	FState * woundstate = target->FindState(NAME_Wound, mod);
-	if (woundstate != NULL)
+	// [BB] The server takes care of this.
+	if ( (woundstate != NULL) && ( NETWORK_InClientMode( ) == false ) )
 	{
 		int woundhealth = RUNTIME_TYPE(target)->Meta.GetMetaInt (AMETA_WoundHealth, 6);
 
 		if (target->health <= woundhealth)
 		{
+			// [Dusk] As the server, update the clients on the state
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( target, woundstate );
+
 			target->SetState (woundstate);
 			return;
 		}
