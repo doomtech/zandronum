@@ -190,7 +190,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom, and Graf Zahl for GZDoom.\0"
+            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus " GAMENAME ") is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom, Graf Zahl for GZDoom and Carnevil for Skulltag.\0"
             VALUE "CompanyName", " \0"
             VALUE "FileDescription", GAMENAME "\0"
             VALUE "FileVersion", "v" DOTVERSIONSTR_REV "\0"
@@ -240,14 +240,14 @@ CAPTION "Welcome"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
 	ICON            IDI_ICONST,IDC_STATIC,7,7,32,32
-	LTEXT           "Welcome to Skulltag!",IDC_STATIC,42,8,180,8
+	LTEXT           "Welcome to Zandronum!",IDC_STATIC,42,8,180,8
 	LTEXT           "<Version info>",IDC_WELCOME_VERSION,42,18,180,8
 	GROUPBOX        "IWAD selection",IDC_STATIC,8,32,224-16,102
 	LTEXT           "Select which game file (IWAD) to run.", IDC_STATIC,12,32+12,190,8
     LISTBOX         IDC_IWADLIST,12,32+24,224-24,72,LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_TABSTOP
 	GROUPBOX        "Video settings",IDC_STATIC,8,138,224-16,48
-	LTEXT           "Choose how Skulltag will render the game.", IDC_STATIC,12,148,190,8
+	LTEXT           "Choose how Zandronum will render the game.", IDC_STATIC,12,148,190,8
 	CONTROL         "Hardware (OpenGL)",IDC_WELCOME_OPENGL,"Button",
                     BS_AUTORADIOBUTTON,12,170,93,10
 	CONTROL         "Software (Doom)",IDC_WELCOME_SOFTWARE,"Button",
@@ -259,7 +259,7 @@ BEGIN
 	CONTROL         "Don't ask me this again",IDC_DONTASKIWAD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,72,192,87,10
 	CTEXT           "", IDC_WELCOME_SHIFTLABEL,12,204,200,8
-    DEFPUSHBUTTON   "Play Skulltag",IDOK,8,236-18,90,14
+    DEFPUSHBUTTON   "Play Zandronum",IDOK,8,236-18,90,14
     PUSHBUTTON      "Exit",IDCANCEL,224-58,236-18,50,14
 
 END
@@ -471,7 +471,7 @@ END
 IDD_CRASHDIALOG DIALOGEX 0, 0, 415, 308
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
-CAPTION "Skulltag Very Fatal Error"
+CAPTION "Zandronum Very Fatal Error"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     CONTROL         "",IDC_CRASHTAB,"SysTabControl32",WS_TABSTOP,4,4,404,280
@@ -531,7 +531,7 @@ CAPTION "Welcome"
 FONT 8, "Tahoma"
 {
 	CONTROL         IDB_SETUP, IDC_STATIC, "Static", SS_BITMAP, 7, 4, 45, 42
-    LTEXT           "Welcome to Skulltag!", IDC_STTITLE, 48, 10, 235, 19, SS_LEFT
+    LTEXT           "Welcome to Zandronum!", IDC_STTITLE, 48, 10, 235, 19, SS_LEFT
     CONTROL         "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 4294967276, 34, 373, 1
 }
 
@@ -558,7 +558,7 @@ FONT 8, "Ms Shell Dlg 2"
 {
     LTEXT           "Redirecting you...", IDC_REDIRECTING1, 19, 12, 238, 8, SS_LEFT
     PUSHBUTTON      "Restart", IDC_RESTART, 19, 41, 54, 16
-    LTEXT           "After you've downloaded Doom 2, simply restart Skulltag.", IDC_REDIRECTING2, 19, 24, 238, 8, SS_LEFT
+    LTEXT           "After you've downloaded Doom 2, simply restart Zandronum.", IDC_REDIRECTING2, 19, 24, 238, 8, SS_LEFT
 }
 
 

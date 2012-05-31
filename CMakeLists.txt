@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 2.4 )
 
 set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where the pk3 files and executable will be created" )
-set( ZDOOM_EXE_NAME "skulltag" CACHE FILEPATH "Name of the executable to create" )
+set( ZDOOM_EXE_NAME "zandronum" CACHE FILEPATH "Name of the executable to create" )
 
 find_package( JPEG )
 find_package( ZLIB )
@@ -89,7 +89,7 @@ add_subdirectory( dumb )
 add_subdirectory( gdtoa )
 add_subdirectory( wadsrc )
 add_subdirectory( wadsrc_bm )
-# [BB] Skulltag includes the light definitions in skulltag.pk3.
+# [BB] Zandronum includes the light definitions in zandronum.pk3.
 #add_subdirectory( wadsrc_lights )
 add_subdirectory( src )
 

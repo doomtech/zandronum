@@ -40,8 +40,8 @@
 
 /** Lots of different version numbers **/
 
-#define STVER_STRING "98e"
-#define DOTVERSIONSTR "0." STVER_STRING "-alpha"
+#define STVER_STRING "1.0"
+#define DOTVERSIONSTR STVER_STRING "-alpha"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
@@ -128,15 +128,15 @@ static inline const char *MakeSaveSig()
 #endif
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
-#define GAMESIG "SKULLTAG"
-#define BASEWAD "skulltag.pk3"
+#define GAMESIG "ZANDRONUM"
+#define BASEWAD "zandronum.pk3"
 
 // More stuff that needs to be different for derivatives.
-#define GAMENAME "Skulltag"
-#define GAMENAMELOWERCASE "skulltag"
-#define DOMAIN_NAME "skulltag.net"
-#define FORUM_URL "http://www." DOMAIN_NAME "/forum/"
-#define BUGS_FORUM_URL	"http://www." DOMAIN_NAME "/forum/"
+#define GAMENAME "Zandronum"
+#define GAMENAMELOWERCASE "zandronum"
+#define DOMAIN_NAME "zandronum.com"
+#define FORUM_URL "http://" DOMAIN_NAME "/forum/"
+#define BUGS_FORUM_URL	"http://" DOMAIN_NAME "/tracker/"
 
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
