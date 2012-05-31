@@ -54,6 +54,7 @@
 #include "doomstat.h"
 #include "network.h"
 #include "sv_ban.h"
+#include "version.h"
 #include "v_text.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -178,7 +179,9 @@ void SERVERBAN_ClearBans( void )
 	// Export the cleared banlist.
 	if (( pFile = fopen( sv_banfile.GetGenericRep( CVAR_String ).String, "w" )) != NULL )
 	{
-		fputs( "// This is a Skulltag server IP list.\n// Format: 0.0.0.0 <mm/dd/yy> :optional comment\n\n", pFile );
+		FString message;
+		message.AppendFormat( "// This is a %s server IP list.\n// Format: 0.0.0.0 <mm/dd/yy> :optional comment\n\n", GAMENAME );
+		fputs( message.GetChars(), pFile );
 		fclose( pFile );
 
 		Printf( "Banlist cleared.\n" );

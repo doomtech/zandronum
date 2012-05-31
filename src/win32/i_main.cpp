@@ -149,7 +149,7 @@ HANDLE			hStdin;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-static const char WinClassName[] = "Skulltag MainWindow";
+static const char WinClassName[] = GAMENAME " MainWindow";
 static HMODULE hwtsapi32;		// handle to wtsapi32.dll
 static void (*TermFuncs[MAX_TERMS])(void);
 static int NumTerms;

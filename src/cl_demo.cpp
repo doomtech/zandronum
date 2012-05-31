@@ -200,7 +200,7 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 			// Read in the DEMOGAMEVERSION the demo was recorded with.
 			lDemoVersion = NETWORK_ReadShort( &g_ByteStream );
 			if ( lDemoVersion < MINDEMOVERSION )
-				I_Error( "Demo requires an older version of Skulltag!\n" );
+				I_Error( "Demo requires an older version of " GAMENAME "!\n" );
 
 			// Read in the DOTVERSIONSTR the demo was recorded with.
 			Printf( "Version %s demo\n", NETWORK_ReadString( &g_ByteStream ));

@@ -661,7 +661,7 @@ CUSTOM_CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE )
 }
 
 // Name of this server on launchers.
-CUSTOM_CVAR( String, sv_hostname, "Unnamed Skulltag server", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_hostname, "Unnamed " GAMENAME " server", CVAR_ARCHIVE )
 {
 	SERVERCONSOLE_UpdateTitleString( (const char *)self );
 }

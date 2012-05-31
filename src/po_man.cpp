@@ -28,6 +28,7 @@
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"
+#include "version.h"
 #include "sv_commands.h"
 
 // MACROS ------------------------------------------------------------------
@@ -274,7 +275,7 @@ LONG DPolyAction::GetPolyObj ()
 // [WS] This should never be called.
 void DPolyAction::UpdateToClient( ULONG ulClient )
 {
-	Printf("WARNING: DPolyAction::UpdateToClient was called. This should never happen! Please report this at the Skulltag bug tracker!\n");
+	Printf("WARNING: DPolyAction::UpdateToClient was called. This should never happen! Please report this at the %s bug tracker!\n", GAMENAME);
 }
 
 DRotatePoly::DRotatePoly ()

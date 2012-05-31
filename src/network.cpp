@@ -79,6 +79,7 @@
 #include "network.h"
 #include "sbar.h"
 #include "v_video.h"
+#include "version.h"
 
 #include "md5.h"
 
@@ -1077,7 +1078,7 @@ static void network_InitPWADList( void )
 	{
 		// Skip the IWAD, skulltag.wad/pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
 		if (( ulIdx == ulRealIWADIdx ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
+			( stricmp( Wads.GetWadName( ulIdx ), GAMENAMELOWERCASE ".pk3" ) == 0 ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 			( Wads.GetLoadedAutomatically( ulIdx )) ||
 			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))

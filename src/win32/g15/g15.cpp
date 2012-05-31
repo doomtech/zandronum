@@ -291,7 +291,7 @@ bool G15_IsReady( void )
 bool G15_TryConnect( void )
 {
 	// See if we can connect to the keyboard.
- 	g_LCD = new CEzLcd("Skulltag", G15_LCDWIDTH, G15_LCDHEIGHT);
+ 	g_LCD = new CEzLcd(GAMENAME, G15_LCDWIDTH, G15_LCDHEIGHT);
 	if ( g_LCD->Connect() )
 	{
 		bHasDevice = true;
@@ -436,7 +436,7 @@ void g15_SetUpModes( void )
 	// Main 'SKULLTAG' title.
  	g_hLogo_title = g_LCD->AddText(LG_STATIC_TEXT, LG_BIG, DT_LEFT, 120);
 	g_LCD->SetOrigin(g_hLogo_title, 56, 12);
-	g_LCD->SetText(g_hLogo_title,"Skulltag");
+	g_LCD->SetText(g_hLogo_title,GAMENAME);
 
 	// Version string.
 	g_hLogo_text = g_LCD->AddText(LG_STATIC_TEXT, LG_MEDIUM, DT_CENTER, 120);

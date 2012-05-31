@@ -94,9 +94,6 @@
 // Bump it whenever you change or remove existing DEM_ commands.
 #define MINDEMOVERSION 0x210
 
-// [BC] This is what's displayed as the title for server windows.
-#define	SERVERCONSOLE_TITLESTRING	"Skulltag v" DOTVERSIONSTR " Server"
-
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
 // SAVESIG should match SAVEVER.
@@ -140,6 +137,9 @@ static inline const char *MakeSaveSig()
 #define DOMAIN_NAME "skulltag.net"
 #define FORUM_URL "http://www." DOMAIN_NAME "/forum/"
 #define BUGS_FORUM_URL	"http://www." DOMAIN_NAME "/forum/"
+
+// [BC] This is what's displayed as the title for server windows.
+#define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
 #ifdef unix
 #define GAME_DIR "." GAMENAMELOWERCASE
