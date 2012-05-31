@@ -463,6 +463,6 @@ EXTERN_CVAR( Bool, sv_broadcast );
 EXTERN_CVAR( String, sv_hostname );
 EXTERN_CVAR( String, sv_website );
 EXTERN_CVAR( String, sv_hostemail );
-EXTERN_CVAR( String, skulltag_masterip );
+EXTERN_CVAR( String, masterhostname );
 
 #endif	// __SV_MAIN_H__

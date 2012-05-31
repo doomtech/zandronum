@@ -157,12 +157,12 @@ void SERVER_MASTER_Tick( void )
 
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
-	Val = skulltag_masterip.GetGenericRep( CVAR_String );
+	Val = masterhostname.GetGenericRep( CVAR_String );
 
 	// [BB] If we can't find the master address, we can't tick the master.
 	if ( NETWORK_StringToAddress( Val.String, &g_AddressMasterServer ) == false )
 	{
-		Printf ( "Warning: Can't find skulltag_masterip %s! Either correct skulltag_masterip or set sv_updatemaster to false.\n", Val.String );
+		Printf ( "Warning: Can't find masterhostname %s! Either correct masterhostname or set sv_updatemaster to false.\n", Val.String );
 		return;
 	}
 
@@ -674,7 +674,7 @@ CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
 
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
-CVAR( String, skulltag_masterip, "master.skulltag.net", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
+CVAR( String, masterhostname, "master.skulltag.net", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
 
 CCMD( wads )
 {

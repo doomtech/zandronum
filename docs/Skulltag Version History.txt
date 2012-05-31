@@ -258,6 +258,7 @@ latestzdoom branch
 !	- Clients are now informed about the server's sv_coop_damagefactor value and, if not 1, the value is displayed on the scoreboard. [TIHan]
 !	- Adjusted kickfromgame commands to have more verbosity in error messages. [Dusk]
 !	- The ally, chat and rune sprites are now also available in non-Doom games. [Torr Samaho]
+!	- Renamed CVAR skulltag_masterip to masterhostname. [Torr Samaho]
 
 
 98d
