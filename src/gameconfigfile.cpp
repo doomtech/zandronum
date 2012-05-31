@@ -611,7 +611,7 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 		}
 
 		path = progdir;
-		path += "skulltag-";
+		path += GAMENAMELOWERCASE"-";
 		path += uname;
 		path += ".ini";
 		if (tryProg)
@@ -638,10 +638,10 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 	if (path.IsEmpty())
 	{
 		if (Args->CheckParm ("-cdrom"))
-			return CDROM_DIR "\\skulltag.ini";
+			return CDROM_DIR "\\"GAMENAMELOWERCASE".ini";
 
 		path = progdir;
-		path += "skulltag.ini";
+		path += GAMENAMELOWERCASE".ini";
 	}
 	return path;
 #elif defined(__APPLE__)
@@ -652,13 +652,13 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 		noErr == FSRefMakePath(&folder, (UInt8*)cpath, PATH_MAX))
 	{
 		path = cpath;
-		path += "/skulltag.ini";
+		path += "/"GAMENAMELOWERCASE".ini";
 		return path;
 	}
 	// Ungh.
-	return "skulltag.ini";
+	return GAMENAMELOWERCASE".ini";
 #else
-	return GetUserFile ("skulltag.ini");
+	return GetUserFile (GAMENAMELOWERCASE".ini");
 #endif
 }
 
