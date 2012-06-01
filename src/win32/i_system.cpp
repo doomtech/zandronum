@@ -988,7 +988,7 @@ BOOL CALLBACK NoIWADBox_NoDoom_Callback (HWND hDlg, UINT message, WPARAM wParam,
 		else if ( LOWORD( wParam ) == IDC_USEFREEDOOM )
 		{
 			I_RunProgram( "http://" DOMAIN_NAME "/go/freedoom/" );
-			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After downloading, simply extract doom2.wad into the " GAMENAME "directory." );
+			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_REDIRECTING2, "After downloading, simply extract doom2.wad into the " GAMENAME " directory." );
 			SetDlgItemText( g_hDlg_NoIWAD_Redirect, IDC_RESTART, "Done" );
 		}
 
