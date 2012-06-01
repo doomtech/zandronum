@@ -162,7 +162,7 @@ wadsrc/*.ncb
 wadsrc/zdoom.pk3
 wadsrc/Release
 wadsrc/wadmake
-wadsrc/skulltag.pk3
+wadsrc/zandronum.pk3
 
 # /zlib/
 zlib/Debug
