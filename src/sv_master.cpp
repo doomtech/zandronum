@@ -92,7 +92,7 @@ extern	NETADDRESS_s		g_LocalAddress;
 //	CONSOLE VARIABLES
 
 #if (BUILD_ID != BUILD_RELEASE)
-// [BB] Name of the testing binary archive found in http://skulltag.net/
+// [BB] Name of the testing binary archive found in http://zandronum.com/
 CVAR( String, sv_testingbinary, "download/files/testing/" GAMEVER_STRING "/ZandroDev" GAMEVER_STRING "-" SVN_REVISION_STRING "windows.zip", CVAR_SERVERINFO )
 #endif
 
