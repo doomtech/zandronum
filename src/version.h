@@ -40,8 +40,8 @@
 
 /** Lots of different version numbers **/
 
-#define STVER_STRING "1.0"
-#define DOTVERSIONSTR STVER_STRING "-alpha"
+#define GAMEVER_STRING "1.0"
+#define DOTVERSIONSTR GAMEVER_STRING "-alpha"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
