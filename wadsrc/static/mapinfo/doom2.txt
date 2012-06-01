@@ -4,27 +4,13 @@ include "mapinfo/doomcommon.txt"
 clearepisodes
 episode map01
 {
-	picname = "M_HOE"
+	name = "Hell On Earth"
 	key = "h"
 }
 
 defaultmap
 {
 	sucktime = 1
-}
-
-episode d2dm1
-{
-	picname = "M_MORTAL"
-	key = "t"
-	botepisode
-	botskillpicname "M_DMATCH"
-}
-
-episode d2inv1
-{
-	picname = "M_IMPEND"
-	key = "i"
 }
 
 map MAP01 lookup "HUSTR_1"
