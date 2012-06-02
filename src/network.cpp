@@ -105,12 +105,6 @@ static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
 
-// [BB] MD5Sum of skulltag.wad / skulltag_data.pk3
-FString g_SkulltagDataFileMD5Sum;
-
-// [BB] Actual filename of skulltag.wad / skulltag_data.pk3 currently in use.
-FString g_SkulltagDataFileName;
-
 static TArray<LONG> g_LumpNumsToAuthenticate ( 0 );
 
 // The current network state. Single player, client, server, etc.
@@ -386,9 +380,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		else
 			Printf ( PRINT_BOLD, "You can't connect to servers without these files.\n" );
 	}
-
-	// [BB] To facilitate testing changes to skulltag.wad, show its MD5 sum on startup.
-	Printf("MD5 sum of skulltag.wad is %s\n", g_SkulltagDataFileMD5Sum.GetChars());
 
 	// [BB] Initialize the actor network class indices.
 	for ( unsigned int i = 0; i < PClass::m_Types.Size(); i++ )
@@ -1076,10 +1067,9 @@ static void network_InitPWADList( void )
 	// Collect all the PWADs into a list.
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
-		// Skip the IWAD, skulltag.wad/pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
+		// Skip the IWAD, zandronum.pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
 		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), GAMENAMELOWERCASE ".pk3" ) == 0 ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), g_SkulltagDataFileName.GetChars() ) == 0 ) ||
 			( Wads.GetLoadedAutomatically( ulIdx )) ||
 			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 		{

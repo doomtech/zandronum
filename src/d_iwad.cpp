@@ -595,11 +595,7 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 		exit (0);
 
 	// zdoom.pk3 must always be the first file loaded and the IWAD second.
-	// [BB] We already loaded skulltag.pk3. Now potentially load skulltag_data.pk3.
-	if ( ( IWADInfos[wads[pickwad].Type].gametype == GAME_Doom ) && !(IWADInfos[wads[pickwad].Type].flags & GI_SHAREWARE) )
-		D_AddFile (zdoom_wad);
-	else
-		FWadCollection::IWAD_FILENUM = 1;
+	D_AddFile (zdoom_wad);
 
 	if (wads[pickwad].Type == IWAD_HexenDK)
 	{ // load hexen.wad before loading hexdd.wad

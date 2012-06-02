@@ -37,9 +37,6 @@ extern "C" {
 #include "7zCrc.h"
 }
 
-// [BB] Allocate and initialize FWadCollection::IWAD_FILENUM, assuming skulltag_data.pk3 is loaded.
-int FWadCollection::IWAD_FILENUM = 2;
-
 // MACROS ------------------------------------------------------------------
 
 #define NULL_INDEX		(0xffff)

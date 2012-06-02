@@ -1967,40 +1967,6 @@ void D_DoomMain (void)
 		I_FatalError ("Cannot find " BASEWAD);
 	}
 
-	{
-		// [BB] This loads zandronum.pk3. skulltag_data.pk3 will be loaded by D_FindIWAD.
-		D_AddFile( wad, false );
-
-		// [BB] Check if the user wants to look for skulltag_data.pk3 / skulltag.wad elsewhere.
-		const char* skulldataFilename = Args->CheckValue( "-skulldata" );
-		if ( skulldataFilename )
-		{
-			wad = BaseFileSearch( skulldataFilename, NULL, true );
-			g_SkulltagDataFileName = ExtractFileBase ( skulldataFilename, true );
-			if ( wad == NULL )
-				I_FatalError( "Cannot find %s", skulldataFilename );
-		}
-		else
-		{
-			// [BC/BB] Also load skulltag_data.pk3 / skulltag.wad.
-			wad = BaseFileSearch( "skulltag_data.pk3", NULL, true );
-			g_SkulltagDataFileName = "skulltag_data.pk3";
-			// [BB] If we can't find skulltag_data.pk3, try skulltag.wad.
-			if ( wad == NULL )
-			{
-				wad = BaseFileSearch( "skulltag.wad", NULL, true );
-				g_SkulltagDataFileName = "skulltag.wad";
-				if ( wad == NULL )
-					I_FatalError( "Cannot find skulltag_data.pk3 (formerly known as skulltag.wad)." );
-			}
-		}
-
-		// [BB] Calculate and save the MD5 sum, we'll need it later.
-		char MD5Sum[33];
-		MD5SumOfFile ( wad, MD5Sum );
-		g_SkulltagDataFileMD5Sum = MD5Sum;
-	}
-
 	// Load zdoom.pk3 alone so that we can get access to the internal gameinfos before 
 	// the IWAD is known.
 

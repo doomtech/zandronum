@@ -171,9 +171,7 @@ public:
 	~FWadCollection ();
 
 	// The wadnum for the IWAD
-	// [BB] In Skulltag, IWAD_FILENUM is 1 or 2 depending on whether we load skulltag_data.pk3 or not.
-	//enum { IWAD_FILENUM = 1 };
-	static int IWAD_FILENUM;
+	enum { IWAD_FILENUM = 1 };
 
 	void InitMultipleFiles (wadlist_t **filenames);
 	void AddFile (const char *filename, const char *data=NULL,int length=-1, bool bLoadedAutomatically = false);	// [BC]

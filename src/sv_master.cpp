@@ -559,9 +559,9 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 #endif
 	}
 
-	// [BB] Send the MD5 sum of the main data file (skulltag.wad / skulltag_data.pk3).
+	// [BB] We don't have a mandatory main data file anymore, so just send an empty string.
 	if ( ulBits & SQF_DATA_MD5SUM )
-		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, g_SkulltagDataFileMD5Sum.GetChars() );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, "" );
 
 	// [BB] Send all dmflags and compatflags.
 	if ( ulBits & SQF_ALL_DMFLAGS )
