@@ -55,7 +55,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICONST              ICON    DISCARDABLE     "skulltag_xp.ico"
+IDI_ICONST              ICON    DISCARDABLE     "zandronum.ico"
 //IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
 //IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
 //IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"

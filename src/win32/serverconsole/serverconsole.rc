@@ -597,4 +597,4 @@ FONT 8, "Tahoma"
 // Icon resources
 //
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-IDI_ICOSETTINGS    ICON           "../skulltag_xp.ico"
+IDI_ICOSETTINGS    ICON           "../zandronum.ico"
