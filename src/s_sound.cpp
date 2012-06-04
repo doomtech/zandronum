@@ -47,9 +47,7 @@
 #include "gstrings.h"
 #include "gi.h"
 #include "templates.h"
-#ifdef USE_TIMIDITY
 #include "timidity/timidity.h"
-#endif
 #include "g_level.h"
 // [BB] New #includes.
 #include "cl_demo.h"

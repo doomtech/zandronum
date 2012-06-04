@@ -218,9 +218,7 @@ void MIDIStreamer::Play(bool looping, int subsong)
 		// Intentional fall-through for non-Windows systems.
 
 	case MIDI_Timidity:
-#ifdef USE_TIMIDITY
 		MIDI = new TimidityMIDIDevice;
-#endif
 		break;
 
 	case MIDI_OPL:

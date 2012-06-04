@@ -32,7 +32,6 @@
 **
 */
 
-#ifdef USE_TIMIDITY
 // HEADER FILES ------------------------------------------------------------
 
 #include "i_musicinterns.h"
@@ -764,5 +763,3 @@ int TimidityWaveWriterMIDIDevice::Resume()
 void TimidityWaveWriterMIDIDevice::Stop()
 {
 }
-
-#endif // USE_TIMIDITY

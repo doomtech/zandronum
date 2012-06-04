@@ -918,16 +918,15 @@ add_executable( zdoom WIN32
 	thingdef/thingdef_parse.cpp
 	thingdef/thingdef_properties.cpp
 	thingdef/thingdef_states.cpp
-	# [BB] Due to licensing issues, Skulltag doesn't use timidity.
-	#timidity/common.cpp
-	#timidity/instrum.cpp
-	#timidity/instrum_dls.cpp
-	#timidity/instrum_font.cpp
-	#timidity/instrum_sf2.cpp
-	#timidity/mix.cpp
-	#timidity/playmidi.cpp
-	#timidity/resample.cpp
-	#timidity/timidity.cpp
+	timidity/common.cpp
+	timidity/instrum.cpp
+	timidity/instrum_dls.cpp
+	timidity/instrum_font.cpp
+	timidity/instrum_sf2.cpp
+	timidity/mix.cpp
+	timidity/playmidi.cpp
+	timidity/resample.cpp
+	timidity/timidity.cpp
 	win32/g15/g15.cpp #ST
 	xlat/parse_xlat.cpp
 	../upnpnat/upnpnat.cpp #ST

@@ -9998,6 +9998,66 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Timidity"
+				>
+				<File
+					RelativePath=".\src\timidity\common.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\dls1.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\dls2.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\gf1patch.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\instrum.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\instrum_dls.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\instrum_font.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\instrum_sf2.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\mix.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\playmidi.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\resample.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\sf2.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\timidity.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\timidity\timidity.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="SDL Files"

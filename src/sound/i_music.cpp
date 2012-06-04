@@ -71,9 +71,7 @@ extern void ChildSigHandler (int signum);
 #include "tempfiles.h"
 #include "templates.h"
 #include "stats.h"
-#ifdef USE_TIMIDITY
 #include "timidity/timidity.h"
-#endif
 
 //[BB] fmod.h is not needed here.
 //#include <fmod.h>
@@ -172,9 +170,7 @@ void I_InitMusic (void)
 {
 	static bool setatterm = false;
 
-#ifdef USE_TIMIDITY
 	Timidity::LoadConfig();
-#endif
 
 	snd_musicvolume.Callback ();
 
@@ -207,9 +203,7 @@ void I_ShutdownMusic(void)
 		S_StopMusic (true);
 		assert (currSong == NULL);
 	}
-#ifdef USE_TIMIDITY
 	Timidity::FreeAll();
-#endif
 #ifdef _WIN32
 	I_ShutdownMusicWin32();
 #endif // _WIN32
