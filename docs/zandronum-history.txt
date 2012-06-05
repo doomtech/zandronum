@@ -261,3 +261,4 @@
 !	- The ally, chat and rune sprites are now also available in non-Doom games. [Torr Samaho]
 !	- Renamed CVAR skulltag_masterip to masterhostname. [Torr Samaho]
 !	- Removed the skulltag_data.pk3 auto loading mechanism. skulltag_data.pk3 should now be loaded explicitly like any other add-on. [Torr Samaho]
+!	- snes_spc is now linked statically, eliminating the need to distribute snes_spc.dll/so. [Torr Samaho]

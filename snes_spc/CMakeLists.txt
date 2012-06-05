@@ -12,8 +12,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	endif( HAVE_NO_ARRAY_BOUNDS )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
-# [BB] Due to LGPL, we need to use this as shared library, i.e. link it dynamically.
-add_library( snes_spc SHARED
+add_library( snes_spc
     snes_spc/dsp.cpp
     snes_spc/SNES_SPC.cpp
     snes_spc/SNES_SPC_misc.cpp
