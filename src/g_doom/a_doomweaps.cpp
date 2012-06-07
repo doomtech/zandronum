@@ -970,26 +970,26 @@ bool AGrenade::FloorBounceMissile( secplane_t &plane )
 }
 
 //
-// A_FireSTGrenade
+// A_FireSTGrenade: not exactly backported from ST, but should work the same
 //
-DEFINE_ACTION_FUNCTION(AActor, A_FireSTGrenade)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireSTGrenade)
 {
-//	AActor		*pGrenade;
-	player_t	*player;
-	fixed_t		SavedActorPitch;
+	player_t *player;
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(grenade, 0);
+	if (grenade == NULL) return;
 
 	if (NULL == (player = self->player))
 	{
 		return;
 	}
-
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
 	}
-
+		
 	// Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -997,38 +997,19 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSTGrenade)
 		return;
 	}
 
-	SavedActorPitch = self->pitch;
-
-	self->pitch = self->pitch - ( 1152 << FRACBITS );
-	P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ));
+	// Temporarily raise the pitch to send the grenade slightly upwards
+	fixed_t SavedPlayerPitch = self->pitch;
+	self->pitch -= (1152 << FRACBITS);
+	P_SpawnPlayerMissile(self, grenade);
 
 	// Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ), self->angle + ( ANGLE_45 / 3 ), false );
-		P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ), self->angle - ( ANGLE_45 / 3 ), false );
+		P_SpawnPlayerMissile( self, grenade, self->angle + ( ANGLE_45 / 3 ), false );
+		P_SpawnPlayerMissile( self, grenade, self->angle - ( ANGLE_45 / 3 ), false );
 	}
 	
-	self->pitch = SavedActorPitch;
-
-#if 0
-	Printf( "%d\n", self->pitch >> FRACBITS );
-	pGrenade = P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ));
-	if ( pGrenade )
-		pGrenade->momz += ( 3 * FRACUNIT );
-
-	// Apply spread.
-	if ( player->cheats & CF_SPREAD )
-	{
-		pGrenade = P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ), self->angle + ( ANGLE_45 / 3 ), false );
-		if ( pGrenade )
-			pGrenade->momz += ( 3 * FRACUNIT );
-
-		pGrenade = P_SpawnPlayerMissile( self, RUNTIME_CLASS( AGrenade ), self->angle - ( ANGLE_45 / 3 ), false );
-		if ( pGrenade )
-			pGrenade->momz += ( 3 * FRACUNIT );
-	}
-#endif
+	self->pitch = SavedPlayerPitch;
 
 	// Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDGRENADE, BOTEVENT_ENEMY_FIREDGRENADE, BOTEVENT_PLAYER_FIREDGRENADE );

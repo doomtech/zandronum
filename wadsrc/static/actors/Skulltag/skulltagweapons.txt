@@ -226,8 +226,6 @@ ACTOR GrenadeLauncher : DoomWeapon 5011
 	Weapon.Kickback 100
 	Inventory.PickupMessage "$PICKUP_GRENADELAUNCHER"
 
-	action native A_FireSTGrenade ();
-
 	States
 	{
 	Spawn:
