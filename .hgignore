@@ -165,6 +165,9 @@ wadsrc/Release
 wadsrc/wadmake
 wadsrc/zandronum.pk3
 
+# /wadsrc_st/
+wadsrc_st/skulltag_actors.pk3
+
 # /zlib/
 zlib/Debug
 zlib/Release
