@@ -1,0 +1,9 @@
+//minigun
+weapons/minigun			dsminign
+//bfg10k
+weapons/bfg10kf			dsbfg10k
+weapons/bfg10kx                 dsbarexp
+weapons/bfg10kcool		ds10kcdn
+weapons/bfg10kidle		ds10kidl
+// [BC] Don't limit the number of BFG10K explosions we can hear.
+$limit weapons/bfg10kx 0

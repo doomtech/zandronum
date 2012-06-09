@@ -753,10 +753,6 @@ PICKUP_HASTE = "Runa della Velocita'!";
 
 PICKUP_PISTOL_DROPPED = "Hai trovato una pistola.";
 PICKUP_PISTOL = "Hai ripreso la tua pistola!  Meno male!";
-PICKUP_MINIGUN = "Hai trovato un minigun!";
-PICKUP_GRENADELAUNCHER = "Hai trovato un lancia granate!!";
-PICKUP_RAILGUN = "Hai trovato un railgun!";
-PICKUP_BFG10K = "Hai trovato il BFG10000!  Oh, si!";
 
 // Possession strings.
 POSSESSIONARTIFACT_PICKEDUP = "Pietra Infernale Raccolta!";
@@ -767,8 +763,6 @@ OB_FIST_2 = "%o e' stato picchiato a sangue da %k.";
 OB_FIST_RARE = "%o e' stato molestato dai pugni di %k.";
 OB_PISTOL_RARE = "%o si e' ritrovato un proiettile nel culo, omaggio di %k.";
 OB_CHAINSAW_RARE = "%o e' stato h4kk4t0 dalla motosega di %k.";
-OB_MINIGUN = "%o e' stato trapanato dal minigun di %k.";
-OB_MINIGUN_2 = "%o e' stato colpito dal minigun di %k.";
 OB_ROCKET_GIB = "%o ha cavalcato il razzo di %k.";
 OB_ROCKET_GIB_2 = "%o e' stato liquidato dal razzo di %k.";
 OB_ROCKET_GIB_3 = "%o e' stato fatto a pezzi dal razzo di %k.";
@@ -782,9 +776,6 @@ OB_GRENADE_SPLASH = "%o e' stato stracciato dai frammenti di proiettile di %k.";
 OB_GRENADE_SELF = "%o si e' ucciso con la propria granata.";
 OB_PLASMARIFLE_RARE = "%o e' stato ownato dal plasma gun di %k.";
 OB_BFG_GIB_RARE = "%o e' stato castrato dalla grossa fottuta arma di %k.";
-OB_BFG10K = "%o e' stato annientato dal BFG10K di %k.";
-OB_BFG10K_RARE = "%o e' stato inculato dal BFG10K di %k.";
-OB_BFG10K_SELF = "%o si e' ucciso col suo BFG10K.";
 
 OB_CACODEMON_MELEE_RARE = "%o ha provato a fare amicizia con un cacodemone.";
 OB_BARON_MELEE_RARE = "%o e' stato colpito da un barone dell'inferno.";

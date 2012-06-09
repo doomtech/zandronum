@@ -1,0 +1,3 @@
+generator Minigun				BulletChip
+generator BFG10K				BFGLightning
+generator Railgun				RailScorch

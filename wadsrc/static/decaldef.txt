@@ -972,10 +972,6 @@ generator Chainsaw				BulletChip
 generator Shotgun				BulletChip
 generator SuperShotgun			BulletChip
 generator Chaingun				BulletChip
-// [BC] New ones here for ST's new weapons.
-generator Minigun				BulletChip
-generator Railgun				RailScorch
-generator BFG10K				BFGLightning
 
 generator PlasmaBall			PlasmaScorch
 generator Rocket				Scorch

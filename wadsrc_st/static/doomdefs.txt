@@ -1,0 +1,40 @@
+// BFG10K
+pointlight BFG10kShot
+{
+    color 0.0 1.0 0.0
+    size 80
+}
+
+flickerlight BFG10KSHOT_X1
+{
+    color 0.0 1.0 0.0
+    size 80
+    secondarySize 88
+    chance 0.3
+}
+
+flickerlight BFG10KSHOT_X2
+{
+    color 0.0 1.0 0.0
+    size 104
+    secondarySize 112
+    chance 0.3
+}
+
+flickerlight BFG10KSHOT_X3
+{
+    color 0.0 1.0 0.0
+    size 120
+    secondarySize 128
+    chance 0.3
+}
+
+object BFG10kShot
+{
+    frame BFE1A0 { light BFG10KSHOT }
+    frame BFE1B0 { light BFG10KSHOT }
+
+    frame BFE1C0 { light BFG10KSHOT_X1 }
+    frame BFE1D0 { light BFG10KSHOT_X2 }
+    frame BFE1E0 { light BFG10KSHOT_X3 }
+}

@@ -152,7 +152,6 @@
 #include "actors/skulltag/skulltagscorepillars.txt"
 #include "actors/skulltag/skulltagstatues.txt"
 #include "actors/skulltag/skulltagteamitems.txt"
-#include "actors/skulltag/skulltagweapons.txt"
 
 #include "actors/strife/strifehumanoid.txt"
 #include "actors/strife/strifeplayer.txt"

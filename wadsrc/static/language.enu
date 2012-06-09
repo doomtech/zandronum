@@ -763,10 +763,6 @@ PICKUP_HIGHJUMP = "High jump!";
 PICKUP_HASTE = "Haste!";
 
 PICKUP_PISTOL = "You got your pistol back!  Whew!";
-PICKUP_MINIGUN = "You got the minigun!";
-PICKUP_GRENADELAUNCHER = "You got the grenade launcher!";
-PICKUP_RAILGUN = "You got the railgun!";
-PICKUP_BFG10K = "You got the BFG10000!  Hell, yes!";
 
 // Possession strings.
 POSSESSIONARTIFACT_PICKEDUP = "Hellstone picked up!";
@@ -777,8 +773,6 @@ OB_FIST_2 = "%o was fisted by %k.";
 OB_FIST_RARE = "%o was molested by %k's fist.";
 OB_PISTOL_RARE = "%o got a cap popped in %p ass by %k.";
 OB_CHAINSAW_RARE = "%o was h4x0r3d by %k's chainsaw.";
-OB_MINIGUN = "%o was drilled by %k's minigun.";
-OB_MINIGUN_2 = "%o was pelted by %k's minigun.";
 OB_ROCKET_GIB = "%o was gibbed by %k's rocket.";
 OB_ROCKET_GIB_2 = "%o was souped by %k's rocket.";
 OB_ROCKET_GIB_3 = "%o was blown to bits by %k's rocket.";
@@ -792,9 +786,6 @@ OB_GRENADE_SPLASH = "%o was shredded by %k's shrapnel.";
 OB_GRENADE_SELF = "%o tripped %p own grenade.";
 OB_PLASMARIFLE_RARE = "%o was owned %k's plasma gun.";
 OB_BFG_GIB_RARE = "%o was gibbed by %k's big fucking gun.";
-OB_BFG10K = "%o was blasted by %k's BFG10K.";
-OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
-OB_BFG10K_SELF = "%o got reckless with %p BFG10K.";
 
 OB_CACODEMON_MELEE_RARE = "%o tried to get friendly with a cacodemon.";
 OB_BARON_MELEE_RARE = "%o was bitchslapped by a Baron of Hell.";

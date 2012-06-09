@@ -211,11 +211,6 @@ weapons/bfgx			dsrxplod
 weapons/railgf			railgf1
 // [BC] Some new sounds for Skulltag.
 weapons/grbnce                  dsbounce
-weapons/bfg10kf			dsbfg10k
-weapons/bfg10kx                 dsbarexp
-weapons/bfg10kcool		ds10kcdn
-weapons/bfg10kidle		ds10kidl
-weapons/minigun			dsminign
 weapons/grenlx			dsgrnexp
 weapons/grenlf			dsglaunc
 
@@ -230,8 +225,6 @@ $limit weapons/plasmaf 0
 $limit weapons/chngun 0
 $limit weapons/rocklf 0		// because normal running is almost as fast as a rocket
 $limit weapons/rocklx 0		// and the cyberdemon shoots 3 at once
-// [BC] Don't limit the number of BFG10K explosions we can hear.
-$limit weapons/bfg10kx 0
 // [Dusk] Neither do limit the grenade launcher explosions
 $limit weapons/grenlx 0
 

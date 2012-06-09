@@ -1,0 +1,36 @@
+[enu default]
+//minigun
+PICKUP_MINIGUN = "You got the minigun!";
+OB_MINIGUN = "%o was drilled by %k's minigun.";
+OB_MINIGUN_2 = "%o was pelted by %k's minigun.";
+
+//grenade launcher
+PICKUP_GRENADELAUNCHER = "You got the grenade launcher!";
+
+//railgun
+PICKUP_RAILGUN = "You got the railgun!";
+
+//bfg10k
+PICKUP_BFG10K = "You got the BFG10000!  Hell, yes!";
+OB_BFG10K = "%o was blasted by %k's BFG10K.";
+OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
+OB_BFG10K_SELF = "%o got reckless with %p BFG10K.";
+
+
+[ita]
+//minigun
+PICKUP_MINIGUN = "Hai trovato un minigun!";
+OB_MINIGUN = "%o e' stato trapanato dal minigun di %k.";
+OB_MINIGUN_2 = "%o e' stato colpito dal minigun di %k.";
+
+//grenade launcher
+PICKUP_GRENADELAUNCHER = "Hai trovato un lancia granate!!";
+
+//railgun
+PICKUP_RAILGUN = "Hai trovato un railgun!";
+
+//bfg10k
+PICKUP_BFG10K = "Hai trovato il BFG10000!  Oh, si!";
+OB_BFG10K = "%o e' stato annientato dal BFG10K di %k.";
+OB_BFG10K_RARE = "%o e' stato inculato dal BFG10K di %k.";
+OB_BFG10K_SELF = "%o si e' ucciso col suo BFG10K.";
