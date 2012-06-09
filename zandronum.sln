@@ -64,6 +64,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lzmalib", "lzma\lzmalib.vcp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hqnx", "hqnx\hqnx.vcproj", "{B699B4FF-CD87-4BC7-A845-DD336E8E4D60}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wadsrc_st", "wadsrc_st\skulltag_actors.vcproj", "{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -196,6 +198,12 @@ Global
 		{B699B4FF-CD87-4BC7-A845-DD336E8E4D60}.Release|Win32.ActiveCfg = Release|Win32
 		{B699B4FF-CD87-4BC7-A845-DD336E8E4D60}.Release|Win32.Build.0 = Release|Win32
 		{B699B4FF-CD87-4BC7-A845-DD336E8E4D60}.Release|x64.ActiveCfg = Release|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Debug|Win32.Build.0 = Debug|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Debug|x64.ActiveCfg = Debug|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Release|Win32.ActiveCfg = Release|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Release|Win32.Build.0 = Release|Win32
+		{1CFA980F-BBBF-4D40-A9BD-795F6FB407AE}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

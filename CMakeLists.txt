@@ -91,6 +91,8 @@ add_subdirectory( wadsrc )
 add_subdirectory( wadsrc_bm )
 # [BB] Zandronum includes the light definitions in zandronum.pk3.
 #add_subdirectory( wadsrc_lights )
+# [BB] Compatibility wad to support Skulltag mods.
+add_subdirectory( wadsrc_st )
 add_subdirectory( src )
 
 if( NOT WIN32 AND NOT APPLE )
