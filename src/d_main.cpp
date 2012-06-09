@@ -2015,9 +2015,6 @@ void D_DoomMain (void)
 			D_AddConfigWads(file);
 		}
 	}
-	else
-		I_FatalError ("Due to restrictions of the shareware license "GAMENAME" may not be run with a shareware IWAD.\n");
-
 
 	// Run automatically executed files
 	execFiles = new DArgs;
