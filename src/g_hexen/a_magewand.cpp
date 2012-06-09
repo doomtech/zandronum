@@ -39,7 +39,11 @@ void AMageWandMissile::Effect ()
 		{
 			hitz = floorz;
 		}
-		Spawn ("MageWandSmoke", x, y, hitz, ALLOW_REPLACE);
+		// [BB] Assume that the smoke is just for decorative purposes and let the
+		// client spawn it on its own.
+		AActor *mo = Spawn ("MageWandSmoke", x, y, hitz, ALLOW_REPLACE);
+		if ( mo && NETWORK_InClientMode( ) )
+			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 	}
 }
 

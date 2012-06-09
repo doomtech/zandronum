@@ -234,6 +234,7 @@
 -	- Fixed: Newly connecting clients were not informed about non-standard death states of corpses already on the map. [Dusk, Torr Samaho]
 -	- Fixed: Spectators were affected by SetPlayerProperty and SetActorProperty. [TIHan, Torr Samaho]
 -	- Fixed: "Impressive"/"Most Impressive" medals are now properly given when the player has a spread rune. Note: If a player hits another player with multiple rails in one attack, this is intentionally counted as multiple hits. [MP2E, Torr Samaho]
+-	- Fixed: The MageWandSmoke spawned by MageWandMissile is now properly client-sided. It was already spawned by the client before, but not properly treated as CLIENTSIDEONLY actor. [Dusk, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
