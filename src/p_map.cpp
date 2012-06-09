@@ -4470,7 +4470,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	FVector3 start, end;
 	FTraceResults trace;
 	fixed_t shootz;
-	bool			bHitPlayer;
 
 	// [Spleen]
 	UNLAGGED_Reconcile( source );
@@ -4523,9 +4522,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
 		FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
 
-		// Initialize bHitPlayer.
-		bHitPlayer = false;
-
 		for (i = 0; i < RailHits.Size (); i++)
 		{
 			fixed_t x, y, z;
@@ -4557,7 +4553,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 			if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
 			{
-				bHitPlayer = true;
 				if ( source->player )
 				{
 					source->player->ulConsecutiveRailgunHits++;
@@ -4588,13 +4583,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 					}
 				}
 			}
-		}
-
-		if ( source->player )
-		{
-			// Player did not strike a player with his railgun. Reset consecutive hits to 0.
-			if ( bHitPlayer == false )
-				source->player->ulConsecutiveRailgunHits = 0;
 		}
 	}
 
@@ -4641,6 +4629,10 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff)
 {
+	// [BB] Sanity check.
+	if ( source == NULL )
+		return;
+
 	// [BC]
 	LONG	lOuterColor;
 	LONG	lInnerColor;
@@ -4667,9 +4659,12 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 		lInnerColor = color2;
 	}
 
+	// [BB] Recall ulConsecutiveRailgunHits from before the attack to handle medals.
+	const ULONG ulConsecutiveRailgunHitsBefore = ( source->player ) ? source->player->ulConsecutiveRailgunHits : 0;
+
 	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
 
-	// [BB] Apply spread.
+	// [BB] Apply spread and handle the Railgun medals.
 	if (NULL != source->player )
 	{
 		if ( source->player->cheats & CF_SPREAD )
@@ -4686,6 +4681,10 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
 			source->angle = SavedActorAngle;
 		}
+
+		// Player did not strike a player with his railgun. Reset consecutive hits to 0.
+		if ( ulConsecutiveRailgunHitsBefore == source->player->ulConsecutiveRailgunHits )
+			source->player->ulConsecutiveRailgunHits = 0;
 	}
 }
 //
