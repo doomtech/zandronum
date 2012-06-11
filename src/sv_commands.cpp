@@ -5766,33 +5766,19 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 //
 void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( pPowerup == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEPOWERUP );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->getActorNetworkIndex() );
-		// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->Amount );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->EffectTics );
-	}
+	NetCommand command ( SVC_GIVEPOWERUP );
+	command.addByte( ulPlayer );
+	command.addShort( pPowerup->GetClass( )->getActorNetworkIndex() );
+	// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
+	command.addShort( pPowerup->Amount );
+	command.addShort( pPowerup->EffectTics );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
