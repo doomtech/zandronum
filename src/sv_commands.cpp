@@ -5782,6 +5782,24 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 }
 
 //*****************************************************************************
+// [WS]
+void SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if ( pPowerup == NULL )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETPOWERUPBLENDCOLOR );
+	command.addByte( ulPlayer );
+	command.addShort( pPowerup->GetClass( )->getActorNetworkIndex() );
+	command.addLong( pPowerup->BlendColor );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 // [Dusk]
 void SERVERCOMMANDS_GiveWeaponHolder( ULONG ulPlayer, AWeaponHolder *pHolder, ULONG ulPlayerExtra, ULONG ulFlags )
 {

@@ -2606,6 +2606,38 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				GAME_ResetMap();
 				break;
 
+			case SVC2_SETPOWERUPBLENDCOLOR:
+				{
+					// Read in the player ID.
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+
+					// Read in the identification of the type of item to give.
+					const USHORT usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
+
+					// Read in the blend color of the powerup.
+					const ULONG ulBlendColor = NETWORK_ReadLong( pByteStream );
+
+					// Check to make sure everything is valid. If not, break out.
+					if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false ) 
+						break;
+
+					const PClass *pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
+					if ( pType == NULL )
+						break;
+
+					// If this isn't a powerup, just quit.
+					if ( pType->IsDescendantOf( RUNTIME_CLASS( APowerup )) == false )
+						break;
+
+					// Try to find this object within the player's personal inventory.
+					AInventory *pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+					// [WS] If the player has this powerup, set its blendcolor appropriately.
+					if ( pInventory )
+						static_cast<APowerup*>(pInventory)->BlendColor = ulBlendColor;
+					break;
+				}
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

@@ -2894,6 +2894,15 @@ FUNC(LS_SetPlayerProperty)
 				{
 					APowerup *item = static_cast<APowerup*>(it->GiveInventoryType (powers[power]));
 					if (item != NULL && power == 0) item->BlendColor = INVERSECOLOR;
+
+					// [WS] Inform clients of the powerup and blend color.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					{
+						SERVERCOMMANDS_GivePowerup( ULONG( it->player - players ), item );
+						// [WS] If it is an invulnerability powerup, we need to inform the clients of the blend color.
+						if ( power == 0 )
+							SERVERCOMMANDS_SetPowerupBlendColor( ULONG( it->player - players ), item );
+					}
 				}
 				else if (it->player - players == consoleplayer)
 				{
@@ -2907,6 +2916,10 @@ FUNC(LS_SetPlayerProperty)
 					AInventory *item = it->FindInventory (powers[power]);
 					if (item != NULL)
 					{
+						// [WS] Destroy the powerup.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_TakeInventory( ULONG( it->player - players ), item->GetClass( )->TypeName.GetChars( ), 0 );
+
 						item->Destroy ();
 					}
 				}
@@ -2930,7 +2943,12 @@ FUNC(LS_SetPlayerProperty)
 				{ // Give power
 					if (power != 4)
 					{
-						players[i].mo->GiveInventoryType (powers[power]);
+						// [WS] Changes to ZDoom code here. We need the item.
+						AActor *item = players[i].mo->GiveInventoryType (powers[power]);
+
+						// [WS] Inform clients of powerup.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_GivePowerup( i, static_cast<APowerup *>( item ) );
 					}
 					else if (i == consoleplayer)
 					{
@@ -2944,6 +2962,10 @@ FUNC(LS_SetPlayerProperty)
 						AInventory *item = players[i].mo->FindInventory (powers[power]);
 						if (item != NULL)
 						{
+							// [WS] Destroy the powerup.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_TakeInventory( i, item->GetClass( )->TypeName.GetChars( ), 0 );
+
 							item->Destroy ();
 						}
 					}
