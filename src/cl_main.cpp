@@ -2578,7 +2578,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 #ifdef CLIENT_WARNING_MESSAGES
 						Printf( "SETTHINGREACTIONTIME: Couldn't find thing: %d\n", lID );
 #endif
-						return;
+						break;
 					}
 					pActor->reactiontime = lReactionTime;
 				}
@@ -2596,7 +2596,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 #ifdef CLIENT_WARNING_MESSAGES
 						Printf( "SETFASTCHASESTRAFECOUNT: Couldn't find thing: %d\n", lID );
 #endif
-						return;
+						break;
 					}
 					pActor->FastChaseStrafeCount = lStrafeCount;
 				}
