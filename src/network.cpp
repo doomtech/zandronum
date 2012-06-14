@@ -186,7 +186,10 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 
 	// Allocate a socket, and attempt to bind it to the given port.
 	g_NetworkSocket = network_AllocateSocket( );
-	if ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, g_usLocalPort, false ) == false )
+	// [BB] If we can't allocate a socket, sending / receiving net packets won't work.
+	if ( g_NetworkSocket == INVALID_SOCKET )
+		network_Error( "NETWORK_Construct: Couldn't allocate socket. You will not be able to host or join servers.\n" );
+	else if ( network_BindSocketToPort( g_NetworkSocket, ulInAddr, g_usLocalPort, false ) == false )
 	{
 		bSuccess = true;
 		bool bSuccessIP = true;
@@ -420,6 +423,10 @@ int NETWORK_GetPackets( void )
 	INT					iSocketFromLength;
 
 	iSocketFromLength = sizeof( SocketFrom );
+
+	// [BB] If the socket is invalid, there is no point in trying to use it.
+	if ( g_NetworkSocket == INVALID_SOCKET )
+		return ( 0 );
 
 #ifdef	WIN32
 	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, &iSocketFromLength );
