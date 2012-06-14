@@ -140,7 +140,7 @@ static	TArray<const PClass*> g_ActorNetworkIndexClassPointerMap;
 //	PROTOTYPES
 
 static	void			network_InitPWADList( void );
-static	void			network_Error( char *pszError );
+static	void			network_Error( const char *pszError );
 static	SOCKET			network_AllocateSocket( void );
 static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
 static	bool			network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *LumpName, FString &MD5Hash );
@@ -1087,7 +1087,7 @@ static void network_InitPWADList( void )
 	}
 }
 
-void network_Error( char *pszError )
+void network_Error( const char *pszError )
 {
 	Printf( "\\cd%s\n", pszError );
 }
