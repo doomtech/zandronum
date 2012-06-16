@@ -986,24 +986,14 @@ generator MarineRailgun			RailScorch
 generator ZombieMan				BulletChip
 generator ShotgunGuy			BulletChip
 generator ChaingunGuy			BulletChip
-// [BC] This one's for ST's new SSG zombie.
-generator SuperShotgunGuy		BulletChip
 generator WolfensteinSS			BulletChip
 generator SpiderMastermind		BulletChip
 
 generator ArachnotronPlasma		ArachnotronScorch
 generator BaronBall				BaronScorch
-// [BC] For the Belphegor.
-generator BelphegorBall				BaronScorch
 generator CacodemonBall			CacoScorch
-// [BC] Cacolantern.
-generator CacolanternBall			CacoScorch
 generator DoomImpBall			DoomImpScorch
-// [BC] Dark imp.
-generator DarkImpBall			DoomImpScorch
 generator FatShot				Scorch
-// [BC] HecteFATFATFAT
-generator HectShot				Scorch
 generator RevenantTracer		RevenantScorch
 
 generator VolcanoBlast			DoomImpScorch

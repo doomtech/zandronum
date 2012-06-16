@@ -1,18 +1,22 @@
 //=================================================================================================
 //
+// Monsters
+//
+//=================================================================================================
+
+//=================================================================================================
+//
 // Weak monster spawner
 //
 //=================================================================================================
 
-ACTOR WeakMonsterSpot : CustomMonsterInvasionSpot 5201
+ACTOR WeakDoomMonsterSpot : CustomMonsterInvasionSpot 5201
 {
 	Game Doom
 	DropItem "ZombieMan"
 	DropItem "ShotgunGuy"
 	DropItem "DoomImp"
-	DropItem "DarkImp"
 	DropItem "Demon"
-	DropItem "BloodDemon"
 	DropItem "LostSoul"
 }
 
@@ -22,13 +26,11 @@ ACTOR WeakMonsterSpot : CustomMonsterInvasionSpot 5201
 //
 //=================================================================================================
 
-ACTOR PowerfulMonsterSpot : CustomMonsterInvasionSpot 5202
+ACTOR PowerfulDoomMonsterSpot : CustomMonsterInvasionSpot 5202
 {
 	Game Doom
 	DropItem "ChaingunGuy"
-	DropItem "SuperShotgunGuy"
 	DropItem "Cacodemon"
-	DropItem "Cacolantern"
 	DropItem "Revenant"
 	DropItem "HellKnight"
 	DropItem "BaronOfHell"
@@ -43,12 +45,9 @@ ACTOR PowerfulMonsterSpot : CustomMonsterInvasionSpot 5202
 //
 //=================================================================================================
 
-ACTOR VeryPowerfulMonsterSpot : CustomMonsterInvasionSpot 5203
+ACTOR VeryPowerfulDoomMonsterSpot : CustomMonsterInvasionSpot 5203
 {
 	Game Doom
-	DropItem "Abaddon"
-	DropItem "Hectebus"
-	DropItem "Belphegor"
 	DropItem "Archvile"
 }
 
@@ -58,28 +57,21 @@ ACTOR VeryPowerfulMonsterSpot : CustomMonsterInvasionSpot 5203
 //
 //=================================================================================================
 
-ACTOR AnyMonsterSpot : CustomMonsterInvasionSpot 5204
+ACTOR AnyDoomMonsterSpot : CustomMonsterInvasionSpot 5204
 {
 	Game Doom
 	DropItem "DoomImp"
-	DropItem "DarkImp"
 	DropItem "Demon"
 	DropItem "Spectre"
-	DropItem "BloodDemon"
 	DropItem "ZombieMan"
 	DropItem "ShotgunGuy"
 	DropItem "ChaingunGuy"
-	DropItem "SuperShotgunGuy"
 	DropItem "Cacodemon"
-	DropItem "Cacolantern"
-	DropItem "Abaddon"
 	DropItem "Revenant"
 	DropItem "Fatso"
-	DropItem "Hectebus"
 	DropItem "Arachnotron"
 	DropItem "HellKnight"
 	DropItem "BaronOfHell"
-	DropItem "Belphegor"
 	DropItem "LostSoul"
 	DropItem "PainElemental"
 	DropItem "Cyberdemon"
@@ -97,18 +89,6 @@ ACTOR ImpSpot : CustomMonsterInvasionSpot 5205
 {
 	Game Doom
 	DropItem "DoomImp"
-}
-
-//=================================================================================================
-//
-// Dark imp spawner
-//
-//=================================================================================================
-
-ACTOR DarkImpSpot : CustomMonsterInvasionSpot 5206
-{
-	Game Doom
-	DropItem "DarkImp"
 }
 
 //=================================================================================================
@@ -133,18 +113,6 @@ ACTOR SpectreSpot : CustomMonsterInvasionSpot 5208
 {
 	Game Doom
 	DropItem "Spectre"
-}
-
-//=================================================================================================
-//
-// Blood demon spawner
-//
-//=================================================================================================
-
-ACTOR BloodDemonSpot : CustomMonsterInvasionSpot 5209
-{
-	Game Doom
-	DropItem "BloodDemon"
 }
 
 //=================================================================================================
@@ -185,18 +153,6 @@ ACTOR ChaingunGuySpot : CustomMonsterInvasionSpot 5212
 
 //=================================================================================================
 //
-// Super shotgun guy spawner
-//
-//=================================================================================================
-
-ACTOR SuperShotgunGuySpot : CustomMonsterInvasionSpot 5213
-{
-	Game Doom
-	DropItem "SuperShotgunGuy"
-}
-
-//=================================================================================================
-//
 // Cacodemon spawner
 //
 //=================================================================================================
@@ -205,30 +161,6 @@ ACTOR CacodemonSpot : CustomMonsterInvasionSpot 5214
 {
 	Game Doom
 	DropItem "Cacodemon"
-}
-
-//=================================================================================================
-//
-// Cacolantern spawner
-//
-//=================================================================================================
-
-ACTOR CacolanternSpot : CustomMonsterInvasionSpot 5215
-{
-	Game Doom
-	DropItem "Cacolantern"
-}
-
-//=================================================================================================
-//
-// Abaddon spawner
-//
-//=================================================================================================
-
-ACTOR AbaddonSpot : CustomMonsterInvasionSpot 5216
-{
-	Game Doom
-	DropItem "Abaddon"
 }
 
 //=================================================================================================
@@ -253,18 +185,6 @@ ACTOR FatsoSpot : CustomMonsterInvasionSpot 5218
 {
 	Game Doom
 	DropItem "Fatso"
-}
-
-//=================================================================================================
-//
-// Hectebus spawner
-//
-//=================================================================================================
-
-ACTOR HectebusSpot : CustomMonsterInvasionSpot 5219
-{
-	Game Doom
-	DropItem "Hectebus"
 }
 
 //=================================================================================================
@@ -301,18 +221,6 @@ ACTOR BaronOfHellSpot : CustomMonsterInvasionSpot 5222
 {
 	Game Doom
 	DropItem "BaronOfHell"
-}
-
-//=================================================================================================
-//
-// Belphegor spawner
-//
-//=================================================================================================
-
-ACTOR BelphegorSpot : CustomMonsterInvasionSpot 5223
-{
-	Game Doom
-	DropItem "Belphegor"
 }
 
 //=================================================================================================
@@ -374,6 +282,25 @@ ACTOR ArchvileSpot : CustomMonsterInvasionSpot 5228
 	Game Doom
 	DropItem "Archvile"
 }
+
+//=================================================================================================
+//
+// Wolfenstein SS spawner
+//
+//=================================================================================================
+
+ACTOR WolfensteinSSSpot : CustomMonsterInvasionSpot 5280
+{
+	Game Doom
+	DropItem "WolfensteinSS"
+}
+
+
+//=================================================================================================
+//
+// Items
+//
+//=================================================================================================
 
 //=================================================================================================
 //
@@ -603,6 +530,13 @@ ACTOR TurbosphereSpot : CustomPickupInvasionSpot 5247
 	DropItem "Turbosphere"
 }
 
+
+//=================================================================================================
+//
+// Runes
+//
+//=================================================================================================
+
 //=================================================================================================
 //
 // Strength rune spawner
@@ -743,6 +677,13 @@ ACTOR HighJumpRuneSpot : CustomPickupInvasionSpot 5257
 	DropItem "HighJumpRune"
 }
 
+
+//=================================================================================================
+//
+// Ammo
+//
+//=================================================================================================
+
 //=================================================================================================
 //
 // Clip spawner
@@ -841,6 +782,48 @@ ACTOR CellPackSpot : CustomPickupInvasionSpot 5265
 
 //=================================================================================================
 //
+// Random clip ammo spawner
+//
+//=================================================================================================
+
+ACTOR RandomClipAmmoSpot : CustomPickupInvasionSpot 5278
+{
+	Game Doom
+	DropItem "Clip"
+	DropItem "Shell"
+	DropItem "RocketAmmo"
+	DropItem "Cell"
+}
+
+//=================================================================================================
+//
+// Random box ammo spawner
+//
+//=================================================================================================
+
+ACTOR RandomBoxAmmoSpot : CustomPickupInvasionSpot 5279
+{
+	Game Doom
+	DropItem "ClipBox"
+	DropItem "ShellBox"
+	DropItem "RocketBox"
+	DropItem "CellPack"
+}
+
+//=================================================================================================
+//
+// Backpack spawner
+//
+//=================================================================================================
+
+ACTOR BackpackSpot : CustomPickupInvasionSpot 5281
+{
+	Game Doom
+	DropItem "Backpack"
+}
+
+//=================================================================================================
+//
 // Berserk spawner
 //
 //=================================================================================================
@@ -850,6 +833,13 @@ ACTOR BerserkSpot : CustomPickupInvasionSpot 5266
 	Game Doom
 	DropItem "Berserk"
 }
+
+
+//=================================================================================================
+//
+// Weapons
+//
+//=================================================================================================
 
 //=================================================================================================
 //
@@ -933,59 +923,5 @@ ACTOR BFG9000Spot : CustomWeaponInvasionSpot 5276
 {
 	Game Doom
 	DropItem "BFG9000"
-}
-
-//=================================================================================================
-//
-// Random clip ammo spawner
-//
-//=================================================================================================
-
-ACTOR RandomClipAmmoSpot : CustomPickupInvasionSpot 5278
-{
-	Game Doom
-	DropItem "Clip"
-	DropItem "Shell"
-	DropItem "RocketAmmo"
-	DropItem "Cell"
-}
-
-//=================================================================================================
-//
-// Random box ammo spawner
-//
-//=================================================================================================
-
-ACTOR RandomBoxAmmoSpot : CustomPickupInvasionSpot 5279
-{
-	Game Doom
-	DropItem "ClipBox"
-	DropItem "ShellBox"
-	DropItem "RocketBox"
-	DropItem "CellPack"
-}
-
-//=================================================================================================
-//
-// Wolfenstein SS spawner
-//
-//=================================================================================================
-
-ACTOR WolfensteinSSSpot : CustomMonsterInvasionSpot 5280
-{
-	Game Doom
-	DropItem "WolfensteinSS"
-}
-
-//=================================================================================================
-//
-// Backpack spawner
-//
-//=================================================================================================
-
-ACTOR BackpackSpot : CustomPickupInvasionSpot 5281
-{
-	Game Doom
-	DropItem "Backpack"
 }
 

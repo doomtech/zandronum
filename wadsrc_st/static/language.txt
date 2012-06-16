@@ -1,4 +1,5 @@
 [enu default]
+//Weapons
 //minigun
 PICKUP_MINIGUN = "You got the minigun!";
 OB_MINIGUN = "%o was drilled by %k's minigun.";
@@ -17,7 +18,32 @@ OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
 OB_BFG10K_SELF = "%o got reckless with %p BFG10K.";
 
 
+//Monsters
+//obituaries
+OB_CACODEMON_MELEE_RARE = "%o tried to get friendly with a cacodemon.";
+OB_BARON_MELEE_RARE = "%o was bitchslapped by a Baron of Hell.";
+OB_DARKIMP_MELEE = "%o was slashed by a dark imp.";
+OB_DARKIMP = "%o was burned by a dark imp.";
+OB_BLOODDEMON_MELEE = "%o was chomped on by a blood demon.";
+OB_SSGGUY = "%o was jacked by a super shotgun guy.";
+OB_BELPHEGOR_MELEE = "%o was slain by a Belphegor.";
+OB_BELPHEGOR = "%o was slain by a Belphegor.";
+OB_CACOLANTERN_MELEE = "%o got too close to a cacolantern.";
+OB_CACOLANTERN = "%o was smitten by a cacolantern.";
+OB_ABADDON_MELEE = "%o became food for an abaddon.";
+OB_ABADDON = "%o was smitten by an abaddon.";
+OB_HECTEBUS = "%o was cremated by a hectebus.";
+
+// cast call
+CC_SSGGUY = "SUPER SHOTGUN GUY";
+CC_DARKIMP = "DARK IMP";
+CC_BLOODDEMON = "BLOOD DEMON";
+CC_CACOLANTERN = "CACOLANTERN";
+CC_HECTEBUS = "HECTEBUS";
+
+
 [ita]
+//Weapons
 //minigun
 PICKUP_MINIGUN = "Hai trovato un minigun!";
 OB_MINIGUN = "%o e' stato trapanato dal minigun di %k.";
@@ -34,3 +60,27 @@ PICKUP_BFG10K = "Hai trovato il BFG10000!  Oh, si!";
 OB_BFG10K = "%o e' stato annientato dal BFG10K di %k.";
 OB_BFG10K_RARE = "%o e' stato inculato dal BFG10K di %k.";
 OB_BFG10K_SELF = "%o si e' ucciso col suo BFG10K.";
+
+
+//Monsters
+//obituaries
+OB_CACODEMON_MELEE_RARE = "%o ha provato a fare amicizia con un cacodemone.";
+OB_BARON_MELEE_RARE = "%o e' stato colpito da un barone dell'inferno.";
+OB_DARKIMP_MELEE = "%o e' stato squarciato da un imp oscuro.";
+OB_DARKIMP = "%o e' stato bruciato da un imp oscuro.";
+OB_BLOODDEMON_MELEE = "%o e' stato mangiato da un demone di sangue.";
+OB_SSGGUY = "%o e' stato smembrato da uno zombie con doppietta.";
+OB_BELPHEGOR_MELEE = "%o e' stato assassinato da un Belphegor.";
+OB_BELPHEGOR = "%o e' stato assassinato da un Belphegor.";
+OB_CACOLANTERN_MELEE = "%o si e' avvicinato troppo a un caco-lanterna.";
+OB_CACOLANTERN = "%o e' stato abbattuto da un caco-lanterna.";
+OB_ABADDON_MELEE = "%o e' diventato cibo per un abaddon.";
+OB_ABADDON = "%o e' stato abbattuto da un abaddon.";
+OB_HECTEBUS = "%o e' stato cremato da un hectebus.";
+
+//cast call
+CC_SSGGUY = "ZOMBIE CON DOPPIETTA";
+CC_DARKIMP = "IMP OSCURO";
+CC_BLOODDEMON = "DEMONE DI SANGUE";
+CC_CACOLANTERN = "CACO-LANTERNA";
+CC_HECTEBUS = "HECTEBUS";
