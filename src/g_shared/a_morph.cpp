@@ -239,6 +239,7 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 		next = item->Inventory;
 		if (item->IsKindOf(RUNTIME_CLASS(APowerMorph)))
 		{
+			static_cast<APowerMorph *>(item)->SetNoCallUndoMorph();
 			item->Destroy();
 		}
 	}
