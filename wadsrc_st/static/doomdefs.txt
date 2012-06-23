@@ -261,3 +261,193 @@ object SuperShotgunGuy
 {
     frame GPOSF { light ZOMBIEATK }
 }
+
+
+// ------------------
+// -- Lights --
+// ------------------
+
+// Small white torch
+flickerlight2 SMALLWHITETORCH
+{
+    color 1.0 1.0 1.0
+    size 48
+    secondarySize 54
+    interval 0.1
+    offset 0 35 0
+}
+
+object ShortWhiteTorch
+{
+    frame SMWT { light SMALLWHITETORCH }
+}
+
+// Small yellow torch
+flickerlight2 SMALLYELLOWTORCH
+{
+    color 1.0 1.0 0.0
+    size 48
+    secondarySize 54
+    interval 0.1
+    offset 0 35 0
+}
+
+object ShortYellowTorch
+{
+    frame SMYT { light SMALLYELLOWTORCH }
+}
+
+// Tall white torch
+flickerlight2 BIGWHITETORCH
+{
+    color 1.0 1.0 1.0
+    size 64
+    secondarySize 72
+    interval 0.1
+    offset 0 60 0
+}
+
+object WhiteTorch
+{
+    frame TWHI { light BIGWHITETORCH }
+}
+
+// Tall yellow torch
+flickerlight2 BIGYELLOWTORCH
+{
+    color 1.0 1.0 0.0
+    size 64
+    secondarySize 72
+    interval 0.1
+    offset 0 60 0
+}
+
+object YellowTorch
+{
+    frame TYEL { light BIGYELLOWTORCH }
+}
+
+
+// ------------------
+// -- Decor --
+// ------------------
+
+// Evil Eye Red
+flickerlight2 RedEvilEye
+{
+    color 1.0 0.0 0.0
+    size 30
+    secondarySize 50
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedEvilEye
+{
+    frame CEYR { light RedEvilEye }
+}
+
+// Evil Eye Blue
+flickerlight2 BlueEvilEye
+{
+    color 0.0 0.0 1.0
+    size 30
+    secondarySize 50
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueEvilEye
+{
+    frame CEYB { light BlueEvilEye }
+}
+
+// Red Candle Stick
+flickerlight2 RedCandleStick
+{
+    color 1.0 0.0 0.0
+    size 40
+    secondarySize 60
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedCandleStick
+{
+    frame CANR { light RedCandleStick }
+}
+
+// Blue Candle Stick
+flickerlight2 BlueCandleStick
+{
+    color 0.0 0.0 1.0
+    size 40
+    secondarySize 60
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueCandleStick
+{
+    frame CANB { light BlueCandleStick }
+}
+
+// Red Tech Lamp
+flickerlight2 RedTechLamp
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedTechLamp
+{
+    frame TLP3 { light RedTechLamp }
+}
+
+// Red Tech Lamp 2
+flickerlight2 RedTechLamp2
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedTechLamp2
+{
+    frame TLP4 { light RedTechLamp2 }
+}
+
+// Red Column
+flickerlight2 RedColumn
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedColumn
+{
+    frame RCOL { light RedColumn }
+}
+
+// Blue Column
+flickerlight2 BlueColumn
+{
+    color 0.0 0.0 1.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueColumn
+{
+    frame BCOL { light BlueColumn }
+}

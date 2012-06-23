@@ -143,13 +143,10 @@
 // [BC] New Skulltag actor definitions.
 #include "actors/skulltag/skulltagarmor.txt"
 #include "actors/skulltag/skulltagartifacts.txt"
-#include "actors/skulltag/skulltagdeadthings.txt"
-#include "actors/skulltag/skulltagdecorations.txt"
 #include "actors/skulltag/skulltaghealth.txt"
 #include "actors/skulltag/skulltagmisc.txt"
 #include "actors/skulltag/skulltagrunes.txt"
 #include "actors/skulltag/skulltagscorepillars.txt"
-#include "actors/skulltag/skulltagstatues.txt"
 #include "actors/skulltag/skulltagteamitems.txt"
 
 #include "actors/strife/strifehumanoid.txt"
