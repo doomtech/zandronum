@@ -899,18 +899,8 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 	}
 
 	// [BC] If we're the server, update the thing's momentum.
-	// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
-	// Is there a way to fix this without sending the position?
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		// [BB] There is no need to sync the player positions as SERVERCOMMANDS_MovePlayer
-		// is called regularly. Furthermore, changing the position of a client's local player
-		// messes up the player prediction and shouldn't be done.
-		if ( it->player )
-			SERVERCOMMANDS_MoveThingExact( it, CM_MOMX|CM_MOMY );
-		else
-			SERVERCOMMANDS_MoveThingExact( it, CM_X|CM_Y|CM_MOMX|CM_MOMY );
-	}
+	// [Dusk] Use SERVER_UpdateThingMomentum
+	SERVER_UpdateThingMomentum( it, false );
 }
 
 FUNC(LS_ThrustThingZ)	// [BC]

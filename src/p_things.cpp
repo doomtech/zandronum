@@ -567,14 +567,8 @@ void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool
 			actor->player->momx += vx;
 			actor->player->momy += vy;
 		}
-
-		// [Dusk] Update thing momentum to clients
-		if (NETWORK_GetState () == NETSTATE_SERVER) {
-			if ( actor->player )
-				SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY|CM_MOMZ );
-			else
-				SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
-		}
+		// [Dusk] Update momentum
+		SERVER_UpdateThingMomentum( actor, true );
 	}
 }
 

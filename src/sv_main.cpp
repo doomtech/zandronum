@@ -4237,6 +4237,32 @@ void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
 }
 
 //*****************************************************************************
+// [Dusk] Updates a thing's momentum
+void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+	// Is there a way to fix this without sending the position?
+	// [BB] There is no need to sync the player positions as SERVERCOMMANDS_MovePlayer
+	// is called regularly. Furthermore, changing the position of a client's local player
+	// messes up the player prediction and shouldn't be done.
+
+	ULONG ulBits = CM_MOMX|CM_MOMY;
+	if ( updateZ )
+		ulBits |= CM_MOMZ;
+
+	if ( !pActor->player ) {
+		ulBits |= CM_X|CM_Y;
+		if ( updateZ )
+			ulBits |= CM_Z;
+	}
+
+	SERVERCOMMANDS_MoveThingExact( pActor, ulBits );
+}
+
+//*****************************************************************************
 //
 static bool server_Ignore( BYTESTREAM_s *pByteStream )
 {
