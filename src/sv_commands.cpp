@@ -405,6 +405,27 @@ void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
 }
 //*****************************************************************************
 //
+// [BB/WS] Tell clients to re-use their last updated position. This saves a lot of bandwidth.
+void CheckPositionReuse( AActor *pActor, ULONG &ulBits )
+{
+	if ( ulBits & CM_X && pActor->lastX == pActor->x )
+	{
+		ulBits &= ~CM_X;
+		ulBits |= CM_REUSE_X;
+	}
+	if ( ulBits & CM_Y && pActor->lastY == pActor->y )
+	{
+		ulBits &= ~CM_Y;
+		ulBits |= CM_REUSE_Y;
+	}
+	if ( ulBits & CM_Z && pActor->lastZ == pActor->z )
+	{
+		ulBits &= ~CM_Z;
+		ulBits |= CM_REUSE_Z;
+	}
+}
+//*****************************************************************************
+//
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -1915,6 +1936,11 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	// [BB] Only skip updates, if sent to all players.
 	if ( ulFlags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
+	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
+		ulBits |= CM_NOLAST;
+
+	// [WS] Check to see if the position can be re-used by the client.
+	CheckPositionReuse( pActor, ulBits );
 
 	// Nothing to update.
 	if ( ulBits == 0 )
@@ -1931,6 +1957,14 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		command.addShort( pActor->y >> FRACBITS );
 	if ( ulBits & CM_Z )
 		command.addShort( pActor->z >> FRACBITS );
+
+	// Write last position.
+	if ( ulBits & CM_LAST_X )
+		command.addShort( pActor->lastX >> FRACBITS );
+	if ( ulBits & CM_LAST_Y )
+		command.addShort( pActor->lastY >> FRACBITS );
+	if ( ulBits & CM_LAST_Z )
+		command.addShort( pActor->lastZ >> FRACBITS );
 
 	// Write angle.
 	if ( ulBits & CM_ANGLE )
@@ -1969,6 +2003,11 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 	// [BB] Only skip updates, if sent to all players.
 	if ( ulFlags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
+	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
+		ulBits |= CM_NOLAST;
+
+	// [WS] Check to see if the position can be re-used by the client.
+	CheckPositionReuse( pActor, ulBits );
 
 	// Nothing to update.
 	if ( ulBits == 0 )
@@ -1985,6 +2024,14 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		command.addLong( pActor->y );
 	if ( ulBits & CM_Z )
 		command.addLong( pActor->z );
+
+	// Write last position.
+	if ( ulBits & CM_LAST_X )
+		command.addLong( pActor->lastX );
+	if ( ulBits & CM_LAST_Y )
+		command.addLong( pActor->lastY );
+	if ( ulBits & CM_LAST_Z )
+		command.addLong( pActor->lastZ );
 
 	// Write angle.
 	if ( ulBits & CM_ANGLE )

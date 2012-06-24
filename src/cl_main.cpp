@@ -5727,6 +5727,9 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_X ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_Y ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_Z ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_LAST_X ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_LAST_Y ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_LAST_Z ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_ANGLE ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMX ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_MOMY ) NETWORK_ReadShort( pByteStream );
@@ -5743,14 +5746,43 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 
 	// Read in the position data.
 	if ( lBits & CM_X )
+	{
 		X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastX = X;
+	}
 	if ( lBits & CM_Y )
+	{
 		Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastY = Y;
+	}
 	if ( lBits & CM_Z )
+	{
 		Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastZ = Z;
+	}
+
+	// Read in the last position data.
+	if ( lBits & CM_LAST_X )
+		pActor->lastX = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	if ( lBits & CM_LAST_Y )
+		pActor->lastY = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	if ( lBits & CM_LAST_Z )
+		pActor->lastZ = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// [WS] Clients will reuse their last updated position.
+	if ( lBits & CM_REUSE_X )
+		X = pActor->lastX;
+	if ( lBits & CM_REUSE_Y )
+		Y = pActor->lastY;
+	if ( lBits & CM_REUSE_Z )
+		Z = pActor->lastZ;
 
 	// Update the thing's position.
-	CLIENT_MoveThing( pActor, X, Y, Z );
+	if ( lBits & (CM_X|CM_Y|CM_Z|CM_REUSE_X|CM_REUSE_Y|CM_REUSE_Z) )
+		CLIENT_MoveThing( pActor, X, Y, Z );
 
 	// Read in the angle data.
 	if ( lBits & CM_ANGLE )
@@ -5816,6 +5848,9 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_X ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_Y ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_Z ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_LAST_X ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_LAST_Y ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_LAST_Z ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_ANGLE ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMX ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMY ) NETWORK_ReadLong( pByteStream );
@@ -5832,14 +5867,43 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 
 	// Read in the position data.
 	if ( lBits & CM_X )
+	{
 		X = NETWORK_ReadLong( pByteStream );
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastX = X;
+	}
 	if ( lBits & CM_Y )
+	{
 		Y = NETWORK_ReadLong( pByteStream );
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastY = Y;
+	}
 	if ( lBits & CM_Z )
+	{
 		Z = NETWORK_ReadLong( pByteStream );
+		if ( !(lBits & CM_NOLAST) )
+			pActor->lastZ = Z;
+	}
+
+	// Read in the last position data.
+	if ( lBits & CM_LAST_X )
+		pActor->lastX = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_LAST_Y )
+		pActor->lastY = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_LAST_Z )
+		pActor->lastZ = NETWORK_ReadLong( pByteStream );
+
+	// [WS] Clients will reuse their last updated position.
+	if ( lBits & CM_REUSE_X )
+		X = pActor->lastX;
+	if ( lBits & CM_REUSE_Y )
+		Y = pActor->lastY;
+	if ( lBits & CM_REUSE_Z )
+		Z = pActor->lastZ;
 
 	// Update the thing's position.
-	CLIENT_MoveThing( pActor, X, Y, Z );
+	if ( lBits & (CM_X|CM_Y|CM_Z|CM_REUSE_X|CM_REUSE_Y|CM_REUSE_Z) )
+		CLIENT_MoveThing( pActor, X, Y, Z );
 
 	// Read in the angle data.
 	if ( lBits & CM_ANGLE )

@@ -72,6 +72,13 @@ enum
 	CM_MOMZ			= 1 << 6,
 	CM_PITCH		= 1 << 7,
 	CM_MOVEDIR		= 1 << 8,
+	CM_REUSE_X		= 1 << 9,
+	CM_REUSE_Y		= 1 << 10,
+	CM_REUSE_Z		= 1 << 11,
+	CM_LAST_X		= 1 << 12,
+	CM_LAST_Y		= 1 << 13,
+	CM_LAST_Z		= 1 << 14,
+	CM_NOLAST		= 1 << 15, // [WS] We do not have enough room for more flags here.
 };
 
 // [BB] Flags for client_MovePlayer/SERVERCOMMANDS_MovePlayer

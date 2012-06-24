@@ -2421,7 +2421,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 					SERVERCOMMANDS_SetThingFrame( pActor, pActor->state, ulClient, SVCF_ONLYTHISCLIENT, false );
 				}
 
-				ULONG ulBits = 0;
+				// [WS/BB] Always inform client of the actor's lastX/Y/Z.
+				ULONG ulBits = CM_LAST_X|CM_LAST_Y|CM_LAST_Z;
 
 				if ( pActor->momx != 0 )
 					ulBits |= CM_MOMX;
