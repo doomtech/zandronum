@@ -241,6 +241,7 @@
 -	- Fixed: Certain effects in SetPlayerProperty were not working as intended online. [TIHan, Torr Samaho]
 -	- Fixed: When no network socket can be allocated the console is not flooded with NETWORK_GetPackets warnings anymore. [Torr Samaho]
 -	- Fixed: A malformed SERVER_LAUNCHER_CHALLENGE could cause the client to crash. [Torr Samaho]
+-	- Fixed: SetActorVelocity didn't update velocity changes to clients. [Dusk]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]
