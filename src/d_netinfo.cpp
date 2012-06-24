@@ -633,6 +633,20 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			return;
 		}
 	}
+	// [WS] We need to handle the values for stillbob to prevent cheating.
+	else if ( cvar == &stillbob )
+	{
+		if ( stillbob < -16 )
+		{
+			stillbob = -16;
+			return;
+		}
+		if ( stillbob > 16 )
+		{
+			stillbob = 16;
+			return;
+		}
+	}
 	// [Spleen] User changed his unlagged setting.
 	else if ( cvar == &cl_unlagged )
 	{
