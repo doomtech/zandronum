@@ -209,39 +209,3 @@ const char *ARandomPowerup::PickupMessage( )
 
 	return ( "Random powerup error" );
 }
-
-// Hissy --------------------------------------------------------------------
-// Hissy isn't really an artifact, but it's going here anyway.
-
-class AHissy : public AActor
-{
-	DECLARE_CLASS( AHissy, AActor )
-public:
-	void Tick( )
-	{
-		angle_t		Angle;
-		angle_t		DeltaAngle;
-		AActor		*pConsolePlayer;
-
-		// Run the default actor logic.
-		Super::Tick( );
-
-		// Always watch the consoleplayer.
-		pConsolePlayer = players[consoleplayer].mo;
-		if (( playeringame[consoleplayer] == false ) || ( pConsolePlayer == NULL ))
-			return;
-
-		// Find the angle between Hissy and the console player.
-		Angle = R_PointToAngle2( this->x, this->y, pConsolePlayer->x, pConsolePlayer->y );
-		DeltaAngle = Angle - this->angle;
-
-		if (( DeltaAngle  < ( ANG90/18 )) || ( DeltaAngle > (unsigned)-( ANG90/18 )))
-			this->angle = Angle;
-		else if ( DeltaAngle < ANG180 )
-			this->angle += ( ANG90/18 );
-		else
-			this->angle -= ( ANG90/18 );
-	}
-};
-
-IMPLEMENT_CLASS( AHissy )

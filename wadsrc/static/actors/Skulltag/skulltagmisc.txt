@@ -170,7 +170,7 @@ ACTOR SpringPadZone 5068 native
 //
 //=================================================================================================
 
-ACTOR Hissy 5057 native
+ACTOR Hissy 5057
 {
 	Game Doom
 	Radius 20
@@ -179,7 +179,9 @@ ACTOR Hissy 5057 native
 	States
 	{
 	Spawn:
-		HISY B -1
-		HISY A -1
+		HISY B 1 A_FaceConsolePlayer(5)
+		wait
+		HISY A 1 A_FaceConsolePlayer(5)
+		Wait
 	}
 }
