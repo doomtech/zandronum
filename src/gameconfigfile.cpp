@@ -67,9 +67,6 @@ extern HWND Window;
 // [RC] For name cleaning
 #include "v_text.h"
 
-// [RC] Whether we are upgrading from 0.97c3
-bool removeZDoomGLSettings;
-
 EXTERN_CVAR (Bool, con_centernotify)
 EXTERN_CVAR (Int, msg0color)
 EXTERN_CVAR (Color, dimcolor)
@@ -92,7 +89,6 @@ FGameConfigFile::FGameConfigFile ()
 	FString pathname;
 	
 	bMigrating = false;
-	removeZDoomGLSettings = false;
 	pathname = GetConfigPath (true);
 	ChangePathName (pathname);
 	LoadConfigFile (MigrateStub, NULL);
@@ -245,13 +241,6 @@ void FGameConfigFile::MigrateOldConfig ()
 
 void FGameConfigFile::DoGlobalSetup ()
 {
-	// [RC] We could use LastRun, but I want to drop these altogether.
-	// For that, we check for them in GlobalSettings.
-	if (!SetSection ("AlreadyRemovedZDoomGLSettings")) {
-		removeZDoomGLSettings = true;
-		Printf("Removing ZDoomGL settings...\n");
-		SetSection ("AlreadyRemovedZDoomGLSettings", true);
-	}
 	if (SetSection ("GlobalSettings.Unknown"))
 	{
 		ReadCVars (CVAR_GLOBALCONFIG);
@@ -481,24 +470,10 @@ void FGameConfigFile::ReadCVars (DWORD flags)
 		}
 		val.String = const_cast<char *>(value);
 
-		// [RC] Ignore old ZDoomGL values
-		// These conflict with GZDoom's rendering
-			if(key[0] == 'g' && key[1] == 'l' && key[2] == '_'){
-				if(removeZDoomGLSettings == true)
-					continue; // Next!
-			}
-			if(strcmp(key,"vid_renderer") == 0) {
-				if(removeZDoomGLSettings == true)
-					cvar->ResetToDefault();
-			}
-			if(strcmp(key,"fullscreen") == 0) {
-				if(removeZDoomGLSettings == true)
-					cvar->ResetToDefault();
-			}
-
 		// [RC] Clean player names
 		// This is mainly to ease the transition to the new standards.
 		// In later series (98? 99?), this can be removed to boost speed.
+
 		if(strcmp(key,"name") == 0) {
 			FString cleanedName = val.String;
 			V_ColorizeString(cleanedName); // Convert \ to color escapes
