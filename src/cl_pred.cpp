@@ -349,7 +349,7 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 
 		// [BB] The effect of all DPushers needs to be manually predicted.
 		pusherIt.Reinit();
-		while ( pusher = pusherIt.Next() )
+		while (( pusher = pusherIt.Next() ))
 			pusher->Tick();
 
 		ulTicks--;

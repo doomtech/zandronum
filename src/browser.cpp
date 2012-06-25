@@ -428,7 +428,7 @@ bool BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 				// Read in address information.
 				NETADDRESS_s serverAddress;
 				ULONG ulPorts = 0;
-				while ( ulPorts = NETWORK_ReadByte( pByteStream ) )
+				while (( ulPorts = NETWORK_ReadByte( pByteStream ) ))
 				{
 					serverAddress.abIP[0] = NETWORK_ReadByte( pByteStream );
 					serverAddress.abIP[1] = NETWORK_ReadByte( pByteStream );

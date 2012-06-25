@@ -2915,7 +2915,7 @@ void PLAYER_RemoveFriends( const ULONG ulPlayer )
 		if ((pActor->flags3 & MF3_ISMONSTER) &&
 			(pActor->flags & MF_FRIENDLY) &&
 			pActor->FriendPlayer &&
-			( ( pActor->FriendPlayer - 1 ) == ulPlayer) )
+			( (ULONG)( pActor->FriendPlayer - 1 ) == ulPlayer) )
 		{
 			pActor->FriendPlayer = 0;
 			if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)

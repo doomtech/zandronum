@@ -6239,7 +6239,7 @@ void M_OptResponder (event_t *ev)
 					LONG	lClass = g_lPlayerSetupClass;
 
 					lClass++;
-					if ( lClass >= PlayerClasses.Size() )
+					if ( lClass >= (LONG)PlayerClasses.Size() )
 						lClass = -1;
 
 					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->Meta.GetMetaString (APMETA_DisplayName));

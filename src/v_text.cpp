@@ -688,7 +688,7 @@ void V_CleanPlayerName( char *pszString )
 		// into account when checking whether the name is too long.
 		FString tempColorizedString = tempString.GetChars();
 		V_ColorizeString ( tempColorizedString );
-		const int numColorCodes = tempString.Len() - tempColorizedString.Len();
+		const unsigned int numColorCodes = tempString.Len() - tempColorizedString.Len();
 
 		if ( tempString.Len() > MAXPLAYERNAME - 3 + numColorCodes )
 		{

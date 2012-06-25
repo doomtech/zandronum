@@ -165,7 +165,7 @@ public:
 			return;
 		}
 
-		for ( int i = 0; i < sizeof ( IntType ); ++i )
+		for ( int i = 0; i < (int)sizeof ( IntType ); ++i )
 			_buffer.ByteStream.pbStream[i] = ( IntValue >> ( 8*i ) ) & 0xff;
 
 		_buffer.ByteStream.pbStream += sizeof ( IntType );

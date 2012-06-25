@@ -290,7 +290,7 @@ CCMD( maplist )
 	{
 		Printf( "Map rotation list: \n" );
 		for ( ULONG ulIdx = 0; ulIdx < g_MapRotationEntries.size( ); ulIdx++ )
-			Printf( "%d. %s - %s\n", ulIdx + 1, g_MapRotationEntries[ulIdx].pMap->mapname, g_MapRotationEntries[ulIdx].pMap->LookupLevelName( ).GetChars( ));
+			Printf( "%lu. %s - %s\n", ulIdx + 1, g_MapRotationEntries[ulIdx].pMap->mapname, g_MapRotationEntries[ulIdx].pMap->LookupLevelName( ).GetChars( ));
 	}
 }
 

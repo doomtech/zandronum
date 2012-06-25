@@ -2444,7 +2444,7 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 					// [BB] We have to mark the texture as changed to restore it when the map resets.
 					ULONG ulShift = 0;
 					ulShift += j;
-					if ( lines[wal->linenum].sidenum[1] == i )
+					if ( (int)lines[wal->linenum].sidenum[1] == i )
 						ulShift += 3;
 					lines[wal->linenum].ulTexChangeFlags |= 1 << ulShift;
 				}

@@ -92,7 +92,7 @@ void COOP_DestroyVoodooDollsOfPlayer ( const ULONG ulPlayer )
 			continue;
 
 		// [BB] Belongs to a different player.
-		if ( static_cast<LONG>(pActor->player - players) != ulPlayer )
+		if ( static_cast<ULONG>(pActor->player - players) != ulPlayer )
 			continue;
 
 		// [BB] If we come here, we found a body belonging to the player.
@@ -137,7 +137,7 @@ bool COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer )
 			continue;
 
 		// [BB] Belongs to a different player.
-		if ( static_cast<LONG>(pActor->player - players) !=  ulPlayer )
+		if ( static_cast<ULONG>(pActor->player - players) !=  ulPlayer )
 			continue;
 
 		// [BB] If we come here, we found a body belonging to the player.

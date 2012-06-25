@@ -829,7 +829,7 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
-	else if ( ( ulPlayer == consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
+	else if ( ( ulPlayer == (ULONG)consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
 		Printf( "You can't ignore yourself.\n" );
 	else if ( players[ulPlayer].bIgnoreChat && ( players[ulPlayer].lIgnoreChatTicks == lTicks ))
 		Printf( "You're already ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );
@@ -891,7 +891,7 @@ void chat_UnignorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 	
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
-	else if ( ( ulPlayer == consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
+	else if ( ( ulPlayer == (ULONG)consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) )
 		Printf( "You can't unignore yourself.\n" );
 	else if ( !players[ulPlayer].bIgnoreChat )
 		Printf( "You're not ignoring %s\\c-.\n", players[ulPlayer].userinfo.netname );

@@ -513,7 +513,7 @@ CCMD (changemap)
 			if ( ( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ) )
 			{
 				char commandString[128];
-				sprintf ( commandString, "wait %d;changemap %s", SURVIVAL_GetCountdownTicks() + TICRATE, argv[1] );
+				sprintf ( commandString, "wait %lu;changemap %s", SURVIVAL_GetCountdownTicks() + TICRATE, argv[1] );
 				Printf ( "changemap called during a survival countdown. Delaying the map change till the countdown ends.\n" );
 				AddCommandString ( commandString );
 				return;

@@ -229,7 +229,7 @@ bool UPNPNAT::discovery()
 
 		recv_buff=buff;
 		ret=recv_buff.find(HTTP_OK);
-		if(ret==std::string::npos)
+		if(ret==(int)std::string::npos)
 			continue;                       //invalid response
 
 		std::string::size_type begin=recv_buff.find("http://");
@@ -290,7 +290,7 @@ bool UPNPNAT::get_description()
 	char buff[MAX_BUFF_SIZE+1]; 	
 	memset(buff, 0, sizeof(buff));
 	std::string response;	
-	while ( ret=recv(tcp_socket_fd,buff,MAX_BUFF_SIZE,0) >0) 
+	while ( (ret=recv(tcp_socket_fd,buff,MAX_BUFF_SIZE,0) >0)) 
 	{
 		response+=buff;
 		memset(buff, 0, sizeof(buff));
@@ -489,7 +489,7 @@ bool UPNPNAT::add_port_mapping(const char * _description, const char * _destinat
 	//wait for response 			
 	std::string response;
 	memset(buff, 0, sizeof(buff));
-	while (ret=recv(tcp_socket_fd,buff,MAX_BUFF_SIZE,0) >0)
+	while ((ret=recv(tcp_socket_fd,buff,MAX_BUFF_SIZE,0) >0))
 	{
 		response+=buff;
 		memset(buff, 0, sizeof(buff));

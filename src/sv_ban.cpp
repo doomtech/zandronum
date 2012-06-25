@@ -298,35 +298,35 @@ time_t SERVERBAN_ParseBanLength( const char *szLengthString )
 		// Now we check for patterns in the string.
 
 		// Minutes: covers "min", "minute", "minutes".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "min" ), MINUTE, tNow );
 
 		// Hours: covers "hour", "hours".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "hour" ), HOUR, tNow );
 
 		// Hours: covers "hr", "hrs".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "hr" ), HOUR, tNow );
 
 		// Days: covers "day", "days".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "day" ), DAY, tNow );
 
 		// Days: covers "dy", "dys".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "dy" ), DAY, tNow );
 
 		// Weeks: covers "week", "weeks".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "week" ), WEEK, tNow );
 
 		// Weeks: covers "wk", "wks".
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "wk" ), WEEK, tNow );
 
 		// Months work a bit differently, since we don't have an arbitrary number of days to move.
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 		{
 			LONG lAmount = serverban_ExtractBanLength( fInput, "mon" );
 
@@ -342,7 +342,7 @@ time_t SERVERBAN_ParseBanLength( const char *szLengthString )
 		}
 
 		// So do years (because of leap years).
-		if ( tExpiration == NULL )
+		if ( !tExpiration )
 		{
 			LONG lAmount = serverban_ExtractBanLength( fInput, "year" );
 			if ( lAmount <= 0 )
@@ -362,7 +362,7 @@ time_t SERVERBAN_ParseBanLength( const char *szLengthString )
 		}
 	}
 
-	if ( tExpiration == NULL )
+	if ( !tExpiration )
 		return -1;
 
 	return tExpiration;
@@ -585,7 +585,7 @@ CCMD( ban )
 		char	szString[256];
 
 		// Ban via the index.
-		sprintf( szString, "ban_idx %d \"%s\" \"%s\"", ulIdx, argv[2], (argv.argc( ) >= 4) ? argv[3] : "" );
+		sprintf( szString, "ban_idx %lu \"%s\" \"%s\"", ulIdx, argv[2], (argv.argc( ) >= 4) ? argv[3] : "" );
 		SERVER_AddCommand( szString );
 	}
 	else

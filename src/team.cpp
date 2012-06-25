@@ -834,7 +834,7 @@ void TEAM_TimeExpired( void )
 			lWinner = teams.Size( );
 
 		// If there was a tie, then go into sudden death!
-		if ( sv_suddendeath && ( lWinner == teams.Size( ) ) )
+		if ( sv_suddendeath && ( (ULONG)lWinner == teams.Size( ) ) )
 		{
 			// Only print the message the instant we reach sudden death.
 			if ( level.time == (int)( timelimit * TICRATE * 60 ))
@@ -2163,7 +2163,7 @@ CCMD( changeteam )
 			}
 		}
 		// We did not pass in a team, so we must want to toggle our team.
-		else if ( lDesiredTeam == teams.Size( ) )
+		else if ( (ULONG)lDesiredTeam == teams.Size( ) )
 		{
 			// Can't toggle our teams if we're not on a team!
 			if ( players[consoleplayer].bOnTeam == false )

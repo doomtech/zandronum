@@ -3714,7 +3714,7 @@ void SERVER_RemoveEditedTranslation( ULONG ulTranslation )
 //
 bool SERVER_IsTranslationEdited( ULONG ulTranslation )
 {
-	for ( int i = 0; i < g_EditedTranslationList.Size(); ++i )
+	for ( int i = 0; i < (int)g_EditedTranslationList.Size(); ++i )
 	{
 		if ( g_EditedTranslationList[i].ulIdx == ulTranslation )
 			return true;

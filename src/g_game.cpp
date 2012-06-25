@@ -3869,7 +3869,7 @@ AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TA
 	AActor *pArtifact = NULL;
 
 	// [BB] Try to select a random spot sufficiently often so that hopefully all available spots are checked at least once.
-	for (int j = 0; j < 2*Spots.Size(); ++j)
+	for (unsigned int j = 0; j < 2*Spots.Size(); ++j)
 	{
 		const int i = pr_dmspawn() % Spots.Size();
 

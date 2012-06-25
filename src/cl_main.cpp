@@ -10049,7 +10049,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	// that he was just spawned and didn't tell the server yet which weapon he selected. In this
 	// case make sure that this pickup doesn't cause him to bring up a weapon and wait for the
 	// server to tell us which weapon the player uses.
-	if ( playerHadNoWeapon  && ( players[ulPlayer].bIsBot == false )&& ( ulPlayer != consoleplayer ) )
+	if ( playerHadNoWeapon  && ( players[ulPlayer].bIsBot == false )&& ( ulPlayer != (ULONG)consoleplayer ) )
 		PLAYER_ClearWeapon ( &players[ulPlayer] );
 }
 
@@ -12027,7 +12027,8 @@ CCMD( disconnect )
 		return;
 
 	// [BB] While disconnecting is not an error, I_Error is a convenient way to abort the current game and reset everything.
-	I_Error ( "" );
+	// [Dusk] Use a whitespace to suppress GCC warnings.
+	I_Error ( " " );
 }
 
 //*****************************************************************************

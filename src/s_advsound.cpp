@@ -1569,7 +1569,7 @@ void S_ShrinkPlayerSoundLists ()
 
 const char *S_GetName( LONG lSoundID )
 {
-	if ( lSoundID >= S_sfx.Size( ))
+	if ( (ULONG)lSoundID >= S_sfx.Size( ))
 		return ( NULL );
 	
 	return ( S_sfx[lSoundID].name.GetChars( ));

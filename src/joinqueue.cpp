@@ -421,7 +421,7 @@ void JOINQUEUE_PrintQueue( void )
 		{
 			player_t* pPlayer = &players[ulIdx];
 			bQueueEmpty = false;
-			Printf ( "%02d - %s", ulIdx + 1, pPlayer->userinfo.netname );
+			Printf ( "%02lu - %s", ulIdx + 1, pPlayer->userinfo.netname );
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 				Printf ( " - %s", TEAM_CheckIfValid ( g_lJoinQueue[ulIdx].ulTeam ) ? TEAM_GetName ( g_lJoinQueue[ulIdx].ulTeam ) : "auto team selection" );
 			Printf ( "\n" );

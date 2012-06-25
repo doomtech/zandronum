@@ -887,7 +887,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\playerclass\\%s"
 					 "\\unlagged\\%s" // [Spleen]
 					 "\\respawnonfire\\%s" // [BB]
-					 "\\ticsperupdate\\%d" // [BB]
+					 "\\ticsperupdate\\%lu" // [BB]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -930,7 +930,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%s"			// playerclass
 				"\\%s"			// [Spleen] unlagged
 				"\\%s"			// [BB] respawnonfire
-				"\\%d"			// [BB] ticsperupdate
+				"\\%lu"			// [BB] ticsperupdate
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -1221,7 +1221,7 @@ CCMD (playerinfo)
 					infoString.AppendFormat("\\cj - IP %s", NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
 					// [BB] If we detected suspicious behavior of this client, print this now.
 					if ( SERVER_GetClient( i )->bSuspicious )
-						infoString.AppendFormat ( " * %d", SERVER_GetClient( i )->ulNumConsistencyWarnings );
+						infoString.AppendFormat ( " * %lu", SERVER_GetClient( i )->ulNumConsistencyWarnings );
 				}
 
 				Printf("%s\n", infoString.GetChars());
@@ -1259,7 +1259,7 @@ CCMD (playerinfo)
 		// [BB]
 		Printf ("Respawnonfire:  %s\n", ui->bRespawnonfire ? "on" : "off");
 		// [BB]
-		Printf ("Ticsperupdate:  %d\n", ui->ulTicsPerUpdate);
+		Printf ("Ticsperupdate:  %lu\n", ui->ulTicsPerUpdate);
 	}
 }
 

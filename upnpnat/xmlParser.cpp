@@ -28,7 +28,7 @@ char *_tcscpy(char *c1, const char *c2) { return (char*)strcpy(c1,c2); }
 inline int mmin( const int t1, const int t2 ) { return t1 < t2 ? t1 : t2; }
 
 // Enumeration used to decipher what type a token is
-typedef enum TokenTypeTag
+enum TokenTypeTag
 {
     eTokenText = 0,
     eTokenQuotedText,
