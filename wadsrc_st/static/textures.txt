@@ -1,0 +1,14 @@
+// [Dusk] Red armor translations
+sprite arm3a0, 31, 17 {
+	patch "arm1a0", 0, 0 {
+		translation "113:124=176:191", "125:125=2:2", "126:127=247:247"
+	}
+	offset 15, 17
+}
+
+sprite arm3b0, 31, 17 {
+	patch "arm1b0", 0, 0 {
+		translation "113:124=176:191", "125:125=2:2", "126:127=247:247"
+	}
+	offset 15, 17
+}
