@@ -1,4 +1,28 @@
 // ------------------
+// -- Items --
+// ------------------
+
+// Red armor
+pointlight REDARMOR1
+{
+    color 0.6 0.0 0.0
+    size 48
+}
+
+pointlight REDARMOR2
+{
+    color 0.6 0.0 0.0
+    size 32
+}
+
+object RedArmor
+{
+    frame ARM3A0 { light REDARMOR1 }
+    frame ARM3B0 { light REDARMOR2 }
+}
+
+
+// ------------------
 // -- Weapons --
 // ------------------
 

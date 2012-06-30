@@ -1,5 +1,7 @@
+#include "actors/armor.txt"
 #include "actors/deadthings.txt"
 #include "actors/decorations.txt"
+#include "actors/misc.txt"
 #include "actors/monsters.txt"
 #include "actors/spawners.txt"
 #include "actors/statues.txt"

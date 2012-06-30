@@ -34,12 +34,45 @@ OB_ABADDON_MELEE = "%o became food for an abaddon.";
 OB_ABADDON = "%o was smitten by an abaddon.";
 OB_HECTEBUS = "%o was cremated by a hectebus.";
 
-// cast call
+//cast call
 CC_SSGGUY = "SUPER SHOTGUN GUY";
 CC_DARKIMP = "DARK IMP";
 CC_BLOODDEMON = "BLOOD DEMON";
 CC_CACOLANTERN = "CACOLANTERN";
 CC_HECTEBUS = "HECTEBUS";
+
+
+//Items
+PICKUP_REDARMOR = "Picked up the red armor!";
+
+
+//Episodes
+//cluster strings.
+DM1TEXT =
+		"CONGRATULATIONS, YOU'VE FOUND WHAT NO\n"
+		"ONE PROBABLY WOULD HAVE EVER SUSPECTED:\n"
+		"THE SECRET DEATHMATCH LEVEL! PAT YOURSELF\n"
+		"ON THE BACK AND GET READY... IT'S FIGHTIN'\n"
+		"TIME!";
+DM2TEXT =
+		"THE GREATEST EVIL THE WORLD HAS EVER\n"
+		"KNOWN HAS FINALLY BEEN SLAIN. LINGUICA,\n"
+		"THE \"SAUSAGE OF DEATH\", WILL HOLD PLUSH\n"
+		"CACODEMONS CAPTIVE NO LONGER. YOU WATCH\n"
+		"FROM AFAR AS LINGUICA'S LAIR, WHICH SERVED\n"
+		"AS HISSY'S PRISON, CRUMBLES TO THE GROUND.\n"
+		"\n"
+		"HISSY IS FREE! YOU WATCH WITH DELIGHT\n"
+		"AS THE PLUSH CACODEMON KNOWN AS HISSY\n"
+		"EMERGES FROM THE RUBBLE, GIVES YOU A\n"
+		"\"HISS\" GOODBYE, AND FLOATS AWAY HAPPILY.\n"
+		"YOU BREATHE A SIGH OF RELIEF, KNOWING THAT\n"
+		"HISSY, AND ALL OTHER PLUSH CACODEMONS,\n"
+		"CAN ROAM FREE ONCE AGAIN.";
+
+//	{ str_notchanged, "STSTR_HISSYON", "Fearless Rage Mode ON", NULL },
+//	{ str_notchanged, "STSTR_HISSYOFF", "Fearless Rage Mode OFF", NULL },
+
 
 
 [ita]
@@ -84,3 +117,35 @@ CC_DARKIMP = "IMP OSCURO";
 CC_BLOODDEMON = "DEMONE DI SANGUE";
 CC_CACOLANTERN = "CACO-LANTERNA";
 CC_HECTEBUS = "HECTEBUS";
+
+
+//Items
+PICKUP_REDARMOR = "Hai trovato un'armatura rossa!";
+
+
+//Episodes
+//Cluster strings.
+DM1TEXT =
+		"Congratulazioni, Hai trovato qualcosa che\n"
+		"nessuno avrebbe probabilente mai sospettato:\n"
+		"IL LIVELLO DEATHMATCH SEGRETO! datti un colpo\n"
+		"nel di dietro e tieniti pronto... E' tempo di\n"
+		"combattere!";
+DM2TEXT =
+		"Il piu' grande male che il mondo abbia\n"
+		"conosciuto e' stato finalmente ucciso. \n"
+		"Linguica, la \"salsiccia della morte\", non\n"
+		"terra' mai piu' in prigione cacodemoni di lusso.\n"
+		"guardi da lontano la tana di Linguica, che serviva\n"
+		"come prigione di hissy, sbriciolarsi.\n"
+		"\n"
+		"HISSY E' LIBERO! guardi con delizia\n"
+		"il lussuoso cacodemone conosciuto come hissy\n"
+		"che emerge dalle macerie, e da a te un\n"
+		"\"HISS\" ADDIO, e galleggia via contento.\n"
+		"fai un respiro di sollievo, sapendo che\n"
+		"HISSY, e tutti gli altri lussuosi cacodemoni,\n"
+		"possono vagabondare liberi di nuovo.";
+
+//	{ str_notchanged, "STSTR_HISSYON", "Modalita' Rabbia senza Paura Attiva", NULL },
+//	{ str_notchanged, "STSTR_HISSYOFF", "Modalita' Rabbia senza Paura Disattiva", NULL },

@@ -717,7 +717,6 @@ STARTUP3 = "";
 STARTUP4 = "";
 STARTUP5 = "";
 
-PICKUP_REDARMOR = "Hai trovato un'armatura rossa!";
 PICKUP_MAXHEALTHBONUS = "Raccolto un max. bonus di energia.";
 PICKUP_MAXARMORBONUS = "Raccolto un max. bonus di armatura.";
 
@@ -830,31 +829,6 @@ LEVEL_SP_PRE_30 = "level 30";
 LEVEL_SP_PRE_31 = "level 31";
 LEVEL_SP_PRE_32 = "level 32";
 
-// Cluster strings.
-DM1TEXT =
-		"Congratulazioni, Hai trovato qualcosa che\n"
-		"nessuno avrebbe probabilente mai sospettato:\n"
-		"IL LIVELLO DEATHMATCH SEGRETO! datti un colpo\n"
-		"nel di dietro e tieniti pronto... E' tempo di\n"
-		"combattere!";
-DM2TEXT =
-		"Il piu' grande male che il mondo abbia\n"
-		"conosciuto e' stato finalmente ucciso. \n"
-		"Linguica, la \"salsiccia della morte\", non\n"
-		"terra' mai piu' in prigione cacodemoni di lusso.\n"
-		"guardi da lontano la tana di Linguica, che serviva\n"
-		"come prigione di hissy, sbriciolarsi.\n"
-		"\n"
-		"HISSY E' LIBERO! guardi con delizia\n"
-		"il lussuoso cacodemone conosciuto come hissy\n"
-		"che emerge dalle macerie, e da a te un\n"
-		"\"HISS\" ADDIO, e galleggia via contento.\n"
-		"fai un respiro di sollievo, sapendo che\n"
-		"HISSY, e tutti gli altri lussuosi cacodemoni,\n"
-		"possono vagabondare liberi di nuovo.";
-
-//	{ str_notchanged, "STSTR_HISSYON", "Fearless Rage Mode ON", NULL },
-//	{ str_notchanged, "STSTR_HISSYOFF", "Fearless Rage Mode OFF", NULL },
 
 
 // Heretic strings

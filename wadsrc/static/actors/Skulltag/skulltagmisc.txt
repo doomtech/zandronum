@@ -164,24 +164,4 @@ ACTOR SpringPadZone 5068 native
 	+ALLOWCLIENTSPAWN
 }
 
-//=================================================================================================
-//
-// Hissy
-//
-//=================================================================================================
 
-ACTOR Hissy 5057
-{
-	Game Doom
-	Radius 20
-	Height 26
-	+SOLID
-	States
-	{
-	Spawn:
-		HISY B 1 A_FaceConsolePlayer(5)
-		wait
-		HISY A 1 A_FaceConsolePlayer(5)
-		Wait
-	}
-}
