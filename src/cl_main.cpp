@@ -3042,6 +3042,23 @@ void CLIENT_AdjustPredictionToServerSideConsolePlayerMove( fixed_t X, fixed_t Y,
 
 //*****************************************************************************
 //
+// [WS] These are specials checks for client-side actors of whether or not they are
+// allowed to move through other actors/walls/ceilings/floors.
+bool CLIENT_CanClipMovement( AActor *pActor )
+{
+	// [WS] If it's not a client, of course clip its movement.
+	if ( !NETWORK_InClientMode( ) )
+		return true;
+
+	// [WS] Non-bouncing client missiles do not get their movement clipped.
+	if ( pActor->flags & MF_MISSILE && !pActor->bouncetype )
+		return false;
+
+	return true;
+}
+
+//*****************************************************************************
+//
 // :(. This is needed so that the MOTD can be printed in the color the user wishes to print
 // mid-screen messages in.
 extern	int PrintColors[7];

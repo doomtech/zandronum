@@ -2162,12 +2162,7 @@ explode:
 					mo->Destroy ();
 					return oldfloorz;
 				}
-				// [BB] Clients may not explode the missile if it hit another actor, the server tells them to do so.
-				if ( ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) ) || ( mo->BlockingLine != NULL ) )
-					P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
-				// [BB] This should prevent the missile from getting stuck in the object it hit on the clients.
-				else
-					mo->ulSTFlags |= STFL_THRUACTORS;
+				P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
 				return oldfloorz;
 			}
 			else
@@ -2690,7 +2685,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 //
 // clip movement
 //
-	if (mo->z <= mo->floorz)
+	// [WS] For clients, check to see if we are allowed to clip our actor's movement.
+	if (mo->z <= mo->floorz && CLIENT_CanClipMovement(mo))
 	{	// Hit the floor
 		// [BC] Why "!mo->player"? This makes jump pads and stuff not work. They only work
 		// if you walk onto the pad while on the ground (ex. you can't jump onto it), but
@@ -2826,8 +2822,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	{
 		mo->AdjustFloorClip ();
 	}
-
-	if (mo->z + mo->height > mo->ceilingz)
+	// [WS] For clients, check to see if we are allowed to clip our actor's movement.
+	if (mo->z + mo->height > mo->ceilingz && CLIENT_CanClipMovement(mo))
 	{ // hit the ceiling
 		if (/*(!mo->player || !(mo->player->cheats & CF_PREDICTING)) &&*/
 			mo->Sector->SecActTarget != NULL &&
