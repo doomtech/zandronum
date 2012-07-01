@@ -3068,11 +3068,24 @@ int DLevelScript::GetPlayerInput(int playernum, int inputnum)
 
 	if (playernum < 0)
 	{
-		if (activator == NULL)
+		// [BB] In world activated CLIENTSIDE scripts, return the input of the console player.
+		if ( NETWORK_InClientMode( ) && ( activator == NULL ) )
 		{
-			return 0;
+			// [BB] For spectators the original input is not saved (since it should be the same
+			// as modinput), thus just return the corresponding modinput in this case.
+			if ( players[consoleplayer].bSpectating && ( inputnum < MODINPUT_OLDBUTTONS ) )
+				inputnum += MODINPUT_OLDBUTTONS;
+
+			p = &players[consoleplayer];
 		}
-		p = activator->player;
+		else
+		{
+			if (activator == NULL)
+			{
+				return 0;
+			}
+			p = activator->player;
+		}
 	}
 	else if (playernum >= MAXPLAYERS || !playeringame[playernum])
 	{
