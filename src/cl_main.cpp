@@ -10226,6 +10226,10 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 	// Don't count this towards the level statistics.
 	if ( pInventory->flags & MF_COUNTITEM )
 	{
+		// [BB] The server doesn't tell us about itemcount updates,
+		// so try to keep track of this locally.
+		players[ulPlayer].itemcount++;
+
 		pInventory->flags &= ~MF_COUNTITEM;
 		level.total_items--;
 	}
