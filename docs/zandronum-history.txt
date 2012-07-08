@@ -244,6 +244,7 @@
 -	- Fixed: SetActorVelocity didn't update velocity changes to clients. [Dusk]
 -	- Fixed: Clients don't explode non-bouncing missiles hitting walls, ceilings or floors on their own anymore as the server tells them. [TIHan]
 -	- Fixed: The "Join server" command in the Windows server console didn't work if the server loaded wads that are not among those in FileSearch.Directories. [Torr Samaho]
+-	- Fixed: The number of items and secrets found displayed in the alternative hud is not reset during a map reset. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -3171,6 +3171,13 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;
 
+	// [BB] itemcount and secretcount are not synced between client and server, so just reset them here.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+	{
+		players[ulIdx].itemcount = 0;
+		players[ulIdx].secretcount = 0;
+	}
+
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
