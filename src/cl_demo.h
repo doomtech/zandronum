@@ -100,6 +100,7 @@ bool		CLIENTDEMO_IsRecording( void );
 void		CLIENTDEMO_SetRecording( bool bRecording );
 bool		CLIENTDEMO_IsPlaying( void );
 void		CLIENTDEMO_SetPlaying( bool bPlaying );
+bool		CLIENTDEMO_IsSkipping( void );
 bool		CLIENTDEMO_IsSkippingToNextMap( void );
 void		CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap );
 bool		CLIENTDEMO_IsInFreeSpectateMode( void );

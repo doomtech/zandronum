@@ -872,8 +872,8 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return NULL;
 
-	// [BB] Don't play sounds while skipping to the next map in a demo.
-	if ( CLIENTDEMO_IsSkippingToNextMap() == true )
+	// [BB] Don't play sounds while skipping in a demo.
+	if ( CLIENTDEMO_IsSkipping() == true )
 		return NULL;
 
 	if (sound_id <= 0 || volume <= 0)

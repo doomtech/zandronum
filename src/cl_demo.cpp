@@ -64,6 +64,7 @@
 #include "network.h"
 #include "networkshared.h"
 #include "p_local.h"
+#include "p_tick.h"
 #include "r_draw.h"
 #include "r_state.h"
 #include "sbar.h"
@@ -88,6 +89,9 @@ static	bool				g_bDemoPlayingHonest;
 
 // [BB] Do we want to skip to the next map in the demo we are playing at the moment?
 static	bool				g_bSkipToNextMap = false;
+
+// [BB] How many tics are we still supposed to skip in the demo we are playing at the moment?
+static	ULONG				g_ulTicsToSkip = 0;
 
 // Buffer for our demo.
 static	BYTE				*g_pbDemoBuffer;
@@ -368,11 +372,20 @@ void CLIENTDEMO_ReadPacket( void )
 			CLIENTDEMO_ReadTiccmd( &players[consoleplayer].cmd );
 
 			// After we write our ticcmd, we're done for this tic.
-			if ( CLIENTDEMO_IsSkippingToNextMap() == false )
+			if ( CLIENTDEMO_IsSkipping() == false )
 				return;
 			// [BB] If we don't return here, we essentially skip a tic and have to adjust the tic offset.
 			else
+			{
 				g_lGameticOffset--;
+				// [BB] If we are supposed to skip over a certain amount of tics, record that we have skipped one now.
+				if ( g_ulTicsToSkip > 0 )
+				{
+					// [BB] When skipping a tic, we still need to process the current ticcmd_t.
+					P_Ticker ();
+					--g_ulTicsToSkip;
+				}
+			}
 			break;
 		case CLD_INVUSE:
 
@@ -503,6 +516,7 @@ void CLIENTDEMO_FinishPlaying( void )
 	g_bDemoPlaying = false;
 	g_bDemoPlayingHonest = false;
 	CLIENTDEMO_SetSkippingToNextMap ( false );
+	g_ulTicsToSkip = 0;
 
 	// Clear out the existing players.
 	CLIENT_ClearAllPlayers();
@@ -596,6 +610,13 @@ void CLIENTDEMO_SetPlaying( bool bPlaying )
 
 //*****************************************************************************
 //
+bool CLIENTDEMO_IsSkipping( void )
+{
+	return ( g_ulTicsToSkip > 0 ) || CLIENTDEMO_IsSkippingToNextMap();
+}
+
+//*****************************************************************************
+//
 bool CLIENTDEMO_IsSkippingToNextMap( void )
 {
 	return g_bSkipToNextMap;
@@ -684,6 +705,16 @@ CCMD( demo_skiptonextmap )
 		return;
 
 	CLIENTDEMO_SetSkippingToNextMap ( true );
+}
+
+CCMD( demo_skiptics )
+{
+	// This command shouldn't do anything if a demo isn't playing.
+	if ( CLIENTDEMO_IsPlaying( ) == false )
+		return;
+
+	if ( argv.argc() > 1 )
+		g_ulTicsToSkip = atoi ( argv[1] );
 }
 
 CCMD( demo_spectatefreely )
