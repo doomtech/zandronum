@@ -3051,7 +3051,7 @@ bool CLIENT_CanClipMovement( AActor *pActor )
 		return true;
 
 	// [Dusk] Clients clip missiles the server has no control over.
-	if ( pActor->ulNetworkFlags & NETFL_CLIENTSIDEONLY || pActor->lNetID == -1)
+	if ( NETWORK_IsActorClientHandled ( pActor ) )
 		return true;
 
 	// [WS] Non-bouncing client missiles do not get their movement clipped.
