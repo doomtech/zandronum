@@ -246,6 +246,7 @@
 -	- Fixed: The "Join server" command in the Windows server console didn't work if the server loaded wads that are not among those in FileSearch.Directories. [Torr Samaho]
 -	- Fixed: The number of items and secrets found displayed in the alternative hud is not reset during a map reset. [Torr Samaho]
 -	- Fixed: The number of items found displayed in the alternative hud is not updated online on the clients when an item is picked up. [Torr Samaho]
+-	- Fixed: If all weapons except for the ones from the default inventory were forbidden by lmsallowedweapons, clients stared online with no weapon in hand. [Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

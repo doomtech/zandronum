@@ -1351,6 +1351,13 @@ void APlayerPawn::GiveDefaultInventory ()
 			// Give the player all the weapons, and the maximum amount of every type of
 			// ammunition.
 			pPendingWeapon = NULL;
+
+			// [BB] If we already have a pending weapon, use that one to initialize pPendingWeapon.
+			// This will prevent us from starting with no weapon in hand online in case we are not
+			// given additional weapons here, e.g. if everything additional is forbidden by lmsallowedweapons.
+			if ( player->PendingWeapon != WP_NOCHANGE )
+				pPendingWeapon = player->PendingWeapon;
+
 			for ( ulIdx = 0; ulIdx < PClass::m_Types.Size( ); ulIdx++ )
 			{
 				pType = PClass::m_Types[ulIdx];
