@@ -354,6 +354,7 @@ const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 bool			NETWORK_InClientMode( );
 bool			NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer );
 bool			NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const player_t *pPlayer );
+bool			NETWORK_IsActorClientHandled( const AActor *pActor );
 
 // [BB] Generate a checksum from a ticcmd_t.
 SDWORD			NETWORK_Check ( ticcmd_t *pCmd );

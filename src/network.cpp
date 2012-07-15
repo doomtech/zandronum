@@ -958,6 +958,17 @@ bool NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const playe
 
 //*****************************************************************************
 //
+bool NETWORK_IsActorClientHandled( const AActor *pActor )
+{
+	// [BB] Sanity check
+	if ( pActor == NULL )
+		return false;
+
+	return ( ( pActor->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) || ( pActor->lNetID == -1 ) );
+}
+
+//*****************************************************************************
+//
 SDWORD NETWORK_Check ( ticcmd_t *pCmd )
 {
 	FString string;
