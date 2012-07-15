@@ -45,6 +45,7 @@
 +	- Since skulltag_data.pk3 is not auto loaded anymore, shareware IWADs are supported again. [Torr Samaho]
 +	- Exported Hissy's turning behavior to a new codepointer, A_FaceConsolePlayer, which takes a TurnAngle parameter defaulting to 0. Hissy is no longer a native actor. [Dusk]
 +	- Noticeably reduced monster bandwidth usage by letting the clients reuse the last updated actor positions. [TIHan, Torr Samaho]
++	- Added new ACS command PlayerIsSpectator that returns true if the player is a spectator and false otherwise. It also returns false if the specified player does not exist. [Torr Samaho]
 -	- Fixed: After a "changemap" map change on a server with join password and a team based gamemode, players who were on a team on the previous map were turned into spectators but kept their team. [Torr Samaho]
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]

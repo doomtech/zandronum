@@ -3235,6 +3235,7 @@ enum EACSFunctions
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
+	ACSF_PlayerIsSpectator,
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -3462,6 +3463,16 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			{
 				Printf ( "ResetMap can only be used in game modes that support map resets.\n" );
 				return 0;
+			}
+
+		// [BB]
+		case ACSF_PlayerIsSpectator:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				if ( PLAYER_IsValidPlayer ( ulPlayer ) )
+					return players[ulPlayer].bSpectating;
+				else
+					return 0;
 			}
 		default:
 			break;
