@@ -2162,7 +2162,10 @@ explode:
 					mo->Destroy ();
 					return oldfloorz;
 				}
-				P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
+
+				// [BB] Clients may not explode server handled bouncing missiles on their own if they hit another actor.
+				if ( ( NETWORK_InClientMode() == false ) || ( mo->bouncetype == BOUNCE_None ) || NETWORK_IsActorClientHandled ( mo ) || ( mo->BlockingLine != NULL ) )
+					P_ExplodeMissile (mo, mo->BlockingLine, BlockingMobj);
 				return oldfloorz;
 			}
 			else

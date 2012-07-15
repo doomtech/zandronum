@@ -244,7 +244,7 @@
 -	- Fixed: When no network socket can be allocated the console is not flooded with NETWORK_GetPackets warnings anymore. [Torr Samaho]
 -	- Fixed: A malformed SERVER_LAUNCHER_CHALLENGE could cause the client to crash. [Torr Samaho]
 -	- Fixed: SetActorVelocity didn't update velocity changes to clients. [Dusk]
--	- Fixed: Clients don't explode non-bouncing missiles hitting walls, ceilings or floors on their own anymore as the server tells them. [TIHan]
+-	- Fixed: Clients don't explode non-bouncing missiles hitting walls, ceilings or floors on their own anymore as the server tells them. [TIHan, Dusk, Torr Samaho]
 -	- Fixed: The "Join server" command in the Windows server console didn't work if the server loaded wads that are not among those in FileSearch.Directories. [Torr Samaho]
 -	- Fixed: The number of items and secrets found displayed in the alternative hud is not reset during a map reset. [Torr Samaho]
 -	- Fixed: The number of items found displayed in the alternative hud is not updated online on the clients when an item is picked up. [Torr Samaho]
