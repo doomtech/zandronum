@@ -620,7 +620,6 @@ public:
 		// [BB] We need to fix the number for the new commands!
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
-		PCD_GETTEAMSCORE,
 		// [CW] End team additions.
 
 /*353*/	PCODE_COMMAND_COUNT

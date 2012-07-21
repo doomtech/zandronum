@@ -281,3 +281,4 @@
 !	- CVAR "stillbob" has a range limit of -16 to 16. [TIHan, Torr Samaho]
 !	- Removed the ancient code that was erasing ZDoomGL settings from a player's config. [Torr Samaho]
 !	- If GetPlayerInput is called from a world activated CLIENTSIDE script with a negative player number, the input of the local consoleplayer is returned. [Torr Samaho]
+!	- Converted the ACS function GetTeamScore to be compatible with ZDaemon's version of this function. [Torr Samaho]

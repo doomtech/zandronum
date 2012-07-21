@@ -3236,6 +3236,8 @@ enum EACSFunctions
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
+	// ZDaemon
+	ACSF_GetTeamScore = 19620,
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -3478,6 +3480,17 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				}
 				else
 					return 0;
+			}
+
+		case ACSF_GetTeamScore:
+			{
+				if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+					return TEAM_GetFragCount( args[0] );
+				else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+					return TEAM_GetWinCount( args[0] );
+				else
+					return TEAM_GetScore( args[0] );
+				break;
 			}
 		default:
 			break;
@@ -7003,15 +7016,6 @@ int DLevelScript::RunScript ()
 		case PCD_GETTEAMPLAYERCOUNT:
 			STACK( 1 ) = TEAM_CountPlayers( STACK( 1 ));
 			sp--;
-			break;
-
-		case PCD_GETTEAMSCORE:
-			 if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
-				STACK( 1 ) = TEAM_GetFragCount( STACK( 1 ));
-			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
-				STACK( 1 ) = TEAM_GetWinCount( STACK( 1 ));
-			else
-				STACK( 1 ) = TEAM_GetScore( STACK( 1 ));
 			break;
 		// [CW] End team additions.
  		}
