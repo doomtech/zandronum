@@ -3470,7 +3470,12 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			{
 				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
 				if ( PLAYER_IsValidPlayer ( ulPlayer ) )
-					return players[ulPlayer].bSpectating;
+				{
+					if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && players[ulPlayer].bDeadSpectator )
+						return 2;
+					else
+						return players[ulPlayer].bSpectating;
+				}
 				else
 					return 0;
 			}
