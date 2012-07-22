@@ -47,6 +47,7 @@
 +	- Noticeably reduced monster bandwidth usage by letting the clients reuse the last updated actor positions. [TIHan, Torr Samaho]
 +	- Added new ACS command PlayerIsSpectator that returns 1 if the player is a true spectator, 2 if the player is a dead spectator and 0 otherwise. It also returns 0 if the specified player does not exist. [Torr Samaho]
 +	- Added CCMD demo_skiptics that allows you to skip a specified amount of tics. For instance, "demo_skiptics 35" skips a second and "demo_skiptics 2100" skips a minute. [Torr Samaho]
++	- Added new ACS command ConsolePlayerNumber that returns the number of the local player. Returns -1 if called on the server. [Torr Samaho]
 -	- Fixed: After a "changemap" map change on a server with join password and a team based gamemode, players who were on a team on the previous map were turned into spectators but kept their team. [Torr Samaho]
 -	- Fixed a crash that could happen when pressing the "show medals" key during intermission if the player was spying another player before the start of the intermission. [Torr Samaho]
 -	- Fixed: When the gamemode is automatically changed upon entering a new map after a "changemap" map change offline, players possibly stay on a team even though the new game mode doesn't have teams or are on no team even though the new game mode uses teams. [Torr Samaho]

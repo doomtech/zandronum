@@ -3236,6 +3236,7 @@ enum EACSFunctions
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
+	ACSF_ConsolePlayerNumber,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3480,6 +3481,16 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				}
 				else
 					return 0;
+			}
+
+		// [BB]
+		case ACSF_ConsolePlayerNumber:
+			{
+				// [BB] The server doesn't have a reasonable associated player.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					return -1;
+				else
+					return consoleplayer;
 			}
 
 		case ACSF_GetTeamScore:
