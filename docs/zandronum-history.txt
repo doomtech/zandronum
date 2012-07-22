@@ -282,3 +282,4 @@
 !	- Removed the ancient code that was erasing ZDoomGL settings from a player's config. [Torr Samaho]
 !	- If GetPlayerInput is called from a world activated CLIENTSIDE script with a negative player number, the input of the local consoleplayer is returned. [Torr Samaho]
 !	- Converted the ACS function GetTeamScore to be compatible with ZDaemon's version of this function. [Torr Samaho]
+!	- Raised the maximum number of players from 32 to 64. sv_maxclients and sv_maxplayers still default to 32 to stay compatible with existing mods. [Torr Samaho]

@@ -270,8 +270,8 @@ CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
-//
-CUSTOM_CVAR( Int, sv_maxclients, MAXPLAYERS, CVAR_ARCHIVE )
+// [BB] To stay compatible with old mods, the default value is at most 32.
+CUSTOM_CVAR( Int, sv_maxclients, MIN ( MAXPLAYERS, 32 ), CVAR_ARCHIVE )
 {
 	if ( self < 0 )
 		self = 0;
@@ -284,8 +284,8 @@ CUSTOM_CVAR( Int, sv_maxclients, MAXPLAYERS, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
-//
-CUSTOM_CVAR( Int, sv_maxplayers, MAXPLAYERS, CVAR_ARCHIVE )
+// [BB] To stay compatible with old mods, the default value is at most 32.
+CUSTOM_CVAR( Int, sv_maxplayers, MIN ( MAXPLAYERS, 32 ), CVAR_ARCHIVE )
 {
 	if ( self < 0 )
 		self = 0;

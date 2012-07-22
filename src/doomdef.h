@@ -53,8 +53,8 @@ typedef enum
 #endif
 
 // The maximum number of players, multiplayer/networking.
-// [BC] Changed to 32.
-#define MAXPLAYERS		32
+// [BB] Changed to 64.
+#define MAXPLAYERS		64
 
 // State updates, number of tics / second.
 #define TICRATE 		35
