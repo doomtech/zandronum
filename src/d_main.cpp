@@ -453,7 +453,9 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 
 #ifndef NO_GL
 	// [BB] This makes gl_lightmode handle DF2_FORCE_GL_DEFAULTS.
-	gl_lightmode = gl_lightmode;
+	// [BB] Don't do this on startup since gl.flags is not properly initialized yet.
+	if ( gamestate != GS_STARTUP )
+		gl_lightmode = gl_lightmode;
 #endif
 }
 
