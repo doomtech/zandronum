@@ -404,11 +404,6 @@ CVAR( Bool, cl_useoriginalweaponorder, false, CVAR_ARCHIVE );
 // Allow the display of large frag messages.
 CVAR( Bool, cl_showlargefragmessages, true, CVAR_ARCHIVE );
 
-// Silly Seismos :>
-CCMD( seismos )
-{
-	Printf( "SEISMOS IS GAY!\n" );
-}
 /*
 CCMD( showweaponstates )
 {
