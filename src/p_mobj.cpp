@@ -2143,6 +2143,10 @@ explode:
 					if ( mo->target && mo->target->player )
 						mo->target->player->ulConsecutiveHits = 0;
 
+					// [Dusk] Tell the clients that the mobj was deleted
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_DestroyThing( mo );
+
 					mo->Destroy ();
 					return oldfloorz;
 				}
@@ -2159,6 +2163,10 @@ explode:
 				// [RH] Don't explode on horizon lines.
 				if (mo->BlockingLine != NULL && mo->BlockingLine->special == Line_Horizon)
 				{
+					// [Dusk] Tell the clients that the mobj was deleted
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_DestroyThing( mo );
+
 					mo->Destroy ();
 					return oldfloorz;
 				}
@@ -2719,6 +2727,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				if ( mo->target && mo->target->player )
 					mo->target->player->ulConsecutiveHits = 0;
 
+				// [Dusk] Tell the clients that the mobj was deleted
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyThing( mo );
+
 				mo->Destroy( );
 				return;
 			}
@@ -2748,6 +2760,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 					{
 						// [RH] Just remove the missile without exploding it
 						//		if this is a sky floor.
+						// [Dusk] Tell the clients that the mobj was deleted
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_DestroyThing( mo );
+
 						mo->Destroy ();
 						return;
 					}
@@ -2850,6 +2866,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				if ( mo->target && mo->target->player )
 					mo->target->player->ulConsecutiveHits = 0;
 
+				// [Dusk] Tell the clients that the mobj was deleted
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyThing( mo );
+
 				mo->Destroy( );
 				return;
 			}
@@ -2875,6 +2895,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				}
 				if (mo->ceilingpic == skyflatnum &&  !(mo->flags3 & MF3_SKYEXPLODE))
 				{
+					// [Dusk] Tell the clients that the mobj was deleted
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_DestroyThing( mo );
+
 					mo->Destroy ();
 					return;
 				}
