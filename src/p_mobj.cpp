@@ -988,7 +988,6 @@ bool AActor::UseInventory (AInventory *item)
 
 AInventory *AActor::DropInventory (AInventory *item)
 {
-	fixed_t dropdist;
 	angle_t an;
 	AInventory *drop = item->CreateTossable ();
 
@@ -1004,12 +1003,7 @@ AInventory *AActor::DropInventory (AInventory *item)
 		return NULL;
 	}
 	an = angle >> ANGLETOFINESHIFT;
-	/* 92682 = sqrt(2) * FRACUNIT */
-	dropdist = FixedMul (92682, radius + 8*FRACUNIT + item->radius);
-	drop->x = x;
-	drop->y = y;
-	drop->z = z + 10*FRACUNIT;
-	P_TryMove (drop, x, y, true);
+	drop->SetOrigin(x, y, z + 10*FRACUNIT);
 	drop->angle = angle;
 	drop->momx = momx + 5 * finecosine[an];
 	drop->momy = momy + 5 * finesine[an];
