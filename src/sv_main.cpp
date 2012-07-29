@@ -4832,7 +4832,15 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 
 	// Already a spectator!
 	if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
+	{
+		// [BB] If the client is already a spectator but in the join queue he wants to leave the queue.
+		if ( JOINQUEUE_GetPositionInLine ( g_lCurrentClient ) != -1 )
+		{
+			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You have been removed from the join queue.\n" );
+			JOINQUEUE_RemovePlayerFromQueue ( g_lCurrentClient, true );
+		}
 		return ( false );
+	}
 
 	// Make this player a spectator.
 	PLAYER_SetSpectator( &players[g_lCurrentClient], true, false );

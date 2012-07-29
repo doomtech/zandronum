@@ -315,16 +315,17 @@ CCMD( spectate )
 		return;
 	}
 
-	// Already a spectator!
-	if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
-		return;
-
 	// If we're a client, inform the server that we wish to spectate.
+	// [BB] This also serves as way to leave the join queue.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
 		CLIENTCOMMANDS_Spectate( );
 		return;
 	}
+
+	// Already a spectator!
+	if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
+		return;
 
 	// Make the player a spectator.
 	PLAYER_SetSpectator( &players[consoleplayer], true, false );
