@@ -1606,7 +1606,10 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 			break;
 		}
 
-		pnum = M_Random( ) % MAXPLAYERS;
+		// [BB] We have to make sure that P_Random (the old RNG from Doom) is not used here
+		// (it is called by M_Random() if COMPATF2_OLD_RANDOM_GENERATOR) since it never
+		// returns a few of the integers in [0,255] causing this while loop to never terminate.
+		pnum = M_Random( MAXPLAYERS );
 		if ( abSearched[pnum] == true )
 			continue;
 
