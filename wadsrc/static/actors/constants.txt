@@ -39,6 +39,10 @@ const int WRF_NOSWITCH = 2;
 const int WRF_NOPRIMARY = 4;
 const int WRF_NOSECONDARY = 8;
 
+// Flags for A_ChangeVelocity
+const int CVF_RELATIVE = 1;
+const int CVF_REPLACE = 2;
+
 // Morph constants
 const int MRF_ADDSTAMINA = 1;
 const int MRF_FULLHEALTH = 2;
