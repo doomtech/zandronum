@@ -87,6 +87,7 @@ static FRandom pr_crailgun ("CustomRailgun");
 static FRandom pr_spawndebris ("SpawnDebris");
 static FRandom pr_spawnitemex ("SpawnItemEx");
 static FRandom pr_burst ("Burst");
+static FRandom pr_monsterrefire ("MonsterRefire");
 
 
 // [BC] Blah.
@@ -2483,6 +2484,28 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckSight)
 
 //===========================================================================
 //
+// A_JumpIfTargetInSight
+// jumps if monster can see its target
+//
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInSight)
+{
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_STATE(jump, 0);
+
+	// [BB] This is handled by the server.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
+	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
+	if (self->target == NULL || !P_CheckSight(self, self->target,4)) return; 
+	ACTION_JUMP(jump,CLIENTUPDATE_FRAME);	// [BB] Since monsters don't have targets on the client end, we need to send an update.
+
+}
+
+
+//===========================================================================
+//
 // Inventory drop
 //
 //===========================================================================
@@ -3238,3 +3261,34 @@ DEFINE_ACTION_FUNCTION_PARAMS (AActor, A_FaceConsolePlayer) {
 	else
 		self->angle -= MaxTurnAngle;
 }
+
+//===========================================================================
+//
+// keep firing unless target got out of sight
+//
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MonsterRefire)
+{
+	ACTION_PARAM_START(2);
+	ACTION_PARAM_INT(prob, 0);
+	ACTION_PARAM_STATE(jump, 1);
+
+	// [BB] This is handled by the server.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
+	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
+	A_FaceTarget (self);
+
+	if (pr_monsterrefire() < prob)
+		return;
+
+	if (!self->target
+		|| P_HitFriend (self)
+		|| self->target->health <= 0
+		|| !P_CheckSight (self, self->target, 0) )
+	{
+		ACTION_JUMP(jump,CLIENTUPDATE_FRAME);	// [BB] Since monsters don't have targets on the client end, we need to send an update.
+	}
+}
+
