@@ -969,6 +969,13 @@ bool NETWORK_IsActorClientHandled( const AActor *pActor )
 
 //*****************************************************************************
 //
+bool NETWORK_InClientModeAndActorNotClientHandled( const AActor *pActor )
+{
+	return ( NETWORK_InClientMode( ) && ( NETWORK_IsActorClientHandled ( pActor ) == false ) );
+}
+
+//*****************************************************************************
+//
 SDWORD NETWORK_Check ( ticcmd_t *pCmd )
 {
 	FString string;
