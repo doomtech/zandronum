@@ -742,6 +742,105 @@ static int CheckInventory (AActor *activator, const char *type)
 	return item ? item->Amount : 0;
 }
 
+//============================================================================
+//
+// GetTeamScore
+//
+// [Dusk] Moved this out of ACSF_GetTeamScore
+//
+//============================================================================
+static LONG GetTeamScore (ULONG team) {
+	if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+		return TEAM_GetFragCount( team );
+	else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		return TEAM_GetWinCount( team );
+	return TEAM_GetScore( team );
+}
+
+//============================================================================
+//
+// [Dusk] GetTeamProperty
+//
+// Returns some information of a team
+//
+//============================================================================
+static int GetTeamProperty (unsigned int team, int prop) {
+	switch (prop) {
+		case TPROP_NumLivePlayers:
+			return TEAM_CountLivingAndRespawnablePlayers (team);
+		case TPROP_IsValid:
+			return TEAM_CheckIfValid (team);
+		case TPROP_Score:
+			return GetTeamScore (team);
+		case TPROP_TextColor:
+			return TEAM_GetTextColor (team);
+		case TPROP_PlayerStartNum:
+			return TEAM_GetPlayerStartThingNum (team);
+		case TPROP_Spread:
+			return TEAM_GetSpread (team, &GetTeamScore);
+		case TPROP_Assister:
+		{
+			// [Dusk] Assister is MAXPLAYERS if there is nobody eligible for an assist.
+			// We return -1 instead of MAXPLAYERS for consistency (see PlayerNumber()).
+			// It's also easier to check against in ACS due to lack of MAXPLAYERS in ACS.
+			if (TEAM_GetAssistPlayer (team) == MAXPLAYERS)
+				return -1;
+			return TEAM_GetAssistPlayer (team);
+		}
+		case TPROP_Carrier:
+			// [Dusk] However, carrier player is a player_t* and is NULL if there is no carrier.
+			if (!TEAM_GetCarrier (team))
+				return -1;
+			return TEAM_GetCarrier (team) - players;
+		case TPROP_FragCount:
+			return TEAM_GetFragCount (team);
+		case TPROP_DeathCount:
+			return TEAM_GetDeathCount (team);
+		case TPROP_WinCount:
+			return TEAM_GetWinCount (team);
+		case TPROP_PointCount:
+			return TEAM_GetScore (team);
+		case TPROP_ReturnTics:
+			return TEAM_GetReturnTicks (team);
+		case TPROP_NumPlayers:
+			return TEAM_CountPlayers (team);
+		// [Dusk] Now for the strings! Using dynamic strings for this.
+		case TPROP_TeamItem:
+		case TPROP_WinnerTheme:
+		case TPROP_LoserTheme:
+		case TPROP_Name:
+		{
+			FString work;
+			int res;
+
+			STRINGBUILDER_START(work);
+			switch (prop) {
+			case TPROP_TeamItem:
+				work += TEAM_GetTeamItemName (team);
+				break;
+			case TPROP_WinnerTheme:
+			case TPROP_LoserTheme:
+				work += TEAM_GetIntermissionTheme (team, prop == TPROP_WinnerTheme);
+				break;
+			case TPROP_Name:
+				work += TEAM_GetName (team);
+				break;
+			}
+
+			// [Dusk] Copied over from PCD_SAVESTRING - not touching ZDoom code like this..
+			unsigned int str_otf = ACS_StringsOnTheFly.Push(strbin1(work));
+			if (str_otf > 0xffff)
+				res = (-1);
+			else
+				res = ((SDWORD)str_otf|ACSSTRING_OR_ONTHEFLY);
+
+			STRINGBUILDER_FINISH(work);
+			return res;
+		}
+	}
+	return 0;
+}
+
 //---- Plane watchers ----//
 
 class DPlaneWatcher : public DThinker
@@ -3237,6 +3336,7 @@ enum EACSFunctions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
 	ACSF_ConsolePlayerNumber,
+	ACSF_GetTeamProperty, // [Dusk]
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3495,13 +3595,14 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 
 		case ACSF_GetTeamScore:
 			{
-				if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
-					return TEAM_GetFragCount( args[0] );
-				else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
-					return TEAM_GetWinCount( args[0] );
-				else
-					return TEAM_GetScore( args[0] );
-				break;
+				// [Dusk] Exported this to a new function
+				return GetTeamScore (args[0]);
+			}
+
+		// [Dusk]
+		case ACSF_GetTeamProperty:
+			{
+				return GetTeamProperty (args[0], args[1]);
 			}
 		default:
 			break;

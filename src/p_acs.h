@@ -178,6 +178,29 @@ enum
 	APROP_Species		= 20,
 };	
 
+// [Dusk] Enumeration for GetTeamProperty
+enum
+{
+	TPROP_Name = 0,
+	TPROP_Score,
+	TPROP_IsValid,
+	TPROP_NumPlayers,
+	TPROP_NumLivePlayers,
+	TPROP_TextColor,
+	TPROP_PlayerStartNum,
+	TPROP_Spread,
+	TPROP_Carrier,
+	TPROP_Assister,
+	TPROP_FragCount,
+	TPROP_DeathCount,
+	TPROP_WinCount,
+	TPROP_PointCount,
+	TPROP_ReturnTics,
+	TPROP_TeamItem,
+	TPROP_WinnerTheme,
+	TPROP_LoserTheme,
+};
+
 class FBehavior
 {
 public:

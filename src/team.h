@@ -200,6 +200,9 @@ ULONG		TEAM_FindValidClassForPlayer( player_t *pPlayer );
 void		TEAM_EnsurePlayerHasValidClass( player_t *pPlayer );
 LONG		TEAM_SelectRandomValidPlayerClass( ULONG ulTeam );
 bool		TEAM_IsActorVisibleToPlayer( const AActor *pActor, player_t *pPlayer );
+int		TEAM_GetPlayerStartThingNum( ULONG ulTeam );
+const char*	TEAM_GetTeamItemName( ULONG ulTeam );
+const char*	TEAM_GetIntermissionTheme( ULONG ulTeam, bool bWin );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

@@ -1900,6 +1900,36 @@ bool TEAM_IsActorVisibleToPlayer( const AActor *pActor, player_t *pPlayer )
 }
 
 //*****************************************************************************
+// [Dusk]
+int TEAM_GetPlayerStartThingNum( ULONG ulTeam ) {
+	if ( !TEAM_CheckIfValid( ulTeam ))
+		return 0;
+	return static_cast<int>( teams[ulTeam].ulPlayerStartThingNumber );
+}
+
+//*****************************************************************************
+// [Dusk]
+const char* TEAM_GetTeamItemName( ULONG ulTeam ) {
+	if ( !TEAM_CheckIfValid( ulTeam ) )
+		return NULL;
+	if ( GAMEMODE_GetCurrentFlags( ) & GMF_USEFLAGASTEAMITEM )
+		return teams[ulTeam].FlagItem;
+	else
+		return teams[ulTeam].SkullItem;
+}
+
+//*****************************************************************************
+// [Dusk]
+const char* TEAM_GetIntermissionTheme( ULONG ulTeam, bool bWin ) {
+	if ( !TEAM_CheckIfValid( ulTeam ) )
+		return NULL;
+	if ( bWin )
+		return teams[ulTeam].WinnerTheme;
+	else
+		return teams[ulTeam].LoserTheme;
+}
+
+//*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
 CUSTOM_CVAR( Bool, teamgame, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK )
