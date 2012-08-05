@@ -2490,7 +2490,13 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 	// [BB] Mark the spectator body as obsolete, but don't delete it before the
 	// player gets a new body.
 	if ( pPlayer->mo && pPlayer->bSpectating )
+	{
 		pPlayer->mo->ulSTFlags |= STFL_OBSOLETE_SPECTATOR_BODY;
+		// [BB] Also stop all associated scripts. Otherwise they would get disassociated
+		// and continue to run even if the player disconnects later.
+		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+			FBehavior::StaticStopMyScripts (pPlayer->mo);
+	}
 
 	pPlayer->bSpectating = false;
 	pPlayer->bDeadSpectator = false;
