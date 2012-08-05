@@ -7509,3 +7509,18 @@ void SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ul
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulType );
 	}
 }
+
+
+//*****************************************************************************
+// [Dusk]
+void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SETPLAYERHAZARDCOUNT );
+	command.addByte ( ulPlayer );
+	command.addShort ( players[ulPlayer].hazardcount );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+}

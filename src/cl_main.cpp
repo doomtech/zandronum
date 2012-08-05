@@ -2638,6 +2638,19 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					break;
 				}
 
+			// [Dusk]
+			case SVC2_SETPLAYERHAZARDCOUNT:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					const int hz = NETWORK_ReadShort( pByteStream );
+
+					if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+						break;
+
+					players[ulPlayer].hazardcount = hz;
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );
