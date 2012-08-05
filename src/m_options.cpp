@@ -2180,7 +2180,7 @@ void M_SkulltagVersionDrawer( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "\"The next level of Doom\"" );
+	sprintf( szString, "\"Ask your doctor if it's right for you.\"" );
 	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 }
 
