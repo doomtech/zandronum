@@ -92,6 +92,16 @@ static player_t PredictionPlayerBackup;
 static BYTE PredictionActorBackup[sizeof(AActor)];
 static TArray<sector_t *> PredictionTouchingSectorsBackup;
 
+// [Dusk] Determine speed spectators will move at
+CUSTOM_CVAR (Float, cl_spectatormove, 1.0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) {
+	// Should be enough range for *anybody's* needs... the engine doesn't
+	// seem to be able to handle much more than this. :P
+	if (self > 20000.0)
+		self = 20000.0;
+	else if (self < -20000.0)
+		self = -20000.0;
+}
+
 // [GRB] Custom player classes
 TArray<FPlayerClass> PlayerClasses;
 
@@ -2025,15 +2035,19 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 
 void APlayerPawn::TweakSpeeds (int &forward, int &side)
 {
+	// [Dusk] Let the user move at whatever speed they desire when spectating.
+	if (player->bSpectating) {
+		fixed_t factor = FLOAT2FIXED(cl_spectatormove);
+		forward = FixedMul(forward, factor);
+		side = FixedMul(side, factor);
+		return;
+	}
+
 	// Strife's player can't run when its healh is below 10
 	if (health <= RunHealth)
 	{
-		// [BB] Spectators (in particular dead spectators) can run regardless of their health.
-		if ( ( player == NULL ) || ( player->bSpectating == false ) )
-		{
-			forward = clamp(forward, -0x1900, 0x1900);
-			side = clamp(side, -0x1800, 0x1800);
-		}
+		forward = clamp(forward, -0x1900, 0x1900);
+		side = clamp(side, -0x1800, 0x1800);
 	}
 
 	// [GRB]
