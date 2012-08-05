@@ -585,13 +585,27 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			break;
 
 		case sDamage_Hellslime:
-			if (ironfeet == NULL)
+			// [Dusk] Don't touch the hazard count as the client
+			if (ironfeet == NULL && ( NETWORK_InClientMode( ) == false ))
+			{
 				player->hazardcount += 2;
+
+				// [Dusk] Update the hazard count
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetPlayerHazardCount ( static_cast<ULONG>(player - players) );
+			}
 			break;
 
 		case sDamage_SuperHellslime:
-			if (ironfeet == NULL)
+			// [Dusk] Don't touch the hazard count as the client
+			if (ironfeet == NULL && ( NETWORK_InClientMode( ) == false ))
+			{
 				player->hazardcount += 4;
+
+				// [Dusk] Update the hazard count
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetPlayerHazardCount ( static_cast<ULONG>(player - players) );
+			}
 			break;
 
 		case dDamage_End:

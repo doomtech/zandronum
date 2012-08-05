@@ -256,6 +256,7 @@
 -	- Fixed: Spectators were affected by pushers, e.g. wind. [Torr Samaho]
 -	- Fixed: Switches that execute CLIENTSIDE scripts didn't animate or play any sounds when activated online. [Torr Samaho]
 -	- Improved the X/Y/Z positioning of non-player actors moved by explosions online. [Torr Samaho]
+-	- Fixed: sDamage_Hellslime and sDamage_SuperHellslime didn't the player's view green online. [Dusk, Torr Samaho]
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

@@ -3593,8 +3593,12 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		if (player->hazardcount)
 		{
 			player->hazardcount--;
-			if (!(level.time & 31) && player->hazardcount > 16*TICRATE)
-				P_DamageMobj (player->mo, NULL, NULL, 5, NAME_Slime);
+			// [BB] The clients only tick down, the server handles the damage.
+			if ( NETWORK_InClientMode( ) == false )
+			{
+				if (!(level.time & 31) && player->hazardcount > 16*TICRATE)
+					P_DamageMobj (player->mo, NULL, NULL, 5, NAME_Slime);
+			}
 		}
 
 		if (player->poisoncount && !(level.time & 15))

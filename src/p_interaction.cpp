@@ -2455,6 +2455,7 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	pPlayer->fixedcolormap = 0;
 	pPlayer->damagecount = 0;
 	pPlayer->bonuscount = 0;
+	pPlayer->hazardcount= 0;
 	pPlayer->poisoncount = 0;
 	pPlayer->inventorytics = 0;
 
