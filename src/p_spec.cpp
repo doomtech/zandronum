@@ -2165,6 +2165,10 @@ void DPusher::Tick ()
 			if ( CLIENT_PREDICT_IsPredicting() && ( ( thing->player == false ) || ( static_cast<int>( thing->player - players ) != consoleplayer ) ) )
 				continue;
 
+			// [BB] Don't affect spectators.
+			if ( thing->player && thing->player->bSpectating )
+				continue;
+
 			if ((thing->flags2 & MF2_WINDTHRUST) && !(thing->flags & MF_NOCLIP))
 			{
 				int sx = m_X;
@@ -2200,6 +2204,10 @@ void DPusher::Tick ()
 
 		// [BB] While predicting, only handle the body of the predicted player.
 		if ( CLIENT_PREDICT_IsPredicting() && ( ( thing->player == false ) || ( static_cast<int>( thing->player - players ) != consoleplayer ) ) )
+			continue;
+
+		// [BB] Don't affect spectators.
+		if ( thing->player && thing->player->bSpectating )
 			continue;
 
 		if (m_Type == p_wind)
