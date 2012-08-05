@@ -795,41 +795,6 @@ MEDALSTRING_PRECISION = "Precisione!";
 MEDALSTRING_LLAMA = "Llama!";
 MEDALSTRING_YOUFAILIT = "Sei Un Fallito!";
 
-// Level names.
-LEVEL_SP_PRE_1 = "level 1";
-LEVEL_SP_PRE_2 = "level 2";
-LEVEL_SP_PRE_3 = "level 3";
-LEVEL_SP_PRE_4 = "level 4";
-LEVEL_SP_PRE_5 = "level 5";
-LEVEL_SP_PRE_6 = "level 6";
-LEVEL_SP_PRE_7 = "level 7";
-LEVEL_SP_PRE_8 = "level 8";
-LEVEL_SP_PRE_9 = "level 9";
-LEVEL_SP_PRE_10 = "level 10";
-LEVEL_SP_PRE_11 = "level 11";
-LEVEL_SP_PRE_12 = "level 12";
-LEVEL_SP_PRE_13 = "level 13";
-LEVEL_SP_PRE_14 = "level 14";
-LEVEL_SP_PRE_15 = "level 15";
-LEVEL_SP_PRE_16 = "level 16";
-LEVEL_SP_PRE_17 = "level 17";
-LEVEL_SP_PRE_18 = "level 18";
-LEVEL_SP_PRE_19 = "level 19";
-LEVEL_SP_PRE_20 = "level 20";
-LEVEL_SP_PRE_21 = "level 21";
-LEVEL_SP_PRE_22 = "level 22";
-LEVEL_SP_PRE_23 = "level 23";
-LEVEL_SP_PRE_24 = "level 24";
-LEVEL_SP_PRE_25 = "level 25";
-LEVEL_SP_PRE_26 = "level 26";
-LEVEL_SP_PRE_27 = "level 27";
-LEVEL_SP_PRE_28 = "level 28";
-LEVEL_SP_PRE_29 = "level 29";
-LEVEL_SP_PRE_30 = "level 30";
-LEVEL_SP_PRE_31 = "level 31";
-LEVEL_SP_PRE_32 = "level 32";
-
-
 
 // Heretic strings
 HE1TEXT =
