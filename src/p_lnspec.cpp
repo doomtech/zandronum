@@ -1701,7 +1701,7 @@ FUNC(LS_ACS_Execute)
 			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, false );
-			return ( false );
+			return ( true );
 		}
 
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, false, false);
@@ -1713,7 +1713,7 @@ FUNC(LS_ACS_Execute)
 			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, false );
-			return ( false );
+			return ( true );
 		}
 
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, false, false);
@@ -1733,7 +1733,7 @@ FUNC(LS_ACS_ExecuteAlways)
 			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
-			return ( false );
+			return ( true );
 		}
 
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, true, false);
@@ -1745,7 +1745,7 @@ FUNC(LS_ACS_ExecuteAlways)
 			( ACS_IsScriptClientSide( arg0 )))
 		{
 			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, true );
-			return ( false );
+			return ( true );
 		}
 
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, true, false);
