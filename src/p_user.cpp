@@ -94,12 +94,10 @@ static TArray<sector_t *> PredictionTouchingSectorsBackup;
 
 // [Dusk] Determine speed spectators will move at
 CUSTOM_CVAR (Float, cl_spectatormove, 1.0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) {
-	// Should be enough range for *anybody's* needs... the engine doesn't
-	// seem to be able to handle much more than this. :P
-	if (self > 20000.0)
-		self = 20000.0;
-	else if (self < -20000.0)
-		self = -20000.0;
+	if (self > 100.0)
+		self = 100.0;
+	else if (self < -100.0)
+		self = -100.0;
 }
 
 // [GRB] Custom player classes
@@ -3276,8 +3274,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			P_MovePlayer( player, &player->cmd );
 
 		// [RH] check for jump
+		// [Dusk] Apply cl_spectatormove
 		if ( cmd->ucmd.buttons & BT_JUMP )
-			player->mo->momz = 3*FRACUNIT;
+			player->mo->momz = 3 * cl_spectatormove * FRACUNIT;
 
 		if ( cmd->ucmd.upmove == -32768 )
 		{ // Only land if in the air
@@ -3287,8 +3286,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				player->mo->flags &= ~MF_NOGRAVITY;
 			}
 		}
+		// [Dusk] Apply cl_spectatormove here
 		else if ( cmd->ucmd.upmove != 0 )
-			player->mo->momz = cmd->ucmd.upmove << 9;
+			player->mo->momz = (cmd->ucmd.upmove << 9) * cl_spectatormove;
 
 		// Calculate player's viewheight.
 		P_CalcHeight( player );
