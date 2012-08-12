@@ -169,7 +169,7 @@
 -	- Fixed: NOSKIN didn't work properly on player classes. [Torr Samaho]
 -	- Fixed: If a player fragged another player during the first two seconds after the map was started, that player got an incredible medal. [Torr Samaho]
 -	- Fixed: Clients online only used the KEYCONF lump for their own player but ignored it for all other players locally. [Torr Samaho]
--	- Fixed a typo in the protected lumps warning. [Torr Samaho]
+-	- Fixed a typo in the protected lumps warning and clarified the client warning. [Torr Samaho]
 -	- Fixed: Clients applied TERRAIN damage by themselves leading to sync problem online. [Dusk, Torr Samaho]
 -	- Fixed: Additive translucent lines were not additive translucent after a map reset anymore. [Dusk]
 -	- Fixed: Clients weren't told about -NOGRAVITY or +DROPPED that is explicitly set for dropped items. [Dusk]

@@ -381,7 +381,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		if ( Args->CheckParm( "-host" ) )
 			Printf ( PRINT_BOLD, "Clients without these files can't connect to this server.\n" );
 		else
-			Printf ( PRINT_BOLD, "You can't connect to servers without these files.\n" );
+			Printf ( PRINT_BOLD, "You can't connect to servers that don't have these files loaded.\n" );
 	}
 
 	// [BB] Initialize the actor network class indices.
