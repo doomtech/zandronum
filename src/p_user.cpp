@@ -1238,9 +1238,14 @@ void APlayerPawn::GiveDefaultInventory ()
 		{
 			// [BL] This used to call GiveInventoryTypeRespectingReplacements, but we also want to be sure
 			// the railgun is a weapon so that we can be sure we give the player the proper kind of ammo.
-			const PClass *pRailgun = PClass::FindClass( "Railgun" )->ActorInfo->GetReplacement( )->Class;
+			// [Dusk] Since Railgun was moved out to skulltag_actors, its presence must be checked for.
+			const PClass *pRailgunClass = PClass::FindClass( "Railgun" );
+			if(!pRailgunClass)
+				I_Error("Tried to play instagib without a railgun!\n");
+
+			const PClass *pRailgun = pRailgunClass->ActorInfo->GetReplacement( )->Class;
 			if(!pRailgun->IsDescendantOf( RUNTIME_CLASS( AWeapon ) ))
-				I_Error("Tried to give an improperly defined weapon.\n");
+				I_Error("Tried to give an improperly defined railgun.\n");
 
 			// Give the player the weapon.
 			pInventory = player->mo->GiveInventoryType( pRailgun );
