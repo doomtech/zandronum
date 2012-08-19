@@ -260,6 +260,7 @@
 -	- Fixed: sDamage_Hellslime and sDamage_SuperHellslime didn't the player's view green online. [Dusk, Torr Samaho]
 -	- Fixed: "<name> is a cheater!" message was displaying on chasecam even if sv_chasecam was true. [Dusk]
 -	- Fixed: Attempting to play instagib without a railgun resulted in a crash. [Dusk]
+-	- Improved the code that removes containing incomplete color codes of type "\c[X" from player names. [Torr Samaho] 
 !	- Changed F12 to allow spectators full spying, with the exception of during LMS if it's disabled. [Eruanna]
 !	- Changed F12 to allow full demo spying. [Eruanna]
 !	- Players aren't forced to spectate after a "changemap" map change on a server with a join password anymore. [Torr Samaho]

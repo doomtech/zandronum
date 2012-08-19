@@ -806,6 +806,10 @@ void V_RemoveTrailingCrap( char *pszString )
 			const char* pChar = strrchr(pszString, '[');
 			if ( pChar > strrchr(pszString, ']') )
 			{
+				// [BB] The string may have some '[' trailing "\c[", skip those.
+				while ( ( ( pChar - pszString ) > 0 ) && *(pChar-1) == '[' )
+					--pChar;
+
 				const int index = pChar - pszString;
 				if ( ( index > 2 ) && V_ColorCodeStart ( pszString, index-2 ) )
 				{
