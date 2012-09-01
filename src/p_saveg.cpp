@@ -477,7 +477,11 @@ void extsector_t::Serialize(FArchive &arc)
 		<< Midtex.Ceiling.AttachedLines
 		<< Midtex.Ceiling.AttachedSectors
 		<< Linked.Floor.Sectors
-		<< Linked.Ceiling.Sectors;
+		<< Linked.Ceiling.Sectors
+
+		// [Dusk] Store the move distance too
+		<< Midtex.Floor.MoveDistance
+		<< Midtex.Ceiling.MoveDistance;
 }
 
 FArchive &operator<< (FArchive &arc, side_t::part &p)

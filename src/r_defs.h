@@ -401,6 +401,7 @@ struct extsector_t
 		{
 			TArray<sector_t *> AttachedSectors;		// all sectors containing 3dMidtex lines attached to this sector
 			TArray<line_t *> AttachedLines;			// all 3dMidtex lines attached to this sector
+			fixed_t MoveDistance;					// [Dusk] how far from the inital position is the plane at?
 		} Floor, Ceiling;
 	} Midtex;
 

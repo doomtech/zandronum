@@ -7524,3 +7524,16 @@ void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, 
 	command.addShort ( players[ulPlayer].hazardcount );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
+
+
+//*****************************************************************************
+// [Dusk] Used in map resets to move a 3d midtexture moves without sector it's attached to.
+void SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ceiling, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SCROLL3DMIDTEX );
+	command.addByte ( sector - sectors );
+	command.addLong ( move );
+	command.addByte ( ceiling );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+}

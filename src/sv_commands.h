@@ -381,5 +381,6 @@ void	SERVERCOMMANDS_ForceLightning( const int Mode, ULONG ulPlayerExtra = MAXPLA
 void	SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ceiling, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
 #endif	// __SV_COMMANDS_H__

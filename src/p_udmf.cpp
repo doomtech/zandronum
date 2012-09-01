@@ -1427,6 +1427,10 @@ struct UDMFParser
 		for(int i = 0; i < numsectors; i++)
 		{
 			sectors[i].e = &sectors[0].e[i];
+
+			// [Dusk] Move distances must be explicitly zeroed out.
+			if ( sectors[i].e )
+				sectors[i].e->Midtex.Floor.MoveDistance = sectors[i].e->Midtex.Ceiling.MoveDistance = 0;
 		}
 
 		// Create the real linedefs and decompress the sidedefs

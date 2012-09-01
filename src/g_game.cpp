@@ -107,6 +107,7 @@
 #include "win32/g15/g15.h"
 #include "gl/gl_lights.h"
 #include "unlagged.h"
+#include "p_3dmidtex.h"
 
 #include <zlib.h>
 
@@ -3479,6 +3480,25 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorReflection( ulIdx );
+		}
+
+		// [Dusk] Reset 3d midtextures
+		if ( sectors[ulIdx].e ) {
+			fixed_t move3d;
+			const extsector_t::midtex::plane* planes[2] = {
+				&(sectors[ulIdx].e->Midtex.Floor),
+				&(sectors[ulIdx].e->Midtex.Ceiling)
+			};
+
+			for ( int i = 0; i <= 1; i++ ) {
+				move3d = planes[i]->MoveDistance;
+				if ( !move3d )
+					continue;
+
+				P_Scroll3dMidtex( &sectors[ulIdx], 0, -move3d, !!i );
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_Scroll3dMidtexture( &sectors[ulIdx], -move3d, !!i );
+			}
 		}
 	}
 

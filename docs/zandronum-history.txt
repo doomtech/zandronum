@@ -19,6 +19,7 @@
 +	- Added a menu option for gl_use_models. [Torr Samaho] 
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
+-	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]
 
 
 1.0 (changes since Skulltag 98d)

@@ -51,6 +51,9 @@ bool P_Scroll3dMidtex(sector_t *sector, int crush, fixed_t move, bool ceiling)
 {
 	extsector_t::midtex::plane &scrollplane = ceiling? sector->e->Midtex.Ceiling : sector->e->Midtex.Floor;
 
+	// [Dusk] Mark down how much we change here
+	scrollplane.MoveDistance += move;
+
 	// First step: Change all lines' texture offsets
 	for(unsigned i = 0; i < scrollplane.AttachedLines.Size(); i++)
 	{

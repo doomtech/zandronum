@@ -1517,6 +1517,10 @@ void P_LoadSectors (MapData * map)
 		ss->friction = ORIG_FRICTION;
 		ss->movefactor = ORIG_FRICTION_FACTOR;
 		ss->sectornum = i;
+
+		// [Dusk] Init 3d midtex move counter
+		if ( ss->e )
+			ss->e->Midtex.Floor.MoveDistance = ss->e->Midtex.Ceiling.MoveDistance = 0;
 	}
 	delete[] msp;
 }

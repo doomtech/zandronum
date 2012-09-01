@@ -2651,6 +2651,18 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_SCROLL3DMIDTEX:
+				{
+					const int i = NETWORK_ReadByte ( pByteStream );
+					const int move = NETWORK_ReadLong ( pByteStream );
+					const bool ceiling = !!NETWORK_ReadByte ( pByteStream );
+
+					if ( i < 0 || i >= numsectors || !move )
+						break;
+
+					P_Scroll3dMidtex( &sectors[i], 0, move, ceiling );
+					break;
+				}
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );
