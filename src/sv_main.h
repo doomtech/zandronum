@@ -388,7 +388,7 @@ LONG		SERVER_AdjustFloorDirection( LONG lDirection );
 LONG		SERVER_AdjustCeilingDirection( LONG lDirection );
 LONG		SERVER_AdjustElevatorDirection( LONG lDirection );
 ULONG		SERVER_GetMaxPacketSize( void );
-char		*SERVER_GetMapMusic( void );
+const char	*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon = true );
 void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 );

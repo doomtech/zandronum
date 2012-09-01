@@ -213,7 +213,7 @@ static	char		g_szCurrentFont[16];
 static	char		g_szScriptActiveFont[16];
 
 // This is the music the loaded map is currently using.
-static	char		g_szMapMusic[16];
+static	FString		g_MapMusic;
 
 // Maximum packet size.
 static	ULONG		g_ulMaxPacketSize = 0;
@@ -3524,9 +3524,9 @@ ULONG SERVER_GetMaxPacketSize( void )
 
 //*****************************************************************************
 //
-char *SERVER_GetMapMusic( void )
+const char *SERVER_GetMapMusic( void )
 {
-	return ( g_szMapMusic );
+	return ( g_MapMusic.GetChars() );
 }
 
 //*****************************************************************************
@@ -3547,12 +3547,9 @@ const FString& SERVER_GetMasterBanlistVerificationString( void )
 void SERVER_SetMapMusic( const char *pszMusic )
 {
 	if ( pszMusic )
-	{
-		strncpy (g_szMapMusic,pszMusic,sizeof(g_szMapMusic)-1);
-		g_szMapMusic[sizeof(g_szMapMusic)-1]='\0';
-	}
+		g_MapMusic = pszMusic;
 	else
-		g_szMapMusic[0] = 0;
+		g_MapMusic = "";
 }
 
 //*****************************************************************************
