@@ -43,6 +43,8 @@ EXTERN_CVAR(Int, gl_texture_hqresize)
 EXTERN_CVAR(Flag, gl_texture_hqresize_textures)
 EXTERN_CVAR(Flag, gl_texture_hqresize_sprites)
 EXTERN_CVAR(Flag, gl_texture_hqresize_fonts)
+// [BB]
+EXTERN_CVAR(Bool, gl_use_models)
 
 static value_t SpriteclipModes[]=
 {
@@ -227,6 +229,8 @@ menuitem_t GLPrefItems[] = {
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
 	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
+	// [BB]
+	{ discrete, "Use models",				{&gl_use_models},				{2.0}, {0.0}, {0.0}, {OnOff} },
 };
 
 menuitem_t GLShaderItems[] = {
