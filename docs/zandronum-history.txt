@@ -12,6 +12,12 @@
 ===============================================================================================================
 
 
+1.1
+---
+
+-	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
+
+
 1.0 (changes since Skulltag 98d)
 --------------------------------
 

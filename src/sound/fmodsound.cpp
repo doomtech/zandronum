@@ -2263,6 +2263,10 @@ unsigned int FMODSoundRenderer::GetSampleLength(SoundHandle sfx)
 FMOD_RESULT F_CALLBACK FMODSoundRenderer::ChannelCallback
 	(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *data1, void *data2)
 {
+	// [BB] This seems to solve player class related Hexen startup crashes.
+	if ( channel == NULL )
+		return FMOD_OK;
+
 	if (type != FMOD_CHANNEL_CALLBACKTYPE_END)
 	{
 		return FMOD_OK;
