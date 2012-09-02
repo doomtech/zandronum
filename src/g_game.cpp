@@ -3484,14 +3484,13 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 		// [Dusk] Reset 3d midtextures
 		if ( sectors[ulIdx].e ) {
-			fixed_t move3d;
 			const extsector_t::midtex::plane* planes[2] = {
 				&(sectors[ulIdx].e->Midtex.Floor),
 				&(sectors[ulIdx].e->Midtex.Ceiling)
 			};
 
 			for ( int i = 0; i <= 1; i++ ) {
-				move3d = planes[i]->MoveDistance;
+				const fixed_t move3d = ( planes[i] != NULL ) ? planes[i]->MoveDistance : 0;
 				if ( !move3d )
 					continue;
 
