@@ -2663,6 +2663,19 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					P_Scroll3dMidtex( &sectors[i], 0, move, ceiling );
 					break;
 				}
+			case SVC2_SETPLAYERLOGNUMBER:
+				{
+					const ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+					const int arg0 = NETWORK_ReadShort( pByteStream );
+
+					if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false ) 
+						break;
+
+					if ( players[ulPlayer].mo->FindInventory(NAME_Communicator) )
+						players[ulPlayer].SetLogNumber ( arg0 );
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

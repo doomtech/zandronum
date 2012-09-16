@@ -7537,3 +7537,16 @@ void SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ce
 	command.addByte ( ceiling );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
+
+//*****************************************************************************
+void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SETPLAYERLOGNUMBER );
+	command.addByte ( ulPlayer );
+	command.addShort ( Arg0 );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+}
