@@ -481,7 +481,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( AddressFrom ));
 				else
 				{
-					if ( newServer.bNewFormatServer )
+					// [BB] 3021 is 98d, don't put those servers on the list.
+					if ( ( newServer.bNewFormatServer ) && ( newServer.iServerRevision != 3021 ) )
 					{
 						std::set<SERVER_s, SERVERCompFunc>::iterator currentUnverifiedServer = g_UnverifiedServers.find ( newServer );
 						// [BB] This is a new server, but we still need to verify it.
