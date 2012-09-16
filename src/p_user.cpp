@@ -3052,6 +3052,10 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 		return;
 	}
 
+	// [BB] In single player, allow the player to switch its class when changing from spectator to player.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) )
+		SinglePlayerClass[consoleplayer] = players[consoleplayer].userinfo.PlayerClass;
+
 	players[consoleplayer].playerstate = PST_ENTERNOINVENTORY;
 	players[consoleplayer].bSpectating = false;
 	players[consoleplayer].bDeadSpectator = false;

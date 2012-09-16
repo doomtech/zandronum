@@ -22,6 +22,7 @@
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]
 -	- Fixed: Clients appeared to get double ammo from weapons while playing demos. [Dusk, Torr Samaho]
 -	- Fixed: The server sent its revision number with short instead of long precision to the master. [Torr Samaho]
+-	- Fixed: In single player with multi player emulation enabled a player couldn't change the player class by turning to a spectator and rejoining. [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)
