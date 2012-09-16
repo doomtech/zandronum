@@ -80,6 +80,7 @@
 #include "sbar.h"
 #include "v_video.h"
 #include "version.h"
+#include "g_level.h"
 
 #include "md5.h"
 
@@ -104,6 +105,7 @@ static	std::list<FString>	g_PWADs;
 static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
+FString g_MapCollectionChecksum;
 
 static TArray<LONG> g_LumpNumsToAuthenticate ( 0 );
 
@@ -908,6 +910,44 @@ bool network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *
 	else
 		return true;
 
+}
+
+//*****************************************************************************
+// [Dusk] Gets a checksum of every map loaded.
+FString NETWORK_MapCollectionChecksum( )
+{
+	FString longSum, fullSum;
+	for( unsigned i = 0; i < wadlevelinfos.Size( ); i++ )
+	{
+		char* mname = wadlevelinfos[i].mapname;
+		FString sum;
+
+		if ( !P_CheckMapData( mname ) )
+			continue;
+
+		MapData* mdata = P_OpenMapData( mname );
+		if ( !mdata )
+			continue;
+
+		BYTE BSum[16];
+		mdata->GetChecksum( BSum );
+		for (ULONG j = 0; j < sizeof( BSum ); j++)
+			sum.AppendFormat ("%02X", BSum[j]);
+
+		longSum += sum;
+	}
+
+	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>( longSum.GetChars( ) ),
+		longSum.Len( ), fullSum );
+	return fullSum;
+}
+
+//*****************************************************************************
+// [Dusk] Generates and stores the map collection checksum
+void NETWORK_MakeMapCollectionChecksum( )
+{
+	if ( g_MapCollectionChecksum.IsEmpty( ) )
+		g_MapCollectionChecksum = NETWORK_MapCollectionChecksum( );
 }
 
 // [CW]

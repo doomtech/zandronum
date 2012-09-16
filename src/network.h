@@ -321,6 +321,7 @@ enum
 //	VARIABLES
 
 extern FString g_lumpsAuthenticationChecksum;
+extern FString g_MapCollectionChecksum;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -346,6 +347,8 @@ const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
+FString			NETWORK_MapCollectionChecksum( ); // [Dusk]
+void			NETWORK_MakeMapCollectionChecksum( ); // [Dusk]
 
 const char		*NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex );
 const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );

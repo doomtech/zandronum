@@ -114,6 +114,17 @@ static	LONG				g_lMaxDemoLength;
 // [BB] Special player that is used to control the camera when playing demos in free spectate mode.
 static	player_t			g_demoCameraPlayer;
 
+// [Dusk] Should we perform demo authentication?
+CUSTOM_CVAR( Bool, demo_pure, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
+{
+	// Since unsetting this CVAR can screw up demo playback pretty badly,
+	// I think it's reasonable to inform the user that this CVAR
+	// should be used with caution.
+	if ( !self )
+		Printf( "\\ckWarning: demo_pure is false. Demo authentication is therefore disabled. "
+		"Demos may get played back with completely incorrect WADs!\\c-\n" );
+}
+
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -147,6 +158,26 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 	NETWORK_WriteShort( &g_ByteStream, DEMOGAMEVERSION );
 	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR_REV );
 	NETWORK_WriteLong( &g_ByteStream, rngseed );
+
+	// [Dusk] Write the amount of WADs and their names, incl. IWAD
+	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOWADS );
+	std::list<FString>* pwads = NETWORK_GetPWADList( );
+	std::list<FString>::iterator it;
+	ULONG ulWADCount = 1 + pwads->size( ); // 1 for IWAD
+	NETWORK_WriteShort( &g_ByteStream, ulWADCount );
+	NETWORK_WriteString( &g_ByteStream, NETWORK_GetIWAD ( ) );
+	for ( it = pwads->begin( ); it != pwads->end( ); ++it )
+		NETWORK_WriteString( &g_ByteStream, it->GetChars( ) );
+
+	// [Dusk] Write the network authentication string, we need it to
+	// ensure we have the right WADs loaded.
+	NETWORK_WriteString( &g_ByteStream, g_lumpsAuthenticationChecksum.GetChars( ) );
+
+	// [Dusk] Also generate and write the map collection checksum so we can
+	// authenticate the maps.
+	NETWORK_MakeMapCollectionChecksum( );
+	NETWORK_WriteString( &g_ByteStream, g_MapCollectionChecksum.GetChars( ) );
+
 /*
 	// Write cvars chunk.
 	StartChunk( CLD_CVARS, &g_pbDemoBuffer );
@@ -226,6 +257,11 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 		case CLD_BODYSTART:
 
 			bBodyStart = true;
+			break;
+
+		// [Dusk]
+		case CLD_DEMOWADS:
+			CLIENTDEMO_ReadDemoWads( );
 			break;
 		}
 	}
@@ -674,6 +710,58 @@ void CLIENTDEMO_ClearFreeSpectatorPlayer( void )
 	// Reset player structure to its defaults
 	p->~player_t();
 	::new(p) player_t;
+}
+
+//*****************************************************************************
+// [Dusk] Read the WAD list and perform demo authentication.
+void CLIENTDEMO_ReadDemoWads( void )
+{
+	// Read the count of WADs
+	ULONG ulWADCount = NETWORK_ReadShort( &g_ByteStream );
+
+	// Read the names of WADs and store them in the array
+	TArray<FString> WadNames;
+	for ( ULONG i = 0; i < ulWADCount; i++ )
+		WadNames.Push( NETWORK_ReadString( &g_ByteStream ) );
+
+	// Read the authentication strings and check that it matches our current
+	// checksum. If not, inform the user that the demo authentication failed,
+	// and display some hopefully helpful information
+	FString demoHash = NETWORK_ReadString( &g_ByteStream );
+	FString demoMapHash = NETWORK_ReadString( &g_ByteStream );
+
+	// Generate the map collection checksum on our end
+	NETWORK_MakeMapCollectionChecksum( );
+
+	if ( demoHash.Compare( g_lumpsAuthenticationChecksum ) != 0 ||
+	     demoMapHash.Compare( g_MapCollectionChecksum ) != 0 )
+	{
+		if ( demo_pure )
+		{
+			// Tell the user what WADs was the demo recorded with.
+			FString error = "\\ciDemo authentication failed. Please ensure that you have the "
+				"correct WADs to play back this demo and try again. "
+				"This demo uses the following WADs:\n";
+
+			for ( ULONG i = 0; i < ulWADCount; i++ )
+				error.AppendFormat( "\\cc- %s%s\\c-\n",
+				WadNames[i].GetChars( ), (!i) ? " (IWAD)" : "");
+
+			I_Error( error );
+		}
+		else
+		{
+			// If demo_pure is false, we play the demo back with no
+			// regard to the fact that authentication failed. This
+			// may cause the demo to be played back incorrectly.
+			// Warn the user about the consequences.
+			Printf( "\\ckWARNING: Demo authentication failed and demo_pure is false. "
+				"The demo is being played back with incorrect WADs and "
+				"may get played back incorrectly.\\c-\n" );
+		}
+	}
+	else
+		Printf( "Demo authentication successful.\n" );
 }
 
 //*****************************************************************************

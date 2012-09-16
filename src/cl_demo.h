@@ -75,6 +75,7 @@ enum
 	CLD_CENTERVIEW,
 	CLD_TAUNT,
 	CLD_DEMOEND,
+	CLD_DEMOWADS, // [Dusk] {8/17/12}
 
 	NUM_DEMO_COMMANDS
 };
@@ -95,6 +96,7 @@ void		CLIENTDEMO_DoPlayDemo( const char *pszDemoName );
 void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
 void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg );
+void		CLIENTDEMO_ReadDemoWads( void );
 
 bool		CLIENTDEMO_IsRecording( void );
 void		CLIENTDEMO_SetRecording( bool bRecording );
