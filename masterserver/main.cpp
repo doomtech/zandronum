@@ -461,7 +461,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			const int temp = NETWORK_ReadByte( pByteStream );
 			newServer.bEnforcesBanList = ( temp != 0 );
 			newServer.bNewFormatServer = ( temp != -1 );
-			newServer.iServerRevision = NETWORK_ReadShort( pByteStream );
+			newServer.iServerRevision = ( ( pByteStream->pbStreamEnd - pByteStream->pbStream ) >= 4 ) ? NETWORK_ReadLong( pByteStream ) : NETWORK_ReadShort( pByteStream );
 
 			std::set<SERVER_s, SERVERCompFunc>::iterator currentServer = g_Servers.find ( newServer );
 
