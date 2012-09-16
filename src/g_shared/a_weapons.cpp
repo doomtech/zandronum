@@ -188,7 +188,7 @@ bool AWeapon::HandlePickup (AInventory *item)
 bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 {
 	// [BB] The server tells the client how much ammo he gets from the weapon,
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if ( NETWORK_InClientMode( ) )
 		return false;
 
 	bool gotstuff = false;
@@ -305,7 +305,7 @@ void AWeapon::AttachToOwner (AActor *other)
 
 	// [BB] The server tells the client how much ammo he gets from the weapon,
 	// the client just initializes Ammo1 and Ammo2.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if ( !NETWORK_InClientMode( ) )
 	{
 		Ammo1 = AddAmmo (Owner, AmmoType1, AmmoGive1);
 		Ammo2 = AddAmmo (Owner, AmmoType2, AmmoGive2);
