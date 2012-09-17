@@ -5376,9 +5376,18 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 						{
 							momz *= 0.8f;
 						}
-						angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
-						thing->momx += fixed_t (finecosine[ang] * thrust);
-						thing->momy += fixed_t (finesine[ang] * thrust);
+						// [BB] Potentially use the horizontal thurst of old ZDoom versions.
+						if ( compatflags2 & COMPATF2_OLD_EXPLOSION_THRUST )
+						{
+							thing->momx += static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
+							thing->momy += static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
+						}
+						else
+						{
+							angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
+							thing->momx += fixed_t (finecosine[ang] * thrust);
+							thing->momy += fixed_t (finesine[ang] * thrust);
+						}
 
 						// [BB] If DF2_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
 						if ( ( (dmflags2 & DF2_NO_ROCKET_JUMPING) == false ) ||

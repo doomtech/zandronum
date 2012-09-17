@@ -380,6 +380,8 @@ enum
 	COMPATF2_NOGRAVITY_SPHERES		= 1 << 4,
 	// [BB] When a player leaves the game, don't stop any scripts of that player that are still running.
 	COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT		= 1 << 5,
+	// [BB] Use the horizontal thurst of old ZDoom versions in P_RadiusAttack.
+	COMPATF2_OLD_EXPLOSION_THRUST		= 1 << 6,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar
