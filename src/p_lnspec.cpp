@@ -3166,19 +3166,37 @@ FUNC(LS_SendToCommunicator)
 		if (!arg3)
 		{
 			it->player->SetLogNumber (arg0);
+
+			// [BB] Set the log number on the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPlayerLogNumber ( static_cast<ULONG> ( it->player - players ), arg0 );
 		}
 
 		if (it->CheckLocalView (consoleplayer))
 		{
 			S_StopSound (CHAN_VOICE);
 			S_Sound (CHAN_VOICE, name, 1, ATTN_NORM);
+
+			// [BB] Play the sound on the client.
+			const ULONG ulPlayer = static_cast<ULONG> ( it->player - players );
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_Sound( CHAN_VOICE, name, 1, ATTN_NORM, ulPlayer, SVCF_ONLYTHISCLIENT );
+
 			if (arg2 == 0)
 			{
 				Printf (PRINT_CHAT, "Incoming Message\n");
+
+				// [BB] Print the message on the client.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( PRINT_CHAT, ulPlayer, "Incoming Message\n" );
 			}
 			else if (arg2 == 1)
 			{
 				Printf (PRINT_CHAT, "Incoming Message from BlackBird\n");
+
+				// [BB] Print the message on the client.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVER_PrintfPlayer( PRINT_CHAT, ulPlayer, "Incoming Message from BlackBird\n" );
 			}
 		}
 		return true;
