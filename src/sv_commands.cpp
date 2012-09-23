@@ -2515,6 +2515,20 @@ void SERVERCOMMANDS_SetThingSpawnPoint( AActor *pActor, ULONG ulPlayerExtra, ULO
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingSpecial( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( !EnsureActorHasNetID (pActor) )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETTHINGSPECIAL );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->special );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetThingSpecial1( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

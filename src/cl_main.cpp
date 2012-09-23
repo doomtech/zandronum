@@ -2676,6 +2676,23 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_SETTHINGSPECIAL:
+				{
+					const LONG lID = NETWORK_ReadShort( pByteStream ); 
+					const LONG lSpecial = NETWORK_ReadShort( pByteStream );
+					AActor *pActor = CLIENT_FindThingByNetID( lID );
+
+					if ( pActor == NULL )
+					{
+#ifdef CLIENT_WARNING_MESSAGES
+						Printf( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %d\n", lID );
+#endif
+						break;
+					}
+					pActor->special = lSpecial;
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

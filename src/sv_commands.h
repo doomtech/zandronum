@@ -145,6 +145,7 @@ void	SERVERCOMMANDS_SetThingTranslation( AActor *pActor, ULONG ulPlayerExtra = M
 void	SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, const char *pszSound, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingSpawnPoint( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags );
+void	SERVERCOMMANDS_SetThingSpecial( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingSpecial1( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
