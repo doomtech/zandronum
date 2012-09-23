@@ -128,6 +128,7 @@ unsigned int	GAMEMODE_GetMaxLives( void );
 void		GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor );
 void		GAMEMODE_SpawnSpecialGamemodeThings ( void );
 void		GAMEMODE_ResetSpecalGamemodeStates ( void );
+bool		GAMEMODE_IsSpectatorAllowedSpecial ( const int Special );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients = false );

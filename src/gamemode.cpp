@@ -65,6 +65,7 @@
 #include "invasion.h"
 #include "lastmanstanding.h"
 #include "possession.h"
+#include "p_lnspec.h"
 // [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
 #include "sbar.h"
 #include "v_video.h"
@@ -692,6 +693,13 @@ void GAMEMODE_ResetSpecalGamemodeStates ( void )
 		if ( POSSESSION_GetState() == PSNS_ARTIFACTHELD )
 			POSSESSION_SetState( PSNS_PRENEXTROUNDCOUNTDOWN );
 	}
+}
+
+//*****************************************************************************
+//
+bool GAMEMODE_IsSpectatorAllowedSpecial ( const int Special )
+{
+	return ( ( Special == Teleport ) || ( Special == Teleport_NoFog ) || ( Special == Teleport_Line ) );
 }
 
 //*****************************************************************************

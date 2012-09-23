@@ -288,7 +288,7 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 		(( mo == NULL ) ||
 		( mo->player == NULL ) ||
 		( mo->player->bSpectating == false ) ||
-		((( line->special == Teleport ) || ( line->special == Teleport_NoFog ) || ( line->special == Teleport_Line )) == false )
+		( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) == false )
 		))
 	{ 
 		return ( false );
@@ -296,7 +296,7 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 
 	// [BB] Spectators can't activate anything but teleports.
 	if ( ( mo != NULL ) && ( mo->player != NULL ) && ( mo->player->bSpectating == true )
-		&& ((( line->special == Teleport ) || ( line->special == Teleport_NoFog ) || ( line->special == Teleport_Line )) == false ) )
+		&& ( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) == false ) )
 		return false;
 
 	if (!P_TestActivateLine (line, mo, side, activationType))

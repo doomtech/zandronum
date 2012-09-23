@@ -2157,9 +2157,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				if ( thing->player && thing->player->bSpectating )
 				{
 					// Although teleport specials are okay.
-					if (ld->special == Teleport ||
-				     ld->special == Teleport_NoFog ||
-					 ld->special == Teleport_Line)
+					if ( GAMEMODE_IsSpectatorAllowedSpecial ( ld->special ) )
 					{ 
 						P_ActivateLine (ld, thing, oldside, SPAC_Cross); 
 					}
