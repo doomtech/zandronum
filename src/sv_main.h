@@ -409,7 +409,7 @@ void		SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor );
 void		SERVER_IgnoreIP( NETADDRESS_s Address );
 IPList		*SERVER_GetAdminList( void );
 const FString& SERVER_GetMasterBanlistVerificationString( void );
-void		SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ );
+void		SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ, bool updateXY = true );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

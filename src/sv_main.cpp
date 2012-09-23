@@ -4235,7 +4235,7 @@ void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
 
 //*****************************************************************************
 // [Dusk] Updates a thing's momentum
-void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ )
+void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ, bool updateXY )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -4246,12 +4246,13 @@ void SERVER_UpdateThingMomentum( AActor *pActor, bool updateZ )
 	// is called regularly. Furthermore, changing the position of a client's local player
 	// messes up the player prediction and shouldn't be done.
 
-	ULONG ulBits = CM_MOMX|CM_MOMY;
+	ULONG ulBits = updateXY ? (CM_MOMX|CM_MOMY) : 0;
 	if ( updateZ )
 		ulBits |= CM_MOMZ;
 
 	if ( !pActor->player ) {
-		ulBits |= CM_X|CM_Y;
+		if ( updateXY )
+			ulBits |= CM_X|CM_Y;
 		if ( updateZ )
 			ulBits |= CM_Z;
 	}
