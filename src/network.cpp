@@ -81,6 +81,7 @@
 #include "v_video.h"
 #include "version.h"
 #include "g_level.h"
+#include "p_lnspec.h"
 
 #include "md5.h"
 
@@ -1030,6 +1031,13 @@ bool NETWORK_IsActorClientHandled( const AActor *pActor )
 bool NETWORK_InClientModeAndActorNotClientHandled( const AActor *pActor )
 {
 	return ( NETWORK_InClientMode( ) && ( NETWORK_IsActorClientHandled ( pActor ) == false ) );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_IsClientPredictedSpecial( const int Special )
+{
+	return ( ( Special == ThrustThing ) || ( Special == ThrustThingZ ) );
 }
 
 //*****************************************************************************

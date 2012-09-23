@@ -284,13 +284,12 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	BYTE special;
 
 	// [BC] Lines are server side. However, allow spectators to cross teleports.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying ( ))) &&
-		(( mo == NULL ) ||
-		( mo->player == NULL ) ||
-		( mo->player->bSpectating == false ) ||
-		( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) == false )
+	if (( NETWORK_InClientMode ( ) ) &&
+		( ( NETWORK_IsConsolePlayer ( mo ) == false ) ||
+		( ( ( mo->player->bSpectating == false ) || (( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) ) == false ) )
+			&& ( NETWORK_IsClientPredictedSpecial( line->special ) == false ) )
 		))
-	{ 
+	{
 		return ( false );
 	}
 

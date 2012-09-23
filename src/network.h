@@ -360,6 +360,7 @@ bool			NETWORK_IsConsolePlayer( const AActor *pActor );
 bool			NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const player_t *pPlayer );
 bool			NETWORK_IsActorClientHandled( const AActor *pActor );
 bool			NETWORK_InClientModeAndActorNotClientHandled( const AActor *pActor );
+bool			NETWORK_IsClientPredictedSpecial( const int Special );
 
 // [BB] Generate a checksum from a ticcmd_t.
 SDWORD			NETWORK_Check ( ticcmd_t *pCmd );
