@@ -26,6 +26,7 @@
 -	- Fixed: The server sent its revision number with short instead of long precision to the master. [Torr Samaho]
 -	- Fixed: In single player with multi player emulation enabled a player couldn't change the player class by turning to a spectator and rejoining. [Torr Samaho]
 -	- Fixed: The line special SendToCommunicator didn't work properly online. [Torr Samaho]
+-	- Fixed: When morphing a player, the server didn't inform the other clients about the ammo amount of the morphed player. [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)

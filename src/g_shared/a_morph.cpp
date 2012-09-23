@@ -174,8 +174,11 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 	// [BB] Tell the clients to morph the player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SpawnPlayer( ULONG( morphed->player-players ), PST_LIVE, MAXPLAYERS, 0, true );
-		SERVER_ResetInventory( ULONG( morphed->player-players ));
+		const ULONG ulPlayer = static_cast<ULONG> ( morphed->player-players );
+		SERVERCOMMANDS_SpawnPlayer( ulPlayer, PST_LIVE, MAXPLAYERS, 0, true );
+		SERVER_ResetInventory( ulPlayer );
+		// [BB] SERVER_ResetInventory only informs the player ulPlayer. Let the others know of at least the ammo of the player.
+		SERVERCOMMANDS_SyncPlayerAmmoAmount ( ulPlayer, ulPlayer, SVCF_SKIPTHISCLIENT );
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS );
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS2 );
 		SERVERCOMMANDS_SetThingFlags( morphed, FLAGSET_FLAGS3 );
