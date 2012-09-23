@@ -996,6 +996,16 @@ bool NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer )
 
 //*****************************************************************************
 //
+bool NETWORK_IsConsolePlayer( const AActor *pActor )
+{
+	if ( ( pActor == NULL ) || ( pActor->player == NULL ) )
+		return false;
+
+	return ( pActor->player == &players[consoleplayer] );
+}
+
+//*****************************************************************************
+//
 bool NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const player_t *pPlayer )
 {
 	if ( NETWORK_IsConsolePlayerOrNotInClientMode ( pPlayer ) )

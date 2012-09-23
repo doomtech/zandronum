@@ -356,6 +356,7 @@ const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 // [BB] Returns true if either "NETSTATE_CLIENT" or a client side demo is played.
 bool			NETWORK_InClientMode( );
 bool			NETWORK_IsConsolePlayerOrNotInClientMode( const player_t *pPlayer );
+bool			NETWORK_IsConsolePlayer( const AActor *pActor );
 bool			NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( const player_t *pPlayer );
 bool			NETWORK_IsActorClientHandled( const AActor *pActor );
 bool			NETWORK_InClientModeAndActorNotClientHandled( const AActor *pActor );
