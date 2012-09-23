@@ -5376,7 +5376,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 						{
 							momz *= 0.8f;
 						}
-						// [BB] Potentially use the horizontal thurst of old ZDoom versions.
+						// [BB] Potentially use the horizontal thrust of old ZDoom versions.
 						if ( compatflags2 & COMPATF2_OLD_EXPLOSION_THRUST )
 						{
 							thing->momx += static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
