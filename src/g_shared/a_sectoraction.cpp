@@ -34,6 +34,9 @@
 
 #include "r_defs.h"
 #include "p_lnspec.h"
+// [BB] New #includes.
+#include "d_player.h"
+#include "network.h"
 
 // The base class for sector actions ----------------------------------------
 
@@ -106,6 +109,11 @@ bool ASectorAction::TriggerAction (AActor *triggerer, int activationType)
 
 bool ASectorAction::CheckTrigger (AActor *triggerer) const
 {
+	// [BB] Clients predict a very limited amount of specials and ignore all others.
+	if ( NETWORK_InClientMode() &&
+		( ( NETWORK_IsConsolePlayer ( triggerer ) == false ) || ( NETWORK_IsClientPredictedSpecial ( special ) == false ) ) )
+		return false;
+
 	if (special &&
 		(triggerer->player ||
 		 ((flags & MF_AMBUSH) && (triggerer->flags2 & MF2_MCROSS)) ||

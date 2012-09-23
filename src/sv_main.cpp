@@ -2456,6 +2456,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				|| ( pActor->args[4] != 0 ) )
 				SERVERCOMMANDS_SetThingArguments( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
+			// [BB] Clients need to know the SectorAction specials to predict them.
+			if ( NETWORK_IsClientPredictedSpecial ( pActor->special ) && pActor->IsKindOf( PClass::FindClass( "SectorAction" ) ) )
+				SERVERCOMMANDS_SetThingSpecial ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
 			// [BB] Some things like AMovingCamera rely on the AActor tid.
 			// So tell it to the client. I have no idea if this has unwanted side
 			// effects. Has to be checked.
