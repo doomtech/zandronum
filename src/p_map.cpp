@@ -5326,6 +5326,9 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 			{ // OK to damage; target is in direct path
 				float momz;
 				float thrust;
+				// [BB] We need to store these values for COMPATF2_OLD_EXPLOSION_THRUST.
+				const fixed_t origmomx = thing->momx;
+				const fixed_t origmomy = thing->momy;
 				int damage = (int)points;
 
 				// [BC] Damage is server side.
@@ -5377,8 +5380,8 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 						// [BB] Potentially use the horizontal thrust of old ZDoom versions.
 						if ( compatflags2 & COMPATF2_OLD_EXPLOSION_THRUST )
 						{
-							thing->momx += static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
-							thing->momy += static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
+							thing->momx = origmomx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
+							thing->momy = origmomy + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
 						}
 						else
 						{
