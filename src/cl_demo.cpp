@@ -556,6 +556,8 @@ void CLIENTDEMO_FinishPlaying( void )
 
 	// Clear out the existing players.
 	CLIENT_ClearAllPlayers();
+	// [BB] Also the special spectator player.
+	CLIENTDEMO_ClearFreeSpectatorPlayer();
 
 	consoleplayer = 0;
 //	playeringame[consoleplayer] = true;
