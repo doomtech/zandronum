@@ -405,6 +405,14 @@ void DoClearInv (AActor *actor)
 				AAmmo *ammo = static_cast<AAmmo*>(inv);
 				ammo->Amount = 0;
 			}
+			// [BB] Don't delete BasicArmor, just clear it. Probably ZDoom should do it like this
+			// as well, but to be on the safe side only do this on the client for now.
+			else if ( NETWORK_InClientMode() && ( inv->GetClass() == RUNTIME_CLASS(ABasicArmor) ) )
+			{
+				ABasicArmor *barmor = static_cast<ABasicArmor *> (inv);
+				barmor->SavePercent = 0;
+				barmor->Amount = 0;
+			}
 			else
 				inv->Destroy ();
 		}
