@@ -4602,6 +4602,11 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 			P_PlayerThink( pPlayer );
 			if ( pPlayer->mo )
 				pPlayer->mo->Tick( );
+
+			// [BB] We possibly process more than one move of this client per tic,
+			// so we have to update oldbuttons (otherwise a door that just started to
+			// open will be closed immediately again, looking as if it didn't move at all).
+			pPlayer->oldbuttons = pPlayer->cmd.ucmd.buttons;
 		}
 	}
 
