@@ -4969,7 +4969,7 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// If the player doesn't exist, get out!
-	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
