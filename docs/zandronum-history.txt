@@ -34,6 +34,7 @@
 -	- Fixed: The terminator sphere and the hellstone could not be replaced by mods. Note that you need to replace them by something derived from "Terminator" or "PossessionStone" respectively. Otherwise the game modes will not work as intended. [Torr Samaho]
 -	- Hopefully fixed: Doors sometimes didn't open after pressing +use online. [Torr Samaho]
 -	- Fixed: A malformed server packet could crash the client. [Torr Samaho] 
+-	- Fixed: Clients didn't play open or close sounds of animated doors online. [Torr Samaho] 
 
 
 1.0 (changes since Skulltag 98d)

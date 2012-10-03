@@ -803,6 +803,10 @@ bool DAnimatedDoor::StartClosing ()
 	if (ani.CloseSound != NAME_None)
 	{
 		SN_StartSequence (m_Sector, CHAN_CEILING, ani.CloseSound, 1);
+
+		// [BB] Tell the clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_StartSectorSequence( m_Sector, CHAN_CEILING, ani.CloseSound.GetChars(), 1 );
 	}
 
 	m_Status = Closing;
@@ -1037,6 +1041,10 @@ DAnimatedDoor::DAnimatedDoor (sector_t *sec, line_t *line, int speed, int delay)
 	if (DoorAnimations[m_WhichDoorIndex].OpenSound != NAME_None)
 	{
 		SN_StartSequence (m_Sector, CHAN_INTERIOR, DoorAnimations[m_WhichDoorIndex].OpenSound, 1);
+
+		// [BB] Tell the clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_StartSectorSequence( m_Sector, CHAN_INTERIOR, DoorAnimations[m_WhichDoorIndex].OpenSound.GetChars(), 1 );
 	}
 
 	// [BC] If we're the server, tell clients to move the ceiling.
