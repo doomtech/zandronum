@@ -5306,31 +5306,18 @@ void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, U
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, char *pszSequence, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, const int Channel, const char *pszSequence, const int Modenum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	LONG	lSectorID;
-
-	lSectorID = LONG( pSector - sectors );
+	const LONG lSectorID = LONG( pSector - sectors );
 	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( pszSequence ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_STARTSECTORSEQUENCE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSequence );
-	}
+	NetCommand command ( SVC_STARTSECTORSEQUENCE );
+	command.addShort ( lSectorID );
+	command.addByte ( Channel );
+	command.addString ( pszSequence );
+	command.addByte ( Modenum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************

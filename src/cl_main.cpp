@@ -9732,8 +9732,12 @@ static void client_StartSectorSequence( BYTESTREAM_s *pByteStream )
 	// Read in the sector ID.
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
+	const int channel = NETWORK_ReadByte( pByteStream );
+
 	// Read in the sound sequence to play.
 	pszSequence = NETWORK_ReadString( pByteStream );
+
+	const int modenum = NETWORK_ReadByte( pByteStream );
 
 	// Make sure the sector ID is valid.
 	if (( lSectorID >= 0 ) && ( lSectorID < numsectors ))
@@ -9742,7 +9746,7 @@ static void client_StartSectorSequence( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Finally, play the given sound sequence for this sector.
-	SN_StartSequence( pSector, CHAN_CEILING, pszSequence, 0 );
+	SN_StartSequence( pSector, channel, pszSequence, modenum );
 }
 
 //*****************************************************************************
