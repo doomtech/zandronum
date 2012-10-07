@@ -36,6 +36,7 @@
 -	- Hopefully fixed: Doors sometimes didn't open after pressing +use online. [Torr Samaho]
 -	- Fixed: A malformed server packet could crash the client. [Torr Samaho] 
 -	- Fixed: Clients didn't play open or close sounds of animated doors online. [Torr Samaho] 
+-	- Fixed: The server didn't inform the clients to remove bouncing missiles hitting water. [Torr Samaho] 
 
 
 1.0 (changes since Skulltag 98d)

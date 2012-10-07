@@ -1540,6 +1540,10 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 		}
 		if (!(flags3 & MF3_CANBOUNCEWATER))
 		{
+			// [BB] Inform the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( this );
+
 			Destroy ();
 			return true;
 		}
