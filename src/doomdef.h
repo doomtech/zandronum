@@ -385,6 +385,9 @@ enum
 	COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT		= 1 << 5,
 	// [BB] Use the horizontal thrust of old ZDoom versions in P_RadiusAttack.
 	COMPATF2_OLD_EXPLOSION_THRUST		= 1 << 6,
+	// [BB] Use the P_TestMobjZ approach of old ZDoom versions where non-SOLID things (like flags) fall
+	// through invisible bridges.
+	COMPATF2_OLD_BRIDGE_DROPS		= 1 << 7,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

@@ -1783,6 +1783,13 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 		return true;
 	}
 
+	// [BB] For people want to have the buggy behavior of non-SOLID things dropping through bridges.
+	if ( ( compatflags2 & COMPATF2_OLD_BRIDGE_DROPS ) && !(actor->flags & MF_SOLID) )
+	{
+		if (pOnmobj) *pOnmobj = NULL;
+		return true;
+	}
+
 	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 	AActor *thing;
 
