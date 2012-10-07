@@ -20,6 +20,7 @@
 +	- Demos now use the lump authentication system to ensure that demos are played back with correct WADs. If demo authentication fails, an error message is printed with a list of needed WADs. New CVAR demo_pure controls this behavior. [Dusk]
 +	- Added new compatflag "old explosion thrust", controlled by the new CVAR compat_oldexplosionthrust. If this is enabled, explosions cause a strong horizontal thrust like in old ZDoom versions. [Torr Samaho]
 +	- Added client side prediction for the line special ThrustThing and ThrustThingZ when the specials are called from linedefs or sector actions. [Torr Samaho]
++	- Improved the client side Z position prediction when passing from one sector into another. [Torr Samaho]
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]

@@ -299,6 +299,15 @@ bool CLIENT_PREDICT_IsPredicting( void )
 //*****************************************************************************
 //*****************************************************************************
 //
+static fixed_t client_predict_GetPredictedFloorZ( player_t *pPlayer, const ULONG Tick )
+{
+	// [BB] Using g_SavedFloorZ when the player is on a lowering floor seems to make things very laggy,
+	// this does not happen when using mo->floorz.
+	return g_bSavedOnMobj[Tick % CLIENT_PREDICTION_TICS] ? g_SavedFloorZ[Tick % CLIENT_PREDICTION_TICS] : pPlayer->mo->floorz;
+}
+
+//*****************************************************************************
+//
 static void client_predict_BeginPrediction( player_t *pPlayer )
 {
 	g_SavedAngle[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->angle;
@@ -334,10 +343,8 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		pPlayer->turnticks = g_lSavedTurnTicks[lTick % CLIENT_PREDICTION_TICS];
 		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % CLIENT_PREDICTION_TICS];
 		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % CLIENT_PREDICTION_TICS];
-		// [BB] Using g_SavedFloorZ when the player is on a lowering floor seems to make things very laggy,
-		// this does not happen when using mo->floorz.
 		if ( g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] )
-			pPlayer->mo->z = g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] ? g_SavedFloorZ[lTick % CLIENT_PREDICTION_TICS] : pPlayer->mo->floorz;
+			pPlayer->mo->z = client_predict_GetPredictedFloorZ ( pPlayer, lTick );
 		if ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] )
 			pPlayer->mo->flags2 |= MF2_ONMOBJ;
 		else
@@ -346,6 +353,10 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		// Tick the player.
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % CLIENT_PREDICTION_TICS] );
 		pPlayer->mo->Tick( );
+
+		// [BB] Our movement caused us to leave the floor, so don't glue us to it in the next tic.
+		if ( pPlayer->mo->z != pPlayer->mo->floorz )
+			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
 
 		// [BB] The effect of all DPushers needs to be manually predicted.
 		pusherIt.Reinit();
@@ -369,7 +380,7 @@ static void client_predict_EndPrediction( player_t *pPlayer )
 	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % CLIENT_PREDICTION_TICS];
 	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % CLIENT_PREDICTION_TICS];
 	if ( g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] )
-		pPlayer->mo->z = g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS];
+		pPlayer->mo->z = client_predict_GetPredictedFloorZ ( pPlayer, g_ulGameTick );
 	if ( g_bSavedOnMobj[g_ulGameTick % CLIENT_PREDICTION_TICS] )
 		pPlayer->mo->flags2 |= MF2_ONMOBJ;
 	else
