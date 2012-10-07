@@ -1419,7 +1419,7 @@ void G_Ticker ()
 
 	// get commands, check consistancy, and build new consistancy check
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		buf = gametic % MAXSAVETICS;
+		buf = gametic % CLIENT_PREDICTION_TICS;
 	else
 		buf = (gametic/ticdup)%BACKUPTICS;
 

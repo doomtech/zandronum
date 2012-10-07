@@ -62,6 +62,9 @@ typedef enum
 // [Spleen] The amount of ticks of old positions to store for unlagged support
 #define UNLAGGEDTICS	35
 
+// [BB] The amount of tics stored for the client player prediction.
+#define CLIENT_PREDICTION_TICS					70
+
 // The current state of the game: whether we are
 // playing, gazing at the intermission screen,
 // the game final animation, or a demo. 

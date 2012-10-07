@@ -43,7 +43,7 @@
 #define LOCALCMDTICS	(BACKUPTICS*MAXTICDUP)
 
 // Store up to 70 tics (two seconds) worth of input for player prediction.
-#define BACKUPTICS			70 // MAXSAVETICS
+#define BACKUPTICS			70 // CLIENT_PREDICTION_TICS
 
 #ifdef DJGPP
 // The DOS drivers provide a pretty skimpy buffer.

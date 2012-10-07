@@ -79,17 +79,17 @@ static	bool		g_bPredicting = false;
 static	ULONG		g_ulGameTick;
 
 // Store crucial player attributes for prediction.
-static	ticcmd_t	g_SavedTiccmd[MAXSAVETICS];
-static	angle_t		g_SavedAngle[MAXSAVETICS];
-static	fixed_t		g_SavedPitch[MAXSAVETICS];
-static	fixed_t		g_SavedCrouchfactor[MAXSAVETICS];
-static	LONG		g_lSavedJumpTicks[MAXSAVETICS];
-static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
-static	LONG		g_lSavedReactionTime[MAXSAVETICS];
-static	LONG		g_lSavedWaterLevel[MAXSAVETICS];
-static	bool		g_bSavedOnFloor[MAXSAVETICS];
-static	bool		g_bSavedOnMobj[MAXSAVETICS];
-static	fixed_t		g_SavedFloorZ[MAXSAVETICS];
+static	ticcmd_t	g_SavedTiccmd[CLIENT_PREDICTION_TICS];
+static	angle_t		g_SavedAngle[CLIENT_PREDICTION_TICS];
+static	fixed_t		g_SavedPitch[CLIENT_PREDICTION_TICS];
+static	fixed_t		g_SavedCrouchfactor[CLIENT_PREDICTION_TICS];
+static	LONG		g_lSavedJumpTicks[CLIENT_PREDICTION_TICS];
+static	LONG		g_lSavedTurnTicks[CLIENT_PREDICTION_TICS];
+static	LONG		g_lSavedReactionTime[CLIENT_PREDICTION_TICS];
+static	LONG		g_lSavedWaterLevel[CLIENT_PREDICTION_TICS];
+static	bool		g_bSavedOnFloor[CLIENT_PREDICTION_TICS];
+static	bool		g_bSavedOnMobj[CLIENT_PREDICTION_TICS];
+static	fixed_t		g_SavedFloorZ[CLIENT_PREDICTION_TICS];
 
 #ifdef	_DEBUG
 CVAR( Bool, cl_showpredictionsuccess, false, 0 );
@@ -108,7 +108,7 @@ static	void	client_predict_EndPrediction( player_t *pPlayer );
 
 void CLIENT_PREDICT_Construct( void )
 {
-	for ( int i = 0; i < MAXSAVETICS; ++i )
+	for ( int i = 0; i < CLIENT_PREDICTION_TICS; ++i )
 		g_SavedCrouchfactor[i] = FRACUNIT;
 }
 
@@ -167,8 +167,8 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	// How many ticks of prediction do we need?
 	ulPredictionTicks = g_ulGameTick - CLIENT_GetLastConsolePlayerUpdateTick( );
 	// [BB] We can't predict more tics than we store.
-	if ( ulPredictionTicks > MAXSAVETICS )
-		ulPredictionTicks = MAXSAVETICS;
+	if ( ulPredictionTicks > CLIENT_PREDICTION_TICS )
+		ulPredictionTicks = CLIENT_PREDICTION_TICS;
 	if ( ulPredictionTicks )
 		ulPredictionTicks--;
 
@@ -202,17 +202,17 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	// [BB] Standing on an actor (like a bridge) needs special treatment.
 	const AActor *pActor = (pPlayer->mo->flags2 & MF2_ONMOBJ) ? P_CheckOnmobj ( pPlayer->mo ) : NULL;
 	if ( pActor == NULL ) {
-		g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->z == pPlayer->mo->floorz;
-		g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->floorz;
+		g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->z == pPlayer->mo->floorz;
+		g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->floorz;
 	}
 	else
 	{
-		g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = ( pPlayer->mo->z == pActor->z + pActor->height );
-		g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pActor->z + pActor->height;
+		g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] = ( pPlayer->mo->z == pActor->z + pActor->height );
+		g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS] = pActor->z + pActor->height;
 	}
 
 	// [BB] Remember whether the player was standing on another actor.
-	g_bSavedOnMobj[g_ulGameTick % MAXSAVETICS] = (pPlayer->mo->flags2 & MF2_ONMOBJ);
+	g_bSavedOnMobj[g_ulGameTick % CLIENT_PREDICTION_TICS] = (pPlayer->mo->flags2 & MF2_ONMOBJ);
 
 	// Set the player's position as told to him by the server.
 	CLIENT_MoveThing( pPlayer->mo,
@@ -271,7 +271,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 //
 void CLIENT_PREDICT_SaveCmd( void )
 {
-	memcpy( &g_SavedTiccmd[gametic % MAXSAVETICS], &players[consoleplayer].cmd, sizeof( ticcmd_t ));
+	memcpy( &g_SavedTiccmd[gametic % CLIENT_PREDICTION_TICS], &players[consoleplayer].cmd, sizeof( ticcmd_t ));
 }
 
 //*****************************************************************************
@@ -280,7 +280,7 @@ void CLIENT_PREDICT_PlayerTeleported( void )
 {
 	ULONG	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < MAXSAVETICS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < CLIENT_PREDICTION_TICS; ulIdx++ )
 	{
 		memset( &g_SavedTiccmd[ulIdx], 0, sizeof( ticcmd_t ));
 		g_SavedFloorZ[ulIdx] = players[consoleplayer].mo->z;
@@ -301,14 +301,14 @@ bool CLIENT_PREDICT_IsPredicting( void )
 //
 static void client_predict_BeginPrediction( player_t *pPlayer )
 {
-	g_SavedAngle[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->angle;
-	g_SavedPitch[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->pitch;
-	g_SavedCrouchfactor[g_ulGameTick % MAXSAVETICS] = pPlayer->crouchfactor;
-	g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->jumpTics;
-	g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->turnticks;
-	g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->reactiontime;
-	g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->waterlevel;
-	memcpy( &g_SavedTiccmd[g_ulGameTick % MAXSAVETICS], &pPlayer->cmd, sizeof( ticcmd_t ));
+	g_SavedAngle[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->angle;
+	g_SavedPitch[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->pitch;
+	g_SavedCrouchfactor[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->crouchfactor;
+	g_lSavedJumpTicks[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->jumpTics;
+	g_lSavedTurnTicks[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->turnticks;
+	g_lSavedReactionTime[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->reactiontime;
+	g_lSavedWaterLevel[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->waterlevel;
+	memcpy( &g_SavedTiccmd[g_ulGameTick % CLIENT_PREDICTION_TICS], &pPlayer->cmd, sizeof( ticcmd_t ));
 }
 
 //*****************************************************************************
@@ -325,26 +325,26 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		g_bPredicting = true;
 
 		// Use backed up values for prediction.
-		pPlayer->mo->angle = g_SavedAngle[lTick % MAXSAVETICS];
-		pPlayer->mo->pitch = g_SavedPitch[lTick % MAXSAVETICS];
+		pPlayer->mo->angle = g_SavedAngle[lTick % CLIENT_PREDICTION_TICS];
+		pPlayer->mo->pitch = g_SavedPitch[lTick % CLIENT_PREDICTION_TICS];
 		// [BB] Crouch prediction seems to be very tricky. While predicting, we don't recalculate
 		// crouchfactor, but just use the value we already calculated before.
-		pPlayer->crouchfactor = g_SavedCrouchfactor[( lTick + 1 )% MAXSAVETICS];
-		pPlayer->jumpTics = g_lSavedJumpTicks[lTick % MAXSAVETICS];
-		pPlayer->turnticks = g_lSavedTurnTicks[lTick % MAXSAVETICS];
-		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
-		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % MAXSAVETICS];
+		pPlayer->crouchfactor = g_SavedCrouchfactor[( lTick + 1 )% CLIENT_PREDICTION_TICS];
+		pPlayer->jumpTics = g_lSavedJumpTicks[lTick % CLIENT_PREDICTION_TICS];
+		pPlayer->turnticks = g_lSavedTurnTicks[lTick % CLIENT_PREDICTION_TICS];
+		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % CLIENT_PREDICTION_TICS];
+		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % CLIENT_PREDICTION_TICS];
 		// [BB] Using g_SavedFloorZ when the player is on a lowering floor seems to make things very laggy,
 		// this does not happen when using mo->floorz.
-		if ( g_bSavedOnFloor[lTick % MAXSAVETICS] )
-			pPlayer->mo->z = g_bSavedOnMobj[lTick % MAXSAVETICS] ? g_SavedFloorZ[lTick % MAXSAVETICS] : pPlayer->mo->floorz;
-		if ( g_bSavedOnMobj[lTick % MAXSAVETICS] )
+		if ( g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] )
+			pPlayer->mo->z = g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] ? g_SavedFloorZ[lTick % CLIENT_PREDICTION_TICS] : pPlayer->mo->floorz;
+		if ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] )
 			pPlayer->mo->flags2 |= MF2_ONMOBJ;
 		else
 			pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
 
 		// Tick the player.
-		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
+		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % CLIENT_PREDICTION_TICS] );
 		pPlayer->mo->Tick( );
 
 		// [BB] The effect of all DPushers needs to be manually predicted.
@@ -361,16 +361,16 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 //
 static void client_predict_EndPrediction( player_t *pPlayer )
 {
-	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % MAXSAVETICS];
-	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % MAXSAVETICS];
-	pPlayer->crouchfactor = g_SavedCrouchfactor[g_ulGameTick % MAXSAVETICS];
-	pPlayer->jumpTics = g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS];
-	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS];
-	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS];
-	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS];
-	if ( g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] )
-		pPlayer->mo->z = g_SavedFloorZ[g_ulGameTick % MAXSAVETICS];
-	if ( g_bSavedOnMobj[g_ulGameTick % MAXSAVETICS] )
+	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->crouchfactor = g_SavedCrouchfactor[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->jumpTics = g_lSavedJumpTicks[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	if ( g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] )
+		pPlayer->mo->z = g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS];
+	if ( g_bSavedOnMobj[g_ulGameTick % CLIENT_PREDICTION_TICS] )
 		pPlayer->mo->flags2 |= MF2_ONMOBJ;
 	else
 		pPlayer->mo->flags2 &= ~MF2_ONMOBJ;

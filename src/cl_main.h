@@ -61,9 +61,6 @@
 #define	CONNECTION_RESEND_TIME		( 3 * TICRATE )
 #define	GAMESTATE_RESEND_TIME		( 3 * TICRATE )
 
-// For prediction (?)
-#define MAXSAVETICS					70
-
 // Display "couldn't find thing" messages.
 //#define	CLIENT_WARNING_MESSAGES
 
