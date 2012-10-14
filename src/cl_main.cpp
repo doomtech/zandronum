@@ -4051,7 +4051,15 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if ( bSavedIgnoreWeaponSelect == false ) {
 		CLIENT_IgnoreWeaponSelect ( false );
 		if ((( pPlayer - players ) == consoleplayer ) && ( pPlayer->ReadyWeapon ) )
+		{
 			CLIENTCOMMANDS_WeaponSelect( pPlayer->ReadyWeapon->GetClass( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+			// [BB] When playing a demo, we will bring up what we recorded with CLD_INVUSE.
+			else if ( CLIENTDEMO_IsPlaying() )
+				PLAYER_ClearWeapon ( pPlayer );
+		}
 	}
 
 	// Refresh the HUD because this is potentially a new player.

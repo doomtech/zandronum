@@ -38,6 +38,7 @@
 -	- Fixed: A malformed server packet could crash the client. [Torr Samaho] 
 -	- Fixed: Clients didn't play open or close sounds of animated doors online. [Torr Samaho] 
 -	- Fixed: The server didn't inform the clients to remove bouncing missiles hitting water. [Torr Samaho] 
+-	- Fixed: The weapon a player started with after respawning wasn't recorded properly in a client side demo. [Torr Samaho] 
 
 
 1.0 (changes since Skulltag 98d)
