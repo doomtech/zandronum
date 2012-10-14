@@ -5641,6 +5641,10 @@ int DLevelScript::RunScript ()
 				if (activationline)
 				{
 					SN_StartSequence (activationline->frontsector, CHAN_FULLHEIGHT, lookup, 0);
+
+					// [BB] Tell the clients to play the sound.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_StartSectorSequence( activationline->frontsector, CHAN_FULLHEIGHT, lookup, 0 );
 				}
 			}
 			sp--;
