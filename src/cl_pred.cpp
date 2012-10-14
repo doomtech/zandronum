@@ -328,6 +328,13 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 	DPusher *pusher = NULL;
 
 	LONG lTick = g_ulGameTick - ulTicks;
+
+	// [BB] The server moved us to a postion above the floor and into a sector without a moving floor,
+	// so don't glue us to the floor for this tic.
+	if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] == false ) && ( pPlayer->mo->z > pPlayer->mo->floorz )
+		&& pPlayer->mo->Sector && !pPlayer->mo->Sector->floordata )
+		g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] = false;
+
 	while ( ulTicks )
 	{
 		// Disable bobbing, sounds, etc.
