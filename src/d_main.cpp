@@ -630,7 +630,7 @@ CVAR (Flag, compat_oldrandom,		compatflags2, COMPATF2_OLD_RANDOM_GENERATOR);
 CVAR (Flag, compat_nogravity_spheres,		compatflags2, COMPATF2_NOGRAVITY_SPHERES);
 CVAR (Flag, compat_dont_stop_player_scripts_on_disconnect,		compatflags2, COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT);
 CVAR (Flag, compat_oldexplosionthrust,		compatflags2, COMPATF2_OLD_EXPLOSION_THRUST);
-CVAR (Flag, compat_oldbridgedrops,		compatflags2, COMPATF2_OLD_BRIDGE_DROPS);
+CVAR (Flag, compat_bridgedrops,		compatflags2, COMPATF2_OLD_BRIDGE_DROPS);
 
 //==========================================================================
 //
