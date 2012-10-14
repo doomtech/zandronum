@@ -223,7 +223,7 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 	FString sound;
 	if ( g_AnnouncerProfile[ulProfileIdx].EntryExists(pszEntry) )
 		sound = g_AnnouncerProfile[ulProfileIdx].FindEntry(pszEntry);
-	else if ( g_DefaultAnnouncer->EntryExists(pszEntry) )
+	else if ( g_DefaultAnnouncer && g_DefaultAnnouncer->EntryExists(pszEntry) )
 		sound = g_DefaultAnnouncer->FindEntry(pszEntry);
 
 	// If the entry exists and has a sound, play it.
