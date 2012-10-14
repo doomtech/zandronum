@@ -18,7 +18,7 @@
 +	- The authentication mechanism for non-map related lumps now allows Freedoom 0.8-beta1/Doom clients to join Doom/Freedoom 0.8-beta1 servers. [Torr Samaho] 
 +	- Added a menu option for gl_use_models. [Torr Samaho] 
 +	- Demos now use the lump authentication system to ensure that demos are played back with correct WADs. If demo authentication fails, an error message is printed with a list of needed WADs. New CVAR demo_pure controls this behavior. [Dusk]
-+	- Added new compatflag "old explosion thrust", controlled by the new CVAR compat_oldexplosionthrust. If this is enabled, explosions cause a strong horizontal thrust like in old ZDoom versions. [Torr Samaho]
++	- Added new compatflag "explosion thrust", controlled by the new CVAR compat_explosionthrust. If this is enabled, explosions cause a strong horizontal thrust like in old ZDoom versions. [Torr Samaho]
 +	- Added client side prediction for the line special ThrustThing and ThrustThingZ when the specials are called from linedefs or sector actions. [Torr Samaho]
 +	- Improved the client side Z position prediction when passing from one sector into another. [Torr Samaho]
 +	- Added new compatflag "bridge drops", controlled by the new CVAR compat_bridgedrops If this is enabled, non-SOLID things like flags fall through bridges (as they used to do in old ZDoom versions). [Torr Samaho]
