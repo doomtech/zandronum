@@ -354,14 +354,14 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % CLIENT_PREDICTION_TICS] );
 		pPlayer->mo->Tick( );
 
-		// [BB] Our movement caused us to leave the floor, so don't glue us to it in the next tic.
-		if ( pPlayer->mo->z != pPlayer->mo->floorz )
-			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
-
 		// [BB] The effect of all DPushers needs to be manually predicted.
 		pusherIt.Reinit();
 		while (( pusher = pusherIt.Next() ))
 			pusher->Tick();
+
+		// [BB] Our movement caused us to leave the floor, so don't glue us to it in the next tic.
+		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] == false ) && ( pPlayer->mo->z != pPlayer->mo->floorz ) )
+			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
 
 		ulTicks--;
 		lTick++;
