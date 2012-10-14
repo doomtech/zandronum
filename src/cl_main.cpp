@@ -3109,6 +3109,10 @@ bool CLIENT_CanClipMovement( AActor *pActor )
 	if ( NETWORK_IsActorClientHandled ( pActor ) )
 		return true;
 
+	// [BB] The client needs to clip its own movement for the prediction.
+	if ( pActor->player == &players[consoleplayer] )
+		return true;
+
 	// [WS] Non-bouncing client missiles do not get their movement clipped.
 	if ( pActor->flags & MF_MISSILE && !pActor->bouncetype )
 		return false;
