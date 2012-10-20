@@ -335,6 +335,14 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		&& pPlayer->mo->Sector && !pPlayer->mo->Sector->floordata )
 		g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] = false;
 
+	// [BB] Either the server gave us z-momentum or moved us off an actor,
+	// in both cases don't glue us to a floor or an actor for this tic.
+	if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] && ( P_CheckOnmobj ( pPlayer->mo ) == false ) ) || ( pPlayer->mo->momz > 0 ) )
+	{
+		g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] = false;
+		g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] = false;
+	}
+
 	while ( ulTicks )
 	{
 		// Disable bobbing, sounds, etc.
@@ -369,6 +377,14 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		// [BB] Our movement caused us to leave the floor, so don't glue us to it in the next tic.
 		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] == false ) && ( pPlayer->mo->z != pPlayer->mo->floorz ) )
 			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
+
+		// [BB] Either we have z-momentum or we moved off an actor,
+		// in both cases don't glue us to a floor or an actor in the next tic.
+		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] && ( P_CheckOnmobj ( pPlayer->mo ) == false ) ) || ( pPlayer->mo->momz > 0 ) )
+		{
+			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
+			g_bSavedOnMobj[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
+		}
 
 		ulTicks--;
 		lTick++;
