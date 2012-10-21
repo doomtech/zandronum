@@ -379,7 +379,7 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 
 		// [BB] Either we have z-momentum or we moved off an actor,
 		// in both cases don't glue us to a floor or an actor in the next tic.
-		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] && ( P_CheckOnmobj ( pPlayer->mo ) == false ) ) || ( pPlayer->mo->momz > 0 ) )
+		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] && ( ( pPlayer->mo->flags2 & MF2_ONMOBJ ) == false ) ) || ( pPlayer->mo->momz > 0 ) )
 		{
 			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
 			g_bSavedOnMobj[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
