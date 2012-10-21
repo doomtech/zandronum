@@ -108,6 +108,7 @@
 #include "domination.h"
 #include "p_3dmidtex.h"
 #include "a_lightning.h"
+#include "a_movingcamera.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2690,6 +2691,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						break;
 					}
 					pActor->special = lSpecial;
+				}
+				break;
+
+			case SVC2_SYNCPATHFOLLOWER:
+				{
+					APathFollower::InitFromStream ( pByteStream );
 				}
 				break;
 
@@ -12055,6 +12062,30 @@ void STClient::ReplaceTextures( BYTESTREAM_s *pByteStream )
 	int iTexFlags = NETWORK_ReadByte( pByteStream );
 
 	DLevelScript::ReplaceTextures ( iFromname, iToname, iTexFlags );
+}
+
+//*****************************************************************************
+//
+void APathFollower::InitFromStream ( BYTESTREAM_s *pByteStream )
+{
+	APathFollower *pPathFollower = static_cast<APathFollower*> ( CLIENT_FindThingByNetID( NETWORK_ReadShort( pByteStream ) ) );
+	const int currNodeId = NETWORK_ReadShort( pByteStream );
+	const int prevNodeId = NETWORK_ReadShort( pByteStream );
+	const float serverTime = NETWORK_ReadFloat( pByteStream );
+
+	if ( pPathFollower )
+	{
+		pPathFollower->lServerCurrNodeId = currNodeId;
+		pPathFollower->lServerPrevNodeId = prevNodeId;
+		pPathFollower->fServerTime = serverTime;
+	}
+	else
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "APathFollower::InitFromStream: Couldn't find actor.\n" );
+#endif
+		return;
+	}
 }
 
 //*****************************************************************************

@@ -38,7 +38,9 @@
 #include "p_lnspec.h"
 #include "doomstat.h"
 // [BB] New #includes.
+#include "a_movingcamera.h"
 #include "cl_demo.h"
+#include "cl_main.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -52,21 +54,23 @@
 == args[4] = high byte of next node's tid
 */
 
-class AInterpolationPoint : public AActor
-{
-	DECLARE_CLASS (AInterpolationPoint, AActor)
-	HAS_OBJECT_POINTERS
-public:
-	void BeginPlay ();
-	void HandleSpawnFlags ();
-	void Tick () {}		// Nodes do no thinking
-	AInterpolationPoint *ScanForLoop ();
-	void FormChain ();
-
-	void Serialize (FArchive &arc);
-
-	TObjPtr<AInterpolationPoint> Next;
-};
+// [BB] Moved to a_movingcamera.h and commented out linewise to ensure merge conflicts
+// if the code is changed in ZDoom.
+//class AInterpolationPoint : public AActor
+//{
+//	DECLARE_CLASS (AInterpolationPoint, AActor)
+//	HAS_OBJECT_POINTERS
+//public:
+//	void BeginPlay ();
+//	void HandleSpawnFlags ();
+//	void Tick () {}		// Nodes do no thinking
+//	AInterpolationPoint *ScanForLoop ();
+//	void FormChain ();
+//
+//	void Serialize (FArchive &arc);
+//
+//	TObjPtr<AInterpolationPoint> Next;
+//};
 
 IMPLEMENT_POINTY_CLASS (AInterpolationPoint)
  DECLARE_POINTER (Next)
@@ -157,32 +161,34 @@ IMPLEMENT_CLASS (AInterpolationSpecial)
 ==	lastenemy = node prior to first node (if looped)
 */
 
-class APathFollower : public AActor
-{
-	DECLARE_CLASS (APathFollower, AActor)
-	HAS_OBJECT_POINTERS
-public:
-	void BeginPlay ();
-	void PostBeginPlay ();
-	void Tick ();
-	void Activate (AActor *activator);
-	void Deactivate (AActor *activator);
-protected:
-	float Splerp (float p1, float p2, float p3, float p4);
-	float Lerp (float p1, float p2);
-	virtual bool Interpolate ();
-	virtual void NewNode ();
-
-	void Serialize (FArchive &arc);
-
-	bool bActive, bJustStepped;
-	TObjPtr<AInterpolationPoint> PrevNode, CurrNode;
-	float Time;		// Runs from 0.0 to 1.0 between CurrNode and CurrNode->Next
-	int HoldTime;
-
-	bool bPostBeginPlayCalled;
-	bool bActivateCalledBeforePostBeginPlay;
-};
+// [BB] Moved to a_movingcamera.h and commented out linewise to ensure merge conflicts
+// if the code is changed in ZDoom.
+//class APathFollower : public AActor
+//{
+//	DECLARE_CLASS (APathFollower, AActor)
+//	HAS_OBJECT_POINTERS
+//public:
+//	void BeginPlay ();
+//	void PostBeginPlay ();
+//	void Tick ();
+//	void Activate (AActor *activator);
+//	void Deactivate (AActor *activator);
+//protected:
+//	float Splerp (float p1, float p2, float p3, float p4);
+//	float Lerp (float p1, float p2);
+//	virtual bool Interpolate ();
+//	virtual void NewNode ();
+//
+//	void Serialize (FArchive &arc);
+//
+//	bool bActive, bJustStepped;
+//	TObjPtr<AInterpolationPoint> PrevNode, CurrNode;
+//	float Time;		// Runs from 0.0 to 1.0 between CurrNode and CurrNode->Next
+//	int HoldTime;
+//
+//	bool bPostBeginPlayCalled;
+//	bool bActivateCalledBeforePostBeginPlay;
+//};
 
 IMPLEMENT_POINTY_CLASS (APathFollower)
  DECLARE_POINTER (PrevNode)
@@ -220,8 +226,11 @@ void APathFollower::BeginPlay ()
 	Super::BeginPlay ();
 	PrevNode = CurrNode = NULL;
 	bActive = false;
+	// [BB] Init custom Zandronum stuff.
 	bPostBeginPlayCalled = false;
 	bActivateCalledBeforePostBeginPlay = false;
+	lServerPrevNodeId = lServerCurrNodeId = -1;
+	fServerTime = 0;
 }
 
 void APathFollower::PostBeginPlay ()
@@ -281,7 +290,7 @@ void APathFollower::PostBeginPlay ()
 	// In the client/server mode it's possible, that the functions are called in this order
 	// on the client, so apply a workaround for this here. If Activate has been called before
 	// PostBeginPlay we have to call Actiate again here.
-	if (( bActivateCalledBeforePostBeginPlay ) &&
+	if (( bActivateCalledBeforePostBeginPlay ) && ( this->IsKindOf ( PClass::FindClass("ActorMover" ) ) == false ) &&
 		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
 	{
 		APathFollower::Activate (NULL);
@@ -296,13 +305,30 @@ void APathFollower::Deactivate (AActor *activator)
 
 void APathFollower::Activate (AActor *activator)
 {
+	// [BB] Hack.
 	if ( !bPostBeginPlayCalled )
 		bActivateCalledBeforePostBeginPlay = true;
 
-	if (!bActive)
+	// [BB] Added !bActivateCalledBeforePostBeginPlay check.
+	if (!bActive && !bActivateCalledBeforePostBeginPlay)
 	{
 		CurrNode = barrier_cast<AInterpolationPoint *>(target);
 		PrevNode = barrier_cast<AInterpolationPoint *>(lastenemy);
+
+		// [BB] Possibly init as instructed by the server.
+		if ( NETWORK_InClientMode() )
+		{
+			if ( lServerCurrNodeId != -1 )
+			{
+				CurrNode = static_cast<AInterpolationPoint *> ( CLIENT_FindThingByNetID ( lServerCurrNodeId ) );
+				lServerCurrNodeId = -1;
+			}
+			if ( lServerPrevNodeId != -1 )
+			{
+				PrevNode = static_cast<AInterpolationPoint *> ( CLIENT_FindThingByNetID ( lServerPrevNodeId ) );
+				lServerPrevNodeId = -1;
+			}
+		}
 
 		if (CurrNode != NULL)
 		{
@@ -312,6 +338,13 @@ void APathFollower::Activate (AActor *activator)
 			HoldTime = 0;
 			bJustStepped = true;
 			bActive = true;
+		}
+
+		// [BB] Possibly init Time as instructed by the server.
+		if ( NETWORK_InClientMode() && fServerTime )
+		{
+			Time = fServerTime;
+			fServerTime = 0;
 		}
 	}
 	// If we're the server, tell clients to activate this actor.
@@ -521,6 +554,12 @@ bool APathFollower::Interpolate ()
 	return true;
 }
 
+// [BB]
+bool APathFollower::IsActive ()
+{
+	return ( bActive );
+}
+
 /*
 == ActorMover: Moves any actor along a camera path
 ==
@@ -561,6 +600,18 @@ void AActorMover::PostBeginPlay ()
 		special1 = tracer->flags;
 		special2 = tracer->flags2;
 	}
+
+	// [BB] ATTENTION: Ugly hack here! Find a cleaner way to do this!
+	// AActorMover::Activate does not work if it's called before AActorMover::PostBeginPlay.
+	// In the client/server mode it's possible, that the functions are called in this order
+	// on the client, so apply a workaround for this here. If Activate has been called before
+	// PostBeginPlay we have to call Actiate again here.
+	if (( bActivateCalledBeforePostBeginPlay ) &&
+		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+	{
+		bActivateCalledBeforePostBeginPlay = false;
+		Activate (NULL);
+	}
 }
 
 bool AActorMover::Interpolate ()
@@ -590,6 +641,10 @@ bool AActorMover::Interpolate ()
 
 void AActorMover::Activate (AActor *activator)
 {
+	// [BB] Hack.
+	if ( !bPostBeginPlayCalled )
+		bActivateCalledBeforePostBeginPlay = true;
+
 	if (tracer == NULL || bActive)
 		return;
 

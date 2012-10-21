@@ -74,6 +74,7 @@
 #include "domination.h"
 #include "p_acs.h"
 #include "templates.h"
+#include "a_movingcamera.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
@@ -7550,4 +7551,19 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 	command.addByte ( ulPlayer );
 	command.addShort ( Arg0 );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+void APathFollower::SyncWithClient ( const ULONG ulClient )
+{
+	if ( !EnsureActorHasNetID (this) )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SYNCPATHFOLLOWER );
+	command.addShort( this->lNetID );
+	command.addShort( this->CurrNode ? this->CurrNode->lNetID : -1 );
+	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
+	command.addFloat( this->Time );
+	command.sendCommandToClients( ulClient, SVCF_ONLYTHISCLIENT );
 }

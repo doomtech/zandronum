@@ -111,6 +111,7 @@
 #include "sv_rcon.h"
 #include "gamemode.h"
 #include "domination.h"
+#include "a_movingcamera.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2482,6 +2483,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			// Let the clients know if an object is dormant or not.
 			if ( pActor->IsActive( ) == false )
 				SERVERCOMMANDS_ThingDeactivate( pActor, NULL, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] Active ActorMovers need to be synced with the client.
+			if ( pActor->IsKindOf( PClass::FindClass( "ActorMover" ) ) && pActor->IsActive( ) )
+			{
+				static_cast<APathFollower *> ( pActor )->SyncWithClient ( ulClient );
+				SERVERCOMMANDS_ThingActivate( pActor, NULL, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 
 			// Update the water level of the actor, but not if it's a player!
 			if (( pActor->waterlevel > 0 ) && ( pActor->player == NULL ))
