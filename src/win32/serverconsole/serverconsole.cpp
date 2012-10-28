@@ -480,7 +480,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 						const int wadnum = Wads.CheckIfWadLoaded ( *i );
 						const char *wadFullName = ( wadnum != -1 ) ? Wads.GetWadFullName ( wadnum ) : NULL;
 						if ( wadFullName )
-							arguments.AppendFormat( "%s ", wadFullName );
+							arguments.AppendFormat( "\"%s\" ", wadFullName );
 					}
 					arguments.AppendFormat( "-iwad %s ", NETWORK_GetIWAD( ) );
 					arguments.AppendFormat( "-connect %s ", NETWORK_AddressToString( g_LocalAddress ));
