@@ -723,6 +723,10 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 			NETWORK_ReadLong( pByteStream );
 	}
 
+	// [BB] Get special security settings like sv_enforcemasterbanlist.
+	if ( ulFlags & SQF_SECURITY_SETTINGS )
+		NETWORK_ReadByte( pByteStream );
+
 	// Now that this server has been read in, resort the servers in the menu.
 	if ( bResortList )
 		M_BuildServerList( );

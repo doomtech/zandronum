@@ -574,6 +574,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags2 );
 	}
 
+	// [BB] Send special security settings like sv_enforcemasterbanlist.
+	if ( ulBits & SQF_SECURITY_SETTINGS )
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_enforcemasterbanlist );
+
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
 	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 }

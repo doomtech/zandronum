@@ -1,11 +1,12 @@
 ==============================================================================
 
-  SKULLTAG Launcher Protocol
+  ZANDRONUM Launcher Protocol
   ==========================
 
   v0.57
 
   Version history:
+    - v0.58: Added SQF_SECURITY_SETTINGS [Torr Samaho]
     - v0.57: Added SQF_ALL_DMFLAGS [Torr Samaho]
     - v0.56: Fine tuned the altered master server protocol [Torr Samaho]
     - v0.55: Altered master server protocol (sending servers in blocks, supporting master server protocol version) [Torr Samaho]
@@ -128,6 +129,7 @@ The flags are:
 	SQF_TESTING_SERVER			0x02000000
 	SQF_DATA_MD5SUM				0x04000000
 	SQF_ALL_DMFLAGS				0x08000000
+	SQF_SECURITY_SETTINGS		0x10000000
 </pre>
 For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS). Use these flags appropriately; doing so saves your users' and server hosters' bandwidth.
 
@@ -222,6 +224,9 @@ Followed by:
   Byte    SQF_ALL_DMFLAGS       The number of flags that will be sent.
   Long    SQF_ALL_DMFLAGS       The value of the flags (Sent for each flag in the order
                                     dmflags, dmflags2, dmflags3, compatflags, compatflags2)
+  Byte    SQF_SECURITY_SETTINGS Whether the server is enforcing the master ban list - true (1) / false (0)
+                                    The other bits of this byte may be used to transfer other 
+                                    security related settings in the future.
 
 And that's it!
 
