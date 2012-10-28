@@ -102,6 +102,7 @@ CVAR( Bool, cl_showonetickpredictionerrors, false, 0 );
 static	void	client_predict_BeginPrediction( player_t *pPlayer );
 static	void	client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks );
 static	void	client_predict_EndPrediction( player_t *pPlayer );
+static	void	client_predict_SaveOnGroundStatus( const player_t *pPlayer, const ULONG Tick );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -197,22 +198,9 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	}
 #endif
 
-	// Save the player's "on the floor" status. If the player was on the floor prior to moving
-	// back to the player's saved position, move him back onto the floor after moving him.
-	// [BB] Standing on an actor (like a bridge) needs special treatment.
-	const AActor *pActor = (pPlayer->mo->flags2 & MF2_ONMOBJ) ? P_CheckOnmobj ( pPlayer->mo ) : NULL;
-	if ( pActor == NULL ) {
-		g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->z == pPlayer->mo->floorz;
-		g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->floorz;
-	}
-	else
-	{
-		g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] = ( pPlayer->mo->z == pActor->z + pActor->height );
-		g_SavedFloorZ[g_ulGameTick % CLIENT_PREDICTION_TICS] = pActor->z + pActor->height;
-	}
-
-	// [BB] Remember whether the player was standing on another actor.
-	g_bSavedOnMobj[g_ulGameTick % CLIENT_PREDICTION_TICS] = (pPlayer->mo->flags2 & MF2_ONMOBJ);
+	// [BB] Save the "on ground" status. Necessary to keep movement on moving floors
+	// and on actors like bridge things smooth.
+	client_predict_SaveOnGroundStatus ( pPlayer, g_ulGameTick );
 
 	// Set the player's position as told to him by the server.
 	CLIENT_MoveThing( pPlayer->mo,
@@ -308,6 +296,29 @@ static fixed_t client_predict_GetPredictedFloorZ( player_t *pPlayer, const ULONG
 
 //*****************************************************************************
 //
+static void client_predict_SaveOnGroundStatus( const player_t *pPlayer, const ULONG Tick )
+{
+	const ULONG tickIndex = Tick % CLIENT_PREDICTION_TICS;
+	// Save the player's "on the floor" status. If the player was on the floor prior to moving
+	// back to the player's saved position, move him back onto the floor after moving him.
+	// [BB] Standing on an actor (like a bridge) needs special treatment.
+	const AActor *pActor = (pPlayer->mo->flags2 & MF2_ONMOBJ) ? P_CheckOnmobj ( pPlayer->mo ) : NULL;
+	if ( pActor == NULL ) {
+		g_bSavedOnFloor[tickIndex] = pPlayer->mo->z == pPlayer->mo->floorz;
+		g_SavedFloorZ[tickIndex] = pPlayer->mo->floorz;
+	}
+	else
+	{
+		g_bSavedOnFloor[tickIndex] = ( pPlayer->mo->z == pActor->z + pActor->height );
+		g_SavedFloorZ[tickIndex] = pActor->z + pActor->height;
+	}
+
+	// [BB] Remember whether the player was standing on another actor.
+	g_bSavedOnMobj[Tick % CLIENT_PREDICTION_TICS] = (pPlayer->mo->flags2 & MF2_ONMOBJ);
+}
+
+//*****************************************************************************
+//
 static void client_predict_BeginPrediction( player_t *pPlayer )
 {
 	g_SavedAngle[g_ulGameTick % CLIENT_PREDICTION_TICS] = pPlayer->mo->angle;
@@ -342,6 +353,14 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] = false;
 	}
 
+	// [BB] Restore the saved "on ground" status.
+	if ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] )
+		pPlayer->mo->flags2 |= MF2_ONMOBJ;
+	else
+		pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
+	if ( g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] )
+		pPlayer->mo->z = client_predict_GetPredictedFloorZ ( pPlayer, lTick );
+
 	while ( ulTicks )
 	{
 		// Disable bobbing, sounds, etc.
@@ -357,12 +376,6 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		pPlayer->turnticks = g_lSavedTurnTicks[lTick % CLIENT_PREDICTION_TICS];
 		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % CLIENT_PREDICTION_TICS];
 		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % CLIENT_PREDICTION_TICS];
-		if ( g_bSavedOnFloor[lTick % CLIENT_PREDICTION_TICS] )
-			pPlayer->mo->z = client_predict_GetPredictedFloorZ ( pPlayer, lTick );
-		if ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] )
-			pPlayer->mo->flags2 |= MF2_ONMOBJ;
-		else
-			pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
 
 		// Tick the player.
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % CLIENT_PREDICTION_TICS] );
@@ -373,17 +386,10 @@ static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 		while (( pusher = pusherIt.Next() ))
 			pusher->Tick();
 
-		// [BB] Our movement caused us to leave the floor, so don't glue us to it in the next tic.
-		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] == false ) && ( pPlayer->mo->z != pPlayer->mo->floorz ) )
-			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
-
-		// [BB] Either we have z-momentum or we moved off an actor,
-		// in both cases don't glue us to a floor or an actor in the next tic.
-		if ( ( g_bSavedOnMobj[lTick % CLIENT_PREDICTION_TICS] && ( ( pPlayer->mo->flags2 & MF2_ONMOBJ ) == false ) ) || ( pPlayer->mo->momz > 0 ) )
-		{
-			g_bSavedOnFloor[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
-			g_bSavedOnMobj[(lTick+1) % CLIENT_PREDICTION_TICS] = false;
-		}
+		// [BB] Save the new "on ground" status (which correspond to the start of the next tic).
+		// It is based on the latest position the server sent us, so it's more accurate than
+		// the older predicted values.
+		client_predict_SaveOnGroundStatus ( pPlayer, lTick+1 );
 
 		ulTicks--;
 		lTick++;
@@ -401,10 +407,4 @@ static void client_predict_EndPrediction( player_t *pPlayer )
 	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % CLIENT_PREDICTION_TICS];
 	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % CLIENT_PREDICTION_TICS];
 	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % CLIENT_PREDICTION_TICS];
-	if ( g_bSavedOnFloor[g_ulGameTick % CLIENT_PREDICTION_TICS] )
-		pPlayer->mo->z = client_predict_GetPredictedFloorZ ( pPlayer, g_ulGameTick );
-	if ( g_bSavedOnMobj[g_ulGameTick % CLIENT_PREDICTION_TICS] )
-		pPlayer->mo->flags2 |= MF2_ONMOBJ;
-	else
-		pPlayer->mo->flags2 &= ~MF2_ONMOBJ;
 }
