@@ -100,7 +100,7 @@ static	BYTE				*g_pbDemoBuffer;
 static	BYTESTREAM_s		g_ByteStream;
 
 // Name of our demo.
-static	char				g_szDemoName[256];
+static	FString				g_DemoName;
 
 // Length of the demo.
 static	LONG				g_lDemoLength;
@@ -134,9 +134,9 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 		return;
 
 	// First, setup the demo name.
-	strcpy( g_szDemoName, pszDemoName );
-	FixPathSeperator( g_szDemoName );
-	DefaultExtension( g_szDemoName, ".cld" );
+	g_DemoName = pszDemoName;
+	FixPathSeperator( g_DemoName );
+	DefaultExtension( g_DemoName, ".cld" );
 
 	// Allocate 128KB of memory for the demo buffer.
 	g_bDemoRecording = true;
@@ -483,7 +483,7 @@ void CLIENTDEMO_FinishRecording( void )
 
 	// Write the contents of the buffer to the file, and free the memory we
 	// allocated for the demo.
-	M_WriteFile( g_szDemoName, g_pbDemoBuffer, lDemoLength ); 
+	M_WriteFile( g_DemoName.GetChars(), g_pbDemoBuffer, lDemoLength ); 
 	M_Free( g_pbDemoBuffer );
 	g_pbDemoBuffer = NULL;
 
@@ -491,7 +491,7 @@ void CLIENTDEMO_FinishRecording( void )
 	g_bDemoRecording = false;
 
 	// All done!
-	Printf( "Demo \"%s\" successfully recorded!\n", g_szDemoName ); 
+	Printf( "Demo \"%s\" successfully recorded!\n", g_DemoName.GetChars() ); 
 }
 
 //*****************************************************************************
