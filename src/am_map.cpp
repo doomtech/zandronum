@@ -958,6 +958,10 @@ void AM_ToggleMap ()
 	if (dmflags2 & DF2_NO_AUTOMAP)
 		return;
 
+	// [BB] Be careful when to activate.
+	if ( CLIENTDEMO_IsPlaying( ) && !automapactive && ( ( players[consoleplayer].camera == NULL ) || ( !viewactive ) ) )
+		return;
+
 	SB_state = screen->GetPageCount ();
 	if (!automapactive)
 	{

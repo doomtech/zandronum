@@ -46,6 +46,7 @@
 -	- Fixed: The "Join server" command in the Windows server console didn't work if the server loaded wads that are in directories with a space in their name. [Torr Samaho]
 -	- Fixed: Recording client-side demos with a filename consisting of more than 255 characters caused problems. [Torr Samaho]
 -	- Fixed: The server didn't instruct newly connecting clients to spawn dead actors that are not corpses. [Torr Samaho]
+-	- Fixed: Using "togglemap" while a client side demo was loading caused the game to crash. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 
