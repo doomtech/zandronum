@@ -2354,23 +2354,16 @@ void M_CheckConnectToServer( void )
 	{
 		ULONG	ulIdx;
 		bool	bNeedToLoadWads = false;
-		char	szWadList[256];
-
-		szWadList[0] = '\0';
+		FString	WadList;
 
 		// If the server uses a PWAD, make sure we have it loaded. If not, ask the user
 		// if he'd like to join the server anyway.
 		for ( ulIdx = 0; ulIdx < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )); ulIdx++ )
 		{
-			strcat( szWadList, BROWSER_GetPWADName( g_lSelectedServer, ulIdx ));
+			WadList += BROWSER_GetPWADName( g_lSelectedServer, ulIdx );
 
 			if ( ulIdx + 1 < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )))
-			{
-				char	szSpace[2];
-
-				sprintf( szSpace, " " );
-				strcat( szWadList, szSpace );
-			}
+				WadList += " ";
 
 			if ( Wads.CheckIfWadLoaded( BROWSER_GetPWADName( g_lSelectedServer, ulIdx )) == false )
 			{
