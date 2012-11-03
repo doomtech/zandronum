@@ -87,7 +87,8 @@ static void MAPROTATION_CalcNextMap( void )
 	if ( g_MapRotationEntries.empty( ))
 		return;
 
-	if ( sv_randommaprotation )
+	// [BB] The random selection is only necessary if there is more than one map.
+	if ( sv_randommaprotation && ( g_MapRotationEntries.size( ) > 1 ) )
 	{
 		// Mark the current map in the list as being used.
 		g_MapRotationEntries[g_ulCurMapInList].bUsed = true;

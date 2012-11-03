@@ -48,6 +48,7 @@
 -	- Fixed: The server didn't instruct newly connecting clients to spawn dead actors that are not corpses. [Torr Samaho]
 -	- Fixed: Using "togglemap" while a client side demo was loading caused the game to crash. [Torr Samaho]
 -	- Fixed: Joining a server with a cumulative PWAD name exceeding 255 characters using the internal server browser caused the game to crash or freeze. [Torr Samaho]
+-	- Fixed: With "sv_maprotation 1", "sv_randommaprotation 1" and only one map in the rotation the server froze when exiting the map. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 
