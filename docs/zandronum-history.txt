@@ -53,6 +53,7 @@
 -	- Fixed: Clients could crash after the server instructed them to add NOBLOCKMAP to an actor. [Torr Samaho]
 -	- Fixed: Lagging clients were not affected by things like sector damage. [Torr Samaho]
 -	- Fixed: Using reconnect while playing a demo caused the game to crash. [Torr Samaho]
+-	- Fixed: The lag icon was missing from zandronum.pk3. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 
