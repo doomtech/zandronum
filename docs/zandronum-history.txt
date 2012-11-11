@@ -51,6 +51,7 @@
 -	- Fixed: With "sv_maprotation 1", "sv_randommaprotation 1" and only one map in the rotation the server froze when exiting the map. [Torr Samaho]
 -	- Fixed: A_MStaffTrack could cause the clients to crash in online games. [Torr Samaho]
 -	- Fixed: Clients could crash after the server instructed them to add NOBLOCKMAP to an actor. [Torr Samaho]
+-	- Fixed: Lagging clients were not affected by things like sector damage. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 

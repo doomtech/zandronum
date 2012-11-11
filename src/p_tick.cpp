@@ -320,8 +320,13 @@ void P_Ticker (void)
 		}
 
 		// Client's "think" every time we get a cmd.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( players[ulIdx].bIsBot == false ))
+		// [BB] The server has to think for lagging clients, otherwise they aren't affected by things like sector damage.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( players[ulIdx].bIsBot == false ) && ( players[ulIdx].bLagging == false ) )
 			continue;
+
+		// [BB] Assume lagging players are not pressing any buttons.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( players[ulIdx].bIsBot == false ) && ( players[ulIdx].bLagging ) )
+			memset( &(players[ulIdx].cmd), 0, sizeof( ticcmd_t ));
 
 		// Console player thinking is handled by player prediction.
 		if (( static_cast<signed> (ulIdx) == consoleplayer ) &&
