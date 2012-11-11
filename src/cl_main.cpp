@@ -2785,7 +2785,8 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	CLIENT_ClearAllPlayers();
 
 	// If we're connected in any way, send a disconnect signal.
-	if ( g_ConnectionState != CTS_DISCONNECTED )
+	// [BB] But only if we are actually a client. Otherwise we can't send the signal anywhere.
+	if ( ( g_ConnectionState != CTS_DISCONNECTED ) && ( NETWORK_GetState() == NETSTATE_CLIENT ) )
 	{
 		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_QUIT );
 
@@ -2823,6 +2824,10 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	// If we're recording a demo, then finish it!
 	if ( CLIENTDEMO_IsRecording( ))
 		CLIENTDEMO_FinishRecording( );
+
+	// [BB] Also, if we're playing a demo, finish it
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_FinishPlaying( );
 }
 
 //*****************************************************************************
