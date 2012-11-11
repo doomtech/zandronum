@@ -2045,6 +2045,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	chasecam = p->cheats & CF_CHASECAM;
 
 	bOnTeam = p->bOnTeam;
+	const bool bInConsole = p->bInConsole;
 	bSpectating = p->bSpectating;
 	bDeadSpectator = p->bDeadSpectator;
 	ulLivesLeft = p->ulLivesLeft;
@@ -2065,6 +2066,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	ulTime = p->ulTime;
 	lCheats = p->cheats;
 	StartingWeaponName = p->StartingWeaponName;
+	const bool bLagging = p->bLagging;
 
 	// Reset player structure to its defaults
 	p->~player_t();
@@ -2085,6 +2087,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->original_oldbuttons = ~0;
 
 	p->bOnTeam = bOnTeam;
+	p->bInConsole = bInConsole;
 	p->bSpectating = bSpectating;
 	p->bDeadSpectator = bDeadSpectator;
 	p->ulLivesLeft = ulLivesLeft;
@@ -2110,6 +2113,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	if ( lCheats & CF_TIMEFREEZE )
 		p->cheats |= CF_TIMEFREEZE;
 	p->StartingWeaponName = StartingWeaponName;
+	p->bLagging = bLagging;
 	p->bIsBot = p->pSkullBot ? true : false;
 
 	p->playerstate = PST_LIVE;
