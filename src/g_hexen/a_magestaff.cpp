@@ -114,7 +114,8 @@ bool AMageStaffFX2::IsOkayToAttack (AActor *link)
 		{
 			return false;
 		}
-		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && link->player && target->player)
+		// [BB] Added the target check.
+		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && link->player && target && target->player)
 		{
 			return false;
 		}
