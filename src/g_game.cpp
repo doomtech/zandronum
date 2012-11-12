@@ -2045,6 +2045,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	chasecam = p->cheats & CF_CHASECAM;
 
 	bOnTeam = p->bOnTeam;
+	const bool bChatting = p->bChatting;
 	const bool bInConsole = p->bInConsole;
 	bSpectating = p->bSpectating;
 	bDeadSpectator = p->bDeadSpectator;
@@ -2087,6 +2088,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->original_oldbuttons = ~0;
 
 	p->bOnTeam = bOnTeam;
+	p->bChatting = bChatting;
 	p->bInConsole = bInConsole;
 	p->bSpectating = bSpectating;
 	p->bDeadSpectator = bDeadSpectator;
