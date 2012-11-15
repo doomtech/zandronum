@@ -55,6 +55,7 @@
 -	- Fixed: Using reconnect while playing a demo caused the game to crash. [Torr Samaho]
 -	- Fixed: The lag icon was missing from zandronum.pk3. [Torr Samaho]
 -	- Fixed: If a player respawned with a console, chat or lag icon above his head, the icon vanished. [Torr Samaho]
+-	- Fixed: A_M_CheckAttack and A_M_BFGSound would cause desyncs. [Dusk]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 

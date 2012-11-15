@@ -534,6 +534,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_M_CheckAttack)
 
 	if (self->special1 != 0 || self->target == NULL)
 	{
+		// [Dusk] Update the state to clients
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, self->FindState("SkipAttack") );
+
 		self->SetState (self->FindState("SkipAttack"));
 	}
 	else
@@ -726,6 +730,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_M_BFGsound)
 
 	if (self->special1 != 0)
 	{
+		// [Dusk] Update the state change to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, self->SeeState );
+
 		self->SetState (self->SeeState);
 	}
 	else
