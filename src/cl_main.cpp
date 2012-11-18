@@ -537,7 +537,7 @@ void CLIENT_ClearAllPlayers( void )
 		playeringame[ulIdx] = false;
 
 		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
+		PLAYER_ResetPlayerData( &players[ulIdx] );
 	}
 }
 
@@ -3335,7 +3335,7 @@ void CLIENT_ResetConsolePlayerCamera( void )
 
 //*****************************************************************************
 //
-void CLIENT_ResetPlayerData( player_t *pPlayer )
+void PLAYER_ResetPlayerData( player_t *pPlayer )
 {
 	pPlayer->mo = NULL;
 	pPlayer->playerstate = 0;
@@ -5395,7 +5395,7 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 	playeringame[ulPlayer] = false;
 
 	// Zero out all the player information.
-	CLIENT_ResetPlayerData( &players[ulPlayer] );
+	PLAYER_ResetPlayerData( &players[ulPlayer] );
 
 	// Refresh the HUD because this affects the number of players in the game.
 	SCOREBOARD_RefreshHUD( );
