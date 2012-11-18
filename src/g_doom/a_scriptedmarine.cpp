@@ -410,6 +410,10 @@ static void MarinePunch(AActor *self, int damagemul)
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "*fist", 1, ATTN_NORM );
 
 		self->angle = R_PointToAngle2 (self->x, self->y, linetarget->x, linetarget->y);
+
+		// [BB] Update the thing's angle.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingAngle( self );
 	}
 }
 
