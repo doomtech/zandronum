@@ -2772,6 +2772,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	else
 		JOINQUEUE_SpectatorLeftGame( ulClient );
 
+	// [BB] Zero out all the player information (like information about being in console).
+	PLAYER_ResetPlayerData( &players[ulClient] );
+
 	// If this player was the enemy of another bot, tell the bot.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
