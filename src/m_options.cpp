@@ -2355,6 +2355,7 @@ void M_CheckConnectToServer( void )
 		ULONG	ulIdx;
 		bool	bNeedToLoadWads = false;
 		FString	WadList;
+		FString	MissingWadList;
 
 		// If the server uses a PWAD, make sure we have it loaded. If not, ask the user
 		// if he'd like to join the server anyway.
@@ -2365,10 +2366,13 @@ void M_CheckConnectToServer( void )
 			if ( ulIdx + 1 < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )))
 				WadList += " ";
 
-			if ( Wads.CheckIfWadLoaded( BROWSER_GetPWADName( g_lSelectedServer, ulIdx )) == false )
+			if ( Wads.CheckIfWadLoaded( BROWSER_GetPWADName( g_lSelectedServer, ulIdx )) == -1 )
 			{
 				// A needed wad hasn't bee loaded! Signify that we'll need to load wads.
 				bNeedToLoadWads = true;
+				// [BB] Save the wads we are missing so that we can print a meaningful error message.
+				MissingWadList += BROWSER_GetPWADName( g_lSelectedServer, ulIdx );
+				MissingWadList += "\n";
 			}
 		}
 
@@ -2378,6 +2382,8 @@ void M_CheckConnectToServer( void )
 		// Check if we need to load up PWADs before we join the server.
 		if ( bNeedToLoadWads )
 		{
+			I_Error ( "Can't connect to \"%s\". You don't have the following wads loaded:\n%s\nNote: It is recommended to use Doomseeker or IDE to join servers.", BROWSER_GetHostName ( g_lSelectedServer ), MissingWadList.GetChars() );
+
 			gamestate = GS_FULLCONSOLE;
 			if ( 0 )//D_LoadWads( szWadList ))
 			{

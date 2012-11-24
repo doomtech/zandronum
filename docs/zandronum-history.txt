@@ -57,6 +57,7 @@
 -	- Fixed: If a player respawned with a console, chat or lag icon above his head, the icon vanished. [Torr Samaho]
 -	- Fixed: A_M_CheckAttack and A_M_BFGSound would cause desyncs. [Dusk]
 -	- Fixed: In A_M_Punch, the server didn't inform the clients about the changed angle. [Torr Samaho]
+-	- Fixed: The internal server browser tried to connect to servers even though the necessary wads were not loaded. Now it refuses to connect and lists the missing wads instead. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 
 
