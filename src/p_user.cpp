@@ -2108,6 +2108,60 @@ void APlayerPawn::Destroy( void )
 	Super::Destroy( );
 }
 
+//===========================================================================
+//
+// [Dusk] This is in a separate function now.
+//
+//===========================================================================
+fixed_t APlayerPawn::CalcJumpMomz( )
+{
+	fixed_t z = JumpZ * 35 / TICRATE;
+
+	// [BC] If the player has the high jump power, double his jump velocity.
+	if ( player->cheats & CF_HIGHJUMP )
+		z *= 2;
+
+	// [BC] If the player is standing on a spring pad, halve his jump velocity.
+	if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
+		z /= 2;
+
+	return z;
+}
+
+//===========================================================================
+//
+// [Dusk] Calculate the height a player can reach with a jump
+//
+//===========================================================================
+fixed_t APlayerPawn::CalcJumpHeight( bool bAddStepZ )
+{
+	// To get the jump height we simulate a jump with the player's jumpZ with
+	// the environment's gravity. The grav equation was copied from p_mobj.cpp.
+	// Should it be made a function?
+	fixed_t momz = CalcJumpMomz( ),
+	        grav = (fixed_t)(level.gravity * Sector->gravity * FIXED2FLOAT(gravity) * 81.92),
+	        z = 0;
+
+	// This hangs if grav is 0. I'm not sure what to return in such a scenario
+	// so we'll just return 0.
+	if ( grav <= 0 )
+		return 0;
+
+	// Simulate the jump now.
+	while ( momz > 0 )
+	{
+		z += momz;
+		momz -= grav;
+	}
+
+	// The total height the player can reach is the calculated max Z plus the
+	// max step height. I guess the bare max Z value can also be of interest
+	// so the step Z an optional, yes-defaulting parameter.
+	if ( bAddStepZ )
+		z += MaxStepHeight;
+
+	return z;
+}
 
 //===========================================================================
 //
@@ -2700,15 +2754,8 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			ULONG	ulJumpTicks;
 
 			// Set base jump velocity.
-			JumpMomz = player->mo->JumpZ * 35 / TICRATE;
-
-			// [BC] If the player has the high jump power, double his jump velocity.
-			if ( player->cheats & CF_HIGHJUMP )
-				JumpMomz *= 2;
-
-			// [BC] If the player is standing on a spring pad, halve his jump velocity.
-			if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
-				JumpMomz /= 2;
+			// [Dusk] Exported this into a function as I need it elsewhere as well.
+			JumpMomz = player->mo->CalcJumpMomz( );
 
 			// Set base jump ticks.
 			ulJumpTicks = 18 * TICRATE / 35;

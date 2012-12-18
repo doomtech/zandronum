@@ -57,6 +57,7 @@
 #include "p_local.h"
 #include "r_defs.h"
 #include "r_main.h"
+#include "p_3dmidtex.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -462,6 +463,9 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 	OneStepDeltaX = XDistance / lNumSteps;
 	OneStepDeltaY = YDistance / lNumSteps;
 
+	// [Dusk] Calculate the jump height the bot has instead of relying on a hardcoded 60.
+	fixed_t jumpheight = static_cast<APlayerPawn*>( pActor )->CalcJumpHeight( );
+
 	do
 	{
 		X = StartX + Scale( XDistance, lCurrentStep, lNumSteps );
@@ -626,7 +630,7 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 				{
 					if ( lHeightChange <= 0 /*gameinfo.StepHeight*/ )
 						ulFlags |= BOTPATH_STAIRS;
-					else if ( lHeightChange <= ( 60 * FRACUNIT ))
+					else if ( lHeightChange <= jumpheight )
 						ulFlags |= BOTPATH_JUMPABLELEDGE;
 					else
 					{
@@ -638,6 +642,32 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 				{
 					if ( lHeightChange <= -( 64 * FRACUNIT ))
 						ulFlags |= BOTPATH_DROPOFF;
+				}
+
+				// [Dusk] Check if a 3D midtexture blocks the bot
+				if ( pLine->flags & ML_3DMIDTEX ) {
+					fixed_t mid3d_top, mid3d_bot;
+
+					if ( P_GetMidTexturePosition( pLine, lLineSide, &mid3d_top, &mid3d_bot )) {
+						// If the 3d midtexture top is of appropriate height,
+						// it is a railing. Jump over it.
+						if ( mid3d_top > pActor->z + pActor->MaxStepHeight &&
+							mid3d_top <= pActor->z + jumpheight )
+						{
+							// If the ceiling is too low, we can't jump there
+							// and the path is obstructed.
+							if ( pFrontSector->ceilingplane.ZatPoint( 0, 0 ) - mid3d_top < pActor->height )
+								return ( ulFlags | BOTPATH_OBSTRUCTED );
+
+							ulFlags |= BOTPATH_JUMPABLELEDGE;
+						}
+						else if ( mid3d_top > pActor->z + pActor->MaxStepHeight &&
+							mid3d_bot < pActor->z + pActor->height )
+						{
+							// 3d midtex blocks the path and we can't jump over it.
+							return ( ulFlags | BOTPATH_OBSTRUCTED );
+						}
+					}
 				}
 
 				switch ( pBackSector->special )

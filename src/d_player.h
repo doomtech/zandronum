@@ -118,6 +118,10 @@ public:
 	void PlayAttacking2 ();
 	const char *GetSoundClass ();
 
+	// [Dusk]
+	fixed_t CalcJumpMomz( );
+	fixed_t CalcJumpHeight( bool bAddStep = true );
+
 	enum EInvulState
 	{
 		INVUL_Start,
