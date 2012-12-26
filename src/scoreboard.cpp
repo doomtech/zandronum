@@ -618,7 +618,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 
 bool SCOREBOARD_IsUsingNewHud( void )
 {
-	if( cl_stfullscreenhud && gameinfo.gametype == GAME_Doom )
+	if( cl_stfullscreenhud && ( gameinfo.gametype & GAME_DoomChex ) )
 		return true;
 	else
 		return false;

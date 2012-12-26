@@ -1804,7 +1804,7 @@ DBaseStatusBar *CreateStatusBar ()
 		int cstype = SBarInfoScript[SCRIPT_CUSTOM]->GetGameType();
 
 		// [BB] Skulltag doesn't use the SBARINFO version of the Doom status bar yet.
-		if(cstype == GAME_Doom)
+		if( ( cstype & GAME_DoomChex ) )
 		{
 			sbar = CreateDoomStatusBar ();
 		}
