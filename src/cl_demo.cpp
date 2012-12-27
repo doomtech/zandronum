@@ -804,7 +804,13 @@ CCMD( demo_skiptics )
 		return;
 
 	if ( argv.argc() > 1 )
-		g_ulTicsToSkip = atoi ( argv[1] );
+	{
+		const int ticsToSkip = atoi ( argv[1] );
+		if ( ticsToSkip >= 0 )
+			g_ulTicsToSkip = static_cast<ULONG> ( ticsToSkip );
+		else
+			Printf ( "You can't skip a negative amount of tics!\n" );
+	}
 }
 
 CCMD( demo_spectatefreely )
