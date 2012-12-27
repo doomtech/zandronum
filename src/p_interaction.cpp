@@ -2193,8 +2193,31 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	// Set the team.
 	pPlayer->ulTeam = ulTeam;
 
+	// [BB] Keep track of the original playerstate. In case it's altered by TEAM_EnsurePlayerHasValidClass,
+	// the player had a class forbidden to the new team and needs to be respawned.
+	const int origPlayerstate = pPlayer->playerstate;
+
 	// [BB] Make sure that the player only uses a class available to his team.
 	TEAM_EnsurePlayerHasValidClass ( pPlayer );
+
+	// [BB] The class was changed, so we remove the old player body and respawn the player immediately.
+	if ( ( pPlayer->playerstate != origPlayerstate ) && ( pPlayer->playerstate == PST_REBORNNOINVENTORY ) )
+	{
+		// [BB] Morphed players need to be unmorphed before changing teams.
+		if ( pPlayer->morphTics )
+			P_UndoPlayerMorph ( pPlayer, pPlayer );
+
+		if ( pPlayer->mo )
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( pPlayer->mo );
+
+			pPlayer->mo->Destroy( );
+			pPlayer->mo = NULL;
+		}
+
+		GAMEMODE_SpawnPlayer ( pPlayer - players );
+	}
 
 	// If we're the server, tell clients about this team change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
