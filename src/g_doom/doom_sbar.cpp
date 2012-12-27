@@ -569,27 +569,27 @@ void DrawFullHUD_Health()
 {
 	// Start by drawing the medkit.
 	HUD_DrawTexture( TexMan["MEDIA0"],
-		ulCurXPos + ( TexMan["MEDIA0"]->GetWidth( ) / 2 ),
+		ulCurXPos + ( healthArmorTexWidth / 2 ),
 		ulCurYPos );
 
 	// Next, draw the health xxx/xxx string. This has to be done in parts to get the right spacing.
 	{
 		sprintf( szString, "%d", CPlayer->health );
 		HUD_DrawText( ConFont, CR_RED,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 			ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 
 		sprintf( szString, "/" );
 		HUD_DrawText( ConFont, CR_WHITE,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200" ),
 			ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 
 		LONG lMaxHealth = CPlayer->mo ? CPlayer->mo->GetMaxHealth() : deh.StartHealth;
 		sprintf( szString, "%d", static_cast<int> (( CPlayer->cheats & CF_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : lMaxHealth + CPlayer->lMaxHealthBonus) );
 		HUD_DrawText( ConFont, CR_RED,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 			ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 	}
@@ -598,44 +598,36 @@ void DrawFullHUD_Health()
 void DrawFullHUD_Armor()
 {
 	ulCurYPos -= TexMan["MEDIA0"]->GetHeight( ) + 4;
-	if ( CPlayer->mo )
-		pArmor = CPlayer->mo->FindInventory<ABasicArmor>( );
-	else
-		pArmor = NULL;
-	
+
 	// [RC] No armor? Then don't draw this.
 	if ( !pArmor || pArmor->Amount <= 0 )
 		return;
 
-	// [BB] If pArmor->Icon is an invalid texture, TexMan returns a NULL pointer.
-	if ( pArmor && pArmor->Icon.isValid() )
-		sprintf( szPatchName, "%s", TexMan[pArmor->Icon]->Name );
-	else
-		sprintf( szPatchName, "ARM1A0" );
+	const int armorHeight = MAX ( TexMan["ARM1A0"]->GetHeight(), armorTex->GetHeight( ) );
 
-	HUD_DrawTexture( TexMan[szPatchName],
-		ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
-		ulCurYPos );
+	HUD_DrawTexture( armorTex,
+		ulCurXPos + ( healthArmorTexWidth / 2 ),
+		ulCurYPos - ( armorHeight - armorTex->GetHeight( ) ) / 2);
 
 	// Next, draw the armor xxx/xxx string. This has to be done in parts to get the right
 	// spacing.
 	{
 		sprintf( szString, "%d", pArmor ? pArmor->Amount : 0 );
 		HUD_DrawText( ConFont, CR_RED,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
-			ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+			ulCurYPos - ( armorHeight / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 
 		sprintf( szString, "/" );
 		HUD_DrawText( ConFont, CR_WHITE,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
-			ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200" ),
+			ulCurYPos - ( armorHeight / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 
 		sprintf( szString, "%d", ( CPlayer->cheats & CF_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + (pArmor ? pArmor->BonusCount : 0) );
 		HUD_DrawText( ConFont, CR_RED,
-			ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
-			ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+			ulCurXPos + ( healthArmorTexWidth ) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+			ulCurYPos - ( armorHeight / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 			szString );
 	}
 }
@@ -1234,6 +1226,8 @@ void DrawFullHUD_GameInformation()
 	AAmmo			*pAmmo2;
 	int				iAmmoCount1;
 	int				iAmmoCount2;
+	FTexture*		armorTex;
+	int				healthArmorTexWidth;
 	void DrawFullScreenStuffST( void )
 	{
 		// No need to draw this if we're spectating.
@@ -1272,6 +1266,20 @@ void DrawFullHUD_GameInformation()
 		}
 		else
 		{
+			// [BB] Initialize some stuff to draw health and armor.
+			if ( CPlayer->mo )
+				pArmor = CPlayer->mo->FindInventory<ABasicArmor>( );
+			else
+				pArmor = NULL;
+
+			// [BB] If pArmor->Icon is an invalid texture, TexMan returns a NULL pointer.
+			if ( pArmor && pArmor->Icon.isValid() )
+				armorTex = TexMan[pArmor->Icon];
+			else
+				armorTex = TexMan["ARM1A0"];
+
+			healthArmorTexWidth = MAX ( MAX ( TexMan["MEDIA0"]->GetWidth(), TexMan["ARM1A0"]->GetWidth() ) , armorTex->GetWidth() );
+
 			// Draw health.
 			if( !( instagib && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )) // [RC] Hide in instagib (when playing instagib)
 				DrawFullHUD_Health();
