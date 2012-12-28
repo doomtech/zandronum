@@ -82,6 +82,8 @@ set( BZIP2_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bzip2" )
 set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lzma/C" )
 
 add_subdirectory( bzip2 )
+# [BB] Library that allows to map IP addresses to country names.
+add_subdirectory( GeoIP )
 add_subdirectory( lzma )
 add_subdirectory( tools )
 add_subdirectory( snes_spc )

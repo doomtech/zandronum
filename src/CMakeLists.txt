@@ -952,7 +952,8 @@ if( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} snes_spc )
 endif( NOT NO_SOUND )
 
-target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb bzip2 lzma )
+# [BB] Added GeoIP
+target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb bzip2 lzma GeoIP )
 include_directories( .
 	g_doom
 	g_heretic
