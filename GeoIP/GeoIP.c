@@ -20,6 +20,25 @@
 
 #include "GeoIP.h"
 
+// [BB] Add some stuff missing in VC++.
+#ifdef _MSC_VER
+
+#include <io.h>
+
+#ifndef ssize_t
+typedef long ssize_t;
+#endif
+
+ssize_t pread(unsigned int fd, char *buf, size_t count, int offset)
+{
+	if (_lseek(fd, offset, SEEK_SET) != offset) {
+		return -1;
+	}
+	return _read(fd, buf, count);
+}
+
+#endif
+
 static geoipv6_t IPV6_NULL;
 
 #if !defined(_WIN32) 
@@ -1931,10 +1950,12 @@ unsigned GeoIP_num_countries(void)
        return num_GeoIP_countries;
 }
 
+/* [BB] We don't need this.
 const char * GeoIP_lib_version(void)
 {
        return PACKAGE_VERSION;
 }
+*/
 
 int GeoIP_cleanup(void)
 {
