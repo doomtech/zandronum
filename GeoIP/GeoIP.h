@@ -21,8 +21,11 @@
 #ifndef GEOIP_H
 #define GEOIP_H
 
+// [BB] VC++ doesn't allow everything to be extern "C".
+#ifndef _MSC_VER
 #ifdef __cplusplus
 extern "C" {
+#endif
 #endif
 
 #include <sys/types.h>
@@ -39,6 +42,13 @@ extern "C" {
 #define FILETIME_TO_USEC(ft) (((unsigned __int64) ft.dwHighDateTime << 32 | ft.dwLowDateTime) / 10) 
 #endif /* !defined(_WIN32) */ 
  
+// [BB]
+#ifdef _MSC_VER
+#ifdef __cplusplus
+extern "C" {
+#endif
+#endif
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
