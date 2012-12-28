@@ -1489,10 +1489,15 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 	if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
 	{
+		// [K6/BB] Show the player's country on connect, if the GeoIP db is available.
+		FString countryInfo;
+		if ( NETWORK_IsGeoIPAvailable() )
+			countryInfo.AppendFormat ( " (from: %s)", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( g_lCurrentClient )->Address ).GetChars() );
+
 		if ( players[g_lCurrentClient].bSpectating )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-has connected.\n", players[g_lCurrentClient].userinfo.netname );
+			SERVER_Printf( PRINT_HIGH, "%s \\c-has connected.%s\n", players[g_lCurrentClient].userinfo.netname, countryInfo.GetChars() );
 		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-entered the game.\n", players[g_lCurrentClient].userinfo.netname );
+			SERVER_Printf( PRINT_HIGH, "%s \\c-entered the game.%s\n", players[g_lCurrentClient].userinfo.netname, countryInfo.GetChars() );
 	}
 
 	BOTCMD_SetLastJoinedPlayer( players[g_lCurrentClient].userinfo.netname );

@@ -1222,6 +1222,10 @@ CCMD (playerinfo)
 					// [BB] If we detected suspicious behavior of this client, print this now.
 					if ( SERVER_GetClient( i )->bSuspicious )
 						infoString.AppendFormat ( " * %lu", SERVER_GetClient( i )->ulNumConsistencyWarnings );
+
+					// [K6/BB] Show the player's country, if the GeoIP db is available.
+					if ( NETWORK_IsGeoIPAvailable() )
+						infoString.AppendFormat ( "\\ce - FROM %s", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( i )->Address ).GetChars() );
 				}
 
 				Printf("%s\n", infoString.GetChars());
