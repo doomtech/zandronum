@@ -67,6 +67,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <list>
+#include "../GeoIP/GeoIP.h"
 
 #include "c_dispatch.h"
 #include "cl_demo.h"
@@ -138,6 +139,9 @@ NETADDRESS_s	g_LocalAddress;
 
 // [BB]
 static	TArray<const PClass*> g_ActorNetworkIndexClassPointerMap;
+
+// [BB]
+static GeoIP * g_GeoIPDB = NULL;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -410,6 +414,16 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// [RC/BB] Init the list of PWADs.
 	network_InitPWADList( );
 
+	// [BB] Initialize the GeoIP database.
+	if( NETWORK_GetState() == NETSTATE_SERVER )
+	{
+		g_GeoIPDB = GeoIP_new ( GEOIP_STANDARD );
+		if ( g_GeoIPDB != NULL )
+			Printf( "GeoIP initialized.\n" );
+		else
+			Printf( "GeoIP initialization failed.\n" );
+	}
+
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
 
@@ -422,6 +436,9 @@ void NETWORK_Destruct( void )
 {
 	// Free the network message buffer.
 	NETWORK_FreeBuffer( &g_NetworkMessage );
+
+	// [BB] Delete the GeoIP database.
+	GeoIP_delete ( g_GeoIPDB );
 }
 
 //*****************************************************************************
@@ -838,6 +855,31 @@ ULONG NETWORK_ntohs( ULONG ul )
 USHORT NETWORK_GetLocalPort( void )
 {
 	return ( g_usLocalPort );
+}
+
+//*****************************************************************************
+// [BB] 
+bool NETWORK_IsGeoIPAvailable ( void )
+{
+	return ( g_GeoIPDB != NULL );
+}
+
+//*****************************************************************************
+// [BB] 
+FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
+{
+	const char * addressString = NETWORK_AddressToStringIgnorePort( Address );
+	Printf ( "%s\n", addressString );
+	if ( ( strnicmp( "10.", addressString, 3 ) == 0 ) ||
+		 ( strnicmp( "192.168.", addressString, 8 ) == 0 ) ||
+		 ( strnicmp( "127.", addressString, 4 ) == 0 ) )
+		return "LAN";
+
+	if ( g_GeoIPDB == NULL )
+		return "";
+
+	FString country = GeoIP_country_code_by_addr ( g_GeoIPDB, NETWORK_AddressToStringIgnorePort( Address ) );
+	return country.IsEmpty() ? "N/A" : country;
 }
 
 //*****************************************************************************
