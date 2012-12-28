@@ -20,6 +20,11 @@
 
 #include "GeoIP.h"
 
+// [BB] If GEOIPDATADIR is not defined, assume the file is in the current directory.
+#ifndef GEOIPDATADIR
+#define GEOIPDATADIR "."
+#endif
+
 // [BB] Add some stuff missing in VC++.
 #ifdef _MSC_VER
 
