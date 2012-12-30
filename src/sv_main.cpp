@@ -2658,11 +2658,11 @@ void SERVER_WriteCommands( void )
 				if ( ( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ) )
 					continue;
 
-				const int afkKickTick = ( g_aClients[ulIdx].lLastActionTic + ( sv_afk2spec.GetGenericRep( CVAR_Int ).Int * MINUTE * TICRATE ));
+				const int afkKickTick = ( g_aClients[ulIdx].lLastActionTic + ( sv_afk2spec * MINUTE * TICRATE ));
 				if ( afkKickTick <= gametic )
 				{
 					FString specReason;
-					specReason.Format ( "AFK for %d minute%s.", sv_afk2spec.GetGenericRep( CVAR_Int ), sv_afk2spec == 1 ? "" : "s" );
+					specReason.Format ( "AFK for %d minute%s.", sv_afk2spec.GetGenericRep( CVAR_Int ).Int, sv_afk2spec == 1 ? "" : "s" );
 					SERVER_KickPlayerFromGame( ulIdx, specReason.GetChars() );
 				}
 				// [BB] Warn the player before forcing him to spectate, if that's going to happen in no more than 30 seconds.
