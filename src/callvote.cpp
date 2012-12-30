@@ -154,8 +154,14 @@ void CALLVOTE_Tick( void )
 					( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
+					// [Dusk] Write the kick reason into the ban reason, [BB] but only if it's not empty.
 					if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
-						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d.\"", NETWORK_AddressToString( g_KickVoteVictimAddress ), static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
+					{
+						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d", NETWORK_AddressToString( g_KickVoteVictimAddress ), static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
+						if ( g_VoteReason.IsNotEmpty() )
+							g_VoteCommand.AppendFormat ( " (%s)", g_VoteReason.GetChars( ) );
+						g_VoteCommand += ".\"";
+					}
 
 					AddCommandString( (char *)g_VoteCommand.GetChars( ));
 				}

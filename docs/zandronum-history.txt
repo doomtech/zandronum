@@ -29,6 +29,7 @@
 +	- The client connect options cl_startasspectator and cl_dontrestorefrags are now collected as flags in the new CVAR cl_connect_flags. [Torr Samaho]
 +	- A player's country code (determined based on the player's IP) is shown on connect and in the output of the CCMD playerinfo, if a GeoIP.dat compatible with MaxMind's GeoIP library is in the directory of the server binary. The implementation is based on Konar6's kpatch. [Torr Samaho]
 +	- Clients can prevent their country code from being shown to the other players with the new connect option CVAR cl_hidecountry (default false). [Torr Samaho]
++	- If a reason for a kick vote is given, this reason is now included in the ban reason (adapted form Konar6's kpatch). [Dusk, Torr Samaho]
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]
