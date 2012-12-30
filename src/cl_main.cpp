@@ -898,8 +898,7 @@ void CLIENT_AttemptConnection( void )
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_ATTEMPTCONNECTION );
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, DOTVERSIONSTR );
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, cl_password.GetGenericRep( CVAR_String ).String );
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_connect_flags );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
 	NETWORK_WriteString( &g_LocalBuffer.ByteStream, g_lumpsAuthenticationChecksum.GetChars() );
 }
@@ -12328,8 +12327,9 @@ CVAR( Float, cl_motdtime, 5.0, CVAR_ARCHIVE )
 CVAR( Bool, cl_taunts, true, CVAR_ARCHIVE )
 CVAR( Int, cl_showcommands, 0, CVAR_ARCHIVE )
 CVAR( Int, cl_showspawnnames, 0, CVAR_ARCHIVE )
-CVAR( Bool, cl_startasspectator, true, CVAR_ARCHIVE )
-CVAR( Bool, cl_dontrestorefrags, false, CVAR_ARCHIVE )
+CVAR( Int, cl_connect_flags, CCF_STARTASSPECTATOR, CVAR_ARCHIVE );
+CVAR( Flag, cl_startasspectator, cl_connect_flags, CCF_STARTASSPECTATOR );
+CVAR( Flag, cl_dontrestorefrags, cl_connect_flags, CCF_DONTRESTOREFRAGS )
 // [BB] Don't archive the passwords! Otherwise Skulltag would always send
 // the last used passwords to all servers it connects to.
 CVAR( String, cl_password, "password", 0 )

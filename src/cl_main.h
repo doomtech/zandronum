@@ -89,6 +89,13 @@ typedef enum
 
 } CONNECTIONSTATE_e;
 
+//[BB] Client connect flags.
+enum
+{
+	CCF_STARTASSPECTATOR			= 1 << 0,
+	CCF_DONTRESTOREFRAGS			= 1 << 1,
+};
+
 //*****************************************************************************
 //	STRUCTURES
 
@@ -187,8 +194,9 @@ EXTERN_CVAR( Float, cl_motdtime )
 EXTERN_CVAR( Bool, cl_taunts )
 EXTERN_CVAR( Int, cl_showcommands )
 EXTERN_CVAR( Int, cl_showspawnnames )
-EXTERN_CVAR( Bool, cl_startasspectator )
-EXTERN_CVAR( Bool, cl_dontrestorefrags )
+EXTERN_CVAR( Int, cl_connect_flags )
+EXTERN_CVAR( Flag, cl_startasspectator )
+EXTERN_CVAR( Flag, cl_dontrestorefrags )
 EXTERN_CVAR( String, cl_password )
 EXTERN_CVAR( String, cl_joinpassword )
 EXTERN_CVAR( Bool, cl_hitscandecalhack )

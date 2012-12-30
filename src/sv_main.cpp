@@ -112,6 +112,7 @@
 #include "gamemode.h"
 #include "domination.h"
 #include "a_movingcamera.h"
+#include "cl_main.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -1763,7 +1764,6 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 			NETWORK_ReadString( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
-			NETWORK_ReadByte( pByteStream );
 			// [BB] Lump authentication string.
 			NETWORK_ReadString( pByteStream );
 			return;
@@ -1787,11 +1787,14 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	clientPassword = NETWORK_ReadString( pByteStream );
 	clientPassword.ToUpper();
 
-	// Read in whether or not the client wants to start as a spectator.
-	g_aClients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( pByteStream );
+	// [BB] Read in the client connection flags.
+	const int connectFlags = NETWORK_ReadByte( pByteStream );
 
 	// Read in whether or not the client wants to start as a spectator.
-	g_aClients[lClient].bWantNoRestoreFrags = !!NETWORK_ReadByte( pByteStream );
+	g_aClients[lClient].bWantStartAsSpectator = !!( connectFlags & CCF_STARTASSPECTATOR );
+
+	// Read in whether or not the client wants to start as a spectator.
+	g_aClients[lClient].bWantNoRestoreFrags = !!( connectFlags & CCF_DONTRESTOREFRAGS );
 
 	// Read in the client's network game version.
 	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
