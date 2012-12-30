@@ -226,6 +226,9 @@ typedef struct
 	// Client doesn't want his fragcount restored if he is reconnecting to the server.
 	bool			bWantNoRestoreFrags;
 
+	// [BB] Client doesn't want his country to be revealed to the other players.
+	bool			bWantHideCountry;
+
 	// [BB] A record of the gametics the client called protected commands, e.g. send_password.
 	RingBuffer<LONG, 6> commandInstances;
 

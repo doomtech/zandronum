@@ -1492,7 +1492,8 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	{
 		// [K6/BB] Show the player's country on connect, if the GeoIP db is available.
 		FString countryInfo;
-		if ( NETWORK_IsGeoIPAvailable() )
+		// [BB] All players see the connect message, so only show the country code if the player doesn't want it to be hidden.
+		if ( NETWORK_IsGeoIPAvailable() && ( SERVER_GetClient( g_lCurrentClient )->bWantHideCountry == false ) )
 			countryInfo.AppendFormat ( " (from: %s)", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( g_lCurrentClient )->Address ).GetChars() );
 
 		if ( players[g_lCurrentClient].bSpectating )
@@ -1795,6 +1796,9 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	// Read in whether or not the client wants to start as a spectator.
 	g_aClients[lClient].bWantNoRestoreFrags = !!( connectFlags & CCF_DONTRESTOREFRAGS );
+
+	// [BB] Save whether the clients wants his country to be hidden.
+	g_aClients[lClient].bWantHideCountry = !!( connectFlags & CCF_HIDECOUNTRY );
 
 	// Read in the client's network game version.
 	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );

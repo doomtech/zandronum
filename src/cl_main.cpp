@@ -12330,6 +12330,7 @@ CVAR( Int, cl_showspawnnames, 0, CVAR_ARCHIVE )
 CVAR( Int, cl_connect_flags, CCF_STARTASSPECTATOR, CVAR_ARCHIVE );
 CVAR( Flag, cl_startasspectator, cl_connect_flags, CCF_STARTASSPECTATOR );
 CVAR( Flag, cl_dontrestorefrags, cl_connect_flags, CCF_DONTRESTOREFRAGS )
+CVAR( Flag, cl_hidecountry, cl_connect_flags, CCF_HIDECOUNTRY )
 // [BB] Don't archive the passwords! Otherwise Skulltag would always send
 // the last used passwords to all servers it connects to.
 CVAR( String, cl_password, "password", 0 )

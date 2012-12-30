@@ -94,6 +94,7 @@ enum
 {
 	CCF_STARTASSPECTATOR			= 1 << 0,
 	CCF_DONTRESTOREFRAGS			= 1 << 1,
+	CCF_HIDECOUNTRY					= 1 << 2,
 };
 
 //*****************************************************************************
