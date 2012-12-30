@@ -869,7 +869,6 @@ bool NETWORK_IsGeoIPAvailable ( void )
 FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
 {
 	const char * addressString = NETWORK_AddressToStringIgnorePort( Address );
-	Printf ( "%s\n", addressString );
 	if ( ( strnicmp( "10.", addressString, 3 ) == 0 ) ||
 		 ( strnicmp( "192.168.", addressString, 8 ) == 0 ) ||
 		 ( strnicmp( "127.", addressString, 4 ) == 0 ) )
