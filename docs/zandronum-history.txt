@@ -65,6 +65,7 @@
 -	- Fixed: The internal server browser tried to connect to servers even though the necessary wads were not loaded. Now it refuses to connect and lists the missing wads instead. [Torr Samaho]
 -	- Fixed: demo_skiptics with a negative argument could crash the game. [Torr Samaho]
 -	- Fixed: If the team of a player with a class limited to the current team was changed to another team, the automatic respawning with a valid class left behind a ghost at the old position of the player. [Torr Samaho]
+-	- Fixed: A malformed kick reason could crash the server. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

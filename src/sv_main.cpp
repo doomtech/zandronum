@@ -3294,7 +3294,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, szKickString );
+		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
 	}
 
 	// If we're kicking a bot, just remove him.
