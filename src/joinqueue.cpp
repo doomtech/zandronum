@@ -272,6 +272,8 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
 		{
+			// [K6] Reset their AFK timer now - they may have been waiting in the queue silently and we don't want to kick them.
+			SERVER_GetClient( g_lJoinQueue[ulIdx].ulPlayer )->lLastActionTic = gametic;
 			PLAYER_SpectatorJoinsGame ( &players[g_lJoinQueue[ulIdx].ulPlayer] );
 
 			// [BB/Spleen] The "lag interval" is only half of the "spectate info send" interval. Account for this here.

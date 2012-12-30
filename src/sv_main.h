@@ -284,6 +284,9 @@ typedef struct
 	// [RC] List of IP addresses that this client is ignoring.
 	std::list<STORED_QUERY_IP_s> IgnoredAddresses;
 
+	// [K6] Last tic we got some action from the client. Used to determine his presence.
+	LONG			lLastActionTic;
+
 } CLIENT_s;
 
 //*****************************************************************************

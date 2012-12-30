@@ -261,6 +261,7 @@ CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nodrop, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
+CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE ) // [K6]
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
 {
@@ -2647,6 +2648,32 @@ void SERVER_WriteCommands( void )
 			// Also, update the scoreboard.
 			SERVERCONSOLE_UpdatePlayerInfo( ulIdx, UDF_PING );
 		}
+
+		// [K6] Also check for afk players
+		if ( sv_afk2spec )
+		{
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
+			{
+				// [BB] Don't kick dead spectators for inactivity.
+				if ( ( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ) )
+					continue;
+
+				const int afkKickTick = ( g_aClients[ulIdx].lLastActionTic + ( sv_afk2spec.GetGenericRep( CVAR_Int ).Int * MINUTE * TICRATE ));
+				if ( afkKickTick <= gametic )
+				{
+					FString specReason;
+					specReason.Format ( "AFK for %d minute%s.", sv_afk2spec.GetGenericRep( CVAR_Int ), sv_afk2spec == 1 ? "" : "s" );
+					SERVER_KickPlayerFromGame( ulIdx, specReason.GetChars() );
+				}
+				// [BB] Warn the player before forcing him to spectate, if that's going to happen in no more than 30 seconds.
+				else if ( afkKickTick - 30 * TICRATE <= gametic )
+				{
+					const int secondsToKick = ( afkKickTick - gametic ) / TICRATE;
+					if ( secondsToKick > 1 )
+						SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "Warning: In %d seconds you will be forced to spectate due to inactivity!\n", secondsToKick );
+				}
+			}
+		}
 	}
 
 	// Once every minute, update the level time.
@@ -3961,6 +3988,23 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 //
 bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 {
+	// [BB] Almost all clients commands are considered to be activity and reset the afk timer.
+	switch ( lCommand )
+	{
+	case CLC_QUIT:
+	case CLC_CLIENTMOVE:
+	case CLC_MISSINGPACKET:
+	case CLC_PONG:
+	case CLC_SPECTATE:
+	case CLC_SPECTATEINFO:
+	case CLC_CHANGEDISPLAYPLAYER:
+	case CLC_AUTHENTICATELEVEL:
+		break;
+	default:
+		g_aClients[g_lCurrentClient].lLastActionTic = gametic;
+		break;
+	}
+
 	switch ( lCommand )
 	{
 	case CLC_USERINFO:
@@ -4639,6 +4683,8 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		( pCmd->ucmd.sidemove != 0 ) ||
 		( pCmd->ucmd.upmove != 0 ))
 	{
+		// [K6/BB] The client is pressing a button, so not afk.
+		g_aClients[g_lCurrentClient].lLastActionTic = gametic;
 		if ( pPlayer->bChatting )
 		{
 			pPlayer->bChatting = false;
