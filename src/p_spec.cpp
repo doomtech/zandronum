@@ -228,7 +228,13 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 	{
 		// [BB] It's possible, that a monster exits the level, so self->player can be 0.
 		if( self->player != 0 )
-			Printf ("%s \\c-exited the level.\n", self->player->userinfo.netname);
+		{
+			// [K6/BB] The server should let the clients know who exited the level.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_Printf( PRINT_HIGH, "%s \\c-exited the level.\n", self->player->userinfo.netname);
+			else
+				Printf ("%s \\c-exited the level.\n", self->player->userinfo.netname);
+		}
 	}
 	return true;
 }
