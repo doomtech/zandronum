@@ -61,6 +61,7 @@
 //	CONSOLE VARIABLES
 
 CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
+EXTERN_CVAR( Int, con_notifylines )
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -132,7 +133,9 @@ void DrawHUD_CoopInfo()
 	// [BB] We may not draw in the first 4 lines, this is reserved for chat messages.
 	// Leave free another line to prevent the keys from being drawn over in ST's
 	// fullscreen HUD.
-	const int yOffset = 5 * SmallFont->GetHeight( );
+	// [Dusk] Said message field can now have an arbitrary amount of lines, so
+	// we cannot assume the default 4.
+	const int yOffset = ( 1 + con_notifylines ) * SmallFont->GetHeight( );
 	int playersDrawn = 0;
 
 	for ( int i = 0; i < MAXPLAYERS; i++ )

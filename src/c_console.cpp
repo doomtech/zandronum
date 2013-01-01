@@ -201,15 +201,30 @@ CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
 // [BB] Prepend the current date to the per-line timestamp.
 CVAR (Bool, sv_logfiletimestamp_usedate, false, CVAR_ARCHIVE)
 
-#define NUMNOTIFIES 4
+// [Dusk] This now refers to con_notifylines instead of hardcoded 4.
+#define NUMNOTIFIES (NotifyStrings.Size()) // 4
 #define NOTIFYFADETIME 6
 
-static struct NotifyText
+// [Dusk] Changed from C-style array to TArray, typedefing the
+// struct type in the process.
+/*static*/ typedef struct NotifyText
 {
 	int TimeOut;
 	int PrintLevel;
 	FString Text;
-} NotifyStrings[NUMNOTIFIES];
+} NotifyText_t; // NotifyStrings[NUMNOTIFIES];
+static TArray<NotifyText_t> NotifyStrings;
+
+// [Dusk] Make the amount of notify lines user configurable.
+CUSTOM_CVAR (Int, con_notifylines, 4, CVAR_ARCHIVE)
+{
+	// This must not be negative!
+	if ( self <= 0 )
+		self = 1;
+
+	// Whenever this is changed, the array needs to be resize to fit.
+	NotifyStrings.Resize( self );
+}
 
 static int NotifyTop, NotifyTopGoal;
 
@@ -457,6 +472,9 @@ void C_InitConsole (int width, int height, bool ingame)
 		if (fmtLines)
 			free (fmtLines);
 	}
+
+	// [Dusk] Initialize NotifyStrings
+	NotifyStrings.Resize( con_notifylines );
 }
 
 //==========================================================================

@@ -31,6 +31,7 @@
 +	- Clients can prevent their country code from being shown to the other players with the new connect option CVAR cl_hidecountry (default false). [Torr Samaho]
 +	- If a reason for a kick vote is given, this reason is now included in the ban reason (adapted form Konar6's kpatch). [Dusk, Torr Samaho]
 +	- Added the "afk2spec" system from Konar6's kpatch (controlled by the new CVAR sv_afk2spec that specifies the number of minutes a player has to be idle before being forced to spectate). Different from kpatch, players are warned before they are forced to spectate and dead spectators are not forced to spectate. [Torr Samaho]
++	- Added CVAR con_notifylines that allows users to set how many lines the notify field should extend to. [Dusk]
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]
