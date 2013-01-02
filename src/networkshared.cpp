@@ -1145,7 +1145,8 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 		{
 			messageStream << ". Just updating the expiration date and reason.\n";
 			_ipVector[ulIdx].tExpirationDate = tExpiration;
-			strcpy( _ipVector[ulIdx].szComment, szOutString );
+			strncpy( _ipVector[ulIdx].szComment, szOutString, 127 );
+			_ipVector[ulIdx].szComment[127] = 0;
 			rewriteListToFile();
 		}
 		else
@@ -1161,7 +1162,8 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	sprintf( newIPEntry.szIP[1], "%s", pszIP1 );
 	sprintf( newIPEntry.szIP[2], "%s", pszIP2 );
 	sprintf( newIPEntry.szIP[3], "%s", pszIP3 );
-	sprintf( newIPEntry.szComment, "%s", szOutString );
+	strncpy( newIPEntry.szComment, szOutString, 127 );
+	newIPEntry.szComment[127] = 0;
 	newIPEntry.tExpirationDate = tExpiration;
 	_ipVector.push_back( newIPEntry );
 
