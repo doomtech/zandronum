@@ -221,6 +221,9 @@ CUSTOM_CVAR (Int, con_notifylines, 4, CVAR_ARCHIVE)
 	// This must not be negative!
 	if ( self <= 0 )
 		self = 1;
+	// [BB] Also don't allow this to be too big.
+	else if ( self > 50 )
+		self = 50;
 
 	// Whenever this is changed, the array needs to be resize to fit.
 	NotifyStrings.Resize( self );
