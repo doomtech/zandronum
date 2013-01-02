@@ -380,6 +380,40 @@ void CLIENTDEMO_WritePacket( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+void CLIENTDEMO_InsertPacket( BYTESTREAM_s *pByteStream, BYTE *pPosition )
+{
+	// [BB] We can write to the current position of our stream without any special treatment.
+	if ( pPosition == CLIENTDEMO_GetDemoStream()->pbStream )
+		CLIENTDEMO_WritePacket( pByteStream );
+	// [BB] If we are supposed to write to a previous position, we have to move what's already there..
+	else if ( pPosition < CLIENTDEMO_GetDemoStream()->pbStream )
+	{
+		// [BB] Make sure we have enough space for the new command.
+		clientdemo_CheckDemoBuffer( pByteStream->pbStreamEnd - pByteStream->pbStream );
+
+		// [BB] Save the stuff currently at the desired position.
+		const int bytesToCopy = CLIENTDEMO_GetDemoStream()->pbStream - pPosition;
+		BYTE *copyBuffer = new BYTE[bytesToCopy];
+		memcpy( copyBuffer, pPosition, bytesToCopy );
+
+		// [BB] Change our demo stream to the desired position and write the incoming packet there.
+		CLIENTDEMO_GetDemoStream()->pbStream = pPosition;
+		CLIENTDEMO_WritePacket( pByteStream );
+
+		// [BB] Append the saved stuff.
+		BYTESTREAM_s stream;
+		stream.pbStream = copyBuffer;
+		stream.pbStreamEnd = copyBuffer + bytesToCopy;
+		CLIENTDEMO_WritePacket( &stream );
+
+		delete[] copyBuffer;
+	}
+	else
+		Printf ( "CLIENTDEMO_InsertPacket Error: Can't write here!\n" );
+}
+
+//*****************************************************************************
+//
 void CLIENTDEMO_ReadPacket( void )
 {
 	LONG		lCommand;
@@ -764,6 +798,13 @@ void CLIENTDEMO_ReadDemoWads( void )
 	}
 	else
 		Printf( "Demo authentication successful.\n" );
+}
+
+//*****************************************************************************
+//
+BYTESTREAM_s *CLIENTDEMO_GetDemoStream( void )
+{
+	return &g_ByteStream;
 }
 
 //*****************************************************************************

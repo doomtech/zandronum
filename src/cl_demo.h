@@ -90,6 +90,7 @@ void		CLIENTDEMO_ReadUserInfo( void );
 void		CLIENTDEMO_WriteTiccmd( ticcmd_t *pCmd );
 void		CLIENTDEMO_ReadTiccmd( ticcmd_t *pCmd );
 void		CLIENTDEMO_WritePacket( BYTESTREAM_s *pByteStream );
+void		CLIENTDEMO_InsertPacket( BYTESTREAM_s *pByteStream, BYTE *pPosition );
 void		CLIENTDEMO_ReadPacket( void );
 void		CLIENTDEMO_FinishRecording( void );
 void		CLIENTDEMO_DoPlayDemo( const char *pszDemoName );
@@ -97,6 +98,7 @@ void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
 void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg );
 void		CLIENTDEMO_ReadDemoWads( void );
+BYTESTREAM_s *CLIENTDEMO_GetDemoStream( void );
 
 bool		CLIENTDEMO_IsRecording( void );
 void		CLIENTDEMO_SetRecording( bool bRecording );
