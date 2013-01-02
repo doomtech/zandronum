@@ -71,6 +71,7 @@
 -	- Fixed: A malformed kick reason could crash the server. [Torr Samaho]
 -	- Fixed: The server didn't inform the clients who exited a level (ported from Konar6's kpatch). [Torr Samaho]
 -	- Use the crashcatcher.c from the latest ZDoom (r3071, r3089 (includes the i_main.cpp change since it's required), r3329, r3747, and r3928). This solves the forkbombing issue in the crash handler. [Blzut3]
+-	- Fixed: When recording a client side demo the special client side commands (like weapon changes) were not recorded at the correct position of the demo stream but always after the currently processed server packet. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

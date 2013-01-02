@@ -1028,10 +1028,6 @@ void CLIENT_GetPackets( void )
 			// We've gotten a packet! Now figure out what it's saying.
 			if ( CLIENT_ReadPacketHeader( pByteStream ))
 			{
-				// If we're recording a demo, write the contents of this packet.
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WritePacket( pByteStream );
-
 				CLIENT_ParsePacket( pByteStream, false );
 			}
 			else
@@ -1039,10 +1035,6 @@ void CLIENT_GetPackets( void )
 				while ( CLIENT_GetNextPacket( ))
 				{
 					pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
-
-					// If we're recording a demo, write the contents of this packet.
-					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WritePacket( pByteStream );
 
 					// Parse this packet.
 					CLIENT_ParsePacket( pByteStream, true );
@@ -1283,6 +1275,22 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 
 	while ( 1 )
 	{  
+		// [BB] Processing this command will possibly make use write additional client-side demo
+		// commands to our demo stream. We have to make sure that all the commands end up in the
+		// demo stream exactly in the order they are processed. We should write the command we
+		// are parsing to the demo stream right now, but unfortunately we don't know the size
+		// of the command. Thus, we memorize where this command started, process the command,
+		// check the new position of the processed stream to determine the command size
+		// and then insert the commend into the demo stream before any additional client-side
+		// demo commands we wrote while processing the command.
+
+		// [BB] Memorize where the current server command started.
+		BYTESTREAM_s commandAsStream;
+		commandAsStream.pbStream = pByteStream->pbStream;
+		commandAsStream.pbStreamEnd = pByteStream->pbStream;
+
+		// [BB] Memorize the current position in our demo stream.
+		BYTE *pbDemoStream = CLIENTDEMO_GetDemoStream()->pbStream;
 		lCommand = NETWORK_ReadByte( pByteStream );
 
 		// End of message.
@@ -1299,6 +1307,16 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 		CLIENT_ProcessCommand( lCommand, pByteStream );
 
 		g_lLastCmd = lCommand;
+
+		// [BB] If we're recording a demo, write the contents of this command at the position
+		// our demo was at when we started to process the server command.
+		if ( CLIENTDEMO_IsRecording( ) )
+		{
+			// [BB] Since we just processed the server command, this command ends where we are now.
+			commandAsStream.pbStreamEnd = pByteStream->pbStream;
+			CLIENTDEMO_InsertPacket( &commandAsStream, pbDemoStream );
+		}
+
 	}
 
 	// All done!
