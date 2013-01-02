@@ -27,7 +27,7 @@
 +	- Bots now recognize 3d midtextures and know to avoid ones that block their movement and can jump over 3d midtexture railings. [Dusk]
 +	- Improved the alignment of the health/armor port of the new fullscreen HUD in case the health and armor icons have a different size. [Torr Samaho]
 +	- The client connect options cl_startasspectator and cl_dontrestorefrags are now collected as flags in the new CVAR cl_connect_flags. [Torr Samaho]
-+	- A player's country code (determined based on the player's IP) is shown on connect and in the output of the CCMD playerinfo, if a GeoIP.dat compatible with MaxMind's GeoIP library is in the directory of the server binary. The implementation is based on Konar6's kpatch. [Torr Samaho]
++	- A player's country code (determined based on the player's IP) is shown on connect and in the output of the CCMD playerinfo, if a GeoIP.dat compatible with MaxMind's GeoIP library is in the directory of the server binary (or in /usr/share/GeoIP/ or /usr/local/share/GeoIP/ under Linux). The implementation is based on Konar6's kpatch. [Torr Samaho]
 +	- Clients can prevent their country code from being shown to the other players with the new connect option CVAR cl_hidecountry (default false). [Torr Samaho]
 +	- If a reason for a kick vote is given, this reason is now included in the ban reason (adapted form Konar6's kpatch). [Dusk, Torr Samaho]
 +	- Added the "afk2spec" system from Konar6's kpatch (controlled by the new CVAR sv_afk2spec that specifies the number of minutes a player has to be idle before being forced to spectate). Different from kpatch, players are warned before they are forced to spectate and dead spectators are not forced to spectate. [Torr Samaho]

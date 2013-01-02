@@ -83,6 +83,7 @@
 #include "version.h"
 #include "g_level.h"
 #include "p_lnspec.h"
+#include "cmdlib.h"
 
 #include "md5.h"
 
@@ -417,7 +418,14 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// [BB] Initialize the GeoIP database.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
 	{
-		g_GeoIPDB = GeoIP_new ( GEOIP_STANDARD );
+#ifdef unix
+		if ( FileExists ( "/usr/share/GeoIP/GeoIP.dat" ) )
+		  g_GeoIPDB = GeoIP_open ( "/usr/share/GeoIP/GeoIP.dat", GEOIP_STANDARD );
+		else if ( FileExists ( "/usr/local/share/GeoIP/GeoIP.dat" ) )
+		  g_GeoIPDB = GeoIP_open ( "/usr/local/share/GeoIP/GeoIP.dat", GEOIP_STANDARD );
+#endif
+		if ( g_GeoIPDB == NULL )
+			g_GeoIPDB = GeoIP_new ( GEOIP_STANDARD );
 		if ( g_GeoIPDB != NULL )
 			Printf( "GeoIP initialized.\n" );
 		else
