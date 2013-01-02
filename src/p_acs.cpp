@@ -3347,6 +3347,7 @@ enum EACSFunctions
 	ACSF_GetTeamProperty, // [Dusk]
 	ACSF_GetPlayerLivesLeft,
 	ACSF_SetPlayerLivesLeft,
+	ACSF_KickFromGame,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3630,6 +3631,18 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				if ( PLAYER_IsValidPlayer ( ulPlayer ) )
 				{
 					PLAYER_SetLivesLeft ( &players[ulPlayer], static_cast<ULONG> ( args[1] ) );
+					return 1;
+				}
+				else
+					return 0;
+			}
+
+		case ACSF_KickFromGame:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && PLAYER_IsValidPlayer ( ulPlayer ) && ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false ) )
+				{
+					SERVER_KickPlayerFromGame ( ulPlayer, FBehavior::StaticLookupString ( args[1] ) );
 					return 1;
 				}
 				else
