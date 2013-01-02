@@ -3171,6 +3171,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESET_RESETS_MAPTIME )
 		level.time = 0;
 
+	// [BB] The effect of MapRevealer needs to be reset manually.
+	level.flags2 &= ~LEVEL2_ALLMAP;
+
 	// [BB] Reset special stuff for the current gamemode, like control point ownership in Domination.
 	GAMEMODE_ResetSpecalGamemodeStates();
 
