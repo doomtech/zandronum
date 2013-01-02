@@ -3345,6 +3345,8 @@ enum EACSFunctions
 	ACSF_PlayerIsSpectator,
 	ACSF_ConsolePlayerNumber,
 	ACSF_GetTeamProperty, // [Dusk]
+	ACSF_GetPlayerLivesLeft,
+	ACSF_SetPlayerLivesLeft,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3612,6 +3614,28 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			{
 				return GetTeamProperty (args[0], args[1]);
 			}
+
+		case ACSF_GetPlayerLivesLeft:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				if ( PLAYER_IsValidPlayer ( ulPlayer ) )
+					return PLAYER_GetLivesLeft ( ulPlayer );
+				else
+					return -1;
+			}
+
+		case ACSF_SetPlayerLivesLeft:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				if ( PLAYER_IsValidPlayer ( ulPlayer ) )
+				{
+					PLAYER_SetLivesLeft ( &players[ulPlayer], static_cast<ULONG> ( args[1] ) );
+					return 1;
+				}
+				else
+					return 0;
+			}
+
 		default:
 			break;
 	}
