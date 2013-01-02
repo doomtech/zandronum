@@ -2071,11 +2071,11 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// [Spleen] Read in the player's unlagged preference.
 	if ( ulFlags & USERINFO_UNLAGGED )
-		pPlayer->userinfo.bUnlagged = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.bUnlagged = !!NETWORK_ReadByte( pByteStream );
 
 	// [BB]
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
-		pPlayer->userinfo.bRespawnonfire = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.bRespawnonfire = !!NETWORK_ReadByte( pByteStream );
 
 	// [BB]
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
@@ -2226,7 +2226,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [BB] To properly spawn the players the client already needs to know the userinfo, e.g. the handicap value.
 		SERVERCOMMANDS_SetPlayerUserInfo( ulIdx, USERINFO_ALL, ulClient, SVCF_ONLYTHISCLIENT );
 		// [BB] Make sure that morphed players are spawned as morphed.
-		SERVERCOMMANDS_SpawnPlayer( ulIdx, PST_REBORNNOINVENTORY, ulClient, SVCF_ONLYTHISCLIENT, ( pPlayer->morphTics ) );
+		SERVERCOMMANDS_SpawnPlayer( ulIdx, PST_REBORNNOINVENTORY, ulClient, SVCF_ONLYTHISCLIENT, !!( pPlayer->morphTics ) );
 		// [BB] Since the player possibly lost something from his default inventory, destory everything
 		// he is spawned with on the client. Everything the client has to know about the inventory is
 		// handled below.
@@ -5400,7 +5400,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 	// Read in the item name.
 	pszName = NETWORK_ReadString( pByteStream );
 
-	const bool bSetAngle = NETWORK_ReadByte( pByteStream );
+	const bool bSetAngle = !!NETWORK_ReadByte( pByteStream );
 	// [BB] The client only sends the angle, if it is supposed to be set.
 	const SHORT sAngle = bSetAngle ? NETWORK_ReadShort( pByteStream ) : 0;
 

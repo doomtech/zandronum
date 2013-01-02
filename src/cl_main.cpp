@@ -2465,7 +2465,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			case SVC2_SETIGNOREWEAPONSELECT:
 				{
-					const bool bIgnoreWeaponSelect = NETWORK_ReadByte( pByteStream );
+					const bool bIgnoreWeaponSelect = !!NETWORK_ReadByte( pByteStream );
 					CLIENT_IgnoreWeaponSelect ( bIgnoreWeaponSelect );
 				}
 
@@ -4571,11 +4571,11 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 
 	// [Spleen] Read in the player's unlagged preference.
 	if ( ulFlags & USERINFO_UNLAGGED )
-		bUnlagged = NETWORK_ReadByte( pByteStream );
+		bUnlagged = !!NETWORK_ReadByte( pByteStream );
 
 	// [BB] Read in the player's respawnonfire setting.
 	if ( ulFlags & USERINFO_RESPAWNONFIRE )
-		bRespawnonfire = NETWORK_ReadByte( pByteStream );
+		bRespawnonfire = !!NETWORK_ReadByte( pByteStream );
 
 	// [BB] Read in the player's respawnonfire setting.
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
@@ -7876,7 +7876,7 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	sv_coop_damagefactor.ForceSet( Value, CVAR_Float );
 
 	// [WS] Read in, and set the value for alwaysapplydmflags.
-	Value.Bool = NETWORK_ReadByte( pByteStream );
+	Value.Bool = !!NETWORK_ReadByte( pByteStream );
 	alwaysapplydmflags.ForceSet( Value, CVAR_Bool );
 }
 

@@ -309,8 +309,8 @@ void CLIENTDEMO_ReadUserInfo( void )
 	players[consoleplayer].userinfo.skin = R_FindSkin( NETWORK_ReadString( &g_ByteStream ), players[consoleplayer].CurrentPlayerClass );
 	players[consoleplayer].userinfo.lRailgunTrailColor = NETWORK_ReadLong( &g_ByteStream );
 	players[consoleplayer].userinfo.lHandicap = NETWORK_ReadByte( &g_ByteStream );
-	players[consoleplayer].userinfo.bUnlagged = NETWORK_ReadByte( &g_ByteStream );
-	players[consoleplayer].userinfo.bRespawnonfire = NETWORK_ReadByte( &g_ByteStream );
+	players[consoleplayer].userinfo.bUnlagged = !!NETWORK_ReadByte( &g_ByteStream );
+	players[consoleplayer].userinfo.bRespawnonfire = !!NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.ulTicsPerUpdate = NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.PlayerClass = D_PlayerClassToInt( NETWORK_ReadString( &g_ByteStream ));
 

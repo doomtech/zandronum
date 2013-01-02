@@ -183,7 +183,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 				ULONG ulPlayer = static_cast<ULONG>( self->player - players );
 
 				// [BB] SelectRandomCooperativeSpot calls G_CheckSpot which removes the MF_SOLID flag, we need to work around this.
-				bool bSolidFlag = ( players[ulPlayer].mo->flags & MF_SOLID );
+				bool bSolidFlag = !!( players[ulPlayer].mo->flags & MF_SOLID );
 				FMapThing *pSpot = SelectRandomCooperativeSpot( ulPlayer );
 				if ( bSolidFlag )
 					players[ulPlayer].mo->flags |=  MF_SOLID;
