@@ -159,7 +159,9 @@ bool P_IsBuildMap(MapData *map)
 		return true;
 	}
 
-	numsectors = LittleShort(*(WORD *)(data + 20));
+	// [BB] This number is only used to check whether this is a build map,
+	// don't overwrite our global variable numsectors with it.
+	const int numsectors = LittleShort(*(WORD *)(data + 20));
 	int numwalls;
 
 	if (len < 26 + numsectors*sizeof(sectortype) ||

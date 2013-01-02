@@ -75,6 +75,7 @@
 -	- Fixed: When recording a client side demo the special client side commands (like weapon changes) were not recorded at the correct position of the demo stream but always after the currently processed server packet. [Torr Samaho]
 -	- Fixed: The effect of a MapRevealer was not reset during map resets. [Torr Samaho]
 -	- Fixed: Too long ban reasons could crash the server. [Torr Samaho]
+-	- Fixed: Trying to switch to a nonexistent map could crash the server. [Dusk, Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
