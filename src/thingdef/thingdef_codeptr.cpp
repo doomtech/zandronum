@@ -2927,7 +2927,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInLOS)
 
 	if (!target) return;
 
-	ACTION_JUMP(jump, true);	// [BB] Added "true". Is this correct here?
+	// [BB] Since monsters don't have targets on the client end, we need to send an update.
+	// If it's not a player, also update the position. Since the client locally ignores the
+	// jump, the position of the monster possibly was changed on the client by the monster
+	// movement prediction.
+	ACTION_JUMP(jump, CLIENTUPDATE_FRAME|( !self->player ? CLIENTUPDATE_POSITION : 0 ));
 }
 
 //===========================================================================
