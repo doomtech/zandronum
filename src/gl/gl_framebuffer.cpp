@@ -87,6 +87,10 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	InitializeState();
 	gl_GenerateGlobalBrightmapFromColormap();
 	gl_InitSpecialTextures();
+
+	// [BB] Backported from GZDoom revision 660.
+	Accel2D = true;
+
 #ifdef _MSC_VER
 	// [BB] Necessary for the hqnx resizing.
 	InitLUTs();
