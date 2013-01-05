@@ -84,7 +84,12 @@ bool PWO_CheckWeapons(AWeapon* first, AWeapon* pending)
 	return false;
 }
 
-int __cdecl PWO_CompareWeight(const void* elem1, const void* elem2)
+int
+// [BB] Necessary for qsort under VC++, but not available under Linux.
+#ifdef _MSC_VER
+__cdecl
+#endif
+PWO_CompareWeight(const void* elem1, const void* elem2)
 {
 	const PWODef* def1 = (PWODef*)elem1;
 	const PWODef* def2 = (PWODef*)elem2;
@@ -93,7 +98,12 @@ int __cdecl PWO_CompareWeight(const void* elem1, const void* elem2)
 	else return -1;
 }
 
-int __cdecl PWO_CompareWeight2(const void* elem1, const void* elem2)
+int
+// [BB] Necessary for qsort under VC++, but not available under Linux.
+#ifdef _MSC_VER
+__cdecl
+#endif
+PWO_CompareWeight2(const void* elem1, const void* elem2)
 {
 	const PWODef* def1 = *(PWODef**)elem1;
 	const PWODef* def2 = *(PWODef**)elem2;
