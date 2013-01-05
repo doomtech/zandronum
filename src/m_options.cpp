@@ -107,6 +107,9 @@
 #include "gamemode.h"
 #include "g_level.h"
 
+// [ZZ] PWO header file
+#include "g_shared/pwo.h"
+
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
 void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
@@ -332,10 +335,12 @@ value_t ServerGameModeVals[17] = {
 	{ 16.0, "Domination" },
 };
 
-value_t SwitchOnPickupVals[3] = {
+value_t SwitchOnPickupVals[4] = {
 	{ 0.0, "Never" },
 	{ 1.0, "Only higher ranked" },
 	{ 2.0, "Always" },
+	// [ZZ] Added PWO item
+	{ 3.0, "Use PWO" },
 };
 
 menu_t  *CurrentMenu;
@@ -402,6 +407,24 @@ void Reset2Defaults (void);
 void Reset2Saved (void);
 
 static void SetVidMode (void);
+
+static menu_t MenuPWO = 
+{
+	"WEAPON SETUP",
+	0,
+	0,
+	0,
+	NULL,
+};
+
+void WeaponOptions()
+{
+	if(!PWO_MenuOptions) PWO_GenerateMenu();
+	MenuPWO.items = PWO_MenuOptions;
+	MenuPWO.numitems = PWO_MenuOptionsSz;
+
+	M_SwitchMenu(&MenuPWO);
+}
 
 static menuitem_t OptionItems[] =
 {
@@ -3116,7 +3139,7 @@ void M_WeaponSetupMenuDrawer( void )
 }
 
 static menuitem_t WeaponSetupItems[] = {
-	{ discrete,	"Switch on pickup",			{&switchonpickup},		{3.0}, {0.0}, {0.0}, {SwitchOnPickupVals}  },
+	{ discrete,	"Switch on pickup",			{&switchonpickup},		{4.0}, {0.0}, {0.0}, {SwitchOnPickupVals}  },
 	{ discrete,	"Allow switch with no ammo",{&cl_noammoswitch},		{2.0}, {0.0}, {0.0}, {YesNo}  },
 	{ discrete,	"Cycle with original order",{&cl_useoriginalweaponorder},{2.0}, {0.0}, {0.0}, {YesNo}  },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
@@ -3190,6 +3213,10 @@ void M_RefreshWeaponSetupItems( void )
 
 void M_WeaponSetup (void)
 {
+	// [ZZ] Left here for some imaginary compatibility with existing code
+	WeaponOptions();
+	return;
+
 	M_SwitchMenu( &WeaponSetupMenu );
 
 	CurrentItem = 0;

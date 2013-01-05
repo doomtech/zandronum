@@ -278,6 +278,8 @@ struct menustack_t
 extern value_t YesNo[2];
 extern value_t NoYes[2];
 extern value_t OnOff[2];
+// [ZZ] Added declaration of SwitchOnPickupVals as it's used in pwo.cpp
+extern value_t SwitchOnPickupVals[4];
 
 extern menustack_t MenuStack[16];
 extern int MenuStackDepth;

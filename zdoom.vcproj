@@ -6359,6 +6359,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\pwo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\pwo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\sbar.h"
 				>
 			</File>

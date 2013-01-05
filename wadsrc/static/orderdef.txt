@@ -1,0 +1,69 @@
+// Weapon  <classname> <menuname> <defaultorder> [menuorder [replaces replaceclassname]]
+// Section <menuname> <count> <menuorder>
+
+// e.g. if we replace SuperShotgun with WBSuperShotgun and specify it's replaceclassname,
+// then CVar called PWO.Doom.SuperShotgun will be used, not PWO.Doom.WBSuperShotgun.
+
+// clear all weapon classes
+Clear
+
+// definitions for Doom
+[VanillaDoom]
+Game Doom
+Weapon	"Fist"			"Fist"			0.1 0
+Weapon	"Chainsaw"		"Chainsaw"		0.2 10
+Weapon	"Pistol"		"Pistol"		0.3 20
+Weapon	"Shotgun"		"Shotgun"		0.8 30
+Weapon	"SuperShotgun"		"Super Shotgun"		0.9 40
+Weapon	"Chaingun"		"Chaingun"		0.4 50
+Weapon	"RocketLauncher"	"Rocket Launcher"	0.5 60
+Weapon	"PlasmaRifle"		"Plasma Rifle"		0.6 70
+Weapon	"BFG9000"		"BFG-9000"		0.7 80
+
+// definitions for Heretic (including Powered versions that share PWO settings with their normal equivalent)
+[VanillaHeretic]
+Game Heretic
+Weapon	"Staff"			"Staff"			0.1 0
+Weapon	"Gauntlets"		"Necromancer Gauntlets"	0.2 10
+Weapon	"GoldWand"		"Elven Wand"		0.3 20
+Weapon	"Crossbow"		"Ethereal Crossbow"	0.4 30
+Weapon	"Blaster"		"Dragon Claw"		0.5 40
+Weapon	"SkullRod"		"Hellstaff"		0.6 50
+Weapon	"PhoenixRod"		"Phoenix Rod"		0.7 60
+Weapon	"Mace"			"Mace"			0.8 70
+Weapon	"StaffPowered"		"Staff"			0.1 0	replaces "Staff"
+Weapon	"GauntletsPowered"	"Necromancer Gauntlets"	0.2 10	replaces "Gauntlets"
+Weapon	"GoldWandPowered"	"Elven Wand"		0.3 20	replaces "GoldWand"
+Weapon	"CrossbowPowered"	"Ethereal Crossbow"	0.4 30	replaces "Crossbow"
+Weapon	"BlasterPowered"	"Dragon Claw"		0.5 40	replaces "Blaster"
+Weapon	"SkullRodPowered"	"Hellstaff"		0.6 50	replaces "SkullRod"
+Weapon	"PhoenixRodPowered"	"Phoenix Rod"		0.7 60	replaces "PhoenixRod"
+Weapon	"MacePowered"		"Mace"			0.8 70	replaces "Mace"
+
+// definitions for Hexen
+[VanillaHexen]
+Game Hexen
+Section	"Mage weapons" 4 0
+Weapon	"MWeapWand"		"Sapphire Wand"		0.1 0
+Weapon	"MWeapFrost"		"Frost Shards"		0.2 0
+Weapon	"MWeapLightning"	"Arc of Death"		0.3 0
+Weapon	"MWeapBloodscourge"	"Bloodscourge"		0.4 0
+Section	"Cleric weapons" 4 10
+Weapon	"CWeapMace"		"Mace"			0.1 0
+Weapon	"CWeapStaff"		"Serpent Staff"		0.2 0
+Weapon	"CWeapFlame"		"Firestorm"		0.3 0
+Weapon	"CWeapWraithverge"	"Wraithverge"		0.4 0
+Section	"Fighter weapons" 4 20
+Weapon	"FWeapFist"		"Fist"			0.1 0
+Weapon	"FWeapAxe"		"Timon's Axe"		0.2 0
+Weapon	"FWeapHammer"		"Hammer of Retribution"	0.3 0
+Weapon	"FWeapQuietus"		"Quietus"		0.4 0
+
+// definitions for new Skulltag weapons
+[Skulltag]
+Game Doom
+Section	"Skulltag weapons" 4 90
+Weapon	"Railgun"		"Railgun"		0.55 0
+Weapon	"BFG10K"		"BFG-10000"		0.75 0
+Weapon	"Minigun"		"Minigun"		0.85 0
+Weapon	"GrenadeLauncher"	"Grenade Launcher"	0.45 0

@@ -25,6 +25,9 @@
 #include "network.h"
 #include "sv_commands.h"
 
+// [ZZ] PWO header file
+#include "pwo.h"
+
 #define BONUSADD 6
 
 IMPLEMENT_POINTY_CLASS (AWeapon)
@@ -331,15 +334,25 @@ void AWeapon::AttachToOwner (AActor *other)
 		// setting of the one who recorded the demo.
 		if ( !(WeaponFlags & WIF_NO_AUTO_SWITCH) && (CLIENTDEMO_IsPlaying( ) == false))
 		{
+			// [ZZ] Check if PWO is active
+			//		Also check if current player is console player
+			//		to prevent this client from trying to predict other players' switching
+			//		(not sure how Zandronum behaves here in network game)
+			// Added code from Torr to fix NETSTATE_SINGLE_MULTIPLAYER
+			const bool dofpwo = (NETWORK_GetState() != NETSTATE_SERVER) &&
+				(Owner->player->userinfo.switchonpickup == 3) &&
+				(Owner->player == &players[consoleplayer]);
+
 			// [BC] Decide which weapon to compare selection orders against.
 			if ( Owner->player->PendingWeapon != WP_NOCHANGE )
 				pCompareWeapon = Owner->player->PendingWeapon;
 			else
 				pCompareWeapon = Owner->player->ReadyWeapon;
 
-			// [BC] Handle the "switchonpickup" userinfo cvar. If it's >= 2, then
+			// [ZZ] Changed code so it only treats switchonpickup == 2 as "always switch"
+			// [BC] Handle the "switchonpickup" userinfo cvar. If it's == 2, then
 			// we always want to switch our weapon when we pickup a new one.
-			if ( (Owner->player->userinfo.switchonpickup >= 2) || ( compatflags & COMPATF_OLD_WEAPON_SWITCH ) )
+			if ( (Owner->player->userinfo.switchonpickup == 2) || ( compatflags & COMPATF_OLD_WEAPON_SWITCH ) )
 			{
 				// [Spleen] Weapon switching is done client-side unless it's a bot.
 				if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( Owner->player->bIsBot ) )
@@ -358,7 +371,9 @@ void AWeapon::AttachToOwner (AActor *other)
 			}
 			// If it's 1, then only switch if it ranks higher than our current weapon.
 			else if (( pCompareWeapon == NULL ) ||
-				(( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder )))
+				// [ZZ] Added weapon order overriding by PWO settings
+				((dofpwo && PWO_CheckWeapons(pCompareWeapon, this)) ||
+				(!dofpwo && ( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder ))))
 			{
 				// [BB] Because of ST's special switchonpickup == 1 handling, we have to make sure here
 				// that we don't pick a powered up version, if we don't have a PowerWeaponLevel2 active.

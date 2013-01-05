@@ -136,6 +136,9 @@
 #include "compatibility.h"
 #include "r_3dfloors.h"
 
+// [ZZ] PWO header file
+#include "g_shared/pwo.h"
+
 #include "win32/g15/g15.h"
 EXTERN_CVAR(Bool, hud_althud)
 void DrawHUD();
@@ -2447,6 +2450,8 @@ void D_DoomMain (void)
 	}
 	FActorInfo::StaticSetActorNums ();
 
+	// [ZZ] Added PWO lump loading here
+	PWO_LoadDefs();
 
 	// [RH] User-configurable startup strings. Because BOOM does.
 	static const char *startupString[5] = {
