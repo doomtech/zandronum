@@ -79,6 +79,7 @@
 -	- Fixed: Too long ban reasons could crash the server. [Torr Samaho]
 -	- Fixed: Trying to switch to a nonexistent map could crash the server. [Dusk, Torr Samaho]
 -	- Lessened the client / server sync problems caused by A_JumpIfTargetInLOS. [Torr Samaho]
+-	- Fixed: A_CheckSight caused desyncs online. [Dusk]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

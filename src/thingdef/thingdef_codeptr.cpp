@@ -2464,13 +2464,17 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckSight)
 	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
 
 	// [BB] If this is a CLIENTSIDEONLY actor, a client only checks whether the consoleplayer sees it.
-	if ( (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-		&& ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
+	// [Dusk] If the actor does NOT have CLIENTSIDEONLY, the client does nothing.
+	if ( NETWORK_InClientMode( ) )
 	{
-		if ( P_CheckSight(players[consoleplayer].camera, self, true) ) return;
+		if ( !( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) ||
+			P_CheckSight( players[consoleplayer].camera, self, true ) )
+		{
+			return;
+		}
 	}
-	else {
+	else
+	{
 		for (int i=0;i<MAXPLAYERS;i++) 
 		{
 			if (playeringame[i] && P_CheckSight(players[i].camera,self,true)) return;
