@@ -6319,7 +6319,14 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 
 	// [BB] If we are destroying a player's body here, we must NULL the corresponding pointer.
 	if ( pActor->player && ( pActor->player->mo == pActor ) )
+	{
+		// [BB] We also have to stop all its associated CLIENTSIDE scripts. Otherwise 
+		// they would get disassociated and continue to run even if the player disconnects later.
+		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+			FBehavior::StaticStopMyScripts ( pActor->player->mo );
+
 		pActor->player->mo = NULL;
+	}
 
 	// Destroy the thing.
 	pActor->Destroy( );
