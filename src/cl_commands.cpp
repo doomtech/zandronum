@@ -567,3 +567,10 @@ void CLIENTCOMMANDS_MorphCheat ( const char *pszMorphClass )
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_MORPHEX );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszMorphClass );
 }
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_FullUpdateReceived ( void )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_FULLUPDATE );
+}

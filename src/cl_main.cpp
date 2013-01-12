@@ -2478,6 +2478,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				// keeping track of the current time so that we don't think we are lagging immediately after receiving a full update.
 				g_ulEndFullUpdateTic = gametic;
 				g_bClientLagging = false;
+				// [BB] Tell the server that we received the full update.
+				CLIENTCOMMANDS_FullUpdateReceived();
 
 				break;
 

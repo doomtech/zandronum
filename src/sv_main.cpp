@@ -1903,6 +1903,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	g_aClients[lClient].bRCONAccess = false;
 	g_aClients[lClient].ulDisplayPlayer = lClient;
+	g_aClients[lClient].bFullUpdateIncomplete = false;
 	g_aClients[lClient].commandInstances.clear();
 	g_aClients[lClient].minorCommandInstances.clear();
 	for ( ulIdx = 0; ulIdx < MAX_CHATINSTANCE_STORAGE; ulIdx++ )
@@ -2565,6 +2566,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 	// [BB] Let the client know that the full update is completed.
 	SERVERCOMMANDS_FullUpdateCompleted( ulClient );
+	// [BB] The client will let us know that it received the update.
+	SERVER_GetClient ( ulClient )->bFullUpdateIncomplete = true;
 }
 
 //*****************************************************************************
@@ -2619,16 +2622,23 @@ void SERVER_WriteCommands( void )
 		}
 
 		// Spectators can move around freely, without us telling it what to do (lag-less).
-		if ( players[ulIdx].bSpectating ) 
+		// [BB] We have to bug all clients who didn't finish receiving their full update with
+		// a reliable packet. This way they notice if they didn't get the last packet(s) of
+		// the full update even if there is nothing happening on the server that makes us send
+		// more reliable packets.
+		if ( players[ulIdx].bSpectating || SERVER_GetClient ( ulIdx )->bFullUpdateIncomplete ) 
 		{
 			// Don't send this to bots.
 			if ((( gametic % ( players[ulIdx].userinfo.ulTicsPerUpdate * TICRATE )) == 0 ) && ( players[ulIdx].bIsBot == false ) ) 
 			{
 				// Just send them one byte to let them know they're still alive.
-				SERVERCOMMANDS_Nothing( ulIdx );
+				// [BB] Send this as reliable packet to those who didn't get the full update yet (see above)
+				SERVERCOMMANDS_Nothing( ulIdx, SERVER_GetClient ( ulIdx )->bFullUpdateIncomplete );
 			}
 
-			continue;
+			// [BB] If it's not a spectator, we still have to move the local player.
+			if ( players[ulIdx].bSpectating )
+				continue;
 		}
 
 		SERVERCOMMANDS_MoveLocalPlayer( ulIdx );
@@ -4194,6 +4204,11 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// [BB] Client wishes to morph to a certain class.
 		return ( server_MorphCheat( pByteStream ));
+	case CLC_FULLUPDATE:
+
+		// [BB] The client just confirmed receiving the full update.
+		SERVER_GetClient ( g_lCurrentClient )->bFullUpdateIncomplete = false;
+		return ( false );
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );

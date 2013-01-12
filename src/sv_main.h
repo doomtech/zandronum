@@ -229,6 +229,9 @@ typedef struct
 	// [BB] Client doesn't want his country to be revealed to the other players.
 	bool			bWantHideCountry;
 
+	// [BB] Did the client not yet acknowledge receiving the last full update?
+	bool			bFullUpdateIncomplete;
+
 	// [BB] A record of the gametics the client called protected commands, e.g. send_password.
 	RingBuffer<LONG, 6> commandInstances;
 
