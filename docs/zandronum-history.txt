@@ -35,6 +35,7 @@
 +	- Added new ACS commands GetPlayerLivesLeft and SetPlayerLivesLeft. In game modes using sv_maxlives, these commands allow to access and change how many times the specified player is still allowed to respawn. [Torr Samaho]
 +	- Added new ACS command KickFromGame (int playernumber, str reason). This command forces the specified player to spectate and can only be used in an ACS script on a server. [Torr Samaho]
 +	- Added Circunei Z's patch that adds PWO support. It can be activated with "switchonpickup == 3" and configured using the weapon setup menu and the new ORDERDEF lump. [Torr Samaho]
++	- Added NORANDOM support to A_CustomBulletAttack and A_FireBullets (ported from ZDoom revision 2318). [Torr Samaho] 
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]

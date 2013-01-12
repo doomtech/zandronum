@@ -999,6 +999,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 // An even more customizable hitscan attack
 //
 //==========================================================================
+enum CBA_Flags
+{
+	CBAF_AIMFACING = 1,
+	CBAF_NORANDOM = 2,
+};
+
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 {
 	ACTION_PARAM_START(7);
@@ -1008,7 +1014,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 	ACTION_PARAM_INT(DamagePerBullet, 3);
 	ACTION_PARAM_CLASS(pufftype, 4);
 	ACTION_PARAM_FIXED(Range, 5);
-	ACTION_PARAM_BOOL(AimFacing, 6);
+	ACTION_PARAM_INT(Flags, 6);
 
 	if(Range==0) Range=MISSILERANGE;
 
@@ -1016,9 +1022,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 	int bangle;
 	int bslope;
 
-	if (self->target || AimFacing)
+	if (self->target || (Flags & CBAF_AIMFACING))
 	{
-		if (!AimFacing) A_FaceTarget (self);
+		if (!(Flags & CBAF_AIMFACING)) A_FaceTarget (self);
 		bangle = self->angle;
 
 		if (!pufftype) pufftype = PClass::FindClass(NAME_BulletPuff);
@@ -1035,7 +1041,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 		{
 			int angle = bangle + pr_cabullet.Random2() * (Spread_XY / 255);
 			int slope = bslope + pr_cabullet.Random2() * (Spread_Z / 255);
-			int damage = ((pr_cabullet()%3)+1) * DamagePerBullet;
+			int damage = DamagePerBullet;
+
+			if (!(Flags & CBAF_NORANDOM))
+				damage *= ((pr_cabullet()%3)+1);
+
 			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(pufftype)->DamageType, pufftype);
 		}
     }
@@ -1188,6 +1198,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfNoAmmo)
 // An even more customizable hitscan attack
 //
 //==========================================================================
+enum FB_Flags
+{
+	FBF_USEAMMO = 1,
+	FBF_NORANDOM = 2,
+};
 
 // [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
 void A_FireBulletsHelper ( AActor *self,
@@ -1199,11 +1214,16 @@ void A_FireBulletsHelper ( AActor *self,
 						   const fixed_t Range,
 						   const PClass * PuffType,
 						   const angle_t Spread_XY,
-						   const angle_t Spread_Z )
+						   const angle_t Spread_Z,
+						   const int Flags )
 {
 	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
 	{
-		int damage = ((pr_cwbullet()%3)+1)*DamagePerBullet;
+		int damage = DamagePerBullet;
+
+		if (!(Flags & FBF_NORANDOM))
+			damage *= ((pr_cwbullet()%3)+1);
+
 		P_LineAttack(self, bangle, Range, bslope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
 	}
 	else 
@@ -1213,7 +1233,11 @@ void A_FireBulletsHelper ( AActor *self,
 		{
 			int angle = bangle + pr_cwbullet.Random2() * (Spread_XY / 255);
 			int slope = bslope + pr_cwbullet.Random2() * (Spread_Z / 255);
-			int damage = ((pr_cwbullet()%3)+1) * DamagePerBullet;
+			int damage = DamagePerBullet;
+
+			if (!(Flags & FBF_NORANDOM))
+				damage *= ((pr_cwbullet()%3)+1);
+
 			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
 		}
 	}
@@ -1225,7 +1249,7 @@ void A_CustomFireBullets( AActor *self,
 						  int NumberOfBullets,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
-						  bool UseAmmo,
+						  int Flags,
 						  fixed_t Range,
 						  const bool pPlayAttacking = true ){
   	if ( self->player == NULL)
@@ -1240,7 +1264,7 @@ void A_CustomFireBullets( AActor *self,
 	int bangle;
 	int bslope;
 
-	if (UseAmmo && weapon)
+	if ((Flags & FBF_USEAMMO) && weapon)
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true)) return;	// out of ammo
 	}
@@ -1287,12 +1311,12 @@ void A_CustomFireBullets( AActor *self,
 		return;
 	}
 
-	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z );
+	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
 
 	if ( self->player->cheats & CF_SPREAD )
 	{
-		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
-		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
 	}
 
 	// [BB] Even with the online hitscan decal hack, a client has to stop here.
@@ -1348,12 +1372,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireBullets)
 	ACTION_PARAM_INT(NumberOfBullets, 2);
 	ACTION_PARAM_INT(DamagePerBullet, 3);
 	ACTION_PARAM_CLASS(PuffType, 4);
-	ACTION_PARAM_BOOL(UseAmmo, 5);
+	ACTION_PARAM_INT(Flags, 5);
 	ACTION_PARAM_FIXED(Range, 6);
 
 	if (!self->player) return;
 
-	A_CustomFireBullets( self, Spread_XY, Spread_Z, NumberOfBullets, DamagePerBullet, PuffType, UseAmmo, Range);
+	A_CustomFireBullets( self, Spread_XY, Spread_Z, NumberOfBullets, DamagePerBullet, PuffType, Flags, Range);
 }
 
 

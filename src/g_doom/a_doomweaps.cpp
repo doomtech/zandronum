@@ -106,7 +106,7 @@ void A_CustomFireBullets( AActor *self,
 						  int NumberOfBullets,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
-						  bool UseAmmo = true,
+						  int Flags = 1,
 						  fixed_t Range = 0,
 						  const bool pPlayAttacking = true );
 
