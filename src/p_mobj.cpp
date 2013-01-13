@@ -508,6 +508,9 @@ int AActor::GetTics(FState * newstate)
 	return tics;
 }
 
+// [BB] To print the client side infinite loop workaround warning only once.
+static bool bClientInfiniteLoopWarningPrinted = false;
+
 //==========================================================================
 //
 // AActor::SetState
@@ -599,7 +602,11 @@ bool AActor::SetState (FState *newstate)
 		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
 		if ( NETWORK_InClientMode() && ( numActions++ > 10000 ) )
 		{
-			Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
+			if ( bClientInfiniteLoopWarningPrinted == false )
+			{
+				Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
+				bClientInfiniteLoopWarningPrinted = true;
+			}
 			break;
 		}
 	} while (tics == 0);
@@ -669,7 +676,11 @@ bool AActor::SetStateNF (FState *newstate)
 		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
 		if ( NETWORK_InClientMode() && ( numStates++ > 10000 ) )
 		{
-			Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
+			if ( bClientInfiniteLoopWarningPrinted == false )
+			{
+				Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
+				bClientInfiniteLoopWarningPrinted = true;
+			}
 			break;
 		}
 	} while (tics == 0);
