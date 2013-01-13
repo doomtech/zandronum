@@ -99,7 +99,8 @@ public:
 	// This is called when a player is leaving the game, going to spectate, etc., but
 	// has special items of interest (terminator, flags, etc.). Those need to be dropped or else
 	// the game will become disrupted.
-	virtual void DropImportantItems( bool bLeavingGame );
+	// [BB] We also call this when a player dies. These special items also need to be dropped then.
+	virtual void DropImportantItems( bool bLeavingGame, AActor *pSource = NULL );
 
 	virtual void TweakSpeeds (int &forwardmove, int &sidemove);
 	virtual void MorphPlayerThink ();

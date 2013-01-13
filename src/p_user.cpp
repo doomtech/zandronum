@@ -1617,23 +1617,10 @@ void APlayerPawn::ActivateMorphWeapon ()
 
 void APlayerPawn::Die (AActor *source, AActor *inflictor)
 {
-	AActor			*pTeamItem;
-	AInventory		*pInventory;
-	bool			bCarryingTerminatorArtifact;
-	bool			bCarryingPossessionArtifact;
-
-	// [BC] Since powerups are destroyed when their owner dies, we need to check to see if
-	// the player is carrying certain powerups before we call the super function.
-	if ( player )
-	{
-		bCarryingTerminatorArtifact = !!( player->cheats2 & CF2_TERMINATORARTIFACT );
-		bCarryingPossessionArtifact = !!( player->cheats2 & CF2_POSSESSIONARTIFACT );
-	}
-	else
-	{
-		bCarryingTerminatorArtifact = false;
-		bCarryingPossessionArtifact = false;
-	}
+	// [BB] Drop any important items the player may be carrying before handling
+	// any other part of the death logic.
+	if ( !NETWORK_InClientMode() )
+		DropImportantItems ( false, source );
 
 	Super::Die (source, inflictor);
 
@@ -1721,39 +1708,45 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	if (( player == NULL ) || ( player->mo == NULL ))
 		return;
 
-	// [BC] If this is a terminator game and the player was carrying the terminator artifact,
-	// drop it.
-	if ( bCarryingTerminatorArtifact )
+/*
+	// If this is cooperative mode, drop a backpack full of the player's stuff.
+	if (( deathmatch == false ) && ( teamgame == false ) &&
+		(( i_compatflags & COMPATF_DISABLECOOPERATIVEBACKPACKS ) == false ) &&
+		( NETWORK_GetState( ) != NETSTATE_SINGLE ))
 	{
-		P_DropItem( this, PClass::FindClass( "Terminator" ), -1, 256 );
+		AActor	*pBackpack;
 
-		// Tell the clients that this player no longer possesses the terminator orb.
+		// Spawn the backpack.
+		pBackpack = Spawn( RUNTIME_CLASS( ACooperativeBackpack ), x, y, z, NO_REPLACE );
+
+		// If we're the server, tell clients to spawn the backpack.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_TakeInventory( player - players, "PowerTerminatorArtifact", 0 );
-		else
-			SCOREBOARD_RefreshHUD( );
+			SERVERCOMMANDS_SpawnThing( pBackpack );
+
+		// Finally, fill the backpack with the player's inventory items.
+		if ( pBackpack )
+			static_cast<ACooperativeBackpack *>( pBackpack )->FillBackpack( player );
 	}
-
-	// [BC] If this is a possession/team possession game and the player was carrying the possession
-	// artifact, drop it.
-	if ( bCarryingPossessionArtifact )
+*/
+	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && (level.flags2 & LEVEL2_DEATHSLIDESHOW))
 	{
-		P_DropItem( this, PClass::FindClass( "PossessionStone" ), -1, 256 );
-
-		// Tell the clients that this player no longer possesses the stone.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_TakeInventory( player - players, "PowerPossessionArtifact", 0 );
-		else
-			SCOREBOARD_RefreshHUD( );
-
-		// Tell the possession module that the artifact has been dropped.
-		if ( possession || teampossession )
-			POSSESSION_ArtifactDropped( );
+		F_StartSlideshow ();
 	}
+}
 
-	// If this is a teamgame and the player is carrying the opponents "flag", drop it.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && teamgame && player->bOnTeam )
+void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
+{
+	AActor		*pTeamItem;
+	AInventory	*pInventory;
+
+	if ( player == NULL )
+		return;
+
+	// If we're in a teamgame, don't allow him to "take" flags or skulls with him. If
+	// he was carrying any, spawn what he was carrying on the ground when he leaves.
+	if (( teamgame ) && ( player->bOnTeam ))
 	{
+		// Check if he's carrying the opponents' flag.
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
 			pInventory = this->FindInventory( TEAM_GetItem( i ));
@@ -1763,12 +1756,13 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 				this->RemoveInventory( pInventory );
 
 				// Tell the clients that this player no longer possesses a flag.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 					SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetItem( i )->TypeName.GetChars( ), 0 );
-				else
+				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 					SCOREBOARD_RefreshHUD( );
 
-				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, z, NO_REPLACE );
+				// Spawn a new flag.
+				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, ONFLOORZ, NO_REPLACE );
 
 				if ( pTeamItem )
 				{
@@ -1799,11 +1793,11 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 				// Award a "Defense!" medal to the player who fragged this flag carrier.
 				// [BB] but only if the flag belongs to the team of the fragger.
-				if (( source ) && ( source->player ) && ( source->IsTeammate( this ) == false ) && ( source->player->ulTeam == i ))
+				if (( pSource ) && ( pSource->player ) && ( pSource->IsTeammate( this ) == false ) && ( pSource->player->ulTeam == i ))
 				{
-					MEDAL_GiveMedal( source->player - players, MEDAL_DEFENSE );
+					MEDAL_GiveMedal( pSource->player - players, MEDAL_DEFENSE );
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DEFENSE );
+						SERVERCOMMANDS_GivePlayerMedal( pSource->player - players, MEDAL_DEFENSE );
 				}
 
 				/* [BB] The flags don't have a "Drop" state, so why should be do this? Is this meant to be a feature for mods that is completely undocumented?
@@ -1820,19 +1814,20 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 			}
 		}
 
-		// If the player is carrying the white flag in OFCTF, drop it.
+		// Check if the player is carrying the white flag.
 		pInventory = this->FindInventory( PClass::FindClass( "WhiteFlag" ));
 		if (( oneflagctf ) && ( pInventory ))
 		{
 			this->RemoveInventory( pInventory );
 
-			// Tell the clients that this player no longer possesses the flag.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			// Tell the clients that this player no longer possesses a flag.
+			if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 				SERVERCOMMANDS_TakeInventory( player - players, "WhiteFlag", 0 );
-			else
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 				SCOREBOARD_RefreshHUD( );
 
-			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, z, NO_REPLACE );
+			// Spawn a new flag.
+			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, ONFLOORZ, NO_REPLACE );
 			if ( pTeamItem )
 			{
 				pTeamItem->flags |= MF_DROPPED;
@@ -1856,9 +1851,6 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 					}
 				}
 
-//				if ( dmflags2 & DF2_INSTANT_RETURN )
-//					FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, this );
-
 				/* [BB] For flags it is "Drop" and for the WhiteFlag "Droped"? Makes no sense.
 				FState *TeamItemDroppedState = pTeamItem->FindState( "Dropped" );
 
@@ -1873,122 +1865,11 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 			}
 
 			// Award a "Defense!" medal to the player who fragged this flag carrier.
-			if ( source && source->player && ( source->IsTeammate( this ) == false ))
+			if ( pSource && pSource->player && ( pSource->IsTeammate( this ) == false ))
 			{
-				MEDAL_GiveMedal( source->player - players, MEDAL_DEFENSE );
+				MEDAL_GiveMedal( pSource->player - players, MEDAL_DEFENSE );
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DEFENSE );
-			}
-		}
-	}
-/*
-	// If this is cooperative mode, drop a backpack full of the player's stuff.
-	if (( deathmatch == false ) && ( teamgame == false ) &&
-		(( i_compatflags & COMPATF_DISABLECOOPERATIVEBACKPACKS ) == false ) &&
-		( NETWORK_GetState( ) != NETSTATE_SINGLE ))
-	{
-		AActor	*pBackpack;
-
-		// Spawn the backpack.
-		pBackpack = Spawn( RUNTIME_CLASS( ACooperativeBackpack ), x, y, z, NO_REPLACE );
-
-		// If we're the server, tell clients to spawn the backpack.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnThing( pBackpack );
-
-		// Finally, fill the backpack with the player's inventory items.
-		if ( pBackpack )
-			static_cast<ACooperativeBackpack *>( pBackpack )->FillBackpack( player );
-	}
-*/
-	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && (level.flags2 & LEVEL2_DEATHSLIDESHOW))
-	{
-		F_StartSlideshow ();
-	}
-}
-
-void APlayerPawn::DropImportantItems( bool bLeavingGame )
-{
-	AActor		*pTeamItem;
-	AInventory	*pInventory;
-
-	if ( player == NULL )
-		return;
-
-	// If we're in a teamgame, don't allow him to "take" flags or skulls with him. If
-	// he was carrying any, spawn what he was carrying on the ground when he leaves.
-	if (( teamgame ) && ( player->bOnTeam ))
-	{
-		// Check if he's carrying the opponents' flag.
-		for ( ULONG i = 0; i < teams.Size( ); i++ )
-		{
-			pInventory = this->FindInventory( TEAM_GetItem( i ));
-
-			if ( pInventory )
-			{
-				this->RemoveInventory( pInventory );
-				if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-					SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetItem( i )->TypeName.GetChars( ), 0 );
-
-				// Spawn a new flag.
-				pTeamItem = Spawn( TEAM_GetItem( i ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
-
-				if ( pTeamItem )
-				{
-					pTeamItem->flags |= MF_DROPPED;
-
-					// If the flag spawned in an instant return zone, the return routine
-					// has already been executed. No need to do anything!
-					if (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false )
-					{
-						if ( dmflags2 & DF2_INSTANT_RETURN )
-							TEAM_ExecuteReturnRoutine( i, NULL );
-						else
-						{
-							TEAM_SetReturnTicks( i, sv_flagreturntime * TICRATE );
-
-							// Print flag dropped message and do announcer stuff.
-							TEAM_FlagDropped( player, i );
-
-							// If we're the server, spawn the item to clients.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_SpawnThing( pTeamItem );
-						}
-					}
-				}
-			}
-		}
-
-		// Check if the player is carrying the white flag.
-		pInventory = this->FindInventory( PClass::FindClass( "WhiteFlag" ));
-		if (( oneflagctf ) && ( pInventory ))
-		{
-			this->RemoveInventory( pInventory );
-			if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-				SERVERCOMMANDS_TakeInventory( player - players, "WhiteFlag", 0 );
-
-			// Spawn a new flag.
-			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
-			if ( pTeamItem )
-			{
-				pTeamItem->flags |= MF_DROPPED;
-
-				pTeamItem->tid = 668;
-				pTeamItem->AddToHash( );
-
-				// If the flag spawned in an instant return zone, the return routine
-				// has already been executed. No need to do anything!
-				if (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false )
-				{
-					if ( dmflags2 & DF2_INSTANT_RETURN )
-						FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, player->mo, true );
-					else
-						TEAM_SetReturnTicks( teams.Size( ), sv_flagreturntime * TICRATE );
-
-						// If we're the server, spawn the item to clients.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SpawnThing( pTeamItem );
-				}
+					SERVERCOMMANDS_GivePlayerMedal( pSource->player - players, MEDAL_DEFENSE );
 			}
 		}
 	}
@@ -2259,12 +2140,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullPop)
 		spawntype = PClass::FindClass("BloodySkull");
 		if (spawntype == NULL) return;
 	}
-
-	// [BB] Since PlayerPawn::Die is never called on the skull, but the inventory
-	// of the player is transferred to the skull before Die is called on the player body,
-	// we have to drop important items like flags manually here.
-	if ( self->player && self->player->mo )
-		self->player->mo->DropImportantItems ( false );
 
 	self->flags &= ~MF_SOLID;
 	mo = (APlayerPawn *)Spawn (spawntype, self->x, self->y, self->z + 48*FRACUNIT, NO_REPLACE);
