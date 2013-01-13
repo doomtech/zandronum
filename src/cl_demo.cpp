@@ -875,6 +875,7 @@ CCMD( demo_spectatefreely )
 		p->crouchfactor = FRACUNIT;
 		PLAYER_SetDefaultSpectatorValues ( p );
 		players[consoleplayer].camera = g_demoCameraPlayer.mo;
+		p->camera = p->mo;
 		if ( StatusBar )
 			StatusBar->AttachToPlayer ( p );
 	}
