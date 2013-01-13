@@ -1799,18 +1799,6 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_GivePlayerMedal( pSource->player - players, MEDAL_DEFENSE );
 				}
-
-				/* [BB] The flags don't have a "Drop" state, so why should be do this? Is this meant to be a feature for mods that is completely undocumented?
-				FState *TeamItemDroppedState = pTeamItem->FindState( "Drop" );
-
-				if ( TeamItemDroppedState )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingFrame( pTeamItem, TeamItemDroppedState );
-
-					pTeamItem->SetState( TeamItemDroppedState );
-				}
-				*/
 			}
 		}
 
@@ -1850,18 +1838,6 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 							SERVERCOMMANDS_SpawnThing( pTeamItem );
 					}
 				}
-
-				/* [BB] For flags it is "Drop" and for the WhiteFlag "Droped"? Makes no sense.
-				FState *TeamItemDroppedState = pTeamItem->FindState( "Dropped" );
-
-				if ( TeamItemDroppedState )
-				{
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingFrame( pTeamItem, TeamItemDroppedState );
-
-					pTeamItem->SetState( TeamItemDroppedState );
-				}
-				*/
 			}
 
 			// Award a "Defense!" medal to the player who fragged this flag carrier.
