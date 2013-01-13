@@ -88,6 +88,7 @@
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
+!	- To work around problems of Zandronum's state jump handling, clients now try to break infinite state loops of zero duration by not allowing any actor to go through more than 10000 states in one tic. [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)

@@ -522,9 +522,9 @@ bool AActor::SetState (FState *newstate)
 	if (debugfile && player && (player->cheats & CF_PREDICTING))
 		fprintf (debugfile, "for pl %td: SetState while predicting!\n", player-players);
 */
-#ifdef _DEBUG // [BB] Workaround to find client side infinite loops in DECORATE definitions.
+	// [BB] Workaround to break client side infinite loops in DECORATE definitions.
 	int numActions = 0;
-#endif
+
 	do
 	{
 		if (newstate == NULL)
@@ -596,13 +596,12 @@ bool AActor::SetState (FState *newstate)
 		}
 		newstate = newstate->GetNextState();
 
-#ifdef _DEBUG // [BB] Workaround to find client side infinite loops in DECORATE definitions.
-		if ( numActions++ > 1000 )
+		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
+		if ( NETWORK_InClientMode() && ( numActions++ > 10000 ) )
 		{
 			Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
 			break;
 		}
-#endif
 	} while (tics == 0);
 
 	gl_SetActorLights(this);
@@ -619,9 +618,9 @@ bool AActor::SetState (FState *newstate)
 
 bool AActor::SetStateNF (FState *newstate)
 {
-#ifdef _DEBUG // [BB] Workaround to find client side infinite loops in DECORATE definitions.
+	// [BB] Workaround to find client side infinite loops in DECORATE definitions.
 	int numStates = 0;
-#endif
+
 	do
 	{
 		if (newstate == NULL)
@@ -667,13 +666,12 @@ bool AActor::SetStateNF (FState *newstate)
 		}
 		newstate = newstate->GetNextState();
 
-#ifdef _DEBUG // [BB] Workaround to find client side infinite loops in DECORATE definitions.
-		if ( numStates++ > 1000 )
+		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
+		if ( NETWORK_InClientMode() && ( numStates++ > 10000 ) )
 		{
 			Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
 			break;
 		}
-#endif
 	} while (tics == 0);
 
 	gl_SetActorLights(this);
