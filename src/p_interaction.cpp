@@ -1330,6 +1330,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		if (kickback)
 		{
+			// [BB] Safe the original z-momentum of the target. This way we can check if we need to update it.
+			const fixed_t oldTargetMomz = target->momz;
+
 			AActor *origin = (source && (flags & DMG_INFLICTOR_IS_PUFF))? source : inflictor;
 			
 			ang = R_PointToAngle2 (origin->x, origin->y,
@@ -1373,7 +1376,8 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			// [BC] Set the thing's momentum.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_MoveThingExact( target, CM_MOMX|CM_MOMY|CM_MOMZ );
+				// [BB] Only update z-momentum if it has changed.
+				SERVER_UpdateThingMomentum ( target, oldTargetMomz != target->momz );
 			}
 		}
 	}

@@ -84,6 +84,7 @@
 -	- Fixed: A client didn't notice if it missed the last packet(s) of a full update till something happened on the server that made the server send a new reliable packet to the client. [Torr Samaho]
 -	- Fixed: When a spectator entered the game its associated CLIENTSIDE scripts were stopped but were disassociated. The old behavior can be restored with compat_dont_stop_player_scripts_on_disconnect. [Torr Samaho]
 -	- Fixed: Spectators were affected by Heretic's wind specials. [Torr Samaho]
+-	- Improved the X/Y/Z position sync of non-player actors moved by hit scan attacks online. [Torr Samaho] 
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
