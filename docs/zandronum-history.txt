@@ -86,6 +86,7 @@
 -	- Fixed: Spectators were affected by Heretic's wind specials. [Torr Samaho]
 -	- Improved the X/Y/Z position sync of non-player actors moved by hit scan attacks online. [Torr Samaho] 
 -	- Fixed: demo_spectatefreely didn't show a crosshair or cl_identifytarget information when the software renderer was used. [Torr Samaho]
+-	- Fixed: If A_SkullPop is used in the first frame of a player's XDeath state, the player doesn't drop any important items like flags. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

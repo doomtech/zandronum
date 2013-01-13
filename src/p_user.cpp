@@ -2260,6 +2260,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullPop)
 		if (spawntype == NULL) return;
 	}
 
+	// [BB] Since PlayerPawn::Die is never called on the skull, but the inventory
+	// of the player is transferred to the skull before Die is called on the player body,
+	// we have to drop important items like flags manually here.
+	if ( self->player && self->player->mo )
+		self->player->mo->DropImportantItems ( false );
+
 	self->flags &= ~MF_SOLID;
 	mo = (APlayerPawn *)Spawn (spawntype, self->x, self->y, self->z + 48*FRACUNIT, NO_REPLACE);
 	//mo->target = self;
