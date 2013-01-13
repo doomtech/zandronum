@@ -5107,7 +5107,8 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// If this player has tried to suicide recently, ignore the request.
-	if ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
+	// [BB] Don't check this when the player never tried to suicide yet.
+	if ( ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )) ) && ( g_aClients[g_lCurrentClient].ulLastSuicideTime > 0 ) )
 		return ( false );
 
 	// [BB] The server may forbid suiciding completely.
