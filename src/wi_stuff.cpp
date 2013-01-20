@@ -480,6 +480,11 @@ void WI_LoadBackground(bool isenterpic)
 						lumpname = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::WinnerPic, "WINERPIC" );
 					else
 						lumpname = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::LoserPic, "LOSERPIC" );
+
+					// [BB] If the selected pic doesn't exist (Zandronum itself doesn't have WINERPIC or LOSERPIC)
+					// and is no script, fall back to the default one.
+					if ( ( *lumpname != '$' ) && ( TexMan.CheckForTexture(lumpname, FTexture::TEX_MiscPatch, FTextureManager::TEXMAN_TryAny ).isValid() == false ) )
+						lumpname = "INTERPIC";
 				}
 				else
 					lumpname = "INTERPIC";
