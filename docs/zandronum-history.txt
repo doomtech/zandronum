@@ -93,6 +93,7 @@
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
 !	- To work around problems of Zandronum's state jump handling, clients now try to break infinite state loops of zero duration by not allowing any actor to go through more than 10000 states in one tic. [Torr Samaho]
 !	- If the selected intermission pic (or WINERPIC/LOSERPIC in non-team game modes) doesn't exist, INTERPIC is used. [Torr Samaho]
+!	- If D_STWIN/D_STLOSE doesn't exist, the standard intermission music is used instead. [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)

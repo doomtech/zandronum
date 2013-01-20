@@ -2463,13 +2463,33 @@ void WI_Ticker(void)
 	
 	if (bcnt == 1)
 	{
+		// [BB] 
+		bool bUsingCustomMusic = false;
 		// [BC] Use Skulltag's new music.
 		if ( WI_UseSkulltagIntermissionAndMusic( ))
 		{
+			FString musicName;
 			if ( CAMPAIGN_DidPlayerBeatMap( ))
-				S_ChangeMusic( TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::WinnerTheme, "d_stwin" ) );
+				musicName = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::WinnerTheme, "d_stwin" );
 			else
-				S_ChangeMusic( TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::LoserTheme, "d_stlose" ) );
+				musicName = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::LoserTheme, "d_stlose" );
+
+			// [BB] In case we want to use Skulltag's built-in intermission music,
+			// check if the lump exists and fall back to the default music if it doesn't.
+			// Don't check if the lump exists if it's not d_stwin/d_stlose. S_ChangeMusic
+			// supports much more than a simple lump name as argument  and we want to
+			// allow the full flexibility within the TEAMINFO lump.
+			if ( ( ( musicName.Compare ( "d_stwin" ) != 0 ) && ( musicName.Compare ( "d_stlose" ) != 0 ) )
+				|| Wads.CheckNumForName( musicName.GetChars(), ns_music ) != -1 )
+			{
+				S_ChangeMusic ( musicName.GetChars() );
+				bUsingCustomMusic  = true;
+			}
+		}
+		// [BB] We are using a special music.
+		if ( bUsingCustomMusic == true )
+		{
+			// [BB] Nothing to do. We already changed the music.
 		}
 		// intermission music - use the defaults if none specified
 		else if (level.info->InterMusic.IsNotEmpty()) 
