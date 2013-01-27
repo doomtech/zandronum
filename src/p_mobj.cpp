@@ -77,6 +77,7 @@
 #include "survival.h"
 #include "network/nettraffic.h"
 #include "unlagged.h"
+#include <set>
 
 // MACROS ------------------------------------------------------------------
 
@@ -508,8 +509,8 @@ int AActor::GetTics(FState * newstate)
 	return tics;
 }
 
-// [BB] To print the client side infinite loop workaround warning only once.
-static bool bClientInfiniteLoopWarningPrinted = false;
+// [BB] To print the client side infinite loop workaround warning only once per actor type.
+static std::set<unsigned short> clientInfiniteLoopWarningPrintedActors;
 
 //==========================================================================
 //
@@ -602,10 +603,10 @@ bool AActor::SetState (FState *newstate)
 		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
 		if ( NETWORK_InClientMode() && ( numActions++ > 10000 ) )
 		{
-			if ( bClientInfiniteLoopWarningPrinted == false )
+			if ( clientInfiniteLoopWarningPrintedActors.find ( this->GetClass( )->getActorNetworkIndex() ) == clientInfiniteLoopWarningPrintedActors.end() )
 			{
 				Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
-				bClientInfiniteLoopWarningPrinted = true;
+				clientInfiniteLoopWarningPrintedActors.insert ( this->GetClass( )->getActorNetworkIndex() );
 			}
 			break;
 		}
@@ -676,10 +677,10 @@ bool AActor::SetStateNF (FState *newstate)
 		// [BB] Workaround to break client side infinite loops in DECORATE definitions.
 		if ( NETWORK_InClientMode() && ( numStates++ > 10000 ) )
 		{
-			if ( bClientInfiniteLoopWarningPrinted == false )
+			if ( clientInfiniteLoopWarningPrintedActors.find ( this->GetClass( )->getActorNetworkIndex() ) == clientInfiniteLoopWarningPrintedActors.end() )
 			{
 				Printf ( "Warning: Breaking infinite loop in actor %s.\nCurrent offset from spawn state is %ld\n", this->GetClass()->TypeName.GetChars(), static_cast<LONG>(this->state - this->SpawnState) );
-				bClientInfiniteLoopWarningPrinted = true;
+				clientInfiniteLoopWarningPrintedActors.insert ( this->GetClass( )->getActorNetworkIndex() );
 			}
 			break;
 		}
