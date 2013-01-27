@@ -167,6 +167,16 @@ static const FBinding DefStrifeBindings[] =
 	// h - use health
 };
 
+// [BB] WASD control layout (clashes with Strife's default controls).
+static const FBinding DefNonStrifeBindings[] =
+{
+	{ "w", "+forward" },
+	{ "s", "+back" },
+	{ "a", "+moveleft" },
+	{ "d", "+moveright" },
+	{ NULL }
+};
+
 const char *KeyNames[NUM_KEYS] =
 {
 	// This array is dependant on the particular keyboard input
@@ -515,6 +525,9 @@ void C_BindDefaults ()
 	{
 		SetBinds (DefStrifeBindings);
 	}
+	// [BB] WASD control layout (clashes with Strife's default controls).
+	else
+		SetBinds (DefNonStrifeBindings);
 }
 
 CCMD(binddefaults)

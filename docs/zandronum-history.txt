@@ -95,6 +95,7 @@
 !	- If the selected intermission pic (or WINERPIC/LOSERPIC in non-team game modes) doesn't exist, INTERPIC is used. [Torr Samaho]
 !	- If D_STWIN/D_STLOSE doesn't exist, the standard intermission music is used instead. [Torr Samaho]
 !	- Changed: Spectators are now allowed to use noclip. [Torr Samaho]
+!	- Non-Strife games now add the WASD control layout to the default binds (all existing ZDoom default binds are unchanged). [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)
