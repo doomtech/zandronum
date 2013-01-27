@@ -294,7 +294,8 @@ argv(0) noclip
 */
 CCMD (noclip)
 {
-	if (CheckCheatmode ())
+	// [BB] Allow spectators to use noclip.
+	if ( ( players[consoleplayer].bSpectating == false ) && CheckCheatmode ())
 		return;
 
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )

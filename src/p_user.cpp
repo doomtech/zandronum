@@ -3134,6 +3134,12 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->mo->flags |= MF_NOGRAVITY;
 		player->mo->flags2 |= MF2_FLY;
 
+		// No-clip cheat
+		if (player->cheats & CF_NOCLIP)
+			player->mo->flags |= MF_NOCLIP;
+		else
+			player->mo->flags &= ~MF_NOCLIP;
+
 		// The player's view pitch is clamped between -32 and +56 degrees,
 		// which translates to about half a screen height up and (more than)
 		// one full screen height down from straight ahead when view panning

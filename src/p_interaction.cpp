@@ -2531,11 +2531,11 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 	pPlayer->bSpectating = false;
 	pPlayer->bDeadSpectator = false;
 
-	// [BB] If the spectator used the chasecam cheat (which is always allowed for spectators)
+	// [BB] If the spectator used the chasecam or noclip cheat (which is always allowed for spectators)
 	// remove it now that he joins the game.
-	if ( pPlayer->cheats & CF_CHASECAM )
+	if ( pPlayer->cheats & CF_CHASECAM|CF_NOCLIP )
 	{
-		pPlayer->cheats &= ~CF_CHASECAM;
+		pPlayer->cheats &= ~(CF_CHASECAM|CF_NOCLIP);
 		if ( NETWORK_GetState() == NETSTATE_SERVER  )
 			SERVERCOMMANDS_SetPlayerCheats( static_cast<ULONG>( pPlayer - players ), static_cast<ULONG>( pPlayer - players ), SVCF_ONLYTHISCLIENT );
 	}

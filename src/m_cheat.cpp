@@ -517,6 +517,10 @@ void cht_DoCheat (player_t *player, int cheat)
 	if (!*msg)              // [SO] Don't print blank lines!
 		return;
 
+	// [BB] Spectators may use noclip, so the server shouldn't print the "cheater" message.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( cheat == CHT_NOCLIP ) && player->bSpectating )
+		return;
+
 	if( ( cheat != CHT_CHASECAM )
 		|| ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
 			&& ( player->bSpectating == false ) && !(dmflags2 & DF2_CHASECAM))){
