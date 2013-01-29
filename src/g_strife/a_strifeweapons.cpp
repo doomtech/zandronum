@@ -750,13 +750,23 @@ DEFINE_ACTION_FUNCTION(AActor, A_BurnArea)
 
 DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 {
-	self->momz -= 8*FRACUNIT;
-	self->momx += (pr_phburn.Random2 (3)) << FRACBITS;
-	self->momy += (pr_phburn.Random2 (3)) << FRACBITS;
+	// [Dusk] The server manages the momentum
+	if ( NETWORK_InClientMode( ) == false )
+	{
+		self->momz -= 8*FRACUNIT;
+		self->momx += (pr_phburn.Random2 (3)) << FRACBITS;
+		self->momy += (pr_phburn.Random2 (3)) << FRACBITS;
+
+		// [Dusk] Update momentum to clients
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( self, CM_MOMX | CM_MOMY | CM_MOMZ );
+	}
+
 	S_Sound (self, CHAN_VOICE, "world/largefire", 1, ATTN_NORM);
 
 	// Only the main fire spawns more.
-	if (!(self->flags & MF_DROPPED))
+	// [Dusk] Client doesn't do any spawning either
+	if (!(self->flags & MF_DROPPED) && NETWORK_InClientMode( ) == false)
 	{
 		// Original x and y offsets seemed to be like this:
 		//		x + (((pr_phburn() + 12) & 31) << FRACBITS);
@@ -799,6 +809,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 			drop->momz = self->momz - FRACUNIT;
 			drop->reactiontime = (pr_phburn() & 3) + 2;
 			drop->flags |= MF_DROPPED;
+
+			// [Dusk] Send the spawn info to clients
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SpawnThing( drop );
+				SERVERCOMMANDS_MoveThingExact( drop, CM_MOMX | CM_MOMY | CM_MOMZ );
+				SERVERCOMMANDS_SetThingFlags( drop, FLAGSET_FLAGS );
+			}
 		}
 	}
 }

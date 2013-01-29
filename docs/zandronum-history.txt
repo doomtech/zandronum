@@ -89,6 +89,7 @@
 -	- Fixed: If A_SkullPop is used in the first frame of a player's XDeath state, the player doesn't drop any important items like flags. [Torr Samaho]
 -	- Fixed: Players couldn't use the kill command during the first ten seconds after a server was started. [Torr Samaho] 
 -	- Fixed: If a player joined spectators while frozen to ice damage, the view would remain blended blue. [Dusk]
+-	- Fixed: Strife phosphorus grenade fire did not behave properly online. [Dusk]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
