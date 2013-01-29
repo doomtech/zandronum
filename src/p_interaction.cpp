@@ -2476,6 +2476,9 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	// Make the player flat, so he can travel under doors and such.
 	pPlayer->mo->height = 0;
 
+	// [Dusk] Player is now a spectator so he no longer is damaged by anything.
+	pPlayer->mo->DamageType = NAME_None;
+
 	// Make monsters unable to "see" this player.
 	pPlayer->cheats |= CF_NOTARGET;
 
