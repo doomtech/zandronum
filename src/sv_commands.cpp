@@ -3035,31 +3035,17 @@ void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULON
 //
 void SERVERCOMMANDS_SpawnBlood( fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AActor *originator, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-
 	if ( originator == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNBLOOD );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, dir >> FRACBITS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, damage );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, originator->lNetID );
-	}
+	NetCommand command ( SVC_SPAWNBLOOD );
+	command.addShort( x >> FRACBITS );
+	command.addShort( y >> FRACBITS );
+	command.addShort( z >> FRACBITS );
+	command.addShort( dir >> FRACBITS );
+	command.addByte( damage );
+	command.addShort( originator->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
