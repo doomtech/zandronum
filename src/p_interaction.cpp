@@ -1789,6 +1789,10 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 //
 // P_PoisonPlayer - Sets up all data concerning poisoning
 //
+// poisoner is the object directly responsible for poisoning the player,
+// such as a missile. source is the actor responsible for creating the
+// poisoner.
+//
 //==========================================================================
 
 void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison)
@@ -1808,7 +1812,7 @@ void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poi
 	if (poison > 0)
 	{
 		player->poisoncount += poison;
-		player->poisoner = poisoner;
+		player->poisoner = source;
 		if(player->poisoncount > 100)
 		{
 			player->poisoncount = 100;
