@@ -153,6 +153,7 @@ EXTERN_CVAR (Int, railcolor)
 EXTERN_CVAR (Int, handicap)
 EXTERN_CVAR (Bool, cl_run)
 EXTERN_CVAR (Bool, cl_identifytarget)
+EXTERN_CVAR( Int, cl_connectiontype )
 EXTERN_CVAR (Int, crosshair)
 EXTERN_CVAR (Bool, freelook)
 EXTERN_CVAR (Int, sv_smartaim)
@@ -252,6 +253,11 @@ value_t AllowSkinVals[3] = {
 	{ 0.0, "No skins" },
 	{ 1.0, "All skins" },
 	{ 2.0, "No cheat skins" },
+};
+
+value_t ConnectionTypeVals[2] = {
+	{ 0.0, "56k/ISDN" },
+	{ 1.0, "DSL" },
 };
 
 value_t GameskillVals[5] = {
@@ -2146,6 +2152,7 @@ static menuitem_t MultiplayerItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Server password",		{&cl_password},				{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Join password",		{&cl_joinpassword},		{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Connection type",		{&cl_connectiontype},	{2.0}, {0.0}, {0.0}, {ConnectionTypeVals} },
 	{ discrete, "Reset frags at join",	{&cl_dontrestorefrags},	{2.0}, {0.0},	{0.0}, {YesNo} },
 };
 

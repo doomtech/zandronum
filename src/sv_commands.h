@@ -63,6 +63,8 @@
 
 #define	SVCF_SKIPTHISCLIENT			( 1 << 0 )
 #define	SVCF_ONLYTHISCLIENT			( 1 << 1 )
+#define	SVCF_ONLY_CONNECTIONTYPE_0	( 1 << 2 )
+#define	SVCF_ONLY_CONNECTIONTYPE_1	( 1 << 3 )
 
 //*****************************************************************************
 //	PROTOTYPES

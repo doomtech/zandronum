@@ -294,6 +294,7 @@ void CLIENTDEMO_WriteUserInfo( void )
 	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.bUnlagged );
 	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.bRespawnonfire );
 	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.ulTicsPerUpdate );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.ulConnectionType );
 	NETWORK_WriteString( &g_ByteStream, PlayerClasses[players[consoleplayer].CurrentPlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName ));
 }
 
@@ -312,6 +313,7 @@ void CLIENTDEMO_ReadUserInfo( void )
 	players[consoleplayer].userinfo.bUnlagged = !!NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.bRespawnonfire = !!NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.ulTicsPerUpdate = NETWORK_ReadByte( &g_ByteStream );
+	players[consoleplayer].userinfo.ulConnectionType = NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.PlayerClass = D_PlayerClassToInt( NETWORK_ReadString( &g_ByteStream ));
 
 	R_BuildPlayerTranslation( consoleplayer );

@@ -36,6 +36,7 @@
 +	- Added new ACS command KickFromGame (int playernumber, str reason). This command forces the specified player to spectate and can only be used in an ACS script on a server. [Torr Samaho]
 +	- Added Circunei Z's patch that adds PWO support. It can be activated with "switchonpickup == 3" and configured using the weapon setup menu and the new ORDERDEF lump. [Torr Samaho]
 +	- Added NORANDOM support to A_CustomBulletAttack and A_FireBullets (ported from ZDoom revision 2318). [Torr Samaho] 
++	- Added new CVAR cl_connectiontype (default 1, allowed values 0-1). The lower the number, the less network traffic the server will try to send to the client. Currently this is very limited and only has one effect: With a setting of 1, blood sprites are spawned on the client with a size depending on the damage dealt, while they are always at full size if it's 0. [Torr Samaho]
 -	- Hopefully fixed player class related Hexen startup crashes. [Torr Samaho]
 -	- Fixed: Newly connecting clients were not properly informed about a music change if the music name was longer than 15 characters. [Torr Samaho]
 -	- Fixed: Attached 3d midtexture heights were not reset properly during map resets. [Dusk]

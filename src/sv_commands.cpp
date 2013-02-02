@@ -106,6 +106,12 @@ class ClientIterator {
 			return false;
 		}
 
+		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_0 ) && ( players[_current].userinfo.ulConnectionType != 0 ) )
+			return false;
+
+		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.ulConnectionType != 1 ) )
+			return false;
+
 		return true;
 	}
 
@@ -898,6 +904,9 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 
 		if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.ulTicsPerUpdate );
+
+		if ( ulUserInfoFlags & USERINFO_CONNECTIONTYPE )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.ulConnectionType );
 	}
 }
 

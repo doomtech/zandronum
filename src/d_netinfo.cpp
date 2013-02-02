@@ -91,6 +91,8 @@ CVAR (Bool,		cl_unlagged,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Bool,		cl_respawnonfire,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control how often the server sends updated player positions to him.
 CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [BB] Let the user control specify his connection speed (higher is faster).
+CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 
 // [BB] Two variables to keep track of client side name changes.
 static	ULONG	g_ulLastNameChangeTime = 0;
@@ -116,7 +118,9 @@ enum
 	// [BB]
 	INFO_Respawnonfire,
 	// [BB]
-	INFO_Ticsperupdate
+	INFO_Ticsperupdate,
+	// [BB]
+	INFO_ConnectionType
 };
 
 const char *GenderNames[3] = { "male", "female", "other" };
@@ -523,6 +527,9 @@ void D_SetupUserInfo ()
 	// [BB]
 	coninfo->ulTicsPerUpdate = cl_ticsperupdate;
 
+	// [BB]
+	coninfo->ulConnectionType = cl_connectiontype;
+
 	R_BuildPlayerTranslation (consoleplayer);
 }
 
@@ -672,6 +679,22 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		}
 
 		ulUpdateFlags |= USERINFO_TICSPERUPDATE;
+	}
+	// [BB]
+	else if ( cvar == &cl_connectiontype )
+	{
+		if ( cl_connectiontype < 0 )
+		{
+			cl_connectiontype = 0;
+			return;
+		}
+		if ( cl_connectiontype > 1 )
+		{
+			cl_connectiontype = 1;
+			return;
+		}
+
+		ulUpdateFlags |= USERINFO_CONNECTIONTYPE;
 	}
 
 	val = cvar->GetGenericRep (CVAR_String);
@@ -888,6 +911,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\unlagged\\%s" // [Spleen]
 					 "\\respawnonfire\\%s" // [BB]
 					 "\\ticsperupdate\\%lu" // [BB]
+					 "\\connectiontype\\%lu" // [BB]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -909,7 +933,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 // [BB]
 					 info->bRespawnonfire ? "on" : "off",
 					 // [BB]
-					 info->ulTicsPerUpdate
+					 info->ulTicsPerUpdate,
+					 // [BB]
+					 info->ulConnectionType
 				);
 		}
 		else
@@ -931,6 +957,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%s"			// [Spleen] unlagged
 				"\\%s"			// [BB] respawnonfire
 				"\\%lu"			// [BB] ticsperupdate
+				"\\%lu"			// [BB] connectiontype
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -952,7 +979,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				// [BB]
 				info->bRespawnonfire ? "on" : "off",
 				// [BB]
-				info->ulTicsPerUpdate
+				info->ulTicsPerUpdate,
+				// [BB]
+				info->ulConnectionType
 			);
 		}
 	}
@@ -1169,6 +1198,11 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				info->ulTicsPerUpdate = clamp ( atoi (value), 1, 3 );
 				break;
 
+			// [BB]
+			case INFO_ConnectionType:
+				info->ulConnectionType = clamp ( atoi (value), 0, 1 );
+				break;
+
 			default:
 				break;
 			}
@@ -1264,6 +1298,8 @@ CCMD (playerinfo)
 		Printf ("Respawnonfire:  %s\n", ui->bRespawnonfire ? "on" : "off");
 		// [BB]
 		Printf ("Ticsperupdate:  %lu\n", ui->ulTicsPerUpdate);
+		// [BB]
+		Printf ("ConnectionType:  %lu\n", ui->ulConnectionType);
 	}
 }
 
