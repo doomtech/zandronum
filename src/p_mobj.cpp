@@ -2607,7 +2607,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		}
 	}
 
-	if (!(mo->flags2 & MF2_FLOATBOB))
+	// [W] Added old ZDoom physics compatibility
+	if (!(compatflags2 & COMPATF2_ZDOOM_123B33_JUMP_PHYSICS) && !(mo->flags2 & MF2_FLOATBOB))
 	{
 		mo->z += mo->momz;
 	}
@@ -2652,7 +2653,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		}
 	}
 
-	if (mo->flags2 & MF2_FLOATBOB)
+	// [W/BB] Apply the old ZDoom gravity here instead
+	if ( ( compatflags2 & COMPATF2_ZDOOM_123B33_JUMP_PHYSICS ) || (mo->flags2 & MF2_FLOATBOB) )
 	{
 		mo->z += mo->momz;
 	}

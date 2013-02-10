@@ -388,6 +388,8 @@ enum
 	// [BB] Use the P_TestMobjZ approach of old ZDoom versions where non-SOLID things (like flags) fall
 	// through invisible bridges.
 	COMPATF2_OLD_BRIDGE_DROPS		= 1 << 7,
+	// [W] Uses old ZDoom jump physics, it's a minor bug in the gravity code that causes gravity application in the wrong place
+	COMPATF2_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar
