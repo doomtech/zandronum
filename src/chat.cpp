@@ -76,6 +76,8 @@
 #include "sbar.h"
 #include "st_hud.h"
 #include "sectinfo.h"
+#include "g_level.h"
+#include "p_acs.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -711,6 +713,10 @@ CCMD( say )
 	ULONG		ulIdx;
 	FString		ChatString;
 
+	// [BB] Mods are not allowed to say anything in the player's name.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	// [BB] No chatting while playing a demo.
 	if ( CLIENTDEMO_IsPlaying( ) == true )
 	{
@@ -752,6 +758,10 @@ CCMD( say_team )
 {
 	ULONG		ulIdx;
 	FString		ChatString;
+
+	// [BB] Mods are not allowed to say anything in the player's name.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
 
 	// [BB] No chatting while playing a demo.
 	if ( CLIENTDEMO_IsPlaying( ) == true )
