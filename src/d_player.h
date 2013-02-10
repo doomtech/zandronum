@@ -287,7 +287,7 @@ struct userinfo_t
 	// [BB] Let the user decide how often he wants the player positions to be updated.
 	ULONG		ulTicsPerUpdate;
 
-	// [BB] Let the user specify his connection type. This way we can try to safe
+	// [BB] Let the user specify his connection type. This way we can try to save
 	// bandwidth on slow connections (possibly causing visual inaccuracies).
 	ULONG		ulConnectionType;
 };
