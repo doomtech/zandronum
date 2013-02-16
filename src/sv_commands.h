@@ -380,7 +380,7 @@ void	SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ul
 void	SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient );
 void	SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect );
 void	SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient );
-void	SERVERCOMMANDS_ForceLightning( const int Mode, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

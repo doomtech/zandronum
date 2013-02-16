@@ -68,13 +68,28 @@ void DLightningThinker::Tick ()
 	}
 	else
 	{
-		--NextLightningFlash;
+		// [Dusk] The server manages lightning. However, the client forces lightning
+		// by setting NextLightningFlash to 0. To work around this, we simply don't
+		// count the lightning flash down when in client mode.
+		if ( NETWORK_InClientMode( ) == false )
+			--NextLightningFlash;
+
 		if (Stopped) Destroy();
 	}
 }
 
 void DLightningThinker::LightningFlash ()
 {
+	// [BB] The server just tells the clients to call P_ForceLightning.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_Lightning( );
+
+		// [Dusk] The server runs LIGHTNING ACS scripts too and calculates
+		// the next lightning flash.
+		goto nextflash;
+	}
+
 	int i, j;
 	sector_t *tempSec;
 	BYTE flashLight;
@@ -96,10 +111,6 @@ void DLightningThinker::LightningFlash ()
 					LightningLightLevels[j] < tempSec->lightlevel-4)
 				{
 					tempSec->lightlevel -= 4;
-
-					// [BC] If we're the server, update clients with this sector's new light level.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetSectorLightLevel( ULONG( tempSec - sectors ));
 				}
 			}
 		}					
@@ -111,10 +122,6 @@ void DLightningThinker::LightningFlash ()
 				if (LightningLightLevels[numsectors+(j>>3)] & (1<<(j&7)))
 				{
 					tempSec->lightlevel = LightningLightLevels[j];
-
-					// [BC] If we're the server, update clients with this sector's new light level.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetSectorLightLevel( ULONG( tempSec - sectors ));
 				}
 			}
 			memset (&LightningLightLevels[numsectors], 0, (numsectors+7)/8);
@@ -153,20 +160,15 @@ void DLightningThinker::LightningFlash ()
 			{
 				tempSec->lightlevel = LightningLightLevels[j];
 			}
-
-			// [BC] If we're the server, update clients with this sector's new light level.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetSectorLightLevel( ULONG( tempSec - sectors ));
 		}
 	}
 
 	level.flags |= LEVEL_SWAPSKIES;	// set alternate sky
 	S_Sound (CHAN_AUTO, "world/thunder", 1.0, ATTN_NONE);
-	FBehavior::StaticStartTypedScripts (SCRIPT_Lightning, NULL, false);	// [RH] Run lightning scripts
 
-	// [BC] If we're the server, play the thunder sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_Sound( CHAN_AUTO, "world/thunder", 1.0, ATTN_NONE );
+nextflash: // [Dusk] Server jumps back in here
+	bool bClientOnly = NETWORK_InClientMode( );
+	FBehavior::StaticStartTypedScripts (SCRIPT_Lightning, NULL, false, 0, false, bClientOnly);	// [RH] Run lightning scripts
 
 	// Calculate the next lighting flash
 	if (!NextLightningFlash)
@@ -223,13 +225,6 @@ void P_StartLightning ()
 
 void P_ForceLightning (int mode)
 {
-	// [BB] The server just tells the clients to call P_ForceLightning.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVERCOMMANDS_ForceLightning ( mode );
-		return;
-	}
-
 	DLightningThinker *lightning = LocateLightning ();
 	if (lightning == NULL)
 	{

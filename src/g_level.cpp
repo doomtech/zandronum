@@ -1491,11 +1491,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	AM_LevelInit();
 
 	// [RH] Start lightning, if MAPINFO tells us to
-	// [BB] Don't do this as server since the existing netcode for this needs insane amounts of bandwidth.
-	// Just let the clients start the lightning on their own. Though this way the lightning is not synced
-	// between clients and server, it doesn't need any bandwidth.
-	if ((level.flags & LEVEL_STARTLIGHTNING) &&
-		( NETWORK_GetState( ) != NETSTATE_SERVER ))
+	if (level.flags & LEVEL_STARTLIGHTNING)
 	{
 		P_StartLightning ();
 	}

@@ -6033,25 +6033,11 @@ void SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ForceLightning( const int Mode, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_FORCELIGHTNING );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Mode );
-	}
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_LIGHTNING );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************

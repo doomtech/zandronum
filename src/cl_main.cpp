@@ -2498,10 +2498,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				break;
 
-			case SVC2_FORCELIGHTNING:
+			case SVC2_LIGHTNING:
 				{
-					const int mode = NETWORK_ReadByte( pByteStream );
-					P_ForceLightning ( mode );
+					// [Dusk] The client doesn't care about the mode given to P_ForceLightning since
+					// it doesn't do the next lightning calculations anyway.
+					P_ForceLightning( 0 );
 				}
 
 				break;
