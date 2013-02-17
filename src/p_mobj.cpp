@@ -5106,9 +5106,9 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	{
 		p->ulTime = 0;
 		p->ulDeathCount = 0;
-		if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES )
 		{
-			PLAYER_SetLivesLeft ( p, sv_maxlives - 1 );
+			PLAYER_SetLivesLeft ( p, GAMEMODE_GetMaxLives() - 1 );
 		}
 	}
 	// If this is a bot, tell him he's been respawned.

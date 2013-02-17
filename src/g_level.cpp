@@ -752,9 +752,9 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 
 			// [BB] sv_maxlives is meant to specify the number of lives per map.
 			// So restore ulLivesLeft after a map change.
-			if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES )
 			{
-				PLAYER_SetLivesLeft ( player, sv_maxlives - 1 );
+				PLAYER_SetLivesLeft ( player, GAMEMODE_GetMaxLives() - 1 );
 			}
 
 			// If this is co-op, respawn any dead players now so they can
