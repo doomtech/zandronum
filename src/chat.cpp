@@ -415,9 +415,14 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	else if ( ulMode == CHATMODE_TEAM )
 	{
 		ulChatLevel = PRINT_TEAMCHAT;
-		OutString = "\\c";
-		OutString += V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ));
-		OutString += "<TEAM> ";
+		if ( PLAYER_IsTrueSpectator ( &players[consoleplayer] ) )
+			OutString += "<SPEC> ";
+		else
+		{
+			OutString = "\\c";
+			OutString += V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ));
+			OutString += "<TEAM> ";
+		}
 
 		// Special support for "/me" commands.
 		if ( strnicmp( "/me", pszString, 3 ) == 0 )
@@ -774,15 +779,15 @@ CCMD( say_team )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// Not on a team. No one to talk to.
-		if ( players[consoleplayer].bOnTeam == false )
+		if ( ( players[consoleplayer].bOnTeam == false ) && ( PLAYER_IsTrueSpectator ( &players[consoleplayer] ) == false ) )
 			return;
 	}
 	// Not in any team mode. Nothing to do!
 	else
 		return;
 
-	// Don't allow spectators to team chat.
-	if ( players[consoleplayer].bSpectating )
+	// [BB] Don't allow dead spectators to team chat.
+	if ( players[consoleplayer].bDeadSpectator )
 		return;
 
 	// The server never should have a team!

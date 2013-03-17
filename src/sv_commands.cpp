@@ -1677,11 +1677,12 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				// If either player is not on a team, don't send the message.
-				if (( players[ulIdx].bOnTeam == false ) || ( players[ulPlayer].bOnTeam == false ))
+				if ( (( players[ulIdx].bOnTeam == false ) || ( players[ulPlayer].bOnTeam == false ))
+					&& (( PLAYER_IsTrueSpectator ( &players[ulIdx] ) == false ) || ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false )) )
 					continue;
 
 				// If the players are not on the same team, don't send the message.
-				if ( players[ulIdx].ulTeam != players[ulPlayer].ulTeam )
+				if ( ( players[ulIdx].ulTeam != players[ulPlayer].ulTeam ) && ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) != PLAYER_IsTrueSpectator ( &players[ulPlayer] ) ) )
 					continue;
 			}
 			// Not in a team mode.
