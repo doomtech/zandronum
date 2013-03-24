@@ -1772,12 +1772,11 @@ void M_NewGame(int choice)
 	}
 */
 	// [BB] The class selection screen for a new game only works
-	// if we are not in client mode. This solution is quite hacky and
-	// should be changed in the future.
+	// if we are not in client mode. So just tell the user to disconnect first.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && PlayerClasses.Size() > 1 )
 	{
-		static char disconnect[] = "disconnect";
-		AddCommandString( disconnect );
+		M_StartMessage ("Please disconnect before\nstarting a new game.", NULL, false);
+		return;
 	}
 
 	// Set up episode menu positioning
