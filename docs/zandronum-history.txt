@@ -38,6 +38,7 @@
 -	- Fixed an exploit with color codes in player names (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed a client memory exhaustion vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho]
 -	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
+-	- Fixed: Clients using endgame while attempting to connect would not terminate the connection attempt. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
