@@ -831,7 +831,7 @@ void BOTS_ArchiveRevealedBotsAndSkins( FConfigFile *f )
 		f->SetValueForKey( szString, "1" );
 	}
 
-	for ( ulIdx = 0; ulIdx < (ULONG)numskins; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < (ULONG)skins.Size(); ulIdx++ )
 	{
 		// If this bot isn't revealed, or isn't revealed by default, don't archive it.
 		if (( skins[ulIdx].bRevealed == false ) || ( skins[ulIdx].bRevealedByDefault ))
@@ -874,7 +874,7 @@ void BOTS_RestoreRevealedBotsAndSkins( FConfigFile &config )
 			g_BotInfo[ulIdx]->bRevealed = true;
 		}
 
-		for ( ulIdx = 0; ulIdx < (ULONG)numskins; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < (ULONG)skins.Size(); ulIdx++ )
 		{
 			if ( skins[ulIdx].bRevealed )
 				continue;
@@ -3810,7 +3810,7 @@ CCMD( reveal )
 		}
 	}
 
-	for ( ulIdx = 0; ulIdx < (ULONG)numskins; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < (ULONG)skins.Size(); ulIdx++ )
 	{
 		if ( skins[ulIdx].bRevealed )
 			continue;

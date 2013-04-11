@@ -1031,12 +1031,12 @@ const char *APlayerPawn::GetSoundClass ()
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	if (( cl_skins == 1 ) || (( cl_skins >= 2 ) &&
 		( player != NULL ) &&
-		( player->userinfo.skin < static_cast<signed> (numskins) ) &&
+		( player->userinfo.skin < static_cast<signed> (skins.Size()) ) &&
 		( skins[player->userinfo.skin].bCheat == false )))
 	{
 		if (player != NULL &&
 			(unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
-			(size_t)player->userinfo.skin < numskins)
+			(size_t)player->userinfo.skin < skins.Size())
 		{
 			return skins[player->userinfo.skin].name;
 		}

@@ -119,7 +119,7 @@ CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
 
 		// If the skin is valid, set the player's sprite to the skin's sprite, and adjust
 		// the player's scale accordingly.
-		if (( lSkin >= 0 ) && ( static_cast<unsigned> (lSkin) < numskins ))
+		if (( lSkin >= 0 ) && ( static_cast<unsigned> (lSkin) < skins.Size() ))
 		{
 			players[ulIdx].mo->sprite = skins[lSkin].sprite;
 			players[ulIdx].mo->scaleX = skins[lSkin].ScaleX;
@@ -183,8 +183,8 @@ int 			maxframe;
 char*			spritename;
 
 // [RH] skin globals
-FPlayerSkin		*skins;
-size_t			numskins;
+// [BL] Changed to TArray
+TArray<FPlayerSkin> skins;
 BYTE			OtherGameSkinRemap[256];
 PalEntry		OtherGameSkinPalette[256];
 
@@ -501,6 +501,7 @@ static int STACK_ARGS skinsorter (const void *a, const void *b)
 }
 */
 
+static void R_CreateSkin();
 void R_InitSkins (void)
 {
 	FSoundID playersoundrefs[NUMSKINSOUNDS];
@@ -544,6 +545,7 @@ void R_InitSkins (void)
 		//     Also, default to S_SKIN format.
 		s_skin = 1;
 
+		R_CreateSkin();
 		i++;
 
 		FScanner sc(base);
@@ -568,7 +570,10 @@ void R_InitSkins (void)
 				if(s_skin == 1)
 					s_skin = 0; // Change to SKININFO
 				else if(s_skin == 0)
+				{
+					R_CreateSkin();
 					i++; // new skin
+				}
 				if(s_skin != 2) // If this is at S_SKIN unchangeable then no nothing else get a new string.
 					sc.GetString();
 			}
@@ -866,6 +871,9 @@ void R_InitSkins (void)
 						if ( *(DWORD *)lname == intname )
 						{
 							FTextureID picnum = TexMan.CreateTexture(k, FTexture::TEX_SkinSprite);
+							if (!picnum.isValid())
+								continue;
+
 							R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
 
 							if (lname[6])
@@ -891,8 +899,7 @@ void R_InitSkins (void)
 
 			if (remove)
 			{
-				if (static_cast<unsigned> (i) < numskins-1)
-					memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
+				skins.Delete(i);
 				i--;
 				continue;
 			}
@@ -924,7 +931,7 @@ void R_InitSkins (void)
 		}
 	}
 
-	if (numskins > PlayerClasses.Size ())
+	if (skins.Size() > PlayerClasses.Size ())
 	{ // The sound table may have changed, so rehash it.
 		S_HashSounds ();
 		S_ShrinkPlayerSoundLists ();
@@ -939,7 +946,7 @@ int R_FindSkin (const char *name, int pclass)
 		return pclass;
 	}
 
-	for (unsigned i = PlayerClasses.Size(); i < numskins; i++)
+	for (unsigned i = PlayerClasses.Size(); i < skins.Size(); i++)
 	{
 		// [BC] Changed from 16 to MAX_SKIN_NAME.
 		if (strnicmp (skins[i].name, name, MAX_SKIN_NAME) == 0)
@@ -962,7 +969,7 @@ CCMD (skins)
 
 	ulNumSkins = 0;
 	ulNumHiddenSkins = 0;
-	for (i = PlayerClasses.Size ()-1; i < (int)numskins; i++)
+	for (i = PlayerClasses.Size ()-1; i < (int)skins.Size(); i++)
 	{
 		if ( skins[i].bRevealed )
 		{
@@ -974,9 +981,9 @@ CCMD (skins)
 	}
 
 	if ( ulNumHiddenSkins == 0 )
-		Printf( "\n%d skins; All hidden skins unlocked!\n", (int)numskins );
+		Printf( "\n%d skins; All hidden skins unlocked!\n", (int)skins.Size() );
 	else
-		Printf( "\n%d skins; %d remain%s hidden.\n", (int)numskins, static_cast<unsigned int> (ulNumHiddenSkins), ulNumHiddenSkins == 1 ? "s" : "" );
+		Printf( "\n%d skins; %d remain%s hidden.\n", (int)skins.Size(), static_cast<unsigned int> (ulNumHiddenSkins), ulNumHiddenSkins == 1 ? "s" : "" );
 }
 
 //
@@ -1008,48 +1015,23 @@ static void R_CreateSkinTranslation (const char *palname)
 
 //*****************************************************************************
 //
-ULONG R_CountSkinInfoSkins( void )
+static void R_CreateSkin()
 {
-	LONG		lCurLump;
-	LONG		lLastLump = 0;
-	ULONG		ulNumSkins = 0;
+	FPlayerSkin skin;
+	memset(&skin, 0, sizeof(FPlayerSkin));
 
-	// Search through all loaded wads for a lump called "SKININFO".
-	while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
-	{
-		// Open the found skininfo lump.
-		FScanner sc( lCurLump );
+	const PClass *type = PlayerClasses[0].Type;
+	skin.range0start = type->Meta.GetMetaInt (APMETA_ColorRange) & 255;
+	skin.range0end = type->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
+	skin.ScaleX = GetDefaultByType (type)->scaleX;
+	skin.ScaleY = GetDefaultByType (type)->scaleY;
 
-		// Begin parsing that text found within that lump.
-		while ( sc.GetString( ))
-		{
-			// We found a starting brace. This indicated we're creating a new skin.
-			while ( sc.String[0] != '{' )
-			{
-				if ( !sc.GetString( ) )
-				{
-					// [BB] We didn't find a starting brace and thus no skin, so we need
-					// to counter the ulNumSkins increment below.
-					--ulNumSkins;
-					break;
-				}
-			}
+	// [BL] Hidden skins
+	skin.bRevealed = true;
+	skin.bRevealedByDefault = true;
 
-			ulNumSkins++;
-
-			// Continue to parse until we've found the corresponding closing brace.
-			while ( sc.String[0] != '}' )
-			{
-				if ( !sc.GetString( ) )
-					break;
-			}
-		}
-
-	}
-
-	return ( ulNumSkins );
+	skins.Push(skin);
 }
-
 
 // [BB] Helper code for the effective skin sprite width/height check.
 static bool R_IsCharUsuableAsSpriteRotation ( const char rot )
@@ -1086,32 +1068,13 @@ void R_InitSprites ()
 		R_CreateSkinTranslation ("SPALDOOM");
 	}
 
-	// [RH] Count the number of skins.
-	numskins = PlayerClasses.Size ();
 	lastlump = 0;
-	while ((lump = Wads.FindLump ("S_SKIN", &lastlump, true)) != -1)
-	{
-		numskins++;
-	}
-
-	// [BC] Count the number of skins in the SKININFO lumps.
-	numskins += R_CountSkinInfoSkins( );
 
 	// [RH] Do some preliminary setup
-	skins = new FPlayerSkin[numskins];
-	memset (skins, 0, sizeof(*skins) * numskins);
-	for (i = 0; i < numskins; i++)
-	{ // Assume Doom skin by default
-		const PClass *type = PlayerClasses[0].Type;
-		skins[i].range0start = type->Meta.GetMetaInt (APMETA_ColorRange) & 255;
-		skins[i].range0end = type->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-		skins[i].ScaleX = GetDefaultByType (type)->scaleX;
-		skins[i].ScaleY = GetDefaultByType (type)->scaleY;
-		// [BC] We need to initialize the default sprite, because when we create a skin
-		// using SKININFO, we don't necessarily specify a sprite.
-		skins[i].sprite = GetDefaultByType (type)->SpawnState->sprite;
-		skins[i].bRevealed = true;
-		skins[i].bRevealedByDefault = true;
+	skins.Clear();
+	for (i = 0; i < PlayerClasses.Size (); i++)
+	{
+		R_CreateSkin();
 	}
 
 	R_InitSpriteDefs ();
@@ -1161,7 +1124,7 @@ void R_InitSprites ()
 
 	// [BB] Check if any of the skin sprites are ridiculously big to prevent
 	// abusing the possibility to replace the skin sprites.
-	for ( unsigned int skinIdx = 0; skinIdx < numskins; skinIdx++ )
+	for ( unsigned int skinIdx = 0; skinIdx < skins.Size(); skinIdx++ )
 	{
 		// [BB] If the skin doesn't have a name, it's removed and doesn't need to be checked.
 		// Removed skins for example are Doom skins in a Hexen games.
@@ -1284,20 +1247,13 @@ void R_InitSprites ()
 	}
 
 	// [RH] Sort the skins, but leave base as skin 0
-	//qsort (&skins[PlayerClasses.Size ()], numskins-PlayerClasses.Size (), sizeof(FPlayerSkin), skinsorter);
+	//qsort (&skins[PlayerClasses.Size ()], skins.Size()-PlayerClasses.Size (), sizeof(FPlayerSkin), skinsorter);
 }
 
 void R_DeinitSprites()
 {
 	// Free skins
-	if (skins != NULL)
-	{
-		delete[] skins;
-		skins = NULL;
-
-		// [BC] Also reset the number of skins.
-		numskins = 0;
-	}
+	skins.Clear();
 
 	// Free vissprites
 	for (int i = 0; i < MaxVisSprites; ++i)

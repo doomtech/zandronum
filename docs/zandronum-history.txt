@@ -95,6 +95,7 @@
 -	- Fixed: Strife phosphorus grenade fire did not behave properly online. [Dusk]
 -	- Fixed: Players were not awarded a frag when killing another player with poison (ported from ZDoom revision 4040). [Torr Samaho] 
 -	- Fixed: All LIGHTINING scripts were executed as if they were CLIENTSIDE. [Dusk]
+-	- Fixed: Memory issues with skin loading that led to a crash. [Blzut3]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

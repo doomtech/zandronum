@@ -5798,7 +5798,7 @@ void M_OptResponder (event_t *ev)
 					{
 						lSkin--;
 						if ( lSkin < 0 )
-							lSkin = (int)numskins - 1;
+							lSkin = (int)skins.Size() - 1;
 
 					} while (( skins[lSkin].bRevealed == false ) || ( PlayerClass->CheckSkin( lSkin ) == false ));
 
@@ -6229,7 +6229,7 @@ void M_OptResponder (event_t *ev)
 					do
 					{
 						lSkin++;
-						if ( lSkin >= (int)numskins )
+						if ( lSkin >= (int)skins.Size() )
 							lSkin = 0;
 
 					} while (( skins[lSkin].bRevealed == false ) || ( PlayerClass->CheckSkin( lSkin ) == false ));

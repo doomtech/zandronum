@@ -313,7 +313,7 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 			// If a custom skin was in use, then reload it
 			// or else the base skin for the player class.
 			if ((unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
-				(size_t)player->userinfo.skin < numskins)
+				(size_t)player->userinfo.skin < skins.Size())
 			{
 				skinindex = player->userinfo.skin;
 			}

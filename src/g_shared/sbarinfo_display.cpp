@@ -220,7 +220,7 @@ DSBarInfo::DSBarInfo (SBarInfo *script) : DBaseStatusBar(script->height),
 	{
 		patchnames[i+script->Images.Size()] = InventoryBarLumps[i];
 	}
-	for (i = 0;i < numskins;i++)
+	for (i = 0;i < skins.Size();i++)
 	{
 		AddFaceToImageCollection (&skins[i], &Images);
 	}

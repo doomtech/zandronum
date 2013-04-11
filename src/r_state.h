@@ -40,8 +40,8 @@ extern int				firstspritelump;
 extern int				lastspritelump;
 extern int				numspritelumps;
 
-extern size_t			numskins;	// [RH]
-extern FPlayerSkin	*	skins;		// [RH]
+// [BL] Use a TArray instead of trying to manage this manually
+extern TArray<FPlayerSkin> skins;		// [RH]
 
 extern BYTE				OtherGameSkinRemap[256];
 extern PalEntry			OtherGameSkinPalette[256];

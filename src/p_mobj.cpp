@@ -4859,7 +4859,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	else
 		lSkin = p->userinfo.skin;
 
-	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= numskins ))
+	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= skins.Size() ))
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 
 	mobj->sprite = skins[lSkin].sprite;

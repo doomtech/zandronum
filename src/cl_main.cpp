@@ -3959,7 +3959,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	else
 		lSkin = pPlayer->userinfo.skin;
 
-	if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(numskins) ))
+	if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(skins.Size()) ))
 		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 	// [BB] There is no skin for the morphed class.
@@ -4668,7 +4668,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		else
 			lSkin = pPlayer->userinfo.skin;
 
-		if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(numskins) ))
+		if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(skins.Size()) ))
 			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 		if ( pPlayer->mo )
