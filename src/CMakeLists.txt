@@ -121,9 +121,8 @@ else( WIN32 )
 		set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
 		set( NO_GTK ON )
 
-		# [BL] We need to compile without OpenGL for now.
-		# Same goes for the ASM code.
-		set( NO_GL ON )
+		# [BL] We need to compile without ASM code for now.
+		# [AL] OpenGL on OS X is enabled by default
 		set( NO_ASM ON )
 	else( APPLE )
 		option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
@@ -375,6 +374,20 @@ if( NOT NO_ASM )
 	ENDMACRO( ADD_ASM_FILE )
 endif( NOT NO_ASM )
 
+# [AL] OpenGL on OS X: Search for GLEW include files
+
+if( APPLE )
+	find_path( GLEW_INCLUDE_DIR GL/glew.h
+		PATHS "/usr/include"
+		"/usr/local/include" )
+		
+	if( GLEW_INCLUDE_DIR )
+		message( STATUS "GLEW include files found at ${GLEW_INCLUDE_DIR}" )
+	else( GLEW_INCLUDE_DIR )
+		message( SEND_ERROR "Could not find GLEW include files" )
+	endif( GLEW_INCLUDE_DIR )
+endif( APPLE )
+
 # Set up flags for GCC
 
 if( CMAKE_COMPILER_IS_GNUCXX )
@@ -460,11 +473,12 @@ add_custom_target( revision_check ALL
 
 set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" )
 # [BB] Without sound, we don't need FMOD.
+# [AL] OpenGL on OS X: GLEW include directory
 if ( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
-	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${GLEW_INCLUDE_DIR}" )
 else ( NOT NO_SOUND )
-	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${GLEW_INCLUDE_DIR}" )
 endif ( NOT NO_SOUND )
 
 # Start defining source files for ZDoom

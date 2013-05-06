@@ -1,6 +1,13 @@
 #ifndef R_RENDER
 #define R_RENDER
 
+// [AL] OpenGL on OS X
+#ifdef __APPLE__
+#define APIENTRY
+#define APIENTRYP *
+#endif // __APPLE__
+// [AL]
+
 #ifndef PFNGLMULTITEXCOORD2FPROC
 typedef void (APIENTRYP PFNGLMULTITEXCOORD2FPROC) (GLenum target, GLfloat s, GLfloat t);
 #endif
@@ -50,14 +57,14 @@ struct RenderContext
 	void (APIENTRY * ArrayPointer) (void * data, int stride);
 	void (APIENTRY * PrintStartupLog) ();
 	BOOL (APIENTRY * SetVSync) (int on);
-#ifndef unix
+#if !defined (unix) && !defined (__APPLE__) // [AL] OpenGL on OS X
 	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample);
 	void (APIENTRY * Shutdown) ();
 #else
 	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample);
 #endif
 	void (APIENTRY * SwapBuffers) ();
-#ifndef unix
+#if !defined (unix) && !defined (__APPLE__) // [AL] OpenGL on OS X
 	void (APIENTRY * SetGammaRamp) (void * ramp);
 	bool (APIENTRY * GetGammaRamp) (void * ramp);
 #else

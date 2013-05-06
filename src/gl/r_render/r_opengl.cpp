@@ -44,7 +44,7 @@
 char myGlBeginCharArray[4] = {0,0,0,0};
 #endif
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static void CollectExtensions(HDC);
 #else
 #include <SDL.h>
@@ -53,7 +53,7 @@ static void CollectExtensions(HDC);
 static void APIENTRY glBlendEquationDummy (GLenum mode);
 
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__  // [AL] OpenGL on OS X
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 #endif
 
@@ -68,7 +68,7 @@ public:
 		}
 	}
 } m_Extensions;
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 HWND m_Window;
 HDC m_hDC;
 HGLRC m_hRC;
@@ -87,7 +87,7 @@ int occlusion_type=0;
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static HWND InitDummy()
 {
 	HMODULE g_hInst = GetModuleHandle(NULL);
@@ -155,7 +155,7 @@ static HWND InitDummy()
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static void ShutdownDummy(HWND dummy)
 {
 	DestroyWindow(dummy);
@@ -170,7 +170,7 @@ static void ShutdownDummy(HWND dummy)
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__
 static bool ReadInitExtensions()
 {
 	HDC hDC;
@@ -243,7 +243,7 @@ static bool ReadInitExtensions()
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__
 static void CollectExtensions(HDC m_hDC)
 #else
 static void CollectExtensions()
@@ -251,7 +251,7 @@ static void CollectExtensions()
 {
 	const char *supported = NULL;
 	char *extensions, *extension;
-#ifndef unix
+#if !defined unix && !defined __APPLE__
 	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (wglGetExtString)
@@ -315,25 +315,26 @@ static bool CheckExtension(const char *ext)
 //==========================================================================
 //
 // These 2 functions use a different set arguments than the ARB equivalents
+// [AL] OpenGL on OS X: Added z prefix to avoid name collision with GLEW
 //
 //==========================================================================
-static PFNGLBEGINOCCLUSIONQUERYNVPROC glBeginOcclusionQueryNV;
-static PFNGLENDOCCLUSIONQUERYNVPROC glEndOcclusionQueryNV;
+static PFNGLBEGINOCCLUSIONQUERYNVPROC zglBeginOcclusionQueryNV;
+static PFNGLENDOCCLUSIONQUERYNVPROC zglEndOcclusionQueryNV;
 
 static void APIENTRY BeginOcclusionQuery(GLenum type, GLuint id)
 {
-	if (glBeginOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB) 
+	if (zglBeginOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB)
 	{
-		glBeginOcclusionQueryNV(id);
+		zglBeginOcclusionQueryNV(id);
 	}
 		
 }
 
 static void APIENTRY EndOcclusionQuery(GLenum type)
 {
-	if (glEndOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB) 
+	if (zglEndOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB)
 	{
-		glEndOcclusionQueryNV();
+		zglEndOcclusionQueryNV();
 	}
 }
 
@@ -345,7 +346,7 @@ static void APIENTRY EndOcclusionQuery(GLenum type)
 
 static void APIENTRY LoadExtensions()
 {
-#ifdef unix
+#if defined unix || defined __APPLE__ // [AL] OpenGL on OS X
 	CollectExtensions();
 #endif
 
@@ -366,7 +367,7 @@ static void APIENTRY LoadExtensions()
 	if (CheckExtension("GL_ATI_texture_env_combine3")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	PFNWGLSWAPINTERVALEXTPROC vs = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	if (vs) gl->SetVSync = vs;
 #endif
@@ -453,8 +454,10 @@ static void APIENTRY LoadExtensions()
         gl->GenQueries             = (PFNGLGENOCCLUSIONQUERIESNVPROC)wglGetProcAddress("glGenOcclusionQueriesNV");
         gl->DeleteQueries          = (PFNGLDELETEOCCLUSIONQUERIESNVPROC)wglGetProcAddress("glDeleteOcclusionQueriesNV");
         gl->GetQueryObjectuiv      = (PFNGLGETOCCLUSIONQUERYUIVNVPROC)wglGetProcAddress("glGetOcclusionQueryuivNV");
-        glBeginOcclusionQueryNV    = (PFNGLBEGINOCCLUSIONQUERYNVPROC)wglGetProcAddress("glBeginOcclusionQueryNV");
-        glEndOcclusionQueryNV      = (PFNGLENDOCCLUSIONQUERYNVPROC)wglGetProcAddress("glEndOcclusionQueryNV");
+        // [AL] OpenGL on OS X
+        zglBeginOcclusionQueryNV   = (PFNGLBEGINOCCLUSIONQUERYNVPROC)wglGetProcAddress("glBeginOcclusionQueryNV");
+        zglEndOcclusionQueryNV     = (PFNGLENDOCCLUSIONQUERYNVPROC)wglGetProcAddress("glEndOcclusionQueryNV");
+        // [AL]
         gl->BeginQuery             = BeginOcclusionQuery;
         gl->EndQuery               = EndOcclusionQuery;
 		gl->flags|=RFL_OCCLUSION_QUERY;
@@ -497,7 +500,7 @@ static void APIENTRY PrintStartupLog()
 
 static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample)
 {
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	int colorDepth;
 	HDC deskDC;
 	int attributes[26];
@@ -507,7 +510,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 #endif
 	int stencil;
 	
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	deskDC = GetDC(GetDesktopWindow());
 	colorDepth = GetDeviceCaps(deskDC, BITSPIXEL);
 	ReleaseDC(GetDesktopWindow(), deskDC);
@@ -523,7 +526,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 
 	if (!nostencil)
 	{
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 		for (stencil=1;stencil>=0;stencil--)
 		{
 			if (wglChoosePixelFormatARB && stencil)
@@ -656,7 +659,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 		// Use the cheapest mode available and let's hope the driver can handle this...
 		stencil=0;
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 		// If wglChoosePixelFormatARB is not found we have to do it the old fashioned way.
 		static PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),
@@ -702,7 +705,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 		gl->flags|=RFL_NOSTENCIL;
 	}
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	if (!SetPixelFormat(m_hDC, pixelFormat, NULL))
 	{
 		Printf("R_OPENGL: Couldn't set pixel format.\n");
@@ -720,13 +723,13 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample)
 #else
 bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
 #endif
 {
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	m_Window=Window;
 	m_hDC = GetDC(Window);
 #endif
@@ -737,7 +740,7 @@ bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
 		return false;
 	}
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	m_hRC = wglCreateContext(m_hDC);
 
 	if (m_hRC == NULL)
@@ -758,7 +761,7 @@ bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
 //
 //==========================================================================
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static void APIENTRY Shutdown()
 {
 	if (m_hRC)
@@ -771,7 +774,7 @@ static void APIENTRY Shutdown()
 #endif
 
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static bool APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 {
 	DEVMODE dm;
@@ -805,33 +808,33 @@ static bool APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 
 static void APIENTRY iSwapBuffers()
 {
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	SwapBuffers(m_hDC);
 #else
 	SDL_GL_SwapBuffers ();
 #endif
 }
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static void APIENTRY SetGammaRamp (void * ramp)
 #else
 static void APIENTRY SetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
 #endif
 {
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	SetDeviceGammaRamp(m_hDC, ramp);
 #else
 	SDL_SetGammaRamp(redtable, greentable, bluetable);
 #endif
 }
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static bool APIENTRY GetGammaRamp (void * ramp)
 #else
 static bool APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
 #endif
 {
-#ifndef unix
+#if !defined unix && !defined __APPLE__
 	return !!GetDeviceGammaRamp(m_hDC, ramp);
 #else
 	return (SDL_GetGammaRamp(redtable, greentable, bluetable) >= 0);
@@ -1041,13 +1044,13 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.ArrayPointer = ArrayPointer;
 	gl.PrintStartupLog = PrintStartupLog;
 	gl.InitHardware = InitHardware;
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	gl.Shutdown = Shutdown;
 #endif
 	gl.SwapBuffers = iSwapBuffers;
 	gl.GetGammaRamp = GetGammaRamp;
 	gl.SetGammaRamp = SetGammaRamp;
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	gl.SetFullscreen = SetFullscreen;
 #endif
 
@@ -1136,7 +1139,7 @@ void APIENTRY GetContext(RenderContext & gl)
 		myGlBeginCharArray[i] = reinterpret_cast<char *>(gl.Begin)[i];
 #endif
 
-#ifndef unix
+#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	ReadInitExtensions();
 	//GL is not yet inited in UNIX version, read them later in LoadExtensions
 #endif
