@@ -530,7 +530,7 @@ else( WIN32 )
 		sdl/sdlvideo.cpp
 		sdl/st_start.cpp )
 	if( APPLE )
-		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} sdl/SDLMain.m )
+		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} sdl/SDLMain.m sdl/iwadpicker_cocoa.mm ) # [AL] IWAD picker on OS X
 	endif( APPLE )
 endif( WIN32 )
 
