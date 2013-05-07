@@ -1123,7 +1123,10 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 	}
 
 	// The client has now had his level authenticated.
-	g_aClients[g_lCurrentClient].State = CLS_AUTHENTICATED;
+	// [BB] Don't set the state for clients already spawned. They already have a body
+	// and need to be trated differently.
+	if ( g_aClients[g_lCurrentClient].State < CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
+		g_aClients[g_lCurrentClient].State = CLS_AUTHENTICATED;
 
 	// Tell the client his level was authenticated.
 	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
