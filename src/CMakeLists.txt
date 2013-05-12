@@ -473,13 +473,17 @@ add_custom_target( revision_check ALL
 
 set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" )
 # [BB] Without sound, we don't need FMOD.
-# [AL] OpenGL on OS X: GLEW include directory
 if ( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
-	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${GLEW_INCLUDE_DIR}" )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 else ( NOT NO_SOUND )
-	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${GLEW_INCLUDE_DIR}" )
+	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 endif ( NOT NO_SOUND )
+
+# [AL/BB] OpenGL on OS X: GLEW include directory
+if( APPLE )
+	include_directories( "${GLEW_INCLUDE_DIR}" )
+endif( APPLE )
 
 # Start defining source files for ZDoom
 
