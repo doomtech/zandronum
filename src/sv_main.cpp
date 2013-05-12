@@ -1777,7 +1777,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	else
 		lClient = g_lCurrentClient;
 
-	if ( g_aClients[lClient].State == CLS_SPAWNED )
+	if ( g_aClients[lClient].State >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
 		SERVER_DisconnectClient( lClient, false, true );
 
 	// Read in the client version info.
