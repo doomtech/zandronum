@@ -263,7 +263,7 @@ CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
 CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE ) // [K6]
 
-CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;

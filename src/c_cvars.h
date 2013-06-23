@@ -67,6 +67,9 @@ enum
 
 	// [BC] Cvar is a password; don't display it when typed in the console, etc.
 	CVAR_PASSWORD		= 16384,
+
+	// [BB] This cvar may not be changed by ConsoleCommand.
+	CVAR_NOSETBYACS = 32768,
 };
 
 union UCVarValue

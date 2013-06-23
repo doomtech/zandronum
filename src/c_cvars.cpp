@@ -60,6 +60,8 @@
 #include "sv_commands.h"
 #include "network.h"
 #include "cl_demo.h"
+#include "m_png.h"
+#include "p_acs.h"
 
 struct FLatchedValue
 {
@@ -160,6 +162,9 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 	{
 		return;
 	}
+	// [BB] ConsoleCommand may not mess with the cvar.
+	else if ( ( Flags & CVAR_NOSETBYACS ) && ( ACS_IsCalledFromConsoleCommand() ) )
+		return;
 	else if (( Flags & CVAR_CAMPAIGNLOCK ) && ( CAMPAIGN_InCampaign( )) && ( sv_cheats == false ))
 	{
 		Printf( "%s cannot be changed during a campaign.\n", GetName( ));

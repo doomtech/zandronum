@@ -99,7 +99,7 @@ CUSTOM_CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
@@ -113,7 +113,7 @@ CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
-CUSTOM_CVAR( String, sv_banexemptionfile, "whitelist.txt", CVAR_ARCHIVE )
+CUSTOM_CVAR( String, sv_banexemptionfile, "whitelist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
