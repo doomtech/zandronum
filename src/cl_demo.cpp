@@ -114,6 +114,9 @@ static	LONG				g_lMaxDemoLength;
 // [BB] Special player that is used to control the camera when playing demos in free spectate mode.
 static	player_t			g_demoCameraPlayer;
 
+// [Dusk] ZCLD magic number signature
+static	const DWORD			g_demoSignature = MAKE_ID( 'Z', 'C', 'L', 'D' );
+
 // [Dusk] Should we perform demo authentication?
 CUSTOM_CVAR( Bool, demo_pure, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 {
@@ -146,8 +149,9 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 	g_ByteStream.pbStreamEnd = g_pbDemoBuffer + g_lMaxDemoLength;
 
 	// Write our header.
-	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOSTART );
-	NETWORK_WriteLong( &g_ByteStream, 12345678 );
+	// [Dusk] Write a static "ZCLD" which is consistent between
+	// different Zandronum versions.
+	NETWORK_WriteLong( &g_ByteStream, g_demoSignature );
 
 	// Write the length of the demo. Of course, we can't complete this quite yet!
 	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOLENGTH );
@@ -202,10 +206,23 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 	LONG	lDemoVersion;
 	LONG	lCommand;
 
-	if (( NETWORK_ReadByte( &g_ByteStream ) != CLD_DEMOSTART ) ||
-		( NETWORK_ReadLong( &g_ByteStream ) != 12345678 ))
+	// [Dusk] Check ZCLD instead of CLD_DEMOSTART
+	if ( NETWORK_ReadLong( &g_ByteStream ) != g_demoSignature )
 	{
-		I_Error( "CLIENTDEMO_ProcessDemoHeader: Expected CLD_DEMOSTART.\n" );
+		// [Dusk] Rewind back and try see if this is an old demo. Old demos started
+		// with a CLD_DEMOSTART (which was non-constant), followed by 12345678.
+		g_ByteStream.pbStream -= 4;
+		NETWORK_ReadByte( &g_ByteStream ); // Skip CLD_DEMOSTART
+		if ( NETWORK_ReadLong( &g_ByteStream ) == 12345678 )
+		{
+			// [Dusk] Dig out the version string. It should be 13 bytes in.
+			g_ByteStream.pbStream = g_pbDemoBuffer + 13;
+			I_Error( "CLIENTDEMO_ProcessDemoHeader: This is an old, version %s demo file.\n", 
+				NETWORK_ReadString( &g_ByteStream ));
+		}
+
+		// [Dusk] Otherwise, this file is just garbage.
+		I_Error( "CLIENTDEMO_ProcessDemoHeader: This is not a " GAMENAME " demo file!\n" );
 		return ( false );
 	}
 

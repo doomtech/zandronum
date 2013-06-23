@@ -5010,14 +5010,6 @@ void G_DoPlayDemo (void)
 		M_Free(demobuffer);
 		demo_p = demobuffer = NULL;
 
-		// [BC] Check if this is one of Skulltag's client-side demos.
-		// [BC] THIS IS BROKEN NOW
-		if ( i == CLD_DEMOSTART )
-		{
-			CLIENTDEMO_DoPlayDemo( defdemoname );
-			return;
-		}
-
 		if (singledemo)
 		{
 			I_Error ("%s", eek);
