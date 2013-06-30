@@ -2377,30 +2377,6 @@ void D_DoomMain (void)
 
 	FActorInfo::StaticInit ();
 
-	// [BC] A glorious hack for non-Doom games. This prevents the railgun and minigun from
-	// being selected in non-Doom games during LMS and other situations (we don't have to
-	// worry about the grenade launcher and BFG10K because they have high values for selection
-	// order).
-	if ( gameinfo.gametype != GAME_Doom )
-	{
-		const PClass	*pClass;
-		AWeapon			*pWeapon;
-
-		pClass = PClass::FindClass( "Railgun" );
-		if ( pClass )
-		{
-			pWeapon = (AWeapon *)pClass->Defaults;
-			pWeapon->SelectionOrder = 1000000000;
-		}
-
-		pClass = PClass::FindClass( "Minigun" );
-		if ( pClass )
-		{
-			pWeapon = (AWeapon *)pClass->Defaults;
-			pWeapon->SelectionOrder = 1000000000;
-		}
-	}
-
 	// [GRB] Initialize player class list
 	SetupPlayerClasses ();
 
