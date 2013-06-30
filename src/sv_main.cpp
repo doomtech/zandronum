@@ -1817,8 +1817,6 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		g_aClients[lClient].lPacketSequence[ulIdx] = 0;
 	}
 	g_aClients[lClient].ulPacketSequence = 0;
-	memset( g_aClients[lClient].SavedPacketBuffer.pbData, -1, sizeof ( g_aClients[lClient].SavedPacketBuffer.pbData ));
-	memset( g_aClients[lClient].UnreliablePacketBuffer.pbData, -1, sizeof ( g_aClients[lClient].UnreliablePacketBuffer.pbData ));
 
 	// Who is connecting?
 	Printf( "Connect (v%s): %s\n", clientVersion.GetChars(), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
