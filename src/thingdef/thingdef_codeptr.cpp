@@ -2821,7 +2821,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Respawn)
 		// tell them to spawn the barrel. So far this is only tested for barrels and
 		// perhaps needs to be rewritten to work for things not using A_BarrelDestroy.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
 			SERVERCOMMANDS_SpawnThing( self );
+			// [BB] Since the clients just spawned this actor again, be sure to remove this flag.
+			self ->ulNetworkFlags &= ~NETFL_DESTROYED_ON_CLIENT;
+		}
 
 		if (fog)
 		{

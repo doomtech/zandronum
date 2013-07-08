@@ -57,6 +57,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_BarrelDestroy)
 		self->height = self->GetDefault()->height;
 		self->renderflags |= RF_INVISIBLE;
 		self->flags &= ~MF_SOLID;
+
+		// [BB] The clients destroy their local version of the actor, we have to keep this in mind.
+		// For instance to prevent this from being spawned on newly connecting clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			self->ulNetworkFlags |= NETFL_DESTROYED_ON_CLIENT;
 	}
 	else
 	{

@@ -411,6 +411,10 @@ enum
 	// [BB] This actor just bounced off another actor and needs special treatment.
 	NETFL_BOUNCED_OFF_ACTOR		= 0x00000040,
 
+	// [BB] The clients have already destroyed this actor and thus it needs special treatment
+	// (used for respawning barrels).
+	NETFL_DESTROYED_ON_CLIENT		= 0x00000080,
+
 	// [BC] End of new ST flags.
 
 // --- mobj.renderflags ---

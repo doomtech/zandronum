@@ -2386,6 +2386,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		if ( pActor->lNetID == -1 )
 			continue;
 
+		// [BB] The other clients already have destroyed this actor, so don't spawn it.
+		if ( pActor->ulNetworkFlags & NETFL_DESTROYED_ON_CLIENT )
+			continue;
+
 		// Don't spawn players, items about to be deleted, inventory items
 		// that have an owner, or items that the client spawns himself.
 		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn ))) ||
