@@ -24,6 +24,10 @@
  *******
  */
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 
 #include "EZ_LCD.h"
@@ -657,4 +661,5 @@ void CEzLcd::OnLCDButtonUp(int nButton)
 		break;
 	}
 }
-    
+
+#endif

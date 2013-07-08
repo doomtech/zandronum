@@ -10,6 +10,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDManager.h"
 
@@ -203,3 +207,5 @@ void CLCDManager::OnLCDButtonUp(int nButton)
 
 
 //** end of LCDManager.cpp ***********************************************
+
+#endif

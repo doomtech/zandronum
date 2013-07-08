@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDBitmap.h"
 
@@ -86,3 +90,5 @@ void CLCDBitmap::OnDraw(CLCDGfx &rGfx)
 
 
 //** end of LCDBitmap.cpp ************************************************
+
+#endif

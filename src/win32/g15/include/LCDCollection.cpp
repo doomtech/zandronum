@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDCollection.h"
 
@@ -195,3 +199,5 @@ void CLCDCollection::Show(BOOL bShow)
 
 
 //** end of LCDCollection.cpp ********************************************
+
+#endif

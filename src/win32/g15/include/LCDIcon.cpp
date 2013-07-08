@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDIcon.h"
 
@@ -77,3 +81,5 @@ void CLCDIcon::OnDraw(CLCDGfx &rGfx)
 
 
 //** end of LCDIcon.cpp **************************************************
+
+#endif

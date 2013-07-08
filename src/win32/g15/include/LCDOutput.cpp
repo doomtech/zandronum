@@ -10,6 +10,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDOutput.h"
 
@@ -605,3 +609,5 @@ BOOL CLCDOutput::IsOpened()
 }
 
 //** end of LCDOutput.cpp ************************************************
+
+#endif

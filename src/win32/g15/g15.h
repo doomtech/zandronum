@@ -55,7 +55,7 @@
 //	DEFINES
 
 // The G15 software only runs on Windows.
-#if ( defined( WIN32 ) && !defined ( UNIX ) && !defined ( LINUX ) )
+#if defined ( USE_G15 ) && ( defined( WIN32 ) && !defined ( UNIX ) && !defined ( LINUX ) )
 	#define G15_ENABLED
 #endif
 

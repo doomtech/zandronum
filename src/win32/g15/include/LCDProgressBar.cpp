@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDProgressBar.h"
 
@@ -228,3 +232,5 @@ int CLCDProgressBar::Scale(int nFromMin, int nFromMax,
 
 
 //** end of LCDProgressBar.cpp *******************************************
+
+#endif

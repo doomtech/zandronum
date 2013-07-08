@@ -108,6 +108,7 @@
 !	- The commands "say" and "say_team" can't be called by ConsoleCommand anymore. A mod should not be allowed to say anything in the player's name. [Torr Samaho] 
 !	- When trying to start a new game from the menu while connected to a server and more than one player class is available, the player is now told to disconnect first instead of being automatically disconnected immediately. [Torr Samaho] 
 !	- The CVARs sv_adminlistfile, sv_banfile and sv_banexemptionfile can't be changed by ConsoleCommand anymore. [Torr Samaho, Dusk]
+!	- Disabled G15 support by default, this fixes some problems with certain gaming mice. To re-enable G15 support, define USE_G15 in the compiler settings. [Torr Samaho]
 
 
 1.0 (changes since Skulltag 98d)

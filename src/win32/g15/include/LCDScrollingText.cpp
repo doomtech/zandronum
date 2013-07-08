@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDScrollingText.h"
 
@@ -293,3 +297,5 @@ void CLCDScrollingText::OnDraw(CLCDGfx &rGfx)
 
 
 //** end of LCDScrollingText.cpp *****************************************
+
+#endif

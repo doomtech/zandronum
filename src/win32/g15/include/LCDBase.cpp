@@ -9,6 +9,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDBase.h"
 
@@ -323,3 +327,5 @@ void CLCDBase::SetObjectType(const LGObjectType type)
 }
 
 //** end of LCDBase.cpp **************************************************
+
+#endif

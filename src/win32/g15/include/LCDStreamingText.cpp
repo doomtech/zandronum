@@ -11,6 +11,10 @@
 // Copyright 2005 Logitech Inc.
 //************************************************************************
 
+#include "../g15.h"
+
+#ifdef G15_ENABLED
+
 #include "lcdwin32.h"
 #include "LCDStreamingText.h"
 //#include <math.h>
@@ -629,3 +633,5 @@ void CLCDStreamingText::ApplyOrigins(int nOffset)
 
 
 //** end of LCDStreamingText.cpp *******************************************
+
+#endif
