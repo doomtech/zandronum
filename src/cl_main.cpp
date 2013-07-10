@@ -2930,15 +2930,26 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 		return;
 	}
 
-	// Generate and send checksums for the map lumps.
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, Checksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, Checksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, Checksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, Checksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	// [Dusk] Include a byte to check if this is an UDMF or a non-UDMF map.
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, pMap->isText );
+
+	if ( pMap->isText )
+	{
+		// [Dusk] If this is an UDMF map, send the TEXTMAP checksum.
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_TEXTMAP, Checksum );
+		NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	}
+	else
+	{
+		// Generate and send checksums for the map lumps.
+		const int ids[4] = { ML_VERTEXES, ML_LINEDEFS, ML_SIDEDEFS, ML_SECTORS };
+		for( ULONG i = 0; i < 4; ++i )
+		{
+			NETWORK_GenerateMapLumpMD5Hash( pMap, ids[i], Checksum );
+			NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+		}
+	}
+
 	if ( pMap->HasBehavior )
 		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_BEHAVIOR, Checksum );
 	else

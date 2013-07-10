@@ -1148,33 +1148,47 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	FString		serverSidedefString;
 	FString		serverSectorString;
 	FString		serverBehaviorString;
+	FString		serverTextmapString;
 	FString		clientVertexString;
 	FString		clientLinedefString;
 	FString		clientSidedefString;
 	FString		clientSectorString;
 	FString		clientBehaviorString;
+	FString		clientTextmapString;
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
 	pMap = P_OpenMapData( level.mapname );
 
 	// Generate checksums for the map lumps.
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, serverVertexString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, serverLinedefString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, serverSidedefString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, serverSectorString );
+	// [Dusk] Only if not UDMF. In UDMF, make the TEXTMAP checksum instead.
+	if ( pMap->isText )
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_TEXTMAP, serverTextmapString );
+	else
+	{
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, serverVertexString );
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, serverLinedefString );
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, serverSidedefString );
+		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, serverSectorString );
+	}
+
 	if ( pMap->HasBehavior ) // ML_BEHAVIOR
 		NETWORK_GenerateMapLumpMD5Hash( pMap, ML_BEHAVIOR, serverBehaviorString );
-	else
-		serverBehaviorString = "";
 
 	// Free the map pointer, we don't need it anymore.
 	delete ( pMap );
 
 	// Read in the client's checksum strings.
-	clientVertexString = NETWORK_ReadString( pByteStream );
-	clientLinedefString = NETWORK_ReadString( pByteStream );
-	clientSidedefString = NETWORK_ReadString( pByteStream );
-	clientSectorString = NETWORK_ReadString( pByteStream );
+	// [Dusk] The client sends a byte that's 1 if UDMF, 0 if not.
+	if ( NETWORK_ReadByte( pByteStream ))
+		clientTextmapString = NETWORK_ReadString( pByteStream );
+	else
+	{
+		clientVertexString = NETWORK_ReadString( pByteStream );
+		clientLinedefString = NETWORK_ReadString( pByteStream );
+		clientSidedefString = NETWORK_ReadString( pByteStream );
+		clientSectorString = NETWORK_ReadString( pByteStream );
+	}
+
 	clientBehaviorString = NETWORK_ReadString( pByteStream );
 
 	// Checksums did not match! Therefore, the level authentication has failed.
@@ -1182,7 +1196,8 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 		( serverLinedefString.Compare( clientLinedefString ) != 0 ) ||
 		( serverSidedefString.Compare( clientSidedefString ) != 0 ) ||
 		( serverSectorString.Compare( clientSectorString ) != 0 ) ||
-		( serverBehaviorString.Compare( clientBehaviorString ) != 0 ))
+		( serverBehaviorString.Compare( clientBehaviorString ) != 0 ) ||
+		( serverTextmapString.Compare( clientTextmapString ) != 0 ))
 	{
 		return ( false );
 	}
