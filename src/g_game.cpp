@@ -3146,12 +3146,40 @@ void GAME_BackupLineProperties ( line_t *li )
 //
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
+
+void GAME_ResetScripts ( )
+{
+	// Unload the ACS scripts so we can reload them.
+	FBehavior::StaticUnloadModules( );
+	if ( DACSThinker::ActiveThinker != NULL )
+	{
+		// [BB] Stop and destroy all active ACS scripts.
+		DACSThinker::ActiveThinker->StopAndDestroyAllScripts();
+	}
+
+	// Open the current map and load its BEHAVIOR lump.
+	MapData *pMap = P_OpenMapData( level.mapname );
+	if ( pMap == NULL )
+		I_Error( "GAME_ResetMap: Unable to open map '%s'\n", level.mapname );
+	else if ( pMap->HasBehavior )
+		P_LoadBehavior( pMap );
+
+	// Run any default scripts that needed to be run.
+	FBehavior::StaticLoadDefaultModules( );
+
+	// Restart running any open scripts on this map, since we just destroyed them all!
+	// [BB] The server instructs the clients to start the CLIENTSIDE open scripts.
+	if ( NETWORK_InClientMode( ) == false )
+		FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
+
+	delete ( pMap );
+}
+
 void DECAL_ClearDecals( void );
 FPolyObj *GetPolyobjByIndex( ULONG ulPoly );
 void GAME_ResetMap( bool bRunEnterScripts )
 {
 	ULONG							ulIdx;
-	MapData							*pMap;
 	level_info_t					*pLevelInfo;
 	bool							bSendSkyUpdate;
 //	sector_t						*pSector;
@@ -3211,6 +3239,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			}
 		}
 
+		// [BB] Clients may be running CLIENTSIDE scripts, so we also need to reset ACS scripts on the clients.
+		GAME_ResetScripts ( );
 		return;
 	}
 
@@ -3844,26 +3874,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DestroyAllSectorMovers( );
 
-	// Unload the ACS scripts so we can reload them.
-	FBehavior::StaticUnloadModules( );
-	if ( DACSThinker::ActiveThinker != NULL )
-	{
-		// [BB] Stop and destroy all active ACS scripts.
-		DACSThinker::ActiveThinker->StopAndDestroyAllScripts();
-	}
-
-	// Open the current map and load its BEHAVIOR lump.
-	pMap = P_OpenMapData( level.mapname );
-	if ( pMap == NULL )
-		I_Error( "GAME_ResetMap: Unable to open map '%s'\n", level.mapname );
-	else if ( pMap->HasBehavior )
-		P_LoadBehavior( pMap );
-
-	// Run any default scripts that needed to be run.
-	FBehavior::StaticLoadDefaultModules( );
-
-	// Restart running any open scripts on this map, since we just destroyed them all!
-	FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
+	// [BB] Reset all ACS scripts.
+	GAME_ResetScripts ( );
 
 	// [BB] Restart players' enter scripts if necessary.
 	if ( bRunEnterScripts )
@@ -3878,8 +3890,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			}
 		}
 	}
-
-	delete ( pMap );
 }
 
 //*****************************************************************************
