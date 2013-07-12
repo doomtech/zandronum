@@ -108,6 +108,7 @@
 #include "gl/gl_lights.h"
 #include "unlagged.h"
 #include "p_3dmidtex.h"
+#include "a_lightning.h"
 
 #include <zlib.h>
 
@@ -3201,6 +3202,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 	// [BB] The effect of MapRevealer needs to be reset manually.
 	level.flags2 &= ~LEVEL2_ALLMAP;
+
+	// [BB] If MAPINFO didn't tell us to start lightning, make sure all lightning is stopped now.
+	if ( !(level.flags & LEVEL_STARTLIGHTNING) )
+		P_ForceLightning( 2 );
 
 	// [BB] Reset special stuff for the current gamemode, like control point ownership in Domination.
 	GAMEMODE_ResetSpecalGamemodeStates();

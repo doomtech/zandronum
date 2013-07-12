@@ -99,6 +99,7 @@
 -	- Fixed an exploit that allowed a manipulated client to bring its player into an undefined state leading to various problems. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho] 
 -	- Fixed: Level authentication did not work at all with UDMF maps. [Dusk]
 -	- Fixed: CLIENTSIDE scripts were not stopped on clients online during map resets. [Torr Samaho] 
+-	- Fixed: Lightning was not stopped during map resets. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]
