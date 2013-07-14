@@ -3242,6 +3242,13 @@ void GAME_ResetMap( bool bRunEnterScripts )
 					pActor->Destroy( );
 				continue;
 			}
+
+			// [BB] ALLOWCLIENTSPAWN actors spawned by the map are supposed to stay untouched. Some mods ignore
+			// this restriction. To work around some problems caused by this, we reset their args. In particular,
+			// this is helpful for DynamicLight tricks.
+			if ( ( pActor->ulSTFlags & STFL_LEVELSPAWNED ) && ( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) )
+				for ( int i = 0; i < 5; ++i )
+					pActor->args[i] = pActor->SavedArgs[i];
 		}
 
 		// [BB] Clients may be running CLIENTSIDE scripts, so we also need to reset ACS scripts on the clients.
@@ -3650,11 +3657,11 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				pNewActor->tid = pActor->tid;
 				pNewActor->special = pActor->SavedSpecial;
 				pNewActor->SavedSpecial = pActor->SavedSpecial;
-				pNewActor->args[0] = pActor->args[0];
-				pNewActor->args[1] = pActor->args[1];
-				pNewActor->args[2] = pActor->args[2];
-				pNewActor->args[3] = pActor->args[3];
-				pNewActor->args[4] = pActor->args[4];
+				for ( int i = 0; i < 5; ++i )
+				{
+					pNewActor->args[i] = pActor->SavedArgs[i];
+					pNewActor->SavedArgs[i] = pActor->SavedArgs[i];
+				}
 				pNewActor->AddToHash( );
 
 				pNewActor->ulSTFlags |= STFL_LEVELSPAWNED;
@@ -3706,6 +3713,11 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		{
 			if ( pActor->special != pActor->SavedSpecial )
 				pActor->special = pActor->SavedSpecial;
+
+			// [Dusk] Args must be reset too
+			for ( ULONG i = 0; i < 5; ++i )
+				if ( pActor->args[i] != pActor->SavedArgs[i] )
+					pActor->args[i] = pActor->SavedArgs[i];
 
 			// [BB] This is a valid monster on the map, count it.
 			if ( pActor->CountsAsKill( ) && !(pActor->flags & MF_FRIENDLY) )
@@ -3774,11 +3786,11 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			pNewActor->tid = pActor->tid;
 			pNewActor->special = pActor->SavedSpecial;
 			pNewActor->SavedSpecial = pActor->SavedSpecial;
-			pNewActor->args[0] = pActor->args[0];
-			pNewActor->args[1] = pActor->args[1];
-			pNewActor->args[2] = pActor->args[2];
-			pNewActor->args[3] = pActor->args[3];
-			pNewActor->args[4] = pActor->args[4];
+			for ( int i = 0; i < 5; ++i )
+			{
+				pNewActor->args[i] = pActor->SavedArgs[i];
+				pNewActor->SavedArgs[i] = pActor->SavedArgs[i];
+			}
 			pNewActor->AddToHash( );
 
 			// Just do this stuff for monsters.

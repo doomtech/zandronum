@@ -5504,6 +5504,10 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	// [BC] Save the thing's special for resetting the map.
 	mobj->SavedSpecial = mobj->special;
 
+	// [Dusk] Save args
+	for (int i = 0; i < 5; ++i)
+		mobj->SavedArgs[i] = mobj->args[i];
+
 	// [RH] Add ThingID to mobj and link it in with the others
 	mobj->tid = mthing->thingid;
 	mobj->AddToHash ();
