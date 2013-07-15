@@ -101,6 +101,7 @@
 -	- Fixed: CLIENTSIDE scripts were not stopped on clients online during map resets. [Torr Samaho] 
 -	- Fixed: Lightning was not stopped during map resets. [Torr Samaho]
 -	- Fixed: Arguments of actors were not reset to their initial values upon map resets. [Dusk, Torr Samaho]
+-	- Fixed: The monster bandwidth saving system that uses the last updated actor positions didn't work properly for actors right that got their momentum changed externally before ever moving on their own. [Torr Samaho]
 !	- sv_coop_damagefactor is not archived in the config file anymore, but reset to its default value when the game starts. [Torr Samaho]
 !	- Chex now uses the Doom status bar code allowing the new fullscreen HUD (cl_stfullscreenhud) to be used in Chex. [Torr Samaho]
 !	- Changed the default of the CVARs cl_run and freelook to true. [Torr Samaho]

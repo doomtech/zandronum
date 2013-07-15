@@ -3034,6 +3034,12 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->SpawnPoint[1] = Y;
 		pActor->SpawnPoint[2] = Z;
 
+		// [BB] The current position of the actor comes straight from the server, so it's safe
+		// to assume that it's correct and thus a valid value for the last updated position.
+		pActor->lastX = X;
+		pActor->lastY = Y;
+		pActor->lastZ = Z;
+
 		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
 		if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
 			pActor->momz = FRACUNIT*2;
