@@ -199,6 +199,8 @@ void APathFollower::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
 	arc << bActive << bJustStepped << PrevNode << CurrNode << Time << HoldTime;
+	// [BB] Zandronum specific stuff.
+	arc << bPostBeginPlayCalled << bActivateCalledBeforePostBeginPlay << (DWORD &)lServerPrevNodeId << (DWORD &)lServerCurrNodeId << fServerTime;
 }
 
 // Interpolate between p2 and p3 along a Catmull-Rom spline
