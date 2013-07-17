@@ -241,10 +241,6 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 	{  
 		lCommand = NETWORK_ReadByte( &g_ByteStream );
 
-		// End of message.
-		if ( lCommand == -1 )
-			break;
-
 		switch ( lCommand )
 		{
 		case CLD_DEMOVERSION:
@@ -279,6 +275,11 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 		// [Dusk]
 		case CLD_DEMOWADS:
 			CLIENTDEMO_ReadDemoWads( );
+			break;
+
+		// [Dusk] Bad headers shouldn't just be ignored, that's just asking for trouble.
+		default:
+			I_Error( "Unknown demo header %ld!\n", lCommand );
 			break;
 		}
 	}
@@ -530,7 +531,7 @@ void CLIENTDEMO_FinishRecording( void )
 
 	// Go back real quick and write the length of this demo.
 	lDemoLength = g_ByteStream.pbStream - g_pbDemoBuffer;
-	ByteStream.pbStream = g_pbDemoBuffer + 6;
+	ByteStream.pbStream = g_pbDemoBuffer + 5;
 	ByteStream.pbStreamEnd = g_ByteStream.pbStreamEnd;
 	NETWORK_WriteLong( &ByteStream, lDemoLength );
 
