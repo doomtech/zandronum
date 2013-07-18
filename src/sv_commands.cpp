@@ -1682,7 +1682,7 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 					continue;
 
 				// If the players are not on the same team, don't send the message.
-				if ( ( players[ulIdx].ulTeam != players[ulPlayer].ulTeam ) && ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) != PLAYER_IsTrueSpectator ( &players[ulPlayer] ) ) )
+				if ( ( players[ulIdx].ulTeam != players[ulPlayer].ulTeam ) && ( ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) != PLAYER_IsTrueSpectator ( &players[ulPlayer] ) ) || ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) == false ) ) )
 					continue;
 			}
 			// Not in a team mode.
