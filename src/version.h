@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define GAMEVER_STRING "1.1"
+#define GAMEVER_STRING "1.1.1"
 #define DOTVERSIONSTR GAMEVER_STRING
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
