@@ -707,6 +707,10 @@ CCMD (puke)
 
 CCMD (error)
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if (argv.argc() > 1)
 	{
 		char *textcopy = copystring (argv[1]);
@@ -720,6 +724,10 @@ CCMD (error)
 
 CCMD (error_fatal)
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	if (argv.argc() > 1)
 	{
 		char *textcopy = copystring (argv[1]);

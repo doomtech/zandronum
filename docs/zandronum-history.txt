@@ -16,6 +16,7 @@
 ---
 
 -	- Fixed crashes related to loading many announcers. [Torr Samaho]
+!	- The commands "error" "error_fatal" and "crashout" can't be called by ConsoleCommand anymore. [Torr Samaho] 
 
 
 1.1.1

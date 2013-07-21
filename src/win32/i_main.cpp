@@ -79,6 +79,7 @@
 // [BB] New #includes.
 #include "serverconsole/serverconsole.h"
 #include "network.h"
+#include "p_acs.h"
 
 #include "stats.h"
 #include "st_start.h"
@@ -1406,6 +1407,10 @@ DWORD WINAPI MainDoomThread( LPVOID )
 #include "c_dispatch.h"
 CCMD (crashout)
 {
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
 	*(int *)0 = 0;
 }
 #endif
