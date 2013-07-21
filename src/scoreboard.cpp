@@ -237,7 +237,7 @@ static void SCOREBOARD_DrawWaiting( void )
 bool SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer )
 {
 	if(
-		(( NETWORK_GetState( ) != NETSTATE_SINGLE ) || ( deathmatch || teamgame || invasion )) &&
+		(( NETWORK_GetState( ) != NETSTATE_SINGLE ) || ( deathmatch || teamgame || invasion ) || CLIENTDEMO_IsPlaying( )) &&
 		( Button_ShowScores.bDown || (( players[ulDisplayPlayer].camera && players[ulDisplayPlayer].camera->health <= 0 ) && (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) || ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS )))  && ( teamlms == false ) && ( duel == false || ( DUEL_GetState( ) != DS_WINSEQUENCE ))))
 		)
 		return true;
