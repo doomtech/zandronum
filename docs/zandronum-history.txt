@@ -12,10 +12,17 @@
 ===============================================================================================================
 
 
+1.2
+---
+
+-	- Fixed crashes related to loading many announcers. [Torr Samaho]
+
+
 1.1.1
 -----
 
 -	- Fixed: The messages sent with ay_team were visible to players of the other teams. [Dusk, Torr Samaho]
+
 
 1.1
 ---

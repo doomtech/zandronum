@@ -552,7 +552,11 @@ static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 		if (prof.GetName().CompareNoCase(g_DefaultAnnouncer->GetName()) == 0)
 			g_DefaultAnnouncer->Merge(prof);
 		else
+		{
 			g_AnnouncerProfile.Push(prof);
+			// [BB] Pushing a new profile may invalidate the pointer to the default announcer.
+			g_DefaultAnnouncer = &g_AnnouncerProfile[0];
+		}
 	}
 }
 
