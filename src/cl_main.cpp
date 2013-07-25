@@ -3126,9 +3126,8 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 
 	pActor->SetOrigin( X, Y, Z );
 
-	// This is needed to restore tmfloorz.
-	if ((( pActor->flags & MF_NOBLOCKMAP ) == false ) &&
-		(( pActor->flags & MF_COUNTKILL ) == false ))
+	// [BB] SetOrigin doesn't set the actor's floorz value properly, so we need to correct this.
+	if ( ( pActor->flags & MF_NOBLOCKMAP ) == false )
 	{
 		P_OldAdjustFloorCeil( pActor );
 	}
