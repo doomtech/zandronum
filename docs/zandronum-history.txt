@@ -18,6 +18,7 @@
 -	- Fixed crashes related to loading many announcers. [Torr Samaho]
 -	- Fixed: +showscores did not always respond properly when viewing a demo. [Dusk]
 -	- Fixed: Monsters near a ledge sometimes appeared as constantly falling down and teleporting back on clients online. [Torr Samaho]
+-	- Fixed: Interpolation points and actor moves didn't work properly on clients after a map reset online. [Torr Samaho]
 !	- The commands "error" "error_fatal" and "crashout" can't be called by ConsoleCommand anymore. [Torr Samaho] 
 
 

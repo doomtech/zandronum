@@ -3848,6 +3848,18 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				if ( pNewActor->angle != 0 )
 					SERVERCOMMANDS_SetThingAngle( pNewActor );
 
+				// [BB] The server reset the args of the old actor, inform the clients about this.
+				if ( ( pNewActor->args[0] != 0 )
+					|| ( pNewActor->args[1] != 0 )
+					|| ( pNewActor->args[2] != 0 )
+					|| ( pNewActor->args[3] != 0 )
+					|| ( pNewActor->args[4] != 0 ) )
+					SERVERCOMMANDS_SetThingArguments( pNewActor );
+
+				// [BB] The server copied the tid from the old actor, inform the clients about this.
+				if ( pActor->tid != 0 )
+					SERVERCOMMANDS_SetThingTID( pNewActor );
+
 				// [BB] Since we called GAMEMODE_AdjustActorSpawnFlags, we possibly need to let the clients know about its effects.
 				SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( pNewActor, MAXPLAYERS, 0 );
 			}
