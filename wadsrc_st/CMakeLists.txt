@@ -5,6 +5,6 @@ add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/skulltag_actors.pk3
 	COMMAND ${CMAKE_BINARY_DIR}/tools/zipdir/zipdir ${ZDOOM_OUTPUT_DIR}/skulltag_actors.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/static ${CMAKE_CURRENT_BINARY_DIR}/generated
    DEPENDS zipdir ${CMAKE_CURRENT_SOURCE_DIR}/static )
 
-add_custom_target( pk3 ALL
+add_custom_target( skulltag_actors ALL
 	DEPENDS ${ZDOOM_OUTPUT_DIR}/skulltag_actors.pk3 )
 
