@@ -20,6 +20,7 @@
 -	- Fixed: Monsters near a ledge sometimes appeared as constantly falling down and teleporting back on clients online. [Torr Samaho]
 -	- Fixed: Interpolation points and actor moves didn't work properly on clients after a map reset online. [Torr Samaho]
 -	- Fixed: Client side demo recording could crash the client. [Circunei Z]
+-	- Fixed a lastX/Y/Z desync between client and server. [Water]
 !	- The commands "error" "error_fatal" and "crashout" can't be called by ConsoleCommand anymore. [Torr Samaho] 
 
 

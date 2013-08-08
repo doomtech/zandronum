@@ -4258,6 +4258,14 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	actor->x = actor->PrevX = ix;
 	actor->y = actor->PrevY = iy;
 	actor->z = actor->PrevZ = iz;
+
+	// [CK] Desync issues occur due to not having marked spawning actors with
+	// the proper lastX/Y/Z, this will hopefully fix the floating glitch where
+	// desync's between the server and client are fixed.
+	actor->lastX = actor->x;
+	actor->lastY = actor->y;
+	actor->lastZ = actor->z;
+
 	actor->picnum.SetInvalid();
 
 	FRandom &rng = pr_spawnmobj;
