@@ -1290,7 +1290,7 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 		commandAsStream.pbStreamEnd = pByteStream->pbStream;
 
 		// [BB] Memorize the current position in our demo stream.
-		BYTE *pbDemoStream = CLIENTDEMO_GetDemoStream()->pbStream;
+		CLIENTDEMO_MarkCurrentPosition();
 		lCommand = NETWORK_ReadByte( pByteStream );
 
 		// End of message.
@@ -1314,7 +1314,7 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 		{
 			// [BB] Since we just processed the server command, this command ends where we are now.
 			commandAsStream.pbStreamEnd = pByteStream->pbStream;
-			CLIENTDEMO_InsertPacket( &commandAsStream, pbDemoStream );
+			CLIENTDEMO_InsertPacketAtMarkedPosition( &commandAsStream );
 		}
 
 	}

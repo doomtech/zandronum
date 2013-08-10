@@ -99,6 +99,9 @@ static	BYTE				*g_pbDemoBuffer;
 // Our byte stream that points to where we are in our demo.
 static	BYTESTREAM_s		g_ByteStream;
 
+// [BB] Position in the demo stream for CLIENTDEMO_InsertPacketAtMarkedPosition.
+static	BYTE				*g_pbMarkedStreamPosition;
+
 // Name of our demo.
 static	FString				g_DemoName;
 
@@ -400,33 +403,25 @@ void CLIENTDEMO_WritePacket( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_InsertPacket( BYTESTREAM_s *pByteStream, BYTE *pPosition )
+void CLIENTDEMO_InsertPacketAtMarkedPosition( BYTESTREAM_s *pByteStream )
 {
 	// [BB] We can write to the current position of our stream without any special treatment.
-	if ( pPosition == CLIENTDEMO_GetDemoStream()->pbStream )
+	if ( g_pbMarkedStreamPosition == CLIENTDEMO_GetDemoStream()->pbStream )
 		CLIENTDEMO_WritePacket( pByteStream );
 	// [BB] If we are supposed to write to a previous position, we have to move what's already there..
-	else if ( pPosition < CLIENTDEMO_GetDemoStream()->pbStream )
+	else if ( g_pbMarkedStreamPosition < CLIENTDEMO_GetDemoStream()->pbStream )
 	{
-		// [ZZ] Preserving the position that may possibly change during clientdemo_CheckDemoBuffer
-		//      this assumes that pPosition is more or equal to demo buffer beginning
-		int oldPos = pPosition - g_pbDemoBuffer;
-
 		// [BB] Save the stuff currently at the desired position.
-		const int bytesToCopy = CLIENTDEMO_GetDemoStream()->pbStream - pPosition;
+		const int bytesToCopy = CLIENTDEMO_GetDemoStream()->pbStream - g_pbMarkedStreamPosition;
 		BYTE *copyBuffer = new BYTE[bytesToCopy];
-		memcpy( copyBuffer, pPosition, bytesToCopy );
+		memcpy( copyBuffer, g_pbMarkedStreamPosition, bytesToCopy );
 
 		// [BB] Make sure we have enough space for the new command.
 		clientdemo_CheckDemoBuffer( pByteStream->pbStreamEnd - pByteStream->pbStream );
 
 		// [BB] Change our demo stream to the desired position and write the incoming packet there.
-		// [ZZ] Restore the old position.
-		//      Is this needed at all? See this (clientdemo_CheckDemoBuffer):
-		// 		lPosition = g_ByteStream.pbStream - g_pbDemoBuffer;
-		//      g_pbDemoBuffer = (BYTE *)M_Realloc( g_pbDemoBuffer, g_lMaxDemoLength );
-		//      g_ByteStream.pbStream = g_pbDemoBuffer + lPosition;
-		CLIENTDEMO_GetDemoStream()->pbStream = g_pbDemoBuffer + oldPos;
+		// [BB] clientdemo_CheckDemoBuffer updates g_pbMarkedStreamPosition if necessary.
+		CLIENTDEMO_GetDemoStream()->pbStream = g_pbMarkedStreamPosition;
 		CLIENTDEMO_WritePacket( pByteStream );
 
 		// [BB] Append the saved stuff.
@@ -439,6 +434,13 @@ void CLIENTDEMO_InsertPacket( BYTESTREAM_s *pByteStream, BYTE *pPosition )
 	}
 	else
 		Printf ( "CLIENTDEMO_InsertPacket Error: Can't write here!\n" );
+}
+
+//*****************************************************************************
+//
+void CLIENTDEMO_MarkCurrentPosition( void )
+{
+	g_pbMarkedStreamPosition = CLIENTDEMO_GetDemoStream()->pbStream;
 }
 
 //*****************************************************************************
@@ -849,9 +851,13 @@ static void clientdemo_CheckDemoBuffer( ULONG ulSize )
 		// Give us another 128KB of memory.
 		g_lMaxDemoLength += 0x20000;
 		lPosition = g_ByteStream.pbStream - g_pbDemoBuffer;
+		// [BB] Convert our marked position to an offset.
+		const LONG markedOffset = g_pbMarkedStreamPosition - g_pbDemoBuffer;
 		g_pbDemoBuffer = (BYTE *)M_Realloc( g_pbDemoBuffer, g_lMaxDemoLength );
 		g_ByteStream.pbStream = g_pbDemoBuffer + lPosition;
 		g_ByteStream.pbStreamEnd = g_pbDemoBuffer + g_lMaxDemoLength;
+		// [BB] Restore the marked position based on the new pointer.
+		g_pbMarkedStreamPosition = g_pbDemoBuffer + markedOffset;
 	}
 }
 
