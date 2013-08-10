@@ -598,12 +598,12 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 			
 			int iNumChars = 0;
 			sprintf( szString, "PWADs:" );
-			for( std::list<FString>::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
+			for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
 			{
-				iNumChars += i->Len( );
+				iNumChars += i->first.Len( );
 				if ( iNumChars > 50 - 3 ) // Determined by width of label
 				{
-					sprintf( szString + strlen ( szString ), "...", *i->GetChars( ));
+					sprintf( szString + strlen ( szString ), "...", *i->first.GetChars( ));
 					break;
 				}
 				else

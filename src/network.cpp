@@ -104,7 +104,7 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 //*****************************************************************************
 //	VARIABLES
 
-static	std::list<FString>	g_PWADs;
+static	std::list<std::pair<FString, FString> >	g_PWADs;
 static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
@@ -891,7 +891,7 @@ FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-std::list<FString> *NETWORK_GetPWADList( void )
+std::list<std::pair<FString, FString> > *NETWORK_GetPWADList( void )
 {
 	return &g_PWADs;
 }
@@ -1215,8 +1215,9 @@ static void network_InitPWADList( void )
 		{
 			continue;
 		}
-
-		g_PWADs.push_back( Wads.GetWadName( ulIdx ));
+		char MD5Sum[33];
+		MD5SumOfFile ( Wads.GetWadFullName( ulIdx ), MD5Sum );
+		g_PWADs.push_back( std::pair<FString, FString> ( Wads.GetWadName( ulIdx ), MD5Sum ) );
 	}
 }
 

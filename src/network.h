@@ -218,6 +218,9 @@ enum
 	// [RC] Too many connections from the IP.
 	NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP,
 
+	// [BB] The protected lump authentication failed.
+	NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED,
+
 	NUM_NETWORK_ERRORCODES
 };
 
@@ -346,7 +349,7 @@ bool			NETWORK_IsGeoIPAvailable( void );
 FString			NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address );
 USHORT			NETWORK_GetLocalPort( void );
 
-std::list<FString>	*NETWORK_GetPWADList( void ); // [RC]
+std::list<std::pair<FString, FString> >	*NETWORK_GetPWADList( void ); // [RC]
 const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );

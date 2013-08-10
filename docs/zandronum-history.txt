@@ -15,6 +15,7 @@
 1.2
 ---
 
+*+	- Revamped the authentication error messages: The server now reports which kind of authentication failed (i.e. protected lump or map) and reports a list of all loaded PWADs including their md5 checksums. The client also automatically logs the corresponding local values which should make it much easier to pinpoint the cause of an authentication error. [Torr Samaho]
 -	- Fixed crashes related to loading many announcers. [Torr Samaho]
 -	- Fixed: +showscores did not always respond properly when viewing a demo. [Dusk]
 -	- Fixed: Monsters near a ledge sometimes appeared as constantly falling down and teleporting back on clients online. [Torr Samaho]

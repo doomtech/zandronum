@@ -1462,9 +1462,29 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				sprintf( szErrorString, "Server is full." );
 				break;
 			case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
+			case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
+				{
+					std::list<std::pair<FString, FString> > serverPWADs;
+					const int numServerPWADs = NETWORK_ReadByte( pByteStream );
+					for ( int i = 0; i < numServerPWADs; ++i )
+					{
+						std::pair<FString, FString> pwad;
+						pwad.first = NETWORK_ReadString( pByteStream );
+						pwad.second = NETWORK_ReadString( pByteStream );
+						serverPWADs.push_back ( pwad );
+					}
 
-				sprintf( szErrorString, "Level authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again." );
-				break;
+					sprintf( szErrorString, "%s authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
+
+					Printf ( "The server reports %d pwad(s):\n", numServerPWADs );
+					for( std::list<std::pair<FString, FString> >::iterator i = serverPWADs.begin( ); i != serverPWADs.end( ); ++i )
+						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
+					Printf ( "You have loaded %d pwad(s):\n", NETWORK_GetPWADList( )->size() );
+					for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
+						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
+
+					break;
+				}
 			case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
 
 				sprintf( szErrorString, "Failed to send userinfo." );

@@ -1897,7 +1897,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	if ( sv_pure && strcmp ( NETWORK_ReadString( pByteStream ), g_lumpsAuthenticationChecksum.GetChars() ) )
 	{
 		// Client fails the lump authentication.
-		SERVER_ClientError( lClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
+		SERVER_ClientError( lClient, NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED );
 		return;
 	}
 
@@ -2201,8 +2201,16 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
+	case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
 
-		Printf( "Authentication failed.\n" );
+		NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, NETWORK_GetPWADList( )->size( ));
+		for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
+		{
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, i->first.GetChars( ));
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, i->second.GetChars( ));
+		}
+
+		Printf( "%s authentication failed.\n", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
 		break;
 	case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
 
