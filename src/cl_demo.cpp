@@ -164,6 +164,7 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOVERSION );
 	NETWORK_WriteShort( &g_ByteStream, DEMOGAMEVERSION );
 	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR_REV );
+	NETWORK_WriteByte( &g_ByteStream, BUILD_ID );
 	NETWORK_WriteLong( &g_ByteStream, rngseed );
 
 	// [Dusk] Write the amount of WADs and their names, incl. IWAD
@@ -255,6 +256,11 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 
 			// Read in the DOTVERSIONSTR the demo was recorded with.
 			Printf( "Version %s demo\n", NETWORK_ReadString( &g_ByteStream ));
+
+			// [Dusk] BUILD_ID is now stored in the demo. We don't do anything
+			// with it - it's of interest for external applications only. Just
+			// skip it here.
+			NETWORK_ReadByte( &g_ByteStream );
 
 			// Read in the random number generator seed.
 			rngseed = NETWORK_ReadLong( &g_ByteStream );
