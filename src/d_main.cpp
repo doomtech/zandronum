@@ -635,6 +635,7 @@ CVAR (Flag, compat_dont_stop_player_scripts_on_disconnect,		compatflags2, COMPAT
 CVAR (Flag, compat_explosionthrust,		compatflags2, COMPATF2_OLD_EXPLOSION_THRUST);
 CVAR (Flag, compat_bridgedrops,		compatflags2, COMPATF2_OLD_BRIDGE_DROPS);
 CVAR (Flag, compat_123b33jumpphysics,		compatflags2, COMPATF2_ZDOOM_123B33_JUMP_PHYSICS);
+CVAR (Flag, compat_fullweaponlower,		compatflags2, COMPATF2_FULL_WEAPON_LOWER);
 
 //==========================================================================
 //
