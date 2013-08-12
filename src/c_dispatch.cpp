@@ -714,7 +714,9 @@ void AddCommandString (char *cmd, int keynum)
 			{
 				if (!ParsingKeyConf &&
 					cmd[0] == 'w' && cmd[1] == 'a' && cmd[2] == 'i' && cmd[3] == 't' &&
-					(cmd[4] == 0 || cmd[4] == ' '))
+					(cmd[4] == 0 || cmd[4] == ' ')
+					// [BB] wait would allow to bypass ACS_IsCalledFromConsoleCommand( ) checks.
+					&& ( ACS_IsCalledFromConsoleCommand( ) == false ) )
 				{
 					int tics;
 
