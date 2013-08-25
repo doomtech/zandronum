@@ -1762,7 +1762,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 					SCOREBOARD_RefreshHUD( );
 
 				// Spawn a new flag.
-				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, ONFLOORZ, NO_REPLACE );
+				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, z, NO_REPLACE );
 
 				if ( pTeamItem )
 				{

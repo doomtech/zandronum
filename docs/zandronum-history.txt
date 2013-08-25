@@ -25,6 +25,7 @@
 -	- Fixed: Client side demo recording could crash the client. [Circunei Z, Torr Samaho]
 -	- Fixed a lastX/Y/Z desync between client and server. [Water]
 -	- Fixed: Calling a map/changemap vote with an existing non-map lump as argument caused the server to throw an error. [Torr Samaho]
+-	- Fixed: When a player carrying the flag died or disconnected, the flag was spawned on the floor instead of the actual Z position of the player. [Torr Samaho]
 !	- The commands "wait", "error", "error_fatal" and "crashout" can't be called by ConsoleCommand anymore. [Torr Samaho] 
 
 
