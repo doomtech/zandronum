@@ -331,6 +331,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 		(( deathmatch || teamgame ) == false ) ||
 		( players[ulPlayer].mo == NULL ) ||
 		( cl_medals == false ) ||
+		( dmflags3 & DF3_NO_MEDALS ) ||
 		( ulMedal >= NUM_MEDALS ))
 	{
 		return;

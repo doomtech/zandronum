@@ -291,6 +291,9 @@ enum
 
 	// [BB] Handle player bodies as if they had MF6_THRUSPECIES.
 	DF3_UNBLOCK_PLAYERS			= 1 << 4,
+
+	// [BB] Enforces clients not to show medals, i.e. behave as if cl_medals == 0.
+	DF3_NO_MEDALS			= 1 << 5,
 };
 
 // [RH] Compatibility flags.
