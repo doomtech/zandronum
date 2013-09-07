@@ -80,12 +80,44 @@ protected:
 	void PostButtonEvent(int button, bool down);
 	void ClearButtonState();
 
+	int WheelMove;
 	int LastX, LastY;	// for m_filter
 	WORD ButtonState;	// bit mask of current button states (1=down, 0=up)
 };
 
+class FKeyboard : public FInputDevice
+{
+public:
+	FKeyboard();
+	~FKeyboard();
+
+	void AllKeysUp();
+
+protected:
+	BYTE KeyStates[256/8];
+
+	int CheckKey(int keynum) const
+	{
+		return KeyStates[keynum >> 3] & (1 << (keynum & 7));
+	}
+	void SetKey(int keynum, bool down)
+	{
+		if (down)
+		{
+			KeyStates[keynum >> 3] |= 1 << (keynum & 7);
+		}
+		else
+		{
+			KeyStates[keynum >> 3] &= ~(1 << (keynum & 7));
+		}
+	}
+	bool CheckAndSetKey(int keynum, INTBOOL down);
+	void PostKeyEvent(int keynum, INTBOOL down, bool foreground);
+};
+
 void I_StartupMouse();
 void I_CheckNativeMouse(bool prefer_native);
+void I_StartupKeyboard();
 
 // USB HID usage page numbers
 #define HID_GENERIC_DESKTOP_PAGE			0x01

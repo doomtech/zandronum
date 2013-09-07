@@ -722,12 +722,15 @@ FGLTexture::FGLTexture(FTexture * tx)
 		tex->UseType == FTexture::TEX_SkinSprite || 
 		tex->UseType == FTexture::TEX_Decal)
 	{
-		RenderWidth[GLUSE_PATCH]+=2;
-		RenderHeight[GLUSE_PATCH]+=2;
-		Width[GLUSE_PATCH]+=2;
-		Height[GLUSE_PATCH]+=2;
-		LeftOffset[GLUSE_PATCH]+=1;
-		TopOffset[GLUSE_PATCH]+=1;
+		if (!tex->bWarped)
+		{
+			RenderWidth[GLUSE_PATCH]+=2;
+			RenderHeight[GLUSE_PATCH]+=2;
+			Width[GLUSE_PATCH]+=2;
+			Height[GLUSE_PATCH]+=2;
+			LeftOffset[GLUSE_PATCH]+=1;
+			TopOffset[GLUSE_PATCH]+=1;
+		}
 	}
 
 	if (!tex->gl_info.bBrightmapChecked)

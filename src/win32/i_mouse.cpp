@@ -27,6 +27,11 @@
 
 #define DINPUT_BUFFERSIZE	32
 
+// Compensate for w32api's lack
+#ifndef GET_XBUTTON_WPARAM
+#define GET_XBUTTON_WPARAM(wParam) (HIWORD(wParam))
+#endif
+
 // TYPES -------------------------------------------------------------------
 
 class FRawMouse : public FMouse
@@ -108,7 +113,6 @@ extern HWND Window;
 extern LPDIRECTINPUT8 g_pdi;
 extern LPDIRECTINPUT g_pdi3;
 extern bool GUICapture;
-extern bool HaveFocus;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -175,18 +179,9 @@ static void SetCursorState(bool visible)
 {
 	HCURSOR usingCursor = visible ? TheArrowCursor : TheInvisibleCursor;
 	SetClassLongPtr(Window, GCLP_HCURSOR, (LONG_PTR)usingCursor);
-	//if (HaveFocus)
+	if (GetForegroundWindow() == Window)
 	{
 		SetCursor(usingCursor);
-		if (visible)
-		{
-			ShowCursor(TRUE);
-		}
-		else
-		{
-			while (ShowCursor(FALSE) >= 0)
-			{ }
-		}
 	}
 }
 
@@ -223,18 +218,33 @@ static bool CaptureMode_InGame()
 
 void I_CheckNativeMouse(bool preferNative)
 {
-	bool wantNative = (GetFocus() != Window) ||
-		((!screen || !screen->IsFullscreen()) && 
-		(!CaptureMode_InGame() || GUICapture || paused || preferNative || !use_mouse || demoplayback));
+	bool windowed = (screen == NULL) || !screen->IsFullscreen();
+	bool want_native;
+
+	if (!windowed)
+	{
+		want_native = false;
+	}
+	else
+	{
+		want_native =
+			(GetForegroundWindow() != Window) ||
+			!CaptureMode_InGame() ||
+			GUICapture ||
+			paused ||
+			preferNative ||
+			!use_mouse ||
+			demoplayback;
+	}
 
 	//Printf ("%d %d %d\n", wantNative, preferNative, NativeMouse);
 
-	if (wantNative != NativeMouse)
+	if (want_native != NativeMouse)
 	{
 		if (Mouse != NULL)
 		{
-			NativeMouse = wantNative;
-			if (wantNative)
+			NativeMouse = want_native;
+			if (want_native)
 			{
 				Mouse->Ungrab();
 			}
@@ -256,6 +266,7 @@ FMouse::FMouse()
 {
 	LastX = LastY = 0;
 	ButtonState = 0;
+	WheelMove = 0;
 }
 
 //==========================================================================
@@ -306,49 +317,42 @@ void FMouse::WheelMoved(int wheelmove)
 	event_t ev = { 0 };
 	int dir;
 
-	if (GUICapture)
+	WheelMove += wheelmove;
+
+	if (WheelMove < 0)
 	{
-		ev.type = EV_GUI_Event;
-		if (wheelmove < 0)
-		{
-			dir = WHEEL_DELTA;
-			ev.subtype = EV_GUI_WheelDown;
-		}
-		else
-		{
-			dir = -WHEEL_DELTA;
-			ev.subtype = EV_GUI_WheelUp;
-		}
-		/* FIXME
-		ev.data3 = ((KeyState[VK_SHIFT]&128) ? GKM_SHIFT : 0) |
-				   ((KeyState[VK_CONTROL]&128) ? GKM_CTRL : 0) |
-				   ((KeyState[VK_MENU]&128) ? GKM_ALT : 0);
-		*/
-		while (abs(wheelmove) >= WHEEL_DELTA)
-		{
-			D_PostEvent(&ev);
-			wheelmove += dir;
-		}
+		dir = WHEEL_DELTA;
+		ev.data1 = KEY_MWHEELDOWN;
 	}
 	else
 	{
-		if (wheelmove < 0)
-		{
-			dir = WHEEL_DELTA;
-			ev.data1 = KEY_MWHEELDOWN;
-		}
-		else
-		{
-			dir = -WHEEL_DELTA;
-			ev.data1 = KEY_MWHEELUP;
-		}
-		while (abs(wheelmove) >= WHEEL_DELTA)
+		dir = -WHEEL_DELTA;
+		ev.data1 = KEY_MWHEELUP;
+	}
+
+	if (!GUICapture)
+	{
+		while (abs(WheelMove) >= WHEEL_DELTA)
 		{
 			ev.type = EV_KeyDown;
 			D_PostEvent(&ev);
 			ev.type = EV_KeyUp;
 			D_PostEvent(&ev);
-			wheelmove += dir;
+			WheelMove += dir;
+		}
+	}
+	else
+	{
+		ev.type = EV_GUI_Event;
+		ev.subtype = (WheelMove < 0) ? EV_GUI_WheelDown : EV_GUI_WheelUp;
+		if (GetKeyState(VK_SHIFT) & 0x8000)		ev.data3 |= GKM_SHIFT;
+		if (GetKeyState(VK_CONTROL) & 0x8000)	ev.data3 |= GKM_CTRL;
+		if (GetKeyState(VK_MENU) & 0x8000)		ev.data3 |= GKM_ALT;
+		ev.data1 = 0;
+		while (abs(WheelMove) >= WHEEL_DELTA)
+		{
+			D_PostEvent(&ev);
+			WheelMove += dir;
 		}
 	}
 }
@@ -410,6 +414,8 @@ void FMouse::ClearButtonState()
 		}
 		ButtonState = 0;
 	}
+	// Reset mouse wheel accumulation to 0.
+	WheelMove = 0;
 }
 
 //==========================================================================
@@ -493,6 +499,7 @@ void FRawMouse::ProcessInput()
 //
 //==========================================================================
 
+extern BOOL AppActive;
 void FRawMouse::Grab()
 {
 	if (!Grabbed)
@@ -507,7 +514,8 @@ void FRawMouse::Grab()
 		{
 			GetCursorPos(&UngrabbedPointerPos);
 			Grabbed = true;
-			SetCursorState(false);
+			while (ShowCursor(FALSE) >= 0)
+			{ }
 			// By setting the cursor position, we force the pointer image
 			// to change right away instead of having it delayed until
 			// some time in the future.
@@ -537,7 +545,7 @@ void FRawMouse::Ungrab()
 			Grabbed = false;
 			ClearButtonState();
 		}
-		SetCursorState(true);
+		ShowCursor(TRUE);
 		SetCursorPos(UngrabbedPointerPos.x, UngrabbedPointerPos.y);
 	}
 }
@@ -589,7 +597,7 @@ bool FRawMouse::WndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 			if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 			{
-				WheelMoved(raw->data.mouse.usButtonData);
+				WheelMoved((SHORT)raw->data.mouse.usButtonData);
 			}
 			PostMouseMove(m_noprescale ? raw->data.mouse.lLastX : raw->data.mouse.lLastX<<2,
 				-raw->data.mouse.lLastY);
@@ -749,7 +757,6 @@ void FDInputMouse::ProcessInput()
 	DIDEVICEOBJECTDATA od;
 	DWORD dwElements;
 	HRESULT hr;
-	int count = 0;
 	int dx, dy;
 
 	dx = 0;
@@ -773,8 +780,6 @@ void FDInputMouse::ProcessInput()
 		/* Unable to read data or no data available */
 		if (FAILED(hr) || !dwElements)
 			break;
-
-		count++;
 
 		/* Look at the element to see what happened */
 		// GCC does not like putting the DIMOFS_ macros in case statements,
@@ -958,7 +963,7 @@ bool FWin32Mouse::WndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	}
 	else if (message == WM_MOUSEWHEEL)
 	{
-		WheelMoved(HIWORD(wParam));
+		WheelMoved((SHORT)HIWORD(wParam));
 		return true;
 	}
 	else if (message >= WM_LBUTTONDOWN && message <= WM_MBUTTONUP)
@@ -1167,6 +1172,5 @@ void I_StartupMouse ()
 		MouseMode = new_mousemode;
 		NativeMouse = true;
 	}
-	HaveFocus = (GetFocus() == Window);
 }
 
