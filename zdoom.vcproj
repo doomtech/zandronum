@@ -5383,6 +5383,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\win32\i_mouse.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\win32\i_movie.cpp"
 				>
 				<FileConfiguration

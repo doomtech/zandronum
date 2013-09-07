@@ -94,15 +94,21 @@ void gl_InitGlow(FScanner &sc)
 			//sc.MustGetNumber();
 			if (sc.CheckString(","))
 			{
+				if (sc.CheckNumber())
+				{
+					if (tex) tex->gl_info.GlowHeight = sc.Number;
+					if (!sc.CheckString(",")) goto skip_fb;
+				}
+
 				sc.MustGetStringName("fullbright");
 				if (tex) tex->gl_info.bFullbright = true;
 			}
+		skip_fb:
 			sc.SetCMode(false);
 
 			if (tex && color != 0)
 			{
 				tex->gl_info.bGlowing = true;
-				tex->gl_info.GlowHeight = sc.Number;
 				tex->gl_info.GlowColor = color;
 			}
 		}
