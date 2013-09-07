@@ -488,7 +488,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	if (paused)
 	{
 		paused = 0;
-		S_ResumeSound ();
+		S_ResumeSound (false);
 	}
 
 	// [BC] Reset the end level delay.

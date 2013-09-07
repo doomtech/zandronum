@@ -3211,7 +3211,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	GAMEMODE_ResetSpecalGamemodeStates();
 
 	// [BB] If a PowerTimeFreezer was in effect, the sound could be paused. Make sure that it is resumed.
-	S_ResumeSound();
+	S_ResumeSound( false );
 
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;

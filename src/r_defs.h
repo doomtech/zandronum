@@ -616,6 +616,13 @@ struct sector_t
 		planes[pos].TexZ += val;
 	}
 
+	sector_t *GetHeightSec() const 
+	{
+		return (heightsec &&
+			!(heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) &&
+			!(this->e && this->e->XFloor.ffloors.Size())
+			)? heightsec : NULL;
+	}
 
 	// Member variables
 	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }

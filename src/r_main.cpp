@@ -1170,6 +1170,7 @@ void R_SetupFrame (AActor *actor)
 	}
 
 	extralight = camera->player ? camera->player->extralight : 0;
+	newblend = 0;
 
 	// killough 3/20/98, 4/4/98: select colormap based on player status
 	// [RH] Can also select a blend
@@ -1197,21 +1198,19 @@ void R_SetupFrame (AActor *actor)
 			}
 		}
 	}
-	else if (viewsector->heightsec &&
-		!(viewsector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
-	{
-		const sector_t *s = viewsector->heightsec;
-		newblend = viewz < s->floorplane.ZatPoint (viewx, viewy)
-			? s->bottommap
-			: viewz > s->ceilingplane.ZatPoint (viewx, viewy)
-			? s->topmap
-			: s->midmap;
-		if (APART(newblend) == 0 && newblend >= numfakecmaps)
-			newblend = 0;
-	}
 	else
 	{
-		newblend = 0;
+		const sector_t *s = viewsector->GetHeightSec();
+		if (s != NULL)
+		{
+			newblend = viewz < s->floorplane.ZatPoint (viewx, viewy)
+				? s->bottommap
+				: viewz > s->ceilingplane.ZatPoint (viewx, viewy)
+				? s->topmap
+				: s->midmap;
+			if (APART(newblend) == 0 && newblend >= numfakecmaps)
+				newblend = 0;
+		}
 	}
 
 	// [RH] Don't override testblend unless entering a sector with a

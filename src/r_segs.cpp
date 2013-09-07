@@ -1970,10 +1970,7 @@ void R_NewWall (bool needlights)
 	// it is definitely invisible and doesn't need to be marked.
 
 	// killough 3/7/98: add deep water check
-	if (frontsector->heightsec == NULL ||
-		(frontsector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC)
-		|| (frontsector->e && frontsector->e->XFloor.ffloors.Size())
-		)
+	if (frontsector->GetHeightSec() == NULL)
 	{
 		if (frontsector->floorplane.ZatPoint (viewx, viewy) >= viewz)       // above view plane
 			markfloor = false;

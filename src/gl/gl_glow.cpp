@@ -1,7 +1,6 @@
 /*
 ** gl_glow.cpp
 ** Glowing flats like Doomsday
-** (consider this deprecated due to problems with slope handling)
 **
 **---------------------------------------------------------------------------
 ** Copyright 2005 Christoph Oelckers
@@ -48,8 +47,6 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_renderstruct.h"
-
-const int wallglowheight = 128;
 
 //===========================================================================
 // 
@@ -153,7 +150,7 @@ int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff)
 	FTexture *tex = TexMan[floorpic];
 	if (tex != NULL && tex->isGlowing())
 	{
-		if (floordiff < tex->gl_info.GlowHeight*FRACUNIT)
+		if (floordiff < tex->gl_info.GlowHeight*FRACUNIT && tex->gl_info.GlowHeight != 0)
 		{
 			int maxlight=(255+lightlevel)>>1;
 			fixed_t lightfrac = floordiff / tex->gl_info.GlowHeight;

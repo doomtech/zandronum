@@ -1417,7 +1417,7 @@ void APowerTimeFreezer::InitEffect( )
 		return;
 
 	// When this powerup is in effect, pause the music.
-	S_PauseSound( false );
+	S_PauseSound( false, false );
 
 	// Give the player and his teammates the power to move when time is frozen.
 	Owner->player->cheats |= CF_TIMEFREEZE;
@@ -1523,7 +1523,7 @@ void APowerTimeFreezer::EndEffect( )
 			continue;
 		}
 
-		S_ResumeSound( );
+		S_ResumeSound( false );
 		break;
 	}
 
