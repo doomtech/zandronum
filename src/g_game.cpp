@@ -1007,7 +1007,7 @@ static void ChangeSpy (bool forward)
 	}
 
 	// Otherwise, cycle to the next player.
-	int pnum = players[consoleplayer].camera->player - players;
+	int pnum = int(players[consoleplayer].camera->player - players);
 	int step = forward ? 1 : -1;
 
 	// [SP] Let's ignore special LMS settigns if we're playing a demo. Otherwise, we need to enforce
@@ -4985,7 +4985,7 @@ bool G_ProcessIFFDemo (char *mapname)
 	if (uncompSize > 0)
 	{
 		BYTE *uncompressed = new BYTE[uncompSize];
-		int r = uncompress (uncompressed, &uncompSize, demo_p, zdembodyend - demo_p);
+		int r = uncompress (uncompressed, &uncompSize, demo_p, uLong(zdembodyend - demo_p));
 		if (r != Z_OK)
 		{
 			Printf ("Could not decompress demo!\n");
@@ -5175,7 +5175,7 @@ bool G_CheckDemoStatus (void)
 			// a compressed version. If the BODY successfully compresses, the
 			// contents of the COMP chunk will be changed to indicate the
 			// uncompressed size of the BODY.
-			uLong len = demo_p - demobodyspot;
+			uLong len = uLong(demo_p - demobodyspot);
 			uLong outlen = (len + len/100 + 12);
 			Byte *compressed = new Byte[outlen];
 			int r = compress2 (compressed, &outlen, demobodyspot, len, 9);
@@ -5190,9 +5190,9 @@ bool G_CheckDemoStatus (void)
 		}
 		FinishChunk (&demo_p);
 		formlen = demobuffer + 4;
-		WriteLong (demo_p - demobuffer - 8, &formlen);
+		WriteLong (int(demo_p - demobuffer - 8), &formlen);
 
-		M_WriteFile (demoname, demobuffer, demo_p - demobuffer); 
+		M_WriteFile (demoname, demobuffer, int(demo_p - demobuffer)); 
 		M_Free (demobuffer); 
 		demorecording = false;
 		stoprecording = false;

@@ -488,9 +488,7 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< InvFirst
 		<< InvSel
 		<< MorphWeapon
-		<< RedDamageFade
-		<< GreenDamageFade
-		<< BlueDamageFade;
+		<< DamageFade;
 }
 
 //===========================================================================

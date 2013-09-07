@@ -325,6 +325,8 @@ enum
 	COMPATF_MISSILECLIP		= 1 << 29,	// Use original Doom heights for clipping against projectiles
 	// [BB] Changed from 1 << 20 to 1<<30.
 	COMPATF_CROSSDROPOFF	= 1 << 30,	// monsters can't be pushed over dropoffs
+	// [BB] Changed from 1 << 21 to 1<<31. Note: This value is to big, needs to be adapted.
+	COMPATF_ANYBOSSDEATH	= 1 << 31,	// [GZ] Any monster which calls BOSSDEATH counts for level specials
 
 	// [BC] Start of new compatflags.
 

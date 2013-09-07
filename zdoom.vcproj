@@ -9669,6 +9669,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\textures\emptytexture.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\textures\flattexture.cpp"
 					>
 				</File>
@@ -11106,6 +11110,14 @@
 		<Filter
 			Name="Resource Files"
 			>
+			<File
+				RelativePath=".\src\resourcefiles\explode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\explode.h"
+				>
+			</File>
 			<File
 				RelativePath=".\src\resourcefiles\file_7z.cpp"
 				>

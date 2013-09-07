@@ -488,15 +488,15 @@ static menuitem_t MouseItems[] =
 {
 	{ discrete,	"Enable mouse",			{&use_mouse},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Overall sensitivity",	{&mouse_sensitivity},	{0.5}, {2.5},	{0.1}, {NULL} },
+	{ slider,	"Overall sensitivity",	{&mouse_sensitivity},	{0.5}, {2.5},	{0.1f}, {NULL} },
 	{ discrete,	"Prescale mouse movement",{&m_noprescale},		{2.0}, {0.0},	{0.0}, {NoYes} },
 	// [BB] smooth_mouse doesn't do anything in Skulltag (Carn deactivated it long ago), so link this to m_filter.
 	{ discrete, "Smooth mouse movement",{&m_filter},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Turning speed",		{&m_yaw},				{0.5}, {2.5},	{0.1}, {NULL} },
-	{ slider,	"Mouselook speed",		{&m_pitch},				{0.5}, {2.5},	{0.1}, {NULL} },
-	{ slider,	"Forward/Backward speed",{&m_forward},			{0.5}, {2.5},	{0.1}, {NULL} },
-	{ slider,	"Strafing speed",		{&m_side},				{0.5}, {2.5},	{0.1}, {NULL} },
+	{ slider,	"Turning speed",		{&m_yaw},				{0.5}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Mouselook speed",		{&m_pitch},				{0.5}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Forward/Backward speed",{&m_forward},			{0.5}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Strafing speed",		{&m_side},				{0.5}, {2.5},	{0.1f}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Always Mouselook",		{&freelook},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Invert Mouse",			{&invertmouse},			{2.0}, {0.0},	{0.0}, {OnOff} },
@@ -564,7 +564,7 @@ static menuitem_t JoystickItems[] =
 {
 	{ discrete,	"Enable joystick",		{&use_joystick},		{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete_guid,"Active joystick",	{&joy_guid},			{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Overall sensitivity",	{&joy_speedmultiplier},	{0.9}, {2.0},	{0.2}, {NULL} },
+	{ slider,	"Overall sensitivity",	{&joy_speedmultiplier},	{0.9f}, {2.0},	{0.2f}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ whitetext,"Axis Assignments",		{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -776,9 +776,9 @@ static menuitem_t VideoItems[] = {
 	{ more,		"HUD Options",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartHUDMenu} },
 
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Gamma correction",		{&Gamma},			   	{0.1}, {3.0},	{0.1}, {NULL} },
-	{ slider,	"Brightness",			{&vid_brightness},		{-0.8}, {0.8},	{0.05}, {NULL} },
-	{ slider,	"Contrast",				{&vid_contrast},	   	{0.1}, {3.0},	{0.1}, {NULL} },
+	{ slider,	"Gamma correction",		{&Gamma},			   	{0.1f}, {3.0},	{0.1f}, {NULL} },
+	{ slider,	"Brightness",			{&vid_brightness},		{-0.8f}, {0.8f},	{0.05f}, {NULL} },
+	{ slider,	"Contrast",				{&vid_contrast},	   	{0.1f}, {3.0},	{0.1f}, {NULL} },
 	{ slider,	"Blood brightness",		{&blood_fade_scalar},  	{0.0}, {1.0},	{0.05}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Cap framerate",		{&cl_capfps},			{4.0}, {0.0},	{0.0}, {YesNo} },
@@ -1377,7 +1377,7 @@ value_t DF_Crouch[3] = {
 
 static menuitem_t DMFlagsItems[] = {
 	{ discrete, "Teamplay",				{&teamplay},	{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05},{NULL} },
+	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05f},{NULL} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Smart Autoaim",		{&sv_smartaim},	{4.0}, {0.0}, {0.0}, {SmartAim} },
 	{ bitflag,	"Falling damage (old)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGZD} },
@@ -1476,6 +1476,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"Inst. moving floors are not silent",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SILENT_INSTANT_FLOORS} },
 	{ bitflag,  "Sector sounds use center as source",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SECTORSOUNDS} },
 	{ bitflag,  "Use Doom heights for missile clipping",	{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MISSILECLIP} },
+	{ bitflag,  "Allow any bossdeath for level special",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_ANYBOSSDEATH} },
 	{ bitflag,	"Limited movement in the air",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_INSTANTRESPAWN} },
@@ -1616,8 +1617,8 @@ static valueenum_t Resamplers[] =
 
 static menuitem_t SoundItems[] =
 {
-	{ slider,	"Sounds volume",		{&snd_sfxvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
+	{ slider,	"Sounds volume",		{&snd_sfxvolume},		{0.0}, {1.0},	{0.05f}, {NULL} },
+	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05f}, {NULL} },
 	{ discrete, "MIDI device",			{&snd_mididevice},		{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Underwater reverb",	{&snd_waterreverb},		{2.0}, {0.0},	{0.0}, {OnOff} },
@@ -4647,7 +4648,7 @@ void M_OptDrawer ()
 				int v, vals;
 
 				value = item->a.cvar->GetGenericRep (CVAR_Int);
-				value.Float = value.Int & int(item->c.max);
+				value.Float = float(value.Int & int(item->c.max));
 				vals = (int)item->b.numvalues;
 
 				v = M_FindCurVal (value.Float, item->e.values, vals);
@@ -5718,7 +5719,7 @@ void M_OptResponder (event_t *ev)
 					numvals = (int)item->b.min;
 					value = item->a.cvar->GetGenericRep (CVAR_Int);
 					
-					cur = M_FindCurVal (value.Int & bmask, item->e.values, numvals);
+					cur = M_FindCurVal (float(value.Int & bmask), item->e.values, numvals);
 					if (--cur < 0)
 						cur = numvals - 1;
 
@@ -6147,7 +6148,7 @@ void M_OptResponder (event_t *ev)
 					numvals = (int)item->b.min;
 					value = item->a.cvar->GetGenericRep (CVAR_Int);
 					
-					cur = M_FindCurVal (value.Int & bmask, item->e.values, numvals);
+					cur = M_FindCurVal (float(value.Int & bmask), item->e.values, numvals);
 					if (++cur >= numvals)
 						cur = 0;
 
@@ -6811,9 +6812,9 @@ static void ColorPickerDrawer ()
 static void SetColorPickerSliders ()
 {
 	FColorCVar *cvar = ColorPickerItems[0].a.colorcvar;
-	ColorPickerItems[2].a.fval = RPART(DWORD(*cvar));
-	ColorPickerItems[3].a.fval = GPART(DWORD(*cvar));
-	ColorPickerItems[4].a.fval = BPART(DWORD(*cvar));
+	ColorPickerItems[2].a.fval = float(RPART(DWORD(*cvar)));
+	ColorPickerItems[3].a.fval = float(GPART(DWORD(*cvar)));
+	ColorPickerItems[4].a.fval = float(BPART(DWORD(*cvar)));
 	CurrColorIndex = cvar->GetIndex();
 }
 
@@ -6975,7 +6976,7 @@ void UpdateJoystickMenu ()
 			JoystickItems[line].a.cvar = cvars2[i];
 			JoystickItems[line].b.min = 0.0;
 			JoystickItems[line].c.max = 4.0;
-			JoystickItems[line].d.step = 0.2;
+			JoystickItems[line].d.step = 0.2f;
 			line++;
 
 			JoystickItems[line].type = inverter;
@@ -7001,8 +7002,8 @@ void UpdateJoystickMenu ()
 				JoystickItems[line].type = slider;
 				JoystickItems[line].a.cvar = cvars3[i];
 				JoystickItems[line].b.min = 0.0;
-				JoystickItems[line].c.max = 0.9;
-				JoystickItems[line].d.step = 0.05;
+				JoystickItems[line].c.max = 0.9f;
+				JoystickItems[line].d.step = 0.05f;
 				line++;
 			}
 		}

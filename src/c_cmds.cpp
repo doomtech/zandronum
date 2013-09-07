@@ -862,7 +862,7 @@ CCMD (r_visibility)
 	}
 	else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
-		R_SetVisibility (atof (argv[1]));
+		R_SetVisibility ((float)atof (argv[1]));
 	}
 	else
 	{

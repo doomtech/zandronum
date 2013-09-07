@@ -43,8 +43,11 @@ static FRandom pr_volcimpact ("VolcBallImpact");
 //
 //----------------------------------------------------------------------------
 
-DEFINE_ACTION_FUNCTION(AActor, A_PodPain)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PodPain)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(gootype, 0);
+
 	int count;
 	int chance;
 	AActor *goo;
@@ -56,7 +59,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_PodPain)
 	}
 	for (count = chance > 240 ? 2 : 1; count; count--)
 	{
-		goo = Spawn("PodGoo", self->x, self->y, self->z + 48*FRACUNIT, ALLOW_REPLACE);
+		goo = Spawn(gootype, self->x, self->y, self->z + 48*FRACUNIT, ALLOW_REPLACE);
 		goo->target = self;
 		goo->momx = pr_podpain.Random2() << 9;
 		goo->momy = pr_podpain.Random2() << 9;
@@ -98,8 +101,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_RemovePod)
 
 #define MAX_GEN_PODS 16
 
-DEFINE_ACTION_FUNCTION(AActor, A_MakePod)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MakePod)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_CLASS(podtype, 0);
+
 	AActor *mo;
 	fixed_t x;
 	fixed_t y;
@@ -119,7 +125,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MakePod)
 	x = self->x;
 	y = self->y;
 	z = self->z;
-	mo = Spawn("Pod", x, y, ONFLOORZ, ALLOW_REPLACE);
+	mo = Spawn(podtype, x, y, ONFLOORZ, ALLOW_REPLACE);
 	if (!P_CheckPosition (mo, x, y))
 	{ // Didn't fit
 		mo->Destroy ();
@@ -127,7 +133,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MakePod)
 	}
 	mo->SetState (mo->FindState("Grow"));
 	P_ThrustMobj (mo, pr_makepod()<<24, (fixed_t)(4.5*FRACUNIT));
-	S_Sound (mo, CHAN_BODY, "world/podgrow", 1, ATTN_IDLE);
+	S_Sound (mo, CHAN_BODY, self->AttackSound, 1, ATTN_IDLE);
 
 	// [BC] If we're the server, spawn the pod and play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

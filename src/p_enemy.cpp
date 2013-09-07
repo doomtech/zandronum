@@ -923,7 +923,7 @@ void P_RandomChaseDir (AActor *actor)
 		// [BB] Don't try to head towards a spectator.
 		if ( (actor->FriendPlayer != 0 ) && ( players[actor->FriendPlayer - 1].bSpectating == false ) )
 		{
-			player = players[actor->FriendPlayer - 1].mo;
+			player = players[i = actor->FriendPlayer - 1].mo;
 		}
 		else
 		{
@@ -939,89 +939,89 @@ void P_RandomChaseDir (AActor *actor)
 			}
 			player = players[i].mo;
 		}
-
-		// [BB] It's possible that player == NULL. For instance this happens,
-		// if a player uses summonfriend online and leaves the server afterwards.
-		// [BB] The else block above possibly selects a spectating player. In that case
-		// don't try to move towards the spectator. This is not exactly the same as
-		// skipping spectators in the above loop, but should work well enough.
-		if ( player && (pr_newchasedir() & 1 || !P_CheckSight (actor, player))
-			&& player->player && ( player->player->bSpectating == false ) )
+		if (player != NULL && playeringame[i])
 		{
-			deltax = player->x - actor->x;
-			deltay = player->y - actor->y;
-
-			if (deltax>128*FRACUNIT)
-				d[1]= DI_EAST;
-			else if (deltax<-128*FRACUNIT)
-				d[1]= DI_WEST;
-			else
-				d[1]=DI_NODIR;
-
-			if (deltay<-128*FRACUNIT)
-				d[2]= DI_SOUTH;
-			else if (deltay>128*FRACUNIT)
-				d[2]= DI_NORTH;
-			else
-				d[2]=DI_NODIR;
-
-			// try direct route
-			if (d[1] != DI_NODIR && d[2] != DI_NODIR)
+			// [BB] The else block above possibly selects a spectating player. In that case
+			// don't try to move towards the spectator. This is not exactly the same as
+			// skipping spectators in the above loop, but should work well enough.
+			if ((pr_newchasedir() & 1 || !P_CheckSight (actor, player))
+				&& player->player && ( player->player->bSpectating == false ) )
 			{
-				actor->movedir = diags[((deltay<0)<<1) + (deltax>0)];
-				if (actor->movedir != turnaround && P_TryWalk(actor))
+				deltax = player->x - actor->x;
+				deltay = player->y - actor->y;
+
+				if (deltax>128*FRACUNIT)
+					d[1]= DI_EAST;
+				else if (deltax<-128*FRACUNIT)
+					d[1]= DI_WEST;
+				else
+					d[1]=DI_NODIR;
+
+				if (deltay<-128*FRACUNIT)
+					d[2]= DI_SOUTH;
+				else if (deltay>128*FRACUNIT)
+					d[2]= DI_NORTH;
+				else
+					d[2]=DI_NODIR;
+
+				// try direct route
+				if (d[1] != DI_NODIR && d[2] != DI_NODIR)
 				{
-					// [BC] Set the thing's movement direction. Also, update the thing's
-					// position.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					actor->movedir = diags[((deltay<0)<<1) + (deltax>0)];
+					if (actor->movedir != turnaround && P_TryWalk(actor))
 					{
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
+						// [BC] Set the thing's movement direction. Also, update the thing's
+						// position.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						{
+							SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
+						}
+						return;
 					}
-					return;
 				}
-			}
 
-			// try other directions
-			if (pr_newchasedir() > 200 || abs(deltay) > abs(deltax))
-			{
-				swap (d[1], d[2]);
-			}
-
-			if (d[1] == turnaround)
-				d[1] = DI_NODIR;
-			if (d[2] == turnaround)
-				d[2] = DI_NODIR;
-				
-			if (d[1] != DI_NODIR)
-			{
-				actor->movedir = d[1];
-				if (P_TryWalk (actor))
+				// try other directions
+				if (pr_newchasedir() > 200 || abs(deltay) > abs(deltax))
 				{
-					// [BC] Set the thing's movement direction. Also, update the thing's
-					// position.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					{
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
-					}
-
-					// either moved forward or attacked
-					return;
+					swap (d[1], d[2]);
 				}
-			}
 
-			if (d[2] != DI_NODIR)
-			{
-				actor->movedir = d[2];
-				if (P_TryWalk (actor))
+				if (d[1] == turnaround)
+					d[1] = DI_NODIR;
+				if (d[2] == turnaround)
+					d[2] = DI_NODIR;
+					
+				if (d[1] != DI_NODIR)
 				{
-					// [BC] Set the thing's movement direction. Also, update the thing's
-					// position.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					actor->movedir = d[1];
+					if (P_TryWalk (actor))
 					{
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
-					}
+						// [BC] Set the thing's movement direction. Also, update the thing's
+						// position.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						{
+							SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
+						}
 
-					return;
+						// either moved forward or attacked
+						return;
+					}
+				}
+
+				if (d[2] != DI_NODIR)
+				{
+					actor->movedir = d[2];
+					if (P_TryWalk (actor))
+					{
+						// [BC] Set the thing's movement direction. Also, update the thing's
+						// position.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						{
+							SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
+						}
+
+						return;
+					}
 				}
 			}
 		}
@@ -3177,7 +3177,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 						LEVEL_SORCERER2SPECIAL)) == 0)
 		return;
 
-	if (
+	if ((i_compatflags & COMPATF_ANYBOSSDEATH) || ( // [GZ] Added for UAC_DEAD
 		((level.flags & LEVEL_MAP07SPECIAL) && (type == NAME_Fatso || type == NAME_Arachnotron)) ||
 		((level.flags & LEVEL_BRUISERSPECIAL) && (type == NAME_BaronOfHell)) ||
 		((level.flags & LEVEL_CYBORGSPECIAL) && (type == NAME_Cyberdemon)) ||
@@ -3185,7 +3185,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 		((level.flags & LEVEL_HEADSPECIAL) && (type == NAME_Ironlich)) ||
 		((level.flags & LEVEL_MINOTAURSPECIAL) && (type == NAME_Minotaur)) ||
 		((level.flags & LEVEL_SORCERER2SPECIAL) && (type == NAME_Sorcerer2))
-	   )
+	   ))
 		;
 	else
 		return;

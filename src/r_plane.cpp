@@ -64,6 +64,10 @@
 // [BC] New #includes.
 #include "sv_commands.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:4244)
+#endif
+
 //EXTERN_CVAR (Int, tx)
 //EXTERN_CVAR (Int, ty)
 

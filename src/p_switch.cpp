@@ -469,14 +469,13 @@ static int TryFindSwitch (side_t *side, int Where)
 //
 bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
 {
-	// if this line is one sided this function must always return success.
-	if (line->sidenum[0] == NO_SIDE || line->sidenum[1] == NO_SIDE) return true;
+	// Activated from an empty side -> always succeed
+	if (line->sidenum[sideno] == NO_SIDE) return true;
 
 	fixed_t checktop;
 	fixed_t checkbot;
 	side_t *side = &sides[line->sidenum[sideno]];
 	sector_t *front = sides[line->sidenum[sideno]].sector;
-	sector_t *back = sides[line->sidenum[1-sideno]].sector;
 	FLineOpening open;
 
 	// 3DMIDTEX forces CHECKSWITCHRANGE because otherwise it might cause problems.
@@ -497,9 +496,18 @@ bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
 	checkx = dll.x + FixedMul(dll.dx, inter);
 	checky = dll.y + FixedMul(dll.dy, inter);
 
+	// one sided line
+	if (line->sidenum[1] == NO_SIDE) 
+	{
+	onesided:
+		fixed_t sectorc = front->ceilingplane.ZatPoint(checkx, checky);
+		fixed_t sectorf = front->floorplane.ZatPoint(checkx, checky);
+		return (user->z + user->height >= sectorf && user->z <= sectorc);
+	}
+
 	// Now get the information from the line.
 	P_LineOpening(open, NULL, line, checkx, checky, user->x, user->y);
-	if (open.range <= 0) return true;
+	if (open.range <= 0) goto onesided;
 
 	if ((TryFindSwitch (side, side_t::top)) != -1)
 	{
@@ -655,7 +663,7 @@ void DActiveButton::Serialize (FArchive &arc)
 	Super::Serialize (arc);
 	if (arc.IsStoring ())
 	{
-		sidenum = m_Side ? m_Side - sides : -1;
+		sidenum = m_Side ? SDWORD(m_Side - sides) : -1;
 	}
 	arc << sidenum << m_Part << m_SwitchDef << m_Frame << m_Timer << bFlippable << m_X << m_Y;
 	if (arc.IsLoading ())

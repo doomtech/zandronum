@@ -55,6 +55,10 @@
 #include <ctype.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+#pragma warning(disable:4244)
+#endif
+
 #define USE_WINDOWS_DWORD
 #include "network.h"
 #include "chat.h"

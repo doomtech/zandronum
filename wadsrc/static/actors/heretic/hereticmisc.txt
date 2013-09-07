@@ -15,7 +15,7 @@ ACTOR Pod 2035
 	+NOBLOCKMONST +DONTGIB +OLDRADIUSDMG
 	DeathSound "world/podexplode"
 	
-	action native A_PodPain ();
+	action native A_PodPain (class<Actor> podtype = "PodGoo");
 	action native A_RemovePod ();
 	
 	States
@@ -68,8 +68,9 @@ ACTOR PodGenerator 43
 	+NOBLOCKMAP
 	+NOSECTOR
 	+DONTSPLASH
+	AttackSound "world/podgrow"
 
-	action native A_MakePod ();
+	action native A_MakePod (class<Actor> podtype = "Pod");
 
 	States
 	{
@@ -87,9 +88,9 @@ ACTOR TeleGlitterGenerator1 74
 	Game Heretic
 	SpawnID 166
 	+NOBLOCKMAP 
-	+NOSECTOR 
 	+NOGRAVITY
 	+DONTSPLASH
+	+MOVEWITHSECTOR
 	States
 	{
 	Spawn:
@@ -105,9 +106,9 @@ ACTOR TeleGlitterGenerator2 52
 	Game Heretic
 	SpawnID 167
 	+NOBLOCKMAP 
-	+NOSECTOR 
 	+NOGRAVITY
 	+DONTSPLASH
+	+MOVEWITHSECTOR
 	States
 	{
 	Spawn:

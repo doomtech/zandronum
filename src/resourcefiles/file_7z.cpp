@@ -265,7 +265,7 @@ bool F7ZFile::Open()
 	Lumps = new F7ZLump[NumLumps];
 
 	F7ZLump *lump_p = Lumps;
-	for (int i = 0; i < NumLumps; ++i)
+	for (DWORD i = 0; i < NumLumps; ++i)
 	{
 		CSzFileItem *file = &Archive->DB.db.Files[i];
 		char name[256];
@@ -283,7 +283,7 @@ bool F7ZFile::Open()
 		strlwr(name);
 
 		lump_p->LumpNameSetup(name);
-		lump_p->LumpSize = file->Size;
+		lump_p->LumpSize = int(file->Size);
 		lump_p->Owner = this;
 		lump_p->Flags = LUMPF_ZIPFILE;
 		lump_p->Position = i;
