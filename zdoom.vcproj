@@ -11103,6 +11103,46 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Resource Files"
+			>
+			<File
+				RelativePath=".\src\resourcefiles\file_7z.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_grp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_lump.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_pak.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_rff.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_wad.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_zip.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\resourcefile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\resourcefile.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

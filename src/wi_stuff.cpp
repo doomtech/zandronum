@@ -2197,8 +2197,7 @@ void WI_updateStats ()
 {
 	WI_updateAnimatedBack ();
 
-	if ((!(gameinfo.gametype & GAME_DoomChex) || acceleratestage)
-		&& sp_state != 10)
+	if ((!gameinfo.intermissioncounter || acceleratestage) && sp_state != 10)
 	{
 		if (acceleratestage)
 		{
@@ -2216,7 +2215,7 @@ void WI_updateStats ()
 
 	if (sp_state == 2)
 	{
-		if (gameinfo.gametype & GAME_DoomChex)
+		if (gameinfo.intermissioncounter)
 		{
 			cnt_kills[0] += 2;
 
@@ -2232,7 +2231,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 4)
 	{
-		if (gameinfo.gametype & GAME_DoomChex)
+		if (gameinfo.intermissioncounter)
 		{
 			cnt_items[0] += 2;
 
@@ -2248,7 +2247,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 6)
 	{
-		if (gameinfo.gametype & GAME_DoomChex)
+		if (gameinfo.intermissioncounter)
 		{
 			cnt_secret[0] += 2;
 
@@ -2264,7 +2263,7 @@ void WI_updateStats ()
 	}
 	else if (sp_state == 8)
 	{
-		if (gameinfo.gametype & GAME_DoomChex)
+		if (gameinfo.intermissioncounter)
 		{
 			if (!(bcnt&3))
 				S_Sound (CHAN_VOICE | CHAN_UI, "intermission/tick", 1, ATTN_NONE);

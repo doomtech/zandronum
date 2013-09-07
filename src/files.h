@@ -78,6 +78,7 @@ public:
 	void ResetFilePtr ();
 
 	FILE *GetFile () const { return File; }
+	virtual const char *GetBuffer() const { return NULL; }
 
 	FileReader &operator>> (BYTE &v)
 	{
@@ -112,6 +113,9 @@ public:
 		return *this;
 	}
 
+
+	// [BC] Was this wad loaded automatically?
+	bool	bLoadedAutomatically;
 
 protected:
 	FileReader (const FileReader &other, long length);
@@ -328,6 +332,7 @@ public:
 	virtual long Seek (long offset, int origin);
 	virtual long Read (void *buffer, long len);
 	virtual char *Gets(char *strbuf, int len);
+	virtual const char *GetBuffer() const { return bufptr; }
 
 protected:
 	const char * bufptr;

@@ -1190,7 +1190,7 @@ static void network_InitPWADList( void )
 	ULONG ulNumPWADs = 0, ulRealIWADIdx;
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
-		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL ) // Since WADs can now be loaded within pk3 files, we have to skip over all the ones automatically loaded. To my knowledge, the only way to do this is to skip wads that have a colon in them.
+		if ( Wads.GetLoadedAutomatically( ulIdx ) == false ) // Since WADs can now be loaded within pk3 files, we have to skip over all the ones automatically loaded. To my knowledge, the only way to do this is to skip wads that have a colon in them.
 		{
 			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
 			{
@@ -1208,10 +1208,10 @@ static void network_InitPWADList( void )
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
 		// Skip the IWAD, zandronum.pk3, files that were automatically loaded from subdirectories (such as skin files), and WADs loaded automatically within pk3 files.
+		// [BB] The latter are marked as being loaded automatically.
 		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), GAMENAMELOWERCASE ".pk3" ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )) ||
-			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
+			( Wads.GetLoadedAutomatically( ulIdx )) )
 		{
 			continue;
 		}
