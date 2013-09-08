@@ -253,7 +253,8 @@ enum //drawnumber flags
 	DRAWNUMBER_WHENNOTZERO = 0x40000,
 	DRAWNUMBER_POWERUPTIME = 0x80000,
 	DRAWNUMBER_DRAWSHADOW = 0x100000,
-	DRAWNUMBER_TEAMSCORE = 0x200000, //Add team # to the value. (MAX of 4)
+	DRAWNUMBER_AIRTIME = 0x200000,
+	DRAWNUMBER_TEAMSCORE = 0x400000, //Add team # to the value. (MAX of 4)
 };
 
 enum //drawbar flags (will go into special2)

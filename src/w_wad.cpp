@@ -160,7 +160,7 @@ void FWadCollection::DeleteAll ()
 //
 //==========================================================================
 
-void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
+void FWadCollection::InitMultipleFiles (wadlist_t **filenames, const char *loaddir)
 {
 	int numfiles;
 
@@ -180,10 +180,11 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 		DefaultExtension (name, ".wad");
 
 		// [BC] Added the "loaded automatically" parameter.
-		AddFile (name, NULL, (*filenames)->bLoadedAutomatically);
+		AddFile (name, NULL, false, (*filenames)->bLoadedAutomatically);
 		M_Free (*filenames);
 		*filenames = next;
 	}
+	if (loaddir != NULL) AddFile(loaddir, NULL, true);
 
 	NumLumps = LumpInfo.Size();
 	if (NumLumps == 0)
@@ -229,25 +230,13 @@ int FWadCollection::AddExternalFile(const char *filename)
 //
 // [RH] Removed reload hack
 //==========================================================================
-typedef FResourceFile * (*CheckFunc)(const char *filename, FileReader *file);
-
-FResourceFile *CheckWad(const char *filename, FileReader *file);
-FResourceFile *CheckGRP(const char *filename, FileReader *file);
-FResourceFile *CheckRFF(const char *filename, FileReader *file);
-FResourceFile *CheckPak(const char *filename, FileReader *file);
-FResourceFile *CheckZip(const char *filename, FileReader *file);
-FResourceFile *Check7Z(const char *filename, FileReader *file);
-FResourceFile *CheckLump(const char *filename, FileReader *file);
-
-static CheckFunc funcs[] = { CheckWad, CheckZip, Check7Z, CheckPak, CheckGRP, CheckRFF, CheckLump };
-
 
 // [BC] Edited a little.
-void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
+void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool isdir, bool bLoadedAutomatically)
 {
 	int				startlump;
 
-	if (wadinfo == NULL)
+	if (wadinfo == NULL && !isdir)
 	{
 		try
 		{
@@ -267,49 +256,49 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 	Printf (" adding %s", filename);
 	startlump = NumLumps;
 
-	for(size_t i = 0; i < countof(funcs); i++)
+	FResourceFile *resfile;
+	
+	if (!isdir) resfile = FResourceFile::OpenResourceFile(filename, wadinfo);
+	else resfile = FResourceFile::OpenDirectory(filename);
+
+	if (resfile != NULL)
 	{
-		FResourceFile * resfile = funcs[i](filename, wadinfo);
-		if (resfile != NULL)
+		DWORD lumpstart = LumpInfo.Size();
+
+		resfile->SetFirstLump(lumpstart);
+		for (DWORD i=0; i < resfile->LumpCount(); i++)
 		{
-			DWORD lumpstart = LumpInfo.Size();
+			FResourceLump *lump = resfile->GetLump(i);
+			FWadCollection::LumpRecord *lump_p = &LumpInfo[LumpInfo.Reserve(1)];
 
-			resfile->SetFirstLump(lumpstart);
-			for (DWORD i=0; i < resfile->LumpCount(); i++)
-			{
-				FResourceLump *lump = resfile->GetLump(i);
-				FWadCollection::LumpRecord *lump_p = &LumpInfo[LumpInfo.Reserve(1)];
-
-				lump_p->lump = lump;
-				lump_p->wadnum = Files.Size();
-			}
-
-			if (Files.Size() == IWAD_FILENUM && gameinfo.gametype == GAME_Strife && gameinfo.flags & GI_SHAREWARE)
-			{
-				resfile->FindStrifeTeaserVoices();
-			}
-			Files.Push(resfile);
-
-
-			for (DWORD i=0; i < resfile->LumpCount(); i++)
-			{
-				FResourceLump *lump = resfile->GetLump(i);
-				if (lump->Flags & LUMPF_EMBEDDED)
-				{
-					char path[256];
-
-					mysnprintf(path, countof(path), "%s:", filename);
-					char *wadstr = path + strlen(path);
-
-					FileReader *embedded = lump->NewReader();
-					strcpy(wadstr, lump->FullName);
-
-					// [BB] We consider all embedded files as being loaded automatically.
-					AddFile(wadstr, embedded, true);
-				}
-			}
-			return;
+			lump_p->lump = lump;
+			lump_p->wadnum = Files.Size();
 		}
+
+		if (Files.Size() == IWAD_FILENUM && gameinfo.gametype == GAME_Strife && gameinfo.flags & GI_SHAREWARE)
+		{
+			resfile->FindStrifeTeaserVoices();
+		}
+		Files.Push(resfile);
+
+		for (DWORD i=0; i < resfile->LumpCount(); i++)
+		{
+			FResourceLump *lump = resfile->GetLump(i);
+			if (lump->Flags & LUMPF_EMBEDDED)
+			{
+				char path[256];
+
+				mysnprintf(path, countof(path), "%s:", filename);
+				char *wadstr = path + strlen(path);
+
+				FileReader *embedded = lump->NewReader();
+				strcpy(wadstr, lump->FullName);
+
+				// [BB] We consider all embedded files as being loaded automatically.
+				AddFile(wadstr, embedded, false, true);
+			}
+		}
+		return;
 	}
 }
 

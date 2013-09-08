@@ -52,6 +52,7 @@
 #include "m_crc32.h"
 #include "v_text.h"
 #include "d_net.h"
+#include "d_main.h"
 // [BC] new #includes.
 #include "p_local.h"
 #include "g_level.h"
@@ -1407,7 +1408,6 @@ void FConsoleAlias::SafeDelete ()
 	}
 }
 
-extern void D_AddFile (const char *file, bool bLoadedAutomatically);	// [BC] Changed slightly.
 static BYTE PullinBad = 2;
 static const char *PullinFile;
 
@@ -1526,7 +1526,7 @@ CCMD (pullin)
 						FixPathSeperator (path);
 					}
 				}
-				D_AddFile (path, true);	// [BC]
+				D_AddFile (path, true, true);	// [BC]
 				if (path != argv[i])
 				{
 					delete[] path;

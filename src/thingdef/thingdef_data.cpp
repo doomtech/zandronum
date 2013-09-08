@@ -299,6 +299,7 @@ static FFlagDef WeaponFlags[] =
 	DEFINE_FLAG(WIF_BOT, BFG, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, CHEATNOTWEAPON, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, NO_AUTO_SWITCH, AWeapon, WeaponFlags),
+	DEFINE_FLAG(WIF, AMMO_CHECKBOTH, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons that can be used while respawn invulnerability is active.
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
 	DEFINE_FLAG(WIF, NOAUTOAIM, AWeapon, WeaponFlags), // [BB] If the level allows freelook, this weapon behaves as if CVAR autoaim was 0.

@@ -118,6 +118,7 @@ int FGLTexture::CheckDDPK3()
 	case IWAD_UltimateDoom:
 	case IWAD_DoomRegistered:
 	case IWAD_FreeDoom1:
+	case IWAD_FreeDoomU:
 		checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
 		break;
 
@@ -313,6 +314,7 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 	case IWAD_UltimateDoom:
 	case IWAD_DoomRegistered:
 	case IWAD_FreeDoom1:
+	case IWAD_FreeDoomU:
 		checklist = ispatch ? doom1patchpath : useType==FTexture::TEX_Flat? doom1flatpath : doom1texpath;
 		break;
 

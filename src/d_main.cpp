@@ -1499,14 +1499,14 @@ CCMD (endgame)
 //
 //==========================================================================
 
-void D_AddFile (const char *file, bool bLoadedAutomatically)
+void D_AddFile (const char *file, bool check, bool bLoadedAutomatically)
 {
 	if (file == NULL)
 	{
 		return;
 	}
 
-	if (!FileExists (file))
+	if (check && !FileExists (file))
 	{
 		const char *f = BaseFileSearch (file, ".wad");
 		if (f == NULL)
@@ -1538,7 +1538,7 @@ void D_AddWildFile (const char *value)
 
 	if (wadfile != NULL)
 	{
-		D_AddFile (wadfile, false);	// [BC]
+		D_AddFile (wadfile, true, false);	// [BC]
 	}
 	else
 	{ // Try pattern matching
@@ -1568,12 +1568,12 @@ void D_AddWildFile (const char *value)
 				{
 					if (sep == NULL)
 					{
-						D_AddFile (I_FindName (&findstate), false);	// [BC]
+						D_AddFile (I_FindName (&findstate), true, false);	// [BC]
 					}
 					else
 					{
 						strcpy (sep+1, I_FindName (&findstate));
-						D_AddFile (path, false);	// [BC]
+						D_AddFile (path, true, false);	// [BC]
 					}
 				}
 			} while (I_FindNext (handle, &findstate) == 0);
@@ -1633,7 +1633,7 @@ void D_AddDirectoryHelper( const char* FileMask, char skindir[PATH_MAX], size_t 
 			if (!(I_FindAttr (&findstate) & FA_DIREC))
 			{
 				strcpy (skindir + stuffstart, I_FindName (&findstate));
-				D_AddFile (skindir, true);	// [BC]
+				D_AddFile (skindir, true, true);	// [BC]
 			}
 		} while (I_FindNext (handle, &findstate) == 0);
 		I_FindClose (handle);
@@ -2002,7 +2002,7 @@ void D_DoomMain (void)
 		// [BB] Loading zvox with Skulltag introduces a bag of problems and does't do any good.
 		//wad = BaseFileSearch ("zvox.wad", NULL);
 		//if (wad)
-		//	D_AddFile (wad, false);	// [BC]
+		//	D_AddFile (wad, true, false);	// [BC]
 
 		// [RH] Add any .wad files in the skins directory
 		// [BB] Also add pk3 files and add the files from
@@ -2078,8 +2078,11 @@ void D_DoomMain (void)
 	files2->Destroy();
 	files3->Destroy();
 
+	const char *loaddir = Args->CheckValue("-dir");
+	// FIXME: consider the search path list for directory, too.
+
 	Printf ("W_Init: Init WADfiles.\n");
-	Wads.InitMultipleFiles (&wadfiles);
+	Wads.InitMultipleFiles (&wadfiles, loaddir);
 
 	// Initialize the chat module.
 	CHAT_Construct( );

@@ -55,7 +55,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;snes_spc\snes_spc;gdtoa;bzip2;lzma\C;src\OpenGL;src\win32\g15\include"
+				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;game-music-emu\gme;gdtoa;bzip2;lzma\C;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,NO_MANIFEST;_DO_NOT_DECLARE_INTERLOCKED_INTRINSICS_IN_MEMORY,NO_VA_COPY"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -169,7 +169,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 				Optimization="0"
-				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;snes_spc\snes_spc;gdtoa;bzip2;lzma\C;src\OpenGL;src\win32\g15\include"
+				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;game-music-emu\gme;gdtoa;bzip2;lzma\C;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,NO_MANIFEST,NO_VA_COPY"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -9919,6 +9919,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sound\music_gme.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sound\music_midi_base.cpp"
 				>
 			</File>
@@ -9940,10 +9944,6 @@
 			</File>
 			<File
 				RelativePath=".\src\sound\music_mus_opl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\sound\music_spc.cpp"
 				>
 			</File>
 			<File
@@ -11128,6 +11128,10 @@
 			</File>
 			<File
 				RelativePath=".\src\resourcefiles\file_7z.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\resourcefiles\file_directory.cpp"
 				>
 			</File>
 			<File

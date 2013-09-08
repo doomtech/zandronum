@@ -35,7 +35,7 @@ struct FResourceLump
 	virtual FileReader *GetReader();
 	virtual FileReader *NewReader();
 	virtual int GetFileOffset() { return -1; }
-	void LumpNameSetup(char *iname);
+	void LumpNameSetup(const char *iname);
 	void CheckEmbedded();
 
 	void *CacheLump();
@@ -60,6 +60,8 @@ private:
 	DWORD FirstLump;
 
 public:
+	static FResourceFile *OpenResourceFile(const char *filename, FileReader *file, bool quiet = false);
+	static FResourceFile *OpenDirectory(const char *filename);
 	virtual ~FResourceFile();
 	FileReader *GetReader() const { return Reader; }
 	DWORD LumpCount() const { return NumLumps; }
@@ -67,7 +69,7 @@ public:
 	void SetFirstLump(DWORD f) { FirstLump = f; }
 
 	virtual void FindStrifeTeaserVoices ();
-	virtual bool Open() = 0;
+	virtual bool Open(bool quiet) = 0;
 	virtual FResourceLump *GetLump(int no) = 0;
 };
 
