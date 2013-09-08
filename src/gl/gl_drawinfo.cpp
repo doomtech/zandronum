@@ -806,9 +806,8 @@ static int __cdecl dicmp (const void *a, const void *b)
 		case GLDIT_POLY: break;
 		}
 	}
-	if (lights[0]!=lights[1]) return lights[0]-lights[1];
 	if (tx[0]!=tx[1]) return tx[0]-tx[1];
-	/*if (lights[0]!=lights[1])*/ return lights[0]-lights[1];
+	return lights[0]-lights[1];
 }
 
 

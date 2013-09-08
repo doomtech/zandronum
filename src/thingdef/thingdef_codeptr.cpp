@@ -1892,6 +1892,7 @@ enum SIX_Flags
 	SIXF_CLIENTSIDESPAWN=128,
 	SIXF_TRANSFERAMBUSHFLAG=256,
 	SIXF_TRANSFERPITCH=512,
+	SIXF_TRANSFERPOINTERS=1024,
 };
 
 
@@ -1905,6 +1906,12 @@ static bool InitSpawnedItem(AActor *self, AActor *mo, int flags)
 		if ((flags & SIXF_TRANSFERTRANSLATION) && !(mo->flags2 & MF2_DONTTRANSLATE))
 		{
 			mo->Translation = self->Translation;
+		}
+		if (flags & SIXF_TRANSFERPOINTERS)
+		{
+			mo->target = self->target;
+			mo->master = self->master; // This will be overridden later if SIXF_SETMASTER is set
+			mo->tracer = self->tracer;
 		}
 
 		mo->angle=self->angle;
@@ -1960,7 +1967,7 @@ static bool InitSpawnedItem(AActor *self, AActor *mo, int flags)
 				}
 			}
 		}
-		else 
+		else if (!(flags & SIXF_TRANSFERPOINTERS))
 		{
 			// If this is a missile or something else set the target to the originator
 			mo->target=originator? originator : self;
@@ -2387,9 +2394,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 //===========================================================================
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 {
-	ACTION_PARAM_START(1);
+	ACTION_PARAM_START(2);
 	ACTION_PARAM_FIXED(reduce, 0);
-	
+	ACTION_PARAM_BOOL(remove, 1);
+
 	// [BB] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -2415,7 +2423,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 	}
 
 	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-	if (self->alpha<=0)
+	if (self->alpha<=0 && remove)
 	{
 		// [BB] Deleting player bodies is a very bad idea.
 		if ( self->player && ( self->player->mo == self ) )
@@ -2506,28 +2514,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckSight)
 	}
 
 	ACTION_JUMP(jump, false);	// [BC] This is hopefully okay.
-
-}
-
-
-//===========================================================================
-//
-// A_JumpIfTargetInSight
-// jumps if monster can see its target
-//
-//===========================================================================
-DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInSight)
-{
-	ACTION_PARAM_START(1);
-	ACTION_PARAM_STATE(jump, 0);
-
-	// [BB] This is handled by the server.
-	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
-		return;
-
-	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
-	if (self->target == NULL || !P_CheckSight(self, self->target,4)) return; 
-	ACTION_JUMP(jump,CLIENTUPDATE_FRAME);	// [BB] Since monsters don't have targets on the client end, we need to send an update.
 
 }
 
@@ -2984,6 +2970,66 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInLOS)
 	// movement prediction.
 	ACTION_JUMP(jump, CLIENTUPDATE_FRAME|( !self->player ? CLIENTUPDATE_POSITION : 0 ));
 }
+
+
+//==========================================================================
+//
+// A_JumpIfInTargetLOS (state label, optional fixed fov, optional bool
+// projectiletarget)
+//
+//==========================================================================
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfInTargetLOS)
+{
+	ACTION_PARAM_START(3);
+	ACTION_PARAM_STATE(jump, 0);
+	ACTION_PARAM_ANGLE(fov, 1);
+	ACTION_PARAM_BOOL(projtarg, 2);
+
+	angle_t an;
+	AActor *target;
+
+	// [BB] This is handled by the server.
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
+
+	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
+
+	if (self->flags & MF_MISSILE && projtarg)
+	{
+		if (self->flags2 & MF2_SEEKERMISSILE)
+			target = self->tracer;
+		else
+			target = NULL;
+	}
+	else
+	{
+		target = self->target;
+	}
+
+	if (!target) return; // [KS] Let's not call P_CheckSight unnecessarily in this case.
+
+	if (!P_CheckSight (target, self, 1))
+		return;
+
+	if (fov && (fov < ANGLE_MAX))
+	{
+		an = R_PointToAngle2 (self->x,
+							  self->y,
+							  target->x,
+							  target->y)
+			- self->angle;
+
+		if (an > (fov / 2) && an < (ANGLE_MAX - (fov / 2)))
+		{
+			return; // [KS] Outside of FOV - return
+		}
+
+	}
+
+	ACTION_JUMP(jump,CLIENTUPDATE_FRAME);	// [BB] Since monsters don't have targets on the client end, we need to send an update.
+}
+
 
 //===========================================================================
 //

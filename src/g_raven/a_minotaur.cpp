@@ -537,16 +537,28 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurAtk3)
 	}
 	else
 	{
-		mo = P_SpawnMissile (self, self->target, PClass::FindClass("MinotaurFX2"));
-		if (mo != NULL)
+		if (self->floorclip > 0 && (i_compatflags & COMPATF_MINOTAUR))
 		{
-			S_Sound (mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM);
+			// only play the sound. 
+			S_Sound (self, CHAN_WEAPON, "minotaur/fx2hit", 1, ATTN_NORM);
 
-			// [BC] If we're the server, tell clients to spawn the missile and play this sound.
+			// [BB] If we're the server, tell clients to play this sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "minotaur/fx2hit", 1, ATTN_NORM );
+		}
+		else
+		{
+			mo = P_SpawnMissile (self, self->target, PClass::FindClass("MinotaurFX2"));
+			if (mo != NULL)
 			{
-				SERVERCOMMANDS_SpawnMissile( mo );
-				SERVERCOMMANDS_SoundActor( mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM );
+				S_Sound (mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM);
+
+				// [BC] If we're the server, tell clients to spawn the missile and play this sound.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SpawnMissile( mo );
+					SERVERCOMMANDS_SoundActor( mo, CHAN_WEAPON, "minotaur/attack1", 1, ATTN_NORM );
+				}
 			}
 		}
 	}

@@ -57,6 +57,7 @@
 // Check whether the player can look beyond this line
 //
 //==========================================================================
+CVAR(Bool, gltest_slopeopt, false, 0)
 
 bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector)
 {
@@ -163,6 +164,68 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 			==skyflatnum) return false;
 		return true;
 	}
+
+#if 0	// experimental
+	if (backsector->hasSlopes || frontsector->hasSlopes || !gltest_slopeopt) return false;
+
+	if (fs_ceilingheight1 < bs_ceilingheight1) bs_ceilingheight1 = fs_ceilingheight1;
+	if (fs_floorheight1 < bs_floorheight1) bs_floorheight1 = fs_floorheight1;
+
+	unsigned fs_index = 0;
+	unsigned bs_index = 0;
+
+	while (1)
+	{
+		F3DFloor * ffloor1 = bs_index < backsector->e->XFloor.ffloors.Size()? backsector->e->XFloor.ffloors[bs_index] : NULL;
+		F3DFloor * ffloor2 = fs_index < frontsector->e->XFloor.ffloors.Size()? frontsector->e->XFloor.ffloors[fs_index] : NULL;
+		F3DFloor * ffloor;
+
+		if (ffloor2 == NULL && ffloor1 == NULL) return false;
+
+		if (ffloor1 == NULL)
+		{
+			ffloor = ffloor2;
+			fs_index++;
+		}
+		else if (ffloor2 == NULL || *ffloor1->top.texheight > *ffloor2->top.texheight)
+		{
+			ffloor = ffloor1;
+			bs_index++;
+		}
+		else
+		{
+			ffloor = ffloor2;
+			fs_index++;
+		}
+
+		// does not block view.
+		if (*ffloor->top.texheight < bs_ceilingheight1) return false;
+
+		if ((ffloor->flags & (FF_EXISTS|FF_RENDERSIDES|FF_ADDITIVETRANS|FF_TRANSLUCENT|FF_FOG|FF_THINFLOOR)) == (FF_EXISTS|FF_RENDERSIDES))
+		{
+			FTexture *tex;
+			if (ffloor->flags&FF_UPPERTEXTURE) 
+			{
+				tex = TexMan[sidedef->GetTexture(side_t::top)];
+			}
+			else if (ffloor->flags&FF_LOWERTEXTURE) 
+			{
+				tex = TexMan[sidedef->GetTexture(side_t::bottom)];
+			}
+			else 
+			{
+				tex = TexMan[sides[ffloor->master->sidenum[0]].GetTexture(side_t::mid)];
+			}
+			if (tex != NULL && !tex->bMasked)
+			{
+				bs_ceilingheight1 = *ffloor->bottom.texheight;
+				// The entire view is blocked by 3D floors
+				if (bs_ceilingheight1 <= bs_floorheight1) return true;
+			}
+		}
+	}
+#endif
+
 	return false;
 }
 

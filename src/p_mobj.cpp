@@ -330,6 +330,7 @@ void AActor::Serialize (FArchive &arc)
 		<< smokecounter
 		<< BlockingMobj
 		<< BlockingLine
+		<< pushfactor
 		<< Species
 		<< DesignatedTeam
 		<< (DWORD &)ulLimitedToTeam // [BB]
@@ -1903,6 +1904,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax)
 
 fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly) 
 {
+	static int pushtime = 0;
 	bool bForceSlide = scrollx || scrolly;
 	angle_t angle;
 	fixed_t ptryx, ptryy;
@@ -2089,11 +2091,16 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 	// last actor ripped through is recorded so that if the projectile
 	// passes through more than one actor this tic, each one takes damage
 	// and not just the first one.
+	pushtime++;
 
 	FCheckPosition tm(!!(mo->flags2 & MF2_RIP));
 
+
 	do
 	{
+		if (i_compatflags & COMPATF_WALLRUN) pushtime++;
+		tm.PushTime = pushtime;
+
 		ptryx = startx + Scale (xmove, step, steps);
 		ptryy = starty + Scale (ymove, step, steps);
 
@@ -2152,7 +2159,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					fixed_t tx, ty;
 					tx = 0, ty = onestepy;
 					walkplane = P_CheckSlopeWalk (mo, tx, ty);
-					if (P_TryMove (mo, mo->x + tx, mo->y + ty, true, walkplane))
+					if (P_TryMove (mo, mo->x + tx, mo->y + ty, true, walkplane, tm))
 					{
 						mo->momx = 0;
 					}
@@ -2160,7 +2167,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					{
 						tx = onestepx, ty = 0;
 						walkplane = P_CheckSlopeWalk (mo, tx, ty);
-						if (P_TryMove (mo, mo->x + tx, mo->y + ty, true, walkplane))
+						if (P_TryMove (mo, mo->x + tx, mo->y + ty, true, walkplane, tm))
 						{
 							mo->momy = 0;
 						}
@@ -6037,6 +6044,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 	AActor *mo = NULL;
 	FSplashDef *splash;
 	int terrainnum;
+	sector_t *hsec = NULL;
 	
 	if (x == FIXED_MIN) x = thing->x;
 	if (y == FIXED_MIN) y = thing->y;
@@ -6062,7 +6070,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 		if (planez < z) return false;
 	}
 #endif
-	sector_t *hsec = sec->GetHeightSec();
+	hsec = sec->GetHeightSec();
 	if (hsec == NULL || !(hsec->MoreFlags & SECF_CLIPFAKEPLANES))
 	{
 		terrainnum = TerrainTypes[sec->GetTexture(sector_t::floor)];
@@ -6546,21 +6554,30 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	AActor *linetarget;
 	int vrange = nofreeaim? ANGLE_1*35 : 0;
 
-	// see which target is to be aimed at
-	i = 2;
-	do
+	// Note: NOAUTOAIM is implemented only here, and not in the hitscan or rail attack functions.
+	// That is because it is only justified for projectiles affected by gravity, not for other attacks.
+	if (source && source->player && source->player->ReadyWeapon && (source->player->ReadyWeapon->WeaponFlags & WIF_NOAUTOAIM))
 	{
-		an = angle + angdiff[i];
-		pitch = P_AimLineAttack (source, an, 16*64*FRACUNIT, &linetarget, vrange);
-
-		if (source->player != NULL &&
-			!nofreeaim &&
-			level.IsFreelookAllowed() &&
-			source->player->userinfo.GetAimDist() <= ANGLE_1/2)
+		// Keep exactly the same angle and pitch as the player's own aim
+		pitch = source->pitch; linetarget = NULL;
+	}
+	else // see which target is to be aimed at
+	{
+		i = 2;
+		do
 		{
-			break;
-		}
-	} while (linetarget == NULL && --i >= 0);
+			an = angle + angdiff[i];
+			pitch = P_AimLineAttack (source, an, 16*64*FRACUNIT, &linetarget, vrange);
+	
+			if (source->player != NULL &&
+				!nofreeaim &&
+				level.IsFreelookAllowed() &&
+				source->player->userinfo.GetAimDist() <= ANGLE_1/2)
+			{
+				break;
+			}
+		} while (linetarget == NULL && --i >= 0);
+	}
 
 	if (linetarget == NULL)
 	{

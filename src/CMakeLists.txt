@@ -985,7 +985,7 @@ if( NOT NO_SOUND )
 endif( NOT NO_SOUND )
 
 # [BB] Added GeoIP
-target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb lzma GeoIP )
+target_link_libraries( zdoom ${ZDOOM_LIBS} bzip2 gdtoa dumb lzma GeoIP )
 include_directories( .
 	g_doom
 	g_heretic

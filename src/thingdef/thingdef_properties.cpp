@@ -1289,15 +1289,6 @@ DEFINE_CLASS_PROPERTY(pickupflash, S, Inventory)
 }
 
 //==========================================================================
-// [BC]
-//==========================================================================
-DEFINE_CLASS_PROPERTY(pickupannouncerentry, S, Inventory)
-{
-	PROP_STRING_PARM(str, 0);
-	sprintf( defaults->szPickupAnnouncerEntry, "%s", str );
-}
-
-//==========================================================================
 //
 //==========================================================================
 DEFINE_CLASS_PROPERTY(pickupmessage, S, Inventory)
@@ -1313,6 +1304,16 @@ DEFINE_CLASS_PROPERTY(pickupsound, S, Inventory)
 {
 	PROP_STRING_PARM(str, 0);
 	defaults->PickupSound = str;
+}
+
+//==========================================================================
+// Dummy for Skulltag compatibility...
+//==========================================================================
+DEFINE_CLASS_PROPERTY(pickupannouncerentry, S, Inventory)
+{
+	PROP_STRING_PARM(str, 0);
+	// [BB] Not a dummy in Zandronum.
+	sprintf( defaults->szPickupAnnouncerEntry, "%s", str );
 }
 
 //==========================================================================

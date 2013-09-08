@@ -310,6 +310,7 @@ enum
 	MF6_MTHRUSPECIES	= 0x00000004,	// Missile passes through actors of its shooter's species.
 	MF6_FORCEPAIN		= 0x00000008,	// forces target into painstate (unless it has the NOPAIN flag)
 	MF6_NOFEAR			= 0x00000010,	// Not scared of frightening players
+	MF6_BUMPSPECIAL		= 0x00000020,	// Actor executes its special when being collided (as the ST flag)
 
 	// [BC] More object flags for Skulltag.
 
@@ -329,7 +330,7 @@ enum
 	//STFL_IMPALE			= 0x00000010,
 
 	// Execute this object's special when a players bumps into it.
-	STFL_BUMPSPECIAL	= 0x00000020,
+	//STFL_BUMPSPECIAL	= 0x00000020,
 
 	// *** THE FOLLOWING FLAGS ARE IDENTIFERS FOR BOTS ***
 	// ... eh, there's probably a better way to do this.
@@ -876,6 +877,7 @@ public:
 	fixed_t			gravity;		// [GRB] Gravity factor
 	int 			FastChaseStrafeCount;
 	fixed_t			pushfactor;
+	int				lastpush;
 	int				DesignatedTeam;	// Allow for friendly fire cacluations to be done on non-players.
 
 	AActor			*BlockingMobj;	// Actor that blocked the last move

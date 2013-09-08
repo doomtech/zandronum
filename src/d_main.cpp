@@ -616,6 +616,7 @@ CVAR (Flag, compat_sectorsounds,compatflags, COMPATF_SECTORSOUNDS);
 CVAR (Flag, compat_missileclip,	compatflags, COMPATF_MISSILECLIP);
 CVAR (Flag, compat_crossdropoff,compatflags, COMPATF_CROSSDROPOFF);
 CVAR (Flag, compat_anybossdeath,compatflags, COMPATF_ANYBOSSDEATH);
+CVAR (Flag, compat_minotaur,	compatflags, COMPATF_MINOTAUR);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, compatflags, COMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	compatflags, COMPATF_PLASMA_BUMP_BUG);

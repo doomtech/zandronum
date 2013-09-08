@@ -186,7 +186,7 @@ ACTOR Actor native //: Thinker
 	action native A_Print(string whattoprint, float time = 0, string fontname = "");
 	action native A_SetTranslucent(float alpha, int style = 0);
 	action native A_FadeIn(float reduce = 0.1);
-	action native A_FadeOut(float reduce = 0.1);
+	action native A_FadeOut(float reduce = 0.1, bool remove = true);
 	action native A_SpawnDebris(class<Actor> spawntype, bool transfer_translation = false, float mult_h = 1, float mult_v = 1);
 	action native A_CheckSight(state label);
 	action native A_ExtChase(bool usemelee, bool usemissile, bool playactive = true, bool nightmarefast = false);
@@ -223,6 +223,7 @@ ACTOR Actor native //: Thinker
 	action native A_LookEx(int flags = 0, float minseedist = 0, float maxseedist = 0, float maxheardist = 0, float fov = 0, state label = "");
 	action native A_ClearTarget();
 	action native A_JumpIfTargetInLOS (state label, float fov = 0, bool projectiletarget = false);
+	action native A_JumpIfInTargetLOS (state label, float fov = 0, bool projectiletarget = false);
 	action native A_DamageMaster(int amount, name damagetype = "none");
 	action native A_DamageChildren(int amount, name damagetype = "none");
 	action native A_DamageSiblings(int amount, name damagetype = "none");
@@ -238,8 +239,6 @@ ACTOR Actor native //: Thinker
 	action native A_RemoveForcefield();
 	action native A_DropWeaponPieces(class<Actor> p1, class<Actor> p2, class<Actor> p3);
 	action native A_PigPain ();
-	
-	action native A_JumpIfTargetInSight(state label);
 	action native A_MonsterRefire(int chance, state label);
 	action native A_SetAngle(float angle);
 	action native A_SetPitch(float pitch);

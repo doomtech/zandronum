@@ -214,12 +214,12 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(MF6, MTHRUSPECIES, AActor, flags6),
 	DEFINE_FLAG(MF6, FORCEPAIN, AActor, flags6),
 	DEFINE_FLAG(MF6, NOFEAR, AActor, flags6),
+	DEFINE_FLAG(MF6, BUMPSPECIAL, AActor, flags6),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, REDTEAM, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, USESPECIAL, AActor, ulSTFlags),
-	DEFINE_FLAG(STFL, BUMPSPECIAL, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, BASEHEALTH, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, SUPERHEALTH, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, BASEARMOR, AActor, ulSTFlags),
@@ -254,9 +254,15 @@ static FFlagDef ActorFlags[]=
 	DEFINE_DEPRECATED_FLAG(HERETICBOUNCE),
 	DEFINE_DEPRECATED_FLAG(HEXENBOUNCE),
 	DEFINE_DEPRECATED_FLAG(DOOMBOUNCE),
-	// [BB] ST supports NONETID and ALLOWCLIENTSPAWN.
-	//DEFINE_DUMMY_FLAG(NONETID),
-	//DEFINE_DUMMY_FLAG(ALLOWCLIENTSPAWN),
+
+	// [BB] ST supports these flags.
+	/*
+// Various Skulltag flags that are quite irrelevant to ZDoom
+	DEFINE_DUMMY_FLAG(NONETID),				// netcode-based
+	DEFINE_DUMMY_FLAG(ALLOWCLIENTSPAWN),	// netcode-based
+	DEFINE_DUMMY_FLAG(CLIENTSIDEONLY),	    // netcode-based
+	DEFINE_DUMMY_FLAG(EXPLODEONDEATH),	    // seems useless
+	*/
 };
 
 static FFlagDef InventoryFlags[] =
@@ -275,6 +281,7 @@ static FFlagDef InventoryFlags[] =
 	DEFINE_FLAG(IF, IGNORESKILL, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, ADDITIVETIME, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, NOATTENPICKUPSOUND, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, PERSISTENTPOWER, AInventory, ItemFlags),
 	// [BB] New ST flags.
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 
@@ -302,9 +309,9 @@ static FFlagDef WeaponFlags[] =
 	DEFINE_FLAG(WIF, CHEATNOTWEAPON, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, NO_AUTO_SWITCH, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, AMMO_CHECKBOTH, AWeapon, WeaponFlags),
+	DEFINE_FLAG(WIF, NOAUTOAIM, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons that can be used while respawn invulnerability is active.
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
-	DEFINE_FLAG(WIF, NOAUTOAIM, AWeapon, WeaponFlags), // [BB] If the level allows freelook, this weapon behaves as if CVAR autoaim was 0.
 };
 
 static const struct { const PClass *Type; FFlagDef *Defs; int NumDefs; } FlagLists[] =

@@ -695,3 +695,28 @@ CCMD(listlights)
 	Printf("%i dynamic lights, %d walls, %d subsectors\n\n\n", i, allwalls, allsectors);
 }
 
+CCMD(listsublights)
+{
+	for(int i=0;i<numsubsectors;i++)
+	{
+		subsector_t *sub = &subsectors[i];
+		int lights = 0;
+		int addlights = 0;
+
+		FLightNode * node = sub->lighthead[0];
+		while (node != NULL)
+		{
+			lights++;
+			node = node->nextLight;
+		}
+
+		node = sub->lighthead[1];
+		while (node != NULL)
+		{
+			addlights++;
+			node = node->nextLight;
+		}
+		Printf(PRINT_LOG, "Subsector %d - %d lights, %d additive lights\n", i, lights, addlights);
+	}
+}
+
