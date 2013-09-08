@@ -45,6 +45,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
+#include "gl/old_renderer/gl1_drawinfo.h"
 
 namespace GLRendererOld
 {

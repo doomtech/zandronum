@@ -44,6 +44,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
+#include "gl/old_renderer/gl1_drawinfo.h"
 
 namespace GLRendererOld
 {
@@ -104,6 +105,16 @@ void GLDrawList::Reset()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Translucent polygon sorting - uses a BSP algorithm with an additional 'equal' branch
+
+inline double GLSprite::CalcIntersectionVertex(GLWall * w2)
+{
+	float ax = x1, ay=y1;
+	float bx = x2, by=y2;
+	float cx = w2->glseg.x1, cy=w2->glseg.y1;
+	float dx = w2->glseg.x2, dy=w2->glseg.y2;
+	return ((ay-cy)*(dx-cx)-(ax-cx)*(dy-cy)) / ((bx-ax)*(dy-cy)-(by-ay)*(dx-cx));
+}
+
 
 
 //==========================================================================

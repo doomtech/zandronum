@@ -40,6 +40,7 @@
 #include "g_level.h"
 #include "sc_man.h"
 #include "w_wad.h"
+#include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"

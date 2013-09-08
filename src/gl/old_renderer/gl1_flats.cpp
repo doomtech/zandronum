@@ -49,6 +49,7 @@
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_drawinfo.h"
 #include "r_sky.h"
 #include "g_level.h"
 #include "doomstat.h"
