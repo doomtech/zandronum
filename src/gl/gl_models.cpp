@@ -45,7 +45,8 @@
 #include "c_console.h"
 #include "g_game.h"
 #include "gl_models.h"
-#include "gl_texture.h"
+// [BB] Necessary to make GZDoom revision 362 compile.
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl_values.h"
 #include "gl_renderstruct.h"
 #include "doomstat.h"

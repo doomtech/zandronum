@@ -42,7 +42,7 @@
 #include "w_wad.h"
 #include "sc_man.h"
 
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_glow.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"

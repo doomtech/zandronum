@@ -5,8 +5,11 @@
 #include "win32iface.h"
 #include "win32gliface.h"
 
-class GLTexture;
-class FShader;
+namespace GLRendererOld
+{
+	class GLTexture;
+	class FShader;
+}
 
 class OpenGLFrameBuffer : public Win32GLFrameBuffer
 {
@@ -14,7 +17,6 @@ class OpenGLFrameBuffer : public Win32GLFrameBuffer
 	DECLARE_CLASS(OpenGLFrameBuffer, Win32GLFrameBuffer)
 #else
 #include "sdlglvideo.h"
-#include "gl/gltexture.h"
 class OpenGLFrameBuffer : public SDLGLFB
 {
 //	typedef SDLGLFB Super;	//[C]commented, DECLARE_CLASS defines this in linux
@@ -99,8 +101,8 @@ private:
 	class Wiper_Crossfade;		friend class Wiper_Crossfade;
 
 	Wiper *ScreenWipe;
-	GLTexture *wipestartscreen;
-	GLTexture *wipeendscreen;
+	GLRendererOld::GLTexture *wipestartscreen;
+	GLRendererOld::GLTexture *wipeendscreen;
 
 	AActor * LastCamera;
 
@@ -116,6 +118,11 @@ class GL1Renderer : public GLRendererBase
 	void ProcessSprite(AActor *thing, sector_t *sector);
 	void ProcessParticle(particle_t *part, sector_t *sector);
 	void ProcessSector(sector_t *fakesector, subsector_t *sub);
+	void FlushTextures();
+	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
+	void PrecacheTexture(FTexture *tex);
+	void UncacheTexture(FTexture *tex);
+	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
 };
 
 #endif //__GL_FRAMEBUFFER

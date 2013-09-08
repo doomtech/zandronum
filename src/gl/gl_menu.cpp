@@ -1,9 +1,12 @@
 
 
 #include "gl/gl_include.h"
+#include "c_cvars.h"
+#include "c_dispatch.h"
 #include "m_menu.h"
 #include "v_video.h"
 #include "gl/gl_intern.h"
+#include "gl/common/glc_renderer.h"
 #include "version.h"
 
 // GL related CVARs

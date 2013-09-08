@@ -40,51 +40,23 @@
 */
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_renderer.h"
 #include "templates.h"
 #include "r_draw.h"
 #include "m_crc32.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 
-//==========================================================================
-//
-// Texture CVARs
-//
-//==========================================================================
-CUSTOM_CVAR(Float,gl_texture_filter_anisotropic,1.0f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+extern TexFilter_s TexFilter[];
+extern int TexFormat[];
+EXTERN_CVAR(Bool, gl_clamp_per_texture)
+
+
+namespace GLRendererOld
 {
-	FGLTexture::FlushAll();
-}
-
-CCMD(gl_flush)
-{
-	FGLTexture::FlushAll();
-}
-
-CUSTOM_CVAR(Int, gl_texture_filter, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
-{
-	if (self < 0 || self>4) self=4;
-	FGLTexture::FlushAll();
-}
-
-CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
-{
-	// [BB] The number of available texture modes depends on the GPU capabilities.
-	// RFL_TEXTURE_COMPRESSION gives us one additional mode and RFL_TEXTURE_COMPRESSION_S3TC
-	// another three.
-	int numOfAvailableTextureFormat = 4;
-	if ( gl.flags & RFL_TEXTURE_COMPRESSION && gl.flags & RFL_TEXTURE_COMPRESSION_S3TC )
-		numOfAvailableTextureFormat = 8;
-	else if ( gl.flags & RFL_TEXTURE_COMPRESSION )
-		numOfAvailableTextureFormat = 5;
-	if (self < 0 || self > numOfAvailableTextureFormat-1) self=0;
-	FGLTexture::FlushAll();
-}
-
-CVAR(Bool, gl_clamp_per_texture, false,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-
 
 //===========================================================================
 // 
@@ -92,26 +64,6 @@ CVAR(Bool, gl_clamp_per_texture, false,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 //
 //===========================================================================
 unsigned int GLTexture::lastbound[GLTexture::MAX_TEXTURES];
-
-GLTexture::TexFilter_s GLTexture::TexFilter[]={
-	{GL_NEAREST,					GL_NEAREST,		false},
-	{GL_NEAREST_MIPMAP_NEAREST,		GL_NEAREST,		true},
-	{GL_LINEAR,						GL_LINEAR,		false},
-	{GL_LINEAR_MIPMAP_NEAREST,		GL_LINEAR,		true},
-	{GL_LINEAR_MIPMAP_LINEAR,		GL_LINEAR,		true},
-};
-
-GLTexture::TexFormat_s GLTexture::TexFormat[]={
-	{GL_RGBA8},
-	{GL_RGB5_A1},
-	{GL_RGBA4},
-	{GL_RGBA2},
-	// [BB] Added compressed texture formats.
-	{GL_COMPRESSED_RGBA_ARB},
-	{GL_COMPRESSED_RGBA_S3TC_DXT1_EXT},
-	{GL_COMPRESSED_RGBA_S3TC_DXT3_EXT},
-	{GL_COMPRESSED_RGBA_S3TC_DXT5_EXT},
-};
 
 //===========================================================================
 // 
@@ -140,7 +92,7 @@ int GLTexture::GetTexDimension(int value)
 void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit)
 {
 	int rh,rw;
-	int texformat=TexFormat[gl_texture_format].texformat;
+	int texformat=TexFormat[gl_texture_format];
 	bool deletebuffer=false;
 	bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
 
@@ -407,4 +359,6 @@ void GLTexture::SetTextureClamp(int newclampmode)
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}
 	clampmode = newclampmode;
+}
+
 }

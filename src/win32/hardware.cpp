@@ -56,7 +56,6 @@ CVAR(Int, win_x, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, win_y, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 #include "win32gliface.h"
-#include "gl/gl_texture.h"
 
 bool ForceWindowed;
 

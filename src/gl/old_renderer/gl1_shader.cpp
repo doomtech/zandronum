@@ -45,7 +45,7 @@
 #include "v_video.h"
 #include "name.h"
 #include "w_wad.h"
-#include "gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "i_system.h"
 #include "doomerrors.h"
 
@@ -76,6 +76,9 @@ CUSTOM_CVAR(Bool, gl_glow_shader, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOIN
 
 
 extern long gl_frameMS;
+
+namespace GLRendererOld
+{
 
 bool gl_fogenabled;
 bool gl_textureenabled;
@@ -824,4 +827,6 @@ void gl_DisableShader()
 void gl_ClearShaders()
 {
 	GLShader::Clear();
+}
+
 }

@@ -5,9 +5,8 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_struct.h"
-#include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
 #include "templates.h"
 #include "version.h"
@@ -15,6 +14,7 @@
 #include "hardware.h"
 #include "v_video.h"
 #include "i_input.h"
+#include "i_system.h"
 #include "doomstat.h"
 //#include "gl_defs.h"
 
@@ -50,7 +50,7 @@ Win32GLVideo::Win32GLVideo(int parm) : m_Modes(NULL), m_IsFullscreen(false)
 Win32GLVideo::~Win32GLVideo()
 {
 	FreeModes();
-	FGLTexture::FlushAll();
+	if (GLRenderer != NULL) GLRenderer->FlushTextures();
 }
 
 void Win32GLVideo::SetWindowedScale(float scale)
@@ -235,7 +235,7 @@ DFrameBuffer *Win32GLVideo::CreateFrameBuffer(int width, int height, bool fs, DF
 
 bool Win32GLVideo::SetResolution (int width, int height, int bits)
 {
-	FGLTexture::FlushAll();
+	if (GLRenderer != NULL) GLRenderer->FlushTextures();
 	I_ShutdownGraphics();
 	
 	Video = new Win32GLVideo(0);

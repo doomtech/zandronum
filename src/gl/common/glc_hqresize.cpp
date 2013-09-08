@@ -34,9 +34,10 @@
 **
 */
 
-#include "gl_pch.h"
-#include "gl_hqresize.h"
-#include "gl_intern.h"
+#include "gl/gl_pch.h"
+#include "gl/common/glc_renderer.h"
+#include "gl/common/glc_texture.h"
+#include "gl/gl_intern.h"
 #include "c_cvars.h"
 // [BB] hqnx scaling is only supported with the MS compiler.
 #ifdef _MSC_VER
@@ -51,18 +52,18 @@ CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR
 	if (self < 0 || self > 3)
 #endif
 		self = 0;
-	FGLTexture::FlushAll();
+	GLRenderer->FlushTextures();
 }
 
 CUSTOM_CVAR(Int, gl_texture_hqresize_maxinputsize, 512, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	if (self > 1024) self = 1024;
-	FGLTexture::FlushAll();
+	GLRenderer->FlushTextures();
 }
 
 CUSTOM_CVAR(Int, gl_texture_hqresize_targets, 7, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	FGLTexture::FlushAll();
+	GLRenderer->FlushTextures();
 }
 
 CVAR (Flag, gl_texture_hqresize_textures, gl_texture_hqresize_targets, 1);
@@ -215,7 +216,7 @@ static unsigned char *hqNxHelper( void (*hqNxFunction) ( int*, unsigned char*, i
 //  the upsampled buffer.
 //
 //===========================================================================
-unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight, bool hasAlpha )
+unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight, bool hasAlpha )
 {
 	// [BB] Make sure that outWidth and outHeight denote the size of
 	// the returned buffer even if we don't upsample the input buffer.
@@ -227,14 +228,14 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 		return inputBuffer;
 
 	// [BB] Don't try to upsample textures based off FCanvasTexture.
-	if ( inputGLTexture->tex->bHasCanvas )
+	if ( inputTexture->bHasCanvas )
 		return inputBuffer;
 
 	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory.
-	if ( (!(gl.flags & RFL_GLSL) || !gl_warp_shader) && inputGLTexture->tex->bWarped )
+	if ( (!(gl.flags & RFL_GLSL) || !gl_warp_shader) && inputTexture->bWarped )
 		return inputBuffer;
 
-	switch (inputGLTexture->tex->UseType)
+	switch (inputTexture->UseType)
 	{
 	case FTexture::TEX_Sprite:
 	case FTexture::TEX_SkinSprite:

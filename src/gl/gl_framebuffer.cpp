@@ -41,6 +41,7 @@
 
 #include "gl/gl_include.h"
 #include "gl/common/glc_clock.h"
+#include "gl/common/glc_texture.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"
@@ -49,11 +50,12 @@
 #include "m_png.h"
 #include "m_crc32.h"
 #include "gl/gl_basic.h"
+#include "gl/gl_data.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_translate.h"
 #include "vectors.h"
@@ -72,6 +74,8 @@ void gl_FreeSpecialTextures();
 void gl_SetupMenu();
 
 GLRendererBase *GLRenderer;
+
+using namespace GLRendererOld;
 
 //==========================================================================
 //
@@ -110,6 +114,7 @@ OpenGLFrameBuffer::~OpenGLFrameBuffer()
 	FGLTexture::DeleteAll();
 	gl_ClearShaders();
 	delete GLRenderer;
+	GLRenderer = NULL;
 }
 
 //==========================================================================
@@ -747,4 +752,46 @@ void GL1Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 {
 	GLFlat glflat;
 	glflat.ProcessSector(fakesector, sub);
+}
+
+void GL1Renderer::FlushTextures()
+{
+	FGLTexture::FlushAll();
+}
+
+void GL1Renderer::RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov)
+{
+	gl_RenderTextureView(self, viewpoint, fov);
+}
+
+void GL1Renderer::PrecacheTexture(FTexture *tex)
+{
+	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+	if (gltex) 
+	{
+		if (tex->UseType==FTexture::TEX_Sprite) 
+		{
+			gltex->BindPatch(CM_DEFAULT, 0);
+		}
+		else 
+		{
+			gltex->Bind (CM_DEFAULT, 0, 0);
+		}
+	}
+}
+
+void GL1Renderer::UncacheTexture(FTexture *tex)
+{
+	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+	if (gltex) gltex->Clean(true); 
+}
+
+unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
+{
+	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+	if (gltex)
+	{
+		return gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
+	}
+	return NULL;
 }

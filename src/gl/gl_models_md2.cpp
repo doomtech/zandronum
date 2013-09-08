@@ -43,15 +43,16 @@
 #include "sc_man.h"
 #include "m_crc32.h"
 #include "gl_models.h"
-#include "gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl_values.h"
 #include "gl_renderstruct.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 
 static float   avertexnormals[NUMVERTEXNORMALS][3] = {
 #include "tab_anorms.h"
 };
 
+using namespace GLRendererOld;
 
 //===========================================================================
 //

@@ -50,13 +50,13 @@
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/common/glc_clipper.h"
 #include "gl/gl_glow.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_data.h"
 #include "gl/gl_geometric.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

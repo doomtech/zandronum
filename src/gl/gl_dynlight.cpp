@@ -56,7 +56,7 @@
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_skyboxtexture.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);

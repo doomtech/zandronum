@@ -42,10 +42,10 @@
 #include "w_wad.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_skyboxtexture.h"
 
 

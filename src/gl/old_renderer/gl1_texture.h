@@ -2,7 +2,7 @@
 #ifndef __GL_TEXTURE_H
 #define __GL_TEXTURE_H
 
-#include "gl/gltexture.h"
+#include "gl/old_renderer/gl1_hwtexture.h"
 #include "r_data.h"
 #include "i_system.h"
 #include "textures/bitmap.h"
@@ -11,9 +11,13 @@ EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_brightmap_shader)
 
 struct GL_RECT;
+struct FRemapTable;
+
+
+namespace GLRendererOld
+{
 
 void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count);
-void CopyColorsRGBA(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
 
 class FGLBitmap : public FBitmap
 {
@@ -112,12 +116,9 @@ public:
 // this is the texture maintenance class for OpenGL. 
 //
 //===========================================================================
-struct FRemapTable;
 
 class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 {
-	friend void AdjustSpriteOffsets();
-
 	static TArray<FGLTexture *> gltextures;
 public:
 	enum ETexUse
@@ -152,8 +153,6 @@ private:
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
 	void CheckTrans(unsigned char * buffer, int size, int trans);
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
-	int CheckDDPK3();
-	int CheckExternalFile(bool & hascolorkey);
 	unsigned char * LoadHiresTexture(int *width, int *height, int cm);
 
 	BYTE *WarpBuffer(BYTE *buffer, int Width, int Height, int warp);
@@ -248,29 +247,8 @@ public:
 
 };
 
-
-class FBrightmapTexture : public FTexture
-{
-	friend class FGLTexture;
-
-public:
-	FBrightmapTexture (FTexture *source);
-	~FBrightmapTexture ();
-
-	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
-	const BYTE *GetPixels ();
-	void Unload ();
-
-	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf);
-	bool UseBasePalette() { return false; }
-
-protected:
-	FTexture *SourcePic;
-	//BYTE *Pixels;
-	//Span **Spans;
-};
-
 void gl_EnableTexture(bool on);
-void gl_GenerateGlobalBrightmapFromColormap();
+
+}
 
 #endif

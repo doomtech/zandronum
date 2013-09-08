@@ -45,7 +45,10 @@
 
 struct F3DFloor;
 struct model_t;
-class FGLTexture;
+namespace GLREndererOld
+{
+	class FGLTexture;
+}
 
 
 int GetFloorLight (const sector_t *sec);

@@ -2,6 +2,9 @@
 #ifndef __GL_SHADERS_H__
 #define __GL_SHADERS_H__
 
+namespace GLRendererOld
+{
+
 extern bool gl_fogenabled;
 extern bool gl_textureenabled;
 extern bool gl_glowenabled;
@@ -29,6 +32,8 @@ void gl_ApplyShader();
 void gl_DisableShader();
 void gl_ClearShaders();
 void gl_InitShaders();
+
+}
 
 
 #endif

@@ -53,72 +53,27 @@
 #include "colormatcher.h"
 
 #include "gl/gl_struct.h"
+#include "gl/gl_data.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_framebuffer.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_translate.h"
-#include "gl/gl_hqresize.h"
+#include "gl/common/glc_texture.h"
 
-
-CUSTOM_CVAR(Bool, gl_texture_usehires, true, CVAR_ARCHIVE|CVAR_NOINITCALL)
-{
-	FGLTexture::FlushAll();
-}
 
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Int, gl_fogmode)
 EXTERN_CVAR(Int, gl_lightmode)
+EXTERN_CVAR(Bool, gl_precache)
+EXTERN_CVAR(Bool, gl_texture_usehires)
 
-CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
+extern bool HasGlobalBrightmap;
+extern FRemapTable GlobalBrightmap;
 
-static bool HasGlobalBrightmap;
-static FRemapTable GlobalBrightmap;
-
-//===========================================================================
-// 
-// Examines the colormap to see if some of the colors have to be
-// considered fullbright all the time.
-//
-//===========================================================================
-
-void gl_GenerateGlobalBrightmapFromColormap()
+namespace GLRendererOld
 {
-	int lump = Wads.CheckNumForName("COLORMAP");
-	if (lump == -1) lump = Wads.CheckNumForName("COLORMAP", ns_colormaps);
-	if (lump == -1) return;
-	FMemLump cmap = Wads.ReadLump(lump);
-	FMemLump palette = Wads.ReadLump("PLAYPAL");
-	const unsigned char *cmapdata = (const unsigned char *)cmap.GetMem();
-	const unsigned char *paldata = (const unsigned char *)palette.GetMem();
-
-	const int black = 0;
-	const int white = ColorMatcher.Pick(255,255,255);
-
-
-	GlobalBrightmap.MakeIdentity();
-	memset(GlobalBrightmap.Remap, white, 256);
-	for(int i=0;i<256;i++) GlobalBrightmap.Palette[i]=PalEntry(255,255,255,255);
-	for(int j=0;j<32;j++)
-	{
-		for(int i=0;i<256;i++)
-		{
-			// the palette comparison should be for ==0 but that gives false positives with Heretic
-			// and Hexen.
-			if (cmapdata[i+j*256]!=i || (paldata[3*i]<10 && paldata[3*i+1]<10 && paldata[3*i+2]<10))
-			{
-				GlobalBrightmap.Remap[i]=black;
-				GlobalBrightmap.Palette[i]=PalEntry(0,0,0);
-			}
-		}
-	}
-	for(int i=0;i<256;i++)
-	{
-		HasGlobalBrightmap |= GlobalBrightmap.Remap[i] == white;
-		if (GlobalBrightmap.Remap[i] == white) DPrintf("Marked color %d as fullbright\n",i);
-	}
-}
 
 //===========================================================================
 // 
@@ -512,171 +467,6 @@ void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int 
 
 //===========================================================================
 //
-// Camera texture rendering
-//
-//===========================================================================
-
-void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
-{
-	gl_RenderTextureView(this, viewpoint, fov);
-	bNeedsUpdate = false;
-	bDidUpdate = true;
-	bFirstUpdate = false;
-}
-
-
-//==========================================================================
-//
-// Precaches a GL texture
-//
-//==========================================================================
-
-void FTexture::PrecacheGL()
-{
-	if (gl_precache)
-	{
-		FGLTexture * gltex = FGLTexture::ValidateTexture(this);
-		if (gltex) 
-		{
-			if (UseType==FTexture::TEX_Sprite) 
-			{
-				gltex->BindPatch(CM_DEFAULT, 0);
-			}
-			else 
-			{
-				gltex->Bind (CM_DEFAULT, 0, 0);
-			}
-		}
-	}
-}
-
-//==========================================================================
-//
-// Precaches a GL texture
-//
-//==========================================================================
-
-void FTexture::UncacheGL()
-{
-	if (Native)
-	{
-		FGLTexture * gltex = FGLTexture::ValidateTexture(this);
-		if (gltex) gltex->Clean(true); 
-	}
-}
-
-//==========================================================================
-//
-// Calculates glow color for a texture
-//
-//==========================================================================
-
-void FTexture::GetGlowColor(float *data)
-{
-	if (gl_info.bGlowing && gl_info.GlowColor == 0)
-	{
-		FGLTexture * gltex = FGLTexture::ValidateTexture(this);
-		if (gltex)
-		{
-			int w, h;
-			unsigned char * buffer = gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
-
-			if (buffer)
-			{
-				gl_info.GlowColor = averageColor((DWORD *) buffer, w*h, 6*FRACUNIT/10);
-				delete buffer;
-			}
-		}
-		// Black glow equals nothing so switch glowing off
-		if (gl_info.GlowColor == 0) gl_info.bGlowing = false;
-	}
-	data[0]=gl_info.GlowColor.r/255.0f;
-	data[1]=gl_info.GlowColor.g/255.0f;
-	data[2]=gl_info.GlowColor.b/255.0f;
-}
-
-//==========================================================================
-//
-// GL status data for a texture
-//
-//==========================================================================
-
-FTexture::MiscGLInfo::MiscGLInfo() throw()
-{
-	bGlowing = false;
-	GlowColor = 0;
-	GlowHeight = 128;
-	bSkybox = false;
-	FloorSkyColor = 0;
-	CeilingSkyColor = 0;
-	bFullbright = false;
-	bSkyColorDone = false;
-	bBrightmapChecked = false;
-	bBrightmap = false;
-	bBrightmapDisablesFullbright = false;
-
-	GLTexture = NULL;
-	Brightmap = NULL;
-}
-
-FTexture::MiscGLInfo::~MiscGLInfo()
-{
-	if (GLTexture != NULL) delete GLTexture;
-	GLTexture = NULL;
-	if (Brightmap != NULL) delete Brightmap;
-	Brightmap = NULL;
-}
-
-//===========================================================================
-//
-// fake brightness maps
-// These are generated for textures affected by a colormap with
-// fullbright entries.
-// These textures are only used internally by the GL renderer so
-// all code for software rendering support is missing
-//
-//===========================================================================
-
-FBrightmapTexture::FBrightmapTexture (FTexture *source)
-{
-	memcpy(Name, source->Name, 9);
-	SourcePic = source;
-	CopySize(source);
-	bNoDecals = source->bNoDecals;
-	Rotations = source->Rotations;
-	UseType = source->UseType;
-	gl_info.bBrightmap = true;
-}
-
-FBrightmapTexture::~FBrightmapTexture ()
-{
-	Unload();
-}
-
-const BYTE *FBrightmapTexture::GetColumn (unsigned int column, const Span **spans_out)
-{
-	// not needed
-	return NULL;
-}
-
-const BYTE *FBrightmapTexture::GetPixels ()
-{
-	// not needed
-	return NULL;
-}
-
-void FBrightmapTexture::Unload ()
-{
-}
-
-int FBrightmapTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
-{
-	SourcePic->CopyTrueColorTranslated(bmp, x, y, rotate, &GlobalBrightmap);
-	return 0;
-}
-
-//===========================================================================
-//
 // The GL texture maintenance class
 //
 //===========================================================================
@@ -880,6 +670,56 @@ void FGLTexture::GetRect(GL_RECT * r, FGLTexture::ETexUse i) const
 	r->top=-(float)GetScaledTopOffset(i);
 	r->width=(float)TextureWidth(i);
 	r->height=(float)TextureHeight(i);
+}
+
+//==========================================================================
+//
+// Checks for the presence of a hires texture replacement and loads it
+//
+//==========================================================================
+unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
+{
+	if (HiresLump==-1) 
+	{
+		bHasColorkey = false;
+		HiresLump = CheckDDPK3(tex);
+		if (HiresLump < 0) HiresLump = CheckExternalFile(tex, bHasColorkey);
+
+		if (HiresLump >=0) 
+		{
+			hirestexture = FTexture::CreateTexture(HiresLump, FTexture::TEX_Any);
+		}
+	}
+	if (hirestexture != NULL)
+	{
+		int w=hirestexture->GetWidth();
+		int h=hirestexture->GetHeight();
+
+		unsigned char * buffer=new unsigned char[w*(h+1)*4];
+		memset(buffer, 0, w * (h+1) * 4);
+
+		FGLBitmap bmp(buffer, w*4, w, h);
+		bmp.SetTranslationInfo(cm);
+
+		
+		int trans = hirestexture->CopyTrueColorPixels(&bmp, 0, 0);
+		CheckTrans(buffer, w*h, trans);
+
+		if (bHasColorkey)
+		{
+			// This is a crappy Doomsday color keyed image
+			// We have to remove the key manually. :(
+			DWORD * dwdata=(DWORD*)buffer;
+			for (int i=(w*h);i>0;i--)
+			{
+				if (dwdata[i]==0xffffff00 || dwdata[i]==0xffff00ff) dwdata[i]=0;
+			}
+		}
+		*width = w;
+		*height = h;
+		return buffer;
+	}
+	return NULL;
 }
 
 //===========================================================================
@@ -1262,7 +1102,7 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 
 	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
 	// w, h are set to the width and height of the buffer.
-	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
+	buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
 
 	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && w <= 256 && h <= 256)
 	{
@@ -1535,102 +1375,4 @@ FGLTexture * FGLTexture::ValidateTexture(FTextureID no, bool translate)
 }
 
 
-//==========================================================================
-//
-// Parses a brightmap definition
-//
-//==========================================================================
-
-void gl_ParseBrightmap(FScanner &sc, int deflump)
-{
-	int type = FTexture::TEX_Any;
-	bool disable_fullbright=false;
-	bool thiswad = false;
-	bool iwad = false;
-	int maplump = -1;
-	FString maplumpname;
-
-	sc.MustGetString();
-	if (sc.Compare("texture")) type = FTexture::TEX_Wall;
-	else if (sc.Compare("flat")) type = FTexture::TEX_Flat;
-	else if (sc.Compare("sprite")) type = FTexture::TEX_Sprite;
-	else sc.UnGet();
-
-	sc.MustGetString();
-	FTextureID no = TexMan.CheckForTexture(sc.String, type);
-	FTexture *tex = TexMan[no];
-
-	sc.MustGetToken('{');
-	while (!sc.CheckToken('}'))
-	{
-		sc.MustGetString();
-		if (sc.Compare("disablefullbright"))
-		{
-			// This can also be used without a brightness map to disable
-			// fullbright in rotations that only use brightness maps on
-			// other angles.
-			disable_fullbright = true;
-		}
-		else if (sc.Compare("thiswad"))
-		{
-			// only affects textures defined in the WAD containing the definition file.
-			thiswad = true;
-		}
-		else if (sc.Compare ("iwad"))
-		{
-			// only affects textures defined in the IWAD.
-			iwad = true;
-		}
-		else if (sc.Compare ("map"))
-		{
-			sc.MustGetString();
-
-			if (maplump >= 0)
-			{
-				Printf("Multiple brightmap definitions in texture %s\n", tex? tex->Name : "(null)");
-			}
-
-			maplump = Wads.CheckNumForFullName(sc.String, true);
-
-			if (maplump==-1) 
-				Printf("Brightmap '%s' not found in texture '%s'\n", sc.String, tex? tex->Name : "(null)");
-
-			maplumpname = sc.String;
-		}
-	}
-	if (!tex)
-	{
-		return;
-	}
-	if (thiswad || iwad)
-	{
-		bool useme = false;
-		int lumpnum = tex->GetSourceLump();
-
-		if (lumpnum != -1)
-		{
-			if (iwad && Wads.GetLumpFile(lumpnum) <= FWadCollection::IWAD_FILENUM) useme = true;
-			if (thiswad && Wads.GetLumpFile(lumpnum) == deflump) useme = true;
-		}
-		if (!useme) return;
-	}
-
-	if (maplump != -1)
-	{
-		FTexture *brightmap = FTexture::CreateTexture(maplump, tex->UseType);
-		if (!brightmap)
-		{
-			Printf("Unable to create texture from '%s' in brightmap definition for '%s'\n", 
-				maplumpname.GetChars(), tex->Name);
-			return;
-		}
-		if (tex->gl_info.Brightmap != NULL)
-		{
-			// If there is already a brightmap assigned replace it
-			delete tex->gl_info.Brightmap;
-		}
-		tex->gl_info.Brightmap = brightmap;
-		brightmap->gl_info.bBrightmap = true;
-	}	
-	tex->gl_info.bBrightmapDisablesFullbright = disable_fullbright;
 }

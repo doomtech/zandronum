@@ -47,7 +47,7 @@
 #include "gl/gl_data.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 
 EXTERN_CVAR(Bool, gl_notexturefill);
 CVAR(Bool,gl_noskyboxes, false, 0)

@@ -3,6 +3,7 @@
 
 #include "r_defs.h"
 struct particle_t;
+class FCanvasTexture;
 
 class GLRendererBase
 {
@@ -20,6 +21,11 @@ public:
 	virtual void ProcessSprite(AActor *thing, sector_t *sector) = 0;
 	virtual void ProcessParticle(particle_t *part, sector_t *sector) = 0;
 	virtual void ProcessSector(sector_t *fakesector, subsector_t *sub) = 0;
+	virtual void FlushTextures() = 0;
+	virtual void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov) = 0;
+	virtual void PrecacheTexture(FTexture *tex) = 0;
+	virtual void UncacheTexture(FTexture *tex) = 0;
+	virtual unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h) = 0;
 };
 
 // Global functions. Make them members of GLRendererBase later?
@@ -38,6 +44,13 @@ typedef enum
 } area_t;
 
 extern area_t			in_area;
+
+struct TexFilter_s
+{
+	int minfilter;
+	int magfilter;
+	bool mipmapping;
+} ;
 
 
 

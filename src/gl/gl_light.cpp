@@ -46,7 +46,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"

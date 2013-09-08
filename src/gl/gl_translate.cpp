@@ -39,7 +39,7 @@
 */
 
 #include "gl/gl_translate.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "m_crc32.h"
 
 TArray<GLTranslationPalette::PalData> GLTranslationPalette::AllPalettes;

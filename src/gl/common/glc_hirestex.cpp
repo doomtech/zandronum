@@ -36,7 +36,16 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
+
+#ifdef _MSC_VER
+#define    F_OK    0    /* Check for file existence */
+#define    W_OK    2    /* Check for write permission */
+#define    R_OK    4    /* Check for read permission */
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "w_wad.h"
 #include "m_png.h"
 #include "r_draw.h"
@@ -47,16 +56,12 @@
 #include "doomstat.h"
 #include "d_main.h"
 
-#include "gl/gl_struct.h"
-#include "gl/gl_texture.h"
-#include "gl/gl_functions.h"
-
 //==========================================================================
 //
 // Checks for the presence of a hires texture replacement in a Doomsday style PK3
 //
 //==========================================================================
-int FGLTexture::CheckDDPK3()
+int CheckDDPK3(FTexture *tex)
 {
 	static const char * doom1texpath[]= {
 		"data/jdoom/textures/doom/%s.%s", "data/jdoom/textures/doom-ult/%s.%s", "data/jdoom/textures/doom1/%s.%s", "data/jdoom/textures/%s.%s", NULL };
@@ -184,7 +189,7 @@ int FGLTexture::CheckDDPK3()
 // Checks for the presence of a hires texture replacement
 //
 //==========================================================================
-int FGLTexture::CheckExternalFile(bool & hascolorkey)
+int CheckExternalFile(FTexture *tex, bool & hascolorkey)
 {
 	static const char * doom1texpath[]= {
 		"%stextures/doom/doom1/%s.%s", "%stextures/doom/doom1/%s-ck.%s", 
@@ -378,52 +383,3 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 }
 
 
-//==========================================================================
-//
-// Checks for the presence of a hires texture replacement and loads it
-//
-//==========================================================================
-unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
-{
-	if (HiresLump==-1) 
-	{
-		bHasColorkey = false;
-		HiresLump = CheckDDPK3();
-		if (HiresLump < 0) HiresLump = CheckExternalFile(bHasColorkey);
-
-		if (HiresLump >=0) 
-		{
-			hirestexture = FTexture::CreateTexture(HiresLump, FTexture::TEX_Any);
-		}
-	}
-	if (hirestexture != NULL)
-	{
-		int w=hirestexture->GetWidth();
-		int h=hirestexture->GetHeight();
-
-		unsigned char * buffer=new unsigned char[w*(h+1)*4];
-		memset(buffer, 0, w * (h+1) * 4);
-
-		FGLBitmap bmp(buffer, w*4, w, h);
-		bmp.SetTranslationInfo(cm);
-
-		
-		int trans = hirestexture->CopyTrueColorPixels(&bmp, 0, 0);
-		CheckTrans(buffer, w*h, trans);
-
-		if (bHasColorkey)
-		{
-			// This is a crappy Doomsday color keyed image
-			// We have to remove the key manually. :(
-			DWORD * dwdata=(DWORD*)buffer;
-			for (int i=(w*h);i>0;i--)
-			{
-				if (dwdata[i]==0xffffff00 || dwdata[i]==0xffff00ff) dwdata[i]=0;
-			}
-		}
-		*width = w;
-		*height = h;
-		return buffer;
-	}
-	return NULL;
-}

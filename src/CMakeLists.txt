@@ -600,15 +600,21 @@ if( NOT NO_GL )
 		gl/common/glc_clock.cpp
 		gl/common/glc_cycler.cpp
 		gl/common/glc_fakeflat.cpp
+		gl/common/glc_hirestex.cpp
+		gl/common/glc_hqresize.cpp
 		gl/common/glc_nodes.cpp
 		gl/common/glc_sections.cpp
+		gl/common/glc_texture.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
+		gl/old_renderer/gl1_hwtexture.cpp
 		gl/old_renderer/gl1_portal.cpp
+		gl/old_renderer/gl1_shader.cpp
 		gl/old_renderer/gl1_sky.cpp
 		gl/old_renderer/gl1_skydome.cpp
 		gl/old_renderer/gl1_sprite.cpp
+		gl/old_renderer/gl1_texture.cpp
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
@@ -619,8 +625,6 @@ if( NOT NO_GL )
 		gl/gl_framebuffer.cpp
 		gl/gl_geometric.cpp
 		gl/gl_glow.cpp
-		gl/gl_hirestex.cpp
-		gl/gl_hqresize.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp
 		gl/gl_missingtexture.cpp
@@ -628,10 +632,6 @@ if( NOT NO_GL )
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
 		gl/gl_scene.cpp
-		gl/gl_shader.cpp
-		gl/gl_swshaders.cpp
-		gl/gl_texture.cpp
-		gl/gltexture.cpp
 		gl/gl_translate.cpp
 		gl/gl_vertex.cpp
 		gl/gl_wipe.cpp

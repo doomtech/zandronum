@@ -10,6 +10,7 @@
 #include "gl/wglext.h"
 */
 
+#include "win32iface.h"
 #include "hardware.h"
 #include "v_video.h"
 #include "tarray.h"

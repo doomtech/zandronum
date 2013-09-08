@@ -16,7 +16,6 @@ struct sector_t;
 struct FGLSection;
 
 extern DWORD gl_fixedcolormap;
-class FGLTexture;
 
 struct GL_RECT
 {
@@ -126,7 +125,7 @@ struct GLSkyInfo
 {
 	float x_offset[2];
 	float y_offset;		// doubleskies don't have a y-offset
-	FGLTexture * texture[2];
+	GLRendererOld::FGLTexture * texture[2];
 	FTextureID skytexno1;
 	bool mirrored;
 	bool doublesky;

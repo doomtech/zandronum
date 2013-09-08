@@ -43,10 +43,10 @@
 #include "doomstat.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_glow.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_models.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)

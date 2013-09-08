@@ -42,7 +42,7 @@
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
 #include "gl/gl_renderstruct.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_drawinfo.h"

@@ -11,6 +11,11 @@
 class FCanvasTexture;
 class AActor;
 
+void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
+
+namespace GLRendererOld
+{
+
 enum
 {
 	GLT_CLAMPX=1,
@@ -19,26 +24,12 @@ enum
 
 class GLTexture
 {
-	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
+	friend void ::gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
 	enum
 	{
 		MAX_TEXTURES = 16
 	};
-
-	static struct TexFilter_s
-	{
-		int minfilter;
-		int magfilter;
-		bool mipmapping;
-	} 
-	TexFilter[];
-
-	static struct TexFormat_s
-	{
-		int texformat;
-	}
-	TexFormat[];
 
 	struct TranslatedTexture
 	{
@@ -97,5 +88,6 @@ public:
 
 };
 
+}
 
 #endif

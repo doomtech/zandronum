@@ -54,10 +54,10 @@
 #include "gl/common/glc_clipper.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
-#include "gl/gl_texture.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_shader.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_models.h"
 
@@ -83,6 +83,7 @@ EXTERN_CVAR (Bool, r_deathcamera)
 CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 void R_SetupFrame (AActor * camera);
+extern TexFilter_s TexFilter[];
 
 
 // Externals from gl_weapon.cpp
@@ -909,7 +910,7 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 	gl.Flush();
 	gltex->Bind(CM_DEFAULT, 0, 0);
 	gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTexture::TexFilter[gl_texture_filter].magfilter);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
 }
 
 

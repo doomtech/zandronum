@@ -83,7 +83,10 @@ enum FTextureFormat
 };
 
 class FNativeTexture;
-class FGLTexture;
+namespace GLRendererOld
+{
+	class FGLTexture;
+}
 
 // Base texture class
 class FTexture
@@ -239,7 +242,7 @@ public:
 
 	struct MiscGLInfo
 	{
-		FGLTexture *GLTexture;
+		GLRendererOld::FGLTexture *GLTexture;
 		FTexture *Brightmap;
 		PalEntry GlowColor;
 		PalEntry FloorSkyColor;
