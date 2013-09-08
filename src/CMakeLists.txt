@@ -595,6 +595,16 @@ endif( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
 	set( GL_SOURCES
+		gl/old_renderer/gl1_decal.cpp
+		gl/old_renderer/gl1_drawinfo.cpp
+		gl/old_renderer/gl1_flats.cpp
+		gl/old_renderer/gl1_portal.cpp
+		gl/old_renderer/gl1_sky.cpp
+		gl/old_renderer/gl1_skydome.cpp
+		gl/old_renderer/gl1_sprite.cpp
+		gl/old_renderer/gl1_walls.cpp
+		gl/old_renderer/gl1_walls_draw.cpp
+		gl/old_renderer/gl1_weapon.cpp
 		gl/a_dynlight.cpp
 		gl/gfxfuncs.cpp
 		gl/gl_bsp.cpp
@@ -602,11 +612,8 @@ if( NOT NO_GL )
 		gl/gl_clock.cpp
 		gl/gl_cycler.cpp
 		gl/gl_data.cpp
-		gl/gl_decal.cpp
-		gl/gl_drawinfo.cpp
 		gl/gl_dynlight.cpp
 		gl/gl_fakeflat.cpp
-		gl/gl_flats.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_geometric.cpp
 		gl/gl_glow.cpp
@@ -619,20 +626,13 @@ if( NOT NO_GL )
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
 		gl/gl_nodes.cpp
-		gl/gl_portal.cpp
 		gl/gl_scene.cpp
 		gl/gl_shader.cpp
-		gl/gl_sky.cpp
-		gl/gl_skydome.cpp
-		gl/gl_sprite.cpp
 		gl/gl_swshaders.cpp
 		gl/gl_texture.cpp
 		gl/gltexture.cpp
 		gl/gl_translate.cpp
 		gl/gl_vertex.cpp
-		gl/gl_walls.cpp
-		gl/gl_walls_draw.cpp
-		gl/gl_weapon.cpp
 		gl/gl_wipe.cpp
 		gl/r_render/r_opengl.cpp
 	)

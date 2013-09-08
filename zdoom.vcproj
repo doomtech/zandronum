@@ -10615,46 +10615,46 @@
 			Name="Old Renderer"
 			>
 			<File
-				RelativePath=".\src\gl\gl_decal.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_decal.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_drawinfo.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_drawinfo.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_portal.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_portal.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_sky.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_sky.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_skydome.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_skydome.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_sprite.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_sprite.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_walls.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_walls.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_walls_draw.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_walls_draw.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\gl\gl_weapon.cpp"
+				RelativePath=".\src\gl\old_renderer\gl1_weapon.cpp"
 				>
 			</File>
 			<Filter
 				Name="Includes"
 				>
 				<File
-					RelativePath=".\src\gl\gl_portal.h"
+					RelativePath=".\src\gl\old_renderer\gl1_portal.h"
 					>
 				</File>
 			</Filter>

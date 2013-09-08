@@ -21,6 +21,19 @@ CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 	gl_plane_reflection_i = self;
 }
 
+CVAR(Bool,gl_mirrors,true,0)	// This is for debugging only!
+CVAR(Bool,gl_mirror_envmap, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+
+CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	gl_render_segs=self;
+	gl_seamless=self;
+}
+
+
 
 extern value_t YesNo[2];
 extern value_t NoYes[2];

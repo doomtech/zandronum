@@ -46,7 +46,7 @@
 #include "templates.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
-#include "gl/gl_portal.h"
+#include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_glow.h"
 #include "gl/gl_data.h"
@@ -56,17 +56,11 @@
 #include "vectors.h"
 #include "r_sky.h"
 
-CVAR(Bool,gl_mirrors,true,0)	// This is for debugging only!
-CVAR(Bool,gl_mirror_envmap, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
-CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
-
-CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	gl_render_segs=self;
-	gl_seamless=self;
-}
+EXTERN_CVAR(Bool,gl_mirrors)
+EXTERN_CVAR(Bool,gl_mirror_envmap)
+EXTERN_CVAR(Bool, gl_render_segs)
+EXTERN_CVAR(Bool, gl_seamless)
+EXTERN_CVAR(Bool, gl_fakecontrast)
 
 namespace GLRendererOld
 {
