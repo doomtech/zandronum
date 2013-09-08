@@ -42,6 +42,7 @@
 #include "r_translate.h"
 #include "g_level.h"
 #include "doomstat.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_lights.h"
@@ -458,10 +459,10 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		if (P_AproxDistance(thingx-viewx, thingy-viewy) < thing->Speed ) return;
 	}
 
-	if (GLPortal::mirrorline)
+	if (GLRenderer->mirrorline)
 	{
 		// this thing is behind the mirror!
-		if (P_PointOnLineSide(thingx, thingy, GLPortal::mirrorline)) return;
+		if (P_PointOnLineSide(thingx, thingy, GLRenderer->mirrorline)) return;
 	}
 
 
@@ -762,10 +763,10 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int shade, int fakeside)
 {
-	if (GLPortal::mirrorline)
+	if (GLRenderer->mirrorline)
 	{
 		// this particle is  behind the mirror!
-		if (P_PointOnLineSide(particle->x, particle->y, GLPortal::mirrorline)) return;
+		if (P_PointOnLineSide(particle->x, particle->y, GLRenderer->mirrorline)) return;
 	}
 
 	player_t *player=&players[consoleplayer];

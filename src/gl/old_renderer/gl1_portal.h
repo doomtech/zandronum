@@ -49,9 +49,6 @@ struct skycube_t
 	int textures[6];
 };
 
-class GLUtesselator;
-
-
 class GLPortal
 {
 	static TArray<GLPortal *> portals;
@@ -64,7 +61,6 @@ protected:
 
 public:
 	static int PlaneMirrorMode;
-	static line_t * mirrorline;
 	static 	bool inupperstack;
 	static bool	inlowerstack;
 	static bool	inskybox;

@@ -35,10 +35,8 @@
 **
 */
 
-#include "gl/gl_include.h"
 #include "r_main.h"
-#include "gl/gl_clipper.h"
-#include "gl/gl_values.h"
+#include "gl/common/glc_clipper.h"
 
 
 

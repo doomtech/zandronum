@@ -113,7 +113,13 @@ struct particle_t;
 class GLRendererBase
 {
 public:
-	GLRendererBase() {}
+
+	line_t * mirrorline;
+
+	GLRendererBase() 
+	{
+		mirrorline = NULL;
+	}
 	~GLRendererBase() {}
 
 	virtual void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *) = 0;

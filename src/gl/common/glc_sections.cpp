@@ -41,8 +41,7 @@
 #include "i_system.h"
 #include "p_local.h"
 #include "c_dispatch.h"
-#include "gl/gl_renderstruct.h"
-#include "gl/gl_functions.h"
+#include "gl/common/glc_sections.h"
 
 TArray<FGLSectionLine> SectionLines;
 TArray<FGLSectionLoop> SectionLoops;
@@ -545,12 +544,12 @@ void DumpSection(int no, FGLSection *sect)
 			{
 				vertex_t *v1 = V1(ln->sidedef);
 				vertex_t *v2 = V2(ln->sidedef);
-				double dx = TO_GL(v2->x-v1->x);
-				double dy = TO_GL(v2->y-v1->y);
-				double dx1 = TO_GL(ln->start->x-v1->x);
-				double dy1 = TO_GL(ln->start->y-v1->y);
-				double dx2 = TO_GL(ln->end->x-v1->x);
-				double dy2 = TO_GL(ln->end->y-v1->y);
+				double dx = FIXED2FLOAT(v2->x-v1->x);
+				double dy = FIXED2FLOAT(v2->y-v1->y);
+				double dx1 = FIXED2FLOAT(ln->start->x-v1->x);
+				double dy1 = FIXED2FLOAT(ln->start->y-v1->y);
+				double dx2 = FIXED2FLOAT(ln->end->x-v1->x);
+				double dy2 = FIXED2FLOAT(ln->end->y-v1->y);
 				double d = sqrt(dx*dx+dy*dy);
 				double d1 = sqrt(dx1*dx1+dy1*dy1);
 				double d2 = sqrt(dx2*dx2+dy2*dy2);

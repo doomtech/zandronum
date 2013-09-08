@@ -32,8 +32,9 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
-#include "gl/gl_cycler.h"
+
+#include <math.h>
+#include "gl/common/glc_cycler.h"
 
 //==========================================================================
 //
@@ -118,13 +119,13 @@ void FCycler::Update(float diff)
 		}
 		break;
 	case CYCLE_Sin:
-		angle = M_PI * 2.f * mult;
+		angle = float(M_PI * 2.f * mult);
 		mult = sinf(angle);
 		mult = (mult + 1.f) / 2.f;
 		m_current = m_start + (step * mult);
 		break;
 	case CYCLE_Cos:
-		angle = M_PI * 2.f * mult;
+		angle = float(M_PI * 2.f * mult);
 		mult = cosf(angle);
 		mult = (mult + 1.f) / 2.f;
 		m_current = m_start + (step * mult);

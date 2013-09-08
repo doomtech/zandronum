@@ -44,9 +44,10 @@
 #include "vectors.h"
 #include "doomstat.h"
 #include "gl/gl_struct.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
-#include "gl/gl_clipper.h"
+#include "gl/common/glc_clipper.h"
 #include "gl/gl_glow.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
@@ -82,7 +83,6 @@ int GLPortal::renderdepth;
 int GLPortal::PlaneMirrorMode;
 GLuint GLPortal::QueryObject;
 
-line_t * GLPortal::mirrorline;
 bool	 GLPortal::inupperstack;
 bool	 GLPortal::inlowerstack;
 bool	 GLPortal::inskybox;
@@ -261,7 +261,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	savedviewactor=viewactor;
 	savedviewangle=viewangle;
 	savedviewarea=in_area;
-	mirrorline=NULL;
+	GLRenderer->mirrorline=NULL;
 	return true;
 }
 
@@ -405,7 +405,7 @@ void GLPortal::StartFrame()
 	if (renderdepth==0)
 	{
 		inskybox=inupperstack=inlowerstack=false;
-		mirrorline=NULL;
+		GLRenderer->mirrorline=NULL;
 	}
 	renderdepth++;
 }
@@ -643,16 +643,16 @@ void GLMirrorPortal::DrawContents()
 		return;
 	}
 
-	mirrorline=linedef;
+	GLRenderer->mirrorline=linedef;
 	angle_t startang = viewangle;
 	fixed_t startx = viewx;
 	fixed_t starty = viewy;
 
-	vertex_t *v1 = mirrorline->v1;
-	vertex_t *v2 = mirrorline->v2;
+	vertex_t *v1 = GLRenderer->mirrorline->v1;
+	vertex_t *v2 = GLRenderer->mirrorline->v2;
 
 	// Reflect the current view behind the mirror.
-	if (mirrorline->dx == 0)
+	if (GLRenderer->mirrorline->dx == 0)
 	{ 
 		// vertical mirror
 		viewx = v1->x - startx + v1->x;
@@ -661,7 +661,7 @@ void GLMirrorPortal::DrawContents()
 		if (startx<v1->x)  viewx -= FRACUNIT/2;
 		else viewx += FRACUNIT/2;
 	}
-	else if (mirrorline->dy == 0)
+	else if (GLRenderer->mirrorline->dy == 0)
 	{ 
 		// horizontal mirror
 		viewy = v1->y - starty + v1->y;
@@ -694,8 +694,8 @@ void GLMirrorPortal::DrawContents()
 		viewx+= TO_MAP(v[1] * renderdepth / 2);
 		viewy+= TO_MAP(v[0] * renderdepth / 2);
 	}
-	viewangle = 2*R_PointToAngle2 (mirrorline->v1->x, mirrorline->v1->y,
-										mirrorline->v2->x, mirrorline->v2->y) - startang;
+	viewangle = 2*R_PointToAngle2 (GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y,
+										GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y) - startang;
 
 	viewactor = NULL;
 
@@ -711,10 +711,10 @@ void GLMirrorPortal::DrawContents()
 
 	// [BB] Spleen found out that the caching of the view angles doesn't work for mirrors
 	// (kills performance and causes rendering defects).
-	//angle_t a2 = mirrorline->v1->GetViewAngle();
-	//angle_t a1 = mirrorline->v2->GetViewAngle();
-	angle_t a2=R_PointToAngle(mirrorline->v1->x, mirrorline->v1->y);
-	angle_t a1=R_PointToAngle(mirrorline->v2->x, mirrorline->v2->y);
+	//angle_t a2 = GLRenderer->mirrorline->v1->GetViewAngle();
+	//angle_t a1 = GLRenderer->mirrorline->v2->GetViewAngle();
+	angle_t a2=R_PointToAngle(GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y);
+	angle_t a1=R_PointToAngle(GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y);
 	clipper.SafeAddClipRange(a1,a2);
 
 	gl_DrawScene();

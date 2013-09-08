@@ -10690,18 +10690,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_clipper.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_clock.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_cycler.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_data.cpp"
 					>
 				</File>
@@ -10758,15 +10746,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_nodes.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_scene.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_sections.cpp"
 					>
 				</File>
 				<File
@@ -10807,14 +10787,6 @@
 				>
 				<File
 					RelativePath=".\src\gl\gl_basic.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_clipper.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_cycler.h"
 					>
 				</File>
 				<File
@@ -10893,6 +10865,46 @@
 					RelativePath=".\src\gl\tab_anorms.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="Common"
+				>
+				<File
+					RelativePath=".\src\gl\common\glc_clipper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_clock.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_cycler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_nodes.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_sections.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_sections.h"
+					>
+				</File>
+				<Filter
+					Name="Includes"
+					>
+					<File
+						RelativePath=".\src\gl\common\glc_clipper.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\gl\common\glc_cycler.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

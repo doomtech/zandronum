@@ -43,11 +43,11 @@
 #include "p_local.h"
 #include "a_sharedglobal.h"
 #include "gl/gl_framebuffer.h"
+#include "gl/common/glc_clipper.h"
+
 #include "gl/gl_renderstruct.h"
-#include "gl/gl_clipper.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "r_sky.h"
@@ -74,11 +74,11 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	sector_t bs;
 
 	ClipWall.Clock();
-	if (GLPortal::mirrorline)
+	if (GLRenderer->mirrorline)
 	{
 		// this seg is completely behind the mirror!
-		if (P_PointOnLineSide(seg->v1->x, seg->v1->y, GLPortal::mirrorline) &&
-			P_PointOnLineSide(seg->v2->x, seg->v2->y, GLPortal::mirrorline)) 
+		if (P_PointOnLineSide(seg->v1->x, seg->v1->y, GLRenderer->mirrorline) &&
+			P_PointOnLineSide(seg->v2->x, seg->v2->y, GLRenderer->mirrorline)) 
 		{
 			ClipWall.Unclock();
 			return;

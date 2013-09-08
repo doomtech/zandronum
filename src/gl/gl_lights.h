@@ -5,7 +5,7 @@
 #include "gl/gl_geometric.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_data.h"
-#include "gl/gl_cycler.h"
+#include "gl/common/glc_cycler.h"
 
 
 EXTERN_CVAR(Bool, gl_lights)

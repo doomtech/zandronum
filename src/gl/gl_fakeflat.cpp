@@ -43,7 +43,7 @@
 #include "p_local.h"
 #include "a_sharedglobal.h"
 #include "gl/gl_renderstruct.h"
-#include "gl/gl_clipper.h"
+#include "gl/common/glc_clipper.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
