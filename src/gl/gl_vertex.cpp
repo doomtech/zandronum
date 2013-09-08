@@ -65,33 +65,35 @@ extern long gl_frameMS;
 static FVertexsplitInfo * gl_vertexsplit;
 
 
+namespace GLRendererOld
+{
 //==========================================================================
 //
 // Split left edge of wall
 //
 //==========================================================================
 
-void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs, bool glow)
+void GLWall::SplitLeftEdge(texcoord * tcs, bool glow)
 {
-	if (wall->vertexes[0]==NULL) return;
+	if (vertexes[0]==NULL) return;
 
-	FVertexsplitInfo * vi=&gl_vertexsplit[wall->vertexes[0]-vertexes];
+	FVertexsplitInfo * vi=&gl_vertexsplit[vertexes[0]-::vertexes];
 
 	if (vi->numheights)
 	{
 		int i=0;
 
-		float polyh1=wall->ztop[0] - wall->zbottom[0];
+		float polyh1=ztop[0] - zbottom[0];
 		float factv1=polyh1? (tcs[1].v - tcs[0].v) / polyh1:0;
 		float factu1=polyh1? (tcs[1].u - tcs[0].u) / polyh1:0;
 
-		while (i<vi->numheights && vi->heightlist[i] <= wall->zbottom[0] ) i++;
-		while (i<vi->numheights && vi->heightlist[i] < wall->ztop[0])
+		while (i<vi->numheights && vi->heightlist[i] <= zbottom[0] ) i++;
+		while (i<vi->numheights && vi->heightlist[i] < ztop[0])
 		{
-			if (glow) gl_SetGlowPosition(wall->zceil[0] - vi->heightlist[i], vi->heightlist[i] - wall->zfloor[0]);
-			gl.TexCoord2f(factu1*(vi->heightlist[i] - wall->ztop[0]) + tcs[1].u,
-						 factv1*(vi->heightlist[i] - wall->ztop[0]) + tcs[1].v);
-			gl.Vertex3f(wall->glseg.x1, vi->heightlist[i], wall->glseg.y1);
+			if (glow) gl_SetGlowPosition(zceil[0] - vi->heightlist[i], vi->heightlist[i] - zfloor[0]);
+			gl.TexCoord2f(factu1*(vi->heightlist[i] - ztop[0]) + tcs[1].u,
+						 factv1*(vi->heightlist[i] - ztop[0]) + tcs[1].v);
+			gl.Vertex3f(glseg.x1, vi->heightlist[i], glseg.y1);
 			i++;
 		}
 	}
@@ -103,32 +105,33 @@ void gl_SplitLeftEdge(GLWall * wall, texcoord * tcs, bool glow)
 //
 //==========================================================================
 
-void gl_SplitRightEdge(GLWall * wall, texcoord * tcs, bool glow)
+void GLWall::SplitRightEdge(texcoord * tcs, bool glow)
 {
-	if (wall->vertexes[1]==NULL) return;
+	if (vertexes[1]==NULL) return;
 
-	FVertexsplitInfo * vi=&gl_vertexsplit[wall->vertexes[1]-vertexes];
+	FVertexsplitInfo * vi=&gl_vertexsplit[vertexes[1]-::vertexes];
 
 	if (vi->numheights)
 	{
 		int i=vi->numheights-1;
 
-		float polyh2 = wall->ztop[1] - wall->zbottom[1];
+		float polyh2 = ztop[1] - zbottom[1];
 		float factv2 = polyh2? (tcs[2].v - tcs[3].v) / polyh2:0;
 		float factu2 = polyh2? (tcs[2].u - tcs[3].u) / polyh2:0;
 
-		while (i>0 && vi->heightlist[i] >= wall->ztop[1]) i--;
-		while (i>0 && vi->heightlist[i] > wall->zbottom[1])
+		while (i>0 && vi->heightlist[i] >= ztop[1]) i--;
+		while (i>0 && vi->heightlist[i] > zbottom[1])
 		{
-			if (glow) gl_SetGlowPosition(wall->zceil[1] - vi->heightlist[i], vi->heightlist[i] - wall->zfloor[1]);
-			gl.TexCoord2f(factu2 * (vi->heightlist[i] - wall->ztop[1]) + tcs[2].u,
-						 factv2 * (vi->heightlist[i] - wall->ztop[1]) + tcs[2].v);
-			gl.Vertex3f(wall->glseg.x2, vi->heightlist[i], wall->glseg.y2);
+			if (glow) gl_SetGlowPosition(zceil[1] - vi->heightlist[i], vi->heightlist[i] - zfloor[1]);
+			gl.TexCoord2f(factu2 * (vi->heightlist[i] - ztop[1]) + tcs[2].u,
+						 factv2 * (vi->heightlist[i] - ztop[1]) + tcs[2].v);
+			gl.Vertex3f(glseg.x2, vi->heightlist[i], glseg.y2);
 			i--;
 		}
 	}
 }
 
+}
 
 //==========================================================================
 //

@@ -56,6 +56,8 @@
 // This is for debugging maps.
 CVAR(Bool, gl_notexturefill, false, 0);
 
+namespace GLRendererOld
+{
 
 FreeList<gl_subsectorrendernode> SSR_List;
 
@@ -1419,3 +1421,4 @@ void GLDrawInfo::ProcessSectorStacks()
 	CeilingStacks.Clear();
 }
 
+} // namespace

@@ -48,6 +48,8 @@
 #include "gl/gl_intern.h"
 #include "gl/gl_renderstruct.h"
 
+using namespace GLRendererOld;
+
 //===========================================================================
 // 
 //	Reads glow definitions from GLDEFS
@@ -115,36 +117,6 @@ void gl_InitGlow(FScanner &sc)
 	}
 }
 
-
-//==========================================================================
-//
-// Checks whether a wall should glow
-//
-//==========================================================================
-void gl_CheckGlowing(GLWall * wall)
-{
-	wall->bottomglowheight = wall->topglowheight = 0;
-	if (!gl_isFullbright(wall->Colormap.LightColor, wall->lightlevel) && gl_glow_shader)
-	{
-		FTexture *tex = TexMan[wall->topflat];
-		if (tex != NULL && tex->isGlowing())
-		{
-			wall->flags |= GLWall::GLWF_GLOW;
-			tex->GetGlowColor(wall->topglowcolor);
-			wall->topglowheight = tex->gl_info.GlowHeight;
-		}
-		else memset(wall->topglowcolor, 0, sizeof(wall->topglowcolor));
-
-		tex = TexMan[wall->bottomflat];
-		if (tex != NULL && tex->isGlowing())
-		{
-			wall->flags |= GLWall::GLWF_GLOW;
-			tex->GetGlowColor(wall->bottomglowcolor);
-			wall->bottomglowheight = tex->gl_info.GlowHeight;
-		}
-		else memset(wall->bottomglowcolor, 0, sizeof(wall->bottomglowcolor));
-	}
-}
 
 //==========================================================================
 //

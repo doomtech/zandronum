@@ -54,6 +54,8 @@
 
 EXTERN_CVAR (Float, transsouls)
 
+using namespace GLRendererOld;
+
 //==========================================================================
 //
 // Light related CVARs

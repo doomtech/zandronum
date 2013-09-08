@@ -56,6 +56,7 @@ EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
 
+using namespace GLRendererOld;
 
 //==========================================================================
 //
@@ -147,7 +148,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 		else return;
 	}
 
-	GLWall wall;
+	GLRendererOld::GLWall wall;
 
 	SetupWall.Clock();
 

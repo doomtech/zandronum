@@ -65,18 +65,14 @@
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-CVAR(Bool, gl_portals, true, 0)
+EXTERN_CVAR(Bool, gl_portals)
+EXTERN_CVAR(Bool, gl_noquery)
+EXTERN_CVAR(Int, r_mirror_recursions)
+extern bool gl_plane_reflection_i;
 
-CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+namespace GLRendererOld
 {
-	if (self<0) self=0;
-	if (self>10) self=10;
-}
-bool gl_plane_reflection_i;	// This is needed in a header that cannot include the CVAR stuff...
-CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
-{
-	gl_plane_reflection_i = self;
-}
+
 TArray<GLPortal *> GLPortal::portals;
 int GLPortal::recursion;
 int GLPortal::MirrorFlag;
@@ -150,7 +146,6 @@ void GLPortal::DrawPortalStencil()
 // Start
 //
 //-----------------------------------------------------------------------------
-CVAR(Bool, gl_noquery, false, 0)
 
 bool GLPortal::Start(bool usestencil, bool doquery)
 {
@@ -517,7 +512,7 @@ void GLSkyboxPortal::DrawContents()
 	int old_pm=PlaneMirrorMode;
 	int saved_extralight = extralight;
 
-	if (skyboxrecursion>=3)
+	if (skyboxrecursion>=3 || !gl_plane_reflection_i)
 	{
 		ClearScreen();
 		return;
@@ -869,3 +864,4 @@ void GLHorizonPortal::DrawContents()
 
 }
 
+}

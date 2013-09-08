@@ -76,7 +76,28 @@ CUSTOM_CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_mask_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_forcemultipass, false, 0)
 
+EXTERN_CVAR (Bool, cl_capfps)
+EXTERN_CVAR (Bool, r_deathcamera)
+CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 void R_SetupFrame (AActor * camera);
+
+
+// Externals from gl_weapon.cpp
+namespace GLRendererOld
+{
+	extern UniqueList<GLSkyInfo> UniqueSkies;
+	extern UniqueList<GLHorizonInfo> UniqueHorizons;
+	extern UniqueList<GLSectorStackInfo> UniqueStacks;
+	extern UniqueList<secplane_t> UniquePlaneMirrors;
+
+	extern void gl_DrawPlayerSprites (sector_t *, bool);
+	extern void gl_DrawTargeterSprites();
+}
+using namespace GLRendererOld;
+
+
+
 extern int viewpitch;
 int gl_anglecache;
  
@@ -95,16 +116,6 @@ int gl_lightcount;
 
 glcycle_t ProcessAll;
 glcycle_t RenderAll;
-
-extern UniqueList<GLSkyInfo> UniqueSkies;
-extern UniqueList<GLHorizonInfo> UniqueHorizons;
-extern UniqueList<GLSectorStackInfo> UniqueStacks;
-extern UniqueList<secplane_t> UniquePlaneMirrors;
-
-
-EXTERN_CVAR (Bool, cl_capfps)
-EXTERN_CVAR (Bool, r_deathcamera)
-CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 
 float viewvecX,viewvecY;
@@ -777,11 +788,10 @@ static void gl_DrawBlend(sector_t * viewsector)
 // Draws player sprites and color blend
 //
 //-----------------------------------------------------------------------------
+
+
 void gl_EndDrawScene(sector_t * viewsector)
 {
-	extern void gl_DrawPlayerSprites (sector_t *, bool);
-	extern void gl_DrawTargeterSprites();
-
 	// [BB] HUD models need to be rendered here. Make sure that
 	// gl_DrawPlayerSprites is only called once. Either to draw
 	// HUD models or to draw the weapon sprites.

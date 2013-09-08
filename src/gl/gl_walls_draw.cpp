@@ -56,6 +56,9 @@
 
 EXTERN_CVAR(Bool, gl_seamless)
 
+namespace GLRendererOld
+{
+
 //==========================================================================
 //
 // Sets up the texture coordinates for one light to be rendered
@@ -153,7 +156,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[0].u,tcs[0].v);
 	gl.Vertex3f(glseg.x1,zbottom[0],glseg.y1);
 
-	if (gl_seamless && glseg.fracleft==0) gl_SplitLeftEdge(this, tcs, glowing);
+	if (gl_seamless && glseg.fracleft==0) SplitLeftEdge(tcs, glowing);
 
 	// upper left corner
 	if (glowing) gl_SetGlowPosition(zceil[0] - ztop[0], ztop[0] - zfloor[0]);
@@ -168,7 +171,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[2].u,tcs[2].v);
 	gl.Vertex3f(glseg.x2,ztop[1],glseg.y2);
 
-	if (gl_seamless && glseg.fracright==1) gl_SplitRightEdge(this, tcs, glowing);
+	if (gl_seamless && glseg.fracright==1) SplitRightEdge(tcs, glowing);
 
 	// lower right corner
 	if (glowing) gl_SetGlowPosition(zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
@@ -454,3 +457,4 @@ void GLWall::Draw(int pass)
 }
 
 
+} // namespace

@@ -56,6 +56,9 @@
 
 EXTERN_CVAR (Bool, gl_lights_checkside);
 
+namespace GLRendererOld
+{
+
 //==========================================================================
 //
 // Sets the texture matrix according to the plane's texture positioning
@@ -163,8 +166,6 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 //
 //
 //==========================================================================
-CVAR(Bool, gl_usearrays, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-
 
 void GLFlat::DrawSubsector(subsector_t * sub)
 {
@@ -183,20 +184,14 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 		// Quicker way for non-sloped sectors
 		gl_vertices[v].z = z;
 	}
-	if (gl_usearrays)
+
+	gl.Begin(GL_TRIANGLE_FAN);
+	for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
 	{
-		gl.DrawArrays(GL_TRIANGLE_FAN, sub->firstvertex, sub->numvertices);
+		gl.TexCoord2f(gl_vertices[v].u, gl_vertices[v].v);
+		gl.Vertex3f(gl_vertices[v].x, gl_vertices[v].z, gl_vertices[v].y);
 	}
-	else
-	{
-		gl.Begin(GL_TRIANGLE_FAN);
-		for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
-		{
-			gl.TexCoord2f(gl_vertices[v].u, gl_vertices[v].v);
-			gl.Vertex3f(gl_vertices[v].x, gl_vertices[v].z, gl_vertices[v].y);
-		}
-		gl.End();
-	}
+	gl.End();
 
 	flatvertices += sub->numvertices;
 	flatprimitives++;
@@ -713,3 +708,4 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 
 
 
+} // namespace

@@ -56,13 +56,51 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_texture.h"
+#include "gl/gl_skyboxtexture.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);
 EXTERN_CVAR (Float, gl_lights_size);
 int ScriptDepth;
-void gl_ParseSkybox(FScanner &sc);
 void gl_InitGlow(FScanner &sc);
 void gl_ParseBrightmap(FScanner &sc, int);
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
+void gl_ParseSkybox(FScanner &sc)
+{
+	int facecount=0;
+
+	sc.MustGetString();
+
+	FSkyBox * sb = new FSkyBox;
+	uppercopy(sb->Name, sc.String);
+	sb->Name[8]=0;
+	if (sc.CheckString("fliptop"))
+	{
+		sb->fliptop = true;
+	}
+	sc.MustGetStringName("{");
+	while (!sc.CheckString("}"))
+	{
+		sc.MustGetString();
+		if (facecount<6) 
+		{
+			sb->faces[facecount] = TexMan[TexMan.GetTexture(sc.String, FTexture::TEX_Wall, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_Overridable)];
+		}
+		facecount++;
+	}
+	if (facecount != 3 && facecount != 6)
+	{
+		sc.ScriptError("%s: Skybox definition requires either 3 or 6 faces", sb->Name);
+	}
+	sb->SetSize();
+	TexMan.AddTexture(sb);
+}
+
 
 //==========================================================================
 //

@@ -45,6 +45,10 @@
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
 
+namespace GLRendererOld
+{
+
+
 GLDrawInfo * gl_drawinfo;
 extern FreeList<gl_subsectorrendernode> SSR_List;
 
@@ -935,3 +939,6 @@ void GLDrawInfo::EndDrawInfo()
 
 	if (di->temporary) di_list.Release(di);
 }
+
+
+} // namespace

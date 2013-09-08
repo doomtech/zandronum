@@ -56,12 +56,6 @@
 #include "vectors.h"
 #include "r_sky.h"
 
-UniqueList<GLSkyInfo> UniqueSkies;
-UniqueList<GLHorizonInfo> UniqueHorizons;
-UniqueList<GLSectorStackInfo> UniqueStacks;
-UniqueList<secplane_t> UniquePlaneMirrors;
-
-
 CVAR(Bool,gl_mirrors,true,0)	// This is for debugging only!
 CVAR(Bool,gl_mirror_envmap, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -74,6 +68,45 @@ CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	gl_seamless=self;
 }
 
+namespace GLRendererOld
+{
+
+
+UniqueList<GLSkyInfo> UniqueSkies;
+UniqueList<GLHorizonInfo> UniqueHorizons;
+UniqueList<GLSectorStackInfo> UniqueStacks;
+UniqueList<secplane_t> UniquePlaneMirrors;
+
+
+//==========================================================================
+//
+// Checks whether a wall should glow
+//
+//==========================================================================
+void GLWall::CheckGlowing()
+{
+	bottomglowheight = topglowheight = 0;
+	if (!gl_isFullbright(Colormap.LightColor, lightlevel) && gl_glow_shader)
+	{
+		FTexture *tex = TexMan[topflat];
+		if (tex != NULL && tex->isGlowing())
+		{
+			flags |= GLWall::GLWF_GLOW;
+			tex->GetGlowColor(topglowcolor);
+			topglowheight = tex->gl_info.GlowHeight;
+		}
+		else memset(topglowcolor, 0, sizeof(topglowcolor));
+
+		tex = TexMan[bottomflat];
+		if (tex != NULL && tex->isGlowing())
+		{
+			flags |= GLWall::GLWF_GLOW;
+			tex->GetGlowColor(bottomglowcolor);
+			bottomglowheight = tex->gl_info.GlowHeight;
+		}
+		else memset(bottomglowcolor, 0, sizeof(bottomglowcolor));
+	}
+}
 
 
 //==========================================================================
@@ -120,7 +153,7 @@ void GLWall::PutWall(bool translucent)
 		Colormap.GetFixedColormap();
 	}
 
-	gl_CheckGlowing(this);
+	CheckGlowing();
 
 	if (translucent) // translucent walls
 	{
@@ -1725,3 +1758,4 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 	}
 }
 
+} // namespace

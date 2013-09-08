@@ -51,6 +51,10 @@
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)
 
+
+namespace GLRendererOld
+{
+
 //==========================================================================
 //
 // R_DrawPSprite
@@ -280,3 +284,4 @@ void gl_DrawTargeterSprites()
 		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, false);
 }
 
+}

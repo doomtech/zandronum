@@ -46,6 +46,9 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 
+namespace GLRendererOld
+{
+
 struct DecalVertex
 {
 	float x,y,z;
@@ -365,3 +368,4 @@ void GLWall::DoDrawDecals(DBaseDecal * decal, seg_t * seg)
 }
 
 
+}
