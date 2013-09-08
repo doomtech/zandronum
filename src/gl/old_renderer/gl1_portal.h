@@ -39,6 +39,7 @@
 #include "tarray.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_renderstruct.h"
+#include "gl/old_renderer/gl1_drawinfo.h"
 
 namespace GLRendererOld
 {

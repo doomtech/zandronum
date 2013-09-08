@@ -108,5 +108,29 @@ private:
 
 };
 
+struct particle_t;
+
+class GLRendererBase
+{
+public:
+	GLRendererBase() {}
+	~GLRendererBase() {}
+
+	virtual void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *) = 0;
+	virtual void ProcessSprite(AActor *thing, sector_t *sector) = 0;
+	virtual void ProcessParticle(particle_t *part, sector_t *sector) = 0;
+	virtual void ProcessSector(sector_t *fakesector, subsector_t *sub) = 0;
+};
+
+class GL1Renderer : public GLRendererBase
+{
+	void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *);
+	void ProcessSprite(AActor *thing, sector_t *sector);
+	void ProcessParticle(particle_t *part, sector_t *sector);
+	void ProcessSector(sector_t *fakesector, subsector_t *sub);
+};
+
+
+extern GLRendererBase *GLRenderer;
 
 #endif //__GL_FRAMEBUFFER

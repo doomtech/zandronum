@@ -10774,10 +10774,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_swshaders.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_texture.cpp"
 					>
 				</File>
@@ -10871,10 +10867,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_struct.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_swshaders.h"
 					>
 				</File>
 				<File

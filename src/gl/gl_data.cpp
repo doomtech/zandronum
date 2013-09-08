@@ -576,7 +576,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (sector-sectors==9)
+	if (sector-sectors==2)
 	{
 		__asm nop
 	}
@@ -624,6 +624,11 @@ static void PrepareTransparentDoors(sector_t * sector)
 		{
 			sector->transdoor=false;
 			return;
+		}
+
+		if (selfref+nobtextures!=sector->linecount)
+		{
+			sector->transdoor=false;
 		}
 
 		if (selfref+notextures!=sector->linecount)

@@ -42,20 +42,20 @@
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_clipper.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_data.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "r_sky.h"
 
-
 EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
+
 
 using namespace GLRendererOld;
 
@@ -149,16 +149,14 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 		else return;
 	}
 
-	GLRendererOld::GLWall wall;
 
 	SetupWall.Clock();
 
-	wall.Process(seg, sector, backsector, polysub, gl_render_segs);
+	GLRenderer->ProcessWall(seg, sector, backsector, polysub);
 	rendered_lines++;
 
 	SetupWall.Unclock();
 }
-
 
 //==========================================================================
 //
@@ -201,7 +199,6 @@ static inline void AddLines(subsector_t * sub, sector_t * sector)
 //==========================================================================
 static inline void RenderThings(subsector_t * sub, sector_t * sector)
 {
-	GLSprite glsprite;
 
 	SetupSprite.Clock();
 	sector_t * sec=sub->sector;
@@ -217,7 +214,7 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 		// Handle all things in sector.
 		for (AActor * thing = sec->thinglist; thing; thing = thing->snext)
 		{
-			glsprite.Process(thing, sector);
+			GLRenderer->ProcessSprite(thing, sector);
 		}
 	}
 	SetupSprite.Unclock();
@@ -238,8 +235,6 @@ static void DoSubsector(subsector_t * sub)
 	sector_t * sector;
 	sector_t * fakesector;
 	sector_t fake;
-	GLFlat glflat;
-	GLSprite glsprite;
 	
 	// check for visibility of this entire subsector! This requires GL nodes!
 	if (!clipper.CheckBox(sub->bbox)) return;
@@ -263,7 +258,7 @@ static void DoSubsector(subsector_t * sub)
 	//int shade = LIGHT2SHADE((floorlightlevel + ceilinglightlevel)/2 + r_actualextralight);
 	for (i = ParticlesInSubsec[sub-subsectors]; i != NO_PARTICLE; i = Particles[i].snext)
 	{
-		glsprite.ProcessParticle(Particles + i, fakesector);//, 0, 0);
+		GLRenderer->ProcessParticle(&Particles[i], fakesector);
 	}
 	AddLines(sub, fakesector);
 	RenderThings(sub, fakesector);
@@ -285,7 +280,7 @@ static void DoSubsector(subsector_t * sub)
 				fakesector = gl_FakeFlat(sector, &fake, false);
 			}
 			SetupFlat.Clock();
-			glflat.ProcessSector(fakesector, sub);
+			GLRenderer->ProcessSector(fakesector, sub);
 			SetupFlat.Unclock();
 		}
 	}
