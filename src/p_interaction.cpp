@@ -1438,10 +1438,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				damage = newdam;
 				if (damage <= 0)
 				{
-				// [BB] The player didn't lose health but armor. The server needs
-				// to tell the client about this.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPlayerArmor( player - players );
+					// [BB] The player didn't lose health but armor. The server needs
+					// to tell the client about this.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetPlayerArmor( player - players );
+
+					// If MF&_FORCEPAIN is set make the player enter the pain state.
+					if (inflictor != NULL && (inflictor->flags6 & MF6_FORCEPAIN)) goto dopain;
 					return;
 				}
 			}
@@ -1632,8 +1635,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 	}
 	
+dopain:
 	if (!(target->flags5 & MF5_NOPAIN) && (inflictor == NULL || !(inflictor->flags5 & MF5_PAINLESS)) && 
-		(pr_damagemobj() < painchance) && !(target->flags & MF_SKULLFLY) &&
+		(pr_damagemobj() < painchance || (inflictor != NULL && (inflictor->flags6 & MF6_FORCEPAIN))) && 
+		!(target->flags & MF_SKULLFLY) &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (mod == NAME_Electric)

@@ -1202,8 +1202,8 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		( CLIENTDEMO_IsPlaying( ) == false ))// &&
 		//(tm.thing->player == NULL || !(tm.thing->player->cheats & CF_PREDICTING)))
 	{ // Push thing
-		thing->momx += tm.thing->momx >> 2;
-		thing->momy += tm.thing->momy >> 2;
+		thing->momx += FixedMul(tm.thing->momx, thing->pushfactor);
+		thing->momy += FixedMul(tm.thing->momy, thing->pushfactor);
 
 		// [BC] If we're the server, tell clients to update the thing's position and
 		// momentum.

@@ -200,10 +200,11 @@ enum ELevelFlags
 
 	LEVEL2_SMOOTHLIGHTING		= 0x01000000,	// Level uses the smooth lighting feature.
 	LEVEL2_POLYGRIND			= 0x02000000,	// Polyobjects grind corpses to gibs.
-	LEVEL2_NOBOTNODES			= 0x04000000,	// [BC] Level does not use bot nodes.
+	LEVEL2_RESETINVENTORY		= 0x04000000,	// Resets player inventory when starting this level (unless in a hub)
+	LEVEL2_NOBOTNODES			= 0x08000000,	// [BC] Level does not use bot nodes.
 	// [BB] Ceartain game modes are supposed to behave differently on
 	// the map. For example in duel mode the countdown and the map reset are skipped.
-	LEVEL2_ISLOBBY				= 0x08000000,
+	LEVEL2_ISLOBBY				= 0x10000000,
 };
 
 
