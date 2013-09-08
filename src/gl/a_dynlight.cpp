@@ -36,6 +36,7 @@
 */
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_renderer.h"
 #include "templates.h"
 #include "m_random.h"
 #include "r_main.h"

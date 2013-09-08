@@ -10686,19 +10686,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_bsp.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_data.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_dynlight.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_fakeflat.cpp"
 					>
 				</File>
 				<File
@@ -10870,6 +10862,10 @@
 				Name="Common"
 				>
 				<File
+					RelativePath=".\src\gl\common\glc_bsp.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\common\glc_clipper.cpp"
 					>
 				</File>
@@ -10879,6 +10875,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\common\glc_cycler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_fakeflat.cpp"
 					>
 				</File>
 				<File
@@ -10901,7 +10901,15 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\gl\common\glc_clock.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\gl\common\glc_cycler.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\gl\common\glc_renderer.h"
 						>
 					</File>
 				</Filter>

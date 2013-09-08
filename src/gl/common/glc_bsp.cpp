@@ -38,26 +38,20 @@
 **
 */
 
-#include "gl/gl_include.h"
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
-#include "gl/gl_framebuffer.h"
+#include "gl/common/glc_clock.h"
+#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clipper.h"
-
+// [BB] Necessary to make GZDoom revision 361 compile.
 #include "gl/gl_renderstruct.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_data.h"
-#include "gl/gl_basic.h"
-#include "gl/gl_functions.h"
+
 #include "r_sky.h"
 
 EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
-
-
-using namespace GLRendererOld;
 
 //==========================================================================
 //
@@ -153,7 +147,6 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	SetupWall.Clock();
 
 	GLRenderer->ProcessWall(seg, sector, backsector, polysub);
-	rendered_lines++;
 
 	SetupWall.Unclock();
 }

@@ -38,6 +38,7 @@
 **
 */
 #include "gl/gl_include.h"
+#include "gl/common/glc_renderer.h"
 #include "sbar.h"
 #include "doomstat.h"
 #include "gl/gl_struct.h"

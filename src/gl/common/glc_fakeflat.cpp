@@ -38,18 +38,11 @@
 **
 */
 
-#include "gl/gl_include.h"
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
-#include "gl/gl_renderstruct.h"
+#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clipper.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_data.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/old_renderer/gl1_portal.h"
-#include "gl/gl_basic.h"
-#include "gl/gl_functions.h"
 #include "r_sky.h"
 
 

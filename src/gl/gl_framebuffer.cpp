@@ -40,6 +40,7 @@
 */
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_clock.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"
@@ -49,6 +50,7 @@
 #include "m_crc32.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_struct.h"
+#include "gl/gl_intern.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_shader.h"
@@ -726,6 +728,7 @@ void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector
 {
 	GLRendererOld::GLWall wall;
 	wall.Process(seg, sector, backsector, polysub, gl_render_segs);
+	rendered_lines++;
 }
 
 void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)

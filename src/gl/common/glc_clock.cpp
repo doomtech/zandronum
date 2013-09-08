@@ -5,6 +5,16 @@
 
 #endif
 
+#define USE_WINDOWS_DWORD
+#include "gl/common/glc_clock.h"
+
+
+glcycle_t RenderWall,SetupWall,ClipWall;
+glcycle_t RenderFlat,SetupFlat;
+glcycle_t RenderSprite,SetupSprite;
+glcycle_t All, Finish, PortalAll;
+int vertexcount, flatvertices, flatprimitives;
+
 
 double		gl_SecondsPerCycle = 1e-8;
 double		gl_MillisecPerCycle = 1e-5;		// 100 MHz

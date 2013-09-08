@@ -39,6 +39,7 @@
 */
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_clock.h"
 #include "gi.h"
 #include "m_png.h"
 #include "st_stuff.h"
@@ -104,11 +105,6 @@ int gl_anglecache;
  
 int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
 int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
-glcycle_t RenderWall,SetupWall,ClipWall;
-glcycle_t RenderFlat,SetupFlat;
-glcycle_t RenderSprite,SetupSprite;
-glcycle_t All, Finish, PortalAll;
-int vertexcount, flatvertices, flatprimitives;
 int palette_brightness;
 long gl_frameMS;
 int gl_spriteindex;

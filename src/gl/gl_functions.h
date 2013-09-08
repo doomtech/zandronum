@@ -114,22 +114,6 @@ void gl_ApplyShader();
 
 void gl_EnableTexture(bool on);
 
-
-
-FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle, bool *mirror);
-
-
-// Render
-
-void gl_RenderBSPNode (void *node);
-
-bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector);
-void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_t *backsector);
-sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
-
-#define INVALID_SPRITE 0xffffff
-
-
 // Scene
 
 void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror, bool nosectorclear=false);

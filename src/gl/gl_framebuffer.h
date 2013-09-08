@@ -108,25 +108,7 @@ private:
 
 };
 
-struct particle_t;
-
-class GLRendererBase
-{
-public:
-
-	line_t * mirrorline;
-
-	GLRendererBase() 
-	{
-		mirrorline = NULL;
-	}
-	~GLRendererBase() {}
-
-	virtual void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *) = 0;
-	virtual void ProcessSprite(AActor *thing, sector_t *sector) = 0;
-	virtual void ProcessParticle(particle_t *part, sector_t *sector) = 0;
-	virtual void ProcessSector(sector_t *fakesector, subsector_t *sub) = 0;
-};
+#include "common/glc_renderer.h"
 
 class GL1Renderer : public GLRendererBase
 {
@@ -135,8 +117,5 @@ class GL1Renderer : public GLRendererBase
 	void ProcessParticle(particle_t *part, sector_t *sector);
 	void ProcessSector(sector_t *fakesector, subsector_t *sub);
 };
-
-
-extern GLRendererBase *GLRenderer;
 
 #endif //__GL_FRAMEBUFFER

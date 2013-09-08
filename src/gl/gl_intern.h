@@ -53,15 +53,5 @@ extern int palette_brightness;
 extern AActor * viewactor;
 extern bool gl_shaderactive;
 
-typedef enum
-{
-        area_normal,
-        area_below,
-        area_above,
-		area_default
-} area_t;
-
-extern area_t			in_area;
-
 
 #endif // _GL_INTERN_H

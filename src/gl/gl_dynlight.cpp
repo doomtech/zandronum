@@ -41,6 +41,7 @@
 
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_clock.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "m_random.h"

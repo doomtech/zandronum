@@ -38,10 +38,12 @@
 **
 */
 #include "gl/gl_include.h"
+#include "gl/common/glc_renderer.h"
 #include "a_sharedglobal.h"
 #include "r_main.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
+#include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_lights.h"
