@@ -10726,6 +10726,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\gl_sections.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\gl_shader.cpp"
 					>
 				</File>

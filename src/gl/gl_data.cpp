@@ -73,8 +73,7 @@ CUSTOM_CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 	glset.nocoloredspritelighting = self;
 }
 
-// [BB] ST may not use the sections code at the moment, so I just provide a dummy function here.
-void gl_CreateSections() {}
+void gl_CreateSections();
 
 FTexture *glpart2;
 FTexture *glpart;
