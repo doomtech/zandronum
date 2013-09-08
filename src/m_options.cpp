@@ -1322,8 +1322,7 @@ static menuitem_t ModesItems[] = {
 	{ redtext,  VMTestText,				{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 };
 
-#define VM_DEPTHITEM	0
-#define VM_ASPECTITEM	0
+#define VM_ASPECTITEM	1
 #define VM_RESSTART		6
 #define VM_ENTERLINE	16
 #define VM_TESTLINE		18

@@ -695,6 +695,7 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 		texpos = side_t::mid;
 		break;
 	}
+	gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(texpos), seg->sidedef->GetTextureYScale(texpos));
 
 	type = (seg->linedef->special == Line_Mirror && _type == RENDERWALL_M1S && 
 		!(gl.flags & RFL_NOSTENCIL) && gl_mirrors) ? RENDERWALL_MIRROR : _type;
@@ -704,6 +705,8 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 
 	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
+
+	gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
 
 	// Add this wall to the render list
 	sector_t * sec = sub? sub->sector : seg->frontsector;
@@ -727,6 +730,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	fixed_t topleft,bottomleft,topright,bottomright;
 	GLSeg glsave=glseg;
 	fixed_t texturetop, texturebottom;
+	bool wrap = (seg->linedef->flags&ML_WRAP_MIDTEX) || (seg->sidedef->Flags&WALLF_WRAP_MIDTEX);
 
 	//
 	//
@@ -738,6 +742,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// Align the texture to the ORIGINAL sector's height!!
 		// At this point slopes don't matter because they don't affect the texture's z-position
 
+		gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(side_t::mid), seg->sidedef->GetTextureYScale(side_t::mid));
 		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
@@ -758,9 +763,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	// decide which planes to use for the polygon
 	//
 	//
-	if (realfront!=realback || 
-		drawfogboundary || (seg->linedef->flags&ML_WRAP_MIDTEX) ||
-		(realfront->heightsec && !(realfront->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC)))
+	if (realfront!=realback || drawfogboundary || wrap || realfront->GetHeightSec())
 	{
 		//
 		//
@@ -820,7 +823,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// if we don't need a fog sheet let's clip away some unnecessary parts of the polygon
 		//
 		//
-		if (!drawfogboundary && !(seg->linedef->flags&ML_WRAP_MIDTEX))
+		if (!drawfogboundary && !wrap)
 		{
 			if (texturetop<topleft && texturetop<topright) topleft=topright=texturetop;
 			if (texturebottom>bottomleft && texturebottom>bottomright) bottomleft=bottomright=texturebottom;
@@ -876,12 +879,14 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		{
 			flags&=~GLT_CLAMPX;
 		}
-		if (!(seg->linedef->flags&ML_WRAP_MIDTEX))
+		if (!wrap)
 		{
 			flags|=GLT_CLAMPY;
 		}
 	}
 	SetWallCoordinates(seg, texturetop, topleft, topright, bottomleft, bottomright, t_ofs);
+
+	if (gltexture != NULL) gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
 
 	//
 	//
@@ -1036,19 +1041,30 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	}
 	else
 	{
-		FTextureID texno;
 		
-		if (rover->flags&FF_UPPERTEXTURE) texno = seg->sidedef->GetTexture(side_t::top);
-		else if (rover->flags&FF_LOWERTEXTURE) texno = seg->sidedef->GetTexture(side_t::bottom);
-		else texno = mastersd->GetTexture(side_t::mid);
+		if (rover->flags&FF_UPPERTEXTURE) 
+		{
+			gltexture = FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::top));
+			if (!gltexture) return;
+			gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(side_t::top), seg->sidedef->GetTextureYScale(side_t::top));
+		}
+		else if (rover->flags&FF_LOWERTEXTURE) 
+		{
+			gltexture = FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom));
+			if (!gltexture) return;
+			gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(side_t::bottom), seg->sidedef->GetTextureYScale(side_t::bottom));
+		}
+		else 
+		{
+			gltexture = FGLTexture::ValidateTexture(mastersd->GetTexture(side_t::mid));
+			if (!gltexture) return;
+			gltexture->SetWallScaling(mastersd->GetTextureXScale(side_t::mid), mastersd->GetTextureYScale(side_t::mid));
+		}
 			
-		gltexture = FGLTexture::ValidateTexture(texno);
 
-		if (!gltexture) return;
 		const WorldTextureInfo * wti=gltexture->GetWorldTextureInfo();
 		if (!wti) return;
 
-		
 		to=(rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
 			0:gltexture->TextureOffset(mastersd->GetTextureXOffset(side_t::mid));
 		ul=wti->FixToTexU(to+gltexture->TextureOffset(seg->sidedef->GetTextureXOffset(side_t::mid)));
@@ -1066,6 +1082,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 		lolft.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_bottomleft);
 		lorgt.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_bottomright);
 		type=RENDERWALL_FFBLOCK;
+		gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
 	}
 
 	ztop[0]=TO_GL(ff_topleft);

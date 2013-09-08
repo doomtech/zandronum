@@ -703,6 +703,8 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	bHasColorkey = false;
 
+	tempScaleX = tempScaleY = FRACUNIT;
+
 	for (int i=GLUSE_PATCH; i<=GLUSE_TEXTURE; i++)
 	{
 		Width[i] = tex->GetWidth();
@@ -781,11 +783,97 @@ FGLTexture::~FGLTexture()
 	}
 }
 
+
+//===========================================================================
+//
+// Sets a temporary scaling factor for this texture
+//
+//===========================================================================
+
+void FGLTexture::SetWallScaling(fixed_t x, fixed_t y)
+{
+	if (x != tempScaleX)
+	{
+		fixed_t scale_x = FixedMul(x, tex->xScale);
+		int foo = (Width[GLUSE_TEXTURE] << 17) / scale_x; 
+		RenderWidth[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
+		scalex = scale_x/(float)FRACUNIT;
+		tempScaleX = x;
+	}
+	if (y != tempScaleY)
+	{
+		fixed_t scale_y = FixedMul(y, tex->yScale);
+		int foo = (Width[GLUSE_TEXTURE] << 17) / scaley; 
+		RenderHeight[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
+		scaley = scale_y/(float)FRACUNIT;
+		tempScaleY = y;
+	}
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FGLTexture::RowOffset(fixed_t rowoffset) const
+{
+	if (tempScaleX == FRACUNIT)
+	{
+		if (scaley==1.f || tex->bWorldPanning) return rowoffset;
+		else return quickertoint(rowoffset/scaley);
+	}
+	else
+	{
+		if (tex->bWorldPanning) return FixedDiv(rowoffset, tempScaleY);
+		else return quickertoint(rowoffset/scaley);
+	}
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FGLTexture::TextureOffset(fixed_t textureoffset) const
+{
+	if (tempScaleX == FRACUNIT)
+	{
+		if (scalex==1.f || tex->bWorldPanning) return textureoffset;
+		else return quickertoint(textureoffset/scalex);
+	}
+	else
+	{
+		if (tex->bWorldPanning) return FixedDiv(textureoffset, tempScaleX);
+		else return quickertoint(textureoffset/scalex);
+	}
+}
+
+
+//===========================================================================
+//
+// Returns the size for which texture offset coordinates are used.
+//
+//===========================================================================
+
+fixed_t FGLTexture::TextureAdjustWidth(ETexUse i) const
+{
+	if (tex->bWorldPanning) 
+	{
+		if (i == GLUSE_PATCH || tempScaleX == FRACUNIT) return RenderWidth[i];
+		else return FixedDiv(Width[i], tempScaleX);
+	}
+	else return Width[i];
+}
+
+
 //===========================================================================
 //
 // GetRect
 //
 //===========================================================================
+
 void FGLTexture::GetRect(GL_RECT * r, FGLTexture::ETexUse i) const
 {
 	r->left=-(float)GetScaledLeftOffset(i);

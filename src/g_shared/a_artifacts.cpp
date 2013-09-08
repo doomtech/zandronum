@@ -2785,3 +2785,39 @@ void ARuneSpeed25::EndEffect( )
 	// Take away the speed power.
 	Owner->player->cheats &= ~CF_SPEED25;
 }
+
+// Infinite Ammo Powerup -----------------------------------------------------
+
+IMPLEMENT_CLASS(APowerInfiniteAmmo)
+
+//===========================================================================
+//
+// APowerInfiniteAmmo :: InitEffect
+//
+//===========================================================================
+
+void APowerInfiniteAmmo::InitEffect( )
+{
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
+	// Give the player infinite ammo
+	Owner->player->cheats |= CF_INFINITEAMMO;
+}
+
+//===========================================================================
+//
+// APowerInfiniteAmmo :: EndEffect
+//
+//===========================================================================
+
+void APowerInfiniteAmmo::EndEffect( )
+{
+	// Nothing to do if there's no owner.
+	if (Owner != NULL && Owner->player != NULL)
+	{
+		// Take away the limitless ammo
+		Owner->player->cheats &= ~CF_INFINITEAMMO;
+	}
+}
+

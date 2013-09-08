@@ -1122,6 +1122,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	player_t *player = NULL;
 	fixed_t thrust;
 	int temp;
+	int painchance = 0;
+	FState * woundstate = NULL;
+	PainChanceList * pc = NULL;
 	// [BC]
 	LONG	lOldTargetHealth;
 
@@ -1607,7 +1610,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		return;
 	}
 
-	FState * woundstate = target->FindState(NAME_Wound, mod);
+	woundstate = target->FindState(NAME_Wound, mod);
 	// [BB] The server takes care of this.
 	if ( (woundstate != NULL) && ( NETWORK_InClientMode( ) == false ) )
 	{
@@ -1623,9 +1626,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			return;
 		}
 	}
-	
-	PainChanceList * pc = target->GetClass()->ActorInfo->PainChances;
-	int painchance = target->PainChance;
+
+	pc = target->GetClass()->ActorInfo->PainChances;
+	painchance = target->PainChance;
 	if (pc != NULL)
 	{
 		BYTE * ppc = pc->CheckKey(mod);
@@ -1800,15 +1803,15 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 //
 //==========================================================================
 
-void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison)
+bool P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison)
 {
 	// [BC] This is handled server side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-		return;
+		return false;
 
 	if((player->cheats&CF_GODMODE) || (player->mo->flags2 & MF2_INVULNERABLE))
 	{
-		return;
+		return false;
 	}
 	if (source != NULL && source->player != player && player->mo->IsTeammate (source))
 	{
@@ -1827,6 +1830,7 @@ void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poi
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetPlayerPoisonCount( ULONG( player - players ));
 	}
+	return true;
 }
 
 //==========================================================================
@@ -1925,6 +1929,7 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 		P_SetMobjState(target, target->info->painstate);
 	}
 */
+	return;
 }
 
 bool CheckCheatmode ();

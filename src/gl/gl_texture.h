@@ -146,6 +146,7 @@ private:
 	short RenderWidth[2];
 	short RenderHeight[2];
 	float AlphaThreshold;
+	fixed_t tempScaleX, tempScaleY;
 
 	bool FindHoles(const unsigned char * buffer, int w, int h);
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
@@ -186,30 +187,19 @@ public:
 
 	void GetRect(GL_RECT * r, ETexUse i) const;
 
+	void SetWallScaling(fixed_t x, fixed_t y);
+
 	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
 	int TextureWidth(ETexUse i) const { return RenderWidth[i]; }
 
 	int GetAreaCount() const { return areacount; }
 	GL_RECT * GetAreas() const { return areas; }
 
-	fixed_t RowOffset(fixed_t rowoffset) const
-	{
-		if (scaley==1.f || tex->bWorldPanning) return rowoffset;
-		else return quickertoint(rowoffset/scaley);
-	}
-
-	fixed_t TextureOffset(fixed_t textureoffset) const
-	{
-		if (scalex==1.f || tex->bWorldPanning) return textureoffset;
-		else return quickertoint(textureoffset/scalex);
-	}
+	fixed_t RowOffset(fixed_t rowoffset) const;
+	fixed_t TextureOffset(fixed_t textureoffset) const;
 
 	// Returns the size for which texture offset coordinates are used.
-	fixed_t TextureAdjustWidth(ETexUse i) const
-	{
-		if (tex->bWorldPanning) return RenderWidth[i];
-		else return Width[i];
-	}
+	fixed_t TextureAdjustWidth(ETexUse i) const;
 
 	int GetWidth(ETexUse i) const
 	{
