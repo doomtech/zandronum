@@ -49,7 +49,7 @@
 #include "r_main.h"
 #include "m_png.h"
 #include "m_crc32.h"
-#include "gl/gl_basic.h"
+#include "gl/common/glc_templates.h"
 #include "gl/gl_data.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"

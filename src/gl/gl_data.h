@@ -4,7 +4,7 @@
 
 
 #include "r_defs.h"
-#include "gl/gl_basic.h"
+#include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
 
 

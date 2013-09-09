@@ -2,7 +2,7 @@
 
 #include "win32iface.h"
 #include "win32gliface.h"
-#include "gl/gl_basic.h"
+#include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_functions.h"

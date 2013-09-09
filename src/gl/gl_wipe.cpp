@@ -43,7 +43,7 @@
 #include "f_wipe.h"
 #include "m_random.h"
 #include "w_wad.h"
-#include "gl/gl_basic.h"
+#include "gl/common/glc_templates.h"
 #include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"

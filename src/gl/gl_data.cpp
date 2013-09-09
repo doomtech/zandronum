@@ -47,7 +47,7 @@
 #include "p_lnspec.h"
 #include "c_dispatch.h"
 #include "gl/gl_lights.h"
-#include "gl/gl_glow.h"
+#include "gl/common/glc_glow.h"
 #include "gl/gl_data.h"
 #include "gl/gl_models.h"
 #include "gl/gl_renderstruct.h"

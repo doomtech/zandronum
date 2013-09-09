@@ -46,7 +46,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_skyboxtexture.h"
+#include "gl/common/glc_skyboxtexture.h"
 
 
 

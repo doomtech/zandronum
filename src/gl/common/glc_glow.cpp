@@ -38,17 +38,12 @@
 **
 */
 
-#include "gl/gl_include.h"
 #include "w_wad.h"
 #include "sc_man.h"
+#include "v_video.h"
+#include "textures/textures.h"
 
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_glow.h"
-#include "gl/gl_functions.h"
-#include "gl/gl_intern.h"
-#include "gl/gl_renderstruct.h"
-
-using namespace GLRendererOld;
+#include "gl/common/glc_glow.h"
 
 //===========================================================================
 // 

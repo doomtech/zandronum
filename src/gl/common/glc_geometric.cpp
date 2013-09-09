@@ -1,9 +1,9 @@
 
 
-#include "gl/gl_include.h"
-#include "gl/gl_geometric.h"
-#include "gl/gl_intern.h"
-#include "gl/gl_values.h"
+#include <math.h>
+#include <float.h>
+#include "gl/common/glc_convert.h"
+#include "gl/common/glc_geometric.h"
 
 static Vector axis[3] = 
 {
@@ -257,50 +257,3 @@ bool Plane::PointOnSide(float x, float y, float z)
 }
 
 
-
-/*
-// point p must be in front of or within dist of each plane of the bbox
-bool GL_PointNearBBox(Vector &p, float bbox[2][3], float dist)
-{
-   return true;
-}
-
-
-bool GL_PointNearPoly(Vector &p, gl_poly_t *poly, float dist)
-{
-   int i;
-   float v1[3], v2[3], v3[3], d;
-   Plane plane;
-   Vector offset;
-
-   offset = poly->plane.Normal();
-   offset.Scale(-1.f);
-
-   for (i = 0; i < poly->numPts - 1; i++)
-   {
-      v1[0] = poly->vertices[(i * 3) + 0];
-      v1[1] = poly->vertices[(i * 3) + 1];
-      v1[2] = poly->vertices[(i * 3) + 2];
-
-      v2[0] = poly->vertices[((i + 1) * 3) + 0];
-      v2[1] = poly->vertices[((i + 1) * 3) + 1];
-      v2[2] = poly->vertices[((i + 1) * 3) + 2];
-
-      v3[0] = v2[0] + offset.X();
-      v3[1] = v2[1] + offset.Y();
-      v3[2] = v2[2] + offset.Z();
-
-      plane.Init(v1, v2, v3);
-      // something wrong with the points, so ignore this plane
-      if (!plane.ValidNormal()) continue;
-
-      d = plane.DistToPoint(p.X(), p.Y(), p.Z());
-      if (d < 0.f && -d > dist)
-      {
-         return false;
-      }
-   }
-
-   return true;
-}
-*/

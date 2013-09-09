@@ -40,8 +40,9 @@
 */
 
 
-#include "gl/gl_include.h"
-#include "gl/common/glc_clock.h"
+#include <ctype.h>
+#include "i_system.h"
+#include "doomtype.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "m_random.h"
@@ -54,10 +55,10 @@
 #include "zstring.h"
 #include "d_dehacked.h"
 
-#include "gl/gl_functions.h"
-#include "gl/gl_lights.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_skyboxtexture.h"
+#include "gl/common/glc_clock.h"
+#include "gl/common/glc_convert.h"
+#include "gl/common/glc_dynlight.h"
+#include "gl/common/glc_skyboxtexture.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);
 EXTERN_CVAR (Float, gl_lights_size);
@@ -189,8 +190,8 @@ public:
    void ApplyProperties(ADynamicLight * light) const;
    const char *GetName() const { return m_Name; }
    void SetAngle(angle_t angle) { m_Angle = angle; }
-   void SetArg(int arg, byte val) { m_Args[arg] = val; }
-   byte GetArg(int arg) { return m_Args[arg]; }
+   void SetArg(int arg, BYTE val) { m_Args[arg] = val; }
+   BYTE GetArg(int arg) { return m_Args[arg]; }
    void SetOffset(float* ft) { m_X = FLOAT2FIXED(ft[0]); m_Y = FLOAT2FIXED(ft[1]); m_Z = FLOAT2FIXED(ft[2]); }
    void SetSubtractive(bool subtract) { m_subtractive = subtract; }
    void SetAdditive(bool add) { m_additive = add; }
@@ -232,8 +233,8 @@ void FLightDefaults::ApplyProperties(ADynamicLight * light) const
 	light->SetOffset(m_X, m_Y, m_Z);
 	light->halo = m_halo;
 	for (int a = 0; a < 3; a++) light->args[a] = clamp<int>((int)(m_Args[a] * gl_lights_intensity), 0, 255);
-	light->m_intensity[0] = m_Args[LIGHT_INTENSITY] * gl_lights_size;
-	light->m_intensity[1] = m_Args[LIGHT_SECONDARY_INTENSITY] * gl_lights_size;
+	light->m_intensity[0] = int(m_Args[LIGHT_INTENSITY] * gl_lights_size);
+	light->m_intensity[1] = int(m_Args[LIGHT_SECONDARY_INTENSITY] * gl_lights_size);
 	light->flags4&=~(MF4_ADDITIVE|MF4_SUBTRACTIVE|MF4_DONTLIGHTSELF);
 	if (m_subtractive) light->flags4|=MF4_SUBTRACTIVE;
 	if (m_additive) light->flags4|=MF4_ADDITIVE;
@@ -295,7 +296,7 @@ inline float gl_ParseFloat(FScanner &sc)
 {
    sc.GetFloat();
 
-   return sc.Float;
+   return float(sc.Float);
 }
 
 
@@ -630,7 +631,7 @@ void gl_ParseFlickerLight2(FScanner &sc)
 		}
 		if (defaults->GetArg(LIGHT_SECONDARY_INTENSITY) < defaults->GetArg(LIGHT_INTENSITY))
 		{
-			byte v = defaults->GetArg(LIGHT_SECONDARY_INTENSITY);
+			BYTE v = defaults->GetArg(LIGHT_SECONDARY_INTENSITY);
 			defaults->SetArg(LIGHT_SECONDARY_INTENSITY, defaults->GetArg(LIGHT_INTENSITY));
 			defaults->SetArg(LIGHT_INTENSITY, v);
 		}
@@ -685,7 +686,7 @@ void gl_ParseSectorLight(FScanner &sc)
 				break;
 			case LIGHTTAG_SCALE:
 				floatVal = gl_ParseFloat(sc);
-				defaults->SetArg(LIGHT_SCALE, (byte)(floatVal * 255));
+				defaults->SetArg(LIGHT_SCALE, (BYTE)(floatVal * 255));
 				break;
 			case LIGHTTAG_SUBTRACTIVE:
 				defaults->SetSubtractive(gl_ParseInt(sc) != 0);

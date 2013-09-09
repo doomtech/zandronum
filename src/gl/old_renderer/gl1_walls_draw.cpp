@@ -49,10 +49,11 @@
 #include "gl/old_renderer/gl1_wall.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_lights.h"
-#include "gl/gl_glow.h"
+#include "gl/common/glc_glow.h"
+#include "gl/common/glc_dynlight.h"
 #include "gl/gl_data.h"
 #include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_basic.h"
+#include "gl/common/glc_templates.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
 

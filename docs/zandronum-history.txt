@@ -15,7 +15,7 @@
 2.0
 ---
 
-*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 1668 / GZDoom SVN revision 362. [Torr Samaho]
+*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 1668 / GZDoom SVN revision 363. [Torr Samaho]
 
 
 1.2

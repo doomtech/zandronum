@@ -2,7 +2,7 @@
 #define __GL_MODELS_H_
 
 #include "r_data.h"
-#include "gl_geometric.h"
+#include "gl/common/glc_geometric.h"
 
 #define MAX_LODS			4
 
