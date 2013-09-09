@@ -39,12 +39,17 @@
 #include "c_cvars.h"
 #include "w_wad.h"
 #include "r_data.h"
+#include "templates.h"
 #include "colormatcher.h"
 #include "r_translate.h"
 #include "c_dispatch.h"
 #include "win32gliface.h"
+#include "v_palette.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_texture.h"
+
+// Needed to destroy the old renderer's texture pointer 
+#include "gl/old_renderer/gl1_texture.h"
 
 
 
@@ -162,6 +167,51 @@ void gl_GenerateGlobalBrightmapFromColormap()
 
 //===========================================================================
 //
+// averageColor
+//  input is RGBA8 pixel format.
+//	The resulting RGB color can be scaled uniformly so that the highest 
+//	component becomes one.
+//
+//===========================================================================
+PalEntry averageColor(const DWORD *data, int size, fixed_t maxout_factor)
+{
+	int				i;
+	unsigned int	r, g, b;
+
+
+
+	// First clear them.
+	r = g = b = 0;
+	if (size==0) 
+	{
+		return PalEntry(255,255,255);
+	}
+	for(i = 0; i < size; i++)
+	{
+		r += BPART(data[i]);
+		g += GPART(data[i]);
+		b += RPART(data[i]);
+	}
+
+	r = r/size;
+	g = g/size;
+	b = b/size;
+
+	int maxv=MAX(MAX(r,g),b);
+
+	if(maxv && maxout_factor)
+	{
+		maxout_factor = FixedMul(maxout_factor, 255);
+		r = Scale(r, maxout_factor, maxv);
+		g = Scale(g, maxout_factor, maxv);
+		b = Scale(b, maxout_factor, maxv);
+	}
+	return PalEntry(r,g,b);
+}
+
+
+//===========================================================================
+//
 // Camera texture rendering
 //
 //===========================================================================
@@ -174,6 +224,38 @@ void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 	bFirstUpdate = false;
 }
 
+
+//==========================================================================
+//
+// GL status data for a texture
+//
+//==========================================================================
+
+FTexture::MiscGLInfo::MiscGLInfo() throw()
+{
+	bGlowing = false;
+	GlowColor = 0;
+	GlowHeight = 128;
+	bSkybox = false;
+	FloorSkyColor = 0;
+	CeilingSkyColor = 0;
+	bFullbright = false;
+	bSkyColorDone = false;
+	bBrightmapChecked = false;
+	bBrightmap = false;
+	bBrightmapDisablesFullbright = false;
+
+	GLTexture = NULL;
+	Brightmap = NULL;
+}
+
+FTexture::MiscGLInfo::~MiscGLInfo()
+{
+	if (GLTexture != NULL) delete GLTexture;
+	GLTexture = NULL;
+	if (Brightmap != NULL) delete Brightmap;
+	Brightmap = NULL;
+}
 
 //==========================================================================
 //

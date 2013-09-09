@@ -3,7 +3,7 @@
 #define __GL_LIGHTS_H__
 
 #include "gl/gl_intern.h"
-#include "gl/gl_data.h"
+#include "gl/common/glc_data.h"
 #include "gl/common/glc_geometric.h"
 #include "gl/common/glc_dynlight.h"
 

@@ -29,15 +29,6 @@ struct side_t;
 
 extern DWORD gl_fixedcolormap;
 
-// gl_data.cpp
-
-void gl_CheckNodes(MapData * map);
-bool gl_LoadGLNodes(MapData * map);
-void gl_InitData();
-void gl_CleanLevelData();
-void gl_PreprocessLevel(void);
-void gl_AddMapinfoParser();
-
 // Light + color
 
 inline bool gl_isBlack(PalEntry color)
@@ -109,6 +100,10 @@ void gl_SetGlowPosition(float topdist, float bottomdist);
 void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime);
 
 void gl_ApplyShader();
+
+void gl_RecalcVertexHeights(vertex_t * v);
+void gl_InitVertexData();
+void gl_CleanVertexData();
 }
 
 // Scene
@@ -131,9 +126,6 @@ void gl_RecreateAllAttachedLights();
 void gl_ParseDefs();
 
 
-void gl_RecalcVertexHeights(vertex_t * v);
-void gl_InitVertexData();
-void gl_CleanVertexData();
 
 inline float Dist2(float x1,float y1,float x2,float y2)
 {
@@ -175,7 +167,6 @@ __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE
 }
 
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm);
-PalEntry averageColor(const DWORD *data, int size, fixed_t maxout);
 
 
 extern int currentrenderer;

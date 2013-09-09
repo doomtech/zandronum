@@ -10655,6 +10655,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\gl\old_renderer\gl1_vertex.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\gl\old_renderer\gl1_walls.cpp"
 				>
 			</File>
@@ -10702,14 +10706,6 @@
 				Name="GZDoom Source"
 				>
 				<File
-					RelativePath=".\src\gl\gfxfuncs.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_data.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_framebuffer.cpp"
 					>
 				</File>
@@ -10742,14 +10738,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_translate.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_vertex.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_wipe.cpp"
 					>
 				</File>
@@ -10765,10 +10753,6 @@
 			<Filter
 				Name="GZDoom Header"
 				>
-				<File
-					RelativePath=".\src\gl\gl_data.h"
-					>
-				</File>
 				<File
 					RelativePath=".\src\gl\gl_framebuffer.h"
 					>
@@ -10806,10 +10790,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_translate.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_values.h"
 					>
 				</File>
@@ -10839,6 +10819,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\common\glc_cycler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_data.cpp"
 					>
 				</File>
 				<File
@@ -10881,6 +10865,10 @@
 					RelativePath=".\src\gl\common\glc_texture.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\src\gl\common\glc_translate.cpp"
+					>
+				</File>
 				<Filter
 					Name="Includes"
 					>
@@ -10898,6 +10886,10 @@
 					</File>
 					<File
 						RelativePath=".\src\gl\common\glc_cycler.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\gl\common\glc_data.h"
 						>
 					</File>
 					<File
@@ -10922,6 +10914,10 @@
 					</File>
 					<File
 						RelativePath=".\src\gl\common\glc_texture.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\gl\common\glc_translate.h"
 						>
 					</File>
 				</Filter>

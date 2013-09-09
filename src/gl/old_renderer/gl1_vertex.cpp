@@ -46,12 +46,16 @@
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
-#include "gl/gl_data.h"
+#include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/common/glc_templates.h"
 #include "gl/gl_functions.h"
 
 EXTERN_CVAR(Bool, gl_seamless)
+extern long gl_frameMS;
+
+namespace GLRendererOld
+{
 
 struct FVertexsplitInfo
 {
@@ -62,12 +66,9 @@ struct FVertexsplitInfo
 	float * heightlist;
 };
 
-extern long gl_frameMS;
 static FVertexsplitInfo * gl_vertexsplit;
 
 
-namespace GLRendererOld
-{
 //==========================================================================
 //
 // Split left edge of wall
@@ -130,8 +131,6 @@ void GLWall::SplitRightEdge(texcoord * tcs, bool glow)
 			i--;
 		}
 	}
-}
-
 }
 
 //==========================================================================
@@ -291,3 +290,4 @@ void gl_CleanVertexData()
 }
 
 
+}

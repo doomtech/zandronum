@@ -57,6 +57,7 @@ protected:
 };
 
 void gl_GenerateGlobalBrightmapFromColormap();
+PalEntry averageColor(const DWORD *data, int size, fixed_t maxout);
 
 
 

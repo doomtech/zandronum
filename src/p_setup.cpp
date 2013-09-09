@@ -85,7 +85,7 @@
 #include "cl_demo.h"
 #include "domination.h"
 
-#include "gl/gl_functions.h"
+#include "gl/common/glc_data.h"
 #include "gl/gl_lights.h"
 
 

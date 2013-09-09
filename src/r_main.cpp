@@ -55,7 +55,7 @@
 #include "r_plane.h"
 #include "r_3dfloors.h"
 #include "v_palette.h"
-#include "gl/gl_data.h"
+#include "gl/common/glc_data.h"
 #include "gl/gl_functions.h"
 
 // [BC] New #includes.
@@ -248,7 +248,7 @@ angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 {
 #if 1
 	// The precision of the code below is abysmal so use the CRT atan2 function instead!
-	return quickertoint((float)atan2f(y-y1, x-x1) * (ANGLE_180/M_PI));
+	return quickertoint((float)(atan2f(float(y-y1), float(x-x1)) * (ANGLE_180/M_PI)));
 #else
 	x -= x1;
 	y -= y1;

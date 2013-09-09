@@ -50,6 +50,7 @@
 
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
+#include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_shader.h"
 

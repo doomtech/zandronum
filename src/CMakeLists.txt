@@ -600,6 +600,7 @@ if( NOT NO_GL )
 		gl/common/glc_clipper.cpp
 		gl/common/glc_clock.cpp
 		gl/common/glc_cycler.cpp
+		gl/common/glc_data.cpp
 		gl/common/glc_dynlight.cpp
 		gl/common/glc_fakeflat.cpp
 		gl/common/glc_geometric.cpp
@@ -609,6 +610,7 @@ if( NOT NO_GL )
 		gl/common/glc_nodes.cpp
 		gl/common/glc_sections.cpp
 		gl/common/glc_texture.cpp
+		gl/common/glc_translate.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
@@ -619,11 +621,10 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_skydome.cpp
 		gl/old_renderer/gl1_sprite.cpp
 		gl/old_renderer/gl1_texture.cpp
+		gl/old_renderer/gl1_vertex.cpp
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
-		gl/gfxfuncs.cpp
-		gl/gl_data.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp
@@ -632,8 +633,6 @@ if( NOT NO_GL )
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
 		gl/gl_scene.cpp
-		gl/gl_translate.cpp
-		gl/gl_vertex.cpp
 		gl/gl_wipe.cpp
 		gl/r_render/r_opengl.cpp
 	)

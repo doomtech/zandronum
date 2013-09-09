@@ -26,6 +26,8 @@ public:
 	virtual void PrecacheTexture(FTexture *tex) = 0;
 	virtual void UncacheTexture(FTexture *tex) = 0;
 	virtual unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h) = 0;
+	virtual void SetupLevel() = 0;
+	virtual void CleanLevelData() = 0;
 };
 
 // Global functions. Make them members of GLRendererBase later?

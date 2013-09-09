@@ -38,33 +38,36 @@
 **
 */
 
-#include "gl/gl_include.h"
-#include "gl/common/glc_renderer.h"
+#include "doomtype.h"
 #include "colormatcher.h"
 #include "r_translate.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "c_dispatch.h"
-#include "gl/gl_lights.h"
-#include "gl/common/glc_glow.h"
-#include "gl/gl_data.h"
-#include "gl/gl_models.h"
-#include "gl/gl_renderstruct.h"
-#include "gl/gl_functions.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "r_sky.h"
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gi.h"
 #include "g_level.h"
+#include "gl/common/glc_convert.h"
+#include "gl/common/glc_dynlight.h"
+#include "gl/common/glc_renderer.h"
+#include "gl/common/glc_glow.h"
+#include "gl/common/glc_data.h"
+// [BB]
+#include "gl/gl_functions.h"
 // [BC]
 #include "network.h"
 #include "sv_commands.h"
 
-using namespace GLRendererOld;
+// common function that's still in an unprocessed file
+void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
+void gl_InitModels();
 
 GLRenderSettings glset;
+
+EXTERN_CVAR(Int, gl_lightmode)
 
 CUSTOM_CVAR(Float, maxviewpitch, 90.f, CVAR_ARCHIVE|CVAR_SERVERINFO)
 {
@@ -189,8 +192,6 @@ static int LS_Sector_SetPlaneReflection (line_t *ln, AActor *it, bool backSide,
 //
 //==========================================================================
 
-TArray<GLVertex> gl_vertices(1024);
-
 extern bool gl_disabled;
 
 
@@ -228,7 +229,7 @@ struct FGLROptions : public FOptionalMapinfoData
 	int			outsidefogdensity;
 	int			skyfog;
 	int			lightmode;
-	bool		nocoloredspritelighting;
+	SBYTE		nocoloredspritelighting;
 	FVector3	skyrotatevector;
 };
 
@@ -329,38 +330,6 @@ CCMD(gl_resetmap)
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
 }
 
-
-//==========================================================================
-//
-// GL status data for a texture
-//
-//==========================================================================
-
-FTexture::MiscGLInfo::MiscGLInfo() throw()
-{
-	bGlowing = false;
-	GlowColor = 0;
-	GlowHeight = 128;
-	bSkybox = false;
-	FloorSkyColor = 0;
-	CeilingSkyColor = 0;
-	bFullbright = false;
-	bSkyColorDone = false;
-	bBrightmapChecked = false;
-	bBrightmap = false;
-	bBrightmapDisablesFullbright = false;
-
-	GLTexture = NULL;
-	Brightmap = NULL;
-}
-
-FTexture::MiscGLInfo::~MiscGLInfo()
-{
-	if (GLTexture != NULL) delete GLTexture;
-	GLTexture = NULL;
-	if (Brightmap != NULL) delete Brightmap;
-	Brightmap = NULL;
-}
 
 //==========================================================================
 //
@@ -717,7 +686,6 @@ side_t* getNextSide(sector_t * sec, line_t* line)
 void gl_PreprocessLevel()
 {
 	int i;
-	DWORD j;
 
 	static bool modelsdone=false;
 
@@ -761,46 +729,17 @@ void gl_PreprocessLevel()
 		sectors[i].sectornum = i;
 		PrepareTransparentDoors(&sectors[i]);
 	}
-	pitch=0.0f;
 
-	gl_vertices.Resize(100);	
-	gl_vertices.Clear();	
+	if (GLRenderer != NULL) GLRenderer->SetupLevel();
 
-	// Create the flat vertex array
-	for (i=0; i<numsubsectors; i++)
-	{
-		subsector_t * ssector = &subsectors[i];
-
-		if (ssector->numlines<=2) continue;
-			
-		ssector->numvertices = ssector->numlines;
-		ssector->firstvertex = gl_vertices.Size();
-
-		for(j = 0;  j < ssector->numlines; j++)
-		{
-			seg_t * seg = &segs[ssector->firstline + j];
-			vertex_t * vtx = seg->v1;
-			GLVertex * vt=&gl_vertices[gl_vertices.Reserve(1)];
-
-			vt->u =  TO_GL(vtx->x)/64.0f;
-			vt->v = -TO_GL(vtx->y)/64.0f;
-			vt->x =  TO_GL(vtx->x);
-			vt->y =  TO_GL(vtx->y);
-			vt->z = 0.0f;
-			vt->vt = vtx;
-		}
-	}
-	gl_InitVertexData();
 #if 0
 	gl_CreateSections();
 #endif
 
-	// This code can be called when the hardware renderer is inactive!
-	if (currentrenderer!=0) gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
-
 	AdjustSpriteOffsets();
 	InitGLRMapinfoData();
 }
+
 
 
 //==========================================================================
@@ -837,7 +776,7 @@ void gl_CleanLevelData()
 		gamesubsectors = NULL;
 		numgamesubsectors = 0;
 	}
-	gl_CleanVertexData();
+	if (GLRenderer != NULL) GLRenderer->CleanLevelData();
 }
 
 //===========================================================================

@@ -38,8 +38,8 @@
 **
 */
 
-#include "gl/gl_translate.h"
-#include "gl/old_renderer/gl1_texture.h"
+#include "doomtype.h"
+#include "gl/common/glc_translate.h"
 #include "m_crc32.h"
 
 TArray<GLTranslationPalette::PalData> GLTranslationPalette::AllPalettes;
@@ -76,9 +76,7 @@ bool GLTranslationPalette::Update()
 
 int GLTranslationPalette::GetInternalTranslation(int trans)
 {
-	if (trans <= 0) return -trans;
-	if (trans == TRANSLATION(TRANSLATION_Standard, 8)) return CM_GRAY;
-	if (trans == TRANSLATION(TRANSLATION_Standard, 7)) return CM_ICE;
+	if (trans <= 0) return 0;
 
 	FRemapTable *remap = TranslationToTable(trans);
 	if (remap == NULL) return 0;

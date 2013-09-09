@@ -46,7 +46,7 @@
 #include "gl/gl_lights.h"
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_glow.h"
-#include "gl/gl_data.h"
+#include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"

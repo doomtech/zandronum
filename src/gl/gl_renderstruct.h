@@ -66,21 +66,6 @@ enum HWRenderStyle
 	STYLEHW_NoAlphaTest,	// disable alpha test
 };
 
-struct GLRenderSettings
-{
-
-	SBYTE lightmode;
-	bool nocoloredspritelighting;
-
-	SBYTE map_lightmode;
-	SBYTE map_nocoloredspritelighting;
-
-	FVector3 skyrotatevector;
-
-};
-
-extern GLRenderSettings glset;
-
 //==========================================================================
 //
 // One sector plane, still in fixed point

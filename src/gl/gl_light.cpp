@@ -45,7 +45,7 @@
 #include "gl/gl_system.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_lights.h"
-#include "gl/gl_data.h"
+#include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
@@ -793,6 +793,37 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 		}
 	}
 	gl.AlphaFunc(GL_GEQUAL,alpha/2.f);
+}
+
+//==========================================================================
+//
+// Modifies a color according to a specified colormap
+//
+//==========================================================================
+
+void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
+{
+	int gray = (red*77 + green*143 + blue*36)>>8;
+	if (cm == CM_INVERT /* || cm == CM_LITE*/)
+	{
+		gl_InverseMap(gray, red, green, blue);
+	}
+	else if (cm == CM_GOLDMAP)
+	{
+		gl_GoldMap(gray, red, green, blue);
+	}
+	else if (cm == CM_REDMAP)
+	{
+		gl_RedMap(gray, red, green, blue);
+	}
+	else if (cm == CM_GREENMAP)
+	{
+		gl_GreenMap(gray, red, green, blue);
+	}
+	else if (cm >= CM_DESAT1 && cm <= CM_DESAT31)
+	{
+		gl_Desaturate(gray, red, green, blue, red, green, blue, cm - CM_DESAT0);
+	}
 }
 
 //==========================================================================
