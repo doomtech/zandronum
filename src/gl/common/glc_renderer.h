@@ -5,6 +5,17 @@
 struct particle_t;
 class FCanvasTexture;
 
+enum SectorRenderFlags
+{
+	// This is used to avoid creating too many drawinfos
+	SSRF_RENDERFLOOR=1,
+	SSRF_RENDERCEILING=2,
+	SSRF_RENDER3DPLANES=4,
+	SSRF_RENDERALL=7,
+	SSRF_PROCESSED=8,
+};
+
+
 class GLRendererBase
 {
 public:
@@ -17,6 +28,7 @@ public:
 	}
 	~GLRendererBase() {}
 
+	virtual void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector) = 0;
 	virtual void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *) = 0;
 	virtual void ProcessSprite(AActor *thing, sector_t *sector) = 0;
 	virtual void ProcessParticle(particle_t *part, sector_t *sector) = 0;

@@ -40,6 +40,7 @@
 
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
+#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clock.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_functions.h"

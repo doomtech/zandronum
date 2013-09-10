@@ -37,30 +37,26 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
-#include "gl/common/glc_renderer.h"
+
 #include "a_sharedglobal.h"
 #include "r_main.h"
-#include "gl/gl_struct.h"
-#include "gl/gl_renderstruct.h"
-#include "gl/common/glc_clock.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/old_renderer/gl1_portal.h"
-#include "gl/gl_lights.h"
-#include "gl/common/glc_glow.h"
-#include "gl/common/glc_data.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/common/glc_templates.h"
-#include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_functions.h"
 #include "r_sky.h"
 #include "g_level.h"
+
+#include "gl/common/glc_clock.h"
+#include "gl/common/glc_renderer.h"
+#include "gl/common/glc_renderhacks.h"
+#include "gl/common/glc_glow.h"
+#include "gl/common/glc_data.h"
+#include "gl/common/glc_templates.h"
+
+int GetFloorLight (const sector_t *sec);
+int GetCeilingLight (const sector_t *sec);
+
 
 // This is for debugging maps.
 CVAR(Bool, gl_notexturefill, false, 0);
 
-namespace GLRendererOld
-{
 
 FreeList<gl_subsectorrendernode> SSR_List;
 
@@ -71,13 +67,57 @@ static glcycle_t totalms, showtotalms;
 static glcycle_t totalssms;
 static sector_t fakesec;
 
+
+void FRenderHackInfo::StartScene()
+{
+	sectorrenderflags.Resize(numsectors);
+	ss_renderflags.Resize(numsubsectors);
+
+	memset(&sectorrenderflags[0], 0, numsectors*sizeof(sectorrenderflags[0]));
+	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
+
+
+	for(unsigned int i=0;i< otherfloorplanes.Size();i++)
+	{
+		gl_subsectorrendernode * node = otherfloorplanes[i];
+		while (node)
+		{
+			gl_subsectorrendernode * n = node;
+			node = node->next;
+			SSR_List.Release(n);
+		}
+	}
+	otherfloorplanes.Clear();
+
+	for(unsigned int i=0;i< otherceilingplanes.Size();i++)
+	{
+		gl_subsectorrendernode * node = otherceilingplanes[i];
+		while (node)
+		{
+			gl_subsectorrendernode * n = node;
+			node = node->next;
+			SSR_List.Release(n);
+		}
+	}
+	otherceilingplanes.Clear();
+
+	// clear all the lists that might not have been cleared already
+	MissingUpperTextures.Clear();
+	MissingLowerTextures.Clear();
+	MissingUpperSegs.Clear();
+	MissingLowerSegs.Clear();
+	SubsectorHacks.Clear();
+	CeilingStacks.Clear();
+	FloorStacks.Clear();
+	HandledSubsectors.Clear();
+}
 //==========================================================================
 //
 // Adds a subsector plane to a sector's render list
 //
 //==========================================================================
 
-void GLDrawInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * node)
+void FRenderHackInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * node)
 {
 	int oldcnt = otherfloorplanes.Size();
 
@@ -90,7 +130,7 @@ void GLDrawInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * node)
 	otherfloorplanes[sector] = node;
 }
 
-void GLDrawInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
+void FRenderHackInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
 {
 	int oldcnt = otherceilingplanes.Size();
 
@@ -103,12 +143,13 @@ void GLDrawInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
 	otherceilingplanes[sector] = node;
 }
 
+
 //==========================================================================
 //
 // Collects all sectors that might need a fake ceiling
 //
 //==========================================================================
-void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
+void FRenderHackInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 {
 	if (!seg->backsector) return;
 
@@ -165,7 +206,7 @@ void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 // Collects all sectors that might need a fake floor
 //
 //==========================================================================
-void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
+void FRenderHackInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 {
 	if (!seg->backsector) return;
 	if (seg->backsector->transdoor)
@@ -234,7 +275,7 @@ void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 // 
 //
 //==========================================================================
-bool GLDrawInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
+bool FRenderHackInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -292,7 +333,7 @@ bool GLDrawInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 // 
 //
 //==========================================================================
-bool GLDrawInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
+bool FRenderHackInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this subsector?
 	// Do this first to avoid unnecessary recursion
@@ -351,7 +392,7 @@ bool GLDrawInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 //
 //
 //==========================================================================
-bool GLDrawInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
+bool FRenderHackInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -404,7 +445,7 @@ bool GLDrawInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 //
 //
 //==========================================================================
-bool GLDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
+bool FRenderHackInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -458,7 +499,7 @@ bool GLDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 // Draws the fake planes
 //
 //==========================================================================
-void GLDrawInfo::HandleMissingTextures()
+void FRenderHackInfo::HandleMissingTextures()
 {
 	sector_t fake;
 	totalms.Clock();
@@ -611,319 +652,62 @@ void GLDrawInfo::HandleMissingTextures()
 	totalms.Reset();
 }
 
+
 //==========================================================================
 //
-// Flood gaps with the back side's ceiling/floor texture
-// This requires a stencil because the projected plane interferes with
-// the depth buffer
+//
 //
 //==========================================================================
 
-void GLDrawInfo::SetupFloodStencil(wallseg * ws)
+void FRenderHackInfo::DrawUnhandledMissingTextures()
 {
-	int recursion = GLPortal::GetRecursion();
-
-	// Create stencil 
-	gl.StencilFunc(GL_EQUAL,recursion,~0);		// create stencil
-	gl.StencilOp(GL_KEEP,GL_KEEP,GL_INCR);		// increment stencil of valid pixels
-	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
-	gl_EnableTexture(false);
-	gl.Color3f(1,1,1);
-	gl.Enable(GL_DEPTH_TEST);
-	gl.DepthMask(true);
-
-	gl_DisableShader();
-	gl.Begin(GL_TRIANGLE_FAN);
-	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
-	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
-	gl.Vertex3f(ws->x2, ws->z2, ws->y2);
-	gl.Vertex3f(ws->x2, ws->z1, ws->y2);
-	gl.End();
-
-	gl.StencilFunc(GL_EQUAL,recursion+1,~0);		// draw sky into stencil
-	gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);		// this stage doesn't modify the stencil
-
-	gl.ColorMask(1,1,1,1);						// don't write to the graphics buffer
-	gl_EnableTexture(true);
-	gl.Disable(GL_DEPTH_TEST);
-	gl.DepthMask(false);
-}
-
-void GLDrawInfo::ClearFloodStencil(wallseg * ws)
-{
-	int recursion = GLPortal::GetRecursion();
-
-	gl.StencilOp(GL_KEEP,GL_KEEP,GL_DECR);
-	gl_EnableTexture(false);
-	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
-	gl.Color3f(1,1,1);
-
-	gl_DisableShader();
-	gl.Begin(GL_TRIANGLE_FAN);
-	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
-	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
-	gl.Vertex3f(ws->x2, ws->z2, ws->y2);
-	gl.Vertex3f(ws->x2, ws->z1, ws->y2);
-	gl.End();
-
-	// restore old stencil op.
-	gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
-	gl.StencilFunc(GL_EQUAL,recursion,~0);
-	gl_EnableTexture(true);
-	gl.ColorMask(1,1,1,1);
-	gl.Enable(GL_DEPTH_TEST);
-	gl.DepthMask(true);
-}
-
-//==========================================================================
-//
-// Draw the plane segment into the gap
-//
-//==========================================================================
-void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bool ceiling)
-{
-	GLSectorPlane plane;
-	int lightlevel;
-	FColormap Colormap;
-	FGLTexture * gltexture;
-
-	plane.GetFromSector(sec, ceiling);
-
-	gltexture=FGLTexture::ValidateTexture(plane.texture);
-	if (!gltexture) return;
-
-	if (gl_fixedcolormap) 
+	validcount++;
+	for(int i=MissingUpperSegs.Size()-1; i>=0; i--)
 	{
-		Colormap.GetFixedColormap();
-		lightlevel=255;
-	}
-	else
-	{
-		Colormap=sec->ColorMap;
-		if (gltexture->tex->isFullbright())
-		{
-			Colormap.LightColor.r = Colormap.LightColor.g = Colormap.LightColor.b = 0xff;
-			lightlevel=255;
-		}
-		else lightlevel=abs(ceiling? GetCeilingLight(sec) : GetFloorLight(sec));
+		int index = MissingUpperSegs[i].MTI_Index;
+		if (index>=0 && MissingUpperTextures[index].seg==NULL) continue;
+
+		seg_t * seg = MissingUpperSegs[i].seg;
+
+		// already done!
+		if (seg->linedef->validcount==validcount) continue;		// already done
+		seg->linedef->validcount=validcount;
+		if (seg->frontsector->GetPlaneTexZ(sector_t::ceiling) < viewz) continue;	// out of sight
+		//if (seg->frontsector->ceilingpic==skyflatnum) continue;
+
+		// FIXME: The check for degenerate subsectors should be more precise
+		if (seg->PartnerSeg && seg->PartnerSeg->Subsector->degenerate) continue;
+		if (seg->backsector->transdoor) continue;
+		if (seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum) continue;
+		if (seg->backsector->CeilingSkyBox && seg->backsector->CeilingSkyBox->bAlways) continue;
+
+		if (!gl_notexturefill) FloodUpperGap(seg);
 	}
 
-	int rel = extralight * gl_weaponlight;
-	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
-	gl_SetFog(lightlevel, rel, &Colormap, false);
-	gltexture->Bind(Colormap.LightColor.a);
-	gl_SetPlaneTextureRotation(&plane, gltexture);
-
-	float fviewx = TO_GL(viewx);
-	float fviewy = TO_GL(viewy);
-	float fviewz = TO_GL(viewz);
-
-	gl_ApplyShader();
-	gl.Begin(GL_TRIANGLE_FAN);
-	float prj_fac1 = (planez-fviewz)/(ws->z1-fviewz);
-	float prj_fac2 = (planez-fviewz)/(ws->z2-fviewz);
-
-	float px1 = fviewx + prj_fac1 * (ws->x1-fviewx);
-	float py1 = fviewy + prj_fac1 * (ws->y1-fviewy);
-
-	float px2 = fviewx + prj_fac2 * (ws->x1-fviewx);
-	float py2 = fviewy + prj_fac2 * (ws->y1-fviewy);
-
-	float px3 = fviewx + prj_fac2 * (ws->x2-fviewx);
-	float py3 = fviewy + prj_fac2 * (ws->y2-fviewy);
-
-	float px4 = fviewx + prj_fac1 * (ws->x2-fviewx);
-	float py4 = fviewy + prj_fac1 * (ws->y2-fviewy);
-
-	gl.TexCoord2f(px1 / 64, -py1 / 64);
-	gl.Vertex3f(px1, planez, py1);
-
-	gl.TexCoord2f(px2 / 64, -py2 / 64);
-	gl.Vertex3f(px2, planez, py2);
-
-	gl.TexCoord2f(px3 / 64, -py3 / 64);
-	gl.Vertex3f(px3, planez, py3);
-
-	gl.TexCoord2f(px4 / 64, -py4 / 64);
-	gl.Vertex3f(px4, planez, py4);
-
-	gl.End();
-
-	gl.MatrixMode(GL_TEXTURE);
-	gl.PopMatrix();
-	gl.MatrixMode(GL_MODELVIEW);
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-void GLDrawInfo::FloodUpperGap(seg_t * seg)
-{
-	wallseg ws;
-	sector_t ffake, bfake;
-	sector_t * fakefsector = gl_FakeFlat(seg->frontsector, &ffake, true);
-	sector_t * fakebsector = gl_FakeFlat(seg->backsector, &bfake, false);
-
-	vertex_t * v1, * v2;
-
-	// Although the plane can be sloped this code will only be called
-	// when the edge itself is not.
-	fixed_t backz = fakebsector->ceilingplane.ZatPoint(seg->v1);
-	fixed_t frontz = fakefsector->ceilingplane.ZatPoint(seg->v1);
-
-	if (fakebsector->GetTexture(sector_t::ceiling)==skyflatnum) return;
-	if (backz < viewz) return;
-
-	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	validcount++;
+	for(int i=MissingLowerSegs.Size()-1; i>=0; i--)
 	{
-		v1=seg->linedef->v1;
-		v2=seg->linedef->v2;
-	}
-	else
-	{
-		v1=seg->linedef->v2;
-		v2=seg->linedef->v1;
-	}
+		int index = MissingLowerSegs[i].MTI_Index;
+		if (index>=0 && MissingLowerTextures[index].seg==NULL) continue;
 
-	ws.x1= TO_GL(v1->x);
-	ws.y1= TO_GL(v1->y);
-	ws.x2= TO_GL(v2->x);
-	ws.y2= TO_GL(v2->y);
+		seg_t * seg = MissingLowerSegs[i].seg;
 
-	ws.z1= TO_GL(frontz);
-	ws.z2= TO_GL(backz);
+		// already done!
+		if (seg->linedef->validcount==validcount) continue;		// already done
+		seg->linedef->validcount=validcount;
+		if (!(sectorrenderflags[seg->backsector->sectornum] & SSRF_RENDERFLOOR)) continue;
+		if (seg->frontsector->GetPlaneTexZ(sector_t::floor) > viewz) continue;	// out of sight
+		if (seg->backsector->transdoor) continue;
+		if (seg->backsector->GetTexture(sector_t::floor)==skyflatnum) continue;
+		if (seg->backsector->FloorSkyBox && seg->backsector->FloorSkyBox->bAlways) continue;
 
-	// Step1: Draw a stencil into the gap
-	SetupFloodStencil(&ws);
-
-	// Step2: Project the ceiling plane into the gap
-	DrawFloodedPlane(&ws, ws.z2, fakebsector, true);
-
-	// Step3: Delete the stencil
-	ClearFloodStencil(&ws);
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-void GLDrawInfo::FloodLowerGap(seg_t * seg)
-{
-	wallseg ws;
-	sector_t ffake, bfake;
-	sector_t * fakefsector = gl_FakeFlat(seg->frontsector, &ffake, true);
-	sector_t * fakebsector = gl_FakeFlat(seg->backsector, &bfake, false);
-
-	vertex_t * v1, * v2;
-
-	// Although the plane can be sloped this code will only be called
-	// when the edge itself is not.
-	fixed_t backz = fakebsector->floorplane.ZatPoint(seg->v1);
-	fixed_t frontz = fakefsector->floorplane.ZatPoint(seg->v1);
-
-
-	if (fakebsector->GetTexture(sector_t::floor) == skyflatnum) return;
-	if (fakebsector->GetPlaneTexZ(sector_t::floor) > viewz) return;
-
-	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
-	{
-		v1=seg->linedef->v1;
-		v2=seg->linedef->v2;
-	}
-	else
-	{
-		v1=seg->linedef->v2;
-		v2=seg->linedef->v1;
-	}
-
-	ws.x1= TO_GL(v1->x);
-	ws.y1= TO_GL(v1->y);
-	ws.x2= TO_GL(v2->x);
-	ws.y2= TO_GL(v2->y);
-
-	ws.z2= TO_GL(frontz);
-	ws.z1= TO_GL(backz);
-
-	// Step1: Draw a stencil into the gap
-	SetupFloodStencil(&ws);
-
-	// Step2: Project the ceiling plane into the gap
-	DrawFloodedPlane(&ws, ws.z1, fakebsector, false);
-
-	// Step3: Delete the stencil
-	ClearFloodStencil(&ws);
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-void GLDrawInfo::DrawUnhandledMissingTextures()
-{
-	if (!(gl.flags&RFL_NOSTENCIL))	// needs a stencil to work!
-	{
-		// Set the drawing mode
-		gl.DepthMask(false);							// don't write to Z-buffer!
-		gl_EnableFog(true);
-		gl.AlphaFunc(GL_GEQUAL,0.5f);
-		gl.BlendFunc(GL_ONE,GL_ZERO);
-
-		validcount++;
-		for(int i=MissingUpperSegs.Size()-1; i>=0; i--)
-		{
-			int index = MissingUpperSegs[i].MTI_Index;
-			if (index>=0 && MissingUpperTextures[index].seg==NULL) continue;
-
-			seg_t * seg = MissingUpperSegs[i].seg;
-
-			// already done!
-			if (seg->linedef->validcount==validcount) continue;		// already done
-			seg->linedef->validcount=validcount;
-			if (seg->frontsector->GetPlaneTexZ(sector_t::ceiling) < viewz) continue;	// out of sight
-			//if (seg->frontsector->ceilingpic==skyflatnum) continue;
-
-			// FIXME: The check for degenerate subsectors should be more precise
-			if (seg->PartnerSeg && seg->PartnerSeg->Subsector->degenerate) continue;
-			if (seg->backsector->transdoor) continue;
-			if (seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum) continue;
-			if (seg->backsector->CeilingSkyBox && seg->backsector->CeilingSkyBox->bAlways) continue;
-
-			if (!gl_notexturefill) FloodUpperGap(seg);
-		}
-
-		validcount++;
-		for(int i=MissingLowerSegs.Size()-1; i>=0; i--)
-		{
-			int index = MissingLowerSegs[i].MTI_Index;
-			if (index>=0 && MissingLowerTextures[index].seg==NULL) continue;
-
-			seg_t * seg = MissingLowerSegs[i].seg;
-
-			// already done!
-			if (seg->linedef->validcount==validcount) continue;		// already done
-			seg->linedef->validcount=validcount;
-			if (!(sectorrenderflags[seg->backsector->sectornum] & SSRF_RENDERFLOOR)) continue;
-			if (seg->frontsector->GetPlaneTexZ(sector_t::floor) > viewz) continue;	// out of sight
-			if (seg->backsector->transdoor) continue;
-			if (seg->backsector->GetTexture(sector_t::floor)==skyflatnum) continue;
-			if (seg->backsector->FloorSkyBox && seg->backsector->FloorSkyBox->bAlways) continue;
-
-			if (!gl_notexturefill) FloodLowerGap(seg);
-		}
+		if (!gl_notexturefill) FloodLowerGap(seg);
 	}
 	MissingUpperTextures.Clear();
 	MissingLowerTextures.Clear();
 	MissingUpperSegs.Clear();
 	MissingLowerSegs.Clear();
 
-	gl.DepthMask(true);
 }
 
 ADD_STAT(missingtextures)
@@ -941,7 +725,7 @@ ADD_STAT(missingtextures)
 //
 //==========================================================================
 
-void GLDrawInfo::AddHackedSubsector(subsector_t * sub)
+void FRenderHackInfo::AddHackedSubsector(subsector_t * sub)
 {
 	if (!(level.flags & LEVEL_HEXENFORMAT))
 	{
@@ -956,7 +740,7 @@ void GLDrawInfo::AddHackedSubsector(subsector_t * sub)
 //
 //==========================================================================
 
-bool GLDrawInfo::CheckAnchorFloor(subsector_t * sub)
+bool FRenderHackInfo::CheckAnchorFloor(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
@@ -998,9 +782,9 @@ static bool inview;
 static subsector_t * viewsubsector;
 static TArray<seg_t *> lowersegs;
 
-bool GLDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
+bool FRenderHackInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 {
-	static GLWall wall;
+
 	// mark it checked
 	sub->validcount=validcount;
 
@@ -1062,7 +846,7 @@ bool GLDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 //
 //==========================================================================
 
-bool GLDrawInfo::CheckAnchorCeiling(subsector_t * sub)
+bool FRenderHackInfo::CheckAnchorCeiling(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
@@ -1101,7 +885,7 @@ bool GLDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 //
 //==========================================================================
 
-bool GLDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
+bool FRenderHackInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 {
 	// mark it checked
 	sub->validcount=validcount;
@@ -1161,9 +945,8 @@ bool GLDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 //
 //==========================================================================
 
-void GLDrawInfo::HandleHackedSubsectors()
+void FRenderHackInfo::HandleHackedSubsectors()
 {
-	GLWall wall;
 	lowershcount=uppershcount=0;
 	totalssms.Reset();
 	totalssms.Clock();
@@ -1193,7 +976,7 @@ void GLDrawInfo::HandleHackedSubsectors()
 				if (inview) for(unsigned int j=0;j<lowersegs.Size();j++)
 				{
 					seg_t * seg=lowersegs[j];
-					wall.ProcessLowerMiniseg (seg, seg->Subsector->render_sector, seg->PartnerSeg->Subsector->render_sector);
+					GLRenderer->ProcessLowerMiniseg (seg, seg->Subsector->render_sector, seg->PartnerSeg->Subsector->render_sector);
 				}
 				lowershcount+=HandledSubsectors.Size();
 			}
@@ -1243,12 +1026,12 @@ ADD_STAT(sectorhacks)
 //
 //==========================================================================
 
-void GLDrawInfo::AddFloorStack(subsector_t * sub)
+void FRenderHackInfo::AddFloorStack(subsector_t * sub)
 {
 	FloorStacks.Push(sub);
 }
 
-void GLDrawInfo::AddCeilingStack(subsector_t * sub)
+void FRenderHackInfo::AddCeilingStack(subsector_t * sub)
 {
 	CeilingStacks.Push(sub);
 }
@@ -1259,9 +1042,8 @@ void GLDrawInfo::AddCeilingStack(subsector_t * sub)
 //
 //==========================================================================
 
-void GLDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
+void FRenderHackInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
 {
-	static GLWall wall;
 	// mark it checked
 	sub->validcount=validcount;
 
@@ -1307,9 +1089,8 @@ void GLDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor
 //
 //==========================================================================
 
-void GLDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
+void FRenderHackInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 {
-	static GLWall wall;
 	// mark it checked
 	sub->validcount=validcount;
 
@@ -1355,7 +1136,7 @@ void GLDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 //
 //==========================================================================
 
-void GLDrawInfo::ProcessSectorStacks()
+void FRenderHackInfo::ProcessSectorStacks()
 {
 	unsigned int i;
 
@@ -1424,4 +1205,3 @@ void GLDrawInfo::ProcessSectorStacks()
 	CeilingStacks.Clear();
 }
 
-} // namespace

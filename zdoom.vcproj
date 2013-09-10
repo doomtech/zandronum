@@ -10722,10 +10722,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_missingtexture.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_models.cpp"
 					>
 				</File>
@@ -10858,6 +10854,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\common\glc_renderhacks.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\common\glc_sections.cpp"
 					>
 				</File>
@@ -10910,6 +10910,10 @@
 					</File>
 					<File
 						RelativePath=".\src\gl\common\glc_renderer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\gl\common\glc_renderhacks.h"
 						>
 					</File>
 					<File

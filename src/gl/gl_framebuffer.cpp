@@ -734,6 +734,13 @@ void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector
 	rendered_lines++;
 }
 
+void GL1Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
+{
+	GLRendererOld::GLWall wall;
+	wall.ProcessLowerMiniseg(seg, frontsector, backsector);
+	rendered_lines++;
+}
+
 void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)
 {
 	GLSprite glsprite;

@@ -40,9 +40,14 @@
 **
 */
 #include "gl/gl_include.h"
+#include "r_sky.h"
 #include "gl/common/glc_clock.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/old_renderer/gl1_texture.h"
+#include "gl/old_renderer/gl1_portal.h"
+#include "gl/old_renderer/gl1_shader.h"
+#include "gl/gl_lights.h"
+#include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
@@ -892,46 +897,7 @@ void GLDrawInfo::StartDrawInfo(GLDrawInfo * di)
 
 void GLDrawInfo::StartScene()
 {
-	sectorrenderflags.Resize(numsectors);
-	ss_renderflags.Resize(numsubsectors);
-	memset(&sectorrenderflags[0], 0, numsectors*sizeof(sectorrenderflags[0]));
-	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
-
-
-	for(unsigned int i=0;i< otherfloorplanes.Size();i++)
-	{
-		gl_subsectorrendernode * node = otherfloorplanes[i];
-		while (node)
-		{
-			gl_subsectorrendernode * n = node;
-			node = node->next;
-			SSR_List.Release(n);
-		}
-	}
-	otherfloorplanes.Clear();
-
-	for(unsigned int i=0;i< otherceilingplanes.Size();i++)
-	{
-		gl_subsectorrendernode * node = otherceilingplanes[i];
-		while (node)
-		{
-			gl_subsectorrendernode * n = node;
-			node = node->next;
-			SSR_List.Release(n);
-		}
-	}
-	otherceilingplanes.Clear();
-
-	// clear all the lists that might not have been cleared already
-	MissingUpperTextures.Clear();
-	MissingLowerTextures.Clear();
-	MissingUpperSegs.Clear();
-	MissingLowerSegs.Clear();
-	SubsectorHacks.Clear();
-	CeilingStacks.Clear();
-	FloorStacks.Clear();
-	HandledSubsectors.Clear();
-
+	FRenderHackInfo::StartScene();
 	next=gl_drawinfo;
 	gl_drawinfo=this;
 	for(int i=0;i<GLDL_TYPES;i++) drawlists[i].Reset();
@@ -950,6 +916,255 @@ void GLDrawInfo::EndDrawInfo()
 	gl_drawinfo=di->next;
 
 	if (di->temporary) di_list.Release(di);
+}
+
+
+//==========================================================================
+//
+// Flood gaps with the back side's ceiling/floor texture
+// This requires a stencil because the projected plane interferes with
+// the depth buffer
+//
+//==========================================================================
+
+void GLDrawInfo::SetupFloodStencil(wallseg * ws)
+{
+	int recursion = GLPortal::GetRecursion();
+
+	// Create stencil 
+	gl.StencilFunc(GL_EQUAL,recursion,~0);		// create stencil
+	gl.StencilOp(GL_KEEP,GL_KEEP,GL_INCR);		// increment stencil of valid pixels
+	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
+	gl_EnableTexture(false);
+	gl.Color3f(1,1,1);
+	gl.Enable(GL_DEPTH_TEST);
+	gl.DepthMask(true);
+
+	gl_DisableShader();
+	gl.Begin(GL_TRIANGLE_FAN);
+	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
+	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
+	gl.Vertex3f(ws->x2, ws->z2, ws->y2);
+	gl.Vertex3f(ws->x2, ws->z1, ws->y2);
+	gl.End();
+
+	gl.StencilFunc(GL_EQUAL,recursion+1,~0);		// draw sky into stencil
+	gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);		// this stage doesn't modify the stencil
+
+	gl.ColorMask(1,1,1,1);						// don't write to the graphics buffer
+	gl_EnableTexture(true);
+	gl.Disable(GL_DEPTH_TEST);
+	gl.DepthMask(false);
+}
+
+void GLDrawInfo::ClearFloodStencil(wallseg * ws)
+{
+	int recursion = GLPortal::GetRecursion();
+
+	gl.StencilOp(GL_KEEP,GL_KEEP,GL_DECR);
+	gl_EnableTexture(false);
+	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
+	gl.Color3f(1,1,1);
+
+	gl_DisableShader();
+	gl.Begin(GL_TRIANGLE_FAN);
+	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
+	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
+	gl.Vertex3f(ws->x2, ws->z2, ws->y2);
+	gl.Vertex3f(ws->x2, ws->z1, ws->y2);
+	gl.End();
+
+	// restore old stencil op.
+	gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
+	gl.StencilFunc(GL_EQUAL,recursion,~0);
+	gl_EnableTexture(true);
+	gl.ColorMask(1,1,1,1);
+	gl.Enable(GL_DEPTH_TEST);
+	gl.DepthMask(true);
+}
+
+//==========================================================================
+//
+// Draw the plane segment into the gap
+//
+//==========================================================================
+void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bool ceiling)
+{
+	GLSectorPlane plane;
+	int lightlevel;
+	FColormap Colormap;
+	FGLTexture * gltexture;
+
+	plane.GetFromSector(sec, ceiling);
+
+	gltexture=FGLTexture::ValidateTexture(plane.texture);
+	if (!gltexture) return;
+
+	if (gl_fixedcolormap) 
+	{
+		Colormap.GetFixedColormap();
+		lightlevel=255;
+	}
+	else
+	{
+		Colormap=sec->ColorMap;
+		if (gltexture->tex->isFullbright())
+		{
+			Colormap.LightColor.r = Colormap.LightColor.g = Colormap.LightColor.b = 0xff;
+			lightlevel=255;
+		}
+		else lightlevel=abs(ceiling? GetCeilingLight(sec) : GetFloorLight(sec));
+	}
+
+	int rel = extralight * gl_weaponlight;
+	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
+	gl_SetFog(lightlevel, rel, &Colormap, false);
+	gltexture->Bind(Colormap.LightColor.a);
+	gl_SetPlaneTextureRotation(&plane, gltexture);
+
+	float fviewx = TO_GL(viewx);
+	float fviewy = TO_GL(viewy);
+	float fviewz = TO_GL(viewz);
+
+	gl_ApplyShader();
+	gl.Begin(GL_TRIANGLE_FAN);
+	float prj_fac1 = (planez-fviewz)/(ws->z1-fviewz);
+	float prj_fac2 = (planez-fviewz)/(ws->z2-fviewz);
+
+	float px1 = fviewx + prj_fac1 * (ws->x1-fviewx);
+	float py1 = fviewy + prj_fac1 * (ws->y1-fviewy);
+
+	float px2 = fviewx + prj_fac2 * (ws->x1-fviewx);
+	float py2 = fviewy + prj_fac2 * (ws->y1-fviewy);
+
+	float px3 = fviewx + prj_fac2 * (ws->x2-fviewx);
+	float py3 = fviewy + prj_fac2 * (ws->y2-fviewy);
+
+	float px4 = fviewx + prj_fac1 * (ws->x2-fviewx);
+	float py4 = fviewy + prj_fac1 * (ws->y2-fviewy);
+
+	gl.TexCoord2f(px1 / 64, -py1 / 64);
+	gl.Vertex3f(px1, planez, py1);
+
+	gl.TexCoord2f(px2 / 64, -py2 / 64);
+	gl.Vertex3f(px2, planez, py2);
+
+	gl.TexCoord2f(px3 / 64, -py3 / 64);
+	gl.Vertex3f(px3, planez, py3);
+
+	gl.TexCoord2f(px4 / 64, -py4 / 64);
+	gl.Vertex3f(px4, planez, py4);
+
+	gl.End();
+
+	gl.MatrixMode(GL_TEXTURE);
+	gl.PopMatrix();
+	gl.MatrixMode(GL_MODELVIEW);
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void GLDrawInfo::FloodUpperGap(seg_t * seg)
+{
+	wallseg ws;
+	sector_t ffake, bfake;
+	sector_t * fakefsector = gl_FakeFlat(seg->frontsector, &ffake, true);
+	sector_t * fakebsector = gl_FakeFlat(seg->backsector, &bfake, false);
+
+	vertex_t * v1, * v2;
+
+	// Although the plane can be sloped this code will only be called
+	// when the edge itself is not.
+	fixed_t backz = fakebsector->ceilingplane.ZatPoint(seg->v1);
+	fixed_t frontz = fakefsector->ceilingplane.ZatPoint(seg->v1);
+
+	if (fakebsector->GetTexture(sector_t::ceiling)==skyflatnum) return;
+	if (backz < viewz) return;
+
+	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	{
+		v1=seg->linedef->v1;
+		v2=seg->linedef->v2;
+	}
+	else
+	{
+		v1=seg->linedef->v2;
+		v2=seg->linedef->v1;
+	}
+
+	ws.x1= TO_GL(v1->x);
+	ws.y1= TO_GL(v1->y);
+	ws.x2= TO_GL(v2->x);
+	ws.y2= TO_GL(v2->y);
+
+	ws.z1= TO_GL(frontz);
+	ws.z2= TO_GL(backz);
+
+	// Step1: Draw a stencil into the gap
+	SetupFloodStencil(&ws);
+
+	// Step2: Project the ceiling plane into the gap
+	DrawFloodedPlane(&ws, ws.z2, fakebsector, true);
+
+	// Step3: Delete the stencil
+	ClearFloodStencil(&ws);
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void GLDrawInfo::FloodLowerGap(seg_t * seg)
+{
+	wallseg ws;
+	sector_t ffake, bfake;
+	sector_t * fakefsector = gl_FakeFlat(seg->frontsector, &ffake, true);
+	sector_t * fakebsector = gl_FakeFlat(seg->backsector, &bfake, false);
+
+	vertex_t * v1, * v2;
+
+	// Although the plane can be sloped this code will only be called
+	// when the edge itself is not.
+	fixed_t backz = fakebsector->floorplane.ZatPoint(seg->v1);
+	fixed_t frontz = fakefsector->floorplane.ZatPoint(seg->v1);
+
+
+	if (fakebsector->GetTexture(sector_t::floor) == skyflatnum) return;
+	if (fakebsector->GetPlaneTexZ(sector_t::floor) > viewz) return;
+
+	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	{
+		v1=seg->linedef->v1;
+		v2=seg->linedef->v2;
+	}
+	else
+	{
+		v1=seg->linedef->v2;
+		v2=seg->linedef->v1;
+	}
+
+	ws.x1= TO_GL(v1->x);
+	ws.y1= TO_GL(v1->y);
+	ws.x2= TO_GL(v2->x);
+	ws.y2= TO_GL(v2->y);
+
+	ws.z2= TO_GL(frontz);
+	ws.z1= TO_GL(backz);
+
+	// Step1: Draw a stencil into the gap
+	SetupFloodStencil(&ws);
+
+	// Step2: Project the ceiling plane into the gap
+	DrawFloodedPlane(&ws, ws.z1, fakebsector, false);
+
+	// Step3: Delete the stencil
+	ClearFloodStencil(&ws);
 }
 
 

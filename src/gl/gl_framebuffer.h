@@ -114,6 +114,7 @@ private:
 
 class GL1Renderer : public GLRendererBase
 {
+	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
 	void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *);
 	void ProcessSprite(AActor *thing, sector_t *sector);
 	void ProcessParticle(particle_t *part, sector_t *sector);

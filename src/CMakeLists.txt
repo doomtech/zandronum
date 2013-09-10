@@ -610,6 +610,7 @@ if( NOT NO_GL )
 		gl/common/glc_hirestex.cpp
 		gl/common/glc_hqresize.cpp
 		gl/common/glc_nodes.cpp
+		gl/common/glc_renderhacks.cpp
 		gl/common/glc_sections.cpp
 		gl/common/glc_texture.cpp
 		gl/common/glc_translate.cpp
@@ -630,7 +631,6 @@ if( NOT NO_GL )
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp
-		gl/gl_missingtexture.cpp
 		gl/gl_models.cpp
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
