@@ -44,8 +44,6 @@
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clipper.h"
-// [BB] Necessary to make GZDoom revision 361 compile.
-#include "gl/gl_renderstruct.h"
 
 #include "r_sky.h"
 
@@ -224,7 +222,7 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 
 static void DoSubsector(subsector_t * sub)
 {
-	int i;
+	unsigned int i;
 	sector_t * sector;
 	sector_t * fakesector;
 	sector_t fake;
@@ -249,7 +247,7 @@ static void DoSubsector(subsector_t * sub)
 
 	// [RH] Add particles
 	//int shade = LIGHT2SHADE((floorlightlevel + ceilinglightlevel)/2 + r_actualextralight);
-	for (i = ParticlesInSubsec[sub-subsectors]; i != NO_PARTICLE; i = Particles[i].snext)
+	for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
 	{
 		GLRenderer->ProcessParticle(&Particles[i], fakesector);
 	}

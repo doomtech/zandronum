@@ -8,6 +8,8 @@
 namespace GLRendererOld
 {
 
+	struct GLHorizonInfo;
+
 class GLWall
 {
 public:

@@ -117,4 +117,11 @@ public:
 extern Clipper clipper;
 
 
+// Used to speed up angle calculations during clipping
+extern int gl_anglecache;
+inline angle_t vertex_t::GetViewAngle()
+{
+	return angletime == gl_anglecache? viewangle : (angletime = gl_anglecache, viewangle = R_PointToAngle2(viewx, viewy, x,y));
+}
+
 #endif

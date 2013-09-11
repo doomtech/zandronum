@@ -42,7 +42,7 @@
 #include "gl/gl_include.h"
 #include "r_sky.h"
 #include "gl/common/glc_clock.h"
-#include "gl/gl_renderstruct.h"
+#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_shader.h"

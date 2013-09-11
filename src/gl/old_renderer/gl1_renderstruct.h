@@ -40,23 +40,23 @@
 #include "tarray.h"
 #include "templates.h"
 
-#include "gl/gl_values.h"
+#include "gl/old_renderer/gl1_values.h"
 #include "gl/gl_struct.h"
 
 struct F3DFloor;
 struct model_t;
-namespace GLREndererOld
-{
-	class FGLTexture;
-}
-
+struct FSpriteModelFrame;
+struct particle_t;
+class ADynamicLight;
 
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
 
 
+namespace GLRendererOld
+{
+class FGLTexture;
 struct GLDrawList;
-class ADynamicLight;
 
 
 enum HWRenderStyle
@@ -110,12 +110,6 @@ struct GLHorizonInfo
 	FColormap colormap;
 };
 
-
-struct FSpriteModelFrame;
-struct particle_t;
-
-namespace GLRendererOld
-{
 
 class GLWall;
 
@@ -212,15 +206,6 @@ public:
 
 
 }
-
-
-extern int gl_anglecache;
-inline angle_t vertex_t::GetViewAngle()
-{
-	return angletime == gl_anglecache? viewangle : (angletime = gl_anglecache, viewangle = R_PointToAngle2(viewx, viewy, x,y));
-}
-
-
 
 
 #endif

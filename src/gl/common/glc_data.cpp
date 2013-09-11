@@ -415,7 +415,7 @@ static void PrepareSectorData()
 	// The GL node builder produces screwed output when two-sided walls overlap with one-sides ones!
 	for(i=0;i<numsegs;i++)
 	{
-		int partner= segs[i].PartnerSeg-segs;
+		int partner= int(segs[i].PartnerSeg-segs);
 
 		if (partner<0 || partner>=numsegs || &segs[partner]!=segs[i].PartnerSeg)
 		{

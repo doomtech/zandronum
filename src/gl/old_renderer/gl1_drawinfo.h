@@ -1,7 +1,7 @@
 #ifndef __GL_DRAWINFO_H
 #define __GL_DRAWINFO_H
 
-#include "gl/gl_renderstruct.h"
+#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/common/glc_renderhacks.h"
 #include "gl/old_renderer/gl1_wall.h"
 

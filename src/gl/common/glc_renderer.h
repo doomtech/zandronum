@@ -2,6 +2,7 @@
 #define __GL_RENDERER_H
 
 #include "r_defs.h"
+#include "v_video.h"
 struct particle_t;
 class FCanvasTexture;
 
@@ -27,6 +28,17 @@ public:
 		mirrorline = NULL;
 	}
 	~GLRendererBase() {}
+
+	virtual void Initialize() = 0;
+	virtual void SetPaused() = 0;
+	virtual void UnsetPaused() = 0;
+
+	virtual void DrawTexture(FTexture *img, DCanvas::DrawParms &parms) = 0;
+	virtual void DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color) = 0;
+	virtual void DrawPixel(int x1, int y1, int palcolor, uint32 color) = 0;
+	virtual void Dim(PalEntry color, float damount, int x1, int y1, int w, int h) = 0;
+	virtual void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin) = 0;
+	virtual void Clear(int left, int top, int right, int bottom, int palcolor, uint32 color) = 0;
 
 	virtual void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector) = 0;
 	virtual void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *) = 0;

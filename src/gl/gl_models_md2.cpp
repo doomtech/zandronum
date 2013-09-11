@@ -44,8 +44,7 @@
 #include "m_crc32.h"
 #include "gl_models.h"
 #include "gl/old_renderer/gl1_texture.h"
-#include "gl_values.h"
-#include "gl_renderstruct.h"
+#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_shader.h"
 
 static float   avertexnormals[NUMVERTEXNORMALS][3] = {

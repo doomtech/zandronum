@@ -614,11 +614,13 @@ if( NOT NO_GL )
 		gl/common/glc_sections.cpp
 		gl/common/glc_texture.cpp
 		gl/common/glc_translate.cpp
+		gl/common/glc_wipe.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
 		gl/old_renderer/gl1_hwtexture.cpp
 		gl/old_renderer/gl1_portal.cpp
+		gl/old_renderer/gl1_renderer.cpp
 		gl/old_renderer/gl1_shader.cpp
 		gl/old_renderer/gl1_sky.cpp
 		gl/old_renderer/gl1_skydome.cpp
@@ -635,7 +637,6 @@ if( NOT NO_GL )
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
 		gl/gl_scene.cpp
-		gl/gl_wipe.cpp
 		gl/r_render/r_opengl.cpp
 	)
 else( NOT NO_GL )

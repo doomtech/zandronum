@@ -795,7 +795,7 @@ bool FRenderHackInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * ancho
 	if (!sub->degenerate) 
 	{
 		// Is not being rendered so don't bother.
-		if (!(ss_renderflags[sub-subsectors]&SSRF_PROCESSED)) return true;
+		if (!(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return true;
 
 		if (sub->render_sector->GetTexture(sector_t::floor) != anchor->GetTexture(sector_t::floor) ||
 			sub->render_sector->GetPlaneTexZ(sector_t::floor)!=anchor->GetPlaneTexZ(sector_t::floor) ||
@@ -897,7 +897,7 @@ bool FRenderHackInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anc
 	if (!sub->degenerate) 
 	{
 		// Is not being rendererd so don't bother.
-		if (!(ss_renderflags[sub-subsectors]&SSRF_PROCESSED)) return true;
+		if (!(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return true;
 
 		if (sub->render_sector->GetTexture(sector_t::ceiling)!=anchor->GetTexture(sector_t::ceiling) ||
 			sub->render_sector->GetPlaneTexZ(sector_t::ceiling)!=anchor->GetPlaneTexZ(sector_t::ceiling) ||
@@ -1051,7 +1051,7 @@ void FRenderHackInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * a
 	if (sub->render_sector->CeilingSkyBox && sub->render_sector->CeilingSkyBox->bAlways) return;
 
 	// Don't bother processing unrendered subsectors
-	if (sub->numlines>2 && !(ss_renderflags[sub-subsectors]&SSRF_PROCESSED)) return;
+	if (sub->numlines>2 && !(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return;
 
 	// Must be the exact same visplane
 	sector_t * me = sub->render_sector;
@@ -1098,7 +1098,7 @@ void FRenderHackInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anc
 	if (sub->render_sector->FloorSkyBox && sub->render_sector->FloorSkyBox->bAlways) return;
 
 	// Don't bother processing unrendered subsectors
-	if (sub->numlines>2 && !(ss_renderflags[sub-subsectors]&SSRF_PROCESSED)) return;
+	if (sub->numlines>2 && !(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return;
 
 	// Must be the exact same visplane
 	sector_t * me = sub->render_sector;
@@ -1159,7 +1159,7 @@ void FRenderHackInfo::ProcessSectorStacks()
 
 		for(unsigned int j=0;j<HandledSubsectors.Size();j++)
 		{				
-			ss_renderflags[HandledSubsectors[j]-subsectors] &= ~SSRF_RENDERCEILING;
+			ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERCEILING;
 
 			if (sub->render_sector->CeilingSkyBox->PlaneAlpha!=0)
 			{
@@ -1190,7 +1190,7 @@ void FRenderHackInfo::ProcessSectorStacks()
 		for(unsigned int j=0;j<HandledSubsectors.Size();j++)
 		{				
 			//Printf("%d: ss %d, sec %d\n", j, HandledSubsectors[j]-subsectors, HandledSubsectors[j]->render_sector->sectornum);
-			ss_renderflags[HandledSubsectors[j]-subsectors] &= ~SSRF_RENDERFLOOR;
+			ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERFLOOR;
 
 			if (sub->render_sector->FloorSkyBox->PlaneAlpha!=0)
 			{

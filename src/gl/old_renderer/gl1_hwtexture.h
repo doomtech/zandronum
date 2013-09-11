@@ -5,7 +5,7 @@
 #define SHADED_TEXTURE -1
 #define DIRECT_PALETTE -2
 
-#include "gl/gl_values.h"
+#include "gl/old_renderer/gl1_values.h"
 #include "tarray.h"
 
 class FCanvasTexture;

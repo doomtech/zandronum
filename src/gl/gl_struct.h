@@ -4,7 +4,7 @@
 #include "doomtype.h"
 #include "v_palette.h"
 #include "tarray.h"
-#include "gl_values.h"
+#include "gl/old_renderer/gl1_values.h"
 #include "textures/textures.h"
 
 struct vertex_t;

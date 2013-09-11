@@ -114,6 +114,17 @@ private:
 
 class GL1Renderer : public GLRendererBase
 {
+	void Initialize();
+	void SetPaused();
+	void UnsetPaused();
+
+	void DrawTexture(FTexture *img, DCanvas::DrawParms &parms);
+	void DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color);
+	void DrawPixel(int x1, int y1, int palcolor, uint32 color);
+	void Dim(PalEntry color, float damount, int x1, int y1, int w, int h);
+	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin);
+	void Clear(int left, int top, int right, int bottom, int palcolor, uint32 color);
+
 	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
 	void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *);
 	void ProcessSprite(AActor *thing, sector_t *sector);

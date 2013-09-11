@@ -46,7 +46,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_models.h"
-#include "gl/gl_renderstruct.h"
+#include "gl/old_renderer/gl1_renderstruct.h"
 
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"

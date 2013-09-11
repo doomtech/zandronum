@@ -1,6 +1,8 @@
 /*
 ** gl_wipe.cpp
 ** Screen wipe stuff
+** (This uses immediate mode and the fixed function pipeline 
+**  even if the new renderer is active)
 **
 **---------------------------------------------------------------------------
 ** Copyright 2008 Christoph Oelckers
@@ -43,18 +45,15 @@
 #include "f_wipe.h"
 #include "m_random.h"
 #include "w_wad.h"
-#include "gl/common/glc_templates.h"
-#include "gl/gl_struct.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_functions.h"
+#include "v_palette.h"
+#include "templates.h"
 #include "gl/gl_framebuffer.h"
+#include "gl/common/glc_templates.h"
 #include "gl/common/glc_translate.h"
-#include "gl/old_renderer/gl1_shader.h"
+#include "gl/old_renderer/gl1_hwtexture.h"	// uses this for convenience
 #include "vectors.h"
 
 EXTERN_CVAR(Bool, gl_vid_compatibility)
-
-using namespace GLRendererOld;
 
 //===========================================================================
 // 
@@ -95,7 +94,7 @@ public:
 private:
 	static const int WIDTH = 64, HEIGHT = 64;
 	BYTE BurnArray[WIDTH * (HEIGHT + 5)];
-	GLTexture *BurnTexture;
+	GLRendererOld::GLTexture *BurnTexture;
 	int Density;
 	int BurnTime;
 };
@@ -134,7 +133,7 @@ bool OpenGLFrameBuffer::WipeStartScreen(int type)
 		return false;
 	}
 
-	wipestartscreen = new GLTexture(Width, Height, false, false);
+	wipestartscreen = new GLRendererOld::GLTexture(Width, Height, false, false);
 	wipestartscreen->CreateTexture(NULL, Width, Height, false, 0, CM_DEFAULT);
 	gl.Finish();
 	wipestartscreen->Bind(0, CM_DEFAULT);
@@ -157,7 +156,7 @@ bool OpenGLFrameBuffer::WipeStartScreen(int type)
 
 void OpenGLFrameBuffer::WipeEndScreen()
 {
-	wipeendscreen = new GLTexture(Width, Height, false, false);
+	wipeendscreen = new GLRendererOld::GLTexture(Width, Height, false, false);
 	wipeendscreen->CreateTexture(NULL, Width, Height, false, 0, CM_DEFAULT);
 	gl.Flush();
 	wipeendscreen->Bind(0, CM_DEFAULT);
@@ -188,7 +187,9 @@ bool OpenGLFrameBuffer::WipeDo(int ticks)
 	{
 		return true;
 	}
-	gl_DisableShader();
+	// This code does all rendering itself so the renderer object needs to switch off
+	// all its current settings
+	GLRenderer->SetPaused();
 	bool done = ScreenWipe->Run(ticks, this);
 	//DrawLetterbox();
 	return done;
@@ -219,7 +220,7 @@ void OpenGLFrameBuffer::WipeCleanup()
 		delete wipeendscreen;
 		wipeendscreen = NULL;
 	}
-	gl_SetTextureMode(TM_MODULATE);
+	GLRenderer->UnsetPaused();
 }
 
 //==========================================================================
@@ -257,7 +258,7 @@ bool OpenGLFrameBuffer::Wiper_Crossfade::Run(int ticks, OpenGLFrameBuffer *fb)
 {
 	Clock += ticks;
 
-	gl_SetTextureMode(TM_OPAQUE);
+	gl.SetTextureMode(TM_OPAQUE);
 	gl.Disable(GL_ALPHA_TEST);
 	fb->wipestartscreen->Bind(0, CM_DEFAULT);
 	gl.Color4f(1.f, 1.f, 1.f, 1.f);
@@ -320,7 +321,7 @@ bool OpenGLFrameBuffer::Wiper_Melt::Run(int ticks, OpenGLFrameBuffer *fb)
 {
 
 	// Draw the new screen on the bottom.
-	gl_SetTextureMode(TM_OPAQUE);
+	gl.SetTextureMode(TM_OPAQUE);
 	fb->wipeendscreen->Bind(0, CM_DEFAULT);
 	gl.Color4f(1.f, 1.f, 1.f, 1.f);
 	gl.Begin(GL_TRIANGLE_STRIP);
@@ -385,7 +386,7 @@ bool OpenGLFrameBuffer::Wiper_Melt::Run(int ticks, OpenGLFrameBuffer *fb)
 			}
 		}
 	}
-	gl_SetTextureMode(TM_MODULATE);
+	gl.SetTextureMode(TM_MODULATE);
 	return done;
 }
 
@@ -440,7 +441,7 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 	}
 
 	if (BurnTexture != NULL) delete BurnTexture;
-	BurnTexture = new GLTexture(WIDTH, HEIGHT, false, false);
+	BurnTexture = new GLRendererOld::GLTexture(WIDTH, HEIGHT, false, false);
 
 	// Update the burn texture with the new burn data
 	BYTE rgb_buffer[WIDTH*HEIGHT*4];
@@ -457,7 +458,7 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 	}
 
 	// Put the initial screen back to the buffer.
-	gl_SetTextureMode(TM_OPAQUE);
+	gl.SetTextureMode(TM_OPAQUE);
 	gl.Disable(GL_ALPHA_TEST);
 	fb->wipestartscreen->Bind(0, CM_DEFAULT);
 	gl.Color4f(1.f, 1.f, 1.f, 1.f);
@@ -472,7 +473,7 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 	gl.Vertex2i(fb->Width, fb->Height);
 	gl.End();
 
-	gl_SetTextureMode(TM_MODULATE);
+	gl.SetTextureMode(TM_MODULATE);
 	gl.ActiveTexture(GL_TEXTURE1);
 	gl.Enable(GL_TEXTURE_2D);
 

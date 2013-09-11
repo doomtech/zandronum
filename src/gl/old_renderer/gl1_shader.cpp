@@ -40,7 +40,7 @@
 */
 #include "gl/gl_include.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_values.h"
+#include "gl/old_renderer/gl1_values.h"
 #include "c_cvars.h"
 #include "v_video.h"
 #include "name.h"
@@ -691,7 +691,7 @@ void gl_EnableFog(bool on)
 
 void gl_SetTextureMode(int which)
 {
-	if (which != gl_texturemode) gl.SetTextureMode(which);
+	if (which != gl_texturemode && which != -1) gl.SetTextureMode(which);
 	gl_texturemode = which;
 }
 

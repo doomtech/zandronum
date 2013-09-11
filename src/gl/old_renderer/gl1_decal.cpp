@@ -41,7 +41,7 @@
 #include "doomdata.h"
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
-#include "gl/gl_renderstruct.h"
+#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
