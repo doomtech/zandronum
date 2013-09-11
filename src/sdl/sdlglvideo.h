@@ -4,7 +4,7 @@
 #include "hardware.h"
 #include "v_video.h"
 #include <SDL.h>
-#include "gl/gl_pch.h"
+#include "gl/gl_include.h"
 
 extern int palette_brightness;
 

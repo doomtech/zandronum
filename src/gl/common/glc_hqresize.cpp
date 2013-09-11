@@ -34,7 +34,7 @@
 **
 */
 
-#include "gl/gl_pch.h"
+#include "gl/gl_include.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_texture.h"
 #include "gl/gl_intern.h"

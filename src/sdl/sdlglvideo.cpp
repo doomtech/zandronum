@@ -16,7 +16,7 @@
 #include "c_console.h"
 
 #include "sdlglvideo.h"
-#include "gl/gl_pch.h"
+#include "gl/gl_include.h"
 #include "r_defs.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_struct.h"

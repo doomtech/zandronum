@@ -10774,19 +10774,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_pch.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_renderstruct.h"
 					>
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_struct.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_system.h"
 					>
 				</File>
 				<File

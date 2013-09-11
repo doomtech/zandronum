@@ -42,7 +42,6 @@
 #include "c_dispatch.h"
 #include "p_local.h"
 #include "vectors.h"
-#include "gl/gl_system.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_data.h"
