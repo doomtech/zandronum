@@ -301,8 +301,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_MarineLook)
 //
 //============================================================================
 
-DEFINE_ACTION_FUNCTION(AActor, A_M_Saw)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_M_Saw)
 {
+	ACTION_PARAM_START(4);
+	ACTION_PARAM_SOUND(fullsound, 0);
+	ACTION_PARAM_SOUND(hitsound, 1);
+	ACTION_PARAM_INT(damage, 2);
+	ACTION_PARAM_CLASS(pufftype, 3);
+
 	// [BC] Don't do this in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -313,34 +319,36 @@ DEFINE_ACTION_FUNCTION(AActor, A_M_Saw)
 	if (self->target == NULL)
 		return;
 
+	if (pufftype == NULL) pufftype = PClass::FindClass(NAME_BulletPuff);
+	if (damage == 0) damage = 2;
+
 	A_FaceTarget (self);
 	if (self->CheckMeleeRange ())
 	{
 		angle_t 	angle;
-		int 		damage;
 		AActor		*linetarget;
 
-		damage = 2 * (pr_m_saw()%10+1);
+		damage *= (pr_m_saw()%10+1);
 		angle = self->angle + (pr_m_saw.Random2() << 18);
 		
 		P_LineAttack (self, angle, MELEERANGE+1,
 					P_AimLineAttack (self, angle, MELEERANGE+1, &linetarget), damage,
-					NAME_Melee, NAME_BulletPuff);
+					NAME_Melee, pufftype);
 
 		if (!linetarget)
 		{
-			S_Sound (self, CHAN_WEAPON, "weapons/sawfull", 1, ATTN_NORM);
+			S_Sound (self, CHAN_WEAPON, fullsound, 1, ATTN_NORM);
 
 			// [BC] If we're the server, tell clients to play this sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/sawfull", 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName ( fullsound ), 1, ATTN_NORM );
 			return;
 		}
-		S_Sound (self, CHAN_WEAPON, "weapons/sawhit", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, tell clients to play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/sawhit", 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName ( hitsound ), 1, ATTN_NORM );
 			
 		// turn to face target
 		angle = R_PointToAngle2 (self->x, self->y, linetarget->x, linetarget->y);
@@ -361,11 +369,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_M_Saw)
 	}
 	else
 	{
-		S_Sound (self, CHAN_WEAPON, "weapons/sawfull", 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, fullsound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, tell clients to play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/sawfull", 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName ( fullsound ), 1, ATTN_NORM );
 	}
 	//A_Chase (self);
 }

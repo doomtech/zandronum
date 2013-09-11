@@ -745,11 +745,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Explode)
 		return;
 	}
 
-	ACTION_PARAM_START(4);
+	ACTION_PARAM_START(5);
 	ACTION_PARAM_INT(damage, 0);
 	ACTION_PARAM_INT(distance, 1);
 	ACTION_PARAM_BOOL(hurtSource, 2);
 	ACTION_PARAM_BOOL(alert, 3);
+	ACTION_PARAM_INT(fulldmgdistance, 4);
 
 	if (damage < 0)	// get parameters from metadata
 	{
@@ -763,7 +764,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Explode)
 		if (distance <= 0) distance = damage;
 	}
 
-	P_RadiusAttack (self, self->target, damage, distance, self->DamageType, hurtSource);
+	P_RadiusAttack (self, self->target, damage, distance, self->DamageType, hurtSource, true, fulldmgdistance);
 	if (self->z <= self->floorz + (distance<<FRACBITS))
 	{
 		P_HitFloor (self);
