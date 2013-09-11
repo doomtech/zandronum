@@ -50,6 +50,7 @@
 EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
+area_t			in_area;
 
 //==========================================================================
 //

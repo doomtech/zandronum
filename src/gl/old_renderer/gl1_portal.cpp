@@ -46,6 +46,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/common/glc_clock.h"
+#include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/common/glc_clipper.h"

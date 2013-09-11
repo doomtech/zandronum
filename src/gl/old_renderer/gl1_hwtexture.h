@@ -11,10 +11,10 @@
 class FCanvasTexture;
 class AActor;
 
-void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
-
 namespace GLRendererOld
 {
+
+void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
 enum
 {
@@ -24,7 +24,7 @@ enum
 
 class GLTexture
 {
-	friend void ::gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
+	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
 	enum
 	{

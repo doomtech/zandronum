@@ -52,6 +52,11 @@ public:
 	virtual unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h) = 0;
 	virtual void SetupLevel() = 0;
 	virtual void CleanLevelData() = 0;
+
+	virtual void SetFixedColormap (player_t *player) = 0;
+	virtual void WriteSavePic (player_t *player, FILE *file, int width, int height) = 0;
+	virtual void RenderView (player_t* player) = 0;
+
 };
 
 // Global functions. Make them members of GLRendererBase later?

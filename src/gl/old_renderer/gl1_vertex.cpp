@@ -41,6 +41,7 @@
 
 #include "gl/gl_include.h"
 #include "gl/gl_struct.h"
+#include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"

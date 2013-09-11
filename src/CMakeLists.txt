@@ -621,6 +621,7 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_hwtexture.cpp
 		gl/old_renderer/gl1_portal.cpp
 		gl/old_renderer/gl1_renderer.cpp
+		gl/old_renderer/gl1_scene.cpp
 		gl/old_renderer/gl1_shader.cpp
 		gl/old_renderer/gl1_sky.cpp
 		gl/old_renderer/gl1_skydome.cpp
@@ -636,7 +637,6 @@ if( NOT NO_GL )
 		gl/gl_models.cpp
 		gl/gl_models_md2.cpp
 		gl/gl_models_md3.cpp
-		gl/gl_scene.cpp
 		gl/r_render/r_opengl.cpp
 	)
 else( NOT NO_GL )

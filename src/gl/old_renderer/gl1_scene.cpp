@@ -49,6 +49,7 @@
 #include "g_level.h"
 #include "r_interpolate.h"
 #include "gl/gl_struct.h"
+#include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
@@ -86,6 +87,13 @@ CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 void R_SetupFrame (AActor * camera);
 extern TexFilter_s TexFilter[];
 
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+extern char myGlBeginCharArray[4];
+int crashoutTic = 0;
+#endif
+
+// [BC] Blah. Not a great place to include this.
+EXTERN_CVAR (Float,  blood_fade_scalar)
 
 // Externals from gl_weapon.cpp
 namespace GLRendererOld
@@ -103,7 +111,6 @@ using namespace GLRendererOld;
 
 
 extern int viewpitch;
-int gl_anglecache;
  
 int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
 int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
@@ -117,16 +124,18 @@ glcycle_t ProcessAll;
 glcycle_t RenderAll;
 
 
-float viewvecX,viewvecY;
+
+namespace GLRendererOld
+{
 
 float roll     = 0.0f;
 float yaw      = 0.0f;
 float pitch    = 0.0f;
-
 DWORD			gl_fixedcolormap;
 float			currentFoV;
+float viewvecX,viewvecY;
 AActor *		viewactor;
-area_t			in_area;
+
 
 //-----------------------------------------------------------------------------
 //
@@ -176,7 +185,7 @@ static void gl_AddBlend (float r, float g, float b, float a, float v_blend[4])
 
 
 
-void gl_ResetViewport()
+static void gl_ResetViewport()
 {
 	int trueheight = static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
 	gl.Viewport(0, (trueheight-screen->GetHeight())/2, screen->GetWidth(), screen->GetHeight()); 
@@ -352,7 +361,6 @@ static void ProcessScene()
 	ProcessAll.Clock();
 
 	// clip the scene and fill the drawlists
-	gl_anglecache++;	// Need to recalculate vertex angles for new scene
 	gl_spriteindex=0;
 	gl_RenderBSPNode (nodes + numnodes - 1);
 
@@ -602,8 +610,6 @@ void gl_DrawScene()
 // here that would get lost if I switched back so I won't do it.
 //
 //==========================================================================
-// [BC] Blah. Not a great place to include this.
-EXTERN_CVAR (Float,  blood_fade_scalar)
 static void gl_DrawBlend(sector_t * viewsector)
 {
 	float blend[4]={0,0,0,0};
@@ -930,7 +936,7 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 //
 //-----------------------------------------------------------------------------
 
-void OpenGLFrameBuffer::SetFixedColormap (player_t *player)
+void GL1Renderer::SetFixedColormap (player_t *player)
 {
 	gl_fixedcolormap=CM_DEFAULT;
 
@@ -973,7 +979,7 @@ void OpenGLFrameBuffer::SetFixedColormap (player_t *player)
 //
 //===========================================================================
 
-void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, int height)
+void GL1Renderer::WriteSavePic (player_t *player, FILE *file, int width, int height)
 {
 	GL_IRECT bounds;
 
@@ -1008,12 +1014,7 @@ void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, i
 //
 //-----------------------------------------------------------------------------
 
-#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-extern char myGlBeginCharArray[4];
-int crashoutTic = 0;
-#endif
-
-void OpenGLFrameBuffer::RenderView (player_t* player)
+void GL1Renderer::RenderView (player_t* player)
 {       
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
@@ -1052,6 +1053,8 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 		}
 	}
 #endif
+
+	AActor *&LastCamera = static_cast<OpenGLFrameBuffer*>(screen)->LastCamera;
 
 	if (player->camera != LastCamera)
 	{
@@ -1102,6 +1105,8 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 
 	All.Unclock();
 }
+
+} // namespace
 
 //-----------------------------------------------------------------------------
 //

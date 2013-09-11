@@ -6,6 +6,7 @@
 #include "m_fixed.h"
 #include "tables.h"
 #include "textures/textures.h"
+#include "gl/old_renderer/gl1_renderer.h"
 
 class FArchive;
 
@@ -27,24 +28,8 @@ class DCanvas;
 union FRenderStyle;
 struct side_t;
 
-extern DWORD gl_fixedcolormap;
 
 // Light + color
-
-inline bool gl_isBlack(PalEntry color)
-{
-	return color.r + color.g + color.b == 0;
-}
-
-inline bool gl_isWhite(PalEntry color)
-{
-	return color.r + color.g + color.b == 3*0xff;
-}
-
-inline bool gl_isFullbright(PalEntry color, int lightlevel)
-{
-	return gl_fixedcolormap || (gl_isWhite(color) && lightlevel==255);
-}
 
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
@@ -79,47 +64,25 @@ int gl_GetLightMode ( );
 	const int gl_fogmode_CVAR_value = gl_fogmode; \
 	const int gl_fogmode = ( ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) && ( gl_fogmode_CVAR_value == 0 ) ) ? 1 : gl_fogmode_CVAR_value;
 
-// textures + sprites
-
-namespace GLRendererOld
+inline bool gl_isBlack(PalEntry color)
 {
-class FGLTexture;
-
-void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture);
-void gl_ClearShaders();
-void gl_EnableShader(bool on);
-
-void gl_SetTextureMode(int which);
-void gl_EnableFog(bool on);
-void gl_SetShaderLight(float level, float factor);
-void gl_SetCamera(float x, float y, float z);
-
-void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight);
-void gl_SetGlowPosition(float topdist, float bottomdist);
-
-void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime);
-
-void gl_ApplyShader();
-
-void gl_RecalcVertexHeights(vertex_t * v);
-void gl_InitVertexData();
-void gl_CleanVertexData();
+	return color.r + color.g + color.b == 0;
 }
 
+inline bool gl_isWhite(PalEntry color)
+{
+	return color.r + color.g + color.b == 3*0xff;
+}
+
+inline bool gl_isFullbright(PalEntry color, int lightlevel)
+{
+	return GLRendererOld::gl_fixedcolormap || (gl_isWhite(color) && lightlevel==255);
+}
+
+
+
 // Scene
-
-void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror, bool nosectorclear=false);
-void gl_SetViewArea();
-void gl_DrawScene();
-void gl_EndDrawScene();
-sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, bool mainview);
-void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height);
-void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
-angle_t gl_FrustumAngle();
-
 void gl_LinkLights();
-
-
 void gl_SetActorLights(AActor *);
 void gl_DeleteAllAttachedLights();
 void gl_RecreateAllAttachedLights();

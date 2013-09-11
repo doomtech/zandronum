@@ -41,6 +41,7 @@
 
 
 ClipNode * ClipNode::freelist;
+int Clipper::anglecache;
 
 
 //-----------------------------------------------------------------------------
@@ -97,6 +98,7 @@ void Clipper::Clear()
 	}
 	
 	cliphead = NULL;
+	anglecache++;
 }
 
 

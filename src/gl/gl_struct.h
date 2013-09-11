@@ -15,7 +15,10 @@ struct subsector_t;
 struct sector_t;
 struct FGLSection;
 
+namespace GLRendererOld
+{
 extern DWORD gl_fixedcolormap;
+}
 
 struct GL_RECT
 {
@@ -80,7 +83,7 @@ struct FColormap
 	void GetFixedColormap()
 	{
 		Clear();
-		LightColor.a = gl_fixedcolormap<CM_LIMIT? gl_fixedcolormap:CM_DEFAULT;
+		LightColor.a = GLRendererOld::gl_fixedcolormap<CM_LIMIT? GLRendererOld::gl_fixedcolormap:CM_DEFAULT;
 	}
 
 	FColormap & operator=(FDynamicColormap * from)

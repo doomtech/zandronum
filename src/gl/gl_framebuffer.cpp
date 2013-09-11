@@ -60,6 +60,7 @@
 #include "gl/common/glc_translate.h"
 #include "vectors.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
+#include "gl/old_renderer/gl1_renderer.h"
 // [BB] Added include.
 #ifdef _MSC_VER
 #include "../hqnx/hqnx.h"
@@ -523,4 +524,19 @@ void OpenGLFrameBuffer::ReleaseScreenshotBuffer()
 	ScreenshotBuffer = NULL;
 }
 
+
+void OpenGLFrameBuffer::SetFixedColormap (player_t *player)
+{
+	GLRenderer->SetFixedColormap(player);
+}
+
+void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, int height)
+{
+	GLRenderer->WriteSavePic(player, file, width, height);
+}
+
+void OpenGLFrameBuffer::RenderView (player_t* player)
+{
+	GLRenderer->RenderView(player);
+}
 

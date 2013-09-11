@@ -10643,6 +10643,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\gl\old_renderer\gl1_scene.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\gl\old_renderer\gl1_shader.cpp"
 				>
 			</File>
@@ -10691,6 +10695,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\old_renderer\gl1_portal.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\old_renderer\gl1_renderer.h"
 					>
 				</File>
 				<File
@@ -10743,10 +10751,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_models_md3.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_scene.cpp"
 					>
 				</File>
 				<File
