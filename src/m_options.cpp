@@ -361,8 +361,8 @@ static const char	   *OldMessage;
 static itemtype OldType;
 
 extern	IVideo	*Video;
-static	bool	g_bStringInput = false;
-static	char	g_szStringInputBuffer[64];
+/*static*/	bool	g_bStringInput = false;
+/*static*/	char	g_szStringInputBuffer[64];
 static	char	g_szWeaponPrefStringBuffer[20][64];
 
 int flagsvar;
@@ -5289,88 +5289,6 @@ void M_OptResponder(event_t *ev)
 		}
 	}
 
-	// User is currently inputting a string. Handle input for that here.
-	if ( g_bStringInput )
-	{
-		int ch = tolower (ev->data1);
-		ULONG	ulLength;
-
-		ulLength = (ULONG)strlen( g_szStringInputBuffer );
-
-		if ( ev->subtype == EV_GUI_KeyDown || ev->subtype == EV_GUI_KeyRepeat )
-		{
-			if ( ch == '\r' )
-			{
-				UCVarValue	Val;
-
-				V_ColorizeString( g_szStringInputBuffer );
-
-				if ( item->type == mnnumber )
-				{
-					Val.Int = atoi( g_szStringInputBuffer );
-					item->a.intcvar->ForceSet( Val, CVAR_Int );
-				}
-				else
-				{
-					Val.String = g_szStringInputBuffer;
-					item->a.stringcvar->ForceSet( Val, CVAR_String );
-				}
-
-				g_bStringInput = false;
-			}
-			else if ( ch == GK_ESCAPE )
-				g_bStringInput = false;
-			else if ( ch == '\b' )
-			{
-				if ( ulLength )
-					g_szStringInputBuffer[ulLength - 1] = '\0';
-			}
-			// Ctrl+C. 
-			else if ( ev->data1 == 'C' && ( ev->data3 & GKM_CTRL ))
-			{
-				I_PutInClipboard((char *)g_szStringInputBuffer );
-			}
-			// Ctrl+V.
-			else if ( ev->data1 == 'V' && ( ev->data3 & GKM_CTRL ))
-			{
-				FString clipString = I_GetFromClipboard (false);
-				if (clipString.IsNotEmpty())
-				{
-					const char *clip = clipString.GetChars();
-					// Only paste the first line.
-					while (*clip != '\0')
-					{
-						if (*clip == '\n' || *clip == '\r' || *clip == '\b')
-						{
-							break;
-						}
-						ulLength = (ULONG)strlen( g_szStringInputBuffer );
-						if ( ulLength < ( 64 - 2 ))
-						{
-							g_szStringInputBuffer[ulLength] = *clip++;
-							g_szStringInputBuffer[ulLength + 1] = '\0';
-						}
-						// [BB] We still need to increment the pointer, otherwise the while loop never ends.
-						else
-							*clip++;
-					}
-				}
-			}
-		}
-		else if ( ev->subtype == EV_GUI_Char )
-		{
-			if ( ulLength  < ( 64 - 2 ))
-			{
-				// Don't allow input of characters when entering a manual number.
-				if (( item->type != mnnumber ) || ( ev->data1 >= '0' && ev->data1 <= '9' ))
-				{
-					g_szStringInputBuffer[ulLength] = ev->data1;
-					g_szStringInputBuffer[ulLength + 1] = '\0';
-				}
-			}
-		}
-		return;
-	}
 }
 
 void M_OptButtonHandler(EMenuKey key, bool repeat)
