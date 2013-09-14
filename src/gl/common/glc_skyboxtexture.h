@@ -23,6 +23,7 @@ public:
 	}
 	~FSkyBox()
 	{
+		// The faces are only referenced but not owned so don't delete them.
 	}
 
 	// If something attempts to use this as a texture just pass the information of the first face.
@@ -61,5 +62,10 @@ public:
 	void PrecacheGL()
 	{
 		for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
+	}
+
+	bool Is3Face() const
+	{
+		return faces[5]==NULL;
 	}
 };

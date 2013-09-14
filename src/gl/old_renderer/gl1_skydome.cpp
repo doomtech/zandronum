@@ -69,50 +69,10 @@ namespace GLRendererOld
 {
 
 
-//===========================================================================
-// 
-//	Gets the average color of a texture for use as a sky cap color
-//
-//===========================================================================
-static PalEntry SkyCapColor(FTextureID texno, bool bottom)
-{
-	PalEntry col;
-
-	FTexture *tex = TexMan[texno];
-	if (!tex) return 0;
-
-	if (!tex->gl_info.bSkyColorDone)
-	{
-		tex->gl_info.bSkyColorDone = true;
-
-		FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-		if (tex)
-		{
-			int w;
-			int h;
-			unsigned char * buffer = gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
-
-			if (buffer)
-			{
-				tex->gl_info.CeilingSkyColor = averageColor((DWORD *) buffer, w * MIN(30, h), 0);
-				if (h>30)
-				{
-					tex->gl_info.FloorSkyColor = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, 0);
-				}
-				else tex->gl_info.FloorSkyColor = tex->gl_info.CeilingSkyColor;
-				delete buffer;
-			}
-		}
-	}
-	return bottom? tex->gl_info.FloorSkyColor : tex->gl_info.CeilingSkyColor;
-}
-
-
 
 
 // The texture offset to be applied to the texture coordinates in SkyVertex().
 static angle_t maxSideAngle = ANGLE_180 / 3;
-static float texoff;
 static int rows, columns;	
 static fixed_t scale = 10000 << FRACBITS;
 static bool yflip;
@@ -315,7 +275,7 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 
 	if (tex && !secondlayer) 
 	{
-		PalEntry pe = SkyCapColor(texno, false);
+		PalEntry pe = tex->tex->GetSkyCapColor(false);
 		if (CM_Index!=CM_DEFAULT) ModifyPalette(&pe, &pe, CM_Index, 1);
 
 		R=pe.r/255.0f;
@@ -351,7 +311,7 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 
 	if (tex && !secondlayer) 
 	{
-		PalEntry pe = SkyCapColor(texno, true);
+		PalEntry pe = tex->tex->GetSkyCapColor(true);
 		if (CM_Index!=CM_DEFAULT) ModifyPalette(&pe, &pe, CM_Index, 1);
 		R=pe.r/255.0f;
 		G=pe.g/255.0f;
@@ -587,7 +547,7 @@ void GLSkyPortal::DrawContents()
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl.PushMatrix();
-	gl_SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1), true);
+	gl_SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
 	if (origin->texture[0] && origin->texture[0]->tex->gl_info.bSkybox)
 	{

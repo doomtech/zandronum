@@ -252,6 +252,8 @@ protected:
 		bNoDecals = other->bNoDecals;
 		Rotations = other->Rotations;
 		gl_info = other->gl_info;
+		gl_info.Brightmap = NULL;
+		gl_info.areas = NULL;
 	}
 
 	static void FlipSquareBlock (BYTE *block, int x, int y);
@@ -290,6 +292,7 @@ public:
 	virtual void PrecacheGL();
 	virtual void UncacheGL();
 	void GetGlowColor(float *data);
+	PalEntry GetSkyCapColor(bool bottom);
 	bool isGlowing() { return gl_info.bGlowing; }
 	bool isFullbright() { return gl_info.bFullbright; }
 	void CreateDefaultBrightmap();

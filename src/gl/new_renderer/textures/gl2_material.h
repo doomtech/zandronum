@@ -69,11 +69,20 @@ class FMaterial
 
 public:
 	FMaterial(FTexture *tex, bool asSprite, int translation);
+	FMaterial();
 	~FMaterial();
 
 	void SetTempScale(float scalex, float scaley);
 
+	float GetU(int pos)
+	{
+		return (float)pos / mSizeUnits.w;
+	}
 
+	float GetV(int pos)
+	{
+		return (float)pos / mSizeUnits.h;
+	}
 
 	int GetWidth() const
 	{

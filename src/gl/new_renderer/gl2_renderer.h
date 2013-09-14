@@ -10,8 +10,10 @@ class FShaderContainer;
 class FGLTextureManager;
 class FMaterialContainer;
 class FMaterial;
+class FShader;
 class FGLTexture;
 class FPrimitiveBuffer2D;
+class FSkyDrawer;
 
 class GL2Renderer : public GLRendererBase
 {
@@ -20,14 +22,20 @@ public:
 	FGLTextureManager *mTextures;
 	TArray<FMaterialContainer *> mMaterials;
 	FPrimitiveBuffer2D *mRender2D;
+	FMaterialContainer *mDefaultMaterial;
+	FSkyDrawer *mSkyDrawer;
 
 	GL2Renderer() 
 	{
 		mShaders = NULL;
 		mTextures = NULL;
 		mRender2D = NULL;
+		mDefaultMaterial = NULL;
+		mSkyDrawer = NULL;
 	}
 	~GL2Renderer();
+
+	sector_t *RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview);
 
 	// renderer interface
 	void Initialize();
@@ -58,13 +66,19 @@ public:
 
 	void SetFixedColormap (player_t *player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);
-	void RenderView (player_t* player);
+	void RenderMainView (player_t *player, float fov, float ratio, float fovratio);
+	void SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
+	void ProcessScene();
+	void Flush();
+
+	void SetProjection(float fov, float ratio, float fovratio);
+	void SetViewMatrix(bool mirror, bool planemirror);
 
 	// renderer internal functions
 	FGLTexture *GetGLTexture(FTexture *tex, bool asSprite, int translation);
 	FMaterial *GetMaterial(FTexture *tex, bool asSprite, int translation);
 	FMaterial *GetMaterial(FTextureID texindex, bool animtrans, bool asSprite, int translation);
-
+	FShader *GetShader(const char *name);
 };
 
 // same as GLRenderer but with another type because this will be needed throughout the

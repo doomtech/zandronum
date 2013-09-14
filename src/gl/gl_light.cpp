@@ -741,7 +741,7 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 	}
 	else
 	{
-		if (gl_light_sprites && gl_lights && gl_lightcount && !fullbright)
+		if (gl_light_sprites && gl_lights && GLRenderer->mLightCount && !fullbright)
 		{
 			gl_SetSpriteLight(thing, lightlevel, rellight, cm, alpha, ThingColor, weapon);
 		}

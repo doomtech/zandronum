@@ -88,8 +88,11 @@ namespace GLRendererNew
 	{
 		bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
 		if (texformat == -1) texformat = GL_RGBA;
-		if (Bind(15))	// use the last texture unit for creation to avoid unbinding already bound textures
+		if (mTextureID != 0)
 		{
+			// use the last texture unit for creation to avoid unbinding already bound textures
+			gl.ActiveTexture(GL_TEXTURE0+15);
+			glBindTexture(GL_TEXTURE_2D, mTextureID);
 			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmapped && use_mipmapping);
 			glTexImage2D(GL_TEXTURE_2D, 0, texformat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
@@ -109,6 +112,7 @@ namespace GLRendererNew
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mipmapped? GL_REPEAT : GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mipmapped? GL_REPEAT : GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
+			gl.ActiveTexture(GL_TEXTURE0);
 			return true;
 		}
 		else return false;

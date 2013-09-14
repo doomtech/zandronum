@@ -21,18 +21,6 @@ namespace GLRendererOld
 extern DWORD gl_fixedcolormap;
 }
 
-struct GL_IRECT
-{
-	int left,top;
-	int width,height;
-
-
-	void Offset(int xofs,int yofs)
-	{
-		left+=xofs;
-		top+=yofs;
-	}
-};
 
 
   // for internal use

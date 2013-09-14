@@ -82,11 +82,11 @@ FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 
 	// a little adjustment to make sprites look better with texture filtering:
 	// create a 1 pixel wide empty frame around them.
-	if (tex->UseType == FTexture::TEX_Sprite || 
-		tex->UseType == FTexture::TEX_SkinSprite || 
-		tex->UseType == FTexture::TEX_Decal)
+	if (asSprite)
 	{
-		if (!tex->bWarped)
+		if (tex->UseType == FTexture::TEX_Sprite || 
+			tex->UseType == FTexture::TEX_SkinSprite || 
+			tex->UseType == FTexture::TEX_Decal)
 		{
 			mSizeTexels.w += 2;
 			mSizeTexels.h += 2;
@@ -145,9 +145,39 @@ FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 		{
 			shadername = "Default";
 		}
+		mShader = GLRenderer2->GetShader(shadername);
+		assert(mShader != NULL);
 	}
-	//mShader = GLRenderer2->GetShader(shadername);
 	mLayers.ShrinkToFit();
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+FMaterial::FMaterial()
+{
+	mSpeed = 0;
+
+	mSizeTexels.w = 1;
+	mSizeTexels.h = 1;
+
+	mSizeUnits.w = 1;
+	mSizeUnits.h = 1;
+
+	mOffsetTexels.x = 0;
+	mOffsetTexels.y = 0;
+
+	mOffsetUnits.x = 0;
+	mOffsetUnits.y = 0;
+
+	mTempScale.x = mDefaultScale.x = 1;
+	mTempScale.y = mDefaultScale.y = 1;
+
+	mShader = GLRenderer2->GetShader("SolidColor");
+	assert(mShader != NULL);
 }
 
 //===========================================================================
@@ -169,6 +199,8 @@ FMaterial::~FMaterial()
 
 void FMaterial::Bind(float *colormap, int texturemode, float desaturation, int clamp)
 {
+
+	assert(mShader != NULL);
 	mShader->Bind(colormap, texturemode, desaturation, mSpeed);
 	for(unsigned i=0;i<mLayers.Size();i++)
 	{
@@ -223,6 +255,11 @@ FMaterialContainer::~FMaterialContainer()
 FMaterial *FMaterialContainer::GetMaterial(bool asSprite, int translation)
 {
 	FMaterial ** mat;
+	if (mTexture == NULL)
+	{
+		if (mMatWorld == NULL) mMatWorld = new FMaterial;
+		return mMatWorld;
+	}
 	if (translation == 0)
 	{
 		if (!asSprite)
@@ -238,7 +275,12 @@ FMaterial *FMaterialContainer::GetMaterial(bool asSprite, int translation)
 	{
 		MaterialKey key(asSprite, translation);
 		if (mMatOthers == NULL) mMatOthers = new FMaterialMap;
-		mat = &(*mMatOthers)[key];
+		mat = mMatOthers->CheckKey(key);
+		if (mat == NULL)
+		{
+			mat = &(*mMatOthers)[key];
+			*mat = NULL;
+		}
 	}
 	if (*mat == NULL)
 	{

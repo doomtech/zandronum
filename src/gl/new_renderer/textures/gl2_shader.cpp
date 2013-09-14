@@ -30,11 +30,10 @@
 #include "i_system.h"
 #include "gl/new_renderer/textures/gl2_shader.h"
 
+extern long gl_frameMS;
 
 namespace GLRendererNew
 {
-int gl_frameMS;
-
 	//----------------------------------------------------------------------------
 	//
 	//
@@ -223,7 +222,7 @@ int gl_frameMS;
 			if (mColormapShader != NULL)
 			{
 				m2DShader = CreateShader("shaders/VertexShader2D.vp", "shaders/FragmentShader2D.fp", filename_pixfunc);
-				if (mColormapShader != NULL) return true;
+				if (m2DShader != NULL) return true;
 			}
 		}
 		Destroy();
@@ -240,26 +239,13 @@ int gl_frameMS;
 	{
 		FShaderObject *so;
 
-		if (cm == NULL)
-		{
-			if (desaturation >= 0)
-			{
-				so = mBaseShader;
-				so->setDesaturationFactor(desaturation);
-			}
-			else
-			{
-				so = m2DShader;
-			}
-		}
-		else
-		{
-			so = mColormapShader;
-			so->setColormapColor(cm);
-		}
+		so = cm? mColormapShader : desaturation > 0? mBaseShader : m2DShader;
+		mOwner->SetActiveShader(so);
+
+		if (cm != NULL) so->setColormapColor(cm);
+		else if (desaturation >= 0) so->setDesaturationFactor(desaturation);
 		so->setTextureMode(texturemode);
 		so->setTimer(gl_frameMS*Speed/1000.f);
-		mOwner->SetActiveShader(so);
 	}
 
 	//----------------------------------------------------------------------------
@@ -291,9 +277,9 @@ int gl_frameMS;
 				mShaders.Insert(i, shader);
 				return;
 			}
-			mShaders.Push(shader);
-			shader->mOwner = this;
 		}
+		mShaders.Push(shader);
+		shader->mOwner = this;
 	}
 
 	//----------------------------------------------------------------------------
@@ -311,6 +297,7 @@ int gl_frameMS;
 			"Brightmap", "shaders/ShaderFunc_Brightmap.fpi",
 			"AlphaShade", "shaders/ShaderFunc_AlphaShade.fpi",
 			"Intensity", "shaders/ShaderFunc_Intensity.fpi",
+			"SolidColor", "shaders/ShaderFunc_SolidColor.fpi",
 			NULL, NULL};
 
 		for(int i=0;shaderdefs[i]; i+=2)
@@ -320,6 +307,7 @@ int gl_frameMS;
 			{
 				delete shader;
 				if (i == 0) I_FatalError("Unable to create default shader");
+				else I_Error("Unable to create shader '%s'", shaderdefs[i]);
 			}
 			AddShader(shader);
 		}
@@ -338,7 +326,7 @@ int gl_frameMS;
 		int min = 0;
 		int max = mShaders.Size()-1;
 
-		while (min < max)
+		while (min <= max)
 		{
 			int mid = (min+max) >> 1;
 

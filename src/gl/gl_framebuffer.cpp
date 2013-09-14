@@ -193,11 +193,16 @@ void OpenGLFrameBuffer::InitializeState()
 
 void OpenGLFrameBuffer::Update()
 {
-	if (!CanUpdate()) return;
+	if (!CanUpdate()) 
+	{
+		GLRenderer->Flush();
+		return;
+	}
 
 	Begin2D(false);
 
 	DrawRateStuff();
+	GLRenderer->Flush();
 
 	if (GetTrueHeight() != GetHeight())
 	{
@@ -496,11 +501,6 @@ void OpenGLFrameBuffer::ReleaseScreenshotBuffer()
 	ScreenshotBuffer = NULL;
 }
 
-
-void OpenGLFrameBuffer::SetFixedColormap (player_t *player)
-{
-	GLRenderer->SetFixedColormap(player);
-}
 
 void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, int height)
 {

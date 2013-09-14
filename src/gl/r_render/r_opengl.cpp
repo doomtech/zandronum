@@ -242,6 +242,7 @@ static bool ReadInitExtensions()
 // 
 //
 //==========================================================================
+const char *wgl_extensions;
 
 #if !defined unix && !defined __APPLE__
 static void CollectExtensions(HDC m_hDC)
@@ -256,7 +257,7 @@ static void CollectExtensions()
 
 	if (wglGetExtString)
 	{
-		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(m_hDC);
+		wgl_extensions = supported = ((char*(__stdcall*)(HDC))wglGetExtString)(m_hDC);
 	}
 
 	if (supported)
@@ -467,8 +468,8 @@ static void APIENTRY LoadExtensions()
 		gl->BufferData				= (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBuffer");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
-		gl->EnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("EnableVertexAttribArray");
-		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("DisableVertexAttribArray");
+		gl->EnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
 		gl->VertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
 
 	}
@@ -500,6 +501,9 @@ static void APIENTRY PrintStartupLog()
 	Printf ("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 	Printf ("GL_VERSION: %s\n", glGetString(GL_VERSION));
 	Printf ("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
+#ifndef unix
+	Printf ("WGL_EXTENSIONS: %s\n", wgl_extensions);
+#endif
 }
 
 //==========================================================================

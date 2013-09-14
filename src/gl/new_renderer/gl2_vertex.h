@@ -28,6 +28,31 @@ struct FVertex2D
 	float x,y;
 	float u,v;
 	unsigned char r,g,b,a;
+
+	void set(float x, float y, float u, float v, int r, int g, int b, int a)
+	{
+		this->x = x;
+		this->y = y;
+		this->u = u;
+		this->v = v;
+		this->r = (unsigned char)r;
+		this->g = (unsigned char)g;
+		this->b = (unsigned char)b;
+		this->a = (unsigned char)a;
+	}
+
+	void set(int x, int y, float u, float v, int r, int g, int b, int a)
+	{
+		this->x = (float)x;
+		this->y = (float)y;
+		this->u = u;
+		this->v = v;
+		this->r = (unsigned char)r;
+		this->g = (unsigned char)g;
+		this->b = (unsigned char)b;
+		this->a = (unsigned char)a;
+	}
+
 };
 
 class FVertexBuffer
@@ -76,6 +101,7 @@ struct FPrimitive2D
 
 	FMaterial *mMaterial;
 	int mTextureMode;
+	float mAlphaThreshold;
 
 	int mSrcBlend;
 	int mDstBlend;
@@ -91,8 +117,9 @@ class FPrimitiveBuffer2D
 {
 	enum
 	{
-		BUFFER_INCREMENT = 1000,
-		BUFFER_MAXIMUM = 20000
+		BUFFER_START = 25000,	// This is what the full console initially needs so it's a good start.
+		BUFFER_INCREMENT = 5000,
+		BUFFER_MAXIMUM = 200000
 	};
 
 	TArray<FPrimitive2D> mPrimitives;
@@ -104,6 +131,7 @@ public:
 	FPrimitiveBuffer2D();
 	~FPrimitiveBuffer2D();
 	int NewPrimitive(int vertexcount, FPrimitive2D *&primptr, FVertex2D *&vertptr);
+	bool CheckPrimitive(int type, int newvertexcount, FVertex2D *&vertptr);
 	void Flush();
 };
 

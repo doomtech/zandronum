@@ -328,7 +328,7 @@ void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm, Matrix3x4 *mod
 	/*
 	if(info.numLODs > 1 && rend_model_lod != 0)
 	{
-	float   lodFactor = rend_model_lod * screen->Width() / 640.0f / (currentFoV / 90.0f);
+	float   lodFactor = rend_model_lod * screen->Width() / 640.0f / (GLRenderer->mCurrentFoV / 90.0f);
 	if(lodFactor) lodFactor = 1 / lodFactor;
 
 	// Determine the LOD we will be using.

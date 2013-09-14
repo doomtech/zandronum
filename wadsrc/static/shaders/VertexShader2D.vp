@@ -12,17 +12,6 @@ attribute vec4 aGlowBottomColor;
 void main()
 {
 	gl_FrontColor = gl_Color;	/* lightcolor */
-
-	vec4 eyeCoordPos = gl_ModelViewMatrix * gl_Vertex;
-	fogcoord = -eyeCoordPos.z/eyeCoordPos.w;
-	pixelpos = gl_Vertex.xyz;
-	
-	LightParams = aLightParams;	
-	FogColor = aFogColor;
-	GlowDistance = aGlowDistance;
-	GlowTopColor = aGlowTopColor;
-	GlowBottomColor = aGlowBottomColor;
-
 	gl_TexCoord[0] = gl_MultiTexCoord0 /* texcoord */;
 	gl_Position = ftransform();
 }

@@ -1,0 +1,8 @@
+vec4 GetPixelLight();
+vec4 ApplyPixelFog(vec4 pix);
+	
+vec4 ProcessPixel()
+{
+	vec4 light = GetPixelLight();
+	return ApplyPixelFog(vec4(1.0,1.0,1.0,1.0) * light);
+}

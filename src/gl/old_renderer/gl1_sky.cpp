@@ -53,7 +53,6 @@
 EXTERN_CVAR(Bool, gl_notexturefill);
 CVAR(Bool,gl_noskyboxes, false, 0)
 extern int skyfog;
-extern float gl_sky1pos, gl_sky2pos;
 
 namespace GLRendererOld
 {
@@ -90,7 +89,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 {
 	// JUSTHIT is used as an indicator that a skybox is in use.
 	// This is to avoid recursion
-	if (!gl_noskyboxes && !(gl.flags&RFL_NOSTENCIL) && skyboxx && viewactor!=skyboxx && !(skyboxx->flags&MF_JUSTHIT))
+	if (!gl_noskyboxes && !(gl.flags&RFL_NOSTENCIL) && skyboxx && GLRenderer->mViewActor!=skyboxx && !(skyboxx->flags&MF_JUSTHIT))
 	{
 		if (!skyboxx->Mate) 
 		{
@@ -148,7 +147,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			{
 				skyinfo.texture[1]=FGLTexture::ValidateTexture(sky1texture);
 				if (!skyinfo.texture[1]) return;
-				skyinfo.x_offset[1] = gl_sky1pos;
+				skyinfo.x_offset[1] = GLRenderer->mSky1Pos;
 				skyinfo.doublesky = true;
 			}
 			
@@ -157,13 +156,13 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			{
 				skyinfo.texture[0]=FGLTexture::ValidateTexture(sky2texture);
 				skyinfo.skytexno1=sky2texture;
-				skyinfo.x_offset[0] = gl_sky2pos;
+				skyinfo.x_offset[0] = GLRenderer->mSky2Pos;
 			}
 			else
 			{
 				skyinfo.texture[0]=FGLTexture::ValidateTexture(sky1texture);
 				skyinfo.skytexno1=sky1texture;
-				skyinfo.x_offset[0] = gl_sky1pos;
+				skyinfo.x_offset[0] = GLRenderer->mSky1Pos;
 			}
 			if (!skyinfo.texture[0]) return;
 

@@ -3,6 +3,8 @@
 
 #include "r_defs.h"
 #include "v_video.h"
+#include "vectors.h"
+
 struct particle_t;
 class FCanvasTexture;
 
@@ -16,18 +18,57 @@ enum SectorRenderFlags
 	SSRF_PROCESSED=8,
 };
 
+struct GL_IRECT
+{
+	int left,top;
+	int width,height;
+
+
+	void Offset(int xofs,int yofs)
+	{
+		left+=xofs;
+		top+=yofs;
+	}
+};
+
 
 class GLRendererBase
 {
 public:
 
 	line_t * mirrorline;
+	int mMirrorCount;
+	int mPlaneMirrorCount;
+	bool mLightCount;
+	float mCurrentFoV;
+	AActor *mViewActor;
+
+	float mSky1Pos, mSky2Pos;
+
+	FRotator mAngles;
+	FVector2 mViewVector;
+	FVector3 mCameraPos;
+
+
 
 	GLRendererBase() 
 	{
 		mirrorline = NULL;
+		mMirrorCount = 0;
+		mPlaneMirrorCount = 0;
+		mLightCount = 0;
+		mAngles = FRotator(0,0,0);
+		mViewVector = FVector2(0,0);
+		mCameraPos = FVector3(0,0,0);
 	}
 	~GLRendererBase() {}
+
+	angle_t FrustumAngle();
+	void SetViewArea();
+	void SetViewport(GL_IRECT *bounds);
+	sector_t *RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview);
+	void RenderView(player_t *player);
+	void SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
 
 	virtual void Initialize() = 0;
 	virtual void SetPaused() = 0;
@@ -57,7 +98,13 @@ public:
 
 	virtual void SetFixedColormap (player_t *player) = 0;
 	virtual void WriteSavePic (player_t *player, FILE *file, int width, int height) = 0;
-	virtual void RenderView (player_t* player) = 0;
+	virtual void RenderMainView (player_t *player, float fov, float ratio, float fovratio) = 0;
+	virtual void Flush() {}
+
+	virtual void SetProjection(float fov, float ratio, float fovratio) = 0;
+	virtual void SetViewMatrix(bool mirror, bool planemirror) = 0;
+	virtual void ProcessScene() = 0;
+
 
 };
 

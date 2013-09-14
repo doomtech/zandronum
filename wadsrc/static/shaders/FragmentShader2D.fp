@@ -14,6 +14,19 @@ vec4 ProcessPixel();
 
 //===========================================================================
 //
+// Applies texture mode
+//
+//===========================================================================
+
+vec4 ApplyTextureMode(vec4 texel)
+{
+	if (texturemode == 2) texel.a=1.0;
+	else if (texturemode == 1) texel.rgb = vec3(1.0,1.0,1.0);
+	return texel;
+}
+
+//===========================================================================
+//
 // Calculates light color for a pixel - always constant for 2D
 //
 //===========================================================================
@@ -54,7 +67,5 @@ vec4 ApplyPixelFog(vec4 pixin)
 void main()
 {
 	vec4 texel = ProcessPixel();	// ProcessPixel is the shader specific routine which is located in a separate file.
-	if (texturemode == 1) texel.a=1.0;
-	else if (texturemode == 2) texel.rgb = gl_Color.rgb;
 	gl_FragColor = texel;
 }

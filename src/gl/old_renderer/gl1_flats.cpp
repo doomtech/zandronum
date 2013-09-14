@@ -389,7 +389,7 @@ inline void GLFlat::PutFlat(bool fog)
 		{
 			foggy = !gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE;
 
-			if (gl_lights && gl_lightcount)	// Are lights touching this sector?
+			if (gl_lights && GLRenderer->mLightCount)	// Are lights touching this sector?
 			{
 				for(int i=0;i<sector->subsectorcount;i++) if (sector->subsectors[i]->lighthead[0] != NULL)
 				{

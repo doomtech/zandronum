@@ -13,6 +13,8 @@ glcycle_t RenderWall,SetupWall,ClipWall;
 glcycle_t RenderFlat,SetupFlat;
 glcycle_t RenderSprite,SetupSprite;
 glcycle_t All, Finish, PortalAll;
+glcycle_t ProcessAll;
+glcycle_t RenderAll;
 int vertexcount, flatvertices, flatprimitives;
 
 

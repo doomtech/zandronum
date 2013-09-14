@@ -48,6 +48,7 @@
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
+#include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_portal.h"
@@ -204,7 +205,7 @@ void GLSprite::Draw(int pass)
 	{
 		// [BB] Billboard stuff
 		const bool drawWithXYBillboard = ( !(actor && actor->renderflags & RF_FORCEYBILLBOARD)
-		                                   && players[consoleplayer].camera
+		                                   && GLRenderer->mViewActor != NULL
 		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
 		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_STRIP);
@@ -216,12 +217,12 @@ void GLSprite::Draw(int pass)
 			float xcenter = (x1+x2)*0.5;
 			float ycenter = (y1+y2)*0.5;
 			float zcenter = (z1+z2)*0.5;
-			float angleRad = ANGLE_TO_RAD(players[consoleplayer].camera->angle);
+			float angleRad = FLOAT_TO_RAD(GLRenderer->mAngles.Yaw);
 			
 			Matrix3x4 mat;
 			mat.MakeIdentity();
 			mat.Translate( xcenter, zcenter, ycenter);
-			mat.Rotate(-sin(angleRad), 0, cos(angleRad),-ANGLE_TO_FLOAT(players[consoleplayer].camera->pitch));
+			mat.Rotate(-sin(angleRad), 0, cos(angleRad), -GLRenderer->mAngles.Pitch);
 			mat.Translate( -xcenter, -zcenter, -ycenter);
 			Vector v1 = mat * Vector(x1,z1,y1);
 			Vector v2 = mat * Vector(x2,z1,y2);
@@ -431,7 +432,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	sector_t rs;
 	sector_t * rendersector;
 	// don't draw the thing that's used as camera (for viewshifts during quakes!)
-	if (thing==viewactor) return;
+	if (thing==GLRenderer->mViewActor) return;
 
  	// invisible things
 	if (thing->sprite==0) return;
@@ -465,7 +466,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	}
 
 	// don't draw first frame of a player missile
-	if (thing->flags&MF_MISSILE && thing->target==viewactor && viewactor != NULL)
+	if (thing->flags&MF_MISSILE && thing->target==GLRenderer->mViewActor && GLRenderer->mViewActor != NULL)
 	{
 		if (P_AproxDistance(thingx-viewx, thingy-viewy) < thing->Speed ) return;
 	}
@@ -576,6 +577,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 				z1-=diff;
 			}
 		}
+		float viewvecX = GLRenderer->mViewVector.X;
+		float viewvecY = GLRenderer->mViewVector.Y;
 
 		x1=x-viewvecY*leftfac;
 		x2=x-viewvecY*rightfac;
@@ -855,6 +858,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	// [BB] The smooth particles are smaller than the other ones. Compensate for this here.
 	if (gl_particles_style==2)
 		scalefac *= 1.7;
+
+	float viewvecX = GLRenderer->mViewVector.X;
+	float viewvecY = GLRenderer->mViewVector.Y;
 
 	x1=x+viewvecY*scalefac;
 	x2=x-viewvecY*scalefac;

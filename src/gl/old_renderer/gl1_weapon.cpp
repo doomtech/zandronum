@@ -165,7 +165,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	player_t * player=playermo->player;
 	
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
-		viewactor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
+		GLRenderer->mViewActor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
 
 	P_BobWeapon (player, &player->psprites[ps_weapon], &ofsx, &ofsy);
 
@@ -277,7 +277,7 @@ void gl_DrawTargeterSprites()
 	player_t * player=playermo->player;
 	
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
-		viewactor!=playermo) return;
+		GLRenderer->mViewActor!=playermo) return;
 
 	gl_EnableBrightmap(false);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

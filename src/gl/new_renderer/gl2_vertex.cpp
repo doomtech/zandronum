@@ -161,6 +161,7 @@ void FPrimitive2D::Draw()
 
 	gl.BlendEquation(mBlendEquation);
 	gl.BlendFunc(mSrcBlend, mDstBlend);
+	gl.AlphaFunc(GL_GEQUAL, mAlphaThreshold);
 
 	if (mUseScissor)
 	{
@@ -191,8 +192,8 @@ void FPrimitive2D::Draw()
 FPrimitiveBuffer2D::FPrimitiveBuffer2D()
 {
 	mCurrentVertexIndex = 0;
-	mCurrentVertexBufferSize = BUFFER_INCREMENT;
-	mVertexBuffer = new FVertexBuffer2D(BUFFER_INCREMENT);
+	mCurrentVertexBufferSize = BUFFER_START;
+	mVertexBuffer = new FVertexBuffer2D(BUFFER_START);
 }
 
 //----------------------------------------------------------------------------
@@ -218,9 +219,13 @@ int FPrimitiveBuffer2D::NewPrimitive(int numvertices, FPrimitive2D *&primptr, FV
 	{
 		// The vertex buffer is full. We have to flush all accumulated primitives,
 		// resize the buffer and continue.
+
 		Flush();
 		if (mCurrentVertexBufferSize < BUFFER_MAXIMUM)
+		{
 			mCurrentVertexBufferSize += BUFFER_INCREMENT;
+			mVertexBuffer->ChangeSize(mCurrentVertexBufferSize);
+		}
 	}
 
 	if (mCurrentVertexIndex == 0)
@@ -228,14 +233,38 @@ int FPrimitiveBuffer2D::NewPrimitive(int numvertices, FPrimitive2D *&primptr, FV
 		mVertexBuffer->Bind();
 		mVertexBuffer->Map();
 	}
-	
+
+	int primindex = mPrimitives.Reserve(1);
+	primptr = &mPrimitives[primindex];
+	primptr->mPrimitiveType = -1;	// make it invalid
+	primptr->mVertexStart = mCurrentVertexIndex;
+	primptr->mVertexCount = numvertices;
 	vertptr = mVertexBuffer->GetVertexPointer(mCurrentVertexIndex);
+
 	mCurrentVertexIndex += numvertices;
 
-	int vtindex = mPrimitives.Reserve(1);
-	FPrimitive2D *prim = &mPrimitives[vtindex];
-	prim->mPrimitiveType = -1;	// make it invalid
-	return vtindex;
+	return primindex;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+bool FPrimitiveBuffer2D::CheckPrimitive(int type, int newvertexcount, FVertex2D *&vertptr)
+{
+	int primindex = mPrimitives.Size()-1;
+	FPrimitive2D *primptr = &mPrimitives[primindex];
+
+	if (primptr->mPrimitiveType == type)
+	{
+		primptr->mVertexCount += newvertexcount;
+		vertptr = mVertexBuffer->GetVertexPointer(mCurrentVertexIndex);
+		mCurrentVertexIndex += newvertexcount;
+		return true;
+	}
+	return false;
 }
 
 //----------------------------------------------------------------------------

@@ -26,7 +26,6 @@ class FGLTexture
 	unsigned char *LoadHiresTexture(int *width, int *height);
 
 
-	unsigned char * CreateTexBuffer(int translation, int &w, int &h);
 	void CheckHires();
 	
 
@@ -37,6 +36,7 @@ public:
 	void Bind(int textureunit, int clamp);
 	bool CreateHardwareTexture(unsigned char * buffer, int w, int h, int format);
 	void Flush();
+	unsigned char * CreateTexBuffer(int translation, int &w, int &h);
 
 
 };

@@ -181,10 +181,15 @@ namespace GLRendererNew
 
 		if (mAsSprite)
 		{
-			W+=2;
-			H+=2;
-			xofs++;
-			yofs++;
+			if (mGameTexture->UseType == FTexture::TEX_Sprite || 
+				mGameTexture->UseType == FTexture::TEX_SkinSprite || 
+				mGameTexture->UseType == FTexture::TEX_Decal)
+			{
+				W+=2;
+				H+=2;
+				xofs++;
+				yofs++;
+			}
 		}
 		w=W;
 		h=H;
@@ -280,10 +285,10 @@ namespace GLRendererNew
 	FGLTexture *FGLTextureManager::GetTexture(FTexture *gametex, bool asSprite, int translation)
 	{
 		TexManKey key(gametex, asSprite, translation);
-		FGLTexture *&texaddr = mGLTextures[key];
-		if (texaddr != NULL) return texaddr;
+		FGLTexture **ptexaddr = mGLTextures.CheckKey(key);
+		if (ptexaddr != NULL) return *ptexaddr;
 
-		texaddr = new FGLTexture;
+		FGLTexture *texaddr = new FGLTexture;
 		if (!texaddr->Create(gametex, asSprite, translation))
 		{
 			delete texaddr;
