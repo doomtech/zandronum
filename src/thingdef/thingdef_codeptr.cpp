@@ -1582,6 +1582,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 }
 
 
+enum
+{	
+	RAF_SILENT = 1,
+	RAF_NOPIERCE = 2
+};
+
 //==========================================================================
 //
 // customizable railgun attack function
@@ -1595,9 +1601,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 	ACTION_PARAM_BOOL(UseAmmo, 2);
 	ACTION_PARAM_COLOR(Color1, 3);
 	ACTION_PARAM_COLOR(Color2, 4);
-	ACTION_PARAM_BOOL(Silent, 5);
+	ACTION_PARAM_INT(Flags, 5);
 	ACTION_PARAM_FLOAT(MaxDiff, 6);
-	ACTION_PARAM_CLASS(PuffType, 7);
+	ACTION_PARAM_CLASS(PuffType, 7);	
 
 	if (!self->player) return;
 
@@ -1618,7 +1624,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 			return;
 	}
 
-	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffType);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, (Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)));
 }
 
 //==========================================================================
@@ -1640,7 +1646,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 	ACTION_PARAM_INT(Spawnofs_XY, 1);
 	ACTION_PARAM_COLOR(Color1, 2);
 	ACTION_PARAM_COLOR(Color2, 3);
-	ACTION_PARAM_BOOL(Silent, 4);
+	ACTION_PARAM_INT(Flags, 4);
 	ACTION_PARAM_INT(aim, 5);
 	ACTION_PARAM_FLOAT(MaxDiff, 6);
 	ACTION_PARAM_CLASS(PuffType, 7);
@@ -1703,7 +1709,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 
 	angle_t angle = (self->angle - ANG90) >> ANGLETOFINESHIFT;
 
-	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffType);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, (Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)));
 
 	self->x = saved_x;
 	self->y = saved_y;

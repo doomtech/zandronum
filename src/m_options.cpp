@@ -51,6 +51,7 @@
 
 #include "i_music.h"
 #include "i_input.h"
+#include "m_joy.h"
 
 #include "v_video.h"
 #include "v_text.h"
@@ -4518,6 +4519,7 @@ void M_OptDrawer ()
 
 		if (item->type != screenres && item->type != browserslot)
 		{
+			FString somestring;
 			const char *label;
 			if (item->type != discrete_joy)
 			{
@@ -4531,7 +4533,8 @@ void M_OptDrawer ()
 				}
 				else
 				{
-					label = (*item->e.joyvalues)[item->a.joyselection]->GetName();
+					somestring = (*item->e.joyvalues)[item->a.joyselection]->GetName();
+					label = somestring;
 				}
 			}
 			width = SmallFont->StringWidth(label);

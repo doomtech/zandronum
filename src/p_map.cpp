@@ -4681,7 +4681,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	}
 }
 
-void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff)
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff, bool pierce)
 {
 	// [BB] Sanity check.
 	if ( source == NULL )
@@ -4716,7 +4716,7 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 	// [BB] Recall ulConsecutiveRailgunHits from before the attack to handle medals.
 	const ULONG ulConsecutiveRailgunHitsBefore = ( source->player ) ? source->player->ulConsecutiveRailgunHits : 0;
 
-	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
+	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
 
 	// [BB] Apply spread and handle the Railgun medals.
 	if (NULL != source->player )
@@ -4728,11 +4728,11 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			SavedActorAngle = source->angle;
 
 			source->angle += ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
 			source->angle = SavedActorAngle;
 
 			source->angle -= ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
 			source->angle = SavedActorAngle;
 		}
 

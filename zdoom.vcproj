@@ -1911,6 +1911,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\m_joy.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\m_menu.cpp"
 				>
 				<FileConfiguration
@@ -4620,6 +4624,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\m_joy.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\m_menu.h"
 				>
 			</File>
@@ -5429,6 +5437,10 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\win32\i_rawps2.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\src\win32\I_system.cpp"
