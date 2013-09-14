@@ -120,6 +120,7 @@ public:
 	bool WndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT *result);
 	void AddAxes(float axes[NUM_JOYAXIS]);
 	void GetDevices(TArray<IJoystickConfig *> &sticks);
+	IJoystickConfig *Rescan();
 
 protected:
 	HMODULE XInputDLL;
@@ -135,6 +136,13 @@ protected:
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
+
+CUSTOM_CVAR(Bool, joy_xinput, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE|CVAR_NOINITCALL)
+{
+	I_StartupXInput();
+	event_t ev = { EV_DeviceChange };
+	D_PostEvent(&ev);
+}
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -259,7 +267,7 @@ void FXInputController::ProcessThumbstick(int value, AxisInfo *axis, int base)
 	BYTE buttonstate;
 	double axisval;
 	
-	axisval = (value - SHRT_MIN) * 2.0 / (SHRT_MAX - SHRT_MIN) - 1.0;
+	axisval = (value - SHRT_MIN) * 2.0 / 65536 - 1.0;
 	axisval = Joy_RemoveDeadZone(axisval, axis->DeadZone, &buttonstate);
 	Joy_GenerateButtonEvents(axis->ButtonValue, buttonstate, 2, base);
 	axis->ButtonValue = buttonstate;
@@ -346,18 +354,10 @@ void FXInputController::Detached()
 
 void FXInputController::AddAxes(float axes[NUM_JOYAXIS])
 {
-	float mul = Multiplier;
-	int i;
-
-	if (Button_Speed.bDown)
-	{
-		mul *= 0.5f;
-	}
-
 	// Add to game axes.
-	for (i = 0; i < NUM_AXES; ++i)
+	for (int i = 0; i < NUM_AXES; ++i)
 	{
-		axes[Axes[i].GameAxis] -= float(Axes[i].Value * mul * Axes[i].Multiplier);
+		axes[Axes[i].GameAxis] -= float(Axes[i].Value * Multiplier * Axes[i].Multiplier);
 	}
 }
 
@@ -736,16 +736,42 @@ bool FXInputManager::WndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 //===========================================================================
 //
+// FXInputManager :: Rescan
+//
+//===========================================================================
+
+IJoystickConfig *FXInputManager::Rescan()
+{
+	return NULL;
+}
+
+//===========================================================================
+//
 // I_StartupXInput
 //
 //===========================================================================
 
 void I_StartupXInput()
 {
-	FJoystickCollection *joys = new FXInputManager;
-	if (joys->GetDevice())
+	if (!joy_xinput || !use_joystick || Args->CheckParm("-nojoy"))
 	{
-		JoyDevices[INPUT_XInput] = joys;
+		if (JoyDevices[INPUT_XInput] != NULL)
+		{
+			delete JoyDevices[INPUT_XInput];
+			JoyDevices[INPUT_XInput] = NULL;
+			UpdateJoystickMenu(NULL);
+		}
+	}
+	else
+	{
+		if (JoyDevices[INPUT_XInput] == NULL)
+		{
+			FJoystickCollection *joys = new FXInputManager;
+			if (joys->GetDevice())
+			{
+				JoyDevices[INPUT_XInput] = joys;
+			}
+		}
 	}
 }
 

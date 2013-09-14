@@ -68,4 +68,9 @@ public:
 	{
 		return faces[5]==NULL;
 	}
+
+	bool IsFlipped() const
+	{
+		return fliptop;
+	}
 };

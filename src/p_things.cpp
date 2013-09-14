@@ -51,6 +51,8 @@
 #include "team.h"
 #include "a_keys.h"
 #include "invasion.h"
+#include "cl_demo.h"
+#include "cooperative.h"
 
 // List of spawnable things for the Thing_Spawn and Thing_Projectile specials.
 const PClass *SpawnableThings[MAX_SPAWNABLES];
@@ -570,6 +572,83 @@ void P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool
 		// [Dusk] Update momentum
 		SERVER_UpdateThingMomentum( actor, true );
 	}
+}
+
+// [BB] Added bIgnorePositionCheck: If the server instructs the client to raise
+// a thing with SERVERCOMMANDS_SetThingState, the client has to ignore the
+// P_CheckPosition check. For example this is relevant if an Archvile raised
+// the thing.
+bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
+{
+	if (thing == NULL)
+		return false;	// not valid
+
+	if (!(thing->flags & MF_CORPSE) )
+		return true;	// not a corpse
+	
+	if (thing->tics != -1)
+		return true;	// not lying still yet
+	
+	FState * RaiseState = thing->FindState(NAME_Raise);
+	if (RaiseState == NULL)
+		return true;	// monster doesn't have a raise state
+	
+	AActor *info = thing->GetDefault ();
+
+	thing->velx = thing->vely = 0;
+
+	// [RH] Check against real height and radius
+	fixed_t oldheight = thing->height;
+	fixed_t oldradius = thing->radius;
+	int oldflags = thing->flags;
+
+	thing->flags |= MF_SOLID;
+	thing->height = info->height;	// [RH] Use real height
+	thing->radius = info->radius;	// [RH] Use real radius
+	if (!P_CheckPosition (thing, thing->x, thing->y) && !bIgnorePositionCheck)
+	{
+		thing->flags = oldflags;
+		thing->radius = oldradius;
+		thing->height = oldheight;
+		return false;
+	}
+
+	S_Sound (thing, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
+	
+	// [BC] If we're the server, tell clients to put the thing into its raise state.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
+
+	thing->SetState (RaiseState);
+	thing->flags = info->flags;
+	thing->flags2 = info->flags2;
+	thing->flags3 = info->flags3;
+	thing->flags4 = info->flags4;
+	// [BC] Apply new ST flags as well.
+	thing->flags5 = info->flags5;
+	thing->ulSTFlags = info->ulSTFlags;
+	thing->ulNetworkFlags = info->ulNetworkFlags;
+	thing->health = info->health;
+	thing->target = NULL;
+	thing->lastenemy = NULL;
+
+	// [RH] If it's a monster, it gets to count as another kill
+	if (thing->CountsAsKill())
+	{
+		level.total_monsters++;
+
+		// [BC] Update invasion's HUD.
+		if (( invasion ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		{
+			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
+
+			// [BC] If we're the server, tell the client how many monsters are left.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
+		}
+	}
+
+	return true;
 }
 
 

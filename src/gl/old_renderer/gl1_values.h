@@ -89,6 +89,7 @@ enum EColorManipulation
 	CM_GOLDMAP,					// Heretic's invulnerability colormap
 	CM_REDMAP,					// Skulltag's Doomsphere colormap
 	CM_GREENMAP,				// Skulltag's Guardsphere colormap
+	CM_BLUEMAP,
 	CM_SHADE,					// alpha channel texture
 	CM_LIMIT,					// Max. manipulation value for regular textures. Everything above is for special use.
 	CM_FIRSTCOLORMAP=CM_LIMIT,	// Boom colormaps

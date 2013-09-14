@@ -146,6 +146,16 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		}
 		break;
 
+	case CM_BLUEMAP:
+		for(i=0;i<count;i++)
+		{
+			gl_BlueMap(T::Gray(pin), pout[0], pout[1], pout[2]);
+			pout[3] = T::A(pin);
+			pout+=4;
+			pin+=step;
+		}
+		break;
+
 	case CM_GRAY:
 		// this is used for colorization of blood.
 		// To get the best results the brightness is taken from 
@@ -291,6 +301,15 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		{
 			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
 			gl_GreenMap(gray, pout[i].r, pout[i].g, pout[i].b);
+			pout[i].a = pin[i].a;
+		}
+		break;
+
+	case CM_BLUEMAP:
+		for(i=0;i<count;i++)
+		{
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			gl_BlueMap(gray, pout[i].r, pout[i].g, pout[i].b);
 			pout[i].a = pin[i].a;
 		}
 		break;

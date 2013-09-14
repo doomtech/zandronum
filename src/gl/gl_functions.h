@@ -121,6 +121,13 @@ __forceinline void gl_GreenMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
 	blue=gray;
 }
 
+__forceinline void gl_BlueMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
+{
+	red=0;
+	green=0;
+	blue=clamp<int>(gray+(gray>>1),0,255);
+}
+
 __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE & red, BYTE & green, BYTE & blue, int fac)
 {
 	red = (ired*(31-fac) + gray*fac)/31;

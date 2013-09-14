@@ -124,7 +124,6 @@ protected:
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void M_DrawSlider (int x, int y, float min, float max, float cur);
 void R_GetPlayerTranslation (int color, FPlayerSkin *skin, FRemapTable *table);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -447,10 +446,10 @@ static oldmenuitem_t SkillSelectMenu[]={
 static oldmenu_t SkillDef =
 {
 	0,
-	SkillSelectMenu,		// oldmenuitem_t ->
+	SkillSelectMenu,	// oldmenuitem_t ->
 	M_DrawNewGame,		// drawing routine ->
 	48,63,				// x,y
-	2					// lastOn
+	-1					// lastOn
 };
 
 // [BC] New menu for bot games.
@@ -475,10 +474,10 @@ oldmenu_t BotDef =
 static oldmenu_t HexenSkillMenu =
 {
 	0, 
-	SkillSelectMenu,		// oldmenuitem_t ->
+	SkillSelectMenu,
 	DrawHexenSkillMenu,
 	120, 44,
-	2
+	-1
 };
 
 
@@ -501,7 +500,7 @@ void M_StartupSkillMenu(const char *playerclass)
 		}
 	}
 	SkillDef.numitems = HexenSkillMenu.numitems = 0;
-	for(unsigned int i=0;i<AllSkills.Size() && i<8;i++)
+	for(unsigned int i = 0; i < AllSkills.Size() && i < 8; i++)
 	{
 		FSkillInfo &skill = AllSkills[i];
 
@@ -525,13 +524,30 @@ void M_StartupSkillMenu(const char *playerclass)
 		SkillDef.numitems++;
 		HexenSkillMenu.numitems++;
 	}
+	int defskill = DefaultSkill;
+	if ((unsigned int)defskill >= AllSkills.Size())
+	{
+		defskill = (AllSkills.Size() - 1) / 2;
+	}
+	// The default skill is only set the first time the menu is opened.
+	// After that, it opens on whichever skill you last selected.
+	if (SkillDef.lastOn < 0)
+	{
+		SkillDef.lastOn = defskill;
+	}
+	if (HexenSkillMenu.lastOn < 0)
+	{
+		HexenSkillMenu.lastOn = defskill;
+	}
 	// Hexen needs some manual coordinate adjustments based on player class
 	if (gameinfo.gametype == GAME_Hexen)
 	{
 		M_SetupNextMenu(&HexenSkillMenu);
 	}
 	else
+	{
 		M_SetupNextMenu(&SkillDef);
+	}
 
 }
 
@@ -2579,9 +2595,9 @@ static void M_PlayerSetupDrawer ()
 	x = SmallFont->StringWidth ("Green") + 8 + PSetupDef.x;
 	color = players[consoleplayer].userinfo.color;
 
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*2+yo, 0.0f, 255.0f, float(RPART(color)));
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*3+yo, 0.0f, 255.0f, float(GPART(color)));
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*4+yo, 0.0f, 255.0f, float(BPART(color)));
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*2+yo, 0.0f, 255.0f, float(RPART(color)), -1);
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*3+yo, 0.0f, 255.0f, float(GPART(color)), -1);
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*4+yo, 0.0f, 255.0f, float(BPART(color)), -1);
 
 	// [GRB] Draw class setting
 	int pclass = players[consoleplayer].userinfo.PlayerClass;

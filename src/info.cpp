@@ -55,8 +55,6 @@
 
 extern void LoadActors ();
 
-extern TArray<FSkillInfo> AllSkills;
-
 
 //==========================================================================
 //

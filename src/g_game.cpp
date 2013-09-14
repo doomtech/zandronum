@@ -679,6 +679,18 @@ CCMD (select)
 	who->player->inventorytics = 5*TICRATE;
 }
 
+static inline int joyint(double val)
+{
+	if (val >= 0)
+	{
+		return int(ceil(val));
+	}
+	else
+	{
+		return int(floor(val));
+	}
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -817,18 +829,18 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 
 	if (joyaxes[JOYAXIS_Pitch] != 0)
 	{
-		G_AddViewPitch(int(joyaxes[JOYAXIS_Pitch] * 2048));
+		G_AddViewPitch(joyint(joyaxes[JOYAXIS_Pitch] * 2048));
 		LocalKeyboardTurner = true;
 	}
 	if (joyaxes[JOYAXIS_Yaw] != 0)
 	{
-		G_AddViewAngle(int(-1280 * joyaxes[JOYAXIS_Yaw]));
+		G_AddViewAngle(joyint(-1280 * joyaxes[JOYAXIS_Yaw]));
 		LocalKeyboardTurner = true;
 	}
 
-	side -= int(MAXPLMOVE * joyaxes[JOYAXIS_Side]);
-	forward += int(joyaxes[JOYAXIS_Forward] * MAXPLMOVE);
-	fly += int(joyaxes[JOYAXIS_Up] * 2048);
+	side -= joyint(sidemove[speed] * joyaxes[JOYAXIS_Side]);
+	forward += joyint(joyaxes[JOYAXIS_Forward] * forwardmove[speed]);
+	fly += joyint(joyaxes[JOYAXIS_Up] * 2048);
 
 	// Handle mice.
 	if (!Button_Mlook.bDown && !freelook)

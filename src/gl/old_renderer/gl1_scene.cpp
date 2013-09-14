@@ -766,6 +766,7 @@ void GL1Renderer::SetFixedColormap (player_t *player)
 		else if (cplayer->fixedcolormap==GOLDCOLORMAP) gl_fixedcolormap=CM_GOLDMAP;
 		else if (cplayer->fixedcolormap==REDCOLORMAP) gl_fixedcolormap=CM_REDMAP;
 		else if (cplayer->fixedcolormap==GREENCOLORMAP) gl_fixedcolormap=CM_GREENMAP;
+		else if (cplayer->fixedcolormap==BLUECOLORMAP) gl_fixedcolormap=CM_BLUEMAP;
 		else if (cplayer->fixedcolormap!=0 && cplayer->fixedcolormap<NUMCOLORMAPS) 
 		{
 			for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)

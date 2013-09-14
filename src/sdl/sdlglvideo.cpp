@@ -123,6 +123,10 @@ SDLGLVideo::SDLGLVideo (int parm)
              SDL_GetError( ) );
     }
 	GetContext(gl);
+#ifndef	_WIN32
+	// mouse cursor is visible by default on linux systems, we disable it by default
+	SDL_ShowCursor (0);
+#endif
 }
 
 SDLGLVideo::~SDLGLVideo ()

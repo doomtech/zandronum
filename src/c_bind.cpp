@@ -93,10 +93,6 @@ static const FBinding DefBindings[] =
 	{ "mouse2", "+strafe" },
 	{ "mouse3", "+forward" },
 	{ "mouse4", "+speed" },
-	{ "joy1", "+attack" },
-	{ "joy2", "+strafe" },
-	{ "joy3", "+speed" },
-	{ "joy4", "+use" },
 	{ "capslock", "toggle cl_run" },
 	{ "f1", "menu_help" },
 	{ "f2", "menu_save" },
@@ -121,6 +117,27 @@ static const FBinding DefBindings[] =
 	{ "u", "taunt" },
 	{ "pgup", "vote_yes" },
 	{ "pgdn", "vote_no" },
+
+	// Generic joystick buttons
+	{ "joy1", "+attack" },
+	{ "joy2", "+strafe" },
+	{ "joy3", "+speed" },
+	{ "joy4", "+use" },
+
+	// Xbox 360 / PS2 controllers
+	{ "pad_a", "+use" },
+	{ "pad_y", "+jump" },
+	{ "rtrigger", "+attack" },
+	{ "ltrigger", "+altattack" },
+	{ "lshoulder", "weapprev" },
+	{ "rshoulder", "weapnext" },
+	{ "dpadleft", "invprev" },
+	{ "dpadright", "invnext" },
+	{ "dpaddown", "invuse" },
+	{ "dpadup", "togglemap" },
+	{ "pad_start", "pause" },
+	{ "pad_back", "menu_main" },
+	{ "lthumb", "crouch" },
 	{ NULL }
 };
 
@@ -269,6 +286,14 @@ const char *KeyNames[NUM_KEYS] =
 	"axis3plus","axis3minus","axis4plus","axis4minus",
 	"axis5plus","axis5minus","axis6plus","axis6minus",
 	"axis7plus","axis7minus","axis8plus","axis8minus",
+
+	"lstickright","lstickleft","lstickdown","lstickup",			// Gamepad axis-based buttons
+	"rstickright","rstickleft","rstickdown","rstickup",
+
+	"dpadup","dpaddown","dpadleft","dpadright",	// Gamepad buttons
+	"pad_start","pad_back","lthumb","rthumb",
+	"lshoulder","rshoulder","ltrigger","rtrigger",
+	"pad_a", "pad_b", "pad_x", "pad_y"
 };
 
 static FString Bindings[NUM_KEYS];

@@ -162,7 +162,8 @@ PalEntry APowerup::GetBlend ()
 		BlendColor == GOLDCOLOR ||
 		// [BC] HAX!
 		BlendColor == REDCOLOR ||
-		BlendColor == GREENCOLOR) 
+		BlendColor == GREENCOLOR ||
+		BlendColor == BLUECOLOR)
 		return 0;
 
 	return BlendColor;
@@ -217,11 +218,16 @@ void APowerup::DoEffect ()
 				Owner->player->fixedcolormap = GREENCOLORMAP;
 				Owner->lFixedColormap = GREENCOLORMAP;
 			}
+			else if (BlendColor == BLUECOLOR)
+			{
+				Owner->player->fixedcolormap = BLUECOLORMAP;
+			}
 		}
 		else if ((BlendColor == INVERSECOLOR && Owner->player->fixedcolormap == INVERSECOLORMAP) || 
 				 (BlendColor == GOLDCOLOR && Owner->player->fixedcolormap == GOLDCOLORMAP) ||
 				 (BlendColor == REDCOLOR && Owner->player->fixedcolormap == REDCOLORMAP) ||
-				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP))
+				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP) ||
+				 (BlendColor == BLUECOLOR && Owner->player->fixedcolormap == BLUECOLORMAP))
 		{
 			Owner->player->fixedcolormap = 0;
 			Owner->lFixedColormap = 0;
@@ -291,19 +297,21 @@ bool APowerup::HandlePickup (AInventory *item)
 			power->ItemFlags |= IF_PICKUPGOOD;
 			return true;
 		}
-		// If it's not blinking yet, you can't replenish the power unless the
-		// powerup is required to be picked up.
-		if (EffectTics > BLINKTHRESHOLD && !(power->ItemFlags & IF_ALWAYSPICKUP))
-		{
-			return true;
-		}
-		// Only increase the EffectTics, not decrease it.
-		// Color also gets transferred only when the new item has an effect.
+		// Color gets transferred if the new item has an effect.
+
+		// Increase the effect's duration.
 		if (power->ItemFlags & IF_ADDITIVETIME) 
 		{
 			EffectTics += power->EffectTics;
 			BlendColor = power->BlendColor;
 		}
+		// If it's not blinking yet, you can't replenish the power unless the
+		// powerup is required to be picked up.
+		else if (EffectTics > BLINKTHRESHOLD && !(power->ItemFlags & IF_ALWAYSPICKUP))
+		{
+			return true;
+		}
+		// Reset the effect duration.
 		else if (power->EffectTics > EffectTics)
 		{
 			EffectTics = power->EffectTics;

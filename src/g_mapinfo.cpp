@@ -1374,6 +1374,7 @@ MapFlagHandlers[] =
 	{ "compat_sectorsounds",			MITYPE_COMPATFLAG, COMPATF_SECTORSOUNDS},
 	{ "compat_missileclip",				MITYPE_COMPATFLAG, COMPATF_MISSILECLIP},
 	{ "compat_crossdropoff",			MITYPE_COMPATFLAG, COMPATF_CROSSDROPOFF},
+	{ "compat_anybossdeath",			MITYPE_COMPATFLAG, COMPATF_ANYBOSSDEATH},
 	{ "compat_minotaur",				MITYPE_COMPATFLAG, COMPATF_MINOTAUR},
 	{ "cd_start_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end1_track",					MITYPE_EATNEXT,	0, 0 },
@@ -1924,6 +1925,7 @@ void FMapInfoParser::ParseMapInfo (int lump, level_info_t &gamedefaults, level_i
 		else if (sc.Compare("clearskills"))
 		{
 			AllSkills.Clear();
+			DefaultSkill = -1;
 		}
 		else if (sc.Compare("gameinfo"))
 		{
@@ -1981,7 +1983,7 @@ void G_ParseMapInfo (const char *basemapinfo)
 	{
 		I_FatalError ("You cannot use clearepisodes in a MAPINFO if you do not define any new episodes after it.");
 	}
-	if (AllSkills.Size()==0)
+	if (AllSkills.Size() == 0)
 	{
 		I_FatalError ("You cannot use clearskills in a MAPINFO if you do not define any new skills after it.");
 	}

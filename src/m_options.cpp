@@ -495,12 +495,12 @@ static menuitem_t MouseItems[] =
 	{ slider,	"Overall sensitivity",	{&mouse_sensitivity},	{0.5}, {2.5},	{0.1f}, {NULL} },
 	{ discrete,	"Prescale mouse movement",{&m_noprescale},		{2.0}, {0.0},	{0.0}, {NoYes} },
 	// [BB] smooth_mouse doesn't do anything in Skulltag (Carn deactivated it long ago), so link this to m_filter.
-	{ discrete, "Smooth mouse movement",{&m_filter},			{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Smooth mouse movement",{&m_filter},		{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Turning speed",		{&m_yaw},				{0.5}, {2.5},	{0.1f}, {NULL} },
-	{ slider,	"Mouselook speed",		{&m_pitch},				{0.5}, {2.5},	{0.1f}, {NULL} },
-	{ slider,	"Forward/Backward speed",{&m_forward},			{0.5}, {2.5},	{0.1f}, {NULL} },
-	{ slider,	"Strafing speed",		{&m_side},				{0.5}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Turning speed",		{&m_yaw},				{0.0}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Mouselook speed",		{&m_pitch},				{0.0}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Forward/Backward speed",{&m_forward},			{0.0}, {2.5},	{0.1f}, {NULL} },
+	{ slider,	"Strafing speed",		{&m_side},				{0.0}, {2.5},	{0.1f}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Always Mouselook",		{&freelook},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Invert Mouse",			{&invertmouse},			{2.0}, {0.0},	{0.0}, {OnOff} },
@@ -523,34 +523,26 @@ menu_t MouseMenu =
  *
  *=======================================*/
 
-#define SELECTED_JOYSTICK	(Joysticks[JoystickItems[1].a.joyselection])
-EXTERN_CVAR (Bool, use_joystick)
+EXTERN_CVAR(Bool, use_joystick)
+EXTERN_CVAR(Bool, joy_ps2raw)
+EXTERN_CVAR(Bool, joy_dinput)
+EXTERN_CVAR(Bool, joy_xinput)
 
-#if 0
-EXTERN_CVAR (Float, joy_speedmultiplier)
-EXTERN_CVAR (Int, joy_xaxis)
-EXTERN_CVAR (Int, joy_yaxis)
-EXTERN_CVAR (Int, joy_zaxis)
-EXTERN_CVAR (Int, joy_xrot)
-EXTERN_CVAR (Int, joy_yrot)
-EXTERN_CVAR (Int, joy_zrot)
-EXTERN_CVAR (Int, joy_slider)
-EXTERN_CVAR (Int, joy_dial)
-EXTERN_CVAR (Float, joy_xthreshold)
-EXTERN_CVAR (Float, joy_ythreshold)
-EXTERN_CVAR (Float, joy_zthreshold)
-EXTERN_CVAR (Float, joy_xrotthreshold)
-EXTERN_CVAR (Float, joy_yrotthreshold)
-EXTERN_CVAR (Float, joy_zrotthreshold)
-EXTERN_CVAR (Float, joy_sliderthreshold)
-EXTERN_CVAR (Float, joy_dialthreshold)
-EXTERN_CVAR (Float, joy_yawspeed)
-EXTERN_CVAR (Float, joy_pitchspeed)
-EXTERN_CVAR (Float, joy_forwardspeed)
-EXTERN_CVAR (Float, joy_sidespeed)
-EXTERN_CVAR (Float, joy_upspeed)
-EXTERN_CVAR (GUID, joy_guid)
-#endif
+static TArray<IJoystickConfig *> Joysticks;
+static TArray<menuitem_t> JoystickItems;
+
+menu_t JoystickMenu =
+{
+	"CONTROLLER OPTIONS",
+};
+
+/*=======================================
+ *
+ * Joystick Config Menu
+ *
+ *=======================================*/
+
+IJoystickConfig *SELECTED_JOYSTICK;
 
 static value_t JoyAxisMapNames[6] =
 {
@@ -568,13 +560,11 @@ static value_t Inversion[2] =
 	{ 1.0, "Inverted" }
 };
 
-static TArray<IJoystickConfig *> Joysticks;
+static TArray<menuitem_t> JoystickConfigItems;
 
-static TArray<menuitem_t> JoystickItems;
-
-menu_t JoystickMenu =
+menu_t JoystickConfigMenu =
 {
-	"JOYSTICK OPTIONS",
+	"CONFIGURE CONTROLLER",
 };
 
 
@@ -4283,7 +4273,7 @@ static void CalcIndent (menu_t *menu)
 	{
 		item = menu->items + i;
 		if (item->type != whitetext && item->type != redtext && item->type != browserheader && item->type != browserslot && item->type != screenres &&
-			(item->type != discrete || !item->c.discretecenter))
+			item->type != joymore && (item->type != discrete || !item->c.discretecenter))
 		{
 			thiswidth = SmallFont->StringWidth (item->label);
 			if (thiswidth > widest)
@@ -4370,23 +4360,24 @@ bool M_StartJoinMenu (void)
 }
 
 
-void M_DrawSlider (int x, int y, float min, float max, float cur)
+void M_DrawSlider (int x, int y, double min, double max, double cur,int fracdigits)
 {
-	float range;
+	double range;
 
 	range = max - min;
-
-	if (cur > max)
-		cur = max;
-	else if (cur < min)
-		cur = min;
-
-	cur -= min;
+	cur = clamp(cur, min, max) - min;
 
 	M_DrawConText(CR_WHITE, x, y, "\x10\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x12");
 	// [BC] Prevent a divide by 0 crash.
 	if ( range != 0 )
-		M_DrawConText(CR_ORANGE, x + 5 + (int)((cur * 78.f) / range), y, "\x13");
+		M_DrawConText(CR_ORANGE, x + 5 + (int)((cur * 78) / range), y, "\x13");
+
+	if (fracdigits >= 0)
+	{
+		char textbuf[16];
+		mysnprintf(textbuf, countof(textbuf), "%.*f", fracdigits, cur);
+		screen->DrawText(SmallFont, CR_DARKGRAY, x + 12*8 + 4, y, textbuf, DTA_Clean, true, TAG_DONE);
+	}
 }
 
 int M_FindCurVal (float cur, value_t *values, int numvals)
@@ -4512,6 +4503,10 @@ void M_OptDrawer ()
 		{
 			indent = 160;
 		}
+		else if (item->type == joymore)
+		{
+			indent = 4;
+		}
 		else
 		{
 			indent = CurrentMenu->indent;
@@ -4521,19 +4516,19 @@ void M_OptDrawer ()
 		{
 			FString somestring;
 			const char *label;
-			if (item->type != discrete_joy)
+			if (item->type != joymore)
 			{
 				label = item->label;
 			}
 			else
 			{
-				if (item->e.joyvalues->Size() == 0)
+				if (Joysticks.Size() == 0)
 				{
 					label = "No devices connected";
 				}
 				else
 				{
-					somestring = (*item->e.joyvalues)[item->a.joyselection]->GetName();
+					somestring = Joysticks[item->a.joyselection]->GetName();
 					label = somestring;
 				}
 			}
@@ -4552,18 +4547,16 @@ void M_OptDrawer ()
 				color = MoreColor;
 				break;
 
+			case joymore:
+				x = 20;
+				color = MoreColor;
+				break;
+
 			case numberedmore:
 			case rsafemore:
 			case rightmore:
 				x = indent + 14;
 				color = item->type != rightmore ? CR_GREEN : MoreColor;
-				break;
-
-			case discrete_joy:
-				x = 160 - width / 2;
-				// Move cursor to the left of this item.
-				indent = x - 14;
-				color = ValueColor;
 				break;
 
 			case redtext:
@@ -4755,7 +4748,7 @@ void M_OptDrawer ()
 
 			case joy_sens:
 				value.Float = SELECTED_JOYSTICK->GetSensitivity();
-				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, value.Float);
+				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, value.Float, 1);
 				break;
 
 			case joy_slider:
@@ -4768,7 +4761,7 @@ void M_OptDrawer ()
 					assert(item->e.joyslidernum == 1);
 					value.Float = SELECTED_JOYSTICK->GetAxisDeadZone(item->a.joyselection);
 				}
-				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, fabs(value.Float));
+				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, fabs(value.Float), 3);
 				break;
 
 			case joy_inverter:
@@ -4810,17 +4803,17 @@ void M_OptDrawer ()
 				else
 				{
 					value = item->a.cvar->GetGenericRep (CVAR_Float);
-					M_DrawSlider (x, y + labelofs, item->b.min, item->c.max, value.Float);
+					M_DrawSlider (x, y + labelofs, item->b.min, item->c.max, value.Float, 1);
 				}
 				break;
 
 			case absslider:
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
-				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, fabs(value.Float));
+				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, fabs(value.Float), 1);
 				break;
 
 			case intslider:
-				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, item->a.fval);
+				M_DrawSlider (indent + 14, y + labelofs, item->b.min, item->c.max, item->a.fval, 0);
 				break;
 
 			case control:
@@ -5485,7 +5478,11 @@ void M_OptResponder (event_t *ev)
 						int maxitems, rowheight;
 
 						// Figure out how many lines of text fit on the menu
-						if (BigFont && CurrentMenu->texttitle)
+						if (CurrentMenu->y != 0)
+						{
+							maxitems = CurrentMenu->y;
+						}
+						else if (BigFont && CurrentMenu->texttitle)
 						{
 							maxitems = 15 + BigFont->GetHeight ();
 						}
@@ -5791,15 +5788,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
-			case discrete_joy:
-				if (--item->a.joyselection < 0)
-				{
-					item->a.joyselection = item->e.joyvalues->Size() - 1;
-				}
-				UpdateJoystickMenu(NULL);
-				S_Sound(CHAN_VOICE|CHAN_UI, "menu/change", 1, ATTN_NONE);
-				break;
-
 			case inverter:
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
 				value.Float = -value.Float;
@@ -6277,15 +6265,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
-			case discrete_joy:
-				if ((unsigned)++item->a.joyselection >= item->e.joyvalues->Size())
-				{
-					item->a.joyselection = 0;
-				}
-				UpdateJoystickMenu(NULL);
-				S_Sound(CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
-				break;
-
 			case inverter:
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
 				value.Float = -value.Float;
@@ -6605,6 +6584,7 @@ void M_OptResponder (event_t *ev)
 				  item->type == numberedmore ||
 				  item->type == rightmore ||
 				  item->type == rsafemore ||
+				  item->type == joymore ||
 				  item->type == safemore)
 				 && item->e.mfunc)
 		{
@@ -6925,7 +6905,7 @@ static void ColorPickerDrawer ()
 	DWORD oldColor = DWORD(*ColorPickerItems[0].a.colorcvar) | 0xFF000000;
 
 	int x = screen->GetWidth()*2/3;
-	int y = (15 + BigFont->GetHeight() + SmallFont->GetHeight()*2 - 102) * CleanYfac + screen->GetHeight()/2;
+	int y = (15 + BigFont->GetHeight() + SmallFont->GetHeight()*5 - 90) * CleanYfac + screen->GetHeight()/2;
 
 	screen->Clear (x, y, x + 48*CleanXfac, y + 48*CleanYfac, -1, oldColor);
 	screen->Clear (x + 48*CleanXfac, y, x + 48*2*CleanXfac, y + 48*CleanYfac, -1, newColor);
@@ -7037,21 +7017,114 @@ CCMD (menu_mouse)
 	MouseOptions ();
 }
 
+static void DrawJoystickConfigMenuHeader()
+{
+	FString joyname = SELECTED_JOYSTICK->GetName();
+	screen->DrawText(BigFont, gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
+		160-BigFont->StringWidth(CurrentMenu->texttitle)/2, 5,
+		CurrentMenu->texttitle, DTA_Clean, true, TAG_DONE);
+	screen->DrawText(SmallFont, gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
+		160-SmallFont->StringWidth(joyname)/2, 8 + BigFont->GetHeight(),
+		joyname, DTA_Clean, true, TAG_DONE);
+}
+
+static void UpdateJoystickConfigMenu(IJoystickConfig *joy)
+{
+	int i;
+	menuitem_t item = { whitetext };
+
+	JoystickConfigItems.Clear();
+	if (joy == NULL)
+	{
+		item.type = redtext;
+		item.label = "Invalid controller specified for menu";
+		JoystickConfigItems.Push(item);
+	}
+	else
+	{
+		SELECTED_JOYSTICK = joy;
+
+		item.type = joy_sens;
+		item.label = "Overall sensitivity";
+		item.b.min = 0;
+		item.c.max = 2;
+		item.d.step = 0.1f;
+		JoystickConfigItems.Push(item);
+
+		item.type = redtext;
+		item.label = " ";
+		JoystickConfigItems.Push(item);
+
+		item.type = whitetext;
+		if (joy->GetNumAxes() > 0)
+		{
+			item.label = "Axis Configuration";
+			JoystickConfigItems.Push(item);
+
+			for (i = 0; i < joy->GetNumAxes(); ++i)
+			{
+				item.type = redtext;
+				item.label = " ";
+				JoystickConfigItems.Push(item);
+
+				item.type = joy_map;
+				item.label = joy->GetAxisName(i);
+				item.a.joyselection = i;
+				item.b.numvalues = countof(JoyAxisMapNames);
+				item.e.values = JoyAxisMapNames;
+				JoystickConfigItems.Push(item);
+
+				item.type = joy_slider;
+				item.label = "Sensitivity";
+				item.b.min = 0;
+				item.c.max = 4;
+				item.d.step = 0.1f;
+				item.e.joyslidernum = 0;
+				JoystickConfigItems.Push(item);
+
+				item.type = joy_inverter;
+				item.label = "Invert";
+				JoystickConfigItems.Push(item);
+
+				item.type = joy_slider;
+				item.label = "Dead Zone";
+				item.b.position = 1;
+				item.c.max = 0.9f;
+				item.d.step = 0.05f;
+				item.e.joyslidernum = 1;
+				JoystickConfigItems.Push(item);
+			}
+		}
+		else
+		{
+			item.label = "No configurable axes";
+			JoystickConfigItems.Push(item);
+		}
+	}
+	JoystickConfigMenu.items = &JoystickConfigItems[0];
+	JoystickConfigMenu.numitems = JoystickConfigItems.Size();
+	JoystickConfigMenu.lastOn = 0;
+	JoystickConfigMenu.scrollpos = 0;
+	JoystickConfigMenu.y = 25 + BigFont->GetHeight();
+	JoystickConfigMenu.PreDraw = DrawJoystickConfigMenuHeader;
+	if (screen != NULL)
+	{
+		CalcIndent(&JoystickConfigMenu);
+	}
+}
+
+static void StartJoystickConfigMenu()
+{
+	UpdateJoystickConfigMenu(Joysticks[JoystickItems[JoystickMenu.lastOn].a.joyselection]);
+	M_SwitchMenu(&JoystickConfigMenu);
+}
+
 void UpdateJoystickMenu(IJoystickConfig *selected)
 {
 	int i;
 	menuitem_t item = { whitetext };
-	int itemnum;
-	IJoystickConfig *joy;
+	int itemnum = -1;
 
-	if (JoystickItems.Size() > 1)
-	{
-		itemnum = JoystickItems[1].a.joyselection;
-	}
-	else
-	{
-		itemnum = 0;
-	}
 	JoystickItems.Clear();
 	I_GetJoysticks(Joysticks);
 	if ((unsigned)itemnum >= Joysticks.Size())
@@ -7069,161 +7142,94 @@ void UpdateJoystickMenu(IJoystickConfig *selected)
 			}
 		}
 	}
+	item.type = discrete;
+	item.label = "Enable controller support";
+	item.a.cvar = &use_joystick;
+	item.b.numvalues = 2;
+	item.e.values = YesNo;
+	JoystickItems.Push(item);
+
+#ifdef _WIN32
+	item.label = "Enable DirectInput controllers";
+	item.a.cvar = &joy_dinput;
+	JoystickItems.Push(item);
+
+	item.label = "Enable XInput controllers";
+	item.a.cvar = &joy_xinput;
+	JoystickItems.Push(item);
+
+	item.label = "Enable raw PlayStation 2 adapters";
+	item.a.cvar = &joy_ps2raw;
+	JoystickItems.Push(item);
+#endif
+
+	item.type = redtext;
+	item.label = " ";
+	JoystickItems.Push(item);
+
 	if (Joysticks.Size() == 0)
 	{
 		item.type = redtext;
-		item.label = "No joysticks connected";
+		item.label = "No controllers detected";
 		JoystickItems.Push(item);
+		if (!use_joystick)
+		{
+			item.type = whitetext;
+			item.label = "Controller support must be";
+			JoystickItems.Push(item);
+
+			item.label = "enabled to detect any";
+			JoystickItems.Push(item);
+		}
 	}
 	else
 	{
-		item.type = discrete;
-		item.label = "Enable joystick";
-		item.a.cvar = &use_joystick;
-		item.b.numvalues = 2;
-		item.e.values = YesNo;
+		item.label = "Configure controllers:";
 		JoystickItems.Push(item);
 
-		item.type = discrete_joy;
-		item.label = "Change settings for";
-		item.a.joyselection = itemnum;
-		item.e.joyvalues = &Joysticks;
-		JoystickItems.Push(item);
-
-		item.type = joy_sens;
-		item.label = "Overall sensitivity";
-		item.b.min = 0.5f;
-		item.c.max = 2.f;
-		item.d.step = 0.2f;
-		JoystickItems.Push(item);
-
-		item.type = redtext;
-		item.label = " ";
-		JoystickItems.Push(item);
-
-		joy = Joysticks[itemnum];
-		if (joy->GetNumAxes() > 0)
+		item.type = joymore;
+		item.e.mfunc = StartJoystickConfigMenu;
+		for (int i = 0; i < (int)Joysticks.Size(); ++i)
 		{
-			item.type = whitetext;
-			item.label = "Axis Configuration";
+			item.a.joyselection = i;
+			if (i == itemnum)
+			{
+				JoystickMenu.lastOn = JoystickItems.Size(); 
+			}
 			JoystickItems.Push(item);
-
-			for (i = 0; i < joy->GetNumAxes(); ++i)
-			{
-				item.type = redtext;
-				item.label = " ";
-				JoystickItems.Push(item);
-
-				item.type = joy_map;
-				item.label = joy->GetAxisName(i);
-				item.a.joyselection = i;
-				item.b.numvalues = countof(JoyAxisMapNames);
-				item.e.values = JoyAxisMapNames;
-				JoystickItems.Push(item);
-
-				item.type = joy_slider;
-				item.label = "Sensitivity";
-				item.b.min = 0;
-				item.c.max = 4;
-				item.d.step = 0.2f;
-				item.e.joyslidernum = 0;
-				JoystickItems.Push(item);
-
-				item.type = joy_inverter;
-				item.label = "Invert";
-				JoystickItems.Push(item);
-
-				item.type = joy_slider;
-				item.label = "Dead Zone";
-				item.b.position = 1;
-				item.c.max = 0.9f;
-				item.d.step = 0.05f;
-				item.e.joyslidernum = 1;
-				JoystickItems.Push(item);
-			}
 		}
 	}
-#if 0
-	{
-		JoystickItems[0].type = discrete;
-		JoystickItems[0].label = "Enable joystick";
-
-		JoystickItems[1].b.numvalues = float(JoystickNames.Size());
-		JoystickItems[1].e.guidvalues = &JoystickNames[0];
-
-		line = 5;
-
-		for (i = 0; i < 8; ++i)
-		{
-			if (JoyAxisNames[i] != NULL)
-			{
-				JoystickItems[line].label = JoyAxisNames[i];
-				JoystickItems[line].type = discrete;
-				JoystickItems[line].a.intcvar = cvars[i];
-				JoystickItems[line].b.numvalues = 6.f;
-				JoystickItems[line].d.graycheck = NULL;
-				JoystickItems[line].e.values = JoyAxisMapNames;
-				line++;
-			}
-		}
-
-		JoystickItems[line].type = redtext;
-		JoystickItems[line].label = " ";
-		line++;
-
-		JoystickItems[line].type = whitetext;
-		JoystickItems[line].label = "Axis Sensitivity";
-		line++;
-
-		for (i = 0; i < 5; ++i)
-		{
-			JoystickItems[line].type = absslider;
-			JoystickItems[line].label = JoyAxisMapNames[i+1].name;
-			JoystickItems[line].a.cvar = cvars2[i];
-			JoystickItems[line].b.min = 0.0;
-			JoystickItems[line].c.max = 4.0;
-			JoystickItems[line].d.step = 0.2f;
-			line++;
-
-			JoystickItems[line].type = inverter;
-			JoystickItems[line].label = JoyAxisMapNames[i+1].name;
-			JoystickItems[line].a.cvar = cvars2[i];
-			JoystickItems[line].e.values = Inversion;
-			line++;
-		}
-
-		JoystickItems[line].type = redtext;
-		JoystickItems[line].label = " ";
-		line++;
-
-		JoystickItems[line].type = whitetext;
-		JoystickItems[line].label = "Axis Dead Zones";
-		line++;
-
-		for (i = 0; i < 8; ++i)
-		{
-			if (JoyAxisNames[i] != NULL)
-			{
-				JoystickItems[line].label = JoyAxisNames[i];
-				JoystickItems[line].type = slider;
-				JoystickItems[line].a.cvar = cvars3[i];
-				JoystickItems[line].b.min = 0.0;
-				JoystickItems[line].c.max = 0.9f;
-				JoystickItems[line].d.step = 0.05f;
-				line++;
-			}
-		}
-	}
-#endif
 	JoystickMenu.items = &JoystickItems[0];
 	JoystickMenu.numitems = JoystickItems.Size();
 	if (JoystickMenu.lastOn >= JoystickMenu.numitems)
 	{
 		JoystickMenu.lastOn = JoystickMenu.numitems - 1;
 	}
+	if (CurrentMenu == &JoystickMenu && CurrentItem >= JoystickMenu.numitems)
+	{
+		CurrentItem = JoystickMenu.lastOn;
+	}
 	if (screen != NULL)
 	{
 		CalcIndent(&JoystickMenu);
+	}
+
+	// If the joystick config menu is open, close it if the device it's
+	// open for is gone.
+	for (i = 0; (unsigned)i < Joysticks.Size(); ++i)
+	{
+		if (Joysticks[i] == SELECTED_JOYSTICK)
+		{
+			break;
+		}
+	}
+	if (i == Joysticks.Size())
+	{
+		SELECTED_JOYSTICK = NULL;
+		if (CurrentMenu == &JoystickConfigMenu)
+		{
+			M_PopMenuStack();
+		}
 	}
 }
 

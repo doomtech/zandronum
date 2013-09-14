@@ -778,6 +778,10 @@ void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
 	{
 		gl_GreenMap(gray, red, green, blue);
 	}
+	else if (cm == CM_BLUEMAP)
+	{
+		gl_BlueMap(gray, red, green, blue);
+	}
 	else if (cm >= CM_DESAT1 && cm <= CM_DESAT31)
 	{
 		gl_Desaturate(gray, red, green, blue, red, green, blue, cm - CM_DESAT0);

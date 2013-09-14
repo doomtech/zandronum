@@ -1258,6 +1258,10 @@ void R_SetupFrame (AActor *actor)
 			fixedcolormap = GreenColormap;
 			break;
 
+		case BLUECOLORMAP:
+			fixedcolormap = BlueColormap;
+			break;
+
 		case GOLDCOLORMAP:
 			fixedcolormap = GoldColormap;
 			break;

@@ -362,6 +362,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 		{ "Gold",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_gold.fp"		},
 		{ "Red",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_red.fp"		},
 		{ "Green",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_green.fp"		},
+		{ "Blue",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_blue.fp"		},
 	};
 
 	static Lighting default_light[]={
@@ -375,7 +376,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 	Name = ShaderName;
 	TexFileName = ShaderPath;
 
-	for(int i=0;i<5;i++)
+	for(int i=0;i<6;i++)
 	{
 		FString name;
 
@@ -603,6 +604,7 @@ void GLShader::Bind(int cm, int lightmode, float Speed)
 	case CM_GOLDMAP:
 	case CM_REDMAP:
 	case CM_GREENMAP:
+	case CM_BLUEMAP:
 		// these are never used with any kind of lighting or fog
 		sh = container->shader_cm[cm-CM_INVERT+1];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
