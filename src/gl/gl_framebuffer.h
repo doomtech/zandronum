@@ -4,14 +4,14 @@
 #ifdef _WIN32
 #include "win32iface.h"
 #include "win32gliface.h"
-
+#endif
 namespace GLRendererOld
 {
 	class GLTexture;
 }
 
 extern long gl_frameMS;
-
+#ifdef _WIN32
 class OpenGLFrameBuffer : public Win32GLFrameBuffer
 {
 	typedef Win32GLFrameBuffer Super;

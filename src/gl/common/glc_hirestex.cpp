@@ -56,6 +56,10 @@
 #include "doomstat.h"
 #include "d_main.h"
 
+#ifdef __GNUC__
+#include "Linux/platform.h" /* Without this it would fail on _access on line 374 (378 now) */
+#endif
+
 //==========================================================================
 //
 // Checks for the presence of a hires texture replacement in a Doomsday style PK3

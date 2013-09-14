@@ -70,6 +70,8 @@ EXTERN_CVAR (Float, transsouls)
 
 extern TArray<spritedef_t> sprites;
 extern TArray<spriteframe_t> SpriteFrames;
+extern TArray<PalEntry> BloodTranslationColors;
+
 
 namespace GLRendererOld
 {
@@ -678,7 +680,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	{
 		if (Colormap.LightColor.a < CM_INVERT || Colormap.LightColor.a > CM_GREENMAP)
 		{
-			extern TArray<PalEntry> BloodTranslationColors;
+
 
 			ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
 			ThingColor.a=0;

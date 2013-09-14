@@ -623,6 +623,7 @@ if( NOT NO_GL )
 		gl/common/glc_hqresize.cpp
 		gl/common/glc_light.cpp
 		gl/common/glc_nodes.cpp
+		gl/common/glc_renderer.cpp
 		gl/common/glc_renderhacks.cpp
 		gl/common/glc_sections.cpp
 		gl/common/glc_texture.cpp
@@ -644,6 +645,15 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
+		gl/new_renderer/gl2_renderer.cpp
+		gl/new_renderer/gl2_vertex.cpp
+		gl/new_renderer/gl2_skydraw.cpp	
+		gl/new_renderer/textures/gl2_bitmap.cpp
+		gl/new_renderer/textures/gl2_texture.cpp
+		gl/new_renderer/textures/gl2_material.cpp
+		gl/new_renderer/textures/gl2_hwtexture.cpp
+#		gl/new_renderer/textures/gl2_hirestex.cpp
+		gl/new_renderer/textures/gl2_shader.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp

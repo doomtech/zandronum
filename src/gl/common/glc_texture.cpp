@@ -43,7 +43,9 @@
 #include "colormatcher.h"
 #include "r_translate.h"
 #include "c_dispatch.h"
+#ifdef _WIN32
 #include "win32gliface.h"
+#endif
 #include "v_palette.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_texture.h"
