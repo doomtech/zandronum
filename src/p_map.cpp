@@ -298,10 +298,10 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 	{
 		actor->floorsector = actor->ceilingsector = actor->Sector;
 		// [BB] Don't forget to update floorpic and ceilingpic.
-		if ( actor->Sector )
+		if (actor->Sector != NULL)
 		{
-			actor->floorpic = actor->floorsector->GetTexture(sector_t::floor);
-			actor->ceilingpic = actor->ceilingsector->GetTexture(sector_t::ceiling);
+			actor->floorpic = actor->Sector->GetTexture(sector_t::floor);
+			actor->ceilingpic = actor->Sector->GetTexture(sector_t::ceiling);
 		}
 	}
 }
@@ -6543,3 +6543,62 @@ static void SpawnDeepSplash (AActor *t1, const FTraceResults &trace, AActor *puf
 		}
 	}
 }
+
+//
+// P_SuckAttack
+// Source is the creature that caused the explosion at spot.
+//
+void P_SuckAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int bombdistance, bool DamageSource)
+{
+	if (bombdistance <= 0)
+		return;
+
+	float bombdistancefloat = 1.f / (float)bombdistance;
+	float bombdamagefloat = (float)bombdamage;
+	FVector3 bombvec(FIXED2FLOAT(bombspot->x), FIXED2FLOAT(bombspot->y), FIXED2FLOAT(bombspot->z));
+
+	FBlockThingsIterator it(FBoundingBox(bombspot->x, bombspot->y, bombdistance<<FRACBITS));
+	AActor *thing;
+
+	while ((thing = it.Next()))
+	{
+		if (!(thing->flags & MF_SHOOTABLE) )
+			continue;
+		// Boss spider and cyborg and Heretic's ep >= 2 bosses
+		// take no damage from concussion.
+		if (thing->flags3 & MF3_NORADIUSDMG && !(bombspot->flags4 & MF4_FORCERADIUSDMG))
+			continue;
+		// don't affect the source
+		if (!DamageSource && thing == bombsource) continue;
+		// don't suck frozen enemies
+		if (thing->flags & MF_ICECORPSE) continue;
+		// make sure target is in direct path
+		if (! P_CheckSight (thing, bombspot, 1)) continue;
+
+		if (thing->player == NULL) thing->flags2 |= MF2_BLASTED;
+
+		fixed_t dx = abs (thing->x - bombspot->x);
+		fixed_t dy = abs (thing->y - bombspot->y);
+		fixed_t dz = abs ((thing->z + (thing->height>>1)) - bombspot->z);
+		float boxradius = float (thing->radius);
+
+		// The damage pattern is square, not circular.
+		float len = float (dx > dy ? (dx > dz ? dx : dz) : (dy > dz ? dy : dz));
+
+		len -= boxradius;
+		if (len < 0.f) len = 0.f;
+		len /= FRACUNIT;
+		
+		float points = bombdamagefloat * (1.f - len * bombdistancefloat);
+		points *= thing->GetClass()->Meta.GetMetaFixed(AMETA_RDFactor, FRACUNIT)/(float)FRACUNIT;
+
+		float thrust = -points / (float)thing->Mass;
+
+		angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
+		angle_t ang2 = R_PointToAngle2 (0, bombspot->z, 0, thing->z) >> ANGLETOFINESHIFT;
+		thing->velx += fixed_t (finecosine[ang] * thrust);
+		thing->vely += fixed_t (finesine[ang] * thrust);
+		thing->velz += fixed_t (float(thing->z + (thing->height>>1) - bombspot->z) * thrust * 0.01f );
+			
+	}
+} 
