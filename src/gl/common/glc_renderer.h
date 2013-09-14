@@ -68,6 +68,10 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_t *backsector);
 sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
 
+void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
+					   int *tm, int *sb, int *db, int *be);
+
+
 typedef enum
 {
         area_normal,

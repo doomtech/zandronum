@@ -59,9 +59,9 @@ namespace GLRendererNew
 		mUsingHires = false;
 		mCanUseHires = true;
 		mHasColorKey = false;
-		mIsTransparent = -1;
 		HiresTextureLump = -1;
 		HiresTexture = NULL;
+		mIsTransparent = -1;
 	}
 
 
@@ -132,7 +132,7 @@ namespace GLRendererNew
 			FGLBitmap bmp(buffer, w*4, w, h);
 			
 			int trans = HiresTexture->CopyTrueColorPixels(&bmp, 0, 0);
-			CheckTrans(buffer, w*h, trans);
+			mGameTexture->CheckTrans(buffer, w*h, trans);
 
 			if (mHasColorKey)
 			{
@@ -193,7 +193,7 @@ namespace GLRendererNew
 		buffer=new unsigned char[W*(H+1)*4];
 		memset(buffer, 0, W * (H+1) * 4);
 
-		FGLBitmap bmp(buffer, W*4, W, H, translation == -1);
+		FGLBitmap bmp(buffer, W*4, W, H, translation == TRANSLATION_ICE);
 
 		if (mGameTexture->bComplex)
 		{
@@ -206,13 +206,15 @@ namespace GLRendererNew
 				memset(imgCreate.GetPixels(), 0, W * H * 4);
 				int trans = mGameTexture->CopyTrueColorPixels(&imgCreate, xofs, yofs);
 				bmp.CopyPixelDataRGB(0, 0, imgCreate.GetPixels(), W, H, 4, W * 4, 0, CF_BGRA);
-				CheckTrans(buffer, W*H, trans);
+				mGameTexture->CheckTrans(buffer, W*H, trans);
+				mIsTransparent = mGameTexture->gl_info.mIsTransparent;
 			}
 		}
 		else if (translation<=0)
 		{
 			int trans = mGameTexture->CopyTrueColorPixels(&bmp, xofs, yofs);
-			CheckTrans(buffer, W*H, trans);
+			mGameTexture->CheckTrans(buffer, W*H, trans);
+			mIsTransparent = mGameTexture->gl_info.mIsTransparent;
 		}
 		else
 		{
@@ -234,110 +236,6 @@ namespace GLRendererNew
 		return buffer;
 	}
 
-	//----------------------------------------------------------------------------
-	//
-	//
-	//
-	//----------------------------------------------------------------------------
-
-	void FGLTexture::CheckTrans(unsigned char * buffer, int size, int trans)
-	{
-		if (mIsTransparent == -1) 
-		{
-			mIsTransparent = trans;
-			if (trans == -1)
-			{
-				DWORD * dwbuf = (DWORD*)buffer;
-				if (mIsTransparent == -1) for(int i=0;i<size;i++)
-				{
-					DWORD alpha = dwbuf[i]>>24;
-
-					if (alpha != 0xff && alpha != 0)
-					{
-						mIsTransparent = 1;
-						return;
-					}
-				}
-			}
-			mIsTransparent = 0;
-		}
-	}
-
-	//===========================================================================
-	// 
-	// smooth the edges of transparent fields in the texture
-	//
-	//===========================================================================
-	#ifdef WORDS_BIGENDIAN
-	#define MSB 0
-	#define SOME_MASK 0xffffff00
-	#else
-	#define MSB 3
-	#define SOME_MASK 0x00ffffff
-	#endif
-
-	#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((DWORD*)l1)[0] = ((DWORD*)l1)[ofs]&SOME_MASK), trans=true ) : false)
-
-	bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h)
-	{
-		int x,y;
-		bool trans=buffer[MSB]==0; // If I set this to false here the code won't detect textures 
-		// that only contain transparent pixels.
-		unsigned char * l1;
-
-		if (h<=1 || w<=1) return false;  // makes (a) no sense and (b) doesn't work with this code!
-
-		l1=buffer;
-
-
-		if (l1[MSB]==0 && !CHKPIX(1)) CHKPIX(w);
-		l1+=4;
-		for(x=1;x<w-1;x++, l1+=4)
-		{
-			if (l1[MSB]==0 &&  !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-		}
-		if (l1[MSB]==0 && !CHKPIX(-1)) CHKPIX(w);
-		l1+=4;
-
-		for(y=1;y<h-1;y++)
-		{
-			if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
-			l1+=4;
-			for(x=1;x<w-1;x++, l1+=4)
-			{
-				if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-			}
-			if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
-			l1+=4;
-		}
-
-		if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(1);
-		l1+=4;
-		for(x=1;x<w-1;x++, l1+=4)
-		{
-			if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
-		}
-		if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(-1);
-
-		return trans;
-	}
-
-	//===========================================================================
-	// 
-	// Post-process the texture data after the buffer has been created
-	//
-	//===========================================================================
-
-	bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h)
-	{
-		if (mGameTexture->bMasked && !mGameTexture->gl_info.bBrightmap) 
-		{
-			mGameTexture->bMasked=SmoothEdges(buffer, w, h);
-			//if (tex->bMasked && !ispatch) FindHoles(buffer, w, h);
-		}
-		return true;
-	}
-
 	//===========================================================================
 	// 
 	// 
@@ -357,7 +255,29 @@ namespace GLRendererNew
 	//
 	//===========================================================================
 
-	FGLTexture *FGLTextureManager::FindTexture(FTexture *gametex, bool asSprite, int translation)
+	void FGLTexture::Bind(int texunit, int clamp)
+	{
+		int w, h;
+
+		if (mHWTexture == NULL)
+		{
+			unsigned char *buffer = CreateTexBuffer(mTranslation, w, h);
+			if (buffer == NULL) return;
+			mGameTexture->ProcessData(buffer, w, h, mAsSprite);
+			CreateHardwareTexture(buffer, w, h, -1);
+			delete [] buffer;
+		}
+		mHWTexture->Bind(texunit);
+		//if (clamp != -1) mHWTexture->SetClamp(clamp);
+	}
+
+	//===========================================================================
+	// 
+	// 
+	//
+	//===========================================================================
+
+	FGLTexture *FGLTextureManager::GetTexture(FTexture *gametex, bool asSprite, int translation)
 	{
 		TexManKey key(gametex, asSprite, translation);
 		FGLTexture *&texaddr = mGLTextures[key];

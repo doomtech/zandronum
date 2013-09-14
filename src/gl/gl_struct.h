@@ -5,6 +5,7 @@
 #include "v_palette.h"
 #include "tarray.h"
 #include "gl/old_renderer/gl1_values.h"
+#include "gl/old_renderer/gl1_texture.h"
 #include "textures/textures.h"
 
 struct vertex_t;
@@ -19,31 +20,6 @@ namespace GLRendererOld
 {
 extern DWORD gl_fixedcolormap;
 }
-
-struct GL_RECT
-{
-	float left,top;
-	float width,height;
-
-
-	void Offset(float xofs,float yofs)
-	{
-		left+=xofs;
-		top+=yofs;
-	}
-	void Scale(float xfac,float yfac)
-	{
-		left*=xfac;
-		width*=xfac;
-		top*=yfac;
-		height*=yfac;
-	}
-	void Scale(fixed_t xfac,fixed_t yfac)
-	{
-		Scale(xfac/(float)FRACUNIT,yfac/(float)FRACUNIT);
-	}
-};
-
 
 struct GL_IRECT
 {

@@ -3,6 +3,33 @@
 
 #include "doomtype.h"
 
+class FGLTextureBase
+{
+public:
+	virtual ~FGLTextureBase() {}
+};
+
+struct FloatRect
+{
+	float left,top;
+	float width,height;
+
+
+	void Offset(float xofs,float yofs)
+	{
+		left+=xofs;
+		top+=yofs;
+	}
+	void Scale(float xfac,float yfac)
+	{
+		left*=xfac;
+		width*=xfac;
+		top*=yfac;
+		height*=yfac;
+	}
+};
+
+
 class FBitmap;
 struct FRemapTable;
 struct FCopyInfo;
@@ -83,15 +110,6 @@ enum FTextureFormat
 };
 
 class FNativeTexture;
-namespace GLRendererOld
-{
-	class FGLTexture;
-}
-
-namespace GLRendererNew
-{
-	class FMaterialContainer;
-}
 
 // Base texture class
 class FTexture
@@ -247,13 +265,15 @@ public:
 
 	struct MiscGLInfo
 	{
-		GLRendererOld::FGLTexture *GLTexture;
-		GLRendererNew::FMaterialContainer *GLMaterial;
+		FGLTextureBase *RenderTexture;
 		FTexture *Brightmap;
 		PalEntry GlowColor;
 		PalEntry FloorSkyColor;
 		PalEntry CeilingSkyColor;
 		int GlowHeight;
+		FloatRect *areas;
+		int areacount;
+		int mIsTransparent:2;
 		bool bGlowing:1;						// Texture glows
 		bool bFullbright:1;						// always draw fullbright
 		bool bSkybox:1;							// This is a skybox
@@ -273,6 +293,10 @@ public:
 	bool isGlowing() { return gl_info.bGlowing; }
 	bool isFullbright() { return gl_info.bFullbright; }
 	void CreateDefaultBrightmap();
+	bool FindHoles(const unsigned char * buffer, int w, int h);
+	static bool SmoothEdges(unsigned char * buffer,int w, int h);
+	void CheckTrans(unsigned char * buffer, int size, int trans);
+	bool ProcessData(unsigned char * buffer, int w, int h, bool ispatch);
 };
 
 // Texture manager

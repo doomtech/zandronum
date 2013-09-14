@@ -28,9 +28,6 @@ class FGLTexture
 
 	unsigned char * CreateTexBuffer(int translation, int &w, int &h);
 	void CheckHires();
-	bool SmoothEdges(unsigned char * buffer,int w, int h);
-	bool ProcessData(unsigned char * buffer, int w, int h);
-	void CheckTrans(unsigned char * buffer, int size, int trans);
 	
 
 public:
@@ -78,7 +75,11 @@ class FGLTextureManager
 	FGLTextureMap mGLTextures;
 
 public:
-	FGLTexture *FindTexture(FTexture *gametex, bool asSprite, int translation);
+	~FGLTextureManager()
+	{
+		DestroyAllTextures();
+	}
+	FGLTexture *GetTexture(FTexture *gametex, bool asSprite, int translation);
 	void FlushAllTextures();
 	void DestroyAllTextures();
 };

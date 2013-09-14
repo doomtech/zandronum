@@ -27,6 +27,9 @@ enum RenderFlags
 	// [BB] Added texture compression flags.
 	RFL_TEXTURE_COMPRESSION=128,
 	RFL_TEXTURE_COMPRESSION_S3TC=256,
+
+	RFL_GL_21 = 512,
+	RFL_GL_30 = 1024,
 };
 
 enum TexMode
@@ -54,7 +57,6 @@ struct RenderContext
 
 	void (APIENTRY * LoadExtensions) ();
 	void (APIENTRY * SetTextureMode) (int type);
-	void (APIENTRY * ArrayPointer) (void * data, int stride);
 	void (APIENTRY * PrintStartupLog) ();
 	BOOL (APIENTRY * SetVSync) (int on);
 #if !defined (unix) && !defined (__APPLE__) // [AL] OpenGL on OS X
@@ -167,7 +169,6 @@ struct RenderContext
 	PFNGLVERTEXATTRIB4FARBPROC VertexAttrib4f;
 	PFNGLGETATTRIBLOCATIONARBPROC GetAttribLocation;
 	PFNGLBINDATTRIBLOCATIONARBPROC BindAttribLocation;
-	PFNGLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
 
 	PFNGLUNIFORM1FARBPROC Uniform1f;
 	PFNGLUNIFORM2FARBPROC Uniform2f;
@@ -209,6 +210,17 @@ struct RenderContext
 	PFNGLACTIVETEXTUREPROC ActiveTexture;
 	PFNGLMULTITEXCOORD2FPROC MultiTexCoord2f;
 	PFNGLMULTITEXCOORD2FVPROC MultiTexCoord2fv;
+
+	PFNGLBINDBUFFERPROC BindBuffer;
+	PFNGLDELETEBUFFERSPROC DeleteBuffers;
+	PFNGLGENBUFFERSPROC GenBuffers;
+	PFNGLBUFFERDATAPROC BufferData;
+	PFNGLMAPBUFFERPROC MapBuffer;
+	PFNGLUNMAPBUFFERPROC UnmapBuffer;
+	PFNGLENABLEVERTEXATTRIBARRAYPROC EnableVertexAttribArray;
+	PFNGLDISABLEVERTEXATTRIBARRAYPROC DisableVertexAttribArray;
+	PFNGLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
+
 
 };
 

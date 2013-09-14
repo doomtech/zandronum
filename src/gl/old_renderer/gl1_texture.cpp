@@ -488,8 +488,6 @@ FGLTexture::FGLTexture(FTexture * tx)
 	HiresLump=-1;
 	hirestexture = NULL;
 
-	areacount = 0;
-	areas = NULL;
 	createWarped = false;
 
 	bHasColorkey = false;
@@ -543,8 +541,8 @@ FGLTexture::FGLTexture(FTexture * tx)
 FGLTexture::~FGLTexture()
 {
 	Clean(true);
-	if (areas) delete [] areas;
 	if (hirestexture) delete hirestexture;
+	if (tex != NULL && tex->gl_info.RenderTexture == this) tex->gl_info.RenderTexture = NULL;
 
 	for(unsigned i=0;i<gltextures.Size();i++)
 	{
@@ -647,7 +645,7 @@ fixed_t FGLTexture::TextureAdjustWidth(ETexUse i) const
 //
 //===========================================================================
 
-void FGLTexture::GetRect(GL_RECT * r, FGLTexture::ETexUse i) const
+void FGLTexture::GetRect(FloatRect * r, FGLTexture::ETexUse i) const
 {
 	r->left=-(float)GetScaledLeftOffset(i);
 	r->top=-(float)GetScaledTopOffset(i);
@@ -686,7 +684,8 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
 
 		
 		int trans = hirestexture->CopyTrueColorPixels(&bmp, 0, 0);
-		CheckTrans(buffer, w*h, trans);
+		tex->CheckTrans(buffer, w*h, trans);
+		bIsTransparent = tex->gl_info.mIsTransparent;
 
 		if (bHasColorkey)
 		{
@@ -703,202 +702,6 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
 		return buffer;
 	}
 	return NULL;
-}
-
-//===========================================================================
-// 
-//	Finds gaps in the texture which can be skipped by the renderer
-//  This was mainly added to speed up one area in E4M6 of 007LTSD
-//
-//===========================================================================
-bool FGLTexture::FindHoles(const unsigned char * buffer, int w, int h)
-{
-	const unsigned char * li;
-	int y,x;
-	int startdraw,lendraw;
-	int gaps[5][2];
-	int gapc=0;
-
-
-	// already done!
-	if (areacount) return false;
-	if (tex->UseType==FTexture::TEX_Flat) return false;	// flats don't have transparent parts
-	areacount=-1;	//whatever happens next, it shouldn't be done twice!
-
-	// large textures are excluded for performance reasons
-	if (h>256) return false;	
-
-	startdraw=-1;
-	lendraw=0;
-	for(y=0;y<h;y++)
-	{
-		li=buffer+w*y*4+3;
-
-		for(x=0;x<w;x++,li+=4)
-		{
-			if (*li!=0) break;
-		}
-
-		if (x!=w)
-		{
-			// non - transparent
-			if (startdraw==-1) 
-			{
-				startdraw=y;
-				// merge transparent gaps of less than 16 pixels into the last drawing block
-				if (gapc && y<=gaps[gapc-1][0]+gaps[gapc-1][1]+16)
-				{
-					gapc--;
-					startdraw=gaps[gapc][0];
-					lendraw=y-startdraw;
-				}
-				if (gapc==4) return false;	// too many splits - this isn't worth it
-			}
-			lendraw++;
-		}
-		else if (startdraw!=-1)
-		{
-			if (lendraw==1) lendraw=2;
-			gaps[gapc][0]=startdraw;
-			gaps[gapc][1]=lendraw;
-			gapc++;
-
-			startdraw=-1;
-			lendraw=0;
-		}
-	}
-	if (startdraw!=-1)
-	{
-		gaps[gapc][0]=startdraw;
-		gaps[gapc][1]=lendraw;
-		gapc++;
-	}
-	if (startdraw==0 && lendraw==h) return false;	// nothing saved so don't create a split list
-
-	GL_RECT * rcs=new GL_RECT[gapc];
-
-	for(x=0;x<gapc;x++)
-	{
-		// gaps are stored as texture (u/v) coordinates
-		rcs[x].width=rcs[x].left=-1.0f;
-		rcs[x].top=(float)gaps[x][0]/(float)h;
-		rcs[x].height=(float)gaps[x][1]/(float)h;
-	}
-	areas=rcs;
-	areacount=gapc;
-
-	return false;
-}
-
-
-//===========================================================================
-// 
-// smooth the edges of transparent fields in the texture
-// returns false when nothing is manipulated to save the work on further
-// levels
-
-// 28/10/2003: major optimization: This function was far too pedantic.
-// taking the value of one of the neighboring pixels is fully sufficient
-//
-//===========================================================================
-#ifdef __BIG_ENDIAN__
-#define MSB 0
-#define SOME_MASK 0xffffff00
-#else
-#define MSB 3
-#define SOME_MASK 0x00ffffff
-#endif
-
-#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((DWORD*)l1)[0] = ((DWORD*)l1)[ofs]&SOME_MASK), trans=true ) : false)
-
-bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides)
-{
-  int x,y;
-  bool trans=buffer[MSB]==0; // If I set this to false here the code won't detect textures 
-                                // that only contain transparent pixels.
-  unsigned char * l1;
-
-  if (h<=1 || w<=1) return false;  // makes (a) no sense and (b) doesn't work with this code!
-
-  l1=buffer;
-
-
-  if (l1[MSB]==0 && !CHKPIX(1)) CHKPIX(w);
-  l1+=4;
-  for(x=1;x<w-1;x++, l1+=4)
-  {
-    if (l1[MSB]==0 &&  !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-  }
-  if (l1[MSB]==0 && !CHKPIX(-1)) CHKPIX(w);
-  l1+=4;
-
-  for(y=1;y<h-1;y++)
-  {
-    if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
-    l1+=4;
-    for(x=1;x<w-1;x++, l1+=4)
-    {
-      if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-    }
-    if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
-    l1+=4;
-  }
-
-  if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(1);
-  l1+=4;
-  for(x=1;x<w-1;x++, l1+=4)
-  {
-    if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
-  }
-  if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(-1);
-
-  return trans;
-}
-
-//===========================================================================
-// 
-// Post-process the texture data after the buffer has been created
-//
-//===========================================================================
-
-bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch)
-{
-	if (tex->bMasked && !tex->gl_info.bBrightmap) 
-	{
-		tex->bMasked=SmoothEdges(buffer, w, h, ispatch);
-		if (tex->bMasked && !ispatch) FindHoles(buffer, w, h);
-	}
-	return true;
-}
-
-
-//===========================================================================
-// 
-//  Checks for transparent pixels if there is no simpler means to get
-//  this information
-//
-//===========================================================================
-void FGLTexture::CheckTrans(unsigned char * buffer, int size, int trans)
-{
-	if (bIsTransparent == -1) 
-	{
-		bIsTransparent = trans;
-		if (trans == -1)
-		{
-			DWORD * dwbuf = (DWORD*)buffer;
-			if (bIsTransparent == -1) for(int i=0;i<size;i++)
-			{
-				DWORD alpha = dwbuf[i]>>24;
-
-				if (alpha != 0xff && alpha != 0)
-				{
-					bIsTransparent = 1;
-					return;
-				}
-			}
-		}
-		bIsTransparent = 0;
-	}
 }
 
 //===========================================================================
@@ -1037,7 +840,8 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 			int trans = 
 				tex->CopyTrueColorPixels(&imgCreate, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 			bmp.CopyPixelDataRGB(0, 0, imgCreate.GetPixels(), W, H, 4, W * 4, 0, CF_BGRA);
-			CheckTrans(buffer, W*H, trans);
+			tex->CheckTrans(buffer, W*H, trans);
+			bIsTransparent = tex->gl_info.mIsTransparent;
 		}
 	}
 	else if (translation<=0)
@@ -1045,8 +849,8 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		int trans = 
 			tex->CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 
-		CheckTrans(buffer, W*H, trans);
-
+		tex->CheckTrans(buffer, W*H, trans);
+		bIsTransparent = tex->gl_info.mIsTransparent;
 	}
 	else
 	{
@@ -1054,6 +858,7 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
 		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+		bIsTransparent = 0;
 	}
 
 	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
@@ -1187,7 +992,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			// Create this texture
 			unsigned char * buffer = CreateTexBuffer(GLUSE_TEXTURE, cm, translation, w, h);
 
-			ProcessData(buffer, w, h, cm, false);
+			tex->ProcessData(buffer, w, h, false);
 			if (!gltexture->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
 			{
 				// could not create texture
@@ -1255,7 +1060,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 
 			// Create this texture
 			unsigned char * buffer = CreateTexBuffer(GLUSE_PATCH, cm, translation, w, h, false);
-			ProcessData(buffer, w, h, cm, true);
+			tex->ProcessData(buffer, w, h, true);
 			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{
 				// could not create texture
@@ -1303,7 +1108,6 @@ void FGLTexture::DeleteAll()
 {
 	for(int i=gltextures.Size()-1;i>=0;i--)
 	{
-		gltextures[i]->tex->gl_info.GLTexture = NULL;
 		delete gltextures[i];
 	}
 	gltextures.Clear();
@@ -1320,11 +1124,11 @@ FGLTexture * FGLTexture::ValidateTexture(FTexture * tex)
 {
 	if (tex	&& tex->UseType!=FTexture::TEX_Null)
 	{
-		FGLTexture *gltex = tex->gl_info.GLTexture;
+		FGLTexture *gltex = static_cast<FGLTexture*>(tex->gl_info.RenderTexture);
 		if (gltex == NULL) 
 		{
 			gltex = new FGLTexture(tex);
-			tex->gl_info.GLTexture = gltex;
+			tex->gl_info.RenderTexture = gltex;
 		}
 		return gltex;
 	}

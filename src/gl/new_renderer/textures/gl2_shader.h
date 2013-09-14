@@ -125,6 +125,7 @@ class FShaderObject
 	GLhandleARB hShader;
 	GLhandleARB hVertProg;
 	GLhandleARB hFragProg;
+	GLhandleARB hPixFunc;
 
 	FShaderPropertyInt mTimer;
 	FShaderPropertyFloat mDesaturationFactor;
@@ -132,6 +133,8 @@ class FShaderObject
 	FShaderPropertyInt mTextureMode;
 	FShaderPropertyVector mCameraPos;
 	FShaderPropertyVector mColormapColor;
+
+public:
 
 	enum AttributeIndices
 	{
@@ -142,11 +145,9 @@ class FShaderObject
 		attrGlowBottomColor,
 	};
 
-public:
-
 	FShaderObject();
 	~FShaderObject();
-	bool Create(const char *name, const char *vertexshader, const char *fragmentshader);
+	bool Create(const char *name, const char *vertexshader, const char *fragmentshader, const char *pixfunc);
 	void Bind();
 
 	void setTimer(int time)
@@ -194,9 +195,11 @@ class FShader
 	FName mName;
 	FShaderObject *mBaseShader;
 	FShaderObject *mColormapShader;
+	FShaderObject *m2DShader;
 	FShaderContainer *mOwner;
 
 	FShaderObject *CreateShader(const char *vp, const char *fp,const char * filename_pixfunc);
+	void Destroy();
 
 public:
 

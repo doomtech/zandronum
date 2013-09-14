@@ -28,13 +28,23 @@
 #include "gl/gl_include.h"
 #include "gl/gl_intern.h"	// CVAR declarations only.
 #include "r_translate.h"
+#include "r_data.h"
 #include "textures/textures.h"
+#include "gl/common/glc_translate.h"
+#include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/textures/gl2_texture.h"
 #include "gl/new_renderer/textures/gl2_material.h"
+#include "gl/new_renderer/textures/gl2_shader.h"
 
 
 namespace GLRendererNew
 {
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 int FMaterial::Scale (int val, int scale) 
 { 
@@ -43,12 +53,20 @@ int FMaterial::Scale (int val, int scale)
 }
 
 
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
 FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 {
 	if (tex->gl_info.bBrightmapChecked == 0)
 	{
 		tex->CreateDefaultBrightmap();
 	}
+
+	mSpeed = 0;
 
 	mSizeTexels.w = tex->GetWidth();
 	mSizeTexels.h = tex->GetHeight();
@@ -87,9 +105,6 @@ FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 	mTempScale.y = mDefaultScale.y = FIXED2FLOAT(tex->yScale);
 
 
-	//TArray<FGLTexture *> mLayers;
-	//FShader *mShader;
-
 	/* if (tex->materialdef)
 	{
 	}
@@ -97,27 +112,33 @@ FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 	*/
 	{
 		const char *shadername;
-		//mLayers.Push(tex);	// The first layer is always the owning texture
+		FGLTexture *gltex = GLRenderer2->GetGLTexture(tex, asSprite, translation);
+		mLayers.Push(gltex);	// The first layer is always the owning texture
 
-		if (translation == TRANSLATION(TRANSLATION_Standard, 8))
+		if (translation == TRANSLATION_INTENSITY)
 		{
 			shadername = "Intensity";
 		}
-		else if (translation == TRANSLATION(TRANSLATION_Standard, 9))	// Placeholder for alpha shade
+		else if (translation == TRANSLATION_SHADE)
 		{
 			shadername = "AlphaShade";
 		}
 		if (tex->bWarped == 1)
 		{
 			shadername = "Warp1";
+			mSpeed = static_cast<FWarpTexture*>(tex)->GetSpeed();
 		}
 		else if (tex->bWarped == 2)
 		{
 			shadername = "Warp2";
+			mSpeed = static_cast<FWarpTexture*>(tex)->GetSpeed();
 		}
-		else if (tex->gl_info.Brightmap != NULL)
+		else if (tex->gl_info.Brightmap != NULL && translation != TRANSLATION_ICE)
 		{
-			//mLayers.Push(tex->gl_info.Brightmap);	// the brightmap goes into the second layer
+			// NOTE: No brightmaps for icy textures!
+			gltex = GLRenderer2->GetGLTexture(tex->gl_info.Brightmap, asSprite, 0);
+			// the brightmap goes into the second layer - and is *not* using the specified translation
+			mLayers.Push(gltex);
 			shadername = "Brightmap";
 		}
 		else
@@ -125,11 +146,107 @@ FMaterial::FMaterial(FTexture *tex, bool asSprite, int translation)
 			shadername = "Default";
 		}
 	}
+	//mShader = GLRenderer2->GetShader(shadername);
+	mLayers.ShrinkToFit();
 }
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 FMaterial::~FMaterial()
 {
 }
+
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FMaterial::Bind(float *colormap, int texturemode, float desaturation, int clamp)
+{
+	mShader->Bind(colormap, texturemode, desaturation, mSpeed);
+	for(unsigned i=0;i<mLayers.Size();i++)
+	{
+		mLayers[i]->Bind(i, clamp);
+	}
+
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+FMaterialContainer::FMaterialContainer(FTexture *tex)
+{
+	mTexture = tex;
+	mMatWorld = NULL;
+	mMatPatch = NULL;
+	mMatOthers = NULL;
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+FMaterialContainer::~FMaterialContainer()
+{
+	if (mMatWorld != NULL) delete mMatWorld;
+	if (mMatPatch != NULL) delete mMatPatch;
+	if (mMatOthers != NULL)
+	{
+		FMaterialMap::Iterator it(*mMatOthers);
+		FMaterialMap::Pair *p;
+
+		while (it.NextPair(p))
+		{
+			delete p->Value;
+		}
+		delete mMatOthers;
+	}
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+FMaterial *FMaterialContainer::GetMaterial(bool asSprite, int translation)
+{
+	FMaterial ** mat;
+	if (translation == 0)
+	{
+		if (!asSprite)
+		{
+			mat = &mMatWorld;
+		}
+		else
+		{
+			mat = &mMatPatch;
+		}
+	}
+	else
+	{
+		MaterialKey key(asSprite, translation);
+		if (mMatOthers == NULL) mMatOthers = new FMaterialMap;
+		mat = &(*mMatOthers)[key];
+	}
+	if (*mat == NULL)
+	{
+		*mat = new FMaterial(mTexture, asSprite, translation);
+	}
+	return *mat;
+}
+
 
 
 }

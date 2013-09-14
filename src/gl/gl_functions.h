@@ -42,7 +42,6 @@ void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap *
 					   float *red, float *green, float *blue,
 					   PalEntry ThingColor, bool weapon);
 
-void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending);
 void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
 						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon);
 

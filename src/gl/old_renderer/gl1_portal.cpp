@@ -72,7 +72,6 @@
 EXTERN_CVAR(Bool, gl_portals)
 EXTERN_CVAR(Bool, gl_noquery)
 EXTERN_CVAR(Int, r_mirror_recursions)
-extern bool gl_plane_reflection_i;
 
 namespace GLRendererOld
 {
@@ -515,7 +514,7 @@ void GLSkyboxPortal::DrawContents()
 	int old_pm=PlaneMirrorMode;
 	int saved_extralight = extralight;
 
-	if (skyboxrecursion>=3 || !gl_plane_reflection_i)
+	if (skyboxrecursion>=3)
 	{
 		ClearScreen();
 		return;

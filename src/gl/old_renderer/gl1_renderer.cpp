@@ -82,10 +82,6 @@ void GL1Renderer::Initialize()
 {
 	gl_InitShaders();
 	gl_InitFog();
-	if (gl_vertices.Size())
-	{
-		gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
-	}
 }
 
 void GL1Renderer::SetPaused()
@@ -278,7 +274,6 @@ void GL1Renderer::SetupLevel()
 		}
 	}
 	gl_InitVertexData();
-	gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
 	pitch=0.0f;
 }
 
@@ -292,7 +287,6 @@ void GL1Renderer::CleanLevelData()
 {
 	gl_CleanVertexData();
 }
-
 
 //===========================================================================
 // 

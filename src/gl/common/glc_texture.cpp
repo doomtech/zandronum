@@ -2,7 +2,7 @@
 ** Global texture data
 **
 **---------------------------------------------------------------------------
-** Copyright 2004-2005 Christoph Oelckers
+** Copyright 2004-2009 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,6 @@
 #include "v_palette.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_texture.h"
-
-// Needed to destroy the old renderer's texture pointer 
-#include "gl/old_renderer/gl1_texture.h"
-
-
 
 //==========================================================================
 //
@@ -244,17 +239,21 @@ FTexture::MiscGLInfo::MiscGLInfo() throw()
 	bBrightmapChecked = false;
 	bBrightmap = false;
 	bBrightmapDisablesFullbright = false;
+	areas = NULL;
+	areacount = 0;
+	mIsTransparent = -1;
 
-	GLTexture = NULL;
+	RenderTexture = NULL;
 	Brightmap = NULL;
 }
 
 FTexture::MiscGLInfo::~MiscGLInfo()
 {
-	if (GLTexture != NULL) delete GLTexture;
-	GLTexture = NULL;
+	if (RenderTexture != NULL) delete RenderTexture;
 	if (Brightmap != NULL) delete Brightmap;
+	if (areas != NULL) delete [] areas;
 	Brightmap = NULL;
+	areas = NULL;
 }
 
 //===========================================================================
@@ -352,6 +351,198 @@ void FTexture::GetGlowColor(float *data)
 	data[1]=gl_info.GlowColor.g/255.0f;
 	data[2]=gl_info.GlowColor.b/255.0f;
 }
+
+//===========================================================================
+// 
+//	Finds gaps in the texture which can be skipped by the renderer
+//  This was mainly added to speed up one area in E4M6 of 007LTSD
+//
+//===========================================================================
+bool FTexture::FindHoles(const unsigned char * buffer, int w, int h)
+{
+	const unsigned char * li;
+	int y,x;
+	int startdraw,lendraw;
+	int gaps[5][2];
+	int gapc=0;
+
+
+	// already done!
+	if (gl_info.areacount) return false;
+	if (UseType == TEX_Flat) return false;	// flats don't have transparent parts
+	gl_info.areacount=-1;	//whatever happens next, it shouldn't be done twice!
+
+	// large textures are excluded for performance reasons
+	if (h>256) return false;	
+
+	startdraw=-1;
+	lendraw=0;
+	for(y=0;y<h;y++)
+	{
+		li=buffer+w*y*4+3;
+
+		for(x=0;x<w;x++,li+=4)
+		{
+			if (*li!=0) break;
+		}
+
+		if (x!=w)
+		{
+			// non - transparent
+			if (startdraw==-1) 
+			{
+				startdraw=y;
+				// merge transparent gaps of less than 16 pixels into the last drawing block
+				if (gapc && y<=gaps[gapc-1][0]+gaps[gapc-1][1]+16)
+				{
+					gapc--;
+					startdraw=gaps[gapc][0];
+					lendraw=y-startdraw;
+				}
+				if (gapc==4) return false;	// too many splits - this isn't worth it
+			}
+			lendraw++;
+		}
+		else if (startdraw!=-1)
+		{
+			if (lendraw==1) lendraw=2;
+			gaps[gapc][0]=startdraw;
+			gaps[gapc][1]=lendraw;
+			gapc++;
+
+			startdraw=-1;
+			lendraw=0;
+		}
+	}
+	if (startdraw!=-1)
+	{
+		gaps[gapc][0]=startdraw;
+		gaps[gapc][1]=lendraw;
+		gapc++;
+	}
+	if (startdraw==0 && lendraw==h) return false;	// nothing saved so don't create a split list
+
+	FloatRect * rcs = new FloatRect[gapc];
+
+	for(x=0;x<gapc;x++)
+	{
+		// gaps are stored as texture (u/v) coordinates
+		rcs[x].width=rcs[x].left=-1.0f;
+		rcs[x].top=(float)gaps[x][0]/(float)h;
+		rcs[x].height=(float)gaps[x][1]/(float)h;
+	}
+	gl_info.areas=rcs;
+	gl_info.areacount=gapc;
+
+	return true;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FTexture::CheckTrans(unsigned char * buffer, int size, int trans)
+{
+	if (gl_info.mIsTransparent == -1) 
+	{
+		gl_info.mIsTransparent = trans;
+		if (trans == -1)
+		{
+			DWORD * dwbuf = (DWORD*)buffer;
+			if (gl_info.mIsTransparent == -1) for(int i=0;i<size;i++)
+			{
+				DWORD alpha = dwbuf[i]>>24;
+
+				if (alpha != 0xff && alpha != 0)
+				{
+					gl_info.mIsTransparent = 1;
+					return;
+				}
+			}
+		}
+		gl_info.mIsTransparent = 0;
+	}
+}
+
+
+//===========================================================================
+// 
+// smooth the edges of transparent fields in the texture
+//
+//===========================================================================
+#ifdef __BIG_ENDIAN__
+#define MSB 0
+#define SOME_MASK 0xffffff00
+#else
+#define MSB 3
+#define SOME_MASK 0x00ffffff
+#endif
+
+#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((DWORD*)l1)[0] = ((DWORD*)l1)[ofs]&SOME_MASK), trans=true ) : false)
+
+bool FTexture::SmoothEdges(unsigned char * buffer,int w, int h)
+{
+	int x,y;
+	bool trans=buffer[MSB]==0; // If I set this to false here the code won't detect textures 
+	// that only contain transparent pixels.
+	unsigned char * l1;
+
+	if (h<=1 || w<=1) return false;  // makes (a) no sense and (b) doesn't work with this code!
+
+	l1=buffer;
+
+
+	if (l1[MSB]==0 && !CHKPIX(1)) CHKPIX(w);
+	l1+=4;
+	for(x=1;x<w-1;x++, l1+=4)
+	{
+		if (l1[MSB]==0 &&  !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
+	}
+	if (l1[MSB]==0 && !CHKPIX(-1)) CHKPIX(w);
+	l1+=4;
+
+	for(y=1;y<h-1;y++)
+	{
+		if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
+		l1+=4;
+		for(x=1;x<w-1;x++, l1+=4)
+		{
+			if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
+		}
+		if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
+		l1+=4;
+	}
+
+	if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(1);
+	l1+=4;
+	for(x=1;x<w-1;x++, l1+=4)
+	{
+		if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
+	}
+	if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(-1);
+
+	return trans;
+}
+
+//===========================================================================
+// 
+// Post-process the texture data after the buffer has been created
+//
+//===========================================================================
+
+bool FTexture::ProcessData(unsigned char * buffer, int w, int h, bool ispatch)
+{
+	if (bMasked && !gl_info.bBrightmap) 
+	{
+		bMasked = SmoothEdges(buffer, w, h);
+		if (bMasked && !ispatch) FindHoles(buffer, w, h);
+	}
+	return true;
+}
+
+
 
 //===========================================================================
 //

@@ -5,8 +5,9 @@
 
 namespace GLRendererNew
 {
+class FMaterial;
 
-struct GLVertex3D
+struct FVertex3D
 {
 	float x,y,z;				// coordinates
 	float u,v;					// texture coordinates
@@ -14,36 +15,97 @@ struct GLVertex3D
 	unsigned char fr,fg,fb,fd;	// fog color
 	unsigned char tr,tg,tb,td;	// ceiling glow
 	unsigned char br,bg,bb,bd;	// floor glow
+	float lighton;
 	float lightfogdensity;
 	float lightfactor;
+	float lightdist;
 	float glowdisttop;
 	float glowdistbottom;
 };
 
-struct GLVertex2D
+struct FVertex2D
 {
 	float x,y;
 	float u,v;
 	unsigned char r,g,b,a;
 };
 
-struct GLPrimitive2D
+class FVertexBuffer
+{
+	static unsigned int mLastBound;	// Crappy GL state machine. :(
+protected:
+	unsigned int mBufferId;
+	void *mMap;
+
+	FVertexBuffer();
+	void BindBuffer();
+public:
+	~FVertexBuffer();
+	void Map();
+	bool Unmap();
+};
+
+class FVertexBuffer2D : public FVertexBuffer
+{
+	int mMaxSize;
+public:
+	FVertexBuffer2D(int size);
+	bool Bind();
+
+	int GetSize() const
+	{
+		return mMaxSize;
+	}
+
+	void ChangeSize(int newsize)
+	{
+		mMaxSize = newsize;
+	}
+
+	FVertex2D *GetVertexPointer(int vt) const
+	{
+		return ((FVertex2D*)mMap)+vt;
+	}
+};
+
+struct FPrimitive2D
 {
 	int mPrimitiveType;
+	int mVertexStart;
+	int mVertexCount;
+
+	FMaterial *mMaterial;
 	int mTextureMode;
+
 	int mSrcBlend;
 	int mDstBlend;
 	int mBlendEquation;
-	FMaterial *mMaterial;
+
 	bool mUseScissor;
 	int mScissor[4];
-	int mVertexStart;
+
+	void Draw();
 };
 
+class FPrimitiveBuffer2D
+{
+	enum
+	{
+		BUFFER_INCREMENT = 1000,
+		BUFFER_MAXIMUM = 20000
+	};
 
-extern TArray<GLVertex3D> Vertices3D;
-extern TArray<GLVertex2D> Vertices2D;
-extern TArray<GLPrimitive2D> Primitives2D;
+	TArray<FPrimitive2D> mPrimitives;
+	int mCurrentVertexIndex;
+	int mCurrentVertexBufferSize;
+	FVertexBuffer2D *mVertexBuffer;
+
+public:
+	FPrimitiveBuffer2D();
+	~FPrimitiveBuffer2D();
+	int NewPrimitive(int vertexcount, FPrimitive2D *&primptr, FVertex2D *&vertptr);
+	void Flush();
+};
 
 }
 

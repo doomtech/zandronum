@@ -10862,6 +10862,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\common\glc_light.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\common\glc_nodes.cpp"
 					>
 				</File>
@@ -10951,6 +10955,10 @@
 				>
 				<File
 					RelativePath=".\src\gl\new_renderer\gl2_renderer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\new_renderer\gl2_vertex.cpp"
 					>
 				</File>
 				<Filter

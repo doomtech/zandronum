@@ -86,10 +86,11 @@ namespace GLRendererNew
 
 	bool FHardwareTexture::Create(const unsigned char *buffer, int w, int h, bool mipmapped, int texformat)
 	{
+		bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
 		if (texformat == -1) texformat = GL_RGBA;
-		if (Bind(0))
+		if (Bind(15))	// use the last texture unit for creation to avoid unbinding already bound textures
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmapped);
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmapped && use_mipmapping);
 			glTexImage2D(GL_TEXTURE_2D, 0, texformat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
 			if (mipmapped)
@@ -105,8 +106,8 @@ namespace GLRendererNew
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
 			}
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mipmapped? GL_REPEAT : GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mipmapped? GL_REPEAT : GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
 			return true;
 		}

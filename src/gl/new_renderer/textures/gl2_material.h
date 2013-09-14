@@ -2,6 +2,8 @@
 #define __GL_MATERIAL_H
 
 class FTexture;
+#include "tarray.h"
+#include "textures/textures.h"
 
 namespace GLRendererNew
 {
@@ -9,25 +11,6 @@ namespace GLRendererNew
 	class FShader;
 	class FGLTexture;
 
-struct FRect
-{
-	float left,top;
-	float width,height;
-
-
-	void Offset(float xofs,float yofs)
-	{
-		left+=xofs;
-		top+=yofs;
-	}
-	void Scale(float xfac,float yfac)
-	{
-		left*=xfac;
-		width*=xfac;
-		top*=yfac;
-		height*=yfac;
-	}
-};
 
 
 struct FISize
@@ -77,12 +60,10 @@ class FMaterial
 	FIPoint mOffsetUnits;
 
 	float mAlphaThreshold;
+	float mSpeed;
 
 	FFPoint mDefaultScale;
 	FFPoint mTempScale;
-
-	TArray<FRect> mAreas;	// for optimizing mid texture drawing.
-	bool mIsTransparent;
 
 	static int Scale (int val, int scale) ;
 
@@ -139,7 +120,8 @@ public:
 
 	bool FindHoles(const unsigned char * buffer, int w, int h);
 	void CheckTransparent(const unsigned char * buffer, int w, int h);
-	void CreateDefaultBrightmap();
+	void Bind(float *colormap, int texturemode, float desaturation, int clamp);
+
 
 
 };
@@ -173,7 +155,7 @@ struct MaterialHashTraits
 typedef TMap<MaterialKey, FMaterial *, MaterialHashTraits> FMaterialMap;
 
 
-class FMaterialContainer
+class FMaterialContainer : public FGLTextureBase
 {
 	FTexture *mTexture;
 	FMaterial *mMatWorld;
@@ -181,8 +163,9 @@ class FMaterialContainer
 	FMaterialMap *mMatOthers;
 
 public:
-	FMaterial *GetWorldMaterial(int translation);
-	FMaterial *GetPatchMaterial(int translation);
+	FMaterialContainer(FTexture *tex);
+	~FMaterialContainer();
+	FMaterial *GetMaterial(bool asSprite, int translation);
 };
 
 

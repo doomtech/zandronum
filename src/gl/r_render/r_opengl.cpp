@@ -367,6 +367,10 @@ static void APIENTRY LoadExtensions()
 	if (CheckExtension("GL_ATI_texture_env_combine3")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 
+	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;
+	if (strcmp((const char*)glGetString(GL_VERSION), "3.0") >= 0) gl->flags|=RFL_GL_30;
+
+
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	PFNWGLSWAPINTERVALEXTPROC vs = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	if (vs) gl->SetVSync = vs;
@@ -396,7 +400,6 @@ static void APIENTRY LoadExtensions()
 		gl->VertexAttrib4f = (PFNGLVERTEXATTRIB4FARBPROC)wglGetProcAddress("glVertexAttrib4fARB");
 		gl->GetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC)wglGetProcAddress("glGetAttribLocationARB");
 		gl->BindAttribLocation = (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
-		gl->VertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointerARB");
 
 
 		gl->Uniform1f = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
@@ -454,6 +457,20 @@ static void APIENTRY LoadExtensions()
         gl->BeginQuery             = BeginOcclusionQuery;
         gl->EndQuery               = EndOcclusionQuery;
 		gl->flags|=RFL_OCCLUSION_QUERY;
+	}
+
+	if (gl->flags & RFL_GL_21)
+	{
+		gl->BindBuffer				= (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+		gl->DeleteBuffers			= (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+		gl->GenBuffers				= (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
+		gl->BufferData				= (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
+		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBuffer");
+		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
+		gl->EnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("EnableVertexAttribArray");
+		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("DisableVertexAttribArray");
+		gl->VertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+
 	}
 
 	// [BB] Check for the extensions that are necessary for on the fly texture compression.
@@ -1001,18 +1018,6 @@ static void APIENTRY SetTextureMode(int type)
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	}
 }
-//==========================================================================
-//
-// 
-//
-//==========================================================================
-
-static void APIENTRY ArrayPointer(void * data, int stride)
-{
-	glTexCoordPointer(2,GL_FLOAT, stride, (float*)data + 3);
-	glVertexPointer(3,GL_FLOAT, stride, data);
-}
-
 
 //==========================================================================
 //
@@ -1034,7 +1039,6 @@ void APIENTRY GetContext(RenderContext & gl)
 
 	gl.LoadExtensions = LoadExtensions;
 	gl.SetTextureMode = SetTextureMode;
-	gl.ArrayPointer = ArrayPointer;
 	gl.PrintStartupLog = PrintStartupLog;
 	gl.InitHardware = InitHardware;
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X

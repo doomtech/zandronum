@@ -665,48 +665,6 @@ void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColorm
 
 //==========================================================================
 //
-// Sets render state to draw the given render style
-// includes: Texture mode, blend equation and blend mode
-//
-//==========================================================================
-void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending)
-{
-	static int blendstyles[] = { GL_ZERO, GL_ONE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA };
-	static int renderops[] = { 0, GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, -1, -1, -1, -1};
-
-	int srcblend = blendstyles[style.SrcAlpha&3];
-	int dstblend = blendstyles[style.DestAlpha&3];
-	int blendequation = renderops[style.BlendOp&7];
-	int texturemode = drawopaque? TM_OPAQUE : TM_MODULATE;
-
-	if (style.Flags & STYLEF_ColorIsFixed)
-	{
-		texturemode = TM_MASK;
-	}
-	else if (style.Flags & STYLEF_InvertSource)
-	{
-		texturemode = drawopaque? TM_INVERTOPAQUE : TM_INVERT;
-	}
-
-	if (blendequation == -1)
-	{
-		srcblend = GL_DST_COLOR;
-		dstblend = GL_ONE_MINUS_SRC_ALPHA;
-		blendequation = GL_FUNC_ADD;
-	}
-
-	if (allowcolorblending && srcblend == GL_SRC_ALPHA && dstblend == GL_ONE && blendequation == GL_FUNC_ADD)
-	{
-		srcblend = GL_SRC_COLOR;
-	}
-
-	gl.BlendEquation(blendequation);
-	gl.BlendFunc(srcblend, dstblend);
-	gl_SetTextureMode(texturemode);
-}
-
-//==========================================================================
-//
 // Modifies the color values depending on the render style
 //
 //==========================================================================

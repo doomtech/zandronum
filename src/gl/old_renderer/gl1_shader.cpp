@@ -357,20 +357,20 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 	};
 
 	static Lighting default_cm[]={
-		{ "Standard",	"shaders/main_nofog.vp",	"shaders/light/light_norm.fp"		},
-		{ "Inverse",	"shaders/main_nofog.vp",	"shaders/light/light_inverse.fp"	},
-		{ "Gold",		"shaders/main_nofog.vp",	"shaders/light/light_gold.fp"		},
-		{ "Red",		"shaders/main_nofog.vp",	"shaders/light/light_red.fp"		},
-		{ "Green",		"shaders/main_nofog.vp",	"shaders/light/light_green.fp"		},
+		{ "Standard",	"shaders_old/main_nofog.vp",	"shaders_old/light/light_norm.fp"		},
+		{ "Inverse",	"shaders_old/main_nofog.vp",	"shaders_old/light/light_inverse.fp"	},
+		{ "Gold",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_gold.fp"		},
+		{ "Red",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_red.fp"		},
+		{ "Green",		"shaders_old/main_nofog.vp",	"shaders_old/light/light_green.fp"		},
 	};
 
 	static Lighting default_light[]={
-		{ "Standard",	"shaders/main.vp",			"shaders/light/light_eyefog.fp"		},
-		{ "Brightmap",	"shaders/main.vp",			"shaders/light/light_brightmap.fp"	},
-		{ "Glow",		"shaders/main_glow.vp",		"shaders/light/light_glow.fp"		},
+		{ "Standard",	"shaders_old/main.vp",			"shaders_old/light/light_eyefog.fp"		},
+		{ "Brightmap",	"shaders_old/main.vp",			"shaders_old/light/light_brightmap.fp"	},
+		{ "Glow",		"shaders_old/main_glow.vp",		"shaders_old/light/light_glow.fp"		},
 	};
 
-	static const char * main_fp2[]={ "shaders/main.fp", "shaders/main_desat.fp" };
+	static const char * main_fp2[]={ "shaders_old/main.fp", "shaders_old/main_desat.fp" };
 
 	Name = ShaderName;
 	TexFileName = ShaderPath;
@@ -383,7 +383,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 		try
 		{
-			const char *main_fp = ShaderPath? "shaders/main.fp" : "shaders/main_notex.fp";
+			const char *main_fp = ShaderPath? "shaders_old/main.fp" : "shaders_old/main_notex.fp";
 			FString frag = CombineFragmentShader(ShaderPath, default_cm[i].lightpixelfunc, main_fp);
 
 			int vlump = Wads.GetNumForFullName(default_cm[i].VertexShader);
@@ -413,7 +413,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 		try
 		{
-			const char *main_fp = ShaderPath? main_fp2[j] : "shaders/main_notex.fp";
+			const char *main_fp = ShaderPath? main_fp2[j] : "shaders_old/main_notex.fp";
 			FString frag = CombineFragmentShader(ShaderPath, default_light[i].lightpixelfunc, main_fp);
 
 			int vlump = Wads.GetNumForFullName(default_light[i].VertexShader);
@@ -473,9 +473,9 @@ struct FDefaultShader
 
 static FDefaultShader defaultshaders[]=
 	{	
-		{"Default",	"shaders/tex/tex_norm.fp"},
-		{"Warp 1",	"shaders/tex/tex_warp1.fp"},
-		{"Warp 2",	"shaders/tex/tex_warp2.fp"},
+		{"Default",	"shaders_old/tex/tex_norm.fp"},
+		{"Warp 1",	"shaders_old/tex/tex_warp1.fp"},
+		{"Warp 2",	"shaders_old/tex/tex_warp2.fp"},
 		{"No Texture", NULL },
 		{NULL,NULL}
 		

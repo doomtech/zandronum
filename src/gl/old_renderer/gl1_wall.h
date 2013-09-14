@@ -77,7 +77,7 @@ private:
 	bool PrepareLight(texcoord * tcs, ADynamicLight * light);
 	void RenderWall(int textured, float * color2, ADynamicLight * light=NULL);
 	void RenderGlowingPoly(int textured, ADynamicLight * light=NULL);
-	int Intersection(GL_RECT * rc,GLWall * result);
+	int Intersection(FloatRect * rc,GLWall * result);
 
 	void FloodPlane(int pass);
 

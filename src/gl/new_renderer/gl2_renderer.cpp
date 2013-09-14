@@ -32,6 +32,7 @@
 #include "w_wad.h"
 #include "c_cvars.h"
 #include "i_system.h"
+#include "v_palette.h"
 #include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/gl2_vertex.h"
 #include "gl/new_renderer/textures/gl2_material.h"
@@ -45,9 +46,29 @@
 namespace GLRendererNew
 {
 
+GL2Renderer *GLRenderer2;
+
 //===========================================================================
 // 
-// Renderer interface
+// Destroy renderer
+//
+//===========================================================================
+
+GL2Renderer::~GL2Renderer()
+{
+	for(unsigned i=0;i<mMaterials.Size();i++)
+	{
+		delete mMaterials[i];
+	}
+	mMaterials.Clear();
+	if (mShaders != NULL) delete mShaders;
+	if (mTextures != NULL) delete mTextures;
+	if (mRender2D != NULL) delete mRender2D;
+}
+
+//===========================================================================
+// 
+// Initialize renderer
 //
 //===========================================================================
 
@@ -55,13 +76,26 @@ void GL2Renderer::Initialize()
 {
 	mShaders = new FShaderContainer;
 	mTextures = new FGLTextureManager;
+	mRender2D = new FPrimitiveBuffer2D;
 }
+
+//===========================================================================
+// 
+// Pause renderer
+//
+//===========================================================================
 
 void GL2Renderer::SetPaused()
 {
 	mShaders->SetActiveShader(NULL);
 	gl.SetTextureMode(TM_MODULATE);
 }
+
+//===========================================================================
+// 
+// Unpause renderer
+//
+//===========================================================================
 
 void GL2Renderer::UnsetPaused()
 {
@@ -126,7 +160,7 @@ void GL2Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 
 void GL2Renderer::FlushTextures()
 {
-	mTextures->FlushAllTextures();
+	if (mTextures != NULL) mTextures->FlushAllTextures();
 }
 
 //===========================================================================
@@ -218,111 +252,116 @@ void GL2Renderer::Begin2D()
 
 void GL2Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 {
-#if 0
 	float x = FIXED2FLOAT(parms.x - Scale (parms.left, parms.destwidth, parms.texwidth));
 	float y = FIXED2FLOAT(parms.y - Scale (parms.top, parms.destheight, parms.texheight));
 	float w = FIXED2FLOAT(parms.destwidth);
 	float h = FIXED2FLOAT(parms.destheight);
-	float ox, oy, cx, cy, r, g, b;
-	float light = 1.f;
-
-	FGLTexture * gltex = FGLTexture::ValidateTexture(img);
-
-	const PatchTextureInfo * pti;
+	float ox, oy, cx, cy;
+	
+	int r, g, b;
+	int light = 255;
+	int translation = 0;
 
 	if (parms.colorOverlay)
 	{
 		// Right now there's only black. Should be implemented properly later
-		light = 1.f - APART(parms.colorOverlay)/255.f;
+		light = 255 - APART(parms.colorOverlay);
 	}
 
 	if (!img->bHasCanvas)
 	{
 		if (!parms.alphaChannel) 
 		{
-			int translation = 0;
+			translation = 0;
 			if (parms.remap != NULL)
 			{
-				GLTranslationPalette * pal = static_cast<GLTranslationPalette*>(parms.remap->GetNative());
-				if (pal) translation = -pal->GetIndex();
+				translation = GLTranslationPalette::GetIndex(parms.remap);
 			}
-			pti = gltex->BindPatch(CM_DEFAULT, translation);
 		}
 		else 
 		{
 			// This is an alpha texture
-			pti = gltex->BindPatch(CM_SHADE, 0);
+			translation = TRANSLATION_SHADE;
 		}
 
-		if (!pti) return;
-
-		ox = pti->GetUL();
-		oy = pti->GetVT();
-		cx = pti->GetUR();
-		cy = pti->GetVB();
+		ox = oy = 0.f;
+		cx = cy = 1.f;
 	}
 	else
 	{
-		gltex->Bind(CM_DEFAULT, 0, 0);
+		translation = 0;
 		cx=1.f;
 		cy=-1.f;
 		ox = oy = 0.f;
 	}
 	
+	FMaterial *mat = GetMaterial(img, true, translation);
+
 	if (parms.flipX)
 	{
-		float temp = ox;
-		ox = cx;
-		cx = temp;
+		ox = 1.f;
+		cx = 0.f;
 	}
 	
 	// also take into account texInfo->windowLeft and texInfo->windowRight
 	// just ignore for now...
 	if (parms.windowleft || parms.windowright != img->GetScaledWidth()) return;
 	
-	if (parms.style.Flags & STYLEF_ColorIsFixed)
-	{
-		r = RPART(parms.fillcolor)/255.0f;
-		g = GPART(parms.fillcolor)/255.0f;
-		b = BPART(parms.fillcolor)/255.0f;
-	}
-	else
-	{
-		r = g = b = light;
-	}
-	
-	// scissor test doesn't use the current viewport for the coordinates, so use real screen coordinates
-	int btm = (SCREENHEIGHT - screen->GetHeight()) / 2;
-	btm = SCREENHEIGHT - btm;
 
-	gl.Enable(GL_SCISSOR_TEST);
-	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;
-	gl.Scissor(parms.lclip, btm - parms.dclip + space, parms.rclip - parms.lclip, parms.dclip - parms.uclip);
-	
-	gl_SetRenderStyle(parms.style, !parms.masked, false);
+	FPrimitive2D *prim;
+	FVertex2D *vert;
 
-	gl.Color4f(r, g, b, FIXED2FLOAT(parms.alpha));
+	int vtindex = mRender2D->NewPrimitive(4, prim, vert);
+	if (vtindex >= 0)
+	{
+		prim->mVertexStart = vtindex;
+		prim->mVertexCount = 4;
+
+		prim->mScissor[0] = parms.lclip;
+		prim->mScissor[1] = parms.uclip;
+		prim->mScissor[2] = parms.rclip;
+		prim->mScissor[3] = parms.dclip;
+
+		prim->mUseScissor = (parms.lclip > 0 || parms.uclip > 0 || 
+							parms.rclip < screen->GetWidth() || parms.dclip < screen->GetHeight());
 	
-	gl.Disable(GL_ALPHA_TEST);
-	gl_ApplyShader();
-	gl.Begin(GL_TRIANGLE_STRIP);
-	gl.TexCoord2f(ox, oy);
-	gl.Vertex2i(x, y);
-	gl.TexCoord2f(ox, cy);
-	gl.Vertex2i(x, y + h);
-	gl.TexCoord2f(cx, oy);
-	gl.Vertex2i(x + w, y);
-	gl.TexCoord2f(cx, cy);
-	gl.Vertex2i(x + w, y + h);
-	gl.End();
-	gl.Enable(GL_ALPHA_TEST);
-	
-	gl.Scissor(0, 0, screen->GetWidth(), screen->GetHeight());
-	gl.Disable(GL_SCISSOR_TEST);
-	gl_SetTextureMode(TM_MODULATE);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	gl.BlendEquation(GL_FUNC_ADD);
-#endif
+		gl_GetRenderStyle(parms.style, !parms.masked, false, 
+					&prim->mTextureMode, &prim->mSrcBlend, &prim->mDstBlend, &prim->mBlendEquation);
+
+		prim->mPrimitiveType = GL_TRIANGLE_STRIP;
+
+		vert[0].x = x;      vert[0].y = y;
+		vert[0].u = ox;     vert[0].v = oy;
+
+		vert[1].x = x;      vert[1].y = y + h;
+		vert[1].u = ox;     vert[1].v = cy;
+
+		vert[2].x = x + w;  vert[2].y = y;
+		vert[2].u = cx;     vert[2].v = oy;
+
+		vert[3].x = x + w;  vert[3].y = y + h;
+		vert[3].u = cx;     vert[3].v = cy;
+
+		if (parms.style.Flags & STYLEF_ColorIsFixed)
+		{
+			r = RPART(parms.fillcolor);
+			g = GPART(parms.fillcolor);
+			b = BPART(parms.fillcolor);
+		}
+		else
+		{
+			r = g = b = light;
+		}
+		int a = Scale(parms.alpha, 255, FRACUNIT);
+
+		for(int i=0;i<4;i++)
+		{
+			vert[i].r = (unsigned char)r;
+			vert[i].g = (unsigned char)g;
+			vert[i].b = (unsigned char)b;
+			vert[i].a = (unsigned char)a;
+		}
+	}
 }
 
 //==========================================================================
@@ -504,6 +543,41 @@ void GL2Renderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 
 void GL2Renderer::RenderView (player_t* player)
 {       
+}
+
+//-----------------------------------------------------------------------------
+//
+// gets the GL texture for a specific texture
+//
+//-----------------------------------------------------------------------------
+
+FGLTexture *GL2Renderer::GetGLTexture(FTexture *tex, bool asSprite, int translation)
+{
+	return mTextures->GetTexture(tex, asSprite, translation);
+}
+
+//-----------------------------------------------------------------------------
+//
+// gets the material for a specific texture
+//
+//-----------------------------------------------------------------------------
+
+FMaterial *GL2Renderer::GetMaterial(FTexture *tex, bool asSprite, int translation)
+{
+	FMaterialContainer *matc = static_cast<FMaterialContainer*>(tex->gl_info.RenderTexture);
+
+	if (matc == NULL)
+	{
+		tex->gl_info.RenderTexture = matc = new FMaterialContainer(tex);
+		mMaterials.Push(matc);
+	}
+	return matc->GetMaterial(asSprite, translation);
+
+}
+
+FMaterial *GL2Renderer::GetMaterial(FTextureID no, bool animtrans, bool asSprite, int translation)
+{
+	return GetMaterial(animtrans? TexMan(no) : TexMan[no], asSprite, translation);
 }
 
 }

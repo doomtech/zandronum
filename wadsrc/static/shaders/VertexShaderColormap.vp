@@ -1,0 +1,17 @@
+//attribute vec4 lightcolor;
+//attribute vec4 texcoord;
+
+// These need to be defined so that their indices can be found but they aren't used.
+attribute vec4 aLightParams;
+attribute vec4 aFogColor;
+attribute vec2 aGlowDistance;
+attribute vec4 aGlowTopColor;
+attribute vec4 aGlowBottomColor;
+
+
+void main()
+{
+	gl_FrontColor = gl_Color /*lightcolor*/;
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0 /* texcoord */;
+	gl_Position = ftransform();
+}

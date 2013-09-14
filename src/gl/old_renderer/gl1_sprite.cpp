@@ -73,6 +73,16 @@ extern TArray<spriteframe_t> SpriteFrames;
 namespace GLRendererOld
 {
 
+void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending)
+{
+	int tm, sb, db, be;
+
+	gl_GetRenderStyle(style, drawopaque, allowcolorblending, &tm, &sb, &db, &be);
+	gl.BlendEquation(be);
+	gl.BlendFunc(sb, db);
+	gl_SetTextureMode(tm);
+}
+
 //==========================================================================
 //
 // 
@@ -468,7 +478,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 
 	player_t *player=&players[consoleplayer];
-	GL_RECT r;
+	FloatRect r;
 
 	if (sector->sectornum!=thing->Sector->sectornum)
 	{
@@ -830,7 +840,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 
 			vt=0.0f;
 			vb=pti->GetVB();
-			GL_RECT r;
+			FloatRect r;
 			gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
 			ul=pti->GetUR();
 			ur=0.0f;

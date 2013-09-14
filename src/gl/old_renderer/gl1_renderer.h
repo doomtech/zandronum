@@ -82,6 +82,7 @@ void gl_DrawScene();
 void gl_EndDrawScene();
 sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, bool mainview);
 void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
+void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending);
 
 }
 
