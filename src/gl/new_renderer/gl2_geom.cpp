@@ -43,28 +43,143 @@ int GetCeilingLight (const sector_t *sec);
 namespace GLRendererNew
 {
 
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
 void MakeTextureMatrix(GLSectorPlane &splane, FMaterial *mat, Matrix3x4 &matx)
 {
 	matx.MakeIdentity();
 	if (mat != NULL)
 	{
-		float uoffs=TO_GL(splane.xoffs) / mat->GetWidth();
-		float voffs=TO_GL(splane.yoffs) / mat->GetHeight();
-
-		float xscale1=TO_GL(splane.xscale);
-		float yscale1=TO_GL(splane.yscale);
-
-		float xscale2=64.f / mat->GetWidth();
-		float yscale2=64.f / mat->GetHeight();
-
-		float angle=-ANGLE_TO_FLOAT(splane.angle);
-
-		matx.Scale(xscale1, yscale1, 1);
-		matx.Translate(uoffs, voffs, 0);
-		matx.Scale(xscale1, yscale2, 1);
-		matx.Rotate(0, 0, 1, angle);
+		matx.Scale(TO_GL(splane.xscale), TO_GL(splane.yscale), 1);
+		matx.Translate(TO_GL(splane.xoffs), TO_GL(splane.yoffs), 0);
+		matx.Rotate(0, 0, 1, -ANGLE_TO_FLOAT(splane.angle));
 	}
 }
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FGLSectorRenderData::AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *sectormap)
+{
+	int secnum = sec - sectors;
+	if (sectormap != NULL) sectormap[secnum>>3] |= (secnum&7);
+
+	// This ignores vertices only used for seg splitting because those aren't needed here
+	for(int i=0; i < sec->linecount; i++)
+	{
+		line_t *l = sec->lines[i];
+		int vtnum1 = l->v1 - vertexes;
+		int vtnum2 = l->v2 - vertexes;
+		vertexmap[vtnum1>>3] |= (vtnum1&7);
+		vertexmap[vtnum2>>3] |= (vtnum2&7);
+	}
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FGLSectorRenderData::SetupDependencies()
+{
+	BYTE *vertexmap = new BYTE[numvertexes/8+1];
+	BYTE *linemap = new BYTE[numlines/8+1];
+	BYTE *sectormap = new BYTE[numsectors/8+1];
+
+	memset(vertexmap, 0, numvertexes/8+1);
+	memset(linemap, 0, numlines/8+1);
+	memset(sectormap, 0, numsectors/8+1);
+
+	AddDependency(mSector, vertexmap, NULL);
+	for(unsigned j = 0; j < mSector->e->FakeFloor.Sectors.Size(); j++)
+	{
+		sector_t *sec = mSector->e->FakeFloor.Sectors[j];
+		// no need to make sectors dependent that don't make visual use of the heightsec
+		if (sec->GetHeightSec() == mSector)
+		{
+			AddDependency(sec, vertexmap, sectormap);
+		}
+	}
+	for(unsigned j = 0; j < mSector->e->XFloor.attached.Size(); j++)
+	{
+		sector_t *sec = mSector->e->XFloor.attached[j];
+		extsector_t::xfloor &x = sec->e->XFloor;
+
+		for(unsigned l = 0;l < x.ffloors.Size(); l++)
+		{
+			// Check if we really need to bother with this 3D floor
+			F3DFloor * rover = x.ffloors[l];
+			if (rover->model != mSector) continue;
+			if (!(rover->flags & FF_EXISTS)) continue;
+			if (rover->flags&FF_NOSHADE) continue; // FF_NOSHADE doesn't create any wall splits 
+
+			AddDependency(sec, vertexmap, sectormap);
+			break;
+		}
+	}
+
+	// collect all dependent linedefs from the marked vertices.
+	// This will include all linedefs that only share one vertex with the sector.
+	for(int i = 0; i < numlines; i++)
+	{
+		line_t *l = &lines[i];
+		int vtnum1 = l->v1 - vertexes;
+		int vtnum2 = l->v2 - vertexes;
+
+		if ((vertexmap[vtnum1>>3] & (vtnum1&7)) || (vertexmap[vtnum2>>3] & (vtnum2&7)))
+		{
+			linemap[i>>3] |= (i&7);
+		}
+	}
+
+	// The maps are set up. Now create the dependency arrays
+	for(int i=0;i<numvertexes;i++)
+	{
+		if (vertexmap[i>>3] & (i&7)) VertexDependencies.Push(&vertexes[i]);
+	}
+	VertexDependencies.ShrinkToFit();
+	delete vertexmap;
+
+	for(int i=0;i<numlines;i++)
+	{
+		if (linemap[i>>3] & (i&7)) LineDependencies.Push(&lines[i]);
+	}
+	LineDependencies.ShrinkToFit();
+	delete linemap;
+
+	for(int i=0;i<numsectors;i++)
+	{
+		if (sectormap[i>>3] & (i&7)) SectorDependencies.Push(&sectors[i]);
+	}
+	SectorDependencies.ShrinkToFit();
+	delete sectormap;
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FGLSectorRenderData::Init(int sector)
+{
+	mSector = &sectors[sector];
+	SetupDependencies();
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane &splane, 
 									  int lightlevel, FDynamicColormap *cm, 
@@ -139,7 +254,7 @@ void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane 
 			ssrd->mVertices[j].y = v->fy;
 			ssrd->mVertices[j].z = splane.plane.ZatPoint(v->fx, v->fy);
 
-			Vector uv = v;
+			Vector uv(v->fx, -v->fy, 0);
 			uv = matx * uv;
 
 			ssrd->mVertices[j].x = uv.X();
@@ -149,10 +264,12 @@ void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane 
 
 }
 
-void FGLSectorRenderData::Init(int sector)
-{
-	mSector = &sectors[sector];
-}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 void FGLSectorRenderData::Invalidate()
 {
@@ -161,6 +278,12 @@ void FGLSectorRenderData::Invalidate()
 	mPlanes[2].Clear();
 }
 
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 #define SET_COLOR() \
 	do \
@@ -178,6 +301,12 @@ void FGLSectorRenderData::Invalidate()
 		Colormap.Fade = sec->ColorMap->Fade; \
 	} while (0)
 
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
 void FGLSectorRenderData::Validate(int in_area)
 {

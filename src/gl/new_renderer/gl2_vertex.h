@@ -15,8 +15,8 @@ struct FVertex3D
 		FOG_NONE = 128
 	};
 
-	float x,z,y;				// coordinates (note that y and z are switched!
-	float u,v;					// texture coordinates
+	float x,z,y;				// coordinates (note that y and z are switched!)
+	float u,v;					// texture coordinates (in world coordinates!)
 	unsigned char r,g,b,a;		// light color
 	unsigned char fr,fg,fb,fon;	// fog color
 	unsigned char tr,tg,tb,td;	// ceiling glow

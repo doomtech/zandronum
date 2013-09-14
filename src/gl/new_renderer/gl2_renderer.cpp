@@ -232,9 +232,11 @@ void GL2Renderer::SetupLevel()
 	CleanLevelData();
 
 	mSectorData.Resize(numsectors);
-	for(int i=0; i<numsectors; i++)
-		mSectorData[i].Init(i);
 
+	for(int i=0;i<numsectors;i++)
+	{
+		mSectorData[i].Init(i);
+	}
 #if 0
 	mSubData = new FGLSubsectorData[numsubsectors];
 
@@ -744,6 +746,18 @@ void GL2Renderer::ProcessScene()
 
 void GL2Renderer::InvalidateSector(sector_t *sec, int mode)
 {
+	// mode == 0: only invalidate this sector
+	// mode == 1: invalidate all attached sectors
+	// mode == 2: invalidate everything that depends on this sector
+	if (mode = 0)
+	{
+		mSectorData[sec-sectors].Invalidate();
+	}
+	else
+	{
+		FGLSectorRenderData *srd = &mSectorData[sec-sectors];
+
+	}
 }
 
 void GL2Renderer::InvalidateSidedef(side_t *side, int mode)

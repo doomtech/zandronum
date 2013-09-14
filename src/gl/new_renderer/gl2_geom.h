@@ -33,6 +33,14 @@ struct FGLSectorRenderData
 	sector_t *mSector;
 	TArray<FGLSectorPlaneRenderData> mPlanes[3];
 
+	TArray<sector_t *> SectorDependencies;
+	TArray<line_t *> LineDependencies;
+	TArray<vertex_t *> VertexDependencies;
+	
+	void AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *sectormap);
+	void SetupDependencies();
+
+
 	void CreatePlane(int in_area, sector_t *sec, GLSectorPlane &splane, 
 					 int lightlevel, FDynamicColormap *cm, 
 					 float alpha, bool additive, int whichplanes, bool opaque);

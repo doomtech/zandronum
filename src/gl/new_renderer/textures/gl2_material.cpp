@@ -201,7 +201,7 @@ void FMaterial::Bind(float *colormap, int texturemode, float desaturation, int c
 {
 
 	assert(mShader != NULL);
-	mShader->Bind(colormap, texturemode, desaturation, mSpeed);
+	mShader->Bind(colormap, texturemode, desaturation, mSpeed, GetScaledWidth(), GetScaledHeight());
 	for(unsigned i=0;i<mLayers.Size();i++)
 	{
 		mLayers[i]->Bind(i, clamp);

@@ -1539,7 +1539,7 @@ int DDoomStatusBar::FDoomStatusBarTexture::CopyTrueColorPixels(FBitmap *bmp, int
 		tex = TexMan["STFBANY"];
 		if (tex != NULL)
 		{
-			tex->CopyTrueColorTranslated(bmp, x+143, y+1, 0, STFBRemap);
+			tex->CopyTrueColorTranslated(bmp, x+143, y+1, -1, -1, 0, STFBRemap);
 		}
 	}
 	return -1;

@@ -226,7 +226,7 @@ namespace GLRendererNew
 			FRemapTable remap;
 			memset(&remap, 0, sizeof(remap));
 			remap.Palette = GLTranslationPalette::GetPalette(translation);
-			mGameTexture->CopyTrueColorTranslated(&bmp, xofs, yofs, 0, &remap);
+			mGameTexture->CopyTrueColorTranslated(&bmp, xofs, yofs, -1, -1, 0, &remap);
 
 			// mapping to the base palette will destroy all translucency information so we don't need
 			// to check thisourselves.

@@ -317,16 +317,6 @@ void GLRendererBase::RenderView (player_t* player)
 }
 
 
-void InvalidateSector(sector_t *sec, int mode)
-{
-	if (GLRenderer != NULL) GLRenderer->InvalidateSector(sec, mode);
-}
-
-void InvalidateSidedef(side_t *side, int mode)
-{
-	if (GLRenderer != NULL) GLRenderer->InvalidateSidedef(side, mode);
-}
-
 //-----------------------------------------------------------------------------
 //
 // Rendering statistics

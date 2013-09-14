@@ -105,10 +105,6 @@ public:
 	virtual void SetViewMatrix(bool mirror, bool planemirror) = 0;
 	virtual void ProcessScene() = 0;
 
-	virtual void InvalidateSector(sector_t *sec, int mode) {}
-	virtual void InvalidateSidedef(side_t *side, int mode) {}
-
-
 };
 
 // Global functions. Make them members of GLRendererBase later?

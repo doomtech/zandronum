@@ -47,7 +47,7 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf);
+	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int w, int h, int rotate, FCopyInfo *inf);
 	bool UseBasePalette() { return false; }
 
 protected:

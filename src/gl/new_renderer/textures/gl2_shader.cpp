@@ -113,6 +113,7 @@ namespace GLRendererNew
 		mTextureMode.setIndex(hShader, "texturemode");
 		mCameraPos.setIndex(hShader, "camerapos");
 		mColormapColor.setIndex(hShader, "colormapcolor");
+		mTextureScale.setIndex(hShader, "uTextureScale");
 	
 		gl.UseProgramObject(hShader);
 		for(int i=1; i<=16;i++)
@@ -235,7 +236,7 @@ namespace GLRendererNew
 	//
 	//----------------------------------------------------------------------------
 
-	void FShader::Bind(float *cm, int texturemode, float desaturation, float Speed)
+	void FShader::Bind(float *cm, int texturemode, float desaturation, float Speed, int width, int height)
 	{
 		FShaderObject *so;
 
@@ -246,6 +247,10 @@ namespace GLRendererNew
 		else if (desaturation >= 0) so->setDesaturationFactor(desaturation);
 		so->setTextureMode(texturemode);
 		so->setTimer(gl_frameMS*Speed/1000.f);
+
+		float vec[] = {1.f/width, 1.f/height, 1.f, 1.f};
+		if (so != m2DShader) so->setTextureScale(vec);
+
 	}
 
 	//----------------------------------------------------------------------------

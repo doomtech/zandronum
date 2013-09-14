@@ -18,6 +18,8 @@ attribute vec2 aGlowDistance;
 attribute vec4 aGlowTopColor;
 attribute vec4 aGlowBottomColor;
 
+uniform vec4 uTextureScale;
+
 
 void main()
 {
@@ -33,6 +35,6 @@ void main()
 	GlowTopColor = aGlowTopColor;
 	GlowBottomColor = aGlowBottomColor;
 
-	gl_TexCoord[0] = gl_MultiTexCoord0 /* texcoord */;
+	gl_TexCoord[0] = uTextureScale * gl_MultiTexCoord0 /* texcoord */;
 	gl_Position = ftransform();
 }
