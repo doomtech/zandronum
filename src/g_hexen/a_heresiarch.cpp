@@ -849,7 +849,7 @@ void A_SorcOffense2(AActor *actor)
 	}
 
 	index = actor->args[4] << 5;
-	actor->args[4] += 15;
+	actor->args[4] = (actor->args[4] + 15) & 255;
 
 	// [BB] If we're the server, tell the clients to set the arguments of actor.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

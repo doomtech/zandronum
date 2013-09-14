@@ -86,8 +86,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_AcolyteDie)
 		}
 	}
 
-	players[0].mo->GiveInventoryType (QuestItemClasses[6]);
-	players[0].SetLogNumber (14);
+	players[i].mo->GiveInventoryType (QuestItemClasses[6]);
+	players[i].SetLogNumber (14);
 	S_StopSound (CHAN_VOICE);
 
 	// [BC] Play the sound to clients.

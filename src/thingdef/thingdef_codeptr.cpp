@@ -2208,12 +2208,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ThrowGrenade)
 		bo->velx += self->velx >> 1;
 		bo->vely += self->vely >> 1;
 		bo->target= self;
-		if (bo->flags4&MF4_RANDOMIZE) 
-		{
-			bo->tics -= pr_grenade() & 3;
-			if (bo->tics < 1)
-				bo->tics = 1;
-		}
 
 		// [BC] Tell clients to spawn this missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

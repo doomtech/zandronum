@@ -5428,39 +5428,43 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 
 					if (!bombdodamage || !(bombspot->flags2 & MF2_NODMGTHRUST))
 					{
-						thrust = points * 0.5f / (float)thing->Mass;
-						if (bombsource == thing)
+						if (bombsource == NULL  || !(bombsource->flags2 & MF2_NODMGTHRUST))
 						{
-							thrust *= selfthrustscale;
-						}
-						velz = (float)(thing->z + (thing->height>>1) - bombspot->z) * thrust;
-						if (bombsource != thing)
-						{
-							velz *= 0.5f;
-						}
-						else
-						{
-							velz *= 0.8f;
-						}
-						// [BB] Potentially use the horizontal thrust of old ZDoom versions.
-						if ( zacompatflags & ZACOMPATF_OLD_EXPLOSION_THRUST )
-						{
-							thing->velx = origmomx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
-							thing->vely = origmomy + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
-						}
-						else
-						{
-							angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
-							thing->velx += fixed_t (finecosine[ang] * thrust);
-							thing->vely += fixed_t (finesine[ang] * thrust);
-						}
+							thrust = points * 0.5f / (float)thing->Mass;
+							if (bombsource == thing)
+							{
+								thrust *= selfthrustscale;
+							}
+							velz = (float)(thing->z + (thing->height>>1) - bombspot->z) * thrust;
+							if (bombsource != thing)
+							{
+								velz *= 0.5f;
+							}
+							else
+							{
+								velz *= 0.8f;
+							}
 
-						// [BB] If DF2_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
-						if ( ( (dmflags2 & DF2_NO_ROCKET_JUMPING) == false ) ||
-							( bombsource == NULL ) || ( bombsource->player == NULL ) || ( thing->player == NULL ) )
-						{
-							if (bombdodamage)
-								thing->velz += (fixed_t)velz;	// this really doesn't work well
+							// [BB] Potentially use the horizontal thrust of old ZDoom versions.
+							if ( zacompatflags & ZACOMPATF_OLD_EXPLOSION_THRUST )
+							{
+								thing->velx = origmomx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
+								thing->vely = origmomy + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);
+							}
+							else
+							{
+								angle_t ang = R_PointToAngle2 (bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
+								thing->velx += fixed_t (finecosine[ang] * thrust);
+								thing->vely += fixed_t (finesine[ang] * thrust);
+							}
+
+							// [BB] If DF2_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
+							if ( ( (dmflags2 & DF2_NO_ROCKET_JUMPING) == false ) ||
+								( bombsource == NULL ) || ( bombsource->player == NULL ) || ( thing->player == NULL ) )
+							{
+								if (bombdodamage)
+									thing->velz += (fixed_t)velz;	// this really doesn't work well
+							}
 						}
 
 						// [BC] If we're the server, update the thing's momentum.
