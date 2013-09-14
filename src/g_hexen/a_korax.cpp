@@ -102,7 +102,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxChase)
 		return;
 	}
 
-	if ((!self->special2) && (self->health <= (self->GetDefault()->health/2)))
+	if ((!self->special2) && (self->health <= (self->SpawnHealth()/2)))
 	{
 		FActorIterator iterator (KORAX_FIRST_TELEPORT_TID);
 		spot = iterator.Next ();
@@ -132,7 +132,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxChase)
 	}
 
 	// Teleport away
-	if (self->health < (self->GetDefault()->health>>1))
+	if (self->health < (self->SpawnHealth()>>1))
 	{
 		if (pr_koraxchase()<10)
 		{
@@ -336,7 +336,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxCommand)
 		SERVERCOMMANDS_SpawnThing( pBolt );
 	}
 
-	if (self->health <= (self->GetDefault()->health >> 1))
+	if (self->health <= (self->SpawnHealth() >> 1))
 	{
 		numcommands = 5;
 	}

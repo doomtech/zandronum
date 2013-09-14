@@ -1020,7 +1020,7 @@ CCMD(linetarget)
 		Printf("Target=%s, Health=%d, Spawnhealth=%d\n",
 			linetarget->GetClass()->TypeName.GetChars(),
 			linetarget->health,
-			linetarget->GetDefault()->health);
+			linetarget->SpawnHealth());
 	}
 	else Printf("No target found\n");
 }

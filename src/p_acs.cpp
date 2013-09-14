@@ -3081,7 +3081,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 							}
 							else
 							{
-								return actor->GetDefault()->health;
+								return actor->SpawnHealth();
 							}
 
 	case APROP_JumpZ:		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
