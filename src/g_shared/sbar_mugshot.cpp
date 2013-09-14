@@ -40,6 +40,7 @@
 #include "d_event.h"
 #include "sbar.h"
 #include "sbarinfo.h"
+#include "templates.h"
 
 #define ST_RAMPAGEDELAY 		(2*TICRATE)
 #define ST_MUCHPAIN 			20
@@ -481,8 +482,17 @@ FTexture *FMugShot::GetFace(player_t *player, const char *default_face, int accu
 {
 	int angle = UpdateState(player, stateflags);
 	int level = 0;
+	int max = player->mo->MugShotMaxHealth;
+	if (max < 0)
+	{
+		max = player->mo->GetMaxHealth();
+	}
+	else if (max == 0)
+	{
+		max = 100;
+	}
 	// [BB] If the consoleplayer isn't allowed to know this player's healt, pretend he is at full health for the mugshot.
-	while ( ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, static_cast<ULONG>( player - players )) ? player->health : player->mo->GetMaxHealth() ) < (accuracy-1-level) * (player->mo->GetMaxHealth()/accuracy))
+	while ( ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, static_cast<ULONG>( player - players )) ? player->health : max ) < (accuracy - 1 - level) * (max / accuracy))
 	{
 		level++;
 	}

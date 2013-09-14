@@ -118,7 +118,7 @@ extern FButtonStatus MenuButtons[NUM_MKEYS];
 
 void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
 void StartGLMenu (void);
-void M_StartMessage (const char *string, void (*routine)(int), bool input);
+void M_StartMessage (const char *string, void (*routine)(int));
 
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
@@ -1847,7 +1847,7 @@ void ignoreplayermenu_Show( void )
 	if ( SERVER_CountPlayers( false ) < 2 )
 	{
 		M_ClearMenus( );
-		M_StartMessage( "There is nobody else here to ignore!\n\npress any key.", NULL, false );
+		M_StartMessage( "There is nobody else here to ignore!\n\npress any key.", NULL );
 		return;
 	}
 
@@ -1920,7 +1920,7 @@ void kickplayermenu_Show( void )
 	if ( SERVER_CountPlayers( false ) < 2 )
 	{
 		M_ClearMenus( );
-		M_StartMessage( "There is nobody else here to kick!\n\npress any key.", NULL, false );
+		M_StartMessage( "There is nobody else here to kick!\n\npress any key.", NULL );
 		return;
 	}
 
@@ -2149,7 +2149,7 @@ void M_Spectate( void )
 	if ( gamestate == GS_LEVEL )
 		C_DoCommand( "spectate" );
 	else
-		M_StartMessage( "You must be in a game to spectate.\n\npress any key.", NULL, false );
+		M_StartMessage( "You must be in a game to spectate.\n\npress any key.", NULL );
 }
 
 //*****************************************************************************
@@ -2160,7 +2160,7 @@ void M_CallVote( void )
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
 		M_ClearMenus( );
-		M_StartMessage( "You must be in a multiplayer game to vote.\n\npress any key.", NULL, false );
+		M_StartMessage( "You must be in a multiplayer game to vote.\n\npress any key.", NULL );
 
 		return;
 	}
@@ -4244,7 +4244,7 @@ CCMD (sizeup)
 
 // Draws a string in the console font, scaled to the 8x8 cells
 // used by the default console font.
-static void M_DrawConText (int color, int x, int y, const char *str)
+void M_DrawConText (int color, int x, int y, const char *str)
 {
 	int len = (int)strlen(str);
 

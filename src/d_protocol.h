@@ -210,6 +210,7 @@ enum ECheatCommand
 	CHT_GIMMIEI,
 	CHT_GIMMIEJ,
 	CHT_GIMMIEZ,
+	CHT_BUDDHA
 };
 
 void StartChunk (int id, BYTE **stream);

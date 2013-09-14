@@ -47,8 +47,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
-#define ZD_SVN_REVISION_STRING "1747"
-#define ZD_SVN_REVISION_NUMBER 1747
+#define ZD_SVN_REVISION_STRING "1760"
+#define ZD_SVN_REVISION_NUMBER 1760
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -90,11 +90,11 @@
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x210
+#define DEMOGAMEVERSION 0x211
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
-#define MINDEMOVERSION 0x210
+#define MINDEMOVERSION 0x211
 
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.

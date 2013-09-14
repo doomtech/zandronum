@@ -59,6 +59,9 @@ typedef enum
 // State updates, number of tics / second.
 #define TICRATE 		35
 
+// Amount of damage done by a telefrag.
+#define TELEFRAG_DAMAGE	1000000
+
 // [Spleen] The amount of ticks of old positions to store for unlagged support
 #define UNLAGGEDTICS	35
 

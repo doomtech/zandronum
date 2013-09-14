@@ -1143,7 +1143,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		return;
 
 	// Spectral targets only take damage from spectral projectiles.
-	if (target->flags4 & MF4_SPECTRAL && damage < 1000000)
+	if (target->flags4 & MF4_SPECTRAL && damage < TELEFRAG_DAMAGE)
 	{
 		if (inflictor == NULL || !(inflictor->flags4 & MF4_SPECTRAL))
 		{
@@ -1177,7 +1177,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 		return;
 	}
-	if ((target->flags2 & MF2_INVULNERABLE) && damage < 1000000 && !(flags & DMG_FORCED))
+	if ((target->flags2 & MF2_INVULNERABLE) && damage < TELEFRAG_DAMAGE && !(flags & DMG_FORCED))
 	{ // actor is invulnerable
 		if (target->player == NULL)
 		{
@@ -1399,7 +1399,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		// [BL] Some adjustments for Skulltag
 		if (player && (( teamlms || survival ) && ( MeansOfDeath == NAME_SpawnTelefrag )) == false )
 			FriendlyFire = true;
-		if (damage < 1000000)
+		if (damage < TELEFRAG_DAMAGE)
 		{ // Still allow telefragging :-(
 			damage = (int)((float)damage * level.teamdamage);
 			if (damage <= 0)
@@ -1429,14 +1429,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		if (!(flags & DMG_FORCED))
 		{
-			if ((target->flags2 & MF2_INVULNERABLE) && damage < 1000000)
+			if (damage < TELEFRAG_DAMAGE && ((target->flags2 & MF2_INVULNERABLE) ||
+				(target->player->cheats & CF_GODMODE)))
 			{ // player is invulnerable, so don't hurt him
-				return;
-			}
-
-			if (damage < 1000 && ((target->player->cheats & CF_GODMODE)
-				|| (target->player->mo->flags2 & MF2_INVULNERABLE)))
-			{
 				return;
 			}
 
@@ -1474,9 +1469,20 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			P_AutoUseStrifeHealth (player);
 			player->mo->health = player->health;
 		}
-		if (player->health < 0)
+		if (player->health <= 0)
 		{
-			player->health = 0;
+			// [SP] Buddha cheat: if the player is about to die, rescue him to 1 health.
+			// This does not save the player if damage >= TELEFRAG_DAMAGE, still need to
+			// telefrag him right? ;) (Unfortunately the damage is "absorbed" by armor,
+			// but telefragging should still do enough damage to kill the player)
+			if ((player->cheats & CF_BUDDHA) && damage < TELEFRAG_DAMAGE)
+			{
+				target->health = player->health = 1;
+			}
+			else
+			{
+				player->health = 0;
+			}
 		}
 		player->LastDamageType = mod;
 
@@ -1861,7 +1867,8 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{
 		return;
 	}
-	if (target->flags2&MF2_INVULNERABLE && damage < 1000000)
+	if (damage < TELEFRAG_DAMAGE && ((target->flags2 & MF2_INVULNERABLE) ||
+		(player->cheats & CF_GODMODE)))
 	{ // target is invulnerable
 		return;
 	}
@@ -1872,11 +1879,6 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 
 		// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
 		ApplyCoopDamagefactor(damage, source);
-	}
-	if(damage < 1000 && ((player->cheats&CF_GODMODE)
-		|| (player->mo->flags2 & MF2_INVULNERABLE)))
-	{
-		return;
 	}
 	if (damage >= player->health
 		&& (G_SkillProperty(SKILLP_AutoUseHealth) || deathmatch)
@@ -1905,18 +1907,25 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	target->health -= damage;
 	if (target->health <= 0)
 	{ // Death
-		target->special1 = damage;
-		if (player && inflictor && !player->morphTics)
-		{ // Check for flame death
-			if ((inflictor->DamageType == NAME_Fire)
-				&& (target->health > -50) && (damage > 25))
-			{
-				target->DamageType = NAME_Fire;
-			}
-			else target->DamageType = inflictor->DamageType;
+		if ( player->cheats & CF_BUDDHA )
+		{ // [SP] Save the player... 
+			player->health = target->health = 1;
 		}
-		target->Die (source, source);
-		return;
+		else
+		{
+			target->special1 = damage;
+			if (player && inflictor && !player->morphTics)
+			{ // Check for flame death
+				if ((inflictor->DamageType == NAME_Fire)
+					&& (target->health > -50) && (damage > 25))
+				{
+					target->DamageType = NAME_Fire;
+				}
+				else target->DamageType = inflictor->DamageType;
+			}
+			target->Die (source, source);
+			return;
+		}
 	}
 	if (!(level.time&63) && playPainSound)
 	{

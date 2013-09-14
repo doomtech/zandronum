@@ -136,6 +136,7 @@ public:
 
 	int			crouchsprite;
 	int			MaxHealth;
+	int			MugShotMaxHealth;
 	int			RunHealth;
 	int			PlayerFlags;
 	TObjPtr<AInventory> InvFirst;		// first inventory item displayed on inventory bar
@@ -230,13 +231,14 @@ typedef enum
 	CF_WEAPONBOBBING	= 1 << 24,		// [HW] Bob weapon while the player is moving
 	CF_WEAPONREADYALT	= 1 << 25,		// Weapon can fire its secondary attack
 	CF_WEAPONSWITCHOK	= 1 << 26,		// It is okay to switch away from this weapon
+	CF_BUDDHA			= 1 << 27,		// [SP] Buddha mode - take damage, but don't die
 
 	// [BC] Player can move freely while the game is in freeze mode.
-	CF_FREEZE			= 1 << 27,
+	CF_FREEZE			= 1 << 28,
 
 	// [BC] Rune effects.
-	CF_SPREAD			= 1 << 28,
-	CF_SPEED25			= 1 << 29,
+	CF_SPREAD			= 1 << 29,
+	CF_SPEED25			= 1 << 30,
 
 } cheat_t;
 

@@ -217,6 +217,8 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(MF6, NOFEAR, AActor, flags6),
 	DEFINE_FLAG(MF6, BUMPSPECIAL, AActor, flags6),
 	DEFINE_FLAG(MF6, DONTHARMSPECIES, AActor, flags6),
+	DEFINE_FLAG(MF6, STEPMISSILE, AActor, flags6),
+	DEFINE_FLAG(MF6, NOTELEFRAG, AActor, flags6),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),

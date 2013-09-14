@@ -207,7 +207,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 	     || (( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
 	   )
 	{
-		P_DamageMobj (self, self, self, 1000000, NAME_Exit);
+		P_DamageMobj (self, self, self, TELEFRAG_DAMAGE, NAME_Exit);
 		return false;
 	}
 	// Is this a singleplayer game and the next map is part of the same hub and we're dead?
