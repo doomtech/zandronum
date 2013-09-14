@@ -105,6 +105,9 @@ public:
 	virtual void SetViewMatrix(bool mirror, bool planemirror) = 0;
 	virtual void ProcessScene() = 0;
 
+	virtual void InvalidateSector(sector_t *sec, int mode) {}
+	virtual void InvalidateSidedef(side_t *side, int mode) {}
+
 
 };
 
@@ -117,7 +120,10 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
 
 void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
 					   int *tm, int *sb, int *db, int *be);
-
+void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
+int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon);
+PalEntry gl_CalcLightColor(int lightlevel, PalEntry pe, int blendfactor);
+float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
 
 typedef enum
 {
@@ -135,7 +141,6 @@ struct TexFilter_s
 	int magfilter;
 	bool mipmapping;
 } ;
-
 
 
 extern GLRendererBase *GLRenderer;

@@ -624,6 +624,9 @@ void GLShader::Bind(int cm, int lightmode, float Speed)
 				gl.Uniform1f(sh->desaturation_index, 1.f-float(cm-CM_DESAT0)/(CM_DESAT31-CM_DESAT0));
 			}
 		}
+		else
+		{
+		}
 		break;
 	}
 }

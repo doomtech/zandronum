@@ -3,6 +3,7 @@
 
 #include "tarray.h"
 #include "gl/common/glc_renderer.h"
+#include "gl/new_renderer/gl2_geom.h"
 
 namespace GLRendererNew
 {
@@ -14,6 +15,8 @@ class FShader;
 class FGLTexture;
 class FPrimitiveBuffer2D;
 class FSkyDrawer;
+struct FGLSubsectorData;
+
 
 class GL2Renderer : public GLRendererBase
 {
@@ -24,6 +27,8 @@ public:
 	FPrimitiveBuffer2D *mRender2D;
 	FMaterialContainer *mDefaultMaterial;
 	FSkyDrawer *mSkyDrawer;
+
+	TArray<FGLSectorRenderData> mSectorData;
 
 	GL2Renderer() 
 	{
@@ -70,6 +75,9 @@ public:
 	void SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
 	void ProcessScene();
 	void Flush();
+
+	void InvalidateSector(sector_t *sec, int mode);
+	void InvalidateSidedef(side_t *side, int mode);
 
 	void SetProjection(float fov, float ratio, float fovratio);
 	void SetViewMatrix(bool mirror, bool planemirror);

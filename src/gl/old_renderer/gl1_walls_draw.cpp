@@ -199,7 +199,7 @@ void GLWall::RenderFogBoundary()
 	// [BB] Take care of gl_fogmode and DF2_FORCE_GL_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
-	if (gl_fogmode)
+	if (gl_fogmode && gl_fixedcolormap == 0)
 	{
 		float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
 

@@ -39,6 +39,7 @@
 #include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/gl2_vertex.h"
 #include "gl/new_renderer/gl2_skydraw.h"
+#include "gl/new_renderer/gl2_geom.h"
 #include "gl/new_renderer/textures/gl2_material.h"
 #include "gl/new_renderer/textures/gl2_texture.h"
 #include "gl/new_renderer/textures/gl2_shader.h"
@@ -65,6 +66,7 @@ GL2Renderer *GLRenderer2;
 
 GL2Renderer::~GL2Renderer()
 {
+	CleanLevelData();
 	for(unsigned i=0;i<mMaterials.Size();i++)
 	{
 		delete mMaterials[i];
@@ -227,6 +229,50 @@ unsigned char *GL2Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 
 void GL2Renderer::SetupLevel()
 {
+	CleanLevelData();
+
+	mSectorData.Resize(numsectors);
+	for(int i=0; i<numsectors; i++)
+		mSectorData[i].Init(i);
+
+#if 0
+	mSubData = new FGLSubsectorData[numsubsectors];
+
+	TArray<int> *mSegMap = new TArray<int>[numsides];
+
+	// collect all segs, ordered by sidedef
+	for(int i=0; i<numsegs; i++)
+	{
+		int index = segs[i].linedef - lines;
+
+		if (index >= 0 && index < numsides)
+		{
+			mSegMap[index].Push(i);
+		}
+	}
+
+	for(int i=0; i<numsides; i++)
+	{
+		// sort the segs in order of appearance on the sidedef.
+		int lineside = lines[sides[i].linenum].sidenum[0] == i? 0:1;
+		vertex_t *vstart = lineside == 0? lines[sides[i].linenum].v1 : lines[sides[i].linenum].v2;
+
+		mSegMap[i].ShrinkToFit();
+		for(unsigned j = 0; j < mSegMap[i].Size(); j++)
+		{
+			for(unsigned k = j; k < mSegMap[i].Size(); k++)
+			{
+				if (segs[mSegMap[i][k]].v1 == vstart)
+				{
+					int c = mSegMap[i][j];
+					mSegMap[i][j] = mSegMap[i][k];
+					mSegMap[i][k] = c;
+					vstart = segs[mSegMap[i][j]].v2;
+				}
+			}
+		}
+	}
+#endif
 }
 
 //===========================================================================
@@ -237,6 +283,7 @@ void GL2Renderer::SetupLevel()
 
 void GL2Renderer::CleanLevelData()
 {
+	mSectorData.Clear();
 }
 
 //===========================================================================
@@ -398,7 +445,7 @@ void GL2Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 		prim->mScissor[1] = parms.uclip;
 		prim->mScissor[2] = parms.rclip;
 		prim->mScissor[3] = parms.dclip;
-		prim->mAlphaThreshold = FIXED2FLOAT(parms.alpha>>1);
+		prim->mAlphaThreshold = 0;
 
 		prim->mUseScissor = (parms.lclip > 0 || parms.uclip > 0 || 
 							parms.rclip < screen->GetWidth() || parms.dclip < screen->GetHeight());
@@ -695,6 +742,13 @@ void GL2Renderer::ProcessScene()
 	}
 }
 
+void GL2Renderer::InvalidateSector(sector_t *sec, int mode)
+{
+}
+
+void GL2Renderer::InvalidateSidedef(side_t *side, int mode)
+{
+}
 
 
 }

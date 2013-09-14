@@ -953,7 +953,10 @@ void FGLTexture::SetupShader(int clampmode, int warped, int &cm, int translation
 			else bmgltex->BindPatch(1, CM_DEFAULT, 0);
 			usebright = true;
 		}
-		else usebright = false;
+		else 
+		{
+			usebright = false;
+		}
 
 		bool usecmshader = (tex->bHasCanvas || gl_colormap_shader) && cm > CM_DEFAULT && cm < CM_SHADE && gl_texturemode != TM_MASK;
 

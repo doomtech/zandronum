@@ -8,7 +8,6 @@
 
 EXTERN_CVAR(Bool, gl_lights)
 EXTERN_CVAR(Bool, gl_attachedlights)
-EXTERN_CVAR(Bool, gl_bulletlight)
 
 class ADynamicLight;
 class FArchive;

@@ -24,6 +24,7 @@
 #define __R_DEFS_H__
 
 #include "doomdef.h"
+#include "templates.h"
 
 // Some more or less basic data types
 // we depend on.
@@ -320,7 +321,11 @@ inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
 
 #include "p_3dfloors.h"
 struct subsector_t;
+struct sector_t;
+struct side_t;
 extern bool gl_plane_reflection_i;
+extern void InvalidateSector(sector_t *sec, int mode);
+extern void InvalidateSidedef(side_t *side, int mode);
 
 // Ceiling/floor flags
 enum
@@ -493,11 +498,13 @@ struct sector_t
 	void SetXOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.xoffs = o;
+		InvalidateSector(this, false);
 	}
 
 	void AddXOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.xoffs += o;
+		InvalidateSector(this, false);
 	}
 
 	fixed_t GetXOffset(int pos) const
@@ -508,11 +515,13 @@ struct sector_t
 	void SetYOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.yoffs = o;
+		InvalidateSector(this, false);
 	}
 
 	void AddYOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.yoffs += o;
+		InvalidateSector(this, false);
 	}
 
 	fixed_t GetYOffset(int pos, bool addbase = true) const
@@ -530,6 +539,7 @@ struct sector_t
 	void SetXScale(int pos, fixed_t o)
 	{
 		planes[pos].xform.xscale = o;
+		InvalidateSector(this, false);
 	}
 
 	fixed_t GetXScale(int pos) const
@@ -540,6 +550,7 @@ struct sector_t
 	void SetYScale(int pos, fixed_t o)
 	{
 		planes[pos].xform.yscale = o;
+		InvalidateSector(this, false);
 	}
 
 	fixed_t GetYScale(int pos) const
@@ -550,6 +561,7 @@ struct sector_t
 	void SetAngle(int pos, angle_t o)
 	{
 		planes[pos].xform.angle = o;
+		InvalidateSector(this, false);
 	}
 
 	angle_t GetAngle(int pos, bool addbase = true) const
@@ -563,11 +575,12 @@ struct sector_t
 			return planes[pos].xform.angle + planes[pos].xform.base_angle;
 		}
 	}
-
+	
 	void SetBase(int pos, fixed_t y, angle_t o)
 	{
 		planes[pos].xform.base_yoffs = y;
 		planes[pos].xform.base_angle = o;
+		InvalidateSector(this, false);
 	}
 
 	int GetFlags(int pos) const 
@@ -589,6 +602,7 @@ struct sector_t
 	void SetPlaneLight(int pos, int level)
 	{
 		planes[pos].Light = level;
+		InvalidateSector(this, false);
 	}
 
 	FTextureID GetTexture(int pos) const
@@ -601,6 +615,7 @@ struct sector_t
 		FTextureID old = planes[pos].Texture;
 		planes[pos].Texture = tex;
 		if (floorclip && pos == floor && tex != old) AdjustFloorClip();
+		InvalidateSector(this, true);
 	}
 
 	fixed_t GetPlaneTexZ(int pos) const
@@ -611,11 +626,13 @@ struct sector_t
 	void SetPlaneTexZ(int pos, fixed_t val)
 	{
 		planes[pos].TexZ = val;
+		InvalidateSector(this, 2);
 	}
 
 	void ChangePlaneTexZ(int pos, fixed_t val)
 	{
 		planes[pos].TexZ += val;
+		InvalidateSector(this, 2);
 	}
 
 	sector_t *GetHeightSec() const 
@@ -624,6 +641,23 @@ struct sector_t
 			!(heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) &&
 			!(this->e && this->e->XFloor.ffloors.Size())
 			)? heightsec : NULL;
+	}
+
+	void ChangeLightLevel(int newval)
+	{
+		lightlevel = (BYTE)clamp(lightlevel + newval, 0, 255);
+		InvalidateSector(this, true);
+	}
+
+	void SetLightLevel(int newval)
+	{
+		lightlevel = (BYTE)clamp(newval, 0, 255);
+		InvalidateSector(this, true);
+	}
+
+	int GetLightLevel() const
+	{
+		return lightlevel;
 	}
 
 	// Member variables
@@ -842,6 +876,7 @@ struct side_t
 	void SetLight(SWORD l)
 	{
 		Light = l;
+		InvalidateSidedef(this, false);
 	}
 
 	FTextureID GetTexture(int which) const
@@ -851,17 +886,20 @@ struct side_t
 	void SetTexture(int which, FTextureID tex)
 	{
 		textures[which].texture = tex;
+		InvalidateSidedef(this, true);
 	}
 
 	void SetTextureXOffset(int which, fixed_t offset)
 	{
 		textures[which].xoffset = offset;
+		InvalidateSidedef(this, false);
 	}
 	void SetTextureXOffset(fixed_t offset)
 	{
 		textures[top].xoffset =
 		textures[mid].xoffset =
 		textures[bottom].xoffset = offset;
+		InvalidateSidedef(this, false);
 	}
 	fixed_t GetTextureXOffset(int which) const
 	{
@@ -870,17 +908,20 @@ struct side_t
 	void AddTextureXOffset(int which, fixed_t delta)
 	{
 		textures[which].xoffset += delta;
+		InvalidateSidedef(this, false);
 	}
 
 	void SetTextureYOffset(int which, fixed_t offset)
 	{
 		textures[which].yoffset = offset;
+		InvalidateSidedef(this, false);
 	}
 	void SetTextureYOffset(fixed_t offset)
 	{
 		textures[top].yoffset =
 		textures[mid].yoffset =
 		textures[bottom].yoffset = offset;
+		InvalidateSidedef(this, false);
 	}
 	fixed_t GetTextureYOffset(int which) const
 	{
@@ -889,15 +930,18 @@ struct side_t
 	void AddTextureYOffset(int which, fixed_t delta)
 	{
 		textures[which].yoffset += delta;
+		InvalidateSidedef(this, false);
 	}
 
 	void SetTextureXScale(int which, fixed_t scale)
 	{
 		textures[which].xscale = scale <= 0? FRACUNIT : scale;
+		InvalidateSidedef(this, false);
 	}
 	void SetTextureXScale(fixed_t scale)
 	{
 		textures[top].xscale = textures[mid].xscale = textures[bottom].xscale = scale <= 0? FRACUNIT : scale;
+		InvalidateSidedef(this, false);
 	}
 	fixed_t GetTextureXScale(int which) const
 	{
@@ -906,16 +950,19 @@ struct side_t
 	void MultiplyTextureXScale(int which, fixed_t delta)
 	{
 		textures[which].xscale = FixedMul(textures[which].xscale, delta);
+		InvalidateSidedef(this, false);
 	}
 
 
 	void SetTextureYScale(int which, fixed_t scale)
 	{
 		textures[which].yscale = scale <= 0? FRACUNIT : scale;
+		InvalidateSidedef(this, false);
 	}
 	void SetTextureYScale(fixed_t scale)
 	{
 		textures[top].yscale = textures[mid].yscale = textures[bottom].yscale = scale <= 0? FRACUNIT : scale;
+		InvalidateSidedef(this, false);
 	}
 	fixed_t GetTextureYScale(int which) const
 	{
@@ -924,6 +971,7 @@ struct side_t
 	void MultiplyTextureYScale(int which, fixed_t delta)
 	{
 		textures[which].yscale = FixedMul(textures[which].yscale, delta);
+		InvalidateSidedef(this, false);
 	}
 
 	DInterpolation *SetInterpolation(int position);

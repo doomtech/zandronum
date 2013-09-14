@@ -2,7 +2,7 @@
 //attribute vec4 texcoord;
 
 // These need to be defined so that their indices can be found but they aren't used.
-attribute vec4 aLightParams;
+attribute vec3 aLightParams;
 attribute vec4 aFogColor;
 attribute vec2 aGlowDistance;
 attribute vec4 aGlowTopColor;

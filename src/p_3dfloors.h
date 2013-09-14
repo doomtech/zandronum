@@ -3,6 +3,8 @@
 
 #include "v_palette.h"
 
+#define CenterSpot(sec) (vertex_t*)&(sec)->soundorg[0]
+
 #define _3DFLOORS
 
 // 3D floor flags. Most are the same as in Legacy but I added some for EDGE's and Vavoom's features as well.

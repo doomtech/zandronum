@@ -1,7 +1,8 @@
 
-#ifndef __GL_DATA_H
-#define __GL_DATA_H
+#ifndef __GLC_DATA_H
+#define __GLC_DATA_H
 
+#include "doomtype.h"
 
 struct GLRenderSettings
 {

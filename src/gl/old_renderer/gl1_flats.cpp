@@ -89,6 +89,7 @@ void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * glt
 	gl.Scalef(xscale1 ,yscale1,1.0f);
 	gl.Scalef(xscale2 ,yscale2,1.0f);
 	gl.Translatef(uoffs,voffs,0.0f);
+	gl.Scalef(xscale2 ,yscale2,1.0f);
 	gl.Rotatef(angle,0.0f,0.0f,1.0f);
 }
 
@@ -135,19 +136,6 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 		}
 		draw_dlightf++;
 
-		// Set the plane
-		if (plane.plane.a || plane.plane.b) for(k = 0; k < sub->numvertices; k++)
-		{
-			// Unfortunately the rendering inaccuracies prohibit any kind of plane translation
-			// This must be done on a per-vertex basis.
-			gl_vertices[sub->firstvertex + k].z =
-				TO_GL(plane.plane.ZatPoint(gl_vertices[sub->firstvertex + k].vt));
-		}
-		else for(k = 0; k < sub->numvertices; k++)
-		{
-			gl_vertices[sub->firstvertex + k].z = z;
-		}
-
 		// Render the light
 		gl.Begin(GL_TRIANGLE_FAN);
 		for(k = 0; k < sub->numvertices; k++)
@@ -155,10 +143,11 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 			Vector t1;
 			GLVertex * vt = &gl_vertices[sub->firstvertex + k];
 
-			t1.Set(vt->x, vt->z, vt->y);
+			float z = plane.plane.ZatPoint(vt->x, vt->y);
+			t1.Set(vt->x, z, vt->y);
 			Vector nearToVert = t1 - nearPt;
 			gl.TexCoord2f( (nearToVert.Dot(right) * scale) + 0.5f, (nearToVert.Dot(up) * scale) + 0.5f);
-			gl.Vertex3f(vt->x, vt->z, vt->y);
+			gl.Vertex3f(vt->x, z, vt->y);
 		}
 		gl.End();
 		node = node->nextLight;
@@ -176,24 +165,12 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 	int k;
 	int v;
 
-	// Set the plane
-	if (plane.plane.a || plane.plane.b) for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
-	{
-		// Unfortunately the rendering inaccuracies prohibit any kind of plane translation
-		// This must be done on a per-vertex basis.
-		gl_vertices[v].z = TO_GL(plane.plane.ZatPoint(gl_vertices[v].vt));
-	}
-	else for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
-	{
-		// Quicker way for non-sloped sectors
-		gl_vertices[v].z = z;
-	}
-
 	gl.Begin(GL_TRIANGLE_FAN);
 	for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
 	{
 		gl.TexCoord2f(gl_vertices[v].u, gl_vertices[v].v);
-		gl.Vertex3f(gl_vertices[v].x, gl_vertices[v].z, gl_vertices[v].y);
+		float z = plane.plane.ZatPoint(gl_vertices[v].x, gl_vertices[v].y);
+		gl.Vertex3f(gl_vertices[v].x, z, gl_vertices[v].y);
 	}
 	gl.End();
 
@@ -451,7 +428,6 @@ void GLFlat::Process(sector_t * sector, bool whichplane, bool fog)
 // Process a sector's flats for rendering
 //
 //==========================================================================
-#define CenterSpot(sec) (vertex_t*)&(sec)->soundorg[0]
 
 void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 {
@@ -488,7 +464,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (frontsector->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) <= TO_GL(viewz))
+	if (((*srf)&SSRF_RENDERFLOOR) || frontsector->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) <= TO_GL(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERFLOOR;
 
@@ -502,7 +478,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 			lightlevel = GetFloorLight(frontsector);
 			Colormap=frontsector->ColorMap;
 			stack = frontsector->FloorSkyBox && frontsector->FloorSkyBox->bAlways;
-			alpha= stack ? frontsector->FloorSkyBox->PlaneAlpha/65536.0f : 1.0f-frontsector->floor_reflect;
+			alpha= stack ? frontsector->FloorSkyBox->PlaneAlpha/65536.0f : 1.0f-frontsector->GetFloorReflect();
 
 			ceiling=false;
 			renderflags=SSRF_RENDERFLOOR;
@@ -527,7 +503,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (frontsector->ceilingplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) >= TO_GL(viewz))
+	if (((*srf)&SSRF_RENDERCEILING) || frontsector->ceilingplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) >= TO_GL(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERCEILING;
 
@@ -541,7 +517,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 			lightlevel = GetCeilingLight(frontsector);
 			Colormap=frontsector->ColorMap;
 			stack = frontsector->CeilingSkyBox && frontsector->CeilingSkyBox->bAlways;
-			alpha=stack ? frontsector->CeilingSkyBox->PlaneAlpha/65536.0f : 1.0f-frontsector->ceiling_reflect;
+			alpha=stack ? frontsector->CeilingSkyBox->PlaneAlpha/65536.0f : 1.0f-frontsector->GetCeilingReflect();
 
 			ceiling=true;
 			renderflags=SSRF_RENDERCEILING;

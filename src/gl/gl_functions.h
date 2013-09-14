@@ -13,7 +13,6 @@ class FArchive;
 class AActor;
 class FTexture;
 class FFont;
-struct GLSectorPlane;
 struct sector_t;
 class player_s;
 struct GL_IRECT;
@@ -49,8 +48,6 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
 
 void gl_InitFog();
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
-float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cm, bool isadditive);
 
 // [BB] Get value of gl_lightmode, respecting DF2_FORCE_GL_DEFAULTS.

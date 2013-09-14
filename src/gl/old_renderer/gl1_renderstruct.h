@@ -40,6 +40,7 @@
 #include "tarray.h"
 #include "templates.h"
 
+#include "gl/common/glc_structs.h"
 #include "gl/old_renderer/gl1_values.h"
 #include "gl/gl_struct.h"
 
@@ -74,43 +75,6 @@ struct GLVertex
 };
 
 extern TArray<GLVertex> gl_vertices;
-
-//==========================================================================
-//
-// One sector plane, still in fixed point
-//
-//==========================================================================
-
-struct GLSectorPlane
-{
-	FTextureID texture;
-	secplane_t plane;
-	fixed_t texheight;
-	fixed_t xoffs,  yoffs;
-	fixed_t	xscale, yscale;
-	angle_t	angle;
-
-	void GetFromSector(sector_t * sec, bool ceiling)
-	{
-		xoffs = sec->GetXOffset(ceiling);
-		yoffs = sec->GetYOffset(ceiling);
-		xscale = sec->GetXScale(ceiling);
-		yscale = sec->GetYScale(ceiling);
-		angle = sec->GetAngle(ceiling);
-		if (ceiling)
-		{
-			texture = sec->GetTexture(sector_t::ceiling);
-			plane = sec->ceilingplane;
-			texheight = plane.d;
-		}
-		else
-		{
-			texture = sec->GetTexture(sector_t::floor);
-			plane = sec->floorplane;
-			texheight = -plane.d;
-		}
-	}
-};
 
 struct GLHorizonInfo
 {

@@ -25,8 +25,8 @@ public:
 
 	Vector(vertex_t * v)
 	{
-		SetX(v->x/65536.0f);
-		SetY(v->y/65536.0f);
+		SetX(v->fx);
+		SetY(v->fy);
 		SetZ(0);
 	}
 

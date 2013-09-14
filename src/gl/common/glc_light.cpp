@@ -40,7 +40,51 @@
 
 
 #include "gl/gl_include.h"
+#include "gl/common/glc_data.h"
+#include "c_dispatch.h"
 #include "p_local.h"
+
+static float distfogtable[2][256];	// light to fog conversion table for black fog
+static int fogdensity;
+static PalEntry outsidefogcolor;
+static int outsidefogdensity;
+int skyfog;
+
+CVAR (Float, gl_light_ambient, 20.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+
+
+//==========================================================================
+//
+// Sets up the fog tables
+//
+//==========================================================================
+
+CUSTOM_CVAR (Int, gl_distfog, 70, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+{
+	for (int i=0;i<256;i++)
+	{
+
+		if (i<164)
+		{
+			distfogtable[0][i]= (gl_distfog>>1) + (gl_distfog)*(164-i)/164;
+		}
+		else if (i<230)
+		{											    
+			distfogtable[0][i]= (gl_distfog>>1) - (gl_distfog>>1)*(i-164)/(230-164);
+		}
+		else distfogtable[0][i]=0;
+
+		if (i<128)
+		{
+			distfogtable[1][i]= 6.f + (gl_distfog>>1) + (gl_distfog)*(128-i)/48;
+		}
+		else if (i<216)
+		{											    
+			distfogtable[1][i]= (216.f-i) / ((216.f-128.f)) * gl_distfog / 10;
+		}
+		else distfogtable[1][i]=0;
+	}
+}
 
 
 
@@ -87,5 +131,145 @@ void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 	*be = blendequation;
 	*sb = srcblend;
 	*db = dstblend;
+}
+
+
+//==========================================================================
+//
+// Set fog parameters for the level
+//
+//==========================================================================
+void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog)
+{
+	fogdensity=_fogdensity;
+	outsidefogcolor=_outsidefogcolor;
+	outsidefogdensity=_outsidefogdensity? _outsidefogdensity : _fogdensity? _fogdensity:70;
+	skyfog=_skyfog;
+
+	outsidefogdensity>>=1;
+	fogdensity>>=1;
+}
+
+
+//==========================================================================
+//
+// Get current light level
+//
+//==========================================================================
+
+int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon)
+{
+	int light;
+
+	if (glset.lightmode&2 && lightlevel<192) 
+	{
+		light = (192.f - (192-lightlevel)* (weapon? 1.5f : 1.95f));
+	}
+	else
+	{
+		light=lightlevel;
+	}
+
+	if (light<gl_light_ambient) 
+	{
+		light=gl_light_ambient;
+		if (rellight<0) rellight>>=1;
+	}
+	return clamp(quickertoint(light+rellight), 0, 255);
+}
+
+//==========================================================================
+//
+// Get current light color
+//
+//==========================================================================
+
+PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor)
+{
+	int r,g,b;
+
+	if (blendfactor == 0)
+	{
+		r = pe.r * light / 255;
+		g = pe.g * light / 255;
+		b = pe.b * light / 255;
+	}
+	else
+	{
+		int mixlight = light * (255 - blendfactor);
+
+		r = (mixlight + pe.r * blendfactor) / 255;
+		g = (mixlight + pe.g * blendfactor) / 255;
+		b = (mixlight + pe.b * blendfactor) / 255;
+	}
+	return PalEntry(BYTE(r), BYTE(g), BYTE(b));
+}
+
+//==========================================================================
+//
+// calculates the current fog density
+//
+//	Rules for fog:
+//
+//  1. If bit 4 of gl_lightmode is set always use the level's fog density. 
+//     This is what Legacy's GL render does.
+//	2. black fog means no fog and always uses the distfogtable based on the level's fog density setting
+//	3. If outside fog is defined and the current fog color is the same as the outside fog
+//	   the engine always uses the outside fog density to make the fog uniform across the level.
+//	   If the outside fog's density is undefined it uses the level's fog density and if that is
+//	   not defined it uses a default of 70.
+//	4. If a global fog density is specified it is being used for all fog on the level
+//	5. If none of the above apply fog density is based on the light level as for the software renderer.
+//
+//==========================================================================
+
+float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
+{
+	float density;
+
+	if (glset.lightmode&4)
+	{
+		// uses approximations of Legacy's default settings.
+		density = fogdensity? fogdensity : 18;
+	}
+	else if ((fogcolor.d & 0xffffff) == 0)
+	{
+		// case 1: black fog
+		density=distfogtable[glset.lightmode!=0][lightlevel];
+	}
+	else if (outsidefogcolor.a!=0xff && 
+			fogcolor.r==outsidefogcolor.r && 
+			fogcolor.g==outsidefogcolor.g &&
+			fogcolor.b==outsidefogcolor.b) 
+	{
+		// case 2. outsidefogdensity has already been set as needed
+		density=outsidefogdensity;
+	}
+	else  if (fogdensity!=0)
+	{
+		// case 3: level has fog density set
+		density=fogdensity;
+	}
+	else 
+	{
+		// case 4: use light level
+		density=clamp<int>(255-lightlevel,30,255);
+	}
+	return density;
+}
+
+
+
+//==========================================================================
+//
+// For testing sky fog sheets
+//
+//==========================================================================
+CCMD(skyfog)
+{
+	if (argv.argc()>1)
+	{
+		skyfog=strtol(argv[1],NULL,0);
+	}
 }
 

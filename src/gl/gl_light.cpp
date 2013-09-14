@@ -45,6 +45,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_data.h"
+#include "gl/common/glc_renderer.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
@@ -62,6 +63,8 @@ using namespace GLRendererOld;
 // Light related CVARs
 //
 //==========================================================================
+EXTERN_CVAR (Float, gl_light_ambient);
+
 
 CUSTOM_CVAR (Bool, gl_lights, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 {
@@ -73,13 +76,11 @@ CVAR(Int, gl_weaponlight, 8, CVAR_ARCHIVE);
 CVAR(Bool,gl_enhanced_nightvision,true,CVAR_ARCHIVE)
 
 CVAR (Bool, gl_attachedlights, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-CVAR (Bool, gl_bulletlight, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Bool, gl_lights_checkside, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Float, gl_lights_intensity, 1.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Float, gl_lights_size, 1.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Bool, gl_light_sprites, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Bool, gl_light_particles, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-CVAR (Float, gl_light_ambient, 20.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CUSTOM_CVAR (Bool, gl_lights_additive, false,  CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	TThinkerIterator<ADynamicLight> it;
@@ -121,61 +122,6 @@ int gl_GetLightMode () {
 	return ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 3 : gl_lightmode;
 }
 
-static float distfogtable[2][256];	// light to fog conversion table for black fog
-
-static int fogdensity;
-static PalEntry outsidefogcolor;
-static int outsidefogdensity;
-int skyfog;
-
-//==========================================================================
-//
-// Sets up the fog tables
-//
-//==========================================================================
-
-CUSTOM_CVAR (Int, gl_distfog, 70, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-{
-	for (int i=0;i<256;i++)
-	{
-
-		if (i<164)
-		{
-			distfogtable[0][i]= (gl_distfog>>1) + (gl_distfog)*(164-i)/164;
-		}
-		else if (i<230)
-		{											    
-			distfogtable[0][i]= (gl_distfog>>1) - (gl_distfog>>1)*(i-164)/(230-164);
-		}
-		else distfogtable[0][i]=0;
-
-		if (i<128)
-		{
-			distfogtable[1][i]= 6.f + (gl_distfog>>1) + (gl_distfog)*(128-i)/48;
-		}
-		else if (i<216)
-		{											    
-			distfogtable[1][i]= (216.f-i) / ((216.f-128.f)) * gl_distfog / 10;
-		}
-		else distfogtable[1][i]=0;
-	}
-}
-
-//==========================================================================
-//
-// Set fog parameters for the level
-//
-//==========================================================================
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog)
-{
-	fogdensity=_fogdensity;
-	outsidefogcolor=_outsidefogcolor;
-	outsidefogdensity=_outsidefogdensity? _outsidefogdensity : _fogdensity? _fogdensity:70;
-	skyfog=_skyfog;
-
-	outsidefogdensity>>=1;
-	fogdensity>>=1;
-}
 
 //==========================================================================
 //
@@ -211,50 +157,14 @@ void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float 
 		return;
 	}
 
-	float light;
+	PalEntry lightcolor = cm? cm->LightColor : PalEntry(255,255,255);
+	int blendfactor = cm? cm->blendfactor : 0;
 
-	if (glset.lightmode&2 && lightlevel<192) 
-	{
-		if (!weapon)
-		{
-			light = (192.f - (192-lightlevel)*1.95f);
-		}
-		else
-		{
-			// For weapons make it a little brighter so that they remain visible
-			light = (192.f - (192-lightlevel)*1.5f);
-		}
-	}
-	else
-	{
-		light=lightlevel;
-	}
-
-	if (light<gl_light_ambient) 
-	{
-		light=gl_light_ambient;
-		if (rellight<0) rellight>>=1;
-	}
-	light = clamp(light+rellight, 0.f, 255.f);
-
-	if (cm!=NULL)
-	{
-		if (cm->blendfactor==0)
-		{
-			r=cm->LightColor.r * light / 255.0f / 255.f;
-			g=cm->LightColor.g * light / 255.0f / 255.f;
-			b=cm->LightColor.b * light / 255.0f / 255.f;
-		}
-		else
-		{
-			float mixlight = light * (255 - cm->blendfactor);
-
-			r = (mixlight + cm->LightColor.r * cm->blendfactor) / 255.f / 255.f;
-			g = (mixlight + cm->LightColor.g * cm->blendfactor) / 255.f / 255.f;
-			b = (mixlight + cm->LightColor.b * cm->blendfactor) / 255.f / 255.f;
-		}
-	}
-	else r=g=b=light/255.f;
+	lightlevel = gl_CalcLightLevel(lightlevel, rellight, weapon);
+	PalEntry pe = gl_CalcLightColor(lightlevel, lightcolor, blendfactor);
+	r = pe.r/255.f;
+	g = pe.g/255.f;
+	b = pe.b/255.f;
 }
 
 //==========================================================================
@@ -282,63 +192,6 @@ void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, Pal
 	float r,g,b;
 	gl_GetLightColor(light, rellight, cm, &r, &g, &b, weapon);
 	gl.Color4f(r * ThingColor.r/255.0f, g * ThingColor.g/255.0f, b * ThingColor.b/255.0f, alpha);
-}
-
-//==========================================================================
-//
-// calculates the current fog density
-//
-//	Rules for fog:
-//
-//  1. If bit 4 of gl_lightmode is set always use the level's fog density. 
-//     This is what Legacy's GL render does.
-//	2. black fog means no fog and always uses the distfogtable based on the level's fog density setting
-//	3. If outside fog is defined and the current fog color is the same as the outside fog
-//	   the engine always uses the outside fog density to make the fog uniform across the level.
-//	   If the outside fog's density is undefined it uses the level's fog density and if that is
-//	   not defined it uses a default of 70.
-//	4. If a global fog density is specified it is being used for all fog on the level
-//	5. If none of the above apply fog density is based on the light level as for the software renderer.
-//
-//==========================================================================
-
-float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
-{
-	float density;
-
-	if (gl_fixedcolormap) 
-	{
-		return 0;
-	}
-	if (glset.lightmode&4)
-	{
-		// uses approximations of Legacy's default settings.
-		density = fogdensity? fogdensity : 18;
-	}
-	else if (gl_isBlack(fogcolor))
-	{
-		// case 1: black fog
-		density=distfogtable[glset.lightmode!=0][lightlevel];
-	}
-	else if (outsidefogcolor.a!=0xff && 
-			fogcolor.r==outsidefogcolor.r && 
-			fogcolor.g==outsidefogcolor.g &&
-			fogcolor.b==outsidefogcolor.b) 
-	{
-		// case 2. outsidefogdensity has already been set as needed
-		density=outsidefogdensity;
-	}
-	else  if (fogdensity!=0)
-	{
-		// case 3: level has fog density set
-		density=fogdensity;
-	}
-	else 
-	{
-		// case 4: use light level
-		density=clamp<int>(255-lightlevel,30,255);
-	}
-	return density;
 }
 
 
@@ -386,7 +239,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 		fogdensity=70;
 		fogcolor=0x808080;
 	}
-	else if (cmap != NULL)
+	else if (cmap != NULL && gl_fixedcolormap == 0)
 	{
 		fogcolor = cmap->FadeColor;
 		fogdensity = gl_GetFogDensity(lightlevel, fogcolor);
@@ -413,24 +266,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 	{
 		if ((glset.lightmode == 2 && gl_fog_shader) && fogcolor == 0)
 		{
-			float light;
-
-			if (lightlevel<192) 
-			{
-				light = (192.f - (192-lightlevel)*1.95f);
-			}
-			else
-			{
-				light=lightlevel;
-			}
-
-			if (light<gl_light_ambient) 
-			{
-				light=gl_light_ambient;
-				if (rellight<0) rellight>>=1;
-			}
-			light = clamp(light+rellight, 0.f, 255.f);
-
+			float light = gl_CalcLightLevel(lightlevel, rellight, false);
 			gl_SetShaderLight(light, lightlevel);
 		}
 		else
@@ -787,19 +623,4 @@ void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
 		gl_Desaturate(gray, red, green, blue, red, green, blue, cm - CM_DESAT0);
 	}
 }
-
-//==========================================================================
-//
-// For testing sky fog sheets
-//
-//==========================================================================
-CCMD(skyfog)
-{
-	if (argv.argc()>1)
-	{
-		skyfog=strtol(argv[1],NULL,0);
-	}
-}
-
-
 

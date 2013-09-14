@@ -83,9 +83,9 @@ void DFireFlicker::Tick ()
 
 		// [RH] Shouldn't this be (m_MaxLight - amount < m_MinLight)?
 		if (m_Sector->lightlevel - amount < m_MinLight)
-			m_Sector->lightlevel = m_MinLight;
+			m_Sector->SetLightLevel(m_MinLight);
 		else
-			m_Sector->lightlevel = m_MaxLight - amount;
+			m_Sector->SetLightLevel(m_MaxLight - amount);
 
 		m_Count = 4;
 	}
@@ -148,12 +148,12 @@ void DFlicker::Tick ()
 	}
 	else if (m_Sector->lightlevel == m_MaxLight)
 	{
-		m_Sector->lightlevel = m_MinLight;
+		m_Sector->SetLightLevel(m_MinLight);
 		m_Count = (pr_flicker()&7)+1;
 	}
 	else
 	{
-		m_Sector->lightlevel = m_MaxLight;
+		m_Sector->SetLightLevel(m_MaxLight);
 		m_Count = (pr_flicker()&31)+1;
 	}
 }
@@ -215,12 +215,12 @@ void DLightFlash::Tick ()
 	{
 		if (m_Sector->lightlevel == m_MaxLight)
 		{
-			m_Sector->lightlevel = m_MinLight;
+			m_Sector->SetLightLevel(m_MinLight);
 			m_Count = (pr_lightflash() & m_MinTime) + 1;
 		}
 		else
 		{
-			m_Sector->lightlevel = m_MaxLight;
+			m_Sector->SetLightLevel(m_MaxLight);
 			m_Count = (pr_lightflash() & m_MaxTime) + 1;
 		}
 	}
@@ -291,12 +291,12 @@ void DStrobe::Tick ()
 	{
 		if (m_Sector->lightlevel == m_MinLight)
 		{
-			m_Sector->lightlevel = m_MaxLight;
+			m_Sector->SetLightLevel(m_MaxLight);
 			m_Count = m_BrightTime;
 		}
 		else
 		{
-			m_Sector->lightlevel = m_MinLight;
+			m_Sector->SetLightLevel(m_MinLight);
 			m_Count = m_DarkTime;
 		}
 	}
@@ -413,7 +413,7 @@ void EV_TurnTagLightsOff (int tag)
 			if (tsec->lightlevel < min)
 				min = tsec->lightlevel;
 		}
-		sector->lightlevel = min;
+		sector->SetLightLevel(min);
 
 		// [BC] Flag the sector as having its light level altered. That way, when clients
 		// connect, we can tell them about the updated light level.
@@ -458,7 +458,7 @@ void EV_LightTurnOn (int tag, int bright)
 					bright = temp->lightlevel;
 			}
 		}
-		sector->lightlevel = clamp (bright, 0, 255);
+		sector->SetLightLevel(bright);
 
 		// [BC] Flag the sector as having its light level altered. That way, when clients
 		// connect, we can tell them about the updated light level.
@@ -509,7 +509,7 @@ void EV_LightTurnOnPartway (int tag, fixed_t frac)
 				}
 			}
 		}
-		sector->lightlevel = (BYTE)DMulScale16 (frac, bright, FRACUNIT-frac, min);
+		sector->SetLightLevel(DMulScale16 (frac, bright, FRACUNIT-frac, min));
 	}
 }
 
@@ -526,7 +526,7 @@ void EV_LightChange (int tag, int value)
 	while ((secnum = P_FindSectorFromTag (tag, secnum)) >= 0)
 	{
 		int newlight = sectors[secnum].lightlevel + value;
-		sectors[secnum].lightlevel = clamp (newlight, 0, 255);
+		sectors[secnum].SetLightLevel(newlight);
 
 		// [BC] Flag the sector as having its light level altered. That way, when clients
 		// connect, we can tell them about the updated light level.
@@ -580,7 +580,7 @@ void DGlow::Tick ()
 		}
 		break;
 	}
-	m_Sector->lightlevel = newlight;
+	m_Sector->SetLightLevel(newlight);
 }
 
 // [BC]
@@ -623,7 +623,7 @@ void DGlow2::Tick ()
 	{
 		if (m_OneShot)
 		{
-			m_Sector->lightlevel = m_End;
+			m_Sector->SetLightLevel(m_End);
 
 			// [BC] Flag the sector as having its light level altered. That way, when clients
 			// connect, we can tell them about the updated light level.
@@ -645,7 +645,7 @@ void DGlow2::Tick ()
 		}
 	}
 
-	m_Sector->lightlevel = ((m_End - m_Start) * m_Tics) / m_MaxTics + m_Start;
+	m_Sector->SetLightLevel(((m_End - m_Start) * m_Tics) / m_MaxTics + m_Start);
 }
 
 // [BC]
@@ -715,7 +715,7 @@ void EV_StartLightFading (int tag, int value, int tics)
 
 		if (tics <= 0)
 		{
-			sec->lightlevel = value;
+			sec->SetLightLevel(value);
 		}
 		else
 		{
@@ -749,12 +749,12 @@ void DPhased::Tick ()
 	const int steps = 12;
 
 	if (m_Phase < steps)
-		m_Sector->lightlevel = ((255 - m_BaseLevel) * m_Phase) / steps + m_BaseLevel;
+		m_Sector->SetLightLevel( ((255 - m_BaseLevel) * m_Phase) / steps + m_BaseLevel);
 	else if (m_Phase < 2*steps)
-		m_Sector->lightlevel = ((255 - m_BaseLevel) * (2*steps - m_Phase - 1) / steps
-								+ m_BaseLevel);
+		m_Sector->SetLightLevel( ((255 - m_BaseLevel) * (2*steps - m_Phase - 1) / steps
+								+ m_BaseLevel));
 	else
-		m_Sector->lightlevel = m_BaseLevel;
+		m_Sector->SetLightLevel(m_BaseLevel);
 
 	if (m_Phase == 0)
 		m_Phase = 63;

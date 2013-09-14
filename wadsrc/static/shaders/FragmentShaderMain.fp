@@ -6,7 +6,7 @@
 //===========================================================================
 
 // Vertex based input
-varying vec4 LightParams;
+varying vec3 LightParams;
 varying vec4 FogColor;
 varying vec2 GlowDistance;
 varying vec4 GlowTopColor;
@@ -63,21 +63,21 @@ vec4 GetPixelLight()
 	}
 	
 	// Light diminishing
-	if (LightParams.x != 0.0)
+	if (FogColor.a == 0.0)
 	{
 		const float LOG2E = 1.442692;	// = 1/log(2)
 		float fc;
 		if (fogradial == 0) fc = fogcoord;
 		else fc = max(16.0, distance(pixelpos, camerapos.xyz));
 		
-		float lfactor = LightParams.z;
-		float dist = LightParams.w;
+		float lfactor = LightParams.y;
+		float dist = LightParams.z;
 		if (lfactor != 1.0 && fc < dist) 
 		{
 			color.rgb *= lfactor - (fc / dist) * (lfactor - 1.0);
 		}
 		
-		float factor = exp2 ( LightParams.y * fc * LOG2E);
+		float factor = exp2 ( LightParams.x * fc * LOG2E);
 		return color * factor;
 	}
 	else return color;
@@ -107,7 +107,7 @@ vec4 Desaturate(vec4 texel)
 vec4 ApplyPixelFog(vec4 pixin)
 {
 	// only for colored fog
-	if (FogColor.a > 0.0)
+	if (FogColor.a == 1.0)
 	{
 		const float LOG2E = 1.442692;	// = 1/log(2)
 		float fc;

@@ -2,12 +2,12 @@
 #define __GL1_RENDERER
 
 #include "gl/common/glc_renderer.h"
+#include "gl/common/glc_structs.h"
 
 struct GL_IRECT;
 
 namespace GLRendererOld
 {
-struct GLSectorPlane;
 
 class GL1Renderer : public GLRendererBase
 {

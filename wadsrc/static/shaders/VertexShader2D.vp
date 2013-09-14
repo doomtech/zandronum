@@ -2,7 +2,7 @@
 //attribute vec4 texcoord;
 
 // x: 1 if on, 0 if off, y: resulting fog density, z: brightening factor, w: brightening distance
-attribute vec4 aLightParams;
+attribute vec3 aLightParams;
 attribute vec4 aFogColor;
 attribute vec2 aGlowDistance;
 attribute vec4 aGlowTopColor;

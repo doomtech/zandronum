@@ -26,8 +26,13 @@
 //
 
 #include "gl/gl_include.h"
+#include "r_main.h"
+#include "v_palette.h"
+#include "g_level.h"
+#include "gl/gl_intern.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/r_render/r_render.h"
+#include "gl/common/glc_data.h"
 #include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/gl2_vertex.h"
 #include "gl/new_renderer/textures/gl2_shader.h"
@@ -287,6 +292,111 @@ void FPrimitiveBuffer2D::Flush()
 		mCurrentVertexIndex = 0;
 	}
 }
+
+
+
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FPrimitive3D::SetRenderStyle(FRenderStyle style, bool opaque, bool allowcolorblending)
+{
+	gl_GetRenderStyle(style, opaque, allowcolorblending, 
+		&mTextureMode, &mSrcBlend, &mDstBlend, &mBlendEquation);
+}
+
+
+//----------------------------------------------------------------------------
+//
+// Sets light and fog color for this vertex
+//
+//----------------------------------------------------------------------------
+
+void FVertex3D::SetLighting(int lightlevel, FDynamicColormap *cm, int rellight, bool additive, FTexture *tex)
+{
+	PalEntry fogcolor;
+	int llevel = gl_CalcLightLevel(lightlevel, rellight, false);
+
+	if (!tex->gl_info.bFullbright)
+	{
+		if (rellight < 0) rellight = 0;
+		else rellight += extralight * gl_weaponlight;
+
+		PalEntry pe = gl_CalcLightColor(llevel, cm->Color, cm->Color.a);
+		r = pe.r;
+		g = pe.g;
+		b = pe.b;
+	}
+	else
+	{
+		r = g = b = 255;
+	}
+
+	if (level.flags&LEVEL_HASFADETABLE)
+	{
+		fogdensity=70;
+		fogcolor=0x808080;
+	}
+	else
+	{
+		fogcolor = cm->Fade;
+		fogdensity = gl_GetFogDensity(lightlevel, fogcolor);
+		fogcolor.a = 0;
+	}
+
+	// Make fog a little denser when inside a skybox
+	//if (GLPortal::inskybox) fogdensity+=fogdensity/2;
+
+
+	if (fogdensity==0 || gl_fogmode == 0)
+	{
+		// disable fog completely
+		fon = FOG_NONE;
+	}
+	else
+	{
+		if (glset.lightmode == 2 && fogcolor == 0)
+		{
+			const float MAXDIST = 256.f;
+			const float THRESHOLD = 96.f;
+			const float FACTOR = 0.75f;
+
+			if (lightlevel < THRESHOLD)
+			{
+				lightdist = lightlevel * MAXDIST / THRESHOLD;
+				lightlevel = THRESHOLD;
+			}
+			else lightdist = MAXDIST;
+
+			lightfactor = ((float)lightlevel/llevel);
+			lightfactor = 1.f + (lightfactor - 1.f) * FACTOR;
+		}
+		else
+		{
+			lightfactor = 1;
+			lightdist = 0;
+		}
+
+		if (!additive)
+		{
+			fr = fogcolor.r;
+			fg = fogcolor.g;
+			fb = fogcolor.b;
+		}
+		else
+		{
+			// For additive rendering using the regular fog color here would mean applying it twice
+			// so always use black but treat it as fog by the shader, not diminishing light
+			fr = fg = fb = 0;
+		}
+		fon = fogcolor != 0? FOG_COLOR : FOG_BLACK;
+	}
+
+}
+
 
 
 }
