@@ -651,7 +651,7 @@ void GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor )
 		return;
 
 	// [BB] Since several Skulltag versions added NOGRAVITY to some spheres on default, allow the user to restore this behavior.
-	if ( compatflags2 & COMPATF2_NOGRAVITY_SPHERES )
+	if ( zacompatflags & ZACOMPATF_NOGRAVITY_SPHERES )
 	{
 		if ( ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "InvulnerabilitySphere" ) == 0 )
 			|| ( stricmp ( pActor->GetClass()->TypeName.GetChars(), "Soulsphere" ) == 0 )

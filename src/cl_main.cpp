@@ -5445,7 +5445,7 @@ void client_DisconnectPlayer( BYTESTREAM_s *pByteStream )
 		P_DisconnectEffect( players[ulPlayer].mo );
 
 		// [BB] Stop all CLIENTSIDE scripts of the player that are still running.
-		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts ( players[ulPlayer].mo );
 	}
 
@@ -6367,7 +6367,7 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 	{
 		// [BB] We also have to stop all its associated CLIENTSIDE scripts. Otherwise 
 		// they would get disassociated and continue to run even if the player disconnects later.
-		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts ( pActor->player->mo );
 
 		pActor->player->mo = NULL;
@@ -7878,9 +7878,9 @@ static void client_SetGameDMFlags( BYTESTREAM_s *pByteStream )
 	Value.Int = NETWORK_ReadLong( pByteStream );
 	compatflags.ForceSet( Value, CVAR_Int );
 
-	// [BB] ... and compatflags2.
+	// [BB] ... and zacompatflags.
 	Value.Int = NETWORK_ReadLong( pByteStream );
-	compatflags2.ForceSet( Value, CVAR_Int );
+	zacompatflags.ForceSet( Value, CVAR_Int );
 
 	// [BB] ... and dmflags3.
 	Value.Int = NETWORK_ReadLong( pByteStream );

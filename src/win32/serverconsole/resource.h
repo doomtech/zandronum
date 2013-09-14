@@ -171,7 +171,7 @@
 #define IDC_COMPATF_OLDRADIUSDMG                2279
 #define IDC_COMPATF_NO_CROSSHAIR                2280
 #define IDC_COMPATF_OLD_WEAPON_SWITCH           2281
-#define IDC_COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE  2284
+#define IDC_ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE  2284
 #define IDC_DMF_JUMPING                         2286
 #define IDC_DMF_CROUCHING                       2288
 #define IDC_FALLINGDAMAGE                       2289

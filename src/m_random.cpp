@@ -199,7 +199,7 @@ FRandom::~FRandom ()
 int FRandom::operator()()
 {
 	// [BB] Use Doom's original random numbers if the user wants it.
-	if ( compatflags2 & COMPATF2_OLD_RANDOM_GENERATOR )
+	if ( zacompatflags & ZACOMPATF_OLD_RANDOM_GENERATOR )
 		return P_Random();
 
 	return GenRand32() & 255;
@@ -209,7 +209,7 @@ int FRandom::operator()()
 int FRandom::Random2()
 {
 	// [BB] Use Doom's original random numbers if the user wants it.
-	if ( compatflags2 & COMPATF2_OLD_RANDOM_GENERATOR )
+	if ( zacompatflags & ZACOMPATF_OLD_RANDOM_GENERATOR )
 		return ( P_Random() - P_Random() );
 
 	return Random2(255);

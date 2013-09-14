@@ -418,38 +418,38 @@ enum
 	COMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
 };
 
-// [BB] More compatibility flags.
+// [BB] Zandronum compatibility flags.
 enum
 {
 	// [BB] Treat ACS scripts with the SCRIPTF_Net flag to be client side, i.e.
 	// executed on the clients, but not on the server.
-	COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE		= 1 << 0,
+	ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE		= 1 << 0,
 	// [BB] Clients send ucmd.buttons as "long" instead of as "byte" in CLIENTCOMMANDS_ClientMove.
 	// So far this is only necessary if the ACS function GetPlayerInput is used in a server side
 	// script to check for buttons bigger than BT_ZOOM. Otherwise this information is completely
 	// useless for the server and the additional net traffic to send it should be avoided.
-	COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO		= 1 << 1,
+	ZACOMPATF_CLIENTS_SEND_FULL_BUTTON_INFO		= 1 << 1,
 	// [BB] Players are not allowed to use the land CCMD. Because of Skulltag's default amount
 	// of air control, flying players can get a huge speed boast with the land CCMD. Disallowing
 	// players to land, allows to keep the default air control most people are used to while not
 	// giving flying players too much of an advantage.
-	COMPATF2_NO_LAND						= 1 << 2,
+	ZACOMPATF_NO_LAND						= 1 << 2,
 	// [BB] Use Doom's random table instead of ZDoom's random number generator.
-	COMPATF2_OLD_RANDOM_GENERATOR		= 1 << 3,
+	ZACOMPATF_OLD_RANDOM_GENERATOR		= 1 << 3,
 	// [BB] Add NOGRAVITY to actors named InvulnerabilitySphere, Soulsphere, Megasphere and BlurSphere
 	// when spawned by the map.
-	COMPATF2_NOGRAVITY_SPHERES		= 1 << 4,
+	ZACOMPATF_NOGRAVITY_SPHERES		= 1 << 4,
 	// [BB] When a player leaves the game, don't stop any scripts of that player that are still running.
-	COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT		= 1 << 5,
+	ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT		= 1 << 5,
 	// [BB] Use the horizontal thrust of old ZDoom versions in P_RadiusAttack.
-	COMPATF2_OLD_EXPLOSION_THRUST		= 1 << 6,
+	ZACOMPATF_OLD_EXPLOSION_THRUST		= 1 << 6,
 	// [BB] Use the P_TestMobjZ approach of old ZDoom versions where non-SOLID things (like flags) fall
 	// through invisible bridges.
-	COMPATF2_OLD_BRIDGE_DROPS		= 1 << 7,
+	ZACOMPATF_OLD_BRIDGE_DROPS		= 1 << 7,
 	// [CK] Uses old ZDoom jump physics, it's a minor bug in the gravity code that causes gravity application in the wrong place
-	COMPATF2_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
+	ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
-	COMPATF2_FULL_WEAPON_LOWER = 1 << 9,
+	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

@@ -195,12 +195,12 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ COMPATF_OLDRADIUSDMG,				IDC_COMPATF_OLDRADIUSDMG,		&g_ulCompatFlags, },
 	{ COMPATF_NO_CROSSHAIR,				IDC_COMPATF_NO_CROSSHAIR,		&g_ulCompatFlags, },
 	{ COMPATF_OLD_WEAPON_SWITCH,		IDC_COMPATF_OLD_WEAPON_SWITCH,	&g_ulCompatFlags, },
-	{ COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE,IDC_COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE, &g_ulCompatFlags2, },
-	{ COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO, NULL,						&g_ulCompatFlags2, },
-	{ COMPATF2_NO_LAND,					NULL,							&g_ulCompatFlags2, },
-	{ COMPATF2_OLD_RANDOM_GENERATOR,					NULL,							&g_ulCompatFlags2, },
-	{ COMPATF2_NOGRAVITY_SPHERES,					NULL,							&g_ulCompatFlags2, },
-	{ COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT,					NULL,							&g_ulCompatFlags2, },
+	{ ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE,IDC_ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE, &g_ulCompatFlags2, },
+	{ ZACOMPATF_CLIENTS_SEND_FULL_BUTTON_INFO, NULL,						&g_ulCompatFlags2, },
+	{ ZACOMPATF_NO_LAND,					NULL,							&g_ulCompatFlags2, },
+	{ ZACOMPATF_OLD_RANDOM_GENERATOR,					NULL,							&g_ulCompatFlags2, },
+	{ ZACOMPATF_NOGRAVITY_SPHERES,					NULL,							&g_ulCompatFlags2, },
+	{ ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT,					NULL,							&g_ulCompatFlags2, },
 	{ LMS_AWF_CHAINSAW,					IDC_LMS_ALLOWCHAINSAW,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_PISTOL,					IDC_LMS_ALLOWPISTOL,			&g_ulLMSAllowedWeapons, },
 	{ LMS_AWF_SHOTGUN,					IDC_LMS_ALLOWSHOTGUN,			&g_ulLMSAllowedWeapons, },
@@ -293,7 +293,7 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			g_ulDMFlags = dmflags;
 			g_ulDMFlags2 = dmflags2;
 			g_ulCompatFlags = compatflags;
-			g_ulCompatFlags2 = compatflags2;
+			g_ulCompatFlags2 = zacompatflags;
 			g_ulLMSAllowedWeapons = lmsallowedweapons;
 			g_ulLMSSpectatorSettings = lmsspectatorsettings;
 
@@ -371,8 +371,8 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 				dmflags2 = g_ulDMFlags2;
 			if ( compatflags != g_ulCompatFlags )
 				compatflags = g_ulCompatFlags;
-			if ( compatflags2 != g_ulCompatFlags2 )
-				compatflags2 = g_ulCompatFlags2;
+			if ( zacompatflags != g_ulCompatFlags2 )
+				zacompatflags = g_ulCompatFlags2;
 			if ( lmsallowedweapons != g_ulLMSAllowedWeapons )
 				lmsallowedweapons = g_ulLMSAllowedWeapons;
 			if ( lmsspectatorsettings != g_ulLMSSpectatorSettings )

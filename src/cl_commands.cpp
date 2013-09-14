@@ -247,7 +247,7 @@ void CLIENTCOMMANDS_ClientMove( void )
 	if ( pCmd->ucmd.buttons )
 	{
 		ulBits |= CLIENT_UPDATE_BUTTONS;
-		if ( compatflags2 & COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO )
+		if ( zacompatflags & ZACOMPATF_CLIENTS_SEND_FULL_BUTTON_INFO )
 			ulBits |= CLIENT_UPDATE_BUTTONS_LONG;
 	}
 	if ( pCmd->ucmd.forwardmove )

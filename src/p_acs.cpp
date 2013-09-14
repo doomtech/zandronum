@@ -7572,7 +7572,7 @@ bool ACS_IsScriptClientSide( const ScriptPtr *pScriptData )
 		return ( false );
 
 	// [BB] Some existing maps rely on Skulltag's old net script handling.
-	if ( ( pScriptData->Flags & SCRIPTF_Net ) && ( compatflags2 & COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE ) )
+	if ( ( pScriptData->Flags & SCRIPTF_Net ) && ( zacompatflags & ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE ) )
 		return ( true );
 
 	if ( pScriptData->Flags & SCRIPTF_ClientSide )

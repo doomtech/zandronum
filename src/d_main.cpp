@@ -546,11 +546,11 @@ CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 
 //==========================================================================
 //
-// [BB] CVAR compatflags2
+// [BB] CVAR zacompatflags
 //
 //==========================================================================
 
-CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO)
+CUSTOM_CVAR (Int, zacompatflags, 0, CVAR_SERVERINFO)
 {
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
@@ -628,16 +628,16 @@ CVAR (Flag, compat_oldradiusdmg,	compatflags, COMPATF_OLDRADIUSDMG);
 //CVAR (Flag, compat_disablecooperativebackpacks,	compatflags, COMPATF_DISABLECOOPERATIVEBACKPACKS);
 CVAR (Flag, compat_nocrosshair,		compatflags, COMPATF_NO_CROSSHAIR);
 CVAR (Flag, compat_oldweaponswitch,		compatflags, COMPATF_OLD_WEAPON_SWITCH);
-CVAR (Flag, compat_netscriptsareclientside,		compatflags2, COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE);
-CVAR (Flag, compat_clientssendfullbuttoninfo,		compatflags2, COMPATF2_CLIENTS_SEND_FULL_BUTTON_INFO);
-CVAR (Flag, compat_noland,		compatflags2, COMPATF2_NO_LAND);
-CVAR (Flag, compat_oldrandom,		compatflags2, COMPATF2_OLD_RANDOM_GENERATOR);
-CVAR (Flag, compat_nogravity_spheres,		compatflags2, COMPATF2_NOGRAVITY_SPHERES);
-CVAR (Flag, compat_dont_stop_player_scripts_on_disconnect,		compatflags2, COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT);
-CVAR (Flag, compat_explosionthrust,		compatflags2, COMPATF2_OLD_EXPLOSION_THRUST);
-CVAR (Flag, compat_bridgedrops,		compatflags2, COMPATF2_OLD_BRIDGE_DROPS);
-CVAR (Flag, compat_123b33jumpphysics,		compatflags2, COMPATF2_ZDOOM_123B33_JUMP_PHYSICS);
-CVAR (Flag, compat_fullweaponlower,		compatflags2, COMPATF2_FULL_WEAPON_LOWER);
+CVAR (Flag, compat_netscriptsareclientside,		zacompatflags, ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE);
+CVAR (Flag, compat_clientssendfullbuttoninfo,		zacompatflags, ZACOMPATF_CLIENTS_SEND_FULL_BUTTON_INFO);
+CVAR (Flag, compat_noland,		zacompatflags, ZACOMPATF_NO_LAND);
+CVAR (Flag, compat_oldrandom,		zacompatflags, ZACOMPATF_OLD_RANDOM_GENERATOR);
+CVAR (Flag, compat_nogravity_spheres,		zacompatflags, ZACOMPATF_NOGRAVITY_SPHERES);
+CVAR (Flag, compat_dont_stop_player_scripts_on_disconnect,		zacompatflags, ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT);
+CVAR (Flag, compat_explosionthrust,		zacompatflags, ZACOMPATF_OLD_EXPLOSION_THRUST);
+CVAR (Flag, compat_bridgedrops,		zacompatflags, ZACOMPATF_OLD_BRIDGE_DROPS);
+CVAR (Flag, compat_123b33jumpphysics,		zacompatflags, ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS);
+CVAR (Flag, compat_fullweaponlower,		zacompatflags, ZACOMPATF_FULL_WEAPON_LOWER);
 
 //==========================================================================
 //

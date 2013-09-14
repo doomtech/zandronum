@@ -369,7 +369,7 @@ CCMD(crouch)
 CCMD (land)
 {
 	// [BB] Landing is not allowed, so don't do anything.
-	if ( compatflags2 & COMPATF2_NO_LAND )
+	if ( zacompatflags & ZACOMPATF_NO_LAND )
 		return;
 
 	SendLand = true;

@@ -2368,7 +2368,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	if ( pPlayer->mo )
 	{
 		// [BB] Stop all scripts of the player that are still running.
-		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts ( pPlayer->mo );
 		// Before we start fucking with the player's body, drop important items
 		// like flags, etc.
@@ -2546,7 +2546,7 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 		pPlayer->mo->ulSTFlags |= STFL_OBSOLETE_SPECTATOR_BODY;
 		// [BB] Also stop all associated scripts. Otherwise they would get disassociated
 		// and continue to run even if the player disconnects later.
-		if ( !( compatflags2 & COMPATF2_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
+		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts (pPlayer->mo);
 	}
 

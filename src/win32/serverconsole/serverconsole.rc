@@ -161,7 +161,7 @@ FONT 8, "Tahoma"
     LTEXT           "Configure flags", IDC_TITLE, 9, 8, 160, 15, SS_LEFT
     LTEXT           "Fine-tune your Zandronum server.", IDC_STATIC, 10, 26, 100, 8, SS_LEFT
     RTEXT           "compatflags:", IDC_STATIC, 102, 235, 42, 8, SS_RIGHT
-    RTEXT           "compatflags2:", IDC_STATIC, 99, 249, 46, 8, SS_RIGHT
+    RTEXT           "zacompatflags:", IDC_STATIC, 99, 249, 46, 8, SS_RIGHT
     RTEXT           "dmflags:", IDC_STATIC, 10, 235, 32, 8, SS_RIGHT
     RTEXT           "dmflags2:", IDC_STATIC, 10, 249, 32, 8, SS_RIGHT
 }
@@ -187,7 +187,7 @@ FONT 8, "Tahoma", 0, 0, 1
     AUTOCHECKBOX    "Monsters see semi-invisible players", IDC_COMPATF_INVISIBILITY, 20, 140, 130, 10
     AUTOCHECKBOX    "Instantly moving floors aren't slient", IDC_COMPATF_SILENT_INSTANT_FLOORS, 20, 150, 129, 10
     AUTOCHECKBOX    "Sector sounds use original method", IDC_COMPATF_SECTORSOUNDS, 20, 160, 125, 10
-    AUTOCHECKBOX    "NET scripts are clientside", IDC_COMPATF2_NETSCRIPTS_ARE_CLIENTSIDE, 169, 10, 95, 10
+    AUTOCHECKBOX    "NET scripts are clientside", IDC_ZACOMPATF_NETSCRIPTS_ARE_CLIENTSIDE, 169, 10, 95, 10
     AUTOCHECKBOX    "Find shortest textures like Doom", IDC_SHORTTEX, 169, 20, 116, 10
     AUTOCHECKBOX    "Use buggier stair building", IDC_STAIRINDEX, 169, 30, 95, 10
     AUTOCHECKBOX    "Limit pain elementals to 20 lost souls", IDC_LIMITPAIN, 169, 40, 129, 10

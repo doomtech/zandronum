@@ -1804,7 +1804,7 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 	}
 
 	// [BB] For people want to have the buggy behavior of non-SOLID things dropping through bridges.
-	if ( ( compatflags2 & COMPATF2_OLD_BRIDGE_DROPS ) && !(actor->flags & MF_SOLID) )
+	if ( ( zacompatflags & ZACOMPATF_OLD_BRIDGE_DROPS ) && !(actor->flags & MF_SOLID) )
 	{
 		if (pOnmobj) *pOnmobj = NULL;
 		return true;
@@ -5360,7 +5360,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 			{ // OK to damage; target is in direct path
 				float velz;
 				float thrust;
-				// [BB] We need to store these values for COMPATF2_OLD_EXPLOSION_THRUST.
+				// [BB] We need to store these values for ZACOMPATF_OLD_EXPLOSION_THRUST.
 				const fixed_t origmomx = thing->velx;
 				const fixed_t origmomy = thing->vely;
 				int damage = (int)points;
@@ -5412,7 +5412,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 							velz *= 0.8f;
 						}
 						// [BB] Potentially use the horizontal thrust of old ZDoom versions.
-						if ( compatflags2 & COMPATF2_OLD_EXPLOSION_THRUST )
+						if ( zacompatflags & ZACOMPATF_OLD_EXPLOSION_THRUST )
 						{
 							thing->velx = origmomx + static_cast<fixed_t>((thing->x - bombspot->x) * thrust);
 							thing->vely = origmomy + static_cast<fixed_t>((thing->y - bombspot->y) * thrust);

@@ -237,7 +237,7 @@ EXTERN_CVAR (Int, dmflags2);	// [BC]
 EXTERN_CVAR (Int, dmflags3);	// [BB]
 
 EXTERN_CVAR (Int, compatflags);
-EXTERN_CVAR (Int, compatflags2); // [BB]
+EXTERN_CVAR (Int, zacompatflags); // [BB]
 extern int i_compatflags, ii_compatflags, ib_compatflags;
 
 #endif
