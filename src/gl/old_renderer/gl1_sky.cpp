@@ -72,8 +72,8 @@ void GLWall::MirrorPlane(secplane_t * plane, bool ceiling)
 {
 	if (!(gl.flags&RFL_NOSTENCIL))
 	{
-		if (ceiling && viewz >= plane->ZatPoint(viewx, viewy)) return;
-		if (!ceiling && viewz <= plane->ZatPoint(viewx, viewy)) return;
+		if (ceiling && TO_GL(viewz) >= plane->ZatPoint(TO_GL(viewx), TO_GL(viewy))) return;
+		if (!ceiling && TO_GL(viewz) <= plane->ZatPoint(TO_GL(viewx), TO_GL(viewy))) return;
 		type=RENDERWALL_PLANEMIRROR;
 		planemirror=plane;
 		PutWall(0);
@@ -298,7 +298,7 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 			else
 			{
 				// Special hack for Vrack2b
-				if (bs->floorplane.ZatPoint(viewx, viewy) > viewz) return;
+				if (bs->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) > TO_GL(viewz)) return;
 			}
 		}
 		zbottom[0]=zbottom[1]=-32768.0f;

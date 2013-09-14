@@ -1,6 +1,7 @@
 #ifndef __GL_BASIC
 #define __GL_BASIC
 
+#include <new>
 #include "stats.h"
 
 
@@ -14,13 +15,14 @@ template <class T> struct FreeList
 		{
 			T * n=freelist;
 			freelist=*((T**)n);
-			return n;
+			return new ((void*)n) T;
 		}
 		return new T;
 	}
 
 	void Release(T * node)
 	{
+		node->~T();
 		*((T**)node) = freelist;
 		freelist=node;
 	}

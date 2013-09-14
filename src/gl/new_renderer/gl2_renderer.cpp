@@ -691,7 +691,7 @@ void GL2Renderer::ProcessScene()
 	}
 	else
 	{
-		mSkyDrawer->RenderSky(sky1texture, FNullTextureID(), 0, mSky1Pos, mSky2Pos, 0xffffff);
+		mSkyDrawer->RenderSky(sky1texture, FNullTextureID(), 0x80ffffff, mSky1Pos, mSky2Pos, 0);
 	}
 }
 

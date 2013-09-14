@@ -30,9 +30,11 @@
 #include "g_level.h"
 #include "m_fixed.h"
 #include "r_state.h"
+#include "templates.h"
 #include "textures/textures.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_convert.h"
+#include "gl/common/glc_data.h"
 #include "gl/common/glc_skyboxtexture.h"
 #include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/gl2_skydraw.h"
@@ -319,9 +321,10 @@ FVertexBufferSky *FSkyDrawer::CreateDomeVBO(FTexture *tex1, FTexture *tex2, PalE
 	}
 	if (fogcolor != 0)
 	{
-		static float fx[] = {1, 0, -1, 0, 1, 0};
-		static float fy[] = {-1, 0, -1, 1, -1, 0};
-		static float fz[] = {-1, 1, -1, -1, -1, 1};
+		// define a simple large tetrahedron around the viewpoint.
+		static float fx[] = {5000, 0, -5000, 0, 5000, 0};
+		static float fy[] = {-5000, 0, -5000, 5000, -5000, 0};
+		static float fz[] = {-5000, 5000, -5000, -5000, -5000, 5000};
 
 		FPrimitiveSky *prim = &vbo->mPrimitives[vbo->mPrimitives.Reserve(1)];
 		prim->mType = GL_TRIANGLE_STRIP;
@@ -357,33 +360,95 @@ FVertexBufferSky *FSkyDrawer::CreateDomeVBO(FTexture *tex1, FTexture *tex2, PalE
 //
 //----------------------------------------------------------------------------
 
-FVertexBufferSky *FSkyDrawer::CreateBox6VBO()
+FVertexBufferSky *FSkyDrawer::CreateBoxVBO(int type)
 {
-	TArray<FVertexSky> verts;
+	static FVertexSky verts[24] = {
+		// north face
+		{  128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		{  128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		// east face
+		{ -128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128,  128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		// south face
+		{ -128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		{  128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		{  128, -128,  128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128,  128, 0, 0, 255, 255, 255, 255 },
+		// west face
+		{  128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		{  128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{  128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		{  128, -128,  128, 0, 0, 255, 255, 255, 255 },
+		// top face
+		{  128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128,  128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		{  128,  128,  128, 0, 0, 255, 255, 255, 255 },
+		// bottom face
+		{  128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128, -128, 0, 0, 255, 255, 255, 255 },
+		{ -128, -128,  128, 0, 0, 255, 255, 255, 255 },
+		{  128, -128,  128, 0, 0, 255, 255, 255, 255 }
+	};
+
+	int sixface = (type == SKYVBO_Box6 || type == SKYVBO_Box6f);
+
+	if (sixface)
+	{
+		for(int i=0;i<4;i++)
+		{
+			verts[i*4+0].u = 0; verts[i*4+0].v = 0;
+			verts[i*4+1].u = 1; verts[i*4+1].v = 0;
+			verts[i*4+2].u = 1; verts[i*4+2].v = 1;
+			verts[i*4+3].u = 0; verts[i*4+3].v = 1;
+		}
+	}
+	else
+	{
+		for(int i=0;i<4;i++)
+		{
+			float l = i*0.25;
+			float r = l+0.25f;
+			verts[i*4+0].u = l; verts[i*4+0].v = 0;
+			verts[i*4+1].u = r; verts[i*4+1].v = 0;
+			verts[i*4+2].u = r; verts[i*4+2].v = 1;
+			verts[i*4+3].u = l; verts[i*4+3].v = 1;
+		}
+	}
+	int t = (type == SKYVBO_Box3f || type == SKYVBO_Box6f);
+
+	verts[4*4+0].u = 0; verts[4*4+0].v = t;
+	verts[4*4+1].u = 1; verts[4*4+1].v = t;
+	verts[4*4+2].u = 1; verts[4*4+2].v = 1-t;
+	verts[4*4+3].u = 0; verts[4*4+3].v = 1-t;
+
+	verts[5*4+0].u = 0; verts[5*4+0].v = 0;
+	verts[5*4+1].u = 1; verts[5*4+1].v = 0;
+	verts[5*4+2].u = 1; verts[5*4+2].v = 1;
+	verts[5*4+3].u = 0; verts[5*4+3].v = 1;
+
 	FVertexBufferSky *vbo = new FVertexBufferSky();
 
 	vbo->tex[0] = vbo->tex[1] = NULL;
 	vbo->fogcolor = 0;
 	vbo->stretch = false;
-	vbo->type = SKYVBO_Box6;
-	return vbo;
-}
+	vbo->type = type;
 
-//----------------------------------------------------------------------------
-//
-//
-//
-//----------------------------------------------------------------------------
+	vbo->mPrimitives.Resize(6);
+	for(int i=0;i<6;i++)
+	{
+		FPrimitiveSky *prim = &vbo->mPrimitives[i];
+		prim->mStartVertex = i*4;
+		prim->mVertexCount = 4;
+		prim->mType = GL_TRIANGLE_FAN;
+		prim->mUseTexture = sixface? i : MAX(0, i-3);
+	}
+	vbo->SetVertices(verts,24);
 
-FVertexBufferSky *FSkyDrawer::CreateBox3VBO()
-{
-	TArray<FVertexSky> verts;
-	FVertexBufferSky *vbo = new FVertexBufferSky();
-
-	vbo->tex[0] = vbo->tex[1] = NULL;
-	vbo->fogcolor = 0;
-	vbo->stretch = false;
-	vbo->type = SKYVBO_Box3;
 	return vbo;
 }
 
@@ -408,7 +473,84 @@ void FSkyDrawer::Clear()
 //
 //----------------------------------------------------------------------------
 
-void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, float xofs1, float xofs2, float yofs)
+void FSkyDrawer::RenderSkyBox(FTextureID tex1, float xofs, const FVector3 &axis)
+{
+	// Always use the cap color from the first texture in an animation. 
+	// This prevents flickering effects if the animation frames produce different cap colors
+	FTexture *tex_info = TexMan[tex1];
+	FTexture *tex_render = TexMan(tex1);
+	FVertexBufferSky *vbo = NULL;
+	FMaterial *material;
+	int texh;
+
+	if (tex_info->gl_info.bSkybox != tex_render->gl_info.bSkybox)
+	{
+		// Ugh... Switching animations between these types 
+		// will look extremely ugly so don't do it.
+		tex_render = tex_info;
+	}
+
+	static const ESkyVBOType type[] = { SKYVBO_Box6, SKYVBO_Box6f, SKYVBO_Box3, SKYVBO_Box3f};
+	// Check if it's a 3 or 6 face skybox
+	bool is3face = static_cast<FSkyBox*>(tex_info)->Is3Face();
+	bool isflipped = static_cast<FSkyBox*>(tex_info)->IsFlipped();
+	int boxtype = type[is3face*2 + isflipped];
+	vbo = FindVBO(boxtype, NULL, NULL, 0, false);
+	if (vbo == NULL)
+	{
+		vbo = CreateBoxVBO(boxtype);
+		CacheVBO(vbo);
+	}
+	if (vbo == NULL) return;
+
+	//----------------------------------------------------------------------------
+	//
+	// Render the sky using the retrieved VBO
+	//
+	//----------------------------------------------------------------------------
+
+	// set up the view matrix. Always view from (0,0,0)
+	gl.PushMatrix();
+	GLRenderer->SetCameraPos(0, 0, 0, viewangle);
+	GLRenderer2->SetViewMatrix(!!(GLRenderer->mMirrorCount&1), !!(GLRenderer->mPlaneMirrorCount&1));
+
+	gl.Enable(GL_ALPHA_TEST);
+	gl.AlphaFunc(GL_GEQUAL,0.05f);
+	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// transformation settings for the first layer
+	gl.PushMatrix();
+	texh = tex_info->GetScaledHeight();
+	gl.Rotatef(-180.0f+xofs, axis.X, axis.Z, axis.Y);
+
+	int lasttexturetype = -1;
+	vbo->Bind();
+	for(unsigned i=0;i<vbo->mPrimitives.Size(); i++)
+	{
+		FPrimitiveSky *prim = &vbo->mPrimitives[i];
+
+		if (lasttexturetype != prim->mUseTexture)
+		{
+			// different face than last primitive
+			FSkyBox *sky = static_cast<FSkyBox*>(tex_render);
+			lasttexturetype = prim->mUseTexture;
+			material = GLRenderer2->GetMaterial(sky->faces[lasttexturetype], true, 0);
+			material->Bind(NULL, TM_OPAQUE, -1, true);
+		}
+		gl.DrawArrays(prim->mType, prim->mStartVertex, prim->mVertexCount);
+	}
+	gl.PopMatrix();
+	gl.PopMatrix();
+}
+
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FSkyDrawer::RenderSkyDome(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, float xofs1, float xofs2, float yofs)
 {
 	// Always use the cap color from the first texture in an animation. 
 	// This prevents flickering effects if the animation frames produce different cap colors
@@ -426,32 +568,19 @@ void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, 
 		// will look extremely ugly so don't do it.
 		tex_render = tex_info;
 	}
-	if (tex_info->gl_info.bSkybox)
-	{
-		// Check if it's a 3 or 6 face skybox
-		bool is3face = static_cast<FSkyBox*>(tex_info)->Is3Face();
-		vbo = FindVBO(is3face? SKYVBO_Box3 : SKYVBO_Box6, NULL, NULL, 0, false);
-		if (vbo == NULL)
-		{
-			if (is3face)vbo = CreateBox3VBO();
-			else vbo = CreateBox6VBO();
-			CacheVBO(vbo);
-		}
-	}
-	else
-	{
-		if (tex2.isValid())
-		{
-			tex_info2 = TexMan[tex2];
-			tex_render2 = TexMan(tex2);
-		}
 
-		vbo = FindVBO(SKYVBO_Dome, tex_info, tex_info2, fogcolor, SkyStretch());
-		if (vbo == NULL)
-		{
-			vbo = CreateDomeVBO(tex_info, tex_info2, fogcolor);
-			CacheVBO(vbo);
-		}
+	
+	if (tex2.isValid())
+	{
+		tex_info2 = TexMan[tex2];
+		tex_render2 = TexMan(tex2);
+	}
+
+	vbo = FindVBO(SKYVBO_Dome, tex_info, tex_info2, fogcolor, SkyStretch());
+	if (vbo == NULL)
+	{
+		vbo = CreateDomeVBO(tex_info, tex_info2, fogcolor);
+		CacheVBO(vbo);
 	}
 	if (vbo == NULL) return;
 
@@ -460,7 +589,6 @@ void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, 
 	// Render the sky using the retrieved VBO
 	//
 	//----------------------------------------------------------------------------
-
 
 	// Handle y-scrolling
 	// This is only necessary for MBF sky transfers with a scrolling texture
@@ -481,7 +609,7 @@ void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, 
 	GLRenderer2->SetViewMatrix(!!(GLRenderer->mMirrorCount&1), !!(GLRenderer->mPlaneMirrorCount&1));
 	// For sky domes shift the view up a little to push the border between upper and lower hemisphere
 	// below the horizon.
-	if (vbo->type == SKYVBO_Dome) gl.Translatef(0.f, -1000.f, 0.f);
+	gl.Translatef(0.f, -1000.f, 0.f);
 
 	gl.Enable(GL_ALPHA_TEST);
 	gl.AlphaFunc(GL_GEQUAL,0.05f);
@@ -552,6 +680,29 @@ void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, 
 		gl.MatrixMode(GL_MODELVIEW);
 	}
 }
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FSkyDrawer::RenderSky(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, float xofs1, float xofs2, float yofs)
+{
+	// Always use the cap color from the first texture in an animation. 
+	// This prevents flickering effects if the animation frames produce different cap colors
+	FTexture *tex_info = TexMan[tex1];
+
+	if (!tex_info->gl_info.bSkybox)
+	{
+		RenderSkyDome(tex1, tex2, fogcolor, xofs1, xofs2, yofs);
+	}
+	else
+	{
+		RenderSkyBox(tex1, xofs1, glset.skyrotatevector);
+	}
+}
+
 
 
 }

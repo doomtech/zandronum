@@ -30,6 +30,8 @@ namespace GLRendererNew
 		SKYVBO_Dome,
 		SKYVBO_Box6,
 		SKYVBO_Box3,
+		SKYVBO_Box6f,
+		SKYVBO_Box3f
 	};
 
 	class FVertexBufferSky : public FVertexBuffer
@@ -64,10 +66,10 @@ namespace GLRendererNew
 		void GenerateHemispheres(int texno, FTexture *tex, TArray<FPrimitiveSky> &prims, TArray<FVertexSky> &verts);
 		FVertexBufferSky *FindVBO(int type, FTexture* t1, FTexture* t2, PalEntry fogcolor, bool stretch);
 		FVertexBufferSky *CreateDomeVBO(FTexture *tex1, FTexture *tex2, PalEntry fogcolor);
-		FVertexBufferSky *CreateBox6VBO();
-		FVertexBufferSky *CreateBox3VBO();
-		FVertexBufferSky *CreateFogLayerVBO();
+		FVertexBufferSky *CreateBoxVBO(int type);
 		void CacheVBO(FVertexBufferSky *vbo);
+		void RenderSkyBox(FTextureID tex1, float xofs, const FVector3 &axis);
+		void RenderSkyDome(FTextureID tex1, FTextureID tex2, PalEntry fogcolor, float xofs1, float xofs2, float yofs);
 
 
 	public:

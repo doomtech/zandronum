@@ -488,7 +488,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (frontsector->floorplane.ZatPoint(viewx, viewy) <= viewz)
+	if (frontsector->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) <= TO_GL(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERFLOOR;
 
@@ -527,7 +527,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (frontsector->ceilingplane.ZatPoint(viewx, viewy) >= viewz)
+	if (frontsector->ceilingplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) >= TO_GL(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERCEILING;
 
@@ -599,7 +599,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_top=rover->top.plane->ZatPoint(CenterSpot(sector));
 						if (ff_top<lastceilingheight)
 						{
-							if (viewz<=rover->top.plane->ZatPoint(viewx, viewy))
+							if (TO_GL(viewz) <= rover->top.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
 							{
 								// FF_FOG requires an inverted logic where to get the light from
 								light=P_GetPlaneLight(sector, rover->top.plane,!!(rover->flags&FF_FOG));
@@ -622,7 +622,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_bottom=rover->bottom.plane->ZatPoint(CenterSpot(sector));
 						if (ff_bottom<lastceilingheight)
 						{
-							if (viewz<=rover->bottom.plane->ZatPoint(viewx, viewy))
+							if (TO_GL(viewz)<=rover->bottom.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
 							{
 								light=P_GetPlaneLight(sector, rover->bottom.plane,!(rover->flags&FF_FOG));
 								lightlevel=*light->p_lightlevel;
@@ -656,7 +656,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_bottom=rover->bottom.plane->ZatPoint(CenterSpot(sector));
 						if (ff_bottom>lastfloorheight || (rover->flags&FF_FIX))
 						{
-							if (viewz>=rover->bottom.plane->ZatPoint(viewx, viewy))
+							if (TO_GL(viewz) >= rover->bottom.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
 							{
 								if (rover->flags&FF_FIX)
 								{
@@ -686,7 +686,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_top=rover->top.plane->ZatPoint(CenterSpot(sector));
 						if (ff_top>lastfloorheight)
 						{
-							if (viewz>=rover->top.plane->ZatPoint(viewx, viewy))
+							if (TO_GL(viewz) >= rover->top.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
 							{
 								light=P_GetPlaneLight(sector, rover->top.plane,!!(rover->flags&FF_FOG));
 								lightlevel=*light->p_lightlevel;
