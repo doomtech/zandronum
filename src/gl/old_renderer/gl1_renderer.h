@@ -11,10 +11,14 @@ struct GLSectorPlane;
 
 class GL1Renderer : public GLRendererBase
 {
+	~GL1Renderer();
+
 	void Initialize();
 	void SetPaused();
 	void UnsetPaused();
 
+	void Begin2D();
+	void ClearBorders();
 	void DrawTexture(FTexture *img, DCanvas::DrawParms &parms);
 	void DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color);
 	void DrawPixel(int x1, int y1, int palcolor, uint32 color);

@@ -8,7 +8,6 @@
 namespace GLRendererOld
 {
 	class GLTexture;
-	class FShader;
 }
 
 class OpenGLFrameBuffer : public Win32GLFrameBuffer

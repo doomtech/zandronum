@@ -257,6 +257,50 @@ FTexture::MiscGLInfo::~MiscGLInfo()
 	Brightmap = NULL;
 }
 
+//===========================================================================
+// 
+// Checks if the texture has a default brightmap and creates it if so
+//
+//===========================================================================
+void FTexture::CreateDefaultBrightmap()
+{
+	if (!gl_info.bBrightmapChecked)
+	{
+		// Check for brightmaps
+		if ((gl.flags & RFL_GLSL) && UseBasePalette() && HasGlobalBrightmap &&
+			UseType != TEX_Decal && UseType != TEX_MiscPatch && UseType != TEX_FontChar &&
+			gl_info.Brightmap == NULL && bWarped == 0
+			) 
+		{
+			// May have one - let's check when we use this texture
+			const BYTE *texbuf = GetPixels();
+			const int white = ColorMatcher.Pick(255,255,255);
+
+			int size = GetWidth() * GetHeight();
+			for(int i=0;i<size;i++)
+			{
+				if (GlobalBrightmap.Remap[texbuf[i]] == white)
+				{
+					// Create a brightmap
+					DPrintf("brightmap created for texture '%s'\n", Name);
+					gl_info.Brightmap = new FBrightmapTexture(this);
+					gl_info.bBrightmapChecked = 1;
+					return;
+				}
+			}
+			// No bright pixels found
+			DPrintf("No bright pixels found in texture '%s'\n", Name);
+			gl_info.bBrightmapChecked = 1;
+		}
+		else
+		{
+			// does not have one so set the flag to 'done'
+			gl_info.bBrightmapChecked = 1;
+		}
+	}
+}
+
+
 //==========================================================================
 //
 // Precaches a GL texture

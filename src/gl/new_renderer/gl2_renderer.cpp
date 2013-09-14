@@ -1,66 +1,49 @@
-/*
-** gl1_renderer.cpp
-** Renderer interface
-**
-**---------------------------------------------------------------------------
-** Copyright 2008 Christoph Oelckers
-** All rights reserved.
-**
-** Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions
-** are met:
-**
-** 1. Redistributions of source code must retain the above copyright
-**    notice, this list of conditions and the following disclaimer.
-** 2. Redistributions in binary form must reproduce the above copyright
-**    notice, this list of conditions and the following disclaimer in the
-**    documentation and/or other materials provided with the distribution.
-** 3. The name of the author may not be used to endorse or promote products
-**    derived from this software without specific prior written permission.
-** 4. When not used as part of GZDoom or a GZDoom derivative, this code will be
-**    covered by the terms of the GNU Lesser General Public License as published
-**    by the Free Software Foundation; either version 2.1 of the License, or (at
-**    your option) any later version.
-** 5. Full disclosure of the entire project's source code, except for third
-**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
-**
-** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**---------------------------------------------------------------------------
-**
-*/
+//
+//-----------------------------------------------------------------------------
+//
+// Copyright (C) 2009 Christoph Oelckers
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// As an exception to the GPL this code may be used in GZDoom
+// derivatives under the following conditions:
+//
+// 1. The license of these files is not changed
+// 2. Full source of the derived program is disclosed
+//
+//
+// ----------------------------------------------------------------------------
+//
+// Main renderer class
+//
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_clock.h"
-#include "gl/common/glc_texture.h"
-#include "files.h"
-#include "m_swap.h"
-#include "r_draw.h"
-#include "v_video.h"
-#include "r_main.h"
-#include "m_png.h"
-#include "m_crc32.h"
-#include "gl/common/glc_templates.h"
-#include "gl/common/glc_data.h"
-#include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
-#include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_functions.h"
-#include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_framebuffer.h"
+#include "textures/textures.h"
+#include "textures/bitmap.h"
+#include "w_wad.h"
+#include "c_cvars.h"
+#include "i_system.h"
+#include "gl/new_renderer/gl2_renderer.h"
+#include "gl/new_renderer/gl2_vertex.h"
+#include "gl/new_renderer/textures/gl2_material.h"
+#include "gl/new_renderer/textures/gl2_texture.h"
+#include "gl/new_renderer/textures/gl2_shader.h"
+#include "gl/common/glc_texture.h"
 #include "gl/common/glc_translate.h"
-#include "vectors.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
 
+
+
+namespace GLRendererNew
+{
 
 //===========================================================================
 // 
@@ -68,40 +51,21 @@
 //
 //===========================================================================
 
-using namespace GLRendererOld;
-EXTERN_CVAR(Bool, gl_render_segs)
-
-
-GL1Renderer::~GL1Renderer()
+void GL2Renderer::Initialize()
 {
-	FGLTexture::DeleteAll();
-	gl_ClearShaders();
+	mShaders = new FShaderContainer;
+	mTextures = new FGLTextureManager;
 }
 
-void GL1Renderer::Initialize()
+void GL2Renderer::SetPaused()
 {
-	gl_InitShaders();
-	gl_InitFog();
-	if (gl_vertices.Size())
-	{
-		gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
-	}
+	mShaders->SetActiveShader(NULL);
+	gl.SetTextureMode(TM_MODULATE);
 }
 
-void GL1Renderer::SetPaused()
+void GL2Renderer::UnsetPaused()
 {
-	gl_DisableShader();
-	gl_SetTextureMode(-1);
-}
-
-void GL1Renderer::UnsetPaused()
-{
-	gl_SetTextureMode(TM_MODULATE);
-}
-
-void GL1Renderer::Begin2D()
-{
-	gl_EnableFog(false);
+	gl.SetTextureMode(TM_MODULATE);
 }
 
 //===========================================================================
@@ -110,11 +74,8 @@ void GL1Renderer::Begin2D()
 //
 //===========================================================================
 
-void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
+void GL2Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
 {
-	GLRendererOld::GLWall wall;
-	wall.Process(seg, sector, backsector, polysub, gl_render_segs);
-	rendered_lines++;
 }
 
 //===========================================================================
@@ -123,11 +84,8 @@ void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector
 //
 //===========================================================================
 
-void GL1Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
+void GL2Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 {
-	GLRendererOld::GLWall wall;
-	wall.ProcessLowerMiniseg(seg, frontsector, backsector);
-	rendered_lines++;
 }
 
 //===========================================================================
@@ -136,10 +94,8 @@ void GL1Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector
 //
 //===========================================================================
 
-void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)
+void GL2Renderer::ProcessSprite(AActor *thing, sector_t *sector)
 {
-	GLSprite glsprite;
-	glsprite.Process(thing, sector);
 }
 
 //===========================================================================
@@ -148,10 +104,8 @@ void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)
 //
 //===========================================================================
 
-void GL1Renderer::ProcessParticle(particle_t *part, sector_t *sector)
+void GL2Renderer::ProcessParticle(particle_t *part, sector_t *sector)
 {
-	GLSprite glsprite;
-	glsprite.ProcessParticle(part, sector);//, 0, 0);
 }
 
 //===========================================================================
@@ -160,10 +114,8 @@ void GL1Renderer::ProcessParticle(particle_t *part, sector_t *sector)
 //
 //===========================================================================
 
-void GL1Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
+void GL2Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 {
-	GLFlat glflat;
-	glflat.ProcessSector(fakesector, sub);
 }
 
 //===========================================================================
@@ -172,9 +124,9 @@ void GL1Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 //
 //===========================================================================
 
-void GL1Renderer::FlushTextures()
+void GL2Renderer::FlushTextures()
 {
-	FGLTexture::FlushAll();
+	mTextures->FlushAllTextures();
 }
 
 //===========================================================================
@@ -183,9 +135,8 @@ void GL1Renderer::FlushTextures()
 //
 //===========================================================================
 
-void GL1Renderer::RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov)
+void GL2Renderer::RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov)
 {
-	gl_RenderTextureView(self, viewpoint, fov);
 }
 
 //===========================================================================
@@ -194,20 +145,8 @@ void GL1Renderer::RenderTextureView (FCanvasTexture *self, AActor *viewpoint, in
 //
 //===========================================================================
 
-void GL1Renderer::PrecacheTexture(FTexture *tex)
+void GL2Renderer::PrecacheTexture(FTexture *tex)
 {
-	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-	if (gltex) 
-	{
-		if (tex->UseType==FTexture::TEX_Sprite) 
-		{
-			gltex->BindPatch(CM_DEFAULT, 0);
-		}
-		else 
-		{
-			gltex->Bind (CM_DEFAULT, 0, 0);
-		}
-	}
 }
 
 //===========================================================================
@@ -216,10 +155,8 @@ void GL1Renderer::PrecacheTexture(FTexture *tex)
 //
 //===========================================================================
 
-void GL1Renderer::UncacheTexture(FTexture *tex)
+void GL2Renderer::UncacheTexture(FTexture *tex)
 {
-	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-	if (gltex) gltex->Clean(true); 
 }
 
 //===========================================================================
@@ -228,13 +165,8 @@ void GL1Renderer::UncacheTexture(FTexture *tex)
 //
 //===========================================================================
 
-unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
+unsigned char *GL2Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 {
-	FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-	if (gltex)
-	{
-		return gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
-	}
 	return NULL;
 }
 
@@ -244,42 +176,8 @@ unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 //
 //===========================================================================
 
-TArray<GLVertex> gl_vertices(1024);
-
-void GL1Renderer::SetupLevel()
+void GL2Renderer::SetupLevel()
 {
-	int i,j;
-
-	gl_vertices.Resize(100);	
-	gl_vertices.Clear();	
-
-	// Create the flat vertex array
-	for (i=0; i<numsubsectors; i++)
-	{
-		subsector_t * ssector = &subsectors[i];
-
-		if (ssector->numlines<=2) continue;
-			
-		ssector->numvertices = ssector->numlines;
-		ssector->firstvertex = gl_vertices.Size();
-
-		for(j = 0;  j < ssector->numlines; j++)
-		{
-			seg_t * seg = &segs[ssector->firstline + j];
-			vertex_t * vtx = seg->v1;
-			GLVertex * vt=&gl_vertices[gl_vertices.Reserve(1)];
-
-			vt->u =  TO_GL(vtx->x)/64.0f;
-			vt->v = -TO_GL(vtx->y)/64.0f;
-			vt->x =  TO_GL(vtx->x);
-			vt->y =  TO_GL(vtx->y);
-			vt->z = 0.0f;
-			vt->vt = vtx;
-		}
-	}
-	gl_InitVertexData();
-	gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
-	pitch=0.0f;
 }
 
 //===========================================================================
@@ -288,11 +186,9 @@ void GL1Renderer::SetupLevel()
 //
 //===========================================================================
 
-void GL1Renderer::CleanLevelData()
+void GL2Renderer::CleanLevelData()
 {
-	gl_CleanVertexData();
 }
-
 
 //===========================================================================
 // 
@@ -300,45 +196,18 @@ void GL1Renderer::CleanLevelData()
 //
 //===========================================================================
 
-void GL1Renderer::ClearBorders()
+void GL2Renderer::ClearBorders()
 {
-	OpenGLFrameBuffer *glscreen = static_cast<OpenGLFrameBuffer*>(screen);
+}
 
-	// Letterbox time! Draw black top and bottom borders.
-	int width = glscreen->GetWidth();
-	int height = glscreen->GetHeight();
-	int trueHeight = glscreen->GetTrueHeight();
+//===========================================================================
+// 
+//
+//
+//===========================================================================
 
-	int borderHeight = (trueHeight - height) / 2;
-
-	gl.Viewport(0, 0, width, trueHeight);
-	gl.MatrixMode(GL_PROJECTION);
-	gl.LoadIdentity();
-	gl.Ortho(0.0, width * 1.0, 0.0, trueHeight, -1.0, 1.0);
-	gl.MatrixMode(GL_MODELVIEW);
-	gl.Color3f(0.f, 0.f, 0.f);
-	gl_EnableTexture(false);
-	gl_DisableShader();
-
-	gl.Begin(GL_QUADS);
-	// upper quad
-	gl.Vertex2i(0, borderHeight);
-	gl.Vertex2i(0, 0);
-	gl.Vertex2i(width, 0);
-	gl.Vertex2i(width, borderHeight);
-	gl.End();
-
-	gl.Begin(GL_QUADS);
-	// lower quad
-	gl.Vertex2i(0, trueHeight);
-	gl.Vertex2i(0, trueHeight - borderHeight);
-	gl.Vertex2i(width, trueHeight - borderHeight);
-	gl.Vertex2i(width, trueHeight);
-	gl.End();
-
-	gl_EnableTexture(true);
-
-	gl.Viewport(0, (trueHeight - height) / 2, width, height); 
+void GL2Renderer::Begin2D()
+{
 }
 
 //==========================================================================
@@ -347,8 +216,9 @@ void GL1Renderer::ClearBorders()
 //
 //==========================================================================
 
-void GL1Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
+void GL2Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 {
+#if 0
 	float x = FIXED2FLOAT(parms.x - Scale (parms.left, parms.destwidth, parms.texwidth));
 	float y = FIXED2FLOAT(parms.y - Scale (parms.top, parms.destheight, parms.texheight));
 	float w = FIXED2FLOAT(parms.destwidth);
@@ -452,6 +322,7 @@ void GL1Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl_SetTextureMode(TM_MODULATE);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	gl.BlendEquation(GL_FUNC_ADD);
+#endif
 }
 
 //==========================================================================
@@ -459,8 +330,9 @@ void GL1Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 //
 //
 //==========================================================================
-void GL1Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color)
+void GL2Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color)
 {
+#if 0
 	PalEntry p = color? (PalEntry)color : GPalette.BaseColors[color];
 	gl_EnableTexture(false);
 	gl_DisableShader();
@@ -470,6 +342,7 @@ void GL1Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 
 	gl.Vertex2i(x2, y2);
 	gl.End();
 	gl_EnableTexture(true);
+#endif
 }
 
 //==========================================================================
@@ -477,8 +350,9 @@ void GL1Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 
 //
 //
 //==========================================================================
-void GL1Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
+void GL2Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
 {
+#if 0
 	PalEntry p = color? (PalEntry)color : GPalette.BaseColors[color];
 	gl_EnableTexture(false);
 	gl_DisableShader();
@@ -487,6 +361,7 @@ void GL1Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
 	gl.Vertex2i(x1, y1);
 	gl.End();
 	gl_EnableTexture(true);
+#endif
 }
 
 //===========================================================================
@@ -495,8 +370,9 @@ void GL1Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
 //
 //===========================================================================
 
-void GL1Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h)
+void GL2Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h)
 {
+#if 0
 	float r, g, b;
 	
 	gl_EnableTexture(false);
@@ -517,6 +393,7 @@ void GL1Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int 
 	gl.End();
 	
 	gl_EnableTexture(true);
+#endif
 }
 
 //==========================================================================
@@ -524,8 +401,9 @@ void GL1Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int 
 //
 //
 //==========================================================================
-void GL1Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin)
+void GL2Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin)
 {
+#if 0
 	float fU1,fU2,fV1,fV2;
 
 	FGLTexture *gltexture=FGLTexture::ValidateTexture(src);
@@ -555,6 +433,7 @@ void GL1Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *
 	gl.TexCoord2f(fU2, fV1); gl.Vertex2f(right, top);
 	gl.TexCoord2f(fU2, fV2); gl.Vertex2f(right, bottom);
 	gl.End();
+#endif
 }
 
 //==========================================================================
@@ -562,8 +441,9 @@ void GL1Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *
 //
 //
 //==========================================================================
-void GL1Renderer::Clear(int left, int top, int right, int bottom, int palcolor, uint32 color)
+void GL2Renderer::Clear(int left, int top, int right, int bottom, int palcolor, uint32 color)
 {
+#if 0
 	int rt;
 	int offY = 0;
 	PalEntry p = palcolor==-1? (PalEntry)color : GPalette.BaseColors[palcolor];
@@ -593,5 +473,37 @@ void GL1Renderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 	gl.ClearColor(0.f, 0.f, 0.f, 0.f);
 	
 	gl.Disable(GL_SCISSOR_TEST);
+#endif
 }
 
+//-----------------------------------------------------------------------------
+//
+// gl_SetFixedColormap
+//
+//-----------------------------------------------------------------------------
+
+void GL2Renderer::SetFixedColormap (player_t *player)
+{
+}
+
+//===========================================================================
+//
+// Render the view to a savegame picture
+//
+//===========================================================================
+
+void GL2Renderer::WriteSavePic (player_t *player, FILE *file, int width, int height)
+{
+}
+
+//-----------------------------------------------------------------------------
+//
+// R_RenderPlayerView - the main rendering function
+//
+//-----------------------------------------------------------------------------
+
+void GL2Renderer::RenderView (player_t* player)
+{       
+}
+
+}

@@ -40,8 +40,6 @@
 */
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_clock.h"
-#include "gl/common/glc_texture.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"
@@ -49,18 +47,17 @@
 #include "r_main.h"
 #include "m_png.h"
 #include "m_crc32.h"
+#include "vectors.h"
+#include "v_palette.h"
+#include "templates.h"
+#include "gl/common/glc_clock.h"
+#include "gl/common/glc_texture.h"
 #include "gl/common/glc_templates.h"
 #include "gl/common/glc_data.h"
-#include "gl/gl_struct.h"
-#include "gl/gl_intern.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/gl_functions.h"
-#include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/common/glc_translate.h"
-#include "vectors.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/old_renderer/gl1_renderer.h"
+#include "gl/new_renderer/gl2_renderer.h"
 // [BB] Added include.
 #ifdef _MSC_VER
 #include "../hqnx/hqnx.h"
@@ -74,7 +71,7 @@ void gl_SetupMenu();
 
 GLRendererBase *GLRenderer;
 
-using namespace GLRendererOld;
+CVAR(Bool, gl_testnewrenderer, false, 0)
 
 //==========================================================================
 //
@@ -85,7 +82,14 @@ using namespace GLRendererOld;
 OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refreshHz, bool fullscreen) : 
 	Super(width, height, bits, refreshHz, fullscreen) 
 {
-	GLRenderer = new GL1Renderer;
+	if (!gl_testnewrenderer)
+	{
+		GLRenderer = new GLRendererOld::GL1Renderer;
+	}
+	else
+	{
+		GLRenderer = new GLRendererNew::GL2Renderer;
+	}
 	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
 	UpdatePalette ();
 	ScreenshotBuffer = NULL;
@@ -109,9 +113,6 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
 	gl_FreeSpecialTextures();
-	// all native textures must be completely removed before destroying the frame buffer
-	FGLTexture::DeleteAll();
-	gl_ClearShaders();
 	delete GLRenderer;
 	GLRenderer = NULL;
 }
@@ -200,39 +201,10 @@ void OpenGLFrameBuffer::Update()
 
 	if (GetTrueHeight() != GetHeight())
 	{
-		// Letterbox time! Draw black top and bottom borders.
-		int borderHeight = (GetTrueHeight() - GetHeight()) / 2;
-
-		gl.Viewport(0, 0, GetWidth(), GetTrueHeight());
-		gl.MatrixMode(GL_PROJECTION);
-		gl.LoadIdentity();
-		gl.Ortho(0.0, GetWidth() * 1.0, 0.0, GetTrueHeight(), -1.0, 1.0);
-		gl.MatrixMode(GL_MODELVIEW);
-		gl.Color3f(0.f, 0.f, 0.f);
-		gl_EnableTexture(false);
-		gl_DisableShader();
-
-		gl.Begin(GL_QUADS);
-		// upper quad
-		gl.Vertex2i(0, borderHeight);
-		gl.Vertex2i(0, 0);
-		gl.Vertex2i(GetWidth(), 0);
-		gl.Vertex2i(GetWidth(), borderHeight);
-		gl.End();
-
-		gl.Begin(GL_QUADS);
-		// lower quad
-		gl.Vertex2i(0, GetTrueHeight());
-		gl.Vertex2i(0, GetTrueHeight() - borderHeight);
-		gl.Vertex2i(GetWidth(), GetTrueHeight() - borderHeight);
-		gl.Vertex2i(GetWidth(), GetTrueHeight());
-		gl.End();
-
-		gl_EnableTexture(true);
+		if (GLRenderer != NULL) 
+			GLRenderer->ClearBorders();
 
 		Begin2D(false);
-		gl.Viewport(0, (GetTrueHeight() - GetHeight()) / 2, GetWidth(), GetHeight()); 
-
 	}
 
 	Finish.Reset();
@@ -343,7 +315,7 @@ bool OpenGLFrameBuffer::SetFlash(PalEntry rgb, int amount)
 void OpenGLFrameBuffer::GetFlash(PalEntry &rgb, int &amount)
 {
 	rgb = Flash;
-	rgb.a=0;
+	rgb.a = 0;
 	amount = Flash.a;
 }
 
@@ -408,7 +380,7 @@ bool OpenGLFrameBuffer::Begin2D(bool)
 		);
 	gl.Disable(GL_DEPTH_TEST);
 	gl.Disable(GL_MULTISAMPLE);
-	gl_EnableFog(false);
+	if (GLRenderer != NULL) GLRenderer->Begin2D();
 	return true;
 }
 

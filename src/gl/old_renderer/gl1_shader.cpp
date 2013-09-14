@@ -137,7 +137,7 @@ public:
 		if (on != currentfogenabled)
 		{
 			currentfogenabled = on;
-			gl.Uniform1iARB(fogenabled_index, on); 
+			gl.Uniform1i(fogenabled_index, on); 
 		}
 	}
 
@@ -146,7 +146,7 @@ public:
 		if (mode != currenttexturemode)
 		{
 			currenttexturemode = mode;
-			gl.Uniform1iARB(texturemode_index, mode); 
+			gl.Uniform1i(texturemode_index, mode); 
 		}
 	}
 
@@ -155,7 +155,7 @@ public:
 		if (dist != currentlightdist)
 		{
 			currentlightdist = dist;
-			gl.Uniform1fARB(lightdist_index, dist);
+			gl.Uniform1f(lightdist_index, dist);
 		}
 	}
 
@@ -164,25 +164,25 @@ public:
 		if (fac != currentlightfactor)
 		{
 			currentlightfactor = fac;
-			gl.Uniform1fARB(lightfactor_index, fac);
+			gl.Uniform1f(lightfactor_index, fac);
 		}
 	}
 
 	void SetCameraPos(float x, float y, float z)
 	{
-		gl.Uniform3fARB(camerapos_index, x, y, z); 
+		gl.Uniform3f(camerapos_index, x, y, z); 
 	}
 
 	void SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight)
 	{
-		gl.Uniform4fARB(glowtopcolor_index, topcolors[0], topcolors[1], topcolors[2], topheight);
-		gl.Uniform4fARB(glowbottomcolor_index, bottomcolors[0], bottomcolors[1], bottomcolors[2], bottomheight);
+		gl.Uniform4f(glowtopcolor_index, topcolors[0], topcolors[1], topcolors[2], topheight);
+		gl.Uniform4f(glowbottomcolor_index, bottomcolors[0], bottomcolors[1], bottomcolors[2], bottomheight);
 	}
 
 	void SetGlowPosition(float topdist, float bottomdist)
 	{
-		gl.VertexAttrib1fARB(glowtopdist_index, topdist);
-		gl.VertexAttrib1fARB(glowbottomdist_index, bottomdist);
+		gl.VertexAttrib1f(glowtopdist_index, topdist);
+		gl.VertexAttrib1f(glowbottomdist_index, bottomdist);
 	}
 
 	bool Bind(float Speed);
@@ -204,50 +204,50 @@ bool FShader::Load(const char * name, const char * vert_prog, const char * frag_
 
 	if (gl.flags & RFL_GLSL)
 	{
-		hVertProg = gl.CreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-		hFragProg = gl.CreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	
+		hVertProg = gl.CreateShaderObject(GL_VERTEX_SHADER);
+		hFragProg = gl.CreateShaderObject(GL_FRAGMENT_SHADER);	
 
 		int vp_size = (int)strlen(vert_prog);
 		int fp_size = (int)strlen(frag_prog);
 
-		gl.ShaderSourceARB(hVertProg, 1, &vert_prog, &vp_size);
-		gl.ShaderSourceARB(hFragProg, 1, &frag_prog, &fp_size);
+		gl.ShaderSource(hVertProg, 1, &vert_prog, &vp_size);
+		gl.ShaderSource(hFragProg, 1, &frag_prog, &fp_size);
 
-		gl.CompileShaderARB(hVertProg);
-		gl.CompileShaderARB(hFragProg);
+		gl.CompileShader(hVertProg);
+		gl.CompileShader(hFragProg);
 
-		hShader = gl.CreateProgramObjectARB();
+		hShader = gl.CreateProgramObject();
 
-		gl.AttachObjectARB(hShader, hVertProg);
-		gl.AttachObjectARB(hShader, hFragProg);
+		gl.AttachObject(hShader, hVertProg);
+		gl.AttachObject(hShader, hFragProg);
 
-		gl.LinkProgramARB(hShader);
+		gl.LinkProgram(hShader);
 	
-		gl.GetInfoLogARB(hShader, 10000, NULL, buffer);
+		gl.GetInfoLog(hShader, 10000, NULL, buffer);
 		if (*buffer) 
 		{
 			Printf("Init Shader '%s':\n%s\n", name, buffer);
 		}
 		int linked;
-		gl.GetObjectParameterivARB(hShader, GL_OBJECT_LINK_STATUS_ARB, &linked);
-		timer_index = gl.GetUniformLocationARB(hShader, "timer");
-		desaturation_index = gl.GetUniformLocationARB(hShader, "desaturation_factor");
-		fogenabled_index = gl.GetUniformLocationARB(hShader, "fogenabled");
-		texturemode_index = gl.GetUniformLocationARB(hShader, "texturemode");
-		camerapos_index = gl.GetUniformLocationARB(hShader, "camerapos");
-		lightdist_index = gl.GetUniformLocationARB(hShader, "lightdist");
-		lightfactor_index = gl.GetUniformLocationARB(hShader, "lightfactor");
+		gl.GetObjectParameteriv(hShader, GL_LINK_STATUS, &linked);
+		timer_index = gl.GetUniformLocation(hShader, "timer");
+		desaturation_index = gl.GetUniformLocation(hShader, "desaturation_factor");
+		fogenabled_index = gl.GetUniformLocation(hShader, "fogenabled");
+		texturemode_index = gl.GetUniformLocation(hShader, "texturemode");
+		camerapos_index = gl.GetUniformLocation(hShader, "camerapos");
+		lightdist_index = gl.GetUniformLocation(hShader, "lightdist");
+		lightfactor_index = gl.GetUniformLocation(hShader, "lightfactor");
 
-		glowbottomcolor_index = gl.GetUniformLocationARB(hShader, "bottomglowcolor");
-		glowbottomdist_index = gl.GetAttribLocationARB(hShader, "bottomdistance");
-		glowtopcolor_index = gl.GetUniformLocationARB(hShader, "topglowcolor");
-		glowtopdist_index = gl.GetAttribLocationARB(hShader, "topdistance");
+		glowbottomcolor_index = gl.GetUniformLocation(hShader, "bottomglowcolor");
+		glowbottomdist_index = gl.GetAttribLocation(hShader, "bottomdistance");
+		glowtopcolor_index = gl.GetUniformLocation(hShader, "topglowcolor");
+		glowtopdist_index = gl.GetAttribLocation(hShader, "topdistance");
 
-		int brightmap_index = gl.GetUniformLocationARB(hShader, "brightmap");
+		int brightmap_index = gl.GetUniformLocation(hShader, "brightmap");
 
-		gl.UseProgramObjectARB(hShader);
-		gl.Uniform1iARB(brightmap_index, 1);
-		gl.UseProgramObjectARB(0);
+		gl.UseProgramObject(hShader);
+		gl.Uniform1i(brightmap_index, 1);
+		gl.UseProgramObject(0);
 
 		return !!linked;
 	}
@@ -262,9 +262,9 @@ bool FShader::Load(const char * name, const char * vert_prog, const char * frag_
 
 FShader::~FShader()
 {
-	gl.DeleteObjectARB(hShader);
-	gl.DeleteObjectARB(hVertProg);
-	gl.DeleteObjectARB(hFragProg);
+	gl.DeleteObject(hShader);
+	gl.DeleteObject(hVertProg);
+	gl.DeleteObject(hFragProg);
 }
 
 
@@ -278,10 +278,10 @@ bool FShader::Bind(float Speed)
 {
 	if (gl_activeShader!=this)
 	{
-		gl.UseProgramObjectARB(hShader);
+		gl.UseProgramObject(hShader);
 		gl_activeShader=this;
 	}
-	if (timer_index >=0 && Speed > 0.f) gl.Uniform1fARB(timer_index, gl_frameMS*Speed/1000.f);
+	if (timer_index >=0 && Speed > 0.f) gl.Uniform1f(timer_index, gl_frameMS*Speed/1000.f);
 	return true;
 }
 
@@ -619,7 +619,7 @@ void GLShader::Bind(int cm, int lightmode, float Speed)
 			sh->Bind(Speed);
 			if (desat)
 			{
-				gl.Uniform1fARB(sh->desaturation_index, 1.f-float(cm-CM_DESAT0)/(CM_DESAT31-CM_DESAT0));
+				gl.Uniform1f(sh->desaturation_index, 1.f-float(cm-CM_DESAT0)/(CM_DESAT31-CM_DESAT0));
 			}
 		}
 		break;
@@ -630,7 +630,7 @@ void GLShader::Unbind()
 {
 	if ((gl.flags & RFL_GLSL) && gl_activeShader != NULL)
 	{
-		gl.UseProgramObjectARB(0);
+		gl.UseProgramObject(0);
 		gl_activeShader=NULL;
 	}
 }

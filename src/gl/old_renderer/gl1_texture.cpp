@@ -526,24 +526,6 @@ FGLTexture::FGLTexture(FTexture * tx)
 		}
 	}
 
-	if (!tex->gl_info.bBrightmapChecked)
-	{
-		// Check for brightmaps
-		if ((gl.flags & RFL_GLSL) && tx->UseBasePalette() && HasGlobalBrightmap &&
-			tx->UseType != FTexture::TEX_Autopage && tx->UseType != FTexture::TEX_Decal &&
-			tx->UseType != FTexture::TEX_MiscPatch && tx->UseType != FTexture::TEX_FontChar &&
-			tex->gl_info.Brightmap == NULL && tx->bWarped == 0
-			) 
-		{
-			// May have one - let's check when we use this texture
-			tex->gl_info.bBrightmapChecked = -1;
-		}
-		else
-		{
-			// does not have one so set the flag to 'done'
-			tex->gl_info.bBrightmapChecked = 1;
-		}
-	}
 	bIsTransparent = -1;
 
 	if (tex->bHasCanvas) scaley=-scaley;
@@ -875,33 +857,6 @@ bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h, bool clampside
 
 //===========================================================================
 // 
-// Checks if the texture has a default brightmap and creates it if so
-//
-//===========================================================================
-void FGLTexture::CreateDefaultBrightmap()
-{
-	const BYTE *texbuf = tex->GetPixels();
-	const int white = ColorMatcher.Pick(255,255,255);
-
-	int size = tex->GetWidth()*tex->GetHeight();
-	for(int i=0;i<size;i++)
-	{
-		if (GlobalBrightmap.Remap[texbuf[i]] == white)
-		{
-			// Create a brightmap
-			DPrintf("brightmap created for texture '%s'\n", tex->Name);
-			tex->gl_info.Brightmap = new FBrightmapTexture(tex);
-			tex->gl_info.bBrightmapChecked = 1;
-			return;
-		}
-	}
-	// No bright pixels found
-	DPrintf("No bright pixels found in texture '%s'\n", tex->Name);
-	tex->gl_info.bBrightmapChecked = 1;
-}
-
-//===========================================================================
-// 
 // Post-process the texture data after the buffer has been created
 //
 //===========================================================================
@@ -1160,9 +1115,9 @@ void FGLTexture::SetupShader(int clampmode, int warped, int &cm, int translation
 
 	if (gl.flags & RFL_GLSL)
 	{
-		if (tex->gl_info.bBrightmapChecked == -1)
+		if (tex->gl_info.bBrightmapChecked == 0)
 		{
-			CreateDefaultBrightmap();
+			tex->CreateDefaultBrightmap();
 		}
 
 		FTexture *brightmap = tex->gl_info.Brightmap;

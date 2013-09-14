@@ -110,9 +110,6 @@ void gl_InitSpecialTextures()
 //
 // Adjust sprite offsets for GL rendering (IWAD resources only)
 //
-// (all I need to do now is to create the offset data files, whenever that
-//  might happen...)
-//
 //-----------------------------------------------------------------------------
 
 void AdjustSpriteOffsets()
