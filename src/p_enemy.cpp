@@ -72,7 +72,7 @@ static FRandom pr_slook ("SlooK");
 static FRandom pr_skiptarget("SkipTarget");
 
 // movement interpolation is fine for objects that are moved by their own
-// momentum. But for monsters it is problematic.
+// velocity. But for monsters it is problematic.
 // 1. They don't move every tic
 // 2. Their animation is not designed for movement interpolation
 // The result is that they tend to 'glide' across the floor
@@ -482,8 +482,8 @@ bool P_Move (AActor *actor)
 		actor->x = origx;
 		actor->y = origy;
 		movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
-		actor->momx += FixedMul (deltax, movefactor);
-		actor->momy += FixedMul (deltay, movefactor);
+		actor->velx += FixedMul (deltax, movefactor);
+		actor->vely += FixedMul (deltay, movefactor);
 	}
 
 	if (!try_ok)
@@ -1682,7 +1682,7 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 		{
 			if ((P_AproxDistance (player->mo->x - actor->x,
 					player->mo->y - actor->y) > 2*MELEERANGE)
-				&& P_AproxDistance (player->mo->momx, player->mo->momy)
+				&& P_AproxDistance (player->mo->velx, player->mo->vely)
 				< 5*FRACUNIT)
 			{ // Player is sneaking - can't detect
 				return false;
@@ -2284,8 +2284,8 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		else
 		{
 			actor->FastChaseStrafeCount = 0;
-			actor->momx = 0;
-			actor->momy = 0;
+			actor->velx = 0;
+			actor->vely = 0;
 			fixed_t dist = P_AproxDistance (actor->x - actor->target->x, actor->y - actor->target->y);
 			if (dist < CLASS_BOSS_STRAFE_RANGE)
 			{
@@ -2294,8 +2294,8 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 					angle_t ang = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
 					if (pr_chase() < 128) ang += ANGLE_90;
 					else ang -= ANGLE_90;
-					actor->momx = 13 * finecosine[ang>>ANGLETOFINESHIFT];
-					actor->momy = 13 * finesine[ang>>ANGLETOFINESHIFT];
+					actor->velx = 13 * finecosine[ang>>ANGLETOFINESHIFT];
+					actor->vely = 13 * finesine[ang>>ANGLETOFINESHIFT];
 					actor->FastChaseStrafeCount = 3;		// strafe time
 
 					// [Dusk] Update the strafecount to the clients. It is necessary
@@ -2517,7 +2517,7 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 				 abs(corpsehit-> y - viletryy) > maxdist )
 				continue;			// not actually touching
 
-			corpsehit->momx = corpsehit->momy = 0;
+			corpsehit->velx = corpsehit->vely = 0;
 			// [RH] Check against real height and radius
 
 			fixed_t oldheight = corpsehit->height;
@@ -2780,8 +2780,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_MonsterRail)
 	// Let the aim trail behind the player
 	self->angle = R_PointToAngle2 (self->x,
 									self->y,
-									self->target->x - self->target->momx * 3,
-									self->target->y - self->target->momy * 3);
+									self->target->x - self->target->velx * 3,
+									self->target->y - self->target->vely * 3);
 
 	if (self->target->flags & MF_SHADOW)
     {
@@ -2997,14 +2997,14 @@ void P_TossItem (AActor *item)
 	
 	if (style==2)
 	{
-		item->momx += pr_dropitem.Random2(7) << FRACBITS;
-		item->momy += pr_dropitem.Random2(7) << FRACBITS;
+		item->velx += pr_dropitem.Random2(7) << FRACBITS;
+		item->vely += pr_dropitem.Random2(7) << FRACBITS;
 	}
 	else
 	{
-		item->momx = pr_dropitem.Random2() << 8;
-		item->momy = pr_dropitem.Random2() << 8;
-		item->momz = FRACUNIT*5 + (pr_dropitem() << 10);
+		item->velx = pr_dropitem.Random2() << 8;
+		item->vely = pr_dropitem.Random2() << 8;
+		item->velz = FRACUNIT*5 + (pr_dropitem() << 10);
 	}
 }
 

@@ -93,7 +93,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepLeft)
 	AActor *misl = P_SpawnMissileZAimed (self, self->z + 48*FRACUNIT, self->target, PClass::FindClass("FastFlameMissile"));
 	if (misl != NULL)
 	{
-		misl->momz += FRACUNIT;
+		misl->velz += FRACUNIT;
 
 		// [BC] Tell clients to spawn the missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -114,7 +114,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepRight)
 	AActor *misl = P_SpawnMissileZAimed (self, self->z + 48*FRACUNIT, self->target, PClass::FindClass("FastFlameMissile"));
 	if (misl != NULL)
 	{
-		misl->momz += FRACUNIT;
+		misl->velz += FRACUNIT;
 
 		// [BC] Tell clients to spawn the missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

@@ -74,6 +74,10 @@ void AWeapon::Serialize (FArchive &arc)
 	if (SaveVersion >= 1688)
 	{
 		arc << FOVScale;
+		if (SaveVersion >= 1700)
+		{
+			arc << Crosshair;
+		}
 	}
 }
 
@@ -1940,5 +1944,22 @@ DEFINE_ACTION_FUNCTION_PARAMS(AWeapon, A_ZoomFactor)
 			zoom = -zoom;
 		}
 		self->player->ReadyWeapon->FOVScale = zoom;
+	}
+}
+
+//===========================================================================
+//
+// A_SetCrosshair
+//
+//===========================================================================
+
+DEFINE_ACTION_FUNCTION_PARAMS(AWeapon, A_SetCrosshair)
+{
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_INT(xhair, 0);
+
+	if (self->player != NULL && self->player->ReadyWeapon != NULL)
+	{
+		self->player->ReadyWeapon->Crosshair = xhair;
 	}
 }

@@ -16,6 +16,7 @@ ACTOR Inventory native
 	action native A_Light2();
 	action native A_LightInverse();
 	action native A_WeaponReady(int flags = 0);
+	action native A_WeaponBob();
 	action native A_Lower();
 	action native A_Raise();
 	action native A_FirePistol();
@@ -168,14 +169,24 @@ ACTOR PowerStrength : Powerup native
 ACTOR PowerInvisibility : Powerup native
 {
 	Powerup.Duration -60
+	Powerup.Strength 80
+	Powerup.Mode "Fuzzy"
 }
 
-ACTOR PowerGhost : PowerInvisibility native {}
+ACTOR PowerGhost : PowerInvisibility
+{
+	+GHOST
+	Powerup.Duration -60
+	Powerup.Strength 60
+	Powerup.Mode "None"
+}
 
 ACTOR PowerShadow : PowerInvisibility native
 {
-	Powerup.Duration -55
 	+INVENTORY.HUBPOWER
+	Powerup.Duration -55
+	Powerup.Strength 75
+	Powerup.Mode "Cumulative"
 }
 
 // [BB]
@@ -331,6 +342,8 @@ Actor Weapon : Inventory native
 	action native A_ZoomFactor(float scale = 1, int flags = 0);
 	const int ZOOM_INSTANT = 1;
 	const int ZOOM_NOSCALETURNING = 2;
+	
+	action native A_SetCrosshair(int xhair);
 }
 
 ACTOR WeaponGiver : Weapon native

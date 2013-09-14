@@ -201,7 +201,7 @@ void UNLAGGED_Reconcile( AActor *actor )
 				{
 					//shooter was standing on the floor, let's pull him down to his floor if
 					//he wasn't falling
-					if ( (actor->z == serverFloorZ) && (actor->momz >= 0) )
+					if ( (actor->z == serverFloorZ) && (actor->velz >= 0) )
 						actor->z = actor->floorz;
 
 					//todo: more correction for floor moving up

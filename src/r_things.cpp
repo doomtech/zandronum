@@ -60,7 +60,6 @@
 #include "gamemode.h"
 
 
-extern FTexture *CrosshairImage;
 extern fixed_t globaluclip, globaldclip;
 
 

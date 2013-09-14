@@ -175,7 +175,6 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
 EXTERN_CVAR (Float, turbo)
-EXTERN_CVAR (Int, crosshair)
 EXTERN_CVAR (Bool, freelook)
 EXTERN_CVAR (Float, m_pitch)
 EXTERN_CVAR (Float, m_yaw)
@@ -692,7 +691,7 @@ void D_Display ()
 			// Refresh the console.
 			C_NewModeAdjust ();
 			// Reload crosshair if transitioned to a different size
-			crosshair.Callback ();
+			ST_LoadCrosshair (true);
 			AM_NewResolution ();
 		}
 	}
@@ -2374,9 +2373,6 @@ void D_DoomMain (void)
 
 	Printf ("Texman.Init: Init texture manager.\n");
 	TexMan.Init();
-
-	// Now that all textues have been loaded the crosshair can be initialized.
-	crosshair.Callback ();
 
 	// [CW] Parse any TEAMINFO lumps.
 	Printf ("ParseTeamInfo: Load team definitions.\n");

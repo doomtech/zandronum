@@ -252,8 +252,8 @@ player_t::player_t()
   viewheight(0),
   deltaviewheight(0),
   bob(0),
-  momx(0),
-  momy(0),
+  velx(0),
+  vely(0),
   centering(0),
   turnticks(0),
   attackdown(0),
@@ -489,6 +489,10 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< InvSel
 		<< MorphWeapon
 		<< DamageFade;
+	if (SaveVersion >= 1695)
+	{
+		arc << PlayerFlags;
+	}
 }
 
 //===========================================================================
@@ -1993,7 +1997,7 @@ fixed_t APlayerPawn::CalcJumpHeight( bool bAddStepZ )
 	// To get the jump height we simulate a jump with the player's jumpZ with
 	// the environment's gravity. The grav equation was copied from p_mobj.cpp.
 	// Should it be made a function?
-	fixed_t momz = CalcJumpMomz( ),
+	fixed_t velz = CalcJumpMomz( ),
 	        grav = (fixed_t)(level.gravity * Sector->gravity * FIXED2FLOAT(gravity) * 81.92),
 	        z = 0;
 
@@ -2003,10 +2007,10 @@ fixed_t APlayerPawn::CalcJumpHeight( bool bAddStepZ )
 		return 0;
 
 	// Simulate the jump now.
-	while ( momz > 0 )
+	while ( velz > 0 )
 	{
-		z += momz;
-		momz -= grav;
+		z += velz;
+		velz -= grav;
 	}
 
 	// The total height the player can reach is the calculated max Z plus the
@@ -2048,7 +2052,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_PlayerScream)
 	// Handle the different player death screams
 	if ((((level.flags >> 15) | (dmflags)) &
 		(DF_FORCE_FALLINGZD | DF_FORCE_FALLINGHX)) &&
-		self->momz <= -39*FRACUNIT)
+		self->velz <= -39*FRACUNIT)
 	{
 		sound = S_FindSkinnedSound (self, "*splat");
 		chan = CHAN_BODY;
@@ -2118,9 +2122,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SkullPop)
 	self->flags &= ~MF_SOLID;
 	mo = (APlayerPawn *)Spawn (spawntype, self->x, self->y, self->z + 48*FRACUNIT, NO_REPLACE);
 	//mo->target = self;
-	mo->momx = pr_skullpop.Random2() << 9;
-	mo->momy = pr_skullpop.Random2() << 9;
-	mo->momz = 2*FRACUNIT + (pr_skullpop() << 6);
+	mo->velx = pr_skullpop.Random2() << 9;
+	mo->vely = pr_skullpop.Random2() << 9;
+	mo->velz = 2*FRACUNIT + (pr_skullpop() << 6);
 	// Attach player mobj to bloody skull
 	player = self->player;
 	self->player = NULL;
@@ -2273,8 +2277,8 @@ void P_SideThrust (player_t *player, angle_t angle, fixed_t move)
 {
 	angle = (angle - ANGLE_90) >> ANGLETOFINESHIFT;
 
-	player->mo->momx += FixedMul (move, finecosine[angle]);
-	player->mo->momy += FixedMul (move, finesine[angle]);
+	player->mo->velx += FixedMul (move, finecosine[angle]);
+	player->mo->vely += FixedMul (move, finesine[angle]);
 }
 
 void P_ForwardThrust (player_t *player, angle_t angle, fixed_t move)
@@ -2288,11 +2292,11 @@ void P_ForwardThrust (player_t *player, angle_t angle, fixed_t move)
 		fixed_t zpush = FixedMul (move, finesine[pitch]);
 		if (player->mo->waterlevel && player->mo->waterlevel < 2 && zpush < 0)
 			zpush = 0;
-		player->mo->momz -= zpush;
+		player->mo->velz -= zpush;
 		move = FixedMul (move, finecosine[pitch]);
 	}
-	player->mo->momx += FixedMul (move, finecosine[angle]);
-	player->mo->momy += FixedMul (move, finesine[angle]);
+	player->mo->velx += FixedMul (move, finecosine[angle]);
+	player->mo->vely += FixedMul (move, finesine[angle]);
 }
 
 //
@@ -2310,8 +2314,8 @@ void P_Bob (player_t *player, angle_t angle, fixed_t move)
 {
 	angle >>= ANGLETOFINESHIFT;
 
-	player->momx += FixedMul(move,finecosine[angle]);
-	player->momy += FixedMul(move,finesine[angle]);
+	player->velx += FixedMul(move, finecosine[angle]);
+	player->vely += FixedMul(move, finesine[angle]);
 }
 
 /*
@@ -2358,7 +2362,7 @@ void P_CalcHeight (player_t *player)
 	}
 	else
 	{
-		player->bob = DMulScale16 (player->momx, player->momx, player->momy, player->momy);
+		player->bob = DMulScale16 (player->velx, player->velx, player->vely, player->vely);
 		if (player->bob == 0)
 		{
 			still = true;
@@ -2380,7 +2384,7 @@ void P_CalcHeight (player_t *player)
 
 	fixed_t defaultviewheight = player->mo->ViewHeight + player->crouchviewdelta;
 
-	if (player->cheats & CF_NOMOMENTUM)
+	if (player->cheats & CF_NOVELOCITY)
 	{
 		player->viewz = player->mo->z + defaultviewheight;
 
@@ -2597,11 +2601,11 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 	{
 		if (player->mo->waterlevel >= 2)
 		{
-			player->mo->momz = 4*FRACUNIT;
+			player->mo->velz = 4*FRACUNIT;
 		}
 		else if (player->mo->flags2 & MF2_FLY)
 		{
-			player->mo->momz = 3*FRACUNIT;
+			player->mo->velz = 3*FRACUNIT;
 		}
 		else if (level.IsJumpingAllowed() && onground && !player->jumpTics )
 		{
@@ -2628,7 +2632,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
 				ulJumpTicks = 0;
 
-			player->mo->momz += JumpMomz;
+			player->mo->velz += JumpMomz;
 			player->jumpTics = ulJumpTicks;
 		}
 	}
@@ -2644,7 +2648,7 @@ void P_FallingDamage (AActor *actor)
 {
 	int damagestyle;
 	int damage;
-	fixed_t mom;
+	fixed_t vel;
 
 	// [BB] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -2662,7 +2666,7 @@ void P_FallingDamage (AActor *actor)
 	if (actor->floorsector->Flags & SECF_NOFALLINGDAMAGE)
 		return;
 
-	mom = abs (actor->momz);
+	vel = abs(actor->velz);
 
 	// Since Hexen falling damage is stronger than ZDoom's, it takes
 	// precedence. ZDoom falling damage may not be as strong, but it
@@ -2671,19 +2675,19 @@ void P_FallingDamage (AActor *actor)
 	switch (damagestyle)
 	{
 	case DF_FORCE_FALLINGHX:		// Hexen falling damage
-		if (mom <= 23*FRACUNIT)
+		if (vel <= 23*FRACUNIT)
 		{ // Not fast enough to hurt
 			return;
 		}
-		if (mom >= 63*FRACUNIT)
+		if (vel >= 63*FRACUNIT)
 		{ // automatic death
 			damage = 1000000;
 		}
 		else
 		{
-			mom = FixedMul (mom, 16*FRACUNIT/23);
-			damage = ((FixedMul (mom, mom) / 10) >> FRACBITS) - 24;
-			if (actor->momz > -39*FRACUNIT && damage > actor->health
+			vel = FixedMul (vel, 16*FRACUNIT/23);
+			damage = ((FixedMul (vel, vel) / 10) >> FRACBITS) - 24;
+			if (actor->velz > -39*FRACUNIT && damage > actor->health
 				&& actor->health != 1)
 			{ // No-death threshold
 				damage = actor->health-1;
@@ -2692,17 +2696,17 @@ void P_FallingDamage (AActor *actor)
 		break;
 	
 	case DF_FORCE_FALLINGZD:		// ZDoom falling damage
-		if (mom <= 19*FRACUNIT)
+		if (vel <= 19*FRACUNIT)
 		{ // Not fast enough to hurt
 			return;
 		}
-		if (mom >= 84*FRACUNIT)
+		if (vel >= 84*FRACUNIT)
 		{ // automatic death
 			damage = 1000000;
 		}
 		else
 		{
-			damage = ((MulScale23 (mom, mom*11) >> FRACBITS) - 30) / 2;
+			damage = ((MulScale23 (vel, vel*11) >> FRACBITS) - 30) / 2;
 			if (damage < 1)
 			{
 				damage = 1;
@@ -2711,13 +2715,13 @@ void P_FallingDamage (AActor *actor)
 		break;
 
 	case DF_FORCE_FALLINGST:		// Strife falling damage
-		if (mom <= 20*FRACUNIT)
+		if (vel <= 20*FRACUNIT)
 		{ // Not fast enough to hurt
 			return;
 		}
 		// The minimum amount of damage you take from falling in Strife
 		// is 52. Ouch!
-		damage = mom / 25000;
+		damage = vel / 25000;
 		break;
 
 	default:
@@ -3096,7 +3100,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			desired *= fabs(player->ReadyWeapon->FOVScale);
 		}
 		if (player->FOV != desired)
-		{
+	{
 			if (fabsf (player->FOV - desired) < 7.f)
 			{
 				player->FOV = desired;
@@ -3193,7 +3197,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		// [RH] check for jump
 		// [Dusk] Apply cl_spectatormove
 		if ( cmd->ucmd.buttons & BT_JUMP )
-			player->mo->momz = 3 * cl_spectatormove * FRACUNIT;
+			player->mo->velz = 3 * cl_spectatormove * FRACUNIT;
 
 		if ( cmd->ucmd.upmove == -32768 )
 		{ // Only land if in the air
@@ -3205,7 +3209,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 		// [Dusk] Apply cl_spectatormove here
 		else if ( cmd->ucmd.upmove != 0 )
-			player->mo->momz = (cmd->ucmd.upmove << 9) * cl_spectatormove;
+			player->mo->velz = (cmd->ucmd.upmove << 9) * cl_spectatormove;
 
 		// Calculate player's viewheight.
 		P_CalcHeight( player );
@@ -3448,12 +3452,12 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 			if (player->mo->waterlevel >= 2 || (player->mo->flags2 & MF2_FLY))
 			{
-				player->mo->momz = cmd->ucmd.upmove << 9;
+				player->mo->velz = cmd->ucmd.upmove << 9;
 				if (player->mo->waterlevel < 2 && !(player->mo->flags & MF_NOGRAVITY))
 				{
 					player->mo->flags2 |= MF2_FLY;
 					player->mo->flags |= MF_NOGRAVITY;
-					if (player->mo->momz <= -39*FRACUNIT)
+					if (player->mo->velz <= -39*FRACUNIT)
 					{ // Stop falling scream
 						S_StopSound (player->mo, CHAN_VOICE);
 					}
@@ -3482,8 +3486,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			P_PlayerInSpecialSector (player);
 		}
 		P_PlayerOnSpecialFlat (player, P_GetThingFloorType (player->mo));
-		if (player->mo->momz <= -35*FRACUNIT &&
-			player->mo->momz >= -40*FRACUNIT && !player->morphTics &&
+		if (player->mo->velz <= -35*FRACUNIT &&
+			player->mo->velz >= -40*FRACUNIT && !player->morphTics &&
 			player->mo->waterlevel == 0)
 		{
 			int id = S_FindSkinnedSound (player->mo, "*falling");
@@ -3744,8 +3748,8 @@ void player_t::Serialize (FArchive &arc)
 		<< viewheight
 		<< deltaviewheight
 		<< bob
-		<< momx
-		<< momy
+		<< velx
+		<< vely
 		<< centering
 		<< health
 		<< inventorytics

@@ -438,10 +438,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_RocketInFlight)
 
 	S_Sound (self, CHAN_VOICE, "misc/missileinflight", 1, ATTN_NORM);
 	P_SpawnPuff (self, PClass::FindClass("MiniMissilePuff"), self->x, self->y, self->z, self->angle - ANGLE_180, 2, PF_HITTHING);
-	trail = Spawn("RocketTrail", self->x - self->momx, self->y - self->momy, self->z, ALLOW_REPLACE);
+	trail = Spawn("RocketTrail", self->x - self->velx, self->y - self->vely, self->z, ALLOW_REPLACE);
 	if (trail != NULL)
 	{
-		trail->momz = FRACUNIT;
+		trail->velz = FRACUNIT;
 	}
 }
 
@@ -456,7 +456,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_RocketInFlight)
 DEFINE_ACTION_FUNCTION(AActor, A_FlameDie)
 {
 	self->flags |= MF_NOGRAVITY;
-	self->momz = (pr_flamedie() & 3) << FRACBITS;
+	self->velz = (pr_flamedie() & 3) << FRACBITS;
 }
 
 //============================================================================
@@ -496,7 +496,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireFlamer)
 	self = P_SpawnPlayerMissile (self, PClass::FindClass("FlameMissile"));
 	if (self != NULL)
 	{
-		self->momz += 5*FRACUNIT;
+		self->velz += 5*FRACUNIT;
 
 		// [BC] If we're the server, update the thing's momentum.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -677,8 +677,8 @@ AActor *P_SpawnSubMissile (AActor *source, const PClass *type, AActor *target)
 	other->target = target;
 	other->angle = source->angle;
 
-	other->momx = FixedMul (other->Speed, finecosine[source->angle >> ANGLETOFINESHIFT]);
-	other->momy = FixedMul (other->Speed, finesine[source->angle >> ANGLETOFINESHIFT]);
+	other->velx = FixedMul (other->Speed, finecosine[source->angle >> ANGLETOFINESHIFT]);
+	other->vely = FixedMul (other->Speed, finesine[source->angle >> ANGLETOFINESHIFT]);
 
 	if (other->flags4 & MF4_SPECTRAL)
 	{
@@ -699,7 +699,7 @@ AActor *P_SpawnSubMissile (AActor *source, const PClass *type, AActor *target)
 	if (P_CheckMissileSpawn (other))
 	{
 		angle_t pitch = P_AimLineAttack (source, source->angle, 1024*FRACUNIT);
-		other->momz = FixedMul (-finesine[pitch>>ANGLETOFINESHIFT], other->Speed);
+		other->velz = FixedMul (-finesine[pitch>>ANGLETOFINESHIFT], other->Speed);
 
 		// [BC] If we're the server, spawn this to clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -753,9 +753,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 	// [Dusk] The server manages the momentum
 	if ( NETWORK_InClientMode( ) == false )
 	{
-		self->momz -= 8*FRACUNIT;
-		self->momx += (pr_phburn.Random2 (3)) << FRACBITS;
-		self->momy += (pr_phburn.Random2 (3)) << FRACBITS;
+		self->velz -= 8*FRACUNIT;
+		self->velx += (pr_phburn.Random2 (3)) << FRACBITS;
+		self->vely += (pr_phburn.Random2 (3)) << FRACBITS;
 
 		// [Dusk] Update momentum to clients
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -804,9 +804,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 			self->z + 4*FRACUNIT, ALLOW_REPLACE);
 		if (drop != NULL)
 		{
-			drop->momx = self->momx + ((pr_phburn.Random2 (7)) << FRACBITS);
-			drop->momy = self->momy + ((pr_phburn.Random2 (7)) << FRACBITS);
-			drop->momz = self->momz - FRACUNIT;
+			drop->velx = self->velx + ((pr_phburn.Random2 (7)) << FRACBITS);
+			drop->vely = self->vely + ((pr_phburn.Random2 (7)) << FRACBITS);
+			drop->velz = self->velz - FRACUNIT;
 			drop->reactiontime = (pr_phburn() & 3) + 2;
 			drop->flags |= MF_DROPPED;
 
@@ -871,7 +871,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireGrenade)
 			S_Sound (grenade, CHAN_VOICE, grenade->SeeSound, 1, ATTN_NORM);
 		}
 
-		grenade->momz = FixedMul (finetangent[FINEANGLES/4-(self->pitch>>ANGLETOFINESHIFT)], grenade->Speed) + 8*FRACUNIT;
+		grenade->velz = FixedMul (finetangent[FINEANGLES/4-(self->pitch>>ANGLETOFINESHIFT)], grenade->Speed) + 8*FRACUNIT;
 
 		an = self->angle >> ANGLETOFINESHIFT;
 		tworadii = self->radius + grenade->radius;
@@ -1136,8 +1136,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil1)
 		spot = Spawn("SpectralLightningSpot", self->x, self->y, self->z, ALLOW_REPLACE);
 		if (spot != NULL)
 		{
-			spot->momx += 28 * finecosine[self->angle >> ANGLETOFINESHIFT];
-			spot->momy += 28 * finesine[self->angle >> ANGLETOFINESHIFT];
+			spot->velx += 28 * finecosine[self->angle >> ANGLETOFINESHIFT];
+			spot->vely += 28 * finesine[self->angle >> ANGLETOFINESHIFT];
 
 			// [CW] Spawn the lightning.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1269,8 +1269,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil4)
 		spot = P_SpawnPlayerMissile (self, PClass::FindClass("SpectralLightningBigV1"));
 		if (spot != NULL)
 		{
-			spot->momx += FixedMul (spot->Speed, finecosine[self->angle >> ANGLETOFINESHIFT]);
-			spot->momy += FixedMul (spot->Speed, finesine[self->angle >> ANGLETOFINESHIFT]);
+			spot->velx += FixedMul (spot->Speed, finecosine[self->angle >> ANGLETOFINESHIFT]);
+			spot->vely += FixedMul (spot->Speed, finesine[self->angle >> ANGLETOFINESHIFT]);
 		}
 	}
 }

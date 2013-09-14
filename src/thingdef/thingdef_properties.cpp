@@ -983,7 +983,7 @@ DEFINE_PROPERTY(cameraheight, F, Actor)
 DEFINE_PROPERTY(vspeed, F, Actor)
 {
 	PROP_FIXED_PARM(i, 0);
-	defaults->momz = i;
+	defaults->velz = i;
 }
 
 //==========================================================================
@@ -1012,8 +1012,12 @@ DEFINE_PROPERTY(species, S, Actor)
 //==========================================================================
 DEFINE_PROPERTY(clearflags, 0, Actor)
 {
-	defaults->flags=defaults->flags3=defaults->flags4=defaults->flags5=0;
-	defaults->flags2&=MF2_ARGSDEFINED;	// this flag must not be cleared
+	defaults->flags =
+		defaults->flags3 =
+		defaults->flags4 =
+		defaults->flags5 =
+		defaults->flags6 = 0;
+	defaults->flags2 &= MF2_ARGSDEFINED;	// this flag must not be cleared
 
 	// [BC] Also zero out ST's flags.
 	defaults->ulSTFlags = 0;
@@ -1670,10 +1674,49 @@ DEFINE_CLASS_PROPERTY_PREFIX(powerup, duration, I, Inventory)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_CLASS_PROPERTY_PREFIX(powerup, mode, S, PowerupGiver)
+DEFINE_CLASS_PROPERTY_PREFIX(powerup, strength, F, Inventory)
+{
+	fixed_t *pStrength;
+
+	if (info->Class->IsDescendantOf(RUNTIME_CLASS(APowerup)))
+	{
+		pStrength = &((APowerup*)defaults)->Strength;
+	}
+	else if (info->Class->IsDescendantOf(RUNTIME_CLASS(APowerupGiver)))
+	{
+		pStrength = &((APowerupGiver*)defaults)->Strength;
+	}
+	else
+	{
+		I_Error("\"powerup.strength\" requires an actor of type \"Powerup\"\n");
+		return;
+	}
+	// Puts a percent value in the 0.0..1.0 range
+	PROP_FIXED_PARM(f, 0);
+	*pStrength = f / 100;
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_CLASS_PROPERTY_PREFIX(powerup, mode, S, Inventory)
 {
 	PROP_STRING_PARM(str, 0);
-	defaults->mode = (FName)str;
+	FName *pMode;
+	if (info->Class->IsDescendantOf(RUNTIME_CLASS(APowerup)))
+	{
+		pMode = &((APowerup*)defaults)->Mode;
+	}
+	else if (info->Class->IsDescendantOf(RUNTIME_CLASS(APowerupGiver)))
+	{
+		pMode = &((APowerupGiver*)defaults)->Mode;
+	}
+	else
+	{
+		I_Error("\"powerup.mode\" requires an actor of type \"Powerup\"\n");
+		return;
+	}
+	*pMode = (FName)str;
 }
 
 //==========================================================================

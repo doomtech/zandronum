@@ -211,8 +211,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopSpawnBlur)
 
 	if (!--self->special1)
 	{
-		self->momx = 0;
-		self->momy = 0;
+		self->velx = 0;
+		self->vely = 0;
 
 		// [BB] If we're the server, update the thing's momentum.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -287,7 +287,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopPuff)
 	mo = Spawn ("BishopPuff", self->x, self->y, self->z + 40*FRACUNIT, ALLOW_REPLACE);
 	if (mo)
 	{
-		mo->momz = FRACUNIT/2;
+		mo->velz = FRACUNIT/2;
 	}
 }
 

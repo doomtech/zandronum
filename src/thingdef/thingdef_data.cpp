@@ -288,7 +288,6 @@ static FFlagDef InventoryFlags[] =
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 
 	DEFINE_DEPRECATED_FLAG(PICKUPFLASH),
-
 };
 
 static FFlagDef WeaponFlags[] =
@@ -316,13 +315,20 @@ static FFlagDef WeaponFlags[] =
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
 };
 
-static const struct { const PClass *Type; FFlagDef *Defs; int NumDefs; } FlagLists[] =
+static FFlagDef PlayerPawnFlags[] =
 {
-	{ RUNTIME_CLASS(AActor), 		ActorFlags,		sizeof(ActorFlags)/sizeof(FFlagDef) },
-	{ RUNTIME_CLASS(AInventory), 	InventoryFlags,	sizeof(InventoryFlags)/sizeof(FFlagDef) },
-	{ RUNTIME_CLASS(AWeapon), 		WeaponFlags,	sizeof(WeaponFlags)/sizeof(FFlagDef) }
+	// PlayerPawn flags
+	DEFINE_FLAG(PPF, NOTHRUSTWHENINVUL, APlayerPawn, PlayerFlags),
 };
-#define NUM_FLAG_LISTS 3
+
+static const struct FFlagList { const PClass *Type; FFlagDef *Defs; int NumDefs; } FlagLists[] =
+{
+	{ RUNTIME_CLASS(AActor), 		ActorFlags,		countof(ActorFlags) },
+	{ RUNTIME_CLASS(AInventory), 	InventoryFlags,	countof(InventoryFlags) },
+	{ RUNTIME_CLASS(AWeapon), 		WeaponFlags,	countof(WeaponFlags) },
+	{ RUNTIME_CLASS(APlayerPawn),	PlayerPawnFlags,countof(PlayerPawnFlags) },
+};
+#define NUM_FLAG_LISTS (countof(FlagLists))
 
 //==========================================================================
 //
@@ -362,7 +368,7 @@ static FFlagDef *FindFlag (FFlagDef *flags, int numflags, const char *flag)
 FFlagDef *FindFlag (const PClass *type, const char *part1, const char *part2)
 {
 	FFlagDef *def;
-	int i;
+	size_t i;
 
 	if (part2 == NULL)
 	{ // Search all lists
@@ -552,7 +558,7 @@ static int STACK_ARGS varcmp(const void * a, const void * b)
 void InitThingdef()
 {
 	// Sort the flag lists
-	for (int i = 0; i < NUM_FLAG_LISTS; ++i)
+	for (size_t i = 0; i < NUM_FLAG_LISTS; ++i)
 	{
 		qsort (FlagLists[i].Defs, FlagLists[i].NumDefs, sizeof(FFlagDef), flagcmp);
 	}

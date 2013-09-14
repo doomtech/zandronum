@@ -369,3 +369,8 @@ DBaseStatusBar *CreateHexenStatusBar();
 DBaseStatusBar *CreateStrifeStatusBar();
 DBaseStatusBar *CreateCustomStatusBar(int script=0);
 DBaseStatusBar *CreateStatusBar ();
+
+// Crosshair stuff ----------------------------------------------------------
+
+void ST_LoadCrosshair(bool alwaysload=false);
+extern FTexture *CrosshairImage;

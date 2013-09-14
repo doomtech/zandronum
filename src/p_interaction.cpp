@@ -1164,7 +1164,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		else if (target->flags & MF_ICECORPSE) // frozen
 		{
 			target->tics = 1;
-			target->momx = target->momy = target->momz = 0;
+			target->velx = target->vely = target->velz = 0;
 
 			// [BC] If we're the server, tell clients to update this thing's tics and
 			// momentum.
@@ -1178,18 +1178,20 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 	if ((target->flags2 & MF2_INVULNERABLE) && damage < 1000000 && !(flags & DMG_FORCED))
 	{ // actor is invulnerable
-		if (!target->player)
+		if (target->player == NULL)
 		{
-			if (!inflictor || !(inflictor->flags3 & MF3_FOILINVUL))
+			if (inflictor == NULL || !(inflictor->flags3 & MF3_FOILINVUL))
 			{
 				return;
 			}
 		}
 		else
 		{
-			// Only in Hexen invulnerable players are excluded from getting
-			// thrust by damage.
-			if (gameinfo.gametype == GAME_Hexen) return;
+			// Players are optionally excluded from getting thrust by damage.
+			if (static_cast<APlayerPawn *>(target)->PlayerFlags & PPF_NOTHRUSTWHENINVUL)
+			{
+				return;
+			}
 		}
 		
 	}
@@ -1210,7 +1212,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	if ( (target->flags & MF_SKULLFLY)
 	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
-		target->momx = target->momy = target->momz = 0;
+		target->velx = target->vely = target->velz = 0;
 
 		// [BC] If we're the server, tell clients to update this thing's momentum
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1321,6 +1323,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		&& !(target->flags & MF_NOCLIP)
 		&& !(inflictor->flags2 & MF2_NODMGTHRUST)
 		&& !(flags & DMG_THRUSTLESS)
+		&& (source == NULL || source->player == NULL || !(source->flags2 & MF2_NODMGTHRUST))
 		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		&& ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
@@ -1334,7 +1337,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		if (kickback)
 		{
 			// [BB] Safe the original z-momentum of the target. This way we can check if we need to update it.
-			const fixed_t oldTargetMomz = target->momz;
+			const fixed_t oldTargetMomz = target->velz;
 
 			AActor *origin = (source && (flags & DMG_INFLICTOR_IS_PUFF))? source : inflictor;
 			
@@ -1365,24 +1368,24 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				(source->player->ReadyWeapon->WeaponFlags & WIF_STAFF2_KICKBACK))
 			{
 				// Staff power level 2
-				target->momx += FixedMul (10*FRACUNIT, finecosine[ang]);
-				target->momy += FixedMul (10*FRACUNIT, finesine[ang]);
+				target->velx += FixedMul (10*FRACUNIT, finecosine[ang]);
+				target->vely += FixedMul (10*FRACUNIT, finesine[ang]);
 				if (!(target->flags & MF_NOGRAVITY))
 				{
-					target->momz += 5*FRACUNIT;
+					target->velz += 5*FRACUNIT;
 				}
 			}
 			else
 			{
-				target->momx += FixedMul (thrust, finecosine[ang]);
-				target->momy += FixedMul (thrust, finesine[ang]);
+				target->velx += FixedMul (thrust, finecosine[ang]);
+				target->vely += FixedMul (thrust, finesine[ang]);
 			}
 
 			// [BC] Set the thing's momentum.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				// [BB] Only update z-momentum if it has changed.
-				SERVER_UpdateThingMomentum ( target, oldTargetMomz != target->momz );
+				SERVER_UpdateThingMomentum ( target, oldTargetMomz != target->velz );
 			}
 		}
 	}

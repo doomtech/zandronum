@@ -480,8 +480,8 @@ void A_KSpiritSeeker (AActor *actor, angle_t thresh, angle_t turnMax)
 		actor->angle -= delta;
 	}
 	angle = actor->angle>>ANGLETOFINESHIFT;
-	actor->momx = FixedMul (actor->Speed, finecosine[angle]);
-	actor->momy = FixedMul (actor->Speed, finesine[angle]);
+	actor->velx = FixedMul (actor->Speed, finecosine[angle]);
+	actor->vely = FixedMul (actor->Speed, finesine[angle]);
 
 	if (!(level.time&15) 
 		|| actor->z > target->z+(target->GetDefault()->height)
@@ -506,7 +506,7 @@ void A_KSpiritSeeker (AActor *actor, angle_t thresh, angle_t turnMax)
 		{
 			dist = 1;
 		}
-		actor->momz = deltaZ/dist;
+		actor->velz = deltaZ/dist;
 	}
 
 	// [BC] Move the thing.
@@ -658,15 +658,15 @@ AActor *P_SpawnKoraxMissile (fixed_t x, fixed_t y, fixed_t z,
 	}
 	th->angle = an;
 	an >>= ANGLETOFINESHIFT;
-	th->momx = FixedMul (th->Speed, finecosine[an]);
-	th->momy = FixedMul (th->Speed, finesine[an]);
+	th->velx = FixedMul (th->Speed, finecosine[an]);
+	th->vely = FixedMul (th->Speed, finesine[an]);
 	dist = P_AproxDistance (dest->x - x, dest->y - y);
 	dist = dist/th->Speed;
 	if (dist < 1)
 	{
 		dist = 1;
 	}
-	th->momz = (dest->z-z+(30*FRACUNIT))/dist;
+	th->velz = (dest->z-z+(30*FRACUNIT))/dist;
 
 	// [BC] Spawn this missile to clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

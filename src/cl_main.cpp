@@ -3060,9 +3060,9 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->lastY = Y;
 		pActor->lastZ = Z;
 
-		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
+		// Whenever blood spawns, its velz is always 2 * FRACUNIT.
 		if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
-			pActor->momz = FRACUNIT*2;
+			pActor->velz = FRACUNIT*2;
 
 		// Allow for client-side body removal in invasion mode.
 		if ( invasion )
@@ -3116,9 +3116,9 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	}
 
 	// Set the thing's momentum.
-	pActor->momx = MomX;
-	pActor->momy = MomY;
-	pActor->momz = MomZ;
+	pActor->velx = MomX;
+	pActor->vely = MomY;
+	pActor->velz = MomZ;
 
 	// Derive the thing's angle from its momentum.
 	pActor->angle = R_PointToAngle2( 0, 0, MomX, MomY );
@@ -3402,8 +3402,8 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	pPlayer->viewheight = 0;
 	pPlayer->deltaviewheight = 0;
 	pPlayer->bob = 0;
-	pPlayer->momx = 0;
-	pPlayer->momy = 0;
+	pPlayer->velx = 0;
+	pPlayer->vely = 0;
 	pPlayer->centering = 0;
 	pPlayer->turnticks = 0;
 	pPlayer->oldbuttons = 0;
@@ -4030,8 +4030,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pPlayer->Uncrouch( );
 
 	// killough 10/98: initialize bobbing to 0.
-	pPlayer->momx = 0;
-	pPlayer->momy = 0;
+	pPlayer->velx = 0;
+	pPlayer->vely = 0;
 /*
 	// If the console player is being respawned, place the camera back in his own body.
 	if ( ulPlayer == consoleplayer )
@@ -4205,9 +4205,9 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].mo->angle = Angle;
 
 	// Set the player's XYZ momentum.
-	players[ulPlayer].mo->momx = MomX;
-	players[ulPlayer].mo->momy = MomY;
-	players[ulPlayer].mo->momz = MomZ;
+	players[ulPlayer].mo->velx = MomX;
+	players[ulPlayer].mo->vely = MomY;
+	players[ulPlayer].mo->velz = MomZ;
 
 	// Is the player crouching?
 	players[ulPlayer].crouchdir = ( bCrouching ) ? 1 : -1;
@@ -5323,8 +5323,8 @@ static void client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream )
 	// [BB] The attack buttons are now already set in *_MovePlayer, so additionally setting
 	// them here is obsolete. I don't want to change this before 97D2 final though.
 	players[ulPlayer].cmd.ucmd.buttons = ulButtons;
-//	players[ulPlayer].momx = lMomX;
-//	players[ulPlayer].momy = lMomY;
+//	players[ulPlayer].velx = lMomX;
+//	players[ulPlayer].vely = lMomY;
 	players[ulPlayer].viewz = lViewZ;
 	players[ulPlayer].bob = lBob;
 }
@@ -5413,9 +5413,9 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 		// sure that the spectator body doesn't get stuck.
 		CLIENT_MoveThing ( pPlayer->mo, X, Y, Z );
 
-		pPlayer->mo->momx = MomX;
-		pPlayer->mo->momy = MomY;
-		pPlayer->mo->momz = MomZ;
+		pPlayer->mo->velx = MomX;
+		pPlayer->mo->vely = MomY;
+		pPlayer->mo->velz = MomZ;
 	}
 }
 
@@ -5954,18 +5954,18 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 
 	// Read in the momentum data.
 	if ( lBits & CM_MOMX )
-		pActor->momx = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		pActor->velx = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	if ( lBits & CM_MOMY )
-		pActor->momy = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		pActor->vely = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	if ( lBits & CM_MOMZ )
-		pActor->momz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+		pActor->velz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 	// [Dusk] if the actor that's being moved is a player and his momentum
 	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
 	// as well.
-	if ((pActor->player != NULL) && (pActor->momx == 0) && (pActor->momy == 0)) {
-		pActor->player->momx = 0;
-		pActor->player->momy = 0;
+	if ((pActor->player != NULL) && (pActor->velx == 0) && (pActor->vely == 0)) {
+		pActor->player->velx = 0;
+		pActor->player->vely = 0;
 	}
 
 	// Read in the pitch data.
@@ -6075,18 +6075,18 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 
 	// Read in the momentum data.
 	if ( lBits & CM_MOMX )
-		pActor->momx = NETWORK_ReadLong( pByteStream );
+		pActor->velx = NETWORK_ReadLong( pByteStream );
 	if ( lBits & CM_MOMY )
-		pActor->momy = NETWORK_ReadLong( pByteStream );
+		pActor->vely = NETWORK_ReadLong( pByteStream );
 	if ( lBits & CM_MOMZ )
-		pActor->momz = NETWORK_ReadLong( pByteStream );
+		pActor->velz = NETWORK_ReadLong( pByteStream );
 
 	// [Dusk] if the actor that's being moved is a player and his momentum
 	// is being zeroed (i.e. we're stopping him), we need to stop his bobbing
 	// as well.
-	if ((pActor->player != NULL) && (pActor->momx == 0) && (pActor->momy == 0)) {
-		pActor->player->momx = 0;
-		pActor->player->momy = 0;
+	if ((pActor->player != NULL) && (pActor->velx == 0) && (pActor->vely == 0)) {
+		pActor->player->velx = 0;
+		pActor->player->vely = 0;
 	}
 
 	// Read in the pitch data.
@@ -7206,15 +7206,15 @@ static void client_TeleportThing( BYTESTREAM_s *pByteStream )
 	}
 
 	// Set the thing's new momentum.
-	pActor->momx = NewMomX;
-	pActor->momy = NewMomY;
-	pActor->momz = NewMomZ;
+	pActor->velx = NewMomX;
+	pActor->vely = NewMomY;
+	pActor->velz = NewMomZ;
 
 	// Also, if this is a player, set his bobbing appropriately.
 	if ( pActor->player )
 	{
-		pActor->player->momx = NewMomX;
-		pActor->player->momy = NewMomY;
+		pActor->player->velx = NewMomX;
+		pActor->player->vely = NewMomY;
 
 		// [BB] If the server is teleporting us, don't let our prediction get messed up.
 		if ( pActor == players[consoleplayer].mo )
@@ -12417,7 +12417,7 @@ ADD_STAT( momentum )
 {
 	FString	Out;
 
-	Out.Format( "X: %3d     Y: %3d", players[consoleplayer].momx, players[consoleplayer].momy );
+	Out.Format( "X: %3d     Y: %3d", players[consoleplayer].velx, players[consoleplayer].vely );
 
 	return ( Out );
 }

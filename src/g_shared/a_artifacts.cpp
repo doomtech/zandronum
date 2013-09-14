@@ -30,6 +30,9 @@
 
 static FRandom pr_torch ("Torch");
 
+/* Those are no longer needed, except maybe as reference?
+ * They're not used anywhere in the code anymore, except
+ * MAULATORTICS as redefined in a_minotaur.cpp...
 #define	INVULNTICS (30*TICRATE)
 #define	INVISTICS (60*TICRATE)
 #define	INFRATICS (120*TICRATE)
@@ -39,6 +42,7 @@ static FRandom pr_torch ("Torch");
 #define SPEEDTICS (45*TICRATE)
 #define MAULATORTICS (25*TICRATE)
 #define	TIMEFREEZE_TICS	( 12 * TICRATE )
+*/
 
 // [BC] New Skulltag power duration defines.
 #define	TRANSLUCENCY_TICS		( 45 * TICRATE )
@@ -71,9 +75,13 @@ bool APowerupGiver::Use (bool pickup)
 	{
 		power->BlendColor = BlendColor;
 	}
-	if (mode != NAME_None)
+	if (Mode != NAME_None)
 	{
-		power->mode = mode;
+		power->Mode = Mode;
+	}
+	if (Strength != 0)
+	{
+		power->Strength = Strength;
 	}
 
 	power->ItemFlags |= ItemFlags & (IF_ALWAYSPICKUP|IF_ADDITIVETIME);
@@ -95,7 +103,11 @@ void APowerupGiver::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
 	arc << PowerupType;
-	arc << EffectTics << BlendColor << mode;
+	arc << EffectTics << BlendColor << Mode;
+	if (SaveVersion >= 1693)
+	{
+		arc << Strength;
+	}
 }
 
 // Powerup -------------------------------------------------------------------
@@ -128,7 +140,11 @@ void APowerup::Tick ()
 void APowerup::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << EffectTics << BlendColor << mode;
+	arc << EffectTics << BlendColor << Mode;
+	if (SaveVersion >= 1693)
+	{
+		arc << Strength;
+	}
 }
 
 //===========================================================================
@@ -375,11 +391,14 @@ void APowerInvulnerable::InitEffect ()
 {
 	Owner->effects &= ~FX_RESPAWNINVUL;
 	Owner->flags2 |= MF2_INVULNERABLE;
-	if (mode == NAME_None)
+	if (Mode == NAME_None)
 	{
-		mode = (ENamedName)RUNTIME_TYPE(Owner)->Meta.GetMetaInt(APMETA_InvulMode);
+		Mode = (ENamedName)RUNTIME_TYPE(Owner)->Meta.GetMetaInt(APMETA_InvulMode);
 	}
-	if (mode == NAME_Reflective) Owner->flags2 |= MF2_REFLECTIVE;
+	if (Mode == NAME_Reflective)
+	{
+		Owner->flags2 |= MF2_REFLECTIVE;
+	}
 }
 
 //===========================================================================
@@ -397,7 +416,7 @@ void APowerInvulnerable::DoEffect ()
 		return;
 	}
 
-	if (mode == NAME_Ghost)
+	if (Mode == NAME_Ghost)
 	{
 		if (!(Owner->flags & MF_SHADOW))
 		{
@@ -467,7 +486,7 @@ void APowerInvulnerable::EndEffect ()
 		else
 			Owner->RenderStyle = STYLE_None;
 	}
-	if (mode == NAME_Ghost)
+	if (Mode == NAME_Ghost)
 	{
 		Owner->flags2 &= ~MF2_NONSHOOTABLE;
 		if (!(Owner->flags & MF_SHADOW))
@@ -478,7 +497,7 @@ void APowerInvulnerable::EndEffect ()
 			Owner->alpha = OPAQUE;
 		}
 	}
-	else if (mode == NAME_Reflective)
+	else if (Mode == NAME_Reflective)
 	{
 		Owner->flags2 &= ~MF2_REFLECTIVE;
 	}
@@ -502,7 +521,7 @@ int APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
 	if (Owner != NULL)
 	{
-		if (mode == NAME_Ghost && !(Owner->flags & MF_SHADOW))
+		if (Mode == NAME_Ghost && !(Owner->flags & MF_SHADOW))
 		{
 			fixed_t wp_alpha = MIN<fixed_t>(FRACUNIT/4 + Owner->alpha*3/4, FRACUNIT);
 			if (wp_alpha != FIXED_MAX) vis->alpha = wp_alpha;
@@ -578,6 +597,7 @@ PalEntry APowerStrength::GetBlend ()
 // Invisibility Powerup ------------------------------------------------------
 
 IMPLEMENT_CLASS (APowerInvisibility)
+IMPLEMENT_CLASS (APowerShadow)
 
 //===========================================================================
 //
@@ -592,9 +612,20 @@ void APowerInvisibility::CommonInit()
 	if (Owner != NULL)
 	{
 		Owner->flags |= MF_SHADOW;
-		// transfer seeker missile blocking (but only if the owner does not already have this flag
-		if (!(Owner->flags5 & MF5_CANTSEEK) && (flags5 & MF5_CANTSEEK)) Owner->flags5 |= MF5_CANTSEEK;
-		else flags5 &= ~MF5_CANTSEEK;
+		fixed_t ts = MIN(Strength * (special1 + 1), FRACUNIT);
+		Owner->alpha = clamp<fixed_t>((OPAQUE - ts), 0, OPAQUE);
+		Owner->RenderStyle = (Mode == NAME_Fuzzy ? STYLE_OptFuzzy : STYLE_Translucent);
+		// CommonInit() is called every tic by DoEffect, so the flag trick must happen only once!
+		if (special2 == 0)
+		{
+			// transfer seeker missile blocking (but only if the owner does not already have this flag
+			if (!(Owner->flags5 & MF5_CANTSEEK) && (flags5 & MF5_CANTSEEK))	Owner->flags5 |= MF5_CANTSEEK;
+			else flags5 &= ~MF5_CANTSEEK;
+			// transfer ghost flag likewise
+			if (!(Owner->flags3 & MF3_GHOST) && (flags3 & MF3_GHOST)) Owner->flags3 |= MF3_GHOST;
+			else flags3 &= ~MF3_GHOST;
+			special2 = 1;
+		}
 	}
 }
 
@@ -607,8 +638,6 @@ void APowerInvisibility::CommonInit()
 void APowerInvisibility::InitEffect ()
 {
 	CommonInit();
-	Owner->alpha = FRACUNIT/5;
-	Owner->RenderStyle = STYLE_OptFuzzy;
 }
 
 //===========================================================================
@@ -635,8 +664,8 @@ void APowerInvisibility::EndEffect ()
 	if (Owner != NULL)
 	{
 		if (flags5 & MF5_CANTSEEK) Owner->flags5 &= ~MF5_CANTSEEK;
+		if (flags3 & MF3_GHOST) Owner->flags3 &= ~MF3_GHOST;
 		Owner->flags &= ~MF_SHADOW;
-		Owner->flags3 &= ~MF3_GHOST;
 		// [BC] If the owner is a spectating player, don't make him visible!
 		if (( Owner->player == NULL ) || ( Owner->player->bSpectating == false ))
 			Owner->RenderStyle = STYLE_Normal;
@@ -668,82 +697,41 @@ void APowerInvisibility::EndEffect ()
 int APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 {
 	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
-
 	// Blink if the powerup is wearing off
 	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
 	{
 		vis->RenderStyle = STYLE_Normal;
+		vis->alpha = OPAQUE;
 		return 1;
 	}
 	else if (changed == 1)
 	{
 		// something else set the weapon sprite back to opaque but this item is still active.
-		vis->alpha = FRACUNIT/5;
-		vis->RenderStyle = STYLE_OptFuzzy;
+		fixed_t ts = MIN(Strength * (special1 + 1), FRACUNIT);
+		vis->alpha = clamp<fixed_t>((OPAQUE - ts), 0, OPAQUE);
+		vis->RenderStyle = (Mode == NAME_Fuzzy ? STYLE_OptFuzzy : STYLE_Translucent);
+	}
+	// Handling of Strife-like cumulative invisibility powerups, the weapon itself shouldn't become invisible
+	if ((vis->alpha < TRANSLUC25 && special1 > 0) || (vis->alpha == 0))
+	{
+		vis->alpha = clamp<fixed_t>((OPAQUE - Strength), 0, OPAQUE);
+		vis->colormap = InverseColormap;
 	}
 	return -1;	// This item is valid so another one shouldn't reset the translucency
 }
 
-// Ghost Powerup (Heretic's version of invisibility) -------------------------
-
-IMPLEMENT_CLASS (APowerGhost)
-
 //===========================================================================
 //
-// APowerGhost :: InitEffect
+// APowerInvisibility :: HandlePickup
+//
+// If the player already has the first stage of a cumulative powerup, getting 
+// it again increases the player's alpha. (But shouldn't this be in Use()?)
 //
 //===========================================================================
 
-void APowerGhost::InitEffect ()
+bool APowerInvisibility::HandlePickup (AInventory *item)
 {
-	CommonInit();
-	Owner->flags3 |= MF3_GHOST;
-	Owner->alpha = HR_SHADOW;
-	Owner->RenderStyle = STYLE_Translucent;
-}
-
-//===========================================================================
-//
-// APowerGhost :: AlterWeaponSprite
-//
-//===========================================================================
-
-int APowerGhost::AlterWeaponSprite (vissprite_t *vis)
-{
-	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
-
-	// Blink if the powerup is wearing off
-	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
-	{
-		vis->RenderStyle = STYLE_Normal;
-		return 1;
-	}
-	else if (changed == 1)
-	{
-		// something else set the weapon sprite back to opaque but this item is still active.
-		vis->alpha = HR_SHADOW;
-		vis->RenderStyle = STYLE_Translucent;
-	}
-	return -1;	// This item is valid so another one shouldn't reset the translucency
-}
-
-// Shadow Powerup (Strife's version of invisibility) -------------------------
-
-IMPLEMENT_CLASS (APowerShadow)
-
-//===========================================================================
-//
-// APowerShadow :: HandlePickup
-//
-// If the player already has the first stage of the powerup, getting it
-// again makes them completely invisible. Special1 tracks which stage we
-// are in, initially 0.
-//
-//===========================================================================
-
-bool APowerShadow::HandlePickup (AInventory *item)
-{
-	if (special1 == 0 && item->GetClass() == GetClass())
+	if (Mode == NAME_Cumulative && ((Strength * special1) < FRACUNIT) && item->GetClass() == GetClass())
 	{
 		APowerup *power = static_cast<APowerup *>(item);
 		if (power->EffectTics == 0)
@@ -758,54 +746,11 @@ bool APowerShadow::HandlePickup (AInventory *item)
 			EffectTics = power->EffectTics;
 			BlendColor = power->BlendColor;
 		}
-		special1 = 1;	// Go to stage 2.
+		special1++;	// increases power
 		power->ItemFlags |= IF_PICKUPGOOD;
 		return true;
 	}
 	return Super::HandlePickup (item);
-}
-
-//===========================================================================
-//
-// APowerShadow :: InitEffect
-//
-//===========================================================================
-
-void APowerShadow::InitEffect ()
-{
-	CommonInit();
-	Owner->alpha = special1 == 0 ? TRANSLUC25 : 0;
-	Owner->RenderStyle = STYLE_Translucent;
-}
-
-//===========================================================================
-//
-// APowerShadow :: AlterWeaponSprite
-//
-//===========================================================================
-
-int APowerShadow::AlterWeaponSprite (vissprite_t *vis)
-{
-	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
-
-	// Blink if the powerup is wearing off
-	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
-	{
-		vis->RenderStyle = STYLE_Normal;
-		return 1;
-	}
-	else if (changed == 1)
-	{
-		// something else set the weapon sprite back to opaque but this item is still active.
-		vis->alpha = TRANSLUC25;
-		vis->RenderStyle = STYLE_Translucent;
-	}
-	if (special1 == 1)
-	{
-		vis->alpha = TRANSLUC25;
-		vis->colormap = InverseColormap;
-	}
-	return -1;	// This item is valid so another one shouldn't reset the translucency
 }
 
 // Ironfeet Powerup ----------------------------------------------------------
@@ -1002,9 +947,9 @@ void APowerFlight::InitEffect ()
 	Owner->flags |= MF_NOGRAVITY;
 	if (Owner->z <= Owner->floorz)
 	{
-		Owner->momz = 4*FRACUNIT;	// thrust the player in the air a bit
+		Owner->velz = 4*FRACUNIT;	// thrust the player in the air a bit
 	}
-	if (Owner->momz <= -35*FRACUNIT)
+	if (Owner->velz <= -35*FRACUNIT)
 	{ // stop falling scream
 		S_StopSound (Owner, CHAN_VOICE);
 	}
@@ -1241,15 +1186,15 @@ void APowerSpeed::DoEffect ()
 	if (Inventory != NULL && Inventory->GetSpeedFactor() > FRACUNIT)
 		return;
 
-	if ( gameinfo.gametype != GAME_Doom )
+	if (P_AproxDistance (Owner->velx, Owner->vely) <= 12*FRACUNIT)
 	{
-		if (P_AproxDistance (Owner->momx, Owner->momy) <= 12*FRACUNIT)
+		if (P_AproxDistance (Owner->velx, Owner->vely) <= 12*FRACUNIT)
 			return;
 	}
 	// [BC] Skulltag powerups, such as the turbosphere, require to move at least SOME to
 	// create a speed trail.
-	else if (( Owner->momx == 0 ) &&
-			 ( Owner->momy == 0 ))
+	else if (( Owner->velx == 0 ) &&
+			 ( Owner->vely == 0 ))
 	{
 		return;
 	}
@@ -2739,7 +2684,7 @@ void ARuneSpeed25::DoEffect ()
 
 	if ( gameinfo.gametype != GAME_Doom )
 	{
-		if (P_AproxDistance (Owner->momx, Owner->momy) <= 12*FRACUNIT)
+		if (P_AproxDistance (Owner->velx, Owner->vely) <= 12*FRACUNIT)
 			return;
 	}
 

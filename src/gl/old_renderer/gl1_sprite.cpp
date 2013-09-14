@@ -89,7 +89,7 @@ void GLSprite::Draw(int pass)
 	{
 		// The translucent pass requires special setup for the various modes.
 
-		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->momx|actor->momy))
+		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))
 		{
 			// Draw translucent non-moving sprites with a slightly altered z-offset to avoid z-fighting 
 			// when in the same position as a regular sprite.
@@ -275,7 +275,7 @@ void GLSprite::Draw(int pass)
 			gl.AlphaFunc(GL_GEQUAL,0.5f);
 		}
 
-		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->momx|actor->momy))
+		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))
 		{
 			gl.Disable(GL_POLYGON_OFFSET_FILL);
 			gl.PolygonOffset(0, 0);
@@ -445,7 +445,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	if (P_AproxDistance(thingx-viewx, thingy-viewy)<2*FRACUNIT)
 	{
 		// exclude vertically moving objects from this check.
-		if (!(thing->momx==0 && thing->momy==0 && thing->momz!=0))
+		if (!(thing->velx==0 && thing->vely==0 && thing->velz!=0))
 		{
 			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/))
 			{

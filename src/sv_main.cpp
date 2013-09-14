@@ -2467,13 +2467,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				// [WS/BB] Always inform client of the actor's lastX/Y/Z.
 				ULONG ulBits = CM_LAST_X|CM_LAST_Y|CM_LAST_Z;
 
-				if ( pActor->momx != 0 )
+				if ( pActor->velx != 0 )
 					ulBits |= CM_MOMX;
 
-				if ( pActor->momy != 0 )
+				if ( pActor->vely != 0 )
 					ulBits |= CM_MOMY;
 
-				if ( pActor->momz != 0 )
+				if ( pActor->velz != 0 )
 					ulBits |= CM_MOMZ;
 
 				if ( pActor->movedir != 0 )
@@ -4336,11 +4336,11 @@ void SERVER_SetThingNonZeroAngleAndMomentum( AActor *pActor )
 
 	if ( pActor->angle != 0 )
 		ulBits |= CM_ANGLE;
-	if ( pActor->momx != 0 )
+	if ( pActor->velx != 0 )
 		ulBits |= CM_MOMX;
-	if ( pActor->momy != 0 )
+	if ( pActor->vely != 0 )
 		ulBits |= CM_MOMY;
-	if ( pActor->momz != 0 )
+	if ( pActor->velz != 0 )
 		ulBits |= CM_MOMZ;
 
 	if ( ulBits )

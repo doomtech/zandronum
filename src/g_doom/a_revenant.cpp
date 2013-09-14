@@ -38,8 +38,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_SkelMissile)
 
 	if (missile != NULL)
 	{
-		missile->x += missile->momx;
-		missile->y += missile->momy;
+		missile->x += missile->velx;
+		missile->y += missile->vely;
 		missile->tracer = self->target;
 
 		// [BC] If we're the server, tell clients to spawn the missile.
@@ -74,10 +74,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 	// [BC] Don't tell clients to spawn this puff.
 	P_SpawnPuff (self, PClass::FindClass(NAME_BulletPuff), self->x, self->y, self->z, 0, 3, false, false);
 		
-	smoke = Spawn ("RevenantTracerSmoke", self->x - self->momx,
-		self->y - self->momy, self->z, ALLOW_REPLACE);
+	smoke = Spawn ("RevenantTracerSmoke", self->x - self->velx,
+		self->y - self->vely, self->z, ALLOW_REPLACE);
 	
-	smoke->momz = FRACUNIT;
+	smoke->velz = FRACUNIT;
 	smoke->tics -= pr_tracer()&3;
 	if (smoke->tics < 1)
 		smoke->tics = 1;
@@ -116,8 +116,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 	}
 		
 	exact = self->angle>>ANGLETOFINESHIFT;
-	self->momx = FixedMul (self->Speed, finecosine[exact]);
-	self->momy = FixedMul (self->Speed, finesine[exact]);
+	self->velx = FixedMul (self->Speed, finecosine[exact]);
+	self->vely = FixedMul (self->Speed, finesine[exact]);
 	
 	// change slope
 	dist = P_AproxDistance (dest->x - self->x,
@@ -137,10 +137,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 		slope = (dest->z + self->height*2/3 - self->z) / dist;
 	}
 
-	if (slope < self->momz)
-		self->momz -= FRACUNIT/8;
+	if (slope < self->velz)
+		self->velz -= FRACUNIT/8;
 	else
-		self->momz += FRACUNIT/8;
+		self->velz += FRACUNIT/8;
 
 	// [BC] Update the thing's position, angle and momentum.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

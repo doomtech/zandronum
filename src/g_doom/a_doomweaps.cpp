@@ -703,9 +703,9 @@ IMPLEMENT_CLASS ( AGrenade )
 
 bool AGrenade::FloorBounceMissile( secplane_t &plane )
 {
-	fixed_t bouncemomx = momx / 4;
-	fixed_t bouncemomy = momy / 4;
-	fixed_t bouncemomz = FixedMul (momz, (fixed_t)(-0.6*FRACUNIT));
+	fixed_t bouncemomx = velx / 4;
+	fixed_t bouncemomy = vely / 4;
+	fixed_t bouncemomz = FixedMul (velz, (fixed_t)(-0.6*FRACUNIT));
 /*
 	if (abs (bouncemomz) < (FRACUNIT/2))
 	{
@@ -716,9 +716,9 @@ bool AGrenade::FloorBounceMissile( secplane_t &plane )
 */
 		if (!Super::FloorBounceMissile (plane))
 		{
-			momx = bouncemomx;
-			momy = bouncemomy;
-			momz = bouncemomz;
+			velx = bouncemomx;
+			vely = bouncemomy;
+			velz = bouncemomz;
 			return false;
 		}
 //	}
