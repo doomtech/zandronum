@@ -341,7 +341,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 	
 	default:
 		// Boom colormaps.
-		if (cm>=CM_FIRSTCOLORMAP && cm<CM_FIRSTCOLORMAP+numfakecmaps)
+		if ((unsigned int)cm>=CM_FIRSTCOLORMAP && (unsigned int)cm<CM_FIRSTCOLORMAP+numfakecmaps)
 		{
 			if (count<=256)	// This does not work for raw image data because it assumes
 							// the use of the base palette!

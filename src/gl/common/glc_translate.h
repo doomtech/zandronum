@@ -45,7 +45,7 @@ public:
 		else return 0;
 	}
 
-	static int GetIndex(int translation_code)
+	static int GetIndex(unsigned int translation_code)
 	{
 		if (translation_code == 0) return 0;
 		else if (translation_code == TRANSLATION(TRANSLATION_Standard, 7)) return TRANSLATION_ICE;

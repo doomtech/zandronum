@@ -447,10 +447,10 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 		// Handle desaturation
 		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->LightColor.a);
 
-		gl_EnableFog(fogcolor!=-1);
+		gl_EnableFog((int)fogcolor!=-1);
 		if (fogcolor!=gl_CurrentFogColor)
 		{
-			if (fogcolor!=-1)
+			if ((int)fogcolor!=-1)
 			{
 				GLfloat FogColor[4]={fogcolor.r/255.0f,fogcolor.g/255.0f,fogcolor.b/255.0f,0.0f};
 				gl.Fogfv(GL_FOG_COLOR, FogColor);

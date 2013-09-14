@@ -68,8 +68,11 @@
 //
 //===========================================================================
 
-using namespace GLRendererOld;
+
 EXTERN_CVAR(Bool, gl_render_segs)
+
+namespace GLRendererOld
+{
 
 
 GL1Renderer::~GL1Renderer()
@@ -248,16 +251,16 @@ void GL1Renderer::SetupLevel()
 		ssector->numvertices = ssector->numlines;
 		ssector->firstvertex = gl_vertices.Size();
 
-		for(j = 0;  j < ssector->numlines; j++)
+		for(j = 0;  j < (int)ssector->numlines; j++)
 		{
 			seg_t * seg = &segs[ssector->firstline + j];
 			vertex_t * vtx = seg->v1;
 			GLVertex * vt=&gl_vertices[gl_vertices.Reserve(1)];
 
-			vt->u =  TO_GL(vtx->x)/64.0f;
-			vt->v = -TO_GL(vtx->y)/64.0f;
-			vt->x =  TO_GL(vtx->x);
-			vt->y =  TO_GL(vtx->y);
+			vt->u = vtx->fx/64.0f;
+			vt->v = -vtx->fy/64.0f;
+			vt->x = vtx->fx;
+			vt->y = vtx->fy;
 			vt->z = 0.0f;
 			vt->vt = vtx;
 		}
@@ -578,3 +581,5 @@ void GL1Renderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 	gl.Disable(GL_SCISSOR_TEST);
 }
 
+
+}

@@ -581,7 +581,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 			fixed_t lastceilingheight=sector->CenterCeiling();	// render only in the range of the
 			fixed_t lastfloorheight=sector->CenterFloor();		// current sector part (if applicable)
 			F3DFloor * rover;	
-			int k;
+			unsigned int k;
 			
 			// floors are ordered now top to bottom so scanning the list for the best match
 			// is no longer necessary.

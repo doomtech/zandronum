@@ -50,6 +50,7 @@
 #include "p_acs.h"
 #include "doomstat.h"
 #include "d_player.h"
+#include "autosegs.h"
 
 int FindEndSequence (int type, const char *picname);
 
@@ -1376,6 +1377,7 @@ MapFlagHandlers[] =
 	{ "compat_crossdropoff",			MITYPE_COMPATFLAG, COMPATF_CROSSDROPOFF},
 	{ "compat_anybossdeath",			MITYPE_COMPATFLAG, COMPATF_ANYBOSSDEATH},
 	{ "compat_minotaur",				MITYPE_COMPATFLAG, COMPATF_MINOTAUR},
+	{ "compat_mushroom",				MITYPE_COMPATFLAG, COMPATF_MUSHROOM},
 	{ "cd_start_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end1_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end2_track",					MITYPE_EATNEXT,	0, 0 },
@@ -1471,14 +1473,14 @@ void FMapInfoParser::ParseMapDefinition(level_info_t &info)
 		}
 		else
 		{
-			TAutoSegIterator<FMapOptInfo*, &YRegHead, &YRegTail> probe;
+			FAutoSegIterator probe(YRegHead, YRegTail);
 			bool success = false;
 
-			while (++probe != NULL)
+			while (*++probe != NULL)
 			{
-				if (sc.Compare(probe->name))
+				if (sc.Compare(((FMapOptInfo *)(*probe))->name))
 				{
-					probe->handler(*this, &info);
+					((FMapOptInfo *)(*probe))->handler(*this, &info);
 					success = true;
 					break;
 				}

@@ -66,6 +66,15 @@ enum HWRenderStyle
 	STYLEHW_NoAlphaTest,	// disable alpha test
 };
 
+struct GLVertex
+{
+	float x,z,y;	// world coordinates
+	float u,v;		// texture coordinates
+	vertex_t * vt;	// real vertex
+};
+
+extern TArray<GLVertex> gl_vertices;
+
 //==========================================================================
 //
 // One sector plane, still in fixed point

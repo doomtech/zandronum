@@ -530,7 +530,7 @@ public:
 	static void Initialize();
 	static void Clear();
 	static GLShader *Find(const char * shn);
-	static GLShader *Find(int warp);
+	static GLShader *Find(unsigned int warp);
 	void Bind(int cm, int lightmode, float Speed);
 	static void Unbind();
 
@@ -584,7 +584,7 @@ GLShader *GLShader::Find(const char * shn)
 	return NULL;
 }
 
-GLShader *GLShader::Find(int warp)
+GLShader *GLShader::Find(unsigned int warp)
 {
 	// indices 0-2 match the warping modes, 3 is the no texture shader
 	if (warp < AllShaders.Size())

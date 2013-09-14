@@ -728,6 +728,12 @@ void gl_PreprocessLevel()
 		PrepareTransparentDoors(&sectors[i]);
 	}
 
+	for(i = 0; i < numvertexes; i++)
+	{
+		vertexes[i].fx = TO_GL(vertexes[i].x);
+		vertexes[i].fy = TO_GL(vertexes[i].y);
+	}
+
 	if (GLRenderer != NULL) GLRenderer->SetupLevel();
 
 #if 0

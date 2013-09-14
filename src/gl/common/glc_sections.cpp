@@ -555,7 +555,7 @@ void DumpSection(int no, FGLSection *sect)
 				double d2 = sqrt(dx2*dx2+dy2*dy2);
 
 				Printf(PRINT_LOG, "\t\tLinedef %d, %s: Start (%1.2f, %1.2f), End (%1.2f, %1.2f)", 
-					ln->linedef - lines, (ln->sidedef - sides) == ln->linedef->sidenum[0]? "front":"back",
+					ln->linedef - lines, (unsigned int)(ln->sidedef - sides) == ln->linedef->sidenum[0]? "front":"back",
 					ln->start->x/65536.f, ln->start->y/65536.f,
 					ln->end->x/65536.f, ln->end->y/65536.f);
 

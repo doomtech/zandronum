@@ -33,7 +33,6 @@ CVAR (Bool,  use_mouse,				true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,  m_noprescale,			false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,	 m_filter,				false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool,  sdl_nokeyrepeat,		false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool,  use_joystick,			false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 EXTERN_CVAR (Bool, fullscreen)
 
@@ -475,4 +474,9 @@ void I_GetAxes(float axes[NUM_JOYAXIS])
 	{
 		axes[i] = 0;
 	}
+}
+
+IJoystickConfig *I_UpdateDeviceList()
+{
+	return NULL;
 }

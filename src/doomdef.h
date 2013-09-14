@@ -163,6 +163,14 @@ enum ESkillLevels
 #define KEY_MOUSE8				0x107
 
 #define KEY_FIRSTJOYBUTTON		0x108
+#define KEY_JOY1				(KEY_FIRSTJOYBUTTON+0)
+#define KEY_JOY2				(KEY_FIRSTJOYBUTTON+1)
+#define KEY_JOY3				(KEY_FIRSTJOYBUTTON+2)
+#define KEY_JOY4				(KEY_FIRSTJOYBUTTON+3)
+#define KEY_JOY5				(KEY_FIRSTJOYBUTTON+4)
+#define KEY_JOY6				(KEY_FIRSTJOYBUTTON+5)
+#define KEY_JOY7				(KEY_FIRSTJOYBUTTON+6)
+#define KEY_JOY8				(KEY_FIRSTJOYBUTTON+7)
 #define KEY_LASTJOYBUTTON		0x187
 #define KEY_JOYPOV1_UP			0x188
 #define KEY_JOYPOV1_RIGHT		0x189
@@ -362,6 +370,7 @@ enum
 	COMPATF_CROSSDROPOFF	= 1 << 20,	// monsters can't be pushed over dropoffs
 	COMPATF_ANYBOSSDEATH	= 1 << 21,	// [GZ] Any monster which calls BOSSDEATH counts for level specials
 	COMPATF_MINOTAUR		= 1 << 22,	// Minotaur's floor flame is exploded immediately when feet are clipped
+	COMPATF_MUSHROOM		= 1 << 23,	// Force original velocity calculations for A_Mushroom in Dehacked oods.
 };
 
 // [BB] Zandronum compatibility flags.

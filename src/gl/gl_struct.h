@@ -67,13 +67,6 @@ struct FColormap
 	}
 };
 
-struct GLVertex
-{
-	float x,z,y;	// world coordinates
-	float u,v;		// texture coordinates
-	vertex_t * vt;	// real vertex
-};
-
 typedef struct
 {
 	float x1,x2;
@@ -115,8 +108,5 @@ struct GLSectorStackInfo
 	fixed_t deltaz;
 	bool isupper;	
 };
-
-
-extern TArray<GLVertex> gl_vertices;
 
 #endif
