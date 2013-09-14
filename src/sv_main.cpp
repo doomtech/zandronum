@@ -4928,7 +4928,7 @@ static bool server_Taunt( BYTESTREAM_s *pByteStream )
 	if (( players[g_lCurrentClient].bSpectating ) ||
 		( players[g_lCurrentClient].health <= 0 ) ||
 		( players[g_lCurrentClient].mo == NULL ) ||
-		( i_compatflags & COMPATF_DISABLETAUNTS ))
+		( zacompatflags & ZACOMPATF_DISABLETAUNTS ))
 	{
 		return ( false );
 	}

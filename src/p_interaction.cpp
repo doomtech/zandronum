@@ -746,7 +746,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		FBehavior::StaticStartTypedScripts (SCRIPT_Death, this, true);
 
 		// [RH] Force a delay between death and respawn
-		if ((( i_compatflags & COMPATF_INSTANTRESPAWN ) == false ) ||
+		if ((( zacompatflags & ZACOMPATF_INSTANTRESPAWN ) == false ) ||
 			( player->bSpawnTelefragged ))
 		{
 			player->respawn_time = level.time + TICRATE;
@@ -2785,7 +2785,7 @@ bool PLAYER_Taunt( player_t *pPlayer )
 	if (( pPlayer->bSpectating ) ||
 		( pPlayer->health <= 0 ) ||
 		( pPlayer->mo == NULL ) ||
-		( i_compatflags & COMPATF_DISABLETAUNTS ))
+		( zacompatflags & ZACOMPATF_DISABLETAUNTS ))
 	{
 		return ( false );
 	}

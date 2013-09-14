@@ -411,7 +411,7 @@ bool WI_UseSkulltagIntermissionAndMusic( void )
 {
 	return (( gameinfo.gametype == GAME_Doom ) &&
 			( deathmatch ) &&
-			(( compatflags & COMPATF_OLDINTERMISSION ) == false ));
+			(( zacompatflags & ZACOMPATF_OLDINTERMISSION ) == false ));
 }
 
 void WI_LoadBackground(bool isenterpic)

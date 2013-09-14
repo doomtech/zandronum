@@ -368,54 +368,12 @@ enum
 	COMPATF_DROPOFF			= 1 << 14,	// Monsters cannot move when hanging over a dropoff
 	COMPATF_BOOMSCROLL		= 1 << 15,	// Scrolling sectors are additive like in Boom
 	COMPATF_INVISIBILITY	= 1 << 16,	// Monsters can see semi-invisible players
-	// [BB] Changed from 1 << 17 to 1<<27.
-	COMPATF_SILENT_INSTANT_FLOORS = 1<<27,	// Instantly moving floors are not silent
-	// [BB] Changed from 1 << 18 to 1<<28.
-	COMPATF_SECTORSOUNDS	= 1 << 28,	// Sector sounds use original method for sound origin.
-	// [BB] Changed from 1 << 19 to 1<<29.
-	COMPATF_MISSILECLIP		= 1 << 29,	// Use original Doom heights for clipping against projectiles
-	// [BB] Changed from 1 << 20 to 1<<30.
-	COMPATF_CROSSDROPOFF	= 1 << 30,	// monsters can't be pushed over dropoffs
-	// [BB] Changed from 1 << 21 to 1<<31. Note: This value is too big, needs to be adapted.
-	COMPATF_ANYBOSSDEATH	= 1 << 31,	// [GZ] Any monster which calls BOSSDEATH counts for level specials
-	// [BB] Changed from 1 << 22 to 1<<32. Note: This value is too big, needs to be adapted.
-	COMPATF_MINOTAUR		= 1 << 32,	// Minotaur's floor flame is exploded immediately when feet are clipped
-
-	// [BC] Start of new compatflags.
-
-	// Limited movement in the air.
-	COMPATF_LIMITED_AIRMOVEMENT	= 1 << 17,
-
-	// Allow the map01 "plasma bump" bug.
-	COMPATF_PLASMA_BUMP_BUG	= 1 << 18,
-
-	// Allow instant respawn after death.
-	COMPATF_INSTANTRESPAWN	= 1 << 19,
-
-	// Taunting is disabled.
-	COMPATF_DISABLETAUNTS	= 1 << 20,
-
-	// Use doom2.exe's original sound curve.
-	COMPATF_ORIGINALSOUNDCURVE	= 1 << 21,
-
-	// Use doom2.exe's original intermission screens/music.
-	COMPATF_OLDINTERMISSION		= 1 << 22,
-
-	// Disable stealth monsters, since doom2.exe didn't have them.
-	COMPATF_DISABLESTEALTHMONSTERS		= 1 << 23,
-
-	// [BB] Always use the old radius damage code (infinite height)
-	COMPATF_OLDRADIUSDMG		= 1 << 24,
-
-	// Disable cooperative backpacks.
-	// [BB] We are running out of numbers, 1 << 24 is now used for COMPATF_OLDRADIUSDMG
-//	COMPATF_DISABLECOOPERATIVEBACKPACKS	= 1 << 24,
-
-	// [BB] Clients are not allowed to use a crosshair.
-	COMPATF_NO_CROSSHAIR		= 1 << 25,
-
-	// [BB] Clients use the vanilla Doom weapon on pickup behavior.
-	COMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
+	COMPATF_SILENT_INSTANT_FLOORS = 1<<17,	// Instantly moving floors are not silent
+	COMPATF_SECTORSOUNDS	= 1 << 18,	// Sector sounds use original method for sound origin.
+	COMPATF_MISSILECLIP		= 1 << 19,	// Use original Doom heights for clipping against projectiles
+	COMPATF_CROSSDROPOFF	= 1 << 20,	// monsters can't be pushed over dropoffs
+	COMPATF_ANYBOSSDEATH	= 1 << 21,	// [GZ] Any monster which calls BOSSDEATH counts for level specials
+	COMPATF_MINOTAUR		= 1 << 22,	// Minotaur's floor flame is exploded immediately when feet are clipped
 };
 
 // [BB] Zandronum compatibility flags.
@@ -450,6 +408,36 @@ enum
 	ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
+
+	// Limited movement in the air.
+	ZACOMPATF_LIMITED_AIRMOVEMENT	= 1 << 17,
+
+	// Allow the map01 "plasma bump" bug.
+	ZACOMPATF_PLASMA_BUMP_BUG	= 1 << 18,
+
+	// Allow instant respawn after death.
+	ZACOMPATF_INSTANTRESPAWN	= 1 << 19,
+
+	// Taunting is disabled.
+	ZACOMPATF_DISABLETAUNTS	= 1 << 20,
+
+	// Use doom2.exe's original sound curve.
+	ZACOMPATF_ORIGINALSOUNDCURVE	= 1 << 21,
+
+	// Use doom2.exe's original intermission screens/music.
+	ZACOMPATF_OLDINTERMISSION		= 1 << 22,
+
+	// Disable stealth monsters, since doom2.exe didn't have them.
+	ZACOMPATF_DISABLESTEALTHMONSTERS		= 1 << 23,
+
+	// [BB] Always use the old radius damage code (infinite height)
+	ZACOMPATF_OLDRADIUSDMG		= 1 << 24,
+
+	// [BB] Clients are not allowed to use a crosshair.
+	ZACOMPATF_NO_CROSSHAIR		= 1 << 25,
+
+	// [BB] Clients use the vanilla Doom weapon on pickup behavior.
+	ZACOMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

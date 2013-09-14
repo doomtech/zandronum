@@ -3772,7 +3772,7 @@ void AActor::Tick ()
 		}
 		else if (flags & MF_STEALTH)
 		{
-		if ( i_compatflags & COMPATF_DISABLESTEALTHMONSTERS )
+		if ( zacompatflags & ZACOMPATF_DISABLESTEALTHMONSTERS )
 		{
 			alpha = OPAQUE;
 			visdir = 0;
@@ -4009,7 +4009,7 @@ void AActor::Tick ()
 		// Handle X and Y velocities
 		BlockingMobj = NULL;
 		fixed_t oldfloorz = 0;
-		if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
+		if ( player && ( player->bSpectating == false ) && ( zacompatflags & ZACOMPATF_PLASMA_BUMP_BUG ))
 			oldfloorz = P_OldXYMovement( this );
 		else
 			oldfloorz = P_XYMovement (this, cummx, cummy);

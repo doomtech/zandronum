@@ -356,7 +356,7 @@ void AWeapon::AttachToOwner (AActor *other)
 			// [ZZ] Changed code so it only treats switchonpickup == 2 as "always switch"
 			// [BC] Handle the "switchonpickup" userinfo cvar. If it's == 2, then
 			// we always want to switch our weapon when we pickup a new one.
-			if ( (Owner->player->userinfo.switchonpickup == 2) || ( compatflags & COMPATF_OLD_WEAPON_SWITCH ) )
+			if ( (Owner->player->userinfo.switchonpickup == 2) || ( zacompatflags & ZACOMPATF_OLD_WEAPON_SWITCH ) )
 			{
 				// [Spleen] Weapon switching is done client-side unless it's a bot.
 				if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( Owner->player->bIsBot ) )

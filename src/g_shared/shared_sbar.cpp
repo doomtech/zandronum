@@ -1068,7 +1068,7 @@ void DBaseStatusBar::DrawCrosshair ()
 	}
 
 	// [BB] Don't draw the crosshair if the compatflags forbid it.
-	if ( compatflags & COMPATF_NO_CROSSHAIR )
+	if ( zacompatflags & ZACOMPATF_NO_CROSSHAIR )
 		return;
 
 	if (crosshairscale)

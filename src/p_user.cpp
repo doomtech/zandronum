@@ -2528,7 +2528,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		if (!onground && !(player->mo->flags & MF_NOGRAVITY) && !player->mo->waterlevel)
 		{
 			// [RH] allow very limited movement if not on ground.
-			if ( i_compatflags & COMPATF_LIMITED_AIRMOVEMENT )
+			if ( zacompatflags & ZACOMPATF_LIMITED_AIRMOVEMENT )
 			{
 				movefactor = FixedMul (movefactor, level.aircontrol);
 				bobfactor = FixedMul (bobfactor, level.aircontrol);

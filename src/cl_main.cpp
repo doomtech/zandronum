@@ -5616,7 +5616,7 @@ static void client_PlayerTaunt( BYTESTREAM_s *pByteStream )
 	if (( players[ulPlayer].bSpectating ) ||
 		( players[ulPlayer].health <= 0 ) ||
 		( players[ulPlayer].mo == NULL ) ||
-		( i_compatflags & COMPATF_DISABLETAUNTS ))
+		( zacompatflags & ZACOMPATF_DISABLETAUNTS ))
 	{
 		return;
 	}
