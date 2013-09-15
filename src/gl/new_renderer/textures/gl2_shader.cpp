@@ -240,7 +240,7 @@ namespace GLRendererNew
 	{
 		FShaderObject *so;
 
-		so = cm? mColormapShader : desaturation > 0? mBaseShader : m2DShader;
+		so = cm? mColormapShader : desaturation >= 0? mBaseShader : m2DShader;
 		mOwner->SetActiveShader(so);
 
 		if (cm != NULL) so->setColormapColor(cm);

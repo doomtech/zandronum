@@ -398,5 +398,184 @@ void FVertex3D::SetLighting(int lightlevel, FDynamicColormap *cm, int rellight, 
 }
 
 
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+FVertexBuffer3D::FVertexBuffer3D(int size)
+{
+	mMaxSize = size;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+#define VT3 ((FVertex3D*)NULL)
+
+bool FVertexBuffer3D::Bind()
+{
+	BindBuffer();
+	gl.BufferData(GL_ARRAY_BUFFER, mMaxSize * sizeof(FVertex3D), NULL, GL_STREAM_DRAW);
+
+	glVertexPointer(2,GL_FLOAT, sizeof(FVertex3D), &VT3->x);
+	glTexCoordPointer(2,GL_FLOAT, sizeof(FVertex3D), &VT3->u);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(FVertex3D), &VT3->r);
+	gl.VertexAttribPointer(FShaderObject::attrFogColor, 4, GL_UNSIGNED_BYTE, true, sizeof(FVertex3D), &VT3->fr);
+	gl.VertexAttribPointer(FShaderObject::attrGlowTopColor, 4, GL_UNSIGNED_BYTE, true, sizeof(FVertex3D), &VT3->tr);
+	gl.VertexAttribPointer(FShaderObject::attrGlowBottomColor, 4, GL_UNSIGNED_BYTE, true, sizeof(FVertex3D), &VT3->br);
+	gl.VertexAttribPointer(FShaderObject::attrGlowDistance, 2, GL_FLOAT, true, sizeof(FVertex3D), &VT3->glowdisttop);
+	gl.VertexAttribPointer(FShaderObject::attrLightParams, 3, GL_FLOAT, true, sizeof(FVertex3D), &VT3->fogdensity);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	gl.EnableVertexAttribArray(FShaderObject::attrLightParams);
+	gl.EnableVertexAttribArray(FShaderObject::attrFogColor);
+	gl.EnableVertexAttribArray(FShaderObject::attrGlowDistance);
+	gl.EnableVertexAttribArray(FShaderObject::attrGlowTopColor);
+	gl.EnableVertexAttribArray(FShaderObject::attrGlowBottomColor);
+	return true;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FPrimitive3D::Draw()
+{
+	if (!mCopy)
+	{
+		if (mMaterial != NULL)
+		{
+			mMaterial->Bind(NULL, mTextureMode, mDesaturation, mClamp);
+		}
+		else
+		{
+			GLRenderer2->mShaders->SetActiveShader(NULL);
+		}
+	}
+
+	gl.BlendEquation(mBlendEquation);
+	gl.BlendFunc(mSrcBlend, mDstBlend);
+	gl.AlphaFunc(GL_GEQUAL, mAlphaThreshold);
+
+	gl.DrawArrays(mPrimitiveType, mVertexStart, mVertexCount); 
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+FPrimitiveBuffer3D::FPrimitiveBuffer3D()
+{
+	mCurrentVertexIndex = 0;
+	mCurrentVertexBufferSize = BUFFER_START;
+	mVertexBuffer = new FVertexBuffer3D(BUFFER_START);
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+FPrimitiveBuffer3D::~FPrimitiveBuffer3D()
+{
+	delete mVertexBuffer;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+int FPrimitiveBuffer3D::NewPrimitive(int numvertices, FPrimitive3D *&primptr, FVertex3D *&vertptr)
+{
+	if (mCurrentVertexIndex + numvertices >= mCurrentVertexBufferSize)
+	{
+		// The vertex buffer is full. We have to flush all accumulated primitives,
+		// resize the buffer and continue.
+
+		Flush();
+		if (mCurrentVertexBufferSize < BUFFER_MAXIMUM)
+		{
+			mCurrentVertexBufferSize += BUFFER_INCREMENT;
+			mVertexBuffer->ChangeSize(mCurrentVertexBufferSize);
+		}
+	}
+
+	if (mCurrentVertexIndex == 0)
+	{
+		mVertexBuffer->Bind();
+		mVertexBuffer->Map();
+	}
+
+	int primindex = mPrimitives.Reserve(1);
+	primptr = &mPrimitives[primindex];
+	primptr->mPrimitiveType = -1;	// make it invalid
+	primptr->mVertexStart = mCurrentVertexIndex;
+	primptr->mVertexCount = numvertices;
+	vertptr = mVertexBuffer->GetVertexPointer(mCurrentVertexIndex);
+
+	mCurrentVertexIndex += numvertices;
+
+	return primindex;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+bool FPrimitiveBuffer3D::CheckPrimitive(int type, int newvertexcount, FVertex3D *&vertptr)
+{
+	int primindex = mPrimitives.Size()-1;
+	FPrimitive3D *primptr = &mPrimitives[primindex];
+
+	if (primptr->mPrimitiveType == type)
+	{
+		primptr->mVertexCount += newvertexcount;
+		vertptr = mVertexBuffer->GetVertexPointer(mCurrentVertexIndex);
+		mCurrentVertexIndex += newvertexcount;
+		return true;
+	}
+	return false;
+}
+
+//----------------------------------------------------------------------------
+//
+//
+//
+//----------------------------------------------------------------------------
+
+void FPrimitiveBuffer3D::Flush()
+{
+	if (mPrimitives.Size() > 0)
+	{
+		mVertexBuffer->Unmap();
+		// draw the primitives;
+		for(unsigned i = 0; i < mPrimitives.Size(); i++)
+		{
+			mPrimitives[i].Draw();
+		}
+		mPrimitives.Clear();
+		mCurrentVertexIndex = 0;
+	}
+}
+
+
+
+
+
 
 }

@@ -98,7 +98,7 @@ public:
 
 	virtual void SetFixedColormap (player_t *player) = 0;
 	virtual void WriteSavePic (player_t *player, FILE *file, int width, int height) = 0;
-	virtual void RenderMainView (player_t *player, float fov, float ratio, float fovratio) = 0;
+	virtual void EndDrawScene(sector_t * viewsector) = 0;
 	virtual void Flush() {}
 
 	virtual void SetProjection(float fov, float ratio, float fovratio) = 0;

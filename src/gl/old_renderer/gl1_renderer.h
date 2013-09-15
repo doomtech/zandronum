@@ -42,6 +42,7 @@ class GL1Renderer : public GLRendererBase
 
 	void SetFixedColormap (player_t *player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);
+	void EndDrawScene(sector_t * viewsector);
 	void RenderMainView (player_t *player, float fov, float ratio, float fovratio);
 	void ProcessScene();
 

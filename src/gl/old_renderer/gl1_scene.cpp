@@ -78,11 +78,6 @@ CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 extern TexFilter_s TexFilter[];
 
-#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-extern char myGlBeginCharArray[4];
-int crashoutTic = 0;
-#endif
-
 // [BC] Blah. Not a great place to include this.
 EXTERN_CVAR (Float,  blood_fade_scalar)
 
@@ -206,7 +201,7 @@ void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle
 //
 //-----------------------------------------------------------------------------
 
-static void ProcessScene()
+static void gl_ProcessScene()
 {
 	// reset the portal manager
 	GLPortal::StartFrame();
@@ -439,7 +434,7 @@ void gl_DrawScene()
 {
 	static int recursion=0;
 
-	ProcessScene();
+	gl_ProcessScene();
 
 	RenderScene(recursion);
 
@@ -657,7 +652,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 //-----------------------------------------------------------------------------
 
 
-void gl_EndDrawScene(sector_t * viewsector)
+void GL1Renderer::EndDrawScene(sector_t * viewsector)
 {
 	// [BB] HUD models need to be rendered here. Make sure that
 	// gl_DrawPlayerSprites is only called once. Either to draw
@@ -819,58 +814,10 @@ void GL1Renderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	// the view is active. In Skulltag, we don't so we have to call this here
 	// to reset everything, such as the viewport, after rendering our view to
 	// a canvas.
-	gl_EndDrawScene( viewsector );
+	GL1Renderer::EndDrawScene( viewsector );
 }
 
-//-----------------------------------------------------------------------------
-//
-// R_RenderPlayerView - the main rendering function
-//
-//-----------------------------------------------------------------------------
 
-void GL1Renderer::RenderMainView (player_t *player, float fov, float ratio, float fovratio)
-{       
-#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
-	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
-	// and deactivating itself at the right time interval.
-	{
-		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
-		{
-			I_FatalError ( "OpenGL malfunction encountered.\n" );
-		}
-		else
-		{
-			// [BB] Most GL wallhacks deactivate GL_DEPTH_TEST by manipulating glBegin.
-			// Here we try check if this is done.
-			GLboolean oldValue;
-			glGetBooleanv ( GL_DEPTH_TEST, &oldValue );
-			gl.Enable ( GL_DEPTH_TEST );
-			gl.Begin( GL_TRIANGLE_STRIP );
-			gl.End();
-			GLboolean valueTrue;
-			glGetBooleanv ( GL_DEPTH_TEST, &valueTrue );
-
-			// [BB] Also check if glGetBooleanv simply always returns true.
-			gl.Disable ( GL_DEPTH_TEST );
-			GLboolean valueFalse;
-			glGetBooleanv ( GL_DEPTH_TEST, &valueFalse );
-
-			if ( ( valueTrue == false ) || ( valueFalse == true ) )
-			{
-				I_FatalError ( "OpenGL malfunction encountered.\n" );
-			}
-
-			if ( oldValue )
-				gl.Enable ( GL_DEPTH_TEST );
-			else
-				gl.Disable ( GL_DEPTH_TEST );
-		}
-	}
-#endif
-
-	sector_t * viewsector = RenderViewpoint(player->camera, NULL, fov, ratio, fovratio, true);
-	gl_EndDrawScene(viewsector);
-}
 
 } // namespace
 

@@ -7,6 +7,22 @@ namespace GLRendererNew
 {
 class FMaterial;
 
+class FVertexBuffer
+{
+	static unsigned int mLastBound;	// Crappy GL state machine. :(
+protected:
+	unsigned int mBufferId;
+	void *mMap;
+
+	FVertexBuffer();
+	void BindBuffer();
+public:
+	~FVertexBuffer();
+	void Map();
+	bool Unmap();
+};
+
+
 struct FVertex3D
 {
 	enum {
@@ -42,6 +58,7 @@ struct FPrimitive3D
 	int mDesaturation;
 	float mAlphaThreshold;
 	bool mTranslucent;
+	bool mCopy;	// same info as last one. Used to avoid unnecessary checks
 
 	int mSrcBlend;
 	int mDstBlend;
@@ -49,8 +66,44 @@ struct FPrimitive3D
 
 	void Draw();
 	void SetRenderStyle(FRenderStyle style, bool opaque, bool allowcolorblending = false);
+	void Copy(FPrimitive3D *other)
+	{
+		mPrimitiveType = other->mPrimitiveType;
+		mMaterial = other->mMaterial;
+		mClamp = other->mClamp;
+		mTextureMode = other->mTextureMode;
+		mDesaturation = other->mDesaturation;
+		mAlphaThreshold = other->mAlphaThreshold;
+		mTranslucent = other->mTranslucent;
+		mSrcBlend = other->mSrcBlend;
+		mDstBlend = other->mDstBlend;
+		mBlendEquation = other->mBlendEquation;
+		mCopy = false;
+	}
 };
 
+class FVertexBuffer3D : public FVertexBuffer
+{
+	int mMaxSize;
+public:
+	FVertexBuffer3D(int size);
+	bool Bind();
+
+	int GetSize() const
+	{
+		return mMaxSize;
+	}
+
+	void ChangeSize(int newsize)
+	{
+		mMaxSize = newsize;
+	}
+
+	FVertex3D *GetVertexPointer(int vt) const
+	{
+		return ((FVertex3D*)mMap)+vt;
+	}
+};
 
 
 struct FVertex2D
@@ -83,21 +136,6 @@ struct FVertex2D
 		this->a = (unsigned char)a;
 	}
 
-};
-
-class FVertexBuffer
-{
-	static unsigned int mLastBound;	// Crappy GL state machine. :(
-protected:
-	unsigned int mBufferId;
-	void *mMap;
-
-	FVertexBuffer();
-	void BindBuffer();
-public:
-	~FVertexBuffer();
-	void Map();
-	bool Unmap();
 };
 
 class FVertexBuffer2D : public FVertexBuffer
@@ -142,6 +180,29 @@ struct FPrimitive2D
 
 	void Draw();
 };
+
+class FPrimitiveBuffer3D
+{
+	enum
+	{
+		BUFFER_START = 25000,	// This is what the full console initially needs so it's a good start.
+		BUFFER_INCREMENT = 5000,
+		BUFFER_MAXIMUM = 200000
+	};
+
+	TArray<FPrimitive3D> mPrimitives;
+	int mCurrentVertexIndex;
+	int mCurrentVertexBufferSize;
+	FVertexBuffer3D *mVertexBuffer;
+
+public:
+	FPrimitiveBuffer3D();
+	~FPrimitiveBuffer3D();
+	int NewPrimitive(int vertexcount, FPrimitive3D *&primptr, FVertex3D *&vertptr);
+	bool CheckPrimitive(int type, int newvertexcount, FVertex3D *&vertptr);
+	void Flush();
+};
+
 
 class FPrimitiveBuffer2D
 {

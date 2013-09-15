@@ -4,6 +4,7 @@
 #include "tarray.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_renderhacks.h"
+#include "gl/common/glc_templates.h"
 #include "gl/new_renderer/gl2_geom.h"
 
 namespace GLRendererNew
@@ -28,9 +29,12 @@ public:
 	FPrimitiveBuffer2D *mRender2D;
 	FMaterialContainer *mDefaultMaterial;
 	FSkyDrawer *mSkyDrawer;
-	GLDrawInfo *mDrawInfo;
+	GLDrawInfo *mGlobalDrawInfo;
+
+	GLDrawInfo *mCurrentDrawInfo;
 
 	TArray<FSectorRenderData> mSectorData;
+	FreeList<GLDrawInfo> di_list;
 
 	GL2Renderer() 
 	{
@@ -39,7 +43,8 @@ public:
 		mRender2D = NULL;
 		mDefaultMaterial = NULL;
 		mSkyDrawer = NULL;
-		mDrawInfo = NULL;
+		mGlobalDrawInfo = NULL;
+		mCurrentDrawInfo = NULL;
 	}
 	~GL2Renderer();
 
@@ -74,13 +79,19 @@ public:
 
 	void SetFixedColormap (player_t *player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);
-	void RenderMainView (player_t *player, float fov, float ratio, float fovratio);
+	void EndDrawScene(sector_t * viewsector);
 	void SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
 	void ProcessScene();
 	void Flush();
 
 	void SetProjection(float fov, float ratio, float fovratio);
 	void SetViewMatrix(bool mirror, bool planemirror);
+
+	void CollectScene();
+	void DrawScene();
+
+	GLDrawInfo *StartDrawInfo(GLDrawInfo * di);
+	void EndDrawInfo();
 
 	// renderer internal functions
 	FGLTexture *GetGLTexture(FTexture *tex, bool asSprite, int translation);
@@ -97,17 +108,13 @@ public:
 
 struct GLDrawInfo : public FDrawInfo
 {
+	friend class GL2Renderer;
+
 	FVector3 mViewpoint;
 
 	bool temporary;
 
 	GLDrawInfo * next;
-
-	void StartScene()
-	{
-		mDrawLists[0].Clear();
-		mDrawLists[1].Clear();
-	}
 
 	//void SetupFloodStencil(wallseg * ws) [;
 	//void ClearFloodStencil(wallseg * ws);
@@ -123,8 +130,24 @@ public:
 		mDrawLists[obj->mAlpha].Push(obj);
 	}
 
-	//static void StartDrawInfo(GLDrawInfo * hi);
-	//static void EndDrawInfo();
+	GLDrawInfo()
+	{
+		temporary = false;
+		next = NULL;
+	}
+
+	void StartScene()
+	{
+		FDrawInfo::StartScene();
+		mDrawLists[0].Clear();
+		mDrawLists[1].Clear();
+	}
+
+	void SetViewpoint(float x, float y, float z)
+	{
+		mViewpoint = FVector3(x,y,z);
+	}
+
 
 };
 

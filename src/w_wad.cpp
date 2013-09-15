@@ -227,29 +227,32 @@ int FWadCollection::AddExternalFile(const char *filename)
 void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
 {
 	int startlump;
-	bool isdir;
+	bool isdir = false;
 
-	// Does this exist? If so, is it a directory?
-	struct stat info;
-	if (stat(filename, &info) != 0)
+	if (wadinfo == NULL)
 	{
-		Printf(TEXTCOLOR_RED "Could not stat %s\n", filename);
-		PrintLastError();
-		return;
-	}
-	isdir = (info.st_mode & S_IFDIR) != 0;
-
-	if (wadinfo == NULL && !isdir)
-	{
-		try
+		// Does this exist? If so, is it a directory?
+		struct stat info;
+		if (stat(filename, &info) != 0)
 		{
-			wadinfo = new FileReader(filename);
-		}
-		catch (CRecoverableError &err)
-		{ // Didn't find file
-			Printf (TEXTCOLOR_RED "%s\n", err.GetMessage());
-			PrintLastError ();
+			Printf(TEXTCOLOR_RED "Could not stat %s\n", filename);
+			PrintLastError();
 			return;
+		}
+		isdir = (info.st_mode & S_IFDIR) != 0;
+
+		if (!isdir)
+		{
+			try
+			{
+				wadinfo = new FileReader(filename);
+			}
+			catch (CRecoverableError &err)
+			{ // Didn't find file
+				Printf (TEXTCOLOR_RED "%s\n", err.GetMessage());
+				PrintLastError ();
+				return;
+			}
 		}
 	}
 
@@ -300,7 +303,7 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 				strcpy(wadstr, lump->FullName);
 
 				// [BB] We consider all embedded files as being loaded automatically.
-				AddFile(wadstr, embedded, true);
+				AddFile(path, embedded, true);
 			}
 		}
 		return;

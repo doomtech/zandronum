@@ -10,6 +10,7 @@ struct FDynamicColormap;
 
 namespace GLRendererNew
 {
+	struct GLDrawInfo;
 
 struct FRenderObject
 {
@@ -37,6 +38,7 @@ struct FSectorPlaneObject : public FRenderObject
 	bool mUpside;
 	bool mLightEffect;		// do not render when a fullbright effect is on
 	int mPrimitiveIndex;
+	int mPlaneType;
 
 	bool isVisible(const FVector3 &viewpoint, bool upside)	// upside must be passed for optimization
 	{
@@ -61,9 +63,9 @@ struct FSectorRenderData
 	TArray<FVertex3D> mVertices;
 	TArray<FSubsectorPrimitive> mPrimitives;
 
-	void CreateDynamicPrimitive(FSectorPlaneObject *plane,
-							FSubsectorPrimitive *prim, int vertstart, FVertex3D *verts,
-							subsector_t *sub);
+	void CreatePlanePrimitives(GLDrawInfo *di, FSectorPlaneObject *plane, FPrimitiveBuffer3D *buffer);
+
+	void CreateDynamicPrimitive(FSectorPlaneObject *plane, FVertex3D *modelvert, FVertex3D *verts, subsector_t *sub);
 
 	void CreatePlane(FSectorPlaneObject *plane,
 					 int in_area, sector_t *sec, GLSectorPlane &splane, 

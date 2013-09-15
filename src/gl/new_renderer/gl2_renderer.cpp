@@ -47,6 +47,7 @@
 #include "gl/common/glc_translate.h"
 #include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
+#include "gl/common/glc_clock.h"
 
 
 void R_SetupFrame (AActor * camera);
@@ -77,6 +78,7 @@ GL2Renderer::~GL2Renderer()
 	if (mRender2D != NULL) delete mRender2D;
 	if (mDefaultMaterial != NULL) delete mDefaultMaterial;
 	if (mSkyDrawer != NULL) delete mSkyDrawer;
+	if (mGlobalDrawInfo != NULL) delete mGlobalDrawInfo;
 }
 
 //===========================================================================
@@ -93,6 +95,7 @@ void GL2Renderer::Initialize()
 	mRender2D = new FPrimitiveBuffer2D;
 	mDefaultMaterial = new FMaterialContainer(NULL);
 	mSkyDrawer = new FSkyDrawer;
+	mGlobalDrawInfo = new GLDrawInfo;
 }
 
 //===========================================================================
@@ -116,6 +119,40 @@ void GL2Renderer::SetPaused()
 void GL2Renderer::UnsetPaused()
 {
 	gl.SetTextureMode(TM_MODULATE);
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+GLDrawInfo *GL2Renderer::StartDrawInfo(GLDrawInfo * di)
+{
+	if (!di)
+	{
+		di=di_list.GetNew();
+		di->temporary=true;
+	}
+	di->StartScene();
+	di->SetViewpoint(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
+	di->next = mCurrentDrawInfo;
+	mCurrentDrawInfo = di;
+	return di;
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void GL2Renderer::EndDrawInfo()
+{
+	GLDrawInfo * di = mCurrentDrawInfo;
+
+	mCurrentDrawInfo = di->next;
+	if (di->temporary) di_list.Release(di);
 }
 
 //===========================================================================
@@ -239,44 +276,6 @@ void GL2Renderer::SetupLevel()
 	{
 		mSectorData[i].Init(i);
 	}
-#if 0
-	mSubData = new FGLSubsectorData[numsubsectors];
-
-	TArray<int> *mSegMap = new TArray<int>[numsides];
-
-	// collect all segs, ordered by sidedef
-	for(int i=0; i<numsegs; i++)
-	{
-		int index = segs[i].linedef - lines;
-
-		if (index >= 0 && index < numsides)
-		{
-			mSegMap[index].Push(i);
-		}
-	}
-
-	for(int i=0; i<numsides; i++)
-	{
-		// sort the segs in order of appearance on the sidedef.
-		int lineside = lines[sides[i].linenum].sidenum[0] == i? 0:1;
-		vertex_t *vstart = lineside == 0? lines[sides[i].linenum].v1 : lines[sides[i].linenum].v2;
-
-		mSegMap[i].ShrinkToFit();
-		for(unsigned j = 0; j < mSegMap[i].Size(); j++)
-		{
-			for(unsigned k = j; k < mSegMap[i].Size(); k++)
-			{
-				if (segs[mSegMap[i][k]].v1 == vstart)
-				{
-					int c = mSegMap[i][j];
-					mSegMap[i][j] = mSegMap[i][k];
-					mSegMap[i][k] = c;
-					vstart = segs[mSegMap[i][j]].v2;
-				}
-			}
-		}
-	}
-#endif
 }
 
 //===========================================================================
@@ -681,13 +680,12 @@ sector_t * GL2Renderer::RenderView (AActor * camera, GL_IRECT * bounds, float fo
 
 //-----------------------------------------------------------------------------
 //
-// R_RenderPlayerView - the main rendering function
+// Called after rendering the 3D scene for HUD overlays etc.
 //
 //-----------------------------------------------------------------------------
 
-void GL2Renderer::RenderMainView (player_t *player, float fov, float ratio, float fovratio)
+void GL2Renderer::EndDrawScene (sector_t *viewpoint)
 {       
-	sector_t * viewsector = RenderViewpoint(player->camera, NULL, fov, ratio, fovratio, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -736,8 +734,69 @@ void GL2Renderer::SetViewMatrix(bool mirror, bool planemirror)
 //
 //-----------------------------------------------------------------------------
 
+void GL2Renderer::CollectScene()
+{
+	// reset the portal manager
+	//GLPortal::StartFrame();
+
+	ProcessAll.Clock();
+
+	// clip the scene and fill the drawlists
+	gl_RenderBSPNode (nodes + numnodes - 1);
+
+	// And now the crappy hacks that have to be done to avoid rendering anomalies:
+
+	mCurrentDrawInfo->HandleMissingTextures();	// Missing upper/lower textures
+	mCurrentDrawInfo->HandleHackedSubsectors();	// open sector hacks for deep water
+	mCurrentDrawInfo->ProcessSectorStacks();		// merge visplanes of sector stacks
+
+	ProcessAll.Unclock();
+}
+
+//-----------------------------------------------------------------------------
+//
+// gl_drawscene - this function renders the scene from the current
+// viewpoint, including mirrors and skyboxes and other portals
+// It is assumed that the GLPortal::EndFrame returns with the 
+// stencil, z-buffer and the projection matrix intact!
+//
+//-----------------------------------------------------------------------------
+
+void GL2Renderer::DrawScene()
+{
+	static int recursion=0;
+
+	CollectScene();
+
+	/*
+	RenderScene(recursion);
+
+	// Handle all portals after rendering the opaque objects but before
+	// doing all translucent stuff
+	recursion++;
+	GLPortal::EndFrame();
+	recursion--;
+
+	RenderTranslucent();
+	*/
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+//
+//
+//-----------------------------------------------------------------------------
+
 void GL2Renderer::ProcessScene()
 {
+
+	StartDrawInfo(mGlobalDrawInfo);
+	DrawScene();
+	EndDrawInfo();
+
+	/*
 	// for testing. The sky must be rendered with depth buffer disabled.
 	gl.Disable(GL_DEPTH_TEST);	
 	// Just a quick hack to check the features
@@ -748,7 +807,7 @@ void GL2Renderer::ProcessScene()
 	else
 	{
 		mSkyDrawer->RenderSky(sky1texture, FNullTextureID(), 0x80ffffff, mSky1Pos, mSky2Pos, 0);
-	}
+	}*/
 }
 
 }

@@ -255,8 +255,51 @@ sector_t * GLRendererBase::RenderViewpoint (AActor * camera, GL_IRECT * bounds, 
 //
 //-----------------------------------------------------------------------------
 
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+extern char myGlBeginCharArray[4];
+int crashoutTic = 0;
+#endif
+
 void GLRendererBase::RenderView (player_t* player)
 {
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
+	// and deactivating itself at the right time interval.
+	{
+		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
+		{
+			I_FatalError ( "OpenGL malfunction encountered.\n" );
+		}
+		else
+		{
+			// [BB] Most GL wallhacks deactivate GL_DEPTH_TEST by manipulating glBegin.
+			// Here we try check if this is done.
+			GLboolean oldValue;
+			glGetBooleanv ( GL_DEPTH_TEST, &oldValue );
+			gl.Enable ( GL_DEPTH_TEST );
+			gl.Begin( GL_TRIANGLE_STRIP );
+			gl.End();
+			GLboolean valueTrue;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueTrue );
+
+			// [BB] Also check if glGetBooleanv simply always returns true.
+			gl.Disable ( GL_DEPTH_TEST );
+			GLboolean valueFalse;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueFalse );
+
+			if ( ( valueTrue == false ) || ( valueFalse == true ) )
+			{
+				I_FatalError ( "OpenGL malfunction encountered.\n" );
+			}
+
+			if ( oldValue )
+				gl.Enable ( GL_DEPTH_TEST );
+			else
+				gl.Disable ( GL_DEPTH_TEST );
+		}
+	}
+#endif
+
 	AActor *&LastCamera = static_cast<OpenGLFrameBuffer*>(screen)->LastCamera;
 
 	if (player->camera != LastCamera)
@@ -312,7 +355,9 @@ void GLRendererBase::RenderView (player_t* player)
 	}
 
 	SetFixedColormap (player);
-	RenderMainView(player, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio);
+
+	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true);
+	EndDrawScene(viewsector);
 
 	All.Unclock();
 }

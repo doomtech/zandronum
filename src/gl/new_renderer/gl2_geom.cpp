@@ -79,9 +79,7 @@ void FSectorRenderData::Init(int sector)
 //
 //===========================================================================
 
-void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane,
-						FSubsectorPrimitive *prim, int vertstart, FVertex3D *vert,
-						subsector_t *sub)
+void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane, FVertex3D *modelvert, FVertex3D *vert, subsector_t *sub)
 {
 
 	Matrix3x4 matx;
@@ -90,16 +88,11 @@ void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane,
 	splane.GetFromSector(mSector, !plane->mUpside);
 	MakeTextureMatrix(splane, plane->mMat, matx);
 	
-	prim->mSubsector = int(sub - subsectors);
-	prim->mPrimitive = mPrimitives[plane->mPrimitiveIndex].mPrimitive;
-	prim->mPrimitive.mVertexCount = sub->numlines;
-	prim->mPrimitive.mVertexStart = vertstart;
-
 	for(int j=0; j<sub->numlines; j++, vert++)
 	{
 		vertex_t *v = segs[sub->firstline + j].v1;
 
-		*vert = mVertices[prim->mPrimitive.mVertexStart];
+		*vert = *modelvert;
 		vert->x = v->fx;
 		vert->y = v->fy;
 		vert->z = plane->mPlane.ZatPoint(v->fx, v->fy);
@@ -171,6 +164,7 @@ void FSectorRenderData::CreatePlane(FSectorPlaneObject *plane,
 	BasicProps.mPrimitiveType = GL_TRIANGLE_FAN;	// all subsectors are drawn as triangle fans
 	BasicProps.mDesaturation = cm->Desaturate;
 	BasicVertexProps.SetLighting(lightlevel, cm, 0/*rellight*/, additive, tex);
+	if (tex->gl_info.bFullbright) BasicVertexProps.r = BasicVertexProps.g = BasicVertexProps.b = 255;
 	BasicVertexProps.a = (unsigned char)quickertoint(alpha*255);
 
 
@@ -286,6 +280,7 @@ void FSectorRenderData::Validate(area_t in_area)
 				Colormap.Desaturate = (light->extra_colormap)->Desaturate;
 			}
 			splane.GetFromSector(sec, true);
+			area->mCeiling.mPlaneType = SSRF_RENDERCEILING;
 			CreatePlane(&area->mCeiling, in_area, sec, splane, lightlevel, &Colormap, alpha, false, false, !stack);
 		}
 		else area->mCeiling.mPrimitiveIndex = -1;
@@ -310,6 +305,7 @@ void FSectorRenderData::Validate(area_t in_area)
 			}
 			splane.GetFromSector(sec, false);
 			if (sec->transdoor) splane.plane.d -= 1;
+			area->mCeiling.mPlaneType = SSRF_RENDERFLOOR;
 			CreatePlane(&area->mFloor, in_area, sec, splane, lightlevel, &Colormap, alpha, false, true, !stack);
 		}
 		else area->mFloor.mPrimitiveIndex = -1;
@@ -349,6 +345,7 @@ void FSectorRenderData::Validate(area_t in_area)
 							SET_COLOR();
 
 							FSectorPlaneObject *obj = &area->m3DFloorsC[area->m3DFloorsC.Reserve(1)];
+							obj->mPlaneType = SSRF_RENDER3DPLANES;
 							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
 								!!(rover->flags&FF_ADDITIVETRANS), false, false);
 							lastceilingheight = ff_top;
@@ -367,6 +364,7 @@ void FSectorRenderData::Validate(area_t in_area)
 							SET_COLOR();
 
 							FSectorPlaneObject *obj = &area->m3DFloorsC[area->m3DFloorsC.Reserve(1)];
+							obj->mPlaneType = SSRF_RENDER3DPLANES;
 							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
 								!!(rover->flags&FF_ADDITIVETRANS), false, false);
 
@@ -407,6 +405,7 @@ void FSectorRenderData::Validate(area_t in_area)
 							}
 
 							FSectorPlaneObject *obj = &area->m3DFloorsF[area->m3DFloorsF.Reserve(1)];
+							obj->mPlaneType = SSRF_RENDER3DPLANES;
 							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
 								!!(rover->flags&FF_ADDITIVETRANS), true, false);
 
@@ -427,6 +426,7 @@ void FSectorRenderData::Validate(area_t in_area)
 							SET_COLOR();
 
 							FSectorPlaneObject *obj = &area->m3DFloorsF[area->m3DFloorsF.Reserve(1)];
+							obj->mPlaneType = SSRF_RENDER3DPLANES;
 							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
 								!!(rover->flags&FF_ADDITIVETRANS), true, false);
 
@@ -450,7 +450,7 @@ void FSectorRenderData::Validate(area_t in_area)
 void FSectorRenderData::Process(subsector_t *sub, area_t in_area)
 {
 	extsector_t::xfloor &x = mSector->e->XFloor;
-	GLDrawInfo *di = GLRenderer2->mDrawInfo;
+	GLDrawInfo *di = GLRenderer2->mCurrentDrawInfo;
 	int subno = sub - subsectors;
 
 	di->ss_renderflags[subno] |= SSRF_PROCESSED;
@@ -542,6 +542,77 @@ void FSectorRenderData::Process(subsector_t *sub, area_t in_area)
 			}
 		}
 	}
+}
+
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FSectorRenderData::CreatePlanePrimitives(GLDrawInfo *di, FSectorPlaneObject *plane, FPrimitiveBuffer3D *buffer)
+{
+	int renderflags = plane->mPlaneType;
+	bool istrans = plane->mAlpha;
+	FPrimitive3D *prim;
+	FVertex3D *verts;
+	bool copied = false;
+	FSubsectorPrimitive *ssprim = &mPrimitives[plane->mPrimitiveIndex];
+
+	/* don't know yet if it's needed
+	if (sub)
+	{
+		// This represents a single subsector
+		DrawSubsector(sub);
+	}
+	else
+	*/
+	{
+		// Draw the subsectors belonging to this sector
+		for (int i=0; i<mSector->subsectorcount; i++)
+		{
+			subsector_t * sub = mSector->subsectors[i];
+
+			// This is just a quick hack to make translucent 3D floors and portals work.
+			if (di->ss_renderflags[sub-subsectors]&renderflags || istrans)
+			{
+				int numverts = ssprim->mPrimitive.mVertexCount;
+				int primidx = buffer->NewPrimitive(numverts, prim, verts);
+				if (!copied) 
+				{
+					prim->Copy(&ssprim->mPrimitive);
+					copied = true;
+				}
+				else
+				{
+					prim->mCopy = true;
+					prim->mPrimitiveType = ssprim->mPrimitive.mPrimitiveType;
+				}
+				memcpy(verts, &mVertices[ssprim->mPrimitive.mVertexStart], numverts * sizeof(FVertex3D));
+			}
+		}
+
+		// Draw the subsectors assigned to it due to missing textures
+		if (!(renderflags&SSRF_RENDER3DPLANES && copied))
+		{
+			gl_subsectorrendernode * node = (renderflags&SSRF_RENDERFLOOR)?
+				di->GetOtherFloorPlanes(mSector->sectornum) :
+				di->GetOtherCeilingPlanes(mSector->sectornum);
+
+			while (node)
+			{
+				int numverts = node->sub->numlines;
+				int primidx = buffer->NewPrimitive(numverts, prim, verts);
+
+				prim->mCopy = true;
+				prim->mPrimitiveType = GL_TRIANGLE_FAN;
+				CreateDynamicPrimitive(plane, &mVertices[ssprim->mPrimitive.mVertexCount], verts, node->sub);
+				node = node->next;
+			}
+		}
+	}
+
 }
 
 
