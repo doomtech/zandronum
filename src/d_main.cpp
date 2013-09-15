@@ -558,6 +558,7 @@ CVAR (Flag, sv_applylmsspectatorsettings,	dmflags3, DF3_ALWAYS_APPLY_LMS_SPECTAT
 CVAR (Flag, sv_nocoopinfo,			dmflags3, DF3_NO_COOP_INFO);
 CVAR (Flag, sv_unblockplayers,			dmflags3, DF3_UNBLOCK_PLAYERS);
 CVAR (Flag, sv_nomedals,			dmflags3, DF3_NO_MEDALS);
+CVAR (Flag, sv_sharekeys,			dmflags3, DF3_SHARE_KEYS);
 
 //==========================================================================
 //
