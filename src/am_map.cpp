@@ -1445,7 +1445,7 @@ static bool AM_CheckSecret(line_t *line)
 {
 	if (line->frontsector != NULL)
 	{
-		if (line->frontsector->oldspecial)
+		if (line->frontsector->secretsector)
 		{
 			if (am_map_secrets!=0 && !(line->frontsector->special&SECRET_MASK)) return true;
 			if (am_map_secrets==2 && !(line->flags & ML_SECRET)) return true;
@@ -1453,7 +1453,7 @@ static bool AM_CheckSecret(line_t *line)
 	}
 	if (line->backsector != NULL)
 	{
-		if (line->backsector->oldspecial)
+		if (line->backsector->secretsector)
 		{
 			if (am_map_secrets!=0 && !(line->backsector->special&SECRET_MASK)) return true;
 			if (am_map_secrets==2 && !(line->flags & ML_SECRET)) return true;

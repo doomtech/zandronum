@@ -4567,15 +4567,21 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	// [Spleen]
 	UNLAGGED_Restore( source );
 	
+	// Hurt anything the trace hit
+	unsigned int i;
+	AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
+	FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
+
+	// used as damage inflictor
+	AActor *thepuff = NULL;
+	
+	if (puffclass != NULL) thepuff = Spawn (puffclass, source->x, source->y, source->z, ALLOW_REPLACE);
+
 	// [Spleen] Don't do damage, don't award medals, don't spawn puffs,
 	// and don't spawn blood in clients on a network.
+	// [BB] Actually client spawn the puffs to draw decals / splashes.
 	if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
-		// Hurt anything the trace hit
-		unsigned int i;
-		AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
-		FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
-
 		for (i = 0; i < RailHits.Size (); i++)
 		{
 			fixed_t x, y, z;
@@ -4600,9 +4606,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			{
 				// Support for instagib.
 				if ( instagib )
-					P_DamageMobj (RailHits[i].HitActor, source, source, 999, damagetype, DMG_NO_ARMOR);
+					P_DamageMobj (RailHits[i].HitActor, thepuff? thepuff:source, source, 999, damagetype, DMG_NO_ARMOR|DMG_INFLICTOR_IS_PUFF);
 				else
-					P_DamageMobj (RailHits[i].HitActor, source, source, damage, damagetype, DMG_NO_ARMOR);
+					P_DamageMobj (RailHits[i].HitActor, thepuff? thepuff:source, source, damage, damagetype, DMG_NO_ARMOR|DMG_INFLICTOR_IS_PUFF);
 			}
 
 			if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
@@ -4649,22 +4655,20 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		trace.CrossedWater == NULL &&
 		trace.Sector->heightsec == NULL)
 	{
-		AActor *thepuff = Spawn (puffclass, trace.X, trace.Y, trace.Z, ALLOW_REPLACE);
 		if (thepuff != NULL)
 		{
+			thepuff->SetOrigin(trace.X, trace.Y, trace.Z);
 			P_HitWater (thepuff, trace.Sector);
-			thepuff->Destroy ();
 		}
 	}
 	if (trace.CrossedWater)
 	{
-		AActor *thepuff = Spawn (puffclass, 0, 0, 0, ALLOW_REPLACE);
 		if (thepuff != NULL)
 		{
 			SpawnDeepSplash (source, trace, thepuff, vx, vy, vz, shootz);
-			thepuff->Destroy ();
 		}
 	}
+	thepuff->Destroy ();
 
 	// Draw the slug's trail.
 	end.X = FIXED2FLOAT(trace.X);
