@@ -1,8 +1,19 @@
 cmake_minimum_required( VERSION 2.4 )
 
-set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where the pk3 files and executable will be created" )
+IF( NOT CMAKE_BUILD_TYPE )
+	SET( CMAKE_BUILD_TYPE Debug CACHE STRING
+		"Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+		FORCE )
+ENDIF( NOT CMAKE_BUILD_TYPE )
+
+set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where zdoom.pk3 and the executable will be created." )
 set( ZDOOM_EXE_NAME "zandronum" CACHE FILEPATH "Name of the executable to create" )
 
+if( CMAKE_COMPILER_IS_GNUCXX )
+	set( PROFILE CACHE 0 BOOL "Enable profiling with gprof for Debug and RelWithDebInfo build types." )
+endif( CMAKE_COMPILER_IS_GNUCXX )
+
+find_package( BZip2 )
 find_package( JPEG )
 find_package( ZLIB )
 
@@ -58,6 +69,13 @@ set( CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} ${REL_C_FLAGS}" )
 set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${REL_C_FLAGS}" )
 set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEB_C_FLAGS} -D_DEBUG" )
 
+if( CMAKE_COMPILER_IS_GNUCXX AND PROFILE )
+	set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg" )
+	set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg" )
+	set( CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -pg" )
+	set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -pg" )
+endif( CMAKE_COMPILER_IS_GNUCXX AND PROFILE )
+	
 if( ZLIB_FOUND )
 	message( STATUS "Using system zlib" )
 else( ZLIB_FOUND )
@@ -78,10 +96,18 @@ else( JPEG_FOUND )
 	set( JPEG_LIBRARY jpeg )
 endif( JPEG_FOUND )
 
-set( BZIP2_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bzip2" )
+if( BZIP2_FOUND )
+	message( STATUS "Using system bzip2 library" )
+else( BZIP2_FOUND )
+	message( STATUS "Using internal bzip2 library" )
+	add_subdirectory( bzip2 )
+	set( BZIP2_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bzip2" )
+	set( BZIP2_LIBRARIES bz2 )
+	set( BZIP2_LIBRARY bz2 )
+endif( BZIP2_FOUND)
+
 set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lzma/C" )
 
-add_subdirectory( bzip2 )
 # [BB] Library that allows to map IP addresses to country names.
 add_subdirectory( GeoIP )
 # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.

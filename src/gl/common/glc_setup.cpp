@@ -505,7 +505,7 @@ static void SetupDependencies()
 	}
 
 	delete checkmap;
-	delete vt_linelists;
+	delete [] vt_linelists;
 }
 
 
@@ -516,7 +516,7 @@ static void SetupDependencies()
 //==========================================================================
 static void AddToVertex(const sector_t * sec, TArray<int> & list)
 {
-	int secno=sec-sectors;
+	int secno = int(sec-sectors);
 
 	for(unsigned i=0;i<list.Size();i++)
 	{
