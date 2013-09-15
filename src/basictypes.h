@@ -45,9 +45,6 @@ typedef	int						INT;
 #ifndef USE_WINDOWS_DWORD
 typedef uint32					DWORD;
 #endif
-#ifdef __GNUC__
-typedef uint32					DWORD;
-#endif
 typedef uint32					BITFIELD;
 typedef int						INTBOOL;
 

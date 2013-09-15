@@ -160,7 +160,7 @@ void FWadCollection::DeleteAll ()
 //
 //==========================================================================
 
-void FWadCollection::InitMultipleFiles (wadlist_t **filenames, const char *loaddir)
+void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 {
 	int numfiles;
 
@@ -172,19 +172,11 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames, const char *loadd
 	{
 		wadlist_t *next = (*filenames)->next;
 		int baselump = NumLumps;
-		char name[PATH_MAX];
-
-		// [RH] Automatically append .wad extension if none is specified.
-		strcpy (name, (*filenames)->name);
-		FixPathSeperator (name);
-		DefaultExtension (name, ".wad");
-
 		// [BC] Added the "loaded automatically" parameter.
-		AddFile (name, NULL, false, (*filenames)->bLoadedAutomatically);
+		AddFile ((*filenames)->name, NULL, (*filenames)->bLoadedAutomatically);
 		M_Free (*filenames);
 		*filenames = next;
 	}
-	if (loaddir != NULL) AddFile(loaddir, NULL, true);
 
 	NumLumps = LumpInfo.Size();
 	if (NumLumps == 0)
@@ -232,9 +224,20 @@ int FWadCollection::AddExternalFile(const char *filename)
 //==========================================================================
 
 // [BC] Edited a little.
-void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool isdir, bool bLoadedAutomatically)
+void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
 {
-	int				startlump;
+	int startlump;
+	bool isdir;
+
+	// Does this exist? If so, is it a directory?
+	struct stat info;
+	if (stat(filename, &info) != 0)
+	{
+		Printf(TEXTCOLOR_RED "Could not stat %s\n", filename);
+		PrintLastError();
+		return;
+	}
+	isdir = (info.st_mode & S_IFDIR) != 0;
 
 	if (wadinfo == NULL && !isdir)
 	{
@@ -258,8 +261,10 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool is
 
 	FResourceFile *resfile;
 	
-	if (!isdir) resfile = FResourceFile::OpenResourceFile(filename, wadinfo);
-	else resfile = FResourceFile::OpenDirectory(filename);
+	if (!isdir)
+		resfile = FResourceFile::OpenResourceFile(filename, wadinfo);
+	else
+		resfile = FResourceFile::OpenDirectory(filename);
 
 	if (resfile != NULL)
 	{
@@ -295,7 +300,7 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool is
 				strcpy(wadstr, lump->FullName);
 
 				// [BB] We consider all embedded files as being loaded automatically.
-				AddFile(wadstr, embedded, false, true);
+				AddFile(wadstr, embedded, true);
 			}
 		}
 		return;

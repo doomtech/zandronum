@@ -28,6 +28,14 @@ gamedir will hold progdir + the game directory (id1, id2, etc)
 
 FString progdir;
 
+//==========================================================================
+//
+// IsSeperator
+//
+// Returns true if the character is a path seperator.
+//
+//==========================================================================
+
 static inline bool IsSeperator (int c)
 {
 	if (c == '/')
@@ -39,6 +47,14 @@ static inline bool IsSeperator (int c)
 	return false;
 }
 
+//==========================================================================
+//
+// FixPathSeperator
+//
+// Convert backslashes to forward slashes.
+//
+//==========================================================================
+
 void FixPathSeperator (char *path)
 {
 	while (*path)
@@ -48,6 +64,14 @@ void FixPathSeperator (char *path)
 		path++;
 	}
 }
+
+//==========================================================================
+//
+// copystring
+//
+// Replacement for strdup that uses new instead of malloc.
+//
+//==========================================================================
 
 char *copystring (const char *s)
 {
@@ -66,6 +90,13 @@ char *copystring (const char *s)
 	return b;
 }
 
+//==========================================================================
+//
+// ReplaceString
+//
+// Do not use in new code.
+//
+//==========================================================================
 
 void ReplaceString (char **ptr, const char *str)
 {
@@ -87,11 +118,12 @@ void ReplaceString (char **ptr, const char *str)
 */
 
 
-/*
-================
-Q_filelength
-================
-*/
+//==========================================================================
+//
+// Q_filelength
+//
+//==========================================================================
+
 int Q_filelength (FILE *f)
 {
 	int		pos;
@@ -106,17 +138,20 @@ int Q_filelength (FILE *f)
 }
 
 
-/*
-==============
-FileExists
-==============
-*/
+//==========================================================================
+//
+// FileExists
+//
+// Returns true if the given path exists and is a readable file.
+//
+//==========================================================================
+
 bool FileExists (const char *filename)
 {
 	FILE *f;
 
 	// [RH] Empty filenames are never there
-	if (*filename == 0)
+	if (filename == NULL || *filename == 0)
 		return false;
 
 	f = fopen (filename, "r");
@@ -125,6 +160,31 @@ bool FileExists (const char *filename)
 	fclose (f);
 	return true;
 }
+
+//==========================================================================
+//
+// DirEntryExists
+//
+// Returns true if the given path exists, be it a directory or a file.
+//
+//==========================================================================
+
+bool DirEntryExists(const char *pathname)
+{
+	if (pathname == NULL || *pathname == 0)
+		return false;
+
+	struct stat info;
+	return stat(pathname, &info) == 0;
+}
+
+//==========================================================================
+//
+// DefaultExtension		-- char array version
+//
+// Appends the extension to a pathname if it does not already have one.
+//
+//==========================================================================
 
 void DefaultExtension (char *path, const char *extension)
 {
@@ -144,6 +204,14 @@ void DefaultExtension (char *path, const char *extension)
 
 	strcat (path, extension);
 }
+
+//==========================================================================
+//
+// DefaultExtension		-- FString version
+//
+// Appends the extension to a pathname if it does not already have one.
+//
+//==========================================================================
 
 void DefaultExtension (FString &path, const char *extension)
 {
@@ -183,13 +251,17 @@ void ForceExtension( char *pszPath, const char *pszExtension )
 }
 
 
-/*
-====================
-Extract file parts
-====================
-*/
+//==========================================================================
+//
+// ExtractFilePath
+//
+// Returns the directory part of a pathname.
+//
 // FIXME: should include the slash, otherwise
 // backing to an empty path will be wrong when appending a slash
+//
+//==========================================================================
+
 FString ExtractFilePath (const char *path)
 {
 	const char *src;
@@ -204,6 +276,14 @@ FString ExtractFilePath (const char *path)
 
 	return FString(path, src - path);
 }
+
+//==========================================================================
+//
+// ExtractFileBase
+//
+// Returns the file part of a pathname, optionally including the extension.
+//
+//==========================================================================
 
 FString ExtractFileBase (const char *path, bool include_extension)
 {
@@ -244,11 +324,12 @@ FString ExtractFileBase (const char *path, bool include_extension)
 }
 
 
-/*
-==============
-ParseNum / ParseHex
-==============
-*/
+//==========================================================================
+//
+// ParseHex
+//
+//==========================================================================
+
 int ParseHex (const char *hex)
 {
 	const char *str;
@@ -276,6 +357,11 @@ int ParseHex (const char *hex)
 	return num;
 }
 
+//==========================================================================
+//
+// ParseNum
+//
+//==========================================================================
 
 int ParseNum (const char *str)
 {
@@ -286,8 +372,13 @@ int ParseNum (const char *str)
 	return atol (str);
 }
 
-
+//==========================================================================
+//
+// IsNum
+//
 // [RH] Returns true if the specified string is a valid decimal number
+//
+//==========================================================================
 
 bool IsNum (const char *str)
 {
@@ -302,7 +393,13 @@ bool IsNum (const char *str)
 	return true;
 }
 
+//==========================================================================
+//
+// CheckWildcards
+//
 // [RH] Checks if text matches the wildcard pattern using ? or *
+//
+//==========================================================================
 
 bool CheckWildcards (const char *pattern, const char *text)
 {
@@ -340,7 +437,13 @@ bool CheckWildcards (const char *pattern, const char *text)
 	return (*pattern | *text) == 0;
 }
 
+//==========================================================================
+//
+// FormatGUID
+//
 // [RH] Print a GUID to a text buffer using the standard format.
+//
+//==========================================================================
 
 void FormatGUID (char *buffer, size_t buffsize, const GUID &guid)
 {
@@ -352,7 +455,14 @@ void FormatGUID (char *buffer, size_t buffsize, const GUID &guid)
 		guid.Data4[6], guid.Data4[7]);
 }
 
+//==========================================================================
+//
+// myasctime
+//
 // [RH] Returns the current local time as ASCII, even if it's too early
+//
+//==========================================================================
+
 const char *myasctime ()
 {
 	time_t clock;
@@ -370,10 +480,13 @@ const char *myasctime ()
 	}
 }
 
-/************************************************************************/
-/* CreatePath: creates a directory including all levels necessary    	*/
-/*																		*/
-/************************************************************************/
+//==========================================================================
+//
+// CreatePath
+//
+// Creates a directory including all levels necessary
+//
+//==========================================================================
 #ifdef _WIN32
 void DoCreatePath(const char *fn)
 {
@@ -441,8 +554,14 @@ exists:	if (p != NULL)
 }
 #endif
 
+//==========================================================================
+//
+// strbin1	-- In-place version
+//
 // [RH] Replaces the escape sequences in a string with actual escaped characters.
 // This operation is done in-place. The result is the new length of the string.
+//
+//==========================================================================
 
 int strbin (char *str)
 {
@@ -532,8 +651,14 @@ int strbin (char *str)
 	return int(str - start);
 }
 
+//==========================================================================
+//
+// strbin1	-- String-creating version
+//
 // [RH] Replaces the escape sequences in a string with actual escaped characters.
-// This operation is done in-place. The result is the new length of the string.
+// This operation is done in-place.
+//
+//==========================================================================
 
 FString strbin1 (const char *start)
 {

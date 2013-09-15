@@ -1551,7 +1551,7 @@ void D_AddFile (const char *file, bool check, bool bLoadedAutomatically)
 		return;
 	}
 
-	if (check && !FileExists (file))
+	if (check && !DirEntryExists (file))
 	{
 		const char *f = BaseFileSearch (file, ".wad");
 		if (f == NULL)
@@ -1775,13 +1775,13 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 	if (lookfirstinprogdir)
 	{
 		mysnprintf (wad, countof(wad), "%s%s%s", progdir.GetChars(), progdir[progdir.Len() - 1] != '/' ? "/" : "", file);
-		if (FileExists (wad))
+		if (DirEntryExists (wad))
 		{
 			return wad;
 		}
 	}
 
-	if (FileExists (file))
+	if (DirEntryExists (file))
 	{
 		mysnprintf (wad, countof(wad), "%s", file);
 		return wad;
@@ -1802,7 +1802,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 				if (dir.IsNotEmpty())
 				{
 					mysnprintf (wad, countof(wad), "%s%s%s", dir.GetChars(), dir[dir.Len() - 1] != '/' ? "/" : "", file);
-					if (FileExists (wad))
+					if (DirEntryExists (wad))
 					{
 						return wad;
 					}
@@ -2123,11 +2123,8 @@ void D_DoomMain (void)
 	files2->Destroy();
 	files3->Destroy();
 
-	const char *loaddir = Args->CheckValue("-dir");
-	// FIXME: consider the search path list for directory, too.
-
 	Printf ("W_Init: Init WADfiles.\n");
-	Wads.InitMultipleFiles (&wadfiles, loaddir);
+	Wads.InitMultipleFiles (&wadfiles);
 
 	// Initialize the chat module.
 	CHAT_Construct( );
