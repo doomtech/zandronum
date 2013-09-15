@@ -25,14 +25,35 @@ public:
 
 struct FVertex3D
 {
+	float x,z,y;				// coordinates (note that y and z are switched!)
+	float u,v;					// texture coordinates (in world coordinates!)
+};
+
+enum ERenderMode3D
+{
+	PR_PRIM=1,
+	PR_TEXTURE = 2,
+	PR_LIGHTING = 4,
+};
+
+struct FPrimitive3D
+{
 	enum {
 		FOG_BLACK = 0,
 		FOG_COLOR = 255,
 		FOG_NONE = 128
 	};
 
-	float x,z,y;				// coordinates (note that y and z are switched!)
-	float u,v;					// texture coordinates (in world coordinates!)
+	int mPrimitiveType;
+	int mVertexStart;
+	int mVertexCount;
+
+	int mTexId;	
+	float mAlphaThreshold;
+	bool mTranslucent;
+	bool mCopy;	// same info as last one. Used to avoid unnecessary checks
+
+	// per object lighting data
 	unsigned char r,g,b,a;		// light color
 	unsigned char fr,fg,fb,fon;	// fog color
 	unsigned char tr,tg,tb,td;	// ceiling glow
@@ -43,62 +64,20 @@ struct FVertex3D
 	float glowdisttop;			// distance from glowing ceiling plane
 	float glowdistbottom;		// distance from glowing floor plane
 
-	void SetLighting(int lightlevel, FDynamicColormap *cm, int extralight, bool additive, FTexture *tex);
-};
-
-struct FPrimitive3D
-{
-	int mPrimitiveType;
-	int mVertexStart;
-	int mVertexCount;
-
-	union
-	{
-		FMaterial *mMaterial;
-		// can't use FTextureID here because that would create a constructor for this class.
-		// This is not good because it would add completely unnecessary overhead to the rendering code.
-		int mTexId;	
-	};
-		
-	int mClamp;
-	int mTextureMode;
-	int mDesaturation;
-	float mAlphaThreshold;
-	bool mTranslucent;
-	bool mCopy;	// same info as last one. Used to avoid unnecessary checks
-
+	// Render state
 	int mSrcBlend;
 	int mDstBlend;
 	int mBlendEquation;
+	int mTextureMode;
+	int mDesaturation;
+	int mClamp;
 
-	void Draw();
+	void Render(int mode, FVertex3D *vstart);
 	void SetRenderStyle(FRenderStyle style, bool opaque, bool allowcolorblending = false);
-	void Copy(FPrimitive3D *other);
+	void SetLighting(int lightlevel, FDynamicColormap *cm, int extralight, bool additive, FTexture *tex);
+
+	static void DrawPrimitive(int ptype, FVertex3D *vert, int numverts);
 };
-
-class FVertexBuffer3D : public FVertexBuffer
-{
-	int mMaxSize;
-public:
-	FVertexBuffer3D(int size);
-	bool Bind();
-
-	int GetSize() const
-	{
-		return mMaxSize;
-	}
-
-	void ChangeSize(int newsize)
-	{
-		mMaxSize = newsize;
-	}
-
-	FVertex3D *GetVertexPointer(int vt) const
-	{
-		return ((FVertex3D*)mMap)+vt;
-	}
-};
-
 
 struct FVertex2D
 {
@@ -174,29 +153,6 @@ struct FPrimitive2D
 
 	void Draw();
 };
-
-class FPrimitiveBuffer3D
-{
-	enum
-	{
-		BUFFER_START = 25000,	// This is what the full console initially needs so it's a good start.
-		BUFFER_INCREMENT = 5000,
-		BUFFER_MAXIMUM = 200000
-	};
-
-	TArray<FPrimitive3D> mPrimitives;
-	int mCurrentVertexIndex;
-	int mCurrentVertexBufferSize;
-	FVertexBuffer3D *mVertexBuffer;
-
-public:
-	FPrimitiveBuffer3D();
-	~FPrimitiveBuffer3D();
-	int NewPrimitive(int vertexcount, FPrimitive3D *&primptr, FVertex3D *&vertptr);
-	bool CheckPrimitive(int type, int newvertexcount, FVertex3D *&vertptr);
-	void Flush();
-};
-
 
 class FPrimitiveBuffer2D
 {

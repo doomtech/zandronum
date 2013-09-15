@@ -27,7 +27,6 @@ public:
 	FGLTextureManager *mTextures;
 	TArray<FMaterialContainer *> mMaterials;
 	FPrimitiveBuffer2D *mRender2D;
-	FPrimitiveBuffer3D *mRender3D;
 	FMaterialContainer *mDefaultMaterial;
 	FSkyDrawer *mSkyDrawer;
 	GLDrawInfo *mGlobalDrawInfo;
@@ -35,6 +34,7 @@ public:
 	GLDrawInfo *mCurrentDrawInfo;
 
 	TArray<FSectorRenderData> mSectorData;
+	TArray<FWallRenderData> mWallData;
 	FreeList<GLDrawInfo> di_list;
 
 	GL2Renderer() 
@@ -42,7 +42,6 @@ public:
 		mShaders = NULL;
 		mTextures = NULL;
 		mRender2D = NULL;
-		mRender3D = NULL;
 		mDefaultMaterial = NULL;
 		mSkyDrawer = NULL;
 		mGlobalDrawInfo = NULL;
@@ -166,12 +165,18 @@ public:
 			{
 				FSectorPlaneObject *spo = (FSectorPlaneObject *)ro;
 				FSectorRenderData *srd = &GLRenderer2->mSectorData[spo->mSector - sectors];
-				srd->CreatePlanePrimitives(GLRenderer2->mCurrentDrawInfo, spo, GLRenderer2->mRender3D);
+				srd->CreatePrimitives(GLRenderer2->mCurrentDrawInfo, spo);
+				break;
+			}
+			case FRenderObject::RO_WALL:
+			{
+				FWallObject *wo = (FWallObject *)ro;
+				FWallRenderData *wrd = &GLRenderer2->mWallData[wo->mSide - sides];
+				wrd->CreatePrimitives(GLRenderer2->mCurrentDrawInfo, wo);
 				break;
 			}
 			}
 		}
-		GLRenderer2->mRender3D->Flush();
 	}
 
 

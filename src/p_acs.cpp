@@ -2466,9 +2466,9 @@ void DLevelScript::SetLineTexture (int lineid, int side, int position, int name)
 	{
 		side_t *sidedef;
 
-		if (lines[linenum].sidenum[side] == NO_SIDE)
+		sidedef = lines[linenum].sidedef[side];
+		if (sidedef == NULL)
 			continue;
-		sidedef = sides + lines[linenum].sidenum[side];
 
 		// [BC] Line texture changed during the course of the level.
 		{
@@ -2551,9 +2551,9 @@ void DLevelScript::ReplaceTextures (int fromnamei, int tonamei, int flags)
 					// [BB] We have to mark the texture as changed to restore it when the map resets.
 					ULONG ulShift = 0;
 					ulShift += j;
-					if ( (int)lines[wal->linenum].sidenum[1] == i )
+					if ( wal->linedef->sidedef[1] == wal )
 						ulShift += 3;
-					lines[wal->linenum].ulTexChangeFlags |= 1 << ulShift;
+					wal->linedef->ulTexChangeFlags |= 1 << ulShift;
 				}
 			}
 		}
@@ -3417,15 +3417,15 @@ int DLevelScript::SideFromID(int id, int side)
 	if (id == 0)
 	{
 		if (activationline == NULL) return -1;
-		if (activationline->sidenum[side] == NO_SIDE) return -1;
-		return sides[activationline->sidenum[side]].Index;
+		if (activationline->sidedef[side] == NULL) return -1;
+		return activationline->sidedef[side]->Index;
 	}
 	else
 	{
 		int line = P_FindLineFromID(id, -1);
 		if (line == -1) return -1;
-		if (lines[line].sidenum[side] == NO_SIDE) return -1;
-		return sides[lines[line].sidenum[side]].Index;
+		if (lines[line].sidedef[side] == NULL) return -1;
+		return lines[line].sidedef[side]->Index;
 	}
 }
 
@@ -6346,7 +6346,7 @@ int DLevelScript::RunScript ()
 		case PCD_GETLINEROWOFFSET:
 			if (activationline)
 			{
-				PushToStack (sides[activationline->sidenum[0]].GetTextureYOffset(side_t::mid) >> FRACBITS);
+				PushToStack (activationline->sidedef[0]->GetTextureYOffset(side_t::mid) >> FRACBITS);
 			}
 			else
 			{

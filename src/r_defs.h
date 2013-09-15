@@ -173,6 +173,7 @@ public:
 //
 class DSectorEffect;
 struct sector_t;
+struct line_t;
 struct FRemapTable;
 
 enum
@@ -386,10 +387,6 @@ struct FExtraLight
 	void InsertLight (const secplane_t &plane, line_t *line, int type);
 };
 
-// this substructure contains a few sector properties that are stored in dynamic arrays
-// These must not be copied by R_FakeFlat etc. or bad things will happen.
-struct sector_t;
-
 struct FLinkedSector
 {
 	sector_t *Sector;
@@ -397,6 +394,8 @@ struct FLinkedSector
 };
 
 
+// this substructure contains a few sector properties that are stored in dynamic arrays
+// These must not be copied by R_FakeFlat etc. or bad things will happen.
 struct extsector_t
 {
 	// Boom sector transfer information
@@ -877,7 +876,8 @@ struct side_t
 	sector_t*	sector;			// Sector the SideDef is facing.
 	DBaseDecal*	AttachedDecals;	// [RH] Decals bound to the wall
 	part		textures[3];
-	DWORD		linenum;
+	line_t		*linedef;
+	//DWORD		linenum;
 	DWORD		LeftSide, RightSide;	// [RH] Group walls into loops
 	WORD		TexelLength;
 	SWORD		Light;
@@ -1036,7 +1036,8 @@ struct line_t
 	int			id;			// <--- same as tag or set with Line_SetIdentification
 	int			args[5];	// <--- hexen-style arguments (expanded to ZDoom's full width)
 	int			firstid, nextid;
-	DWORD		sidenum[2];	// sidenum[1] will be NO_SIDE if one sided
+	side_t		*sidedef[2];
+	//DWORD		sidenum[2];	// sidenum[1] will be NO_SIDE if one sided
 	fixed_t		bbox[4];	// bounding box, for the extent of the LineDef.
 	slopetype_t	slopetype;	// To aid move clipping.
 	sector_t	*frontsector, *backsector;

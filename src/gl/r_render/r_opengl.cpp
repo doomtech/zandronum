@@ -399,6 +399,10 @@ static void APIENTRY LoadExtensions()
 
 		gl->VertexAttrib1f = (PFNGLVERTEXATTRIB1FARBPROC)wglGetProcAddress("glVertexAttrib1fARB");
 		gl->VertexAttrib4f = (PFNGLVERTEXATTRIB4FARBPROC)wglGetProcAddress("glVertexAttrib4fARB");
+		gl->VertexAttrib2fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib2fvARB");
+		gl->VertexAttrib3fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib3fvARB");
+		gl->VertexAttrib4fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib4fvARB");
+		gl->VertexAttrib4ubv = (PFNGLVERTEXATTRIB4UBVARBPROC)wglGetProcAddress("glVertexAttrib4ubvARB");
 		gl->GetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC)wglGetProcAddress("glGetAttribLocationARB");
 		gl->BindAttribLocation = (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
 

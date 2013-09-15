@@ -4994,7 +4994,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::top).isValid() ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::top)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 		}
@@ -5004,7 +5004,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::mid).isValid() ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::mid)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 		}
@@ -5014,12 +5014,12 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::bottom).isValid() ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::bottom)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
 		}
 
-		if (( lines[ulLine].sidenum[1] == NO_SIDE ) || ( lines[ulLine].sidenum[1] >= (ULONG)numsides ))
+		if ( lines[ulLine].sidedef[1] == NULL )
 			continue;
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKTOP )
@@ -5027,7 +5027,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::top).isValid() ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::top)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 		}
@@ -5037,7 +5037,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::mid).isValid() ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::mid)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 		}
@@ -5047,7 +5047,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::bottom).isValid() ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::bottom)]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
 		}

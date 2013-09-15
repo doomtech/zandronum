@@ -10966,7 +10966,7 @@
 				Name="New Renderer"
 				>
 				<File
-					RelativePath=".\src\gl\new_renderer\gl2_geom.cpp"
+					RelativePath=".\src\gl\new_renderer\gl2_flats.cpp"
 					>
 				</File>
 				<File
@@ -10979,6 +10979,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\new_renderer\gl2_vertex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\new_renderer\gl2_walls.cpp"
 					>
 				</File>
 				<Filter

@@ -451,7 +451,7 @@ manual_plat:
 		{
 			if (line)
 			{
-				sec->SetTexture(sector_t::floor, sides[line->sidenum[0]].sector->GetTexture(sector_t::floor));
+				sec->SetTexture(sector_t::floor, line->sidedef[0]->sector->GetTexture(sector_t::floor));
 
 				// [BC] Update clients about this flat change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )

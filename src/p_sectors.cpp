@@ -479,8 +479,8 @@ fixed_t sector_t::FindShortestTextureAround () const
 	{
 		if (lines[i]->flags & ML_TWOSIDED)
 		{
-			CheckShortestTex (sides[lines[i]->sidenum[0]].GetTexture(side_t::bottom), minsize);
-			CheckShortestTex (sides[lines[i]->sidenum[1]].GetTexture(side_t::bottom), minsize);
+			CheckShortestTex (lines[i]->sidedef[0]->GetTexture(side_t::bottom), minsize);
+			CheckShortestTex (lines[i]->sidedef[1]->GetTexture(side_t::bottom), minsize);
 		}
 	}
 	return minsize < FIXED_MAX ? minsize : TexMan[0]->GetHeight() * FRACUNIT;
@@ -505,8 +505,8 @@ fixed_t sector_t::FindShortestUpperAround () const
 	{
 		if (lines[i]->flags & ML_TWOSIDED)
 		{
-			CheckShortestTex (sides[lines[i]->sidenum[0]].GetTexture(side_t::top), minsize);
-			CheckShortestTex (sides[lines[i]->sidenum[1]].GetTexture(side_t::top), minsize);
+			CheckShortestTex (lines[i]->sidedef[0]->GetTexture(side_t::top), minsize);
+			CheckShortestTex (lines[i]->sidedef[1]->GetTexture(side_t::top), minsize);
 		}
 	}
 	return minsize < FIXED_MAX ? minsize : TexMan[0]->GetHeight() * FRACUNIT;

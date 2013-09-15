@@ -518,9 +518,9 @@ void R_RenderFakeWall(drawseg_t *ds, int x1, int x2, F3DFloor *rover)
 	xscale = rw_pic->xScale;
 	yscale = rw_pic->yScale;
 	// encapsulate the lifetime of rowoffset
-	fixed_t rowoffset = curline->sidedef->GetTextureYOffset(side_t::mid) + sides[rover->master->sidenum[0]].GetTextureYOffset(side_t::mid);
+	fixed_t rowoffset = curline->sidedef->GetTextureYOffset(side_t::mid) + rover->master->sidedef[0]->GetTextureYOffset(side_t::mid);
 	dc_texturemid = rover->model->GetPlaneTexZ(sector_t::ceiling);
-	rw_offset = curline->sidedef->GetTextureXOffset(side_t::mid) + sides[rover->master->sidenum[0]].GetTextureXOffset(side_t::mid);
+	rw_offset = curline->sidedef->GetTextureXOffset(side_t::mid) + rover->master->sidedef[0]->GetTextureXOffset(side_t::mid);
 	if (rowoffset < 0)
 	{
 		rowoffset += rw_pic->GetHeight() << FRACBITS;
@@ -705,7 +705,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 				}
 				else
 				{
-					rw_pic = TexMan(sides[fover->master->sidenum[0]].GetTexture(side_t::mid));
+					rw_pic = TexMan(fover->master->sidedef[0]->GetTexture(side_t::mid));
 				}
 			} 
 			else if (frontsector->e->XFloor.ffloors.Size()) 
@@ -764,7 +764,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 				}
 				else
 				{
-					rw_pic = TexMan(sides[rover->master->sidenum[0]].GetTexture(side_t::mid));
+					rw_pic = TexMan(rover->master->sidedef[0]->GetTexture(side_t::mid));
 				}
 			}
 			// correct colors now
@@ -881,7 +881,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 				}
 				else
 				{
-					rw_pic = TexMan(sides[fover->master->sidenum[0]].GetTexture(side_t::mid));
+					rw_pic = TexMan(fover->master->sidedef[0]->GetTexture(side_t::mid));
 				}
 			}
 			else if (frontsector->e->XFloor.ffloors.Size())
@@ -937,7 +937,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 				}
 				else
 				{
-					rw_pic = TexMan(sides[rover->master->sidenum[0]].GetTexture(side_t::mid));
+					rw_pic = TexMan(rover->master->sidedef[0]->GetTexture(side_t::mid));
 				}
 			}
 			// correct colors now
@@ -2050,19 +2050,19 @@ int side_t::GetLightLevel (bool foggy, int baselight) const
 		if (!(Flags & WALLF_NOFAKECONTRAST))
 		{
 			if (((level.flags2 & LEVEL2_SMOOTHLIGHTING) || (Flags & WALLF_SMOOTHLIGHTING) || r_smoothlighting) &&
-				lines[linenum].dx != 0)
+				linedef->dx != 0)
 			{
 				baselight += int // OMG LEE KILLOUGH LIVES! :/
 					(
 						(float(level.WallHorizLight)
-						+abs(atan(float(lines[linenum].dy)/float(lines[linenum].dx))/float(1.57079))
+						+abs(atan(float(linedef->dy)/float(linedef->dx))/float(1.57079))
 						*float(level.WallVertLight - level.WallHorizLight))
 					);
 			}
 			else
 			{
-				baselight += lines[linenum].dx==0? level.WallVertLight : 
-							 lines[linenum].dy==0? level.WallHorizLight : 0;
+				baselight += linedef->dx==0? level.WallVertLight : 
+							 linedef->dy==0? level.WallHorizLight : 0;
 			}
 		}
 		if (!(Flags & WALLF_ABSLIGHTING))

@@ -53,14 +53,14 @@ CVAR (Bool, dumpsections, false, 0)
 
 inline vertex_t *V1(side_t *s)
 {
-	line_t *ln = &lines[s->linenum];
-	return s == &sides[ln->sidenum[0]]? ln->v1: ln->v2;
+	line_t *ln = s->linedef;
+	return s == ln->sidedef[0]? ln->v1: ln->v2;
 }
 
 inline vertex_t *V2(side_t *s)
 {
-	line_t *ln = &lines[s->linenum];
-	return s == &sides[ln->sidenum[0]]? ln->v2: ln->v1;
+	line_t *ln = s->linedef;
+	return s == ln->sidedef[0]? ln->v2: ln->v1;
 }
 
 class FSectionCreator
@@ -555,7 +555,7 @@ void DumpSection(int no, FGLSection *sect)
 				double d2 = sqrt(dx2*dx2+dy2*dy2);
 
 				Printf(PRINT_LOG, "\t\tLinedef %d, %s: Start (%1.2f, %1.2f), End (%1.2f, %1.2f)", 
-					ln->linedef - lines, (unsigned int)(ln->sidedef - sides) == ln->linedef->sidenum[0]? "front":"back",
+					ln->linedef - lines, ln->sidedef == ln->linedef->sidedef[0]? "front":"back",
 					ln->start->x/65536.f, ln->start->y/65536.f,
 					ln->end->x/65536.f, ln->end->y/65536.f);
 

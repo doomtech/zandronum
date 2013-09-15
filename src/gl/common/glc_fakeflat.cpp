@@ -55,7 +55,7 @@ CVAR(Bool, gltest_slopeopt, false, 0)
 
 bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector)
 {
-	line_t *linedef = &lines[sidedef->linenum];
+	line_t *linedef = sidedef->linedef;
 	fixed_t bs_floorheight1;
 	fixed_t bs_floorheight2;
 	fixed_t bs_ceilingheight1;

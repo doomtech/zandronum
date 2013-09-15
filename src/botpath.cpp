@@ -738,7 +738,7 @@ void BOTPATH_LineOpening( line_t *pLine, fixed_t X, fixed_t Y, fixed_t RefX, fix
 	fixed_t		BackCeiling;
 	fixed_t		BackFloor;
 
-	if ( pLine->sidenum[1] == NO_SIDE )
+	if ( pLine->sidedef[1] == NULL )
 	{
 		// Single sided line.
 		g_OpenRange = 0;

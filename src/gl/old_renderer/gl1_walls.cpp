@@ -1046,7 +1046,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 						  fixed_t ff_topleft, fixed_t ff_topright, 
 						  fixed_t ff_bottomleft, fixed_t ff_bottomright)
 {
-	side_t * mastersd=&sides[rover->master->sidenum[0]];
+	side_t * mastersd = rover->master->sidedef[0];
 	int to;
 	lightlist_t * light;
 	bool translucent;
@@ -1446,7 +1446,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		realback = backsector? &sectors[backsector->sectornum] : NULL;
 	}
 
-	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	if (seg->sidedef == seg->linedef->sidedef[0])
 	{
 		v1=seg->linedef->v1;
 		v2=seg->linedef->v2;

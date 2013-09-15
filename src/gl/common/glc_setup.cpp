@@ -344,15 +344,15 @@ static void PrepareTransparentDoors(sector_t * sector)
 			{
 				nextsec=sec;
 
-				int side=sides[sector->lines[i]->sidenum[0]].sector==sec;
+				int side = sector->lines[i]->sidedef[0]->sector == sec;
 
 				if (sector->GetPlaneTexZ(sector_t::floor)!=sec->GetPlaneTexZ(sector_t::floor)+FRACUNIT) 
 				{
 					sector->transdoor=false;
 					return;
 				}
-				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::top).isValid()) notextures++;
-				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom).isValid()) nobtextures++;
+				if (!sector->lines[i]->sidedef[1-side]->GetTexture(side_t::top).isValid()) notextures++;
+				if (!sector->lines[i]->sidedef[1-side]->GetTexture(side_t::bottom).isValid()) nobtextures++;
 			}
 		}
 		if (sector->GetTexture(sector_t::ceiling)==skyflatnum)
@@ -491,10 +491,10 @@ static void SetupDependencies()
 				if (checkmap[numvertexes + numsectors + ln] < i)
 				{
 					checkmap[numvertexes + numsectors + ln] = i;
-					int sdnum1 = lines[ln].sidenum[0];
-					int sdnum2 = lines[ln].sidenum[1];
-					if (sdnum1 != NO_SIDE) mSector->e->SideDependencies.Push(&sides[sdnum1]);
-					if (sdnum2 != NO_SIDE) mSector->e->SideDependencies.Push(&sides[sdnum2]);
+					side_t *sd1 = lines[ln].sidedef[0];
+					side_t *sd2 = lines[ln].sidedef[1];
+					if (sd1 != NULL) mSector->e->SideDependencies.Push(sd1);
+					if (sd2 != NULL) mSector->e->SideDependencies.Push(sd2);
 				}
 
 			}
@@ -605,8 +605,8 @@ static void InitVertexData()
 
 static void GetSideVertices(int sdnum, FVector2 *v1, FVector2 *v2)
 {
-	line_t *ln = &lines[sides[sdnum].linenum];
-	if (ln->sidenum[0] == sdnum) 
+	line_t *ln = sides[sdnum].linedef;
+	if (ln->sidedef[0] == &sides[sdnum]) 
 	{
 		v1->X = ln->v1->fx;
 		v1->Y = ln->v1->fy;
@@ -718,11 +718,11 @@ void gl_PreprocessLevel()
 
 			if (d2<d1)	// backside
 			{
-				seg->sidedef = &sides[seg->linedef->sidenum[1]];
+				seg->sidedef = seg->linedef->sidedef[1];
 			}
 			else	// front side
 			{
-				seg->sidedef = &sides[seg->linedef->sidenum[0]];
+				seg->sidedef = seg->linedef->sidedef[0];
 			}
 		}
 	}

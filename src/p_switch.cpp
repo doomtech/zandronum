@@ -470,12 +470,12 @@ static int TryFindSwitch (side_t *side, int Where)
 bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
 {
 	// Activated from an empty side -> always succeed
-	if (line->sidenum[sideno] == NO_SIDE) return true;
+	side_t *side = line->sidedef[sideno];
+	if (side == NULL) return true;
 
 	fixed_t checktop;
 	fixed_t checkbot;
-	side_t *side = &sides[line->sidenum[sideno]];
-	sector_t *front = sides[line->sidenum[sideno]].sector;
+	sector_t *front = side->sector;
 	FLineOpening open;
 
 	// 3DMIDTEX forces CHECKSWITCHRANGE because otherwise it might cause problems.
@@ -497,7 +497,7 @@ bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
 	checky = dll.y + FixedMul(dll.dy, inter);
 
 	// one sided line
-	if (line->sidenum[1] == NO_SIDE) 
+	if (line->sidedef[1] == NULL) 
 	{
 	onesided:
 		fixed_t sectorc = front->ceilingplane.ZatPoint(checkx, checky);
@@ -571,11 +571,11 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		if ( side->linenum < static_cast<unsigned> (numlines) )
+		if ( side->linedef != NULL )
 		{
-			lines[side->linenum].ulTexChangeFlags |= 1 << ulShift;
+			side->linedef->ulTexChangeFlags |= 1 << ulShift;
 			ulShift += 3;
-			lines[side->linenum].ulTexChangeFlags |= 1 << ulShift;
+			side->linedef->ulTexChangeFlags |= 1 << ulShift;
 		}
 	}
 
@@ -599,7 +599,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	//		facing a big sector (and which wasn't necessarily for the
 	//		button just activated, either).
 	fixed_t pt[2];
-	line_t *line = &lines[side->linenum];
+	line_t *line = side->linedef;
 	bool playsound;
 
 	pt[0] = line->v1->x + (line->dx >> 1);
@@ -608,7 +608,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 
 	// [BC] If we're the server, tell clients to set the line texture.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetLineTexture( side->linenum );
+		SERVERCOMMANDS_SetLineTexture( static_cast<ULONG>( side->linedef - lines ) );
 
 	if (useAgain || SwitchList[i]->NumFrames > 1)
 		playsound = P_StartButton (side, texture, i, pt[0], pt[1], !!useAgain);
@@ -706,7 +706,7 @@ void DActiveButton::Tick ()
 
 		// [BC] If we're the server, tell clients to update the switch texture.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetLineTexture( m_Side->linenum );
+			SERVERCOMMANDS_SetLineTexture( static_cast<ULONG>( m_Side->linedef - lines )  );
 
 		if (killme)
 		{

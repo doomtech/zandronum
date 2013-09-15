@@ -9541,10 +9541,10 @@ static void client_SetLineTextureHelper ( ULONG ulLineIdx, ULONG ulSide, ULONG u
 		return;
 	}
 
-	if ( pLine->sidenum[ulSide] == NO_SIDE )
+	if ( pLine->sidedef[ulSide] == NULL )
 		return;
 
-	side_t *pSide = &sides[pLine->sidenum[ulSide]];
+	side_t *pSide = pLine->sidedef[ulSide];
 
 	switch ( ulPosition )
 	{

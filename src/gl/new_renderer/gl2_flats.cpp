@@ -22,7 +22,7 @@
 //
 // ----------------------------------------------------------------------------
 //
-// Geometry data mainenance
+// Flat processing / rendering
 //
 
 #include "gl/gl_include.h"
@@ -37,6 +37,7 @@
 #include "gl/new_renderer/gl2_renderer.h"
 #include "gl/new_renderer/gl2_geom.h"
 #include "gl/new_renderer/textures/gl2_material.h"
+#include "gl/new_renderer/textures/gl2_shader.h"
 
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
@@ -76,7 +77,7 @@ void FSectorRenderData::Init(int sector)
 //
 //===========================================================================
 
-void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane, FVertex3D *modelvert, FVertex3D *vert, subsector_t *sub)
+void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane, FVertex3D *vert, subsector_t *sub)
 {
 
 	Matrix3x4 matx;
@@ -89,7 +90,6 @@ void FSectorRenderData::CreateDynamicPrimitive(FSectorPlaneObject *plane, FVerte
 	{
 		vertex_t *v = segs[sub->firstline + j].v1;
 
-		*vert = *modelvert;
 		vert->x = v->fx;
 		vert->y = v->fy;
 		vert->z = plane->mPlane.ZatPoint(v->fx, v->fy);
@@ -119,11 +119,9 @@ void FSectorRenderData::CreatePlane(FSectorPlaneObject *plane,
 	Matrix3x4 matx;
 
 	FPrimitive3D BasicProps;
-	FVertex3D BasicVertexProps;
 
 	MakeTextureMatrix(splane, matx);
 	memset(&BasicProps, 0, sizeof(BasicProps));
-	memset(&BasicVertexProps, 0, sizeof(BasicVertexProps));
 	
 	
 	FRenderStyle style;
@@ -161,8 +159,8 @@ void FSectorRenderData::CreatePlane(FSectorPlaneObject *plane,
 	BasicProps.mTexId = splane.texture.GetIndex();
 	BasicProps.mPrimitiveType = GL_TRIANGLE_FAN;	// all subsectors are drawn as triangle fans
 	BasicProps.mDesaturation = cm->Desaturate;
-	BasicVertexProps.SetLighting(lightlevel, cm, 0/*rellight*/, additive, tex);
-	BasicVertexProps.a = (unsigned char)quickertoint(alpha*255);
+	BasicProps.SetLighting(lightlevel, cm, 0/*rellight*/, additive, tex);
+	BasicProps.a = (unsigned char)quickertoint(alpha*255);
 
 
 	plane->mPlane = splane.plane;
@@ -170,22 +168,21 @@ void FSectorRenderData::CreatePlane(FSectorPlaneObject *plane,
 	plane->mLightEffect = !splane.texture.Exists();
 	plane->mPrimitiveIndex = mPrimitives.Reserve(sec->subsectorcount);
 
-	FSubsectorPrimitive *prim = &mPrimitives[plane->mPrimitiveIndex];
+	FPrimitive3D *prim = &mPrimitives[plane->mPrimitiveIndex];
 
 	for(int i=0;i<sec->subsectorcount;i++, prim++)
 	{
 		subsector_t *sub = sec->subsectors[i];
 
-		prim->mPrimitive = BasicProps;
-		prim->mPrimitive.mVertexCount = sub->numlines;
-		prim->mPrimitive.mVertexStart = mVertices.Reserve(sub->numlines);
+		*prim = BasicProps;
+		prim->mVertexCount = sub->numlines;
+		prim->mVertexStart = mVertices.Reserve(sub->numlines);
 
-		FVertex3D *vert = &mVertices[prim->mPrimitive.mVertexStart];
+		FVertex3D *vert = &mVertices[prim->mVertexStart];
 		for(int j=0; j<sub->numlines; j++, vert++)
 		{
 			vertex_t *v = segs[sub->firstline + j].v1;
 
-			*vert = BasicVertexProps;
 			vert->x = v->fx;
 			vert->y = v->fy;
 			vert->z = splane.plane.ZatPoint(v->fx, v->fy);
@@ -548,14 +545,14 @@ void FSectorRenderData::Process(subsector_t *sub, area_t in_area)
 //
 //===========================================================================
 
-void FSectorRenderData::CreatePlanePrimitives(GLDrawInfo *di, FSectorPlaneObject *plane, FPrimitiveBuffer3D *buffer)
+void FSectorRenderData::CreatePrimitives(GLDrawInfo *di, FSectorPlaneObject *plane)
 {
+	static TArray<FVertex3D> dynvertices;
+
 	int renderflags = plane->mPlaneType;
 	bool istrans = plane->mAlpha;
-	FPrimitive3D *prim;
-	FVertex3D *verts;
 	bool copied = false;
-	FSubsectorPrimitive *ssprim = &mPrimitives[plane->mPrimitiveIndex];
+	FPrimitive3D *ssprim = &mPrimitives[plane->mPrimitiveIndex];
 
 	/* don't know yet if it's needed
 	if (sub)
@@ -574,19 +571,8 @@ void FSectorRenderData::CreatePlanePrimitives(GLDrawInfo *di, FSectorPlaneObject
 			// This is just a quick hack to make translucent 3D floors and portals work.
 			if (di->ss_renderflags[sub-subsectors]&renderflags || istrans)
 			{
-				int numverts = ssprim->mPrimitive.mVertexCount;
-				int primidx = buffer->NewPrimitive(numverts, prim, verts);
-				if (!copied) 
-				{
-					prim->Copy(&ssprim->mPrimitive);
-					copied = true;
-				}
-				else
-				{
-					prim->mCopy = true;
-					prim->mPrimitiveType = ssprim->mPrimitive.mPrimitiveType;
-				}
-				memcpy(verts, &mVertices[ssprim->mPrimitive.mVertexStart], numverts * sizeof(FVertex3D));
+				ssprim->Render(copied? PR_PRIM : PR_PRIM|PR_TEXTURE|PR_LIGHTING, &mVertices[0]);
+				copied = true;
 			}
 		}
 
@@ -600,11 +586,11 @@ void FSectorRenderData::CreatePlanePrimitives(GLDrawInfo *di, FSectorPlaneObject
 			while (node)
 			{
 				int numverts = node->sub->numlines;
-				int primidx = buffer->NewPrimitive(numverts, prim, verts);
 
-				prim->mCopy = true;
-				prim->mPrimitiveType = GL_TRIANGLE_FAN;
-				CreateDynamicPrimitive(plane, &mVertices[ssprim->mPrimitive.mVertexCount], verts, node->sub);
+				dynvertices.Resize(numverts);
+
+				CreateDynamicPrimitive(plane, &dynvertices[0], node->sub);
+				FPrimitive3D::DrawPrimitive(GL_TRIANGLE_FAN, &dynvertices[0], numverts);
 				node = node->next;
 			}
 		}

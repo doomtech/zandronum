@@ -76,7 +76,6 @@ GL2Renderer::~GL2Renderer()
 	if (mShaders != NULL) delete mShaders;
 	if (mTextures != NULL) delete mTextures;
 	if (mRender2D != NULL) delete mRender2D;
-	if (mRender3D != NULL) delete mRender3D;
 	if (mDefaultMaterial != NULL) delete mDefaultMaterial;
 	if (mSkyDrawer != NULL) delete mSkyDrawer;
 	if (mGlobalDrawInfo != NULL) delete mGlobalDrawInfo;
@@ -94,7 +93,6 @@ void GL2Renderer::Initialize()
 	mShaders = new FShaderContainer;
 	mTextures = new FGLTextureManager;
 	mRender2D = new FPrimitiveBuffer2D;
-	mRender3D = new FPrimitiveBuffer3D;
 	mDefaultMaterial = new FMaterialContainer(NULL);
 	mSkyDrawer = new FSkyDrawer;
 	mGlobalDrawInfo = new GLDrawInfo;
@@ -165,6 +163,8 @@ void GL2Renderer::EndDrawInfo()
 
 void GL2Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
 {
+	FWallRenderData *wrd = &mWallData[seg->sidedef - sides];
+	wrd->Process(seg, sector, backsector, polysub, in_area);
 }
 
 //===========================================================================

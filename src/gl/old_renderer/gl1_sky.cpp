@@ -120,7 +120,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 		if ((sky1 & PL_SKYFLAT) && (sky1 & (PL_SKYFLAT-1)) && !(gl.flags&RFL_NOSTENCIL))
 		{
 			const line_t *l = &lines[(sky1&(PL_SKYFLAT-1))-1];
-			const side_t *s = &sides[l->sidenum[0]];
+			const side_t *s = l->sidedef[0];
 			int pos;
 			
 			if (level.flags & LEVEL_SWAPSKIES && s->GetTexture(side_t::bottom).isValid())

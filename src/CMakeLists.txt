@@ -653,9 +653,10 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
-		gl/new_renderer/gl2_geom.cpp
+		gl/new_renderer/gl2_flats.cpp	
 		gl/new_renderer/gl2_renderer.cpp
 		gl/new_renderer/gl2_vertex.cpp
+		gl/new_renderer/gl2_walls.cpp	
 		gl/new_renderer/gl2_skydraw.cpp	
 		gl/new_renderer/textures/gl2_bitmap.cpp
 		gl/new_renderer/textures/gl2_texture.cpp

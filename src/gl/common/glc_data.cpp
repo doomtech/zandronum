@@ -487,7 +487,7 @@ CCMD(dumpgeometry)
 				{
 				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
 					TO_GL(seg->v1->x), TO_GL(seg->v1->y), TO_GL(seg->v2->x), TO_GL(seg->v2->y),
-					seg-segs, seg->linedef-lines, seg->sidedef!=&sides[seg->linedef->sidenum[0]]);
+					seg-segs, seg->linedef-lines, seg->sidedef != seg->linedef->sidedef[0]);
 				}
 				else
 				{
@@ -517,7 +517,7 @@ CCMD(dumpdependencies)
 		}
 		for(unsigned j = 0; j < sectors[i].e->SideDependencies.Size(); j++)
 		{
-			Printf(PRINT_LOG,"\tSide %d (Line %d)\n", int(sectors[i].e->SideDependencies[j] - sides), sectors[i].e->SideDependencies[j]->linenum);
+			Printf(PRINT_LOG,"\tSide %d (Line %d)\n", int(sectors[i].e->SideDependencies[j] - sides), (sectors[i].e->SideDependencies[j]->linedef-lines));
 		}
 		for(unsigned j = 0; j < sectors[i].e->SectorDependencies.Size(); j++)
 		{

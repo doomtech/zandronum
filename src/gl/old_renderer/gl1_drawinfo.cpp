@@ -1086,7 +1086,7 @@ void GLDrawInfo::FloodUpperGap(seg_t * seg)
 	if (fakebsector->GetTexture(sector_t::ceiling)==skyflatnum) return;
 	if (backz < viewz) return;
 
-	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	if (seg->sidedef == seg->linedef->sidedef[0])
 	{
 		v1=seg->linedef->v1;
 		v2=seg->linedef->v2;
@@ -1139,7 +1139,7 @@ void GLDrawInfo::FloodLowerGap(seg_t * seg)
 	if (fakebsector->GetTexture(sector_t::floor) == skyflatnum) return;
 	if (fakebsector->GetPlaneTexZ(sector_t::floor) > viewz) return;
 
-	if (seg->sidedef == &sides[seg->linedef->sidenum[0]])
+	if (seg->sidedef == seg->linedef->sidedef[0])
 	{
 		v1=seg->linedef->v1;
 		v2=seg->linedef->v2;

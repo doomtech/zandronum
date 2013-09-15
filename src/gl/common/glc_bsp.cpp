@@ -51,6 +51,11 @@ EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
 
+
+CVAR(Bool, gl_render_things, true, 0)
+CVAR(Bool, gl_render_walls, true, 0)
+CVAR(Bool, gl_render_flats, true, 0)
+
 //==========================================================================
 //
 // R_AddLine
@@ -142,11 +147,14 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	}
 
 
-	SetupWall.Clock();
+	if (gl_render_walls)
+	{
+		SetupWall.Clock();
 
-	GLRenderer->ProcessWall(seg, sector, backsector, polysub);
+		GLRenderer->ProcessWall(seg, sector, backsector, polysub);
 
-	SetupWall.Unclock();
+		SetupWall.Unclock();
+	}
 }
 
 //==========================================================================
@@ -247,32 +255,42 @@ static void DoSubsector(subsector_t * sub)
 
 	// [RH] Add particles
 	//int shade = LIGHT2SHADE((floorlightlevel + ceilinglightlevel)/2 + r_actualextralight);
-	for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
+	if (gl_render_things)
 	{
-		GLRenderer->ProcessParticle(&Particles[i], fakesector);
-	}
-	AddLines(sub, fakesector);
-	RenderThings(sub, fakesector);
-
-	// Subsectors with only 2 lines cannot have any area!
-	if (sub->numlines>2 || (sub->hacked&1)) 
-	{
-		// Exclude the case when it tries to render a sector with a heightsec
-		// but undetermined heightsec state. This can only happen if the
-		// subsector is obstructed but not excluded due to a large bounding box.
-		// Due to the way a BSP works such a subsector can never be visible
-		if (!sector->heightsec || sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || in_area!=area_default)
+		for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
 		{
-			if (sector != sub->render_sector)
+			GLRenderer->ProcessParticle(&Particles[i], fakesector);
+		}
+	}
+
+	AddLines(sub, fakesector);
+	if (gl_render_things)
+	{
+		RenderThings(sub, fakesector);
+	}
+
+	if (gl_render_flats)
+	{
+		// Subsectors with only 2 lines cannot have any area!
+		if (sub->numlines>2 || (sub->hacked&1)) 
+		{
+			// Exclude the case when it tries to render a sector with a heightsec
+			// but undetermined heightsec state. This can only happen if the
+			// subsector is obstructed but not excluded due to a large bounding box.
+			// Due to the way a BSP works such a subsector can never be visible
+			if (!sector->heightsec || sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || in_area!=area_default)
 			{
-				sector = sub->render_sector;
-				// the planes of this subsector are faked to belong to another sector
-				// This means we need the heightsec parts and light info of the render sector, not the actual one!
-				fakesector = gl_FakeFlat(sector, &fake, false);
+				SetupFlat.Clock();
+				if (sector != sub->render_sector)
+				{
+					sector = sub->render_sector;
+					// the planes of this subsector are faked to belong to another sector
+					// This means we need the heightsec parts and light info of the render sector, not the actual one!
+					fakesector = gl_FakeFlat(sector, &fake, false);
+				}
+				GLRenderer->ProcessSector(fakesector, sub);
+				SetupFlat.Unclock();
 			}
-			SetupFlat.Clock();
-			GLRenderer->ProcessSector(fakesector, sub);
-			SetupFlat.Unclock();
 		}
 	}
 }

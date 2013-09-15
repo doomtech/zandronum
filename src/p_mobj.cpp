@@ -1547,9 +1547,9 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	if (line != NULL && cl_missiledecals)
 	{
 		int side = P_PointOnLineSide (mo->x, mo->y, line);
-		if (line->sidenum[side] == NO_SIDE)
+		if (line->sidedef[side] == NULL)
 			side ^= 1;
-		if (line->sidenum[side] != NO_SIDE)
+		if (line->sidedef[side] != NULL)
 		{
 			FDecalBase *base = mo->DecalGenerator;
 			if (base != NULL)
@@ -1583,9 +1583,9 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 
 					F3DFloor * ffloor=NULL;
 #ifdef _3DFLOORS
-					if (line->sidenum[side^1]!=NO_SIDE)
+					if (line->sidedef[side^1] != NULL)
 					{
-						sector_t * backsector=sides[line->sidenum[side^1]].sector;
+						sector_t * backsector = line->sidedef[side^1]->sector;
 						extsector_t::xfloor &xf = backsector->e->XFloor;
 						// find a 3D-floor to stick to
 						for(unsigned int i=0;i<xf.ffloors.Size();i++)
@@ -1608,7 +1608,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 					{
 						DImpactDecal::StaticCreate (base->GetDecal (),
-							x, y, z, sides + line->sidenum[side], ffloor);
+							x, y, z, line->sidedef[side], ffloor);
 					}
 				}
 			}
@@ -2162,7 +2162,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					if (mo->BlockingLine != NULL &&
 						mo->player && mo->waterlevel && mo->waterlevel < 3 &&
 						(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove) &&
-						mo->BlockingLine->sidenum[1] != NO_SIDE)
+						mo->BlockingLine->sidedef[1] != NULL)
 					{
 						mo->velz = WATER_JUMP_SPEED;
 					}
@@ -6637,14 +6637,6 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 
 	i = GetDefaultByType (type)->flags3;
 
-	if (i & MF3_FLOORHUGGER)
-	{
-		z = ONFLOORZ;
-	}
-	else if (i & MF3_CEILINGHUGGER)
-	{
-		z = ONCEILINGZ;
-	}
 	if (z != ONFLOORZ && z != ONCEILINGZ)
 	{
 		// Doom spawns missiles 4 units lower than hitscan attacks for players.
@@ -6682,7 +6674,14 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 
 	MissileActor->velx = FixedMul (vx, speed);
 	MissileActor->vely = FixedMul (vy, speed);
-	MissileActor->velz = FixedMul (vz, speed);
+	if (MissileActor->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER))
+	{
+		MissileActor->velz = 0;
+	}
+	else
+	{
+		MissileActor->velz = FixedMul (vz, speed);
+	}
 
 	if (MissileActor->flags4 & MF4_SPECTRAL)
 		MissileActor->health = -1;

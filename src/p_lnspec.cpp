@@ -2135,8 +2135,8 @@ FUNC(LS_Sector_SetLink)
 		{
 			int wallnum = scroller->GetWallNum ();
 
-			if (wallnum >= 0 && lines[sides[wallnum].linenum].id == id &&
-				lines[sides[wallnum].linenum].sidenum[sidechoice] == (DWORD)wallnum &&
+			if (wallnum >= 0 && sides[wallnum].linedef->id == id &&
+				int(sides[wallnum].linedef->sidedef[sidechoice] - sides) == wallnum &&
 				Where == scroller->GetScrollParts())
 			{
 				scroller->Destroy ();
@@ -2154,8 +2154,8 @@ FUNC(LS_Sector_SetLink)
 			while ( (collect.Obj = iterator.Next ()) )
 			{
 				if ((collect.RefNum = ((DScroller *)collect.Obj)->GetWallNum ()) != -1 &&
-					lines[sides[collect.RefNum].linenum].id == id &&
-					lines[sides[collect.RefNum].linenum].sidenum[sidechoice] == (DWORD)collect.RefNum &&
+					sides[collect.RefNum].linedef->id == id &&
+					int(sides[collect.RefNum].linedef->sidedef[sidechoice] - sides) == collect.RefNum &&
 					Where == ((DScroller *)collect.Obj)->GetScrollParts())
 				{
 					((DScroller *)collect.Obj)->SetRate (dx, dy);
@@ -2170,17 +2170,18 @@ FUNC(LS_Sector_SetLink)
 		// Now create scrollers for any walls that don't already have them.
 		while ((linenum = P_FindLineFromID (id, linenum)) >= 0)
 		{
-			unsigned int i;
-			for (i = 0; i < numcollected; i++)
+			if (lines[linenum].sidedef[sidechoice] != NULL)
 			{
-				if ((DWORD)Collection[i].RefNum == lines[linenum].sidenum[sidechoice])
-					break;
-			}
-			if (i == numcollected)
-			{
-				if (lines[linenum].sidenum[sidechoice] != NO_SIDE)
+				int sidenum = int(lines[linenum].sidedef[sidechoice] - sides);
+				unsigned int i;
+				for (i = 0; i < numcollected; i++)
 				{
-					new DScroller (DScroller::sc_side, dx, dy, -1, lines[linenum].sidenum[sidechoice], 0, Where);
+					if (Collection[i].RefNum == sidenum)
+						break;
+				}
+				if (i == numcollected)
+				{
+					new DScroller (DScroller::sc_side, dx, dy, -1, sidenum, 0, Where);
 				}
 			}
 		}
@@ -2578,9 +2579,9 @@ FUNC(LS_Line_SetTextureOffset)
 
 	for(int line = -1; (line = P_FindLineFromID (arg0, line)) >= 0; )
 	{
-		if (lines[line].sidenum[arg3] != NO_SIDE)
+		side_t *side = lines[line].sidedef[arg3];
+		if (side != NULL)
 		{
-			side_t *side = &sides[lines[line].sidenum[arg3]];
 
 			if ((arg4&8)==0)
 			{
@@ -2629,10 +2630,9 @@ FUNC(LS_Line_SetTextureScale)
 
 	for(int line = -1; (line = P_FindLineFromID (arg0, line)) >= 0; )
 	{
-		if (lines[line].sidenum[arg3] != NO_SIDE)
+		side_t *side = lines[line].sidedef[arg3];
+		if (side != NULL)
 		{
-			side_t *side = &sides[lines[line].sidenum[arg3]];
-
 			if ((arg4&8)==0)
 			{
 				// set
@@ -3204,8 +3204,8 @@ FUNC(LS_ClearForceField)
 			{
 				line->flags &= ~(ML_BLOCKING|ML_BLOCKEVERYTHING);
 				line->special = 0;
-				sides[line->sidenum[0]].SetTexture(side_t::mid, FNullTextureID());
-				sides[line->sidenum[1]].SetTexture(side_t::mid, FNullTextureID());
+				line->sidedef[0]->SetTexture(side_t::mid, FNullTextureID());
+				line->sidedef[1]->SetTexture(side_t::mid, FNullTextureID());
 
 				// [BC] Mark this line's texture change flags.
 				line->ulTexChangeFlags |= TEXCHANGE_FRONTMEDIUM|TEXCHANGE_BACKMEDIUM;
@@ -3235,11 +3235,11 @@ FUNC(LS_GlassBreak)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetSomeLineFlags( ULONG( ln - lines ));
 
-	switched = P_ChangeSwitchTexture (&sides[ln->sidenum[0]], false, 0, &quest1);
+	switched = P_ChangeSwitchTexture (ln->sidedef[0], false, 0, &quest1);
 	ln->special = 0;
-	if (ln->sidenum[1] != NO_SIDE)
+	if (ln->sidedef[1] != NULL)
 	{
-		switched |= P_ChangeSwitchTexture (&sides[ln->sidenum[1]], false, 0, &quest2);
+		switched |= P_ChangeSwitchTexture (ln->sidedef[1], false, 0, &quest2);
 	}
 	else
 	{
