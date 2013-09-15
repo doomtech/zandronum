@@ -31,6 +31,7 @@
 #include "gamemode.h"
 #include "cooperative.h"
 #include "p_acs.h"
+#include "a_keys.h"
 
 static FRandom pr_restore ("RestorePos");
 
@@ -1149,6 +1150,64 @@ void AInventory::Touch (AActor *toucher)
 	// [BC] Finally, refresh the HUD.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		SCOREBOARD_RefreshHUD( );
+
+	// [Dusk] If it's a key and we wish to share it, tell other players we got it
+	if ( dmflags3 & DF3_SHARE_KEYS &&
+		NETWORK_GetState( ) == NETSTATE_SERVER &&
+		IsKindOf( RUNTIME_CLASS( AKey )) &&
+		toucher->player )
+	{
+		// [Dusk] Announce it too, but only if nobody else has it.
+		bool bAnnounce = true;
+
+		for ( int i = 0; i < MAXPLAYERS; i++ )
+		{
+			if ( PLAYER_IsValidPlayerWithMo( i ) &&
+				players[i].bSpectating == false &&
+				i != toucher->player - players &&
+				players[i].mo->FindInventory( GetClass( )))
+			{
+				bAnnounce = false;
+				break;
+			}
+		}
+
+		if ( bAnnounce )
+		{
+			FString keyname;
+
+			// [Dusk] Determine how to write the key's name. Tag is preferred,
+			// if not present, use the class name.
+			if (( keyname = GetClass()->Meta.GetMetaString( AMETA_StrifeName )).IsEmpty() )
+				keyname = GetClass()->TypeName;
+
+			SERVER_Printf( PRINT_HIGH, "\\cD%s\\c- has located the \\cF%s!\n",
+				toucher->player->userinfo.netname, keyname.GetChars( ));
+
+			// Audio cue - skip the player picking the key because he
+			// hears the pickup sound from the original key
+			if ( S_FindSound( "misc/k_pkup" ))
+				SERVERCOMMANDS_Sound( CHAN_AUTO, "misc/k_pkup", 1.0, ATTN_NONE,
+					SVCF_SKIPTHISCLIENT, toucher->player - players );
+		}
+
+		for ( int i = 0; i < MAXPLAYERS; i++ )
+		{
+			// [Dusk] See if the player should get this key
+			if ( PLAYER_IsValidPlayerWithMo( i ) == false ||
+				i == toucher->player - players ||
+				players[i].bSpectating ||
+				players[i].mo->FindInventory( GetClass( )))
+			{
+				continue;
+			}
+
+			// [Dusk] Try give the key to the player
+			AInventory* newkey;
+			if (( newkey = players[i].mo->GiveInventoryType( GetClass( ))) != NULL )
+				SERVERCOMMANDS_GiveInventory( i, newkey );
+		}
+	}
 }
 
 //===========================================================================

@@ -294,6 +294,9 @@ enum
 
 	// [BB] Enforces clients not to show medals, i.e. behave as if cl_medals == 0.
 	DF3_NO_MEDALS			= 1 << 5,
+
+	// [Dusk] Share keys between all players
+	DF3_SHARE_KEYS			= 1 << 6,
 };
 
 // [RH] Compatibility flags.
