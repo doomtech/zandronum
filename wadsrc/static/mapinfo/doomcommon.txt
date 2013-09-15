@@ -32,6 +32,8 @@ gameinfo
 	weaponslot = 5, "RocketLauncher", "GrenadeLauncher"	// [BB] Create default binding for the grenade launcher.
 	weaponslot = 6, "PlasmaRifle", "Railgun"		// [BB] Create default binding for the railgun.
 	weaponslot = 7, "BFG9000", "BFG10K"			// [BB] Create default binding for the BFG10K.
+	dimcolor = "ff d7 00"
+	dimamount = 0.2
 }
 
 skill baby

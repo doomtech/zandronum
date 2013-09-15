@@ -751,7 +751,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact)
 	{ // Bounce
 		self->health = MAGIC_JUNK;
 		self->velz = (self->velz * 192) >> 8;
-		self->bouncetype = BOUNCE_None;
+		self->BounceFlags = BOUNCE_None;
 
 		// [BC] If we're the server, tell clients to move the object.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -883,7 +883,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact2)
 boom:
 		self->velx = self->vely = self->velz = 0;
 		self->flags |= MF_NOGRAVITY;
-		self->bouncetype = BOUNCE_None;
+		self->BounceFlags = BOUNCE_None;
 		self->gravity = FRACUNIT;
 
 		// [BC] If we're the server, tell clients to move the object.

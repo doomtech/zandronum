@@ -1029,13 +1029,11 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 			return true;
 		}
 
-		int bt = tm.thing->bouncetype & BOUNCE_TypeMask;
-		if (bt == BOUNCE_Doom || bt == BOUNCE_Hexen)
+		// [RH] What is the point of this check, again? In Hexen, it is unconditional,
+		// but here we only do it if the missile's damage is 0.
+		if ((tm.thing->BounceFlags & BOUNCE_Actors) && tm.thing->Damage == 0)
 		{
-			if (tm.thing->Damage == 0)
-			{
-				return (tm.thing->target == thing || !(thing->flags & MF_SOLID));
-			}
+			return (tm.thing->target == thing || !(thing->flags & MF_SOLID));
 		}
 
 		switch (tm.thing->SpecialMissileHit (thing))
@@ -2396,7 +2394,7 @@ bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
 				}
 			}
 
-			if (thing->bouncetype != BOUNCE_None &&    // killough 8/13/98
+			if (thing->BounceFlags &&    // killough 8/13/98
 			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
 			/*!sentient(thing) &&*/ tm.floorz - thing->z > 16*FRACUNIT)
 				return false; // too big a step up for bouncers under gravity
@@ -3449,8 +3447,7 @@ bool FSlide::BounceWall (AActor *mo)
 	fixed_t         movelen;
 	line_t			*line;
 
-	int bt = mo->bouncetype & BOUNCE_TypeMask;
-	if (bt != BOUNCE_Doom && bt != BOUNCE_Hexen)
+	if (!(mo->BounceFlags & BOUNCE_Walls))
 	{
 		return false;
 	}
@@ -3521,7 +3518,7 @@ bool FSlide::BounceWall (AActor *mo)
 	lineangle >>= ANGLETOFINESHIFT;
 	deltaangle >>= ANGLETOFINESHIFT;
 
-	movelen = P_AproxDistance (mo->velx, mo->vely);
+	movelen = fixed_t(sqrt(double(mo->velx)*mo->velx + double(mo->vely)*mo->vely));
 	movelen = FixedMul(movelen, mo->wallbouncefactor);
 
 	FBoundingBox box(mo->x, mo->y, mo->radius);
