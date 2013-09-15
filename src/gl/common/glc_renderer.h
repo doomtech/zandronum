@@ -69,6 +69,7 @@ public:
 	sector_t *RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview);
 	void RenderView(player_t *player);
 	void SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
+	void SetCameraPos(const FVector3 &viewvec, angle_t viewangle);
 
 	virtual void Initialize() = 0;
 	virtual void SetPaused() = 0;

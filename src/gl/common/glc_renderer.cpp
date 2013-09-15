@@ -194,6 +194,15 @@ void GLRendererBase::SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, a
 	GLRenderer->mCameraPos = FVector3(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 }
 	
+void GLRendererBase::SetCameraPos(const FVector3 &vec, angle_t viewangle)
+{
+	float fviewangle=(float)(viewangle>>ANGLETOFINESHIFT)*360.0f/FINEANGLES;
+
+	GLRenderer->mAngles.Yaw = 270.0f-fviewangle;
+	GLRenderer->mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
+	GLRenderer->mCameraPos = vec;
+}
+	
 //-----------------------------------------------------------------------------
 //
 // Renders one viewpoint in a scene
@@ -375,7 +384,7 @@ ADD_STAT(rendertimes)
 	int t=I_MSTime();
 	if (t-lasttime>1000) 
 	{
-		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f - F: Render=%2.2f, Setup=%2.2f - S: Render=%2.2f, Setup=%2.2f - All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
+		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f\nF: Render=%2.2f, Setup=%2.2f\nS: Render=%2.2f, Setup=%2.2f\nAll: All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
 		RenderWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
 		RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
 		ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
@@ -387,7 +396,7 @@ ADD_STAT(rendertimes)
 ADD_STAT(renderstats)
 {
 	FString out;
-	out.Format("Walls: %d (%d splits, %d t-splits, %d vertices), Flats: %d (%d primitives, %d vertices), Sprites: %d, Decals=%d\n", 
+	out.Format("Walls: %d (%d splits, %d t-splits, %d vertices)\n, Flats: %d (%d primitives, %d vertices)\n, Sprites: %d, Decals=%d\n", 
 		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
 	return out;
 }

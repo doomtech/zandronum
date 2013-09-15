@@ -65,10 +65,11 @@ vec4 GetPixelLight()
 	// Light diminishing
 	if (FogColor.a == 0.0)
 	{
-		const float LOG2E = 1.442692;	// = 1/log(2)
 		float fc;
+		
 		if (fogradial == 0) fc = fogcoord;
 		else fc = max(16.0, distance(pixelpos, camerapos.xyz));
+		color.rgb *= exp2 (LightParams.x * fc);
 		
 		float lfactor = LightParams.y;
 		float dist = LightParams.z;
@@ -76,11 +77,8 @@ vec4 GetPixelLight()
 		{
 			color.rgb *= lfactor - (fc / dist) * (lfactor - 1.0);
 		}
-		
-		float factor = exp2 ( LightParams.x * fc * LOG2E);
-		return color * factor;
 	}
-	else return color;
+	return color;
 }
 
 
@@ -109,12 +107,11 @@ vec4 ApplyPixelFog(vec4 pixin)
 	// only for colored fog
 	if (FogColor.a == 1.0)
 	{
-		const float LOG2E = 1.442692;	// = 1/log(2)
 		float fc;
 		if (fogradial == 0) fc = fogcoord;
 		else fc = max(16.0, distance(pixelpos, camerapos.xyz));
 		
-		float factor = exp2 ( -FogColor.a * fc * LOG2E);
+		float factor = exp2 (LightParams.x * fc);
 		return vec4(mix(FogColor, pixin, factor).rgb, pixin.a);
 	}
 	else return pixin;

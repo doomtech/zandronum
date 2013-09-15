@@ -308,6 +308,29 @@ void FPrimitive3D::SetRenderStyle(FRenderStyle style, bool opaque, bool allowcol
 		&mTextureMode, &mSrcBlend, &mDstBlend, &mBlendEquation);
 }
 
+//----------------------------------------------------------------------------
+//
+// copies an engine primitive to the render list (also translates texture animations)
+//
+//----------------------------------------------------------------------------
+
+void FPrimitive3D::Copy(FPrimitive3D *other)
+{
+	// We must re-get the material every frame to handle animated textures properly
+	FTexture *tex = TexMan.ByIndexTranslated(other->mTexId);
+
+	mPrimitiveType = other->mPrimitiveType;
+	mMaterial = GLRenderer2->GetMaterial(tex, false, 0);
+	mClamp = other->mClamp;
+	mTextureMode = other->mTextureMode;
+	mDesaturation = other->mDesaturation;
+	mAlphaThreshold = other->mAlphaThreshold;
+	mTranslucent = other->mTranslucent;
+	mSrcBlend = other->mSrcBlend;
+	mDstBlend = other->mDstBlend;
+	mBlendEquation = other->mBlendEquation;
+	mCopy = false;
+}
 
 //----------------------------------------------------------------------------
 //
@@ -358,6 +381,7 @@ void FVertex3D::SetLighting(int lightlevel, FDynamicColormap *cm, int rellight, 
 	}
 	else
 	{
+		fogdensity *= -(1.442692f / 64000.f);	// * -1/log(2) - can be done here better than in the shader.
 		if (glset.lightmode == 2 && fogcolor == 0)
 		{
 			const float MAXDIST = 256.f;
@@ -421,7 +445,7 @@ bool FVertexBuffer3D::Bind()
 	BindBuffer();
 	gl.BufferData(GL_ARRAY_BUFFER, mMaxSize * sizeof(FVertex3D), NULL, GL_STREAM_DRAW);
 
-	glVertexPointer(2,GL_FLOAT, sizeof(FVertex3D), &VT3->x);
+	glVertexPointer(3,GL_FLOAT, sizeof(FVertex3D), &VT3->x);
 	glTexCoordPointer(2,GL_FLOAT, sizeof(FVertex3D), &VT3->u);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(FVertex3D), &VT3->r);
 	gl.VertexAttribPointer(FShaderObject::attrFogColor, 4, GL_UNSIGNED_BYTE, true, sizeof(FVertex3D), &VT3->fr);
@@ -459,11 +483,12 @@ void FPrimitive3D::Draw()
 		{
 			GLRenderer2->mShaders->SetActiveShader(NULL);
 		}
+
+		gl.BlendEquation(mBlendEquation);
+		gl.BlendFunc(mSrcBlend, mDstBlend);
+		gl.AlphaFunc(GL_GEQUAL, mAlphaThreshold);
 	}
 
-	gl.BlendEquation(mBlendEquation);
-	gl.BlendFunc(mSrcBlend, mDstBlend);
-	gl.AlphaFunc(GL_GEQUAL, mAlphaThreshold);
 
 	gl.DrawArrays(mPrimitiveType, mVertexStart, mVertexCount); 
 }

@@ -361,9 +361,9 @@ namespace GLRendererNew
 			mActiveShader = active;
 			if (active != NULL) 
 			{
+				active->Bind();
 				active->setFogType(mFogType);
 				active->setCameraPos(mCameraPos);
-				active->Bind();
 			}
 			else
 			{

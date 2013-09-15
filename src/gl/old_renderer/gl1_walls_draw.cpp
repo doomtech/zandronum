@@ -126,6 +126,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 {
 	texcoord tcs[4];
 	bool glowing;
+	bool split = (gl_seamless && !(textured&4));
 
 	if (!light)
 	{
@@ -159,14 +160,14 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[0].u,tcs[0].v);
 	gl.Vertex3f(glseg.x1,zbottom[0],glseg.y1);
 
-	if (gl_seamless && glseg.fracleft==0) SplitLeftEdge(tcs, glowing);
+	if (split && glseg.fracleft==0) SplitLeftEdge(tcs, glowing);
 
 	// upper left corner
 	if (glowing) gl_SetGlowPosition(zceil[0] - ztop[0], ztop[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[1].u,tcs[1].v);
 	gl.Vertex3f(glseg.x1,ztop[0],glseg.y1);
 
-	if (gl_seamless && !color2) SplitUpperEdge(tcs, glowing);
+	if (split) SplitUpperEdge(tcs, glowing);
 
 	// color for right side
 	if (color2) gl.Color4fv(color2);
@@ -176,14 +177,14 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[2].u,tcs[2].v);
 	gl.Vertex3f(glseg.x2,ztop[1],glseg.y2);
 
-	if (gl_seamless && glseg.fracright==1) SplitRightEdge(tcs, glowing);
+	if (split && glseg.fracright==1) SplitRightEdge(tcs, glowing);
 
 	// lower right corner
 	if (glowing) gl_SetGlowPosition(zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[3].u,tcs[3].v); 
 	gl.Vertex3f(glseg.x2,zbottom[1],glseg.y2);
 
-	if (gl_seamless && !color2) SplitLowerEdge(tcs, glowing);
+	if (split) SplitLowerEdge(tcs, glowing);
 
 	gl.End();
 
@@ -227,7 +228,7 @@ void GLWall::RenderFogBoundary()
 		gl.Color4f(fc[0],fc[1],fc[2], fogd1);
 
 		flags &= ~GLWF_GLOW;
-		RenderWall(0,fc);
+		RenderWall(4,fc);
 
 		gl.DepthFunc(GL_LESS);
 		gl_EnableFog(true);
@@ -325,7 +326,7 @@ void GLWall::RenderTranslucentWall()
 	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, extra, &Colormap, isadditive);
 	else gl_SetFog(255, 0, NULL, false);
 
-	RenderWall(1,NULL);
+	RenderWall(5,NULL);
 
 	// restore default settings
 	if (isadditive) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

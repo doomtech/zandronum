@@ -52,7 +52,14 @@ struct FPrimitive3D
 	int mVertexStart;
 	int mVertexCount;
 
-	FMaterial *mMaterial;
+	union
+	{
+		FMaterial *mMaterial;
+		// can't use FTextureID here because that would create a constructor for this class.
+		// This is not good because it would add completely unnecessary overhead to the rendering code.
+		int mTexId;	
+	};
+		
 	int mClamp;
 	int mTextureMode;
 	int mDesaturation;
@@ -66,20 +73,7 @@ struct FPrimitive3D
 
 	void Draw();
 	void SetRenderStyle(FRenderStyle style, bool opaque, bool allowcolorblending = false);
-	void Copy(FPrimitive3D *other)
-	{
-		mPrimitiveType = other->mPrimitiveType;
-		mMaterial = other->mMaterial;
-		mClamp = other->mClamp;
-		mTextureMode = other->mTextureMode;
-		mDesaturation = other->mDesaturation;
-		mAlphaThreshold = other->mAlphaThreshold;
-		mTranslucent = other->mTranslucent;
-		mSrcBlend = other->mSrcBlend;
-		mDstBlend = other->mDstBlend;
-		mBlendEquation = other->mBlendEquation;
-		mCopy = false;
-	}
+	void Copy(FPrimitive3D *other);
 };
 
 class FVertexBuffer3D : public FVertexBuffer

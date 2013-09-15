@@ -27,6 +27,7 @@ public:
 	FGLTextureManager *mTextures;
 	TArray<FMaterialContainer *> mMaterials;
 	FPrimitiveBuffer2D *mRender2D;
+	FPrimitiveBuffer3D *mRender3D;
 	FMaterialContainer *mDefaultMaterial;
 	FSkyDrawer *mSkyDrawer;
 	GLDrawInfo *mGlobalDrawInfo;
@@ -41,6 +42,7 @@ public:
 		mShaders = NULL;
 		mTextures = NULL;
 		mRender2D = NULL;
+		mRender3D = NULL;
 		mDefaultMaterial = NULL;
 		mSkyDrawer = NULL;
 		mGlobalDrawInfo = NULL;
@@ -88,6 +90,7 @@ public:
 	void SetViewMatrix(bool mirror, bool planemirror);
 
 	void CollectScene();
+	void RenderScene(int recursion);
 	void DrawScene();
 
 	GLDrawInfo *StartDrawInfo(GLDrawInfo * di);
@@ -99,6 +102,10 @@ public:
 	FMaterial *GetMaterial(FTextureID texindex, bool animtrans, bool asSprite, int translation);
 	FShader *GetShader(const char *name);
 };
+
+// same as GLRenderer but with another type because this will be needed throughout the
+// new renderer.
+extern GL2Renderer *GLRenderer2;
 
 //==========================================================================
 //
@@ -148,13 +155,29 @@ public:
 		mViewpoint = FVector3(x,y,z);
 	}
 
+	void RenderNormal()
+	{
+		for(unsigned i=0;i<mDrawLists[0].Size(); i++)
+		{
+			FRenderObject *ro = mDrawLists[0][i];
+			switch (ro->mType)
+			{
+			case FRenderObject::RO_FLAT:
+			{
+				FSectorPlaneObject *spo = (FSectorPlaneObject *)ro;
+				FSectorRenderData *srd = &GLRenderer2->mSectorData[spo->mSector - sectors];
+				srd->CreatePlanePrimitives(GLRenderer2->mCurrentDrawInfo, spo, GLRenderer2->mRender3D);
+				break;
+			}
+			}
+		}
+		GLRenderer2->mRender3D->Flush();
+	}
+
 
 };
 
 
-// same as GLRenderer but with another type because this will be needed throughout the
-// new renderer.
-extern GL2Renderer *GLRenderer2;
 }
 
 #endif

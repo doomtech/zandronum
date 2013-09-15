@@ -345,6 +345,12 @@ public:
 		return Textures[Translation[texnum.texnum]].Texture;
 	}
 
+	FTexture *ByIndexTranslated(int i)
+	{
+		if (unsigned(i) >= Textures.Size()) return NULL;
+		return Textures[Translation[i]].Texture;
+	}
+
 	void SetTranslation (FTextureID fromtexnum, FTextureID totexnum)
 	{
 		if ((size_t)fromtexnum.texnum < Translation.Size())

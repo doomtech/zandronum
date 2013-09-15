@@ -14,7 +14,14 @@ namespace GLRendererNew
 
 struct FRenderObject
 {
+	enum EType
+	{
+		RO_FLAT,
+		RO_WALL,
+		RO_SPRITE
+	};
 	FMaterial *mMat;	// this is needed for sorting geometry on a higher level than single primitives
+	EType mType;
 	bool mAlpha;
 };
 
@@ -42,8 +49,9 @@ struct FSectorPlaneObject : public FRenderObject
 
 	bool isVisible(const FVector3 &viewpoint, bool upside)	// upside must be passed for optimization
 	{
-		if (upside) return mPlane.ZatPoint(viewpoint.X, viewpoint.Y) > viewpoint.Z;
-		else return mPlane.ZatPoint(viewpoint.X, viewpoint.Y) < viewpoint.Z;
+		float planez = mPlane.ZatPoint(viewpoint.X, viewpoint.Y);
+		if (!upside) return planez > viewpoint.Z;
+		else return planez < viewpoint.Z;
 	}
 };
 
