@@ -154,7 +154,6 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 
 	gl.Begin(GL_TRIANGLE_FAN);
 
-
 	// lower left corner
 	if (glowing) gl_SetGlowPosition(zceil[0] - zbottom[0], zbottom[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[0].u,tcs[0].v);
@@ -166,6 +165,8 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (glowing) gl_SetGlowPosition(zceil[0] - ztop[0], ztop[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[1].u,tcs[1].v);
 	gl.Vertex3f(glseg.x1,ztop[0],glseg.y1);
+
+	if (gl_seamless && !color2) SplitUpperEdge(tcs, glowing);
 
 	// color for right side
 	if (color2) gl.Color4fv(color2);
@@ -181,6 +182,8 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (glowing) gl_SetGlowPosition(zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[3].u,tcs[3].v); 
 	gl.Vertex3f(glseg.x2,zbottom[1],glseg.y2);
+
+	if (gl_seamless && !color2) SplitLowerEdge(tcs, glowing);
 
 	gl.End();
 

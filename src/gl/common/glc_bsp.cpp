@@ -133,7 +133,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	seg->linedef->flags |= ML_MAPPED;
 	ClipWall.Unclock();
 
-	if (!gl_render_segs)
+	//if (!gl_render_segs)
 	{
 		// rendering per linedef as opposed per seg is significantly more efficient
 		// so mark the linedef as rendered here and render it completely.

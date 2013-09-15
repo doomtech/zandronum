@@ -73,10 +73,6 @@ void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime);
 
 void gl_ApplyShader();
 
-void gl_RecalcVertexHeights(vertex_t * v);
-void gl_InitVertexData();
-void gl_CleanVertexData();
-
 void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror);
 void gl_DrawScene();
 void gl_EndDrawScene();

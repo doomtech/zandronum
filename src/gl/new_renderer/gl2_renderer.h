@@ -79,9 +79,6 @@ public:
 	void ProcessScene();
 	void Flush();
 
-	void InvalidateSector(sector_t *sec, int mode);
-	void InvalidateSidedef(side_t *side, int mode);
-
 	void SetProjection(float fov, float ratio, float fovratio);
 	void SetViewMatrix(bool mirror, bool planemirror);
 

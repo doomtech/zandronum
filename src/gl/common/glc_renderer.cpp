@@ -243,6 +243,7 @@ sector_t * GLRendererBase::RenderViewpoint (AActor * camera, GL_IRECT * bounds, 
 
 	ProcessScene();
 
+	gl_frameCount++;	// This counter must be increased right before the interpolations are restored.
 	interpolator.RestoreInterpolations ();
 	return retval;
 }
@@ -345,3 +346,21 @@ ADD_STAT(renderstats)
 		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
 	return out;
 }
+
+extern int DirtyCount;
+
+ADD_STAT(dirty)
+{
+	static FString buff;
+	static int lasttime=0;
+	int t=I_MSTime();
+	if (t-lasttime>1000) 
+	{
+		buff.Format("Dirty=%2.8f (%d)\n", Dirty.TimeMS(), DirtyCount);
+		lasttime=t;
+	}
+	Dirty.Reset();
+	DirtyCount = 0;
+	return buff;
+}
+

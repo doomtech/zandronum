@@ -11,6 +11,7 @@ namespace GLRendererOld
 }
 
 extern long gl_frameMS;
+extern long gl_frameCount;
 #ifdef _WIN32
 class OpenGLFrameBuffer : public Win32GLFrameBuffer
 {

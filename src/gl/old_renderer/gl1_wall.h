@@ -131,6 +131,8 @@ private:
 
 	void SplitLeftEdge(texcoord * tcs, bool glow);
 	void SplitRightEdge(texcoord * tcs, bool glow);
+	void SplitUpperEdge(texcoord * tcs, bool glow);
+	void SplitLowerEdge(texcoord * tcs, bool glow);
 
 public:
 

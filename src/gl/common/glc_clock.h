@@ -99,6 +99,7 @@ extern glcycle_t RenderSprite,SetupSprite;
 extern glcycle_t All, Finish, PortalAll;
 extern glcycle_t ProcessAll;
 extern glcycle_t RenderAll;
+extern glcycle_t Dirty;
 
 extern int rendered_lines,rendered_flats,rendered_sprites,rendered_decals,render_vertexsplit,render_texsplit;
 

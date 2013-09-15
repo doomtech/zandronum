@@ -1476,8 +1476,8 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 	if (gl_seamless)
 	{
-		gl_RecalcVertexHeights(v1);
-		gl_RecalcVertexHeights(v2);
+		if (v1->dirty) gl_RecalcVertexHeights(v1);
+		if (v2->dirty) gl_RecalcVertexHeights(v2);
 	}
 
 	vertexes[0]=v1;

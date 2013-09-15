@@ -55,6 +55,7 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
+#include "gl/common/glc_clock.h"
 // [BB]
 #include "gl/gl_functions.h"
 // [BC]
@@ -67,6 +68,7 @@ void gl_InitModels();
 
 GLRenderSettings glset;
 long gl_frameMS;
+long gl_frameCount;
 
 EXTERN_CVAR(Int, gl_lightmode)
 
@@ -293,7 +295,7 @@ DEFINE_MAP_OPTION(skyrotate, false)
 	opt->skyrotatevector.MakeUnit();
 }
 
-static void InitGLRMapinfoData()
+void InitGLRMapinfoData()
 {
 	FGLROptions *opt = level.info->GetOptData<FGLROptions>("gl_renderer", false);
 
@@ -328,460 +330,6 @@ CCMD(gl_resetmap)
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
 }
 
-
-//==========================================================================
-//
-// prepare subsectors for GL rendering
-//
-//==========================================================================
-
-CVAR(Int,forceglnodes, 0, CVAR_GLOBALCONFIG)	// only for testing - don't save!
-
-
-inline void M_ClearBox (fixed_t *box)
-{
-	box[BOXTOP] = box[BOXRIGHT] = INT_MIN;
-	box[BOXBOTTOM] = box[BOXLEFT] = INT_MAX;
-}
-
-inline void M_AddToBox(fixed_t* box,fixed_t x,fixed_t y)
-{
-	if (x<box[BOXLEFT]) box[BOXLEFT] = x;
-	if (x>box[BOXRIGHT]) box[BOXRIGHT] = x;
-	if (y<box[BOXBOTTOM]) box[BOXBOTTOM] = y;
-	if (y>box[BOXTOP]) box[BOXTOP] = y;
-}
-
-static void SpreadHackedFlag(subsector_t * sub)
-{
-	// The subsector pointer hasn't been set yet!
-	for(DWORD i=0;i<sub->numlines;i++)
-	{
-		seg_t * seg = &segs[sub->firstline+i];
-
-		if (seg->PartnerSeg)
-		{
-			subsector_t * sub2 = seg->PartnerSeg->Subsector;
-
-			if (!(sub2->hacked&1) && sub2->render_sector == sub->render_sector)
-			{
-				sub2->hacked|=1;
-				SpreadHackedFlag (sub2);
-			}
-		}
-	}
-}
-
-
-static bool PointOnLine (int x, int y, int x1, int y1, int dx, int dy)
-{
-	const double SIDE_EPSILON = 6.5536;
-
-	// For most cases, a simple dot product is enough.
-	double d_dx = double(dx);
-	double d_dy = double(dy);
-	double d_x = double(x);
-	double d_y = double(y);
-	double d_x1 = double(x1);
-	double d_y1 = double(y1);
-
-	double s_num = (d_y1-d_y)*d_dx - (d_x1-d_x)*d_dy;
-
-	if (fabs(s_num) < 17179869184.0)	// 4<<32
-	{
-		// Either the point is very near the line, or the segment defining
-		// the line is very short: Do a more expensive test to determine
-		// just how far from the line the point is.
-		double l = sqrt(d_dx*d_dx+d_dy*d_dy);
-		double dist = fabs(s_num)/l;
-		if (dist < SIDE_EPSILON)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-static void PrepareSectorData()
-{
-	int 				i;
-	DWORD 				j;
-	size_t				/*ii,*/ jj;
-	TArray<subsector_t *> undetermined;
-	subsector_t *		ss;
-
-	// The GL node builder produces screwed output when two-sided walls overlap with one-sides ones!
-	for(i=0;i<numsegs;i++)
-	{
-		int partner= int(segs[i].PartnerSeg-segs);
-
-		if (partner<0 || partner>=numsegs || &segs[partner]!=segs[i].PartnerSeg)
-		{
-			segs[i].PartnerSeg=NULL;
-		}
-
-		// glbsp creates such incorrect references for Strife.
-		if (segs[i].linedef && segs[i].PartnerSeg && !segs[i].PartnerSeg->linedef)
-		{
-			segs[i].PartnerSeg = segs[i].PartnerSeg->PartnerSeg = NULL;
-		}
-	}
-
-	for(i=0;i<numsegs;i++)
-	{
-		if (segs[i].PartnerSeg && segs[i].PartnerSeg->PartnerSeg!=&segs[i])
-		{
-			//Printf("Warning: seg %d (sector %d)'s partner seg is incorrect!\n", i, segs[i].frontsector-sectors);
-			segs[i].PartnerSeg=NULL;
-		}
-	}
-
-	// look up sector number for each subsector
-	for (i = 0; i < numsubsectors; i++)
-	{
-		// For rendering pick the sector from the first seg that is a sector boundary
-		// this takes care of self-referencing sectors
-		ss = &subsectors[i];
-		seg_t *seg = &segs[ss->firstline];
-
-		// Check for one-dimensional subsectors. These aren't rendered and should not be
-		// subject to filling areas with bleeding flats
-		ss->degenerate=true;
-		for(jj=2; jj<ss->numlines; jj++)
-		{
-			if (!PointOnLine(seg[jj].v1->x, seg[jj].v1->y, seg->v1->x, seg->v1->y, seg->v2->x-seg->v1->x, seg->v2->y-seg->v1->y))
-			{
-				// Not on the same line
-				ss->degenerate=false;
-				break;
-			}
-		}
-
-		seg = &segs[ss->firstline];
-		M_ClearBox(ss->bbox);
-		for(jj=0; jj<ss->numlines; jj++)
-		{
-			M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
-			seg++;
-		}
-
-		if (forceglnodes<2)
-		{
-			seg_t * seg = &segs[ss->firstline];
-			for(j=0; j<ss->numlines; j++)
-			{
-				if(seg->sidedef && (!seg->PartnerSeg || seg->sidedef->sector!=seg->PartnerSeg->sidedef->sector))
-				{
-					ss->render_sector = seg->sidedef->sector;
-					break;
-				}
-				seg++;
-			}
-			if(ss->render_sector == NULL) 
-			{
-				undetermined.Push(ss);
-			}
-		}
-		else ss->render_sector=ss->sector;
-	}
-
-	// assign a vaild render sector to all subsectors which haven't been processed yet.
-	while (undetermined.Size())
-	{
-		bool deleted=false;
-		for(i=undetermined.Size()-1;i>=0;i--)
-		{
-			ss=undetermined[i];
-			seg_t * seg = &segs[ss->firstline];
-			
-			for(j=0; j<ss->numlines; j++)
-			{
-				if (seg->PartnerSeg && seg->PartnerSeg->Subsector)
-				{
-					sector_t * backsec = seg->PartnerSeg->Subsector->render_sector;
-					if (backsec)
-					{
-						ss->render_sector=backsec;
-						undetermined.Delete(i);
-						deleted=1;
-						break;
-					}
-				}
-				seg++;
-			}
-		}
-		if (!deleted && undetermined.Size()) 
-		{
-			// This only happens when a subsector is off the map.
-			// Don't bother and just assign the real sector for rendering
-			for(i=undetermined.Size()-1;i>=0;i--)
-			{
-				ss=undetermined[i];
-				ss->render_sector=ss->sector;
-			}
-			break;
-		}
-	}
-
-	// now group the subsectors by sector
-	subsector_t ** subsectorbuffer = new subsector_t * [numsubsectors];
-
-	for(i=0, ss=subsectors; i<numsubsectors; i++, ss++)
-	{
-		ss->render_sector->subsectorcount++;
-	}
-
-	for (i=0; i<numsectors; i++) 
-	{
-		sectors[i].subsectors = subsectorbuffer;
-		subsectorbuffer += sectors[i].subsectorcount;
-		sectors[i].subsectorcount = 0;
-	}
-	
-	for(i=0, ss = subsectors; i<numsubsectors; i++, ss++)
-	{
-		ss->render_sector->subsectors[ss->render_sector->subsectorcount++]=ss;
-	}
-
-	// marks all malformed subsectors so rendering tricks using them can be handled more easily
-	for (i = 0; i < numsubsectors; i++)
-	{
-		if (subsectors[i].sector == subsectors[i].render_sector)
-		{
-			seg_t * seg = &segs[subsectors[i].firstline];
-			for(DWORD j=0;j<subsectors[i].numlines;j++)
-			{
-				if (!(subsectors[i].hacked&1) && seg[j].linedef==0 && 
-						seg[j].PartnerSeg!=NULL && 
-						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector->render_sector)
-				{
-					DPrintf("Found hack: (%d,%d) (%d,%d)\n", seg[j].v1->x>>16, seg[j].v1->y>>16, seg[j].v2->x>>16, seg[j].v2->y>>16);
-					subsectors[i].hacked|=1;
-					SpreadHackedFlag(&subsectors[i]);
-				}
-				if (seg[j].PartnerSeg==NULL) subsectors[i].hacked|=2;	// used for quick termination checks
-			}
-		}
-	}
-}
-
-//==========================================================================
-//
-// Some processing for transparent door hacks
-//
-//==========================================================================
-static void PrepareTransparentDoors(sector_t * sector)
-{
-	bool solidwall=false;
-	int notextures=0;
-	int nobtextures=0;
-	int selfref=0;
-	int i;
-	sector_t * nextsec=NULL;
-
-#ifdef _MSC_VER
-#ifdef _DEBUG
-	if (sector-sectors==2)
-	{
-		__asm nop
-	}
-#endif
-#endif
-
-	P_Recalculate3DFloors(sector);
-	if (sector->subsectorcount==0) return;
-
-	sector->transdoorheight=sector->GetPlaneTexZ(sector_t::floor);
-	sector->transdoor= !(sector->e->XFloor.ffloors.Size() || sector->heightsec || sector->floorplane.a || sector->floorplane.b);
-
-	if (sector->transdoor)
-	{
-		for (i=0; i<sector->linecount; i++)
-		{
-			if (sector->lines[i]->frontsector==sector->lines[i]->backsector) 
-			{
-				selfref++;
-				continue;
-			}
-
-			sector_t * sec=getNextSector(sector->lines[i], sector);
-			if (sec==NULL) 
-			{
-				solidwall=true;
-				continue;
-			}
-			else
-			{
-				nextsec=sec;
-
-				int side=sides[sector->lines[i]->sidenum[0]].sector==sec;
-
-				if (sector->GetPlaneTexZ(sector_t::floor)!=sec->GetPlaneTexZ(sector_t::floor)+FRACUNIT) 
-				{
-					sector->transdoor=false;
-					return;
-				}
-				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::top).isValid()) notextures++;
-				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom).isValid()) nobtextures++;
-			}
-		}
-		if (sector->GetTexture(sector_t::ceiling)==skyflatnum)
-		{
-			sector->transdoor=false;
-			return;
-		}
-
-		if (selfref+nobtextures!=sector->linecount)
-		{
-			sector->transdoor=false;
-		}
-
-		if (selfref+notextures!=sector->linecount)
-		{
-			// This is a crude attempt to fix an incorrect transparent door effect I found in some
-			// WolfenDoom maps but considering the amount of code required to handle it I left it in.
-			// Do this only if the sector only contains one-sided walls or ones with no lower texture.
-			if (solidwall)
-			{
-				if (solidwall+nobtextures+selfref==sector->linecount && nextsec)
-				{
-					sector->heightsec=nextsec;
-					sector->heightsec->MoreFlags=0;
-				}
-				sector->transdoor=false;
-			}
-		}
-	}
-}
-
-
-//=============================================================================
-//
-//
-//
-//=============================================================================
-
-side_t* getNextSide(sector_t * sec, line_t* line)
-{
-	if (sec==line->frontsector)
-	{
-		if (sec==line->backsector) return NULL;	
-		if (line->sidenum[1]!=NO_SIDE) return &sides[line->sidenum[1]];
-	}
-	else
-	{
-		if (line->sidenum[0]!=NO_SIDE) return &sides[line->sidenum[0]];
-	}
-	return NULL;
-}
-
-//==========================================================================
-//
-// Initialize the level data for the GL renderer
-//
-//==========================================================================
-
-void gl_PreprocessLevel()
-{
-	int i;
-
-	static bool modelsdone=false;
-
-//	LineSpecials[159]=LS_Sector_SetPlaneReflection;
-
-	if (!modelsdone)
-	{
-		modelsdone=true;
-		gl_InitModels();
-	}
-
-	R_ResetViewInterpolation ();
-
-
-	// Nasty: I can't rely upon the sidedef assignments because ZDBSP likes to screw them up
-	// if the sidedefs are compressed and both sides are the same.
-	for(i=0;i<numsegs;i++)
-	{
-		seg_t * seg=&segs[i];
-		if (seg->backsector == seg->frontsector && seg->linedef)
-		{
-			fixed_t d1=P_AproxDistance(seg->v1->x-seg->linedef->v1->x,seg->v1->y-seg->linedef->v1->y);
-			fixed_t d2=P_AproxDistance(seg->v2->x-seg->linedef->v1->x,seg->v2->y-seg->linedef->v1->y);
-
-			if (d2<d1)	// backside
-			{
-				seg->sidedef = &sides[seg->linedef->sidenum[1]];
-			}
-			else	// front side
-			{
-				seg->sidedef = &sides[seg->linedef->sidenum[0]];
-			}
-		}
-	}
-	
-	if (gl_disabled) return;
-
-	PrepareSectorData();
-	for(i=0;i<numsectors;i++) 
-	{
-		sectors[i].sectornum = i;
-		PrepareTransparentDoors(&sectors[i]);
-	}
-
-	for(i = 0; i < numvertexes; i++)
-	{
-		vertexes[i].fx = TO_GL(vertexes[i].x);
-		vertexes[i].fy = TO_GL(vertexes[i].y);
-	}
-
-	if (GLRenderer != NULL) GLRenderer->SetupLevel();
-
-#if 0
-	gl_CreateSections();
-#endif
-
-	AdjustSpriteOffsets();
-	InitGLRMapinfoData();
-}
-
-
-
-//==========================================================================
-//
-// Cleans up all the GL data for the last level
-//
-//==========================================================================
-void gl_CleanLevelData()
-{
-	// Dynamic lights must be destroyed before the sector information here is deleted!
-	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
-	AActor * mo=it.Next();
-	while (mo)
-	{
-		AActor * next = it.Next();
-		mo->Destroy();
-		mo=next;
-	}
-
-	if (sectors && sectors[0].subsectors) 
-	{
-		delete [] sectors[0].subsectors;
-		sectors[0].subsectors=NULL;
-	}
-	if (gamenodes && gamenodes!=nodes)
-	{
-		delete [] gamenodes;
-		gamenodes = NULL;
-		numgamenodes = 0;
-	}
-	if (gamesubsectors && gamesubsectors!=subsectors)
-	{
-		delete [] gamesubsectors;
-		gamesubsectors = NULL;
-		numgamesubsectors = 0;
-	}
-	if (GLRenderer != NULL) GLRenderer->CleanLevelData();
-}
 
 //===========================================================================
 //
@@ -823,6 +371,99 @@ FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang, b
 
 //==========================================================================
 //
+// Recalculate all heights affectting this vertex.
+//
+//==========================================================================
+void gl_RecalcVertexHeights(vertex_t * v)
+{
+	int i,j,k;
+	float height;
+
+	v->numheights=0;
+	for(i=0;i<v->numsectors;i++)
+	{
+		for(j=0;j<2;j++)
+		{
+			if (j==0) height=TO_GL(v->sectors[i]->ceilingplane.ZatPoint(v));
+			else height=TO_GL(v->sectors[i]->floorplane.ZatPoint(v));
+
+			for(k=0;k<v->numheights;k++)
+			{
+				if (height == v->heightlist[k]) break;
+				if (height < v->heightlist[k])
+				{
+					memmove(&v->heightlist[k+1], &v->heightlist[k], sizeof(float) * (v->numheights-k));
+					v->heightlist[k]=height;
+					v->numheights++;
+					break;
+				}
+			}
+			if (k==v->numheights) v->heightlist[v->numheights++]=height;
+		}
+	}
+	if (v->numheights<=2) v->numheights=0;	// is not in need of any special attention
+	v->dirty = false;
+}
+
+
+//==========================================================================
+//
+// Mark sectors dirty
+//
+//==========================================================================
+int DirtyCount;
+
+void sector_t::SetDirty(bool dolines, bool dovertices)
+{
+	Dirty.Clock();
+	if (currentrenderer == 1 && this == &sectors[sectornum])
+	{
+		dirty = true;
+
+		if (dirtyframe[0] != gl_frameCount)
+		{
+			DirtyCount++;
+			dirtyframe[0] = gl_frameCount;
+			for(unsigned i = 0; i < e->SectorDependencies.Size(); i++)
+				e->SectorDependencies[i]->dirty = true;
+		}
+
+		if (dolines)
+		{
+			if (dirtyframe[1] != gl_frameCount)
+			{
+				dirtyframe[1] = gl_frameCount;
+
+				for(unsigned i = 0; i < e->SideDependencies.Size(); i++)
+					e->SideDependencies[i]->dirty = true;
+			}
+		}
+
+		if (dovertices)
+		{
+			if (dirtyframe[2] != gl_frameCount)
+			{
+				dirtyframe[2] = gl_frameCount;
+
+				for(unsigned i = 0; i < e->VertexDependencies.Size(); i++)
+					e->VertexDependencies[i]->dirty = true;
+			}
+		}
+	}
+	Dirty.Unclock();
+}
+
+
+void gl_InitData()
+{
+	// [BB] This is set in p_lnspec.cpp
+	//LineSpecials[159]=LS_Sector_SetPlaneReflection;
+	gl_InitModels();
+	AdjustSpriteOffsets();
+}
+
+//==========================================================================
+//
 // dumpgeometry
 //
 //==========================================================================
@@ -861,6 +502,26 @@ CCMD(dumpgeometry)
 				}
 				Printf("\n");
 			}
+		}
+	}
+}
+
+CCMD(dumpdependencies)
+{
+	for(int i=0;i<numsectors;i++)
+	{
+		Printf(PRINT_LOG, "Dependencies of sector %d\n", i);
+		for(unsigned j = 0; j < sectors[i].e->VertexDependencies.Size(); j++)
+		{
+			Printf(PRINT_LOG,"\tVertex %d\n", int(sectors[i].e->VertexDependencies[j] - vertexes));
+		}
+		for(unsigned j = 0; j < sectors[i].e->SideDependencies.Size(); j++)
+		{
+			Printf(PRINT_LOG,"\tSide %d (Line %d)\n", int(sectors[i].e->SideDependencies[j] - sides), sectors[i].e->SideDependencies[j]->linenum);
+		}
+		for(unsigned j = 0; j < sectors[i].e->SectorDependencies.Size(); j++)
+		{
+			Printf(PRINT_LOG,"\tSector %d\n", int(sectors[i].e->SectorDependencies[j] - sectors));
 		}
 	}
 }

@@ -15,6 +15,7 @@ glcycle_t RenderSprite,SetupSprite;
 glcycle_t All, Finish, PortalAll;
 glcycle_t ProcessAll;
 glcycle_t RenderAll;
+glcycle_t Dirty;
 int vertexcount, flatvertices, flatprimitives;
 
 

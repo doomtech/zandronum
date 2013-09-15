@@ -751,42 +751,4 @@ void GL2Renderer::ProcessScene()
 	}
 }
 
-//-----------------------------------------------------------------------------
-//
-//
-//-----------------------------------------------------------------------------
-
-void GL2Renderer::InvalidateSector(sector_t *sec, int mode)
-{
-	// mode == 0: only invalidate this sector
-	// mode == 1: invalidate all attached sectors
-	// mode == 2: invalidate everything that depends on this sector
-	mSectorData[sec-sectors].Invalidate();
-	if (mode > 0)
-	{
-		FSectorRenderData *srd = &mSectorData[sec->sectornum];
-
-		for(unsigned i = 0; i < srd->SectorDependencies.Size(); i++)
-		{
-			int secno = srd->SectorDependencies[i]->sectornum;
-			mSectorData[secno].Invalidate();
-		}
-
-		if (mode == 2)
-		{
-			// invalidate lines and vertices
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-//
-//
-//-----------------------------------------------------------------------------
-
-void GL2Renderer::InvalidateSidedef(side_t *side, int mode)
-{
-}
-
-
 }

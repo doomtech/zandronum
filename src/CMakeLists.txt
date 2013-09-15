@@ -633,6 +633,7 @@ if( NOT NO_GL )
 		gl/common/glc_renderer.cpp
 		gl/common/glc_renderhacks.cpp
 		gl/common/glc_sections.cpp
+		gl/common/glc_setup.cpp
 		gl/common/glc_texture.cpp
 		gl/common/glc_translate.cpp
 		gl/common/glc_wipe.cpp

@@ -61,13 +61,9 @@ struct FSectorRenderData
 	TArray<FVertex3D> mVertices;
 	TArray<FSubsectorPrimitive> mPrimitives;
 
-	TArray<sector_t *> SectorDependencies;
-	TArray<line_t *> LineDependencies;
-	TArray<vertex_t *> VertexDependencies;
-	
-	void AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *sectormap);
-	void SetupDependencies();
-
+	void CreateDynamicPrimitive(FSectorPlaneObject *plane,
+							FSubsectorPrimitive *prim, int vertstart, FVertex3D *verts,
+							subsector_t *sub);
 
 	void CreatePlane(FSectorPlaneObject *plane,
 					 int in_area, sector_t *sec, GLSectorPlane &splane, 
@@ -75,7 +71,6 @@ struct FSectorRenderData
 					 float alpha, bool additive, bool upside, bool opaque);
 
 	void Init(int sector);
-	void Invalidate();
 	void Validate(area_t in_area);
 	void Process(subsector_t *sub, area_t in_area);
 };

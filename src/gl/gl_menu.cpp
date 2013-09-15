@@ -32,7 +32,7 @@ CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL
 
 CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
-	gl_render_segs=self;
+	//gl_render_segs=self;
 	gl_seamless=self;
 }
 
