@@ -341,7 +341,8 @@ void FPrimitive3D::Render(int what, FVertex3D *vert)
 
 	if (what & PR_LIGHTING)
 	{
-		glColor4ubv(&r);
+		//glColor4ubv(&r);
+		glColor4f(1,1,1,1);
 		gl.VertexAttrib4ubv(FShaderObject::attrFogColor, &fr);
 		gl.VertexAttrib3fv(FShaderObject::attrLightParams, &fogdensity);
 		gl.VertexAttrib2fv(FShaderObject::attrGlowDistance, &glowdisttop);

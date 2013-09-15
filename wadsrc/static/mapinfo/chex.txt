@@ -23,6 +23,7 @@ gameinfo
 	defaultbloodcolor = "3f 7d 39"
 	defaultbloodparticlecolor = "5f af 57"
 	backpacktype = "ZorchPack"
+	armoricons = "ARM1A0", 0.5, "ARM2A0"
 	statusbar = "sbarinfo/doom.txt"
 	intermissionmusic = "$MUSIC_INTER"
 	intermissioncounter = true
@@ -35,6 +36,10 @@ gameinfo
 	weaponslot = 7, "LAZDevice"
 	dimcolor = "ff d7 00"
 	dimamount = 0.2
+	definventorymaxamount = 25
+	defaultrespawntime = 12
+	defaultdropstyle = 1
+	endoom = "ENDOOM"
 }
 
 skill baby

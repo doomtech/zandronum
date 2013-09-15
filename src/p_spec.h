@@ -475,6 +475,7 @@ public:
 		platToggle,
 		platDownToNearestFloor,
 		platDownToLowestCeiling,
+		platRaiseAndStayLockout,
 	};
 
 	// [BC] Make this constructor public to clients can create it.

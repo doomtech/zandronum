@@ -320,6 +320,18 @@ unsigned int GLTexture::Bind(int texunit, int cm,int translation, int clampmode)
 }
 
 
+void GLTexture::Unbind(int texunit)
+{
+	if (lastbound[texunit] != 0)
+	{
+		if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0+texunit);
+		gl.BindTexture(GL_TEXTURE_2D, 0);
+		if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0);
+		lastbound[texunit] = 0;
+	}
+}
+
+
 //===========================================================================
 // 
 //	(re-)creates the texture

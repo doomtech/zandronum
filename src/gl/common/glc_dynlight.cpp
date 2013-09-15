@@ -103,6 +103,50 @@ void gl_ParseSkybox(FScanner &sc)
 	TexMan.AddTexture(sb);
 }
 
+//-----------------------------------------------------------------------------
+//
+// gl_ParseVavoomSkybox
+//
+//-----------------------------------------------------------------------------
+
+void gl_ParseVavoomSkybox(FScanner &sc)
+{
+	while (sc.GetString())
+	{
+		int facecount=0;
+		int maplump = -1;
+		FSkyBox * sb = new FSkyBox;
+		uppercopy(sb->Name, sc.String);
+		sb->Name[8]=0;
+		sb->fliptop = true;
+		sc.MustGetStringName("{");
+		while (!sc.CheckString("}"))
+		{
+			if (facecount<6) 
+			{
+				sc.MustGetStringName("{");
+				sc.MustGetStringName("map");
+				sc.MustGetString();
+
+				maplump = Wads.CheckNumForFullName(sc.String, true);
+				if (maplump==-1) 
+					Printf("Texture '%s' not found in Vavoom skybox '%s'\n", sc.String, sb->Name);
+
+				sb->faces[facecount] = FTexture::CreateTexture(maplump, FTexture::TEX_Wall);
+				if (!sb->faces[facecount])
+					Printf("Unable to create texture from '%s' in Vavoom skybox '%s'\n", sc.String, sb->Name);
+				sc.MustGetStringName("}");
+			}
+			facecount++;
+		}
+		if (facecount != 6)
+		{
+			sc.ScriptError("%s: Vavoom skybox definition requires 6 faces", sb->Name);
+		}
+		sb->SetSize();
+		TexMan.AddTexture(sb);
+	}
+}
 
 //==========================================================================
 //
@@ -1231,6 +1275,13 @@ void gl_LoadDynLightDefs(const char * defsLump)
 	{
 		FScanner sc(workingLump);
 		gl_DoParseDefs(sc, workingLump);
+	}
+	lastLump = 0;
+	if ((stricmp(defsLump, "GLDEFS") == 0) &&
+		((workingLump = Wads.FindLump("SKYBOXES", &lastLump)) != -1))
+	{
+		FScanner sc(workingLump);
+		gl_ParseVavoomSkybox(sc);
 	}
 }
 

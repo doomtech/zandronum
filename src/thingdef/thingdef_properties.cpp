@@ -1302,7 +1302,7 @@ DEFINE_CLASS_PROPERTY(maxamount, I, Inventory)
 //==========================================================================
 DEFINE_CLASS_PROPERTY(defmaxamount, 0, Inventory)
 {
-	defaults->MaxAmount = gameinfo.gametype == GAME_Heretic ? 16 : 25;
+	defaults->MaxAmount = gameinfo.definventorymaxamount;
 }
 
 

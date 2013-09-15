@@ -336,8 +336,17 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 			#ifndef FLOAT_ENGINE
 				if (i<lightlist.Size()-1) 
 				{
-					lightbottomleft = lightlist[i+1].plane.ZatPoint(x1,y1);
-					lightbottomright= lightlist[i+1].plane.ZatPoint(x2,y2);
+					secplane_t &p = lightlist[i+1].plane;
+					if (p.a | p.b)
+					{
+						lightbottomleft = p.ZatPoint(x1,y1);
+						lightbottomright= p.ZatPoint(x2,y2);
+					}
+					else
+					{
+						lightbottomleft =
+						lightbottomright= p.ZatPoint(x2,y2);
+					}
 				}
 				else 
 				{

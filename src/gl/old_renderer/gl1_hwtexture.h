@@ -65,6 +65,8 @@ public:
 	GLTexture(int w, int h, bool mip, bool wrap);
 	~GLTexture();
 
+	static void Unbind(int texunit);
+
 	unsigned int Bind(int texunit, int cm, int translation=0, int clampmode = -1);
 	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0);
 	void Resize(int _width, int _height) ;

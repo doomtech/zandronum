@@ -826,7 +826,7 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				else if(sc.Compare("Strife"))
 					cmd.special = GAME_Strife;
 				else
-					sc.ScriptError("Unkown style '%s'.", sc.String);
+					sc.ScriptError("Unknown style '%s'.", sc.String);
 
 				sc.MustGetToken(',');
 				while(sc.CheckToken(TK_Identifier))
@@ -850,6 +850,10 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					else if(sc.Compare("translucent"))
 					{
 						cmd.flags |= DRAWINVENTORYBAR_TRANSLUCENT;
+					}
+					else if(sc.Compare("vertical"))
+					{
+						cmd.flags |= DRAWINVENTORYBAR_VERTICAL;
 					}
 					else
 					{

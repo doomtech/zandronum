@@ -5,6 +5,7 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_renderhacks.h"
 #include "gl/common/glc_templates.h"
+#include "gl/common/glc_clock.h"
 #include "gl/new_renderer/gl2_geom.h"
 
 namespace GLRendererNew
@@ -163,9 +164,11 @@ public:
 			{
 			case FRenderObject::RO_FLAT:
 			{
+				RenderFlat.Clock();
 				FSectorPlaneObject *spo = (FSectorPlaneObject *)ro;
 				FSectorRenderData *srd = &GLRenderer2->mSectorData[spo->mSector - sectors];
 				srd->CreatePrimitives(GLRenderer2->mCurrentDrawInfo, spo);
+				RenderFlat.Unclock();
 				break;
 			}
 			case FRenderObject::RO_WALL:
