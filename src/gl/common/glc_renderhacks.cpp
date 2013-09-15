@@ -68,7 +68,7 @@ static glcycle_t totalssms;
 static sector_t fakesec;
 
 
-void FRenderHackInfo::StartScene()
+void FDrawInfo::StartScene()
 {
 	sectorrenderflags.Resize(numsectors);
 	ss_renderflags.Resize(numsubsectors);
@@ -117,7 +117,7 @@ void FRenderHackInfo::StartScene()
 //
 //==========================================================================
 
-void FRenderHackInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * node)
+void FDrawInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * node)
 {
 	int oldcnt = otherfloorplanes.Size();
 
@@ -130,7 +130,7 @@ void FRenderHackInfo::AddOtherFloorPlane(int sector, gl_subsectorrendernode * no
 	otherfloorplanes[sector] = node;
 }
 
-void FRenderHackInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
+void FDrawInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
 {
 	int oldcnt = otherceilingplanes.Size();
 
@@ -149,7 +149,7 @@ void FRenderHackInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * 
 // Collects all sectors that might need a fake ceiling
 //
 //==========================================================================
-void FRenderHackInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
+void FDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 {
 	if (!seg->backsector) return;
 
@@ -206,7 +206,7 @@ void FRenderHackInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 // Collects all sectors that might need a fake floor
 //
 //==========================================================================
-void FRenderHackInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
+void FDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 {
 	if (!seg->backsector) return;
 	if (seg->backsector->transdoor)
@@ -275,7 +275,7 @@ void FRenderHackInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 // 
 //
 //==========================================================================
-bool FRenderHackInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
+bool FDrawInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -333,7 +333,7 @@ bool FRenderHackInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 // 
 //
 //==========================================================================
-bool FRenderHackInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
+bool FDrawInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this subsector?
 	// Do this first to avoid unnecessary recursion
@@ -392,7 +392,7 @@ bool FRenderHackInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 //
 //
 //==========================================================================
-bool FRenderHackInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
+bool FDrawInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -445,7 +445,7 @@ bool FRenderHackInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 //
 //
 //==========================================================================
-bool FRenderHackInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
+bool FDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 {
 	// Is there a one-sided wall in this sector?
 	// Do this first to avoid unnecessary recursion
@@ -499,7 +499,7 @@ bool FRenderHackInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 // Draws the fake planes
 //
 //==========================================================================
-void FRenderHackInfo::HandleMissingTextures()
+void FDrawInfo::HandleMissingTextures()
 {
 	sector_t fake;
 	totalms.Clock();
@@ -659,7 +659,7 @@ void FRenderHackInfo::HandleMissingTextures()
 //
 //==========================================================================
 
-void FRenderHackInfo::DrawUnhandledMissingTextures()
+void FDrawInfo::DrawUnhandledMissingTextures()
 {
 	validcount++;
 	for(int i=MissingUpperSegs.Size()-1; i>=0; i--)
@@ -725,7 +725,7 @@ ADD_STAT(missingtextures)
 //
 //==========================================================================
 
-void FRenderHackInfo::AddHackedSubsector(subsector_t * sub)
+void FDrawInfo::AddHackedSubsector(subsector_t * sub)
 {
 	if (!(level.flags & LEVEL_HEXENFORMAT))
 	{
@@ -740,7 +740,7 @@ void FRenderHackInfo::AddHackedSubsector(subsector_t * sub)
 //
 //==========================================================================
 
-bool FRenderHackInfo::CheckAnchorFloor(subsector_t * sub)
+bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
@@ -782,7 +782,7 @@ static bool inview;
 static subsector_t * viewsubsector;
 static TArray<seg_t *> lowersegs;
 
-bool FRenderHackInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
+bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 {
 
 	// mark it checked
@@ -846,7 +846,7 @@ bool FRenderHackInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * ancho
 //
 //==========================================================================
 
-bool FRenderHackInfo::CheckAnchorCeiling(subsector_t * sub)
+bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
@@ -885,7 +885,7 @@ bool FRenderHackInfo::CheckAnchorCeiling(subsector_t * sub)
 //
 //==========================================================================
 
-bool FRenderHackInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
+bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 {
 	// mark it checked
 	sub->validcount=validcount;
@@ -945,7 +945,7 @@ bool FRenderHackInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anc
 //
 //==========================================================================
 
-void FRenderHackInfo::HandleHackedSubsectors()
+void FDrawInfo::HandleHackedSubsectors()
 {
 	lowershcount=uppershcount=0;
 	totalssms.Reset();
@@ -1026,12 +1026,12 @@ ADD_STAT(sectorhacks)
 //
 //==========================================================================
 
-void FRenderHackInfo::AddFloorStack(subsector_t * sub)
+void FDrawInfo::AddFloorStack(subsector_t * sub)
 {
 	FloorStacks.Push(sub);
 }
 
-void FRenderHackInfo::AddCeilingStack(subsector_t * sub)
+void FDrawInfo::AddCeilingStack(subsector_t * sub)
 {
 	CeilingStacks.Push(sub);
 }
@@ -1042,7 +1042,7 @@ void FRenderHackInfo::AddCeilingStack(subsector_t * sub)
 //
 //==========================================================================
 
-void FRenderHackInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
+void FDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
 {
 	// mark it checked
 	sub->validcount=validcount;
@@ -1089,7 +1089,7 @@ void FRenderHackInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * a
 //
 //==========================================================================
 
-void FRenderHackInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
+void FDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 {
 	// mark it checked
 	sub->validcount=validcount;
@@ -1136,7 +1136,7 @@ void FRenderHackInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anc
 //
 //==========================================================================
 
-void FRenderHackInfo::ProcessSectorStacks()
+void FDrawInfo::ProcessSectorStacks()
 {
 	unsigned int i;
 

@@ -298,7 +298,7 @@ static bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *source, const 
 // by hardware rendering
 //
 //==========================================================================
-sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
+sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool back)
 {
 	if (!sec->heightsec || sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || sec->heightsec==sec) return sec;
 
@@ -310,8 +310,6 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 	}
 #endif
 #endif
-
-	area_t in_area = ::in_area;
 
 	if (in_area==area_above)
 	{

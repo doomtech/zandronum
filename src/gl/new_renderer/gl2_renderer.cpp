@@ -164,8 +164,10 @@ void GL2Renderer::ProcessParticle(particle_t *part, sector_t *sector)
 //
 //===========================================================================
 
-void GL2Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
+void GL2Renderer::ProcessSector(sector_t *sec, subsector_t *sub)
 {
+	FSectorRenderData *srd = &mSectorData[sec->sectornum];
+	srd->Process(sub, in_area);
 }
 
 //===========================================================================
@@ -729,6 +731,11 @@ void GL2Renderer::SetViewMatrix(bool mirror, bool planemirror)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//-----------------------------------------------------------------------------
+
 void GL2Renderer::ProcessScene()
 {
 	// for testing. The sky must be rendered with depth buffer disabled.
@@ -744,21 +751,38 @@ void GL2Renderer::ProcessScene()
 	}
 }
 
+//-----------------------------------------------------------------------------
+//
+//
+//-----------------------------------------------------------------------------
+
 void GL2Renderer::InvalidateSector(sector_t *sec, int mode)
 {
 	// mode == 0: only invalidate this sector
 	// mode == 1: invalidate all attached sectors
 	// mode == 2: invalidate everything that depends on this sector
-	if (mode = 0)
+	mSectorData[sec-sectors].Invalidate();
+	if (mode > 0)
 	{
-		mSectorData[sec-sectors].Invalidate();
-	}
-	else
-	{
-		FGLSectorRenderData *srd = &mSectorData[sec-sectors];
+		FSectorRenderData *srd = &mSectorData[sec->sectornum];
 
+		for(unsigned i = 0; i < srd->SectorDependencies.Size(); i++)
+		{
+			int secno = srd->SectorDependencies[i]->sectornum;
+			mSectorData[secno].Invalidate();
+		}
+
+		if (mode == 2)
+		{
+			// invalidate lines and vertices
+		}
 	}
 }
+
+//-----------------------------------------------------------------------------
+//
+//
+//-----------------------------------------------------------------------------
 
 void GL2Renderer::InvalidateSidedef(side_t *side, int mode)
 {

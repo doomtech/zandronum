@@ -3,6 +3,7 @@
 
 #include "tarray.h"
 #include "gl/common/glc_renderer.h"
+#include "gl/common/glc_renderhacks.h"
 #include "gl/new_renderer/gl2_geom.h"
 
 namespace GLRendererNew
@@ -15,7 +16,7 @@ class FShader;
 class FGLTexture;
 class FPrimitiveBuffer2D;
 class FSkyDrawer;
-struct FGLSubsectorData;
+struct GLDrawInfo;
 
 
 class GL2Renderer : public GLRendererBase
@@ -27,8 +28,9 @@ public:
 	FPrimitiveBuffer2D *mRender2D;
 	FMaterialContainer *mDefaultMaterial;
 	FSkyDrawer *mSkyDrawer;
+	GLDrawInfo *mDrawInfo;
 
-	TArray<FGLSectorRenderData> mSectorData;
+	TArray<FSectorRenderData> mSectorData;
 
 	GL2Renderer() 
 	{
@@ -37,6 +39,7 @@ public:
 		mRender2D = NULL;
 		mDefaultMaterial = NULL;
 		mSkyDrawer = NULL;
+		mDrawInfo = NULL;
 	}
 	~GL2Renderer();
 
@@ -88,6 +91,46 @@ public:
 	FMaterial *GetMaterial(FTextureID texindex, bool animtrans, bool asSprite, int translation);
 	FShader *GetShader(const char *name);
 };
+
+//==========================================================================
+//
+// The draw info for one viewpoint
+//
+//==========================================================================
+
+struct GLDrawInfo : public FDrawInfo
+{
+	FVector3 mViewpoint;
+
+	bool temporary;
+
+	GLDrawInfo * next;
+
+	void StartScene()
+	{
+		mDrawLists[0].Clear();
+		mDrawLists[1].Clear();
+	}
+
+	//void SetupFloodStencil(wallseg * ws) [;
+	//void ClearFloodStencil(wallseg * ws);
+	//void DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bool ceiling);
+	void FloodUpperGap(seg_t * seg) {}
+	void FloodLowerGap(seg_t * seg) {}
+
+
+public:
+	TArray<FRenderObject*> mDrawLists[2];	// one for opaque, one for translucent
+	void AddObject(FRenderObject *obj)
+	{
+		mDrawLists[obj->mAlpha].Push(obj);
+	}
+
+	//static void StartDrawInfo(GLDrawInfo * hi);
+	//static void EndDrawInfo();
+
+};
+
 
 // same as GLRenderer but with another type because this will be needed throughout the
 // new renderer.

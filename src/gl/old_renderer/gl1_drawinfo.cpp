@@ -898,7 +898,7 @@ void GLDrawInfo::StartDrawInfo(GLDrawInfo * di)
 
 void GLDrawInfo::StartScene()
 {
-	FRenderHackInfo::StartScene();
+	FDrawInfo::StartScene();
 	next=gl_drawinfo;
 	gl_drawinfo=this;
 	for(int i=0;i<GLDL_TYPES;i++) drawlists[i].Reset();

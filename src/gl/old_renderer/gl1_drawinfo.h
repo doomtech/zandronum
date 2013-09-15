@@ -105,7 +105,7 @@ public:
 //
 //==========================================================================
 
-class GLDrawInfo : public FRenderHackInfo
+class GLDrawInfo : public FDrawInfo
 {
 	friend class GLFlat;
 

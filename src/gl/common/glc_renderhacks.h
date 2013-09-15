@@ -13,7 +13,7 @@ struct gl_subsectorrendernode
 };
 
 
-struct FRenderHackInfo
+struct FDrawInfo
 {
 
 	struct MissingTextureInfo

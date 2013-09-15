@@ -31,6 +31,7 @@
 #include "r_state.h"
 #include "v_palette.h"
 #include "a_sharedglobal.h"
+#include "r_sky.h"
 #include "gl/common/glc_geometric.h"
 #include "gl/common/glc_convert.h"
 #include "gl/new_renderer/gl2_renderer.h"
@@ -66,7 +67,7 @@ void MakeTextureMatrix(GLSectorPlane &splane, FMaterial *mat, Matrix3x4 &matx)
 //
 //===========================================================================
 
-void FGLSectorRenderData::AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *sectormap)
+void FSectorRenderData::AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *sectormap)
 {
 	int secnum = sec - sectors;
 	if (sectormap != NULL) sectormap[secnum>>3] |= (secnum&7);
@@ -88,7 +89,7 @@ void FGLSectorRenderData::AddDependency(sector_t *sec, BYTE *vertexmap, BYTE *se
 //
 //===========================================================================
 
-void FGLSectorRenderData::SetupDependencies()
+void FSectorRenderData::SetupDependencies()
 {
 	BYTE *vertexmap = new BYTE[numvertexes/8+1];
 	BYTE *linemap = new BYTE[numlines/8+1];
@@ -169,7 +170,7 @@ void FGLSectorRenderData::SetupDependencies()
 //
 //===========================================================================
 
-void FGLSectorRenderData::Init(int sector)
+void FSectorRenderData::Init(int sector)
 {
 	mSector = &sectors[sector];
 	SetupDependencies();
@@ -181,11 +182,11 @@ void FGLSectorRenderData::Init(int sector)
 //
 //===========================================================================
 
-void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane &splane, 
+void FSectorRenderData::CreatePlane(FSectorPlaneObject *plane,
+									  int in_area, sector_t *sec, GLSectorPlane &splane, 
 									  int lightlevel, FDynamicColormap *cm, 
-									  float alpha, bool additive, int whichplanes, bool opaque)
+									  float alpha, bool additive, bool upside, bool opaque)
 {
-	FGLSectorPlaneRenderData &Plane = mPlanes[in_area][mPlanes[in_area].Reserve(1)];
 
 	FTexture *tex = TexMan[splane.texture];
 	FMaterial *mat = GLRenderer2->GetMaterial(tex, false, 0);
@@ -225,43 +226,49 @@ void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane 
 		BasicProps.mAlphaThreshold = 0;
 	}
 
+	plane->mMat = mat;
+	plane->mAlpha = alpha < 1.0 - FLT_EPSILON;
+	plane->mSector = &sectors[sec->sectornum];
 	BasicProps.SetRenderStyle(style, opaque);
 	BasicProps.mMaterial = mat;
 	BasicProps.mPrimitiveType = GL_TRIANGLE_FAN;	// all subsectors are drawn as triangle fans
 	BasicProps.mDesaturation = cm->Desaturate;
 	BasicVertexProps.SetLighting(lightlevel, cm, 0/*rellight*/, additive, tex);
-	BasicVertexProps.a = quickertoint(alpha*255);
+	BasicVertexProps.a = (unsigned char)quickertoint(alpha*255);
 
-	Plane.mPlane = splane.plane;
-	Plane.mUpside = !!(whichplanes&1);
-	Plane.mDownside = !!(whichplanes&2);
-	Plane.mLightEffect = !splane.texture.Exists();
-	Plane.mSubsectorData.Resize(sec->subsectorcount);
-	for(int i=0;i<sec->subsectorcount;i++)
+
+	plane->mPlane = splane.plane;
+	plane->mUpside = upside;
+	plane->mLightEffect = !splane.texture.Exists();
+	plane->mPrimitiveIndex = mPrimitives.Reserve(sec->subsectorcount);
+
+	FSubsectorPrimitive *prim = &mPrimitives[plane->mPrimitiveIndex];
+
+	for(int i=0;i<sec->subsectorcount;i++, prim++)
 	{
-		FGLSubsectorPlaneRenderData *ssrd = &Plane.mSubsectorData[i];
 		subsector_t *sub = sec->subsectors[i];
 
-		ssrd->mPrimitive = BasicProps;
-		ssrd->mPrimitive.mVertexCount = sub->numlines;
-		ssrd->mVertices.Resize(sub->numlines);
-		for(int j=0; j<sub->numlines; j++)
+		prim->mPrimitive = BasicProps;
+		prim->mPrimitive.mVertexCount = sub->numlines;
+		prim->mPrimitive.mVertexStart = mVertices.Reserve(sub->numlines);
+
+		FVertex3D *vert = &mVertices[prim->mPrimitive.mVertexStart];
+		for(int j=0; j<sub->numlines; j++, vert++)
 		{
 			vertex_t *v = segs[sub->firstline + j].v1;
 
-			ssrd->mVertices[j] = BasicVertexProps;
-			ssrd->mVertices[j].x = v->fx;
-			ssrd->mVertices[j].y = v->fy;
-			ssrd->mVertices[j].z = splane.plane.ZatPoint(v->fx, v->fy);
+			*vert = BasicVertexProps;
+			vert->x = v->fx;
+			vert->y = v->fy;
+			vert->z = splane.plane.ZatPoint(v->fx, v->fy);
 
 			Vector uv(v->fx, -v->fy, 0);
 			uv = matx * uv;
 
-			ssrd->mVertices[j].x = uv.X();
-			ssrd->mVertices[j].y = uv.Y();
+			vert->u = uv.X();
+			vert->v = uv.Y();
 		}
 	}
-
 }
 
 
@@ -271,11 +278,11 @@ void FGLSectorRenderData::CreatePlane(int in_area, sector_t *sec, GLSectorPlane 
 //
 //===========================================================================
 
-void FGLSectorRenderData::Invalidate()
+void FSectorRenderData::Invalidate()
 {
-	mPlanes[0].Clear();
-	mPlanes[1].Clear();
-	mPlanes[2].Clear();
+	mAreas[0].valid =
+	mAreas[1].valid =
+	mAreas[2].valid = false;
 }
 
 
@@ -308,7 +315,7 @@ void FGLSectorRenderData::Invalidate()
 //
 //===========================================================================
 
-void FGLSectorRenderData::Validate(int in_area)
+void FSectorRenderData::Validate(area_t in_area)
 {
 	sector_t copy;
 	sector_t *sec;
@@ -318,13 +325,17 @@ void FGLSectorRenderData::Validate(int in_area)
 	FDynamicColormap Colormap;
 	GLSectorPlane splane;
 
-	if (mPlanes[in_area].Size() == 0)
+	if (in_area >= area_above) return;
+
+	FSectorAreaData *area = &mAreas[in_area];
+	if (!area->valid)
 	{
+		area->m3DFloorsC.Clear();
+		area->m3DFloorsF.Clear();
+
 		extsector_t::xfloor &x = mSector->e->XFloor;
 
-		TArray<FGLSectorPlaneRenderData> &plane = mPlanes[in_area];
-		::in_area = area_t(in_area);
-		sec = gl_FakeFlat(mSector, &copy, false);
+		sec = gl_FakeFlat(mSector, &copy, in_area, false);
 
 		// create ceiling plane
 
@@ -332,7 +343,7 @@ void FGLSectorRenderData::Validate(int in_area)
 		Colormap = *sec->ColorMap;
 		bool stack = sec->CeilingSkyBox && sec->CeilingSkyBox->bAlways;
 		float alpha = stack ? sec->CeilingSkyBox->PlaneAlpha/65536.0f : 1.0f-sec->GetCeilingReflect();
-		if (alpha != 0.0f)
+		if (alpha != 0.0f && sec->GetTexture(sector_t::ceiling) != skyflatnum)
 		{
 			if (x.ffloors.Size())
 			{
@@ -343,8 +354,9 @@ void FGLSectorRenderData::Validate(int in_area)
 				Colormap.Desaturate = (light->extra_colormap)->Desaturate;
 			}
 			splane.GetFromSector(sec, true);
-			CreatePlane(in_area, sec, splane, lightlevel, &Colormap, alpha, false, 1, !stack);
+			CreatePlane(&area->mCeiling, in_area, sec, splane, lightlevel, &Colormap, alpha, false, false, !stack);
 		}
+		else area->mCeiling.mPrimitiveIndex = -1;
 
 		// create floor plane
 
@@ -352,7 +364,7 @@ void FGLSectorRenderData::Validate(int in_area)
 		Colormap = *sec->ColorMap;
 		stack = sec->FloorSkyBox && sec->FloorSkyBox->bAlways;
 		alpha = stack ? sec->FloorSkyBox->PlaneAlpha/65536.0f : 1.0f-sec->GetFloorReflect();
-		if (alpha != 0.0f)
+		if (alpha != 0.0f && sec->GetTexture(sector_t::ceiling) != skyflatnum)
 		{
 			if (x.ffloors.Size())
 			{
@@ -365,8 +377,10 @@ void FGLSectorRenderData::Validate(int in_area)
 				Colormap.Desaturate = (light->extra_colormap)->Desaturate;
 			}
 			splane.GetFromSector(sec, false);
-			CreatePlane(in_area, sec, splane, lightlevel, &Colormap, alpha, false, 2, !stack);
+			if (sec->transdoor) splane.plane.d -= 1;
+			CreatePlane(&area->mFloor, in_area, sec, splane, lightlevel, &Colormap, alpha, false, true, !stack);
 		}
+		else area->mFloor.mPrimitiveIndex = -1;
 
 		// create 3d floor planes
 
@@ -402,8 +416,9 @@ void FGLSectorRenderData::Validate(int in_area)
 							
 							SET_COLOR();
 
-							CreatePlane(in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
-								!!(rover->flags&FF_ADDITIVETRANS), 1, false);
+							FSectorPlaneObject *obj = &area->m3DFloorsC[area->m3DFloorsC.Reserve(1)];
+							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
+								!!(rover->flags&FF_ADDITIVETRANS), false, false);
 							lastceilingheight = ff_top;
 						}
 					}
@@ -419,8 +434,9 @@ void FGLSectorRenderData::Validate(int in_area)
 
 							SET_COLOR();
 
-							CreatePlane(in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
-								!!(rover->flags&FF_ADDITIVETRANS), 1, false);
+							FSectorPlaneObject *obj = &area->m3DFloorsC[area->m3DFloorsC.Reserve(1)];
+							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
+								!!(rover->flags&FF_ADDITIVETRANS), false, false);
 
 							lastceilingheight = ff_bottom;
 							if (rover->alpha<255) lastceilingheight++;
@@ -458,8 +474,9 @@ void FGLSectorRenderData::Validate(int in_area)
 								SET_COLOR();
 							}
 
-							CreatePlane(in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
-								!!(rover->flags&FF_ADDITIVETRANS), 2, false);
+							FSectorPlaneObject *obj = &area->m3DFloorsF[area->m3DFloorsF.Reserve(1)];
+							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
+								!!(rover->flags&FF_ADDITIVETRANS), true, false);
 
 							lastfloorheight = ff_bottom;
 						}
@@ -477,14 +494,119 @@ void FGLSectorRenderData::Validate(int in_area)
 
 							SET_COLOR();
 
-							CreatePlane(in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
-								!!(rover->flags&FF_ADDITIVETRANS), 2, false);
+							FSectorPlaneObject *obj = &area->m3DFloorsF[area->m3DFloorsF.Reserve(1)];
+							CreatePlane(obj, in_area, sec, splane, lightlevel, &Colormap, rover->alpha/255.f, 
+								!!(rover->flags&FF_ADDITIVETRANS), true, false);
 
 							lastfloorheight = ff_top;
 							if (rover->alpha < 255) lastfloorheight--;
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FSectorRenderData::Process(subsector_t *sub, area_t in_area)
+{
+	extsector_t::xfloor &x = mSector->e->XFloor;
+	GLDrawInfo *di = GLRenderer2->mDrawInfo;
+	int subno = sub - subsectors;
+
+	di->ss_renderflags[subno] |= SSRF_PROCESSED;
+	if (sub->hacked & 1) di->AddHackedSubsector(sub);
+	if (sub->degenerate) return;
+
+	Validate(in_area);
+
+	FSectorAreaData *area = &mAreas[in_area];
+	byte &srf = di->sectorrenderflags[mSector->sectornum];
+
+	//
+	//
+	//
+	// do floors
+	//
+	//
+	//
+	if ((srf&SSRF_RENDERFLOOR) || area->mFloor.isVisible(di->mViewpoint, true))
+	{
+		di->ss_renderflags[subno] |= SSRF_RENDERFLOOR;
+
+		// process the original floor first.
+		if (mSector->FloorSkyBox && mSector->FloorSkyBox->bAlways) di->AddFloorStack(sub);
+
+		if (!(srf & SSRF_RENDERFLOOR))
+		{
+			srf |= SSRF_RENDERFLOOR;
+			if (area->mFloor.mPrimitiveIndex >= 0) di->AddObject(&area->mFloor);
+		}
+	}
+	
+	//
+	//
+	//
+	// do ceilings
+	//
+	//
+	//
+	if ((srf & SSRF_RENDERCEILING) || area->mCeiling.isVisible(di->mViewpoint, false))
+	{
+		di->ss_renderflags[subno]|=SSRF_RENDERCEILING;
+
+		// process the original ceiling first.
+		if (mSector->CeilingSkyBox && mSector->CeilingSkyBox->bAlways) di->AddCeilingStack(sub);
+
+		if (!(srf & SSRF_RENDERCEILING))
+		{
+			srf |= SSRF_RENDERCEILING;
+			if (area->mCeiling.mPrimitiveIndex >= 0) di->AddObject(&area->mCeiling);
+		}
+	}
+
+	//
+	//
+	//
+	// do 3D floors
+	//
+	//
+	//
+
+	if (x.ffloors.Size())
+	{
+		player_t * player=players[consoleplayer].camera->player;
+
+		// do the plane setup only once and just mark all subsectors that have to be processed
+		di->ss_renderflags[sub-subsectors]|=SSRF_RENDER3DPLANES;
+
+		if (!(srf & SSRF_RENDER3DPLANES))
+		{
+			srf |= SSRF_RENDER3DPLANES;
+
+			for(unsigned k = 0; k < area->m3DFloorsC.Size(); k++)
+			{
+				if (area->m3DFloorsC[k].isVisible(di->mViewpoint, false))
+				{
+					di->AddObject(&area->m3DFloorsC[k]);
+				}
+				else break;	// 3D floors are ordered so if one is not visible the remaining ones are neither.
+			}
+
+			for(unsigned k = 0; k < area->m3DFloorsF.Size(); k++)
+			{
+				if (area->m3DFloorsF[k].isVisible(di->mViewpoint, true))
+				{
+					di->AddObject(&area->m3DFloorsF[k]);
+				}
+				else break;	// 3D floors are ordered so if one is not visible the remaining ones are neither.
 			}
 		}
 	}

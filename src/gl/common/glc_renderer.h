@@ -112,14 +112,6 @@ FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle,
 void gl_RenderBSPNode (void *node);
 bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector);
 void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_t *backsector);
-sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
-
-void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
-					   int *tm, int *sb, int *db, int *be);
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
-int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon);
-PalEntry gl_CalcLightColor(int lightlevel, PalEntry pe, int blendfactor);
-float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
 
 typedef enum
 {
@@ -130,6 +122,21 @@ typedef enum
 } area_t;
 
 extern area_t			in_area;
+
+
+sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool back);
+inline sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
+{
+	return gl_FakeFlat(sec, dest, in_area, back);
+}
+
+void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
+					   int *tm, int *sb, int *db, int *be);
+void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
+int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon);
+PalEntry gl_CalcLightColor(int lightlevel, PalEntry pe, int blendfactor);
+float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
+
 
 struct TexFilter_s
 {
