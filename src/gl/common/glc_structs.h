@@ -17,25 +17,16 @@ struct GLSectorPlane
 	fixed_t	xscale, yscale;
 	angle_t	angle;
 
-	void GetFromSector(sector_t * sec, bool ceiling)
+	void GetFromSector(sector_t * sec, int ceiling)
 	{
 		xoffs = sec->GetXOffset(ceiling);
 		yoffs = sec->GetYOffset(ceiling);
 		xscale = sec->GetXScale(ceiling);
 		yscale = sec->GetYScale(ceiling);
 		angle = sec->GetAngle(ceiling);
-		if (ceiling)
-		{
-			texture = sec->GetTexture(sector_t::ceiling);
-			plane = sec->ceilingplane;
-			texheight = plane.d;
-		}
-		else
-		{
-			texture = sec->GetTexture(sector_t::floor);
-			plane = sec->floorplane;
-			texheight = -plane.d;
-		}
+		texture = sec->GetTexture(ceiling);
+		plane = sec->GetSecPlane(ceiling);
+		texheight = (ceiling = sector_t::ceiling)? plane.d : -plane.d;
 	}
 };
 

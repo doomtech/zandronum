@@ -232,39 +232,8 @@ unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 //
 //===========================================================================
 
-TArray<GLVertex> gl_vertices(1024);
-
 void GL1Renderer::SetupLevel()
 {
-	int i,j;
-
-	gl_vertices.Resize(100);	
-	gl_vertices.Clear();	
-
-	// Create the flat vertex array
-	for (i=0; i<numsubsectors; i++)
-	{
-		subsector_t * ssector = &subsectors[i];
-
-		if (ssector->numlines<=2) continue;
-			
-		ssector->numvertices = ssector->numlines;
-		ssector->firstvertex = gl_vertices.Size();
-
-		for(j = 0;  j < (int)ssector->numlines; j++)
-		{
-			seg_t * seg = &segs[ssector->firstline + j];
-			vertex_t * vtx = seg->v1;
-			GLVertex * vt=&gl_vertices[gl_vertices.Reserve(1)];
-
-			vt->u = vtx->fx/64.0f;
-			vt->v = -vtx->fy/64.0f;
-			vt->x = vtx->fx;
-			vt->y = vtx->fy;
-			vt->z = 0.0f;
-			vt->vt = vtx;
-		}
-	}
 	mAngles.Pitch = 0.0f;
 }
 

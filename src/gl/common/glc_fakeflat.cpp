@@ -327,6 +327,8 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 		{
 			dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::floor), false);
 			dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::floor));
+			dest->vboindex[sector_t::floor] = sec->vboindex[sector_t::vbo_fakefloor];
+			dest->vboheight[sector_t::floor] = s->vboheight[sector_t::floor];
 		}
 		else if (s->MoreFlags & SECF_FAKEFLOORONLY)
 		{
@@ -350,6 +352,9 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 	{
 		dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::floor));
 		dest->floorplane   = s->floorplane;
+
+		dest->vboindex[sector_t::floor] = sec->vboindex[sector_t::vbo_fakefloor];
+		dest->vboheight[sector_t::floor] = s->vboheight[sector_t::floor];
 	}
 
 	if (!(s->MoreFlags&SECF_FAKEFLOORONLY))
@@ -360,12 +365,16 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 			{
 				dest->SetTexture(sector_t::ceiling, s->GetTexture(sector_t::ceiling), false);
 				dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::ceiling));
+				dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::vbo_fakeceiling];
+				dest->vboheight[sector_t::ceiling] = s->vboheight[sector_t::ceiling];
 			}
 		}
 		else
 		{
 			dest->ceilingplane  = s->ceilingplane;
 			dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::ceiling));
+			dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::vbo_fakeceiling];
+			dest->vboheight[sector_t::ceiling] = s->vboheight[sector_t::ceiling];
 		}
 	}
 
@@ -377,6 +386,12 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 		dest->floorplane=sec->floorplane;
 		dest->ceilingplane=s->floorplane;
 		dest->ceilingplane.FlipVert();
+
+		dest->vboindex[sector_t::floor] = sec->vboindex[sector_t::floor];
+		dest->vboheight[sector_t::floor] = sec->vboheight[sector_t::floor];
+
+		dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::vbo_fakefloor];
+		dest->vboheight[sector_t::ceiling] = s->vboheight[sector_t::floor];
 
 		if (!back)
 		{
@@ -419,6 +434,12 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 		dest->floorplane = s->ceilingplane;
 		dest->floorplane.FlipVert();
 
+		dest->vboindex[sector_t::floor] = sec->vboindex[sector_t::vbo_fakeceiling];
+		dest->vboheight[sector_t::floor] = s->vboheight[sector_t::ceiling];
+
+		dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::ceiling];
+		dest->vboheight[sector_t::ceiling] = sec->vboheight[sector_t::ceiling];
+
 		if (!back)
 		{
 			dest->SetTexture(sector_t::ceiling, diffTex ? sec->GetTexture(sector_t::ceiling) : s->GetTexture(sector_t::ceiling), false);
@@ -427,7 +448,6 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 			
 			if (s->GetTexture(sector_t::floor) != skyflatnum)
 			{
-				dest->ceilingplane	= sec->ceilingplane;
 				dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::floor), false);
 				dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 			}

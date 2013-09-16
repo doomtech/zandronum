@@ -48,6 +48,7 @@
 #include "r_interpolate.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clock.h"
+#include "gl/common/glc_data.h"
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_convert.h"
 #include "gl/common/glc_clipper.h"
@@ -165,7 +166,7 @@ void GLRendererBase::SetViewport(GL_IRECT *bounds)
 	}
 	gl.Enable(GL_SCISSOR_TEST);
 	
-	#ifdef _DEBUG
+	#if 0 //def _DEBUG
 		gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
 		gl.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	#else
@@ -320,9 +321,9 @@ void GLRendererBase::RenderView (player_t* player)
 		LastCamera=player->camera;
 	}
 
-	gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
-	glVertexPointer(3,GL_FLOAT, 5*sizeof(float), 0);
-	glTexCoordPointer(2,GL_FLOAT, 5*sizeof(float),(void*)(intptr_t)(3*sizeof(float)));
+	//gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
+	//glVertexPointer(3,GL_FLOAT, sizeof(FVBOVertex), &VTO->x);
+	//glTexCoordPointer(2,GL_FLOAT, sizeof(FVBOVertex), &VTO->u);
 	gl.EnableClientState(GL_VERTEX_ARRAY);
 	gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
 

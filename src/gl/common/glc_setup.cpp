@@ -689,52 +689,138 @@ static void PrepareSegs()
 
 //==========================================================================
 //
-// creates a VBO for flat geometry - just a rough test for now.
+// creates a VBO for flat geometry 
+// Vertices are ordered by sector plane (i.e. all attached sectors are
+// calculated along with the master so that changing the height of a 
+// plane doesn't result in multiple ranges of the VBO to become invalid)
 //
 //==========================================================================
 unsigned int gl_vbo;
 
+TArray<FVBOVertex> vbo_data;
+
+static void SetVertex(int idx, vertex_t *vt, secplane_t & plane)
+{
+	vbo_data[idx].x = vt->fx;
+	vbo_data[idx].y = vt->fy;
+	vbo_data[idx].z = plane.ZatPoint(vt->fx, vt->fy);
+	vbo_data[idx].u = vt->fx/64.f;
+	vbo_data[idx].v = -vt->fy/64.f;
+}
+
+static F3DFloor *Find3DFloor(sector_t *target, sector_t *model)
+{
+	for(unsigned i=0; i<target->e->XFloor.ffloors.Size(); i++)
+	{
+		F3DFloor *ffloor = target->e->XFloor.ffloors[i];
+		if (ffloor->model == model) return ffloor;
+	}
+	return NULL;
+}
+
+
 static void CreateFlatVBO()
 {
-	static TArray<float> data;
 
-	for (int h=0;h<2;h++)
+	for (int h = sector_t::floor; h <= sector_t::ceiling; h++)
 	{
 		for(int i=0; i<numsectors;i++)
 		{
 			sector_t *sec = &sectors[i];
 
-			sec->vboheight[h] = sec->GetPlaneTexZ(h? sector_t::floor:sector_t::ceiling);
+			sec->vboindex[h] = vbo_data.Size();
+			sec->vboheight[h] = sec->GetPlaneTexZ(h);
 
+			// First calculate the vertices for the sector itself
 			for(int j=0; j<sec->subsectorcount; j++)
 			{
 				subsector_t *sub = sec->subsectors[j];
 
-				sub->vboindex[h] = data.Size()/5;
-
-				for(int k=0; k<sub->numvertices; k++)
+				int idx = vbo_data.Reserve(sub->numlines);
+				for(int k=0; k<sub->numlines; k++, idx++)
 				{
-					seg_t *seg = &segs[sub->firstline];
-					vertex_t *vt = seg->v1;
-
-					int idx = data.Reserve(5);
-					data[idx] = vt->fx;
-					data[idx+2] = vt->fy;
-					data[idx+3] = vt->fx/64.f;
-					data[idx+4] = -vt->fy/64.f;
-					data[idx+1] = float( h==0? 
-						sec->ceilingplane.ZatPoint(vt->fx, vt->fy) :
-						sec->floorplane.ZatPoint(vt->fx, vt->fy));
-
+					SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
+					if (sec->transdoor && h == sector_t::floor) vbo_data[idx].z -= 1.f;
 				}
+			}
+
+			// Next are all sectors using this one as heightsec
+			TArray<sector_t *> &fakes = sec->e->FakeFloor.Sectors;
+			for (unsigned g=0; g<fakes.Size(); g++)
+			{
+				sector_t *fsec = fakes[g];
+				fsec->vboindex[2+h] = vbo_data.Size();	// set the index info in the attached sector
+
+				for(int j=0; j<fsec->subsectorcount; j++)
+				{
+					subsector_t *sub = fsec->subsectors[j];
+
+					int idx = vbo_data.Reserve(sub->numlines);
+					for(int k=0; k<sub->numlines; k++, idx++)
+					{
+						SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
+					}
+				}
+			}
+
+			// and finally all attached 3D floors
+			TArray<sector_t *> &xf = sec->e->XFloor.attached;
+			for (unsigned g=0; g<xf.Size(); g++)
+			{
+				sector_t *fsec = xf[g];
+				F3DFloor *ffloor = Find3DFloor(fsec, sec);
+
+				if (ffloor != NULL && ffloor->flags & FF_RENDERPLANES)
+				{
+					bool dotop = (ffloor->top.model == sec) && (ffloor->top.isceiling == h);
+					bool dobottom = (ffloor->bottom.model == sec) && (ffloor->bottom.isceiling == h);
+
+					if (dotop || dobottom)
+					{
+						if (dotop) ffloor->top.vindex = vbo_data.Size();
+						if (dobottom) ffloor->bottom.vindex = vbo_data.Size();
+					
+						for(int j=0; j<fsec->subsectorcount; j++)
+						{
+							subsector_t *sub = fsec->subsectors[j];
+
+							int idx = vbo_data.Reserve(sub->numlines);
+							for(int k=0; k<sub->numlines; k++, idx++)
+							{
+								SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
+							}
+						}
+					}
+				}
+			}
+			sec->vbocount[h] = vbo_data.Size() - sec->vboindex[h];
+		}
+	}
+
+	// We need to do a final check for Vavoom water and FF_FIX sectors.
+	// No new vertices are needed here. The planes come from the actual sector
+	for(int i=0; i<numsectors;i++)
+	{
+		for(unsigned j=0;j<sectors[i].e->XFloor.ffloors.Size(); j++)
+		{
+			F3DFloor *ff = sectors[i].e->XFloor.ffloors[j];
+
+			if (ff->top.model == &sectors[i])
+			{
+				ff->top.vindex = sectors[i].vboindex[ff->top.isceiling];
+			}
+			if (ff->bottom.model == &sectors[i])
+			{
+				ff->bottom.vindex = sectors[i].vboindex[ff->top.isceiling];
 			}
 		}
 	}
-	gl.GenBuffers(1, &gl_vbo);
+
+	if (gl_vbo <= 0) gl.GenBuffers(1, &gl_vbo);
 	gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
-	gl.BufferData(GL_ARRAY_BUFFER, data.Size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-	glVertexPointer(3,GL_FLOAT, 5*sizeof(float), 0);
-	glTexCoordPointer(2,GL_FLOAT, 5*sizeof(float),(void*)(intptr_t)(3*sizeof(float)));
+	gl.BufferData(GL_ARRAY_BUFFER, vbo_data.Size() * sizeof(FVBOVertex), &vbo_data[0], GL_DYNAMIC_DRAW);
+	glVertexPointer(3,GL_FLOAT, sizeof(FVBOVertex), &VTO->x);
+	glTexCoordPointer(2,GL_FLOAT, sizeof(FVBOVertex), &VTO->u);
 	gl.EnableClientState(GL_VERTEX_ARRAY);
 	gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -800,7 +886,7 @@ void gl_PreprocessLevel()
 	}
 
 	if (GLRenderer != NULL) GLRenderer->SetupLevel();
-	if (gl.flags&RFL_GL_21)
+	if (gl.flags&RFL_VBO)
 		CreateFlatVBO();
 
 #if 0

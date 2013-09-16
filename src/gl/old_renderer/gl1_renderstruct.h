@@ -112,13 +112,16 @@ public:
 	bool foggy;
 	bool ceiling;
 	BYTE renderflags;
+	int vboindex;
+	int vboheight;
 
 	void DrawSubsector(subsector_t * sub);
 	void DrawSubsectorLights(subsector_t * sub, int pass);
 	void DrawSubsectors(bool istrans);
 
 	void PutFlat(bool fog = false);
-	void Process(sector_t * sector, bool whichplane, bool notexture);
+	void Process(sector_t * sector, int whichplane, bool notexture);
+	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);
 };

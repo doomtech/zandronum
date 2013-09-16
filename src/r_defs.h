@@ -670,6 +670,11 @@ struct sector_t
 		return lightlevel;
 	}
 
+	secplane_t &GetSecPlane(int pos)
+	{
+		return pos == floor? floorplane:ceilingplane;
+	}
+
 	// Member variables
 	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }
 	fixed_t		CenterCeiling () const { return ceilingplane.ZatPoint (soundorg[0], soundorg[1]); }
@@ -771,10 +776,20 @@ struct sector_t
 	fixed_t						transdoorheight;	// for transparent door hacks
 	int							subsectorcount;		// list of subsectors
 	subsector_t **				subsectors;
-	fixed_t			vboheight[2];
+
+	enum
+	{
+		vbo_fakefloor = floor+2,
+		vbo_fakeceiling = ceiling+2,
+	};
+
+	int				vboindex[4];	// VBO indices of the 4 planes this sector uses during rendering
+	fixed_t			vboheight[2];	// Last calculated height for the 2 planes of this actual sector
+	int				vbocount[2];	// Total count of vertices belonging to this sector's planes
 
 	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
 	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }
+	bool VBOHeightcheck(int pos) const { return vboheight[pos] == GetPlaneTexZ(pos); }
 
 	enum
 	{
@@ -1102,17 +1117,14 @@ struct subsector_t
 	FGLSection *	section;		// section this subsector belongs to
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
 	sector_t *		render_sector;	// The sector this belongs to for rendering
-	int				firstvertex;	// index into the gl_vertices array
-	int				numvertices;
 	int				validcount2;	// Second v
 	fixed_t			bbox[4];		// Bounding box
 	bool			degenerate;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
-	int				vboindex[2];
 
 	// [BL] Constructor to init GZDoom data
-	subsector_t() : render_sector(NULL), firstvertex(0), numvertices(0), validcount2(0), degenerate(0), hacked(0)
+	subsector_t() : render_sector(NULL),  validcount2(0), degenerate(0), hacked(0)
 	{
 		bbox[0] = bbox[1] = bbox[2] = bbox[3] = 0;
 		lighthead[0] = lighthead[1] = NULL;

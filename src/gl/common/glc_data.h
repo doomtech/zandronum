@@ -42,5 +42,15 @@ extern FTexture *glpart;
 extern FTexture *mirrortexture;
 extern FTexture *gllight;
 
+#pragma pack(push,4)
+struct FVBOVertex
+{
+	float x,z,y;
+	float u,v;
+};
+#pragma pack(pop)
+
+#define VTO ((FVBOVertex*)NULL)
+
 
 #endif
