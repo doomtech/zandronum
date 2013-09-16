@@ -378,25 +378,31 @@ bool P_HitFriend(AActor * self)
 // Move in the current direction,
 // returns false if the move is blocked.
 //
+
 bool P_Move (AActor *actor)
 {
 
 	fixed_t tryx, tryy, deltax, deltay, origx, origy;
 	bool try_ok;
-	int speed;
+	int speed = actor->Speed;
 	int movefactor = ORIG_FRICTION_FACTOR;
 	int friction = ORIG_FRICTION;
 
 	if (actor->flags2 & MF2_BLASTED)
+	{
 		return true;
+	}
 
 	if (actor->movedir == DI_NODIR)
+	{
 		return false;
+	}
 
 	// [RH] Instead of yanking non-floating monsters to the ground,
 	// let gravity drop them down, unless they're moving down a step.
-	if (!(actor->flags & MF_NOGRAVITY) && actor->z > actor->floorz
-		&& !(actor->flags2 & MF2_ONMOBJ))
+	// [GZ] Let jumping actors jump.
+	if (!((actor->flags & MF_NOGRAVITY) || (actor->flags6 & MF6_CANJUMP))
+		&& actor->z > actor->floorz && !(actor->flags2 & MF2_ONMOBJ))
 	{
 		if (actor->z > actor->floorz + actor->MaxStepHeight)
 		{
@@ -413,20 +419,39 @@ bool P_Move (AActor *actor)
 
 	speed = actor->Speed;
 
-#if 0	// [RH] I'm not so sure this is such a good idea
-	// killough 10/98: make monsters get affected by ice and sludge too:
-	movefactor = P_GetMoveFactor (actor, &friction);
+#if 0	// todo
 
-	if (friction < ORIG_FRICTION)
-	{ // sludge
-		speed = ((ORIG_FRICTION_FACTOR - (ORIG_FRICTION_FACTOR-movefactor)/2)
-		   * speed) / ORIG_FRICTION_FACTOR;
-		if (speed == 0)
-		{ // always give the monster a little bit of speed
-			speed = ksgn(actor->Speed);
-		}
+	// killough 10/98: allow dogs to drop off of taller ledges sometimes.
+	// dropoff==1 means always allow it, dropoff==2 means only up to 128 high,
+	// and only if the target is immediately on the other side of the line.
+
+	if (actor->flags6 & MF6_JUMPDOWN && target &&
+			!(target->IsFriend(actor)) &&
+			P_AproxDistance(actor->x - target->x,
+							actor->y - target->y) < FRACUNIT*144 &&
+			P_Random(pr_dropoff) < 235)
+	{
+		dropoff = 2;
 	}
 #endif
+
+	// [RH] I'm not so sure this is such a good idea
+	// [GZ] That's why it's compat-optioned.
+	if (compatflags & COMPATF_MBFMONSTERMOVE)
+	{
+		// killough 10/98: make monsters get affected by ice and sludge too:
+		movefactor = P_GetMoveFactor (actor, &friction);
+
+		if (friction < ORIG_FRICTION)
+		{ // sludge
+			speed = ((ORIG_FRICTION_FACTOR - (ORIG_FRICTION_FACTOR-movefactor)/2)
+			   * speed) / ORIG_FRICTION_FACTOR;
+			if (speed == 0)
+			{ // always give the monster a little bit of speed
+				speed = ksgn(actor->Speed);
+			}
+		}
+	}
 
 	tryx = (origx = actor->x) + (deltax = FixedMul (speed, xspeed[actor->movedir]));
 	tryy = (origy = actor->y) + (deltay = FixedMul (speed, yspeed[actor->movedir]));
@@ -489,7 +514,7 @@ bool P_Move (AActor *actor)
 	if (!try_ok)
 	{
 		// [BC] Don't float in client mode.
-		if ((actor->flags & MF_FLOAT) && tm.floatok &&
+		if (((actor->flags6 & MF6_CANJUMP)||(actor->flags & MF_FLOAT)) && tm.floatok &&
 			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
 		{ // must adjust height
@@ -499,6 +524,7 @@ bool P_Move (AActor *actor)
 				actor->z += actor->FloatSpeed;
 			else
 				actor->z -= actor->FloatSpeed;
+
 
 			// [RH] Check to make sure there's nothing in the way of the float
 			if (P_TestMobjZ (actor))
@@ -514,7 +540,9 @@ bool P_Move (AActor *actor)
 		}
 
 		if (!spechit.Size ())
+		{
 			return false;
+		}
 
 		// open any specials
 		actor->movedir = DI_NODIR;
@@ -766,7 +794,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 		}
 	}
 
-	actor->movedir = DI_NODIR;	// can not move
+	actor->movedir = DI_NODIR;	// cannot move
 
 	// [BC] Set the thing's movement direction. Also, update the thing's
 	// position.
@@ -2569,13 +2597,31 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			S_Sound (corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 			info = corpsehit->GetDefault ();
 			
-			corpsehit->height = info->height;	// [RH] Use real mobj height
-			corpsehit->radius = info->radius;	// [RH] Use real radius
-			/*
-			// Make raised corpses look ghostly
-			if (corpsehit->alpha > TRANSLUC50)
-				corpsehit->alpha /= 2;
-			*/
+			if (ib_compatflags & BCOMPATF_VILEGHOSTS)
+			{
+				corpsehit->height <<= 2;
+				// [GZ] This was a commented-out feature, so let's make use of it,
+				// but only for ghost monsters so that they are visibly different.
+				if (corpsehit->height == 0)
+				{
+					// Make raised corpses look ghostly
+					if (corpsehit->alpha > TRANSLUC50)
+					{
+						corpsehit->alpha /= 2;
+					}
+					// This will only work if the render style is changed as well.
+					if (corpsehit->RenderStyle == LegacyRenderStyles[STYLE_Normal])
+					{
+						corpsehit->RenderStyle = STYLE_Translucent;
+					}
+				}
+				corpsehit->Translation = info->Translation; // Clean up bloodcolor translation from crushed corpses
+			}
+			else
+			{
+				corpsehit->height = info->height;	// [RH] Use real mobj height
+				corpsehit->radius = info->radius;	// [RH] Use real radius
+			}
 			corpsehit->flags = info->flags;
 			corpsehit->flags2 = info->flags2;
 			corpsehit->flags3 = info->flags3;
@@ -2694,7 +2740,7 @@ void A_Chase(AActor *self)
 // A_FaceTarget
 //
 //=============================================================================
-void A_FaceTarget(AActor *self)
+void A_FaceTarget (AActor *self)
 {
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

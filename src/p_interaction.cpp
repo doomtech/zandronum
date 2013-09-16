@@ -1133,7 +1133,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	if ( GAME_GetEndLevelDelay( ))
 		return;
 
-	if (target == NULL || !(target->flags & MF_SHOOTABLE))
+	if (target == NULL || !((target->flags & MF_SHOOTABLE) || (target->flags6 & MF6_VULNERABLE)))
 	{ // Shouldn't happen
 		return;
 	}
@@ -1293,7 +1293,6 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		damage = target->TakeSpecialDamage (inflictor, source, damage, mod);
 	}
-
 	if (damage == -1)
 	{
 		return;
@@ -1318,7 +1317,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 
 	// Push the target unless the source's weapon's kickback is 0.
-	// (i.e. Guantlets/Chainsaw)
+	// (i.e. Gauntlets/Chainsaw)
 	// [BB] The server handles this.
 	if (inflictor && inflictor != target	// [RH] Not if hurting own self
 		&& !(target->flags & MF_NOCLIP)
@@ -1348,13 +1347,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 			// Calculate this as float to avoid overflows so that the
 			// clamping that had to be done here can be removed.
-			double fltthrust;
+            double fltthrust;
 
-			fltthrust = mod == NAME_MDK ? 10 : 32;
-			if (target->Mass > 0)
-			{
-				fltthrust = clamp((damage * 0.125 * kickback) / target->Mass, 0., fltthrust);
-			}
+            fltthrust = mod == NAME_MDK ? 10 : 32;
+            if (target->Mass > 0)
+            {
+                fltthrust = clamp((damage * 0.125 * kickback) / target->Mass, 0., fltthrust);
+            }
 
 			thrust = FLOAT2FIXED(fltthrust);
 

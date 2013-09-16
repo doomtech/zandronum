@@ -25,8 +25,11 @@ xx(Ghost)
 xx(Reflective)
 
 // Invisibility types
+xx(Additive)
 xx(Cumulative)
 xx(Fuzzy)
+xx(Opaque)
+xx(Stencil)
 
 // Healingradius types
 xx(Mana)
@@ -175,6 +178,7 @@ xx(No)
 xx(Greetings)
 xx(Idle)
 xx(GenericFreezeDeath)
+xx(GenericCrush)
 
 // Compatible death names for the decorate parser.
 xx(XDeath)

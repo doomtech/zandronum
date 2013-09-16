@@ -771,6 +771,7 @@ struct sector_t
 	fixed_t						transdoorheight;	// for transparent door hacks
 	int							subsectorcount;		// list of subsectors
 	subsector_t **				subsectors;
+	fixed_t			vboheight[2];
 
 	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
 	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }
@@ -1108,6 +1109,7 @@ struct subsector_t
 	bool			degenerate;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
+	int				vboindex[2];
 
 	// [BL] Constructor to init GZDoom data
 	subsector_t() : render_sector(NULL), firstvertex(0), numvertices(0), validcount2(0), degenerate(0), hacked(0)

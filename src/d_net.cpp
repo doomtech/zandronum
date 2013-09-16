@@ -2194,6 +2194,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 	case DEM_SUMMON:
 	case DEM_SUMMONFRIEND:
 	case DEM_SUMMONFOE:
+	case DEM_SUMMONMBF:
 	case DEM_SUMMON2:
 	case DEM_SUMMONFRIEND2:
 	case DEM_SUMMONFOE2:
@@ -2249,7 +2250,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 
 						if (spawned != NULL)
 						{
-							if (type == DEM_SUMMONFRIEND || type == DEM_SUMMONFRIEND2)
+							if (type == DEM_SUMMONFRIEND || type == DEM_SUMMONFRIEND2 || type == DEM_SUMMONMBF)
 							{
 								if (spawned->CountsAsKill()) 
 								{
@@ -2259,6 +2260,8 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 								spawned->flags |= MF_FRIENDLY;
 								spawned->LastHeard = players[player].mo;
 								spawned->health = spawned->SpawnHealth();
+								if (type == DEM_SUMMONMBF)
+									spawned->flags3 |= MF3_NOBLOCKMONST;
 							}
 							else if (type == DEM_SUMMONFOE || type == DEM_SUMMONFOE2)
 							{
@@ -2559,6 +2562,7 @@ void Net_SkipCommand (int type, BYTE **stream)
 		case DEM_SUMMON:
 		case DEM_SUMMONFRIEND:
 		case DEM_SUMMONFOE:
+		case DEM_SUMMONMBF:
 		case DEM_SPRAY:
 		case DEM_MORPHEX:
 		case DEM_KILLCLASSCHEAT:

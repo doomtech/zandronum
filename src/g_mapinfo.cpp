@@ -983,6 +983,12 @@ DEFINE_MAP_OPTION(secretnext, true)
 	parse.ParseNextMap(info->secretmap);
 }
 
+DEFINE_MAP_OPTION(secret, true) // Just an alias for secretnext, for Vavoom compatibility
+{
+	parse.ParseAssign();
+	parse.ParseNextMap(info->secretmap);
+}
+
 DEFINE_MAP_OPTION(cluster, true)
 {
 	parse.ParseAssign();
@@ -1032,6 +1038,14 @@ DEFINE_MAP_OPTION(sky2, true)
 		}
 		info->skyspeed2 = float(parse.sc.Float * (35. / 1000.));
 	}
+}
+
+// Vavoom compatibility
+DEFINE_MAP_OPTION(skybox, true)
+{
+	parse.ParseAssign();
+	parse.ParseLumpOrTextureName(info->skypic1);
+	info->skyspeed1 = 0;
 }
 
 DEFINE_MAP_OPTION(fade, true)
@@ -1379,6 +1393,9 @@ MapFlagHandlers[] =
 	{ "compat_anybossdeath",			MITYPE_COMPATFLAG, COMPATF_ANYBOSSDEATH},
 	{ "compat_minotaur",				MITYPE_COMPATFLAG, COMPATF_MINOTAUR},
 	{ "compat_mushroom",				MITYPE_COMPATFLAG, COMPATF_MUSHROOM},
+	{ "compat_mbfmonstermove",			MITYPE_COMPATFLAG, COMPATF_MBFMONSTERMOVE},
+	{ "compat_corpsegibs",				MITYPE_COMPATFLAG, COMPATF_CORPSEGIBS},
+	{ "compat_noblockfriends",			MITYPE_COMPATFLAG, COMPATF_NOBLOCKFRIENDS},
 	{ "cd_start_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end1_track",					MITYPE_EATNEXT,	0, 0 },
 	{ "cd_end2_track",					MITYPE_EATNEXT,	0, 0 },

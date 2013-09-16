@@ -183,6 +183,7 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 //
 //
 //==========================================================================
+CVAR(Bool, gl_testvbo, false, 0)
 
 void GLFlat::DrawSubsectors(bool istrans)
 {
@@ -194,15 +195,31 @@ void GLFlat::DrawSubsectors(bool istrans)
 	}
 	else
 	{
-		// Draw the subsectors belonging to this sector
-		for (int i=0; i<sector->subsectorcount; i++)
+		if (gl_testvbo && (gl.flags&RFL_GL_21) && !(renderflags&SSRF_RENDER3DPLANES) && 
+			sector->GetPlaneTexZ(this->ceiling? sector_t::ceiling:sector_t::floor) == sector->vboheight[!ceiling])
 		{
-			subsector_t * sub = sector->subsectors[i];
-
-			// This is just a quick hack to make translucent 3D floors and portals work.
-			if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
+			for (int i=0; i<sector->subsectorcount; i++)
 			{
-				DrawSubsector(sub);
+				subsector_t * sub = sector->subsectors[i];
+				// This is just a quick hack to make translucent 3D floors and portals work.
+				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
+				{
+					gl.DrawArrays(GL_TRIANGLE_FAN, sub->vboindex[!ceiling], sub->numlines);
+				}
+			}
+		}
+		else
+		{
+			// Draw the subsectors belonging to this sector
+			for (int i=0; i<sector->subsectorcount; i++)
+			{
+				subsector_t * sub = sector->subsectors[i];
+
+				// This is just a quick hack to make translucent 3D floors and portals work.
+				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
+				{
+					DrawSubsector(sub);
+				}
 			}
 		}
 

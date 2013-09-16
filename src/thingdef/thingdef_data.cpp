@@ -214,6 +214,10 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(MF6, DONTHARMSPECIES, AActor, flags6),
 	DEFINE_FLAG(MF6, STEPMISSILE, AActor, flags6),
 	DEFINE_FLAG(MF6, NOTELEFRAG, AActor, flags6),
+	DEFINE_FLAG(MF6, TOUCHY, AActor, flags6),
+	DEFINE_FLAG(MF6, CANJUMP, AActor, flags6),
+	DEFINE_FLAG(MF6, JUMPDOWN, AActor, flags6),
+	DEFINE_FLAG(MF6, VULNERABLE, AActor, flags6),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
@@ -417,6 +421,24 @@ FFlagDef *FindFlag (const PClass *type, const char *part1, const char *part2)
 
 //==========================================================================
 //
+// Gets the name of an actor flag 
+//
+//==========================================================================
+
+const char *GetFlagName(int flagnum, int flagoffset)
+{
+	for(int i=0; i<countof(ActorFlags); i++)
+	{
+		if (ActorFlags[i].flagbit == flagnum && ActorFlags[i].structoffset == flagoffset)
+		{
+			return ActorFlags[i].name;
+		}
+	}
+	return "(unknown)";	// return something printable
+}
+
+//==========================================================================
+//
 // Find a property by name using a binary search
 //
 //==========================================================================
@@ -557,7 +579,6 @@ static int STACK_ARGS varcmp(const void * a, const void * b)
 	if (A->owner > B->owner) return 1;
 	return stricmp(A->name, B->name);
 }
-
 
 //==========================================================================
 //

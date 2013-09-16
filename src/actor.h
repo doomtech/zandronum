@@ -263,6 +263,8 @@ enum
 	MF4_FRIGHTENED		= 0x40000000,	// Monster runs away from player
 	/*					= 0x80000000,	*/
 	
+// --- mobj.flags5 ---
+
 	MF5_FASTER			= 0x00000001,	// moves faster when DF_FAST_MONSTERS or nightmare is on.
 	MF5_FASTMELEE		= 0x00000002,	// has a faster melee attack when DF_FAST_MONSTERS or nightmare is on.
 	MF5_NODROPOFF		= 0x00000004,	// cannot drop off under any circumstances.
@@ -297,6 +299,8 @@ enum
 	MF5_PAINLESS		= 0x40000000,	// Actor always inflicts painless damage.
 	MF5_MOVEWITHSECTOR	= 0x80000000,	// P_ChangeSector() will still process this actor if it has MF_NOBLOCKMAP
 
+// --- mobj.flags6 ---
+
 	MF6_NOBOSSRIP		= 0x00000001,	// For rippermissiles: Don't rip through bosses.
 	MF6_THRUSPECIES		= 0x00000002,	// Actors passes through other of the same species.
 	MF6_MTHRUSPECIES	= 0x00000004,	// Missile passes through actors of its shooter's species.
@@ -306,6 +310,13 @@ enum
 	MF6_DONTHARMSPECIES = 0x00000040,	// Don't hurt one's own species with explosions (hitscans, too?)
 	MF6_STEPMISSILE		= 0x00000080,	// Missile can "walk" up steps
 	MF6_NOTELEFRAG		= 0x00000100,	// [HW] Actor can't be telefragged
+	MF6_TOUCHY			= 0x00000200,	// From MBF: killough 11/98: dies when solids touch it
+	MF6_CANJUMP			= 0x00000400,	// From MBF: a dedicated flag instead of the BOUNCES+FLOAT+sentient combo
+	MF6_JUMPDOWN		= 0x00000800,	// From MBF: generalization of dog behavior wrt. dropoffs.
+	MF6_VULNERABLE		= 0x00001000,	// Actor can be damaged (even if not shootable).
+	MF6_ARMED			= 0x00002000,	// From MBF: Object is armed (for MF6_TOUCHY objects)
+	MF6_FALLING			= 0x00004000,	// From MBF: Object is falling (for pseudotorque simulation)
+	MF6_LINEDONE		= 0x00008000,	// From MBF: Object has already run a line effect
 
 	// [BC] More object flags for Skulltag.
 
@@ -478,7 +489,7 @@ enum replace_t
 	ALLOW_REPLACE = 1
 };
 
-enum EBounceType
+enum EBounceFlags
 {
 	BOUNCE_Walls = 1<<0,		// bounces off of walls
 	BOUNCE_Floors = 1<<1,		// bounces off of floors
@@ -486,7 +497,7 @@ enum EBounceType
 	BOUNCE_Actors = 1<<3,		// bounces off of some actors
 	BOUNCE_AllActors = 1<<4,	// bounces off of all actors (requires BOUNCE_Actors to be set, too)
 	BOUNCE_AutoOff = 1<<5,		// when bouncing off a floor, if the new Z velocity is below 3.0, disable further bouncing
-	BOUNCE_HereticType = 1<<6,	// only works with floors and ceilings; you probably don't want to use it
+	BOUNCE_HereticType = 1<<6,	// goes into Death state when bouncing on floors or ceilings
 
 	BOUNCE_UseSeeSound = 1<<7,	// compatibility fallback. This will only be set by
 								// the compatibility handlers for the old bounce flags.
@@ -494,6 +505,9 @@ enum EBounceType
 	BOUNCE_Quiet = 1<<9,		// Strife's grenades don't make a bouncing sound
 	BOUNCE_ExplodeOnWater = 1<<10,	// explodes when hitting a water surface
 	BOUNCE_CanBounceWater = 1<<11,	// can bounce on water
+	// MBF bouncing is a bit different from other modes as Killough coded many special behavioral cases
+	// for them that are not present in ZDoom, so it is necessary to identify it properly.
+	BOUNCE_MBF = 1<<12,			// This in itself is not a valid mode, but replaces MBF's MF_BOUNCE flag.
 
 	BOUNCE_TypeMask = BOUNCE_Walls | BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_Actors | BOUNCE_AutoOff | BOUNCE_HereticType,
 
@@ -507,6 +521,9 @@ enum EBounceType
 	BOUNCE_Heretic = BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_HereticType,
 	BOUNCE_Doom = BOUNCE_Walls | BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_Actors | BOUNCE_AutoOff,
 	BOUNCE_Hexen = BOUNCE_Walls | BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_Actors,
+	BOUNCE_Grenade = BOUNCE_MBF | BOUNCE_Doom,		// Bounces on walls and flats like ZDoom bounce.
+	BOUNCE_Classic = BOUNCE_MBF | BOUNCE_Floors | BOUNCE_Ceilings,	// Bounces on flats only, but 
+																	// does not die when bouncing.
 
 	// combined types
 	BOUNCE_DoomCompat = BOUNCE_Doom | BOUNCE_UseSeeSound,
@@ -520,6 +537,20 @@ enum EBounceType
 	// being "Doom" or "Hexen" and BOUNCE_AllActors was the separate
 	// MF5_BOUNCEONACTORS, you must set BOUNCE_Actors for BOUNCE_AllActors to have
 	// an effect.
+
+
+};
+
+// Used to affect the logic for MF5_USESPECIAL and MF6_BUMPSPECIAL
+// "thing" refers to what has the flag and the special, "trigger" refers to what used or bumped it
+enum EThingSpecialActivationType
+{
+	THINGSPEC_Default = 0,			// Normal behavior: a player must be the trigger, and is the activator
+	THINGSPEC_ThingActs = 1,		// The thing itself is the activator of the special
+	THINGSPEC_ThingTargets = 2,		// The thing changes its target to the trigger
+	THINGSPEC_TriggerTargets = 4,	// The trigger changes its target to the thing
+	THINGSPEC_MonsterTrigger = 8,	// The thing can be triggered by a monster
+	THINGSPEC_MissileTrigger = 16,	// The thing can be triggered by a projectile
 };
 
 // [RH] Like msecnode_t, but for the blockmap
@@ -799,6 +830,11 @@ public:
 
 	bool CanSeek(AActor *target) const;
 
+	fixed_t GetGravity() const;
+	bool IsSentient() const;
+	const char *GetTag(const char *def = NULL) const;
+
+
 // info for drawing
 // NOTE: The first member variable *must* be x.
 	fixed_t	 		x,y,z;
@@ -861,7 +897,7 @@ public:
 	SWORD			movecount;		// when 0, select a new dir
 	TObjPtr<AActor> target;			// thing being chased/attacked (or NULL)
 									// also the originator for missiles
-	TObjPtr<AActor>	lastenemy;		// Last known enemy -- killogh 2/15/98
+	TObjPtr<AActor>	lastenemy;		// Last known enemy -- killough 2/15/98
 	TObjPtr<AActor> LastHeard;		// [RH] Last actor this one heard
 	SDWORD			reactiontime;	// if non 0, don't attack yet; used by
 									// player to freeze a bit after teleporting
@@ -873,7 +909,7 @@ public:
 	WORD			SpawnAngle;
 	int				skillrespawncount;
 	int				TIDtoHate;			// TID of things to hate (0 if none)
-	FNameNoInit		Species;
+	FNameNoInit		Species;		// For monster families
 	TObjPtr<AActor>	tracer;			// Thing being chased/attacked for tracers
 	TObjPtr<AActor>	master;			// Thing which spawned this one (prevents mutual attacks)
 	fixed_t			floorclip;		// value to use for floor clipping
@@ -882,6 +918,7 @@ public:
 	BYTE			SavedSpecial;	// [BC] Saved actor special for when a map gets reset.
 	int				args[5];		// special arguments
 	int				SavedArgs[5];	// [Dusk] More map reset stuff
+	int				uservar[10];		// user variables, accessible by DECORATE and ACS
 
 	AActor			*inext, **iprev;// Links to other mobjs in same bucket
 	TObjPtr<AActor> goal;			// Monster's goal if not chasing anything
@@ -904,6 +941,9 @@ public:
 	fixed_t			pushfactor;
 	int				lastpush;
 	int				DesignatedTeam;	// Allow for friendly fire cacluations to be done on non-players.
+	int				activationtype;	// How the thing behaves when activated with USESPECIAL or BUMPSPECIAL
+	int				Score;			// manipulated by score items, ACS or DECORATE. The engine doesn't use this itself for anything.
+	FNameNoInit		Tag;			// Strife's tag name. FIXME: should be case sensitive!
 
 	AActor			*BlockingMobj;	// Actor that blocked the last move
 	line_t			*BlockingLine;	// Line that blocked the last move
@@ -1131,6 +1171,8 @@ inline T *Spawn (fixed_t x, fixed_t y, fixed_t z, replace_t allowreplacement)
 {
 	return static_cast<T *>(AActor::StaticSpawn (RUNTIME_CLASS(T), x, y, z, allowreplacement));
 }
+
+void PrintMiscActorInfo(AActor * query);
 
 #define S_FREETARGMOBJ	1
 

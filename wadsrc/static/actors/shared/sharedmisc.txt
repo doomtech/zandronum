@@ -87,8 +87,7 @@ ACTOR RealGibs
 	States
 	{
 	Spawn:
-		POL5 A -1
-		Stop
+		goto GenericCrush
 	}
 }
 
@@ -137,6 +136,7 @@ ACTOR RandomSpawner native
 	+NOBLOCKMAP
 	+NOSECTOR
 	+NOGRAVITY
+	+THRUACTORS
 }
 
 // Fast projectiles -----------------------------------------------------------

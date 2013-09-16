@@ -39,6 +39,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "doomtype.h"
 #include "colormatcher.h"
 #include "r_translate.h"
@@ -688,6 +689,59 @@ static void PrepareSegs()
 
 //==========================================================================
 //
+// creates a VBO for flat geometry - just a rough test for now.
+//
+//==========================================================================
+unsigned int gl_vbo;
+
+static void CreateFlatVBO()
+{
+	static TArray<float> data;
+
+	for (int h=0;h<2;h++)
+	{
+		for(int i=0; i<numsectors;i++)
+		{
+			sector_t *sec = &sectors[i];
+
+			sec->vboheight[h] = sec->GetPlaneTexZ(h? sector_t::floor:sector_t::ceiling);
+
+			for(int j=0; j<sec->subsectorcount; j++)
+			{
+				subsector_t *sub = sec->subsectors[j];
+
+				sub->vboindex[h] = data.Size()/5;
+
+				for(int k=0; k<sub->numvertices; k++)
+				{
+					seg_t *seg = &segs[sub->firstline];
+					vertex_t *vt = seg->v1;
+
+					int idx = data.Reserve(5);
+					data[idx] = vt->fx;
+					data[idx+2] = vt->fy;
+					data[idx+3] = vt->fx/64.f;
+					data[idx+4] = -vt->fy/64.f;
+					data[idx+1] = float( h==0? 
+						sec->ceilingplane.ZatPoint(vt->fx, vt->fy) :
+						sec->floorplane.ZatPoint(vt->fx, vt->fy));
+
+				}
+			}
+		}
+	}
+	gl.GenBuffers(1, &gl_vbo);
+	gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
+	gl.BufferData(GL_ARRAY_BUFFER, data.Size() * sizeof(float), &data[0], GL_STATIC_DRAW);
+	glVertexPointer(3,GL_FLOAT, 5*sizeof(float), 0);
+	glTexCoordPointer(2,GL_FLOAT, 5*sizeof(float),(void*)(intptr_t)(3*sizeof(float)));
+	gl.EnableClientState(GL_VERTEX_ARRAY);
+	gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+}
+
+//==========================================================================
+//
 // Initialize the level data for the GL renderer
 //
 //==========================================================================
@@ -746,6 +800,8 @@ void gl_PreprocessLevel()
 	}
 
 	if (GLRenderer != NULL) GLRenderer->SetupLevel();
+	if (gl.flags&RFL_GL_21)
+		CreateFlatVBO();
 
 #if 0
 	gl_CreateSections();

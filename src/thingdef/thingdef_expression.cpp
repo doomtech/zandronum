@@ -62,6 +62,8 @@ DEFINE_MEMBER_VARIABLE(floorz, AActor)
 DEFINE_MEMBER_VARIABLE(health, AActor)
 DEFINE_MEMBER_VARIABLE(pitch, AActor)
 DEFINE_MEMBER_VARIABLE(special, AActor)
+DEFINE_MEMBER_VARIABLE(special1, AActor)
+DEFINE_MEMBER_VARIABLE(special2, AActor)
 DEFINE_MEMBER_VARIABLE(tid, AActor)
 DEFINE_MEMBER_VARIABLE(TIDtoHate, AActor)
 DEFINE_MEMBER_VARIABLE(waterlevel, AActor)
@@ -75,6 +77,8 @@ DEFINE_MEMBER_VARIABLE_ALIAS(momx, velx, AActor)
 DEFINE_MEMBER_VARIABLE_ALIAS(momy, vely, AActor)
 DEFINE_MEMBER_VARIABLE_ALIAS(momz, velz, AActor)
 DEFINE_MEMBER_VARIABLE(Damage, AActor)
+DEFINE_MEMBER_VARIABLE(Score, AActor)
+DEFINE_MEMBER_VARIABLE(uservar, AActor)
 
 //==========================================================================
 //
@@ -2812,13 +2816,13 @@ int FStateExpressions::Reserve(int num, const PClass *cls)
 //
 //==========================================================================
 
-void FStateExpressions::Set(int num, FxExpression *x)
+void FStateExpressions::Set(int num, FxExpression *x, bool cloned)
 {
 	if (num >= 0 && num < int(Size()))
 	{
 		assert(expressions[num].expr == NULL || expressions[num].cloned);
 		expressions[num].expr = x;
-		expressions[num].cloned = false;
+		expressions[num].cloned = cloned;
 	}
 }
 

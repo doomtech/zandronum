@@ -5,6 +5,7 @@
 #include "info.h"
 #include "s_sound.h"
 #include "sc_man.h"
+#include "cmdlib.h"
 
 
 class FScanner;
@@ -25,6 +26,9 @@ struct FFlagDef
 
 FFlagDef *FindFlag (const PClass *type, const char *part1, const char *part2);
 void HandleDeprecatedFlags(AActor *defaults, FActorInfo *info, bool set, int index);
+const char *GetFlagName(int flagnum, int flagoffset);
+
+#define FLAG_NAME(flagnum, flagvar) GetFlagName(flagnum, myoffsetof(AActor, flagvar))
 
 
 //==========================================================================
@@ -44,6 +48,8 @@ enum EStateDefineFlags
 	SDF_WAIT = 3,
 	SDF_LABEL = 4,
 	SDF_INDEX = 5,
+	SDF_MASK = 7,
+	SDF_DEHACKED = 8,	// Identify a state as having been modified by a dehacked lump
 };
 
 struct FStateDefine
@@ -120,7 +126,7 @@ public:
 	~FStateExpressions();
 	int Add(FxExpression *x, const PClass *o, bool c);
 	int Reserve(int num, const PClass *cls);
-	void Set(int num, FxExpression *x);
+	void Set(int num, FxExpression *x, bool cloned = false);
 	void Copy(int dest, int src, int cnt);
 	int ResolveAll();
 	FxExpression *Get(int no);

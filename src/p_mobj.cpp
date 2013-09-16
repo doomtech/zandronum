@@ -104,7 +104,7 @@ EXTERN_CVAR (Int,  cl_rockettrails)
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static FRandom pr_explodemissile ("ExplodeMissile");
-static FRandom pr_bounce ("Bounce");
+FRandom pr_bounce ("Bounce");
 static FRandom pr_reflect ("Reflect");
 static FRandom pr_nightmarerespawn ("NightmareRespawn");
 static FRandom pr_botspawnmobj ("BotSpawnActor");
@@ -315,36 +315,9 @@ void AActor::Serialize (FArchive &arc)
 		<< MeleeState
 		<< MissileState
 		<< MaxDropOffHeight 
-		<< MaxStepHeight;
-	if (SaveVersion < 1796)
-	{
-		int bouncetype, bounceflags;
-		arc << bouncetype;
-
-		bounceflags = 0;
-		if (bouncetype & 4)
-			bounceflags |= BOUNCE_UseSeeSound;
-		bouncetype &= 3;
-			 if (bouncetype == 1)	bounceflags |= BOUNCE_Doom;
-		else if (bouncetype == 2)	bounceflags |= BOUNCE_Heretic;
-		else if (bouncetype == 3)	bounceflags |= BOUNCE_Hexen;
-		if (flags3 & 0x00800000)
-			flags3 &= ~0x00800000, bounceflags |= BOUNCE_CanBounceWater;
-		if (flags3 & 0x01000000)
-			flags3 &= ~0x01000000, bounceflags |= BOUNCE_NoWallSound;
-		if (flags4 & 0x80000000)
-			flags4 &= ~0x80000000, bounceflags |= BOUNCE_Quiet;
-		if (flags5 & 0x00000008)
-			flags5 &= ~0x00000008, bounceflags |= BOUNCE_AllActors;
-		if (flags5 & 0x00000010)
-			flags5 &= ~0x00000010, bounceflags |= BOUNCE_ExplodeOnWater;
-		BounceFlags = bounceflags;
-	}
-	else
-	{
-		arc << BounceFlags;
-	}
-	arc << bouncefactor
+		<< MaxStepHeight
+		<< BounceFlags
+		<< bouncefactor
 		<< wallbouncefactor
 		<< bouncecount
 		<< maxtargetrange
@@ -359,6 +332,8 @@ void AActor::Serialize (FArchive &arc)
 		<< BlockingLine
 		<< pushfactor
 		<< Species
+		<< Score
+		<< Tag
 		<< DesignatedTeam
 		<< (DWORD &)ulLimitedToTeam // [BB]
 		<< (DWORD &)ulVisibleToTeam // [BB]
@@ -369,10 +344,7 @@ void AActor::Serialize (FArchive &arc)
 		<< pMonsterSpot
 		<< pPickupSpot;
 
-	if (SaveVersion >= 1573)
-	{
-		arc << Species;
-	}
+	for(int i=0; i<10; i++) arc << uservar[i];
 
 	if (arc.IsStoring ())
 	{
@@ -1328,24 +1300,42 @@ void AActor::Touch (AActor *toucher)
 bool AActor::Grind(bool items)
 {
 	// crunch bodies to giblets
-	if ((this->flags & MF_CORPSE) &&
-		!(this->flags3 & MF3_DONTGIB) &&
-		(this->health <= 0))
+	if ((flags & MF_CORPSE) && !(flags3 & MF3_DONTGIB) && (health <= 0))
 	{
-		FState * state = this->FindState(NAME_Crush);
-		if (state != NULL && !(this->flags & MF_ICECORPSE))
+		FState * state = FindState(NAME_Crush);
+		bool isgeneric = false;
+		// ZDoom behavior differs from standard as crushed corpses cannot be raised.
+		// The reason for the change was originally because of a problem with players,
+		// see rh_log entry for February 21, 1999. Don't know if it is still relevant.
+		if (state == NULL 												// Only use the default crushed state if:
+			&& !(flags & MF_NOBLOOD)						// 1. the monster bleeeds,
+			&& (i_compatflags & COMPATF_CORPSEGIBS)			// 2. the compat setting is on,
+			&& player != NULL)								// 3. and the thing isn't a player.
+		{
+			isgeneric = true;
+			state = FindState(NAME_GenericCrush);
+			if (state != NULL && (sprites[state->sprite].numframes <= 0))
+				state = NULL; // If one of these tests fails, do not use that state.
+		}
+		if (state != NULL && !(flags & MF_ICECORPSE))
 		{
 			if (this->flags4 & MF4_BOSSDEATH) 
 			{
 				CALL_ACTION(A_BossDeath, this);
 			}
-			this->flags &= ~MF_SOLID;
-			this->flags3 |= MF3_DONTGIB;
-			this->height = this->radius = 0;
-			this->SetState (state);
+			flags &= ~MF_SOLID;
+			flags3 |= MF3_DONTGIB;
+			height = radius = 0;
+			SetState (state);
+			if (isgeneric)	// Not a custom crush state, so colorize it appropriately.
+			{
+				S_Sound (this, CHAN_BODY, "misc/fallingsplat", 1, ATTN_IDLE);
+				PalEntry bloodcolor = PalEntry(GetClass()->Meta.GetMetaInt(AMETA_BloodColor));
+				if (bloodcolor!=0) Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
+			}
 			return false;
 		}
-		if (!(this->flags & MF_NOBLOOD))
+		if (!(flags & MF_NOBLOOD))
 		{
 			if (this->flags4 & MF4_BOSSDEATH) 
 			{
@@ -1368,17 +1358,17 @@ bool AActor::Grind(bool items)
 			if (i == NULL)
 			{
 				// if there's no gib sprite don't crunch it.
-				this->flags &= ~MF_SOLID;
-				this->flags3 |= MF3_DONTGIB;
-				this->height = this->radius = 0;
+				flags &= ~MF_SOLID;
+				flags3 |= MF3_DONTGIB;
+				height = radius = 0;
 				return false;
 			}
 
-			AActor *gib = Spawn (i, this->x, this->y, this->z, ALLOW_REPLACE);
+			AActor *gib = Spawn (i, x, y, z, ALLOW_REPLACE);
 			if (gib != NULL)
 			{
-				gib->RenderStyle = this->RenderStyle;
-				gib->alpha = this->alpha;
+				gib->RenderStyle = RenderStyle;
+				gib->alpha = alpha;
 				gib->height = 0;
 				gib->radius = 0;
 
@@ -1393,10 +1383,10 @@ bool AActor::Grind(bool items)
 			PalEntry bloodcolor = (PalEntry)this->GetClass()->Meta.GetMetaInt(AMETA_BloodColor);
 			if (bloodcolor!=0) gib->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
 		}
-		if (this->flags & MF_ICECORPSE)
+		if (flags & MF_ICECORPSE)
 		{
-			this->tics = 1;
-			this->velx = this->vely = this->velz = 0;
+			tics = 1;
+			velx = vely = velz = 0;
 
 			// [BC] If we're the server, tell clients to update this thing's tics and
 			// momentum.
@@ -1406,24 +1396,24 @@ bool AActor::Grind(bool items)
 				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
 			}
 		}
-		else if (this->player)
+		else if (player)
 		{
-			this->flags |= MF_NOCLIP;
-			this->flags3 |= MF3_DONTGIB;
-			this->renderflags |= RF_INVISIBLE;
+			flags |= MF_NOCLIP;
+			flags3 |= MF3_DONTGIB;
+			renderflags |= RF_INVISIBLE;
 		}
 		else
 		{
 			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-			this->HideOrDestroyIfSafe ();
+			HideOrDestroyIfSafe ();
 		}
 		return false;		// keep checking
 	}
 
 	// crunch dropped items
-	if (this->flags & MF_DROPPED)
+	if (flags & MF_DROPPED)
 	{
-		if (items) // this->Destroy (); // Only destroy dropped items if wanted
+		if (items) // Destroy (); // Only destroy dropped items if wanted
 		{
 			// [BC] If we're the server, tell clients to destroy this item.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1439,12 +1429,20 @@ bool AActor::Grind(bool items)
 		return false;		// keep checking
 	}
 
-	if (!(this->flags & MF_SOLID) || (this->flags & MF_NOCLIP))
+	// killough 11/98: kill touchy things immediately
+	if (flags6 & MF6_TOUCHY && (flags6 & MF6_ARMED || IsSentient()))
+    {
+		flags6 &= ~MF6_ARMED; // Disarm
+		P_DamageMobj (this, NULL, NULL, health, NAME_Crush, DMG_FORCED);  // kill object
+		return true;   // keep checking
+    }
+
+	if (!(flags & MF_SOLID) || (flags & MF_NOCLIP))
 	{
 		return false;
 	}
 
-	if (!(this->flags & MF_SHOOTABLE))
+	if (!(flags & MF_SHOOTABLE))
 	{
 		return false;		// assume it is bloody gibs or something
 	}
@@ -1712,7 +1710,10 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 		// Landed in some sort of liquid
 		if (BounceFlags & BOUNCE_ExplodeOnWater)
 		{
-			P_ExplodeMissile(this, NULL, NULL);
+			if (flags & MF_MISSILE)
+				P_ExplodeMissile(this, NULL, NULL);
+			else
+				Die(NULL, NULL);
 			return true;
 		}
 		if (!(BounceFlags & BOUNCE_CanBounceWater))
@@ -1740,37 +1741,49 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 	// The amount of bounces is limited
 	if (bouncecount>0 && --bouncecount==0)
 	{
-		P_ExplodeMissile(this, NULL, NULL);
+		if (flags & MF_MISSILE)
+			P_ExplodeMissile(this, NULL, NULL);
+		else
+			Die(NULL, NULL);
 		return true;
 	}
 
 	fixed_t dot = TMulScale16 (velx, plane.a, vely, plane.b, velz, plane.c);
 
-	if (BounceFlags & BOUNCE_HereticType)
+	if (BounceFlags & (BOUNCE_HereticType | BOUNCE_MBF))
 	{
 		velx -= MulScale15 (plane.a, dot);
 		vely -= MulScale15 (plane.b, dot);
 		velz -= MulScale15 (plane.c, dot);
 		angle = R_PointToAngle2 (0, 0, velx, vely);
-		flags |= MF_INBOUNCE;
-		SetState (FindState(NAME_Death));
-		flags &= ~MF_INBOUNCE;
-		return false;
+		if (!(BounceFlags & BOUNCE_MBF)) // Heretic projectiles die, MBF projectiles don't.
+		{
+			flags |= MF_INBOUNCE;
+			SetState (FindState(NAME_Death));
+			flags &= ~MF_INBOUNCE;
+			return false;
+		}
+		else velz = FixedMul(velz, bouncefactor);
+	}
+	else // Don't run through this for MBF-style bounces
+	{
+		// The reflected velocity keeps only about 70% of its original speed
+		velx = FixedMul (velx - MulScale15 (plane.a, dot), bouncefactor);
+		vely = FixedMul (vely - MulScale15 (plane.b, dot), bouncefactor);
+		velz = FixedMul (velz - MulScale15 (plane.c, dot), bouncefactor);
+		angle = R_PointToAngle2 (0, 0, velx, vely);
 	}
 
-	// The reflected velocity keeps only about 70% of its original speed
-	velx = FixedMul (velx - MulScale15 (plane.a, dot), bouncefactor);
-	vely = FixedMul (vely - MulScale15 (plane.b, dot), bouncefactor);
-	velz = FixedMul (velz - MulScale15 (plane.c, dot), bouncefactor);
-	angle = R_PointToAngle2 (0, 0, velx, vely);
-
 	PlayBounceSound(true);
-	if (BounceFlags & BOUNCE_AutoOff)
+	if (BounceFlags & BOUNCE_MBF) // Bring it to rest below a certain speed
+	{
+		if (abs(velz) < (fixed_t)(Mass * GetGravity() / 64))
+			velz = 0;
+	}
+	else if (BounceFlags & BOUNCE_AutoOff)
 	{
 		if (!(flags & MF_NOGRAVITY) && (velz < 3*FRACUNIT))
-		{
 			BounceFlags &= ~BOUNCE_TypeMask;
-		}
 	}
 	return false;
 }
@@ -2153,13 +2166,20 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 		if (!P_TryMove (mo, ptryx, ptryy, true, walkplane, tm))
 		{
 			// blocked move
+			AActor *BlockingMobj = mo->BlockingMobj;
+			line_t *BlockingLine = mo->BlockingLine;
 
-			if ((mo->flags2 & (MF2_SLIDE|MF2_BLASTED) || bForceSlide) && !(mo->flags&MF_MISSILE))
+			if (!(mo->flags & MF_MISSILE) && (mo->BounceFlags & BOUNCE_MBF) 
+				&& (BlockingMobj != NULL ? P_BounceActor(mo, BlockingMobj) : P_BounceWall(mo)))
 			{
-				// try to slide along it
-				if (mo->BlockingMobj == NULL)
+				// Do nothing, relevant actions already done in the condition.
+				// This allows to avoid setting velocities to 0 in the final else of this series.
+			}
+			else if ((mo->flags2 & (MF2_SLIDE|MF2_BLASTED) || bForceSlide) && !(mo->flags&MF_MISSILE))
+			{	// try to slide along it
+				if (BlockingMobj == NULL)
 				{ // slide against wall
-					if (mo->BlockingLine != NULL &&
+					if (BlockingLine != NULL &&
 						mo->player && mo->waterlevel && mo->waterlevel < 3 &&
 						(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove) &&
 						mo->BlockingLine->sidedef[1] != NULL)
@@ -2230,30 +2250,14 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 			}
 			else if (mo->flags & MF_MISSILE)
 			{
-				AActor *BlockingMobj = mo->BlockingMobj;
 				steps = 0;
 				if (BlockingMobj)
 				{
 					// [BB] The server handles this.
 					if ( (mo->BounceFlags & BOUNCE_Actors) && !NETWORK_InClientMode() )
 					{
-						if ((mo->BounceFlags & BOUNCE_AllActors) ||
-							(BlockingMobj->flags2 & MF2_REFLECTIVE) ||
-							((!BlockingMobj->player) &&
-							(!(BlockingMobj->flags3 & MF3_ISMONSTER))))
-						{
-							fixed_t speed;
-
-							angle = R_PointToAngle2 (BlockingMobj->x,
-								BlockingMobj->y, mo->x, mo->y)
-								+ANGLE_1*((pr_bounce()%16)-8);
-							speed = P_AproxDistance (mo->velx, mo->vely);
-							speed = FixedMul (speed, (fixed_t)(0.75*FRACUNIT));
-							mo->angle = angle;
-							angle >>= ANGLETOFINESHIFT;
-							mo->velx = FixedMul (speed, finecosine[angle]);
-							mo->vely = FixedMul (speed, finesine[angle]);
-							mo->PlayBounceSound(true);
+						// Bounce test and code moved to P_BounceActor
+						if (!P_BounceActor(mo, BlockingMobj))
 
 							// [BB] Inform the clients.
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2264,10 +2268,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 								mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
 							}
 
-							return oldfloorz;
-						}
-						else
-						{ // Struck a player/creature
+						{	// Struck a player/creature
 						
 							// Potentially reward the player who shot this missile with an accuracy/precision medal.
 							if ((( mo->ulSTFlags & STFL_EXPLODEONDEATH ) == false ) && mo->target && mo->target->player )
@@ -2279,8 +2280,8 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							}
 
 							P_ExplodeMissile (mo, NULL, BlockingMobj);
-							return oldfloorz;
 						}
+						return oldfloorz;
 					}
 				}
 				else
@@ -2297,14 +2298,11 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 						return oldfloorz;
 					}
 				}
-				if (BlockingMobj &&
-					(BlockingMobj->flags2 & MF2_REFLECTIVE))
+				if (BlockingMobj && (BlockingMobj->flags2 & MF2_REFLECTIVE))
 				{
-					angle = R_PointToAngle2(BlockingMobj->x,
-													BlockingMobj->y,
-													mo->x, mo->y);
+					angle = R_PointToAngle2(BlockingMobj->x, BlockingMobj->y, mo->x, mo->y);
 
-				// Change angle for deflection/reflection
+					// Change angle for deflection/reflection
 					if (mo->AdjustReflectionAngle (BlockingMobj, angle))
 					{
 						goto explode;
@@ -2429,10 +2427,12 @@ explode:
 		return oldfloorz;
 	}
 
-	if (mo->flags & MF_CORPSE)
+	// killough 8/11/98: add bouncers
+	// killough 9/15/98: add objects falling off ledges
+	// killough 11/98: only include bouncers hanging off ledges
+	if ((mo->flags & MF_CORPSE) || (mo->BounceFlags & BOUNCE_MBF && mo->z > mo->dropoffz) || (mo->flags6 & MF6_FALLING))
 	{ // Don't stop sliding if halfway off a step with some velocity
-		if (mo->velx > FRACUNIT/4 || mo->velx < -FRACUNIT/4
-			|| mo->vely > FRACUNIT/4 || mo->vely < -FRACUNIT/4)
+		if (mo->velx > FRACUNIT/4 || mo->velx < -FRACUNIT/4 || mo->vely > FRACUNIT/4 || mo->vely < -FRACUNIT/4)
 		{
 			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
 			{
@@ -2774,12 +2774,13 @@ void P_MonsterFallingDamage (AActor *mo)
 //
 // P_ZMovement
 //
+
 void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 {
 	fixed_t dist;
 	fixed_t delta;
-	fixed_t oldz = mo->z;
-
+	fixed_t oldz = mo->z;	
+	
 //	
 // check for smooth step up
 //
@@ -2809,8 +2810,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		if (!mo->waterlevel || mo->flags & MF_CORPSE || (mo->player &&
 			!(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove)))
 		{
-			fixed_t grav = (fixed_t)(level.gravity * mo->Sector->gravity *
-				FIXED2FLOAT(mo->gravity) * 81.92);
+			fixed_t grav = mo->GetGravity();
 
 			// [RH] Double gravity only if running off a ledge. Coming down from
 			// an upward thrust (e.g. a jump) should not double it.
@@ -2856,7 +2856,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{	// float down towards target if too close
-		if (!(mo->flags & MF_SKULLFLY) && !(mo->flags & MF_INFLOAT))
+		if (!(mo->flags & (MF_SKULLFLY | MF_INFLOAT)))
 		{
 			dist = P_AproxDistance (mo->x - mo->target->x, mo->y - mo->target->y);
 			delta = (mo->target->z + (mo->height>>1)) - mo->z;
@@ -2939,12 +2939,12 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				if (mo->BounceFlags & BOUNCE_Floors)
 				{
 					mo->FloorBounceMissile (mo->floorsector->floorplane);
-					return;
+					/* if (!(mo->flags6 & MF6_CANJUMP)) */ return;
 				}
 				else if (mo->flags3 & MF3_NOEXPLODEFLOOR)
 				{
-					mo->velz = 0;
 					P_HitFloor (mo);
+					mo->velz = 0;
 					return;
 				}
 				else if (mo->flags3 & MF3_FLOORHUGGER)
@@ -2978,6 +2978,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 					P_ExplodeMissile (mo, NULL, NULL);
 					return;
 				}
+			}
+			else if (mo->BounceFlags & BOUNCE_MBF && mo->velz) // check for MBF-like bounce on non-missiles
+			{
+				mo->FloorBounceMissile(mo->floorsector->floorplane);
 			}
 
 			// [BC] Apply spring pads.
@@ -3075,14 +3079,14 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			if (mo->BounceFlags & BOUNCE_Ceilings)
 			{	// ceiling bounce
 				mo->FloorBounceMissile (mo->ceilingsector->ceilingplane);
-				return;
+				/*if (!(mo->flags6 & MF6_CANJUMP))*/ return;
 			}
-			if (mo->velz > 0)
-				mo->velz = 0;
 			if (mo->flags & MF_SKULLFLY)
 			{	// the skull slammed into something
 				mo->velz = -mo->velz;
 			}
+			if (mo->velz > 0)
+				mo->velz = 0;
 			if (mo->flags & MF_MISSILE &&
 				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 			{
@@ -4059,11 +4063,18 @@ void AActor::Tick ()
 		{ // actor was destroyed
 			return;
 		}
-		if ((velx | vely) == 0 && (flags2 & MF2_BLASTED))
-		{ // Reset to not blasted when velocitiess are gone
-			flags2 &= ~MF2_BLASTED;
-		}
+		if ((velx | vely) == 0) // Actors at rest
+		{
+			if (flags2 & MF2_BLASTED)
+			{ // Reset to not blasted when velocities are gone
+				flags2 &= ~MF2_BLASTED;
+			}
+			if ((flags6 & MF6_TOUCHY) && !IsSentient())
+			{ // Arm a mine which has come to rest
+				flags6 |= MF6_ARMED;
+			}
 
+		}
 		if (flags2 & MF2_FLOATBOB)
 		{ // Floating item bobbing motion
 			z += FloatBobDiffs[(FloatBobPhase + level.maptime) & 63];
@@ -4438,7 +4449,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 
 
 	AActor *actor;
-
+	
 	actor = static_cast<AActor *>(const_cast<PClass *>(type)->CreateNew ());
 
 	actor->x = actor->PrevX = ix;
@@ -6217,6 +6228,15 @@ bool P_HitFloor (AActor *thing)
 {
 	const msecnode_t *m;
 
+	// killough 11/98: touchy objects explode on impact
+	// Allow very short drops to be safe, so that a touchy can be summoned without exploding.
+	if (thing->flags6 & MF6_TOUCHY && ((thing->flags6 & MF6_ARMED) || thing->IsSentient()) && ((thing->velz) < (-5 * FRACUNIT)))
+	{
+		thing->flags6 &= ~MF6_ARMED; // Disarm
+		P_DamageMobj (thing, NULL, NULL, thing->health, NAME_Crush, DMG_FORCED);  // kill object
+		return true;
+	}
+
 	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
 		return false;
 
@@ -6302,9 +6322,26 @@ bool P_CheckMissileSpawn (AActor* th, bool bExplode)
 		th->y += th->vely >> shift;
 		th->z += th->velz >> shift;
 
-		// killough 3/15/98: no dropoff (really = don't care for missiles)
+		// killough 8/12/98: for non-missile objects (e.g. grenades)
+		// 
+		// [GZ] MBF excludes non-missile objects from the P_TryMove test
+		// and subsequent potential P_ExplodeMissile call. That is because
+		// in MBF, a projectile is not an actor with the MF_MISSILE flag
+		// but an actor with either or both the MF_MISSILE and MF_BOUNCES
+		// flags, and a grenade is identified by not having MF_MISSILE.
+		// Killough wanted grenades not to explode directly when spawned,
+		// therefore they can be fired safely even when humping a wall as
+		// they will then just drop on the floor at their shooter's feet.
+		//
+		// However, ZDoom does allow non-missiles to be shot as well, so
+		// Killough's check for non-missiles is inadequate here. So let's
+		// replace it by a check for non-missile and MBF bounce type.
+		// This should allow MBF behavior where relevant without altering
+		// established ZDoom behavior for crazy stuff like a cacodemon cannon.
+		bool MBFGrenade = (!(th->flags & MF_MISSILE) || (th->BounceFlags & BOUNCE_MBF));
 
-		if (!P_TryMove (th, th->x, th->y, false, false, tm))
+		// killough 3/15/98: no dropoff (really = don't care for missiles)
+		if (!(P_TryMove (th, th->x, th->y, false, false, tm)))
 		{
 			// [RH] Don't explode ripping missiles that spawn inside something
 			if (th->BlockingMobj == NULL || !(th->flags2 & MF2_RIP) || (th->BlockingMobj->flags5 & MF5_DONTRIP))
@@ -6319,6 +6356,10 @@ bool P_CheckMissileSpawn (AActor* th, bool bExplode)
 				if (th->BlockingLine != NULL && th->BlockingLine->special == Line_Horizon)
 				{
 					th->Destroy ();
+				}
+				else if (MBFGrenade && th->BlockingLine != NULL													)
+				{
+					P_BounceWall(th);
 				}
 				else
 				{
@@ -6487,6 +6528,7 @@ AActor * P_OldSpawnMissile(AActor * source, AActor * dest, const PClass *type)
 	P_CheckMissileSpawn(th);
 	return th;
 }
+
 //---------------------------------------------------------------------------
 //
 // FUNC P_SpawnMissileAngle
@@ -6954,6 +6996,7 @@ int AActor::SpawnHealth()
 		return (adj <= 0) ? 1 : adj;
 	}
 }
+
 FDropItem *AActor::GetDropItems()
 {
 	unsigned int index = GetClass()->Meta.GetMetaInt (ACMETA_DropItems) - 1;
@@ -6964,6 +7007,29 @@ FDropItem *AActor::GetDropItems()
 	}
 	return NULL;
 }
+
+fixed_t AActor::GetGravity() const
+{
+	if (flags & MF_NOGRAVITY) return 0;
+	return fixed_t(level.gravity * Sector->gravity * FIXED2FLOAT(gravity) * 81.92);
+}
+
+// killough 11/98:
+// Whether an object is "sentient" or not. Used for environmental influences.
+// (left precisely the same as MBF even though it doesn't make much sense.)
+bool AActor::IsSentient() const
+{
+	return health > 0 || SeeState != NULL;
+}
+
+
+const char *AActor::GetTag(const char *def) const
+{
+	if (Tag != NAME_None) return Tag.GetChars();
+	else if (def) return def;
+	else return GetClass()->TypeName.GetChars();
+}
+
 
 //----------------------------------------------------------------------------
 //
@@ -6995,6 +7061,71 @@ int StoreDropItemChain(FDropItem *chain)
 	return DropItemList.Push (chain) + 1;
 }
 
+void PrintMiscActorInfo(AActor * query)
+{
+	if (query)
+	{
+		int flagi;
+		int querystyle = STYLE_Count;
+		for (int style = STYLE_None; style < STYLE_Count; ++style)
+		{ // Check for a legacy render style that matches.
+			if (LegacyRenderStyles[style] == query->RenderStyle)
+			{
+				querystyle = style;
+				break;
+			}
+		}
+		static const char * renderstyles[]= {"None", "Normal", "Fuzzy", "SoulTrans",
+			"OptFuzzy", "Stencil", "Translucent", "Add", "Shaded", "TranslucentStencil"};
+
+		/*
+		Printf("%s %x has the following flags:\n\tflags1: %x", 
+			query->GetNameTag().GetChars(), query, query->flags);
+		*/
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags));
+		Printf("\n\tflags2: %x", query->flags2);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags2 & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags2));
+		Printf("\n\tflags3: %x", query->flags3);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags3 & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags3));
+		Printf("\n\tflags4: %x", query->flags4);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags4 & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags4));
+		Printf("\n\tflags5: %x", query->flags5);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags5 & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags5));
+		Printf("\n\tflags6: %x", query->flags6);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->flags6 & 1<<flagi) Printf(" %s", FLAG_NAME(1<<flagi, flags6));
+
+		/*
+		Printf("\nIts bounce style and factors are %s and f:%f, w:%f; its bounce flags are:\n\tflagsb: %x", 
+			bouncestyles[bt], FIXED2FLOAT(query->bouncefactor), 
+			FIXED2FLOAT(query->wallbouncefactor), query->BounceFlags);
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->BounceFlags & 1<<flagi) Printf(" %s", flagnamesb[flagi]);
+		*/
+		Printf("\nIts render style is %i:%s with alpha %f and the following render flags:\n\tflagsr: %x", 
+			querystyle, (querystyle < STYLE_Count ? renderstyles[querystyle] : "Unknown"),
+			FIXED2FLOAT(query->alpha), query->renderflags);
+		/*
+		for (flagi = 0; flagi < 31; flagi++)
+			if (query->renderflags & 1<<flagi) Printf(" %s", flagnamesr[flagi]);
+		*/
+		Printf("\nIts thing special and arguments are %s(%i, %i, %i, %i, %i), and its specials are %i and %i.",
+			LineSpecialsInfo[query->special]->name, query->args[0], query->args[1],
+			query->args[2], query->args[3], query->args[4],
+			query->special1, query->special2);
+		Printf("\nIts coordinates are x: %f, y: %f, z:%f, floor:%f, ceiling:%f.",
+			FIXED2FLOAT(query->x), FIXED2FLOAT(query->y), FIXED2FLOAT(query->z),
+			FIXED2FLOAT(query->floorz), FIXED2FLOAT(query->ceilingz));
+		Printf("\nIts speed is %f and velocity is x:%f, y:%f, z:%f, combined:%f.\n",
+			FIXED2FLOAT(query->Speed), FIXED2FLOAT(query->velx), FIXED2FLOAT(query->vely), FIXED2FLOAT(query->velz),
+			sqrt(pow(FIXED2FLOAT(query->velx), 2) + pow(FIXED2FLOAT(query->vely), 2) + pow(FIXED2FLOAT(query->velz), 2)));
+	}
+}
 
 
 // [BC] meh

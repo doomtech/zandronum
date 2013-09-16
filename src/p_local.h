@@ -388,11 +388,13 @@ bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, const secplan
 bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, const secplane_t * onfloor = NULL);
 bool	P_OldTryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, bool onfloor = false);
 bool	P_CheckMove(AActor *thing, fixed_t x, fixed_t y);
+void	P_ApplyTorque(AActor *mo);
 bool	P_TeleportMove (AActor* thing, fixed_t x, fixed_t y, fixed_t z, bool telefrag);	// [RH] Added z and telefrag parameters
 void	P_PlayerStartStomp (AActor *actor);		// [RH] Stomp on things for a newly spawned player
 void	P_SlideMove (AActor* mo, fixed_t tryx, fixed_t tryy, int numsteps);
 void	P_OldSlideMove (AActor* mo);
 bool	P_BounceWall (AActor *mo);
+bool	P_BounceActor (AActor *mo, AActor * BlockingMobj);
 bool	P_CheckSight (const AActor* t1, const AActor* t2, int flags=0);
 void	P_ResetSightCounters (bool full);
 void	P_ResetSpawnCounters( void );
@@ -403,7 +405,7 @@ void	P_FindFloorCeiling (AActor *actor, bool onlymidtex = false);
 
 bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget = NULL, fixed_t vrange=0, bool forcenosmart=false, bool check3d = false);
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget = NULL, fixed_t vrange=0, bool forcenosmart=false, bool check3d = false, bool checknonshootable = false);
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, FName damageType, const PClass *pufftype, bool ismelee = false);
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, FName damageType, FName pufftype, bool ismelee = false);
 void	P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *target, angle_t angle, int pitch);
@@ -441,10 +443,9 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 // (For ZDoom itself this doesn't make any difference here but for GZDoom it does.)
 //
 //----------------------------------------------------------------------------------
-subsector_t *P_PointInSubsector (fixed_t x, fixed_t y);
 inline sector_t *P_PointInSector(fixed_t x, fixed_t y)
 {
-	return P_PointInSubsector(x,y)->sector;
+	return R_PointInSubsector(x,y)->sector;
 }
 
 //

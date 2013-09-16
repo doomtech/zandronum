@@ -646,17 +646,25 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		return false;
 	}
 
-	if (!(tm.thing->flags & MF_MISSILE) || (ld->flags & (ML_BLOCKEVERYTHING|ML_BLOCKPROJECTILE)))
-	{
+		// MBF bouncers are treated as missiles here.
+		bool Projectile = (tm.thing->flags & MF_MISSILE || tm.thing->BounceFlags & BOUNCE_MBF);
+		// MBF considers that friendly monsters are not blocked by monster-blocking lines.
+		// This is added here as a compatibility option. Note that monsters that are dehacked
+		// into being friendly with the MBF flag automatically gain MF3_NOBLOCKMONST, so this
+		// just optionally generalizes the behavior to other friendly monsters.
+		bool NotBlocked = ((tm.thing->flags3 & MF3_NOBLOCKMONST)
+			|| ((i_compatflags & COMPATF_NOBLOCKFRIENDS) && (tm.thing->flags & MF_FRIENDLY)));
+
+		if (!(Projectile) || (ld->flags & (ML_BLOCKEVERYTHING|ML_BLOCKPROJECTILE)))	{
 		if (ld->flags & ML_RAILING)
 		{
 			rail = true;
 		}
-		else if ((ld->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING)) || 	// explicitly blocking everything
-			(!(tm.thing->flags3 & MF3_NOBLOCKMONST) && (ld->flags & ML_BLOCKMONSTERS)) || 	// block monsters only
-			(tm.thing->player != NULL && (ld->flags & ML_BLOCK_PLAYERS)) ||					// block players
-			((tm.thing->flags & MF_MISSILE) && (ld->flags & ML_BLOCKPROJECTILE)) ||			// block projectiles
-			((ld->flags & ML_BLOCK_FLOATERS) && (tm.thing->flags & MF_FLOAT)))				// block floaters
+		else if ((ld->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING)) || 				// explicitly blocking everything
+			(!(NotBlocked) && (ld->flags & ML_BLOCKMONSTERS)) || 				// block monsters only
+			(tm.thing->player != NULL && (ld->flags & ML_BLOCK_PLAYERS)) ||		// block players
+			((Projectile) && (ld->flags & ML_BLOCKPROJECTILE)) ||				// block projectiles
+			((tm.thing->flags & MF_FLOAT) && (ld->flags & ML_BLOCK_FLOATERS)))	// block floaters
 		{
 			if (tm.thing->flags2 & MF2_BLASTED)
 			{
@@ -887,6 +895,13 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	bool 	solid;
 	int 	damage;
 
+	if (!((thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE)) || thing->flags6 & MF6_TOUCHY))
+		return true;	// can't hit thing
+
+	fixed_t blockdist = thing->radius + tm.thing->radius;
+	if ( abs(thing->x - tm.x) >= blockdist || abs(thing->y - tm.y) >= blockdist)
+		return true;
+
 	// don't clip against self
 	if (thing == tm.thing)
 		return true;
@@ -896,13 +911,6 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 
 	// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
 	if (ActorHasThruspecies(tm.thing) && (tm.thing->GetSpecies() == thing->GetSpecies()))
-		return true;
-
-	if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE)) )
-		return true;	// can't hit thing
-
-	fixed_t blockdist = thing->radius + tm.thing->radius;
-	if ( abs(thing->x - tm.x) >= blockdist || abs(thing->y - tm.y) >= blockdist)
 		return true;
 
 	tm.thing->BlockingMobj = thing;
@@ -940,6 +948,26 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 			return true;
 		}
 	}
+
+	// touchy object is alive, toucher is solid
+	if (thing->flags6 & MF6_TOUCHY && tm.thing->flags & MF_SOLID && thing->health > 0 &&
+	// Thing is an armed mine or a sentient thing
+	(thing->flags6 & MF6_ARMED || thing->IsSentient()) &&
+	// either different classes or players
+		(thing->player || thing->GetClass() != tm.thing->GetClass()) &&
+	// or different species if DONTHARMSPECIES
+		(!(thing->flags6 & MF6_DONTHARMSPECIES) || thing->GetSpecies() != tm.thing->GetSpecies()) &&
+	// touches vertically
+		thing->z + thing->height >= tm.thing->z && tm.thing->z + tm.thing->height >= thing->z &&
+	// prevents lost souls from exploding when fired by pain elementals
+		(thing->master != tm.thing && tm.thing->master != thing))
+	// Difference with MBF: MBF hardcodes the LS/PE check and lets actors of the same species
+	// but different classes trigger the touchiness, but that seems less straightforwards.
+	{
+		thing->flags6 &= ~MF6_ARMED; // Disarm
+		P_DamageMobj (thing, NULL, NULL, thing->health, NAME_None, DMG_FORCED);  // kill object
+		return true;
+	}
 	// Check for skulls slamming into things
 	if (tm.thing->flags & MF_SKULLFLY)
 	{
@@ -975,8 +1003,8 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 			thing->args[1], thing->args[2], thing->args[3], thing->args[4]);
 	}
 	*/
-	// Check for missile
-	if (tm.thing->flags & MF_MISSILE)
+	// Check for missile or non-solid MBF bouncer
+	if (tm.thing->flags & MF_MISSILE || ((tm.thing->BounceFlags & BOUNCE_MBF) && !(tm.thing->flags & MF_SOLID)))
 	{
 		// Server decides collision.
 //		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -1031,7 +1059,8 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 
 		// [RH] What is the point of this check, again? In Hexen, it is unconditional,
 		// but here we only do it if the missile's damage is 0.
-		if ((tm.thing->BounceFlags & BOUNCE_Actors) && tm.thing->Damage == 0)
+		// MBF bouncer might have a non-0 damage value, but they must not deal damage on impact either.
+		if ((tm.thing->BounceFlags & BOUNCE_Actors) && (tm.thing->Damage == 0 || !(tm.thing->flags & MF_MISSILE)))
 		{
 			return (tm.thing->target == thing || !(thing->flags & MF_SOLID));
 		}
@@ -1741,7 +1770,8 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 
 	while ((ld = it.Next()))
 	{
-		if (!PIT_CheckLine(ld, box, tm)) return false;
+		if (!PIT_CheckLine(ld, box, tm))
+			return false;
 	}
 
 	if (tm.ceilingz - tm.floorz < thing->height)
@@ -2032,12 +2062,12 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 #else
 			// When flying, slide up or down blocking lines until the actor
 			// is not blocked.
-			if (thing->z+thing->height > tmceilingz)
+			if (thing->z+thing->height > tm.ceilingz)
 			{
 				thing->velz = -8*FRACUNIT;
 				goto pushline;
 			}
-			else if (thing->z < tmfloorz && tmfloorz-tmdropoffz > thing->MaxDropOffHeight)
+			else if (thing->z < tm.floorz && tm.floorz-tm.dropoffz > thing->MaxDropOffHeight)
 			{
 				thing->velz = 8*FRACUNIT;
 				goto pushline;
@@ -2136,6 +2166,12 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 		oldAboveFakeFloor = eyez > oldsec->heightsec->floorplane.ZatPoint (thing->x, thing->y);
 		oldAboveFakeCeiling = eyez > oldsec->heightsec->ceilingplane.ZatPoint (thing->x, thing->y);
 	}
+
+	// Borrowed from MBF: 
+	if (thing->BounceFlags & BOUNCE_MBF &&  // killough 8/13/98
+			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
+			!thing->IsSentient() && tm.floorz - thing->z > 16*FRACUNIT)
+	return false; // too big a step up for MBF bouncers under gravity
 
 	// the move is ok, so link the thing into its new position
 	thing->UnlinkFromWorld ();
@@ -2590,8 +2626,6 @@ struct FSlide
 	bool BounceWall (AActor *mo);
 };
 
-
-
 //
 // P_HitSlideLine
 // Adjusts the xmove / ymove
@@ -2884,7 +2918,8 @@ void FSlide::SlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_
 		{
 			goto isblocking;
 		}
-		if (li->flags & ML_BLOCKMONSTERS && !(slidemo->flags3 & MF3_NOBLOCKMONST))
+		if (li->flags & ML_BLOCKMONSTERS && !((slidemo->flags3 & MF3_NOBLOCKMONST)
+			|| ((i_compatflags & COMPATF_NOBLOCKFRIENDS) && (slidemo->flags & MF_FRIENDLY))))
 		{
 			goto isblocking;
 		}
@@ -3501,7 +3536,10 @@ bool FSlide::BounceWall (AActor *mo)
 	// The amount of bounces is limited
 	if (mo->bouncecount>0 && --mo->bouncecount==0)
 	{
-		P_ExplodeMissile(mo, NULL, NULL);
+		if (mo->flags & MF_MISSILE)
+			P_ExplodeMissile(mo, NULL, NULL);
+		else
+			mo->Die(NULL, NULL);
 		return true;
 	}
 
@@ -3542,7 +3580,28 @@ bool P_BounceWall (AActor *mo)
 	return slide.BounceWall(mo);
 }
 
-
+extern FRandom pr_bounce;
+bool P_BounceActor (AActor *mo, AActor * BlockingMobj)
+{
+	if (mo && BlockingMobj && ((mo->BounceFlags & BOUNCE_AllActors)
+		|| ((mo->flags & MF_MISSILE) && (BlockingMobj->flags2 & MF2_REFLECTIVE)
+		|| ((!BlockingMobj->player) && (!(BlockingMobj->flags3 & MF3_ISMONSTER))))
+		))
+	{
+		fixed_t speed;
+		angle_t angle = R_PointToAngle2 (BlockingMobj->x,
+		BlockingMobj->y, mo->x, mo->y) + ANGLE_1*((pr_bounce()%16)-8);
+		speed = P_AproxDistance (mo->velx, mo->vely);
+		speed = FixedMul (speed, mo->wallbouncefactor); // [GZ] was 0.75, using wallbouncefactor seems more consistent
+		mo->angle = angle;
+		angle >>= ANGLETOFINESHIFT;
+		mo->velx = FixedMul (speed, finecosine[angle]);
+		mo->vely = FixedMul (speed, finesine[angle]);
+		mo->PlayBounceSound(true);
+		return true;
+	}
+	else return false;
+}
 
 //============================================================================
 //
@@ -3573,7 +3632,7 @@ struct aim_t
 	bool AimTraverse3DFloors(const divline_t &trace, intercept_t * in);
 #endif
 
-	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy);
+	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable = false);
 
 };
 
@@ -3692,7 +3751,7 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 //
 //============================================================================
 
-void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy)
+void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable)
 {
 	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES|PT_ADDTHINGS);
 	intercept_t *in;
@@ -3747,18 +3806,20 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 		if (th == shootthing)
 			continue;					// can't shoot self
 
-		if (!(th->flags&MF_SHOOTABLE))
-			continue;					// corpse or something
-
-		// check for physical attacks on a ghost
-		if ((th->flags3 & MF3_GHOST) && 
-			shootthing->player &&	// [RH] Be sure shootthing is a player
-			shootthing->player->ReadyWeapon &&
-			(shootthing->player->ReadyWeapon->flags2 & MF2_THRUGHOST))
+		if (!checknonshootable)			// For info CCMD, ignore stuff about GHOST and SHOOTABLE flags
 		{
-			continue;
+ 			if (!(th->flags&MF_SHOOTABLE))
+				continue;					// corpse or something
+
+			// check for physical attacks on a ghost
+			if ((th->flags3 & MF3_GHOST) && 
+				shootthing->player &&	// [RH] Be sure shootthing is a player
+				shootthing->player->ReadyWeapon &&
+				(shootthing->player->ReadyWeapon->flags2 & MF2_THRUGHOST))
+			{
+				continue;
+			}
 		}
-			
 		dist = FixedMul (attackrange, in->frac);
 
 #ifdef _3DFLOORS
@@ -3886,6 +3947,11 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 			aimpitch=thingpitch;
 			return;
 		}
+		if (checknonshootable)
+		{
+			linetarget=th;
+			aimpitch=thingpitch;
+		}
 	}
 }
 
@@ -3894,7 +3960,7 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 // P_AimLineAttack
 //
 //============================================================================
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, bool forcenosmart, bool check3d)
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, bool forcenosmart, bool check3d, bool checknonshootable)
 {
 	fixed_t x2;
 	fixed_t y2;
@@ -3976,7 +4042,7 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	}
 #endif
 
-	aim.AimTraverse (t1->x, t1->y, x2, y2);
+	aim.AimTraverse (t1->x, t1->y, x2, y2, checknonshootable);
 
 	if (!aim.linetarget) 
 	{
@@ -5306,7 +5372,9 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 
 	while ((thing = it.Next()))
 	{
-		if (!(thing->flags & MF_SHOOTABLE) )
+		// Vulnerable actors can be damaged by radius attacks even if not shootable
+		// Used to emulate MBF's vulnerability of non-missile bouncers to explosions.
+		if (!((thing->flags & MF_SHOOTABLE) || (thing->flags6 & MF6_VULNERABLE)))
 			continue;
 
 		// Boss spider and cyborg and Heretic's ep >= 2 bosses
@@ -5514,7 +5582,6 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 	// [BB] If the bombsource is a player and hit another player with his attack, potentially give him a medal.
 	PLAYER_CheckStruckPlayer( bombsource );
 }
-
 
 //
 // SECTOR HEIGHT CHANGING

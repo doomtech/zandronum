@@ -263,6 +263,7 @@ sector_t * GLRendererBase::RenderViewpoint (AActor * camera, GL_IRECT * bounds, 
 // renders the view
 //
 //-----------------------------------------------------------------------------
+extern unsigned int gl_vbo;
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 extern char myGlBeginCharArray[4];
@@ -318,6 +319,13 @@ void GLRendererBase::RenderView (player_t* player)
 		R_ResetViewInterpolation();
 		LastCamera=player->camera;
 	}
+
+	gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
+	glVertexPointer(3,GL_FLOAT, 5*sizeof(float), 0);
+	glTexCoordPointer(2,GL_FLOAT, 5*sizeof(float),(void*)(intptr_t)(3*sizeof(float)));
+	gl.EnableClientState(GL_VERTEX_ARRAY);
+	gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+
 
 	// reset statistics counters
 	All.Reset();

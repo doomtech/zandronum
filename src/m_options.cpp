@@ -126,6 +126,7 @@ EXTERN_CVAR(Int, showendoom)
 EXTERN_CVAR(Bool, hud_althud)
 EXTERN_CVAR(Int, compatmode)
 EXTERN_CVAR (Bool, vid_vsync)
+EXTERN_CVAR(Bool, displaynametags)
 
 static value_t Renderers[] = {
 	{ 0.0, "Software" },
@@ -217,12 +218,13 @@ value_t OffOn[2] = {
 	{ 1.0, "Off" }
 };
 
-value_t CompatModes[5] = {
+value_t CompatModes[6] = {
 	{ 0.0, "Default" },
 	{ 1.0, "Doom" },
 	{ 2.0, "Doom (strict)" },
 	{ 3.0, "Boom" },
-	{ 4.0, "ZDoom 2.0.63" }
+	{ 4.0, "ZDoom 2.0.63" },
+	{ 5.0, "MBF" },
 };
 
 value_t GenderVals[3] = {
@@ -761,6 +763,7 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "Use attached surfaces", {&vid_attachedsurfaces},{2.0}, {0.0},	{0.0}, {OnOff} },
 #endif
 
+	{ discrete, "Display nametags",		{&displaynametags},		{2.0}, {0.0},	{0.0}, {YesNo} },
 };
 
 // [BB] Moved crosshair selection to the HUD menu.
@@ -1425,7 +1428,7 @@ static menu_t DMFlagsMenu =
  *=======================================*/
 
 static menuitem_t CompatibilityItems[] = {
-	{ discrete, "Compatibility mode",						{&compatmode},	{5.0}, {1.0},	{0.0}, {CompatModes} },
+	{ discrete, "Compatibility mode",						{&compatmode},	{6.0}, {1.0},	{0.0}, {CompatModes} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
 	{ bitflag,	"Find shortest textures like Doom",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SHORTTEX} },
 	{ bitflag,	"Use buggier stair building",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_STAIRINDEX} },
@@ -1451,6 +1454,9 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,  "Allow any bossdeath for level special",	{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_ANYBOSSDEATH} },
 	{ bitflag,  "No Minotaur floor flames in water",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MINOTAUR} },
 	{ bitflag,  "Original A_Mushroom speed in DEH mods",	{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MUSHROOM} },
+	{ bitflag,	"Monster movement is affected by effects",	{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MBFMONSTERMOVE} },
+	{ bitflag,	"Crushed monsters can be resurrected",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_CORPSEGIBS} },
+	{ bitflag,	"Friendly monsters aren't blocked",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_NOBLOCKFRIENDS} },
 	{ bitflag,	"Limited movement in the air",				{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_INSTANTRESPAWN} },

@@ -15,7 +15,7 @@
 2.0
 ---
 
-*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 1817 / GZDoom SVN revision 451. [Torr Samaho]
+*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 1833 / GZDoom SVN revision 453. [Torr Samaho]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
 
 
