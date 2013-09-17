@@ -275,6 +275,7 @@ void AActor::Serialize (FArchive &arc)
 		<< movedir
 		<< visdir
 		<< movecount
+		<< strafecount
 		<< target
 		<< lastenemy
 		<< LastHeard
@@ -7106,11 +7107,9 @@ void PrintMiscActorInfo(AActor * query)
 			FIXED2FLOAT(query->wallbouncefactor), query->BounceFlags);
 		for (flagi = 0; flagi < 31; flagi++)
 			if (query->BounceFlags & 1<<flagi) Printf(" %s", flagnamesb[flagi]);
-		*/
 		Printf("\nIts render style is %i:%s with alpha %f and the following render flags:\n\tflagsr: %x", 
 			querystyle, (querystyle < STYLE_Count ? renderstyles[querystyle] : "Unknown"),
 			FIXED2FLOAT(query->alpha), query->renderflags);
-		/*
 		for (flagi = 0; flagi < 31; flagi++)
 			if (query->renderflags & 1<<flagi) Printf(" %s", flagnamesr[flagi]);
 		*/

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="wadsrc"
+	Name="wadsrc-brightmaps"
 	ProjectGUID="{087B206F-F49E-4EFB-92CB-E1F6E32D1278}"
 	RootNamespace="wadsrc"
 	Keyword="MakeFileProj"

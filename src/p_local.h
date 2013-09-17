@@ -326,7 +326,7 @@ public:
 #define PT_ADDLINES 	1
 #define PT_ADDTHINGS	2
 
-AActor *P_BlockmapSearch (AActor *origin, int distance, AActor *(*func)(AActor *, int));
+AActor *P_BlockmapSearch (AActor *mo, int distance, AActor *(*check)(AActor*, int, void *), void *params = NULL);
 AActor *P_RoughMonsterSearch (AActor *mo, int distance);
 
 //
@@ -443,9 +443,10 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 // (For ZDoom itself this doesn't make any difference here but for GZDoom it does.)
 //
 //----------------------------------------------------------------------------------
+subsector_t *P_PointInSubsector (fixed_t x, fixed_t y);
 inline sector_t *P_PointInSector(fixed_t x, fixed_t y)
 {
-	return R_PointInSubsector(x,y)->sector;
+	return P_PointInSubsector(x,y)->sector;
 }
 
 //

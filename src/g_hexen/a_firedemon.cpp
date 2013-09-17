@@ -183,7 +183,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FiredChase)
 
 	if(!self->target || !(self->target->flags&MF_SHOOTABLE))
 	{	// Invalid target
-		P_LookForPlayers (self,true);
+		P_LookForPlayers (self,true, NULL);
 		return;
 	}
 

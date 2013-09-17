@@ -333,6 +333,7 @@ enum
 	WIF_NO_AUTO_SWITCH =	0x00001000,	// never switch to this weapon when it's picked up
 	WIF_STAFF2_KICKBACK =	0x00002000, // the powered-up Heretic staff has special kickback
 	WIF_NOAUTOAIM =			0x00004000, // this weapon never uses autoaim (useful for ballistic projectiles)
+	WIF_MELEEWEAPON =		0x00008000,	// melee weapon. Used by bots and monster AI.
 
 	// [BC] New weapon info definitions.
 	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00008000,	// The player can continue to wield this weapon even with respawn invulnerability active.
@@ -344,7 +345,6 @@ enum
 
 	WIF_BOT_REACTION_SKILL_THING = 1<<31, // I don't understand this
 	WIF_BOT_EXPLOSIVE =		1<<30,		// weapon fires an explosive
-	WIF_BOT_MELEE =			1<<29,		// melee weapon
 	WIF_BOT_BFG =			1<<28,		// this is a BFG
 };
 
@@ -504,7 +504,7 @@ public:
 
 
 // A score item is picked up without being added to the inventory.
-// Contrarily to FakeInventory, it does nothing.
+// It differs from FakeInventory by doing nothing more than increasing the player's score.
 class AScoreItem : public AInventory
 {
 	DECLARE_CLASS (AScoreItem, AInventory)
