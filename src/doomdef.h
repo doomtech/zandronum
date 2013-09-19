@@ -418,6 +418,8 @@ enum
 	ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
+	// [CK] Vanilla doom had silent west spawns
+	ZACOMPATF_SILENT_WEST_SPAWNS = 1 << 10,
 
 	// Limited movement in the air.
 	ZACOMPATF_LIMITED_AIRMOVEMENT	= 1 << 17,

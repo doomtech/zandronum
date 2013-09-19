@@ -4066,9 +4066,10 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		// Spawn the respawn fog.
 		unsigned an = pActor->angle >> ANGLETOFINESHIFT;
-		Spawn( "TeleportFog", pActor->x + 20 * finecosine[an],
-			pActor->y + 20 * finesine[an],
-			pActor->z + TELEFOGHEIGHT, ALLOW_REPLACE );
+		if (!(pActor->angle == ANGLE_180 && (zacompatflags & ZACOMPATF_SILENT_WEST_SPAWNS)))
+			Spawn( "TeleportFog", pActor->x + 20 * finecosine[an],
+				pActor->y + 20 * finesine[an],
+				pActor->z + TELEFOGHEIGHT, ALLOW_REPLACE );
 	}
 
 	pPlayer->playerstate = PST_LIVE;

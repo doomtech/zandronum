@@ -709,6 +709,7 @@ CVAR (Flag, compat_explosionthrust,		zacompatflags, ZACOMPATF_OLD_EXPLOSION_THRU
 CVAR (Flag, compat_bridgedrops,		zacompatflags, ZACOMPATF_OLD_BRIDGE_DROPS);
 CVAR (Flag, compat_123b33jumpphysics,		zacompatflags, ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS);
 CVAR (Flag, compat_fullweaponlower,		zacompatflags, ZACOMPATF_FULL_WEAPON_LOWER);
+CVAR (Flag, compat_silentwestspawns,	zacompatflags, ZACOMPATF_SILENT_WEST_SPAWNS);
 
 //==========================================================================
 //
