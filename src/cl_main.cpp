@@ -3969,7 +3969,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pActor->angle = Angle;
 	pActor->pitch = pActor->roll = 0;
 	pActor->health = pPlayer->health;
-	pActor->lFixedColormap = 0;
+	pActor->lFixedColormap = NOFIXEDCOLORMAP;
 
 	//Added by MC: Identification (number in the players[MAXPLAYERS] array)
 	pActor->id = ulPlayer;
@@ -4020,7 +4020,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	const bool bPlayerWasMorphed = ( pPlayer->morphTics != 0 );
 	pPlayer->morphTics = 0;
 	pPlayer->extralight = 0;
-	pPlayer->fixedcolormap = 0;
+	pPlayer->fixedcolormap = NOFIXEDCOLORMAP;
 	pPlayer->viewheight = pPlayer->mo->ViewHeight;
 
 	pPlayer->attacker = NULL;

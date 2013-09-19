@@ -586,7 +586,7 @@ struct sector_t
 			return planes[pos].xform.angle + planes[pos].xform.base_angle;
 		}
 	}
-	
+
 	void SetBase(int pos, fixed_t y, angle_t o)
 	{
 		planes[pos].xform.base_yoffs = y;

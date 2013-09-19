@@ -228,12 +228,16 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 
 	vis.RenderStyle=playermo->RenderStyle;
 	vis.alpha=playermo->alpha;
+	vis.colormap = NULL;
 	if (playermo->Inventory) 
 	{
 		playermo->Inventory->AlterWeaponSprite(&vis);
-		if (vis.colormap == SpecialColormaps[INVERSECOLORMAP] && cm.colormap == CM_DEFAULT)
+		if (vis.colormap >= SpecialColormaps[0].Colormap && 
+			vis.colormap < SpecialColormaps[SpecialColormaps.Size()].Colormap && 
+			cm.colormap == CM_DEFAULT)
 		{
-			cm.colormap = CM_INVERT;
+			ptrdiff_t specialmap = (vis.colormap - SpecialColormaps[0].Colormap) / sizeof(FSpecialColormap);
+			cm.colormap = int(CM_FIRSTSPECIALCOLORMAP + specialmap);
 		}
 	}
 

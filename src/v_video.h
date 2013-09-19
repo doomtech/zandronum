@@ -237,7 +237,7 @@ public:
 		INTBOOL masked;
 		INTBOOL bilinear;
 		FRenderStyle style;
-		struct FSpecialColormapParameters *specialcolormap;
+		struct FSpecialColormap *specialcolormap;
 		struct FColormapStyle *colormapstyle;
 	};
 

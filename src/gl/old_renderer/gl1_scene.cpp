@@ -756,12 +756,12 @@ void GL1Renderer::SetFixedColormap (player_t *player)
 	{
 		if (cplayer->extralight<0)
 		{
-			gl_fixedcolormap=CM_INVERT;
+			gl_fixedcolormap=CM_FIRSTSPECIALCOLORMAP + INVERSECOLORMAP;
 			extralight=0;
 		}
 		else if (cplayer->fixedcolormap != NOFIXEDCOLORMAP)
 		{
-			gl_fixedcolormap = CM_FIRSTFIXEDCOLORMAP + cplayer->fixedcolormap;
+			gl_fixedcolormap = CM_FIRSTSPECIALCOLORMAP + cplayer->fixedcolormap;
 		}
 		else
 		{

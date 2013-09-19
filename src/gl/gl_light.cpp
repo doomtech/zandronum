@@ -598,25 +598,12 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
 {
 	int gray = (red*77 + green*143 + blue*36)>>8;
-	if (cm == CM_INVERT /* || cm == CM_LITE*/)
+	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
 	{
-		gl_InverseMap(gray, red, green, blue);
-	}
-	else if (cm == CM_GOLDMAP)
-	{
-		gl_GoldMap(gray, red, green, blue);
-	}
-	else if (cm == CM_REDMAP)
-	{
-		gl_RedMap(gray, red, green, blue);
-	}
-	else if (cm == CM_GREENMAP)
-	{
-		gl_GreenMap(gray, red, green, blue);
-	}
-	else if (cm == CM_BLUEMAP)
-	{
-		gl_BlueMap(gray, red, green, blue);
+		PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
+		red = pe.r;
+		green = pe.g;
+		blue = pe.b;
 	}
 	else if (cm >= CM_DESAT1 && cm <= CM_DESAT31)
 	{

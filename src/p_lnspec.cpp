@@ -2870,7 +2870,10 @@ FUNC(LS_SetPlayerProperty)
 				if (power != 4)
 				{
 					APowerup *item = static_cast<APowerup*>(it->GiveInventoryType (powers[power]));
-					if (item != NULL && power == 0) item->BlendColor = INVERSECOLOR;
+					if (item != NULL && power == 0 && arg1 == 1) 
+					{
+						item->BlendColor = MakeSpecialColormap(INVERSECOLORMAP);
+					}
 
 					// [WS] Inform clients of the powerup and blend color.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2920,8 +2923,11 @@ FUNC(LS_SetPlayerProperty)
 				{ // Give power
 					if (power != 4)
 					{
-						// [WS] Changes to ZDoom code here. We need the item.
-						AActor *item = players[i].mo->GiveInventoryType (powers[power]);
+						APowerup *item = static_cast<APowerup*>(players[i].mo->GiveInventoryType (powers[power]));
+						if (item != NULL && power == 0 && arg1 == 1) 
+						{
+							item->BlendColor = MakeSpecialColormap(INVERSECOLORMAP);
+						}
 
 						// [WS] Inform clients of powerup.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )

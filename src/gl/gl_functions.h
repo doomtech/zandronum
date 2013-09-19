@@ -91,40 +91,6 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 	return sqrtf((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
 
-
-__forceinline void gl_InverseMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
-{
-	red = green = blue = clamp<int>(255-gray,0,255);
-}
-
-__forceinline void gl_GoldMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
-{
-	red=clamp<int>(gray+(gray>>1),0,255);
-	green=clamp<int>(gray-(gray>>2),0,255);
-	blue=0;
-}
-
-__forceinline void gl_RedMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
-{
-	red=clamp<int>(gray+(gray>>1),0,255);
-	green=0;
-	blue=0;
-}
-
-__forceinline void gl_GreenMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
-{
-	red=clamp<int>(gray+(gray>>1),0,255);
-	green=clamp<int>(gray+(gray>>1),0,255);
-	blue=gray;
-}
-
-__forceinline void gl_BlueMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
-{
-	red=0;
-	green=0;
-	blue=clamp<int>(gray+(gray>>1),0,255);
-}
-
 __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE & red, BYTE & green, BYTE & blue, int fac)
 {
 	red = (ired*(31-fac) + gray*fac)/31;

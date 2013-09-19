@@ -61,7 +61,7 @@
 #include "v_pfx.h"
 #include "stats.h"
 #include "doomerrors.h"
-#include "r_draw.h"
+#include "r_main.h"
 #include "r_translate.h"
 #include "f_wipe.h"
 #include "st_stuff.h"
@@ -224,9 +224,7 @@ const char *const D3DFB::ShaderNames[D3DFB::NUM_SHADERS] =
 	"VertexColor.pso",
 
 	"SpecialColormap.pso",
-	"SpecialColormapInv.pso",
 	"SpecialColorMapPal.pso",
-	"SpecialColorMapPalInv.pso",
 
 	"InGameColormap.pso",
 	"InGameColormapDesat.pso",
@@ -1076,19 +1074,30 @@ void D3DFB::Draw3DPart(bool copy3d)
 
 	SetTexture (0, FBTexture);
 	SetPaletteTexture(PaletteTexture, 256, BorderColor);
-	SetPixelShader(Shaders[SHADER_NormalColorPal]);
 	D3DDevice->SetFVF (D3DFVF_FBVERTEX);
 	memset(Constant, 0, sizeof(Constant));
 	SetAlphaBlend(D3DBLENDOP(0));
 	EnableAlphaTest(FALSE);
+	SetPixelShader(Shaders[SHADER_NormalColorPal]);
 	if (copy3d)
 	{
 		FBVERTEX verts[4];
 		D3DCOLOR color0, color1;
 		if (Accel2D)
 		{
-			color0 = 0;
-			color1 = 0xFFFFFFF;
+			if (realfixedcolormap == NULL)
+			{
+				color0 = 0;
+				color1 = 0xFFFFFFF;
+			}
+			else
+			{
+				color0 = D3DCOLOR_COLORVALUE(realfixedcolormap->ColorizeStart[0]/2,
+					realfixedcolormap->ColorizeStart[1]/2, realfixedcolormap->ColorizeStart[2]/2, 0);
+				color1 = D3DCOLOR_COLORVALUE(realfixedcolormap->ColorizeEnd[0]/2,
+					realfixedcolormap->ColorizeEnd[1]/2, realfixedcolormap->ColorizeEnd[2]/2, 1);
+				SetPixelShader(Shaders[SHADER_SpecialColormapPal]);
+			}
 		}
 		else
 		{
@@ -1098,6 +1107,7 @@ void D3DFB::Draw3DPart(bool copy3d)
 		CalcFullscreenCoords(verts, Accel2D, false, color0, color1);
 		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 	}
+	SetPixelShader(Shaders[SHADER_NormalColorPal]);
 }
 
 //==========================================================================
@@ -2569,7 +2579,10 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 			EndQuadBatch();
 			BeginQuadBatch();
 		}
-		RECT scissor = { parms.lclip, parms.uclip, parms.rclip, parms.dclip };
+		RECT scissor = {
+			parms.lclip, parms.uclip + LBOffsetI,
+			parms.rclip, parms.dclip + LBOffsetI
+		};
 		D3DDevice->SetScissorRect(&scissor);
 		D3DDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	}
@@ -2981,8 +2994,7 @@ void D3DFB::EndQuadBatch()
 		{
 			int select;
 
-			select = !!(quad->Flags & BQF_InvertSource);
-			select |= !!(quad->Flags & BQF_Paletted) << 1;
+			select = !!(quad->Flags & BQF_Paletted);
 			SetPixelShader(Shaders[SHADER_SpecialColormap + select]);
 		}
 		else if (quad->ShaderNum == BQS_InGameColormap)
@@ -3089,6 +3101,7 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 
 	stencilling = false;
 	quad.Palette = NULL;
+	quad.Flags = 0;
 
 	switch (style.BlendOp)
 	{
@@ -3111,47 +3124,7 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 
 	SetColorOverlay(parms.colorOverlay, alpha, color0, color1);
 
-	if (parms.specialcolormap != NULL)
-	{ // Emulate an invulnerability or similar colormap.
-		if (style.Flags & STYLEF_InvertSource)
-		{
-			quad.Flags |= BQF_InvertSource;
-		}
-		if (fmt == D3DFMT_L8)
-		{
-			quad.Flags |= BQF_GamePalette;
-		}
-		quad.ShaderNum = BQS_SpecialColormap;
-		color0 = D3DCOLOR_COLORVALUE(parms.specialcolormap->Colorize[0]/2,
-			parms.specialcolormap->Colorize[1]/2, parms.specialcolormap->Colorize[2]/2, 1);
-		color1 = 0;
-	}
-	else if (parms.colormapstyle != NULL)
-	{ // Emulate the fading from an in-game colormap (colorized, faded, and desaturated)
-		if (style.Flags & STYLEF_InvertSource)
-		{
-			quad.Flags |= BQF_InvertSource;
-		}
-		if (fmt == D3DFMT_L8)
-		{
-			quad.Flags |= BQF_GamePalette;
-		}
-		if (parms.colormapstyle->Desaturate != 0)
-		{
-			quad.Flags |= BQF_Desaturated;
-		}
-		quad.ShaderNum = BQS_InGameColormap;
-		color0 = D3DCOLOR_ARGB(parms.colormapstyle->Desaturate,
-			parms.colormapstyle->Color.r,
-			parms.colormapstyle->Color.g,
-			parms.colormapstyle->Color.b);
-		double fadelevel = parms.colormapstyle->FadeLevel;
-		color1 = D3DCOLOR_ARGB(DWORD((1 - fadelevel) * 255),
-			DWORD(parms.colormapstyle->Fade.r * fadelevel),
-			DWORD(parms.colormapstyle->Fade.g * fadelevel),
-			DWORD(parms.colormapstyle->Fade.b * fadelevel));
-	}
-	else if (style.Flags & STYLEF_ColorIsFixed)
+	if (style.Flags & STYLEF_ColorIsFixed)
 	{
 		if (style.Flags & STYLEF_InvertSource)
 		{ // Since the source color is a constant, we can invert it now
@@ -3215,10 +3188,42 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 		{
 			quad.Flags |= BQF_InvertSource;
 		}
+
+		if (parms.specialcolormap != NULL)
+		{ // Emulate an invulnerability or similar colormap.
+			float *start, *end;
+			start = parms.specialcolormap->ColorizeStart;
+			end = parms.specialcolormap->ColorizeEnd;
+			if (quad.Flags & BQF_InvertSource)
+			{
+				quad.Flags &= ~BQF_InvertSource;
+				swap(start, end);
+			}
+			quad.ShaderNum = BQS_SpecialColormap;
+			color0 = D3DCOLOR_RGBA(DWORD(start[0]/2*255), DWORD(start[1]/2*255), DWORD(start[2]/2*255), color0 >> 24);
+			color1 = D3DCOLOR_RGBA(DWORD(end[0]/2*255), DWORD(end[1]/2*255), DWORD(end[2]/2*255), color1 >> 24);
+		}
+		else if (parms.colormapstyle != NULL)
+		{ // Emulate the fading from an in-game colormap (colorized, faded, and desaturated)
+			if (parms.colormapstyle->Desaturate != 0)
+			{
+				quad.Flags |= BQF_Desaturated;
+			}
+			quad.ShaderNum = BQS_InGameColormap;
+			color0 = D3DCOLOR_ARGB(parms.colormapstyle->Desaturate,
+				parms.colormapstyle->Color.r,
+				parms.colormapstyle->Color.g,
+				parms.colormapstyle->Color.b);
+			double fadelevel = parms.colormapstyle->FadeLevel;
+			color1 = D3DCOLOR_ARGB(DWORD((1 - fadelevel) * 255),
+				DWORD(parms.colormapstyle->Fade.r * fadelevel),
+				DWORD(parms.colormapstyle->Fade.g * fadelevel),
+				DWORD(parms.colormapstyle->Fade.b * fadelevel));
+		}
 	}
 
 	// For unmasked images, force the alpha from the image data to be ignored.
-	if (!parms.masked)
+	if (!parms.masked && quad.ShaderNum != BQS_InGameColormap)
 	{
 		color0 = (color0 & D3DCOLOR_RGBA(255, 255, 255, 0)) | D3DCOLOR_COLORVALUE(0, 0, 0, alpha);
 		color1 &= D3DCOLOR_RGBA(255, 255, 255, 0);

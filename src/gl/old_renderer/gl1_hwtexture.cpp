@@ -46,6 +46,7 @@
 #include "m_crc32.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
+#include "v_palette.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_texture.h"
 
@@ -212,7 +213,7 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 		scaleyfac=MIN<float>(1.f,(float)texheight/GLTexture::GetTexDimension(texheight));
 	}
 
-	cm_arraysize=(BYTE)CM_FIRSTCOLORMAP;// + numfakecmaps);
+	int cm_arraysize = CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size();
 	glTexID = new unsigned[cm_arraysize];
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
 	clampmode=0;
@@ -226,9 +227,10 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 //===========================================================================
 void GLTexture::Clean(bool all)
 {
+	int cm_arraysize = CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size();
+
 	if (all)
 	{
-
 		for (int i=0;i<cm_arraysize;i++)
 		{
 			if (glTexID[i]!=0) gl.DeleteTextures(1, &glTexID[i]);
@@ -273,7 +275,7 @@ GLTexture::~GLTexture()
 
 unsigned * GLTexture::GetTexID(int cm, int translation)
 {
-	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
+	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
 
 	if (translation==0)
 	{
@@ -340,7 +342,7 @@ void GLTexture::Unbind(int texunit)
 unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
 									  int cm, int translation)
 {
-	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
+	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
 
 	unsigned int * pTexID=GetTexID(cm, translation);
 

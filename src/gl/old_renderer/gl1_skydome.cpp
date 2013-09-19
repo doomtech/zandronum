@@ -534,7 +534,7 @@ void GLSkyPortal::DrawContents()
 
 	if (gl_fixedcolormap) 
 	{
-		CM_Index=gl_fixedcolormap<CM_LIMIT? gl_fixedcolormap:CM_DEFAULT;
+		CM_Index=gl_fixedcolormap<CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()? gl_fixedcolormap:CM_DEFAULT;
 	}
 	else 
 	{

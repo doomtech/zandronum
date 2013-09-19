@@ -102,60 +102,6 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		}
 		break;
 
-	case CM_INVERT:
-		// Doom's inverted invulnerability map
-		for(i=0;i<count;i++)
-		{
-			gl_InverseMap(T::Gray(pin), pout[0], pout[1], pout[2]);
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_GOLDMAP:
-		// Heretic's golden invulnerability map
-		for(i=0;i<count;i++)
-		{
-			gl_GoldMap(T::Gray(pin), pout[0], pout[1], pout[2]);
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_REDMAP:
-		// Skulltag's red Doomsphere map
-		for(i=0;i<count;i++)
-		{
-			gl_RedMap(T::Gray(pin), pout[0], pout[1], pout[2]);
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_GREENMAP:
-		// Skulltags's Guardsphere map
-		for(i=0;i<count;i++)
-		{
-			gl_GreenMap(T::Gray(pin), pout[0], pout[1], pout[2]);
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_BLUEMAP:
-		for(i=0;i<count;i++)
-		{
-			gl_BlueMap(T::Gray(pin), pout[0], pout[1], pout[2]);
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
 	case CM_GRAY:
 		// this is used for colorization of blood.
 		// To get the best results the brightness is taken from 
@@ -197,7 +143,21 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		break;
 	
 	default:
-		if (cm<=CM_DESAT31)
+
+		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
+		{
+			for(i=0;i<count;i++)
+			{
+				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
+				pout[0] = pe.r;
+				pout[1] = pe.g;
+				pout[2] = pe.b;
+				pout[3] = T::A(pin);
+				pout+=4;
+				pin+=step;
+			}
+		}
+		else if (cm<=CM_DESAT31)
 		{
 			// Desaturated light settings.
 			fac=cm-CM_DESAT0;
@@ -265,55 +225,6 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 			memcpy(pout, pin, count * sizeof(PalEntry));
 		break;
 
-	case CM_INVERT:
-		// Doom's inverted invulnerability map
-		for(i=0;i<count;i++)
-		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-			gl_InverseMap(gray, pout[i].r, pout[i].g, pout[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
-	case CM_GOLDMAP:
-		// Heretic's golden invulnerability map
-		for(i=0;i<count;i++)
-		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-			gl_GoldMap(gray, pout[i].r, pout[i].g, pout[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
-	case CM_REDMAP:
-		// Skulltag's red Doomsphere map
-		for(i=0;i<count;i++)
-		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-			gl_RedMap(gray, pout[i].r, pout[i].g, pout[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
-	case CM_GREENMAP:
-		// Skulltags's Guardsphere map
-		for(i=0;i<count;i++)
-		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-			gl_GreenMap(gray, pout[i].r, pout[i].g, pout[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
-	case CM_BLUEMAP:
-		for(i=0;i<count;i++)
-		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-			gl_BlueMap(gray, pout[i].r, pout[i].g, pout[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
 	case CM_GRAY:
 		// this is used for colorization of blood.
 		// To get the best results the brightness is taken from 
@@ -340,30 +251,17 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		break;
 	
 	default:
-		// Boom colormaps.
-		if ((unsigned int)cm>=CM_FIRSTCOLORMAP && (unsigned int)cm<CM_FIRSTCOLORMAP+numfakecmaps)
+		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
 		{
-			if (count<=256)	// This does not work for raw image data because it assumes
-							// the use of the base palette!
+			for(i=0;i<count;i++)
 			{
-				// CreateTexBuffer has already taken care of needed palette mapping so this
-				// buffer is guaranteed to be in the base palette.
-				byte * cmapp = &realcolormaps [NUMCOLORMAPS*256*(cm - CM_FIRSTCOLORMAP)];
-
-				for(i=0;i<count;i++)
-				{
-					pout[i].r = GPalette.BaseColors[*cmapp].r;
-					pout[i].g = GPalette.BaseColors[*cmapp].g;
-					pout[i].b = GPalette.BaseColors[*cmapp].b;
-					pout[i].a = pin[i].a;
-					cmapp++;
-				}
-			}
-			else if (pin != pout)
-			{
-				// Boom colormaps cannot be applied to hires texture replacements.
-				// For those you have to set the colormap usage to  'blend'.
-				memcpy(pout, pin, count * sizeof(PalEntry));
+				int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+				// This can be done in place so we cannot copy the color directly.
+				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
+				pout[i].r = pe.r;
+				pout[i].g = pe.g;
+				pout[i].b = pe.b;
+				pout[i].a = pin[i].a;
 			}
 		}
 		else if (cm<=CM_DESAT31)
@@ -959,7 +857,9 @@ void FGLTexture::SetupShader(int clampmode, int warped, int &cm, int translation
 			usebright = false;
 		}
 
-		bool usecmshader = (tex->bHasCanvas || gl_colormap_shader) && cm > CM_DEFAULT && cm < CM_SHADE && gl_texturemode != TM_MASK;
+		bool usecmshader = (tex->bHasCanvas || gl_colormap_shader) && 
+			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
+			cm != CM_SHADE && gl_texturemode != TM_MASK;
 
 		float warptime = warped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f;
 		gl_SetTextureShader(warped, usecmshader? cm : CM_DEFAULT, usebright, warptime);
@@ -1005,6 +905,10 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 				GetWorldTextureInfo();
 			}
 		}
+
+		if (cm > 0)
+			__asm nop
+
 
 		// Bind it to the system.
 		// clamping in x-direction may cause problems when rendering segs

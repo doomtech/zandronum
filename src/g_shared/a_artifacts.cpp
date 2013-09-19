@@ -152,14 +152,7 @@ PalEntry APowerup::GetBlend ()
 	if (EffectTics <= BLINKTHRESHOLD && !(EffectTics & 8))
 		return 0;
 
-	if (BlendColor == INVERSECOLOR ||
-		BlendColor == GOLDCOLOR ||
-		// [BC] HAX!
-		BlendColor == REDCOLOR ||
-		BlendColor == GREENCOLOR ||
-		BlendColor == BLUECOLOR)
-		return 0;
-
+	if (IsSpecialColormap(BlendColor)) return 0;
 	return BlendColor;
 }
 
@@ -188,43 +181,23 @@ void APowerup::DoEffect ()
 
 	if (EffectTics > 0)
 	{
-		int oldcolormap = Owner->player->fixedcolormap;
-		if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
+		int Colormap = GetSpecialColormap(BlendColor);
+
+		if (Colormap != NOFIXEDCOLORMAP)
 		{
-			// [BC] Apply the colormap to the player's body, also.
-			if (BlendColor == INVERSECOLOR)
+			if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
 			{
-				Owner->player->fixedcolormap = INVERSECOLORMAP;
-				Owner->lFixedColormap = INVERSECOLORMAP;
+				Owner->player->fixedcolormap = Colormap;
+				// [BC] Apply the colormap to the player's body, also.
+				Owner->lFixedColormap = Colormap;
 			}
-			else if (BlendColor == GOLDCOLOR)
+			else if (Owner->player->fixedcolormap == Colormap)	
 			{
-				Owner->player->fixedcolormap = GOLDCOLORMAP;
-				Owner->lFixedColormap = GOLDCOLORMAP;
+				// only unset if the fixed colormap comes from this item
+				Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
+				// [BB] Also unset the colormap of the player's body.
+				Owner->lFixedColormap = NOFIXEDCOLORMAP;
 			}
-			else if (BlendColor == REDCOLOR)
-			{
-				Owner->player->fixedcolormap = REDCOLORMAP;
-				Owner->lFixedColormap = REDCOLORMAP;
-			}
-			else if (BlendColor == GREENCOLOR)
-			{
-				Owner->player->fixedcolormap = GREENCOLORMAP;
-				Owner->lFixedColormap = GREENCOLORMAP;
-			}
-			else if (BlendColor == BLUECOLOR)
-			{
-				Owner->player->fixedcolormap = BLUECOLORMAP;
-			}
-		}
-		else if ((BlendColor == INVERSECOLOR && Owner->player->fixedcolormap == INVERSECOLORMAP) || 
-				 (BlendColor == GOLDCOLOR && Owner->player->fixedcolormap == GOLDCOLORMAP) ||
-				 (BlendColor == REDCOLOR && Owner->player->fixedcolormap == REDCOLORMAP) ||
-				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP) ||
-				 (BlendColor == BLUECOLOR && Owner->player->fixedcolormap == BLUECOLORMAP))
-		{
-			Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
-			Owner->lFixedColormap = 0;
 		}
 	}
 }
@@ -508,7 +481,7 @@ void APowerInvulnerable::EndEffect ()
 	{
 		Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
 		// [BB] Additionally clear lFixedColormap.
-		Owner->lFixedColormap = 0;
+		Owner->lFixedColormap = NOFIXEDCOLORMAP;
 	}
 }
 
@@ -752,7 +725,7 @@ int APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 	if ((vis->alpha < TRANSLUC25 && special1 > 0) || (vis->alpha == 0))
 	{
 		vis->alpha = clamp<fixed_t>((OPAQUE - Strength), 0, OPAQUE);
-		vis->colormap = SpecialColormaps[INVERSECOLORMAP];
+		vis->colormap = SpecialColormaps[INVERSECOLORMAP].Colormap;
 	}
 	return -1;	// This item is valid so another one shouldn't reset the translucency
 }
@@ -1511,8 +1484,8 @@ void APowerTimeFreezer::EndEffect( )
 
 	// Reset the player's view colormap, as well as the colormap that's applied to
 	// his body.
-	Owner->player->fixedcolormap = 0;
-	Owner->lFixedColormap = 0;
+	Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
+	Owner->lFixedColormap = NOFIXEDCOLORMAP;
 }
 
 // Damage powerup ------------------------------------------------------
@@ -2182,12 +2155,7 @@ void ARune::Serialize (FArchive &arc)
 
 PalEntry ARune::GetBlend ()
 {
-	if (BlendColor == INVERSECOLOR ||
-		BlendColor == GOLDCOLOR ||
-		// [BC] HAX!
-		BlendColor == REDCOLOR ||
-		BlendColor == GREENCOLOR) 
-		return 0;
+	if (IsSpecialColormap(BlendColor)) return 0;
 
 	return BlendColor;
 }
@@ -2216,26 +2184,10 @@ void ARune::DoEffect ()
 	}
 
 	// [BC] Apply the colormap to the player's body, also.
-	if (BlendColor == INVERSECOLOR)
+	if (IsSpecialColormap(BlendColor))
 	{
-		Owner->player->fixedcolormap = INVERSECOLORMAP;
-		Owner->lFixedColormap = INVERSECOLORMAP;
-	}
-	else if (BlendColor == GOLDCOLOR)
-	{
-		Owner->player->fixedcolormap = GOLDCOLORMAP;
-		Owner->lFixedColormap = GOLDCOLORMAP;
-	}
-	// [BC] HAX!
-	else if (BlendColor == REDCOLOR)
-	{
-		Owner->player->fixedcolormap = REDCOLORMAP;
-		Owner->lFixedColormap = REDCOLORMAP;
-	}
-	else if (BlendColor == GREENCOLOR)
-	{
-		Owner->player->fixedcolormap = GREENCOLORMAP;
-		Owner->lFixedColormap = GREENCOLORMAP;
+		Owner->player->fixedcolormap = BlendColor;
+		Owner->lFixedColormap = BlendColor;
 	}
 }
 

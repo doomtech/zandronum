@@ -1797,32 +1797,10 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 	{ // fixed map
 		vis->colormap = fixedcolormap;
 	}
-	else if ( thing->lFixedColormap )
-	{
-		switch ( thing->lFixedColormap )
-		{
-		case REDCOLORMAP:
-
-			vis->colormap = SpecialColormaps[REDCOLORMAP];
-			break;
-		case GREENCOLORMAP:
-
-			vis->colormap = SpecialColormaps[GREENCOLORMAP];
-			break;
-		case GOLDCOLORMAP:
-
-			vis->colormap = SpecialColormaps[GOLDCOLORMAP];
-			break;
-		case NUMCOLORMAPS:
-
-			vis->colormap = SpecialColormaps[INVERSECOLORMAP];
-			break;
-		default:
-
-			vis->colormap = NormalLight.Maps;
-			break;
-		}
-	}
+	// [BB] This makes sure that actors, which have lFixedColormap set, are renderes accordingly.
+	// For example a player using a doom sphere is rendered red for the other players.
+	else if ( ( thing->lFixedColormap != NOFIXEDCOLORMAP ) && ( thing->lFixedColormap >= 0 ) && ( thing->lFixedColormap < SpecialColormaps.Size() ) )
+		vis->colormap = SpecialColormaps[ thing->lFixedColormap ].Colormap;
 	else
 	{
 		if (invertcolormap)
@@ -2043,9 +2021,9 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 			}
 		}
 
-		if (fixedcolormap != NULL)
+		if (realfixedcolormap != NULL)
 		{ // fixed color
-			vis->colormap = fixedcolormap;
+			vis->colormap = realfixedcolormap->Colormap;
 		}
 		else
 		{
@@ -2075,7 +2053,8 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 				// The colormap has changed. Is it one we can easily identify?
 				// If not, then don't bother trying to identify it for
 				// hardware accelerated drawing.
-				if (vis->colormap < SpecialColormaps[0] || vis->colormap >= SpecialColormaps[NUM_SPECIALCOLORMAPS])
+				if (vis->colormap < SpecialColormaps[0].Colormap || 
+					vis->colormap >= SpecialColormaps[SpecialColormaps.Size()].Colormap)
 				{
 					noaccel = true;
 				}
@@ -2234,19 +2213,17 @@ void R_DrawRemainingPlayerSprites()
 		{
 			FDynamicColormap *colormap = VisPSpritesBaseColormap[i];
 			bool flip = vis->xiscale < 0;
-			FSpecialColormapParameters *special = NULL;
+			FSpecialColormap *special = NULL;
 			PalEntry overlay = 0;
 			FColormapStyle colormapstyle;
 			bool usecolormapstyle = false;
 
-			if (vis->colormap >= SpecialColormaps[0] && vis->colormap < SpecialColormaps[NUM_SPECIALCOLORMAPS])
+			if (vis->colormap >= SpecialColormaps[0].Colormap && 
+				vis->colormap < SpecialColormaps[SpecialColormaps.Size()].Colormap)
 			{
-				ptrdiff_t specialmap = (vis->colormap - SpecialColormaps[0]) >> 8;
-				if (SpecialColormapParms[specialmap].Inverted)
-				{
-					vis->RenderStyle.Flags ^= STYLEF_InvertSource;
-				}
-				special = &SpecialColormapParms[specialmap];
+				// Yuck! There needs to be a better way to store colormaps in the vissprite... :(
+				ptrdiff_t specialmap = (vis->colormap - SpecialColormaps[0].Colormap) / sizeof(FSpecialColormap);
+				special = &SpecialColormaps[specialmap];
 			}
 			else if (colormap->Color == PalEntry(255,255,255) &&
 				colormap->Desaturate == 0)

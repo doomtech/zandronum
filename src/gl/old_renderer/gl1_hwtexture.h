@@ -52,7 +52,6 @@ private:
 	short texwidth, texheight;
 	float scalexfac, scaleyfac;
 	bool mipmap;
-	BYTE cm_arraysize;
 	BYTE clampmode;
 
 	unsigned int * glTexID;

@@ -88,25 +88,44 @@ struct FColormapStyle
 	float FadeLevel;
 };
 
-// Special colormaps, like invulnerability.
 enum
 {
 	NOFIXEDCOLORMAP = -1,
-	INVERSECOLORMAP,
-	GOLDCOLORMAP,
-	REDCOLORMAP,		// [BC] New Skulltag colormaps.
-	GREENCOLORMAP,
-	BLUECOLORMAP,
+	INVERSECOLORMAP,	// the inverse map is used explicitly in a few places.
+};
 
-	NUM_SPECIALCOLORMAPS
-};
-struct FSpecialColormapParameters
+
+struct FSpecialColormap
 {
-	float Colorize[3];
-	bool Inverted;
+	float ColorizeStart[3];
+	float ColorizeEnd[3];
+	BYTE Colormap[256];
+	PalEntry GrayscaleToColor[256];
 };
-extern FSpecialColormapParameters SpecialColormapParms[NUM_SPECIALCOLORMAPS];
-extern BYTE SpecialColormaps[NUM_SPECIALCOLORMAPS][256];
+
+extern TArray<FSpecialColormap> SpecialColormaps;
+
+// some utility functions to store special colormaps in powerup blends
+#define SPECIALCOLORMAP_MASK 0x00b60000
+
+inline int MakeSpecialColormap(int index)
+{
+	assert(index >= 0 && index < 65536);
+	return index | SPECIALCOLORMAP_MASK;
+}
+
+inline bool IsSpecialColormap(int map)
+{
+	return (map & 0xFFFF0000) == SPECIALCOLORMAP_MASK;
+}
+
+inline int GetSpecialColormap(int blend)
+{
+	return IsSpecialColormap(blend) ? blend & 0xFFFF : NOFIXEDCOLORMAP;
+}
+
+int AddSpecialColormap(float r1, float g1, float b1, float r2, float g2, float b2);
+
 
 
 extern BYTE DesaturateColormap[31][256];
@@ -133,7 +152,7 @@ void V_SetBlend (int blendr, int blendg, int blendb, int blenda);
 // V_ForceBlend()
 //
 // Normally, V_SetBlend() does nothing if the new blend is the
-// same as the old. This function will performing the blending
+// same as the old. This function will perform the blending
 // even if the blend hasn't changed.
 void V_ForceBlend (int blendr, int blendg, int blendb, int blenda);
 

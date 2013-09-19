@@ -168,7 +168,7 @@ void GLSprite::Draw(int pass)
 		if (actor)
 		{
 			gl_SetSpriteLighting(RenderStyle, actor, lightlevel, rel, &Colormap, ThingColor, 
-								 trans, fullbright || gl_fixedcolormap >= CM_INVERT, false);
+								 trans, fullbright || gl_fixedcolormap >= CM_FIRSTSPECIALCOLORMAP, false);
 		}
 		else if (particle)
 		{
@@ -618,7 +618,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			if (gl_enhanced_nightvision &&
 				(thing->IsKindOf(RUNTIME_CLASS(AInventory)) || thing->flags3&MF3_ISMONSTER || thing->flags&MF_MISSILE || thing->flags&MF_CORPSE))
 			{
-				Colormap.colormap = CM_INVERT;
+				Colormap.colormap = CM_FIRSTSPECIALCOLORMAP + INVERSECOLORMAP;
 			}
 		}
 	}
@@ -645,30 +645,9 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		}
 		// [BB] This makes sure that actors, which have lFixedColormap set, are renderes accordingly.
 		// For example a player using a doom sphere is rendered red for the other players.
-		if ( thing->lFixedColormap )
+		if ( thing->lFixedColormap != NOFIXEDCOLORMAP )
 		{
-			switch ( thing->lFixedColormap )
-			{
-			case REDCOLORMAP:
-
-				Colormap.LightColor.a = CM_REDMAP;
-				break;
-			case GREENCOLORMAP:
-
-				Colormap.LightColor.a = CM_GREENMAP;
-				break;
-			case GOLDCOLORMAP:
-
-				Colormap.LightColor.a = CM_GOLDMAP;
-				break;
-			case NUMCOLORMAPS:
-
-				Colormap.LightColor.a = CM_INVERT;
-				break;
-			default:
-
-				break;
-			}
+			Colormap.colormap = CM_FIRSTSPECIALCOLORMAP + thing->lFixedColormap;
 		}
 	}
 
@@ -678,7 +657,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// there is no need to create multiple textures for this.
 	if (GetTranslationType(translation) == TRANSLATION_Blood)
 	{
-		if (Colormap.colormap < CM_INVERT || Colormap.colormap > CM_GREENMAP)
+		if (Colormap.colormap < CM_FIRSTSPECIALCOLORMAP || 
+			Colormap.colormap >= CM_FIRSTSPECIALCOLORMAP+SpecialColormaps.Size())
 		{
 
 

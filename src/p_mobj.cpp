@@ -4623,6 +4623,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	else
 		actor->lNetID = -1;
 
+	// [BB] Initilize the colormap of this actor.
+	actor->lFixedColormap = NOFIXEDCOLORMAP;
+
 	// Check if the flag or skull has spawned in an instant return zone.
 	if (( TEAM_SpawningTemporaryFlag( ) == false ) &&
 		( actor->Sector->MoreFlags & SECF_RETURNZONE ) &&
@@ -5040,7 +5043,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	mobj->angle = spawn_angle;
 	mobj->pitch = mobj->roll = 0;
 	mobj->health = p->health;
-	mobj->lFixedColormap = 0;
+	mobj->lFixedColormap = NOFIXEDCOLORMAP;
 
 	//Added by MC: Identification (number in the players[MAXPLAYERS] array)
     mobj->id = playernum;
