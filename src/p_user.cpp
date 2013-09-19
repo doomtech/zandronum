@@ -3799,9 +3799,27 @@ void player_t::Serialize (FArchive &arc)
 		<< poisoncount
 		<< poisoner
 		<< attacker
-		<< extralight
-		<< fixedcolormap
-		<< morphTics
+		<< extralight;
+	if (SaveVersion < 1858)
+	{
+		int fixedmap;
+		arc << fixedmap;
+		fixedcolormap = NOFIXEDCOLORMAP;
+		fixedlightlev = -1;
+		if (fixedmap >= NUMCOLORMAPS)
+		{
+			fixedcolormap = fixedmap - NUMCOLORMAPS;
+		}
+		else if (fixedmap > 0)
+		{
+			fixedlightlev = fixedmap;
+		}
+	}
+	else
+	{
+		arc	<< fixedcolormap << fixedlightlev;
+	}
+	arc << morphTics
 		<< MorphedPlayerClass
 		<< MorphStyle
 		<< MorphExitFlash
@@ -3830,6 +3848,10 @@ void player_t::Serialize (FArchive &arc)
 		<< ConversationPC
 		<< ConversationNPCAngle
 		<< ConversationFaceTalker;
+
+	// [BB] Zandronum doesn't use this.
+	//for (i = 0; i < MAXPLAYERS; i++)
+	//	arc << frags[i];
 	for (i = 0; i < NUMPSPRITES; i++)
 		arc << psprites[i];
 

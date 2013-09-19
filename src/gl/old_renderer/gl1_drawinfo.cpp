@@ -1020,7 +1020,7 @@ void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bo
 	int rel = extralight * gl_weaponlight;
 	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
 	gl_SetFog(lightlevel, rel, &Colormap, false);
-	gltexture->Bind(Colormap.LightColor.a);
+	gltexture->Bind(Colormap.colormap);
 	gl_SetPlaneTextureRotation(&plane, gltexture);
 
 	float fviewx = TO_GL(viewx);

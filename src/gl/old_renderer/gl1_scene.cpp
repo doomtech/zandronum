@@ -759,12 +759,11 @@ void GL1Renderer::SetFixedColormap (player_t *player)
 			gl_fixedcolormap=CM_INVERT;
 			extralight=0;
 		}
-		else if (cplayer->fixedcolormap==INVERSECOLORMAP) gl_fixedcolormap=CM_INVERT;
-		else if (cplayer->fixedcolormap==GOLDCOLORMAP) gl_fixedcolormap=CM_GOLDMAP;
-		else if (cplayer->fixedcolormap==REDCOLORMAP) gl_fixedcolormap=CM_REDMAP;
-		else if (cplayer->fixedcolormap==GREENCOLORMAP) gl_fixedcolormap=CM_GREENMAP;
-		else if (cplayer->fixedcolormap==BLUECOLORMAP) gl_fixedcolormap=CM_BLUEMAP;
-		else if (cplayer->fixedcolormap!=0 && cplayer->fixedcolormap<NUMCOLORMAPS) 
+		else if (cplayer->fixedcolormap != NOFIXEDCOLORMAP)
+		{
+			gl_fixedcolormap = CM_FIRSTFIXEDCOLORMAP + cplayer->fixedcolormap;
+		}
+		else
 		{
 			for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)
 			{
@@ -773,7 +772,7 @@ void GL1Renderer::SetFixedColormap (player_t *player)
 				// Need special handling for light amplifiers 
 				if (in->IsA(RUNTIME_CLASS(APowerTorch)))
 				{
-					gl_fixedcolormap = cplayer->fixedcolormap + CM_TORCH;
+					gl_fixedcolormap = cplayer->fixedlightlevel + CM_TORCH;
 				}
 				else if (in->IsA(RUNTIME_CLASS(APowerLightAmp)))
 				{

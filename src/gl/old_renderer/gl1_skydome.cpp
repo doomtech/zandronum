@@ -317,7 +317,7 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 		G=pe.g/255.0f;
 		B=pe.b/255.0f;
 
-		if (fixedcolormap)
+		if (fixedcolormap != NULL)
 		{
 			float rr,gg,bb;
 
@@ -551,7 +551,7 @@ void GLSkyPortal::DrawContents()
 
 	if (origin->texture[0] && origin->texture[0]->tex->gl_info.bSkybox)
 	{
-		if (fixedcolormap)
+		if (fixedcolormap != NULL)
 		{						
 			float rr,gg,bb;
 

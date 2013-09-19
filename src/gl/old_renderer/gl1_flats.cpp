@@ -130,7 +130,7 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 		}
 
 		p.Set(plane.plane);
-		if (!gl_SetupLight(p, light, nearPt, up, right, scale, Colormap.LightColor.a, false, foggy)) 
+		if (!gl_SetupLight(p, light, nearPt, up, right, scale, Colormap.colormap, false, foggy)) 
 		{
 			node=node->nextLight;
 			continue;
@@ -276,7 +276,7 @@ void GLFlat::Draw(int pass)
 			gl_SetFog(lightlevel, rel, &Colormap, false);
 		// fall through
 	case GLPASS_TEXTURE:
-		gltexture->Bind(Colormap.LightColor.a);
+		gltexture->Bind(Colormap.colormap);
 		gl_SetPlaneTextureRotation(&plane, gltexture);
 		DrawSubsectors(false);
 		gl.PopMatrix();
@@ -331,7 +331,7 @@ void GLFlat::Draw(int pass)
 		else 
 		{
 			if (foggy) gl_EnableBrightmap(false);
-			gltexture->Bind(Colormap.LightColor.a);
+			gltexture->Bind(Colormap.colormap);
 			gl_SetPlaneTextureRotation(&plane, gltexture);
 		}
 

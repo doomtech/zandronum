@@ -281,7 +281,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 			fogcolor=0;
 		}
 		// Handle desaturation
-		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->LightColor.a);
+		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->colormap);
 
 		gl_EnableFog((int)fogcolor!=-1);
 		if (fogcolor!=gl_CurrentFogColor)
@@ -474,7 +474,7 @@ static void gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, sub
 {
 	float r,g,b;
 	float result[3];
-	gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->LightColor.a : 0, result);
+	gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->colormap : 0, result);
 	gl_GetLightColor(lightlevel, rellight, cm, &r, &g, &b, weapon);
 	// Note: Due to subtractive lights the values can easily become negative so we have to clamp both
 	// at the low and top end of the range!
@@ -509,7 +509,7 @@ void gl_GetSpriteLighting(FRenderStyle style, AActor *thing, FColormap *cm, PalE
 {
 	if (style.Flags & STYLEF_RedIsAlpha)
 	{
-		cm->LightColor.a = CM_SHADE;
+		cm->colormap = CM_SHADE;
 	}
 	if (style.Flags & STYLEF_ColorIsFixed)
 	{
@@ -545,7 +545,7 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 
 	if (style.Flags & STYLEF_RedIsAlpha)
 	{
-		cm->LightColor.a = CM_SHADE;
+		cm->colormap = CM_SHADE;
 	}
 	if (style.Flags & STYLEF_ColorIsFixed)
 	{
@@ -557,7 +557,7 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 		{
 			ThingColor = thing->fillcolor;
 		}
-		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, cm->LightColor.a);
+		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, cm->colormap);
 	}
 
 	// This doesn't work like in the software renderer.

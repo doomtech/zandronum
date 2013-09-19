@@ -5083,7 +5083,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	p->MorphStyle = 0;
 	p->MorphExitFlash = NULL;
 	p->extralight = 0;
-	p->fixedcolormap = 0;
+	p->fixedcolormap = NOFIXEDCOLORMAP;
+	p->fixedlightlevel = -1;
 	p->viewheight = mobj->ViewHeight;
 	p->attacker = NULL;
 	p->BlendR = p->BlendG = p->BlendB = p->BlendA = 0.f;

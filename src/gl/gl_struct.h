@@ -28,12 +28,14 @@ struct FColormap
 {
 	PalEntry		LightColor;		// a is saturation (0 full, 31=b/w, other=custom colormap)
 	PalEntry		FadeColor;		// a is fadedensity>>1
+	int				colormap;
 	int				blendfactor;
 
 	void Clear()
 	{
 		LightColor=0xffffff;
 		FadeColor=0;
+		colormap = CM_DEFAULT;
 		blendfactor=0;
 	}
 
@@ -47,13 +49,13 @@ struct FColormap
 	void GetFixedColormap()
 	{
 		Clear();
-		LightColor.a = GLRendererOld::gl_fixedcolormap<CM_LIMIT? GLRendererOld::gl_fixedcolormap:CM_DEFAULT;
+		colormap = GLRendererOld::gl_fixedcolormap;
 	}
 
 	FColormap & operator=(FDynamicColormap * from)
 	{
 		LightColor = from->Color;
-		LightColor.a = from->Desaturate>>3;
+		colormap = from->Desaturate>>3;
 		FadeColor = from->Fade;
 		blendfactor = from->Color.a;
 		return * this;
@@ -62,7 +64,7 @@ struct FColormap
 	void CopyLightColor(FDynamicColormap * from)
 	{
 		LightColor = from->Color;
-		LightColor.a = from->Desaturate>>3;
+		colormap = from->Desaturate>>3;
 		blendfactor = from->Color.a;
 	}
 };

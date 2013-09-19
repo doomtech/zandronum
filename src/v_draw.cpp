@@ -347,6 +347,8 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 	parms->style.BlendOp = 255;		// Dummy "not set" value
 	parms->masked = true;
 	parms->bilinear = false;
+	parms->specialcolormap = NULL;
+	parms->colormapstyle = NULL;
 
 	parms->x = x << FRACBITS;
 	parms->y = y << FRACBITS;
@@ -599,6 +601,13 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 		case DTA_RenderStyle:
 			parms->style.AsDWORD = va_arg (tags, DWORD);
 			break;
+
+		case DTA_SpecialColormap:
+			parms->specialcolormap = va_arg (tags, FSpecialColormapParameters *);
+			break;
+
+		case DTA_ColormapStyle:
+			parms->colormapstyle = va_arg (tags, FColormapStyle *);
 
 		// [BC] Is what we're drawing text? If so, handle it differently.
 		case DTA_IsText:

@@ -155,7 +155,7 @@ CVAR(Bool, r_fogboundary, true, 0)
 
 inline bool IsFogBoundary (sector_t *front, sector_t *back)
 {
-	return r_fogboundary && !fixedcolormap && front->ColorMap->Fade &&
+	return r_fogboundary && fixedcolormap == NULL && front->ColorMap->Fade &&
 		front->ColorMap->Fade != back->ColorMap->Fade &&
 		(front->GetTexture(sector_t::ceiling) != skyflatnum || back->GetTexture(sector_t::ceiling) != skyflatnum);
 }
@@ -180,7 +180,7 @@ static void BlastMaskedColumn (void (*blastfunc)(const BYTE *pixels, const FText
 	if (maskedtexturecol[dc_x] != FIXED_MAX)
 	{
 		// calculate lighting
-		if (!fixedcolormap)
+		if (fixedcolormap == NULL && fixedlightlev < 0)
 		{
 			dc_colormap = basecolormap->Maps + (GETPALOOKUP (rw_light, wallshade) << COLORMAPSHIFT);
 		}
@@ -323,9 +323,9 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 		}
 	}
 
-	if (fixedlightlev)
+	if (fixedlightlev >= 0)
 		dc_colormap = basecolormap->Maps + fixedlightlev;
-	else if (fixedcolormap)
+	else if (fixedcolormap != NULL)
 		dc_colormap = fixedcolormap;
 
 	if (!(curline->linedef->flags & ML_WRAP_MIDTEX) &&
@@ -1031,7 +1031,8 @@ void wallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t 
 	x = x1;
 	//while ((umost[x] > dmost[x]) && (x <= x2)) x++;
 
-	if (fixedcolormap)
+	bool fixed = (fixedcolormap != NULL || fixedlightlev >= 0);
+	if (fixed)
 	{
 		palookupoffse[0] = dc_colormap;
 		palookupoffse[1] = dc_colormap;
@@ -1048,7 +1049,7 @@ void wallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t 
 		assert (y1ve[0] < viewheight);
 		assert (y2ve[0] <= viewheight);
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1083,7 +1084,7 @@ void wallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t 
 			continue;
 		}
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{
 			for (z = 0; z < 4; ++z)
 			{
@@ -1141,7 +1142,7 @@ void wallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t 
 		assert (y1ve[0] < viewheight);
 		assert (y2ve[0] <= viewheight);
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1245,7 +1246,8 @@ void maskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixe
 	x = startx = x1;
 	p = x + dc_destorg;
 
-	if (fixedcolormap)
+	bool fixed = (fixedcolormap != NULL || fixedlightlev >= 0);
+	if (fixed)
 	{
 		palookupoffse[0] = dc_colormap;
 		palookupoffse[1] = dc_colormap;
@@ -1260,7 +1262,7 @@ void maskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixe
 		y2ve[0] = dwal[x];//min(dwal[x],dmost[x]);
 		if (y2ve[0] <= y1ve[0]) continue;
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1293,7 +1295,7 @@ void maskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixe
 			continue;
 		}
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{
 			for (z = 0; z < 4; ++z)
 			{
@@ -1349,7 +1351,7 @@ void maskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixe
 		y2ve[0] = dwal[x];
 		if (y2ve[0] <= y1ve[0]) continue;
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1417,7 +1419,8 @@ void transmaskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal,
 	x = startx = x1;
 	p = x + dc_destorg;
 
-	if (fixedcolormap)
+	bool fixed = (fixedcolormap != NULL || fixedlightlev >= 0);
+	if (fixed)
 	{
 		palookupoffse[0] = dc_colormap;
 		palookupoffse[1] = dc_colormap;
@@ -1432,7 +1435,7 @@ void transmaskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal,
 		y2ve[0] = dwal[x];//min(dwal[x],dmost[x]);
 		if (y2ve[0] <= y1ve[0]) continue;
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1465,7 +1468,7 @@ void transmaskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal,
 			continue;
 		}
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{
 			for (z = 0; z < 4; ++z)
 			{
@@ -1524,7 +1527,7 @@ void transmaskwallscan (int x1, int x2, short *uwal, short *dwal, fixed_t *swal,
 		y2ve[0] = dwal[x];
 		if (y2ve[0] <= y1ve[0]) continue;
 
-		if (!fixedcolormap)
+		if (!fixed)
 		{ // calculate lighting
 			dc_colormap = basecolormapdata + (GETPALOOKUP (light, wallshade) << COLORMAPSHIFT);
 		}
@@ -1561,9 +1564,9 @@ void R_RenderSegLoop ()
 	fixed_t xscale, yscale;
 	fixed_t xoffset = rw_offset;
 
-	if (fixedlightlev)
+	if (fixedlightlev >= 0)
 		dc_colormap = basecolormap->Maps + fixedlightlev;
-	else if (fixedcolormap)
+	else if (fixedcolormap != NULL)
 		dc_colormap = fixedcolormap;
 
 	// clip wall to the floor and ceiling
@@ -1662,7 +1665,7 @@ void R_RenderSegLoop ()
 			{
 				rw_offset = rw_offset_mid;
 			}
-			if (fixedlightlev || fixedcolormap || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+			if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 			{
 				wallscan (x1, x2-1, walltop, wallbottom, swall, lwall, yscale);
 			}
@@ -1701,7 +1704,7 @@ void R_RenderSegLoop ()
 				{
 					rw_offset = rw_offset_top;
 				}
-				if (fixedlightlev || fixedcolormap || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+				if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 				{
 					wallscan (x1, x2-1, walltop, wallupper, swall, lwall, yscale);
 				}
@@ -1743,7 +1746,7 @@ void R_RenderSegLoop ()
 				{
 					rw_offset = rw_offset_bottom;
 				}
-				if (fixedlightlev || fixedcolormap || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+				if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 				{
 					wallscan (x1, x2-1, walllower, wallbottom, swall, lwall, yscale);
 				}
@@ -2019,7 +2022,7 @@ void R_NewWall (bool needlights)
 
 		PrepWall (swall, lwall, sidedef->TexelLength * lwallscale);
 
-		if (!fixedcolormap)
+		if (fixedcolormap == NULL && fixedlightlev < 0)
 		{
 			wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(foggy, frontsector->lightlevel)
 				+ r_actualextralight);
@@ -3047,9 +3050,9 @@ static void R_RenderDecal (side_t *wall, DBaseDecal *decal, drawseg_t *clipper, 
 	bool calclighting = false;
 
 	rw_light = rw_lightleft + (x1 - WallSX1) * rw_lightstep;
-	if (fixedlightlev)
+	if (fixedlightlev >= 0)
 		dc_colormap = basecolormap->Maps + fixedlightlev;
-	else if (fixedcolormap)
+	else if (fixedcolormap != NULL)
 		dc_colormap = fixedcolormap;
 	else if (!foggy && (decal->RenderFlags & RF_FULLBRIGHT))
 		dc_colormap = basecolormap->Maps;

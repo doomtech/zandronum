@@ -789,7 +789,7 @@ void GLHorizonPortal::DrawContents()
 	}
 
 
-	gltexture->Bind(origin->colormap.LightColor.a);
+	gltexture->Bind(origin->colormap.colormap);
 	gl_SetPlaneTextureRotation(sp, gltexture);
 
 	gl.Disable(GL_ALPHA_TEST);

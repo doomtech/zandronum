@@ -200,7 +200,7 @@ void GLSprite::Draw(int pass)
 
 	gl_SetFog(foglevel, rel, &Colormap, additivefog);
 
-	if (gltexture) gltexture->BindPatch(Colormap.LightColor.a,translation);
+	if (gltexture) gltexture->BindPatch(Colormap.colormap,translation);
 	else if (!modelframe) gl_EnableTexture(false);
 
 	if (!modelframe)
@@ -268,7 +268,7 @@ void GLSprite::Draw(int pass)
 	}
 	else
 	{
-		gl_RenderModel(this, Colormap.LightColor.a);
+		gl_RenderModel(this, Colormap.colormap);
 	}
 
 	if (pass==GLPASS_TRANSLUCENT)
@@ -618,7 +618,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			if (gl_enhanced_nightvision &&
 				(thing->IsKindOf(RUNTIME_CLASS(AInventory)) || thing->flags3&MF3_ISMONSTER || thing->flags&MF_MISSILE || thing->flags&MF_CORPSE))
 			{
-				Colormap.LightColor.a=CM_INVERT;
+				Colormap.colormap = CM_INVERT;
 			}
 		}
 	}
@@ -678,14 +678,14 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// there is no need to create multiple textures for this.
 	if (GetTranslationType(translation) == TRANSLATION_Blood)
 	{
-		if (Colormap.LightColor.a < CM_INVERT || Colormap.LightColor.a > CM_GREENMAP)
+		if (Colormap.colormap < CM_INVERT || Colormap.colormap > CM_GREENMAP)
 		{
 
 
 			ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
 			ThingColor.a=0;
 			// This is to apply desaturation to the color
-			gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
+			gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.colormap);
 			translation = TRANSLATION(TRANSLATION_Standard, 8);
 		}
 		else 

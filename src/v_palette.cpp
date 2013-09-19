@@ -63,13 +63,27 @@ extern "C" {
 FDynamicColormap NormalLight;
 }
 FPalette GPalette;
-BYTE InverseColormap[256];
-BYTE GoldColormap[256];
-// [BC] New Skulltag colormaps.
-BYTE RedColormap[256];
-BYTE GreenColormap[256];
-BYTE BlueColormap[256];
+BYTE SpecialColormaps[NUM_SPECIALCOLORMAPS][256];
 BYTE DesaturateColormap[31][256];
+
+FSpecialColormapParameters SpecialColormapParms[NUM_SPECIALCOLORMAPS] =
+{
+	// Doom invulnerability is an inverted grayscale.
+	// Strife uses it when firing the Sigil
+	{ {    1,    1,   1 }, true },
+
+	// Heretic invulnerability is a golden shade.
+	{ {  1.5, 0.75,   0 }, false },
+
+	// [BC] Build the Doomsphere colormap. It is red!
+	{ {  1.5,    0,   0 }, false },
+
+	// [BC] Build the Guardsphere colormap. It's a greenish-white kind of thing.
+	{ { 1.25,  1.5,   1 }, false },
+
+	// Build a blue colormap.
+	{ {    0,    0, 1.5 }, false },
+};
 
 // [BC]
 //static void FreeSpecialLights();;
@@ -388,67 +402,31 @@ void InitPalette ()
 	// NormalLight.Maps is set by R_InitColormaps()
 
 	// build special maps (e.g. invulnerability)
-	int intensity;
+	double intensity;
 
-	// Doom invulnerability is an inverted grayscale.
-	// Strife uses it when firing the Sigil
-	shade = InverseColormap;
-
-	for (c = 0; c < 256; c++)
+	for (int i = 0; i < countof(SpecialColormapParms); ++i)
 	{
-		intensity = (65535 -
-			(GPalette.BaseColors[c].r * 77 +
-			 GPalette.BaseColors[c].g * 143 +
-			 GPalette.BaseColors[c].b * 37)) >> 8;
-		shade[c] = ColorMatcher.Pick (intensity, intensity, intensity);
-	}
-
-	// Heretic invulnerability is a golden shade.
+		double r, g, b;
+		bool inv;
 	// [BC] Note: This is also used for the time freeze sphere.
-	shade = GoldColormap;
 
-	for (c = 0; c < 256; c++)
-	{
-		intensity = GPalette.BaseColors[c].r * 77 +
-					GPalette.BaseColors[c].g * 143 +
-					GPalette.BaseColors[c].b * 37;
-		shade[c] = ColorMatcher.Pick (
-			MIN (255, (intensity+intensity/2)>>8), intensity>>8, 0);
-	}
-
-	// [BC] Build the Doomsphere colormap. It is red!
-	shade = RedColormap;
-	for (c = 0; c < 256; c++)
-	{
-		intensity = ((GPalette.BaseColors[c].r * 77 +
-			 GPalette.BaseColors[c].g * 143 +
-			 GPalette.BaseColors[c].b * 37));
-		shade[c] = ColorMatcher.Pick (
-			MIN( 255, ( intensity + ( intensity / 2 )) >> 8 ), 0, 0 );
-	}
-
-	// [BC] Build the Guardsphere colormap. It's a greenish-white kind of thing.
-	shade = GreenColormap;
-	for (c = 0; c < 256; c++)
-	{
-		intensity = GPalette.BaseColors[c].r * 77 +
-					GPalette.BaseColors[c].g * 143 +
-					GPalette.BaseColors[c].b * 37;
-		shade[c] = ColorMatcher.Pick (
-			MIN( 255, ( intensity + ( intensity / 2 )) >> 8 ),
-			MIN( 255, ( intensity + ( intensity / 2 )) >> 8 ), 
-			intensity>>8 );
-	}
-
-	// Build a blue colormap.
-	shade = BlueColormap;
-	for (c = 0; c < 256; c++)
-	{
-		intensity = ((GPalette.BaseColors[c].r * 77 +
-			 GPalette.BaseColors[c].g * 143 +
-			 GPalette.BaseColors[c].b * 37));
-		shade[c] = ColorMatcher.Pick (0, 0, 
-			MIN( 255, ( intensity + ( intensity / 2 )) >> 8 ));
+		shade = SpecialColormaps[i];
+		r = SpecialColormapParms[i].Colorize[0];
+		g = SpecialColormapParms[i].Colorize[1];
+		b = SpecialColormapParms[i].Colorize[2];
+		inv = SpecialColormapParms[i].Inverted;
+		for (c = 0; c < 256; c++)
+		{
+			intensity = (GPalette.BaseColors[c].r * 77 +
+						 GPalette.BaseColors[c].g * 143 +
+						 GPalette.BaseColors[c].b * 37) / 256.0;
+			if (inv)
+			{
+				intensity = 255 - intensity;
+			}
+			shade[c] = ColorMatcher.Pick(
+				MIN(255, int(intensity*r)), MIN(255, int(intensity*g)), MIN(255, int(intensity*b)));
+		}
 	}
 
 	// desaturated colormaps
@@ -457,7 +435,7 @@ void InitPalette ()
 		shade = DesaturateColormap[m];
 		for (c = 0; c < 256; c++)
 		{
-			intensity = (GPalette.BaseColors[c].r * 77 +
+			int intensity = (GPalette.BaseColors[c].r * 77 +
 						GPalette.BaseColors[c].g * 143 +
 						GPalette.BaseColors[c].b * 37) / 255;
 

@@ -511,3 +511,8 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 	GLRenderer->RenderView(player);
 }
 
+
+void OpenGLFrameBuffer::DrawRemainingPlayerSprites()
+{
+	// not used by hardware renderer
+}

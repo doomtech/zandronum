@@ -161,7 +161,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	if (glset.nocoloredspritelighting)
 	{
 		int v = (Colormap.LightColor.r * 77 + Colormap.LightColor.g*143 + Colormap.LightColor.b*35)/255;
-		p.LightColor = PalEntry(p.LightColor.a, v, v, v);
+		p.LightColor = PalEntry(p.colormap, v, v, v);
 	}
 	
 	float red, green, blue;
@@ -169,7 +169,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	if (actor->RenderStyle.Flags & STYLEF_RedIsAlpha)
 	{
 		loadAlpha = true;
-		p.LightColor.a=CM_SHADE;
+		p.colormap=CM_SHADE;
 
 		gl_GetLightColor(light, rel, &p, &red, &green, &blue);
 		
@@ -178,7 +178,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 			float result[3];
 			fixed_t x, y;
 			actor->GetXY(seg->sidedef, x, y);
-			gl_GetSpriteLight(NULL, x, y, zpos, seg->Subsector, Colormap.LightColor.a-CM_DESAT0, result);
+			gl_GetSpriteLight(NULL, x, y, zpos, seg->Subsector, Colormap.colormap-CM_DESAT0, result);
 			red = clamp<float>(result[0]+red, 0, 1.0f);
 			green = clamp<float>(result[1]+green, 0, 1.0f);
 			blue = clamp<float>(result[2]+blue, 0, 1.0f);
@@ -188,7 +188,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 		BYTE G = quickertoint(g * green);
 		BYTE B = quickertoint(b * blue);
 
-		gl_ModifyColor(R,G,B, Colormap.LightColor.a);
+		gl_ModifyColor(R,G,B, Colormap.colormap);
 
 		red = R/255.f;
 		green = G/255.f;
@@ -259,7 +259,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 		
 	zpos+= FRACUNIT*(flipy? decalheight-decaltopo : decaltopo);
 
-	const PatchTextureInfo * pti=tex->BindPatch(p.LightColor.a, actor->Translation);
+	const PatchTextureInfo * pti=tex->BindPatch(p.colormap, actor->Translation);
 
 	dv[1].z=dv[2].z = TO_GL(zpos);
 	dv[0].z=dv[3].z = dv[1].z - decalheight;

@@ -82,7 +82,7 @@ bool GLWall::PrepareLight(texcoord * tcs, ADynamicLight * light)
 		return false;
 	}
 
-	if (!gl_SetupLight(p, light, nearPt, up, right, scale, Colormap.LightColor.a, true, !!(flags&GLWF_FOGGY))) 
+	if (!gl_SetupLight(p, light, nearPt, up, right, scale, Colormap.colormap, true, !!(flags&GLWF_FOGGY))) 
 	{
 		return false;
 	}
@@ -218,7 +218,7 @@ void GLWall::RenderFogBoundary()
 		float fogd1=(0.95f-exp(-fogdensity*dist1/62500.f)) * 1.05f;
 		float fogd2=(0.95f-exp(-fogdensity*dist2/62500.f)) * 1.05f;
 
-		gl_ModifyColor(Colormap.FadeColor.r, Colormap.FadeColor.g, Colormap.FadeColor.b, Colormap.LightColor.a);
+		gl_ModifyColor(Colormap.FadeColor.r, Colormap.FadeColor.g, Colormap.FadeColor.b, Colormap.colormap);
 		float fc[4]={Colormap.FadeColor.r/255.0f,Colormap.FadeColor.g/255.0f,Colormap.FadeColor.b/255.0f,fogd2};
 
 		gl_EnableTexture(false);
@@ -260,7 +260,7 @@ void GLWall::RenderMirrorSurface()
 	gl_SetFog(lightlevel, extralight*gl_weaponlight, &Colormap, true);
 
 	FGLTexture * pat=FGLTexture::ValidateTexture(mirrortexture);
-	pat->BindPatch(Colormap.LightColor.a, 0);
+	pat->BindPatch(Colormap.colormap, 0);
 
 	flags &= ~GLWF_GLOW;
 	flags |= GLWF_NOSHADER;
@@ -313,7 +313,7 @@ void GLWall::RenderTranslucentWall()
 	{
 		if (flags&GLWF_FOGGY) gl_EnableBrightmap(false);
 		gl_EnableGlow(!!(flags & GLWF_GLOW));
-		gltexture->Bind(Colormap.LightColor.a, flags, 0);
+		gltexture->Bind(Colormap.colormap, flags, 0);
 		extra = (extralight * gl_weaponlight);
 	}
 	else 
@@ -387,7 +387,7 @@ void GLWall::Draw(int pass)
 	case GLPASS_TEXTURE:		// modulated texture
 		if (pass != GLPASS_BASE)
 		{
-			gltexture->Bind(Colormap.LightColor.a, flags, 0);
+			gltexture->Bind(Colormap.colormap, flags, 0);
 		}
 		RenderWall((pass!=GLPASS_BASE) + 2*(pass!=GLPASS_TEXTURE), NULL);
 		gl_EnableGlow(false);
