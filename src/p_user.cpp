@@ -2013,7 +2013,7 @@ fixed_t APlayerPawn::CalcJumpMomz( )
 		z *= 2;
 
 	// [BC] If the player is standing on a spring pad, halve his jump velocity.
-	if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
+	if ( player->mo->floorsector->GetFlags(sector_t::floor) & PLANEF_SPRINGPAD )
 		z /= 2;
 
 	return z;
@@ -2661,7 +2661,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 				ulJumpTicks *= 2;
 
 			// [BC] Remove jump delay if the player is on a spring pad.
-			if ( player->mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
+			if ( player->mo->floorsector->GetFlags(sector_t::floor) & PLANEF_SPRINGPAD )
 				ulJumpTicks = 0;
 
 			player->mo->velz += JumpMomz;

@@ -34,7 +34,6 @@ public:
 
 	GLDrawInfo *mCurrentDrawInfo;
 
-	TArray<FSectorRenderData> mSectorData;
 	TArray<FWallRenderData> mWallData;
 	FreeList<GLDrawInfo> di_list;
 
@@ -157,29 +156,6 @@ public:
 
 	void RenderNormal()
 	{
-		for(unsigned i=0;i<mDrawLists[0].Size(); i++)
-		{
-			FRenderObject *ro = mDrawLists[0][i];
-			switch (ro->mType)
-			{
-			case FRenderObject::RO_FLAT:
-			{
-				RenderFlat.Clock();
-				FSectorPlaneObject *spo = (FSectorPlaneObject *)ro;
-				FSectorRenderData *srd = &GLRenderer2->mSectorData[spo->mSector - sectors];
-				srd->CreatePrimitives(GLRenderer2->mCurrentDrawInfo, spo);
-				RenderFlat.Unclock();
-				break;
-			}
-			case FRenderObject::RO_WALL:
-			{
-				FWallObject *wo = (FWallObject *)ro;
-				FWallRenderData *wrd = &GLRenderer2->mWallData[wo->mSide - sides];
-				wrd->CreatePrimitives(GLRenderer2->mCurrentDrawInfo, wo);
-				break;
-			}
-			}
-		}
 	}
 
 

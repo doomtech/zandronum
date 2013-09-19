@@ -67,7 +67,7 @@ void ASpringPadZone::PostBeginPlay( )
 	Super::PostBeginPlay( );
 
 	// Make this sector bounce actors up at the same velocity they landed on it with.
-	Sector->ChangeFlags(sector_t::floor, 0, SECF_SPRINGPAD);
+	Sector->ChangeFlags(sector_t::floor, 0, PLANEF_SPRINGPAD);
 
 	// This object is no longer needed, so just kill it.
 	Destroy( );

@@ -530,7 +530,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->ceilingplane, true);
 
-				if(!(fs->GetFlags(sector_t::ceiling)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::ceiling)&PLANEF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
@@ -559,7 +559,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->floorplane, false);
 
-				if(!(fs->GetFlags(sector_t::floor)&SECF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::floor)&PLANEF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 

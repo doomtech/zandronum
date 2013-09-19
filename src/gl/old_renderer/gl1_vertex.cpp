@@ -75,7 +75,7 @@ void GLWall::SplitUpperEdge(texcoord * tcs, bool glow)
 	float facv = (tcs[2].v - tcs[1].v) / polyw;
 	float fact = (ztop[1] - ztop[0]) / polyw;
 	float facc = (zceil[1] - zceil[0]) / polyw;
-	float facf = (zfloor[1] - zfloor[2]) / polyw;
+	float facf = (zfloor[1] - zfloor[0]) / polyw;
 
 	for (int i=0; i < sidedef->numsegs - 1; i++)
 	{
@@ -110,7 +110,7 @@ void GLWall::SplitLowerEdge(texcoord * tcs, bool glow)
 	float facv = (tcs[3].v - tcs[0].v) / polyw;
 	float facb = (zbottom[1] - zbottom[0]) / polyw;
 	float facc = (zceil[1] - zceil[0]) / polyw;
-	float facf = (zfloor[1] - zfloor[2]) / polyw;
+	float facf = (zfloor[1] - zfloor[0]) / polyw;
 
 	for (int i = sidedef->numsegs-2; i >= 0; i--)
 	{

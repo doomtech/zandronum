@@ -335,8 +335,9 @@ extern bool gl_plane_reflection_i;
 // Ceiling/floor flags
 enum
 {
-	SECF_ABSLIGHTING	= 1,	// floor/ceiling light is absolute, not relative
-	SECF_SPRINGPAD		= 2,	// [BC] Floor bounces actors up at the same velocity they landed on it with.	
+	PLANEF_ABSLIGHTING	= 1,	// floor/ceiling light is absolute, not relative
+	PLANEF_BLOCKED		= 2,		// can not be moved anymore.
+	PLANEF_SPRINGPAD		= 4,	// [BC] Floor bounces actors up at the same velocity they landed on it with.	
 };
 
 // Internal sector flags
@@ -508,13 +509,13 @@ struct sector_t
 	void SetXOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.xoffs = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	void AddXOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.xoffs += o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	fixed_t GetXOffset(int pos) const
@@ -525,13 +526,13 @@ struct sector_t
 	void SetYOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.yoffs = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	void AddYOffset(int pos, fixed_t o)
 	{
 		planes[pos].xform.yoffs += o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	fixed_t GetYOffset(int pos, bool addbase = true) const
@@ -549,7 +550,7 @@ struct sector_t
 	void SetXScale(int pos, fixed_t o)
 	{
 		planes[pos].xform.xscale = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	fixed_t GetXScale(int pos) const
@@ -560,7 +561,7 @@ struct sector_t
 	void SetYScale(int pos, fixed_t o)
 	{
 		planes[pos].xform.yscale = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	fixed_t GetYScale(int pos) const
@@ -571,7 +572,7 @@ struct sector_t
 	void SetAngle(int pos, angle_t o)
 	{
 		planes[pos].xform.angle = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	angle_t GetAngle(int pos, bool addbase = true) const
@@ -590,7 +591,7 @@ struct sector_t
 	{
 		planes[pos].xform.base_yoffs = y;
 		planes[pos].xform.base_angle = o;
-		SetDirty(false, false);
+		//SetDirty(false, false);
 	}
 
 	int GetFlags(int pos) const 
@@ -612,7 +613,7 @@ struct sector_t
 	void SetPlaneLight(int pos, int level)
 	{
 		planes[pos].Light = level;
-		dirty = true;
+		//dirty = true;
 	}
 
 	FTextureID GetTexture(int pos) const
@@ -656,13 +657,13 @@ struct sector_t
 	void ChangeLightLevel(int newval)
 	{
 		lightlevel = (BYTE)clamp(lightlevel + newval, 0, 255);
-		SetDirty(true, false);
+		//SetDirty(true, false);
 	}
 
 	void SetLightLevel(int newval)
 	{
 		lightlevel = (BYTE)clamp(newval, 0, 255);
-		SetDirty(true, false);
+		//SetDirty(true, false);
 	}
 
 	int GetLightLevel() const
@@ -674,6 +675,8 @@ struct sector_t
 	{
 		return pos == floor? floorplane:ceilingplane;
 	}
+
+	bool PlaneMoving(int pos);
 
 	// Member variables
 	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }
@@ -912,7 +915,7 @@ struct side_t
 	void SetLight(SWORD l)
 	{
 		Light = l;
-		dirty = true;
+		//dirty = true;
 	}
 
 	FTextureID GetTexture(int which) const
@@ -928,14 +931,14 @@ struct side_t
 	void SetTextureXOffset(int which, fixed_t offset)
 	{
 		textures[which].xoffset = offset;
-		dirty = true;
+		//dirty = true;
 	}
 	void SetTextureXOffset(fixed_t offset)
 	{
 		textures[top].xoffset =
 		textures[mid].xoffset =
 		textures[bottom].xoffset = offset;
-		dirty = true;
+		//dirty = true;
 	}
 	fixed_t GetTextureXOffset(int which) const
 	{
@@ -944,20 +947,20 @@ struct side_t
 	void AddTextureXOffset(int which, fixed_t delta)
 	{
 		textures[which].xoffset += delta;
-		dirty = true;
+		//dirty = true;
 	}
 
 	void SetTextureYOffset(int which, fixed_t offset)
 	{
 		textures[which].yoffset = offset;
-		dirty = true;
+		//dirty = true;
 	}
 	void SetTextureYOffset(fixed_t offset)
 	{
 		textures[top].yoffset =
 		textures[mid].yoffset =
 		textures[bottom].yoffset = offset;
-		dirty = true;
+		//dirty = true;
 	}
 	fixed_t GetTextureYOffset(int which) const
 	{
@@ -966,18 +969,18 @@ struct side_t
 	void AddTextureYOffset(int which, fixed_t delta)
 	{
 		textures[which].yoffset += delta;
-		dirty = true;
+		//dirty = true;
 	}
 
 	void SetTextureXScale(int which, fixed_t scale)
 	{
 		textures[which].xscale = scale <= 0? FRACUNIT : scale;
-		dirty = true;
+		//dirty = true;
 	}
 	void SetTextureXScale(fixed_t scale)
 	{
 		textures[top].xscale = textures[mid].xscale = textures[bottom].xscale = scale <= 0? FRACUNIT : scale;
-		dirty = true;
+		//dirty = true;
 	}
 	fixed_t GetTextureXScale(int which) const
 	{
@@ -986,19 +989,19 @@ struct side_t
 	void MultiplyTextureXScale(int which, fixed_t delta)
 	{
 		textures[which].xscale = FixedMul(textures[which].xscale, delta);
-		dirty = true;
+		//dirty = true;
 	}
 
 
 	void SetTextureYScale(int which, fixed_t scale)
 	{
 		textures[which].yscale = scale <= 0? FRACUNIT : scale;
-		dirty = true;
+		//dirty = true;
 	}
 	void SetTextureYScale(fixed_t scale)
 	{
 		textures[top].yscale = textures[mid].yscale = textures[bottom].yscale = scale <= 0? FRACUNIT : scale;
-		dirty = true;
+		//dirty = true;
 	}
 	fixed_t GetTextureYScale(int which) const
 	{
@@ -1007,7 +1010,7 @@ struct side_t
 	void MultiplyTextureYScale(int which, fixed_t delta)
 	{
 		textures[which].yscale = FixedMul(textures[which].yscale, delta);
-		dirty = true;
+		//dirty = true;
 	}
 
 	DInterpolation *SetInterpolation(int position);

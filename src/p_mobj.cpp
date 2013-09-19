@@ -2986,7 +2986,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			}
 
 			// [BC] Apply spring pads.
-			if ( mo->floorsector->GetFlags(sector_t::floor) & SECF_SPRINGPAD )
+			if ( mo->floorsector->GetFlags(sector_t::floor) & PLANEF_SPRINGPAD )
 			{
 				mo->velz = -mo->velz;
 				mo->z = mo->floorz;

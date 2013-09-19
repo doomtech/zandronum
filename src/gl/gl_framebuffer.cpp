@@ -436,8 +436,7 @@ void OpenGLFrameBuffer::Dim(PalEntry)
 {
 	// Unlike in the software renderer the color is being ignored here because
 	// view blending only affects the actual view with the GL renderer.
-	if (GLRenderer != NULL) 
-		GLRenderer->Dim((DWORD)dimcolor , dimamount, 0, 0, GetWidth(), GetHeight());
+	Super::Dim(0);
 }
 
 void OpenGLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h)

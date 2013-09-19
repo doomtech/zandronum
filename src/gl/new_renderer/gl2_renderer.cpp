@@ -205,8 +205,6 @@ void GL2Renderer::ProcessParticle(particle_t *part, sector_t *sector)
 
 void GL2Renderer::ProcessSector(sector_t *sec, subsector_t *sub)
 {
-	FSectorRenderData *srd = &mSectorData[sec->sectornum];
-	srd->Process(sub, in_area);
 }
 
 //===========================================================================
@@ -271,13 +269,6 @@ unsigned char *GL2Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 void GL2Renderer::SetupLevel()
 {
 	CleanLevelData();
-
-	mSectorData.Resize(numsectors);
-
-	for(int i=0;i<numsectors;i++)
-	{
-		mSectorData[i].Init(i);
-	}
 }
 
 //===========================================================================
@@ -288,7 +279,6 @@ void GL2Renderer::SetupLevel()
 
 void GL2Renderer::CleanLevelData()
 {
-	mSectorData.Clear();
 }
 
 //===========================================================================

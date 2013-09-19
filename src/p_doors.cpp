@@ -566,7 +566,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 		secnum = int(sec-sectors);
 
 		// if door already has a thinker, use it
-		if (sec->ceilingdata)
+		if (sec->PlaneMoving(sector_t::ceiling))
 		{
 			if (sec->ceilingdata->IsKindOf (RUNTIME_CLASS(DDoor)))
 			{
@@ -634,7 +634,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 		{
 			sec = &sectors[secnum];
 			// if the ceiling already moving, don't start the door action
-			if (sec->ceilingdata)
+			if (sec->PlaneMoving(sector_t::ceiling))
 				continue;
 
 			if ( (pDoor = new DDoor (sec, type, speed, delay, lightTag)))
