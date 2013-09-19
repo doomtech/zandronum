@@ -83,6 +83,7 @@ GL1Renderer::~GL1Renderer()
 
 void GL1Renderer::Initialize()
 {
+	GLRendererBase::Initialize();
 	gl_InitShaders();
 	gl_InitFog();
 }
@@ -224,17 +225,6 @@ unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 		return gltex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
 	}
 	return NULL;
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-void GL1Renderer::SetupLevel()
-{
-	mAngles.Pitch = 0.0f;
 }
 
 //===========================================================================

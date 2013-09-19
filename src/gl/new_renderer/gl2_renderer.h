@@ -75,8 +75,6 @@ public:
 	void PrecacheTexture(FTexture *tex);
 	void UncacheTexture(FTexture *tex);
 	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
-	void SetupLevel();
-	void CleanLevelData();
 
 	void SetFixedColormap (player_t *player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);

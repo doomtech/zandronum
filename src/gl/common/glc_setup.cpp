@@ -58,6 +58,7 @@
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
 #include "gl/common/glc_clock.h"
+#include "gl/common/glc_vertexbuffer.h"
 
 void InitGLRMapinfoData();
 void gl_InitData();
@@ -689,145 +690,6 @@ static void PrepareSegs()
 
 //==========================================================================
 //
-// creates a VBO for flat geometry 
-// Vertices are ordered by sector plane (i.e. all attached sectors are
-// calculated along with the master so that changing the height of a 
-// plane doesn't result in multiple ranges of the VBO to become invalid)
-//
-//==========================================================================
-unsigned int gl_vbo;
-
-TArray<FVBOVertex> vbo_data;
-
-static void SetVertex(int idx, vertex_t *vt, secplane_t & plane)
-{
-	vbo_data[idx].x = vt->fx;
-	vbo_data[idx].y = vt->fy;
-	vbo_data[idx].z = plane.ZatPoint(vt->fx, vt->fy);
-	vbo_data[idx].u = vt->fx/64.f;
-	vbo_data[idx].v = -vt->fy/64.f;
-}
-
-static F3DFloor *Find3DFloor(sector_t *target, sector_t *model)
-{
-	for(unsigned i=0; i<target->e->XFloor.ffloors.Size(); i++)
-	{
-		F3DFloor *ffloor = target->e->XFloor.ffloors[i];
-		if (ffloor->model == model) return ffloor;
-	}
-	return NULL;
-}
-
-
-static void CreateFlatVBO()
-{
-
-	for (int h = sector_t::floor; h <= sector_t::ceiling; h++)
-	{
-		for(int i=0; i<numsectors;i++)
-		{
-			sector_t *sec = &sectors[i];
-
-			sec->vboindex[h] = vbo_data.Size();
-			sec->vboheight[h] = sec->GetPlaneTexZ(h);
-
-			// First calculate the vertices for the sector itself
-			for(int j=0; j<sec->subsectorcount; j++)
-			{
-				subsector_t *sub = sec->subsectors[j];
-
-				int idx = vbo_data.Reserve(sub->numlines);
-				for(int k=0; k<sub->numlines; k++, idx++)
-				{
-					SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
-					if (sec->transdoor && h == sector_t::floor) vbo_data[idx].z -= 1.f;
-				}
-			}
-
-			// Next are all sectors using this one as heightsec
-			TArray<sector_t *> &fakes = sec->e->FakeFloor.Sectors;
-			for (unsigned g=0; g<fakes.Size(); g++)
-			{
-				sector_t *fsec = fakes[g];
-				fsec->vboindex[2+h] = vbo_data.Size();	// set the index info in the attached sector
-
-				for(int j=0; j<fsec->subsectorcount; j++)
-				{
-					subsector_t *sub = fsec->subsectors[j];
-
-					int idx = vbo_data.Reserve(sub->numlines);
-					for(int k=0; k<sub->numlines; k++, idx++)
-					{
-						SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
-					}
-				}
-			}
-
-			// and finally all attached 3D floors
-			TArray<sector_t *> &xf = sec->e->XFloor.attached;
-			for (unsigned g=0; g<xf.Size(); g++)
-			{
-				sector_t *fsec = xf[g];
-				F3DFloor *ffloor = Find3DFloor(fsec, sec);
-
-				if (ffloor != NULL && ffloor->flags & FF_RENDERPLANES)
-				{
-					bool dotop = (ffloor->top.model == sec) && (ffloor->top.isceiling == h);
-					bool dobottom = (ffloor->bottom.model == sec) && (ffloor->bottom.isceiling == h);
-
-					if (dotop || dobottom)
-					{
-						if (dotop) ffloor->top.vindex = vbo_data.Size();
-						if (dobottom) ffloor->bottom.vindex = vbo_data.Size();
-					
-						for(int j=0; j<fsec->subsectorcount; j++)
-						{
-							subsector_t *sub = fsec->subsectors[j];
-
-							int idx = vbo_data.Reserve(sub->numlines);
-							for(int k=0; k<sub->numlines; k++, idx++)
-							{
-								SetVertex(idx, segs[sub->firstline+k].v1, sec->GetSecPlane(h));
-							}
-						}
-					}
-				}
-			}
-			sec->vbocount[h] = vbo_data.Size() - sec->vboindex[h];
-		}
-	}
-
-	// We need to do a final check for Vavoom water and FF_FIX sectors.
-	// No new vertices are needed here. The planes come from the actual sector
-	for(int i=0; i<numsectors;i++)
-	{
-		for(unsigned j=0;j<sectors[i].e->XFloor.ffloors.Size(); j++)
-		{
-			F3DFloor *ff = sectors[i].e->XFloor.ffloors[j];
-
-			if (ff->top.model == &sectors[i])
-			{
-				ff->top.vindex = sectors[i].vboindex[ff->top.isceiling];
-			}
-			if (ff->bottom.model == &sectors[i])
-			{
-				ff->bottom.vindex = sectors[i].vboindex[ff->top.isceiling];
-			}
-		}
-	}
-
-	if (gl_vbo <= 0) gl.GenBuffers(1, &gl_vbo);
-	gl.BindBuffer(GL_ARRAY_BUFFER, gl_vbo);
-	gl.BufferData(GL_ARRAY_BUFFER, vbo_data.Size() * sizeof(FVBOVertex), &vbo_data[0], GL_DYNAMIC_DRAW);
-	glVertexPointer(3,GL_FLOAT, sizeof(FVBOVertex), &VTO->x);
-	glTexCoordPointer(2,GL_FLOAT, sizeof(FVBOVertex), &VTO->u);
-	gl.EnableClientState(GL_VERTEX_ARRAY);
-	gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-}
-
-//==========================================================================
-//
 // Initialize the level data for the GL renderer
 //
 //==========================================================================
@@ -885,9 +747,10 @@ void gl_PreprocessLevel()
 		sides[i].dirty = true;
 	}
 
-	if (GLRenderer != NULL) GLRenderer->SetupLevel();
-	if (gl.flags&RFL_VBO)
-		CreateFlatVBO();
+	if (GLRenderer != NULL) 
+	{
+		GLRenderer->SetupLevel();
+	}
 
 #if 0
 	gl_CreateSections();
@@ -943,6 +806,6 @@ void gl_CleanLevelData()
 		gamesubsectors = NULL;
 		numgamesubsectors = 0;
 	}
-	if (GLRenderer != NULL) GLRenderer->CleanLevelData();
+	//if (GLRenderer != NULL) GLRenderer->CleanLevelData();
 }
 

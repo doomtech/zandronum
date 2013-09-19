@@ -37,7 +37,6 @@ class GL1Renderer : public GLRendererBase
 	void PrecacheTexture(FTexture *tex);
 	void UncacheTexture(FTexture *tex);
 	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
-	void SetupLevel();
 	void CleanLevelData();
 
 	void SetFixedColormap (player_t *player);

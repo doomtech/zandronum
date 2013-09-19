@@ -636,6 +636,7 @@ if( NOT NO_GL )
 		gl/common/glc_setup.cpp
 		gl/common/glc_texture.cpp
 		gl/common/glc_translate.cpp
+		gl/common/glc_vertexbuffer.cpp
 		gl/common/glc_wipe.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp

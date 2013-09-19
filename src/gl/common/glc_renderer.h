@@ -7,6 +7,7 @@
 
 struct particle_t;
 class FCanvasTexture;
+class FVertexBuffer;
 
 enum SectorRenderFlags
 {
@@ -49,6 +50,7 @@ public:
 	FVector2 mViewVector;
 	FVector3 mCameraPos;
 
+	FVertexBuffer *mVBO;
 
 
 	GLRendererBase() 
@@ -60,8 +62,9 @@ public:
 		mAngles = FRotator(0,0,0);
 		mViewVector = FVector2(0,0);
 		mCameraPos = FVector3(0,0,0);
+		mVBO = NULL;
 	}
-	~GLRendererBase() {}
+	virtual ~GLRendererBase() ;
 
 	angle_t FrustumAngle();
 	void SetViewArea();
@@ -71,7 +74,7 @@ public:
 	void SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
 	void SetCameraPos(const FVector3 &viewvec, angle_t viewangle);
 
-	virtual void Initialize() = 0;
+	virtual void Initialize();
 	virtual void SetPaused() = 0;
 	virtual void UnsetPaused() = 0;
 
@@ -94,8 +97,7 @@ public:
 	virtual void PrecacheTexture(FTexture *tex) = 0;
 	virtual void UncacheTexture(FTexture *tex) = 0;
 	virtual unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h) = 0;
-	virtual void SetupLevel() = 0;
-	virtual void CleanLevelData() = 0;
+	void SetupLevel();
 
 	virtual void SetFixedColormap (player_t *player) = 0;
 	virtual void WriteSavePic (player_t *player, FILE *file, int width, int height) = 0;

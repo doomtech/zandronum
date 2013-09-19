@@ -44,6 +44,7 @@
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_clipper.h"
+#include "gl/common/glc_vertexbuffer.h"
 
 #include "r_sky.h"
 
@@ -201,15 +202,8 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 
 	SetupSprite.Clock();
 	sector_t * sec=sub->sector;
-	// BSP is traversed by subsector.
-	// A sector might have been split into several
-	//	subsectors during BSP building.
-	// Thus we check whether it was already added.
-	if (sec->thinglist != NULL && sec->validcount != validcount)
+	if (sec->thinglist != NULL)
 	{
-		// Well, now it will be done.
-		sec->validcount = validcount;
-
 		// Handle all things in sector.
 		for (AActor * thing = sec->thinglist; thing; thing = thing->snext)
 		{
@@ -253,6 +247,12 @@ static void DoSubsector(subsector_t * sub)
 	sector->MoreFlags |= SECF_DRAWN;
 	fakesector=gl_FakeFlat(sector, &fake, false);
 
+
+	if (sector->validcount != validcount)
+	{
+		GLRenderer->mVBO->CheckUpdate(sector);
+	}
+
 	// [RH] Add particles
 	//int shade = LIGHT2SHADE((floorlightlevel + ceilinglightlevel)/2 + r_actualextralight);
 	if (gl_render_things)
@@ -264,9 +264,20 @@ static void DoSubsector(subsector_t * sub)
 	}
 
 	AddLines(sub, fakesector);
-	if (gl_render_things)
+
+	// BSP is traversed by subsector.
+	// A sector might have been split into several
+	//	subsectors during BSP building.
+	// Thus we check whether it was already added.
+	if (sector->validcount != validcount)
 	{
-		RenderThings(sub, fakesector);
+		// Well, now it will be done.
+		sector->validcount = validcount;
+
+		if (gl_render_things)
+		{
+			RenderThings(sub, fakesector);
+		}
 	}
 
 	if (gl_render_flats)

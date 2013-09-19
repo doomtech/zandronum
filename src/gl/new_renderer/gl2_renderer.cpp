@@ -67,7 +67,7 @@ GL2Renderer *GLRenderer2;
 
 GL2Renderer::~GL2Renderer()
 {
-	CleanLevelData();
+	//CleanLevelData();
 	for(unsigned i=0;i<mMaterials.Size();i++)
 	{
 		delete mMaterials[i];
@@ -89,6 +89,7 @@ GL2Renderer::~GL2Renderer()
 
 void GL2Renderer::Initialize()
 {
+	GLRendererBase::Initialize();
 	GLRenderer2 = this;
 	mShaders = new FShaderContainer;
 	mTextures = new FGLTextureManager;
@@ -258,27 +259,6 @@ unsigned char *GL2Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 {
 	FGLTexture *gltex = mTextures->GetTexture(tex, false, 0);
 	return gltex->CreateTexBuffer(0, w, h);
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-void GL2Renderer::SetupLevel()
-{
-	CleanLevelData();
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-void GL2Renderer::CleanLevelData()
-{
 }
 
 //===========================================================================
