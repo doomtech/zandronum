@@ -2,7 +2,7 @@
 ** gltexture.cpp
 ** The texture classes for hardware rendering
 ** (Even though they are named 'gl' there is nothing hardware dependent
-**  in this file. That is all encapsulated in the GLTexture class.)
+**  in this file. That is all encapsulated in the FHardwareTexture class.)
 **
 **---------------------------------------------------------------------------
 ** Copyright 2004-2005 Christoph Oelckers
@@ -52,6 +52,7 @@
 #include "r_translate.h"
 #include "colormatcher.h"
 
+#include "gl/old_renderer/gl1_bitmap.h"
 #include "gl/gl_struct.h"
 #include "gl/common/glc_data.h"
 #include "gl/gl_intern.h"
@@ -65,338 +66,24 @@
 
 
 EXTERN_CVAR(Bool, gl_render_precise)
-EXTERN_CVAR(Int, gl_fogmode)
 EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_texture_usehires)
-
-extern bool HasGlobalBrightmap;
-extern FRemapTable GlobalBrightmap;
-
-namespace GLRendererOld
-{
-
-//===========================================================================
-// 
-// multi-format pixel copy with colormap application
-// requires one of the previously defined conversion classes to work
-//
-//===========================================================================
-template<class T>
-void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int count, int step)
-{
-	int i;
-	int fac;
-
-	switch(cm)
-	{
-	case CM_DEFAULT:
-		for(i=0;i<count;i++)
-		{
-			pout[0]=T::R(pin);
-			pout[1]=T::G(pin);
-			pout[2]=T::B(pin);
-			pout[3]=T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_GRAY:
-		// this is used for colorization of blood.
-		// To get the best results the brightness is taken from 
-		// the most intense component and not averaged because that would be too dark.
-		for(i=0;i<count;i++)
-		{
-			pout[0] = pout[1] = pout[2] = MAX(MAX(T::R(pin), T::G(pin)), T::B(pin));
-			pout[3] = T::A(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_ICE:
-		// Create the ice translation table, based on Hexen's.
-		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
-		for(i=0;i<count;i++)
-		{
-			int gray = T::Gray(pin)>>4;
-
-			pout[0] = IcePalette[gray][0];
-			pout[1] = IcePalette[gray][1];
-			pout[2] = IcePalette[gray][2];
-			pout[3] = 255;
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_SHADE:
-		// Alpha shade uses the red channel for true color pics
-		for(i=0;i<count;i++)
-		{
-			pout[0] = pout[1] =	pout[2] = 255;
-			pout[3] = T::R(pin);
-			pout+=4;
-			pin+=step;
-		}
-		break;
-	
-	default:
-
-		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
-		{
-			for(i=0;i<count;i++)
-			{
-				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
-				pout[0] = pe.r;
-				pout[1] = pe.g;
-				pout[2] = pe.b;
-				pout[3] = T::A(pin);
-				pout+=4;
-				pin+=step;
-			}
-		}
-		else if (cm<=CM_DESAT31)
-		{
-			// Desaturated light settings.
-			fac=cm-CM_DESAT0;
-			for(i=0;i<count;i++)
-			{
-				gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
-				pout[3] = T::A(pin);
-				pout+=4;
-				pin+=step;
-			}
-		}
-		break;
-	}
-}
-
-typedef void (*CopyFunc)(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
-
-static CopyFunc copyfuncs[]={
-	iCopyColors<cRGB>,
-	iCopyColors<cRGBA>,
-	iCopyColors<cIA>,
-	iCopyColors<cCMYK>,
-	iCopyColors<cBGR>,
-	iCopyColors<cBGRA>,
-	iCopyColors<cI16>,
-	iCopyColors<cRGB555>,
-	iCopyColors<cPalEntry>
-};
-
-//===========================================================================
-//
-// True Color texture copy function
-// This excludes all the cases that force downconversion to the
-// base palette because they wouldn't be used anyway.
-//
-//===========================================================================
-void FGLBitmap::CopyPixelDataRGB(int originx, int originy,
-								const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
-								int rotate, int ct, FCopyInfo *inf)
-{
-	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
-	{
-		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
-		for (int y=0;y<srcheight;y++)
-		{
-			copyfuncs[ct](&buffer[y*Pitch], &patch[y*step_y], cm, srcwidth, step_x);
-		}
-	}
-}
-
-//===========================================================================
-// 
-// Creates one of the special palette translations for the given palette
-//
-//===========================================================================
-void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
-{
-	int i;
-	int fac;
-
-	switch(cm)
-	{
-	case CM_DEFAULT:
-		if (pin != pout)
-			memcpy(pout, pin, count * sizeof(PalEntry));
-		break;
-
-	case CM_GRAY:
-		// this is used for colorization of blood.
-		// To get the best results the brightness is taken from 
-		// the most intense component and not averaged because that would be too dark.
-		for(i=0;i<count;i++)
-		{
-			pout[i].r = pout[i].g = pout[i].b = max(max(pin[i].r, pin[i].g), pin[i].b);
-			pout[i].a = pin[i].a;
-		}
-		break;
-
-	case CM_ICE:
-		// Create the ice translation table, based on Hexen's.
-		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
-		for(i=0;i<count;i++)
-		{
-			int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>12;
-
-			pout[i].r = IcePalette[gray][0];
-			pout[i].g = IcePalette[gray][1];
-			pout[i].b = IcePalette[gray][2];
-			pout[i].a = pin[i].a;
-		}
-		break;
-	
-	default:
-		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
-		{
-			for(i=0;i<count;i++)
-			{
-				int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-				// This can be done in place so we cannot copy the color directly.
-				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
-				pout[i].r = pe.r;
-				pout[i].g = pe.g;
-				pout[i].b = pe.b;
-				pout[i].a = pin[i].a;
-			}
-		}
-		else if (cm<=CM_DESAT31)
-		{
-			// Desaturated light settings.
-			fac=cm-CM_DESAT0;
-			for(i=0;i<count;i++)
-			{
-				int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*36)>>8;
-				gl_Desaturate(gray, pin[i].r, pin[i].g, pin[i].b, pout[i].r, pout[i].g, pout[i].b, fac);
-				pout[i].a = pin[i].a;
-			}
-		}
-		else if (pin!=pout)
-		{
-			memcpy(pout, pin, count * sizeof(PalEntry));
-		}
-		break;
-	}
-}
-
-
-//===========================================================================
-//
-// Paletted to True Color texture copy function
-//
-//===========================================================================
-void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int srcwidth, int srcheight, 
-										int step_x, int step_y, int rotate, PalEntry * palette, FCopyInfo *inf)
-{
-	PalEntry penew[256];
-
-	int x,y,pos,i;
-
-	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
-	{
-		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
-
-		// CM_SHADE is an alpha map with 0==transparent and 1==opaque
-		if (cm == CM_SHADE) 
-		{
-			for(int i=0;i<256;i++) 
-			{
-				if (palette[i].a != 0)
-					penew[i]=PalEntry(i, 255,255,255);
-				else
-					penew[i]=PalEntry(0,255,255,255);	// If the palette contains transparent colors keep them.
-			}
-		}
-		else
-		{
-			// apply any translation. 
-			// The ice and blood color translations are done directly
-			// because that yields better results.
-			switch(translation)
-			{
-			case CM_GRAY:
-				ModifyPalette(penew, palette, CM_GRAY, 256);
-				break;
-
-			case CM_ICE:
-				ModifyPalette(penew, palette, CM_ICE, 256);
-				break;
-
-			default:
-			{
-				PalEntry *ptrans = GLTranslationPalette::GetPalette(translation);
-				if (ptrans)
-				{
-					for(i = 0; i < 256; i++)
-					{
-						penew[i] = (ptrans[i]&0xffffff) | (palette[i]&0xff000000);
-					}
-					break;
-				}
-			}
-
-			case 0:
-				memcpy(penew, palette, 256*sizeof(PalEntry));
-				break;
-			}
-			if (cm!=0)
-			{
-				// Apply color modifications like invulnerability, desaturation and Boom colormaps
-				ModifyPalette(penew, penew, cm, 256);
-			}
-		}
-		// Now penew contains the actual palette that is to be used for creating the image.
-
-		// convert the image according to the translated palette.
-		// Please note that the alpha of the passed palette is inverted. This is
-		// so that the base palette can be used without constantly changing it.
-		// This can also handle full PNG translucency.
-		for (y=0;y<srcheight;y++)
-		{
-			pos=(y*Pitch);
-			for (x=0;x<srcwidth;x++,pos+=4)
-			{
-				int v=(unsigned char)patch[y*step_y+x*step_x];
-				if (penew[v].a!=0)
-				{
-					buffer[pos]   = penew[v].r;
-					buffer[pos+1] = penew[v].g;
-					buffer[pos+2] = penew[v].b;
-					buffer[pos+3] = penew[v].a;
-				}
-				/*
-				else if (penew[v].a!=255)
-				{
-					buffer[pos  ] = (buffer[pos  ] * penew[v].a + penew[v].r * (1-penew[v].a)) / 255;
-					buffer[pos+1] = (buffer[pos+1] * penew[v].a + penew[v].g * (1-penew[v].a)) / 255;
-					buffer[pos+2] = (buffer[pos+2] * penew[v].a + penew[v].b * (1-penew[v].a)) / 255;
-					buffer[pos+3] = clamp<int>(buffer[pos+3] + (( 255-buffer[pos+3]) * (255-penew[v].a))/255, 0, 255);
-				}
-				*/
-			}
-		}
-	}
-}
-
 
 //===========================================================================
 //
 // The GL texture maintenance class
 //
 //===========================================================================
-TArray<FGLTexture *> FGLTexture::gltextures;
 
 //===========================================================================
 //
 // Constructor
 //
 //===========================================================================
-FGLTexture::FGLTexture(FTexture * tx)
+FGLTexture::FGLTexture(FTexture * tx, bool expandpatches)
 {
+	assert(tx->gl_info.SystemTexture == NULL);
 	tex = tx;
 
 	glpatch=NULL;
@@ -405,7 +92,7 @@ FGLTexture::FGLTexture(FTexture * tx)
 	HiresLump=-1;
 	hirestexture = NULL;
 
-	createWarped = false;
+	currentwarp = 0;
 
 	bHasColorkey = false;
 
@@ -426,27 +113,20 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	// a little adjustment to make sprites look better with texture filtering:
 	// create a 1 pixel wide empty frame around them.
-	if (tex->UseType == FTexture::TEX_Sprite || 
-		tex->UseType == FTexture::TEX_SkinSprite || 
-		tex->UseType == FTexture::TEX_Decal)
+	if (expandpatches)
 	{
-		if (!tex->bWarped)
-		{
-			RenderWidth[GLUSE_PATCH]+=2;
-			RenderHeight[GLUSE_PATCH]+=2;
-			Width[GLUSE_PATCH]+=2;
-			Height[GLUSE_PATCH]+=2;
-			LeftOffset[GLUSE_PATCH]+=1;
-			TopOffset[GLUSE_PATCH]+=1;
-		}
+		RenderWidth[GLUSE_PATCH]+=2;
+		RenderHeight[GLUSE_PATCH]+=2;
+		Width[GLUSE_PATCH]+=2;
+		Height[GLUSE_PATCH]+=2;
+		LeftOffset[GLUSE_PATCH]+=1;
+		TopOffset[GLUSE_PATCH]+=1;
 	}
 
 	bIsTransparent = -1;
 
 	if (tex->bHasCanvas) scaley=-scaley;
-
-	index = gltextures.Push(this);
-
+	tex->gl_info.SystemTexture = this;
 }
 
 //===========================================================================
@@ -457,117 +137,9 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 FGLTexture::~FGLTexture()
 {
+	//if (tex != NULL && tex->gl_info.SystemTexture == this) tex->gl_info.SystemTexture = NULL;
 	Clean(true);
 	if (hirestexture) delete hirestexture;
-	if (tex != NULL && tex->gl_info.RenderTexture == this) tex->gl_info.RenderTexture = NULL;
-
-	for(unsigned i=0;i<gltextures.Size();i++)
-	{
-		if (gltextures[i]==this) 
-		{
-			gltextures.Delete(i);
-			break;
-		}
-	}
-}
-
-
-//===========================================================================
-//
-// Sets a temporary scaling factor for this texture
-//
-//===========================================================================
-
-void FGLTexture::SetWallScaling(fixed_t x, fixed_t y)
-{
-	if (x != tempScaleX)
-	{
-		fixed_t scale_x = FixedMul(x, tex->xScale);
-		int foo = (Width[GLUSE_TEXTURE] << 17) / scale_x; 
-		RenderWidth[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
-		scalex = scale_x/(float)FRACUNIT;
-		tempScaleX = x;
-	}
-	if (y != tempScaleY)
-	{
-		fixed_t scale_y = FixedMul(y, tex->yScale);
-		int foo = (Width[GLUSE_TEXTURE] << 17) / scaley; 
-		RenderHeight[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
-		scaley = scale_y/(float)FRACUNIT;
-		tempScaleY = y;
-	}
-}
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-fixed_t FGLTexture::RowOffset(fixed_t rowoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (scaley==1.f || tex->bWorldPanning) return rowoffset;
-		else return quickertoint(rowoffset/scaley);
-	}
-	else
-	{
-		if (tex->bWorldPanning) return FixedDiv(rowoffset, tempScaleY);
-		else return quickertoint(rowoffset/scaley);
-	}
-}
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-fixed_t FGLTexture::TextureOffset(fixed_t textureoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (scalex==1.f || tex->bWorldPanning) return textureoffset;
-		else return quickertoint(textureoffset/scalex);
-	}
-	else
-	{
-		if (tex->bWorldPanning) return FixedDiv(textureoffset, tempScaleX);
-		else return quickertoint(textureoffset/scalex);
-	}
-}
-
-
-//===========================================================================
-//
-// Returns the size for which texture offset coordinates are used.
-//
-//===========================================================================
-
-fixed_t FGLTexture::TextureAdjustWidth(ETexUse i) const
-{
-	if (tex->bWorldPanning) 
-	{
-		if (i == GLUSE_PATCH || tempScaleX == FRACUNIT) return RenderWidth[i];
-		else return FixedDiv(Width[i], tempScaleX);
-	}
-	else return Width[i];
-}
-
-
-//===========================================================================
-//
-// GetRect
-//
-//===========================================================================
-
-void FGLTexture::GetRect(FloatRect * r, FGLTexture::ETexUse i) const
-{
-	r->left=-(float)GetScaledLeftOffset(i);
-	r->top=-(float)GetScaledTopOffset(i);
-	r->width=(float)TextureWidth(i);
-	r->height=(float)TextureHeight(i);
 }
 
 //==========================================================================
@@ -631,17 +203,18 @@ void FGLTexture::Clean(bool all)
 {
 	WorldTextureInfo::Clean(all);
 	PatchTextureInfo::Clean(all);
-	createWarped = false;
 }
 
 //===========================================================================
 //
-// FGLTexture::WarpBuffer
+// FGLTex::WarpBuffer
 //
 //===========================================================================
 
 BYTE *FGLTexture::WarpBuffer(BYTE *buffer, int Width, int Height, int warp)
 {
+	if (Width > 256 || Height > 256) return buffer;
+
 	DWORD *in = (DWORD*)buffer;
 	DWORD *out = (DWORD*)new BYTE[4*Width*Height];
 	float Speed = static_cast<FWarpTexture*>(tex)->GetSpeed();
@@ -717,7 +290,7 @@ BYTE *FGLTexture::WarpBuffer(BYTE *buffer, int Width, int Height, int warp)
 //
 //===========================================================================
 
-unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translation, int & w, int & h, bool allowhires)
+unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translation, int & w, int & h, bool allowhires, int warp)
 {
 	unsigned char * buffer;
 	intptr_t cm = _cm;
@@ -755,7 +328,7 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		{
 			memset(imgCreate.GetPixels(), 0, W * H * 4);
 			int trans = 
-				tex->CopyTrueColorPixels(&imgCreate, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+				tex->CopyTrueColorPixels(&imgCreate, LeftOffset[use] - tex->LeftOffset, TopOffset[use] - tex->TopOffset);
 			bmp.CopyPixelDataRGB(0, 0, imgCreate.GetPixels(), W, H, 4, W * 4, 0, CF_BGRA);
 			tex->CheckTrans(buffer, W*H, trans);
 			bIsTransparent = tex->gl_info.mIsTransparent;
@@ -764,7 +337,7 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 	else if (translation<=0)
 	{
 		int trans = 
-			tex->CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+			tex->CopyTrueColorPixels(&bmp, LeftOffset[use] - tex->LeftOffset, TopOffset[use] - tex->TopOffset);
 
 		tex->CheckTrans(buffer, W*H, trans);
 		bIsTransparent = tex->gl_info.mIsTransparent;
@@ -774,22 +347,28 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		// When using translations everything must be mapped to the base palette.
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
-		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+		tex->FTexture::CopyTrueColorPixels(&bmp, LeftOffset[use] - tex->LeftOffset, TopOffset[use] - tex->TopOffset);
 		bIsTransparent = 0;
 	}
 
 	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
 	// w, h are set to the width and height of the buffer.
-	buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
-
-	if ((!(gl.flags & RFL_GLSL) || !gl_warp_shader) && tex->bWarped && w <= 256 && h <= 256)
+	// Also don't upsample warped textures.
+	if ( bIsTransparent != 1 && warp==0 )
 	{
-		buffer = WarpBuffer(buffer, w, h, tex->bWarped);
-		createWarped = true;
+		// [BB] Potentially upsample the buffer.
+		buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
+	}
+
+	if (warp != 0)
+	{
+		buffer = WarpBuffer(buffer, w, h, warp);
+		currentwarp = warp;
 	}
 
 	return buffer;
 }
+
 
 //===========================================================================
 // 
@@ -802,7 +381,7 @@ const WorldTextureInfo * FGLTexture::GetWorldTextureInfo()
 {
 
 	if (tex->UseType==FTexture::TEX_Null) return NULL;		// Cannot register a NULL texture!
-	if (!gltexture) gltexture=new GLTexture(Width[GLUSE_TEXTURE], Height[GLUSE_TEXTURE], true, true);
+	if (!gltexture) gltexture=new FHardwareTexture(Width[GLUSE_TEXTURE], Height[GLUSE_TEXTURE], true, true);
 	if (gltexture) return (WorldTextureInfo*)this; 	
 	return NULL;
 }
@@ -819,52 +398,10 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 	if (tex->UseType==FTexture::TEX_Null) return NULL;		// Cannot register a NULL texture!
 	if (!glpatch) 
 	{
-		glpatch=new GLTexture(Width[GLUSE_PATCH], Height[GLUSE_PATCH], false, false);
+		glpatch=new FHardwareTexture(Width[GLUSE_PATCH], Height[GLUSE_PATCH], false, false);
 	}
 	if (glpatch) return (PatchTextureInfo*)this; 	
 	return NULL;
-}
-
-//===========================================================================
-// 
-//	Checks if a shader needs to be used for this texture
-//
-//===========================================================================
-
-void FGLTexture::SetupShader(int clampmode, int warped, int &cm, int translation)
-{
-	bool usebright;
-
-	if (gl.flags & RFL_GLSL)
-	{
-		if (tex->gl_info.bBrightmapChecked == 0)
-		{
-			tex->CreateDefaultBrightmap();
-		}
-
-		FTexture *brightmap = tex->gl_info.Brightmap;
-		if (brightmap && gl_brightmap_shader && translation >= 0 &&
-			cm >= CM_DEFAULT && cm <= CM_DESAT31 && gl_brightmapenabled)
-		{
-			FGLTexture *bmgltex = FGLTexture::ValidateTexture(brightmap);
-			if (clampmode != -1) bmgltex->Bind(1, CM_DEFAULT, clampmode, 0);
-			else bmgltex->BindPatch(1, CM_DEFAULT, 0);
-			usebright = true;
-		}
-		else 
-		{
-			GLTexture::Unbind(1);
-			usebright = false;
-		}
-
-		bool usecmshader = (tex->bHasCanvas || gl_colormap_shader) && 
-			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
-			cm != CM_SHADE && gl_texturemode != TM_MASK;
-
-		float warptime = warped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f;
-		gl_SetTextureShader(warped, usecmshader? cm : CM_DEFAULT, usebright, warptime);
-		if (usecmshader) cm = CM_DEFAULT;
-	}
 }
 
 //===========================================================================
@@ -873,7 +410,7 @@ void FGLTexture::SetupShader(int clampmode, int warped, int &cm, int translation
 //
 //===========================================================================
 
-const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, int translation)
+const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, int translation, int warp)
 {
 	int usebright = false;
 
@@ -884,42 +421,27 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 
 	if (GetWorldTextureInfo())
 	{
-		if (texunit == 0)
+		if (warp != 0 || currentwarp != warp)
 		{
-			int warped = gl_warp_shader? tex->bWarped : 0;
-
-			SetupShader(clampmode, warped, cm, translation);
-
-			if (warped == 0)
-			{
-				// If this is a warped texture that needs updating
-				// delete all system textures created for this
-				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
-				{
-					gltexture->Clean(true);
-				}
-			}
-			else if (createWarped)
-			{
-				Clean(true);
-				GetWorldTextureInfo();
-			}
+			// must recreate the texture
+			Clean(true);
+			GetWorldTextureInfo();
 		}
 
-		if (cm > 0)
-			__asm nop
-
-
 		// Bind it to the system.
-		// clamping in x-direction may cause problems when rendering segs
-		if (!gltexture->Bind(texunit, cm, translation, gl_render_precise? clampmode&GLT_CLAMPY : clampmode))
+		if (!gltexture->Bind(texunit, cm, translation, clampmode))
 		{
+			
 			int w,h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(GLUSE_TEXTURE, cm, translation, w, h);
-
-			tex->ProcessData(buffer, w, h, false);
+			unsigned char * buffer = NULL;
+			
+			if (!tex->bHasCanvas)
+			{
+				buffer = CreateTexBuffer(GLUSE_TEXTURE, cm, translation, w, h, true, warp);
+				tex->ProcessData(buffer, w, h, false);
+			}
 			if (!gltexture->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
 			{
 				// could not create texture
@@ -928,7 +450,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			}
 			delete buffer;
 		}
-		if (texunit == 0) gltexture->SetTextureClamp(gl_render_precise? clampmode&GLT_CLAMPY : clampmode);
+		gltexture->SetTextureClamp(clampmode);
 
 		if (tex->bHasCanvas) static_cast<FCanvasTexture*>(tex)->NeedUpdate();
 		return (WorldTextureInfo*)this; 
@@ -936,16 +458,12 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 	return NULL;
 }
 
-const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation)
-{
-	return Bind(0, cm, clampmode, translation);
-}
 //===========================================================================
 // 
 //	Binds a sprite to the renderer
 //
 //===========================================================================
-const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translation)
+const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translation, int warp)
 {
 	bool usebright = false;
 	int transparm = translation;
@@ -957,36 +475,20 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 
 	if (GetPatchTextureInfo())
 	{
-		if (texunit == 0)
+		if (warp != 0 || currentwarp != warp)
 		{
-			int warped = gl_warp_shader? tex->bWarped : 0;
-
-			SetupShader(-1, warped, cm, translation);
-
-			if (warped == 0)
-			{
-				// If this is a warped texture that needs updating
-				// delete all system textures created for this
-				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
-				{
-					glpatch->Clean(true);
-				}
-			}
-			else if (createWarped)
-			{
-				Clean(true);
-				GetPatchTextureInfo();
-			}
+			// must recreate the texture
+			Clean(true);
+			GetPatchTextureInfo();
 		}
 
-		// Bind it to the system. For multitexturing this
-		// should be the only thing that needs adjusting
+		// Bind it to the system. 
 		if (!glpatch->Bind(texunit, cm, translation, -1))
 		{
 			int w, h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(GLUSE_PATCH, cm, translation, w, h, false);
+			unsigned char * buffer = CreateTexBuffer(GLUSE_PATCH, cm, translation, w, h, false, warp);
 			tex->ProcessData(buffer, w, h, true);
 			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{
@@ -1006,10 +508,277 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 	return NULL;
 }
 
-const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation)
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+FGLTexture * FMaterial::ValidateSysTexture(FTexture * tex, bool expand)
 {
-	return BindPatch(0, cm, translation);
+	if (tex	&& tex->UseType!=FTexture::TEX_Null)
+	{
+		FGLTexture *gltex = tex->gl_info.SystemTexture;
+		if (gltex == NULL) 
+		{
+			gltex = new FGLTexture(tex, expand);
+		}
+		return gltex;
+	}
+	return NULL;
 }
+
+//===========================================================================
+//
+// Constructor
+//
+//===========================================================================
+TArray<FMaterial *> FMaterial::mMaterials;
+
+FMaterial::FMaterial(FTexture * tx)
+{
+	assert(tx->gl_info.Material == NULL);
+
+	bool expanded = tx->UseType == FTexture::TEX_Sprite || 
+					tx->UseType == FTexture::TEX_SkinSprite || 
+					tx->UseType == FTexture::TEX_Decal;
+
+	tex = tx;
+
+	// FIXME: Should let the texture create the FGLTexture object.
+	FGLTexture *gltex = ValidateSysTexture(tx, expanded);
+
+	mTextures.Push(gltex);
+
+	// set default shader. Can be warp or brightmap
+	mShaderIndex = tx->bWarped;
+	if (!tx->bWarped && gl.shadermodel > 2) 
+	{
+		tx->CreateDefaultBrightmap();
+		if (tx->gl_info.Brightmap != NULL)
+		{
+			gltex = ValidateSysTexture(tx->gl_info.Brightmap, expanded);
+			mTextures.Push(gltex);
+			mShaderIndex = 3;
+		}
+	}
+	mTextures.ShrinkToFit();
+	mMaxBound = -1;
+	mMaterials.Push(this);
+	tex->gl_info.Material = this;
+}
+
+//===========================================================================
+//
+// Destructor
+//
+//===========================================================================
+
+FMaterial::~FMaterial()
+{
+	//if (tex != NULL && tex->gl_info.Material == this) tex->gl_info.Material = NULL;
+	for(unsigned i=0;i<mMaterials.Size();i++)
+	{
+		if (mMaterials[i]==this) 
+		{
+			mMaterials.Delete(i);
+			break;
+		}
+	}
+
+}
+
+//===========================================================================
+// 
+//	Binds a texture to the renderer
+//
+//===========================================================================
+
+const WorldTextureInfo * FMaterial::Bind(int cm, int clampmode, int translation)
+{
+	int usebright = false;
+	int shaderindex = mShaderIndex;
+	int maxbound = 0;
+
+	int softwarewarp = gl_SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
+
+	const WorldTextureInfo *inf = mTextures[0]->Bind(0, cm, clampmode, translation, softwarewarp);
+	if (inf != NULL && shaderindex > 0)
+	{
+		for(unsigned i=0;i<mTextures.Size();i++)
+		{
+			mTextures[i]->Bind(i, CM_DEFAULT, clampmode, 0, false);
+			maxbound = i;
+		}
+	}
+	// unbind everything from the last texture that's still active
+	for(int i=maxbound+1; i<=mMaxBound;i++)
+	{
+		FHardwareTexture::Unbind(i);
+		mMaxBound = maxbound;
+	}
+	return inf;
+}
+
+
+//===========================================================================
+// 
+//	Binds a texture to the renderer
+//
+//===========================================================================
+
+const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
+{
+	int usebright = false;
+	int shaderindex = mShaderIndex;
+	int maxbound = 0;
+
+	int softwarewarp = gl_SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
+
+	const PatchTextureInfo *inf = mTextures[0]->BindPatch(0, cm, translation, softwarewarp);
+	if (inf != NULL && shaderindex > 0)
+	{
+		for(unsigned i=0;i<mTextures.Size();i++)
+		{
+			mTextures[i]->BindPatch(i, CM_DEFAULT, 0, softwarewarp);
+			maxbound = i;
+		}
+	}
+	// unbind everything from the last texture that's still active
+	for(int i=maxbound+1; i<=mMaxBound;i++)
+	{
+		FHardwareTexture::Unbind(i);
+		mMaxBound = maxbound;
+	}
+	return inf;
+}
+
+
+//===========================================================================
+//
+// Untilities
+//
+//===========================================================================
+
+void FMaterial::SetWallScaling(fixed_t x, fixed_t y)
+{
+	if (x != mTextures[0]->tempScaleX)
+	{
+		fixed_t scale_x = FixedMul(x, tex->xScale);
+		int foo = (mTextures[0]->Width[GLUSE_TEXTURE] << 17) / scale_x; 
+		mTextures[0]->RenderWidth[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
+		mTextures[0]->scalex = scale_x/(float)FRACUNIT;
+		mTextures[0]->tempScaleX = x;
+	}
+	if (y != mTextures[0]->tempScaleY)
+	{
+		fixed_t scale_y = FixedMul(y, tex->yScale);
+		int foo = (mTextures[0]->Height[GLUSE_TEXTURE] << 17) / scale_y; 
+		mTextures[0]->RenderHeight[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
+		mTextures[0]->scaley = scale_y/(float)FRACUNIT;
+		mTextures[0]->tempScaleY = y;
+	}
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FMaterial::RowOffset(fixed_t rowoffset) const
+{
+	if (mTextures[0]->tempScaleX == FRACUNIT)
+	{
+		if (mTextures[0]->scaley==1.f || tex->bWorldPanning) return rowoffset;
+		else return quickertoint(rowoffset/mTextures[0]->scaley);
+	}
+	else
+	{
+		if (tex->bWorldPanning) return FixedDiv(rowoffset, mTextures[0]->tempScaleY);
+		else return quickertoint(rowoffset/mTextures[0]->scaley);
+	}
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FMaterial::TextureOffset(fixed_t textureoffset) const
+{
+	if (mTextures[0]->tempScaleX == FRACUNIT)
+	{
+		if (mTextures[0]->scalex==1.f || tex->bWorldPanning) return textureoffset;
+		else return quickertoint(textureoffset/mTextures[0]->scalex);
+	}
+	else
+	{
+		if (tex->bWorldPanning) return FixedDiv(textureoffset, mTextures[0]->tempScaleX);
+		else return quickertoint(textureoffset/mTextures[0]->scalex);
+	}
+}
+
+
+//===========================================================================
+//
+// Returns the size for which texture offset coordinates are used.
+//
+//===========================================================================
+
+fixed_t FMaterial::TextureAdjustWidth(ETexUse i) const
+{
+	if (tex->bWorldPanning) 
+	{
+		if (i == GLUSE_PATCH || mTextures[0]->tempScaleX == FRACUNIT) return mTextures[0]->RenderWidth[i];
+		else return FixedDiv(mTextures[0]->Width[i], mTextures[0]->tempScaleX);
+	}
+	else return mTextures[0]->Width[i];
+}
+
+
+//===========================================================================
+//
+// GetRect
+//
+//===========================================================================
+
+void FMaterial::GetRect(FloatRect * r, ETexUse i) const
+{
+	r->left=-(float)GetScaledLeftOffset(i);
+	r->top=-(float)GetScaledTopOffset(i);
+	r->width=(float)TextureWidth(i);
+	r->height=(float)TextureHeight(i);
+}
+
+
+//==========================================================================
+//
+// Gets a texture from the texture manager and checks its validity for
+// GL rendering. 
+//
+//==========================================================================
+
+FMaterial * FMaterial::ValidateTexture(FTexture * tex)
+{
+	if (tex	&& tex->UseType!=FTexture::TEX_Null)
+	{
+		FMaterial *gltex = tex->gl_info.Material;
+		if (gltex == NULL) 
+		{
+			gltex = new FMaterial(tex);
+		}
+		return gltex;
+	}
+	return NULL;
+}
+
+FMaterial * FMaterial::ValidateTexture(FTextureID no, bool translate)
+{
+	return ValidateTexture(translate? TexMan(no) : TexMan[no]);
+}
+
 
 //==========================================================================
 //
@@ -1017,11 +786,11 @@ const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation)
 //
 //==========================================================================
 
-void FGLTexture::FlushAll()
+void FMaterial::FlushAll()
 {
-	for(int i=gltextures.Size()-1;i>=0;i--)
+	for(int i=mMaterials.Size()-1;i>=0;i--)
 	{
-		gltextures[i]->Clean(true);
+		mMaterials[i]->Clean(true);
 	}
 }
 
@@ -1031,41 +800,13 @@ void FGLTexture::FlushAll()
 //
 //==========================================================================
 
-void FGLTexture::DeleteAll()
+void FMaterial::DeleteAll()
 {
-	for(int i=gltextures.Size()-1;i>=0;i--)
+	for(int i=mMaterials.Size()-1;i>=0;i--)
 	{
-		delete gltextures[i];
+		mMaterials[i]->tex->gl_info.Material = NULL;
+		delete mMaterials[i];
 	}
-	gltextures.Clear();
-}
-
-//==========================================================================
-//
-// Gets a texture from the texture manager and checks its validity for
-// GL rendering. 
-//
-//==========================================================================
-
-FGLTexture * FGLTexture::ValidateTexture(FTexture * tex)
-{
-	if (tex	&& tex->UseType!=FTexture::TEX_Null)
-	{
-		FGLTexture *gltex = static_cast<FGLTexture*>(tex->gl_info.RenderTexture);
-		if (gltex == NULL) 
-		{
-			gltex = new FGLTexture(tex);
-			tex->gl_info.RenderTexture = gltex;
-		}
-		return gltex;
-	}
-	return NULL;
-}
-
-FGLTexture * FGLTexture::ValidateTexture(FTextureID no, bool translate)
-{
-	return FGLTexture::ValidateTexture(translate? TexMan(no) : TexMan[no]);
-}
-
-
+	mMaterials.Clear();
+	mMaterials.ShrinkToFit();
 }

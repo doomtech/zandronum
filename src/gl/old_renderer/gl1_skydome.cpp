@@ -44,6 +44,7 @@
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_texture.h"
+#include "gl/old_renderer/gl1_bitmap.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
@@ -64,12 +65,6 @@ CVAR (Int, gl_sky_detail, 16, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 EXTERN_CVAR (Bool, r_stretchsky)
 
 extern int skyfog;
-
-namespace GLRendererOld
-{
-
-
-
 
 // The texture offset to be applied to the texture coordinates in SkyVertex().
 static angle_t maxSideAngle = ANGLE_180 / 3;
@@ -242,7 +237,7 @@ static void RenderSkyHemisphere(int hemi)
 //
 //-----------------------------------------------------------------------------
 
-static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float y_offset, int CM_Index)
+static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float y_offset, int CM_Index)
 {
 	int texh;
 
@@ -252,8 +247,8 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 	if (tex)
 	{
 		tex->Bind(CM_Index, 0, 0);
-		texw = tex->TextureWidth(FGLTexture::GLUSE_TEXTURE);
-		texh = tex->TextureHeight(FGLTexture::GLUSE_TEXTURE);
+		texw = tex->TextureWidth(GLUSE_TEXTURE);
+		texh = tex->TextureHeight(GLUSE_TEXTURE);
 
 		if (texh>190 && skystretch) texh=190;
 
@@ -344,11 +339,11 @@ static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float
 //
 //-----------------------------------------------------------------------------
 
-static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int CM_Index)
+static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int CM_Index)
 {
 	FSkyBox * sb = static_cast<FSkyBox*>(gltex->tex);
 	int faces;
-	FGLTexture * tex;
+	FMaterial * tex;
 
 	gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
 	gl.Color3f(R, G ,B);
@@ -358,7 +353,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 		faces=4;
 
 		// north
-		tex = FGLTexture::ValidateTexture(sb->faces[0]);
+		tex = FMaterial::ValidateTexture(sb->faces[0]);
 		tex->BindPatch(CM_Index, 0);
 		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
@@ -373,7 +368,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 		gl.End();
 
 		// east
-		tex = FGLTexture::ValidateTexture(sb->faces[1]);
+		tex = FMaterial::ValidateTexture(sb->faces[1]);
 		tex->BindPatch(CM_Index, 0);
 		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
@@ -388,7 +383,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 		gl.End();
 
 		// south
-		tex = FGLTexture::ValidateTexture(sb->faces[2]);
+		tex = FMaterial::ValidateTexture(sb->faces[2]);
 		tex->BindPatch(CM_Index, 0);
 		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
@@ -403,7 +398,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 		gl.End();
 
 		// west
-		tex = FGLTexture::ValidateTexture(sb->faces[3]);
+		tex = FMaterial::ValidateTexture(sb->faces[3]);
 		tex->BindPatch(CM_Index, 0);
 		gl_ApplyShader();
 		gl.Begin(GL_TRIANGLE_FAN);
@@ -421,7 +416,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 	{
 		faces=1;
 		// all 4 sides
-		tex = FGLTexture::ValidateTexture(sb->faces[0]);
+		tex = FMaterial::ValidateTexture(sb->faces[0]);
 		tex->BindPatch(CM_Index, 0);
 
 		gl_ApplyShader();
@@ -474,7 +469,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 	}
 
 	// top
-	tex = FGLTexture::ValidateTexture(sb->faces[faces]);
+	tex = FMaterial::ValidateTexture(sb->faces[faces]);
 	tex->BindPatch(CM_Index, 0);
 	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
@@ -504,7 +499,7 @@ static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int 
 
 
 	// bottom
-	tex = FGLTexture::ValidateTexture(sb->faces[faces+1]);
+	tex = FMaterial::ValidateTexture(sb->faces[faces+1]);
 	tex->BindPatch(CM_Index, 0);
 	gl_ApplyShader();
 	gl.Begin(GL_TRIANGLE_FAN);
@@ -601,4 +596,3 @@ void GLSkyPortal::DrawContents()
 	gl.PopMatrix();
 }
 
-} // namespace

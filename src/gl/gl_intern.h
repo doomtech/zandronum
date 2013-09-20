@@ -23,11 +23,6 @@ EXTERN_CVAR(Int, gl_weaponlight)
 EXTERN_CVAR(Bool, gl_atifog)
 
 EXTERN_CVAR(Bool, gl_forcemultipass)
-EXTERN_CVAR(Bool, gl_warp_shader)
-EXTERN_CVAR(Bool, gl_fog_shader)
-EXTERN_CVAR(Bool, gl_colormap_shader)
-EXTERN_CVAR(Bool, gl_brightmap_shader)
-EXTERN_CVAR(Bool, gl_glow_shader)
 
 EXTERN_CVAR (Bool, gl_lights);
 EXTERN_CVAR (Bool, gl_attachedlights);

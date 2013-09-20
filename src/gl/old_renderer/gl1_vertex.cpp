@@ -56,9 +56,6 @@ EXTERN_CVAR(Bool, gl_seamless)
 extern long gl_frameMS;
 extern int vertexcount;
 
-namespace GLRendererOld
-{
-
 //==========================================================================
 //
 // Split upper edge of wall
@@ -195,5 +192,3 @@ void GLWall::SplitRightEdge(texcoord * tcs, bool glow)
 	}
 }
 
-
-}

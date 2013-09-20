@@ -38,6 +38,7 @@
 #include "gl/gl_include.h"
 #include "tarray.h"
 #include "doomtype.h"
+#include "m_argv.h"
 #include "gl/gl_intern.h"
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
@@ -354,6 +355,7 @@ static void APIENTRY LoadExtensions()
 	// This loads any function pointers and flags that require a vaild render context to
 	// initialize properly
 
+	gl->shadermodel = 0;	// assume no shader support
 	gl->vendorstring=(char*)glGetString(GL_VENDOR);
 
 	// First try the regular function
@@ -367,11 +369,8 @@ static void APIENTRY LoadExtensions()
 	if (CheckExtension("GL_NV_texture_env_combine4")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
 	if (CheckExtension("GL_ATI_texture_env_combine3")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
-	if (CheckExtension("GL_ARB_vertex_buffer_object")) gl->flags|=RFL_VBO;
-	if (CheckExtension("GL_ARB_map_buffer_range")) gl->flags|=RFL_MAP_BUFFER_RANGE;
-
-	
-
+	if (CheckExtension("GL_ARB_texture_compression")) gl->flags|=RFL_TEXTURE_COMPRESSION;
+	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl->flags|=RFL_TEXTURE_COMPRESSION_S3TC;
 
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;
 	if (strcmp((const char*)glGetString(GL_VERSION), "3.0") >= 0) gl->flags|=RFL_GL_30;
@@ -447,7 +446,20 @@ static void APIENTRY LoadExtensions()
 		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
 		gl->VertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointerARB");
 
-		gl->flags|=RFL_GLSL;
+		// Rules:
+		// SM4 will always use shaders. No option to switch them off is needed here.
+		// SM3 has shaders optional but they are off by default (they will have a performance impact
+		// SM2 only uses shaders for colormaps on camera textures and has no option to use them in general.
+		//     On SM2 cards the shaders will be too slow and show visual bugs (at least on GF 6800.)
+		if (strcmp((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION), "1.3") >= 0) gl->shadermodel = 4;
+		else if (CheckExtension("GL_NV_GPU_SHADER4")) gl->shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
+		else if (CheckExtension("GL_NV_VERTEX_PROGRAM3")) gl->shadermodel = 3;
+		else if (!strstr(gl->vendorstring, "NVIDIA")) gl->shadermodel = 3;
+		else gl->shadermodel = 2;	// Only for older NVidia cards which had notoriously bad shader support.
+
+		// Command line overrides for testing and problem cases.
+		if (Args->CheckParm("-sm2") && gl->shadermodel > 2) gl->shadermodel = 2;
+		else if (Args->CheckParm("-sm3") && gl->shadermodel > 3) gl->shadermodel = 3;
 	}
 
 	if (CheckExtension("GL_ARB_occlusion_query"))
@@ -484,7 +496,7 @@ static void APIENTRY LoadExtensions()
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
 		gl->flags |= RFL_VBO;
 	}
-	else if (gl->flags & RFL_VBO)
+	else if (CheckExtension("GL_ARB_vertex_buffer_object"))
 	{
 		gl->BindBuffer				= (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBufferARB");
 		gl->DeleteBuffers			= (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffersARB");
@@ -493,23 +505,44 @@ static void APIENTRY LoadExtensions()
 		gl->BufferSubData			= (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubDataARB");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBufferARB");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBufferARB");
+		gl->flags|=RFL_VBO;
 	}
 
-	if (gl->flags & RFL_MAP_BUFFER_RANGE)
+	if (CheckExtension("GL_ARB_map_buffer_range")) 
 	{
 		gl->MapBufferRange			= (PFNGLMAPBUFFERRANGEPROC)wglGetProcAddress("glMapBufferRange");
 		gl->FlushMappedBufferRange	= (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)wglGetProcAddress("glFlushMappedBufferRange");
+		gl->flags|=RFL_MAP_BUFFER_RANGE;
 	}
 
-	// [BB] Check for the extensions that are necessary for on the fly texture compression.
-	if (CheckExtension("GL_ARB_texture_compression"))
+	if (CheckExtension("GL_ARB_FRAMEBUFFER_OBJECT"))
 	{
-		gl->flags|=RFL_TEXTURE_COMPRESSION;
+		gl->GenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffers");
+		gl->BindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebuffer");
+		gl->FramebufferTexture2D	= (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress("glFramebufferTexture2D");
+		gl->GenRenderbuffers		= (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
+		gl->BindRenderbuffer		= (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbuffer");
+		gl->RenderbufferStorage		= (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorage");
+		gl->FramebufferRenderbuffer	= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress("glFramebufferRenderbuffer");
+
+		gl->flags|=RFL_FRAMEBUFFER;
 	}
-	if (CheckExtension("GL_EXT_texture_compression_s3tc"))
+	else if (CheckExtension("GL_EXT_FRAMEBUFFER_OBJECT") && 
+			 CheckExtension("GL_EXT_PACKED_DEPTH_STENCIL"))
 	{
-		gl->flags|=RFL_TEXTURE_COMPRESSION_S3TC;
+		gl->GenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffersEXT");
+		gl->BindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebufferEXT");
+		gl->FramebufferTexture2D	= (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
+		gl->GenRenderbuffers		= (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffersEXT");
+		gl->BindRenderbuffer		= (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbufferEXT");
+		gl->RenderbufferStorage		= (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorageEXT");
+		gl->FramebufferRenderbuffer	= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
+
+		gl->flags|=RFL_FRAMEBUFFER;
 	}
+
+
+
 
 	gl->ActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTextureARB");
 	gl->MultiTexCoord2f = (PFNGLMULTITEXCOORD2FPROC) wglGetProcAddress("glMultiTexCoord2fARB");
@@ -527,6 +560,7 @@ static void APIENTRY PrintStartupLog()
 	Printf ("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
 	Printf ("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 	Printf ("GL_VERSION: %s\n", glGetString(GL_VERSION));
+	Printf ("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	Printf ("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
 #ifndef unix
 	Printf ("WGL_EXTENSIONS: %s\n", wgl_extensions);

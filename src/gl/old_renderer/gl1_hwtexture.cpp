@@ -56,22 +56,19 @@ extern int TexFormat[];
 EXTERN_CVAR(Bool, gl_clamp_per_texture)
 
 
-namespace GLRendererOld
-{
-
 //===========================================================================
 // 
 //	Static texture data
 //
 //===========================================================================
-unsigned int GLTexture::lastbound[GLTexture::MAX_TEXTURES];
+unsigned int FHardwareTexture::lastbound[FHardwareTexture::MAX_TEXTURES];
 
 //===========================================================================
 // 
 // STATIC - Gets the maximum size of hardware textures
 //
 //===========================================================================
-int GLTexture::GetTexDimension(int value)
+int FHardwareTexture::GetTexDimension(int value)
 {
 	if (value > gl.max_texturesize) return gl.max_texturesize;
 	if (gl.flags&RFL_NPOT_TEXTURE) return value;
@@ -90,7 +87,7 @@ int GLTexture::GetTexDimension(int value)
 // strange crashes deep inside the GL driver when I didn't do it!
 //
 //===========================================================================
-void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit)
+void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit)
 {
 	int rh,rw;
 	int texformat=TexFormat[gl_texture_format];
@@ -197,7 +194,7 @@ void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & gl
 //	Creates a texture
 //
 //===========================================================================
-GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap) 
+FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool wrap) 
 {
 	mipmap=_mipmap;
 	texwidth=_width;
@@ -209,8 +206,8 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 	}
 	else
 	{
-		scalexfac=MIN<float>(1.f,(float)texwidth/GLTexture::GetTexDimension(texwidth));
-		scaleyfac=MIN<float>(1.f,(float)texheight/GLTexture::GetTexDimension(texheight));
+		scalexfac=MIN<float>(1.f,(float)texwidth/FHardwareTexture::GetTexDimension(texwidth));
+		scaleyfac=MIN<float>(1.f,(float)texheight/FHardwareTexture::GetTexDimension(texheight));
 	}
 
 	int cm_arraysize = CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size();
@@ -225,7 +222,7 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 //	Frees all associated resources
 //
 //===========================================================================
-void GLTexture::Clean(bool all)
+void FHardwareTexture::Clean(bool all)
 {
 	int cm_arraysize = CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size();
 
@@ -260,7 +257,7 @@ void GLTexture::Clean(bool all)
 //	Destroys the texture
 //
 //===========================================================================
-GLTexture::~GLTexture() 
+FHardwareTexture::~FHardwareTexture() 
 { 
 	Clean(true); 
 	delete [] glTexID;
@@ -273,7 +270,7 @@ GLTexture::~GLTexture()
 //
 //===========================================================================
 
-unsigned * GLTexture::GetTexID(int cm, int translation)
+unsigned * FHardwareTexture::GetTexID(int cm, int translation)
 {
 	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
 
@@ -305,7 +302,7 @@ unsigned * GLTexture::GetTexID(int cm, int translation)
 //	Binds this patch
 //
 //===========================================================================
-unsigned int GLTexture::Bind(int texunit, int cm,int translation, int clampmode)
+unsigned int FHardwareTexture::Bind(int texunit, int cm,int translation, int clampmode)
 {
 	unsigned int * pTexID=GetTexID(cm, translation);
 
@@ -322,7 +319,7 @@ unsigned int GLTexture::Bind(int texunit, int cm,int translation, int clampmode)
 }
 
 
-void GLTexture::Unbind(int texunit)
+void FHardwareTexture::Unbind(int texunit)
 {
 	if (lastbound[texunit] != 0)
 	{
@@ -333,13 +330,20 @@ void GLTexture::Unbind(int texunit)
 	}
 }
 
+void FHardwareTexture::UnbindAll()
+{
+	for(int texunit = 0; texunit < 16; texunit++)
+	{
+		Unbind(texunit);
+	}
+}
 
 //===========================================================================
 // 
 //	(re-)creates the texture
 //
 //===========================================================================
-unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
+unsigned int FHardwareTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
 									  int cm, int translation)
 {
 	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
@@ -362,7 +366,7 @@ unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool
 //  clamping mode and only set when it really changes
 //
 //===========================================================================
-void GLTexture::SetTextureClamp(int newclampmode)
+void FHardwareTexture::SetTextureClamp(int newclampmode)
 {
 	if (!gl_clamp_per_texture || (clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
 	{
@@ -373,6 +377,4 @@ void GLTexture::SetTextureClamp(int newclampmode)
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}
 	clampmode = newclampmode;
-}
-
 }

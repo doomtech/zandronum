@@ -1,7 +1,6 @@
 uniform float timer;
-uniform sampler2D tex;
 
-vec4 gettexel()
+vec4 Process(vec4 color)
 {
 	vec2 texCoord = gl_TexCoord[0].st;
 
@@ -12,5 +11,7 @@ vec4 gettexel()
 	offset.x = sin(pi * 2.0 * (texCoord.y + timer * 0.125)) * 0.1;
 
 	texCoord += offset;
-	return texture2D(tex, texCoord);
+
+	return getTexel(texCoord) * color;
 }
+

@@ -5,42 +5,10 @@
 #include "gl/old_renderer/gl1_hwtexture.h"
 #include "r_data.h"
 #include "i_system.h"
-#include "textures/bitmap.h"
 
 EXTERN_CVAR(Bool, gl_precache)
-EXTERN_CVAR(Bool, gl_brightmap_shader)
 
 struct FRemapTable;
-
-
-namespace GLRendererOld
-{
-
-void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count);
-
-class FGLBitmap : public FBitmap
-{
-	int cm;
-	int translation;
-public:
-
-	FGLBitmap() { cm = CM_DEFAULT; translation = 0; }
-	FGLBitmap(BYTE *buffer, int pitch, int width, int height)
-		: FBitmap(buffer, pitch, width, height)
-	{ cm = CM_DEFAULT; translation = 0; }
-
-	void SetTranslationInfo(int _cm, int _trans=-1337)
-	{
-		if (_cm != -1) cm = _cm;
-		if (_trans != -1337) translation = _trans;
-
-	}
-
-	virtual void CopyPixelDataRGB(int originx, int originy, const BYTE *patch, int srcwidth, 
-								int srcheight, int step_x, int step_y, int rotate, int ct, FCopyInfo *inf = NULL);
-	virtual void CopyPixelData(int originx, int originy, const BYTE * patch, int srcwidth, int srcheight, 
-								int step_x, int step_y, int rotate, PalEntry * palette, FCopyInfo *inf = NULL);
-};
 
 
 // Two intermediate classes which wrap the low level textures.
@@ -55,7 +23,7 @@ public:
 class WorldTextureInfo
 {
 protected:
-	GLTexture * gltexture;
+	FHardwareTexture * gltexture;
 	float scalex;
 	float scaley;
 
@@ -85,7 +53,7 @@ public:
 class PatchTextureInfo
 {
 protected:
-	GLTexture * glpatch;
+	FHardwareTexture * glpatch;
 
 	void Clean(bool all)
 	{
@@ -115,25 +83,26 @@ public:
 // this is the texture maintenance class for OpenGL. 
 //
 //===========================================================================
+class FMaterial;
 
-class FGLTexture : public FGLTextureBase, protected WorldTextureInfo, protected PatchTextureInfo
+enum ETexUse
 {
-	static TArray<FGLTexture *> gltextures;
-public:
-	enum ETexUse
-	{
-		GLUSE_PATCH,
-		GLUSE_TEXTURE,
-	};
+	GLUSE_PATCH,
+	GLUSE_TEXTURE,
+};
 
+
+class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
+{
+	friend class FMaterial;
+public:
 	FTexture * tex;
 	FTexture * hirestexture;
 	char bIsTransparent;
-	bool createWarped;
 	int HiresLump;
 
 private:
-	int index;
+	int currentwarp;
 
 	bool bHasColorkey;		// only for hires
 
@@ -150,30 +119,62 @@ private:
 
 	BYTE *WarpBuffer(BYTE *buffer, int Width, int Height, int warp);
 
-	void CreateDefaultBrightmap();
-	void CheckForAlpha(const unsigned char * buffer);
-	void SetupShader(int clampmode, int warped, int &cm, int translation);
-
-	const WorldTextureInfo * Bind(int texunit, int cm, int clamp, int translation);
-	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation);
-
-public:
-	FGLTexture(FTexture * tx);
-	~FGLTexture();
-
-	unsigned char * CreateTexBuffer(ETexUse use, int cm, int translation, int & w, int & h, bool allowhires=true);
-	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
-	const PatchTextureInfo * BindPatch(int cm, int translation=0);
-
 	const WorldTextureInfo * GetWorldTextureInfo();
 	const PatchTextureInfo * GetPatchTextureInfo();
 
+	const WorldTextureInfo * Bind(int texunit, int cm, int clamp, int translation, int warp);
+	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation, int warp);
+
+public:
+	FGLTexture(FTexture * tx, bool expandpatches);
+	~FGLTexture();
+
+	unsigned char * CreateTexBuffer(ETexUse use, int cm, int translation, int & w, int & h, bool allowhires, int warp);
+
 	void Clean(bool all);
 
-	static void FlushAll();
-	static void DeleteAll();
-	static FGLTexture * ValidateTexture(FTexture * tex);
-	static FGLTexture * ValidateTexture(FTextureID no, bool translate=true);
+};
+
+//===========================================================================
+// 
+// this is the material class for OpenGL. 
+//
+//===========================================================================
+
+class FMaterial
+{
+	static TArray<FMaterial *> mMaterials;
+	TArray<FGLTexture *> mTextures;
+	int mShaderIndex;
+	int mMaxBound;
+
+	void SetupShader(int shaderindex, int &cm);
+	FGLTexture * ValidateSysTexture(FTexture * tex, bool expand);
+
+public:
+	FTexture *tex;
+	
+	FMaterial(FTexture *tex);
+	~FMaterial();
+
+	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
+	const PatchTextureInfo * BindPatch(int cm, int translation=0);
+
+	const WorldTextureInfo * GetWorldTextureInfo() { return mTextures[0]->GetWorldTextureInfo(); }
+	const PatchTextureInfo * GetPatchTextureInfo() { return mTextures[0]->GetPatchTextureInfo(); }
+
+	unsigned char * CreateTexBuffer(ETexUse use, int cm, int translation, int & w, int & h, bool allowhires=true)
+	{
+		return mTextures[0]->CreateTexBuffer(use, cm, translation, w, h, allowhires, 0);
+	}
+
+	void Clean(bool f)
+	{
+		for(unsigned i=0;i<mTextures.Size();i++)
+		{
+			mTextures[i]->Clean(f);
+		}
+	}
 
 	// Patch drawing utilities
 
@@ -181,8 +182,8 @@ public:
 
 	void SetWallScaling(fixed_t x, fixed_t y);
 
-	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
-	int TextureWidth(ETexUse i) const { return RenderWidth[i]; }
+	int TextureHeight(ETexUse i) const { return mTextures[0]->RenderHeight[i]; }
+	int TextureWidth(ETexUse i) const { return mTextures[0]->RenderWidth[i]; }
 
 	int GetAreaCount() const { return tex->gl_info.areacount; }
 	FloatRect *GetAreas() const { return tex->gl_info.areas; }
@@ -195,53 +196,52 @@ public:
 
 	int GetWidth(ETexUse i) const
 	{
-		return Width[i];
+		return mTextures[0]->Width[i];
 	}
 
 	int GetHeight(ETexUse i) const
 	{
-		return Height[i];
+		return mTextures[0]->Height[i];
 	}
 
 	int GetLeftOffset(ETexUse i) const
 	{
-		return LeftOffset[i];
+		return mTextures[0]->LeftOffset[i];
 	}
 
 	int GetTopOffset(ETexUse i) const
 	{
-		return TopOffset[i];
+		return mTextures[0]->TopOffset[i];
 	}
 
 	int GetScaledLeftOffset(ETexUse i) const
 	{
-		return DivScale16(LeftOffset[i], tex->xScale);
+		return DivScale16(mTextures[0]->LeftOffset[i], tex->xScale);
 	}
 
 	int GetScaledTopOffset(ETexUse i) const
 	{
-		return DivScale16(TopOffset[i], tex->yScale);
-	}
-
-	int GetIndex() const
-	{
-		return index;
+		return DivScale16(mTextures[0]->TopOffset[i], tex->yScale);
 	}
 
 	bool GetTransparent()
 	{
-		if (bIsTransparent == -1) 
+		if (mTextures[0]->bIsTransparent == -1) 
 		{
-			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT, 0, true);
-			else Bind (CM_DEFAULT, 0, 0, true);
+			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT, 0);
+			else Bind (CM_DEFAULT, 0, 0);
 		}
-		return !!bIsTransparent;
+		return !!mTextures[0]->bIsTransparent;
 	}
+
+	static void DeleteAll();
+	static void FlushAll();
+	static FMaterial *ValidateTexture(FTexture * tex);
+	static FMaterial *ValidateTexture(FTextureID no, bool trans);
 
 };
 
-void gl_EnableTexture(bool on);
 
-}
+void gl_EnableTexture(bool on);
 
 #endif

@@ -30,6 +30,12 @@ CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 
+EXTERN_CVAR(Bool, gl_warp_shader)
+EXTERN_CVAR(Bool, gl_fog_shader)
+EXTERN_CVAR(Bool, gl_colormap_shader)
+EXTERN_CVAR(Bool, gl_brightmap_shader)
+EXTERN_CVAR(Bool, gl_glow_shader)
+
 CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	//gl_render_segs=self;
@@ -377,34 +383,32 @@ void StartGLShaderMenu (void)
 
 void gl_SetupMenu()
 {
-	// Customize the GL menu depending on shader availability
-	if (!(gl.flags & RFL_GLSL))
+	if (gl.shadermodel < 4)
 	{
+		// Radial fog and Doom lighting are only available in SM 4 cards
+		// The way they are implemented does not work well on older hardware.
+
 		menuitem_t *lightmodeitem = &GLPrefItems[0];
 		menuitem_t *fogmodeitem = &GLPrefItems[1];
 
+		// disable 'Doom' lighting mode
 		lightmodeitem->e.values = LightingModes2;
 		lightmodeitem->b.numvalues = 4;
 
+		// disable radial fog
 		fogmodeitem->b.numvalues = 2;
-
-		OpenGLMenu.numitems = sizeof(OpenGLItems2)/sizeof(OpenGLItems2[0]);
-		OpenGLMenu.items = OpenGLItems2;
 
 		// disable features that don't work without shaders.
 		if (gl_lightmode == 2) gl_lightmode = 3;
 		if (gl_fogmode == 2) gl_fogmode = 1;
 	}
-	else
+
+	if (gl.shadermodel != 3)
 	{
-		menuitem_t *lightmodeitem = &GLPrefItems[0];
-		menuitem_t *fogmodeitem = &GLPrefItems[1];
-
-		lightmodeitem->e.values = LightingModes;
-		lightmodeitem->b.numvalues = 5;
-
-		OpenGLMenu.numitems = sizeof(OpenGLItems)/sizeof(OpenGLItems[0]);
-		OpenGLMenu.items = OpenGLItems;
+		// The shader menu will only be visible on SM3. 
+		// SM2 won't use shaders unless unavoidable (and then it's automatic) and SM4 will always use shaders.
+		OpenGLMenu.numitems = sizeof(OpenGLItems2)/sizeof(OpenGLItems2[0]);
+		OpenGLMenu.items = OpenGLItems2;
 	}
 }
 

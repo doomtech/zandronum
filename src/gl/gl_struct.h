@@ -16,10 +16,7 @@ struct subsector_t;
 struct sector_t;
 struct FGLSection;
 
-namespace GLRendererOld
-{
 extern DWORD gl_fixedcolormap;
-}
 
 
 
@@ -49,7 +46,7 @@ struct FColormap
 	void GetFixedColormap()
 	{
 		Clear();
-		colormap = GLRendererOld::gl_fixedcolormap;
+		colormap = gl_fixedcolormap;
 	}
 
 	FColormap & operator=(FDynamicColormap * from)
@@ -87,7 +84,7 @@ struct GLSkyInfo
 {
 	float x_offset[2];
 	float y_offset;		// doubleskies don't have a y-offset
-	GLRendererOld::FGLTexture * texture[2];
+	FMaterial * texture[2];
 	FTextureID skytexno1;
 	bool mirrored;
 	bool doublesky;

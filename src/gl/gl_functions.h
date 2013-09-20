@@ -72,7 +72,7 @@ inline bool gl_isWhite(PalEntry color)
 
 inline bool gl_isFullbright(PalEntry color, int lightlevel)
 {
-	return GLRendererOld::gl_fixedcolormap || (gl_isWhite(color) && lightlevel==255);
+	return gl_fixedcolormap || (gl_isWhite(color) && lightlevel==255);
 }
 
 

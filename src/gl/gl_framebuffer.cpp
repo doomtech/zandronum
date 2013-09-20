@@ -57,7 +57,6 @@
 #include "gl/common/glc_translate.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/new_renderer/gl2_renderer.h"
 // [BB] Added include.
 #ifdef _MSC_VER
 #include "../hqnx/hqnx.h"
@@ -71,8 +70,6 @@ void gl_SetupMenu();
 
 GLRendererBase *GLRenderer;
 
-CVAR(Bool, gl_testnewrenderer, false, 0)
-
 //==========================================================================
 //
 //
@@ -82,14 +79,7 @@ CVAR(Bool, gl_testnewrenderer, false, 0)
 OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refreshHz, bool fullscreen) : 
 	Super(width, height, bits, refreshHz, fullscreen) 
 {
-	if (!gl_testnewrenderer)
-	{
-		GLRenderer = new GLRendererOld::GL1Renderer;
-	}
-	else
-	{
-		GLRenderer = new GLRendererNew::GL2Renderer;
-	}
+	GLRenderer = new GL1Renderer;
 	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
 	UpdatePalette ();
 	ScreenshotBuffer = NULL;
@@ -335,7 +325,7 @@ int OpenGLFrameBuffer::GetPageCount()
 //
 //==========================================================================
 
-void OpenGLFrameBuffer::PrecacheTexture(FTexture *tex, bool cache)
+void OpenGLFrameBuffer::PrecacheTexture(FTexture *tex, int cache)
 {
 	if (tex != NULL)
 	{

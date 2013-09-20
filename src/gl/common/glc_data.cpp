@@ -50,6 +50,7 @@
 #include "w_wad.h"
 #include "gi.h"
 #include "g_level.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_renderer.h"
@@ -305,6 +306,7 @@ void InitGLRMapinfoData()
 		glset.map_lightmode = opt->lightmode;
 		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
 		glset.skyrotatevector = opt->skyrotatevector;
+		if (!gl_ExtFogActive() && glset.map_lightmode ==2) glset.map_lightmode = 3;
 	}
 	else
 	{

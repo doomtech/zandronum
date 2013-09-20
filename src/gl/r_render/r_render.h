@@ -20,7 +20,6 @@ enum RenderFlags
 	RFL_NPOT_TEXTURE=1,
 	RFL_NOSTENCIL=2,
 	RFL_FRAGMENT_PROGRAM=4,
-	RFL_GLSL=8,
 	RFL_OCCLUSION_QUERY=16,
 	RFL_TEX_ENV_COMBINE4_NV=32,
 	RFL_TEX_ENV_COMBINE3_ATI=64,
@@ -30,6 +29,7 @@ enum RenderFlags
 
 	RFL_VBO = 512,
 	RFL_MAP_BUFFER_RANGE = 1024,
+	RFL_FRAMEBUFFER = 2048,
 
 
 	RFL_GL_21 = 0x20000000,
@@ -56,6 +56,7 @@ enum TexMode
 struct RenderContext
 {
 	unsigned int flags;
+	unsigned int shadermodel;
 	int max_texturesize;
 	char * vendorstring;
 
@@ -232,6 +233,14 @@ struct RenderContext
 
 	PFNGLMAPBUFFERRANGEPROC MapBufferRange;
 	PFNGLFLUSHMAPPEDBUFFERRANGEPROC FlushMappedBufferRange;
+
+	PFNGLGENFRAMEBUFFERSPROC GenFramebuffers;
+	PFNGLBINDFRAMEBUFFERPROC BindFramebuffer;
+	PFNGLFRAMEBUFFERTEXTURE2DPROC FramebufferTexture2D;
+	PFNGLGENRENDERBUFFERSPROC GenRenderbuffers;
+	PFNGLBINDRENDERBUFFERPROC BindRenderbuffer;
+	PFNGLRENDERBUFFERSTORAGEPROC RenderbufferStorage;
+	PFNGLFRAMEBUFFERRENDERBUFFERPROC FramebufferRenderbuffer;
 
 
 };

@@ -26,7 +26,7 @@ struct GLSectorPlane
 		angle = sec->GetAngle(ceiling);
 		texture = sec->GetTexture(ceiling);
 		plane = sec->GetSecPlane(ceiling);
-		texheight = (ceiling = sector_t::ceiling)? plane.d : -plane.d;
+		texheight = (ceiling == sector_t::ceiling)? plane.d : -plane.d;
 	}
 };
 

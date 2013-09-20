@@ -67,6 +67,10 @@ static glcycle_t totalms, showtotalms;
 static glcycle_t totalssms;
 static sector_t fakesec;
 
+FDrawInfo::~FDrawInfo()
+{
+	StartScene();
+}
 
 void FDrawInfo::StartScene()
 {

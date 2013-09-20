@@ -6,9 +6,6 @@
 
 struct GL_IRECT;
 
-namespace GLRendererOld
-{
-
 class GL1Renderer : public GLRendererBase
 {
 	~GL1Renderer();
@@ -54,10 +51,10 @@ class GL1Renderer : public GLRendererBase
 
 extern DWORD gl_fixedcolormap;
 
-class FGLTexture;
+class FMaterial;
 
 
-void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture);
+void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * gltexture);
 void gl_ClearShaders();
 void gl_EnableShader(bool on);
 
@@ -69,8 +66,7 @@ void gl_SetCamera(float x, float y, float z);
 void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight);
 void gl_SetGlowPosition(float topdist, float bottomdist);
 
-void gl_SetTextureShader(int warped, int cm, bool usebright, float warptime);
-
+int gl_SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
 void gl_ApplyShader();
 
 void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror);
@@ -78,7 +74,5 @@ void gl_DrawScene();
 void gl_EndDrawScene();
 sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, bool mainview);
 void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending);
-
-}
 
 #endif

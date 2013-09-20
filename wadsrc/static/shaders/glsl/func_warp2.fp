@@ -1,11 +1,6 @@
-uniform sampler2D texture1;
-vec4 GetPixelLight();
-vec4 ApplyPixelFog(vec4 pix);
-vec4 Desaturate(vec4 pix);
 uniform float timer;
-vec4 ApplyTextureMode(vec4 texel);
 
-vec4 ProcessPixel()
+vec4 Process(vec4 color)
 {
 	vec2 texCoord = gl_TexCoord[0].st;
 
@@ -18,8 +13,6 @@ vec4 ProcessPixel()
 
 	texCoord += offset;
 
-	vec4 texel = texture2D(texture1, texCoord);
-	vec4 light = GetPixelLight();
-	texel = ApplyTextureMode(texel);
-	return ApplyPixelFog(Desaturate(texel) * light);
+	return getTexel(texCoord) * color;
 }
+

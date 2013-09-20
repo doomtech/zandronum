@@ -73,9 +73,6 @@ extern TArray<spriteframe_t> SpriteFrames;
 extern TArray<PalEntry> BloodTranslationColors;
 
 
-namespace GLRendererOld
-{
-
 void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending)
 {
 	int tm, sb, db, be;
@@ -505,14 +502,14 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		bool mirror;
 		FTextureID patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle, &mirror);
 		if (!patch.isValid()) return;
-		gltexture=FGLTexture::ValidateTexture(patch, false);
+		gltexture=FMaterial::ValidateTexture(patch, false);
 		if (!gltexture) return;
 
 		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 	
 		vt=pti->GetVT();
 		vb=pti->GetVB();
-		gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
+		gltexture->GetRect(&r, GLUSE_PATCH);
 		if (mirror)
 		{
 			r.left=-r.width-r.left;	// mirror the sprite's x-offset
@@ -598,8 +595,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
 	fullbright =
-		(!gl_brightmap_shader || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright) &&
-		 (thing->renderflags & RF_FULLBRIGHT);
+		(thing->renderflags & RF_FULLBRIGHT) &&
+		(!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright);
 
 	lightlevel=fullbright? 255 : rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
 			GetCeilingLight(rendersector) : GetFloorLight(rendersector); //rendersector->lightlevel;
@@ -819,14 +816,14 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 
 		if (lump != NULL)
 		{
-			gltexture=FGLTexture::ValidateTexture(lump);
+			gltexture=FMaterial::ValidateTexture(lump);
 			translation = 0;
 			const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 
 			vt=0.0f;
 			vb=pti->GetVB();
 			FloatRect r;
-			gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
+			gltexture->GetRect(&r, GLUSE_PATCH);
 			ul=pti->GetUR();
 			ur=0.0f;
 		}
@@ -861,8 +858,6 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	PutSprite(hw_styleflags != STYLEHW_Solid);
 	rendered_sprites++;
 }
-
-} // namespace
 
 
 

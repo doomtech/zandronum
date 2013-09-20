@@ -1,0 +1,30 @@
+#ifndef NO_FOG
+	varying float fogcoord;
+	varying vec3 pixelpos;
+#endif
+#ifndef NO_GLOW
+	varying float topdist;
+	varying float bottomdist;
+	attribute float topdistance;
+	attribute float bottomdistance;
+#endif
+
+
+void main()
+{
+	gl_FrontColor = gl_Color;
+
+	#ifndef NO_FOG
+		vec4 eyeCoordPos = gl_ModelViewMatrix * gl_Vertex;
+		fogcoord = -eyeCoordPos.z/eyeCoordPos.w;
+		pixelpos = gl_Vertex.xyz;
+	#endif
+	
+	#ifndef NO_GLOW
+		topdist = topdistance;
+		bottomdist = bottomdistance;
+	#endif
+
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+	gl_Position = ftransform();
+}

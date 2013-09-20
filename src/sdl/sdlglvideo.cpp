@@ -112,8 +112,6 @@ static MiniModeInfo WinModes[] =
 
 // CODE --------------------------------------------------------------------
 
-using namespace GLRendererOld;
-
 SDLGLVideo::SDLGLVideo (int parm)
 {
 	IteratorBits = 0;

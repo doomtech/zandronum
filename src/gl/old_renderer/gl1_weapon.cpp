@@ -59,9 +59,6 @@ EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)
 
 
-namespace GLRendererOld
-{
-
 //==========================================================================
 //
 // R_DrawPSprite
@@ -90,7 +87,7 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	FTextureID lump = gl_GetSpriteFrame(psp->state->sprite, psp->state->GetFrame(), 0, 0, &mirror);
 	if (!lump.isValid()) return;
 
-	FGLTexture * tex=FGLTexture::ValidateTexture(lump, false);
+	FMaterial * tex=FMaterial::ValidateTexture(lump, false);
 	if (!tex) return;
 
 	const PatchTextureInfo * pti = tex->BindPatch(cm_index, 0);
@@ -102,25 +99,25 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	// calculate edges of the shape
 	scalex=FRACUNIT * vw / 320 * BaseRatioSizes[WidescreenRatio][3] / 48;
 
-	tx = sx - ((160 + tex->GetScaledLeftOffset(FGLTexture::GLUSE_PATCH))<<FRACBITS);
+	tx = sx - ((160 + tex->GetScaledLeftOffset(GLUSE_PATCH))<<FRACBITS);
 	x1 = (FixedMul(tx, scalex)>>FRACBITS) + (vw>>1);
 	if (x1 > vw)	return; // off the right side
 	x1+=viewwindowx;
 
-	tx +=  tex->TextureWidth(FGLTexture::GLUSE_PATCH) << FRACBITS;
+	tx +=  tex->TextureWidth(GLUSE_PATCH) << FRACBITS;
 	x2 = (FixedMul(tx, scalex)>>FRACBITS) + (vw>>1);
 	if (x2 < 0) return; // off the left side
 	x2+=viewwindowx;
 
 	// killough 12/98: fix psprite positioning problem
-	texturemid = (100<<FRACBITS) - (sy-(tex->GetScaledTopOffset(FGLTexture::GLUSE_PATCH)<<FRACBITS));
+	texturemid = (100<<FRACBITS) - (sy-(tex->GetScaledTopOffset(GLUSE_PATCH)<<FRACBITS));
 
 	AWeapon * wi=player->ReadyWeapon;
 	if (wi && wi->YAdjust && screenblocks>=11) texturemid -= wi->YAdjust;
 
 	scale = ((SCREENHEIGHT*vw)/SCREENWIDTH) / 200.0f;    
 	y1=viewwindowy+(vh>>1)-(int)(((float)texturemid/(float)FRACUNIT)*scale);
-	y2=y1+(int)((float)tex->TextureHeight(FGLTexture::GLUSE_PATCH)*scale)+1;
+	y2=y1+(int)((float)tex->TextureHeight(GLUSE_PATCH)*scale)+1;
 
 	if (!mirror)
 	{
@@ -300,6 +297,4 @@ void gl_DrawTargeterSprites()
 	// The Targeter's sprites are always drawn normally.
 	for (i=ps_targetcenter, psp = &player->psprites[ps_targetcenter]; i<NUMPSPRITES; i++,psp++)
 		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, false);
-}
-
 }

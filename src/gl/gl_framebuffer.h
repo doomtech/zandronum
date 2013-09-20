@@ -5,10 +5,8 @@
 #include "win32iface.h"
 #include "win32gliface.h"
 #endif
-namespace GLRendererOld
-{
-	class GLTexture;
-}
+
+class FHardwareTexture;
 
 extern long gl_frameMS;
 extern long gl_frameCount;
@@ -68,7 +66,7 @@ public:
 	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin=false);
 	void DrawRemainingPlayerSprites();
 
-	void PrecacheTexture(FTexture *tex, bool cache);
+	void PrecacheTexture(FTexture *tex, int cache);
 
 	FNativePalette *CreatePalette(FRemapTable *remap);
 
@@ -104,8 +102,8 @@ private:
 	class Wiper_Crossfade;		friend class Wiper_Crossfade;
 
 	Wiper *ScreenWipe;
-	GLRendererOld::GLTexture *wipestartscreen;
-	GLRendererOld::GLTexture *wipeendscreen;
+	FHardwareTexture *wipestartscreen;
+	FHardwareTexture *wipeendscreen;
 
 public:
 	AActor * LastCamera;

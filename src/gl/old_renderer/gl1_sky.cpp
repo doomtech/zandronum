@@ -54,9 +54,6 @@ EXTERN_CVAR(Bool, gl_notexturefill);
 CVAR(Bool,gl_noskyboxes, false, 0)
 extern int skyfog;
 
-namespace GLRendererOld
-{
-
 enum
 {
 	NoSkyDraw = 89
@@ -133,7 +130,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			}
 
 			FTextureID texno = s->GetTexture(pos);
-			skyinfo.texture[0] = FGLTexture::ValidateTexture(texno);
+			skyinfo.texture[0] = FMaterial::ValidateTexture(texno, true);
 			if (!skyinfo.texture[0] || skyinfo.texture[0]->tex->UseType == FTexture::TEX_Null) goto normalsky;
 			skyinfo.skytexno1 = texno;
 			skyinfo.x_offset[0] = ANGLE_TO_FLOAT(s->GetTextureXOffset(pos));
@@ -145,7 +142,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 		normalsky:
 			if (level.flags&LEVEL_DOUBLESKY)
 			{
-				skyinfo.texture[1]=FGLTexture::ValidateTexture(sky1texture);
+				skyinfo.texture[1]=FMaterial::ValidateTexture(sky1texture, true);
 				if (!skyinfo.texture[1]) return;
 				skyinfo.x_offset[1] = GLRenderer->mSky1Pos;
 				skyinfo.doublesky = true;
@@ -154,13 +151,13 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			if ((level.flags&LEVEL_SWAPSKIES || (sky1==PL_SKYFLAT && !(gl.flags&RFL_NOSTENCIL)) || (level.flags&LEVEL_DOUBLESKY)) &&
 				sky2texture!=sky1texture)	// If both skies are equal use the scroll offset of the first!
 			{
-				skyinfo.texture[0]=FGLTexture::ValidateTexture(sky2texture);
+				skyinfo.texture[0]=FMaterial::ValidateTexture(sky2texture, true);
 				skyinfo.skytexno1=sky2texture;
 				skyinfo.x_offset[0] = GLRenderer->mSky2Pos;
 			}
 			else
 			{
-				skyinfo.texture[0]=FGLTexture::ValidateTexture(sky1texture);
+				skyinfo.texture[0]=FMaterial::ValidateTexture(sky1texture, true);
 				skyinfo.skytexno1=sky1texture;
 				skyinfo.x_offset[0] = GLRenderer->mSky1Pos;
 			}
@@ -335,6 +332,3 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 		}
 	}
 }
-
-
-} // namespace

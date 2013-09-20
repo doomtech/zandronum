@@ -61,9 +61,6 @@
 
 EXTERN_CVAR (Bool, gl_lights_checkside);
 
-namespace GLRendererOld
-{
-
 //==========================================================================
 //
 // Sets the texture matrix according to the plane's texture positioning
@@ -71,16 +68,16 @@ namespace GLRendererOld
 //
 //==========================================================================
 
-void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture)
+void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * gltexture)
 {
-	float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE);
-	float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE);
+	float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
+	float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
 
 	float xscale1=TO_GL(secplane->xscale);
 	float yscale1=TO_GL(secplane->yscale);
 
-	float xscale2=64.f/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE);
-	float yscale2=64.f/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE);
+	float xscale2=64.f/gltexture->TextureWidth(GLUSE_TEXTURE);
+	float yscale2=64.f/gltexture->TextureHeight(GLUSE_TEXTURE);
 
 	float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
@@ -255,7 +252,7 @@ void GLFlat::Draw(int pass)
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (sector->sectornum == 249 || sector->sectornum == 287)
+	if (sector->sectornum == 0)
 		__asm nop
 #endif
 #endif
@@ -398,7 +395,7 @@ inline void GLFlat::PutFlat(bool fog)
 		else foggy = false;
 
 		list = list_indices[light][masked][foggy];
-		if (list == GLDL_LIGHT && gltexture->tex->gl_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+		if (list == GLDL_LIGHT && gltexture->tex->gl_info.Brightmap && gl_BrightmapsActive()) list = GLDL_LIGHTBRIGHT;
 
 		gl_drawinfo->drawlists[list].AddFlat (this);
 	}
@@ -421,7 +418,7 @@ void GLFlat::Process(sector_t * sector, int whichplane, bool fog)
 	{
 		if (plane.texture==skyflatnum) return;
 
-		gltexture=FGLTexture::ValidateTexture(plane.texture);
+		gltexture=FMaterial::ValidateTexture(plane.texture, true);
 		if (!gltexture) return;
 		if (gltexture->tex->isFullbright()) 
 		{
@@ -488,7 +485,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	{
 		__asm int 3
 	}
-	if (frontsector->sectornum==6)
+	if (frontsector->sectornum==0)
 	{
 		__asm nop
 	}
@@ -717,6 +714,3 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	}
 }
 
-
-
-} // namespace

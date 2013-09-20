@@ -95,7 +95,7 @@ public:
 private:
 	static const int WIDTH = 64, HEIGHT = 64;
 	BYTE BurnArray[WIDTH * (HEIGHT + 5)];
-	GLRendererOld::GLTexture *BurnTexture;
+	FHardwareTexture *BurnTexture;
 	int Density;
 	int BurnTime;
 };
@@ -134,7 +134,7 @@ bool OpenGLFrameBuffer::WipeStartScreen(int type)
 		return false;
 	}
 
-	wipestartscreen = new GLRendererOld::GLTexture(Width, Height, false, false);
+	wipestartscreen = new FHardwareTexture(Width, Height, false, false);
 	wipestartscreen->CreateTexture(NULL, Width, Height, false, 0, CM_DEFAULT);
 	gl.Finish();
 	wipestartscreen->Bind(0, CM_DEFAULT);
@@ -157,7 +157,7 @@ bool OpenGLFrameBuffer::WipeStartScreen(int type)
 
 void OpenGLFrameBuffer::WipeEndScreen()
 {
-	wipeendscreen = new GLRendererOld::GLTexture(Width, Height, false, false);
+	wipeendscreen = new FHardwareTexture(Width, Height, false, false);
 	wipeendscreen->CreateTexture(NULL, Width, Height, false, 0, CM_DEFAULT);
 	gl.Flush();
 	wipeendscreen->Bind(0, CM_DEFAULT);
@@ -442,7 +442,7 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 	}
 
 	if (BurnTexture != NULL) delete BurnTexture;
-	BurnTexture = new GLRendererOld::GLTexture(WIDTH, HEIGHT, false, false);
+	BurnTexture = new FHardwareTexture(WIDTH, HEIGHT, false, false);
 
 	// Update the burn texture with the new burn data
 	BYTE rgb_buffer[WIDTH*HEIGHT*4];

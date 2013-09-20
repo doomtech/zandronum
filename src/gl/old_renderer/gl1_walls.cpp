@@ -49,6 +49,7 @@
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
+#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
@@ -65,10 +66,6 @@ EXTERN_CVAR(Bool, gl_render_segs)
 EXTERN_CVAR(Bool, gl_seamless)
 EXTERN_CVAR(Bool, gl_fakecontrast)
 
-namespace GLRendererOld
-{
-
-
 UniqueList<GLSkyInfo> UniqueSkies;
 UniqueList<GLHorizonInfo> UniqueHorizons;
 UniqueList<GLSectorStackInfo> UniqueStacks;
@@ -83,7 +80,7 @@ UniqueList<secplane_t> UniquePlaneMirrors;
 void GLWall::CheckGlowing()
 {
 	bottomglowheight = topglowheight = 0;
-	if (!gl_isFullbright(Colormap.LightColor, lightlevel) && gl_glow_shader)
+	if (!gl_isFullbright(Colormap.LightColor, lightlevel) && gl_GlowActive())
 	{
 		FTexture *tex = TexMan[topflat];
 		if (tex != NULL && tex->isGlowing())
@@ -192,7 +189,7 @@ void GLWall::PutWall(bool translucent)
 		list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
 		if (list == GLDL_LIGHT)
 		{
-			if (gltexture->tex->gl_info.Brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+			if (gltexture->tex->gl_info.Brightmap && gl_BrightmapsActive()) list = GLDL_LIGHTBRIGHT;
 			if (flags & GLWF_GLOW) list = GLDL_LIGHTBRIGHT;
 		}
 		gl_drawinfo->drawlists[list].AddWall(this);
@@ -277,7 +274,7 @@ void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 
 	if (fadewall)
 	{
-		FGLTexture * tex = gltexture;
+		FMaterial *tex = gltexture;
 		type = RENDERWALL_COLORLAYER;
 		gltexture = NULL;
 		Colormap.LightColor = (lightlist->extra_colormap)->Fade;
@@ -740,7 +737,7 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 		!(gl.flags & RFL_NOSTENCIL) && gl_mirrors) ? RENDERWALL_MIRROR : _type;
 
 	ceilingrefheight+= 	gltexture->RowOffset(seg->sidedef->GetTextureYOffset(texpos))+
-						(peg ? (gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0);
+						(peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0);
 
 	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
@@ -787,12 +784,12 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
 			texturebottom = MAX(realfront->GetPlaneTexZ(sector_t::floor),realback->GetPlaneTexZ(sector_t::floor))+rowoffset;
-			texturetop=texturebottom+(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
+			texturetop=texturebottom+(gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS);
 		}
 		else
 		{
 			texturetop = MIN(realfront->GetPlaneTexZ(sector_t::ceiling),realback->GetPlaneTexZ(sector_t::ceiling))+rowoffset;
-			texturebottom=texturetop-(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
+			texturebottom=texturetop-(gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS);
 		}
 	}
 	else texturetop=texturebottom=0;
@@ -897,7 +894,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	if (gltexture)
 	{
 		// First adjust the texture offset so that the left edge of the linedef is inside the range [0..1].
-		fixed_t texwidth = gltexture->TextureAdjustWidth(FGLTexture::GLUSE_TEXTURE)<<FRACBITS;
+		fixed_t texwidth = gltexture->TextureAdjustWidth(GLUSE_TEXTURE)<<FRACBITS;
 		
 		t_ofs%=texwidth;
 		if (t_ofs<-texwidth) t_ofs+=texwidth;	// shift negative results of % into positive range
@@ -910,8 +907,8 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		fixed_t textureoffset=gltexture->TextureOffset(t_ofs);
 		int righttex=(textureoffset>>FRACBITS)+seg->sidedef->TexelLength;
 		
-		if ((textureoffset==0 && righttex<=gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)) || 
-			(textureoffset>=0 && righttex==gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)))
+		if ((textureoffset==0 && righttex<=gltexture->TextureWidth(GLUSE_TEXTURE)) || 
+			(textureoffset>=0 && righttex==gltexture->TextureWidth(GLUSE_TEXTURE)))
 		{
 			flags|=GLT_CLAMPX;
 		}
@@ -1084,19 +1081,19 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 		
 		if (rover->flags&FF_UPPERTEXTURE) 
 		{
-			gltexture = FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::top));
+			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), true);
 			if (!gltexture) return;
 			gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(side_t::top), seg->sidedef->GetTextureYScale(side_t::top));
 		}
 		else if (rover->flags&FF_LOWERTEXTURE) 
 		{
-			gltexture = FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom));
+			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
 			if (!gltexture) return;
 			gltexture->SetWallScaling(seg->sidedef->GetTextureXScale(side_t::bottom), seg->sidedef->GetTextureYScale(side_t::bottom));
 		}
 		else 
 		{
-			gltexture = FGLTexture::ValidateTexture(mastersd->GetTexture(side_t::mid));
+			gltexture = FMaterial::ValidateTexture(mastersd->GetTexture(side_t::mid), true);
 			if (!gltexture) return;
 			gltexture->SetWallScaling(mastersd->GetTextureXScale(side_t::mid), mastersd->GetTextureYScale(side_t::mid));
 		}
@@ -1560,7 +1557,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		SkyNormal(frontsector,v1,v2);
 		
 		// normal texture
-		gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::mid));
+		gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
 		if (!gltexture) return;
 
 		DoTexture(RENDERWALL_M1S,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
@@ -1614,7 +1611,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 			if (bch1a<fch1 || bch2a<fch2)
 			{
-				gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::top));
+				gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), true);
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_TOP,seg,(seg->linedef->flags & (ML_DONTPEGTOP))==0,
@@ -1626,7 +1623,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 						frontsector->GetTexture(sector_t::ceiling)!=skyflatnum &&
 						backsector->GetTexture(sector_t::ceiling)!=skyflatnum)
 				{
-					gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::ceiling));
+					gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::ceiling), true);
 					if (gltexture)
 					{
 						DoTexture(RENDERWALL_TOP,seg,(seg->linedef->flags & (ML_DONTPEGTOP))==0,
@@ -1650,7 +1647,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 							!gl_fixedcolormap &&
 							(frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum));
 
-		gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::mid));
+		gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
 		if (gltexture || drawfogboundary)
 		{
 			DoMidTexture(seg, drawfogboundary, realfront, realback, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
@@ -1676,7 +1673,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 			if (bfh1>ffh1 || bfh2>ffh2)
 			{
-				gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom));
+				gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
@@ -1694,7 +1691,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 					// render it anyway with the sector's floor texture. With a background sky
 					// there are ugly holes otherwise and slopes are simply not precise enough
 					// to mach in any case.
-					gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::floor));
+					gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
 					if (gltexture)
 					{
 						DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
@@ -1754,7 +1751,7 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 
 		zfloor[0] = zfloor[1] = TO_GL(ffh);
 
-		gltexture=FGLTexture::ValidateTexture(frontsector->GetTexture(sector_t::floor));
+		gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
 
 		if (gltexture) 
 		{
@@ -1764,5 +1761,3 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		}
 	}
 }
-
-} // namespace

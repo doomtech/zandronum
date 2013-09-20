@@ -55,6 +55,7 @@ struct FDrawInfo
 
 	TArray<subsector_t *> HandledSubsectors;
 
+	virtual ~FDrawInfo();
 	void StartScene();
 
 	bool DoOneSectorUpper(subsector_t * subsec, fixed_t planez);

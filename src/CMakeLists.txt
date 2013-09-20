@@ -638,6 +638,7 @@ if( NOT NO_GL )
 		gl/common/glc_translate.cpp
 		gl/common/glc_vertexbuffer.cpp
 		gl/common/glc_wipe.cpp
+		gl/old_renderer/gl1_bitmap.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
@@ -654,16 +655,6 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
-		gl/new_renderer/gl2_renderer.cpp
-		gl/new_renderer/gl2_vertex.cpp
-		gl/new_renderer/gl2_walls.cpp	
-		gl/new_renderer/gl2_skydraw.cpp	
-		gl/new_renderer/textures/gl2_bitmap.cpp
-		gl/new_renderer/textures/gl2_texture.cpp
-		gl/new_renderer/textures/gl2_material.cpp
-		gl/new_renderer/textures/gl2_hwtexture.cpp
-#		gl/new_renderer/textures/gl2_hirestex.cpp
-		gl/new_renderer/textures/gl2_shader.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp

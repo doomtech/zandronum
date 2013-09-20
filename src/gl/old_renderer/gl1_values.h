@@ -82,13 +82,13 @@ enum EColorManipulation
 	CM_DESAT0=CM_DEFAULT,
 	CM_DESAT1,					// minimum desaturation
 	CM_DESAT31=CM_DESAT1+30,	// maximum desaturation = grayscale
-	CM_SHADE,					// alpha channel texture
 	CM_FIRSTSPECIALCOLORMAP,		// first special fixed colormap
 
 	// special internal values
 	CM_GRAY = 0x1000000,		// a simple grayscale map for colorizing blood splats
 	CM_ICE	= 0x1000001,		// The bluish ice translation for frozen corpses
 	CM_LITE	= 0x1000002,		// special values to handle these items without excessive hacking
+	CM_SHADE= 0x1000003,		// alpha channel texture
 	CM_TORCH= 0x1000010,		// These are not real color manipulations
 };
 

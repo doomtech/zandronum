@@ -60,9 +60,6 @@
 
 EXTERN_CVAR(Bool, gl_seamless)
 
-namespace GLRendererOld
-{
-
 //==========================================================================
 //
 // Sets up the texture coordinates for one light to be rendered
@@ -259,7 +256,7 @@ void GLWall::RenderMirrorSurface()
 	gl.DepthFunc(GL_LEQUAL);
 	gl_SetFog(lightlevel, extralight*gl_weaponlight, &Colormap, true);
 
-	FGLTexture * pat=FGLTexture::ValidateTexture(mirrortexture);
+	FMaterial * pat=FMaterial::ValidateTexture(mirrortexture);
 	pat->BindPatch(Colormap.colormap, 0);
 
 	flags &= ~GLWF_GLOW;
@@ -463,6 +460,3 @@ void GLWall::Draw(int pass)
 		}
 	}
 }
-
-
-} // namespace

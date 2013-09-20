@@ -10631,6 +10631,10 @@
 			Name="Old Renderer"
 			>
 			<File
+				RelativePath=".\src\gl\old_renderer\gl1_bitmap.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\gl\old_renderer\gl1_decal.cpp"
 				>
 			</File>
@@ -10697,6 +10701,10 @@
 			<Filter
 				Name="Includes"
 				>
+				<File
+					RelativePath=".\src\gl\old_renderer\gl1_bitmap.h"
+					>
+				</File>
 				<File
 					RelativePath=".\src\gl\old_renderer\gl1_drawinfo.h"
 					>
@@ -10964,94 +10972,6 @@
 						RelativePath=".\src\gl\common\glc_vertexbuffer.h"
 						>
 					</File>
-				</Filter>
-			</Filter>
-			<Filter
-				Name="New Renderer"
-				>
-				<File
-					RelativePath=".\src\gl\new_renderer\gl2_renderer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\new_renderer\gl2_skydraw.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\new_renderer\gl2_vertex.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\new_renderer\gl2_walls.cpp"
-					>
-				</File>
-				<Filter
-					Name="Includes"
-					>
-					<File
-						RelativePath=".\src\gl\new_renderer\gl2_geom.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\gl2_renderer.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\gl2_skydraw.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\gl2_vertex.h"
-						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Texture Management"
-					>
-					<File
-						RelativePath=".\src\gl\new_renderer\textures\gl2_bitmap.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\textures\gl2_hwtexture.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\textures\gl2_material.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\textures\gl2_shader.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\new_renderer\textures\gl2_texture.cpp"
-						>
-					</File>
-					<Filter
-						Name="Includes"
-						>
-						<File
-							RelativePath=".\src\gl\new_renderer\textures\gl2_bitmap.h"
-							>
-						</File>
-						<File
-							RelativePath=".\src\gl\new_renderer\textures\gl2_hwtexture.h"
-							>
-						</File>
-						<File
-							RelativePath=".\src\gl\new_renderer\textures\gl2_material.h"
-							>
-						</File>
-						<File
-							RelativePath=".\src\gl\new_renderer\textures\gl2_shader.h"
-							>
-						</File>
-						<File
-							RelativePath=".\src\gl\new_renderer\textures\gl2_texture.h"
-							>
-						</File>
-					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>

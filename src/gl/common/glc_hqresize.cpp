@@ -231,10 +231,6 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if ( inputTexture->bHasCanvas )
 		return inputBuffer;
 
-	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory.
-	if ( (!(gl.flags & RFL_GLSL) || !gl_warp_shader) && inputTexture->bWarped )
-		return inputBuffer;
-
 	switch (inputTexture->UseType)
 	{
 	case FTexture::TEX_Sprite:

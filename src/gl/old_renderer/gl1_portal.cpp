@@ -73,9 +73,6 @@ EXTERN_CVAR(Bool, gl_portals)
 EXTERN_CVAR(Bool, gl_noquery)
 EXTERN_CVAR(Int, r_mirror_recursions)
 
-namespace GLRendererOld
-{
-
 TArray<GLPortal *> GLPortal::portals;
 int GLPortal::recursion;
 int GLPortal::MirrorFlag;
@@ -759,12 +756,12 @@ void GLHorizonPortal::DrawContents()
 	PortalAll.Clock();
 
 	GLSectorPlane * sp=&origin->plane;
-	FGLTexture * gltexture;
+	FMaterial * gltexture;
 	PalEntry color;
 	float z;
 	player_t * player=&players[consoleplayer];
 
-	gltexture=FGLTexture::ValidateTexture(sp->texture);
+	gltexture=FMaterial::ValidateTexture(sp->texture, true);
 	if (!gltexture) 
 	{
 		ClearScreen();
@@ -865,7 +862,5 @@ void GLHorizonPortal::DrawContents()
 	gl.MatrixMode(GL_MODELVIEW);
 
 	PortalAll.Unclock();
-
-}
 
 }

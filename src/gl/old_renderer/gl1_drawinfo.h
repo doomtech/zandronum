@@ -6,8 +6,6 @@
 #include "gl/old_renderer/gl1_wall.h"
 
 
-namespace GLRendererOld
-{
 //==========================================================================
 //
 // Intermediate struct to link one draw item into a draw list
@@ -137,5 +135,5 @@ public:
 };
 
 extern GLDrawInfo * gl_drawinfo;
-}
+
 #endif

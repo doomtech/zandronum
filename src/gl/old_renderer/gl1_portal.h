@@ -42,9 +42,6 @@
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 
-namespace GLRendererOld
-{
-
 struct skycube_t
 {
 	int textures[6];
@@ -78,7 +75,7 @@ private:
 	GLboolean clipsave;
 
 protected:
-	TArray<GLRendererOld::GLWall> lines;
+	TArray<GLWall> lines;
 	int level;
 
 	GLPortal() { portals.Push(this); }
@@ -107,7 +104,7 @@ public:
 		}
 	}
 
-	void AddLine(GLRendererOld::GLWall * l)
+	void AddLine(GLWall * l)
 	{
 		lines.Push(*l);
 	}
@@ -239,7 +236,5 @@ public:
 	}
 
 };
-
-}
 
 #endif

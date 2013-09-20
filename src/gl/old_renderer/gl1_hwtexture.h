@@ -11,9 +11,6 @@
 class FCanvasTexture;
 class AActor;
 
-namespace GLRendererOld
-{
-
 void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
 enum
@@ -22,7 +19,7 @@ enum
 	GLT_CLAMPY=2
 };
 
-class GLTexture
+class FHardwareTexture
 {
 	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
@@ -61,10 +58,11 @@ private:
 	unsigned * GetTexID(int cm, int translation);
 
 public:
-	GLTexture(int w, int h, bool mip, bool wrap);
-	~GLTexture();
+	FHardwareTexture(int w, int h, bool mip, bool wrap);
+	~FHardwareTexture();
 
 	static void Unbind(int texunit);
+	static void UnbindAll();
 
 	unsigned int Bind(int texunit, int cm, int translation=0, int clampmode = -1);
 	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0);
@@ -88,7 +86,5 @@ public:
 	float FixToTexV(int v) { return (float)v/(float)FRACUNIT/(float)texheight; }
 
 };
-
-}
 
 #endif

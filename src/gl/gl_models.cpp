@@ -593,9 +593,6 @@ float gl_RollAgainstAngleHelper ( const AActor *actor )
 	return angleDiff;
 }
 
-namespace GLRendererOld
-{
-
 void gl_RenderModel(GLSprite * spr, int cm)
 {
 	FSpriteModelFrame * smf = spr->modelframe;
@@ -617,7 +614,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	Matrix3x4 ModelToWorld;
 	Matrix3x4 *mat;
 
-	if (gl_fogmode != 2 || !gl_fog_shader)
+	if (gl_fogmode != 2)
 	{
 		// Model space => World space
 		gl.Translatef(spr->x, spr->z, spr->y );
@@ -809,9 +806,6 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 	if (!( playermo->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
 		gl.Disable(GL_CULL_FACE);
 }
-
-}
-
 
 //===========================================================================
 //
