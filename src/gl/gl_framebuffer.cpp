@@ -69,7 +69,7 @@ EXTERN_CVAR (Float, vid_contrast)
 
 void gl_SetupMenu();
 
-GLRendererBase *GLRenderer;
+FGLRenderer *GLRenderer;
 
 //==========================================================================
 //
@@ -80,7 +80,7 @@ GLRendererBase *GLRenderer;
 OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refreshHz, bool fullscreen) : 
 	Super(width, height, bits, refreshHz, fullscreen) 
 {
-	GLRenderer = new GL1Renderer;
+	GLRenderer = new FGLRenderer(this);
 	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
 	UpdatePalette ();
 	ScreenshotBuffer = NULL;

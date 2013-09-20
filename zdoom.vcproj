@@ -10631,72 +10631,16 @@
 			Name="Old Renderer"
 			>
 			<File
-				RelativePath=".\src\gl\old_renderer\gl1_decal.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_drawinfo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_flats.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_portal.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\gl\old_renderer\gl1_renderer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_scene.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\src\gl\old_renderer\gl1_shader.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_sky.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_skydome.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_sprite.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_vertex.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_walls.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_walls_draw.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_weapon.cpp"
-				>
-			</File>
 			<Filter
 				Name="Includes"
 				>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_drawinfo.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_portal.h"
-					>
-				</File>
 				<File
 					RelativePath=".\src\gl\old_renderer\gl1_renderer.h"
 					>
@@ -10707,14 +10651,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\old_renderer\gl1_shader.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_values.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_wall.h"
 					>
 				</File>
 			</Filter>
@@ -10826,10 +10762,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\common\glc_renderhacks.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\common\glc_sections.cpp"
 					>
 				</File>
@@ -10890,10 +10822,6 @@
 					</File>
 					<File
 						RelativePath=".\src\gl\common\glc_renderer.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_renderhacks.h"
 						>
 					</File>
 					<File
@@ -10983,6 +10911,74 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\models\tab_anorms.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Scene"
+				>
+				<File
+					RelativePath=".\src\gl\scene\gl_decal.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_drawinfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_drawinfo.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_flats.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_portal.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_portal.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_renderhacks.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_scene.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_sky.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_skydome.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_vertex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_wall.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_walls.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_walls_draw.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\scene\gl_weapon.cpp"
 					>
 				</File>
 			</Filter>

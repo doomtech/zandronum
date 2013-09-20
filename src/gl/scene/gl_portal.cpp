@@ -47,8 +47,6 @@
 #include "gl/gl_framebuffer.h"
 #include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/common/glc_clipper.h"
 #include "gl/common/glc_glow.h"
 #include "gl/gl_functions.h"
@@ -57,7 +55,10 @@
 #include "gl/common/glc_data.h"
 #include "gl/common/glc_geometric.h"
 #include "gl/old_renderer/gl1_shader.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
 
 //-----------------------------------------------------------------------------
@@ -85,6 +86,27 @@ GLuint GLPortal::QueryObject;
 bool	 GLPortal::inupperstack;
 bool	 GLPortal::inlowerstack;
 bool	 GLPortal::inskybox;
+
+UniqueList<GLSkyInfo> UniqueSkies;
+UniqueList<GLHorizonInfo> UniqueHorizons;
+UniqueList<GLSectorStackInfo> UniqueStacks;
+UniqueList<secplane_t> UniquePlaneMirrors;
+
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void GLPortal::BeginScene()
+{
+	UniqueSkies.Clear();
+	UniqueHorizons.Clear();
+	UniqueStacks.Clear();
+	UniquePlaneMirrors.Clear();
+}
 
 //==========================================================================
 //
@@ -217,7 +239,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 					return false;
 				}
 			}
-			GLDrawInfo::StartDrawInfo(NULL);
+			FDrawInfo::StartDrawInfo(NULL);
 		}
 		else
 		{
@@ -240,7 +262,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	{
 		if (NeedDepthBuffer())
 		{
-			GLDrawInfo::StartDrawInfo(NULL);
+			FDrawInfo::StartDrawInfo(NULL);
 		}
 		else
 		{
@@ -310,7 +332,7 @@ void GLPortal::End(bool usestencil)
 	if (clipsave) gl.Enable (GL_CLIP_PLANE0+renderdepth-1);
 	if (usestencil)
 	{
-		if (needdepth) GLDrawInfo::EndDrawInfo();
+		if (needdepth) FDrawInfo::EndDrawInfo();
 
 		// Restore the old view
 		viewx=savedviewx;
@@ -319,7 +341,7 @@ void GLPortal::End(bool usestencil)
 		viewangle=savedviewangle;
 		GLRenderer->mViewActor=savedviewactor;
 		in_area=savedviewarea;
-		gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+		GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
 		gl.Color4f(1,1,1,1);
 		gl.ColorMask(0,0,0,0);						// no graphics
@@ -360,7 +382,7 @@ void GLPortal::End(bool usestencil)
 	{
 		if (needdepth) 
 		{
-			GLDrawInfo::EndDrawInfo();
+			FDrawInfo::EndDrawInfo();
 			gl.Clear(GL_DEPTH_BUFFER_BIT);
 		}
 		else
@@ -375,7 +397,7 @@ void GLPortal::End(bool usestencil)
 		viewangle=savedviewangle;
 		GLRenderer->mViewActor=savedviewactor;
 		in_area=savedviewarea;
-		gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+		GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
 		// This draws a valid z-buffer into the stencil's contents to ensure it
 		// doesn't get overwritten by the level's geometry.
@@ -544,10 +566,10 @@ void GLSkyboxPortal::DrawContents()
 
 	validcount++;
 	inskybox=true;
-	gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 	GLRenderer->SetViewArea();
 	ClearClipper();
-	gl_DrawScene();
+	GLRenderer->DrawScene();
 	origin->flags&=~MF_JUSTHIT;
 	inskybox=false;
 	gl.Enable(GL_DEPTH_CLAMP_NV);
@@ -576,9 +598,9 @@ void GLSectorStackPortal::DrawContents()
 	if (origin->isupper) inupperstack=true;
 	else inlowerstack=true;
 
-	gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 	ClearClipper();
-	gl_DrawScene();
+	GLRenderer->DrawScene();
 }
 
 
@@ -605,7 +627,7 @@ void GLPlaneMirrorPortal::DrawContents()
 	validcount++;
 
 	PlaneMirrorFlag++;
-	gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 	ClearClipper();
 
 	gl.Enable(GL_CLIP_PLANE0+renderdepth);
@@ -614,7 +636,7 @@ void GLPlaneMirrorPortal::DrawContents()
 	double d[4]={0, PlaneMirrorMode, 0, TO_GL(origin->d)};
 	gl.ClipPlane(GL_CLIP_PLANE0+renderdepth, d);
 
-	gl_DrawScene();
+	GLRenderer->DrawScene();
 	gl.Disable(GL_CLIP_PLANE0+renderdepth);
 	PlaneMirrorFlag--;
 	PlaneMirrorMode=old_pm;
@@ -703,7 +725,7 @@ void GLMirrorPortal::DrawContents()
 	validcount++;
 
 	MirrorFlag++;
-	gl_SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
 	clipper.Clear();
 
@@ -718,7 +740,7 @@ void GLMirrorPortal::DrawContents()
 	angle_t a1=R_PointToAngle(GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y);
 	clipper.SafeAddClipRange(a1,a2);
 
-	gl_DrawScene();
+	GLRenderer->DrawScene();
 
 	MirrorFlag--;
 }

@@ -45,10 +45,11 @@
 
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_renderhacks.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
 #include "gl/common/glc_templates.h"
+
+#include "gl/scene/gl_drawinfo.h"
 
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
@@ -61,26 +62,14 @@ CVAR(Bool, gl_notexturefill, false, 0);
 FreeList<gl_subsectorrendernode> SSR_List;
 
 // profiling data
-static int totalupper, totallower, totalsectors;
+static int totalupper, totallower;
 static int lowershcount, uppershcount;
 static glcycle_t totalms, showtotalms;
 static glcycle_t totalssms;
 static sector_t fakesec;
 
-FDrawInfo::~FDrawInfo()
+void FDrawInfo::ClearBuffers()
 {
-	StartScene();
-}
-
-void FDrawInfo::StartScene()
-{
-	sectorrenderflags.Resize(numsectors);
-	ss_renderflags.Resize(numsubsectors);
-
-	memset(&sectorrenderflags[0], 0, numsectors*sizeof(sectorrenderflags[0]));
-	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
-
-
 	for(unsigned int i=0;i< otherfloorplanes.Size();i++)
 	{
 		gl_subsectorrendernode * node = otherfloorplanes[i];

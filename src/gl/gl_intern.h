@@ -38,10 +38,6 @@ EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Bool,gl_mirror_envmap)
 EXTERN_CVAR(Int,gl_nearclip)
 
-extern int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
-extern int gl_spriteindex;
-extern int palette_brightness;
-extern bool gl_shaderactive;
 
 
 #endif // _GL_INTERN_H

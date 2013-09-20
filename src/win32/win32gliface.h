@@ -19,7 +19,6 @@ extern IVideo *Video;
 
 
 extern BOOL AppActive;
-extern int palette_brightness;
 
 EXTERN_CVAR (Float, dimamount)
 EXTERN_CVAR (Color, dimcolor)

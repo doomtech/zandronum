@@ -44,18 +44,18 @@
 #include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
 
-GLDrawInfo * gl_drawinfo;
-extern FreeList<gl_subsectorrendernode> SSR_List;
+FDrawInfo * gl_drawinfo;
 
 //==========================================================================
 //
@@ -876,14 +876,20 @@ void GLDrawList::AddSprite(GLSprite * sprite)
 //
 //==========================================================================
 
-static FreeList<GLDrawInfo> di_list;
+static FreeList<FDrawInfo> di_list;
+
+FDrawInfo::~FDrawInfo()
+{
+	ClearBuffers();
+}
+
 
 //==========================================================================
 //
 // Sets up a new drawinfo struct
 //
 //==========================================================================
-void GLDrawInfo::StartDrawInfo(GLDrawInfo * di)
+void FDrawInfo::StartDrawInfo(FDrawInfo * di)
 {
 	if (!di)
 	{
@@ -893,9 +899,16 @@ void GLDrawInfo::StartDrawInfo(GLDrawInfo * di)
 	di->StartScene();
 }
 
-void GLDrawInfo::StartScene()
+void FDrawInfo::StartScene()
 {
-	FDrawInfo::StartScene();
+	ClearBuffers();
+
+	sectorrenderflags.Resize(numsectors);
+	ss_renderflags.Resize(numsubsectors);
+
+	memset(&sectorrenderflags[0], 0, numsectors*sizeof(sectorrenderflags[0]));
+	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
+
 	next=gl_drawinfo;
 	gl_drawinfo=this;
 	for(int i=0;i<GLDL_TYPES;i++) drawlists[i].Reset();
@@ -906,9 +919,9 @@ void GLDrawInfo::StartScene()
 //
 //
 //==========================================================================
-void GLDrawInfo::EndDrawInfo()
+void FDrawInfo::EndDrawInfo()
 {
-	GLDrawInfo * di = gl_drawinfo;
+	FDrawInfo * di = gl_drawinfo;
 
 	for(int i=0;i<GLDL_TYPES;i++) di->drawlists[i].Reset();
 	gl_drawinfo=di->next;
@@ -925,7 +938,7 @@ void GLDrawInfo::EndDrawInfo()
 //
 //==========================================================================
 
-void GLDrawInfo::SetupFloodStencil(wallseg * ws)
+void FDrawInfo::SetupFloodStencil(wallseg * ws)
 {
 	int recursion = GLPortal::GetRecursion();
 
@@ -955,7 +968,7 @@ void GLDrawInfo::SetupFloodStencil(wallseg * ws)
 	gl.DepthMask(false);
 }
 
-void GLDrawInfo::ClearFloodStencil(wallseg * ws)
+void FDrawInfo::ClearFloodStencil(wallseg * ws)
 {
 	int recursion = GLPortal::GetRecursion();
 
@@ -986,7 +999,7 @@ void GLDrawInfo::ClearFloodStencil(wallseg * ws)
 // Draw the plane segment into the gap
 //
 //==========================================================================
-void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bool ceiling)
+void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bool ceiling)
 {
 	GLSectorPlane plane;
 	int lightlevel;
@@ -1066,7 +1079,7 @@ void GLDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, bo
 //
 //==========================================================================
 
-void GLDrawInfo::FloodUpperGap(seg_t * seg)
+void FDrawInfo::FloodUpperGap(seg_t * seg)
 {
 	wallseg ws;
 	sector_t ffake, bfake;
@@ -1118,7 +1131,7 @@ void GLDrawInfo::FloodUpperGap(seg_t * seg)
 //
 //==========================================================================
 
-void GLDrawInfo::FloodLowerGap(seg_t * seg)
+void FDrawInfo::FloodLowerGap(seg_t * seg)
 {
 	wallseg ws;
 	sector_t ffake, bfake;

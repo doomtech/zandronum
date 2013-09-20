@@ -47,8 +47,6 @@
 #include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
@@ -58,7 +56,10 @@
 #include "gl/gl_functions.h"
 #include "vectors.h"
 #include "r_sky.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
 
 EXTERN_CVAR(Bool,gl_mirrors)
@@ -66,12 +67,6 @@ EXTERN_CVAR(Bool,gl_mirror_envmap)
 EXTERN_CVAR(Bool, gl_render_segs)
 EXTERN_CVAR(Bool, gl_seamless)
 EXTERN_CVAR(Bool, gl_fakecontrast)
-
-UniqueList<GLSkyInfo> UniqueSkies;
-UniqueList<GLHorizonInfo> UniqueHorizons;
-UniqueList<GLSectorStackInfo> UniqueStacks;
-UniqueList<secplane_t> UniquePlaneMirrors;
-
 
 //==========================================================================
 //

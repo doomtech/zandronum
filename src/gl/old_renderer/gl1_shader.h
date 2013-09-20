@@ -7,6 +7,7 @@ extern bool gl_textureenabled;
 extern bool gl_glowenabled;
 extern int gl_texturemode;
 extern int gl_brightmapenabled;
+extern bool gl_shaderactive;
 
 //==========================================================================
 //

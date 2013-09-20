@@ -57,8 +57,9 @@
 #include "gl/gl_framebuffer.h"
 #include "gl/common/glc_translate.h"
 #include "vectors.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
+#include "gl/old_renderer/gl1_renderer.h"
 
+#include "gl/scene/gl_drawinfo.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_material.h"
 
@@ -71,31 +72,18 @@
 
 EXTERN_CVAR(Bool, gl_render_segs)
 
-GL1Renderer::~GL1Renderer()
-{
-	FMaterial::FlushAll();
-	gl_ClearShaders();
-}
-
-void GL1Renderer::Initialize()
-{
-	GLRendererBase::Initialize();
-	gl_InitShaders();
-	gl_InitFog();
-}
-
-void GL1Renderer::SetPaused()
+void FGLRenderer::SetPaused()
 {
 	gl_DisableShader();
 	gl_SetTextureMode(-1);
 }
 
-void GL1Renderer::UnsetPaused()
+void FGLRenderer::UnsetPaused()
 {
 	gl_SetTextureMode(TM_MODULATE);
 }
 
-void GL1Renderer::Begin2D()
+void FGLRenderer::Begin2D()
 {
 	gl_EnableFog(false);
 }
@@ -106,7 +94,7 @@ void GL1Renderer::Begin2D()
 //
 //===========================================================================
 
-void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
+void FGLRenderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
 {
 	GLWall wall;
 	wall.Process(seg, sector, backsector, polysub, false); //gl_render_segs);
@@ -119,7 +107,7 @@ void GL1Renderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector
 //
 //===========================================================================
 
-void GL1Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
+void FGLRenderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 {
 	GLWall wall;
 	wall.ProcessLowerMiniseg(seg, frontsector, backsector);
@@ -132,7 +120,7 @@ void GL1Renderer::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector
 //
 //===========================================================================
 
-void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)
+void FGLRenderer::ProcessSprite(AActor *thing, sector_t *sector)
 {
 	GLSprite glsprite;
 	glsprite.Process(thing, sector);
@@ -144,7 +132,7 @@ void GL1Renderer::ProcessSprite(AActor *thing, sector_t *sector)
 //
 //===========================================================================
 
-void GL1Renderer::ProcessParticle(particle_t *part, sector_t *sector)
+void FGLRenderer::ProcessParticle(particle_t *part, sector_t *sector)
 {
 	GLSprite glsprite;
 	glsprite.ProcessParticle(part, sector);//, 0, 0);
@@ -156,7 +144,7 @@ void GL1Renderer::ProcessParticle(particle_t *part, sector_t *sector)
 //
 //===========================================================================
 
-void GL1Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
+void FGLRenderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 {
 	GLFlat glflat;
 	glflat.ProcessSector(fakesector, sub);
@@ -168,7 +156,7 @@ void GL1Renderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
 //
 //===========================================================================
 
-void GL1Renderer::FlushTextures()
+void FGLRenderer::FlushTextures()
 {
 	FMaterial::FlushAll();
 }
@@ -179,7 +167,7 @@ void GL1Renderer::FlushTextures()
 //
 //===========================================================================
 
-void GL1Renderer::PrecacheTexture(FTexture *tex)
+void FGLRenderer::PrecacheTexture(FTexture *tex)
 {
 	FMaterial * gltex = FMaterial::ValidateTexture(tex);
 	if (gltex) 
@@ -201,7 +189,7 @@ void GL1Renderer::PrecacheTexture(FTexture *tex)
 //
 //===========================================================================
 
-void GL1Renderer::UncacheTexture(FTexture *tex)
+void FGLRenderer::UncacheTexture(FTexture *tex)
 {
 	FMaterial * gltex = FMaterial::ValidateTexture(tex);
 	if (gltex) gltex->Clean(true); 
@@ -213,7 +201,7 @@ void GL1Renderer::UncacheTexture(FTexture *tex)
 //
 //===========================================================================
 
-unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
+unsigned char *FGLRenderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 {
 	FMaterial * gltex = FMaterial::ValidateTexture(tex);
 	if (gltex)
@@ -229,17 +217,7 @@ unsigned char *GL1Renderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 //
 //===========================================================================
 
-void GL1Renderer::CleanLevelData()
-{
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-void GL1Renderer::ClearBorders()
+void FGLRenderer::ClearBorders()
 {
 	OpenGLFrameBuffer *glscreen = static_cast<OpenGLFrameBuffer*>(screen);
 
@@ -286,7 +264,7 @@ void GL1Renderer::ClearBorders()
 //
 //==========================================================================
 
-void GL1Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
+void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 {
 	float x = FIXED2FLOAT(parms.x - Scale (parms.left, parms.destwidth, parms.texwidth));
 	float y = FIXED2FLOAT(parms.y - Scale (parms.top, parms.destheight, parms.texheight));
@@ -398,7 +376,7 @@ void GL1Renderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 //
 //
 //==========================================================================
-void GL1Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color)
+void FGLRenderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color)
 {
 	PalEntry p = color? (PalEntry)color : GPalette.BaseColors[palcolor];
 	gl_EnableTexture(false);
@@ -416,7 +394,7 @@ void GL1Renderer::DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 
 //
 //
 //==========================================================================
-void GL1Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
+void FGLRenderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
 {
 	PalEntry p = color? (PalEntry)color : GPalette.BaseColors[palcolor];
 	gl_EnableTexture(false);
@@ -434,7 +412,7 @@ void GL1Renderer::DrawPixel(int x1, int y1, int palcolor, uint32 color)
 //
 //===========================================================================
 
-void GL1Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h)
+void FGLRenderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h)
 {
 	float r, g, b;
 	
@@ -463,7 +441,7 @@ void GL1Renderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int 
 //
 //
 //==========================================================================
-void GL1Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin)
+void FGLRenderer::FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin)
 {
 	float fU1,fU2,fV1,fV2;
 
@@ -501,7 +479,7 @@ void GL1Renderer::FlatFill (int left, int top, int right, int bottom, FTexture *
 //
 //
 //==========================================================================
-void GL1Renderer::Clear(int left, int top, int right, int bottom, int palcolor, uint32 color)
+void FGLRenderer::Clear(int left, int top, int right, int bottom, int palcolor, uint32 color)
 {
 	int rt;
 	int offY = 0;
@@ -533,5 +511,3 @@ void GL1Renderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 	
 	gl.Disable(GL_SCISSOR_TEST);
 }
-
-

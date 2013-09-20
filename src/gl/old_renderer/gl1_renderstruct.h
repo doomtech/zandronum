@@ -41,7 +41,6 @@
 #include "templates.h"
 
 #include "gl/common/glc_structs.h"
-#include "gl/old_renderer/gl1_values.h"
 #include "gl/gl_struct.h"
 
 struct F3DFloor;
@@ -64,15 +63,6 @@ enum HWRenderStyle
 	STYLEHW_Solid,			// drawn solid (needs special treatment for sprites)
 	STYLEHW_NoAlphaTest,	// disable alpha test
 };
-
-struct GLVertex
-{
-	float x,z,y;	// world coordinates
-	float u,v;		// texture coordinates
-	vertex_t * vt;	// real vertex
-};
-
-extern TArray<GLVertex> gl_vertices;
 
 struct GLHorizonInfo
 {

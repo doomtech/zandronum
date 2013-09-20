@@ -52,11 +52,12 @@
 #include "gl/common/glc_templates.h"
 #include "gl/common/glc_vertexbuffer.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
 #include "r_sky.h"
 #include "g_level.h"
 #include "doomstat.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
 #include "gl/textures/gl_material.h"
 
 EXTERN_CVAR (Bool, gl_lights_checkside);

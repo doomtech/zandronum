@@ -50,11 +50,12 @@
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_clock.h"
 #include "gl/gl_functions.h"
-#include "gl/old_renderer/gl1_portal.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "r_sky.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 // [BB] New #includes.
@@ -724,7 +725,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// end of light calculation
 
 	actor=thing;
-	index = gl_spriteindex++;
+	index = GLRenderer->gl_spriteindex++;
 	particle=NULL;
 	
 	const bool drawWithXYBillboard = ( !(actor->renderflags & RF_FORCEYBILLBOARD)

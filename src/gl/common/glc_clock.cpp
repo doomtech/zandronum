@@ -6,6 +6,7 @@
 #endif
 
 #define USE_WINDOWS_DWORD
+#include "i_system.h"
 #include "gl/common/glc_clock.h"
 
 
@@ -18,6 +19,8 @@ glcycle_t RenderAll;
 glcycle_t Dirty;
 int vertexcount, flatvertices, flatprimitives;
 
+int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
+int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
 
 double		gl_SecondsPerCycle = 1e-8;
 double		gl_MillisecPerCycle = 1e-5;		// 100 MHz
@@ -69,3 +72,43 @@ void gl_CalculateCPUSpeed ()
 		}
 	#endif
 }
+
+
+//-----------------------------------------------------------------------------
+//
+// Rendering statistics
+//
+//-----------------------------------------------------------------------------
+ADD_STAT(rendertimes)
+{
+	static FString buff;
+	static int lasttime=0;
+	int t=I_MSTime();
+	if (t-lasttime>1000) 
+	{
+		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f\nF: Render=%2.2f, Setup=%2.2f\nS: Render=%2.2f, Setup=%2.2f\nAll: All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
+		RenderWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
+		RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
+		ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
+		lasttime=t;
+	}
+	return buff;
+}
+
+ADD_STAT(renderstats)
+{
+	FString out;
+	out.Format("Walls: %d (%d splits, %d t-splits, %d vertices)\n, Flats: %d (%d primitives, %d vertices)\n, Sprites: %d, Decals=%d\n", 
+		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
+	return out;
+}
+
+ADD_STAT(lightstats)
+{
+	FString out;
+	out.Format("DLight - Walls: %d processed, %d rendered - Flats: %d processed, %d rendered\n", 
+		iter_dlight, draw_dlight, iter_dlightf, draw_dlightf );
+	return out;
+}
+
+

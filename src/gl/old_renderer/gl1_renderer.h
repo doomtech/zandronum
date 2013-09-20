@@ -6,47 +6,6 @@
 
 struct GL_IRECT;
 
-class GL1Renderer : public GLRendererBase
-{
-	~GL1Renderer();
-
-	void RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
-
-	void Initialize();
-	void SetPaused();
-	void UnsetPaused();
-
-	void Begin2D();
-	void ClearBorders();
-	void DrawTexture(FTexture *img, DCanvas::DrawParms &parms);
-	void DrawLine(int x1, int y1, int x2, int y2, int palcolor, uint32 color);
-	void DrawPixel(int x1, int y1, int palcolor, uint32 color);
-	void Dim(PalEntry color, float damount, int x1, int y1, int w, int h);
-	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin);
-	void Clear(int left, int top, int right, int bottom, int palcolor, uint32 color);
-
-	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
-	void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *);
-	void ProcessSprite(AActor *thing, sector_t *sector);
-	void ProcessParticle(particle_t *part, sector_t *sector);
-	void ProcessSector(sector_t *fakesector, subsector_t *sub);
-	void FlushTextures();
-	void PrecacheTexture(FTexture *tex);
-	void UncacheTexture(FTexture *tex);
-	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
-	void CleanLevelData();
-
-	void SetFixedColormap (player_t *player);
-	void WriteSavePic (player_t *player, FILE *file, int width, int height);
-	void EndDrawScene(sector_t * viewsector);
-	void RenderMainView (player_t *player, float fov, float ratio, float fovratio);
-	void ProcessScene();
-
-	void SetProjection(float fov, float ratio, float fovratio);
-	void SetViewMatrix(bool mirror, bool planemirror);
-
-};
-
 // textures + sprites
 
 extern DWORD gl_fixedcolormap;
@@ -69,8 +28,6 @@ void gl_SetGlowPosition(float topdist, float bottomdist);
 int gl_SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
 void gl_ApplyShader();
 
-void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror);
-void gl_DrawScene();
 void gl_EndDrawScene();
 sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, bool mainview);
 void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending);

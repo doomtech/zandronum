@@ -40,7 +40,6 @@
 */
 #include "gl/gl_include.h"
 #include "gl/gl_intern.h"
-#include "gl/old_renderer/gl1_values.h"
 #include "c_cvars.h"
 #include "v_video.h"
 #include "name.h"
@@ -49,6 +48,8 @@
 #include "i_system.h"
 #include "doomerrors.h"
 #include "v_palette.h"
+
+#include "gl/textures/gl_material.h"
 
 // these will only have an effect on SM3 cards.
 // For SM4 they are always on and for SM2 always off

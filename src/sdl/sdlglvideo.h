@@ -6,8 +6,6 @@
 #include <SDL.h>
 #include "gl/gl_include.h"
 
-extern int palette_brightness;
-
 EXTERN_CVAR (Float, dimamount)
 EXTERN_CVAR (Color, dimcolor)
 

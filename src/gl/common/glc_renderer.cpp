@@ -40,6 +40,7 @@
 
 #include "gl/gl_include.h"
 #include "gl/gl_framebuffer.h"
+#include "gl/gl_functions.h"
 #include "r_local.h"
 #include "i_system.h"
 #include "r_main.h"
@@ -53,6 +54,10 @@
 #include "gl/common/glc_convert.h"
 #include "gl/common/glc_clipper.h"
 #include "gl/common/glc_vertexbuffer.h"
+#include "gl/old_renderer/gl1_shader.h"
+
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/textures/gl_material.h"
 
 // [BB] Clients may not alter gl_nearclip.
 CUSTOM_CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -78,13 +83,19 @@ area_t			in_area;
 //
 //-----------------------------------------------------------------------------
 
-void GLRendererBase::Initialize()
+void FGLRenderer::Initialize()
 {
 	mVBO = new FVertexBuffer;
+	GlobalDrawInfo = new FDrawInfo;
+	gl_InitShaders();
+	gl_InitFog();
 }
 
-GLRendererBase::~GLRendererBase() 
+FGLRenderer::~FGLRenderer() 
 {
+	FMaterial::FlushAll();
+	gl_ClearShaders();
+	if (GlobalDrawInfo != NULL) delete GlobalDrawInfo;
 	if (mVBO != NULL) delete mVBO;
 }
 
@@ -93,7 +104,7 @@ GLRendererBase::~GLRendererBase()
 // R_FrustumAngle
 //
 //-----------------------------------------------------------------------------
-angle_t GLRendererBase::FrustumAngle()
+angle_t FGLRenderer::FrustumAngle()
 {
 	float tilt= fabs(mAngles.Pitch);
 
@@ -113,7 +124,7 @@ angle_t GLRendererBase::FrustumAngle()
 // Sets the area the camera is in
 //
 //-----------------------------------------------------------------------------
-void GLRendererBase::SetViewArea()
+void FGLRenderer::SetViewArea()
 {
 	// The render_sector is better suited to represent the current position in GL
 	viewsector = R_PointInSubsector(viewx, viewy)->render_sector;
@@ -146,89 +157,11 @@ void GLRendererBase::SetViewArea()
 
 //-----------------------------------------------------------------------------
 //
-// sets 3D viewport and initial state
-//
-//-----------------------------------------------------------------------------
-
-void GLRendererBase::SetViewport(GL_IRECT *bounds)
-{
-	if (!bounds)
-	{
-		int height, width;
-
-		// Special handling so the view with a visible status bar displays properly
-
-		if (screenblocks >= 10)
-		{
-			height = SCREENHEIGHT;
-			width  = SCREENWIDTH;
-		}
-		else
-		{
-			height = (screenblocks*SCREENHEIGHT/10) & ~7;
-			width = (screenblocks*SCREENWIDTH/10);
-		}
-
-		int trueheight = static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
-		int bars = (trueheight-screen->GetHeight())/2; 
-
-		int vw = viewwidth;
-		int vh = viewheight;
-		gl.Viewport(viewwindowx, trueheight-bars-(height+viewwindowy-((height-vh)/2)), vw, height);
-		gl.Scissor(viewwindowx, trueheight-bars-(vh+viewwindowy), vw, vh);
-	}
-	else
-	{
-		gl.Viewport(bounds->left, bounds->top, bounds->width, bounds->height);
-		gl.Scissor(bounds->left, bounds->top, bounds->width, bounds->height);
-	}
-	gl.Enable(GL_SCISSOR_TEST);
-	
-	#if 0 //def _DEBUG
-		gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
-		gl.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	#else
-		gl.Clear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	#endif
-
-	gl.Enable(GL_MULTISAMPLE);
-	gl.Enable(GL_DEPTH_TEST);
-	gl.Enable(GL_STENCIL_TEST);
-	gl.StencilFunc(GL_ALWAYS,0,~0);	// default stencil
-	gl.StencilOp(GL_KEEP,GL_KEEP,GL_REPLACE);
-}
-
-//-----------------------------------------------------------------------------
-//
-// Setup the camera position
-//
-//-----------------------------------------------------------------------------
-
-void GLRendererBase::SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle)
-{
-	float fviewangle=(float)(viewangle>>ANGLETOFINESHIFT)*360.0f/FINEANGLES;
-
-	GLRenderer->mAngles.Yaw = 270.0f-fviewangle;
-	GLRenderer->mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
-	GLRenderer->mCameraPos = FVector3(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
-}
-	
-void GLRendererBase::SetCameraPos(const FVector3 &vec, angle_t viewangle)
-{
-	float fviewangle=(float)(viewangle>>ANGLETOFINESHIFT)*360.0f/FINEANGLES;
-
-	GLRenderer->mAngles.Yaw = 270.0f-fviewangle;
-	GLRenderer->mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
-	GLRenderer->mCameraPos = vec;
-}
-	
-//-----------------------------------------------------------------------------
-//
 // Renders one viewpoint in a scene
 //
 //-----------------------------------------------------------------------------
 
-sector_t * GLRendererBase::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
+sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
 {       
 	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
 
@@ -283,7 +216,7 @@ sector_t * GLRendererBase::RenderViewpoint (AActor * camera, GL_IRECT * bounds, 
 //
 //===========================================================================
 
-void GLRendererBase::SetupLevel()
+void FGLRenderer::SetupLevel()
 {
 	mAngles.Pitch = 0.0f;
 	mVBO->CreateVBO();
@@ -301,7 +234,7 @@ extern char myGlBeginCharArray[4];
 int crashoutTic = 0;
 #endif
 
-void GLRendererBase::RenderView (player_t* player)
+void FGLRenderer::RenderView (player_t* player)
 {
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
@@ -405,35 +338,6 @@ void GLRendererBase::RenderView (player_t* player)
 	All.Unclock();
 }
 
-
-//-----------------------------------------------------------------------------
-//
-// Rendering statistics
-//
-//-----------------------------------------------------------------------------
-ADD_STAT(rendertimes)
-{
-	static FString buff;
-	static int lasttime=0;
-	int t=I_MSTime();
-	if (t-lasttime>1000) 
-	{
-		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f\nF: Render=%2.2f, Setup=%2.2f\nS: Render=%2.2f, Setup=%2.2f\nAll: All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
-		RenderWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
-		RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
-		ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
-		lasttime=t;
-	}
-	return buff;
-}
-
-ADD_STAT(renderstats)
-{
-	FString out;
-	out.Format("Walls: %d (%d splits, %d t-splits, %d vertices)\n, Flats: %d (%d primitives, %d vertices)\n, Sprites: %d, Decals=%d\n", 
-		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
-	return out;
-}
 
 extern int DirtyCount;
 

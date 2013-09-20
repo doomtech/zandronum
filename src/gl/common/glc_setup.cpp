@@ -806,6 +806,5 @@ void gl_CleanLevelData()
 		gamesubsectors = NULL;
 		numgamesubsectors = 0;
 	}
-	//if (GLRenderer != NULL) GLRenderer->CleanLevelData();
 }
 

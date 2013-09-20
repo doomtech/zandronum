@@ -49,6 +49,7 @@
 #include "g_level.h"
 #include "gl/common/glc_geometric.h"
 #include "gl/gl_intern.h"
+#include "gl/common/glc_convert.h"
 
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"

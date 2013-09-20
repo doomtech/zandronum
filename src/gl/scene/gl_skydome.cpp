@@ -41,13 +41,14 @@
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/common/glc_data.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_bitmap.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_skyboxtexture.h"
@@ -67,6 +68,7 @@ EXTERN_CVAR (Bool, r_stretchsky)
 extern int skyfog;
 
 // The texture offset to be applied to the texture coordinates in SkyVertex().
+
 static angle_t maxSideAngle = ANGLE_180 / 3;
 static int rows, columns;	
 static fixed_t scale = 10000 << FRACBITS;
@@ -542,7 +544,7 @@ void GLSkyPortal::DrawContents()
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl.PushMatrix();
-	gl_SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	GLRenderer->SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
 	if (origin->texture[0] && origin->texture[0]->tex->gl_info.bSkybox)
 	{

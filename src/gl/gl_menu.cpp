@@ -66,7 +66,6 @@ CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 EXTERN_CVAR (Bool, vid_vsync)
 EXTERN_CVAR(Int, gl_spriteclip)
 EXTERN_CVAR(Int, gl_lightmode)
-EXTERN_CVAR(Bool, gl_blendcolormaps)
 EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)

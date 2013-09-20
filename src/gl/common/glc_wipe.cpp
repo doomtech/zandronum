@@ -51,7 +51,7 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_templates.h"
 #include "gl/common/glc_translate.h"
-#include "gl/textures/gl_hwtexture.h"	// uses this for convenience
+#include "gl/textures/gl_material.h"
 #include "vectors.h"
 
 EXTERN_CVAR(Bool, gl_vid_compatibility)

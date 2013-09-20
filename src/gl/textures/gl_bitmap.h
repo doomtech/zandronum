@@ -2,7 +2,7 @@
 #define __GL_BITMAP_H
 
 #include "textures/bitmap.h"
-#include "gl/old_renderer/gl1_values.h"
+#include "gl/textures/gl_material.h"
 
 
 void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count);

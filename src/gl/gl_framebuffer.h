@@ -107,6 +107,7 @@ private:
 
 public:
 	AActor * LastCamera;
+	int palette_brightness;
 };
 
 

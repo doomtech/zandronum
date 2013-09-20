@@ -47,8 +47,6 @@
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/common/glc_clock.h"
-#include "gl/old_renderer/gl1_wall.h"
-#include "gl/old_renderer/gl1_portal.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_dynlight.h"
@@ -56,7 +54,10 @@
 #include "gl/common/glc_templates.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
+#include "gl/common/glc_convert.h"
 
+#include "gl/scene/gl_drawinfo.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
 
 EXTERN_CVAR(Bool, gl_seamless)

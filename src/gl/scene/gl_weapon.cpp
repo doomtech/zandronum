@@ -51,6 +51,7 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
+#include "gl/common/glc_convert.h"
 #include "gl/old_renderer/gl1_shader.h"
 
 #include "gl/models/gl_models.h"
@@ -66,7 +67,7 @@ EXTERN_CVAR(Float, transsouls)
 //
 //==========================================================================
 
-static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index, bool hudModelStep)
+void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index, bool hudModelStep)
 {
 	float			fU1,fV1;
 	float			fU2,fV2;
@@ -150,7 +151,7 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 //
 //==========================================================================
 
-void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
+void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 {
 	bool statebright[2] = {false, false};
 	unsigned int i;
@@ -163,7 +164,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	player_t * player=playermo->player;
 	
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
-		GLRenderer->mViewActor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
+		mViewActor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
 
 	P_BobWeapon (player, &player->psprites[ps_weapon], &ofsx, &ofsy);
 
@@ -278,7 +279,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 //
 //==========================================================================
 
-void gl_DrawTargeterSprites()
+void FGLRenderer::DrawTargeterSprites()
 {
 	int i;
 	pspdef_t *psp;
@@ -286,7 +287,7 @@ void gl_DrawTargeterSprites()
 	player_t * player=playermo->player;
 	
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
-		GLRenderer->mViewActor!=playermo) return;
+		mViewActor!=playermo) return;
 
 	gl_EnableBrightmap(false);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

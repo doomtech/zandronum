@@ -11,6 +11,24 @@ EXTERN_CVAR(Bool, gl_precache)
 struct FRemapTable;
 
 
+enum EColorManipulation
+{
+
+	CM_INVALID=-1,
+	CM_DEFAULT=0,					// untranslated
+	CM_DESAT0=CM_DEFAULT,
+	CM_DESAT1,					// minimum desaturation
+	CM_DESAT31=CM_DESAT1+30,	// maximum desaturation = grayscale
+	CM_FIRSTSPECIALCOLORMAP,		// first special fixed colormap
+
+	// special internal values
+	CM_GRAY = 0x1000000,		// a simple grayscale map for colorizing blood splats
+	CM_ICE	= 0x1000001,		// The bluish ice translation for frozen corpses
+	CM_LITE	= 0x1000002,		// special values to handle these items without excessive hacking
+	CM_SHADE= 0x1000003,		// alpha channel texture
+	CM_TORCH= 0x1000010,		// These are not real color manipulations
+};
+
 // Two intermediate classes which wrap the low level textures.
 // These ones are returned by the Bind* functions to ensure
 // that the coordinate functions aren't used without the texture
