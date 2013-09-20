@@ -41,9 +41,10 @@
 #include "sc_man.h"
 #include "m_crc32.h"
 #include "gl_models.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_shader.h"
+
+#include "gl/textures/gl_material.h"
 
 #define MAX_QPATH 64
 

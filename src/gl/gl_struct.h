@@ -5,7 +5,7 @@
 #include "v_palette.h"
 #include "tarray.h"
 #include "gl/old_renderer/gl1_values.h"
-#include "gl/old_renderer/gl1_texture.h"
+#include "gl/textures/gl_material.h"
 #include "textures/textures.h"
 
 struct vertex_t;

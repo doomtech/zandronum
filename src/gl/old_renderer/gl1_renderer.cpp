@@ -40,7 +40,6 @@
 
 #include "gl/gl_include.h"
 #include "gl/common/glc_clock.h"
-#include "gl/common/glc_texture.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"
@@ -53,7 +52,6 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
@@ -61,6 +59,8 @@
 #include "vectors.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 
+#include "gl/textures/gl_texture.h"
+#include "gl/textures/gl_material.h"
 
 //===========================================================================
 // 

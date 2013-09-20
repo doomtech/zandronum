@@ -48,7 +48,6 @@
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
 #include "gl/common/glc_vertexbuffer.h"
@@ -58,6 +57,7 @@
 #include "g_level.h"
 #include "doomstat.h"
 
+#include "gl/textures/gl_material.h"
 
 EXTERN_CVAR (Bool, gl_lights_checkside);
 

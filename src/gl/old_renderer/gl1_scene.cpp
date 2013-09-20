@@ -57,13 +57,14 @@
 #include "gl/common/glc_clipper.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_data.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/common/glc_templates.h"
 #include "gl/common/glc_vertexbuffer.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_models.h"
+
+#include "gl/textures/gl_material.h"
 
 //==========================================================================
 //

@@ -45,10 +45,11 @@
 #include "a_sharedglobal.h"
 #include "gl/common/glc_data.h"
 #include "gl/common/glc_clock.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
+
+#include "gl/textures/gl_material.h"
 
 struct DecalVertex
 {

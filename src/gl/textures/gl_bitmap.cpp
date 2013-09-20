@@ -42,7 +42,7 @@
 #include "templates.h"
 #include "gl/gl_functions.h"
 #include "gl/common/glc_translate.h"
-#include "gl/old_renderer/gl1_bitmap.h"
+#include "gl/textures/gl_bitmap.h"
 
 //===========================================================================
 // 

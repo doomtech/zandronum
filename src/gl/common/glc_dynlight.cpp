@@ -58,7 +58,8 @@
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
-#include "gl/common/glc_skyboxtexture.h"
+// [BB] Necessary to make GZDoom revision 481 compile
+#include "gl/textures/gl_skyboxtexture.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);
 EXTERN_CVAR (Float, gl_lights_size);

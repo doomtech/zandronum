@@ -43,15 +43,15 @@
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
 #include "gl/old_renderer/gl1_portal.h"
-#include "gl/old_renderer/gl1_texture.h"
-#include "gl/old_renderer/gl1_bitmap.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/common/glc_data.h"
-#include "gl/common/glc_texture.h"
-#include "gl/common/glc_skyboxtexture.h"
 
+#include "gl/textures/gl_bitmap.h"
+#include "gl/textures/gl_texture.h"
+#include "gl/textures/gl_skyboxtexture.h"
+#include "gl/textures/gl_material.h"
 
 
 //-----------------------------------------------------------------------------

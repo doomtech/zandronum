@@ -626,23 +626,18 @@ if( NOT NO_GL )
 		gl/common/glc_fakeflat.cpp
 		gl/common/glc_geometric.cpp
 		gl/common/glc_glow.cpp
-		gl/common/glc_hirestex.cpp
-		gl/common/glc_hqresize.cpp
 		gl/common/glc_light.cpp
 		gl/common/glc_nodes.cpp
 		gl/common/glc_renderer.cpp
 		gl/common/glc_renderhacks.cpp
 		gl/common/glc_sections.cpp
 		gl/common/glc_setup.cpp
-		gl/common/glc_texture.cpp
 		gl/common/glc_translate.cpp
 		gl/common/glc_vertexbuffer.cpp
 		gl/common/glc_wipe.cpp
-		gl/old_renderer/gl1_bitmap.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
-		gl/old_renderer/gl1_hwtexture.cpp
 		gl/old_renderer/gl1_portal.cpp
 		gl/old_renderer/gl1_renderer.cpp
 		gl/old_renderer/gl1_scene.cpp
@@ -650,11 +645,16 @@ if( NOT NO_GL )
 		gl/old_renderer/gl1_sky.cpp
 		gl/old_renderer/gl1_skydome.cpp
 		gl/old_renderer/gl1_sprite.cpp
-		gl/old_renderer/gl1_texture.cpp
 		gl/old_renderer/gl1_vertex.cpp
 		gl/old_renderer/gl1_walls.cpp
 		gl/old_renderer/gl1_walls_draw.cpp
 		gl/old_renderer/gl1_weapon.cpp
+		gl/textures/gl_bitmap.cpp
+		gl/textures/gl_hirestex.cpp
+		gl/textures/gl_hqresize.cpp
+		gl/textures/gl_hwtexture.cpp
+		gl/textures/gl_material.cpp
+		gl/textures/gl_texture.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp

@@ -36,7 +36,7 @@
 
 #include "gl/gl_include.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_texture.h"
+#include "gl/textures/gl_texture.h"
 #include "gl/gl_intern.h"
 #include "c_cvars.h"
 // [BB] hqnx scaling is only supported with the MS compiler.

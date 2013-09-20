@@ -48,8 +48,9 @@
 #endif
 #include "v_palette.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_texture.h"
-#include "gl/old_renderer/gl1_texture.h"
+
+#include "gl/textures/gl_texture.h"
+#include "gl/textures/gl_material.h"
 
 //==========================================================================
 //

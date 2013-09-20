@@ -44,7 +44,6 @@
 #include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
@@ -52,6 +51,8 @@
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
+
+#include "gl/textures/gl_material.h"
 
 GLDrawInfo * gl_drawinfo;
 extern FreeList<gl_subsectorrendernode> SSR_List;

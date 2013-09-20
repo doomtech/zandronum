@@ -52,8 +52,8 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
-#include "gl/old_renderer/gl1_texture.h"
 #include "gl/old_renderer/gl1_shader.h"
+#include "gl/textures/gl_material.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)

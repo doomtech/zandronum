@@ -48,7 +48,8 @@
 #include "c_dispatch.h"
 #include "v_palette.h"
 #include "gl/gl_intern.h"
-#include "gl/old_renderer/gl1_texture.h"
+
+#include "gl/textures/gl_material.h"
 
 
 extern TexFilter_s TexFilter[];

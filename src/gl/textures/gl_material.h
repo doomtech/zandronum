@@ -2,7 +2,7 @@
 #ifndef __GL_TEXTURE_H
 #define __GL_TEXTURE_H
 
-#include "gl/old_renderer/gl1_hwtexture.h"
+#include "gl/textures/gl_hwtexture.h"
 #include "r_data.h"
 #include "i_system.h"
 
