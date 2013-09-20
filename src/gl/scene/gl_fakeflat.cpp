@@ -42,7 +42,7 @@
 #include "p_local.h"
 #include "a_sharedglobal.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_clipper.h"
+#include "gl/scene/gl_clipper.h"
 #include "r_sky.h"
 
 

@@ -5,8 +5,21 @@
 // One wall segment in the draw list
 //
 //==========================================================================
+#include "r_defs.h"
+#include "textures/textures.h"
+#include "gl/gl_struct.h"
 
 struct GLHorizonInfo;
+struct F3DFloor;
+struct model_t;
+struct FSpriteModelFrame;
+struct particle_t;
+class ADynamicLight;
+class FMaterial;
+struct GLDrawList;
+struct GLSkyInfo;
+struct GLSectorStackInfo;
+
 
 enum WallTypes
 {
@@ -30,6 +43,48 @@ enum WallTypes
 	RENDERWALL_COLORLAYER,
 	// Insert new types at the end!
 };
+
+struct GLSeg
+{
+	float x1,x2;
+	float y1,y2;
+	float fracleft, fracright;	// fractional offset of the 2 vertices on the linedef
+};
+
+struct texcoord
+{
+	float u,v;
+};
+
+//==========================================================================
+//
+// One sector plane, still in fixed point
+//
+//==========================================================================
+
+struct GLSectorPlane
+{
+	FTextureID texture;
+	secplane_t plane;
+	fixed_t texheight;
+	fixed_t xoffs,  yoffs;
+	fixed_t	xscale, yscale;
+	angle_t	angle;
+
+	void GetFromSector(sector_t * sec, int ceiling)
+	{
+		xoffs = sec->GetXOffset(ceiling);
+		yoffs = sec->GetYOffset(ceiling);
+		xscale = sec->GetXScale(ceiling);
+		yscale = sec->GetYScale(ceiling);
+		angle = sec->GetAngle(ceiling);
+		texture = sec->GetTexture(ceiling);
+		plane = sec->GetSecPlane(ceiling);
+		texheight = (ceiling == sector_t::ceiling)? plane.d : -plane.d;
+	}
+};
+
+
 
 class GLWall
 {
@@ -176,6 +231,99 @@ public:
 		return ((ay-cy)*(dx-cx)-(ax-cx)*(dy-cy)) / ((bx-ax)*(dy-cy)-(by-ay)*(dx-cx));
 	}
 
+};
+
+//==========================================================================
+//
+// One flat plane in the draw list
+//
+//==========================================================================
+
+class GLFlat
+{
+public:
+	friend struct GLDrawList;
+
+	sector_t * sector;
+	subsector_t * sub;	// only used for translucent planes
+	float z; // the z position of the flat (height)
+	FMaterial *gltexture;
+
+	FColormap Colormap;	// light and fog
+	ERenderStyle renderstyle;
+
+	float alpha;
+	GLSectorPlane plane;
+	short lightlevel;
+	bool stack;
+	bool foggy;
+	bool ceiling;
+	BYTE renderflags;
+	int vboindex;
+	int vboheight;
+
+	void DrawSubsector(subsector_t * sub);
+	void DrawSubsectorLights(subsector_t * sub, int pass);
+	void DrawSubsectors(bool istrans);
+
+	void PutFlat(bool fog = false);
+	void Process(sector_t * sector, int whichplane, bool notexture);
+	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
+	void ProcessSector(sector_t * frontsector, subsector_t * sub);
+	void Draw(int pass);
+};
+
+
+//==========================================================================
+//
+// One sprite in the draw list
+//
+//==========================================================================
+
+
+class GLSprite
+{
+public:
+	friend struct GLDrawList;
+	friend void Mod_RenderModel(GLSprite * spr, model_t * mdl, int framenumber);
+
+	BYTE lightlevel;
+	BYTE foglevel;
+	BYTE hw_styleflags;
+	PalEntry ThingColor;	// thing's own color
+	FColormap Colormap;
+	FSpriteModelFrame * modelframe;
+	FRenderStyle RenderStyle;
+
+	int translation;
+	int index;
+	float scale;
+	float x,y,z;	// needed for sorting!
+
+	float ul,ur;
+	float vt,vb;
+	float x1,y1,z1;
+	float x2,y2,z2;
+
+	FMaterial *gltexture;
+	float trans;
+	AActor * actor;
+	particle_t * particle;
+
+	void SplitSprite(sector_t * frontsector, bool translucent);
+	void SetLowerParam();
+
+public:
+
+	void Draw(int pass);
+	void PutSprite(bool translucent);
+	void Process(AActor* thing,sector_t * sector);
+	void ProcessParticle (particle_t *particle, sector_t *sector);//, int shade, int fakeside)
+	void SetThingColor(PalEntry);
+	void SetSpriteColor(sector_t *sector, fixed_t y);
+
+	// Lines start-end and fdiv must intersect.
+	double CalcIntersectionVertex(GLWall * w2);
 };
 
 #endif

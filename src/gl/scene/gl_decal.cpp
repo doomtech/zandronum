@@ -43,12 +43,11 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "a_sharedglobal.h"
-#include "gl/common/glc_data.h"
 #include "gl/common/glc_clock.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/common/glc_convert.h"
 
+#include "gl/data/gl_data.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/textures/gl_material.h"
 

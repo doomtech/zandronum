@@ -41,7 +41,7 @@
 #include "i_system.h"
 #include "p_local.h"
 #include "c_dispatch.h"
-#include "gl/common/glc_sections.h"
+#include "gl/data/gl_sections.h"
 
 TArray<FGLSectionLine> SectionLines;
 TArray<FGLSectionLoop> SectionLoops;

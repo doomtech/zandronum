@@ -40,14 +40,44 @@
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
-#include "gl/old_renderer/gl1_renderstruct.h"
-
 #include "gl/scene/gl_drawinfo.h"
 
-struct skycube_t
+struct GLHorizonInfo
 {
-	int textures[6];
+	GLSectorPlane plane;
+	int lightlevel;
+	FColormap colormap;
 };
+
+struct GLSkyInfo
+{
+	float x_offset[2];
+	float y_offset;		// doubleskies don't have a y-offset
+	FMaterial * texture[2];
+	FTextureID skytexno1;
+	bool mirrored;
+	bool doublesky;
+	PalEntry fadecolor;	// if this isn't made part of the dome things will become more complicated when sky fog is used.
+
+	bool operator==(const GLSkyInfo & inf)
+	{
+		return !memcmp(this, &inf, sizeof(*this));
+	}
+	bool operator!=(const GLSkyInfo & inf)
+	{
+		return !!memcmp(this, &inf, sizeof(*this));
+	}
+};
+
+struct GLSectorStackInfo
+{
+	fixed_t deltax;
+	fixed_t deltay;
+	fixed_t deltaz;
+	bool isupper;	
+};
+
+
 
 extern UniqueList<GLSkyInfo> UniqueSkies;
 extern UniqueList<GLHorizonInfo> UniqueHorizons;

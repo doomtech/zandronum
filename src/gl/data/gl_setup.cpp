@@ -56,9 +56,10 @@
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-#include "gl/common/glc_data.h"
 #include "gl/common/glc_clock.h"
-#include "gl/common/glc_vertexbuffer.h"
+
+#include "gl/data/gl_data.h"
+#include "gl/data/gl_vertexbuffer.h"
 
 void InitGLRMapinfoData();
 void gl_InitData();

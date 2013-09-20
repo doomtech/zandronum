@@ -36,7 +36,7 @@
 */
 
 #include "r_main.h"
-#include "gl/common/glc_clipper.h"
+#include "gl/scene/gl_clipper.h"
 
 
 

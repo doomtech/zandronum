@@ -3,9 +3,10 @@
 #define __GL_LIGHTS_H__
 
 #include "gl/gl_intern.h"
-#include "gl/common/glc_data.h"
 #include "gl/common/glc_geometric.h"
 #include "gl/common/glc_dynlight.h"
+
+#include "gl/data/gl_data.h"
 
 //
 // Light helper methods

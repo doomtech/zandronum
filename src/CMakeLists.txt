@@ -617,30 +617,30 @@ endif( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 if( NOT NO_GL )
 	set( GL_SOURCES
 		gl/common/a_dynlight.cpp
-		gl/common/glc_bsp.cpp
-		gl/common/glc_clipper.cpp
 		gl/common/glc_clock.cpp
 		gl/common/glc_cycler.cpp
-		gl/common/glc_data.cpp
 		gl/common/glc_dynlight.cpp
-		gl/common/glc_fakeflat.cpp
 		gl/common/glc_geometric.cpp
 		gl/common/glc_glow.cpp
 		gl/common/glc_light.cpp
-		gl/common/glc_nodes.cpp
 		gl/common/glc_renderer.cpp
 		gl/common/glc_sections.cpp
-		gl/common/glc_setup.cpp
-		gl/common/glc_translate.cpp
-		gl/common/glc_vertexbuffer.cpp
 		gl/common/glc_wipe.cpp
+		gl/data/gl_data.cpp
+		gl/data/gl_nodes.cpp
+		gl/data/gl_sections.cpp
+		gl/data/gl_setup.cpp
+		gl/data/gl_vertexbuffer.cpp
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models_md3.cpp
 		gl/old_renderer/gl1_renderer.cpp
 		gl/old_renderer/gl1_shader.cpp
+		gl/scene/gl_bsp.cpp
+		gl/scene/gl_clipper.cpp
 		gl/scene/gl_decal.cpp
 		gl/scene/gl_drawinfo.cpp
+		gl/scene/gl_fakeflat.cpp
 		gl/scene/gl_flats.cpp
 		gl/scene/gl_portal.cpp
 		gl/scene/gl_renderhacks.cpp
@@ -658,6 +658,7 @@ if( NOT NO_GL )
 		gl/textures/gl_hwtexture.cpp
 		gl/textures/gl_material.cpp
 		gl/textures/gl_texture.cpp
+		gl/textures/gl_translate.cpp
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp

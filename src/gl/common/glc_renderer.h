@@ -12,6 +12,8 @@ class OpenGLFrameBuffer;
 struct FDrawInfo;
 struct pspdef_t;
 
+extern int extralight;
+
 enum SectorRenderFlags
 {
 	// This is used to avoid creating too many drawinfos

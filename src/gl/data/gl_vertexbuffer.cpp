@@ -42,8 +42,9 @@
 #include "doomtype.h"
 #include "p_local.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_data.h"
-#include "gl/common/glc_vertexbuffer.h"
+
+#include "gl/data/gl_data.h"
+#include "gl/data/gl_vertexbuffer.h"
 
 
 

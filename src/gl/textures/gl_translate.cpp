@@ -39,7 +39,7 @@
 */
 
 #include "doomtype.h"
-#include "gl/common/glc_translate.h"
+#include "gl/textures/gl_translate.h"
 #include "m_crc32.h"
 
 TArray<GLTranslationPalette::PalData> GLTranslationPalette::AllPalettes;

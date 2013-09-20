@@ -44,9 +44,9 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/common/glc_data.h"
 #include "gl/common/glc_convert.h"
 
+#include "gl/data/gl_data.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_bitmap.h"
@@ -314,7 +314,7 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		G=pe.g/255.0f;
 		B=pe.b/255.0f;
 
-		if (fixedcolormap != NULL)
+		if (gl_fixedcolormap != CM_DEFAULT)
 		{
 			float rr,gg,bb;
 
@@ -548,7 +548,7 @@ void GLSkyPortal::DrawContents()
 
 	if (origin->texture[0] && origin->texture[0]->tex->gl_info.bSkybox)
 	{
-		if (fixedcolormap != NULL)
+		if (gl_fixedcolormap != CM_DEFAULT)
 		{						
 			float rr,gg,bb;
 

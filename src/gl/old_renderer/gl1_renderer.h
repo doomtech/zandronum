@@ -2,9 +2,9 @@
 #define __GL1_RENDERER
 
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_structs.h"
 
 struct GL_IRECT;
+struct GLSectorPlane;
 
 // textures + sprites
 

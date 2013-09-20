@@ -46,9 +46,9 @@
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-#include "gl/common/glc_data.h"
 #include "gl/common/glc_templates.h"
 
+#include "gl/data/gl_data.h"
 #include "gl/scene/gl_drawinfo.h"
 
 int GetFloorLight (const sector_t *sec);

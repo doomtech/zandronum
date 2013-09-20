@@ -1,23 +1,29 @@
-#ifndef __GL_STRUCT
-#define __GL_STRUCT
+#ifndef __GL_COLORMAP
+#define __GL_COLORMAP
 
 #include "doomtype.h"
 #include "v_palette.h"
-#include "tarray.h"
-#include "gl/textures/gl_material.h"
-#include "textures/textures.h"
-
-struct vertex_t;
-struct line_t;
-struct side_t;
-struct seg_t;
-struct subsector_t;
-struct sector_t;
-struct FGLSection;
 
 extern DWORD gl_fixedcolormap;
 
 
+enum EColorManipulation
+{
+
+	CM_INVALID=-1,
+	CM_DEFAULT=0,					// untranslated
+	CM_DESAT0=CM_DEFAULT,
+	CM_DESAT1,					// minimum desaturation
+	CM_DESAT31=CM_DESAT1+30,	// maximum desaturation = grayscale
+	CM_FIRSTSPECIALCOLORMAP,		// first special fixed colormap
+
+	// special internal values
+	CM_GRAY = 0x1000000,		// a simple grayscale map for colorizing blood splats
+	CM_ICE	= 0x1000001,		// The bluish ice translation for frozen corpses
+	CM_LITE	= 0x1000002,		// special values to handle these items without excessive hacking
+	CM_SHADE= 0x1000003,		// alpha channel texture
+	CM_TORCH= 0x1000010,		// These are not real color manipulations
+};
 
   // for internal use
 struct FColormap
@@ -65,46 +71,6 @@ struct FColormap
 	}
 };
 
-typedef struct
-{
-	float x1,x2;
-	float y1,y2;
-	float fracleft, fracright;	// fractional offset of the 2 vertices on the linedef
-} GLSeg;
 
-
-struct texcoord
-{
-	float u,v;
-};
-
-
-struct GLSkyInfo
-{
-	float x_offset[2];
-	float y_offset;		// doubleskies don't have a y-offset
-	FMaterial * texture[2];
-	FTextureID skytexno1;
-	bool mirrored;
-	bool doublesky;
-	PalEntry fadecolor;	// if this isn't made part of the dome things will become more complicated when sky fog is used.
-
-	bool operator==(const GLSkyInfo & inf)
-	{
-		return !memcmp(this, &inf, sizeof(*this));
-	}
-	bool operator!=(const GLSkyInfo & inf)
-	{
-		return !!memcmp(this, &inf, sizeof(*this));
-	}
-};
-
-struct GLSectorStackInfo
-{
-	fixed_t deltax;
-	fixed_t deltay;
-	fixed_t deltaz;
-	bool isupper;	
-};
 
 #endif

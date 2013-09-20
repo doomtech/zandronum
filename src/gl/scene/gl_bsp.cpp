@@ -43,10 +43,11 @@
 #include "a_sharedglobal.h"
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_clipper.h"
-#include "gl/common/glc_vertexbuffer.h"
-
 #include "r_sky.h"
+
+#include "gl/data/gl_data.h"
+#include "gl/data/gl_vertexbuffer.h"
+#include "gl/scene/gl_clipper.h"
 
 EXTERN_CVAR(Bool, gl_render_segs)
 

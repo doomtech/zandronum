@@ -40,7 +40,8 @@
 
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_data.h"
+// [BB] Necessary to make GZDoom revision 486 compile.
+#include "gl/data/gl_data.h"
 #include "c_dispatch.h"
 #include "p_local.h"
 

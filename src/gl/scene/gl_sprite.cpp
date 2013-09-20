@@ -45,7 +45,6 @@
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_clock.h"
@@ -73,6 +72,13 @@ EXTERN_CVAR (Float, transsouls)
 extern TArray<spritedef_t> sprites;
 extern TArray<spriteframe_t> SpriteFrames;
 extern TArray<PalEntry> BloodTranslationColors;
+
+enum HWRenderStyle
+{
+	STYLEHW_Normal,			// default
+	STYLEHW_Solid,			// drawn solid (needs special treatment for sprites)
+	STYLEHW_NoAlphaTest,	// disable alpha test
+};
 
 
 void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending)

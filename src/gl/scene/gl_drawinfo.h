@@ -1,9 +1,10 @@
 #ifndef __GL_DRAWINFO_H
 #define __GL_DRAWINFO_H
 
-#include "gl/old_renderer/gl1_renderstruct.h"
 #include "gl/scene/gl_wall.h"
 
+int GetFloorLight (const sector_t *sec);
+int GetCeilingLight (const sector_t *sec);
 
 enum GLDrawItemType
 {
