@@ -44,13 +44,13 @@
 #include "m_crc32.h"
 #include "c_console.h"
 #include "g_game.h"
-#include "gl_models.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 #include "doomstat.h"
 #include "g_level.h"
 #include "gl/common/glc_geometric.h"
-#include "gl_intern.h"
+#include "gl/gl_intern.h"
 
+#include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 
 static inline float GetTimeFloat()

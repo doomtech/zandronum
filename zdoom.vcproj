@@ -10738,18 +10738,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_models.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_models_md2.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_models_md3.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\r_render\r_opengl.cpp"
 					>
 				</File>
@@ -10778,15 +10766,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_models.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_struct.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\tab_anorms.h"
 					>
 				</File>
 			</Filter>
@@ -10979,6 +10959,30 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\textures\gl_texture.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Models"
+				>
+				<File
+					RelativePath=".\src\gl\models\gl_models.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\models\gl_models.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\models\gl_models_md2.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\models\gl_models_md3.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\models\tab_anorms.h"
 					>
 				</File>
 			</Filter>

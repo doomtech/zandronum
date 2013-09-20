@@ -52,10 +52,10 @@
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_portal.h"
 #include "gl/old_renderer/gl1_drawinfo.h"
-#include "gl/gl_models.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "r_sky.h"
 
+#include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 // [BB] New #includes.
 #include "gamemode.h"

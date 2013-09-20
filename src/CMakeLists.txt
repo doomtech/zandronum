@@ -635,6 +635,9 @@ if( NOT NO_GL )
 		gl/common/glc_translate.cpp
 		gl/common/glc_vertexbuffer.cpp
 		gl/common/glc_wipe.cpp
+		gl/models/gl_models.cpp
+		gl/models/gl_models_md2.cpp
+		gl/models/gl_models_md3.cpp
 		gl/old_renderer/gl1_decal.cpp
 		gl/old_renderer/gl1_drawinfo.cpp
 		gl/old_renderer/gl1_flats.cpp
@@ -658,9 +661,6 @@ if( NOT NO_GL )
 		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
 		gl/gl_menu.cpp
-		gl/gl_models.cpp
-		gl/gl_models_md2.cpp
-		gl/gl_models_md3.cpp
 		gl/r_render/r_opengl.cpp
 	)
 else( NOT NO_GL )

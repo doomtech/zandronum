@@ -62,8 +62,8 @@
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_framebuffer.h"
-#include "gl/gl_models.h"
 
+#include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 
 //==========================================================================

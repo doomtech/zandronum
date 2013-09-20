@@ -45,7 +45,6 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_models.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_renderstruct.h"
 
@@ -53,6 +52,8 @@
 #include "gl/common/glc_glow.h"
 #include "gl/common/glc_data.h"
 #include "gl/old_renderer/gl1_shader.h"
+
+#include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
