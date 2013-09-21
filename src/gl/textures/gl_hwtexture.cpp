@@ -215,6 +215,7 @@ FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool w
 	glTexID = new unsigned[cm_arraysize];
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
 	clampmode=0;
+	glDepthID = 0;
 }
 
 
@@ -250,8 +251,8 @@ void FHardwareTexture::Clean(bool all)
 		gl.DeleteTextures(1,&glTexID_Translated[i].glTexID);
 	}
 	glTexID_Translated.Clear();
+	if (glDepthID != 0) gl.DeleteRenderbuffers(1, &glDepthID);
 }
-
 
 //===========================================================================
 // 
@@ -338,6 +339,46 @@ void FHardwareTexture::UnbindAll()
 		Unbind(texunit);
 	}
 }
+
+//===========================================================================
+// 
+//	Creates a depth buffer for this texture
+//
+//===========================================================================
+
+int FHardwareTexture::GetDepthBuffer()
+{
+	if (gl.flags & RFL_FRAMEBUFFER)
+	{
+		if (glDepthID == 0)
+		{
+			gl.GenRenderbuffers(1, &glDepthID);
+			gl.BindRenderbuffer(GL_RENDERBUFFER, glDepthID);
+			gl.RenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 
+				GetTexDimension(texwidth), GetTexDimension(texheight));
+			gl.BindRenderbuffer(GL_RENDERBUFFER, 0);
+		}
+		return glDepthID;
+	}
+	return 0;
+}
+
+
+//===========================================================================
+// 
+//	Binds this texture's surfaces to the current framrbuffer
+//
+//===========================================================================
+
+void FHardwareTexture::BindToFrameBuffer()
+{
+	if (gl.flags & RFL_FRAMEBUFFER)
+	{
+		gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTexID[0], 0);
+		gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, GetDepthBuffer()); 
+	}
+}
+
 
 //===========================================================================
 // 

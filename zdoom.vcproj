@@ -10670,6 +10670,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\textures\gl_cameratexture.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\textures\gl_hirestex.cpp"
 					>
 				</File>

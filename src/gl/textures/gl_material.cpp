@@ -604,7 +604,7 @@ const WorldTextureInfo * FMaterial::Bind(int cm, int clampmode, int translation)
 	const WorldTextureInfo *inf = mTextures[0]->Bind(0, cm, clampmode, translation, softwarewarp);
 	if (inf != NULL && shaderindex > 0)
 	{
-		for(unsigned i=0;i<mTextures.Size();i++)
+		for(unsigned i=1;i<mTextures.Size();i++)
 		{
 			mTextures[i]->Bind(i, CM_DEFAULT, clampmode, 0, false);
 			maxbound = i;
@@ -637,7 +637,7 @@ const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
 	const PatchTextureInfo *inf = mTextures[0]->BindPatch(0, cm, translation, softwarewarp);
 	if (inf != NULL && shaderindex > 0)
 	{
-		for(unsigned i=0;i<mTextures.Size();i++)
+		for(unsigned i=1;i<mTextures.Size();i++)
 		{
 			mTextures[i]->BindPatch(i, CM_DEFAULT, 0, softwarewarp);
 			maxbound = i;
@@ -736,6 +736,22 @@ fixed_t FMaterial::TextureAdjustWidth(ETexUse i) const
 	else return mTextures[0]->Width[i];
 }
 
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+void FMaterial::BindToFrameBuffer()
+{
+	if (mTextures[0]->gltexture == NULL)
+	{
+		// must create the hardware texture first
+		mTextures[0]->Bind(0, CM_DEFAULT, 0, 0, false);
+		FHardwareTexture::Unbind(0);
+	}
+	mTextures[0]->gltexture->BindToFrameBuffer();
+}
 
 //===========================================================================
 //

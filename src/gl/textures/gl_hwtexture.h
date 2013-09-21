@@ -52,9 +52,12 @@ private:
 
 	unsigned int * glTexID;
 	TArray<TranslatedTexture> glTexID_Translated;
+	unsigned int glDepthID;	// only used by camera textures
 
 	void LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit);
 	unsigned * GetTexID(int cm, int translation);
+
+	int GetDepthBuffer();
 
 public:
 	FHardwareTexture(int w, int h, bool mip, bool wrap);
@@ -62,6 +65,8 @@ public:
 
 	static void Unbind(int texunit);
 	static void UnbindAll();
+
+	void BindToFrameBuffer();
 
 	unsigned int Bind(int texunit, int cm, int translation=0, int clampmode = -1);
 	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0);

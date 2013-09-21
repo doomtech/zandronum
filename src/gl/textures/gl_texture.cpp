@@ -209,20 +209,6 @@ PalEntry averageColor(const DWORD *data, int size, fixed_t maxout_factor)
 }
 
 
-//===========================================================================
-//
-// Camera texture rendering
-//
-//===========================================================================
-
-void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
-{
-	GLRenderer->RenderTextureView(this, viewpoint, fov);
-	bNeedsUpdate = false;
-	bDidUpdate = true;
-	bFirstUpdate = false;
-}
-
 
 //==========================================================================
 //

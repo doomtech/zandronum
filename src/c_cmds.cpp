@@ -434,7 +434,8 @@ CCMD (chase)
 
 CCMD (idclev)
 {
-	if ((CheckCheatmode ()) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ))
+	// [BB] Check if client instead of "netgame"
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
 	if ((argv.argc() > 1) && (*(argv[1] + 2) == 0) && *(argv[1] + 1) && *argv[1])
@@ -472,7 +473,8 @@ CCMD (idclev)
 
 CCMD (hxvisit)
 {
-	if (CheckCheatmode ())
+	// [BB] Check if client instead of "netgame"
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
 	if ((argv.argc() > 1) && (*(argv[1] + 2) == 0) && *(argv[1] + 1) && *argv[1])

@@ -509,7 +509,7 @@ enum EBounceFlags
 	// for them that are not present in ZDoom, so it is necessary to identify it properly.
 	BOUNCE_MBF = 1<<12,			// This in itself is not a valid mode, but replaces MBF's MF_BOUNCE flag.
 
-	BOUNCE_TypeMask = BOUNCE_Walls | BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_Actors | BOUNCE_AutoOff | BOUNCE_HereticType,
+	BOUNCE_TypeMask = BOUNCE_Walls | BOUNCE_Floors | BOUNCE_Ceilings | BOUNCE_Actors | BOUNCE_AutoOff | BOUNCE_HereticType | BOUNCE_MBF,
 
 	// The three "standard" types of bounciness are:
 	// HERETIC - Missile will only bounce off the floor once and then enter
@@ -552,6 +552,8 @@ enum EThingSpecialActivationType
 	THINGSPEC_MonsterTrigger = 8,	// The thing can be triggered by a monster
 	THINGSPEC_MissileTrigger = 16,	// The thing can be triggered by a projectile
 	THINGSPEC_ClearSpecial = 32,	// Clears special after successful activation
+	THINGSPEC_NoDeathSpecial = 64,	// Don't activate special on death
+	THINGSPEC_TriggerActs = 128,	// The trigger is the activator of the special (overrides LEVEL_ACTOWNSPECIAL Hexen hack)
 };
 
 // [RH] Like msecnode_t, but for the blockmap

@@ -3,9 +3,9 @@
 #include <windows.h>
 #include <intrin.h>
 
+#define USE_WINDOWS_DWORD
 #endif
 
-#define USE_WINDOWS_DWORD
 #include "i_system.h"
 #include "gl/utility/gl_clock.h"
 

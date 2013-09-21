@@ -51,6 +51,7 @@ public:
 	AActor *mViewActor;
 	FDrawInfo *GlobalDrawInfo;
 	int gl_spriteindex;
+	unsigned int mFBID;
 
 	FTexture *glpart2;
 	FTexture *glpart;
@@ -135,6 +136,9 @@ public:
 	void SetProjection(float fov, float ratio, float fovratio);
 	void SetViewMatrix(bool mirror, bool planemirror);
 	void ProcessScene();
+
+	bool StartOffscreen();
+	void EndOffscreen();
 };
 
 // Global functions. Make them members of GLRenderer later?

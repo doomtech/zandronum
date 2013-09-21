@@ -8,92 +8,13 @@
 #include "s_sound.h"
 */
 
+/* For reference, the default values:
 #define BLAST_RADIUS_DIST	255*FRACUNIT
 #define BLAST_SPEED			20*FRACUNIT
 #define BLAST_FULLSTRENGTH	255
+*/
 
 // Disc of Repulsion --------------------------------------------------------
-
-class AArtiBlastRadius : public AInventory
-{
-	DECLARE_CLASS (AArtiBlastRadius, AInventory)
-public:
-	bool Use (bool pickup);
-protected:
-	void BlastActor (AActor *victim, fixed_t strength);
-};
-
-IMPLEMENT_CLASS (AArtiBlastRadius)
-
-//==========================================================================
-//
-// AArtiBlastRadius :: Activate
-//
-// Blast all actors away
-//
-//==========================================================================
-
-bool AArtiBlastRadius::Use (bool pickup)
-{
-	AActor *mo;
-	TThinkerIterator<AActor> iterator;
-	fixed_t dist;
-
-	S_Sound (Owner, CHAN_AUTO, "BlastRadius", 1, ATTN_NORM);
-
-	// [BB] The server handles anything except for the sound.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return ( true );
-	}
-
-	P_NoiseAlert (Owner, Owner);
-
-	while ( (mo = iterator.Next ()) )
-	{
-		if ((mo == Owner) || (mo->flags2 & MF2_BOSS))
-		{ // Not a valid monster
-			continue;
-		}
-		if ((mo->flags & MF_ICECORPSE) || (mo->flags3 & MF3_CANBLAST))
-		{
-			// Let these special cases go
-		}
-		else if ((mo->flags3 & MF3_ISMONSTER) && (mo->health <= 0))
-		{
-			continue;
-		}
-		else if (!(mo->flags3 & MF3_ISMONSTER) &&
-			!(mo->player) &&
-			!(mo->flags & MF_MISSILE) &&
-			!(mo->flags3 & MF3_CANBLAST) &&
-			!(mo->flags6 & MF6_TOUCHY))
-		{	// Must be monster, player, missile, or touchy
-			continue;
-		}
-		if (mo->flags2 & MF2_DORMANT)
-		{
-			continue;		// no dormant creatures
-		}
-		if (mo->flags3 & MF3_DONTBLAST)
-		{ // A few things that would normally be blastable should not be blasted
-			continue;
-		}
-
-		// [BB] Don't affect spectators.
-		if ( mo->player && mo->player->bSpectating )
-			continue;
-
-		dist = P_AproxDistance (Owner->x - mo->x, Owner->y - mo->y);
-		if (dist > BLAST_RADIUS_DIST)
-		{ // Out of range
-			continue;
-		}
-		BlastActor (mo, BLAST_FULLSTRENGTH);
-	}
-	return true;
-}
 
 //==========================================================================
 //
@@ -101,7 +22,7 @@ bool AArtiBlastRadius::Use (bool pickup)
 //
 //==========================================================================
 
-void AArtiBlastRadius::BlastActor (AActor *victim, fixed_t strength)
+void BlastActor (AActor *victim, fixed_t strength, fixed_t speed, AActor * Owner, const PClass * blasteffect)
 {
 	angle_t angle,ang;
 	AActor *mo = NULL; // [BB] Initialize with NULL.
@@ -114,73 +35,46 @@ void AArtiBlastRadius::BlastActor (AActor *victim, fixed_t strength)
 
 	angle = R_PointToAngle2 (Owner->x, Owner->y, victim->x, victim->y);
 	angle >>= ANGLETOFINESHIFT;
-	if (strength < BLAST_FULLSTRENGTH)
+	victim->velx = FixedMul (speed, finecosine[angle]);
+	victim->vely = FixedMul (speed, finesine[angle]);
+
+	// Spawn blast puff
+	ang = R_PointToAngle2 (victim->x, victim->y, Owner->x, Owner->y);
+	ang >>= ANGLETOFINESHIFT;
+	x = victim->x + FixedMul (victim->radius+FRACUNIT, finecosine[ang]);
+	y = victim->y + FixedMul (victim->radius+FRACUNIT, finesine[ang]);
+	z = victim->z - victim->floorclip + (victim->height>>1);
+	mo = Spawn (blasteffect, x, y, z, ALLOW_REPLACE);
+	if (mo)
 	{
-		victim->velx = FixedMul (strength, finecosine[angle]);
-		victim->vely = FixedMul (strength, finesine[angle]);
-		if (victim->player)
+		mo->velx = victim->velx;
+		mo->vely = victim->vely;
+	}
+	if (victim->flags & MF_MISSILE)
+	{
+		// [RH] Floor and ceiling huggers should not be blasted vertically.
+		if (!(victim->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER)))
 		{
-			// Players handled automatically
-		}
-		else
-		{
-			victim->flags2 |= MF2_BLASTED;
+			victim->velz = 8*FRACUNIT;
+			mo->velz = victim->velz;
 		}
 	}
-	else	// full strength blast from artifact
+	else
 	{
-		if (victim->flags & MF_MISSILE)
-		{
-#if 0
-			if (victim->IsKindOf (RUNTIME_CLASS(AMageStaffFX2)))
-			{ // Reflect to originator
-				victim->special1 = (int)victim->target;	
-				victim->target = Owner;
-			}
-#endif
-		}
-		victim->velx = FixedMul (BLAST_SPEED, finecosine[angle]);
-		victim->vely = FixedMul (BLAST_SPEED, finesine[angle]);
-
-		// Spawn blast puff
-		ang = R_PointToAngle2 (victim->x, victim->y, Owner->x, Owner->y);
-		ang >>= ANGLETOFINESHIFT;
-		x = victim->x + FixedMul (victim->radius+FRACUNIT, finecosine[ang]);
-		y = victim->y + FixedMul (victim->radius+FRACUNIT, finesine[ang]);
-		z = victim->z - victim->floorclip + (victim->height>>1);
-		mo = Spawn ("BlastEffect", x, y, z, ALLOW_REPLACE);
-		if (mo)
-		{
-			mo->velx = victim->velx;
-			mo->vely = victim->vely;
-		}
-
-		if (victim->flags & MF_MISSILE)
-		{
-			// [RH] Floor and ceiling huggers should not be blasted vertically.
-			if (!(victim->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER)))
-			{
-				victim->velz = 8*FRACUNIT;
-				mo->velz = victim->velz;
-			}
-		}
-		else
-		{
-			victim->velz = (1000 / victim->Mass) << FRACBITS;
-		}
-		if (victim->player)
-		{
-			// Players handled automatically
-		}
-		else
-		{
-			victim->flags2 |= MF2_BLASTED;
-		}
-		if (victim->flags6 & MF6_TOUCHY)
-		{ // Touchy objects die when blasted
-			victim->flags6 &= ~MF6_ARMED; // Disarm
-			P_DamageMobj(victim, Owner, Owner, victim->health, NAME_Melee, DMG_FORCED);
-		}
+		victim->velz = (1000 / victim->Mass) << FRACBITS;
+	}
+	if (victim->player)
+	{
+		// Players handled automatically
+	}
+	else
+	{
+		victim->flags2 |= MF2_BLASTED;
+	}
+	if (victim->flags6 & MF6_TOUCHY)
+	{ // Touchy objects die when blasted
+		victim->flags6 &= ~MF6_ARMED; // Disarm
+		P_DamageMobj(victim, Owner, Owner, victim->health, NAME_Melee, DMG_FORCED);
 	}
 
 	// [BB] If we're the server, tell clients about all they need to know here.
@@ -197,5 +91,85 @@ void AArtiBlastRadius::BlastActor (AActor *victim, fixed_t strength)
 			// [BB] Possibly set mo's momentum.
 			SERVER_SetThingNonZeroAngleAndMomentum( mo );
 		}
+	}
+}
+
+enum
+{
+	BF_USEAMMO = 1,
+	BF_DONTWARN = 2,
+	BF_AFFECTBOSSES = 4,
+};
+
+//==========================================================================
+//
+// AArtiBlastRadius :: Activate
+//
+// Blast all actors away
+//
+//==========================================================================
+
+DEFINE_ACTION_FUNCTION_PARAMS (AActor, A_Blast)
+{
+	ACTION_PARAM_START(6);
+	ACTION_PARAM_INT  (blastflags,	0);
+	ACTION_PARAM_FIXED(strength,	1);
+	ACTION_PARAM_FIXED(radius,		2);
+	ACTION_PARAM_FIXED(speed,		3);
+	ACTION_PARAM_CLASS(blasteffect, 4);
+	ACTION_PARAM_SOUND(blastsound,	5);
+
+	AActor *mo;
+	TThinkerIterator<AActor> iterator;
+	fixed_t dist;
+
+	if (self->player && (blastflags & BF_USEAMMO))
+	{
+		AWeapon * weapon = self->player->ReadyWeapon;
+		if (!weapon->DepleteAmmo(weapon->bAltFire))
+			return;
+	}
+
+	S_Sound (self, CHAN_AUTO, blastsound, 1, ATTN_NORM);
+
+	// [BB] The server handles anything except for the sound.
+	if ( NETWORK_InClientMode() )
+		return;
+
+	if (!(blastflags & BF_DONTWARN)) P_NoiseAlert (self, self);
+
+	while ( (mo = iterator.Next ()) )
+	{
+		if ((mo == self) || ((mo->flags2 & MF2_BOSS) && !(blastflags & BF_AFFECTBOSSES))
+			|| (mo->flags2 & MF2_DORMANT) || (mo->flags3 & MF3_DONTBLAST))
+		{ // Not a valid monster: originator, boss, dormant, or otherwise protected
+			continue;
+		}
+		if ((mo->flags & MF_ICECORPSE) || (mo->flags3 & MF3_CANBLAST))
+		{
+			// Let these special cases go
+		}
+		else if ((mo->flags3 & MF3_ISMONSTER) && (mo->health <= 0))
+		{
+			continue;
+		}
+		else if (!(mo->player) &&
+			!(mo->flags & MF_MISSILE) &&
+			!(mo->flags3 & (MF3_ISMONSTER|MF3_CANBLAST)) &&
+			!(mo->flags6 & (MF6_TOUCHY|MF6_VULNERABLE)))
+		{	// Must be monster, player, missile, touchy or vulnerable
+			continue;
+		}
+
+		// [BB] Don't affect spectators.
+		if ( mo->player && mo->player->bSpectating )
+			continue;
+
+		dist = P_AproxDistance (self->x - mo->x, self->y - mo->y);
+		if (dist > radius)
+		{ // Out of range
+			continue;
+		}
+		BlastActor (mo, strength, speed, self, blasteffect);
 	}
 }

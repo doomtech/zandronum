@@ -316,32 +316,6 @@ static bool CheckExtension(const char *ext)
 
 //==========================================================================
 //
-// These 2 functions use a different set arguments than the ARB equivalents
-// [AL] OpenGL on OS X: Added z prefix to avoid name collision with GLEW
-//
-//==========================================================================
-static PFNGLBEGINOCCLUSIONQUERYNVPROC zglBeginOcclusionQueryNV;
-static PFNGLENDOCCLUSIONQUERYNVPROC zglEndOcclusionQueryNV;
-
-static void APIENTRY BeginOcclusionQuery(GLenum type, GLuint id)
-{
-	if (zglBeginOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB)
-	{
-		zglBeginOcclusionQueryNV(id);
-	}
-		
-}
-
-static void APIENTRY EndOcclusionQuery(GLenum type)
-{
-	if (zglEndOcclusionQueryNV && type==GL_SAMPLES_PASSED_ARB)
-	{
-		zglEndOcclusionQueryNV();
-	}
-}
-
-//==========================================================================
-//
 // 
 //
 //==========================================================================
@@ -366,12 +340,10 @@ static void APIENTRY LoadExtensions()
 	if (!gl->BlendEquation) gl->BlendEquation = glBlendEquationDummy;
 
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
-	if (CheckExtension("GL_NV_texture_env_combine4")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
-	if (CheckExtension("GL_ATI_texture_env_combine3")) gl->flags|=RFL_TEX_ENV_COMBINE4_NV;
-	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 	if (CheckExtension("GL_ARB_texture_compression")) gl->flags|=RFL_TEXTURE_COMPRESSION;
 	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl->flags|=RFL_TEXTURE_COMPRESSION_S3TC;
 
+	if (strcmp((const char*)glGetString(GL_VERSION), "2.0") >= 0) gl->flags|=RFL_GL_20;
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;
 	if (strcmp((const char*)glGetString(GL_VERSION), "3.0") >= 0) gl->flags|=RFL_GL_30;
 
@@ -384,67 +356,64 @@ static void APIENTRY LoadExtensions()
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE,&gl->max_texturesize);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	if (CheckExtension ("GL_ARB_shader_objects") &&
-		CheckExtension ("GL_ARB_vertex_shader") &&
-		CheckExtension ("GL_ARB_fragment_shader") &&
-		CheckExtension ("GL_ARB_shading_language_100"))
+	if (gl->flags & RFL_GL_20)
 	{
-		gl->DeleteObject = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-		gl->GetHandle = (PFNGLGETHANDLEARBPROC)wglGetProcAddress("glGetHandleARB");
-		gl->DetachObject = (PFNGLDETACHOBJECTARBPROC)wglGetProcAddress("glDetachObjectARB");
-		gl->CreateShaderObject = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-		gl->ShaderSource = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-		gl->CompileShader = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-		gl->CreateProgramObject = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-		gl->AttachObject = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-		gl->LinkProgram = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-		gl->UseProgramObject = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-		gl->ValidateProgram = (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
+		gl->DeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
+		gl->DeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
+		gl->DetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
+		gl->CreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
+		gl->ShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
+		gl->CompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
+		gl->CreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
+		gl->AttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
+		gl->LinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
+		gl->UseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+		gl->ValidateProgram = (PFNGLVALIDATEPROGRAMPROC)wglGetProcAddress("glValidateProgram");
 
-		gl->VertexAttrib1f = (PFNGLVERTEXATTRIB1FARBPROC)wglGetProcAddress("glVertexAttrib1fARB");
-		gl->VertexAttrib4f = (PFNGLVERTEXATTRIB4FARBPROC)wglGetProcAddress("glVertexAttrib4fARB");
-		gl->VertexAttrib2fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib2fvARB");
-		gl->VertexAttrib3fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib3fvARB");
-		gl->VertexAttrib4fv = (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib4fvARB");
-		gl->VertexAttrib4ubv = (PFNGLVERTEXATTRIB4UBVARBPROC)wglGetProcAddress("glVertexAttrib4ubvARB");
-		gl->GetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC)wglGetProcAddress("glGetAttribLocationARB");
-		gl->BindAttribLocation = (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
+		gl->VertexAttrib1f = (PFNGLVERTEXATTRIB1FPROC)wglGetProcAddress("glVertexAttrib1f");
+		gl->VertexAttrib4f = (PFNGLVERTEXATTRIB4FPROC)wglGetProcAddress("glVertexAttrib4f");
+		gl->VertexAttrib2fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib2fv");
+		gl->VertexAttrib3fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib3fv");
+		gl->VertexAttrib4fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib4fv");
+		gl->VertexAttrib4ubv = (PFNGLVERTEXATTRIB4UBVPROC)wglGetProcAddress("glVertexAttrib4ubv");
+		gl->GetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
+		gl->BindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)wglGetProcAddress("glBindAttribLocation");
 
 
-		gl->Uniform1f = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-		gl->Uniform2f = (PFNGLUNIFORM2FARBPROC)wglGetProcAddress("glUniform2fARB");
-		gl->Uniform3f = (PFNGLUNIFORM3FARBPROC)wglGetProcAddress("glUniform3fARB");
-		gl->Uniform4f = (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
-		gl->Uniform1i = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-		gl->Uniform2i = (PFNGLUNIFORM2IARBPROC)wglGetProcAddress("glUniform2iARB");
-		gl->Uniform3i = (PFNGLUNIFORM3IARBPROC)wglGetProcAddress("glUniform3iARB");
-		gl->Uniform4i = (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
-		gl->Uniform1fv = (PFNGLUNIFORM1FVARBPROC)wglGetProcAddress("glUniform1fvARB");
-		gl->Uniform2fv = (PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
-		gl->Uniform3fv = (PFNGLUNIFORM3FVARBPROC)wglGetProcAddress("glUniform3fvARB");
-		gl->Uniform4fv = (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
-		gl->Uniform1iv = (PFNGLUNIFORM1IVARBPROC)wglGetProcAddress("glUniform1ivARB");
-		gl->Uniform2iv = (PFNGLUNIFORM2IVARBPROC)wglGetProcAddress("glUniform2ivARB");
-		gl->Uniform3iv = (PFNGLUNIFORM3IVARBPROC)wglGetProcAddress("glUniform3ivARB");
-		gl->Uniform4iv = (PFNGLUNIFORM4IVARBPROC)wglGetProcAddress("glUniform4ivARB");
+		gl->Uniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+		gl->Uniform2f = (PFNGLUNIFORM2FPROC)wglGetProcAddress("glUniform2f");
+		gl->Uniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f");
+		gl->Uniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f");
+		gl->Uniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+		gl->Uniform2i = (PFNGLUNIFORM2IPROC)wglGetProcAddress("glUniform2i");
+		gl->Uniform3i = (PFNGLUNIFORM3IPROC)wglGetProcAddress("glUniform3i");
+		gl->Uniform4i = (PFNGLUNIFORM4IPROC)wglGetProcAddress("glUniform4i");
+		gl->Uniform1fv = (PFNGLUNIFORM1FVPROC)wglGetProcAddress("glUniform1fv");
+		gl->Uniform2fv = (PFNGLUNIFORM2FVPROC)wglGetProcAddress("glUniform2fv");
+		gl->Uniform3fv = (PFNGLUNIFORM3FVPROC)wglGetProcAddress("glUniform3fv");
+		gl->Uniform4fv = (PFNGLUNIFORM4FVPROC)wglGetProcAddress("glUniform4fv");
+		gl->Uniform1iv = (PFNGLUNIFORM1IVPROC)wglGetProcAddress("glUniform1iv");
+		gl->Uniform2iv = (PFNGLUNIFORM2IVPROC)wglGetProcAddress("glUniform2iv");
+		gl->Uniform3iv = (PFNGLUNIFORM3IVPROC)wglGetProcAddress("glUniform3iv");
+		gl->Uniform4iv = (PFNGLUNIFORM4IVPROC)wglGetProcAddress("glUniform4iv");
 		
-		gl->UniformMatrix2fv = (PFNGLUNIFORMMATRIX2FVARBPROC)wglGetProcAddress("glUniformMatrix2fvARB");
-		gl->UniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
-		gl->UniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
+		gl->UniformMatrix2fv = (PFNGLUNIFORMMATRIX2FVPROC)wglGetProcAddress("glUniformMatrix2fv");
+		gl->UniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVPROC)wglGetProcAddress("glUniformMatrix3fv");
+		gl->UniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
 		
-		gl->GetObjectParameterfv = (PFNGLGETOBJECTPARAMETERFVARBPROC)wglGetProcAddress("glGetObjectParameterfvARB");
+		gl->GetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
+		gl->GetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
+		gl->GetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)wglGetProcAddress("glGetActiveUniform");
+		gl->GetUniformfv = (PFNGLGETUNIFORMFVPROC)wglGetProcAddress("glGetUniformfv");
+		gl->GetUniformiv = (PFNGLGETUNIFORMIVPROC)wglGetProcAddress("glGetUniformiv");
+		gl->GetShaderSource = (PFNGLGETSHADERSOURCEPROC)wglGetProcAddress("glGetShaderSource");
+
+		gl->EnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
+		gl->VertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+
+		// what'S the equivalent of this in GL 2.0???
 		gl->GetObjectParameteriv = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-		gl->GetInfoLog = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-		gl->GetAttachedObjects = (PFNGLGETATTACHEDOBJECTSARBPROC)wglGetProcAddress("glGetAttachedObjectsARB");
-		gl->GetUniformLocation = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-		gl->GetActiveUniform = (PFNGLGETACTIVEUNIFORMARBPROC)wglGetProcAddress("glGetActiveUniformARB");
-		gl->GetUniformfv = (PFNGLGETUNIFORMFVARBPROC)wglGetProcAddress("glGetUniformfvARB");
-		gl->GetUniformiv = (PFNGLGETUNIFORMIVARBPROC)wglGetProcAddress("glGetUniformivARB");
-		gl->GetShaderSource = (PFNGLGETSHADERSOURCEARBPROC)wglGetProcAddress("glGetShaderSourceARB");
-
-		gl->EnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
-		gl->DisableVertexAttribArray= (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
-		gl->VertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointerARB");
 
 		// Rules:
 		// SM4 will always use shaders. No option to switch them off is needed here.
@@ -468,20 +437,7 @@ static void APIENTRY LoadExtensions()
         gl->DeleteQueries      = (PFNGLDELETEQUERIESARBPROC)wglGetProcAddress("glDeleteQueriesARB");
         gl->GetQueryObjectuiv  = (PFNGLGETQUERYOBJECTUIVARBPROC)wglGetProcAddress("glGetQueryObjectuivARB");
         gl->BeginQuery         = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
-        gl->EndQuery           = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
-		gl->flags|=RFL_OCCLUSION_QUERY;
-	}
-	else if (CheckExtension("GL_NV_occlusion_query"))
-	{
-        gl->GenQueries             = (PFNGLGENOCCLUSIONQUERIESNVPROC)wglGetProcAddress("glGenOcclusionQueriesNV");
-        gl->DeleteQueries          = (PFNGLDELETEOCCLUSIONQUERIESNVPROC)wglGetProcAddress("glDeleteOcclusionQueriesNV");
-        gl->GetQueryObjectuiv      = (PFNGLGETOCCLUSIONQUERYUIVNVPROC)wglGetProcAddress("glGetOcclusionQueryuivNV");
-        // [AL] OpenGL on OS X
-        zglBeginOcclusionQueryNV   = (PFNGLBEGINOCCLUSIONQUERYNVPROC)wglGetProcAddress("glBeginOcclusionQueryNV");
-        zglEndOcclusionQueryNV     = (PFNGLENDOCCLUSIONQUERYNVPROC)wglGetProcAddress("glEndOcclusionQueryNV");
-        // [AL]
-        gl->BeginQuery             = BeginOcclusionQuery;
-        gl->EndQuery               = EndOcclusionQuery;
+        gl->EndQuery           = (PFNGLENDQUERYPROC)wglGetProcAddress("glEndQueryARB");
 		gl->flags|=RFL_OCCLUSION_QUERY;
 	}
 
@@ -515,20 +471,22 @@ static void APIENTRY LoadExtensions()
 		gl->flags|=RFL_MAP_BUFFER_RANGE;
 	}
 
-	if (CheckExtension("GL_ARB_FRAMEBUFFER_OBJECT"))
+	if (CheckExtension("GL_ARB_framebuffer_object"))
 	{
 		gl->GenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffers");
+		gl->DeleteFramebuffers		= (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress("glDeleteFramebuffers");
 		gl->BindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebuffer");
 		gl->FramebufferTexture2D	= (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress("glFramebufferTexture2D");
 		gl->GenRenderbuffers		= (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
+		gl->DeleteRenderbuffers		= (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress("glDeleteRenderbuffers");
 		gl->BindRenderbuffer		= (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbuffer");
 		gl->RenderbufferStorage		= (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorage");
 		gl->FramebufferRenderbuffer	= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress("glFramebufferRenderbuffer");
 
 		gl->flags|=RFL_FRAMEBUFFER;
 	}
-	else if (CheckExtension("GL_EXT_FRAMEBUFFER_OBJECT") && 
-			 CheckExtension("GL_EXT_PACKED_DEPTH_STENCIL"))
+	else if (CheckExtension("GL_EXT_framebuffer_object") && 
+			 CheckExtension("GL_EXT_packed_depth_stencil"))
 	{
 		gl->GenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffersEXT");
 		gl->BindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebufferEXT");
@@ -541,6 +499,13 @@ static void APIENTRY LoadExtensions()
 		gl->flags|=RFL_FRAMEBUFFER;
 	}
 
+	if (CheckExtension("GL_ARB_texture_buffer_object") && 
+		CheckExtension("GL_ARB_texture_float") && 
+		gl->shadermodel == 4 && (gl->flags & RFL_MAP_BUFFER_RANGE))	// texture buffer without map_buffer_range is of no use
+	{
+		gl->TexBufferARB = (PFNGLTEXBUFFERARBPROC)wglGetProcAddress("glTexBufferARB");
+		gl->flags|=RFL_TEXTUREBUFFER;
+	}
 
 
 
@@ -1009,74 +974,6 @@ static void APIENTRY SetTextureMode(int type)
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE); 
 		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	}
-	else if (type == TM_COLOROVERLAY)
-	{
-		// Bah! Why can't ATI and NVidia create a common extension for this? :(
-		if (gl->flags & RFL_TEX_ENV_COMBINE4_NV)
-		{
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE4_NV);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_CONSTANT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE3_RGB_NV, GL_ZERO);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND3_RGB_NV, GL_ONE_MINUS_SRC_COLOR);
-
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE); 
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE0);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-		}
-		else if (gl->flags & RFL_TEX_ENV_COMBINE3_ATI)
-		{
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE_ADD_ATI);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_CONSTANT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE); 
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE0);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-		}
-		else
-		{
-			// not supported
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		}
-
-	}
-	else if (type == TM_BRIGHTMAP || type == TM_BRIGHTMAP_TEXTURED)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_CONSTANT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, white);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE); 
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		if (type == TM_BRIGHTMAP_TEXTURED)
-		{
-			gl->ActiveTexture(GL_TEXTURE1);
-
-			gl->ActiveTexture(GL_TEXTURE0);
-		}
 	}
 	else // if (type == TM_MODULATE)
 	{

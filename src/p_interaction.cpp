@@ -503,10 +503,16 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	//		the activator of the script.
 	// New: In Hexen, the thing that died is the activator,
 	//		so now a level flag selects who the activator gets to be.
-	if (special && (!(flags & MF_SPECIAL) || (flags3 & MF3_ISMONSTER)))
+	if (special && (!(flags & MF_SPECIAL) || (flags3 & MF3_ISMONSTER)) && !(activationtype & THINGSPEC_NoDeathSpecial))
 	{
-		LineSpecials[special] (NULL, level.flags & LEVEL_ACTOWNSPECIAL
-			? this : source, false, args[0], args[1], args[2], args[3], args[4]);
+		// Activation flags override LEVEL_ACTOWNSPECIAL if set.
+		AActor *activator = (activationtype & THINGSPEC_TriggerActs ? source : 
+			(activationtype & THINGSPEC_ThingActs ? this : (level.flags & LEVEL_ACTOWNSPECIAL ? this : source)));
+		if (activationtype & THINGSPEC_ThingTargets)
+			this->target = source;
+		if (activationtype & THINGSPEC_TriggerTargets)
+			source->target = this;
+		LineSpecials[special] (NULL, activator, false, args[0], args[1], args[2], args[3], args[4]);
 		special = 0;
 	}
 
@@ -1414,6 +1420,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	lOldTargetHealth = target->health;
 	if (player)
 	{
+		
 		// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
 		ApplyCoopDamagefactor(damage, source);
 
@@ -1429,8 +1436,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		if (!(flags & DMG_FORCED))
 		{
-			if (damage < TELEFRAG_DAMAGE && ((target->flags2 & MF2_INVULNERABLE) ||
-				(target->player->cheats & CF_GODMODE)))
+			// check the real player, not a voodoo doll here for invulnerability effects
+			if (damage < TELEFRAG_DAMAGE && ((player->mo->flags2 & MF2_INVULNERABLE) ||
+				(player->cheats & CF_GODMODE)))
 			{ // player is invulnerable, so don't hurt him
 				return;
 			}

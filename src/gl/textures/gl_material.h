@@ -23,6 +23,7 @@ struct FRemapTable;
 
 class WorldTextureInfo
 {
+	friend class FMaterial;
 protected:
 	FHardwareTexture * gltexture;
 	float scalex;
@@ -177,6 +178,7 @@ public:
 		}
 	}
 
+	void BindToFrameBuffer();
 	// Patch drawing utilities
 
 	void GetRect(FloatRect *r, ETexUse i) const;

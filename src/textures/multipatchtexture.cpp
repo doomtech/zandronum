@@ -550,7 +550,12 @@ int FMultiPatchTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int w, i
 	if (w < 0 || w > Width) w = Width;
 	if (h < 0 || h > Height) h = Height;
 
-	for(int i=0;i<NumParts;i++)
+	if (inf != NULL && inf->op == OP_OVERWRITE)
+	{
+		bmp->Zero();
+	}
+
+	for(int i = 0; i < NumParts; i++)
 	{
 		int ret = -1;
 
@@ -571,9 +576,9 @@ int FMultiPatchTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int w, i
 			else
 			{
 				PalEntry b = Parts[i].Blend;
-				if (b.a == 0 && b.r != BLEND_NONE)
+				if (b.a == 0 && b != BLEND_NONE)
 				{
-					info.blend = EBlend(b.r);
+					info.blend = EBlend(b.d);
 				}
 				else if (b.a != 0)
 				{

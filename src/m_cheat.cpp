@@ -57,7 +57,7 @@
 
 void cht_DoCheat (player_t *player, int cheat)
 {
-	static const PClass *BeholdPowers[9] =
+	static const PClass * const BeholdPowers[9] =
 	{
 		RUNTIME_CLASS(APowerInvulnerable),
 		RUNTIME_CLASS(APowerStrength),
@@ -666,10 +666,14 @@ void cht_Give (player_t *player, const char *name, int amount)
 		}
 		else
 		{
-			if (player->mo)
-				player->mo->health = deh.GodHealth;
-	  
-			player->health = deh.GodHealth;
+			if (player->mo != NULL)
+			{
+				player->health = player->mo->health = player->mo->GetMaxHealth();
+			}
+			else
+			{
+				player->health = deh.GodHealth;
+			}
 		}
 		// [BB]: The server has to inform the clients that this player's health has changed.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

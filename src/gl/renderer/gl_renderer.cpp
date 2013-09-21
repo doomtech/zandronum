@@ -88,7 +88,9 @@ void FGLRenderer::Initialize()
 	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
 
 	mVBO = new FVertexBuffer;
+	mFBID = 0;
 	GlobalDrawInfo = new FDrawInfo;
+	SetupLevel();
 	gl_InitShaders();
 	gl_InitFog();
 }
@@ -103,6 +105,7 @@ FGLRenderer::~FGLRenderer()
 	if (glpart) delete glpart;
 	if (mirrortexture) delete mirrortexture;
 	if (gllight) delete gllight;
+	if (mFBID != 0) gl.DeleteFramebuffers(1, &mFBID);
 }
 
 //===========================================================================
@@ -113,7 +116,6 @@ FGLRenderer::~FGLRenderer()
 
 void FGLRenderer::SetupLevel()
 {
-	mAngles.Pitch = 0.0f;
 	mVBO->CreateVBO();
 }
 
@@ -226,6 +228,37 @@ void FGLRenderer::PrecacheTexture(FTexture *tex)
 		{
 			gltex->Bind (CM_DEFAULT, 0, 0);
 		}
+	}
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+bool FGLRenderer::StartOffscreen()
+{
+	if (gl.flags & RFL_FRAMEBUFFER)
+	{
+		if (mFBID == 0) gl.GenFramebuffers(1, &mFBID);
+		gl.BindFramebuffer(GL_FRAMEBUFFER, mFBID);
+		return true;
+	}
+	return false;
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FGLRenderer::EndOffscreen()
+{
+	if (gl.flags & RFL_FRAMEBUFFER)
+	{
+		gl.BindFramebuffer(GL_FRAMEBUFFER, 0); 
 	}
 }
 

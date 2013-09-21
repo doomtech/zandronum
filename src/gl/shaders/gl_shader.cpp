@@ -216,8 +216,8 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		// This uses GetChars on the strings to get rid of terminating 0 characters.
 		fp_comb << defines << fp_data.GetString().GetChars() << "\n" << pp_data.GetString().GetChars();
 
-		hVertProg = gl.CreateShaderObject(GL_VERTEX_SHADER);
-		hFragProg = gl.CreateShaderObject(GL_FRAGMENT_SHADER);	
+		hVertProg = gl.CreateShader(GL_VERTEX_SHADER);
+		hFragProg = gl.CreateShader(GL_FRAGMENT_SHADER);	
 
 
 		int vp_size = (int)vp_data.GetSize();
@@ -232,14 +232,14 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		gl.CompileShader(hVertProg);
 		gl.CompileShader(hFragProg);
 
-		hShader = gl.CreateProgramObject();
+		hShader = gl.CreateProgram();
 
-		gl.AttachObject(hShader, hVertProg);
-		gl.AttachObject(hShader, hFragProg);
+		gl.AttachShader(hShader, hVertProg);
+		gl.AttachShader(hShader, hFragProg);
 
 		gl.LinkProgram(hShader);
 	
-		gl.GetInfoLog(hShader, 10000, NULL, buffer);
+		gl.GetProgramInfoLog(hShader, 10000, NULL, buffer);
 		if (*buffer) 
 		{
 			Printf("Init Shader '%s':\n%s\n", name, buffer);
@@ -265,9 +265,9 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		if (texture2_index > 0)
 		{
-			gl.UseProgramObject(hShader);
+			gl.UseProgram(hShader);
 			gl.Uniform1i(texture2_index, 1);
-			gl.UseProgramObject(0);
+			gl.UseProgram(0);
 		}
 
 		return !!linked;
@@ -283,9 +283,9 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 FShader::~FShader()
 {
-	gl.DeleteObject(hShader);
-	gl.DeleteObject(hVertProg);
-	gl.DeleteObject(hFragProg);
+	gl.DeleteProgram(hShader);
+	gl.DeleteShader(hVertProg);
+	gl.DeleteShader(hFragProg);
 }
 
 
@@ -299,7 +299,7 @@ bool FShader::Bind(float Speed)
 {
 	if (gl_activeShader!=this)
 	{
-		gl.UseProgramObject(hShader);
+		gl.UseProgram(hShader);
 		gl_activeShader=this;
 	}
 	if (timer_index >=0 && Speed > 0.f) gl.Uniform1f(timer_index, gl_frameMS*Speed/1000.f);
@@ -595,7 +595,7 @@ void GLShader::Unbind()
 			// set a default shader here.
 		}
 		*/
-		gl.UseProgramObject(0);
+		gl.UseProgram(0);
 		gl_activeShader=NULL;
 	}
 }

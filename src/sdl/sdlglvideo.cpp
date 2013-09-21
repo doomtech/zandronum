@@ -20,10 +20,13 @@
 #include "r_defs.h"
 #include "gl/gl_functions.h"
 //#include "gl/gl_intern.h"
-#include "gl/common/glc_templates.h"
-#include "gl/old_renderer/gl1_texture.h"
+
+#include "gl/renderer/gl_renderer.h"
+#include "gl/system/gl_framebuffer.h"
 #include "gl/shaders/gl_shader.h"
-#include "gl/gl_framebuffer.h"
+#include "gl/utility/gl_templates.h"
+#include "gl/textures/gl_material.h"
+#include "gl/system/gl_cvars.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -128,7 +131,7 @@ SDLGLVideo::SDLGLVideo (int parm)
 
 SDLGLVideo::~SDLGLVideo ()
 {
-	FGLTexture::FlushAll();
+	if (GLRenderer != NULL) GLRenderer->FlushTextures();
 	SDL_Quit( );
 }
 
@@ -258,8 +261,8 @@ bool SDLGLVideo::SetResolution (int width, int height, int bits)
 	// FIXME: Is it possible to do this without completely destroying the old
 	// interface?
 #ifndef NO_GL
-	
-	FGLTexture::FlushAll();
+
+	if (GLRenderer != NULL) GLRenderer->FlushTextures();
 	I_ShutdownGraphics();
 
 	Video = new SDLGLVideo(0);

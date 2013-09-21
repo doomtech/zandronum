@@ -653,6 +653,7 @@ if( NOT NO_GL )
 		gl/system/gl_menu.cpp
 		gl/system/gl_wipe.cpp
 		gl/textures/gl_bitmap.cpp
+		gl/textures/gl_cameratexture.cpp
 		gl/textures/gl_hirestex.cpp
 		gl/textures/gl_hqresize.cpp
 		gl/textures/gl_hwtexture.cpp

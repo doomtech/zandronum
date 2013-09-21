@@ -234,9 +234,9 @@ void FGLRenderer::SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angl
 {
 	float fviewangle=(float)(viewangle>>ANGLETOFINESHIFT)*360.0f/FINEANGLES;
 
-	GLRenderer->mAngles.Yaw = 270.0f-fviewangle;
-	GLRenderer->mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
-	GLRenderer->mCameraPos = FVector3(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
+	mAngles.Yaw = 270.0f-fviewangle;
+	mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
+	mCameraPos = FVector3(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 }
 	
 
@@ -672,6 +672,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 	if (player)
 	{
 		AInventory * in;
+		float maxinvalpha = 0.5f;
 
 		for(in=player->mo->Inventory;in;in=in->Inventory)
 		{
@@ -679,6 +680,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 			if (color.a != 0)
 			{
 				DBaseStatusBar::AddBlend (color.r/255.f, color.g/255.f, color.b/255.f, color.a/255.f, blend);
+				if (color.a/255.f > 0.5f) maxinvalpha = color.a/255.f;
 			}
 		}
 		if (player->bonuscount)
@@ -718,7 +720,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 		}
 
 		// translucency may not go below 50%!
-		if (blend[3]>0.5f) blend[3]=0.5f;
+		if (blend[3] > maxinvalpha) blend[3] = maxinvalpha;
 	}
 	
 	if (players[consoleplayer].camera != NULL)
@@ -1040,33 +1042,4 @@ void FGLRenderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	// a canvas.
 	FGLRenderer::EndDrawScene( viewsector );
 }
-
-//-----------------------------------------------------------------------------
-//
-// R_RenderTextureView - renders camera textures
-//
-//-----------------------------------------------------------------------------
-extern TexFilter_s TexFilter[];
-
-void FGLRenderer::RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
-{
-	GL_IRECT bounds;
-	FMaterial * gltex = FMaterial::ValidateTexture(Texture);
-
-	int width = gltex->TextureWidth(GLUSE_TEXTURE);
-	int height = gltex->TextureHeight(GLUSE_TEXTURE);
-
-	gl_fixedcolormap=CM_DEFAULT;
-	bounds.left=bounds.top=0;
-	bounds.width=FHardwareTexture::GetTexDimension(gltex->GetWidth(GLUSE_TEXTURE));
-	bounds.height=FHardwareTexture::GetTexDimension(gltex->GetHeight(GLUSE_TEXTURE));
-
-	gl.Flush();
-	RenderViewpoint(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false);
-	gl.Flush();
-	gltex->Bind(CM_DEFAULT, 0, 0);
-	gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
-}
-
 

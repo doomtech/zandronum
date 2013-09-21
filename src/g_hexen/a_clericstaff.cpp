@@ -46,9 +46,9 @@ int ACStaffMissile::DoSpecialDamage (AActor *target, int damage)
 
 DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 {
-	AActor *pmo;
+	APlayerPawn *pmo;
 	int damage;
-	int newLife;
+	int newLife, max;
 	angle_t angle;
 	int slope;
 	int i;
@@ -63,6 +63,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 
 	pmo = player->mo;
 	damage = 20+(pr_staffcheck()&15);
+	max = pmo->GetMaxHealth();
 	for (i = 0; i < 3; i++)
 	{
 		angle = pmo->angle+i*(ANG45/16);
@@ -79,7 +80,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
 				{
 					newLife = player->health+(damage>>3);
-					newLife = newLife > 100 ? 100 : newLife;
+					newLife = newLife > max ? max : newLife;
 					if (newLife > player->health)
 					{
 						pmo->health = player->health = newLife;
@@ -110,7 +111,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
 				{
 					newLife = player->health+(damage>>4);
-					newLife = newLife > 100 ? 100 : newLife;
+					newLife = newLife > max ? max : newLife;
 					pmo->health = player->health = newLife;
 				}
 
