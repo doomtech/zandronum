@@ -6,8 +6,8 @@
 #include "m_menu.h"
 #include "v_video.h"
 #include "gl/gl_intern.h"
-#include "gl/common/glc_renderer.h"
 #include "version.h"
+#include "gl/renderer/gl_renderer.h"
 
 // GL related CVARs
 CVAR(Bool, gl_portals, true, 0)

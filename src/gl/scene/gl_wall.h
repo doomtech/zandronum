@@ -7,7 +7,7 @@
 //==========================================================================
 #include "r_defs.h"
 #include "textures/textures.h"
-#include "gl/gl_struct.h"
+#include "gl/renderer/gl_colormap.h"
 
 struct GLHorizonInfo;
 struct F3DFloor;

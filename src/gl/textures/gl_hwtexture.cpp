@@ -40,7 +40,6 @@
 */
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_renderer.h"
 #include "templates.h"
 #include "r_draw.h"
 #include "m_crc32.h"
@@ -49,6 +48,7 @@
 #include "v_palette.h"
 #include "gl/gl_intern.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_material.h"
 
 

@@ -47,8 +47,8 @@
 #include "win32gliface.h"
 #endif
 #include "v_palette.h"
-#include "gl/common/glc_renderer.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_material.h"
 

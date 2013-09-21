@@ -3,8 +3,9 @@
 #include "win32iface.h"
 #include "win32gliface.h"
 #include "gl/gl_intern.h"
-#include "gl/gl_struct.h"
-#include "gl/common/glc_renderer.h"
+// [BB] Necesary to make GZDoom revisin 491 compile.
+#include "gl/renderer/gl_colormap.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "templates.h"
 #include "version.h"

@@ -42,7 +42,6 @@
 #include "r_translate.h"
 #include "g_level.h"
 #include "doomstat.h"
-#include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_glow.h"

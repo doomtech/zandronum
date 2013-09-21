@@ -52,9 +52,9 @@
 #include "g_level.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/common/glc_dynlight.h"
-#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/models/gl_models.h"
 #include "gl/utility/gl_clock.h"

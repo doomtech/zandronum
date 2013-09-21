@@ -52,10 +52,8 @@
 #include "r_translate.h"
 #include "colormatcher.h"
 
-#include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
 
 #include "gl/system/gl_framebuffer.h"

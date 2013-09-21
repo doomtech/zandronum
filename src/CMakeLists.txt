@@ -629,8 +629,8 @@ if( NOT NO_GL )
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models_md3.cpp
-		gl/old_renderer/gl1_renderer.cpp
 		gl/old_renderer/gl1_shader.cpp
+		gl/renderer/gl_renderer.cpp
 		gl/scene/gl_bsp.cpp
 		gl/scene/gl_clipper.cpp
 		gl/scene/gl_decal.cpp

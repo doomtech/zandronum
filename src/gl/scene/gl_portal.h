@@ -37,8 +37,8 @@
 #define __GL_PORTAL_H
 
 #include "tarray.h"
-#include "gl/common/glc_renderer.h"
 #include "gl/gl_intern.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/utility/gl_templates.h"
 

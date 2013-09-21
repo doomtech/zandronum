@@ -1,7 +1,7 @@
 #ifndef __GL1_RENDERER
 #define __GL1_RENDERER
 
-#include "gl/common/glc_renderer.h"
+#include "gl/renderer/gl_renderer.h"
 
 struct GL_IRECT;
 struct GLSectorPlane;

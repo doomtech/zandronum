@@ -41,9 +41,9 @@
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
-#include "gl/common/glc_renderer.h"
-#include "gl/scene/gl_clipper.h"
 #include "r_sky.h"
+#include "gl/renderer/gl_renderer.h"
+#include "gl/scene/gl_clipper.h"
 
 
 //==========================================================================

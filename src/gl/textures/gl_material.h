@@ -3,7 +3,7 @@
 #define __GL_TEXTURE_H
 
 #include "gl/textures/gl_hwtexture.h"
-#include "gl/gl_struct.h"
+#include "gl/renderer/gl_colormap.h"
 #include "r_data.h"
 #include "i_system.h"
 

@@ -44,7 +44,6 @@
 #include "a_sharedglobal.h"
 #include "g_level.h"
 #include "templates.h"
-#include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"

@@ -41,14 +41,13 @@
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
-// [BB] Neccessary to make GZDoom revision 490 compile.
-#include "gl/utility/gl_clock.h"
-#include "gl/common/glc_renderer.h"
 #include "r_sky.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_clipper.h"
+#include "gl/utility/gl_clock.h"
 
 EXTERN_CVAR(Bool, gl_render_segs)
 

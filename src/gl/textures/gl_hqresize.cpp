@@ -35,7 +35,7 @@
 */
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_renderer.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/gl_intern.h"
 #include "c_cvars.h"

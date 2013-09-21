@@ -40,7 +40,6 @@
 
 #include "gl/gl_include.h"
 #include "a_sharedglobal.h"
-#include "gl/common/glc_renderer.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
 #include "gl/common/glc_dynlight.h"
@@ -52,6 +51,7 @@
 #include "g_level.h"
 #include "doomstat.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_drawinfo.h"

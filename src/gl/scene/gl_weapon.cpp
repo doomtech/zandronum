@@ -42,15 +42,14 @@
 #include "r_main.h"
 #include "v_video.h"
 #include "doomstat.h"
-#include "gl/gl_struct.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_renderer.h"
 
-#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
 #include "gl/old_renderer/gl1_shader.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"

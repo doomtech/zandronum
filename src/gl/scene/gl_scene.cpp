@@ -50,7 +50,6 @@
 #include "r_main.h"
 #include "r_things.h"
 #include "sbar.h"
-#include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_functions.h"

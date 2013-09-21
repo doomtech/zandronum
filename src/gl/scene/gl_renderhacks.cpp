@@ -43,15 +43,13 @@
 #include "r_sky.h"
 #include "g_level.h"
 
-// [BB] Neccessary to make GZDoom revision 490 compile.
-#include "gl/utility/gl_clock.h"
-#include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-// [BB] Neccessary to make GZDoom revision 490 compile.
-#include "gl/utility/gl_templates.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/scene/gl_drawinfo.h"
+#include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_templates.h"
 
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
