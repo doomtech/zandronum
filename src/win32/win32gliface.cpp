@@ -7,7 +7,6 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_framebuffer.h"
 #include "templates.h"
 #include "version.h"
 #include "c_console.h"
@@ -17,6 +16,8 @@
 #include "i_system.h"
 #include "doomstat.h"
 //#include "gl_defs.h"
+
+#include "gl/system/gl_framebuffer.h"
 
 void gl_CalculateCPUSpeed();
 

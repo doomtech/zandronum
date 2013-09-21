@@ -10658,19 +10658,7 @@
 				Name="GZDoom Source"
 				>
 				<File
-					RelativePath=".\src\gl\gl_framebuffer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_light.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_menu.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\r_render\r_opengl.cpp"
 					>
 				</File>
 				<File
@@ -10681,10 +10669,6 @@
 			<Filter
 				Name="GZDoom Header"
 				>
-				<File
-					RelativePath=".\src\gl\gl_framebuffer.h"
-					>
-				</File>
 				<File
 					RelativePath=".\src\gl\gl_functions.h"
 					>
@@ -10731,10 +10715,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\common\glc_light.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_renderer.cpp"
 					>
 				</File>
 				<File
@@ -10979,6 +10959,30 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\data\gl_vertexbuffer.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="System"
+				>
+				<File
+					RelativePath=".\src\gl\system\gl_framebuffer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_framebuffer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_interface.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_interface.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_menu.cpp"
 					>
 				</File>
 			</Filter>

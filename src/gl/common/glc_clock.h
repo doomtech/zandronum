@@ -106,5 +106,7 @@ extern int rendered_lines,rendered_flats,rendered_sprites,rendered_decals,render
 
 extern int vertexcount, flatvertices, flatprimitives;
 
+void ResetProfilingData();
+
 
 #endif

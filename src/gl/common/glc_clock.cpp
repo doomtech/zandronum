@@ -74,6 +74,25 @@ void gl_CalculateCPUSpeed ()
 }
 
 
+void ResetProfilingData()
+{
+	All.Reset();
+	All.Clock();
+	PortalAll.Reset();
+	RenderAll.Reset();
+	ProcessAll.Reset();
+	RenderWall.Reset();
+	SetupWall.Reset();
+	ClipWall.Reset();
+	RenderFlat.Reset();
+	SetupFlat.Reset();
+	RenderSprite.Reset();
+	SetupSprite.Reset();
+
+	flatvertices=flatprimitives=vertexcount=0;
+	render_texsplit=render_vertexsplit=rendered_lines=rendered_flats=rendered_sprites=rendered_decals = 0;
+}
+
 //-----------------------------------------------------------------------------
 //
 // Rendering statistics
@@ -111,4 +130,20 @@ ADD_STAT(lightstats)
 	return out;
 }
 
+extern int DirtyCount;
+
+ADD_STAT(dirty)
+{
+	static FString buff;
+	static int lasttime=0;
+	int t=I_MSTime();
+	if (t-lasttime>1000) 
+	{
+		buff.Format("Dirty=%2.8f (%d)\n", Dirty.TimeMS(), DirtyCount);
+		lasttime=t;
+	}
+	Dirty.Reset();
+	DirtyCount = 0;
+	return buff;
+}
 

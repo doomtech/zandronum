@@ -52,9 +52,9 @@
 #include "templates.h"
 #include "gl/common/glc_clock.h"
 #include "gl/common/glc_templates.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/old_renderer/gl1_renderer.h"
 
+#include "gl/system/gl_framebuffer.h"
 #include "gl/data/gl_data.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_translate.h"

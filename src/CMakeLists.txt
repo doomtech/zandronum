@@ -623,7 +623,6 @@ if( NOT NO_GL )
 		gl/common/glc_geometric.cpp
 		gl/common/glc_glow.cpp
 		gl/common/glc_light.cpp
-		gl/common/glc_renderer.cpp
 		gl/common/glc_sections.cpp
 		gl/common/glc_wipe.cpp
 		gl/data/gl_data.cpp
@@ -652,6 +651,9 @@ if( NOT NO_GL )
 		gl/scene/gl_walls.cpp
 		gl/scene/gl_walls_draw.cpp
 		gl/scene/gl_weapon.cpp
+		gl/system/gl_framebuffer.cpp
+		gl/system/gl_interface.cpp
+		gl/system/gl_menu.cpp
 		gl/textures/gl_bitmap.cpp
 		gl/textures/gl_hirestex.cpp
 		gl/textures/gl_hqresize.cpp
@@ -659,10 +661,7 @@ if( NOT NO_GL )
 		gl/textures/gl_material.cpp
 		gl/textures/gl_texture.cpp
 		gl/textures/gl_translate.cpp
-		gl/gl_framebuffer.cpp
 		gl/gl_light.cpp
-		gl/gl_menu.cpp
-		gl/r_render/r_opengl.cpp
 	)
 else( NOT NO_GL )
 	set( GL_SOURCES sdl/glstubs.cpp )

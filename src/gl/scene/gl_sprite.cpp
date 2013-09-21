@@ -42,7 +42,6 @@
 #include "r_translate.h"
 #include "g_level.h"
 #include "doomstat.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/gl_lights.h"
@@ -53,6 +52,7 @@
 #include "r_sky.h"
 #include "gl/common/glc_convert.h"
 
+#include "gl/system/gl_framebuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/models/gl_models.h"

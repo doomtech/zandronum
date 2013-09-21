@@ -48,10 +48,10 @@
 #include "v_palette.h"
 #include "templates.h"
 #include "vectors.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_templates.h"
 
+#include "gl/system/gl_framebuffer.h"
 #include "gl/textures/gl_translate.h"
 #include "gl/textures/gl_material.h"
 

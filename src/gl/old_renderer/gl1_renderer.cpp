@@ -53,11 +53,12 @@
 #include "gl/old_renderer/gl1_renderer.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_framebuffer.h"
 #include "vectors.h"
 #include "gl/old_renderer/gl1_renderer.h"
 
+#include "gl/system/gl_framebuffer.h"
 #include "gl/data/gl_data.h"
+#include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_translate.h"
@@ -71,6 +72,41 @@
 
 
 EXTERN_CVAR(Bool, gl_render_segs)
+
+//-----------------------------------------------------------------------------
+//
+// Initialize
+//
+//-----------------------------------------------------------------------------
+
+void FGLRenderer::Initialize()
+{
+	mVBO = new FVertexBuffer;
+	GlobalDrawInfo = new FDrawInfo;
+	gl_InitShaders();
+	gl_InitFog();
+}
+
+FGLRenderer::~FGLRenderer() 
+{
+	FMaterial::FlushAll();
+	gl_ClearShaders();
+	if (GlobalDrawInfo != NULL) delete GlobalDrawInfo;
+	if (mVBO != NULL) delete mVBO;
+}
+
+//===========================================================================
+// 
+//
+//
+//===========================================================================
+
+void FGLRenderer::SetupLevel()
+{
+	mAngles.Pitch = 0.0f;
+	mVBO->CreateVBO();
+}
+
 
 void FGLRenderer::SetPaused()
 {

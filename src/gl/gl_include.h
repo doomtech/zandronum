@@ -90,7 +90,7 @@ inline T max( T a, T b) { return (((a)>(b)) ? (a) : (b)); }
 #include "platform.h"
 #include <SDL.h>
 #endif
-#include "r_render/r_render.h"
+#include "gl/system/gl_interface.h"
 
 extern RenderContext gl;
 

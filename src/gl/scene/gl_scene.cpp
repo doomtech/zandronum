@@ -49,6 +49,7 @@
 #include "g_level.h"
 #include "r_interpolate.h"
 #include "r_main.h"
+#include "r_things.h"
 #include "sbar.h"
 #include "gl/gl_struct.h"
 #include "gl/old_renderer/gl1_renderer.h"
@@ -56,9 +57,9 @@
 #include "gl/common/glc_templates.h"
 #include "gl/gl_functions.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/common/glc_convert.h"
 
+#include "gl/system/gl_framebuffer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/models/gl_models.h"
@@ -76,12 +77,87 @@ CVAR(Bool, gl_texture, true, 0)
 CVAR(Bool, gl_no_skyclear, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_mask_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_forcemultipass, false, 0)
+// [BB] Clients may not alter gl_nearclip.
+CUSTOM_CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	// [BB] Limit CVAR turbo on clients to 100.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( self != 5 ) )
+		self = 5;
+}
+
+EXTERN_CVAR (Int, screenblocks)
+EXTERN_CVAR (Bool, cl_capfps)
+EXTERN_CVAR (Bool, r_deathcamera)
+
 
 // [BC] Blah. Not a great place to include this.
 EXTERN_CVAR (Float,  blood_fade_scalar)
 extern int viewpitch;
  
 DWORD			gl_fixedcolormap;
+area_t			in_area;
+
+
+void R_SetupFrame (AActor * camera);
+
+
+
+
+//-----------------------------------------------------------------------------
+//
+// R_FrustumAngle
+//
+//-----------------------------------------------------------------------------
+angle_t FGLRenderer::FrustumAngle()
+{
+	float tilt= fabs(mAngles.Pitch);
+
+	// If the pitch is larger than this you can look all around at a FOV of 90°
+	if (tilt>46.0f) return 0xffffffff;
+
+	// ok, this is a gross hack that barely works...
+	// but at least it doesn't overestimate too much...
+	double floatangle=2.0+(45.0+((tilt/1.9)))*mCurrentFoV*48.0/BaseRatioSizes[WidescreenRatio][3]/90.0;
+	angle_t a1 = ANGLE_1*toint(floatangle);
+	if (a1>=ANGLE_180) return 0xffffffff;
+	return a1;
+}
+
+//-----------------------------------------------------------------------------
+//
+// Sets the area the camera is in
+//
+//-----------------------------------------------------------------------------
+void FGLRenderer::SetViewArea()
+{
+	// The render_sector is better suited to represent the current position in GL
+	viewsector = R_PointInSubsector(viewx, viewy)->render_sector;
+
+	// keep the view within the render sector's floor and ceiling
+	fixed_t theZ = viewsector->ceilingplane.ZatPoint (viewx, viewy) - 4*FRACUNIT;
+	if (viewz > theZ)
+	{
+		viewz = theZ;
+	}
+
+	theZ = viewsector->floorplane.ZatPoint (viewx, viewy) + 4*FRACUNIT;
+	if (viewz < theZ)
+	{
+		viewz = theZ;
+	}
+
+	// Get the heightsec state from the render sector, not the current one!
+	if (viewsector->heightsec && !(viewsector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
+	{
+		in_area = viewz<=viewsector->heightsec->floorplane.ZatPoint(viewx,viewy) ? area_below :
+				   (viewz>viewsector->heightsec->ceilingplane.ZatPoint(viewx,viewy) &&
+				   !(viewsector->heightsec->MoreFlags&SECF_FAKEFLOORONLY)) ? area_above:area_normal;
+	}
+	else
+	{
+		in_area=area_default;	// depends on exposed lower sectors
+	}
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -773,6 +849,162 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 			}
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+//
+// Renders one viewpoint in a scene
+//
+//-----------------------------------------------------------------------------
+
+sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
+{       
+	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
+
+	// Check if there's some lights. If not some code can be skipped.
+	mLightCount = (it.Next()!=NULL);
+
+	sector_t * retval;
+	R_SetupFrame (camera);
+	SetViewArea();
+	mAngles.Pitch = clamp<float>((float)((double)(int)(viewpitch))/ANGLE_1, -90, 90);
+
+	// Scroll the sky
+	mSky1Pos = (float)fmod(gl_frameMS * level.skyspeed1, 1024.f) * 90.f/256.f;
+	mSky2Pos = (float)fmod(gl_frameMS * level.skyspeed2, 1024.f) * 90.f/256.f;
+
+
+
+	// [BB] consoleplayer should be able to toggle the chase cam.
+	if (camera->player && /*camera->player-players==consoleplayer &&*/
+		((/*camera->player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) && camera==camera->player->mo)
+	{
+		mViewActor=NULL;
+	}
+	else
+	{
+		mViewActor=camera;
+	}
+
+	retval = viewsector;
+
+	SetViewport(bounds);
+	mCurrentFoV = fov;
+	SetProjection(fov, ratio, fovratio);	// switch to perspective mode and set up clipper
+	SetCameraPos(viewx, viewy, viewz, viewangle);
+	SetViewMatrix(false, false);
+
+	clipper.Clear();
+	angle_t a1 = GLRenderer->FrustumAngle();
+	clipper.SafeAddClipRange(viewangle+a1, viewangle-a1);
+
+	ProcessScene();
+
+	gl_frameCount++;	// This counter must be increased right before the interpolations are restored.
+	interpolator.RestoreInterpolations ();
+	return retval;
+}
+
+
+///-----------------------------------------------------------------------------
+//
+// renders the view
+//
+//-----------------------------------------------------------------------------
+
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+extern char myGlBeginCharArray[4];
+int crashoutTic = 0;
+#endif
+
+void FGLRenderer::RenderView (player_t* player)
+{
+#ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
+	// [BB] Continuously make this check, otherwise a hack could bypass the check by activating
+	// and deactivating itself at the right time interval.
+	{
+		if ( strncmp(reinterpret_cast<char *>(gl.Begin), myGlBeginCharArray, 4) )
+		{
+			I_FatalError ( "OpenGL malfunction encountered.\n" );
+		}
+		else
+		{
+			// [BB] Most GL wallhacks deactivate GL_DEPTH_TEST by manipulating glBegin.
+			// Here we try check if this is done.
+			GLboolean oldValue;
+			glGetBooleanv ( GL_DEPTH_TEST, &oldValue );
+			gl.Enable ( GL_DEPTH_TEST );
+			gl.Begin( GL_TRIANGLE_STRIP );
+			gl.End();
+			GLboolean valueTrue;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueTrue );
+
+			// [BB] Also check if glGetBooleanv simply always returns true.
+			gl.Disable ( GL_DEPTH_TEST );
+			GLboolean valueFalse;
+			glGetBooleanv ( GL_DEPTH_TEST, &valueFalse );
+
+			if ( ( valueTrue == false ) || ( valueFalse == true ) )
+			{
+				I_FatalError ( "OpenGL malfunction encountered.\n" );
+			}
+
+			if ( oldValue )
+				gl.Enable ( GL_DEPTH_TEST );
+			else
+				gl.Disable ( GL_DEPTH_TEST );
+		}
+	}
+#endif
+
+	AActor *&LastCamera = static_cast<OpenGLFrameBuffer*>(screen)->LastCamera;
+
+	if (player->camera != LastCamera)
+	{
+		// If the camera changed don't interpolate
+		// Otherwise there will be some not so nice effects.
+		R_ResetViewInterpolation();
+		LastCamera=player->camera;
+	}
+
+	mVBO->BindVBO();
+
+	// reset statistics counters
+	ResetProfilingData();
+
+	// Get this before everything else
+	if (cl_capfps || r_NoInterpolate) r_TicFrac = FRACUNIT;
+	else r_TicFrac = I_GetTimeFrac (&r_FrameTime);
+	gl_frameMS = I_MSTime();
+
+	R_FindParticleSubsectors ();
+
+	// prepare all camera textures that have been used in the last frame
+	FCanvasTextureInfo::UpdateAll();
+
+
+	// I stopped using BaseRatioSizes here because the information there wasn't well presented.
+	#define RMUL (1.6f/1.333333f)
+	static float ratios[]={RMUL*1.333333f, RMUL*1.777777f, RMUL*1.6f, RMUL*1.333333f, RMUL*1.2f};
+
+	// now render the main view
+	float fovratio;
+	float ratio = ratios[WidescreenRatio];
+	if (!(WidescreenRatio&4))
+	{
+		fovratio = 1.6f;
+	}
+	else
+	{
+		fovratio = ratio;
+	}
+
+	SetFixedColormap (player);
+
+	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true);
+	EndDrawScene(viewsector);
+
+	All.Unclock();
 }
 
 //===========================================================================
