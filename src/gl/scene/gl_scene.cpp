@@ -38,7 +38,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "gi.h"
 #include "m_png.h"
 #include "st_stuff.h"
@@ -49,10 +49,10 @@
 #include "r_main.h"
 #include "r_things.h"
 #include "sbar.h"
-#include "gl/gl_lights.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_framebuffer.h"
+#include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"

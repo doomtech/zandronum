@@ -38,7 +38,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "doomtype.h"
 #include "p_local.h"
 #include "gl/renderer/gl_renderer.h"

@@ -623,6 +623,7 @@ if( NOT NO_GL )
 		gl/data/gl_vertexbuffer.cpp
 		gl/dynlights/a_dynlight.cpp
 		gl/dynlights/gl_dynlight.cpp
+		gl/dynlights/gl_dynlight1.cpp
 		gl/dynlights/gl_glow.cpp
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
@@ -641,6 +642,7 @@ if( NOT NO_GL )
 		gl/scene/gl_sky.cpp
 		gl/scene/gl_skydome.cpp
 		gl/scene/gl_sprite.cpp
+		gl/scene/gl_spritelight.cpp
 		gl/scene/gl_vertex.cpp
 		gl/scene/gl_walls.cpp
 		gl/scene/gl_walls_draw.cpp
@@ -660,7 +662,6 @@ if( NOT NO_GL )
 		gl/utility/gl_clock.cpp
 		gl/utility/gl_cycler.cpp
 		gl/utility/gl_geometric.cpp
-		gl/gl_light.cpp
 	)
 else( NOT NO_GL )
 	set( GL_SOURCES sdl/glstubs.cpp )

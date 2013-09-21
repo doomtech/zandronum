@@ -107,7 +107,7 @@
 #include "statnums.h"
 #include "domination.h"
 #include "win32/g15/g15.h"
-#include "gl/gl_lights.h"
+#include "gl/dynlights/gl_dynlight.h"
 #include "unlagged.h"
 #include "p_3dmidtex.h"
 #include "a_lightning.h"

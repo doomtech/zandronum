@@ -10634,10 +10634,6 @@
 				Name="GZDoom Source"
 				>
 				<File
-					RelativePath=".\src\gl\gl_light.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\win32\win32gliface.cpp"
 					>
 				</File>
@@ -10647,14 +10643,6 @@
 				>
 				<File
 					RelativePath=".\src\gl\gl_functions.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_intern.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\gl_lights.h"
 					>
 				</File>
 			</Filter>
@@ -10814,6 +10802,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\scene\gl_spritelight.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\scene\gl_vertex.cpp"
 					>
 				</File>
@@ -10874,6 +10866,10 @@
 				Name="System"
 				>
 				<File
+					RelativePath=".\src\gl\system\gl_cvars.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\system\gl_framebuffer.cpp"
 					>
 				</File>
@@ -10891,6 +10887,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\system\gl_menu.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_system.h"
 					>
 				</File>
 				<File
@@ -10971,6 +10971,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\dynlights\gl_dynlight.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_dynlight1.cpp"
 					>
 				</File>
 				<File

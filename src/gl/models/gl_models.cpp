@@ -37,7 +37,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "w_wad.h"
 #include "cmdlib.h"
 #include "sc_man.h"
@@ -46,7 +46,7 @@
 #include "g_game.h"
 #include "doomstat.h"
 #include "g_level.h"
-#include "gl/gl_intern.h"
+//#include "gl/gl_intern.h"
 
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"

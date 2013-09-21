@@ -39,14 +39,13 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "p_local.h"
 #include "vectors.h"
 #include "doomstat.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_intern.h"
 
 #include "gl/system/gl_framebuffer.h"
+#include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/data/gl_data.h"

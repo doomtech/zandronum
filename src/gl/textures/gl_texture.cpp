@@ -35,7 +35,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "c_cvars.h"
 #include "w_wad.h"
 #include "r_data.h"

@@ -39,7 +39,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"

@@ -40,7 +40,7 @@
 #include "r_translate.h"
 #include "v_palette.h"
 #include "templates.h"
-#include "gl/gl_lights.h"
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/textures/gl_translate.h"
 #include "gl/textures/gl_bitmap.h"
 

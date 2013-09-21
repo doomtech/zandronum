@@ -38,7 +38,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "a_sharedglobal.h"
 #include "g_level.h"
 #include "r_sky.h"

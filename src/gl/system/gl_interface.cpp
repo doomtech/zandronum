@@ -35,11 +35,11 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "tarray.h"
 #include "doomtype.h"
 #include "m_argv.h"
-#include "gl/gl_intern.h"
+#include "gl/system/gl_cvars.h"
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 char myGlBeginCharArray[4] = {0,0,0,0};

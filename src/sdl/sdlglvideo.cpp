@@ -16,10 +16,10 @@
 #include "c_console.h"
 
 #include "sdlglvideo.h"
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "r_defs.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_intern.h"
+//#include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
 #include "gl/old_renderer/gl1_texture.h"
 #include "gl/shaders/gl_shader.h"

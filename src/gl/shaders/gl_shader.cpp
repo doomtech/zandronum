@@ -38,8 +38,7 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
-#include "gl/gl_intern.h"
+#include "gl/system/gl_system.h"
 #include "c_cvars.h"
 #include "v_video.h"
 #include "name.h"
@@ -48,6 +47,7 @@
 #include "doomerrors.h"
 #include "v_palette.h"
 
+#include "gl/system/gl_cvars.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 

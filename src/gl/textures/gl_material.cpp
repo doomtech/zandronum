@@ -38,7 +38,7 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "w_wad.h"
 #include "m_png.h"
 #include "r_draw.h"
@@ -52,7 +52,7 @@
 #include "r_translate.h"
 #include "colormatcher.h"
 
-#include "gl/gl_intern.h"
+//#include "gl/gl_intern.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/renderer/gl_lightdata.h"

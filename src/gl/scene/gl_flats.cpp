@@ -38,17 +38,16 @@
 **
 */
 
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "a_sharedglobal.h"
-#include "gl/gl_functions.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_intern.h"
 #include "r_sky.h"
 #include "r_main.h"
 #include "g_level.h"
 #include "doomstat.h"
 
+#include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_renderer.h"
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_dynlight.h"

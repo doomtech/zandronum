@@ -87,7 +87,7 @@
 
 #include "gl/gl_functions.h"
 // [BB] New #includes..
-#include "gl/gl_lights.h"
+#include "gl/dynlights/gl_dynlight.h"
 
 
 void P_SpawnSlopeMakers (FMapThing *firstmt, FMapThing *lastmt);

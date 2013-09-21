@@ -39,13 +39,11 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 #include "r_sky.h"
 #include "r_main.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_functions.h"
-#include "gl/gl_intern.h"
 
+#include "gl/system/gl_cvars.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/renderer/gl_lightdata.h"

@@ -39,11 +39,10 @@
 */
 
 #include "doomdata.h"
-#include "gl/gl_include.h"
-#include "gl/gl_lights.h"
-#include "gl/gl_intern.h"
+#include "gl/system/gl_system.h"
 #include "a_sharedglobal.h"
 
+#include "gl/system/gl_cvars.h"
 #include "gl/data/gl_data.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_lightdata.h"

@@ -1,8 +1,8 @@
-#include "gl/gl_include.h"
+#include "gl/system/gl_system.h"
 
 #include "win32iface.h"
 #include "win32gliface.h"
-#include "gl/gl_intern.h"
+//#include "gl/gl_intern.h"
 #include "templates.h"
 #include "version.h"
 #include "c_console.h"
