@@ -39,7 +39,8 @@
 */
 
 #include "gl/gl_include.h"
-#include "gl/common/glc_clock.h"
+// [BB] Neccessary to make GZDoom revision 490 compile.
+#include "gl/utility/gl_clock.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"
@@ -48,7 +49,8 @@
 #include "m_png.h"
 #include "m_crc32.h"
 #include "w_wad.h"
-#include "gl/common/glc_templates.h"
+// [BB] Neccessary to make GZDoom revision 490 compile.
+#include "gl/utility/gl_templates.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_renderer.h"

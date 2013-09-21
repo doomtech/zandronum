@@ -52,14 +52,14 @@
 #include "w_wad.h"
 #include "gi.h"
 #include "g_level.h"
-#include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-#include "gl/common/glc_clock.h"
 
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
+#include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_convert.h"
 
 void InitGLRMapinfoData();
 void gl_InitData();

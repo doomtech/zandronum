@@ -10694,19 +10694,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\common\glc_clock.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_cycler.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\common\glc_dynlight.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_geometric.cpp"
 					>
 				</File>
 				<File
@@ -10717,31 +10705,11 @@
 					RelativePath=".\src\gl\common\glc_light.cpp"
 					>
 				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_wipe.cpp"
-					>
-				</File>
 				<Filter
 					Name="Includes"
 					>
 					<File
-						RelativePath=".\src\gl\common\glc_clock.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_convert.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_cycler.h"
-						>
-					</File>
-					<File
 						RelativePath=".\src\gl\common\glc_dynlight.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_geometric.h"
 						>
 					</File>
 					<File
@@ -10754,10 +10722,6 @@
 					</File>
 					<File
 						RelativePath=".\src\gl\common\glc_structs.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_templates.h"
 						>
 					</File>
 				</Filter>
@@ -10983,6 +10947,46 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\system\gl_menu.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_wipe.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Utility"
+				>
+				<File
+					RelativePath=".\src\gl\utility\gl_clock.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_clock.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_convert.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_cycler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_cycler.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_geometric.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_geometric.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\utility\gl_templates.h"
 					>
 				</File>
 			</Filter>

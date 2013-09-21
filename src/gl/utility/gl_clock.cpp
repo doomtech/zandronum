@@ -7,7 +7,7 @@
 
 #define USE_WINDOWS_DWORD
 #include "i_system.h"
-#include "gl/common/glc_clock.h"
+#include "gl/utility/gl_clock.h"
 
 
 glcycle_t RenderWall,SetupWall,ClipWall;

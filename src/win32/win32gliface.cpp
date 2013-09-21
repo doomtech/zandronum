@@ -2,7 +2,6 @@
 
 #include "win32iface.h"
 #include "win32gliface.h"
-#include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_struct.h"
 #include "gl/common/glc_renderer.h"
@@ -18,6 +17,7 @@
 //#include "gl_defs.h"
 
 #include "gl/system/gl_framebuffer.h"
+#include "gl/utility/gl_templates.h"
 
 void gl_CalculateCPUSpeed();
 

@@ -43,14 +43,15 @@
 #include "g_level.h"
 #include "thingdef/thingdef.h"
 #include "i_system.h"
-#include "gl/common/glc_convert.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_dynlight.h"
-#include "gl/common/glc_templates.h"
+
 // [BB] New #includes.
 #include "network.h"
 
 #include "gl/data/gl_data.h"
+#include "gl/utility/gl_convert.h"
+#include "gl/utility/gl_templates.h"
 
 EXTERN_CVAR (Float, gl_lights_size);
 EXTERN_CVAR (Bool, gl_lights_additive);

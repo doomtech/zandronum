@@ -41,7 +41,8 @@
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
-#include "gl/common/glc_clock.h"
+// [BB] Neccessary to make GZDoom revision 490 compile.
+#include "gl/utility/gl_clock.h"
 #include "gl/common/glc_renderer.h"
 #include "r_sky.h"
 

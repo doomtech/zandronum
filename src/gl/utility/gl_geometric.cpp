@@ -2,8 +2,8 @@
 
 #include <math.h>
 #include <float.h>
-#include "gl/common/glc_convert.h"
-#include "gl/common/glc_geometric.h"
+#include "gl/utility/gl_convert.h"
+#include "gl/utility/gl_geometric.h"
 
 static Vector axis[3] = 
 {

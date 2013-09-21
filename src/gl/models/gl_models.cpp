@@ -46,13 +46,13 @@
 #include "g_game.h"
 #include "doomstat.h"
 #include "g_level.h"
-#include "gl/common/glc_geometric.h"
 #include "gl/gl_intern.h"
-#include "gl/common/glc_convert.h"
 
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
+#include "gl/utility/gl_geometric.h"
+#include "gl/utility/gl_convert.h"
 
 // [BB] New #includes. 
 #include "r_main.h"

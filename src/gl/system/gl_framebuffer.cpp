@@ -50,8 +50,9 @@
 #include "vectors.h"
 #include "v_palette.h"
 #include "templates.h"
-#include "gl/common/glc_clock.h"
-#include "gl/common/glc_templates.h"
+// [BB] Neccessary to make GZDoom revision 490 compile.
+#include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_templates.h"
 #include "gl/old_renderer/gl1_renderer.h"
 
 #include "gl/system/gl_framebuffer.h"

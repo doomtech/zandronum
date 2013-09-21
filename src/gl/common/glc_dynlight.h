@@ -2,8 +2,8 @@
 #define __GLC_DYNLIGHT_H
 
 #include "c_cvars.h"
-#include "gl/common/glc_geometric.h"
-#include "gl/common/glc_cycler.h"
+#include "gl/utility/gl_geometric.h"
+#include "gl/utility/gl_cycler.h"
 
 
 EXTERN_CVAR(Bool, gl_lights)

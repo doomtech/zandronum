@@ -49,12 +49,12 @@
 
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-#include "gl/common/glc_convert.h"
 #include "gl/old_renderer/gl1_shader.h"
 
 #include "gl/data/gl_data.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
+#include "gl/utility/gl_convert.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)

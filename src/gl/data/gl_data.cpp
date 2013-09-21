@@ -51,14 +51,14 @@
 #include "gi.h"
 #include "g_level.h"
 #include "gl/old_renderer/gl1_shader.h"
-#include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
 #include "gl/common/glc_renderer.h"
 #include "gl/common/glc_glow.h"
-#include "gl/common/glc_clock.h"
 
 #include "gl/data/gl_data.h"
 #include "gl/models/gl_models.h"
+#include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_convert.h"
 // [BB]
 #include "gl/gl_functions.h"
 // [BC]

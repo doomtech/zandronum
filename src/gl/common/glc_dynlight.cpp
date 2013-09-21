@@ -55,11 +55,11 @@
 #include "zstring.h"
 #include "d_dehacked.h"
 
-#include "gl/common/glc_clock.h"
-#include "gl/common/glc_convert.h"
 #include "gl/common/glc_dynlight.h"
 
 #include "gl/textures/gl_skyboxtexture.h"
+#include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_convert.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);
 EXTERN_CVAR (Float, gl_lights_size);

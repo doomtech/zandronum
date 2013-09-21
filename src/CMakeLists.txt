@@ -617,14 +617,10 @@ endif( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 if( NOT NO_GL )
 	set( GL_SOURCES
 		gl/common/a_dynlight.cpp
-		gl/common/glc_clock.cpp
-		gl/common/glc_cycler.cpp
 		gl/common/glc_dynlight.cpp
-		gl/common/glc_geometric.cpp
 		gl/common/glc_glow.cpp
 		gl/common/glc_light.cpp
 		gl/common/glc_sections.cpp
-		gl/common/glc_wipe.cpp
 		gl/data/gl_data.cpp
 		gl/data/gl_nodes.cpp
 		gl/data/gl_sections.cpp
@@ -654,6 +650,7 @@ if( NOT NO_GL )
 		gl/system/gl_framebuffer.cpp
 		gl/system/gl_interface.cpp
 		gl/system/gl_menu.cpp
+		gl/system/gl_wipe.cpp
 		gl/textures/gl_bitmap.cpp
 		gl/textures/gl_hirestex.cpp
 		gl/textures/gl_hqresize.cpp
@@ -661,6 +658,9 @@ if( NOT NO_GL )
 		gl/textures/gl_material.cpp
 		gl/textures/gl_texture.cpp
 		gl/textures/gl_translate.cpp
+		gl/utility/gl_clock.cpp
+		gl/utility/gl_cycler.cpp
+		gl/utility/gl_geometric.cpp
 		gl/gl_light.cpp
 	)
 else( NOT NO_GL )

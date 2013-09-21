@@ -38,9 +38,9 @@
 
 #include "tarray.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
 #include "gl/scene/gl_drawinfo.h"
+#include "gl/utility/gl_templates.h"
 
 struct GLHorizonInfo
 {

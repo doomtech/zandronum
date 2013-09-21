@@ -49,11 +49,11 @@
 #include "templates.h"
 #include "vectors.h"
 #include "gl/common/glc_renderer.h"
-#include "gl/common/glc_templates.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/textures/gl_translate.h"
 #include "gl/textures/gl_material.h"
+#include "gl/utility/gl_templates.h"
 
 EXTERN_CVAR(Bool, gl_vid_compatibility)
 

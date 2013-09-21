@@ -34,7 +34,7 @@
 */
 
 #include <math.h>
-#include "gl/common/glc_cycler.h"
+#include "gl/utility/gl_cycler.h"
 
 //==========================================================================
 //
