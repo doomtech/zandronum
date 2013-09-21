@@ -85,7 +85,8 @@
 #include "cl_demo.h"
 #include "domination.h"
 
-#include "gl/common/glc_data.h"
+// [BB] Neccessary to make GZDoom revision 486 compile.
+#include "gl/data/gl_data.h"
 #include "gl/gl_lights.h"
 
 

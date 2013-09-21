@@ -54,6 +54,9 @@
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
 
+// [BB] New #includes. 
+#include "r_main.h"
+
 static inline float GetTimeFloat()
 {
 	return (float)I_MSTime() * (float)TICRATE / 1000.0f;
