@@ -44,21 +44,21 @@
 #include "a_sharedglobal.h"
 #include "g_level.h"
 #include "templates.h"
-#include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
-#include "gl/common/glc_glow.h"
 #include "gl/gl_functions.h"
 #include "vectors.h"
 #include "r_sky.h"
 
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
+#include "gl/dynlights/gl_glow.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
+#include "gl/shaders/gl_shader.h"
 
 EXTERN_CVAR(Bool,gl_mirrors)
 EXTERN_CVAR(Bool,gl_mirror_envmap)

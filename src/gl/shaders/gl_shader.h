@@ -35,5 +35,18 @@ void gl_DisableShader();
 void gl_ClearShaders();
 void gl_InitShaders();
 
+void gl_EnableShader(bool on);
+
+void gl_SetTextureMode(int which);
+void gl_EnableFog(bool on);
+void gl_SetShaderLight(float level, float factor);
+void gl_SetCamera(float x, float y, float z);
+
+void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight);
+void gl_SetGlowPosition(float topdist, float bottomdist);
+
+int gl_SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
+
+
 #endif
 

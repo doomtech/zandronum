@@ -3,9 +3,9 @@
 #define __GL_LIGHTS_H__
 
 #include "gl/gl_intern.h"
-#include "gl/common/glc_dynlight.h"
 
 #include "gl/data/gl_data.h"
+#include "gl/dynlights/gl_dynlight.h"
 #include "gl/utility/gl_geometric.h"
 
 //

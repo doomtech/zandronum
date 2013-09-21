@@ -52,12 +52,12 @@
 #include "w_wad.h"
 #include "gi.h"
 #include "g_level.h"
-#include "gl/common/glc_dynlight.h"
-#include "gl/common/glc_glow.h"
 
 #include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
+#include "gl/dynlights/gl_dynlight.h"
+#include "gl/dynlights/gl_glow.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 

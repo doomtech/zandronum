@@ -43,7 +43,7 @@
 #include "v_video.h"
 #include "textures/textures.h"
 
-#include "gl/common/glc_glow.h"
+#include "gl/dynlights/gl_glow.h"
 
 //===========================================================================
 // 

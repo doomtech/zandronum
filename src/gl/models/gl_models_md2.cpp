@@ -42,11 +42,11 @@
 #include "cmdlib.h"
 #include "sc_man.h"
 #include "m_crc32.h"
-#include "gl/old_renderer/gl1_shader.h"
 
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
+#include "gl/shaders/gl_shader.h"
 
 static float   avertexnormals[NUMVERTEXNORMALS][3] = {
 #include "tab_anorms.h"

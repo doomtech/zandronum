@@ -42,18 +42,18 @@
 #include "gl/gl_include.h"
 #include "r_sky.h"
 #include "r_main.h"
-#include "gl/old_renderer/gl1_renderer.h"
-#include "gl/old_renderer/gl1_shader.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
+#include "gl/shaders/gl_shader.h"
 
 FDrawInfo * gl_drawinfo;
 

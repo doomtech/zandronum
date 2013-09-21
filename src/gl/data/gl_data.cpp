@@ -50,15 +50,16 @@
 #include "w_wad.h"
 #include "gi.h"
 #include "g_level.h"
-#include "gl/old_renderer/gl1_shader.h"
-#include "gl/common/glc_dynlight.h"
-#include "gl/common/glc_glow.h"
 
 #include "gl/renderer/gl_renderer.h"
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
+#include "gl/dynlights/gl_dynlight.h"
+#include "gl/dynlights/gl_glow.h"
 #include "gl/models/gl_models.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
+#include "gl/shaders/gl_shader.h"
 // [BB]
 #include "gl/gl_functions.h"
 // [BC]

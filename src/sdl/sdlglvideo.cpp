@@ -19,11 +19,10 @@
 #include "gl/gl_include.h"
 #include "r_defs.h"
 #include "gl/gl_functions.h"
-#include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/common/glc_templates.h"
 #include "gl/old_renderer/gl1_texture.h"
-#include "gl/old_renderer/gl1_shader.h"
+#include "gl/shaders/gl_shader.h"
 #include "gl/gl_framebuffer.h"
 
 // MACROS ------------------------------------------------------------------

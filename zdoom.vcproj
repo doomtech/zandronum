@@ -10628,26 +10628,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Old Renderer"
-			>
-			<File
-				RelativePath=".\src\gl\old_renderer\gl1_shader.cpp"
-				>
-			</File>
-			<Filter
-				Name="Includes"
-				>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_renderer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\old_renderer\gl1_shader.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="GZDoom Renderer"
 			>
 			<Filter
@@ -10679,40 +10659,16 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="Common"
+				Name="Shaders"
 				>
 				<File
-					RelativePath=".\src\gl\common\a_dynlight.cpp"
+					RelativePath=".\src\gl\shaders\gl_shader.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\common\glc_dynlight.cpp"
+					RelativePath=".\src\gl\shaders\gl_shader.h"
 					>
 				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_glow.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\common\glc_light.cpp"
-					>
-				</File>
-				<Filter
-					Name="Includes"
-					>
-					<File
-						RelativePath=".\src\gl\common\glc_dynlight.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_glow.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\gl\common\glc_renderer.h"
-						>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="Textures"
@@ -10986,11 +10942,43 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\renderer\gl_lightdata.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\renderer\gl_lightdata.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\renderer\gl_renderer.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\gl\renderer\gl_renderer.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Dynamic light"
+				>
+				<File
+					RelativePath=".\src\gl\dynlights\a_dynlight.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_dynlight.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_dynlight.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_glow.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_glow.h"
 					>
 				</File>
 			</Filter>

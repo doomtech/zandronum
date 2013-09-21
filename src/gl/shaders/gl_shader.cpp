@@ -44,11 +44,11 @@
 #include "v_video.h"
 #include "name.h"
 #include "w_wad.h"
-#include "gl/old_renderer/gl1_shader.h"
 #include "i_system.h"
 #include "doomerrors.h"
 #include "v_palette.h"
 
+#include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 
 // these will only have an effect on SM3 cards.

@@ -55,8 +55,8 @@
 #include "zstring.h"
 #include "d_dehacked.h"
 
-#include "gl/common/glc_dynlight.h"
 
+#include "gl/dynlights/gl_dynlight.h"
 #include "gl/textures/gl_skyboxtexture.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"

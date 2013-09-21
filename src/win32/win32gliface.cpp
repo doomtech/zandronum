@@ -3,10 +3,6 @@
 #include "win32iface.h"
 #include "win32gliface.h"
 #include "gl/gl_intern.h"
-// [BB] Necesary to make GZDoom revisin 491 compile.
-#include "gl/renderer/gl_colormap.h"
-#include "gl/renderer/gl_renderer.h"
-#include "gl/old_renderer/gl1_shader.h"
 #include "templates.h"
 #include "version.h"
 #include "c_console.h"
@@ -17,7 +13,9 @@
 #include "doomstat.h"
 //#include "gl_defs.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/system/gl_framebuffer.h"
+#include "gl/shaders/gl_shader.h"
 #include "gl/utility/gl_templates.h"
 
 void gl_CalculateCPUSpeed();

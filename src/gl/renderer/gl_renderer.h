@@ -159,14 +159,6 @@ inline sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 	return gl_FakeFlat(sec, dest, in_area, back);
 }
 
-void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
-					   int *tm, int *sb, int *db, int *be);
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
-int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon);
-PalEntry gl_CalcLightColor(int lightlevel, PalEntry pe, int blendfactor);
-float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
-
-
 struct TexFilter_s
 {
 	int minfilter;

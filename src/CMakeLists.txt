@@ -616,20 +616,18 @@ endif( CMAKE_SYSTEM_PROCESSOR MATCHES powerpc )
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
 	set( GL_SOURCES
-		gl/common/a_dynlight.cpp
-		gl/common/glc_dynlight.cpp
-		gl/common/glc_glow.cpp
-		gl/common/glc_light.cpp
-		gl/common/glc_sections.cpp
 		gl/data/gl_data.cpp
 		gl/data/gl_nodes.cpp
 		gl/data/gl_sections.cpp
 		gl/data/gl_setup.cpp
 		gl/data/gl_vertexbuffer.cpp
+		gl/dynlights/a_dynlight.cpp
+		gl/dynlights/gl_dynlight.cpp
+		gl/dynlights/gl_glow.cpp
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models_md3.cpp
-		gl/old_renderer/gl1_shader.cpp
+		gl/renderer/gl_lightdata.cpp
 		gl/renderer/gl_renderer.cpp
 		gl/scene/gl_bsp.cpp
 		gl/scene/gl_clipper.cpp
@@ -647,6 +645,7 @@ if( NOT NO_GL )
 		gl/scene/gl_walls.cpp
 		gl/scene/gl_walls_draw.cpp
 		gl/scene/gl_weapon.cpp
+		gl/shaders/gl_shader.cpp
 		gl/system/gl_framebuffer.cpp
 		gl/system/gl_interface.cpp
 		gl/system/gl_menu.cpp

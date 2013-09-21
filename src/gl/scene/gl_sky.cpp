@@ -43,10 +43,10 @@
 #include "g_level.h"
 #include "r_sky.h"
 #include "r_main.h"
-#include "gl/old_renderer/gl1_renderer.h"
 #include "gl/gl_functions.h"
 
 #include "gl/data/gl_data.h"
+#include "gl/renderer/gl_lightdata.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
