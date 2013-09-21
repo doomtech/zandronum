@@ -58,15 +58,12 @@
 #include "gl/common/glc_clock.h"
 
 #include "gl/data/gl_data.h"
+#include "gl/models/gl_models.h"
 // [BB]
 #include "gl/gl_functions.h"
 // [BC]
 #include "network.h"
 #include "sv_commands.h"
-
-// common function that's still in an unprocessed file
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
-void gl_InitModels();
 
 GLRenderSettings glset;
 long gl_frameMS;
@@ -87,29 +84,6 @@ CUSTOM_CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 }
 
 void gl_CreateSections();
-
-FTexture *glpart2;
-FTexture *glpart;
-FTexture *mirrortexture;
-FTexture *gllight;
-
-void gl_FreeSpecialTextures()
-{
-	if (glpart2) delete glpart2;
-	if (glpart) delete glpart;
-	if (mirrortexture) delete mirrortexture;
-	if (gllight) delete gllight;
-	
-	glpart = glpart2 = gllight = mirrortexture = NULL;
-}
-
-void gl_InitSpecialTextures()
-{
-	glpart2 = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart2.png"), FTexture::TEX_MiscPatch);
-	glpart = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart.png"), FTexture::TEX_MiscPatch);
-	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
-	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
-}
 
 //-----------------------------------------------------------------------------
 //

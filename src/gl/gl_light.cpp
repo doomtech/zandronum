@@ -384,8 +384,8 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 bool gl_SetupLightTexture()
 {
 
-	if (gllight == NULL) return false;
-	FMaterial * pat = FMaterial::ValidateTexture(gllight);
+	if (GLRenderer->gllight == NULL) return false;
+	FMaterial * pat = FMaterial::ValidateTexture(GLRenderer->gllight);
 	pat->BindPatch(CM_DEFAULT, 0);
 	return true;
 }

@@ -43,7 +43,7 @@
 #include "v_video.h"
 #include "doomstat.h"
 #include "gl/gl_struct.h"
-#include "gl/gl_functions.h"
+#include "gl/gl_lights.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_renderer.h"
 

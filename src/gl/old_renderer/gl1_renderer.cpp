@@ -47,6 +47,7 @@
 #include "r_main.h"
 #include "m_png.h"
 #include "m_crc32.h"
+#include "w_wad.h"
 #include "gl/common/glc_templates.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
@@ -69,6 +70,7 @@
 // Renderer interface
 //
 //===========================================================================
+void gl_InitFog();
 
 
 EXTERN_CVAR(Bool, gl_render_segs)
@@ -81,6 +83,11 @@ EXTERN_CVAR(Bool, gl_render_segs)
 
 void FGLRenderer::Initialize()
 {
+	glpart2 = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart2.png"), FTexture::TEX_MiscPatch);
+	glpart = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart.png"), FTexture::TEX_MiscPatch);
+	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
+	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
+
 	mVBO = new FVertexBuffer;
 	GlobalDrawInfo = new FDrawInfo;
 	gl_InitShaders();
@@ -93,6 +100,10 @@ FGLRenderer::~FGLRenderer()
 	gl_ClearShaders();
 	if (GlobalDrawInfo != NULL) delete GlobalDrawInfo;
 	if (mVBO != NULL) delete mVBO;
+	if (glpart2) delete glpart2;
+	if (glpart) delete glpart;
+	if (mirrortexture) delete mirrortexture;
+	if (gllight) delete gllight;
 }
 
 //===========================================================================

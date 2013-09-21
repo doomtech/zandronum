@@ -243,7 +243,7 @@ void GLWall::RenderFogBoundary()
 //==========================================================================
 void GLWall::RenderMirrorSurface()
 {
-	if (mirrortexture == NULL) return;
+	if (GLRenderer->mirrortexture == NULL) return;
 
 	// Use sphere mapping for this
 	gl.Enable(GL_TEXTURE_GEN_T);
@@ -257,7 +257,7 @@ void GLWall::RenderMirrorSurface()
 	gl.DepthFunc(GL_LEQUAL);
 	gl_SetFog(lightlevel, extralight*gl_weaponlight, &Colormap, true);
 
-	FMaterial * pat=FMaterial::ValidateTexture(mirrortexture);
+	FMaterial * pat=FMaterial::ValidateTexture(GLRenderer->mirrortexture);
 	pat->BindPatch(Colormap.colormap, 0);
 
 	flags &= ~GLWF_GLOW;

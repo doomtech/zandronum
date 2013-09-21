@@ -5,7 +5,7 @@
 #include "gl/common/glc_templates.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_struct.h"
-#include "gl/gl_functions.h"
+#include "gl/common/glc_renderer.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "templates.h"
 #include "version.h"

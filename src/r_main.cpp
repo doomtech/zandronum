@@ -55,7 +55,7 @@
 #include "r_plane.h"
 #include "r_3dfloors.h"
 #include "v_palette.h"
-#include "gl/data/gl_data.h"
+//#include "gl/data/gl_data.h"
 #include "gl/gl_functions.h"
 
 // [BC] New #includes.

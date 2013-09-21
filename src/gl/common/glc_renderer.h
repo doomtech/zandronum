@@ -52,6 +52,11 @@ public:
 	FDrawInfo *GlobalDrawInfo;
 	int gl_spriteindex;
 
+	FTexture *glpart2;
+	FTexture *glpart;
+	FTexture *mirrortexture;
+	FTexture *gllight;
+
 	float mSky1Pos, mSky2Pos;
 
 	FRotator mAngles;
@@ -74,6 +79,7 @@ public:
 		mVBO = NULL;
 		gl_spriteindex = 0;
 		GlobalDrawInfo = NULL;
+		glpart2 = glpart = gllight = mirrortexture = NULL;
 	}
 	~FGLRenderer() ;
 
@@ -132,7 +138,6 @@ public:
 };
 
 // Global functions. Make them members of GLRenderer later?
-FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle, bool *mirror);
 void gl_RenderBSPNode (void *node);
 bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsector);
 void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_t *backsector);

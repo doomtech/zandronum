@@ -90,7 +90,6 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 
 	InitializeState();
 	gl_GenerateGlobalBrightmapFromColormap();
-	gl_InitSpecialTextures();
 
 	// [BB] Backported from GZDoom revision 660.
 	Accel2D = true;
@@ -103,7 +102,6 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
-	gl_FreeSpecialTextures();
 	delete GLRenderer;
 	GLRenderer = NULL;
 }

@@ -41,7 +41,7 @@
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gl/old_renderer/gl1_renderer.h"
-#include "gl/gl_functions.h"
+#include "gl/gl_lights.h"
 #include "gl/gl_intern.h"
 #include "gl/old_renderer/gl1_shader.h"
 #include "gl/common/glc_convert.h"

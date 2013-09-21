@@ -40,7 +40,7 @@
 
 #include "doomdata.h"
 #include "gl/gl_include.h"
-#include "gl/gl_functions.h"
+#include "gl/gl_lights.h"
 #include "gl/gl_intern.h"
 #include "a_sharedglobal.h"
 #include "gl/common/glc_clock.h"

@@ -815,11 +815,11 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 		FTexture *lump = NULL;
 		if (gl_particles_style == 1)
 		{
-			lump = glpart2;
+			lump = GLRenderer->glpart2;
 		}
 		else if (gl_particles_style == 2)
 		{
-			lump = glpart;
+			lump = GLRenderer->glpart;
 		}
 
 		if (lump != NULL)
