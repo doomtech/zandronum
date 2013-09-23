@@ -85,28 +85,133 @@ bool GLWall::PrepareLight(texcoord * tcs, ADynamicLight * light)
 		return false;
 	}
 
-	Vector t1;
-	int outcnt[4]={0,0,0,0};
-
-	for(int i=0;i<4;i++)
+	if (tcs != NULL)
 	{
-		t1.Set(&vtx[i*3]);
-		Vector nearToVert = t1 - nearPt;
-		tcs[i].u = (nearToVert.Dot(right) * scale) + 0.5f;
-		tcs[i].v = (nearToVert.Dot(up) * scale) + 0.5f;
+		Vector t1;
+		int outcnt[4]={0,0,0,0};
 
-		// quick check whether the light touches this polygon
-		if (tcs[i].u<0) outcnt[0]++;
-		if (tcs[i].u>1) outcnt[1]++;
-		if (tcs[i].v<0) outcnt[2]++;
-		if (tcs[i].v>1) outcnt[3]++;
+		for(int i=0;i<4;i++)
+		{
+			t1.Set(&vtx[i*3]);
+			Vector nearToVert = t1 - nearPt;
+			tcs[i].u = (nearToVert.Dot(right) * scale) + 0.5f;
+			tcs[i].v = (nearToVert.Dot(up) * scale) + 0.5f;
 
+			// quick check whether the light touches this polygon
+			if (tcs[i].u<0) outcnt[0]++;
+			if (tcs[i].u>1) outcnt[1]++;
+			if (tcs[i].v<0) outcnt[2]++;
+			if (tcs[i].v>1) outcnt[3]++;
+
+		}
+		// The light doesn't touch this polygon
+		if (outcnt[0]==4 || outcnt[1]==4 || outcnt[2]==4 || outcnt[3]==4) return false;
 	}
-	// The light doesn't touch this polygon
-	if (outcnt[0]==4 || outcnt[1]==4 || outcnt[2]==4 || outcnt[3]==4) return false;
 
 	draw_dlight++;
 	return true;
+}
+
+//==========================================================================
+//
+// Collect lights for shader
+//
+//==========================================================================
+FDynLightData lightdata;
+
+void GLWall::SetupLights()
+{
+	float vtx[]={glseg.x1,zbottom[0],glseg.y1, glseg.x1,ztop[0],glseg.y1, glseg.x2,ztop[1],glseg.y2, glseg.x2,zbottom[1],glseg.y2};
+	Plane p;
+
+	lightdata.Clear();
+	p.Init(vtx,4);
+
+	if (!p.ValidNormal()) 
+	{
+		return;
+	}
+	for(int i=0;i<2;i++)
+	{
+		FLightNode *node;
+		if (!seg->bPolySeg)
+		{
+			// Iterate through all dynamic lights which touch this wall and render them
+			if (seg->sidedef)
+			{
+				node = seg->sidedef->lighthead[i];
+			}
+			else node = NULL;
+		}
+		else if (sub)
+		{
+			// To avoid constant rechecking for polyobjects use the subsector's lightlist instead
+			node = sub->lighthead[i];
+		}
+		else node = NULL;
+
+		while (node)
+		{
+			if (!(node->lightsource->flags2&MF2_DORMANT))
+			{
+				iter_dlight++;
+
+				Vector fn, pos;
+
+				float x = TO_GL(node->lightsource->x);
+				float y = TO_GL(node->lightsource->y);
+				float z = TO_GL(node->lightsource->z);
+				float dist = fabsf(p.DistToPoint(x, z, y));
+				float radius = (node->lightsource->GetRadius() * gl_lights_size);
+				float scale = 1.0f / ((2.f * radius) - dist);
+
+				if (radius > 0.f && dist < radius)
+				{
+					Vector nearPt, up, right;
+
+					pos.Set(x,z,y);
+					fn=p.Normal();
+					fn.GetRightUp(right, up);
+
+					Vector tmpVec = fn * dist;
+					nearPt = pos + tmpVec;
+
+					Vector t1;
+					int outcnt[4]={0,0,0,0};
+					texcoord tcs[4];
+
+					// do a quick check whether the light touches this polygon
+					for(int i=0;i<4;i++)
+					{
+						t1.Set(&vtx[i*3]);
+						Vector nearToVert = t1 - nearPt;
+						tcs[i].u = (nearToVert.Dot(right) * scale) + 0.5f;
+						tcs[i].v = (nearToVert.Dot(up) * scale) + 0.5f;
+
+						if (tcs[i].u<0) outcnt[0]++;
+						if (tcs[i].u>1) outcnt[1]++;
+						if (tcs[i].v<0) outcnt[2]++;
+						if (tcs[i].v>1) outcnt[3]++;
+
+					}
+					if (outcnt[0]!=4 && outcnt[1]!=4 && outcnt[2]!=4 && outcnt[3]!=4) 
+					{
+						gl_GetLight(p, node->lightsource, Colormap.colormap, true, !!(flags&GLWF_FOGGY), lightdata);
+					}
+				}
+			}
+			node = node->nextLight;
+		}
+	}
+	int numlights[3];
+
+	lightdata.Combine(numlights, gl.MaxLights());
+	if (numlights[2] > 0)
+	{
+		draw_dlight+=numlights[2];
+		gl_RenderState.EnableLight(true);
+		gl_RenderState.SetLights(numlights, &lightdata.arrays[0][0]);
+	}
 }
 
 //==========================================================================
@@ -140,27 +245,23 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 		glowing = false;
 	}
 
-	gl_RenderState.Apply(!!(flags & GLWF_NOSHADER));
+	if (glowing) gl_RenderState.SetGlowParams(topglowcolor, bottomglowcolor);
 
-	if (glowing)
-	{
-		// must be done after gl_ApplyShader!
-		gl_SetGlowParams(topglowcolor, topglowcolor[3], bottomglowcolor, bottomglowcolor[3]);
-	}
+	gl_RenderState.Apply(!!(flags & GLWF_NOSHADER));
 
 	// the rest of the code is identical for textured rendering and lights
 
 	gl.Begin(GL_TRIANGLE_FAN);
 
 	// lower left corner
-	if (glowing) gl_SetGlowPosition(zceil[0] - zbottom[0], zbottom[0] - zfloor[0]);
+	if (glowing) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - zbottom[0], zbottom[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[0].u,tcs[0].v);
 	gl.Vertex3f(glseg.x1,zbottom[0],glseg.y1);
 
 	if (split && glseg.fracleft==0) SplitLeftEdge(tcs, glowing);
 
 	// upper left corner
-	if (glowing) gl_SetGlowPosition(zceil[0] - ztop[0], ztop[0] - zfloor[0]);
+	if (glowing) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - ztop[0], ztop[0] - zfloor[0]);
 	if (textured&1) gl.TexCoord2f(tcs[1].u,tcs[1].v);
 	gl.Vertex3f(glseg.x1,ztop[0],glseg.y1);
 
@@ -170,14 +271,14 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (color2) gl.Color4fv(color2);
 
 	// upper right corner
-	if (glowing) gl_SetGlowPosition(zceil[1] - ztop[1], ztop[1] - zfloor[1]);
+	if (glowing) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[1] - ztop[1], ztop[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[2].u,tcs[2].v);
 	gl.Vertex3f(glseg.x2,ztop[1],glseg.y2);
 
 	if (split && glseg.fracright==1) SplitRightEdge(tcs, glowing);
 
 	// lower right corner
-	if (glowing) gl_SetGlowPosition(zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
+	if (glowing) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[1] - zbottom[1], zbottom[1] - zfloor[1]);
 	if (textured&1) gl.TexCoord2f(tcs[3].u,tcs[3].v); 
 	gl.Vertex3f(glseg.x2,zbottom[1],glseg.y2);
 
@@ -202,35 +303,48 @@ void GLWall::RenderFogBoundary()
 
 	if (gl_fogmode && gl_fixedcolormap == 0)
 	{
-		float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
+		if (gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_fog_shader))
+		{
+			int rel = rellight + (extralight * gl_weaponlight);
+			gl_SetFog(lightlevel, rel, &Colormap, false);
+			gl_RenderState.SetEffect(EFF_FOGBOUNDARY);
+			gl.Disable(GL_ALPHA_TEST);
+			RenderWall(0, NULL);
+			gl.Enable(GL_ALPHA_TEST);
+			gl_RenderState.SetEffect(EFF_NONE);
+		}
+		else
+		{
+			float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
 
-		float xcamera=TO_GL(viewx);
-		float ycamera=TO_GL(viewy);
+			float xcamera=TO_GL(viewx);
+			float ycamera=TO_GL(viewy);
 
-		float dist1=Dist2(xcamera,ycamera, glseg.x1,glseg.y1);
-		float dist2=Dist2(xcamera,ycamera, glseg.x2,glseg.y2);
+			float dist1=Dist2(xcamera,ycamera, glseg.x1,glseg.y1);
+			float dist2=Dist2(xcamera,ycamera, glseg.x2,glseg.y2);
 
 
-		// these values were determined by trial and error and are scale dependent!
-		float fogd1=(0.95f-exp(-fogdensity*dist1/62500.f)) * 1.05f;
-		float fogd2=(0.95f-exp(-fogdensity*dist2/62500.f)) * 1.05f;
+			// these values were determined by trial and error and are scale dependent!
+			float fogd1=(0.95f-exp(-fogdensity*dist1/62500.f)) * 1.05f;
+			float fogd2=(0.95f-exp(-fogdensity*dist2/62500.f)) * 1.05f;
 
-		gl_ModifyColor(Colormap.FadeColor.r, Colormap.FadeColor.g, Colormap.FadeColor.b, Colormap.colormap);
-		float fc[4]={Colormap.FadeColor.r/255.0f,Colormap.FadeColor.g/255.0f,Colormap.FadeColor.b/255.0f,fogd2};
+			gl_ModifyColor(Colormap.FadeColor.r, Colormap.FadeColor.g, Colormap.FadeColor.b, Colormap.colormap);
+			float fc[4]={Colormap.FadeColor.r/255.0f,Colormap.FadeColor.g/255.0f,Colormap.FadeColor.b/255.0f,fogd2};
 
-		gl_EnableTexture(false);
-		gl_RenderState.EnableFog(false);
-		gl.AlphaFunc(GL_GREATER,0);
-		gl.DepthFunc(GL_LEQUAL);
-		gl.Color4f(fc[0],fc[1],fc[2], fogd1);
+			gl_RenderState.EnableTexture(false);
+			gl_RenderState.EnableFog(false);
+			gl.AlphaFunc(GL_GREATER,0);
+			gl.DepthFunc(GL_LEQUAL);
+			gl.Color4f(fc[0],fc[1],fc[2], fogd1);
 
-		flags &= ~GLWF_GLOW;
-		RenderWall(4,fc);
+			flags &= ~GLWF_GLOW;
+			RenderWall(4,fc);
 
-		gl.DepthFunc(GL_LESS);
-		gl_RenderState.EnableFog(true);
-		gl.AlphaFunc(GL_GEQUAL,0.5f);
-		gl_EnableTexture(true);
+			gl.DepthFunc(GL_LESS);
+			gl_RenderState.EnableFog(true);
+			gl.AlphaFunc(GL_GEQUAL,0.5f);
+			gl_RenderState.EnableTexture(true);
+		}
 	}
 }
 
@@ -244,11 +358,12 @@ void GLWall::RenderMirrorSurface()
 {
 	if (GLRenderer->mirrortexture == NULL) return;
 
+	Vector v(glseg.y2-glseg.y1, 0 ,-glseg.x2+glseg.x1);
+	v.Normalize();
+	glNormal3fv(&v[0]);
+
 	// Use sphere mapping for this
-	gl.Enable(GL_TEXTURE_GEN_T);
-	gl.Enable(GL_TEXTURE_GEN_S);
-	gl.TexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-	gl.TexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+	gl_RenderState.SetEffect(EFF_SPHEREMAP);
 
 	gl_SetColor(lightlevel, 0, &Colormap ,0.1f);
 	gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
@@ -260,11 +375,10 @@ void GLWall::RenderMirrorSurface()
 	pat->BindPatch(Colormap.colormap, 0);
 
 	flags &= ~GLWF_GLOW;
-	flags |= GLWF_NOSHADER;
+	//flags |= GLWF_NOSHADER;
 	RenderWall(0,NULL);
 
-	gl.Disable(GL_TEXTURE_GEN_T);
-	gl.Disable(GL_TEXTURE_GEN_S);
+	gl_RenderState.SetEffect(EFF_NONE);
 
 	// Restore the defaults for the translucent pass
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -315,7 +429,7 @@ void GLWall::RenderTranslucentWall()
 	}
 	else 
 	{
-		gl_EnableTexture(false);
+		gl_RenderState.EnableTexture(false);
 		extra = 0;
 	}
 
@@ -331,7 +445,7 @@ void GLWall::RenderTranslucentWall()
 
 	if (!gltexture)	
 	{
-		gl_EnableTexture(true);
+		gl_RenderState.EnableTexture(true);
 	}
 	gl_RenderState.EnableBrightmap(true);
 	gl_RenderState.EnableGlow(false);
@@ -367,9 +481,15 @@ void GLWall::Draw(int pass)
 
 	switch (pass)
 	{
+	case GLPASS_PLAIN:			// Single-pass rendering
+
+		if (gl_dynlight_shader && GLRenderer->mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT)
+		{
+			SetupLights();
+		}
+
 	case GLPASS_BASE:			// Base pass for non-masked polygons (all opaque geometry)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
-	case GLPASS_PLAIN:			// Single-pass rendering
 
 		rel = rellight + (extralight * gl_weaponlight);
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
@@ -388,6 +508,7 @@ void GLWall::Draw(int pass)
 		}
 		RenderWall((pass!=GLPASS_BASE) + 2*(pass!=GLPASS_TEXTURE), NULL);
 		gl_RenderState.EnableGlow(false);
+		gl_RenderState.EnableLight(false);
 		break;
 
 	case GLPASS_LIGHT:

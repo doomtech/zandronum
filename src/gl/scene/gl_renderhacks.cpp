@@ -104,7 +104,6 @@ void FDrawInfo::ClearBuffers()
 	CeilingStacks.Clear();
 	FloorStacks.Clear();
 	HandledSubsectors.Clear();
-	if (mDynLights != NULL) mDynLights->ClearBuffer();
 
 }
 //==========================================================================

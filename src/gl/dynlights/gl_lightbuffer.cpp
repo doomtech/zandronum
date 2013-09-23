@@ -38,6 +38,8 @@
 **
 */
 
+#if 0	// unused for now. Code doesn't work
+
 #include "gl/system/gl_system.h"
 #include "c_dispatch.h"
 #include "p_local.h"
@@ -237,3 +239,6 @@ void FLightIndexBuffer::BindTexture(int texunit1)
 	gl.ActiveTexture(GL_TEXTURE0);
 }
 
+
+
+#endif

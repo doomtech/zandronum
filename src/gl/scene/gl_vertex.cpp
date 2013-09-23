@@ -53,7 +53,6 @@
 #include "gl/utility/gl_templates.h"
 
 EXTERN_CVAR(Bool, gl_seamless)
-extern long gl_frameMS;
 extern int vertexcount;
 
 //==========================================================================
@@ -82,7 +81,7 @@ void GLWall::SplitUpperEdge(texcoord * tcs, bool glow)
 
 		float fracfac = cseg->sidefrac - glseg.fracleft;
 
-		if (glow) gl_SetGlowPosition(zceil[0] - ztop[0] + (facc - fact) * fracfac, 
+		if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - ztop[0] + (facc - fact) * fracfac, 
 									 ztop[0] - zfloor[0] + (fact - facf) * fracfac);
 
 		gl.TexCoord2f(tcs[1].u + facu * fracfac, tcs[1].v + facv * fracfac);
@@ -117,7 +116,7 @@ void GLWall::SplitLowerEdge(texcoord * tcs, bool glow)
 
 		float fracfac = cseg->sidefrac - glseg.fracleft;
 
-		if (glow) gl_SetGlowPosition(zceil[0] - zbottom[0] + (facc - facb) * fracfac, 
+		if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - zbottom[0] + (facc - facb) * fracfac, 
 									 zbottom[0] - zfloor[0] + (facb - facf) * fracfac);
 
 		gl.TexCoord2f(tcs[0].u + facu * fracfac, tcs[0].v + facv * fracfac);
@@ -149,7 +148,7 @@ void GLWall::SplitLeftEdge(texcoord * tcs, bool glow)
 		while (i<vi->numheights && vi->heightlist[i] <= zbottom[0] ) i++;
 		while (i<vi->numheights && vi->heightlist[i] < ztop[0])
 		{
-			if (glow) gl_SetGlowPosition(zceil[0] - vi->heightlist[i], vi->heightlist[i] - zfloor[0]);
+			if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - vi->heightlist[i], vi->heightlist[i] - zfloor[0]);
 			gl.TexCoord2f(factu1*(vi->heightlist[i] - ztop[0]) + tcs[1].u,
 						 factv1*(vi->heightlist[i] - ztop[0]) + tcs[1].v);
 			gl.Vertex3f(glseg.x1, vi->heightlist[i], glseg.y1);
@@ -182,7 +181,7 @@ void GLWall::SplitRightEdge(texcoord * tcs, bool glow)
 		while (i>0 && vi->heightlist[i] >= ztop[1]) i--;
 		while (i>0 && vi->heightlist[i] > zbottom[1])
 		{
-			if (glow) gl_SetGlowPosition(zceil[1] - vi->heightlist[i], vi->heightlist[i] - zfloor[1]);
+			if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[1] - vi->heightlist[i], vi->heightlist[i] - zfloor[1]);
 			gl.TexCoord2f(factu2 * (vi->heightlist[i] - ztop[1]) + tcs[2].u,
 						 factv2 * (vi->heightlist[i] - ztop[1]) + tcs[2].v);
 			gl.Vertex3f(glseg.x2, vi->heightlist[i], glseg.y2);

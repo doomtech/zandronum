@@ -244,7 +244,4 @@ public:
 
 };
 
-
-void gl_EnableTexture(bool on);
-
 #endif

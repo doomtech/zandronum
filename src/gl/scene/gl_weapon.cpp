@@ -292,7 +292,7 @@ void FGLRenderer::DrawTargeterSprites()
 	gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 	gl.BlendEquation(GL_FUNC_ADD);
 	gl.Color3f(1.0f,1.0f,1.0f);
-	gl_SetTextureMode(TM_MODULATE);
+	gl_RenderState.SetTextureMode(TM_MODULATE);
 
 	// The Targeter's sprites are always drawn normally.
 	for (i=ps_targetcenter, psp = &player->psprites[ps_targetcenter]; i<NUMPSPRITES; i++,psp++)

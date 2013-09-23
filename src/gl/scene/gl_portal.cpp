@@ -186,7 +186,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 		gl.StencilOp(GL_KEEP,GL_KEEP,GL_INCR);		// increment stencil of valid pixels
 		gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
 		gl.DepthMask(false);							// don't write to Z-buffer!
-		gl_EnableTexture(false);
+		gl_RenderState.EnableTexture(false);
 		gl.Color3f(1,1,1);
 		gl.DepthFunc(GL_LESS);
 		gl_RenderState.Apply(true);
@@ -223,7 +223,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 			DrawPortalStencil();
 
 			// set normal drawing mode
-			gl_EnableTexture(true);
+			gl_RenderState.EnableTexture(true);
 			gl.DepthFunc(GL_LESS);
 			gl.ColorMask(1,1,1,1);
 			gl.DepthRange(0,1);
@@ -254,7 +254,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 			DrawPortalStencil();
 			gl.StencilFunc(GL_EQUAL,recursion+1,~0);		// draw sky into stencil
 			gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);		// this stage doesn't modify the stencil
-			gl_EnableTexture(true);
+			gl_RenderState.EnableTexture(true);
 			gl.ColorMask(1,1,1,1);
 			gl.Disable(GL_DEPTH_TEST);
 		}
@@ -348,7 +348,7 @@ void GLPortal::End(bool usestencil)
 		gl.Color4f(1,1,1,1);
 		gl.ColorMask(0,0,0,0);						// no graphics
 		gl.Color3f(1,1,1);
-		gl_EnableTexture(false);
+		gl_RenderState.EnableTexture(false);
 		gl_RenderState.Apply(true);
 
 		if (needdepth) 
@@ -372,7 +372,7 @@ void GLPortal::End(bool usestencil)
 		gl.DepthFunc(GL_LESS);
 
 
-		gl_EnableTexture(true);
+		gl_RenderState.EnableTexture(true);
 		gl.ColorMask(1,1,1,1);
 		recursion--;
 
@@ -408,9 +408,9 @@ void GLPortal::End(bool usestencil)
 		gl.DepthFunc(GL_LEQUAL);
 		gl.DepthRange(0,1);
 		gl.ColorMask(0,0,0,0);						// no graphics
-		gl_EnableTexture(false);
+		gl_RenderState.EnableTexture(false);
 		DrawPortalStencil();
-		gl_EnableTexture(true);
+		gl_RenderState.EnableTexture(true);
 		gl.ColorMask(1,1,1,1);
 		gl.DepthFunc(GL_LESS);
 	}

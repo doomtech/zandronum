@@ -61,8 +61,6 @@
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
 
-TArray<int> GLFlat::dynlightdata;
-
 //==========================================================================
 //
 // Sets the texture matrix according to the plane's texture positioning
@@ -156,6 +154,70 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 	}
 }
 
+
+//==========================================================================
+//
+// Flats 
+//
+//==========================================================================
+extern FDynLightData lightdata;
+
+bool GLFlat::SetupSubsectorLights(bool lightsapplied, subsector_t * sub)
+{
+	if (gl_dynlight_shader && GLRenderer->mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT)
+	{
+		Plane p;
+
+		lightdata.Clear();
+		for(int i=0;i<2;i++)
+		{
+			FLightNode * node = sub->lighthead[i];
+			while (node)
+			{
+				ADynamicLight * light = node->lightsource;
+				
+				if (light->flags2&MF2_DORMANT)
+				{
+					node=node->nextLight;
+					continue;
+				}
+				iter_dlightf++;
+
+				// we must do the side check here because gl_SetupLight needs the correct plane orientation
+				// which we don't have for Legacy-style 3D-floors
+				fixed_t planeh = plane.plane.ZatPoint(light->x, light->y);
+				if (gl_lights_checkside && ((planeh<light->z && ceiling) || (planeh>light->z && !ceiling)))
+				{
+					node=node->nextLight;
+					continue;
+				}
+
+				p.Set(plane.plane);
+				gl_GetLight(p, light, Colormap.colormap, true, foggy, lightdata);
+				node = node->nextLight;
+			}
+		}
+
+		int numlights[3];
+
+		lightdata.Combine(numlights, gl.MaxLights());
+		if (numlights[2] > 0)
+		{
+			draw_dlightf+=numlights[2];
+			gl_RenderState.EnableLight(true);
+			gl_RenderState.SetLights(numlights, &lightdata.arrays[0][0]);
+			gl_RenderState.Apply();
+			return true;
+		}
+	}
+	if (lightsapplied) 
+	{
+		gl_RenderState.EnableLight(false);
+		gl_RenderState.Apply();
+	}
+	return false;
+}
+
 //==========================================================================
 //
 //
@@ -185,15 +247,15 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 //
 //==========================================================================
 
-void GLFlat::DrawSubsectors(bool istrans)
+void GLFlat::DrawSubsectors(int pass, bool istrans)
 {
-#ifdef TESTING
-	gl_RenderState.EnableLights(true);
-#endif
+	bool lightsapplied = false;
+
 	gl_RenderState.Apply();
 	if (sub)
 	{
 		// This represents a single subsector
+		if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 		DrawSubsector(sub);
 	}
 	else
@@ -208,6 +270,7 @@ void GLFlat::DrawSubsectors(bool istrans)
 				// This is just a quick hack to make translucent 3D floors and portals work.
 				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
 				{
+					if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 					gl.DrawArrays(GL_TRIANGLE_FAN, index, sub->numlines);
 					flatvertices += sub->numlines;
 					flatprimitives++;
@@ -224,6 +287,7 @@ void GLFlat::DrawSubsectors(bool istrans)
 				subsector_t * sub = sector->subsectors[i];
 				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
 				{
+					if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 					DrawSubsector(sub);
 				}
 			}
@@ -238,14 +302,13 @@ void GLFlat::DrawSubsectors(bool istrans)
 
 			while (node)
 			{
+				if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, node->sub);
 				DrawSubsector(node->sub);
 				node = node->next;
 			}
 		}
 	}
-#ifdef TESTING
-	gl_RenderState.EnableLights(false);
-#endif
+	gl_RenderState.EnableLight(false);
 }
 
 
@@ -272,11 +335,12 @@ void GLFlat::Draw(int pass)
 	case GLPASS_BASE:
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
 		if (!foggy) gl_SetFog(lightlevel, rel, &Colormap, false);
-		DrawSubsectors(false);
+		DrawSubsectors(pass, false);
 		break;
 
-	case GLPASS_BASE_MASKED:
 	case GLPASS_PLAIN:			// Single-pass rendering
+
+	case GLPASS_BASE_MASKED:
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
 		if (!foggy || pass == GLPASS_PLAIN) 
 			gl_SetFog(lightlevel, rel, &Colormap, false);
@@ -284,7 +348,7 @@ void GLFlat::Draw(int pass)
 	case GLPASS_TEXTURE:
 		gltexture->Bind(Colormap.colormap);
 		gl_SetPlaneTextureRotation(&plane, gltexture);
-		DrawSubsectors(false);
+		DrawSubsectors(pass, false);
 		gl.PopMatrix();
 		break;
 
@@ -332,7 +396,7 @@ void GLFlat::Draw(int pass)
 		gl_SetColor(lightlevel, rel, &Colormap, alpha);
 		gl_SetFog(lightlevel, rel, &Colormap, false);
 		gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold*(alpha));
-		if (!gltexture)	gl_EnableTexture(false);
+		if (!gltexture)	gl_RenderState.EnableTexture(false);
 
 		else 
 		{
@@ -341,129 +405,14 @@ void GLFlat::Draw(int pass)
 			gl_SetPlaneTextureRotation(&plane, gltexture);
 		}
 
-		DrawSubsectors(true);
+		DrawSubsectors(pass, true);
 
 		gl_RenderState.EnableBrightmap(true);
-		if (!gltexture)	gl_EnableTexture(true);
+		if (!gltexture)	gl_RenderState.EnableTexture(true);
 		else gl.PopMatrix();
 		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		break;
 	}
-}
-
-
-//==========================================================================
-//
-// 
-//
-//==========================================================================
-
-bool GLFlat::CollectSubsectorLights(subsector_t *sub)
-{
-	Plane p;
-
-	int firstdynlight = gl_drawinfo->mDynLights->GetLightIndex();
-	for(int i=0;i<2;i++)
-	{
-		FLightNode * node = sub->lighthead[i];
-		while (node)
-		{
-			ADynamicLight * light = node->lightsource;
-			
-			if (light->flags2&MF2_DORMANT)
-			{
-				node=node->nextLight;
-				continue;
-			}
-
-			// we must do the side check here because gl_SetupLight needs the correct plane orientation
-			// which we don't have for Legacy-style 3D-floors
-			fixed_t planeh = plane.plane.ZatPoint(light->x, light->y);
-			if (gl_lights_checkside && ((planeh<light->z && ceiling) || (planeh>light->z && !ceiling)))
-			{
-				node=node->nextLight;
-				continue;
-			}
-
-			p.Set(plane.plane);
-
-			float x = TO_GL(light->x);
-			float y = TO_GL(light->y);
-			float z = TO_GL(light->z);
-			
-			float dist = fabsf(p.DistToPoint(x, z, y));
-			float radius = (light->GetRadius() * gl_lights_size);
-			
-			if (dist < radius)
-			{
-				iter_dlightf++;
-				gl_drawinfo->mDynLights->AddLight(node->lightsource/*, foggy*/);
-			}
-			node = node->nextLight;
-		}
-	}
-	int lastdynlight = gl_drawinfo->mDynLights->GetLightIndex();
-
-	int dynlightindex = dynlightdata.Reserve(2);
-	if (lastdynlight > firstdynlight)
-	{
-		dynlightdata[dynlightindex] = firstdynlight;
-		dynlightdata[dynlightindex+1] = lastdynlight;
-		return true;
-	}
-	else
-	{
-		dynlightdata[dynlightindex] = -1;
-		dynlightdata[dynlightindex+1] = -1;
-		return false;
-	}
-}
-
-//==========================================================================
-//
-// 
-//
-//==========================================================================
-
-void GLFlat::CollectLights()
-{
-	bool haslights = false;
-	//if (gl_dynlight_shader && gl_lights && GLRenderer->mLightCount) already done by the calling code
-	if (gl_drawinfo->mDynLights != NULL)
-	{
-		dynlightindex = dynlightdata.Size();
-		if (sub)
-		{
-			// This represents a single subsector
-			haslights |= CollectSubsectorLights(sub);
-		}
-		else
-		{
-			for (int i=0; i<sector->subsectorcount; i++)
-			{
-				subsector_t * sub = sector->subsectors[i];
-				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags)
-				{
-					haslights |= CollectSubsectorLights(sub);
-				}
-			}
-
-			// Draw the subsectors assigned to it due to missing textures
-			if (!(renderflags&SSRF_RENDER3DPLANES))
-			{
-				gl_subsectorrendernode * node = (renderflags&SSRF_RENDERFLOOR)?
-					gl_drawinfo->GetOtherFloorPlanes(sector->sectornum) :
-					gl_drawinfo->GetOtherCeilingPlanes(sector->sectornum);
-
-				while (node)
-				{
-					haslights |= CollectSubsectorLights(sub);
-					node = node->next;
-				}
-			}
-		}
-	}
-	if (!haslights) dynlightindex = -1;	// we got no lights so save ourselves some work
 }
 
 

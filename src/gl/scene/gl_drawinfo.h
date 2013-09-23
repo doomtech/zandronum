@@ -3,7 +3,6 @@
 
 #include "gl/scene/gl_wall.h"
 
-class FLightIndexBuffer;
 
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
@@ -123,7 +122,6 @@ public:
 	void AddSprite(GLSprite * sprite);
 	void Reset();
 	void Sort();
-	void CollectFlatLights();
 
 
 	void MakeSortList();
@@ -209,8 +207,6 @@ struct FDrawInfo
 
 	TArray<subsector_t *> HandledSubsectors;
 
-	FLightIndexBuffer *mDynLights;
-
 	FDrawInfo * next;
 	GLDrawList drawlists[GLDL_TYPES];
 
@@ -239,7 +235,6 @@ struct FDrawInfo
 	void AddFloorStack(subsector_t * sub);
 	void AddCeilingStack(subsector_t * sub);
 	void ProcessSectorStacks();
-	void CollectFlatLights();
 
 	void AddOtherFloorPlane(int sector, gl_subsectorrendernode * node);
 	void AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node);

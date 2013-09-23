@@ -10657,6 +10657,54 @@
 					RelativePath=".\src\gl\shaders\gl_shader.h"
 					>
 				</File>
+				<Filter
+					Name="Shader Sources"
+					>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\fogboundary.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_brightmap.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_normal.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_notexture.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_warp1.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_warp2.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\main.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\main.vp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\main_colormap.fp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\main_colormap.vp"
+						>
+					</File>
+					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\main_spheremap.vp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Textures"

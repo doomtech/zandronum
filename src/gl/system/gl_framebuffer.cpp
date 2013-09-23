@@ -157,6 +157,15 @@ void OpenGLFrameBuffer::InitializeState()
 	gl.Hint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	gl.Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	gl.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	// This was to work around a bug in some older driver. Probably doesn't make sense anymore.
+	gl.Enable(GL_FOG);
+	gl.Disable(GL_FOG);
+
+	gl.Hint(GL_FOG_HINT, GL_FASTEST);
+	gl.Fogi(GL_FOG_MODE, GL_EXP);
+
+
 	gl.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	gl.Viewport(0, (GetTrueHeight()-GetHeight())/2, GetWidth(), GetHeight()); 

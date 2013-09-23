@@ -153,6 +153,7 @@ private:
 	void CheckGlowing();
 	void PutWall(bool translucent);
 
+	void SetupLights();
 	bool PrepareLight(texcoord * tcs, ADynamicLight * light);
 	void RenderWall(int textured, float * color2, ADynamicLight * light=NULL);
 	void RenderGlowingPoly(int textured, ADynamicLight * light=NULL);
@@ -198,8 +199,6 @@ private:
 	void DoFFloorBlocks(seg_t * seg, sector_t * frontsector, sector_t * backsector,
 					  fixed_t fch1, fixed_t fch2, fixed_t ffh1, fixed_t ffh2,
 					  fixed_t bch1, fixed_t bch2, fixed_t bfh1, fixed_t bfh2);
-
-	void CollectLights();
 
 	void DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector);
 	void DoDrawDecals(DBaseDecal * decal, seg_t * seg);
@@ -249,7 +248,6 @@ class GLFlat
 public:
 	friend struct GLDrawList;
 
-	static TArray<int> dynlightdata;
 	sector_t * sector;
 	subsector_t * sub;	// only used for translucent planes
 	float z; // the z position of the flat (height)
@@ -260,7 +258,7 @@ public:
 
 	float alpha;
 	GLSectorPlane plane;
-	short lightlevel;
+	int lightlevel;
 	bool stack;
 	bool foggy;
 	bool ceiling;
@@ -270,17 +268,16 @@ public:
 
 	int dynlightindex;
 
+	bool SetupSubsectorLights(bool lightsapplied, subsector_t * sub);
 	void DrawSubsector(subsector_t * sub);
 	void DrawSubsectorLights(subsector_t * sub, int pass);
-	void DrawSubsectors(bool istrans);
+	void DrawSubsectors(int pass, bool istrans);
 
 	void PutFlat(bool fog = false);
 	void Process(sector_t * sector, int whichplane, bool notexture);
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);
-	bool CollectSubsectorLights(subsector_t *sub);
-	void CollectLights();
 };
 
 

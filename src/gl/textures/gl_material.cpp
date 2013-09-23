@@ -600,7 +600,7 @@ const WorldTextureInfo * FMaterial::Bind(int cm, int clampmode, int translation)
 	int shaderindex = mShaderIndex;
 	int maxbound = 0;
 
-	int softwarewarp = gl_SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
+	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
 
 	const WorldTextureInfo *inf = mTextures[0]->Bind(0, cm, clampmode, translation, softwarewarp);
 	if (inf != NULL && shaderindex > 0)
@@ -633,7 +633,7 @@ const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
 	int shaderindex = mShaderIndex;
 	int maxbound = 0;
 
-	int softwarewarp = gl_SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
+	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 1.f);
 
 	const PatchTextureInfo *inf = mTextures[0]->BindPatch(0, cm, translation, softwarewarp);
 	if (inf != NULL && shaderindex > 0)

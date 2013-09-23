@@ -371,6 +371,7 @@ static void APIENTRY LoadExtensions()
 		gl->ValidateProgram = (PFNGLVALIDATEPROGRAMPROC)wglGetProcAddress("glValidateProgram");
 
 		gl->VertexAttrib1f = (PFNGLVERTEXATTRIB1FPROC)wglGetProcAddress("glVertexAttrib1f");
+		gl->VertexAttrib2f = (PFNGLVERTEXATTRIB2FPROC)wglGetProcAddress("glVertexAttrib2f");
 		gl->VertexAttrib4f = (PFNGLVERTEXATTRIB4FPROC)wglGetProcAddress("glVertexAttrib4f");
 		gl->VertexAttrib2fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib2fv");
 		gl->VertexAttrib3fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib3fv");
@@ -531,6 +532,22 @@ static void APIENTRY PrintStartupLog()
 #ifndef unix
 	Printf ("WGL_EXTENSIONS: %s\n", wgl_extensions);
 #endif
+	int v;
+
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &v);
+	Printf ("Max. texture units: %d\n", v);
+	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &v);
+	Printf ("Max. fragment uniforms: %d\n", v);
+	if (gl->shadermodel == 4) gl->maxuniforms = v;
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &v);
+	Printf ("Max. vertex uniforms: %d\n", v);
+	glGetIntegerv(GL_MAX_VARYING_FLOATS, &v);
+	Printf ("Max. varying: %d\n", v);
+	glGetIntegerv(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, &v);
+	Printf ("Max. combined uniforms: %d\n", v);
+	glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &v);
+	Printf ("Max. combined uniform blocks: %d\n", v);
+
 }
 
 //==========================================================================

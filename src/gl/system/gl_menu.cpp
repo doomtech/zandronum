@@ -30,11 +30,6 @@ CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 
-EXTERN_CVAR(Bool, gl_warp_shader)
-EXTERN_CVAR(Bool, gl_fog_shader)
-EXTERN_CVAR(Bool, gl_colormap_shader)
-EXTERN_CVAR(Bool, gl_brightmap_shader)
-EXTERN_CVAR(Bool, gl_glow_shader)
 
 CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
@@ -215,18 +210,15 @@ static menuitem_t OpenGLItems[] = {
 	{ more,     "Shader Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLShaderMenu} },
 	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
+	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
 };
 
 static menuitem_t OpenGLItems2[] = {
-	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
 	{ more,     "Dynamic Light Options",	{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLLightMenu} },
 	{ more,     "Texture Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLTextureMenu} },
 	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
+	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
 };
 
 
@@ -253,6 +245,7 @@ menuitem_t GLLightItems[] = {
 	{ discrete, "Force additive lighting",	{&gl_lights_additive},	{2.0}, {0.0}, {0.0}, {YesNo} },
 	{ slider,	"Light intensity",			{&gl_lights_intensity}, {0.0}, {1.0}, {0.1f}, {NULL} },
 	{ slider,	"Light size",				{&gl_lights_size},		{0.0}, {2.0}, {0.1f}, {NULL} },
+	{ discrete, "Use shaders for lights",	{&gl_dynlight_shader},	{2.0}, {0.0}, {0.0}, {YesNo} },
 };
 
 menuitem_t GLPrefItems[] = {
@@ -266,6 +259,7 @@ menuitem_t GLPrefItems[] = {
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
 	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
+	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
 	// [BB]
 	{ discrete, "Use models",				{&gl_use_models},				{2.0}, {0.0}, {0.0}, {OnOff} },
 };
@@ -364,6 +358,10 @@ void StartGLMenu (void)
 
 void StartGLLightMenu (void)
 {
+	if (gl.maxuniforms < 1024)
+	{
+		GLLightMenu.numitems = sizeof(GLLightItems)/sizeof(GLLightItems[0]) - 1;
+	}
 	M_SwitchMenu(&GLLightMenu);
 }
 

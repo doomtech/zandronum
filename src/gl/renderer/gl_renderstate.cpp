@@ -39,24 +39,262 @@
 */
 
 #include "gl/system/gl_system.h"
+#include "gl/system/gl_cvars.h"
 #include "gl/shaders/gl_shader.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_renderstate.h"
-
-
+#include "gl/renderer/gl_colormap.h"
 
 FRenderState gl_RenderState;
+int FStateAttr::ChangeCounter;
 
+//==========================================================================
+//
+// Set texture shader info
+//
+//==========================================================================
+
+int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime)
+{
+	bool usecmshader;
+	int softwarewarp = 0;
+
+	// fixme: move this check into shader class
+	if (shaderindex == 3)
+	{
+		// Brightmap should not be used.
+		if (!mBrightmapEnabled || cm >= CM_FIRSTSPECIALCOLORMAP)
+		{
+			shaderindex = 0;
+		}
+	}
+
+	if (gl.shadermodel == 4)
+	{
+		usecmshader = cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
+			mTextureMode != TM_MASK;
+	}
+	else if (gl.shadermodel == 3)
+	{
+		usecmshader = (cameratexture || gl_colormap_shader) && 
+			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
+			mTextureMode != TM_MASK;
+
+		if (!gl_brightmap_shader && shaderindex >= 3) 
+		{
+			shaderindex = 0;
+		}
+		else if (!gl_warp_shader && shaderindex < 3)
+		{
+			softwarewarp = shaderindex;
+			shaderindex = 0;
+		}
+	}
+	else
+	{
+		usecmshader = (gl.shadermodel == 2 && cameratexture);
+		softwarewarp = shaderindex < 3? shaderindex : 0;
+		shaderindex = 0;
+	}
+
+	mEffectState = shaderindex;
+	mColormapState = usecmshader? cm : CM_DEFAULT;
+	if (usecmshader) cm = CM_DEFAULT;
+	mWarpTime = warptime;
+	return softwarewarp;
+}
+
+
+//==========================================================================
+//
+// Apply shader settings
+//
+//==========================================================================
+
+bool FRenderState::ApplyShader()
+{
+	bool useshaders = false;
+	FShader *activeShader = NULL;
+
+	if (mSpecialEffect > 0)
+	{
+		activeShader = GLRenderer->mShaderManager->BindEffect(mSpecialEffect);
+	}
+	else
+	{
+		switch (gl.shadermodel)
+		{
+		case 2:
+			useshaders = (mTextureEnabled && mColormapState != CM_DEFAULT);
+			break;
+
+		case 3:
+			useshaders = (
+				mEffectState != 0 ||	// special shaders
+				(mFogEnabled && (gl_fogmode == 2 || gl_fog_shader) && gl_fogmode != 0) || // fog requires a shader
+				(mTextureEnabled && (mEffectState != 0 || mColormapState)) ||		// colormap
+				mGlowEnabled		// glow requires a shader
+				);
+			break;
+
+		case 4:
+			useshaders = (
+				mEffectState != 0 ||	// special shaders
+				(mFogEnabled && gl_fogmode != 0) || // fog requires a shader
+				(mTextureEnabled && mColormapState) ||	// colormap
+				mGlowEnabled ||		// glow requires a shader
+				mLightEnabled
+				);
+			break;
+
+		default:
+			break;
+		}
+
+		if (useshaders)
+		{
+			FShaderContainer *shd = GLRenderer->mShaderManager->Get(mTextureEnabled? mEffectState : 4);
+
+			if (shd != NULL)
+			{
+				activeShader = shd->Bind(mColormapState, mGlowEnabled, mWarpTime, mLightEnabled);
+			}
+		}
+	}
+
+	if (activeShader)
+	{
+		int fogset = 0;
+		if (mFogEnabled)
+		{
+			if ((mFogColor & 0xffffff) == 0)
+			{
+				fogset = gl_fogmode;
+			}
+			else
+			{
+				fogset = -gl_fogmode;
+			}
+		}
+
+		if (fogset != activeShader->currentfogenabled)
+		{
+			gl.Uniform1i(activeShader->fogenabled_index, (activeShader->currentfogenabled = fogset)); 
+		}
+		if (mTextureMode != activeShader->currenttexturemode)
+		{
+			gl.Uniform1i(activeShader->texturemode_index, (activeShader->currenttexturemode = mTextureMode)); 
+		}
+		if (activeShader->currentcamerapos.Update(&mCameraPos))
+		{
+			gl.Uniform3fv(activeShader->camerapos_index, 1, mCameraPos.vec); 
+		}
+		if (mLightParms[0] != activeShader->currentlightfactor || 
+			mLightParms[1] != activeShader->currentlightdist)
+		{
+			activeShader->currentlightdist = mLightParms[1];
+			activeShader->currentlightfactor = mLightParms[0];
+			gl.Uniform2fv(activeShader->lightparms_index, 1, mLightParms);
+		}
+		if (mFogColor != activeShader->currentfogcolor ||
+			mFogDensity != activeShader->currentfogdensity)
+		{
+			const float LOG2E = 1.442692f;	// = 1/log(2)
+
+			activeShader->currentfogcolor = mFogColor;
+			activeShader->currentfogdensity = mFogDensity;
+
+			// premultiply the density with as much as possible here to reduce shader
+			// exection time.
+			gl.Uniform4f (activeShader->fogcolor_index, mFogColor.r/255.f, mFogColor.g/255.f, 
+							mFogColor.b/255.f, mFogDensity * (-LOG2E / 64000.f));
+		}
+		if (mGlowEnabled)
+		{
+			gl.Uniform4fv(activeShader->glowtopcolor_index, 1, mGlowTop.vec);
+			gl.Uniform4fv(activeShader->glowbottomcolor_index, 1, mGlowBottom.vec);
+		}
+		if (mLightEnabled)
+		{
+			gl.Uniform3iv(activeShader->lightrange_index, 1, mNumLights);
+			gl.Uniform4fv(activeShader->lights_index, mNumLights[2], mLightData);
+		}
+
+		return true;
+	}
+	return false;
+}
+
+
+//==========================================================================
+//
+// Apply State
+//
+//==========================================================================
 
 void FRenderState::Apply(bool forcenoshader)
 {
-	if (forcenoshader || !gl_ApplyShader())
+	if (forcenoshader || !ApplyShader())
 	{
-		gl_DisableShader();
+		GLRenderer->mShaderManager->SetActiveShader(NULL);
+		if (mTextureMode != ffTextureMode)
+		{
+			gl.SetTextureMode((ffTextureMode = mTextureMode));
+		}
+		if (mTextureEnabled != ffTextureEnabled)
+		{
+			if ((ffTextureEnabled = mTextureEnabled)) gl.Enable(GL_TEXTURE_2D);
+			else gl.Disable(GL_TEXTURE_2D);
+		}
 		if (mFogEnabled != ffFogEnabled)
 		{
-			if ((ffFogEnabled = mFogEnabled)) gl.Enable(GL_FOG);
+			if ((ffFogEnabled = mFogEnabled)) 
+			{
+				gl.Enable(GL_FOG);
+			}
 			else gl.Disable(GL_FOG);
 		}
+		if (mFogEnabled)
+		{
+			if (ffFogColor != mFogColor)
+			{
+				ffFogColor = mFogColor;
+				GLfloat FogColor[4]={mFogColor.r/255.0f,mFogColor.g/255.0f,mFogColor.b/255.0f,0.0f};
+				gl.Fogfv(GL_FOG_COLOR, FogColor);
+			}
+			if (ffFogDensity != mFogDensity)
+			{
+				gl.Fogf(GL_FOG_DENSITY, mFogDensity/64000.f);
+				ffFogDensity=mFogDensity;
+			}
+		}
+		if (mSpecialEffect != ffSpecialEffect)
+		{
+			switch (ffSpecialEffect)
+			{
+			case EFF_SPHEREMAP:
+				gl.Disable(GL_TEXTURE_GEN_T);
+				gl.Disable(GL_TEXTURE_GEN_S);
+
+			default:
+				break;
+			}
+			switch (mSpecialEffect)
+			{
+			case EFF_SPHEREMAP:
+				// Use sphere mapping for this
+				gl.Enable(GL_TEXTURE_GEN_T);
+				gl.Enable(GL_TEXTURE_GEN_S);
+				gl.TexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+				gl.TexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+				break;
+
+			default:
+				break;
+			}
+			ffSpecialEffect = mSpecialEffect;
+		}
 	}
+
 }
 

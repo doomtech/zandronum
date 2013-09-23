@@ -1,6 +1,7 @@
 #ifndef __GL_LIGHTBUFFER_H
 #define __GL_LIGHTBUFFER_H
 
+#if 0
 class ADynamicLight;
 
 const int MAX_DYNLIGHTS = 40000;	// should hopefully be enough
@@ -60,5 +61,6 @@ public:
 
 };
 
+#endif
 
 #endif

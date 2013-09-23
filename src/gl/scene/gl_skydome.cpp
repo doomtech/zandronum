@@ -172,7 +172,7 @@ static void RenderSkyHemisphere(int hemi)
 	{
 		columns = 4 * (gl_sky_detail > 0 ? gl_sky_detail : 1);
 		foglayer=true;
-		gl_EnableTexture(false);
+		gl_RenderState.EnableTexture(false);
 
 
 		if (!secondlayer)
@@ -186,7 +186,7 @@ static void RenderSkyHemisphere(int hemi)
 			gl.End();
 		}
 
-		gl_EnableTexture(true);
+		gl_RenderState.EnableTexture(true);
 		foglayer=false;
 		gl_RenderState.Apply();
 	}
@@ -570,9 +570,9 @@ void GLSkyPortal::DrawContents()
 
 		if (origin->texture[0])
 		{
-			gl_SetTextureMode(TM_OPAQUE);
+			gl_RenderState.SetTextureMode(TM_OPAQUE);
 			RenderDome(origin->skytexno1, origin->texture[0], origin->x_offset[0], origin->y_offset, CM_Index);
-			gl_SetTextureMode(TM_MODULATE);
+			gl_RenderState.SetTextureMode(TM_MODULATE);
 		}
 		
 		gl.Enable(GL_ALPHA_TEST);
@@ -587,11 +587,11 @@ void GLSkyPortal::DrawContents()
 
 		if (skyfog>0 && (FadeColor.r ||FadeColor.g || FadeColor.b))
 		{
-			gl_EnableTexture(false);
+			gl_RenderState.EnableTexture(false);
 			foglayer=true;
 			gl.Color4f(FadeColor.r/255.0f,FadeColor.g/255.0f,FadeColor.b/255.0f,skyfog/255.0f);
 			RenderDome(FNullTextureID(), NULL, 0, 0, CM_DEFAULT);
-			gl_EnableTexture(true);
+			gl_RenderState.EnableTexture(true);
 			foglayer=false;
 		}
 	}

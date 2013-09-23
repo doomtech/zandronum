@@ -100,6 +100,81 @@ CUSTOM_CVAR (Bool, gl_lights_additive, false,  CVAR_ARCHIVE | CVAR_GLOBALCONFIG 
 // Sets up the parameters to render one dynamic light onto one plane
 //
 //==========================================================================
+bool gl_GetLight(Plane & p, ADynamicLight * light,
+				 int desaturation, bool checkside, bool forceadditive, FDynLightData &ldata)
+{
+	Vector fn, pos;
+	int i = 0;
+
+    float x = TO_GL(light->x);
+	float y = TO_GL(light->y);
+	float z = TO_GL(light->z);
+	
+	float dist = fabsf(p.DistToPoint(x, z, y));
+	float radius = (light->GetRadius() * gl_lights_size);
+	
+	if (radius <= 0.f) return false;
+	if (dist > radius) return false;
+	if (checkside && gl_lights_checkside && p.PointOnSide(x, z, y))
+	{
+		return false;
+	}
+
+
+	float cs;
+	if (gl_lights_additive || light->flags4&MF4_ADDITIVE || forceadditive) 
+	{
+		cs = 0.2f;
+		i = 2;
+	}
+	else 
+	{
+		cs = 1.0f;
+	}
+
+	float r = light->GetRed() / 255.0f * cs * gl_lights_intensity;
+	float g = light->GetGreen() / 255.0f * cs * gl_lights_intensity;
+	float b = light->GetBlue() / 255.0f * cs * gl_lights_intensity;
+
+	if (light->IsSubtractive())
+	{
+		Vector v;
+		
+		v.Set(r, g, b);
+		r = v.Length() - r;
+		g = v.Length() - g;
+		b = v.Length() - b;
+		i = 1;
+	}
+
+	if (desaturation>0)
+	{
+		float gray=(r*77 + g*143 + b*37)/257;
+
+		r= (r*(32-desaturation)+ gray*desaturation)/32;
+		g= (g*(32-desaturation)+ gray*desaturation)/32;
+		b= (b*(32-desaturation)+ gray*desaturation)/32;
+	}
+	float *data = &ldata.arrays[i][ldata.arrays[i].Reserve(8)];
+	data[0] = x;
+	data[1] = z;
+	data[2] = y;
+	data[3] = radius;
+	data[4] = r;
+	data[5] = g;
+	data[6] = b;
+	data[7] = 0;
+	return true;
+}
+
+
+
+
+//==========================================================================
+//
+// Sets up the parameters to render one dynamic light onto one plane
+//
+//==========================================================================
 bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & up, Vector & right, 
 				   float & scale, int desaturation, bool checkside, bool forceadditive)
 {

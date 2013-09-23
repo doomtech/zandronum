@@ -56,8 +56,14 @@ struct RenderContext
 {
 	unsigned int flags;
 	unsigned int shadermodel;
+	unsigned int maxuniforms;
 	int max_texturesize;
 	char * vendorstring;
+
+	int MaxLights() const
+	{
+		return maxuniforms>=2048? 128:64;
+	}
 
 	void (APIENTRY * LoadExtensions) ();
 	void (APIENTRY * SetTextureMode) (int type);
@@ -170,6 +176,7 @@ struct RenderContext
 	PFNGLUSEPROGRAMPROC UseProgram;
 	PFNGLVALIDATEPROGRAMPROC ValidateProgram;
 	PFNGLVERTEXATTRIB1FPROC VertexAttrib1f;
+	PFNGLVERTEXATTRIB2FPROC VertexAttrib2f;
 	PFNGLVERTEXATTRIB4FPROC VertexAttrib4f;
 	PFNGLVERTEXATTRIB2FVPROC VertexAttrib2fv;
 	PFNGLVERTEXATTRIB3FVPROC VertexAttrib3fv;

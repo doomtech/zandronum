@@ -47,6 +47,7 @@
 #include "doomerrors.h"
 #include "v_palette.h"
 
+#include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/shaders/gl_shader.h"
@@ -62,134 +63,6 @@ CVAR(Bool, gl_glow_shader, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 
 
 extern long gl_frameMS;
-extern PalEntry gl_CurrentFogColor;
-
-bool gl_textureenabled;
-int gl_texturemode;
-static float gl_lightfactor;
-static float gl_lightdist;
-static float gl_camerapos[3];
-static int gl_effectstate;
-static int gl_colormapstate;
-static bool gl_brightmapstate;
-static float gl_warptime;
-
-class FShader
-{
-	friend class GLShader;
-
-	GLhandleARB hShader;
-	GLhandleARB hVertProg;
-	GLhandleARB hFragProg;
-
-	int timer_index;
-	int desaturation_index;
-	int fogenabled_index;
-	int texturemode_index;
-	int camerapos_index;
-	int lightfactor_index;
-	int lightdist_index;
-	int colormapstart_index;
-	int colormaprange_index;
-	int lightrange_index;
-
-	int glowbottomcolor_index;
-	int glowtopcolor_index;
-
-	int glowbottomdist_index;
-	int glowtopdist_index;
-
-	int currentfogenabled;
-	int currenttexturemode;
-	float currentlightfactor;
-	float currentlightdist;
-
-public:
-	FShader()
-	{
-		hShader = hVertProg = hFragProg = NULL;
-		currentfogenabled = currenttexturemode = 0;
-		currentlightfactor = currentlightdist = 0.0f;
-	}
-
-	~FShader();
-
-	bool Load(const char * name, const char * vert_prog_lump, const char * fragprog, const char * fragprog2, const char *defines);
-
-	void SetFogEnabled(int on)
-	{
-		if (on != currentfogenabled)
-		{
-			currentfogenabled = on;
-			gl.Uniform1i(fogenabled_index, on); 
-		}
-	}
-
-	void SetTextureMode(int mode)
-	{
-		if (mode != currenttexturemode)
-		{
-			currenttexturemode = mode;
-			gl.Uniform1i(texturemode_index, mode); 
-		}
-	}
-
-	void SetLightDist(float dist)
-	{
-		if (dist != currentlightdist)
-		{
-			currentlightdist = dist;
-			gl.Uniform1f(lightdist_index, dist);
-		}
-	}
-
-	void SetLightFactor(float fac)
-	{
-		if (fac != currentlightfactor)
-		{
-			currentlightfactor = fac;
-			gl.Uniform1f(lightfactor_index, fac);
-		}
-	}
-
-	void SetColormapColor(float r, float g, float b, float r1, float g1, float b1)
-	{
-		//if (fac != currentlightfactor)
-		{
-			//currentlightfactor = fac;
-			gl.Uniform4f(colormapstart_index, r,g,b,0);
-			gl.Uniform4f(colormaprange_index, r1-r,g1-g,b1-b,0);
-		}
-	}
-
-	void SetCameraPos(float x, float y, float z)
-	{
-		gl.Uniform3f(camerapos_index, x, y, z); 
-	}
-
-	void SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight)
-	{
-		gl.Uniform4f(glowtopcolor_index, topcolors[0], topcolors[1], topcolors[2], topheight);
-		gl.Uniform4f(glowbottomcolor_index, bottomcolors[0], bottomcolors[1], bottomcolors[2], bottomheight);
-	}
-
-	void SetGlowPosition(float topdist, float bottomdist)
-	{
-		gl.VertexAttrib1f(glowtopdist_index, topdist);
-		gl.VertexAttrib1f(glowbottomdist_index, bottomdist);
-	}
-
-	void SetLightRange(int start, int end, int forceadd)
-	{
-		gl.Uniform3i(lightrange_index, start, end, forceadd);
-	}
-
-	bool Bind(float Speed);
-
-};
-
-
-static FShader *gl_activeShader;
 
 //==========================================================================
 //
@@ -211,14 +84,20 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		if (fp_lump == -1) I_Error("Unable to load '%s'", frag_prog_lump);
 		FMemLump fp_data = Wads.ReadLump(fp_lump);
 
-		int pp_lump = Wads.CheckNumForFullName(proc_prog_lump);
-		if (pp_lump == -1) I_Error("Unable to load '%s'", proc_prog_lump);
-		FMemLump pp_data = Wads.ReadLump(pp_lump);
 
 		FString fp_comb;
 		if (gl.shadermodel < 4) fp_comb = "#define NO_SM4\n";
 		// This uses GetChars on the strings to get rid of terminating 0 characters.
-		fp_comb << defines << fp_data.GetString().GetChars() << "\n" << pp_data.GetString().GetChars();
+		fp_comb << defines << fp_data.GetString().GetChars() << "\n";
+
+		if (proc_prog_lump != NULL)
+		{
+			int pp_lump = Wads.CheckNumForFullName(proc_prog_lump);
+			if (pp_lump == -1) I_Error("Unable to load '%s'", proc_prog_lump);
+			FMemLump pp_data = Wads.ReadLump(pp_lump);
+
+			fp_comb << pp_data.GetString().GetChars();
+		}
 
 		hVertProg = gl.CreateShader(GL_VERTEX_SHADER);
 		hFragProg = gl.CreateShader(GL_FRAGMENT_SHADER);	
@@ -241,6 +120,8 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		gl.AttachShader(hShader, hVertProg);
 		gl.AttachShader(hShader, hFragProg);
 
+		gl.BindAttribLocation(hShader, VATTR_GLOWDISTANCE, "glowdistance");
+
 		gl.LinkProgram(hShader);
 	
 		gl.GetProgramInfoLog(hShader, 10000, NULL, buffer);
@@ -255,18 +136,16 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		fogenabled_index = gl.GetUniformLocation(hShader, "fogenabled");
 		texturemode_index = gl.GetUniformLocation(hShader, "texturemode");
 		camerapos_index = gl.GetUniformLocation(hShader, "camerapos");
-		lightdist_index = gl.GetUniformLocation(hShader, "lightdist");
-		lightfactor_index = gl.GetUniformLocation(hShader, "lightfactor");
+		lightparms_index = gl.GetUniformLocation(hShader, "lightparms");
 		colormapstart_index = gl.GetUniformLocation(hShader, "colormapstart");
 		colormaprange_index = gl.GetUniformLocation(hShader, "colormaprange");
 		lightrange_index = gl.GetUniformLocation(hShader, "lightrange");
+		fogcolor_index = gl.GetUniformLocation(hShader, "fogcolor");
+		lights_index = gl.GetUniformLocation(hShader, "lights");
 
 		glowbottomcolor_index = gl.GetUniformLocation(hShader, "bottomglowcolor");
-		glowbottomdist_index = gl.GetAttribLocation(hShader, "bottomdistance");
 		glowtopcolor_index = gl.GetUniformLocation(hShader, "topglowcolor");
-		glowtopdist_index = gl.GetAttribLocation(hShader, "topdistance");
-
-
+		
 		gl.UseProgram(hShader);
 
 		int texture_index = gl.GetUniformLocation(hShader, "texture2");
@@ -307,40 +186,10 @@ FShader::~FShader()
 
 bool FShader::Bind(float Speed)
 {
-	if (gl_activeShader!=this)
-	{
-		gl.UseProgram(hShader);
-		gl_activeShader=this;
-	}
+	GLRenderer->mShaderManager->SetActiveShader(this);
 	if (timer_index >=0 && Speed > 0.f) gl.Uniform1f(timer_index, gl_frameMS*Speed/1000.f);
 	return true;
 }
-
-
-
-//==========================================================================
-//
-// This class contains the shaders for the different lighting modes
-// that are required (e.g. special colormaps etc.)
-//
-//==========================================================================
-struct FShaderContainer
-{
-	friend class GLShader;
-
-	FName Name;
-	FName TexFileName;
-
-	enum { NUM_SHADERS = 8 };
-
-	FShader *shader[NUM_SHADERS];
-	FShader *shader_cm;	// the shader for fullscreen colormaps
-
-public:
-	FShaderContainer(const char *ShaderName, const char *ShaderPath);
-	~FShaderContainer();
-	
-};
 
 //==========================================================================
 //
@@ -402,8 +251,10 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 			try
 			{
+				FString str = shaderdefines[i];
+				if (i>3 && gl.MaxLights() == 128) str << "#define MAXLIGHTS128\n";
 				shader[i] = new FShader;
-				if (!shader[i]->Load(name, "shaders/glsl/main.vp", "shaders/glsl/main.fp", ShaderPath, shaderdefines[i]))
+				if (!shader[i]->Load(name, "shaders/glsl/main.vp", "shaders/glsl/main.fp", ShaderPath, str.GetChars()))
 				{
 					delete shader[i];
 					shader[i] = NULL;
@@ -415,7 +266,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 				Printf("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
 				I_Error("");
 			}
-			if (i==3 && !(gl.flags & RFL_TEXTUREBUFFER))
+			if (i==3 && gl.maxuniforms < 1024)
 			{
 				shader[4] = shader[5] = shader[6] = shader[7] = 0;
 				break;
@@ -448,155 +299,31 @@ FShaderContainer::~FShaderContainer()
 //
 //
 //==========================================================================
-struct FDefaultShader 
-{
-	const char * ShaderName;
-	const char * gettexelfunc;
-};
 
-static FDefaultShader defaultshaders[]=
-	{	
-		{"Default",	"shaders/glsl/func_normal.fp"},
-		{"Warp 1",	"shaders/glsl/func_warp1.fp"},
-		{"Warp 2",	"shaders/glsl/func_warp2.fp"},
-		{"Brightmap","shaders/glsl/func_brightmap.fp"},
-		{"No Texture", "shaders/glsl/func_notexture.fp"},
-		{NULL,NULL}
-		
-	};
-
-static TArray<FShaderContainer *> AllContainers;
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-static FShaderContainer * AddShader(const char * name, const char * texfile)
-{
-	FShaderContainer *sh = new FShaderContainer(name, texfile);
-	AllContainers.Push(sh);
-	return sh;
-}
-
-
-
-static FShaderContainer * GetShader(const char * n,const char * fn)
-{
-	FName sfn = fn;
-
-	for(unsigned int i=0;i<AllContainers.Size();i++)
-	{
-		if (AllContainers[i]->TexFileName == sfn)
-		{
-			return AllContainers[i];
-		}
-	}
-	return AddShader(n, fn);
-}
-
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-class GLShader
-{
-	FName Name;
-	FShaderContainer *container;
-
-public:
-
-	static void Initialize();
-	static void Clear();
-	static GLShader *Find(const char * shn);
-	static GLShader *Find(unsigned int warp);
-	void Bind(int cm, bool glowing, float Speed, bool lights);
-	static void Unbind();
-
-};
-
-static TArray<GLShader *> AllShaders;
-
-void GLShader::Initialize()
-{
-	if (gl.shadermodel > 0)
-	{
-		for(int i=0;defaultshaders[i].ShaderName != NULL;i++)
-		{
-			FShaderContainer * shc = AddShader(defaultshaders[i].ShaderName, defaultshaders[i].gettexelfunc);
-			GLShader * shd = new GLShader;
-			shd->container = shc;
-			shd->Name = defaultshaders[i].ShaderName;
-			AllShaders.Push(shd);
-			if (gl.shadermodel <= 2) break;	// SM2 will only initialize the default shader
-		}
-	}
-}
-
-void GLShader::Clear()
-{
-	for(unsigned int i=0;i<AllContainers.Size();i++)
-	{
-		delete AllContainers[i];
-	}
-	for(unsigned int i=0;i<AllShaders.Size();i++)
-	{
-		delete AllShaders[i];
-	}
-	AllContainers.Clear();
-	AllShaders.Clear();
-}
-
-GLShader *GLShader::Find(const char * shn)
-{
-	FName sfn = shn;
-
-	for(unsigned int i=0;i<AllShaders.Size();i++)
-	{
-		if (AllContainers[i]->Name == sfn)
-		{
-			return AllShaders[i];
-		}
-	}
-	return NULL;
-}
-
-GLShader *GLShader::Find(unsigned int warp)
-{
-	// indices 0-2 match the warping modes, 3 is brightmap, 4 no texture, the following are custom
-	if (warp < AllShaders.Size())
-	{
-		return AllShaders[warp];
-	}
-	return NULL;
-}
-
-
-void GLShader::Bind(int cm, bool glowing, float Speed, bool lights)
+FShader *FShaderContainer::Bind(int cm, bool glowing, float Speed, bool lights)
 {
 	FShader *sh=NULL;
 
 	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
 	{
 		// these are never used with any kind of lighting or fog
-		sh = container->shader_cm;
+		sh = shader_cm;
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{
 			FSpecialColormap *map = &SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP];
 			sh->Bind(Speed);
-			sh->SetColormapColor(map->ColorizeStart[0], map->ColorizeStart[1], map->ColorizeStart[2],
-				map->ColorizeEnd[0], map->ColorizeEnd[1], map->ColorizeEnd[2]);
+			float m[3]= {map->ColorizeEnd[0] - map->ColorizeStart[0], 
+				map->ColorizeEnd[1] - map->ColorizeStart[1], map->ColorizeEnd[2] - map->ColorizeStart[2]};
+
+			gl.Uniform3fv(sh->colormapstart_index, 1, map->ColorizeStart);
+			gl.Uniform3fv(sh->colormaprange_index, 1, m);
 		}
 	}
 	else
 	{
 		bool desat = cm>=CM_DESAT1 && cm<=CM_DESAT31;
-		sh = container->shader[glowing + 2*desat + 4*lights];
+		sh = shader[glowing + 2*desat + 4*lights];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{
@@ -607,103 +334,148 @@ void GLShader::Bind(int cm, bool glowing, float Speed, bool lights)
 			}
 		}
 	}
+	return sh;
 }
 
-void GLShader::Unbind()
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+struct FDefaultShader 
 {
-	if (gl.shadermodel > 0 && gl_activeShader != NULL)
+	const char * ShaderName;
+	const char * gettexelfunc;
+};
+
+static const FDefaultShader defaultshaders[]=
+{	
+	{"Default",	"shaders/glsl/func_normal.fp"},
+	{"Warp 1",	"shaders/glsl/func_warp1.fp"},
+	{"Warp 2",	"shaders/glsl/func_warp2.fp"},
+	{"Brightmap","shaders/glsl/func_brightmap.fp"},
+	{"No Texture", "shaders/glsl/func_notexture.fp"},
+	{NULL,NULL}
+	
+};
+
+struct FEffectShader
+{
+	const char *ShaderName;
+	const char *vp;
+	const char *fp1;
+	const char *fp2;
+	const char *defines;
+};
+
+static const FEffectShader effectshaders[]=
+{
+	{"fogboundary", "shaders/glsl/main.vp", "shaders/glsl/fogboundary.fp", NULL, "#define NO_GLOW\n"},
+	{"spheremap", "shaders/glsl/main_spheremap.vp", "shaders/glsl/main.fp", "shaders/glsl/func_normal.fp", "#define NO_GLOW\n#define NO_DESATURATE\n"}
+};
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FShaderManager::FShaderManager()
+{
+	mActiveShader = mEffectShaders[0] = mEffectShaders[1] = NULL;
+	if (gl.shadermodel > 0)
 	{
-		/* if (gl.shadermodel == 4)
+		for(int i=0;defaultshaders[i].ShaderName != NULL;i++)
 		{
-			// set a default shader here.
+			FShaderContainer * shc = new FShaderContainer(defaultshaders[i].ShaderName, defaultshaders[i].gettexelfunc);
+			mTextureEffects.Push(shc);
+			if (gl.shadermodel <= 2) return;	// SM2 will only initialize the default shader
 		}
-		*/
-		gl.UseProgram(0);
-		gl_activeShader=NULL;
-	}
-}
 
-//==========================================================================
-//
-// enable/disable texturing
-//
-//==========================================================================
-
-void gl_EnableTexture(bool on)
-{
-	if (on)
-	{
-		if (!gl_textureenabled) 
+		for(int i=0;i<NUM_EFFECTS;i++)
 		{
-			gl.Enable(GL_TEXTURE_2D);
+			FShader *eff = new FShader();
+			if (!eff->Load(effectshaders[i].ShaderName, effectshaders[i].vp, effectshaders[i].fp1,
+							effectshaders[i].fp2, effectshaders[i].defines))
+			{
+				delete eff;
+			}
+			else mEffectShaders[i] = eff;
 		}
 	}
-	else 
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FShaderManager::~FShaderManager()
+{
+	SetActiveShader(NULL);
+	for(unsigned int i=0;i<mTextureEffects.Size();i++)
 	{
-		if (gl_textureenabled) 
+		if (mTextureEffects[i] != NULL) delete mTextureEffects[i];
+	}
+	for(int i=0;i<NUM_EFFECTS;i++)
+	{
+		if (mEffectShaders[i] != NULL) delete mEffectShaders[i];
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+int FShaderManager::Find(const char * shn)
+{
+	FName sfn = shn;
+
+	for(unsigned int i=0;i<mTextureEffects.Size();i++)
+	{
+		if (mTextureEffects[i]->Name == sfn)
 		{
-			gl.Disable(GL_TEXTURE_2D);
+			return i;
 		}
 	}
-	gl_textureenabled=on;
+	return -1;
 }
 
 //==========================================================================
 //
-// set texture mode
+//
 //
 //==========================================================================
 
-void gl_SetTextureMode(int which)
+void FShaderManager::SetActiveShader(FShader *sh)
 {
-	if (which != gl_texturemode && which != -1) gl.SetTextureMode(which);
-	gl_texturemode = which;
-}
-
-
-//==========================================================================
-//
-// Lighting stuff 
-//
-//==========================================================================
-
-void gl_SetShaderLight(float level, float olight)
-{
-#if 1 //ndef _DEBUG
-	const float MAXDIST = 256.f;
-	const float THRESHOLD = 96.f;
-	const float FACTOR = 0.75f;
-#else
-	const float MAXDIST = 256.f;
-	const float THRESHOLD = 96.f;
-	const float FACTOR = 2.75f;
-#endif
-
-
-		
-	if (olight < THRESHOLD)
+	// shadermodel needs to be tested here because without it UseProgram will be NULL.
+	if (gl.shadermodel > 0 && mActiveShader != sh)
 	{
-		gl_lightdist = olight * MAXDIST / THRESHOLD;
-		olight = THRESHOLD;
+		gl.UseProgram(sh == NULL? 0 : sh->GetHandle());
+		mActiveShader = sh;
 	}
-	else gl_lightdist = MAXDIST;
-
-	gl_lightfactor = (olight/level);
-	gl_lightfactor = 1.f + (gl_lightfactor - 1.f) * FACTOR;
-	if (gl_lightfactor == 1.f) gl_lightdist = 0.f;	// save some code in the shader
 }
 
 //==========================================================================
 //
-// Sets camera position
+//
 //
 //==========================================================================
 
-void gl_SetCamera(float x, float y, float z)
+FShader *FShaderManager::BindEffect(int effect)
 {
-	gl_camerapos[0] = x;
-	gl_camerapos[1] = z;
-	gl_camerapos[2] = y;
+	if (effect > 0 && effect <= NUM_EFFECTS)
+	{
+		mEffectShaders[effect-1]->Bind(0);
+		return mEffectShaders[effect-1];
+	}
+	return NULL;
 }
 
 //==========================================================================
@@ -712,197 +484,16 @@ void gl_SetCamera(float x, float y, float z)
 //
 //==========================================================================
 
+/*
+void FShader::SetLightRange(int start, int end, int forceadd)
+{
+	gl.Uniform3i(lightrange_index, start, end, forceadd);
+}
+
 void gl_SetLightRange(int first, int last, int forceadd)
 {
 	if (gl_activeShader) gl_activeShader->SetLightRange(first, last, forceadd);
 }
+*/
 
 
-//==========================================================================
-//
-// Glow stuff
-//
-//==========================================================================
-
-
-void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight)
-{
-	if (gl_activeShader) gl_activeShader->SetGlowParams(topcolors, topheight, bottomcolors, bottomheight);
-}
-
-void gl_SetGlowPosition(float topdist, float bottomdist)
-{
-	if (gl_activeShader) gl_activeShader->SetGlowPosition(topdist, bottomdist);
-}
-
-//==========================================================================
-//
-// Set texture shader info
-//
-//==========================================================================
-
-int gl_SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime)
-{
-	bool usecmshader = false;
-	int softwarewarp = 0;
-
-	// fixme: move this check into shader class
-	if (shaderindex == 3)
-	{
-		// Brightmap should not be used.
-		if (!gl_RenderState.isBrightmapEnabled() || cm >= CM_FIRSTSPECIALCOLORMAP)
-		{
-			shaderindex = 0;
-		}
-	}
-
-	// selectively disable shader features depending on available feature set.
-	switch (gl.shadermodel)
-	{
-	case 4:
-		usecmshader = cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
-			gl_texturemode != TM_MASK;
-		break;
-
-	case 3:
-		usecmshader = (cameratexture || gl_colormap_shader) && 
-			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
-			gl_texturemode != TM_MASK;
-
-		if (!gl_brightmap_shader && shaderindex >= 3) 
-		{
-			shaderindex = 0;
-		}
-		else if (!gl_warp_shader && shaderindex < 3)
-		{
-			softwarewarp = shaderindex;
-			shaderindex = 0;
-		}
-		break;
-
-	case 2:
-		usecmshader = !!(cameratexture);
-		softwarewarp = shaderindex < 3? shaderindex : 0;
-		shaderindex = 0;
-		break;
-
-	default:
-		softwarewarp = shaderindex < 3? shaderindex : 0;
-		shaderindex = 0;
-		return softwarewarp;
-	}
-
-	gl_effectstate = shaderindex;
-	gl_colormapstate = usecmshader? cm : CM_DEFAULT;
-	if (usecmshader) cm = CM_DEFAULT;
-	gl_warptime = warptime;
-	return softwarewarp;
-}
-
-
-//==========================================================================
-//
-// Apply shader settings
-//
-//==========================================================================
-
-bool gl_ApplyShader()
-{
-	bool useshaders = false;
-
-	switch (gl.shadermodel)
-	{
-	case 2:
-		useshaders = (gl_textureenabled && gl_colormapstate != CM_DEFAULT);
-		break;
-
-	case 3:
-		useshaders = (
-			gl_effectstate != 0 ||	// special shaders
-			(gl_RenderState.isFogEnabled() && (gl_fogmode == 2 || gl_fog_shader) && gl_fogmode != 0) || // fog requires a shader
-			(gl_textureenabled && (gl_effectstate != 0 || gl_colormapstate)) ||		// colormap
-			(gl_RenderState.isGlowEnabled())		// glow requires a shader
-			);
-		break;
-
-	case 4:
-		// useshaders = true;
-		useshaders = (
-			gl_effectstate != 0 ||	// special shaders
-			(gl_RenderState.isFogEnabled() && gl_fogmode != 0) || // fog requires a shader
-			(gl_textureenabled && gl_colormapstate) ||	// colormap
-			gl_RenderState.isGlowEnabled() ||		// glow requires a shader
-			gl_RenderState.isLightEnabled()
-			);
-		break;
-
-	default:
-		break;
-	}
-
-	if (useshaders)
-	{
-		// we need a shader
-		GLShader *shd = GLShader::Find(gl_textureenabled? gl_effectstate : 4);
-
-		if (shd != NULL)
-		{
-			shd->Bind(gl_colormapstate, gl_RenderState.isGlowEnabled(), gl_warptime, gl_RenderState.isLightEnabled());
-
-			if (gl_activeShader)
-			{
-				gl_activeShader->SetTextureMode(gl_texturemode);
-
-				int fogset = 0;
-				if (gl_RenderState.isFogEnabled())
-				{
-					if ((gl_CurrentFogColor & 0xffffff) == 0)
-					{
-						fogset = gl_fogmode;
-					}
-					else
-					{
-						fogset = -gl_fogmode;
-					}
-				}
-
-				gl_activeShader->SetFogEnabled(fogset);
-				gl_activeShader->SetCameraPos(gl_camerapos[0], gl_camerapos[1], gl_camerapos[2]);
-				gl_activeShader->SetLightFactor(gl_lightfactor);
-				gl_activeShader->SetLightDist(gl_lightdist);
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-void gl_InitShaders()
-{
-	GLShader::Initialize();
-}
-
-void gl_DisableShader()
-{
-	GLShader::Unbind();
-}
-
-void gl_ClearShaders()
-{
-	GLShader::Clear();
-}
-
-bool gl_BrightmapsActive()
-{
-	return gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_brightmap_shader);
-}
-
-bool gl_GlowActive()
-{
-	return gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_glow_shader);
-}
-
-bool gl_ExtFogActive()
-{
-	return gl.shadermodel == 4;
-}

@@ -287,6 +287,8 @@ bool OpenGLFrameBuffer::Wiper_Crossfade::Run(int ticks, OpenGLFrameBuffer *fb)
 	gl.TexCoord2f(fb->wipestartscreen->GetUR(), 0);
 	gl.Vertex2i(fb->Width, fb->Height);
 	gl.End();
+	gl.Enable(GL_ALPHA_TEST);
+	gl.SetTextureMode(TM_MODULATE);
 
 	return Clock >= 32;
 }

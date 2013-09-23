@@ -5,6 +5,10 @@
 #include "r_blend.h"
 #include "gl/renderer/gl_colormap.h"
 
+bool gl_BrightmapsActive();
+bool gl_GlowActive();
+bool gl_ExtFogActive();
+
 void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
 					   int *tm, int *sb, int *db, int *be);
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);

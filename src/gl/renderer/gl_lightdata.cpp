@@ -40,6 +40,7 @@
 
 
 #include "gl/system/gl_system.h"
+#include "gl/system/gl_cvars.h"
 #include "gl/data/gl_data.h"
 #include "gl/renderer/gl_colormap.h"
 #include "gl/renderer/gl_lightdata.h"
@@ -66,6 +67,28 @@ CVAR (Float, gl_light_ambient, 20.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Int, gl_weaponlight, 8, CVAR_ARCHIVE);
 CVAR(Bool,gl_enhanced_nightvision,true,CVAR_ARCHIVE)
 
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+bool gl_BrightmapsActive()
+{
+	return gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_brightmap_shader);
+}
+
+bool gl_GlowActive()
+{
+	return gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_glow_shader);
+}
+
+bool gl_ExtFogActive()
+{
+	return gl.shadermodel == 4;
+}
 
 //==========================================================================
 //
@@ -348,10 +371,7 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 		// case 1: black fog
 		density=distfogtable[glset.lightmode!=0][lightlevel];
 	}
-	else if (outsidefogcolor.a!=0xff && 
-			fogcolor.r==outsidefogcolor.r && 
-			fogcolor.g==outsidefogcolor.g &&
-			fogcolor.b==outsidefogcolor.b) 
+	else if (outsidefogcolor.a!=0xff && (fogcolor.d & 0xffffff) == (outsidefogcolor.d & 0xffffff))
 	{
 		// case 2. outsidefogdensity has already been set as needed
 		density=outsidefogdensity;
@@ -370,25 +390,36 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 }
 
 
-
-PalEntry gl_CurrentFogColor=-1;
-static float gl_CurrentFogDensity=-1;
-
 //==========================================================================
 //
-//
+// Lighting stuff 
 //
 //==========================================================================
 
-void gl_InitFog()
+void gl_SetShaderLight(float level, float olight)
 {
-	gl_CurrentFogColor=-1;
-	gl_CurrentFogDensity=-1;
-	gl.Enable(GL_FOG);
-	gl.Disable(GL_FOG);
-	gl.Hint(GL_FOG_HINT, GL_FASTEST);
-	gl.Fogi(GL_FOG_MODE, GL_EXP);
+#if 1 //ndef _DEBUG
+	const float MAXDIST = 256.f;
+	const float THRESHOLD = 96.f;
+	const float FACTOR = 0.75f;
+#else
+	const float MAXDIST = 256.f;
+	const float THRESHOLD = 96.f;
+	const float FACTOR = 2.75f;
+#endif
 
+	float lightdist, lightfactor;
+		
+	if (olight < THRESHOLD)
+	{
+		lightdist = olight * MAXDIST / THRESHOLD;
+		olight = THRESHOLD;
+	}
+	else lightdist = MAXDIST;
+
+	lightfactor = 1.f + ((olight/level) - 1.f) * FACTOR;
+	if (lightfactor == 1.f) lightdist = 0.f;	// save some code in the shader
+	gl_RenderState.SetLightParms(lightfactor, lightdist);
 }
 
 
@@ -434,9 +465,8 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 	// no fog in enhanced vision modes!
 	if (fogdensity==0 || gl_fogmode == 0)
 	{
-		gl_CurrentFogColor=-1;
-		gl_CurrentFogDensity=-1;
 		gl_RenderState.EnableFog(false);
+		gl_RenderState.SetFog(0,0);
 	}
 	else
 	{
@@ -457,23 +487,11 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 			fogcolor=0;
 		}
 		// Handle desaturation
-		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->colormap);
+		if (cmap->colormap != CM_DEFAULT)
+			gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->colormap);
 
-		gl_RenderState.EnableFog((int)fogcolor!=-1);
-		if (fogcolor!=gl_CurrentFogColor)
-		{
-			if ((int)fogcolor!=-1)
-			{
-				GLfloat FogColor[4]={fogcolor.r/255.0f,fogcolor.g/255.0f,fogcolor.b/255.0f,0.0f};
-				gl.Fogfv(GL_FOG_COLOR, FogColor);
-			}
-			gl_CurrentFogColor=fogcolor;
-		}
-		if (fogdensity!=gl_CurrentFogDensity)
-		{
-			gl.Fogf(GL_FOG_DENSITY, fogdensity/64000.f);
-			gl_CurrentFogDensity=fogdensity;
-		}
+		gl_RenderState.EnableFog(true);
+		gl_RenderState.SetFog(fogcolor, fogdensity);
 	}
 }
 

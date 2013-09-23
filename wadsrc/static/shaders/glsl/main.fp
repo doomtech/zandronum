@@ -1,57 +1,29 @@
-#ifdef DYNLIGHT_TEST
-
-#version 120
-#extension GL_EXT_gpu_shader4 : enable
-uniform samplerBuffer lightRGB;
-uniform sampler2D tex;
-
-
-void main()
-{
-	int index = int(clamp(gl_TexCoord[0].s, 0, 32.0));
-	vec4 light = texelFetchBuffer(lightRGB, index);
-	vec4 texel = texture2D(tex, gl_TexCoord[0].st);
-
-	gl_FragColor = texel*2.0 + light/20.0;
-}
-
-vec4 desaturate(vec4 texel)
-{
-	return texel;
-}
-
-vec4 getTexel(vec2 st)
-{
-	return texture2D(tex, st);
-}
-
-#else
-
 
 #ifdef DYNLIGHT
 #version 120
 #extension GL_EXT_gpu_shader4 : enable
+
 uniform ivec3 lightrange;
-uniform usamplerBuffer lightIndex;
-uniform samplerBuffer lightPositions;
-uniform samplerBuffer lightRGB;
+#ifdef MAXLIGHTS128
+uniform vec4 lights[256];
+#else
+uniform vec4 lights[128];
+#endif
 
 #endif
 
 
 
-varying float fogcoord;
 uniform int fogenabled;
+uniform vec4 fogcolor;
 uniform vec3 camerapos;
-varying vec3 pixelpos;
-uniform float lightfactor;
-uniform float lightdist;
+varying vec4 pixelpos;
+uniform vec2 lightparms;
 uniform float desaturation_factor;
 
 uniform vec4 topglowcolor;
 uniform vec4 bottomglowcolor;
-varying float topdist;
-varying float bottomdist;
+varying vec2 glowdist;
 
 uniform int texturemode;
 uniform sampler2D tex;
@@ -89,13 +61,13 @@ vec4 getLightColor(float fogdist, float fogfactor)
 	//
 	// handle glowing walls
 	//
-	if (topglowcolor.a > 0.0 && topdist < topglowcolor.a)
+	if (topglowcolor.a > 0.0 && glowdist.x < topglowcolor.a)
 	{
-		color.rgb += desaturate(topglowcolor * (1.0 - topdist / topglowcolor.a)).rgb;
+		color.rgb += desaturate(topglowcolor * (1.0 - glowdist.x / topglowcolor.a)).rgb;
 	}
-	if (bottomglowcolor.a > 0.0 && bottomdist < bottomglowcolor.a)
+	if (bottomglowcolor.a > 0.0 && glowdist.y < bottomglowcolor.a)
 	{
-		color.rgb += desaturate(bottomglowcolor * (1.0 - bottomdist / bottomglowcolor.a)).rgb;
+		color.rgb += desaturate(bottomglowcolor * (1.0 - glowdist.y / bottomglowcolor.a)).rgb;
 	}
 	color = min(color, 1.0);
 	#endif
@@ -108,9 +80,9 @@ vec4 getLightColor(float fogdist, float fogfactor)
 	{
 		#ifndef NO_SM4
 			// special lighting mode 'Doom' not available on older cards for performance reasons.
-			if (fogdist < lightdist) 
+			if (fogdist < lightparms.y) 
 			{
-				color.rgb *= lightfactor - (fogdist / lightdist) * (lightfactor - 1.0);
+				color.rgb *= lightparms.x - (fogdist / lightparms.y) * (lightparms.x - 1.0);
 			}
 		#endif
 		
@@ -159,7 +131,7 @@ vec4 getTexel(vec2 st)
 #ifndef NO_FOG
 vec4 applyFog(vec4 frag, float fogfactor)
 {
-	return vec4(mix(gl_Fog.color, frag, fogfactor).rgb, frag.a);
+	return vec4(mix(fogcolor.rgb, frag.rgb, fogfactor), frag.a);
 }
 #endif
 
@@ -186,21 +158,19 @@ void main()
 	//
 	if (fogenabled != 0)
 	{
-		const float LOG2E = 1.442692;	// = 1/log(2)
-		//if (abs(fogenabled) == 1) 
 		#ifndef NO_SM4
 			if (fogenabled == 1 || fogenabled == -1) 
 			{
-				fogdist = fogcoord;
+				fogdist = pixelpos.w;
 			}
 			else 
 			{
-				fogdist = max(16.0, distance(pixelpos, camerapos));
+				fogdist = max(16.0, distance(pixelpos.xyz, camerapos));
 			}
 		#else
-			fogdist = fogcoord;
+			fogdist = pixelpos.w;
 		#endif
-		fogfactor = exp2 ( -gl_Fog.density * fogdist * LOG2E);
+		fogfactor = exp2 (fogcolor.a * fogdist);
 	}
 	#endif
 	
@@ -208,35 +178,31 @@ void main()
 	
 	
 	#ifdef DYNLIGHT
-		for(int i=lightrange.x; i<lightrange.y; i++)
+		for(int i=0; i<lightrange.x; i+=2)
 		{
-			int lightidx = int(texelFetchBuffer(lightIndex, i).r);
-			vec4 lightpos = texelFetchBuffer(lightPositions, lightidx);
-			vec4 lightcolor = texelFetchBuffer(lightRGB, lightidx);
+			vec4 lightpos = lights[i];
+			vec4 lightcolor = lights[i+1];
 			
-			lightcolor.rgb *= max(lightpos.a - distance(pixelpos, lightpos.rgb),0.0) / lightpos.a;
+			lightcolor.rgb *= max(lightpos.w - distance(pixelpos.xyz, lightpos.xyz),0.0) / lightpos.w;
+			dynlight += lightcolor;
+		}
+		for(int i=lightrange.x; i<lightrange.y; i+=2)
+		{
+			vec4 lightpos = lights[i];
+			vec4 lightcolor = lights[i+1];
 			
-			if (lightcolor.a == 1.0)
-			{
-				addlight += lightcolor;
-			}
-			else if (lightcolor.a == 0.0)
-			{
-				dynlight += lightcolor;
-			}
-			else
-			{	
-				dynlight -= lightcolor;
-			}
+			lightcolor.rgb *= max(lightpos.w - distance(pixelpos.xyz, lightpos.xyz),0.0) / lightpos.w;
+			dynlight -= lightcolor;
 		}
-		if (lightrange.z != 0)
+		for(int i=lightrange.y; i<lightrange.z; i+=2)
 		{
-			addlight += dynlight;
+			vec4 lightpos = lights[i];
+			vec4 lightcolor = lights[i+1];
+			
+			lightcolor.rgb *= max(lightpos.w - distance(pixelpos.xyz, lightpos.xyz),0.0) / lightpos.w;
+			addlight += lightcolor;
 		}
-		else
-		{
-			frag.rgb = clamp(frag.rgb + dynlight.rgb, 0.0, 2.0);
-		}
+		frag.rgb = clamp(frag.rgb + dynlight.rgb, 0.0, 1.4);
 	#endif
 		
 	frag = Process(frag);
@@ -253,6 +219,3 @@ void main()
 	#endif
 	gl_FragColor = frag;
 }
-
-
-#endif // DYNLIGHT test

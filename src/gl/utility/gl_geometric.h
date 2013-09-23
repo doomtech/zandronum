@@ -23,6 +23,14 @@ public:
 	   m_length=-1.0f;
 	}
 
+	Vector(float *v)
+	{
+	   SetX(v[0]);
+	   SetY(v[1]);
+	   SetZ(v[2]);
+	   m_length=-1.0f;
+	}
+
 	Vector(vertex_t * v)
 	{
 		SetX(v->fx);

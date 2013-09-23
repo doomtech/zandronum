@@ -153,7 +153,38 @@ enum
 	STAT_DLIGHT=64
 };
 
+struct FDynLightData
+{
+	TArray<float> arrays[3];
 
+	void Clear()
+	{
+		arrays[0].Clear();
+		arrays[1].Clear();
+		arrays[2].Clear();
+	}
+
+	void Combine(int *siz, int max)
+	{
+		siz[0] = arrays[0].Size();
+		siz[1] = siz[0] + arrays[1].Size();
+		siz[2] = siz[1] + arrays[2].Size();
+		arrays[0].Resize(arrays[0].Size() + arrays[1].Size() + arrays[2].Size());
+		memcpy(&arrays[0][siz[0]], &arrays[1][0], arrays[1].Size() * sizeof(float));
+		memcpy(&arrays[0][siz[1]], &arrays[2][0], arrays[2].Size() * sizeof(float));
+		siz[0]>>=2;
+		siz[1]>>=2;
+		siz[2]>>=2;
+		max<<=1;
+		if (siz[0] > max) siz[0] = max;
+		if (siz[1] > max) siz[1] = max;
+		if (siz[2] > max) siz[2] = max;
+	}
+};
+
+
+
+bool gl_GetLight(Plane & p, ADynamicLight * light, int desaturation, bool checkside, bool forceadditive, FDynLightData &data);
 bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & up, Vector & right, float & scale, int desaturation, bool checkside=true, bool forceadditive=true);
 bool gl_SetupLightTexture();
 

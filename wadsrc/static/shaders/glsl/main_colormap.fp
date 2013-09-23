@@ -1,8 +1,8 @@
 uniform int texturemode;
 uniform sampler2D tex;
 
-uniform vec4 colormapstart;
-uniform vec4 colormaprange;
+uniform vec3 colormapstart;
+uniform vec3 colormaprange;
 
 vec4 Process(vec4 color);
 
@@ -40,7 +40,7 @@ void main()
 	vec4 frag = Process(vec4(1.0,1.0,1.0,1.0));
 	
 	float gray = (frag.r * 0.3 + frag.g * 0.56 + frag.b * 0.14);	
-	vec3 cm = colormapstart.rgb + gray * colormaprange.rgb;
+	vec3 cm = colormapstart + gray * colormaprange;
 	gl_FragColor = vec4(clamp(cm, 0.0, 1.0), frag.a) * gl_Color;
 }
 
