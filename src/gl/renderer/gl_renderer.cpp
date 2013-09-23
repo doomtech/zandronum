@@ -56,6 +56,7 @@
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
+#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_texture.h"
@@ -80,6 +81,10 @@ EXTERN_CVAR(Bool, gl_render_segs)
 //
 //-----------------------------------------------------------------------------
 
+#ifdef TESTING
+unsigned int idbuffer, idtexture;
+#endif
+
 void FGLRenderer::Initialize()
 {
 	glpart2 = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart2.png"), FTexture::TEX_MiscPatch);
@@ -89,18 +94,68 @@ void FGLRenderer::Initialize()
 
 	mVBO = new FVertexBuffer;
 	mFBID = 0;
-	GlobalDrawInfo = new FDrawInfo;
+	//if (gl.flags & RFL_TEXTUREBUFFER) mLightBuffer = new FLightBuffer;
 	SetupLevel();
 	gl_InitShaders();
 	gl_InitFog();
+
+#ifdef TESTING
+	gl.GenBuffers(1, &idbuffer);
+	gl.BindBuffer(GL_TEXTURE_BUFFER, idbuffer);
+	static unsigned char testdata[] = {
+		255,255,255,0,
+		255,  0,  0,0,
+		  0,255,  0,0,
+		  0,  0,255,0,
+		255,255,  0,0,
+		  0,255,255,0,
+		255,  0,255,0,
+		255,255,255,0,
+		255,  0,  0,0,
+		  0,255,  0,0,
+		  0,  0,255,0,
+		255,255,  0,0,
+		  0,255,255,0,
+		255,  0,255,0,
+		255,255,255,0,
+		255,  0,  0,0,
+		  0,255,  0,0,
+		  0,  0,255,0,
+		255,255,  0,0,
+		  0,255,255,0,
+		255,  0,255,0,
+		255,255,255,0,
+		255,  0,  0,0,
+		  0,255,  0,0,
+		  0,  0,255,0,
+		255,255,  0,0,
+		  0,255,255,0,
+		255,  0,255,0,
+		128, 64,  0,0,
+		 64, 32,  0,0,
+		  0,128,255,0,
+		  0, 64,128,0,
+	};
+	gl.BufferData(GL_TEXTURE_BUFFER, 128, &testdata[0], GL_STREAM_DRAW);
+
+	gl.GenTextures(1, &idtexture);
+	gl.BindTexture(GL_TEXTURE_BUFFER, idtexture);
+	gl.TexBufferARB(GL_TEXTURE_BUFFER, GL_RGBA8, idbuffer);
+
+	gl.ActiveTexture(GL_TEXTURE14);
+	gl.BindTexture(GL_TEXTURE_BUFFER, idtexture);
+
+	gl.ActiveTexture(GL_TEXTURE0);
+	gl.BindTexture(GL_TEXTURE_2D, 0);
+#endif
 }
 
 FGLRenderer::~FGLRenderer() 
 {
 	FMaterial::FlushAll();
 	gl_ClearShaders();
-	if (GlobalDrawInfo != NULL) delete GlobalDrawInfo;
 	if (mVBO != NULL) delete mVBO;
+	if (mLightBuffer != NULL) delete mLightBuffer;
 	if (glpart2) delete glpart2;
 	if (glpart) delete glpart;
 	if (mirrortexture) delete mirrortexture;
@@ -134,19 +189,6 @@ void FGLRenderer::UnsetPaused()
 void FGLRenderer::Begin2D()
 {
 	gl_EnableFog(false);
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-void FGLRenderer::ProcessWall(seg_t *seg, sector_t *sector, sector_t *backsector, subsector_t *polysub)
-{
-	GLWall wall;
-	wall.Process(seg, sector, backsector, polysub, false); //gl_render_segs);
-	rendered_lines++;
 }
 
 //===========================================================================

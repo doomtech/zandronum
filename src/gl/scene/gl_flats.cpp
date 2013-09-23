@@ -52,6 +52,7 @@
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_dynlight.h"
 #include "gl/dynlights/gl_glow.h"
+#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
@@ -59,7 +60,7 @@
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
 
-EXTERN_CVAR (Bool, gl_lights_checkside);
+TArray<int> GLFlat::dynlightdata;
 
 //==========================================================================
 //
@@ -116,6 +117,7 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 			node=node->nextLight;
 			continue;
 		}
+		iter_dlightf++;
 
 		// we must do the side check here because gl_SetupLight needs the correct plane orientation
 		// which we don't have for Legacy-style 3D-floors
@@ -184,6 +186,9 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 
 void GLFlat::DrawSubsectors(bool istrans)
 {
+#ifdef TESTING
+	gl_EnableLights(true);
+#endif
 	gl_ApplyShader();
 	if (sub)
 	{
@@ -237,6 +242,9 @@ void GLFlat::DrawSubsectors(bool istrans)
 			}
 		}
 	}
+#ifdef TESTING
+	gl_EnableLights(false);
+#endif
 }
 
 
@@ -343,6 +351,120 @@ void GLFlat::Draw(int pass)
 }
 
 
+//==========================================================================
+//
+// 
+//
+//==========================================================================
+
+bool GLFlat::CollectSubsectorLights(subsector_t *sub)
+{
+	Plane p;
+
+	int firstdynlight = gl_drawinfo->mDynLights->GetLightIndex();
+	for(int i=0;i<2;i++)
+	{
+		FLightNode * node = sub->lighthead[i];
+		while (node)
+		{
+			ADynamicLight * light = node->lightsource;
+			
+			if (light->flags2&MF2_DORMANT)
+			{
+				node=node->nextLight;
+				continue;
+			}
+
+			// we must do the side check here because gl_SetupLight needs the correct plane orientation
+			// which we don't have for Legacy-style 3D-floors
+			fixed_t planeh = plane.plane.ZatPoint(light->x, light->y);
+			if (gl_lights_checkside && ((planeh<light->z && ceiling) || (planeh>light->z && !ceiling)))
+			{
+				node=node->nextLight;
+				continue;
+			}
+
+			p.Set(plane.plane);
+
+			float x = TO_GL(light->x);
+			float y = TO_GL(light->y);
+			float z = TO_GL(light->z);
+			
+			float dist = fabsf(p.DistToPoint(x, z, y));
+			float radius = (light->GetRadius() * gl_lights_size);
+			
+			if (dist < radius)
+			{
+				iter_dlightf++;
+				gl_drawinfo->mDynLights->AddLight(node->lightsource/*, foggy*/);
+			}
+			node = node->nextLight;
+		}
+	}
+	int lastdynlight = gl_drawinfo->mDynLights->GetLightIndex();
+
+	int dynlightindex = dynlightdata.Reserve(2);
+	if (lastdynlight > firstdynlight)
+	{
+		dynlightdata[dynlightindex] = firstdynlight;
+		dynlightdata[dynlightindex+1] = lastdynlight;
+		return true;
+	}
+	else
+	{
+		dynlightdata[dynlightindex] = -1;
+		dynlightdata[dynlightindex+1] = -1;
+		return false;
+	}
+}
+
+//==========================================================================
+//
+// 
+//
+//==========================================================================
+
+void GLFlat::CollectLights()
+{
+	bool haslights = false;
+	//if (gl_dynlight_shader && gl_lights && GLRenderer->mLightCount) already done by the calling code
+	if (gl_drawinfo->mDynLights != NULL)
+	{
+		dynlightindex = dynlightdata.Size();
+		if (sub)
+		{
+			// This represents a single subsector
+			haslights |= CollectSubsectorLights(sub);
+		}
+		else
+		{
+			for (int i=0; i<sector->subsectorcount; i++)
+			{
+				subsector_t * sub = sector->subsectors[i];
+				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags)
+				{
+					haslights |= CollectSubsectorLights(sub);
+				}
+			}
+
+			// Draw the subsectors assigned to it due to missing textures
+			if (!(renderflags&SSRF_RENDER3DPLANES))
+			{
+				gl_subsectorrendernode * node = (renderflags&SSRF_RENDERFLOOR)?
+					gl_drawinfo->GetOtherFloorPlanes(sector->sectornum) :
+					gl_drawinfo->GetOtherCeilingPlanes(sector->sectornum);
+
+				while (node)
+				{
+					haslights |= CollectSubsectorLights(sub);
+					node = node->next;
+				}
+			}
+		}
+	}
+	if (!haslights) dynlightindex = -1;	// we got no lights so save ourselves some work
+}
+
 
 //==========================================================================
 //
@@ -384,7 +506,7 @@ inline void GLFlat::PutFlat(bool fog)
 		{
 			foggy = !gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE;
 
-			if (gl_lights && GLRenderer->mLightCount)	// Are lights touching this sector?
+			if (gl_lights && !gl_dynlight_shader && GLRenderer->mLightCount)	// Are lights touching this sector?
 			{
 				for(int i=0;i<sector->subsectorcount;i++) if (sector->subsectors[i]->lighthead[0] != NULL)
 				{

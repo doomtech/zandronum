@@ -116,6 +116,7 @@ public:
 	bool owned;
 	bool halo;
 	BYTE color2[3];
+	int bufferindex;
 
 	// intermediate texture coordinate data
 	// this is stored in the light object to avoid recalculating it

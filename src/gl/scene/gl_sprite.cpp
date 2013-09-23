@@ -172,14 +172,14 @@ void GLSprite::Draw(int pass)
 	{
 		if (actor)
 		{
-			gl_SetSpriteLighting(RenderStyle, actor, lightlevel, rel, &Colormap, ThingColor, 
-								 trans, fullbright || gl_fixedcolormap >= CM_FIRSTSPECIALCOLORMAP, false);
+			lightlevel = gl_SetSpriteLighting(RenderStyle, actor, lightlevel, rel, &Colormap, ThingColor, trans,
+							 fullbright || gl_fixedcolormap >= CM_FIRSTSPECIALCOLORMAP, false);
 		}
 		else if (particle)
 		{
 			if (gl_light_particles)
 			{
-				gl_SetSpriteLight(particle, lightlevel, rel, &Colormap, trans, ThingColor);
+				lightlevel = gl_SetSpriteLight(particle, lightlevel, rel, &Colormap, trans, ThingColor);
 			}
 			else 
 			{

@@ -164,7 +164,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[1].u,tcs[1].v);
 	gl.Vertex3f(glseg.x1,ztop[0],glseg.y1);
 
-	if (split) SplitUpperEdge(tcs, glowing);
+	if (split && !(flags & GLWF_NOSPLITUPPER)) SplitUpperEdge(tcs, glowing);
 
 	// color for right side
 	if (color2) gl.Color4fv(color2);
@@ -181,7 +181,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	if (textured&1) gl.TexCoord2f(tcs[3].u,tcs[3].v); 
 	gl.Vertex3f(glseg.x2,zbottom[1],glseg.y2);
 
-	if (split) SplitLowerEdge(tcs, glowing);
+	if (split && !(flags & GLWF_NOSPLITLOWER)) SplitLowerEdge(tcs, glowing);
 
 	gl.End();
 

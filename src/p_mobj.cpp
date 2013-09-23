@@ -2944,8 +2944,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				return;
 			}
 
-			if ((mo->flags & MF_MISSILE) &&
-				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
+			// old code for boss cube disabled
+			//if ((mo->flags & MF_MISSILE) && (!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
+
+			if (mo->flags & MF_MISSILE)
 			{
 				mo->z = mo->floorz;
 				if (mo->BounceFlags & BOUNCE_Floors)
@@ -3099,8 +3101,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			}
 			if (mo->velz > 0)
 				mo->velz = 0;
-			if (mo->flags & MF_MISSILE &&
-				(!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
+			if (mo->flags & MF_MISSILE)
+				//&& (!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 			{
 				if (mo->flags3 & MF3_CEILINGHUGGER)
 				{

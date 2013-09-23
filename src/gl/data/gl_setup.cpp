@@ -683,7 +683,7 @@ static void PrepareSegs()
 	}
 
 	// sort the segs
-	for(int i = 1; i < numsides; i++)
+	for(int i = 0; i < numsides; i++)
 	{
 		if (sides[i].numsegs > 1) qsort(sides[i].segs, sides[i].numsegs, sizeof(seg_t*), segcmp);
 	}

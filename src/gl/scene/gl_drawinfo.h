@@ -3,6 +3,8 @@
 
 #include "gl/scene/gl_wall.h"
 
+class FLightIndexBuffer;
+
 int GetFloorLight (const sector_t *sec);
 int GetCeilingLight (const sector_t *sec);
 
@@ -121,6 +123,7 @@ public:
 	void AddSprite(GLSprite * sprite);
 	void Reset();
 	void Sort();
+	void CollectFlatLights();
 
 
 	void MakeSortList();
@@ -206,15 +209,12 @@ struct FDrawInfo
 
 	TArray<subsector_t *> HandledSubsectors;
 
+	FLightIndexBuffer *mDynLights;
+
 	FDrawInfo * next;
 	GLDrawList drawlists[GLDL_TYPES];
 
-	FDrawInfo()
-	{
-		temporary = false;
-		next = NULL;
-	}
-
+	FDrawInfo();
 	~FDrawInfo();
 	void ClearBuffers();
 
@@ -239,6 +239,7 @@ struct FDrawInfo
 	void AddFloorStack(subsector_t * sub);
 	void AddCeilingStack(subsector_t * sub);
 	void ProcessSectorStacks();
+	void CollectFlatLights();
 
 	void AddOtherFloorPlane(int sector, gl_subsectorrendernode * node);
 	void AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node);
@@ -250,7 +251,7 @@ struct FDrawInfo
 	void FloodUpperGap(seg_t * seg);
 	void FloodLowerGap(seg_t * seg);
 
-	static void StartDrawInfo(FDrawInfo * hi);
+	static void StartDrawInfo();
 	static void EndDrawInfo();
 
 	gl_subsectorrendernode * GetOtherFloorPlanes(unsigned int sector)
@@ -265,6 +266,17 @@ struct FDrawInfo
 		else return NULL;
 	}
 };
+
+class FDrawInfoList
+{
+	TDeletingArray<FDrawInfo *> mList;
+
+public:
+
+	FDrawInfo *GetNew();
+	void Release(FDrawInfo *);
+};
+
 
 extern FDrawInfo * gl_drawinfo;
 

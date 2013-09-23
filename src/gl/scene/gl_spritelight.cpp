@@ -124,7 +124,7 @@ void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 
 
 
-static void gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
+static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
                               int lightlevel, int rellight, FColormap * cm, float alpha, 
 							  PalEntry ThingColor, bool weapon)
 {
@@ -132,26 +132,30 @@ static void gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, sub
 	float result[3];
 	gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->colormap : 0, result);
 	gl_GetLightColor(lightlevel, rellight, cm, &r, &g, &b, weapon);
+
+
 	// Note: Due to subtractive lights the values can easily become negative so we have to clamp both
 	// at the low and top end of the range!
 	r = clamp<float>(result[0]+r, 0, 1.0f) * ThingColor.r/255.f;
 	g = clamp<float>(result[1]+g, 0, 1.0f) * ThingColor.g/255.f;
 	b = clamp<float>(result[2]+b, 0, 1.0f) * ThingColor.b/255.f;
 	gl.Color4f(r, g, b, alpha);
+	int addlight = quickertoint(result[0]*77 + result[1]*143 + result[2]*36);
+	return clamp<int>(lightlevel + addlight , 0, 255);
 }
 
-void gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,
+int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,
 					   float alpha, PalEntry ThingColor, bool weapon)
 { 
 	subsector_t * subsec = thing->subsector;
 
-	gl_SetSpriteLight(thing, thing->x, thing->y, thing->z+(thing->height>>1), subsec, 
+	return gl_SetSpriteLight(thing, thing->x, thing->y, thing->z+(thing->height>>1), subsec, 
 					  lightlevel, rellight, cm, alpha, ThingColor, weapon);
 }
 
-void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor)
+int gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor)
 { 
-	gl_SetSpriteLight(NULL, thing->x, thing->y, thing->z, thing->subsector, lightlevel, rellight, 
+	return gl_SetSpriteLight(NULL, thing->x, thing->y, thing->z, thing->subsector, lightlevel, rellight, 
 					  cm, alpha, ThingColor, false);
 }
 
@@ -194,7 +198,7 @@ void gl_GetSpriteLighting(FRenderStyle style, AActor *thing, FColormap *cm, PalE
 //
 //==========================================================================
 
-void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
+int gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
 						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon)
 {
 	FColormap internal_cm;
@@ -235,7 +239,7 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 	{
 		if (gl_light_sprites && gl_lights && GLRenderer->mLightCount && !fullbright)
 		{
-			gl_SetSpriteLight(thing, lightlevel, rellight, cm, alpha, ThingColor, weapon);
+			lightlevel = gl_SetSpriteLight(thing, lightlevel, rellight, cm, alpha, ThingColor, weapon);
 		}
 		else
 		{
@@ -243,5 +247,6 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 		}
 	}
 	gl.AlphaFunc(GL_GEQUAL,alpha/2.f);
+	return lightlevel;
 }
 

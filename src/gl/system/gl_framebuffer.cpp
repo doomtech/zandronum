@@ -159,16 +159,6 @@ void OpenGLFrameBuffer::InitializeState()
 	gl.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	gl.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/*
-	gl.MatrixMode(GL_PROJECTION);
-	gl.LoadIdentity();
-	gl.Ortho(0.0, GetWidth() * 1.0, 0.0, GetHeight() * 1.0, -1.0, 1.0);
-
-	gl.MatrixMode(GL_MODELVIEW);
-	gl.LoadIdentity();
-	//GL::SetPerspective(90.f, GetWidth() * 1.f / GetHeight(), 0.f, 1000.f);
-	*/
-
 	gl.Viewport(0, (GetTrueHeight()-GetHeight())/2, GetWidth(), GetHeight()); 
 
 	Begin2D(false);

@@ -157,7 +157,7 @@ void gl_ParseVavoomSkybox(FScanner &sc)
 
 inline const PClass * GetRealType(const PClass * ti)
 {
-	FActorInfo *rep = ti->ActorInfo->GetReplacement();
+	FActorInfo *rep = ti->ActorInfo->GetReplacement(false);
 	if (rep != ti->ActorInfo && rep != NULL && rep->Class->IsDescendantOf(RUNTIME_CLASS(ADehackedPickup)))
 	{
 		return rep->Class;
@@ -278,8 +278,8 @@ void FLightDefaults::ApplyProperties(ADynamicLight * light) const
 	light->SetOffset(m_X, m_Y, m_Z);
 	light->halo = m_halo;
 	for (int a = 0; a < 3; a++) light->args[a] = clamp<int>((int)(m_Args[a] * gl_lights_intensity), 0, 255);
-	light->m_intensity[0] = int(m_Args[LIGHT_INTENSITY] * gl_lights_size);
-	light->m_intensity[1] = int(m_Args[LIGHT_SECONDARY_INTENSITY] * gl_lights_size);
+	light->m_intensity[0] = int(m_Args[LIGHT_INTENSITY]);
+	light->m_intensity[1] = int(m_Args[LIGHT_SECONDARY_INTENSITY]);
 	light->flags4&=~(MF4_ADDITIVE|MF4_SUBTRACTIVE|MF4_DONTLIGHTSELF);
 	if (m_subtractive) light->flags4|=MF4_SUBTRACTIVE;
 	if (m_additive) light->flags4|=MF4_ADDITIVE;

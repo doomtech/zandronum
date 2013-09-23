@@ -57,6 +57,7 @@
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_dynlight.h"
+#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/models/gl_models.h"
 #include "gl/scene/gl_clipper.h"
 #include "gl/scene/gl_drawinfo.h"
@@ -314,9 +315,11 @@ void FGLRenderer::CreateScene()
 	gl_drawinfo->HandleMissingTextures();	// Missing upper/lower textures
 	gl_drawinfo->HandleHackedSubsectors();	// open sector hacks for deep water
 	gl_drawinfo->ProcessSectorStacks();		// merge visplanes of sector stacks
+	gl_drawinfo->CollectFlatLights();		// can only be done after processing the render hacks.
 
 	GLRenderer->mVBO->UnmapVBO ();
 	ProcessAll.Unclock();
+
 }
 
 //-----------------------------------------------------------------------------
@@ -378,77 +381,79 @@ void FGLRenderer::RenderScene(int recursion)
 	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
 
 	// And now the multipass stuff
-
-	// First pass: empty background with sector light only
-
-	// Part 1: solid geometry. This is set up so that there are no transparent parts
-
-	// remove any remaining texture bindings and shaders whick may get in the way.
-	gl_DisableShader();
-	gl_EnableBrightmap(false);
-	gl_EnableTexture(false);
-	gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_BASE);
-	gl_EnableTexture(true);
-
-	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
-	// This creates a blank surface that only fills the nontransparent parts of the texture
-	gl_SetTextureMode(TM_MASK);
-	gl_EnableBrightmap(true);
-	gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_BASE_MASKED);
-	gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
-	gl_EnableBrightmap(false);
-	gl_SetTextureMode(TM_MODULATE);
-
-
-	// second pass: draw lights (on fogged surfaces they are added to the textures!)
-	gl.DepthMask(false);
-	if (gl_lights && mLightCount && !gl_fixedcolormap)
+	if (!gl_dynlight_shader)
 	{
-		if (gl_SetupLightTexture())
+		// First pass: empty background with sector light only
+
+		// Part 1: solid geometry. This is set up so that there are no transparent parts
+
+		// remove any remaining texture bindings and shaders whick may get in the way.
+		gl_DisableShader();
+		gl_EnableBrightmap(false);
+		gl_EnableTexture(false);
+		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_BASE);
+		gl_EnableTexture(true);
+
+		// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
+		// This creates a blank surface that only fills the nontransparent parts of the texture
+		gl_SetTextureMode(TM_MASK);
+		gl_EnableBrightmap(true);
+		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_BASE_MASKED);
+		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
+		gl_EnableBrightmap(false);
+		gl_SetTextureMode(TM_MODULATE);
+
+
+		// second pass: draw lights (on fogged surfaces they are added to the textures!)
+		gl.DepthMask(false);
+		if (gl_lights && mLightCount && !gl_fixedcolormap)
+		{
+			if (gl_SetupLightTexture())
+			{
+				gl.BlendFunc(GL_ONE, GL_ONE);
+				gl.DepthFunc(GL_EQUAL);
+				for(int i=GLDL_FIRSTLIGHT; i<=GLDL_LASTLIGHT; i++)
+				{
+					gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT);
+				}
+				gl.BlendEquation(GL_FUNC_ADD);
+			}
+			else gl_lights=false;
+		}
+
+		// third pass: modulated texture
+		gl.Color3f(1.0f, 1.0f, 1.0f);
+		gl.BlendFunc(GL_DST_COLOR, GL_ZERO);
+		gl_EnableFog(false);
+		gl.DepthFunc(GL_LEQUAL);
+		if (gl_texture) 
+		{
+			gl.Disable(GL_ALPHA_TEST);
+			gl_drawinfo->drawlists[GLDL_LIGHT].Sort();
+			gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_TEXTURE);
+			gl.Enable(GL_ALPHA_TEST);
+			gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Sort();
+			gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_TEXTURE);
+			gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Sort();
+			gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_TEXTURE);
+		}
+
+		// fourth pass: additive lights
+		gl_EnableFog(true);
+		if (gl_lights && mLightCount && !gl_fixedcolormap)
 		{
 			gl.BlendFunc(GL_ONE, GL_ONE);
 			gl.DepthFunc(GL_EQUAL);
-			for(int i=GLDL_FIRSTLIGHT; i<=GLDL_LASTLIGHT; i++)
+			if (gl_SetupLightTexture())
 			{
-				gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT);
+				for(int i=0; i<GLDL_TRANSLUCENT; i++)
+				{
+					gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT_ADDITIVE);
+				}
+				gl.BlendEquation(GL_FUNC_ADD);
 			}
-			gl.BlendEquation(GL_FUNC_ADD);
+			else gl_lights=false;
 		}
-		else gl_lights=false;
-	}
-
-	// third pass: modulated texture
-	gl.Color3f(1.0f, 1.0f, 1.0f);
-	gl.BlendFunc(GL_DST_COLOR, GL_ZERO);
-	gl_EnableFog(false);
-	gl.DepthFunc(GL_LEQUAL);
-	if (gl_texture) 
-	{
-		gl.Disable(GL_ALPHA_TEST);
-		gl_drawinfo->drawlists[GLDL_LIGHT].Sort();
-		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_TEXTURE);
-		gl.Enable(GL_ALPHA_TEST);
-		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Sort();
-		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_TEXTURE);
-		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Sort();
-		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_TEXTURE);
-	}
-
-	// fourth pass: additive lights
-	gl_EnableFog(true);
-	if (gl_lights && mLightCount && !gl_fixedcolormap)
-	{
-		gl.BlendFunc(GL_ONE, GL_ONE);
-		gl.DepthFunc(GL_EQUAL);
-		if (gl_SetupLightTexture())
-		{
-			for(int i=0; i<GLDL_TRANSLUCENT; i++)
-			{
-				gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT_ADDITIVE);
-			}
-			gl.BlendEquation(GL_FUNC_ADD);
-		}
-		else gl_lights=false;
 	}
 
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -537,6 +542,15 @@ void FGLRenderer::DrawScene()
 	static int recursion=0;
 
 	CreateScene();
+	if (gl_dynlight_shader)
+	{
+		if (gl_drawinfo->mDynLights != NULL)
+		{
+			gl_drawinfo->mDynLights->SendBuffer();
+			gl_drawinfo->mDynLights->BindTexture(GL_TEXTURE13);
+			GLRenderer->mLightBuffer->BindTextures(GL_TEXTURE14, GL_TEXTURE15);
+		}
+	}
 	RenderScene(recursion);
 
 	// Handle all portals after rendering the opaque objects but before
@@ -544,6 +558,16 @@ void FGLRenderer::DrawScene()
 	recursion++;
 	GLPortal::EndFrame();
 	recursion--;
+
+	// the textures need to be rebound here after processing the portals
+	if (gl_dynlight_shader)
+	{
+		if (gl_drawinfo->mDynLights != NULL)
+		{
+			gl_drawinfo->mDynLights->BindTexture(GL_TEXTURE13);
+			GLRenderer->mLightBuffer->BindTextures(GL_TEXTURE14, GL_TEXTURE15);
+		}
+	}
 
 	RenderTranslucent();
 }
@@ -800,7 +824,7 @@ void FGLRenderer::EndDrawScene(sector_t * viewsector)
 
 void FGLRenderer::ProcessScene()
 {
-	FDrawInfo::StartDrawInfo(GlobalDrawInfo);
+	FDrawInfo::StartDrawInfo();
 	iter_dlightf = iter_dlight = draw_dlight = draw_dlightf = 0;
 	GLPortal::BeginScene();
 
@@ -860,11 +884,6 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 
 sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
 {       
-	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
-
-	// Check if there's some lights. If not some code can be skipped.
-	mLightCount = (it.Next()!=NULL);
-
 	sector_t * retval;
 	R_SetupFrame (camera);
 	SetViewArea();
@@ -889,6 +908,7 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 
 	retval = viewsector;
 
+	GLFlat::dynlightdata.Clear();
 	SetViewport(bounds);
 	mCurrentFoV = fov;
 	SetProjection(fov, ratio, fovratio);	// switch to perspective mode and set up clipper
@@ -907,7 +927,7 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 }
 
 
-///-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //
 // renders the view
 //
@@ -1002,6 +1022,12 @@ void FGLRenderer::RenderView (player_t* player)
 
 	SetFixedColormap (player);
 
+	// Check if there's some lights. If not some code can be skipped.
+	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
+	GLRenderer->mLightCount = ((it.Next()) != NULL);
+
+	if (GLRenderer->mLightBuffer != NULL) GLRenderer->mLightBuffer->CollectLightSources();
+
 	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true);
 	EndDrawScene(viewsector);
 
@@ -1024,6 +1050,12 @@ void FGLRenderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	bounds.height=height;
 	gl.Flush();
 	SetFixedColormap(player);
+
+	// Check if there's some lights. If not some code can be skipped.
+	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
+	GLRenderer->mLightCount = ((it.Next()) != NULL);
+	if (GLRenderer->mLightBuffer != NULL) GLRenderer->mLightBuffer->CollectLightSources();
+
 	sector_t *viewsector = RenderViewpoint(players[consoleplayer].camera, &bounds, 
 								FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true);
 	gl.Disable(GL_STENCIL_TEST);

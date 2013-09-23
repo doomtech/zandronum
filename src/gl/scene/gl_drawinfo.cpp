@@ -46,6 +46,7 @@
 #include "gl/system/gl_cvars.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
+#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
@@ -870,15 +871,47 @@ void GLDrawList::AddSprite(GLSprite * sprite)
 
 //==========================================================================
 //
-// Try to reuse the lists as often as possible
+// Try to reuse the lists as often as possible as they contain resources that
+// are expensive to create and delete.
 //
 //==========================================================================
 
-static FreeList<FDrawInfo> di_list;
+FDrawInfo *FDrawInfoList::GetNew()
+{
+	if (mList.Size() > 0)
+	{
+		FDrawInfo *di;
+		mList.Pop(di);
+		return di;
+	}
+	return new FDrawInfo;
+}
+
+void FDrawInfoList::Release(FDrawInfo * di)
+{
+	di->ClearBuffers();
+	mList.Push(di);
+}
+
+static FDrawInfoList di_list;
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FDrawInfo::FDrawInfo()
+{
+	next = NULL;
+	/*if (gl.flags & RFL_TEXTUREBUFFER) mDynLights = new FLightIndexBuffer;
+	else*/ mDynLights = NULL;
+}
 
 FDrawInfo::~FDrawInfo()
 {
 	ClearBuffers();
+	if (mDynLights != NULL) delete mDynLights;
 }
 
 
@@ -887,13 +920,9 @@ FDrawInfo::~FDrawInfo()
 // Sets up a new drawinfo struct
 //
 //==========================================================================
-void FDrawInfo::StartDrawInfo(FDrawInfo * di)
+void FDrawInfo::StartDrawInfo()
 {
-	if (!di)
-	{
-		di=di_list.GetNew();
-		di->temporary=true;
-	}
+	FDrawInfo *di=di_list.GetNew();
 	di->StartScene();
 }
 
@@ -923,8 +952,7 @@ void FDrawInfo::EndDrawInfo()
 
 	for(int i=0;i<GLDL_TYPES;i++) di->drawlists[i].Reset();
 	gl_drawinfo=di->next;
-
-	if (di->temporary) di_list.Release(di);
+	di_list.Release(di);
 }
 
 
@@ -1176,3 +1204,33 @@ void FDrawInfo::FloodLowerGap(seg_t * seg)
 	ClearFloodStencil(&ws);
 }
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void GLDrawList::CollectFlatLights()
+{
+	for(unsigned i = 0; i < flats.Size(); i++)
+	{
+		flats[i].CollectLights();
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FDrawInfo::CollectFlatLights()
+{
+	if (gl_dynlight_shader && gl_lights && GLRenderer->mLightCount)
+	{
+		for(unsigned i = 0; i < GLDL_TYPES; i++)
+		{
+			drawlists[i].CollectFlatLights();
+		}
+	}
+}

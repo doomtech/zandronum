@@ -534,13 +534,14 @@ FGLTexture * FMaterial::ValidateSysTexture(FTexture * tex, bool expand)
 //===========================================================================
 TArray<FMaterial *> FMaterial::mMaterials;
 
-FMaterial::FMaterial(FTexture * tx)
+FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 {
 	assert(tx->gl_info.Material == NULL);
 
 	bool expanded = tx->UseType == FTexture::TEX_Sprite || 
 					tx->UseType == FTexture::TEX_SkinSprite || 
-					tx->UseType == FTexture::TEX_Decal;
+					tx->UseType == FTexture::TEX_Decal ||
+					forceexpand;
 
 	tex = tx;
 
@@ -782,7 +783,7 @@ FMaterial * FMaterial::ValidateTexture(FTexture * tex)
 		FMaterial *gltex = tex->gl_info.Material;
 		if (gltex == NULL) 
 		{
-			gltex = new FMaterial(tex);
+			gltex = new FMaterial(tex, false);
 		}
 		return gltex;
 	}

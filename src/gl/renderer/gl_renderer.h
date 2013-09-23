@@ -11,6 +11,7 @@ class FVertexBuffer;
 class OpenGLFrameBuffer;
 struct FDrawInfo;
 struct pspdef_t;
+class FLightBuffer;
 
 extern int extralight;
 
@@ -46,10 +47,10 @@ public:
 	line_t * mirrorline;
 	int mMirrorCount;
 	int mPlaneMirrorCount;
-	bool mLightCount;
+	int mLightCount;
 	float mCurrentFoV;
 	AActor *mViewActor;
-	FDrawInfo *GlobalDrawInfo;
+	FLightBuffer *mLightBuffer;
 	int gl_spriteindex;
 	unsigned int mFBID;
 
@@ -79,7 +80,7 @@ public:
 		mCameraPos = FVector3(0,0,0);
 		mVBO = NULL;
 		gl_spriteindex = 0;
-		GlobalDrawInfo = NULL;
+		mLightBuffer = NULL;
 		glpart2 = glpart = gllight = mirrortexture = NULL;
 	}
 	~FGLRenderer() ;
@@ -117,7 +118,6 @@ public:
 	void Clear(int left, int top, int right, int bottom, int palcolor, uint32 color);
 
 	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
-	void ProcessWall(seg_t *, sector_t *, sector_t *, subsector_t *);
 	void ProcessSprite(AActor *thing, sector_t *sector);
 	void ProcessParticle(particle_t *part, sector_t *sector);
 	void ProcessSector(sector_t *fakesector, subsector_t *sub);

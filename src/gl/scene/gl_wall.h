@@ -98,6 +98,8 @@ public:
 		GLWF_FOGGY=8,
 		GLWF_GLOW=16,		// illuminated by glowing flats
 		GLWF_NOSHADER=32,	// cannot be drawn with shaders.
+		GLWF_NOSPLITUPPER=64,
+		GLWF_NOSPLITLOWER=128,
 	};
 
 	friend struct GLDrawList;
@@ -124,6 +126,9 @@ public:
 	float bottomglowcolor[3];
 	float topglowheight;
 	float bottomglowheight;
+
+	int firstdynlight, lastdynlight;
+	int firstwall, numwalls;	// splitting info.
 
 	union
 	{
@@ -196,6 +201,8 @@ private:
 					  fixed_t fch1, fixed_t fch2, fixed_t ffh1, fixed_t ffh2,
 					  fixed_t bch1, fixed_t bch2, fixed_t bfh1, fixed_t bfh2);
 
+	void CollectLights();
+
 	void DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector);
 	void DoDrawDecals(DBaseDecal * decal, seg_t * seg);
 	void ProcessOneDecal(seg_t *seg, DBaseDecal * decal, float leftxfrac,float rightxfrac);
@@ -212,7 +219,7 @@ private:
 
 public:
 
-	void Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, subsector_t * polysub, bool render_segs);
+	void Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, subsector_t * polysub);
 	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
 	void Draw(int pass);
 
@@ -244,6 +251,7 @@ class GLFlat
 public:
 	friend struct GLDrawList;
 
+	static TArray<int> dynlightdata;
 	sector_t * sector;
 	subsector_t * sub;	// only used for translucent planes
 	float z; // the z position of the flat (height)
@@ -262,6 +270,8 @@ public:
 	int vboindex;
 	int vboheight;
 
+	int dynlightindex;
+
 	void DrawSubsector(subsector_t * sub);
 	void DrawSubsectorLights(subsector_t * sub, int pass);
 	void DrawSubsectors(bool istrans);
@@ -271,6 +281,8 @@ public:
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);
+	bool CollectSubsectorLights(subsector_t *sub);
+	void CollectLights();
 };
 
 
@@ -335,16 +347,16 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 // Light + color
 
 void gl_GetSpriteLight(AActor *Self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
-void gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
+int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 
 void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,
 					   float *red, float *green, float *blue,
 					   PalEntry ThingColor, bool weapon);
 
-void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
+int gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
 						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon);
 
-void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
+int gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
 void gl_GetLightForThing(AActor * thing, float upper, float lower, float & r, float & g, float & b);
 
 

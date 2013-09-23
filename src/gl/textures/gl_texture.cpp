@@ -101,6 +101,7 @@ TexFilter_s TexFilter[]={
 	{GL_LINEAR,						GL_LINEAR,		false},
 	{GL_LINEAR_MIPMAP_NEAREST,		GL_LINEAR,		true},
 	{GL_LINEAR_MIPMAP_LINEAR,		GL_LINEAR,		true},
+	{GL_NEAREST_MIPMAP_LINEAR,		GL_NEAREST,		true},
 };
 
 int TexFormat[]={
@@ -236,6 +237,7 @@ FTexture::MiscGLInfo::MiscGLInfo() throw()
 	Material = NULL;
 	SystemTexture = NULL;
 	Brightmap = NULL;
+	DecalTexture = NULL;
 }
 
 FTexture::MiscGLInfo::~MiscGLInfo()
@@ -251,6 +253,10 @@ FTexture::MiscGLInfo::~MiscGLInfo()
 
 	if (areas != NULL) delete [] areas;
 	areas = NULL;
+
+	if (DecalTexture != NULL) delete DecalTexture;
+	DecalTexture = NULL;
+
 }
 
 //===========================================================================
@@ -614,12 +620,53 @@ void FBrightmapTexture::Unload ()
 {
 }
 
-int FBrightmapTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int w, int h, int rotate, FCopyInfo *inf)
+int FBrightmapTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
 {
-	SourcePic->CopyTrueColorTranslated(bmp, x, y, w, h, rotate, &GlobalBrightmap);
+	SourcePic->CopyTrueColorTranslated(bmp, x, y, rotate, &GlobalBrightmap);
 	return 0;
 }
 
+
+//===========================================================================
+//
+// A cloned texture. This is needed by the decal code which needs to assign
+// a different texture type to some of its graphics.
+//
+//===========================================================================
+
+FCloneTexture::FCloneTexture (FTexture *source, int usetype)
+{
+	memcpy(Name, source->Name, 9);
+	SourcePic = source;
+	CopySize(source);
+	bNoDecals = source->bNoDecals;
+	Rotations = source->Rotations;
+	UseType = usetype;
+	gl_info.bBrightmap = false;
+}
+
+FCloneTexture::~FCloneTexture ()
+{
+}
+
+const BYTE *FCloneTexture::GetColumn (unsigned int column, const Span **spans_out)
+{
+	return NULL;
+}
+
+const BYTE *FCloneTexture::GetPixels ()
+{
+	return NULL;
+}
+
+void FCloneTexture::Unload ()
+{
+}
+
+int FCloneTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
+{
+	return SourcePic->CopyTrueColorPixels(bmp, x, y, rotate, inf);
+}
 
 //==========================================================================
 //

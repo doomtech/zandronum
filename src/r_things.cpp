@@ -2257,7 +2257,7 @@ void R_DrawRemainingPlayerSprites()
 				DTA_RenderStyle, vis->RenderStyle,
 				DTA_FillColor, vis->FillColor,
 				DTA_SpecialColormap, special,
-				DTA_ColorOverlay, overlay,
+				DTA_ColorOverlay, overlay.d,
 				DTA_ColormapStyle, usecolormapstyle ? &colormapstyle : NULL,
 				TAG_DONE);
 		}

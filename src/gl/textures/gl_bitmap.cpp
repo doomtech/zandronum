@@ -166,7 +166,7 @@ void FGLBitmap::CopyPixelDataRGB(int originx, int originy,
 								const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
 								int rotate, int ct, FCopyInfo *inf)
 {
-	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
+	if (ClipCopyPixelRect(&ClipRect, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
 	{
 		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
 		for (int y=0;y<srcheight;y++)
@@ -264,7 +264,7 @@ void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int 
 
 	int x,y,pos,i;
 
-	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
+	if (ClipCopyPixelRect(&ClipRect, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
 	{
 		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
 

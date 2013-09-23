@@ -501,7 +501,8 @@ static void APIENTRY LoadExtensions()
 
 	if (CheckExtension("GL_ARB_texture_buffer_object") && 
 		CheckExtension("GL_ARB_texture_float") && 
-		gl->shadermodel == 4 && (gl->flags & RFL_MAP_BUFFER_RANGE))	// texture buffer without map_buffer_range is of no use
+		CheckExtension("GL_ARB_texture_rg") && 
+		gl->shadermodel == 4)
 	{
 		gl->TexBufferARB = (PFNGLTEXBUFFERARBPROC)wglGetProcAddress("glTexBufferARB");
 		gl->flags|=RFL_TEXTUREBUFFER;

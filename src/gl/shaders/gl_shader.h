@@ -5,6 +5,7 @@
 extern bool gl_fogenabled;
 extern bool gl_textureenabled;
 extern bool gl_glowenabled;
+extern bool gl_lightsenabled;
 extern int gl_texturemode;
 extern int gl_brightmapenabled;
 extern bool gl_shaderactive;
@@ -26,6 +27,11 @@ inline void gl_EnableGlow(bool on)
 	gl_glowenabled = on;
 }
 
+inline void gl_EnableLights(bool on)
+{
+	gl_lightsenabled = on;
+}
+
 bool gl_BrightmapsActive();
 bool gl_GlowActive();
 bool gl_ExtFogActive();
@@ -44,6 +50,8 @@ void gl_SetCamera(float x, float y, float z);
 
 void gl_SetGlowParams(float *topcolors, float topheight, float *bottomcolors, float bottomheight);
 void gl_SetGlowPosition(float topdist, float bottomdist);
+
+void gl_SetLightRange(int first, int last, int forceadd);
 
 int gl_SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
 

@@ -3,6 +3,7 @@
 
 #include "stats.h"
 #include "x86.h"
+#include "m_fixed.h"
 
 #ifdef _MSC_VER
 
@@ -10,7 +11,7 @@ extern double gl_SecondsPerCycle;
 extern double gl_MillisecPerCycle;
 
 
-inline long long GetClockCycle ()
+__forceinline long long GetClockCycle ()
 {
 #if _M_X64
 	return __rdtsc();
@@ -63,7 +64,7 @@ public:
 		Counter = 0;
 	}
 	
-	void Clock()
+	__forceinline void Clock()
 	{
 		// Not using QueryPerformanceCounter directly, so we don't need
 		// to pull in the Windows headers for every single file that
@@ -72,7 +73,7 @@ public:
 		Counter -= time;
 	}
 	
-	void Unclock()
+	__forceinline void Unclock()
 	{
 		long long time = GetClockCycle();
 		Counter += time;
@@ -93,7 +94,7 @@ private:
 };
 
 
-extern glcycle_t RenderWall,SetupWall,ClipWall;
+extern glcycle_t RenderWall,SetupWall,ClipWall,SplitWall;
 extern glcycle_t RenderFlat,SetupFlat;
 extern glcycle_t RenderSprite,SetupSprite;
 extern glcycle_t All, Finish, PortalAll;

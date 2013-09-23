@@ -1,3 +1,44 @@
+#ifdef DYNLIGHT_TEST
+
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+uniform samplerBuffer lightRGB;
+uniform sampler2D tex;
+
+
+void main()
+{
+	int index = int(clamp(gl_TexCoord[0].s, 0, 32.0));
+	vec4 light = texelFetchBuffer(lightRGB, index);
+	vec4 texel = texture2D(tex, gl_TexCoord[0].st);
+
+	gl_FragColor = texel*2.0 + light/20.0;
+}
+
+vec4 desaturate(vec4 texel)
+{
+	return texel;
+}
+
+vec4 getTexel(vec2 st)
+{
+	return texture2D(tex, st);
+}
+
+#else
+
+
+#ifdef DYNLIGHT
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+uniform ivec3 lightrange;
+uniform usamplerBuffer lightIndex;
+uniform samplerBuffer lightPositions;
+uniform samplerBuffer lightRGB;
+
+#endif
+
+
 
 varying float fogcoord;
 uniform int fogenabled;
@@ -16,6 +57,7 @@ uniform int texturemode;
 uniform sampler2D tex;
 
 vec4 Process(vec4 color);
+
 
 //===========================================================================
 //
@@ -132,6 +174,11 @@ void main()
 {
 	float fogdist = 0.0;
 	float fogfactor = 0.0;
+	
+	#ifdef DYNLIGHT
+		vec4 dynlight = vec4(0.0,0.0,0.0,0.0);
+		vec4 addlight = vec4(0.0,0.0,0.0,0.0);
+	#endif
 
 	#ifndef NO_FOG
 	//
@@ -156,9 +203,48 @@ void main()
 		fogfactor = exp2 ( -gl_Fog.density * fogdist * LOG2E);
 	}
 	#endif
-		
+	
 	vec4 frag = getLightColor(fogdist, fogfactor);
+	
+	
+	#ifdef DYNLIGHT
+		for(int i=lightrange.x; i<lightrange.y; i++)
+		{
+			int lightidx = int(texelFetchBuffer(lightIndex, i).r);
+			vec4 lightpos = texelFetchBuffer(lightPositions, lightidx);
+			vec4 lightcolor = texelFetchBuffer(lightRGB, lightidx);
+			
+			lightcolor.rgb *= max(lightpos.a - distance(pixelpos, lightpos.rgb),0.0) / lightpos.a;
+			
+			if (lightcolor.a == 1.0)
+			{
+				addlight += lightcolor;
+			}
+			else if (lightcolor.a == 0.0)
+			{
+				dynlight += lightcolor;
+			}
+			else
+			{	
+				dynlight -= lightcolor;
+			}
+		}
+		if (lightrange.z != 0)
+		{
+			addlight += dynlight;
+		}
+		else
+		{
+			frag.rgb = clamp(frag.rgb + dynlight.rgb, 0.0, 2.0);
+		}
+	#endif
+		
 	frag = Process(frag);
+
+	#ifdef DYNLIGHT
+		frag.rgb += addlight.rgb;
+	#endif
+
 	#ifndef NO_FOG
 		if (fogenabled < 0) 
 		{
@@ -169,3 +255,4 @@ void main()
 }
 
 
+#endif // DYNLIGHT test

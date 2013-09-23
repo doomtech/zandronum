@@ -156,7 +156,7 @@ class FMaterial
 public:
 	FTexture *tex;
 	
-	FMaterial(FTexture *tex);
+	FMaterial(FTexture *tex, bool forceexpand);
 	~FMaterial();
 
 	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);

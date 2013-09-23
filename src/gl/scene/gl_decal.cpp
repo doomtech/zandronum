@@ -48,6 +48,7 @@
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/shaders/gl_shader.h"
+#include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
@@ -94,15 +95,29 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	*/
 
+	FTexture *texture = TexMan[decalTile];
+	if (texture == NULL) return;
 
-	FMaterial * tex=FMaterial::ValidateTexture(decalTile, false);
-	if (!tex) return;
-	
+	FMaterial *tex;
+
+
+	if (texture->UseType == FTexture::TEX_MiscPatch)
+	{
+		// We need to create a clone of this texture where we can force the
+		// texture filtering offset in.
+		if (texture->gl_info.DecalTexture == NULL)
+		{
+			texture->gl_info.DecalTexture = new FCloneTexture(texture, FTexture::TEX_Decal);
+		}
+		tex = FMaterial::ValidateTexture(texture->gl_info.DecalTexture);
+	}
+	else tex = FMaterial::ValidateTexture(texture);
+
 	switch (actor->RenderFlags & RF_RELMASK)
 	{
 	default:
 		// No valid decal can have this type. If one is encountered anyway
-		// it is in some way invalid.
+		// it is in some way invalid so skip it.
 		return;
 		//zpos = actor->z;
 		//break;

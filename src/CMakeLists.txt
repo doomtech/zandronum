@@ -625,6 +625,7 @@ if( NOT NO_GL )
 		gl/dynlights/gl_dynlight.cpp
 		gl/dynlights/gl_dynlight1.cpp
 		gl/dynlights/gl_glow.cpp
+		gl/dynlights/gl_lightbuffer.cpp
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models_md3.cpp

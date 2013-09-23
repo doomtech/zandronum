@@ -47,6 +47,7 @@
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_clipper.h"
+#include "gl/scene/gl_wall.h"
 #include "gl/utility/gl_clock.h"
 
 EXTERN_CVAR(Bool, gl_render_segs)
@@ -72,14 +73,12 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	sector_t * backsector = NULL;
 	sector_t bs;
 
-	ClipWall.Clock();
 	if (GLRenderer->mirrorline)
 	{
 		// this seg is completely behind the mirror!
 		if (P_PointOnLineSide(seg->v1->x, seg->v1->y, GLRenderer->mirrorline) &&
 			P_PointOnLineSide(seg->v2->x, seg->v2->y, GLRenderer->mirrorline)) 
 		{
-			ClipWall.Unclock();
 			return;
 		}
 	}
@@ -90,13 +89,11 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	// Back side, i.e. backface culling	- read: endAngle >= startAngle!
 	if (startAngle-endAngle<ANGLE_180 || !seg->linedef)  
 	{
-		ClipWall.Unclock();
 		return;
 	}
 
 	if (!clipper.SafeCheckRange(startAngle, endAngle)) 
 	{
-		ClipWall.Unclock();
 		return;
 	}
 
@@ -112,7 +109,6 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 			if (!tex || tex->UseType==FTexture::TEX_Null) 
 			{
 				// nothing to do here!
-				ClipWall.Unclock();
 				seg->linedef->validcount=validcount;
 				return;
 			}
@@ -138,7 +134,6 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	}
 
 	seg->linedef->flags |= ML_MAPPED;
-	ClipWall.Unclock();
 
 	//if (!gl_render_segs)
 	{
@@ -151,11 +146,15 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	if (gl_render_walls)
 	{
+		ClipWall.Unclock();
 		SetupWall.Clock();
 
-		GLRenderer->ProcessWall(seg, sector, backsector, polysub);
+		GLWall wall;
+		wall.Process(seg, sector, backsector, polysub);
+		rendered_lines++;
 
 		SetupWall.Unclock();
+		ClipWall.Clock();
 	}
 }
 
@@ -166,6 +165,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 //==========================================================================
 static inline void AddLines(subsector_t * sub, sector_t * sector)
 {
+	ClipWall.Clock();
 	if (sub->poly)
 	{ // Render the polyobj in the subsector first
 		int polyCount = sub->poly->numsegs;
@@ -190,6 +190,7 @@ static inline void AddLines(subsector_t * sub, sector_t * sector)
 		}
 		line++;
 	}
+	ClipWall.Unclock();
 }
 
 
@@ -258,10 +259,12 @@ static void DoSubsector(subsector_t * sub)
 	//int shade = LIGHT2SHADE((floorlightlevel + ceilinglightlevel)/2 + r_actualextralight);
 	if (gl_render_things)
 	{
+		SetupSprite.Clock();
 		for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
 		{
 			GLRenderer->ProcessParticle(&Particles[i], fakesector);
 		}
+		SetupSprite.Unclock();
 	}
 
 	AddLines(sub, fakesector);

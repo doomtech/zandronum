@@ -174,7 +174,11 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	PortalAll.Clock();
 	if (usestencil)
 	{
-		if (!gl_portals) return false;
+		if (!gl_portals) 
+		{
+			PortalAll.Unclock();
+			return false;
+		}
 	
 		// Create stencil 
 		gl.StencilFunc(GL_EQUAL,recursion,~0);		// create stencil
@@ -234,10 +238,11 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 					// restore default stencil op.
 					gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
 					gl.StencilFunc(GL_EQUAL,recursion,~0);		// draw sky into stencil
+					PortalAll.Unclock();
 					return false;
 				}
 			}
-			FDrawInfo::StartDrawInfo(NULL);
+			FDrawInfo::StartDrawInfo();
 		}
 		else
 		{
@@ -260,7 +265,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	{
 		if (NeedDepthBuffer())
 		{
-			FDrawInfo::StartDrawInfo(NULL);
+			FDrawInfo::StartDrawInfo();
 		}
 		else
 		{
@@ -272,9 +277,6 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	clipsave = gl.IsEnabled(GL_CLIP_PLANE0+renderdepth-1);
 	if (clipsave) gl.Disable(GL_CLIP_PLANE0+renderdepth-1);
 
-
-	PortalAll.Unclock();
-
 	// save viewpoint
 	savedviewx=viewx;
 	savedviewy=viewy;
@@ -283,6 +285,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	savedviewangle=viewangle;
 	savedviewarea=in_area;
 	GLRenderer->mirrorline=NULL;
+	PortalAll.Unclock();
 	return true;
 }
 
@@ -786,6 +789,7 @@ void GLHorizonPortal::DrawContents()
 	if (!gltexture) 
 	{
 		ClearScreen();
+		PortalAll.Unclock();
 		return;
 	}
 

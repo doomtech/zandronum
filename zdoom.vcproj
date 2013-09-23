@@ -10989,6 +10989,14 @@
 					RelativePath=".\src\gl\dynlights\gl_glow.h"
 					>
 				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_lightbuffer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\dynlights\gl_lightbuffer.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
