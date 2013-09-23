@@ -10961,6 +10961,14 @@
 					RelativePath=".\src\gl\renderer\gl_renderer.h"
 					>
 				</File>
+				<File
+					RelativePath=".\src\gl\renderer\gl_renderstate.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\renderer\gl_renderstate.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Dynamic light"

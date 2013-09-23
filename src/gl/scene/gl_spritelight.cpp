@@ -246,7 +246,7 @@ int gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int 
 			gl_SetColor(lightlevel, rellight, cm, alpha, ThingColor, weapon);
 		}
 	}
-	gl.AlphaFunc(GL_GEQUAL,alpha/2.f);
+	gl.AlphaFunc(GL_GEQUAL,alpha*gl_mask_sprite_threshold);
 	return lightlevel;
 }
 

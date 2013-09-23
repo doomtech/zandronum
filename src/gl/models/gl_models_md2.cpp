@@ -43,6 +43,7 @@
 #include "sc_man.h"
 #include "m_crc32.h"
 
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
@@ -265,7 +266,7 @@ void FDMDModel::RenderGLCommands(void *glCommands, unsigned int numVertices,FMod
 	FGLCommandVertex * v;
 	int     count;
 
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 	for(pos = (char*)glCommands; *pos;)
 	{
 		count = *(int *) pos;

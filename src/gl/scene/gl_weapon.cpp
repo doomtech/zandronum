@@ -46,6 +46,7 @@
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/data/gl_data.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/scene/gl_drawinfo.h"
@@ -133,7 +134,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 		fV2=pti->GetVB();
 	}
 
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(x1,y1);
 	gl.TexCoord2f(fU1, fV2); gl.Vertex2f(x1,y2);
@@ -256,7 +257,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	}
 
 	// now draw the different layers of the weapon
-	gl_EnableBrightmap(true);
+	gl_RenderState.EnableBrightmap(true);
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 	{
 		if (psp->state) 
@@ -267,7 +268,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 			DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.colormap, hudModelStep);
 		}
 	}
-	gl_EnableBrightmap(false);
+	gl_RenderState.EnableBrightmap(false);
 }
 
 //==========================================================================
@@ -286,9 +287,9 @@ void FGLRenderer::DrawTargeterSprites()
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
 		mViewActor!=playermo) return;
 
-	gl_EnableBrightmap(false);
+	gl_RenderState.EnableBrightmap(false);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	gl.AlphaFunc(GL_GEQUAL,0.5f);
+	gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 	gl.BlendEquation(GL_FUNC_ADD);
 	gl.Color3f(1.0f,1.0f,1.0f);
 	gl_SetTextureMode(TM_MODULATE);

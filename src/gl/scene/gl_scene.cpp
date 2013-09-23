@@ -54,6 +54,7 @@
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_dynlight.h"
@@ -76,6 +77,7 @@
 CVAR(Bool, gl_texture, true, 0)
 CVAR(Bool, gl_no_skyclear, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_mask_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Float, gl_mask_sprite_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_forcemultipass, false, 0)
 // [BB] Clients may not alter gl_nearclip.
 CUSTOM_CVAR(Int,gl_nearclip,5,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -338,7 +340,7 @@ void FGLRenderer::RenderScene(int recursion)
 
 	gl_SetCamera(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 
-	gl_EnableFog(true);
+	gl_RenderState.EnableFog(true);
 	gl.BlendFunc(GL_ONE,GL_ZERO);
 
 	// First draw all single-pass stuff
@@ -352,10 +354,10 @@ void FGLRenderer::RenderScene(int recursion)
 	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
 
 	gl_EnableTexture(gl_texture);
-	gl_EnableBrightmap(true);
+	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
 	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
-	gl_EnableBrightmap(false);
+	gl_RenderState.EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOG].Sort();
 	gl_drawinfo->drawlists[GLDL_FOG].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Sort();
@@ -371,10 +373,10 @@ void FGLRenderer::RenderScene(int recursion)
 		gl_SetTextureMode(TM_MASK);
 	}
 	gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold);
-	gl_EnableBrightmap(true);
+	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
 	gl_drawinfo->drawlists[GLDL_MASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
-	gl_EnableBrightmap(false);
+	gl_RenderState.EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Sort();
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Sort();
@@ -388,19 +390,19 @@ void FGLRenderer::RenderScene(int recursion)
 		// Part 1: solid geometry. This is set up so that there are no transparent parts
 
 		// remove any remaining texture bindings and shaders whick may get in the way.
-		gl_DisableShader();
-		gl_EnableBrightmap(false);
 		gl_EnableTexture(false);
+		gl_RenderState.EnableBrightmap(false);
+		gl_RenderState.Apply(true);
 		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_BASE);
 		gl_EnableTexture(true);
 
 		// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
 		// This creates a blank surface that only fills the nontransparent parts of the texture
 		gl_SetTextureMode(TM_MASK);
-		gl_EnableBrightmap(true);
+		gl_RenderState.EnableBrightmap(true);
 		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_BASE_MASKED);
 		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
-		gl_EnableBrightmap(false);
+		gl_RenderState.EnableBrightmap(false);
 		gl_SetTextureMode(TM_MODULATE);
 
 
@@ -424,7 +426,7 @@ void FGLRenderer::RenderScene(int recursion)
 		// third pass: modulated texture
 		gl.Color3f(1.0f, 1.0f, 1.0f);
 		gl.BlendFunc(GL_DST_COLOR, GL_ZERO);
-		gl_EnableFog(false);
+		gl_RenderState.EnableFog(false);
 		gl.DepthFunc(GL_LEQUAL);
 		if (gl_texture) 
 		{
@@ -439,7 +441,7 @@ void FGLRenderer::RenderScene(int recursion)
 		}
 
 		// fourth pass: additive lights
-		gl_EnableFog(true);
+		gl_RenderState.EnableFog(true);
 		if (gl_lights && mLightCount && !gl_fixedcolormap)
 		{
 			gl.BlendFunc(GL_ONE, GL_ONE);
@@ -484,10 +486,11 @@ void FGLRenderer::RenderScene(int recursion)
 	if (!(gl.flags&RFL_NOSTENCIL))	// needs a stencil to work!
 	{
 		gl.DepthMask(false);							// don't write to Z-buffer!
-		gl_EnableFog(true);
-		gl.AlphaFunc(GL_GEQUAL,0.5f);
+		gl_RenderState.EnableFog(true);
+		gl.Disable(GL_ALPHA_TEST);
 		gl.BlendFunc(GL_ONE,GL_ZERO);
 		gl_drawinfo->DrawUnhandledMissingTextures();
+		gl.Enable(GL_ALPHA_TEST);
 	}
 	gl.DepthMask(true);
 
@@ -513,13 +516,13 @@ void FGLRenderer::RenderTranslucent()
 	gl_SetCamera(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
 
 	// final pass: translucent stuff
-	gl.AlphaFunc(GL_GEQUAL,0.5f);
+	gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	gl_EnableBrightmap(true);
+	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].Draw(GLPASS_TRANSLUCENT);
 	gl_drawinfo->drawlists[GLDL_TRANSLUCENT].DrawSorted();
-	gl_EnableBrightmap(false);
+	gl_RenderState.EnableBrightmap(false);
 
 	gl.DepthMask(true);
 
@@ -679,7 +682,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 			gl_EnableTexture(false);
 			gl.BlendFunc(GL_DST_COLOR,GL_ZERO);
 			gl.Color4f(extra_red, extra_green, extra_blue, 1.0f);
-			gl_DisableShader();
+			gl_RenderState.Apply(true);
 			gl.Begin(GL_TRIANGLE_STRIP);
 			gl.Vertex2f( 0.0f, 0.0f);
 			gl.Vertex2f( 0.0f, (float)SCREENHEIGHT);
@@ -760,7 +763,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 		gl.Disable(GL_ALPHA_TEST);
 		gl_EnableTexture(false);
 		gl.Color4fv(blend);
-		gl_DisableShader();
+		gl_RenderState.Apply(true);
 		gl.Begin(GL_TRIANGLE_STRIP);
 		gl.Vertex2f( 0.0f, 0.0f);
 		gl.Vertex2f( 0.0f, (float)SCREENHEIGHT);
@@ -795,7 +798,7 @@ void FGLRenderer::EndDrawScene(sector_t * viewsector)
 	gl.Disable(GL_STENCIL_TEST);
 	gl.Disable(GL_POLYGON_SMOOTH);
 
-	gl_EnableFog(false);
+	gl_RenderState.EnableFog(false);
 	framebuffer->Begin2D(false);
 
 	ResetViewport();

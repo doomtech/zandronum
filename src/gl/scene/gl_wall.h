@@ -122,10 +122,8 @@ public:
 	BYTE flags;
 	short rellight;
 
-	float topglowcolor[3];
-	float bottomglowcolor[3];
-	float topglowheight;
-	float bottomglowheight;
+	float topglowcolor[4];
+	float bottomglowcolor[4];
 
 	int firstdynlight, lastdynlight;
 	int firstwall, numwalls;	// splitting info.

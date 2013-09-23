@@ -41,6 +41,7 @@
 #include "sc_man.h"
 #include "m_crc32.h"
 
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
 #include "gl/textures/gl_material.h"
@@ -216,7 +217,7 @@ int FMD3Model::FindFrame(const char * name)
 
 void FMD3Model::RenderTriangles(MD3Surface * surf, MD3Vertex * vert, Matrix3x4 *modeltoworld)
 {
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLES);
 	for(int i=0; i<surf->numTriangles;i++)
 	{

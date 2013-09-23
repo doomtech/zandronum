@@ -44,6 +44,7 @@
 
 #include "gl/data/gl_data.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/shaders/gl_shader.h"
@@ -164,7 +165,7 @@ static void RenderSkyHemisphere(int hemi)
 		return;
 	}
 
-	gl_DisableShader();
+	gl_RenderState.Apply(true);
 
 	// Draw the cap as one solid color polygon
 	if (!foglayer)
@@ -187,7 +188,7 @@ static void RenderSkyHemisphere(int hemi)
 
 		gl_EnableTexture(true);
 		foglayer=false;
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 	}
 	else
 	{
@@ -356,7 +357,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		// north
 		tex = FMaterial::ValidateTexture(sb->faces[0]);
 		tex->BindPatch(CM_Index, 0);
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, -128.f);
@@ -371,7 +372,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		// east
 		tex = FMaterial::ValidateTexture(sb->faces[1]);
 		tex->BindPatch(CM_Index, 0);
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(-128.f, 128.f, -128.f);
@@ -386,7 +387,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		// south
 		tex = FMaterial::ValidateTexture(sb->faces[2]);
 		tex->BindPatch(CM_Index, 0);
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(-128.f, 128.f, 128.f);
@@ -401,7 +402,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		// west
 		tex = FMaterial::ValidateTexture(sb->faces[3]);
 		tex->BindPatch(CM_Index, 0);
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, 128.f);
@@ -420,7 +421,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		tex = FMaterial::ValidateTexture(sb->faces[0]);
 		tex->BindPatch(CM_Index, 0);
 
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
 		gl.Vertex3f(128.f, 128.f, -128.f);
@@ -472,7 +473,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 	// top
 	tex = FMaterial::ValidateTexture(sb->faces[faces]);
 	tex->BindPatch(CM_Index, 0);
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	if (!sb->fliptop)
 	{
@@ -502,7 +503,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 	// bottom
 	tex = FMaterial::ValidateTexture(sb->faces[faces+1]);
 	tex->BindPatch(CM_Index, 0);
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.TexCoord2f(0, 0);
 	gl.Vertex3f(128.f, -128.f, -128.f);
@@ -538,7 +539,7 @@ void GLSkyPortal::DrawContents()
 		FadeColor=origin->fadecolor;
 	}
 
-	gl_EnableFog(false);
+	gl_RenderState.EnableFog(false);
 	gl.Disable(GL_ALPHA_TEST);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

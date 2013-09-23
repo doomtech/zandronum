@@ -43,6 +43,7 @@
 #include "gl/data/gl_data.h"
 #include "gl/renderer/gl_colormap.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/scene/gl_portal.h"
 #include "c_dispatch.h"
@@ -383,8 +384,8 @@ void gl_InitFog()
 {
 	gl_CurrentFogColor=-1;
 	gl_CurrentFogDensity=-1;
-	gl_EnableFog(true);
-	gl_EnableFog(false);
+	gl.Enable(GL_FOG);
+	gl.Disable(GL_FOG);
 	gl.Hint(GL_FOG_HINT, GL_FASTEST);
 	gl.Fogi(GL_FOG_MODE, GL_EXP);
 
@@ -435,7 +436,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 	{
 		gl_CurrentFogColor=-1;
 		gl_CurrentFogDensity=-1;
-		gl_EnableFog(false);
+		gl_RenderState.EnableFog(false);
 	}
 	else
 	{
@@ -458,7 +459,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 		// Handle desaturation
 		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cmap->colormap);
 
-		gl_EnableFog((int)fogcolor!=-1);
+		gl_RenderState.EnableFog((int)fogcolor!=-1);
 		if (fogcolor!=gl_CurrentFogColor)
 		{
 			if ((int)fogcolor!=-1)

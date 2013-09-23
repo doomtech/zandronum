@@ -47,6 +47,7 @@
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/data/gl_data.h"
 #include "gl/scene/gl_clipper.h"
@@ -188,7 +189,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 		gl_EnableTexture(false);
 		gl.Color3f(1,1,1);
 		gl.DepthFunc(GL_LESS);
-		gl_DisableShader();
+		gl_RenderState.Apply(true);
 
 		if (NeedDepthBuffer())
 		{
@@ -348,7 +349,7 @@ void GLPortal::End(bool usestencil)
 		gl.ColorMask(0,0,0,0);						// no graphics
 		gl.Color3f(1,1,1);
 		gl_EnableTexture(false);
-		gl_DisableShader();
+		gl_RenderState.Apply(true);
 
 		if (needdepth) 
 		{
@@ -816,7 +817,7 @@ void GLHorizonPortal::DrawContents()
 
 	gl.Disable(GL_ALPHA_TEST);
 	gl.BlendFunc(GL_ONE,GL_ZERO);
-	gl_ApplyShader();
+	gl_RenderState.Apply();
 
 
 	float vx=TO_GL(viewx);

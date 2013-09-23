@@ -48,6 +48,7 @@
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
+#include "gl/renderer/gl_renderstate.h"
 #include "gl/data/gl_data.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/scene/gl_drawinfo.h"
@@ -121,7 +122,7 @@ void GLSprite::Draw(int pass)
 		if (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
 			RenderStyle.BlendOp != STYLEOP_Add)
 		{
-			gl_EnableBrightmap(false);
+			gl_RenderState.EnableBrightmap(false);
 		}
 
 		gl_SetRenderStyle(RenderStyle, false, 
@@ -135,7 +136,7 @@ void GLSprite::Draw(int pass)
 		}
 		else
 		{
-			gl.AlphaFunc(GL_GEQUAL,trans/2.f);
+			gl.AlphaFunc(GL_GEQUAL,trans*gl_mask_sprite_threshold);
 		}
 
 		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
@@ -159,7 +160,7 @@ void GLSprite::Draw(int pass)
 				minalpha*=factor;
 			}
 
-			gl.AlphaFunc(GL_GEQUAL,minalpha);
+			gl.AlphaFunc(GL_GEQUAL,minalpha*gl_mask_sprite_threshold);
 			gl.Color4f(0.2f,0.2f,0.2f,fuzzalpha);
 			additivefog = true;
 		}
@@ -214,7 +215,7 @@ void GLSprite::Draw(int pass)
 		const bool drawWithXYBillboard = ( !(actor && actor->renderflags & RF_FORCEYBILLBOARD)
 		                                   && GLRenderer->mViewActor != NULL
 		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
-		gl_ApplyShader();
+		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_STRIP);
 		if ( drawWithXYBillboard )
 		{
@@ -278,7 +279,7 @@ void GLSprite::Draw(int pass)
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
-		gl_EnableBrightmap(true);
+		gl_RenderState.EnableBrightmap(true);
 		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		gl.BlendEquation(GL_FUNC_ADD);
 		gl_SetTextureMode(TM_MODULATE);
@@ -290,7 +291,7 @@ void GLSprite::Draw(int pass)
 		}
 		else
 		{
-			gl.AlphaFunc(GL_GEQUAL,0.5f);
+			gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 		}
 
 		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))
