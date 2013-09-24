@@ -1022,8 +1022,9 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	// Check for blasted thing running into another
 	if ((tm.thing->flags2 & MF2_BLASTED) && (thing->flags & MF_SHOOTABLE))
 	{
-		if (!(thing->flags2 & MF2_BOSS) && (thing->flags3 & MF3_ISMONSTER))
+		if (!(thing->flags2 & MF2_BOSS) && (thing->flags3 & MF3_ISMONSTER) && !(thing->flags3 & MF3_DONTBLAST))
 		{
+			// ideally this should take the mass factor into account
 			thing->velx += tm.thing->velx;
 			thing->vely += tm.thing->vely;
 			if ((thing->velx + thing->vely) > 3*FRACUNIT)
@@ -4776,6 +4777,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		for (i = 0; i < RailHits.Size (); i++)
 		{
 			fixed_t x, y, z;
+		bool spawnpuff;
 
 			x = x1 + FixedMul (RailHits[i].Distance, vx);
 			y = y1 + FixedMul (RailHits[i].Distance, vy);
@@ -4784,13 +4786,15 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
 				(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
 			{
-				if (puffclass != NULL) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
+				spawnpuff = puffclass != NULL;
 			}
 			else
 			{
+				spawnpuff = (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF);
 				P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
 				P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
 			}
+			if (spawnpuff) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
 			// [BC] Damage is server side.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 				( CLIENTDEMO_IsPlaying( ) == false ))
@@ -4841,6 +4845,11 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	if (trace.HitType == TRACE_HitWall)
 	{
 		SpawnShootDecal (source, trace);
+		if (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF) 
+		{
+			P_SpawnPuff (source, puffclass, trace.X, trace.Y, trace.Z, source->angle - ANG90, 1, 0);
+		}
+
 	}
 	if (trace.HitType == TRACE_HitFloor &&
 		trace.CrossedWater == NULL &&

@@ -86,6 +86,7 @@ private:
 	int cm;
 	int translation;
 	bool iscomplex;
+	bool needsetgamma;
 
 	PalEntry SourcePalette[256];
 	BYTE *ScreenshotBuffer;

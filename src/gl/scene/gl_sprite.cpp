@@ -647,6 +647,12 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 				Colormap.LightColor.g=
 				Colormap.LightColor.b=0xff;
 			}
+			else
+			{
+				Colormap.LightColor.r = (3*Colormap.LightColor.r + 0xff)/4;
+				Colormap.LightColor.g = (3*Colormap.LightColor.g + 0xff)/4;
+				Colormap.LightColor.b = (3*Colormap.LightColor.b + 0xff)/4;
+			}
 		}
 		else if (glset.nocoloredspritelighting)
 		{
@@ -780,8 +786,10 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	player_t *player=&players[consoleplayer];
 	
 	if (particle->trans==0) return;
-	lightlevel = sector->lightlevel;
 
+	lightlevel = sector->GetTexture(sector_t::ceiling) == skyflatnum ? 
+					GetCeilingLight(sector) : GetFloorLight(sector);
+	foglevel = sector->lightlevel;
 
 	if (gl_fixedcolormap) 
 	{

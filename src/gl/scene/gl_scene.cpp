@@ -854,7 +854,7 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 		{
 			gl_fixedcolormap = CM_FIRSTSPECIALCOLORMAP + cplayer->fixedcolormap;
 		}
-		else
+		else if (cplayer->fixedlightlevel != -1)
 		{
 			for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)
 			{

@@ -95,8 +95,8 @@ void DoReadyWeaponToFire(AActor * self, bool primary = true, bool secondary = tr
 void DoReadyWeaponToSwitch(AActor * self);
 
 DECLARE_ACTION(A_Raise)
-DECLARE_ACTION(A_ReFire)
+void A_ReFire(AActor *self, FState *state = NULL);
 // [BB] ST also needs A_GunFlash.
-DECLARE_ACTION(A_GunFlash)
+void A_GunFlash(AActor *self, FState *flash = NULL);
 
 #endif	// __P_PSPR_H__

@@ -187,7 +187,7 @@ int MatchString (const char *in, const char **strings)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_INFO_PROPERTY(game, T, Actor)
+DEFINE_INFO_PROPERTY(game, S, Actor)
 {
 	PROP_STRING_PARM(str, 0);
 	if (!stricmp(str, "Doom"))
@@ -925,18 +925,25 @@ DEFINE_PROPERTY(damagetype, S, Actor)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_PROPERTY(damagefactor, SF, Actor)
+DEFINE_PROPERTY(damagefactor, ZF, Actor)
 {
 	PROP_STRING_PARM(str, 0);
 	PROP_FIXED_PARM(id, 1);
 
-	if (info->DamageFactors == NULL) info->DamageFactors=new DmgFactors;
+	if (str == NULL)
+	{
+		defaults->DamageFactor = id;
+	}
+	else
+	{
+		if (info->DamageFactors == NULL) info->DamageFactors=new DmgFactors;
 
-	FName dmgType;
-	if (!stricmp(str, "Normal")) dmgType = NAME_None;
-	else dmgType=str;
+		FName dmgType;
+		if (!stricmp(str, "Normal")) dmgType = NAME_None;
+		else dmgType=str;
 
-	(*info->DamageFactors)[dmgType]=id;
+		(*info->DamageFactors)[dmgType]=id;
+	}
 }
 
 //==========================================================================
@@ -1339,7 +1346,7 @@ DEFINE_CLASS_PROPERTY(pickupflash, S, Inventory)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_CLASS_PROPERTY(pickupmessage, S, Inventory)
+DEFINE_CLASS_PROPERTY(pickupmessage, T, Inventory)
 {
 	PROP_STRING_PARM(str, 0);
 	info->Class->Meta.SetMetaString(AIMETA_PickupMessage, str);
@@ -1394,7 +1401,7 @@ DEFINE_CLASS_PROPERTY(givequest, I, Inventory)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_CLASS_PROPERTY(lowmessage, IS, Health)
+DEFINE_CLASS_PROPERTY(lowmessage, IT, Health)
 {
 	PROP_INT_PARM(i, 0);
 	PROP_STRING_PARM(str, 1);
@@ -1423,7 +1430,7 @@ DEFINE_CLASS_PROPERTY(number, I, PuzzleItem)
 //==========================================================================
 //
 //==========================================================================
-DEFINE_CLASS_PROPERTY(failmessage, S, PuzzleItem)
+DEFINE_CLASS_PROPERTY(failmessage, T, PuzzleItem)
 {
 	PROP_STRING_PARM(str, 0);
 	info->Class->Meta.SetMetaString(AIMETA_PuzzFailMessage, str);

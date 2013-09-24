@@ -2815,6 +2815,7 @@ enum
 	APROP_NameTag		= 21,
 	APROP_Score			= 22,
 	APROP_Notrigger		= 23,
+	APROP_DamageFactor	= 24,
 };	
 */
 
@@ -3043,6 +3044,10 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		actor->Tag = FBehavior::StaticLookupString(value);
 		break;
 
+	case APROP_DamageFactor:
+		actor->DamageFactor = value;
+		break;
+
 	default:
 		// do nothing.
 		break;
@@ -3075,6 +3080,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 	case APROP_Health:		return actor->health;
 	case APROP_Speed:		return actor->Speed;
 	case APROP_Damage:		return actor->Damage;	// Should this call GetMissileDamage() instead?
+	case APROP_DamageFactor:return actor->DamageFactor;
 	case APROP_Alpha:		return actor->alpha;
 	case APROP_RenderStyle:	for (int style = STYLE_None; style < STYLE_Count; ++style)
 							{ // Check for a legacy render style that matches.
@@ -3135,6 +3141,7 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_Health:
 		case APROP_Speed:
 		case APROP_Damage:
+		case APROP_DamageFactor:
 		case APROP_Alpha:
 		case APROP_RenderStyle:
 		case APROP_Gravity:
@@ -3421,6 +3428,8 @@ enum EACSFunctions
     ACSF_SetActorVelocity,
 	ACSF_SetUserVariable,
 	ACSF_GetUserVariable,
+	ACSF_Radius_Quake2,
+	ACSF_CheckActorClass,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	// [BB] Skulltag functions
@@ -3667,7 +3676,17 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 			else return 0;
 		}
-		
+
+		case ACSF_Radius_Quake2:
+			P_StartQuake(activator, args[0], args[1], args[2], args[3], args[4], FBehavior::StaticLookupString(args[5]));
+			break;
+
+		case ACSF_CheckActorClass:
+		{
+			AActor *a = args[0] == 0 ? (AActor *)activator : SingleActorFromTID(args[0], NULL); 
+			return a->GetClass()->TypeName == FName(FBehavior::StaticLookupString(args[1]));
+		}
+
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:

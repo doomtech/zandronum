@@ -345,6 +345,13 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 		gl_SetColor(light, rel, &p, a);
 	}
 
+	PalEntry fc = gl_RenderState.GetFogColor();
+	if (actor->RenderStyle.BlendOp == STYLEOP_Add && actor->RenderStyle.DestAlpha == STYLEALPHA_One)
+	{
+		gl_RenderState.SetFog(0,-1);
+	}
+
+
 	gl_SetRenderStyle(actor->RenderStyle, false, false);
 
 	// If srcalpha is one it looks better with a higher alpha threshold
@@ -360,6 +367,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	gl.End();
 	rendered_decals++;
+	gl_RenderState.SetFog(fc,-1);
 }
 
 //==========================================================================

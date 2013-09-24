@@ -152,6 +152,7 @@ private:
 
 	void CheckGlowing();
 	void PutWall(bool translucent);
+	void CheckTexturePosition();
 
 	void SetupLights();
 	bool PrepareLight(texcoord * tcs, ADynamicLight * light);
@@ -173,7 +174,7 @@ private:
 	void SetHorizon(vertex_t * ul, vertex_t * ur, vertex_t * ll, vertex_t * lr);
 	bool DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2);
 
-	bool SetWallCoordinates(seg_t * seg, int ceilingrefheight,
+	bool SetWallCoordinates(seg_t * seg, float ceilingrefheight,
 							int topleft,int topright, int bottomleft,int bottomright, int texoffset);
 
 	void DoTexture(int type,seg_t * seg,int peg,

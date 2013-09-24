@@ -185,7 +185,6 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 		gl.StencilFunc(GL_EQUAL,recursion,~0);		// create stencil
 		gl.StencilOp(GL_KEEP,GL_KEEP,GL_INCR);		// increment stencil of valid pixels
 		gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
-		gl.DepthMask(false);							// don't write to Z-buffer!
 		gl_RenderState.EnableTexture(false);
 		gl.Color3f(1,1,1);
 		gl.DepthFunc(GL_LESS);
@@ -193,6 +192,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 
 		if (NeedDepthBuffer())
 		{
+			gl.DepthMask(false);							// don't write to Z-buffer!
 			if (gl_noquery) doquery = false;
 			
 			// If occlusion query is supported let's use it to avoid rendering portals that aren't visible
@@ -250,13 +250,16 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 			// No z-buffer is needed therefore we can skip all the complicated stuff that is involved
 			// No occlusion queries will be done here. For these portals the overhead is far greater
 			// than the benefit.
+			// Note: We must draw the stencil with z-write enabled here because there is no second pass!
 
+			gl.DepthMask(true);
 			DrawPortalStencil();
 			gl.StencilFunc(GL_EQUAL,recursion+1,~0);		// draw sky into stencil
 			gl.StencilOp(GL_KEEP,GL_KEEP,GL_KEEP);		// this stage doesn't modify the stencil
 			gl_RenderState.EnableTexture(true);
 			gl.ColorMask(1,1,1,1);
 			gl.Disable(GL_DEPTH_TEST);
+			gl.DepthMask(false);							// don't write to Z-buffer!
 		}
 		recursion++;
 

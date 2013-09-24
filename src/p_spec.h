@@ -1206,7 +1206,7 @@ void P_DoDeferedScripts (void);
 //
 // [RH] p_quake.c
 //
-bool P_StartQuake (AActor *activator, int tid, int intensity, int duration, int damrad, int tremrad);
+bool P_StartQuake (AActor *activator, int tid, int intensity, int duration, int damrad, int tremrad, FSoundID quakesfx);
 
 // [BC] Prototypes dealing with network IDs for movers.
 DDoor		*P_GetDoorByID( LONG lID );

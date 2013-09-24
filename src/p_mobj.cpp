@@ -353,6 +353,10 @@ void AActor::Serialize (FArchive &arc)
 	{
 		arc << PainThreshold;
 	}
+	if (SaveVersion >= 1914)
+	{
+		arc << DamageFactor;
+	}
 
 	for(int i=0; i<10; i++) arc << uservar[i];
 
@@ -6129,7 +6133,7 @@ int P_GetThingFloorType (AActor *thing)
 // Returns true if hit liquid and splashed, false if not.
 //---------------------------------------------------------------------------
 
-bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z, bool checkabove)
+bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z, bool checkabove, bool alert)
 {
 	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
 		return false;
@@ -6241,7 +6245,7 @@ foundone:
 		{
 			mo = Spawn (splash->SplashBase, x, y, z, ALLOW_REPLACE);
 		}
-		if (thing->player && !splash->NoAlert)
+		if (thing->player && !splash->NoAlert && alert)
 		{
 			P_NoiseAlert (thing, thing, true);
 		}
@@ -6327,6 +6331,25 @@ bool P_HitFloor (AActor *thing)
 	}
 
 	return P_HitWater (thing, m->m_sector);
+}
+
+//---------------------------------------------------------------------------
+//
+// P_CheckSplash
+//
+// Checks for splashes caused by explosions
+//
+//---------------------------------------------------------------------------
+
+void P_CheckSplash(AActor *self, fixed_t distance)
+{
+	if (self->z <= self->floorz + (distance<<FRACBITS) && self->floorsector == self->Sector)
+	{
+		// Explosion splashes never alert monsters. This is because A_Explode has
+		// a separate parameter for that so this would get in the way of proper 
+		// behavior.
+		P_HitWater (self, self->Sector, self->x, self->y, self->floorz, false, false);
+	}
 }
 
 //---------------------------------------------------------------------------

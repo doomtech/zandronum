@@ -123,7 +123,7 @@ void GLWall::PutWall(bool translucent)
 		4,		//RENDERWALL_COLORLAYER        // color layer needs special handling
 	};
 	
-	if (gltexture && gltexture->GetTransparent())
+	if (gltexture && gltexture->GetTransparent() && passflag[type] == 2)
 	{
 		translucent = true;
 	}
@@ -565,7 +565,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 // 
 //
 //==========================================================================
-bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
+bool GLWall::SetWallCoordinates(seg_t * seg, float texturetop,
 								int topleft,int topright, int bottomleft,int bottomright, int t_ofs)
 {
 	//
@@ -582,7 +582,7 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 		float length = seg->sidedef? seg->sidedef->TexelLength: Dist2(glseg.x1, glseg.y1, glseg.x2, glseg.y2);
 
 		wti=gltexture->GetWorldTextureInfo();
-		l_ul=wti->FixToTexU(gltexture->TextureOffset(t_ofs));
+		l_ul=wti->FloatToTexU(TO_GL(gltexture->TextureOffset(t_ofs)));
 		texlength = wti->FloatToTexU(length);
 	}
 	else 
@@ -606,9 +606,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 
 		if (wti)
 		{
-			//uplft.u=lolft.u=l_ul;
-			uplft.v=wti->FixToTexV(-topleft+texturetop);
-			lolft.v=wti->FixToTexV(-bottomleft+texturetop);
+			uplft.v=wti->FloatToTexV(-ztop[0] + texturetop);
+			lolft.v=wti->FloatToTexV(-zbottom[0] + texturetop);
 		}
 	}
 	else
@@ -631,7 +630,7 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 		if (wti)
 		{
 			//uplft.u=lolft.u=l_ul+wti->FloatToTexU(inter_x*length);
-			lolft.v=uplft.v=wti->FixToTexV(-inter_y+texturetop);
+			lolft.v=uplft.v=wti->FloatToTexV(-ztop[0] + texturetop);
 		}
 	}
 
@@ -649,8 +648,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 		if (wti)
 		{
 			//uprgt.u=lorgt.u=l_ul+wti->FloatToTexU(length);
-			uprgt.v=wti->FixToTexV(-topright+texturetop);
-			lorgt.v=wti->FixToTexV(-bottomright+texturetop);
+			uprgt.v=wti->FloatToTexV(-ztop[1] + texturetop);
+			lorgt.v=wti->FloatToTexV(-zbottom[1] + texturetop);
 		}
 	}
 	else
@@ -672,7 +671,7 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 		if (wti)
 		{
 			//uprgt.u=lorgt.u=l_ul+wti->FloatToTexU(inter_x*length);
-			lorgt.v=uprgt.v=wti->FixToTexV(-inter_y+texturetop);
+			lorgt.v=uprgt.v=wti->FloatToTexV(-ztop[1] + texturetop);
 		}
 	}
 
@@ -691,6 +690,37 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 		lorgt.v+=1.f;
 	}
 	return true;
+}
+
+//==========================================================================
+//
+// Do some tweaks with the texture coordinates to reduce visual glitches
+//
+//==========================================================================
+
+void GLWall::CheckTexturePosition()
+{
+	float sub;
+
+	if (gltexture->tex->bHasCanvas) return;
+
+	if (uplft.v < uprgt.v)
+	{
+		sub = floorf(uplft.v);
+	}
+	else
+	{
+		sub = floorf(uprgt.v);
+	}
+	uplft.v -= sub;
+	uprgt.v -= sub;
+	lolft.v -= sub;
+	lorgt.v -= sub;
+
+	if (uplft.v >= 0.f && uprgt.v >= 0.f && lolft.v <= 1.f && lorgt.v <= 1.f)
+	{
+		flags|=GLT_CLAMPY;
+	}
 }
 
 //==========================================================================
@@ -728,13 +758,15 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 	type = (seg->linedef->special == Line_Mirror && _type == RENDERWALL_M1S && 
 		!(gl.flags & RFL_NOSTENCIL) && gl_mirrors) ? RENDERWALL_MIRROR : _type;
 
-	ceilingrefheight+= 	gltexture->RowOffset(seg->sidedef->GetTextureYOffset(texpos))+
-						(peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0);
+	float floatceilingref = TO_GL(ceilingrefheight) + 
+							gltexture->RowOffset(TO_GL(seg->sidedef->GetTextureYOffset(texpos))) +
+							TO_GL((peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0));
 
-	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, 
+	if (!SetWallCoordinates(seg, floatceilingref, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
 
 	gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
+	CheckTexturePosition();
 
 	// Add this wall to the render list
 	sector_t * sec = sub? sub->sector : seg->frontsector;
@@ -749,6 +781,7 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 #endif
 
 	glseg=glsave;
+	flags&=~GLT_CLAMPY;
 }
 
 
@@ -921,7 +954,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			flags|=GLT_CLAMPY;
 		}
 	}
-	SetWallCoordinates(seg, texturetop, topleft, topright, bottomleft, bottomright, t_ofs);
+	SetWallCoordinates(seg, TO_GL(texturetop), topleft, topright, bottomleft, bottomright, t_ofs);
 
 	if (gltexture != NULL) gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
 
@@ -1070,7 +1103,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 						  fixed_t ff_bottomleft, fixed_t ff_bottomright)
 {
 	side_t * mastersd = rover->master->sidedef[0];
-	int to;
+	float to;
 	lightlist_t * light;
 	bool translucent;
 	byte savelight=lightlevel;
@@ -1119,24 +1152,29 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 		const WorldTextureInfo * wti=gltexture->GetWorldTextureInfo();
 		if (!wti) return;
 
-		to=(rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
-			0:gltexture->TextureOffset(mastersd->GetTextureXOffset(side_t::mid));
-		ul=wti->FixToTexU(to+gltexture->TextureOffset(seg->sidedef->GetTextureXOffset(side_t::mid)));
+		to=TO_GL((rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
+			0:gltexture->TextureOffset(mastersd->GetTextureXOffset(side_t::mid)));
+
+		ul=wti->FloatToTexU(to + TO_GL(gltexture->TextureOffset(seg->sidedef->GetTextureXOffset(side_t::mid))));
+
 		texlength = wti->FloatToTexU(seg->sidedef->TexelLength);
 
 		uplft.u = lolft.u = ul + texlength * glseg.fracleft;
 		uprgt.u = lorgt.u = ul + texlength * glseg.fracright;
 		
 		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
-		to=(rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
-			0:gltexture->RowOffset(mastersd->GetTextureYOffset(side_t::mid));
+		to= (rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
+				0.f : gltexture->RowOffset(TO_GL(mastersd->GetTextureYOffset(side_t::mid)));
 		
-		uplft.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_topleft);
-		uprgt.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_topright);
-		lolft.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_bottomleft);
-		lorgt.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_bottomright);
+		to += TO_GL(rowoffset);
+		
+		uplft.v=wti->FloatToTexV(to + TO_GL(*rover->top.texheight-ff_topleft));
+		uprgt.v=wti->FloatToTexV(to + TO_GL(*rover->top.texheight-ff_topright));
+		lolft.v=wti->FloatToTexV(to + TO_GL(*rover->top.texheight-ff_bottomleft));
+		lorgt.v=wti->FloatToTexV(to + TO_GL(*rover->top.texheight-ff_bottomright));
 		type=RENDERWALL_FFBLOCK;
 		gltexture->SetWallScaling(FRACUNIT, FRACUNIT);
+		CheckTexturePosition();
 	}
 
 	ztop[0]=TO_GL(ff_topleft);
@@ -1172,6 +1210,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	alpha=1.0f;
 	lightlevel = savelight;
 	Colormap = savecolor;
+	flags&=~GLT_CLAMPY;
 }
 
 //==========================================================================
@@ -1454,7 +1493,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==14)
+	if (seg->linedef-lines==11274)
 		__asm nop
 #endif
 #endif
@@ -1763,7 +1802,7 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		if (gltexture) 
 		{
 			type=RENDERWALL_BOTTOM;
-			SetWallCoordinates(seg, bfh, bfh, bfh, ffh, ffh, 0);
+			SetWallCoordinates(seg, TO_GL(bfh), bfh, bfh, ffh, ffh, 0);
 			PutWall(false);
 		}
 	}

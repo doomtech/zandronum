@@ -61,10 +61,13 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 	case CM_DEFAULT:
 		for(i=0;i<count;i++)
 		{
-			pout[0]=T::R(pin);
-			pout[1]=T::G(pin);
-			pout[2]=T::B(pin);
-			pout[3]=T::A(pin);
+			if (T::A(pin) != 0)
+			{
+				pout[0]=T::R(pin);
+				pout[1]=T::G(pin);
+				pout[2]=T::B(pin);
+				pout[3]=T::A(pin);
+			}
 			pout+=4;
 			pin+=step;
 		}
@@ -74,10 +77,13 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		// this is used for colorization of blood.
 		// To get the best results the brightness is taken from 
 		// the most intense component and not averaged because that would be too dark.
-		for(i=0;i<count;i++)
+		for(i=0;i<count;i++) 
 		{
-			pout[0] = pout[1] = pout[2] = MAX(MAX(T::R(pin), T::G(pin)), T::B(pin));
-			pout[3] = T::A(pin);
+			if (T::A(pin) != 0)
+			{
+				pout[0] = pout[1] = pout[2] = MAX(MAX(T::R(pin), T::G(pin)), T::B(pin));
+				pout[3] = T::A(pin);
+			}
 			pout+=4;
 			pin+=step;
 		}
@@ -88,12 +94,15 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
 		for(i=0;i<count;i++)
 		{
-			int gray = T::Gray(pin)>>4;
+			if (T::A(pin) != 0)
+			{
+				int gray = T::Gray(pin)>>4;
 
-			pout[0] = IcePalette[gray][0];
-			pout[1] = IcePalette[gray][1];
-			pout[2] = IcePalette[gray][2];
-			pout[3] = 255;
+				pout[0] = IcePalette[gray][0];
+				pout[1] = IcePalette[gray][1];
+				pout[2] = IcePalette[gray][2];
+				pout[3] = 255;
+			}
 			pout+=4;
 			pin+=step;
 		}
@@ -103,8 +112,11 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 		// Alpha shade uses the red channel for true color pics
 		for(i=0;i<count;i++)
 		{
-			pout[0] = pout[1] =	pout[2] = 255;
-			pout[3] = T::R(pin);
+			if (T::A(pin) != 0)
+			{
+				pout[0] = pout[1] =	pout[2] = 255;
+				pout[3] = T::R(pin);
+			}
 			pout+=4;
 			pin+=step;
 		}
@@ -114,13 +126,16 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 
 		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + int(SpecialColormaps.Size()))
 		{
-			for(i=0;i<count;i++)
+			for(i=0;i<count;i++) 
 			{
-				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
-				pout[0] = pe.r;
-				pout[1] = pe.g;
-				pout[2] = pe.b;
-				pout[3] = T::A(pin);
+				if (T::A(pin) != 0)
+				{
+					PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
+					pout[0] = pe.r;
+					pout[1] = pe.g;
+					pout[2] = pe.b;
+					pout[3] = T::A(pin);
+				}
 				pout+=4;
 				pin+=step;
 			}
@@ -131,8 +146,11 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 			fac=cm-CM_DESAT0;
 			for(i=0;i<count;i++)
 			{
-				gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
-				pout[3] = T::A(pin);
+				if (T::A(pin) != 0)
+				{
+					gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
+					pout[3] = T::A(pin);
+				}
 				pout+=4;
 				pin+=step;
 			}

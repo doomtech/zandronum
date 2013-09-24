@@ -121,8 +121,6 @@ public:
 	void ProcessSector(sector_t *fakesector, subsector_t *sub);
 	void FlushTextures();
 	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
-	void PrecacheTexture(FTexture *tex);
-	void UncacheTexture(FTexture *tex);
 	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
 	void SetupLevel();
 

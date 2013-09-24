@@ -115,7 +115,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 {
 	// [BB] A_FirePistol is only kept to stay compatible with Dehacked.
 	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff"), true, 0, false );
-	CALL_ACTION ( A_GunFlash, self );
+	A_GunFlash ( self );
 /*
 	bool accurate;
 
@@ -303,7 +303,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 {
 	// [BB] A_FireShotgun is only kept to stay compatible with Dehacked.
 	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5, PClass::FindClass("BulletPuff"), true, 0, false );
-	CALL_ACTION ( A_GunFlash, self );
+	A_GunFlash ( self );
 /*
 	int i;
 	player_t *player;
@@ -377,7 +377,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 {
 	// [BB] A_FireShotgun2 is only kept to stay compatible with Dehacked.
 	A_CustomFireBullets( self, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5, PClass::FindClass("BulletPuff"), true, 0, false );
-	CALL_ACTION ( A_GunFlash, self );
+	A_GunFlash ( self );
 /*
 	int 		i;
 	angle_t 	angle;
@@ -491,7 +491,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CloseShotgun2)
 	// [BB] Clients only do this for "their" player.
 	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode( self->player ) )
 		S_Sound (self, CHAN_WEAPON, "weapons/sshotc", 1, ATTN_NORM);
-	CALL_ACTION(A_ReFire, self);
+	A_ReFire (self);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( self->player ))

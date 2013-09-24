@@ -230,7 +230,7 @@ void P_BringUpWeapon (player_t *player)
 //
 //---------------------------------------------------------------------------
 
-void P_FireWeapon (player_t *player)
+void P_FireWeapon (player_t *player, FState *state)
 {
 	AWeapon *weapon;
 
@@ -265,7 +265,11 @@ void P_FireWeapon (player_t *player)
 	}
 
 	weapon->bAltFire = false;
-	P_SetPsprite (player, ps_weapon, weapon->GetAtkState(!!player->refire));
+	if (state == NULL)
+	{
+		state = weapon->GetAtkState(!!player->refire);
+	}
+	P_SetPsprite (player, ps_weapon, state);
 	if (!(weapon->WeaponFlags & WIF_NOALERT))
 	{
 		P_NoiseAlert (player->mo, player->mo, false);
@@ -278,7 +282,7 @@ void P_FireWeapon (player_t *player)
 //
 //---------------------------------------------------------------------------
 
-void P_FireWeaponAlt (player_t *player)
+void P_FireWeaponAlt (player_t *player, FState *state)
 {
 	AWeapon *weapon;
 
@@ -309,8 +313,12 @@ void P_FireWeaponAlt (player_t *player)
 	}
 	weapon->bAltFire = true;
 
+	if (state == NULL)
+	{
+		state = weapon->GetAltAtkState(!!player->refire);
+	}
 
-	P_SetPsprite (player, ps_weapon, weapon->GetAltAtkState(!!player->refire));
+	P_SetPsprite (player, ps_weapon, state);
 	if (!(weapon->WeaponFlags & WIF_NOALERT))
 	{
 		P_NoiseAlert (player->mo, player->mo, false);
@@ -538,7 +546,7 @@ void P_CheckWeaponFire (player_t *player)
 		if (!player->attackdown || !(weapon->WeaponFlags & WIF_NOAUTOFIRE))
 		{
 			player->attackdown = true;
-			P_FireWeapon (player);
+			P_FireWeapon (player, NULL);
 			return;
 		}
 	}
@@ -547,7 +555,7 @@ void P_CheckWeaponFire (player_t *player)
 		if (!player->attackdown || !(weapon->WeaponFlags & WIF_NOAUTOFIRE))
 		{
 			player->attackdown = true;
-			P_FireWeaponAlt (player);
+			P_FireWeaponAlt (player, NULL);
 			return;
 		}
 	}
@@ -594,7 +602,15 @@ void P_CheckWeaponSwitch (player_t *player)
 //
 //---------------------------------------------------------------------------
 
-DEFINE_ACTION_FUNCTION(AInventory, A_ReFire)
+DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_ReFire)
+{
+	ACTION_PARAM_START(1)
+	ACTION_PARAM_STATE(state, 0);
+
+	A_ReFire(self, state);
+}
+
+void A_ReFire(AActor *self, FState *state)
 {
 	player_t *player = self->player;
 
@@ -607,14 +623,14 @@ DEFINE_ACTION_FUNCTION(AInventory, A_ReFire)
 		&& player->PendingWeapon == WP_NOCHANGE && player->health)
 	{
 		player->refire++;
-		P_FireWeapon (player);
+		P_FireWeapon (player, state);
 	}
 	else if ((player->cmd.ucmd.buttons&BT_ALTATTACK)
 		&& player->ReadyWeapon->bAltFire
 		&& player->PendingWeapon == WP_NOCHANGE && player->health)
 	{
 		player->refire++;
-		P_FireWeaponAlt (player);
+		P_FireWeaponAlt (player, state);
 	}
 	else
 	{
@@ -780,7 +796,16 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 //
 // A_GunFlash
 //
-DEFINE_ACTION_FUNCTION(AInventory, A_GunFlash)
+DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_GunFlash)
+{
+	ACTION_PARAM_START(1)
+	ACTION_PARAM_STATE(flash, 0);
+
+	// [BB] Zandronum needs A_GunFlash in a_doomweaps, so I moved the code into a function.
+	A_GunFlash(self, flash);
+}
+
+void A_GunFlash(AActor *self, FState *flash)
 {
 	player_t *player = self->player;
 
@@ -803,9 +828,11 @@ DEFINE_ACTION_FUNCTION(AInventory, A_GunFlash)
 			player->mo->PlayAttacking2 ();
 	}
 
-	FState * flash=NULL;
-	if (player->ReadyWeapon->bAltFire) flash = player->ReadyWeapon->FindState(NAME_AltFlash);
-	if (flash == NULL) flash = player->ReadyWeapon->FindState(NAME_Flash);
+	if (flash == NULL)
+	{
+		if (player->ReadyWeapon->bAltFire) flash = player->ReadyWeapon->FindState(NAME_AltFlash);
+		if (flash == NULL) flash = player->ReadyWeapon->FindState(NAME_Flash);
+	}
 	P_SetPsprite (player, ps_flash, flash);
 }
 

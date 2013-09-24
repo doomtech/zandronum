@@ -317,7 +317,8 @@ void FTexture::PrecacheGL()
 {
 	if (gl_precache)
 	{
-		GLRenderer->PrecacheTexture(this);
+		FMaterial * gltex = FMaterial::ValidateTexture(this);
+		if (gltex) gltex->Precache();
 	}
 }
 
@@ -329,7 +330,7 @@ void FTexture::PrecacheGL()
 
 void FTexture::UncacheGL()
 {
-	GLRenderer->UncacheTexture(this);
+	if (gl_info.Material) gl_info.Material->Clean(true); 
 }
 
 //==========================================================================
@@ -595,13 +596,15 @@ bool FTexture::ProcessData(unsigned char * buffer, int w, int h, bool ispatch)
 
 FBrightmapTexture::FBrightmapTexture (FTexture *source)
 {
-	memcpy(Name, source->Name, 9);
+	memset(Name, 0, sizeof(Name));
 	SourcePic = source;
 	CopySize(source);
 	bNoDecals = source->bNoDecals;
 	Rotations = source->Rotations;
 	UseType = source->UseType;
 	gl_info.bBrightmap = true;
+	id.SetInvalid();
+	SourceLump = -1;
 }
 
 FBrightmapTexture::~FBrightmapTexture ()
@@ -640,13 +643,15 @@ int FBrightmapTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotat
 
 FCloneTexture::FCloneTexture (FTexture *source, int usetype)
 {
-	memcpy(Name, source->Name, 9);
+	memset(Name, 0, sizeof(Name));
 	SourcePic = source;
 	CopySize(source);
 	bNoDecals = source->bNoDecals;
 	Rotations = source->Rotations;
 	UseType = usetype;
 	gl_info.bBrightmap = false;
+	id.SetInvalid();
+	SourceLump = -1;
 }
 
 FCloneTexture::~FCloneTexture ()

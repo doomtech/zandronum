@@ -187,28 +187,6 @@ void FGLRenderer::FlushTextures()
 //
 //===========================================================================
 
-void FGLRenderer::PrecacheTexture(FTexture *tex)
-{
-	FMaterial * gltex = FMaterial::ValidateTexture(tex);
-	if (gltex) 
-	{
-		if (tex->UseType==FTexture::TEX_Sprite) 
-		{
-			gltex->BindPatch(CM_DEFAULT, 0);
-		}
-		else 
-		{
-			gltex->Bind (CM_DEFAULT, 0, 0);
-		}
-	}
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
 bool FGLRenderer::StartOffscreen()
 {
 	if (gl.flags & RFL_FRAMEBUFFER)
@@ -240,24 +218,12 @@ void FGLRenderer::EndOffscreen()
 //
 //===========================================================================
 
-void FGLRenderer::UncacheTexture(FTexture *tex)
-{
-	FMaterial * gltex = FMaterial::ValidateTexture(tex);
-	if (gltex) gltex->Clean(true); 
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
 unsigned char *FGLRenderer::GetTextureBuffer(FTexture *tex, int &w, int &h)
 {
 	FMaterial * gltex = FMaterial::ValidateTexture(tex);
 	if (gltex)
 	{
-		return gltex->CreateTexBuffer(GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
+		return gltex->CreateTexBuffer(CM_DEFAULT, 0, w, h);
 	}
 	return NULL;
 }
@@ -516,6 +482,7 @@ void FGLRenderer::FlatFill (int left, int top, int right, int bottom, FTexture *
 	}
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
+	gl.Color4f(1, 1, 1, 1);
 	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(left, top);
 	gl.TexCoord2f(fU1, fV2); gl.Vertex2f(left, bottom);
 	gl.TexCoord2f(fU2, fV1); gl.Vertex2f(right, top);

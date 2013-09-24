@@ -17,6 +17,7 @@ ACTOR Actor native //: Thinker
 	BounceCount -1
 	FloatSpeed 4
 	Gravity 1
+	DamageFactor 1.0
 	PushFactor 0.25
 	DesignatedTeam 255
 
@@ -225,7 +226,7 @@ ACTOR Actor native //: Thinker
 	action native A_JumpIfInTargetInventory(class<Inventory> itemtype, int amount, state label);
 	action native A_GiveToTarget(class<Inventory> itemtype, int amount = 0);
 	action native A_TakeFromTarget(class<Inventory> itemtype, int amount = 0);
-	action native A_CountdownArg(int argnum);
+	action native A_CountdownArg(int argnum, state targstate = "");
 	action native A_CustomMeleeAttack(int damage = 0, sound meleesound = "", sound misssound = "", name damagetype = "none", bool bleed = true);
 	action native A_CustomComboAttack(class<Actor> missiletype, float spawnheight, int damage, sound meleesound = "", name damagetype = "none", bool bleed = true);
 	action native A_Burst(class<Actor> chunktype);
@@ -264,6 +265,7 @@ ACTOR Actor native //: Thinker
 	action native A_SetArg(int pos, int value);
 	action native A_SetUserVar(int pos, int value);
 	action native A_SetSpecial(int spec, int arg0 = 0, int arg1 = 0, int arg2 = 0, int arg3 = 0, int arg4 = 0);
+	action native A_Quake(int intensity, int duration, int damrad, int tremrad, sound sfx = "world/quake");
 
 	States
 	{

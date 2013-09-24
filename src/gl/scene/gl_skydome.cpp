@@ -126,6 +126,7 @@ static void SkyVertex(int r, int c)
 		
 		gl.TexCoord2f(u, v);
 	}
+	if (r != 4) y+=FRACUNIT*300;
 	// And finally the vertex.
 	fx =-TO_GL(x);	// Doom mirrors the sky vertically!
 	fy = TO_GL(y);
@@ -263,11 +264,13 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		{
 			yMult=1.0f;
 			if (!skystretch)
-				gl.Scalef(1.f, texh/180.f, 1.f);
+				gl.Scalef(1.f, texh/230.f, 1.f);
 		}
 		else
 		{
 			yMult= 180.0f/texh;
+			if (!skystretch && texh > 190)
+				gl.Scalef(1.f, 230.f/240.f, 1.f);
 		}
 	}
 
@@ -567,7 +570,7 @@ void GLSkyPortal::DrawContents()
 	{
 		if (origin->texture[0]==origin->texture[1] && origin->doublesky) origin->doublesky=false;	
 
-		gl.Translatef(0.f, -1000.f, 0.f);
+		gl.Translatef(0.f, -1250.f, 0.f);
 
 		if (origin->texture[0])
 		{

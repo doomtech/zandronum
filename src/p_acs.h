@@ -179,6 +179,7 @@ enum
 	APROP_NameTag		= 21,
 	APROP_Score			= 22,
 	APROP_Notrigger		= 23,
+	APROP_DamageFactor	= 24,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

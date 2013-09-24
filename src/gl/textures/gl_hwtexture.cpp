@@ -324,7 +324,7 @@ unsigned * FHardwareTexture::GetTexID(int cm, int translation)
 //	Binds this patch
 //
 //===========================================================================
-unsigned int FHardwareTexture::Bind(int texunit, int cm,int translation, int clampmode)
+unsigned int FHardwareTexture::Bind(int texunit, int cm,int translation)
 {
 	unsigned int * pTexID=GetTexID(cm, translation);
 
@@ -419,24 +419,3 @@ unsigned int FHardwareTexture::CreateTexture(unsigned char * buffer, int w, int 
 }
 
 
-//===========================================================================
-// 
-//	SetTextureClamp
-//  sets and caches the texture clamping mode
-//  while this operation was not problematic on XP
-//  it appears to cause severe slowdowns on Vista so cache the
-//  clamping mode and only set when it really changes
-//
-//===========================================================================
-void FHardwareTexture::SetTextureClamp(int newclampmode)
-{
-	if (!gl_clamp_per_texture || (clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
-	{
-		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, newclampmode&GLT_CLAMPX? GL_CLAMP_TO_EDGE : GL_REPEAT);
-	}
-	if (!gl_clamp_per_texture || (clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
-	{
-		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
-	}
-	clampmode = newclampmode;
-}

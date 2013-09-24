@@ -57,6 +57,7 @@
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)
+EXTERN_CVAR (Bool, st_scale)
 
 
 //==========================================================================
@@ -113,7 +114,17 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	texturemid = (100<<FRACBITS) - (sy-(tex->GetScaledTopOffset(GLUSE_PATCH)<<FRACBITS));
 
 	AWeapon * wi=player->ReadyWeapon;
-	if (wi && wi->YAdjust && screenblocks>=11) texturemid -= wi->YAdjust;
+	if (wi && wi->YAdjust)
+	{
+		if (screenblocks>=11)
+		{
+			texturemid -= wi->YAdjust;
+		}
+		else if (!st_scale)
+		{
+			texturemid -= FixedMul (StatusBar->GetDisplacement (), wi->YAdjust);
+		}
+	}
 
 	scale = ((SCREENHEIGHT*vw)/SCREENWIDTH) / 200.0f;    
 	y1=viewwindowy+(vh>>1)-(int)(((float)texturemid/(float)FRACUNIT)*scale);
@@ -134,6 +145,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 		fV2=pti->GetVB();
 	}
 
+	if (tex->tex->gl_info.mIsTransparent) gl.Disable(GL_ALPHA_TEST);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(x1,y1);
@@ -141,6 +153,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	gl.TexCoord2f(fU2, fV1); gl.Vertex2f(x2,y1);
 	gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
 	gl.End();
+	if (tex->tex->gl_info.mIsTransparent) gl.Enable(GL_ALPHA_TEST);
 }
 
 //==========================================================================
@@ -178,6 +191,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		lightlevel=255;
 		cm.GetFixedColormap();
 		statebright[0] = statebright[1] = true;
+		fakesec = viewsector;
 	}
 	else
 	{
@@ -262,9 +276,26 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	{
 		if (psp->state) 
 		{
+			FColormap cmc = cm;
+			if (statebright[i]) 
+			{
+				if (fakesec == viewsector || in_area != area_below)	
+					// under water areas keep most of their color for fullbright objects
+				{
+					cmc.LightColor.r=
+					cmc.LightColor.g=
+					cmc.LightColor.b=0xff;
+				}
+				else
+				{
+					cmc.LightColor.r = (3*cmc.LightColor.r + 0xff)/4;
+					cmc.LightColor.g = (3*cmc.LightColor.g + 0xff)/4;
+					cmc.LightColor.b = (3*cmc.LightColor.b + 0xff)/4;
+				}
+			}
 			// set the lighting parameters (only calls glColor and glAlphaFunc)
 			gl_SetSpriteLighting(vis.RenderStyle, playermo, statebright[i]? 255 : lightlevel, 
-				0, &cm, 0xffffff, trans, statebright[i], true);
+				0, &cmc, 0xffffff, trans, statebright[i], true);
 			DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.colormap, hudModelStep);
 		}
 	}

@@ -307,7 +307,7 @@ static bool CheckExtension(const char *ext)
 {
 	for (unsigned int i = 0; i < m_Extensions.Size(); ++i)
 	{
-		if (strcmp(ext, m_Extensions[i]) == 0) return true;
+		if (stricmp(ext, m_Extensions[i]) == 0) return true;
 	}
 
 	return false;
@@ -422,8 +422,9 @@ static void APIENTRY LoadExtensions()
 		// SM2 only uses shaders for colormaps on camera textures and has no option to use them in general.
 		//     On SM2 cards the shaders will be too slow and show visual bugs (at least on GF 6800.)
 		if (strcmp((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION), "1.3") >= 0) gl->shadermodel = 4;
-		else if (CheckExtension("GL_NV_GPU_SHADER4")) gl->shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
-		else if (CheckExtension("GL_NV_VERTEX_PROGRAM3")) gl->shadermodel = 3;
+		else if (CheckExtension("GL_NV_GPU_shader4")) gl->shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
+		else if (CheckExtension("GL_EXT_GPU_shader4")) gl->shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
+		else if (CheckExtension("GL_NV_vertex_program3")) gl->shadermodel = 3;
 		else if (!strstr(gl->vendorstring, "NVIDIA")) gl->shadermodel = 3;
 		else gl->shadermodel = 2;	// Only for older NVidia cards which had notoriously bad shader support.
 
@@ -451,7 +452,7 @@ static void APIENTRY LoadExtensions()
 		gl->BufferSubData			= (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBuffer");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
-		//gl->flags |= RFL_VBO;
+		gl->flags |= RFL_VBO;
 	}
 	else if (CheckExtension("GL_ARB_vertex_buffer_object"))
 	{
@@ -462,7 +463,7 @@ static void APIENTRY LoadExtensions()
 		gl->BufferSubData			= (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubDataARB");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBufferARB");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBufferARB");
-		//gl->flags|=RFL_VBO;
+		gl->flags |= RFL_VBO;
 	}
 
 	if (CheckExtension("GL_ARB_map_buffer_range")) 
@@ -486,6 +487,7 @@ static void APIENTRY LoadExtensions()
 
 		gl->flags|=RFL_FRAMEBUFFER;
 	}
+#if 0
 	else if (CheckExtension("GL_EXT_framebuffer_object") && 
 			 CheckExtension("GL_EXT_packed_depth_stencil"))
 	{
@@ -499,15 +501,19 @@ static void APIENTRY LoadExtensions()
 
 		gl->flags|=RFL_FRAMEBUFFER;
 	}
+#endif
 
+#if 0
 	if (CheckExtension("GL_ARB_texture_buffer_object") && 
 		CheckExtension("GL_ARB_texture_float") && 
+		CheckExtension("GL_EXT_GPU_Shader4") && 
 		CheckExtension("GL_ARB_texture_rg") && 
 		gl->shadermodel == 4)
 	{
 		gl->TexBufferARB = (PFNGLTEXBUFFERARBPROC)wglGetProcAddress("glTexBufferARB");
 		gl->flags|=RFL_TEXTUREBUFFER;
 	}
+#endif
 
 
 

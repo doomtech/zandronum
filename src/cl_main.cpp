@@ -11782,6 +11782,9 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 	// Read in the tremor radius of the quake.
 	lTremorRadius = NETWORK_ReadByte( pByteStream );
 
+	// [BB] Read in the quake sound.
+	FSoundID quakesound = NETWORK_ReadString( pByteStream );
+
 	// Find the actor that represents the center of the quake based on the network
 	// ID sent. If we can't find the actor, then the quake has no center.
 	pCenter = CLIENT_FindThingByNetID( lID );
@@ -11789,7 +11792,7 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Create the earthquake. Since this is client-side, damage is always 0.
-	new DEarthquake( pCenter, lIntensity, lDuration, 0, lTremorRadius );
+	new DEarthquake( pCenter, lIntensity, lDuration, 0, lTremorRadius, quakesound );
 }
 
 //*****************************************************************************

@@ -57,6 +57,8 @@
 
 FDrawInfo * gl_drawinfo;
 
+CVAR(Bool, gl_sort_textures, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 //==========================================================================
 //
 //
@@ -832,7 +834,7 @@ static int __cdecl dicmp (const void *a, const void *b)
 
 void GLDrawList::Sort()
 {
-	if (drawitems.Size()!=0)
+	if (drawitems.Size()!=0 && gl_sort_textures)
 	{
 		sortinfo=this;
 		qsort(&drawitems[0], drawitems.Size(), sizeof(drawitems[0]), dicmp);

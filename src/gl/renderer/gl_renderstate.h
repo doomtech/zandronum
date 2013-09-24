@@ -62,12 +62,12 @@ struct FStateVec4 : public FStateAttr
 		return false;
 	}
 
-	void Set(float x, float y, float z, float w)
+	void Set(float r, float g, float b, float a)
 	{
-		vec[0] = x;
-		vec[1] = z;
-		vec[2] = y;
-		vec[3] = w;
+		vec[0] = r;
+		vec[1] = g;
+		vec[2] = b;
+		vec[3] = a;
 		mLastChange = ++ChangeCounter;
 	}
 };
@@ -181,7 +181,7 @@ public:
 	void SetFog(PalEntry c, float d)
 	{
 		mFogColor = c;
-		mFogDensity = d;
+		if (d >= 0.0f) mFogDensity = d;
 	}
 
 	void SetLightParms(float f, float d)
@@ -196,6 +196,11 @@ public:
 		mNumLights[1] = numlights[1];
 		mNumLights[2] = numlights[2];
 		mLightData = lightdata;	// caution: the data must be preserved by the caller until the 'apply' call!
+	}
+
+	PalEntry GetFogColor() const
+	{
+		return mFogColor;
 	}
 
 };
