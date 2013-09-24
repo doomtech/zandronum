@@ -58,6 +58,7 @@ private:
 	unsigned * GetTexID(int cm, int translation);
 
 	int GetDepthBuffer();
+	void DeleteTexture(unsigned int texid);
 
 public:
 	FHardwareTexture(int w, int h, bool mip, bool wrap);

@@ -116,18 +116,6 @@ void FGLRenderer::SetupLevel()
 	mVBO->CreateVBO();
 }
 
-
-void FGLRenderer::SetPaused()
-{
-	mShaderManager->SetActiveShader(NULL);
-	gl_RenderState.SetTextureMode(-1);	// something invalid
-}
-
-void FGLRenderer::UnsetPaused()
-{
-	gl_RenderState.SetTextureMode(TM_MODULATE);
-}
-
 void FGLRenderer::Begin2D()
 {
 	gl_RenderState.EnableFog(false);

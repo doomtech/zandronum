@@ -1130,6 +1130,30 @@ FUNC(LS_HealThing)
 	return it ? true : false;
 }
 
+// So that things activated/deactivated by ACS or DECORATE *and* by 
+// the BUMPSPECIAL or USESPECIAL flags work correctly both ways.
+void DoActivateThing(AActor * thing, AActor * activator)
+{
+	if (thing->activationtype & THINGSPEC_Activate)
+	{
+		thing->activationtype &= ~THINGSPEC_Activate; // Clear flag
+		if (thing->activationtype & THINGSPEC_Switch) // Set other flag if switching
+			thing->activationtype |= THINGSPEC_Deactivate;
+	}
+	thing->Activate (activator);
+}
+
+void DoDeactivateThing(AActor * thing, AActor * activator)
+{
+	if (thing->activationtype & THINGSPEC_Deactivate)
+	{
+		thing->activationtype &= ~THINGSPEC_Deactivate; // Clear flag
+		if (thing->activationtype & THINGSPEC_Switch) // Set other flag if switching
+			thing->activationtype |= THINGSPEC_Activate;
+	}
+	thing->Deactivate (activator);
+}
+
 FUNC(LS_Thing_Activate)
 // Thing_Activate (tid)
 {
@@ -1150,7 +1174,7 @@ FUNC(LS_Thing_Activate)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_ThingActivate( actor, it );
 
-			actor->Activate (it);
+			DoActivateThing(actor, it);
 			actor = temp;
 			count++;
 		}
@@ -1163,7 +1187,7 @@ FUNC(LS_Thing_Activate)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_ThingActivate( it, it );
 
-		it->Activate(it);
+		DoActivateThing(it, it);
 		return true;
 	}
 	return false;
@@ -1189,7 +1213,7 @@ FUNC(LS_Thing_Deactivate)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_ThingDeactivate( actor, it );
 
-			actor->Deactivate (it);
+			DoDeactivateThing(actor, it);
 			actor = temp;
 			count++;
 		}
@@ -1202,7 +1226,7 @@ FUNC(LS_Thing_Deactivate)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_ThingDeactivate( it, it );
 
-		it->Deactivate(it);
+		DoDeactivateThing(it, it);
 		return true;
 	}
 	return false;

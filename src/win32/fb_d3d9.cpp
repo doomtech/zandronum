@@ -273,14 +273,14 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	ScreenshotSurface = NULL;
 	FinalWipeScreen = NULL;
 	PaletteTexture = NULL;
+	GammaTexture = NULL;
 	for (int i = 0; i < NUM_SHADERS; ++i)
 	{
 		Shaders[i] = NULL;
 	}
+	GammaShader = NULL;
 	BlockSurface[0] = NULL;
 	BlockSurface[1] = NULL;
-	FBFormat = D3DFMT_UNKNOWN;
-	PalFormat = D3DFMT_UNKNOWN;
 	VSync = vid_vsync;
 	BlendingRect.left = 0;
 	BlendingRect.top = 0;
@@ -296,6 +296,7 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	QuadExtra = new BufferedQuad[MAX_QUAD_BATCH];
 	Packs = NULL;
 	PixelDoubling = 0;
+	SkipAt = -1;
 
 	Gamma = 1.0;
 	FlashColor0 = 0;
@@ -416,12 +417,17 @@ void D3DFB::SetInitialState()
 	CurPixelShader = NULL;
 	memset(Constant, 0, sizeof(Constant));
 
-	Texture[0] = NULL;
-	Texture[1] = NULL;
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, SM14 ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
-	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, SM14 ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
+	for (int i = 0; i < countof(Texture); ++i)
+	{
+		Texture[i] = NULL;
+		D3DDevice->SetSamplerState(i, D3DSAMP_ADDRESSU, (i == 1 && SM14) ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
+		D3DDevice->SetSamplerState(i, D3DSAMP_ADDRESSV, (i == 1 && SM14) ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
+		if (i > 1)
+		{
+			// Set linear filtering for the SM14 gamma texture.
+			D3DDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		}
+	}
 
 	NeedGammaUpdate = true;
 	NeedPalUpdate = true;
@@ -534,6 +540,7 @@ bool D3DFB::CreateResources()
 	{
 		return false;
 	}
+	CreateGammaTexture();
 	CreateBlockSurfaces();
 	return true;
 }
@@ -549,7 +556,7 @@ bool D3DFB::CreateResources()
 
 bool D3DFB::LoadShaders()
 {
-	static const char *const models[] = { "30/", "20/", "14/" };
+	static const char models[][4] = { "30/", "20/", "14/" };
 	FString shaderdir, shaderpath;
 	int model, i, lump;
 
@@ -568,7 +575,7 @@ bool D3DFB::LoadShaders()
 			{
 				FMemLump data = Wads.ReadLump(lump);
 				if (FAILED(D3DDevice->CreatePixelShader((DWORD *)data.GetMem(), &Shaders[i])) &&
-					i != SHADER_GammaCorrection && i != SHADER_BurnWipe)
+					i < SHADER_BurnWipe)
 				{
 					break;
 				}
@@ -607,6 +614,7 @@ void D3DFB::ReleaseResources ()
 	{
 		SAFE_RELEASE( Shaders[i] );
 	}
+	GammaShader = NULL;
 	if (ScreenWipe != NULL)
 	{
 		delete ScreenWipe;
@@ -778,8 +786,20 @@ bool D3DFB::CreatePaletteTexture ()
 	{
 		return false;
 	}
-	PalFormat = D3DFMT_A8R8G8B8;
 	return true;
+}
+
+bool D3DFB::CreateGammaTexture ()
+{
+	// If this fails, you just won't get gamma correction in a window
+	// on SM14 cards.
+	assert(GammaTexture == NULL);
+	if (SM14)
+	{
+		return SUCCEEDED(D3DDevice->CreateTexture(256, 1, 1, 0, D3DFMT_A8R8G8B8,
+			D3DPOOL_MANAGED, &GammaTexture, NULL));
+	}
+	return false;
 }
 
 bool D3DFB::CreateVertexes ()
@@ -992,8 +1012,20 @@ void D3DFB::Update ()
 			LOG("SetGammaRamp\n");
 			D3DDevice->SetGammaRamp(0, D3DSGR_CALIBRATE, &ramp);
 		}
+		else
+		{
+			if (igamma != 1)
+			{
+				UpdateGammaTexture(igamma);
+				GammaShader = Shaders[SHADER_GammaCorrection];
+			}
+			else
+			{
+				GammaShader = NULL;
+			}
+		}
 		psgamma[2] = psgamma[1] = psgamma[0] = igamma;
-		psgamma[3] = 1;
+		psgamma[3] = 0.5;		// For SM14 version
 		D3DDevice->SetPixelShaderConstantF(PSCONST_Gamma, psgamma, 1);
 	}
 	
@@ -1105,7 +1137,7 @@ void D3DFB::Draw3DPart(bool copy3d)
 	D3DDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, vid_hwaalines);
 	assert(OldRenderTarget == NULL);
 	if (TempRenderTexture != NULL &&
-		((Windowed && Shaders[SHADER_GammaCorrection] && TempRenderTexture != FinalWipeScreen) || GatheringWipeScreen || PixelDoubling))
+		((Windowed && GammaShader && TempRenderTexture != FinalWipeScreen) || GatheringWipeScreen || PixelDoubling))
 	{
 		IDirect3DSurface9 *targetsurf;
 		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &targetsurf)))
@@ -1196,34 +1228,191 @@ void D3DFB::DoWindowedGamma()
 		D3DDevice->SetRenderTarget(0, OldRenderTarget);
 		D3DDevice->SetFVF(D3DFVF_FBVERTEX);
 		SetTexture(0, TempRenderTexture);
-		SetPixelShader(Shaders[(Windowed && Shaders[SHADER_GammaCorrection]) ? SHADER_GammaCorrection : SHADER_NormalColor]);
+		SetPixelShader(Windowed && GammaShader ? GammaShader : Shaders[SHADER_NormalColor]);
+		if (SM14 && Windowed && GammaShader)
+		{
+			SetTexture(2, GammaTexture);
+			SetTexture(3, GammaTexture);
+			SetTexture(4, GammaTexture);
+		}
 		SetAlphaBlend(D3DBLENDOP(0));
 		EnableAlphaTest(FALSE);
 		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 		OldRenderTarget->Release();
 		OldRenderTarget = NULL;
+		if (SM14 && Windowed && GammaShader)
+		{
+//			SetTexture(0, GammaTexture);
+//			SetPixelShader(Shaders[SHADER_NormalColor]);
+//			D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
+		}
 	}
+}
+
+//==========================================================================
+//
+// D3DFB :: UpdateGammaTexture
+//
+// Updates the gamma texture used by the PS14 shader. We only use the first
+// half of the texture so that we needn't worry about imprecision causing
+// it to grab from the border.
+//
+//==========================================================================
+
+void D3DFB::UpdateGammaTexture(float igamma)
+{
+	D3DLOCKED_RECT lockrect;
+
+	if (GammaTexture != NULL && SUCCEEDED(GammaTexture->LockRect(0, &lockrect, NULL, 0)))
+	{
+		BYTE *pix = (BYTE *)lockrect.pBits;
+		for (int i = 0; i <= 128; ++i)
+		{
+			pix[i*4+2] = pix[i*4+1] = pix[i*4] = BYTE(255.f * powf(i / 128.f, igamma));
+			pix[i*4+3] = 255;
+		}
+		GammaTexture->UnlockRect(0);
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: DoOffByOneCheck
+//
+// Pixel Shader 1.x does not have enough precision to properly map a "color"
+// from the source texture to an index in the palette texture. The best we
+// can do is use 255 pixels of the palette and get the 256th from the
+// texture border color. This routine determines which pixel of the texture
+// is skipped so that we don't use it for palette data.
+//
+//==========================================================================
+
+void D3DFB::DoOffByOneCheck ()
+{
+	IDirect3DSurface9 *savedrendertarget;
+	IDirect3DSurface9 *testsurf, *readsurf;
+	D3DLOCKED_RECT lockrect;
+	RECT testrect = { 0, 0, 256, 1 };
+	float texright = 256.f / float(FBWidth);
+	float texbot = 1.f / float(FBHeight);
+	FBVERTEX verts[4] =
+	{
+		{ -0.5f,  -0.5f, 0.5f, 1.f, 0, ~0,      0.f,    0.f },
+		{ 255.5f, -0.5f, 0.5f, 1.f, 0, ~0, texright,    0.f },
+		{ 255.5f,  0.5f, 0.5f, 1.f, 0, ~0, texright, texbot },
+		{ -0.5f,   0.5f, 0.5f, 1.f, 0, ~0,      0.f, texbot }
+	};
+	int i, c;
+
+	if (SkipAt >= 0)
+	{
+		return;
+	}
+
+	// Create an easily recognizable R3G3B2 palette.
+	if (SUCCEEDED(PaletteTexture->LockRect(0, &lockrect, NULL, 0)))
+	{
+		BYTE *pal = (BYTE *)(lockrect.pBits);
+		for (i = 0; i < 256; ++i)
+		{
+			pal[i*4+0] = (i & 0x03) << 6;		// blue
+			pal[i*4+1] = (i & 0x1C) << 3;		// green
+			pal[i*4+2] = (i & 0xE0);			// red;
+			pal[i*4+3] = 255;
+		}
+		PaletteTexture->UnlockRect (0);
+	}
+	else
+	{
+		return;
+	}
+	// Prepare a texture with values 0-256.
+	if (SUCCEEDED(FBTexture->LockRect(0, &lockrect, &testrect, 0)))
+	{
+		for (i = 0; i < 256; ++i)
+		{
+			((BYTE *)lockrect.pBits)[i] = i;
+		}
+		FBTexture->UnlockRect(0);
+	}
+	else
+	{
+		return;
+	}
+	// Create a render target that we can draw it to.
+	if (FAILED(D3DDevice->GetRenderTarget(0, &savedrendertarget)))
+	{
+		return;
+	}
+	if (FAILED(D3DDevice->CreateRenderTarget(256, 1, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &testsurf, NULL)))
+	{
+		return;
+	}
+	if (FAILED(D3DDevice->CreateOffscreenPlainSurface(256, 1, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &readsurf, NULL)))
+	{
+		testsurf->Release();
+		return;
+	}
+	if (FAILED(D3DDevice->SetRenderTarget(0, testsurf)))
+	{
+		testsurf->Release();
+		readsurf->Release();
+		return;
+	}
+	// Write it to the render target using the pixel shader.
+	D3DDevice->BeginScene();
+	D3DDevice->SetTexture(0, FBTexture);
+	D3DDevice->SetTexture(1, PaletteTexture);
+	D3DDevice->SetFVF(D3DFVF_FBVERTEX);
+	D3DDevice->SetPixelShader(Shaders[SHADER_NormalColorPal]);
+	SetConstant(PSCONST_PaletteMod, 1.f, 0.5f / 256.f, 0, 0);
+	D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
+	D3DDevice->EndScene();
+	D3DDevice->SetRenderTarget(0, savedrendertarget);
+	savedrendertarget->Release();
+	// Now read it back and see where it skips an entry
+	if (SUCCEEDED(D3DDevice->GetRenderTargetData(testsurf, readsurf)) &&
+		SUCCEEDED(readsurf->LockRect(&lockrect, &testrect, D3DLOCK_READONLY)))
+	{
+		const BYTE *pix = (const BYTE *)lockrect.pBits;
+		for (i = 0; i < 256; ++i, pix += 4)
+		{
+			c = (pix[0] >> 6) |					// blue
+				((pix[1] >> 5) << 2) |			// green
+				((pix[2] >> 5) << 5);			// red
+			if (c != i)
+			{
+				break;
+			}
+		}
+	}
+	readsurf->UnlockRect();
+	readsurf->Release();
+	testsurf->Release();
+	SkipAt = i;
 }
 
 void D3DFB::UploadPalette ()
 {
 	D3DLOCKED_RECT lockrect;
 
-	if (SUCCEEDED(PaletteTexture->LockRect (0, &lockrect, NULL, 0)))
+	if (SkipAt < 0)
+	{
+		if (SM14)
+		{
+			DoOffByOneCheck();
+		}
+		else
+		{
+			SkipAt = 256;
+		}
+	}
+	if (SUCCEEDED(PaletteTexture->LockRect(0, &lockrect, NULL, 0)))
 	{
 		BYTE *pix = (BYTE *)lockrect.pBits;
-		int i, skipat;
+		int i;
 
-		// It is impossible to get the Radeon 9000 to do the proper palette
-		// lookup. It *will* skip at least one entry in the palette. So we
-		// let it and have it look at the texture border color for color 255.
-		// I assume that every other card based on a related graphics chipset
-		// is similarly affected, which basically means that all Shader Model
-		// 1.4 cards suffer from this problem, since they all use some variant
-		// of the ATI R200.
-		skipat = SM14 ? 256 - 8 : 256;
-
-		for (i = 0; i < skipat; ++i, pix += 4)
+		for (i = 0; i < SkipAt; ++i, pix += 4)
 		{
 			pix[0] = SourcePalette[i].b;
 			pix[1] = SourcePalette[i].g;
@@ -1239,7 +1428,7 @@ void D3DFB::UploadPalette ()
 			pix[2] = SourcePalette[i].r;
 			pix[3] = 255;
 		}
-		PaletteTexture->UnlockRect (0);
+		PaletteTexture->UnlockRect(0);
 		BorderColor = D3DCOLOR_XRGB(SourcePalette[255].r, SourcePalette[255].g, SourcePalette[255].b);
 	}
 }
@@ -3395,6 +3584,7 @@ void D3DFB::SetPixelShader(IDirect3DPixelShader9 *shader)
 
 void D3DFB::SetTexture(int tnum, IDirect3DTexture9 *texture)
 {
+	assert(tnum >= 0 && tnum < countof(Texture));
 	if (Texture[tnum] != texture)
 	{
 		Texture[tnum] = texture;
@@ -3402,8 +3592,6 @@ void D3DFB::SetTexture(int tnum, IDirect3DTexture9 *texture)
 	}
 }
 
-CVAR(Float, pal, 0.5f, 0)
-CVAR(Float, pc, 255.f, 0)
 void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count, D3DCOLOR border_color)
 {
 	if (SM14)
@@ -3430,7 +3618,7 @@ void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count, D3DCOLOR bo
 		// The constant register c2 is used to hold the multiplier in the
 		// x part and the adder in the y part.
 		float fcount = 1 / float(count);
-		SetConstant(PSCONST_PaletteMod, pc * fcount, pal * fcount, 0, 0);
+		SetConstant(PSCONST_PaletteMod, 255 * fcount, 0.5f * fcount, 0, 0);
 	}
 	SetTexture(1, texture);
 }

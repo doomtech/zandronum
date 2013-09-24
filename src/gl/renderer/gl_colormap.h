@@ -17,12 +17,14 @@ enum EColorManipulation
 	CM_DESAT31=CM_DESAT1+30,	// maximum desaturation = grayscale
 	CM_FIRSTSPECIALCOLORMAP,		// first special fixed colormap
 
-	// special internal values
+	// special internal values for texture creation
 	CM_GRAY = 0x1000000,		// a simple grayscale map for colorizing blood splats
 	CM_ICE	= 0x1000001,		// The bluish ice translation for frozen corpses
-	CM_LITE	= 0x1000002,		// special values to handle these items without excessive hacking
-	CM_SHADE= 0x1000003,		// alpha channel texture
-	CM_TORCH= 0x1000010,		// These are not real color manipulations
+	CM_SHADE= 0x1000002,		// alpha channel texture
+
+	// These are not to be passed to the texture manager
+	CM_LITE	= 0x2000000,		// special values to handle these items without excessive hacking
+	CM_TORCH= 0x2000010,		// These are not real color manipulations
 };
 
   // for internal use
@@ -51,7 +53,7 @@ struct FColormap
 	void GetFixedColormap()
 	{
 		Clear();
-		colormap = gl_fixedcolormap;
+		colormap = gl_fixedcolormap >= CM_LITE? CM_DEFAULT : gl_fixedcolormap;
 	}
 
 	FColormap & operator=(FDynamicColormap * from)

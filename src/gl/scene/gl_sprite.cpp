@@ -99,10 +99,11 @@ void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 //==========================================================================
 void GLSprite::Draw(int pass)
 {
+	if (pass!=GLPASS_PLAIN && pass != GLPASS_ALL && pass!=GLPASS_TRANSLUCENT) return;
+
+
 	bool additivefog = false;
 	int rel = extralight*gl_weaponlight;
-
-	if (pass!=GLPASS_PLAIN && pass!=GLPASS_TRANSLUCENT) return;
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
@@ -592,10 +593,15 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		x2=x-viewvecY*rightfac;
 		y1=y+viewvecX*leftfac;
 		y2=y+viewvecX*rightfac;
-
-		scale = fabs(viewvecX * (thing->x-viewx) + viewvecY * (thing->y-viewy));
 	}
-	else gltexture=NULL;
+	else 
+	{
+		x1 = x2 = x;
+		y1 = y2 = y;
+		z1 = z2 = z;
+		gltexture=NULL;
+	}
+	scale = fabs(GLRenderer->mViewVector.X * (thing->x-viewx) + GLRenderer->mViewVector.Y * (thing->y-viewy));
 
 	// light calculation
 

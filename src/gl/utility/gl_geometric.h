@@ -136,7 +136,7 @@ public:
    float C() { return m_normal.Z(); }
    float D() { return m_d; }
 
-   Vector Normal() { return m_normal; }
+   const Vector &Normal() const { return m_normal; }
 protected:
    Vector m_normal;
    float m_d;

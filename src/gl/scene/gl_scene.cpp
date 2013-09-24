@@ -352,15 +352,30 @@ void FGLRenderer::RenderScene(int recursion)
 
 	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
 
+	int pass;
+
+	if (mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT && gl_lights && gl_dynlight_shader)
+	{
+		pass = GLPASS_ALL;
+	}
+	else if (gl_texture)
+	{
+		pass = GLPASS_PLAIN;
+	}
+	else
+	{
+		pass = GLPASS_BASE;
+	}
+
 	gl_RenderState.EnableTexture(gl_texture);
 	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
-	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
+	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(pass);
 	gl_RenderState.EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOG].Sort();
-	gl_drawinfo->drawlists[GLDL_FOG].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
+	gl_drawinfo->drawlists[GLDL_FOG].Draw(pass);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
+	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Draw(pass);
 
 
 	gl.Enable(GL_ALPHA_TEST);
@@ -371,18 +386,19 @@ void FGLRenderer::RenderScene(int recursion)
 		gl_RenderState.EnableTexture(true);
 		gl_RenderState.SetTextureMode(TM_MASK);
 	}
+	if (pass == GLPASS_BASE) pass = GLPASS_BASE_MASKED;
 	gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold);
 	gl_RenderState.EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_MASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
+	gl_drawinfo->drawlists[GLDL_MASKED].Draw(pass);
 	gl_RenderState.EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
+	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(pass);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
+	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(pass);
 
 	// And now the multipass stuff
-	if (!gl_dynlight_shader)
+	if (!gl_dynlight_shader && gl_lights)
 	{
 		// First pass: empty background with sector light only
 
@@ -407,7 +423,7 @@ void FGLRenderer::RenderScene(int recursion)
 
 		// second pass: draw lights (on fogged surfaces they are added to the textures!)
 		gl.DepthMask(false);
-		if (gl_lights && mLightCount && !gl_fixedcolormap)
+		if (mLightCount && !gl_fixedcolormap)
 		{
 			if (gl_SetupLightTexture())
 			{

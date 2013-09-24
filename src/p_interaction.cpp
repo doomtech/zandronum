@@ -503,17 +503,11 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	//		the activator of the script.
 	// New: In Hexen, the thing that died is the activator,
 	//		so now a level flag selects who the activator gets to be.
-	if (special && (!(flags & MF_SPECIAL) || (flags3 & MF3_ISMONSTER)) && !(activationtype & THINGSPEC_NoDeathSpecial))
+	// Everything is now moved to P_ActivateThingSpecial().
+	if (special && (!(flags & MF_SPECIAL) || (flags3 & MF3_ISMONSTER))
+		&& !(activationtype & THINGSPEC_NoDeathSpecial))
 	{
-		// Activation flags override LEVEL_ACTOWNSPECIAL if set.
-		AActor *activator = (activationtype & THINGSPEC_TriggerActs ? source : 
-			(activationtype & THINGSPEC_ThingActs ? this : (level.flags & LEVEL_ACTOWNSPECIAL ? this : source)));
-		if (activationtype & THINGSPEC_ThingTargets)
-			this->target = source;
-		if (activationtype & THINGSPEC_TriggerTargets)
-			source->target = this;
-		LineSpecials[special] (NULL, activator, false, args[0], args[1], args[2], args[3], args[4]);
-		special = 0;
+		P_ActivateThingSpecial(this, source, true); 
 	}
 
 	if (CountsAsKill())
@@ -1647,26 +1641,52 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 	}
 
-	pc = target->GetClass()->ActorInfo->PainChances;
-	painchance = target->PainChance;
-	if (pc != NULL)
-	{
-		BYTE * ppc = pc->CheckKey(mod);
-		if (ppc != NULL)
-		{
-			painchance = *ppc;
-		}
-	}
 	
-dopain:	
 	if (!(target->flags5 & MF5_NOPAIN) && (inflictor == NULL || !(inflictor->flags5 & MF5_PAINLESS)) &&
-		!G_SkillProperty(SKILLP_NoPain) && (pr_damagemobj() < painchance ||
-		(inflictor != NULL && (inflictor->flags6 & MF6_FORCEPAIN))) && !(target->flags & MF_SKULLFLY) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		!G_SkillProperty(SKILLP_NoPain) && !(target->flags & MF_SKULLFLY))
 	{
-		if (mod == NAME_Electric)
+
+		pc = target->GetClass()->ActorInfo->PainChances;
+		painchance = target->PainChance;
+		if (pc != NULL)
 		{
-			if (pr_lightning() < 96)
+			BYTE * ppc = pc->CheckKey(mod);
+			if (ppc != NULL)
+			{
+				painchance = *ppc;
+			}
+		}
+
+		if (((damage > target->PainThreshold && pr_damagemobj() < painchance) ||
+			(inflictor != NULL && (inflictor->flags6 & MF6_FORCEPAIN))) &&
+			( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		{
+dopain:	
+			if (mod == NAME_Electric)
+			{
+				if (pr_lightning() < 96)
+				{
+					justhit = true;
+					FState * painstate = target->FindState(NAME_Pain, mod);
+					if (painstate != NULL)
+					{
+						// If we are the server, tell clients about the state change.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetThingFrame( target, painstate );
+
+						target->SetState (painstate);
+					}
+				}
+				else
+				{ // "electrocute" the target
+					target->renderflags |= RF_FULLBRIGHT;
+					if ((target->flags3 & MF3_ISMONSTER) && pr_lightning() < 128)
+					{
+						target->Howl ();
+					}
+				}
+			}
+			else
 			{
 				justhit = true;
 				FState * painstate = target->FindState(NAME_Pain, mod);
@@ -1678,33 +1698,12 @@ dopain:
 
 					target->SetState (painstate);
 				}
-			}
-			else
-			{ // "electrocute" the target
-				target->renderflags |= RF_FULLBRIGHT;
-				if ((target->flags3 & MF3_ISMONSTER) && pr_lightning() < 128)
+				if (mod == NAME_PoisonCloud)
 				{
-					target->Howl ();
-				}
-			}
-		}
-		else
-		{
-			justhit = true;
-			FState * painstate = target->FindState(NAME_Pain, mod);
-			if (painstate != NULL)
-			{
-				// If we are the server, tell clients about the state change.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingFrame( target, painstate );
-
-				target->SetState (painstate);
-			}
-			if (mod == NAME_PoisonCloud)
-			{
-				if ((target->flags3 & MF3_ISMONSTER) && pr_poison() < 128)
-				{
-					target->Howl ();
+					if ((target->flags3 & MF3_ISMONSTER) && pr_poison() < 128)
+					{
+						target->Howl ();
+					}
 				}
 			}
 		}

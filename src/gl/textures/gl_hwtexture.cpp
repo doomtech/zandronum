@@ -221,6 +221,26 @@ FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool w
 
 //===========================================================================
 // 
+//	Deletes a texture id and unbinds it from the texture units
+//
+//===========================================================================
+void FHardwareTexture::DeleteTexture(unsigned int texid)
+{
+	if (texid != 0) 
+	{
+		for(int i = 0; i < MAX_TEXTURES; i++)
+		{
+			if (lastbound[i] == texid)
+			{
+				lastbound[i] = 0;
+			}
+		}
+		gl.DeleteTextures(1, &texid);
+	}
+}
+
+//===========================================================================
+// 
 //	Frees all associated resources
 //
 //===========================================================================
@@ -232,7 +252,7 @@ void FHardwareTexture::Clean(bool all)
 	{
 		for (int i=0;i<cm_arraysize;i++)
 		{
-			if (glTexID[i]!=0) gl.DeleteTextures(1, &glTexID[i]);
+			DeleteTexture(glTexID[i]);
 		}
 		//gl.DeleteTextures(cm_arraysize,glTexID);
 		memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
@@ -241,14 +261,14 @@ void FHardwareTexture::Clean(bool all)
 	{
 		for (int i=1;i<cm_arraysize;i++)
 		{
-			if (glTexID[i]!=0) gl.DeleteTextures(1, &glTexID[i]);
+			DeleteTexture(glTexID[i]);
 		}
 		//gl.DeleteTextures(cm_arraysize-1,glTexID+1);
 		memset(glTexID+1,0,sizeof(unsigned int)*(cm_arraysize-1));
 	}
 	for(unsigned int i=0;i<glTexID_Translated.Size();i++)
 	{
-		gl.DeleteTextures(1,&glTexID_Translated[i].glTexID);
+		DeleteTexture(glTexID_Translated[i].glTexID);
 	}
 	glTexID_Translated.Clear();
 	if (glDepthID != 0) gl.DeleteRenderbuffers(1, &glDepthID);

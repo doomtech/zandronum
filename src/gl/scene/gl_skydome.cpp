@@ -165,7 +165,6 @@ static void RenderSkyHemisphere(int hemi)
 		return;
 	}
 
-	gl_RenderState.Apply(true);
 
 	// Draw the cap as one solid color polygon
 	if (!foglayer)
@@ -173,6 +172,7 @@ static void RenderSkyHemisphere(int hemi)
 		columns = 4 * (gl_sky_detail > 0 ? gl_sky_detail : 1);
 		foglayer=true;
 		gl_RenderState.EnableTexture(false);
+		gl_RenderState.Apply(true);
 
 
 		if (!secondlayer)
@@ -192,6 +192,7 @@ static void RenderSkyHemisphere(int hemi)
 	}
 	else
 	{
+		gl_RenderState.Apply(true);
 		columns=4;	// no need to do more!
 		gl.Begin(GL_TRIANGLE_FAN);
 		for(c = 0; c < columns; c++)

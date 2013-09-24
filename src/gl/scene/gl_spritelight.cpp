@@ -59,9 +59,10 @@
 
 //==========================================================================
 //
-// Sets the light for a sprite - takes dynamic lights into account
+// Gets the light for a sprite - takes dynamic lights into account
 //
 //==========================================================================
+
 void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
 {
 	ADynamicLight *light;
@@ -123,6 +124,12 @@ void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 }
 
 
+
+//==========================================================================
+//
+// Sets the light for a sprite - takes dynamic lights into account
+//
+//==========================================================================
 
 static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
                               int lightlevel, int rellight, FColormap * cm, float alpha, 

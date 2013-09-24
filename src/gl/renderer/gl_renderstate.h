@@ -120,7 +120,8 @@ public:
 
 	void Reset()
 	{
-		mTextureEnabled = mBrightmapEnabled = mFogEnabled = mGlowEnabled = mLightEnabled = false;
+		mTextureEnabled = true;
+		mBrightmapEnabled = mFogEnabled = mGlowEnabled = mLightEnabled = false;
 		ffTextureEnabled = ffFogEnabled = false;
 		mSpecialEffect = ffSpecialEffect = EFF_NONE;
 		mFogColor.d = ffFogColor.d = -1;

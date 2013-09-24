@@ -196,7 +196,7 @@ void GLWall::SetupLights()
 					}
 					if (outcnt[0]!=4 && outcnt[1]!=4 && outcnt[2]!=4 && outcnt[3]!=4) 
 					{
-						gl_GetLight(p, node->lightsource, Colormap.colormap, true, !!(flags&GLWF_FOGGY), lightdata);
+						gl_GetLight(p, node->lightsource, Colormap.colormap, true, false, lightdata);
 					}
 				}
 			}
@@ -208,7 +208,7 @@ void GLWall::SetupLights()
 	lightdata.Combine(numlights, gl.MaxLights());
 	if (numlights[2] > 0)
 	{
-		draw_dlight+=numlights[2];
+		draw_dlight+=numlights[2]/2;
 		gl_RenderState.EnableLight(true);
 		gl_RenderState.SetLights(numlights, &lightdata.arrays[0][0]);
 	}
@@ -217,11 +217,7 @@ void GLWall::SetupLights()
 //==========================================================================
 //
 // General purpose wall rendering function
-// with the exception of walls lit by glowing flats 
 // everything goes through here
-//
-// Tests have shown that precalculating this data
-// doesn't give any noticable performance improvements
 //
 //==========================================================================
 
@@ -303,6 +299,7 @@ void GLWall::RenderFogBoundary()
 
 	if (gl_fogmode && gl_fixedcolormap == 0)
 	{
+		// with shaders this can be done properly
 		if (gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_fog_shader))
 		{
 			int rel = rellight + (extralight * gl_weaponlight);
@@ -315,6 +312,8 @@ void GLWall::RenderFogBoundary()
 		}
 		else
 		{
+			// otherwise some approximation is needed. This won't look as good
+			// as the shader version but it's an acceptable compromise.
 			float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
 
 			float xcamera=TO_GL(viewx);
@@ -358,6 +357,7 @@ void GLWall::RenderMirrorSurface()
 {
 	if (GLRenderer->mirrortexture == NULL) return;
 
+	// For the sphere map effect we need a normal of the mirror surface,
 	Vector v(glseg.y2-glseg.y1, 0 ,-glseg.x2+glseg.x1);
 	v.Normalize();
 	glNormal3fv(&v[0]);
@@ -481,34 +481,35 @@ void GLWall::Draw(int pass)
 
 	switch (pass)
 	{
+	case GLPASS_ALL:			// Single-pass rendering
+		SetupLights();
+		// fall through
+
 	case GLPASS_PLAIN:			// Single-pass rendering
-
-		if (gl_dynlight_shader && GLRenderer->mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT)
-		{
-			SetupLights();
-		}
-
 	case GLPASS_BASE:			// Base pass for non-masked polygons (all opaque geometry)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
-
 		rel = rellight + (extralight * gl_weaponlight);
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
-		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN) 
+		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN || pass == GLPASS_ALL) 
 		{
 			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, rel, &Colormap, false);
 			else gl_SetFog(255, 0, NULL, false);
 		}
 		gl_RenderState.EnableGlow(!!(flags & GLWF_GLOW));
-
 		// fall through
-	case GLPASS_TEXTURE:		// modulated texture
+
 		if (pass != GLPASS_BASE)
 		{
 			gltexture->Bind(Colormap.colormap, flags, 0);
 		}
-		RenderWall((pass!=GLPASS_BASE) + 2*(pass!=GLPASS_TEXTURE), NULL);
+		RenderWall(pass == GLPASS_BASE? 2:3, NULL);
 		gl_RenderState.EnableGlow(false);
 		gl_RenderState.EnableLight(false);
+		break;
+
+	case GLPASS_TEXTURE:		// modulated texture
+		gltexture->Bind(Colormap.colormap, flags, 0);
+		RenderWall(1, NULL);
 		break;
 
 	case GLPASS_LIGHT:

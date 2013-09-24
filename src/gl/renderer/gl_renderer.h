@@ -95,8 +95,6 @@ public:
 	void SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror);
 
 	void Initialize();
-	void SetPaused();
-	void UnsetPaused();
 
 	void CreateScene();
 	void RenderScene(int recursion);

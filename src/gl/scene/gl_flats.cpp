@@ -164,51 +164,48 @@ extern FDynLightData lightdata;
 
 bool GLFlat::SetupSubsectorLights(bool lightsapplied, subsector_t * sub)
 {
-	if (gl_dynlight_shader && GLRenderer->mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT)
+	Plane p;
+
+	lightdata.Clear();
+	for(int i=0;i<2;i++)
 	{
-		Plane p;
-
-		lightdata.Clear();
-		for(int i=0;i<2;i++)
+		FLightNode * node = sub->lighthead[i];
+		while (node)
 		{
-			FLightNode * node = sub->lighthead[i];
-			while (node)
+			ADynamicLight * light = node->lightsource;
+			
+			if (light->flags2&MF2_DORMANT)
 			{
-				ADynamicLight * light = node->lightsource;
-				
-				if (light->flags2&MF2_DORMANT)
-				{
-					node=node->nextLight;
-					continue;
-				}
-				iter_dlightf++;
-
-				// we must do the side check here because gl_SetupLight needs the correct plane orientation
-				// which we don't have for Legacy-style 3D-floors
-				fixed_t planeh = plane.plane.ZatPoint(light->x, light->y);
-				if (gl_lights_checkside && ((planeh<light->z && ceiling) || (planeh>light->z && !ceiling)))
-				{
-					node=node->nextLight;
-					continue;
-				}
-
-				p.Set(plane.plane);
-				gl_GetLight(p, light, Colormap.colormap, true, foggy, lightdata);
-				node = node->nextLight;
+				node=node->nextLight;
+				continue;
 			}
-		}
+			iter_dlightf++;
 
-		int numlights[3];
+			// we must do the side check here because gl_SetupLight needs the correct plane orientation
+			// which we don't have for Legacy-style 3D-floors
+			fixed_t planeh = plane.plane.ZatPoint(light->x, light->y);
+			if (gl_lights_checkside && ((planeh<light->z && ceiling) || (planeh>light->z && !ceiling)))
+			{
+				node=node->nextLight;
+				continue;
+			}
 
-		lightdata.Combine(numlights, gl.MaxLights());
-		if (numlights[2] > 0)
-		{
-			draw_dlightf+=numlights[2];
-			gl_RenderState.EnableLight(true);
-			gl_RenderState.SetLights(numlights, &lightdata.arrays[0][0]);
-			gl_RenderState.Apply();
-			return true;
+			p.Set(plane.plane);
+			gl_GetLight(p, light, Colormap.colormap, false, false, lightdata);
+			node = node->nextLight;
 		}
+	}
+
+	int numlights[3];
+
+	lightdata.Combine(numlights, gl.MaxLights());
+	if (numlights[2] > 0)
+	{
+		draw_dlightf+=numlights[2]/2;
+		gl_RenderState.EnableLight(true);
+		gl_RenderState.SetLights(numlights, &lightdata.arrays[0][0]);
+		gl_RenderState.Apply();
+		return true;
 	}
 	if (lightsapplied) 
 	{
@@ -255,7 +252,7 @@ void GLFlat::DrawSubsectors(int pass, bool istrans)
 	if (sub)
 	{
 		// This represents a single subsector
-		if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
+		if (pass == GLPASS_ALL) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 		DrawSubsector(sub);
 	}
 	else
@@ -270,7 +267,7 @@ void GLFlat::DrawSubsectors(int pass, bool istrans)
 				// This is just a quick hack to make translucent 3D floors and portals work.
 				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
 				{
-					if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
+					if (pass == GLPASS_ALL) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 					gl.DrawArrays(GL_TRIANGLE_FAN, index, sub->numlines);
 					flatvertices += sub->numlines;
 					flatprimitives++;
@@ -287,7 +284,7 @@ void GLFlat::DrawSubsectors(int pass, bool istrans)
 				subsector_t * sub = sector->subsectors[i];
 				if (gl_drawinfo->ss_renderflags[sub-subsectors]&renderflags || istrans)
 				{
-					if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
+					if (pass == GLPASS_ALL) lightsapplied = SetupSubsectorLights(lightsapplied, sub);
 					DrawSubsector(sub);
 				}
 			}
@@ -302,7 +299,7 @@ void GLFlat::DrawSubsectors(int pass, bool istrans)
 
 			while (node)
 			{
-				if (pass == GLPASS_PLAIN) lightsapplied = SetupSubsectorLights(lightsapplied, node->sub);
+				if (pass == GLPASS_ALL) lightsapplied = SetupSubsectorLights(lightsapplied, node->sub);
 				DrawSubsector(node->sub);
 				node = node->next;
 			}
@@ -339,11 +336,10 @@ void GLFlat::Draw(int pass)
 		break;
 
 	case GLPASS_PLAIN:			// Single-pass rendering
-
+	case GLPASS_ALL:
 	case GLPASS_BASE_MASKED:
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
-		if (!foggy || pass == GLPASS_PLAIN) 
-			gl_SetFog(lightlevel, rel, &Colormap, false);
+		if (!foggy || pass != GLPASS_BASE_MASKED) gl_SetFog(lightlevel, rel, &Colormap, false);
 		// fall through
 	case GLPASS_TEXTURE:
 		gltexture->Bind(Colormap.colormap);

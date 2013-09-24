@@ -470,7 +470,7 @@ void FShaderManager::SetActiveShader(FShader *sh)
 
 FShader *FShaderManager::BindEffect(int effect)
 {
-	if (effect > 0 && effect <= NUM_EFFECTS)
+	if (effect > 0 && effect <= NUM_EFFECTS && mEffectShaders[effect-1] != NULL)
 	{
 		mEffectShaders[effect-1]->Bind(0);
 		return mEffectShaders[effect-1];
