@@ -10657,6 +10657,14 @@
 					RelativePath=".\src\gl\shaders\gl_shader.h"
 					>
 				</File>
+				<File
+					RelativePath=".\src\gl\shaders\gl_texshader.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\shaders\gl_texshader.h"
+					>
+				</File>
 				<Filter
 					Name="Shader Sources"
 					>
@@ -10685,6 +10693,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\wadsrc\static\shaders\glsl\func_wavex.fp"
+						>
+					</File>
+					<File
 						RelativePath=".\wadsrc\static\shaders\glsl\main.fp"
 						>
 					</File>
@@ -10694,14 +10706,6 @@
 					</File>
 					<File
 						RelativePath=".\wadsrc\static\shaders\glsl\main_colormap.fp"
-						>
-					</File>
-					<File
-						RelativePath=".\wadsrc\static\shaders\glsl\main_colormap.vp"
-						>
-					</File>
-					<File
-						RelativePath=".\wadsrc\static\shaders\glsl\main_spheremap.vp"
 						>
 					</File>
 				</Filter>

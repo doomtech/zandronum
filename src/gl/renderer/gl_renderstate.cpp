@@ -59,7 +59,6 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 	bool usecmshader;
 	int softwarewarp = 0;
 
-	// fixme: move this check into shader class
 	if (shaderindex == 3)
 	{
 		// Brightmap should not be used.
@@ -80,20 +79,20 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
 			mTextureMode != TM_MASK;
 
-		if (!gl_brightmap_shader && shaderindex >= 3) 
+		if (!gl_brightmap_shader && shaderindex == 3) 
 		{
 			shaderindex = 0;
 		}
-		else if (!gl_warp_shader && shaderindex < 3)
+		else if (!gl_warp_shader && shaderindex !=3)
 		{
-			softwarewarp = shaderindex;
+			if (shaderindex <= 2) softwarewarp = shaderindex;
 			shaderindex = 0;
 		}
 	}
 	else
 	{
-		usecmshader = (gl.shadermodel == 2 && cameratexture);
-		softwarewarp = shaderindex < 3? shaderindex : 0;
+		usecmshader = cameratexture;
+		softwarewarp = shaderindex > 0 && shaderindex < 3? shaderindex : 0;
 		shaderindex = 0;
 	}
 

@@ -56,6 +56,21 @@ public:
 		hShader = hVertProg = hFragProg = NULL;
 		currentfogenabled = currenttexturemode = 0;
 		currentlightfactor = currentlightdist = 0.0f;
+		currentfogdensity = -1;
+		currentfogcolor = 0;
+
+		timer_index = -1;
+		desaturation_index = -1;
+		fogenabled_index = -1;
+		texturemode_index = -1;
+		camerapos_index = -1;
+		lightparms_index = -1;
+		colormapstart_index = -1;
+		colormaprange_index = -1;
+		lightrange_index = -1;
+		fogcolor_index = -1;
+		lights_index = -1;
+
 	}
 
 	~FShader();
@@ -104,7 +119,10 @@ public:
 //==========================================================================
 class FShaderManager
 {
-	enum { NUM_EFFECTS = 2 };
+	enum 
+	{ 
+		NUM_EFFECTS = 2 
+	};
 
 	TArray<FShaderContainer*> mTextureEffects;
 	FShader *mActiveShader;
@@ -126,10 +144,9 @@ public:
 		}
 		return NULL;
 	}
-
-
-
 };
+
+#define FIRST_USER_SHADER 5
 
 
 #endif

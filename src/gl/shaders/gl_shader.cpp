@@ -4,7 +4,7 @@
 ** GLSL shader handling
 **
 **---------------------------------------------------------------------------
-** Copyright 2004-2005 Christoph Oelckers
+** Copyright 2004-2009 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -92,11 +92,19 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		if (proc_prog_lump != NULL)
 		{
-			int pp_lump = Wads.CheckNumForFullName(proc_prog_lump);
-			if (pp_lump == -1) I_Error("Unable to load '%s'", proc_prog_lump);
-			FMemLump pp_data = Wads.ReadLump(pp_lump);
+			if (*proc_prog_lump != '#')
+			{
+				int pp_lump = Wads.CheckNumForFullName(proc_prog_lump);
+				if (pp_lump == -1) I_Error("Unable to load '%s'", proc_prog_lump);
+				FMemLump pp_data = Wads.ReadLump(pp_lump);
 
-			fp_comb << pp_data.GetString().GetChars();
+				fp_comb << pp_data.GetString().GetChars();
+			}
+			else 
+			{
+				// Proc_prog_lump is not a lump name but the source itself (from generated shaders)
+				fp_comb << proc_prog_lump+1;
+			}
 		}
 
 		hVertProg = gl.CreateShader(GL_VERTEX_SHADER);
@@ -150,13 +158,6 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		int texture_index = gl.GetUniformLocation(hShader, "texture2");
 		if (texture_index > 0) gl.Uniform1i(texture_index, 1);
-
-		texture_index = gl.GetUniformLocation(hShader, "lightIndex");
-		if (texture_index > 0) gl.Uniform1i(texture_index, 13);
-		texture_index = gl.GetUniformLocation(hShader, "lightRGB");
-		if (texture_index > 0) gl.Uniform1i(texture_index, 14);
-		texture_index = gl.GetUniformLocation(hShader, "lightPositions");
-		if (texture_index > 0) gl.Uniform1i(texture_index, 15);
 
 		gl.UseProgram(0);
 		return !!linked;
@@ -228,7 +229,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 	try
 	{
 		shader_cm = new FShader;
-		if (!shader_cm->Load(name, "shaders/glsl/main_colormap.vp", "shaders/glsl/main_colormap.fp", ShaderPath, "\n"))
+		if (!shader_cm->Load(name, "shaders/glsl/main.vp", "shaders/glsl/main_colormap.fp", ShaderPath, "#define NO_FOG\n#define NO_GLOW\n"))
 		{
 			delete shader_cm;
 			shader_cm = NULL;
@@ -357,8 +358,9 @@ static const FDefaultShader defaultshaders[]=
 	{"Brightmap","shaders/glsl/func_brightmap.fp"},
 	{"No Texture", "shaders/glsl/func_notexture.fp"},
 	{NULL,NULL}
-	
 };
+
+static TArray<FString> usershaders;
 
 struct FEffectShader
 {
@@ -372,7 +374,7 @@ struct FEffectShader
 static const FEffectShader effectshaders[]=
 {
 	{"fogboundary", "shaders/glsl/main.vp", "shaders/glsl/fogboundary.fp", NULL, "#define NO_GLOW\n"},
-	{"spheremap", "shaders/glsl/main_spheremap.vp", "shaders/glsl/main.fp", "shaders/glsl/func_normal.fp", "#define NO_GLOW\n#define NO_DESATURATE\n"}
+	{"spheremap", "shaders/glsl/main.vp", "shaders/glsl/main.fp", "shaders/glsl/func_normal.fp", "#define NO_GLOW\n#define NO_DESATURATE\n#define SPHEREMAP\n#define SPHEREMAP_0\n"}
 };
 
 
@@ -392,6 +394,18 @@ FShaderManager::FShaderManager()
 			FShaderContainer * shc = new FShaderContainer(defaultshaders[i].ShaderName, defaultshaders[i].gettexelfunc);
 			mTextureEffects.Push(shc);
 			if (gl.shadermodel <= 2) return;	// SM2 will only initialize the default shader
+		}
+
+		for(unsigned i = 0; i < usershaders.Size(); i++)
+		{
+			FString name = ExtractFileBase(usershaders[i]);
+			FName sfn = name;
+
+			if (gl.shadermodel > 2)
+			{
+				FShaderContainer * shc = new FShaderContainer(sfn, usershaders[i]);
+				mTextureEffects.Push(shc);
+			}
 		}
 
 		for(int i=0;i<NUM_EFFECTS;i++)
@@ -478,22 +492,70 @@ FShader *FShaderManager::BindEffect(int effect)
 	return NULL;
 }
 
+
 //==========================================================================
 //
-// Dynamic light stuff
+// Parses a brightmap definition
 //
 //==========================================================================
 
-/*
-void FShader::SetLightRange(int start, int end, int forceadd)
+void gl_ParseHardwareShader(FScanner &sc, int deflump)
 {
-	gl.Uniform3i(lightrange_index, start, end, forceadd);
-}
+	int type = FTexture::TEX_Any;
+	bool disable_fullbright=false;
+	bool thiswad = false;
+	bool iwad = false;
+	int maplump = -1;
+	FString maplumpname;
+	float speed = 1.f;
 
-void gl_SetLightRange(int first, int last, int forceadd)
-{
-	if (gl_activeShader) gl_activeShader->SetLightRange(first, last, forceadd);
-}
-*/
+	sc.MustGetString();
+	if (sc.Compare("texture")) type = FTexture::TEX_Wall;
+	else if (sc.Compare("flat")) type = FTexture::TEX_Flat;
+	else if (sc.Compare("sprite")) type = FTexture::TEX_Sprite;
+	else sc.UnGet();
 
+	sc.MustGetString();
+	FTextureID no = TexMan.CheckForTexture(sc.String, type);
+	FTexture *tex = TexMan[no];
+
+	sc.MustGetToken('{');
+	while (!sc.CheckToken('}'))
+	{
+		sc.MustGetString();
+		if (sc.Compare("shader"))
+		{
+			sc.MustGetString();
+			maplumpname = sc.String;
+		}
+		else if (sc.Compare("speed"))
+		{
+			sc.MustGetFloat();
+			speed = float(sc.Float);
+		}
+	}
+	if (!tex)
+	{
+		return;
+	}
+
+	if (maplumpname.IsNotEmpty())
+	{
+		if (tex->bWarped != 0)
+		{
+			Printf("Cannot combine warping with hardware shader on texture '%s'\n", tex->Name);
+			return;
+		}
+		tex->gl_info.shaderspeed = speed; 
+		for(unsigned i=0;i<usershaders.Size();i++)
+		{
+			if (usershaders[i].CompareNoCase(maplumpname))
+			{
+				tex->gl_info.shaderindex = i + FIRST_USER_SHADER;
+				return;
+			}
+		}
+		tex->gl_info.shaderindex = usershaders.Push(maplumpname) + FIRST_USER_SHADER;
+	}	
+}
 

@@ -66,6 +66,7 @@ EXTERN_CVAR (Float, gl_lights_size);
 int ScriptDepth;
 void gl_InitGlow(FScanner &sc);
 void gl_ParseBrightmap(FScanner &sc, int);
+void gl_ParseHardwareShader(FScanner &sc, int deflump);
 
 //-----------------------------------------------------------------------------
 //
@@ -919,6 +920,7 @@ static const char *CoreKeywords[]=
    "glow",
    "brightmap",
    "disable_fullbright",
+   "hardwareshader",
    "#include",
    NULL
 };
@@ -939,6 +941,7 @@ enum
    TAG_GLOW,
    TAG_BRIGHTMAP,
    TAG_DISABLE_FB,
+   TAG_HARDWARESHADER,
    TAG_INCLUDE,
 };
 
@@ -1254,6 +1257,9 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 			break;
 		case TAG_BRIGHTMAP:
 			gl_ParseBrightmap(sc, workingLump);
+			break;
+		case TAG_HARDWARESHADER:
+			gl_ParseHardwareShader(sc, workingLump);
 			break;
 		case TAG_DISABLE_FB:
 			{

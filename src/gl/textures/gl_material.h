@@ -10,6 +10,7 @@
 EXTERN_CVAR(Bool, gl_precache)
 
 struct FRemapTable;
+class FTextureShader;
 
 
 // Two intermediate classes which wrap the low level textures.
@@ -145,10 +146,18 @@ public:
 
 class FMaterial
 {
+	struct FTextureLayer
+	{
+		FTexture *texture;
+		bool animated;
+	};
+
 	static TArray<FMaterial *> mMaterials;
-	TArray<FGLTexture *> mTextures;
+	static int mMaxBound;
+
+	FGLTexture *mBaseLayer;	
+	TArray<FTextureLayer> mTextureLayers;
 	int mShaderIndex;
-	int mMaxBound;
 
 	void SetupShader(int shaderindex, int &cm);
 	FGLTexture * ValidateSysTexture(FTexture * tex, bool expand);
@@ -162,20 +171,17 @@ public:
 	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0);
 
-	const WorldTextureInfo * GetWorldTextureInfo() { return mTextures[0]->GetWorldTextureInfo(); }
-	const PatchTextureInfo * GetPatchTextureInfo() { return mTextures[0]->GetPatchTextureInfo(); }
+	const WorldTextureInfo * GetWorldTextureInfo() { return mBaseLayer->GetWorldTextureInfo(); }
+	const PatchTextureInfo * GetPatchTextureInfo() { return mBaseLayer->GetPatchTextureInfo(); }
 
 	unsigned char * CreateTexBuffer(ETexUse use, int cm, int translation, int & w, int & h, bool allowhires=true)
 	{
-		return mTextures[0]->CreateTexBuffer(use, cm, translation, w, h, allowhires, 0);
+		return mBaseLayer->CreateTexBuffer(use, cm, translation, w, h, allowhires, 0);
 	}
 
 	void Clean(bool f)
 	{
-		for(unsigned i=0;i<mTextures.Size();i++)
-		{
-			mTextures[i]->Clean(f);
-		}
+		mBaseLayer->Clean(f);
 	}
 
 	void BindToFrameBuffer();
@@ -185,8 +191,8 @@ public:
 
 	void SetWallScaling(fixed_t x, fixed_t y);
 
-	int TextureHeight(ETexUse i) const { return mTextures[0]->RenderHeight[i]; }
-	int TextureWidth(ETexUse i) const { return mTextures[0]->RenderWidth[i]; }
+	int TextureHeight(ETexUse i) const { return mBaseLayer->RenderHeight[i]; }
+	int TextureWidth(ETexUse i) const { return mBaseLayer->RenderWidth[i]; }
 
 	int GetAreaCount() const { return tex->gl_info.areacount; }
 	FloatRect *GetAreas() const { return tex->gl_info.areas; }
@@ -199,42 +205,42 @@ public:
 
 	int GetWidth(ETexUse i) const
 	{
-		return mTextures[0]->Width[i];
+		return mBaseLayer->Width[i];
 	}
 
 	int GetHeight(ETexUse i) const
 	{
-		return mTextures[0]->Height[i];
+		return mBaseLayer->Height[i];
 	}
 
 	int GetLeftOffset(ETexUse i) const
 	{
-		return mTextures[0]->LeftOffset[i];
+		return mBaseLayer->LeftOffset[i];
 	}
 
 	int GetTopOffset(ETexUse i) const
 	{
-		return mTextures[0]->TopOffset[i];
+		return mBaseLayer->TopOffset[i];
 	}
 
 	int GetScaledLeftOffset(ETexUse i) const
 	{
-		return DivScale16(mTextures[0]->LeftOffset[i], tex->xScale);
+		return DivScale16(mBaseLayer->LeftOffset[i], tex->xScale);
 	}
 
 	int GetScaledTopOffset(ETexUse i) const
 	{
-		return DivScale16(mTextures[0]->TopOffset[i], tex->yScale);
+		return DivScale16(mBaseLayer->TopOffset[i], tex->yScale);
 	}
 
 	bool GetTransparent()
 	{
-		if (mTextures[0]->bIsTransparent == -1) 
+		if (mBaseLayer->bIsTransparent == -1) 
 		{
 			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT, 0);
 			else Bind (CM_DEFAULT, 0, 0);
 		}
-		return !!mTextures[0]->bIsTransparent;
+		return !!mBaseLayer->bIsTransparent;
 	}
 
 	static void DeleteAll();

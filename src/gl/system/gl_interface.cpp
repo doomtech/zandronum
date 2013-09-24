@@ -451,7 +451,7 @@ static void APIENTRY LoadExtensions()
 		gl->BufferSubData			= (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBuffer");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
-		gl->flags |= RFL_VBO;
+		//gl->flags |= RFL_VBO;
 	}
 	else if (CheckExtension("GL_ARB_vertex_buffer_object"))
 	{
@@ -462,7 +462,7 @@ static void APIENTRY LoadExtensions()
 		gl->BufferSubData			= (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubDataARB");
 		gl->MapBuffer				= (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBufferARB");
 		gl->UnmapBuffer				= (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBufferARB");
-		gl->flags|=RFL_VBO;
+		//gl->flags|=RFL_VBO;
 	}
 
 	if (CheckExtension("GL_ARB_map_buffer_range")) 

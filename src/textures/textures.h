@@ -123,6 +123,7 @@ public:
 	fixed_t		yScale;
 
 	int SourceLump;
+	FTextureID id;
 
 	union
 	{
@@ -179,6 +180,7 @@ public:
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return SourceLump; }
 	virtual FTexture *GetRedirect(bool wantwarped);
+	FTextureID GetID() const { return id; }
 
 	virtual void Unload () = 0;
 
@@ -277,6 +279,8 @@ public:
 		int GlowHeight;
 		FloatRect *areas;
 		int areacount;
+		int shaderindex;
+		float shaderspeed;
 		int mIsTransparent:2;
 		bool bGlowing:1;						// Texture glows
 		bool bFullbright:1;						// always draw fullbright

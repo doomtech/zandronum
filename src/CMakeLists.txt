@@ -649,6 +649,7 @@ if( NOT NO_GL )
 		gl/scene/gl_walls_draw.cpp
 		gl/scene/gl_weapon.cpp
 		gl/shaders/gl_shader.cpp
+		gl/shaders/gl_texshader.cpp
 		gl/system/gl_framebuffer.cpp
 		gl/system/gl_interface.cpp
 		gl/system/gl_menu.cpp
