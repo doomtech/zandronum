@@ -282,10 +282,10 @@ void FGLRenderer::ClearBorders()
 
 void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 {
-	float x = FIXED2FLOAT(parms.x - Scale (parms.left, parms.destwidth, parms.texwidth));
-	float y = FIXED2FLOAT(parms.y - Scale (parms.top, parms.destheight, parms.texheight));
-	float w = FIXED2FLOAT(parms.destwidth);
-	float h = FIXED2FLOAT(parms.destheight);
+	double x = parms.x - parms.left * parms.destwidth / parms.texwidth;
+	double y = parms.y - parms.top * parms.destheight / parms.texheight;
+	double w = parms.destwidth;
+	double h = parms.destheight;
 	float ox, oy, cx, cy, r, g, b;
 	float light = 1.f;
 
@@ -370,13 +370,13 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(ox, oy);
-	gl.Vertex2i(x, y);
+	glVertex2d(x, y);
 	gl.TexCoord2f(ox, cy);
-	gl.Vertex2i(x, y + h);
+	glVertex2d(x, y + h);
 	gl.TexCoord2f(cx, oy);
-	gl.Vertex2i(x + w, y);
+	glVertex2d(x + w, y);
 	gl.TexCoord2f(cx, cy);
-	gl.Vertex2i(x + w, y + h);
+	glVertex2d(x + w, y + h);
 	gl.End();
 	gl.Enable(GL_ALPHA_TEST);
 	

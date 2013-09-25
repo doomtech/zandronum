@@ -585,11 +585,6 @@ void FGLRenderer::DrawScene(bool toscreen)
 //
 // Draws a blend over the entire view
 //
-// This mostly duplicates the code in shared_sbar.cpp
-// When I was writing this the original was called too late so that I
-// couldn't get the blend in time. However, since then I made some changes
-// here that would get lost if I switched back so I won't do it.
-//
 //==========================================================================
 void FGLRenderer::DrawBlend(sector_t * viewsector)
 {
@@ -701,6 +696,11 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 		DBaseStatusBar::AddBlend (blendv.r / 255.f, blendv.g / 255.f, blendv.b / 255.f, blendv.a/255.0f,blend);
 	}
 
+	// This mostly duplicates the code in shared_sbar.cpp
+	// When I was writing this the original was called too late so that I
+	// couldn't get the blend in time. However, since then I made some changes
+	// here that would get lost if I switched back so I won't do it.
+
 	if (player)
 	{
 		AInventory * in;
@@ -712,7 +712,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 			if (color.a != 0)
 			{
 				DBaseStatusBar::AddBlend (color.r/255.f, color.g/255.f, color.b/255.f, color.a/255.f, blend);
-				if (color.a/255.f > 0.5f) maxinvalpha = color.a/255.f;
+				if (color.a/255.f > maxinvalpha) maxinvalpha = color.a/255.f;
 			}
 		}
 		if (player->bonuscount)
@@ -781,7 +781,6 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 
 //-----------------------------------------------------------------------------
 //
-// gl_SetupView
 // Draws player sprites and color blend
 //
 //-----------------------------------------------------------------------------
