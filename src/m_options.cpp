@@ -108,6 +108,7 @@
 #include "team.h"
 #include "gamemode.h"
 #include "g_level.h"
+#include "d_netinf.h"
 
 // [ZZ] PWO header file
 #include "g_shared/pwo.h"

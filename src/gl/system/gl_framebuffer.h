@@ -68,6 +68,15 @@ public:
 
 	void PrecacheTexture(FTexture *tex, int cache);
 
+	void StateChanged(AActor *actor);
+
+	// notify the renderer that serialization of the curent level is about to start/end
+	virtual void StartSerialize(FArchive &arc);
+	virtual void EndSerialize(FArchive &arc);
+
+	virtual int GetMaxViewPitch(bool down);
+
+
 	FNativePalette *CreatePalette(FRemapTable *remap);
 
 	void RenderView (player_t* player);

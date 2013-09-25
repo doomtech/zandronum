@@ -105,9 +105,6 @@
 #include "g_hub.h"
 
 
-
-#include "gl/gl_functions.h"
-
 #ifndef STAT
 #define STAT_NEW(map)
 #define STAT_END(newl)
@@ -782,7 +779,6 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 			}
 		}
 	}
-	gl_DeleteAllAttachedLights();
 }
 
 //=============================================================================
@@ -891,8 +887,6 @@ void SERVERCONSOLE_UpdateScoreboard( void );
 void G_DoCompleted (void)
 {
 	int i; 
-
-	gl_DeleteAllAttachedLights();
 
 	gameaction = ga_nothing;
 
@@ -1878,7 +1872,6 @@ void G_FinishTravel ()
 			pawndup->Destroy ();
 			pawn->LinkToWorld ();
 			pawn->AddToHash ();
-			pawn->dynamiclights.Clear();	// remove all dynamic lights from the previous level
 			pawn->SetState(pawn->SpawnState);
 
 			// [BC]
@@ -1891,7 +1884,6 @@ void G_FinishTravel ()
 				inv->ChangeStatNum (STAT_INVENTORY);
 				inv->LinkToWorld ();
 				inv->Travelled ();
-				inv->dynamiclights.Clear();	// remove all dynamic lights from the previous level
 				// [BC] This is necessary, otherwise all the sector links for the inventory
 				// end up being off. This is a problem if the object tries to move or
 				// something, which is the case with bobbing objects.
@@ -2118,7 +2110,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 		return;
 	}
 
-	gl_DeleteAllAttachedLights();
+	screen->StartSerialize(arc);
 
 	arc << level.flags
 		<< level.flags2
@@ -2239,7 +2231,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 			}
 		}
 	}
-	gl_RecreateAllAttachedLights();
+	screen->EndSerialize(arc);
 	STAT_SAVE(arc, hubLoad);
 }
 

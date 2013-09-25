@@ -40,6 +40,8 @@
 #include "r_state.h"
 #include "templates.h"
 
+#include "gl/gl_functions.h"
+
 static AActor *RoughBlockCheck (AActor *mo, int index, void *);
 
 

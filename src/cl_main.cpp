@@ -109,6 +109,7 @@
 #include "p_3dmidtex.h"
 #include "a_lightning.h"
 #include "a_movingcamera.h"
+#include "d_netinf.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

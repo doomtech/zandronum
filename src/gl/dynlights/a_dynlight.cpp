@@ -631,8 +631,19 @@ void ADynamicLight::LinkLight()
 //
 //==========================================================================
 void ADynamicLight::UnlinkLight ()
-
 {
+	if (owned && target != NULL)
+	{
+		// Delete reference in owning actor
+		for(int c=target->dynamiclights.Size()-1; c>=0; c--)
+		{
+			if (target->dynamiclights[c] == this)
+			{
+				target->dynamiclights.Delete(c);
+				break;
+			}
+		}
+	}
 	while (touching_sides) touching_sides = DeleteLightNode(touching_sides);
 	while (touching_subsectors) touching_subsectors = DeleteLightNode(touching_subsectors);
 }
@@ -641,6 +652,22 @@ void ADynamicLight::Destroy()
 {
 	UnlinkLight();
 	Super::Destroy();
+}
+
+
+//==========================================================================
+//
+// Needed for garbage collection
+//
+//==========================================================================
+
+size_t AActor::PropagateMark()
+{
+	for (unsigned i=0; i<dynamiclights.Size(); i++)
+	{
+		GC::Mark(dynamiclights[i]);
+	}
+	return Super::PropagateMark();
 }
 
 

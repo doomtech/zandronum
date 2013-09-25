@@ -60,7 +60,6 @@
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 #include "gl/shaders/gl_shader.h"
-// [BB]
 #include "gl/gl_functions.h"
 // [BC]
 #include "network.h"

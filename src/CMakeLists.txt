@@ -660,6 +660,7 @@ if( NOT NO_GL )
 		gl/textures/gl_hqresize.cpp
 		gl/textures/gl_hwtexture.cpp
 		gl/textures/gl_material.cpp
+		gl/textures/gl_skyboxtexture.cpp
 		gl/textures/gl_texture.cpp
 		gl/textures/gl_translate.cpp
 		gl/utility/gl_clock.cpp

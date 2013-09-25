@@ -95,6 +95,7 @@ void FGLRenderer::Initialize()
 
 FGLRenderer::~FGLRenderer() 
 {
+	gl_DeleteAllAttachedLights();
 	FMaterial::FlushAll();
 	if (mShaderManager != NULL) delete mShaderManager;
 	if (mVBO != NULL) delete mVBO;

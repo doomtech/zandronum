@@ -67,88 +67,8 @@ int ScriptDepth;
 void gl_InitGlow(FScanner &sc);
 void gl_ParseBrightmap(FScanner &sc, int);
 void gl_ParseHardwareShader(FScanner &sc, int deflump);
-
-//-----------------------------------------------------------------------------
-//
-//
-//
-//-----------------------------------------------------------------------------
-
-void gl_ParseSkybox(FScanner &sc)
-{
-	int facecount=0;
-
-	sc.MustGetString();
-
-	FSkyBox * sb = new FSkyBox;
-	uppercopy(sb->Name, sc.String);
-	sb->Name[8]=0;
-	if (sc.CheckString("fliptop"))
-	{
-		sb->fliptop = true;
-	}
-	sc.MustGetStringName("{");
-	while (!sc.CheckString("}"))
-	{
-		sc.MustGetString();
-		if (facecount<6) 
-		{
-			sb->faces[facecount] = TexMan[TexMan.GetTexture(sc.String, FTexture::TEX_Wall, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_Overridable)];
-		}
-		facecount++;
-	}
-	if (facecount != 3 && facecount != 6)
-	{
-		sc.ScriptError("%s: Skybox definition requires either 3 or 6 faces", sb->Name);
-	}
-	sb->SetSize();
-	TexMan.AddTexture(sb);
-}
-
-//-----------------------------------------------------------------------------
-//
-// gl_ParseVavoomSkybox
-//
-//-----------------------------------------------------------------------------
-
-void gl_ParseVavoomSkybox(FScanner &sc)
-{
-	while (sc.GetString())
-	{
-		int facecount=0;
-		int maplump = -1;
-		FSkyBox * sb = new FSkyBox;
-		uppercopy(sb->Name, sc.String);
-		sb->Name[8]=0;
-		sb->fliptop = true;
-		sc.MustGetStringName("{");
-		while (!sc.CheckString("}"))
-		{
-			if (facecount<6) 
-			{
-				sc.MustGetStringName("{");
-				sc.MustGetStringName("map");
-				sc.MustGetString();
-
-				maplump = Wads.CheckNumForFullName(sc.String, true);
-				if (maplump==-1) 
-					Printf("Texture '%s' not found in Vavoom skybox '%s'\n", sc.String, sb->Name);
-
-				sb->faces[facecount] = FTexture::CreateTexture(maplump, FTexture::TEX_Wall);
-				if (!sb->faces[facecount])
-					Printf("Unable to create texture from '%s' in Vavoom skybox '%s'\n", sc.String, sb->Name);
-				sc.MustGetStringName("}");
-			}
-			facecount++;
-		}
-		if (facecount != 6)
-		{
-			sc.ScriptError("%s: Vavoom skybox definition requires 6 faces", sb->Name);
-		}
-		sb->SetSize();
-		TexMan.AddTexture(sb);
-	}
-}
+void gl_ParseSkybox(FScanner &sc);
+void gl_ParseVavoomSkybox();
 
 //==========================================================================
 //
@@ -176,50 +96,23 @@ inline const PClass * GetRealType(const PClass * ti)
 class FLightAssociation
 {
 public:
-   FLightAssociation();
-   FLightAssociation(const char *actorName, const char *frameName, const char *lightName);
-   ~FLightAssociation();
-   const char *ActorName() { return m_ActorName; }
-   const char *FrameName() { return m_FrameName; }
-   const char *Light() { return m_AssocLight; }
-   void ReplaceActorName(const char *newName);
-   void ReplaceLightName(const char *newName);
+	//FLightAssociation();
+	FLightAssociation(FName actorName, const char *frameName, FName lightName)
+		: m_ActorName(actorName), m_AssocLight(lightName)
+	{
+		mysnprintf(m_FrameName, 8, "%s", frameName);
+	}
+
+	FName ActorName() { return m_ActorName; }
+	const char *FrameName() { return m_FrameName; }
+	FName Light() { return m_AssocLight; }
+	void ReplaceLightName(FName newName) { m_AssocLight = newName; }
 protected:
-   FString m_ActorName, m_FrameName, m_AssocLight;
+	char m_FrameName[8];
+	FName m_ActorName, m_AssocLight;
 };
 
-TArray<FLightAssociation *> LightAssociations;
-
-
-FLightAssociation::FLightAssociation()
-{
-}
-
-
-FLightAssociation::FLightAssociation(const char *actorName, const char *frameName, const char *lightName)
-{
-	m_ActorName.Format("%s", actorName);
-	m_FrameName.Format("%s", frameName);
-	m_AssocLight.Format("%s", lightName);
-}
-
-
-FLightAssociation::~FLightAssociation()
-{
-}
-
-
-void FLightAssociation::ReplaceActorName(const char *newName)
-{
-	m_ActorName.Format("%s", newName);
-}
-
-
-void FLightAssociation::ReplaceLightName(const char *newName)
-{
-	m_AssocLight.Format("%s", newName);
-}
-
+TArray<FLightAssociation> LightAssociations;
 
 
 //==========================================================================
@@ -230,11 +123,10 @@ void FLightAssociation::ReplaceLightName(const char *newName)
 class FLightDefaults
 {
 public:
-   FLightDefaults(const char *name, ELightType type);
-   ~FLightDefaults();
+   FLightDefaults(FName name, ELightType type);
 
    void ApplyProperties(ADynamicLight * light) const;
-   const char *GetName() const { return m_Name; }
+   FName GetName() const { return m_Name; }
    void SetAngle(angle_t angle) { m_Angle = angle; }
    void SetArg(int arg, BYTE val) { m_Args[arg] = val; }
    BYTE GetArg(int arg) { return m_Args[arg]; }
@@ -244,7 +136,7 @@ public:
    void SetDontLightSelf(bool add) { m_dontlightself = add; }
    void SetHalo(bool halo) { m_halo = halo; }
 protected:
-   FString m_Name;
+   FName m_Name;
    unsigned char m_Args[5];
    angle_t m_Angle;
    fixed_t m_X, m_Y, m_Z;
@@ -254,7 +146,13 @@ protected:
 
 TArray<FLightDefaults *> LightDefaults;
 
-FLightDefaults::FLightDefaults(const char *name, ELightType type)
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
+FLightDefaults::FLightDefaults(FName name, ELightType type)
 {
 	m_Name = name;
 	m_type = type;
@@ -266,10 +164,6 @@ FLightDefaults::FLightDefaults(const char *name, ELightType type)
 	m_additive = false;
 	m_halo = false;
 	m_dontlightself = false;
-}
-
-FLightDefaults::~FLightDefaults()
-{
 }
 
 void FLightDefaults::ApplyProperties(ADynamicLight * light) const
@@ -338,6 +232,12 @@ enum {
 extern int ScriptDepth;
 
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
 inline float gl_ParseFloat(FScanner &sc)
 {
    sc.GetFloat();
@@ -380,7 +280,7 @@ void gl_AddLightDefaults(FLightDefaults *defaults)
    for (i = 0; i < LightDefaults.Size(); i++)
    {
       temp = LightDefaults[i];
-      if (strcmp(temp->GetName(), defaults->GetName()) == 0)
+	  if (temp->GetName() == defaults->GetName())
       {
          delete temp;
          LightDefaults.Delete(i);
@@ -392,24 +292,28 @@ void gl_AddLightDefaults(FLightDefaults *defaults)
 }
 
 
-// parse thing 9800
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ParsePointLight(FScanner &sc)
 {
 	int type;
 	float floatTriple[3];
 	int intVal;
-	FString name;
 	FLightDefaults *defaults;
 
 	// get name
 	sc.GetString();
-	name = sc.String;
+	FName name = sc.String;
 
 	// check for opening brace
 	sc.GetString();
 	if (sc.Compare("{"))
 	{
-		defaults = new FLightDefaults(name.GetChars(), PointLight);
+		defaults = new FLightDefaults(name, PointLight);
 		ScriptDepth++;
 		while (ScriptDepth)
 		{
@@ -462,23 +366,28 @@ void gl_ParsePointLight(FScanner &sc)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ParsePulseLight(FScanner &sc)
 {
 	int type;
 	float floatVal, floatTriple[3];
 	int intVal;
-	FString name;
 	FLightDefaults *defaults;
 
 	// get name
 	sc.GetString();
-	name = sc.String;
+	FName name = sc.String;
 
 	// check for opening brace
 	sc.GetString();
 	if (sc.Compare("{"))
 	{
-		defaults = new FLightDefaults(name.GetChars(), PulseLight);
+		defaults = new FLightDefaults(name, PulseLight);
 		ScriptDepth++;
 		while (ScriptDepth)
 		{
@@ -536,23 +445,28 @@ void gl_ParsePulseLight(FScanner &sc)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ParseFlickerLight(FScanner &sc)
 {
 	int type;
 	float floatVal, floatTriple[3];
 	int intVal;
-	FString name;
 	FLightDefaults *defaults;
 
 	// get name
 	sc.GetString();
-	name = sc.String;
+	FName name = sc.String;
 
 	// check for opening brace
 	sc.GetString();
 	if (sc.Compare("{"))
 	{
-		defaults = new FLightDefaults(name.GetChars(), FlickerLight);
+		defaults = new FLightDefaults(name, FlickerLight);
 		ScriptDepth++;
 		while (ScriptDepth)
 		{
@@ -610,23 +524,28 @@ void gl_ParseFlickerLight(FScanner &sc)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ParseFlickerLight2(FScanner &sc)
 {
 	int type;
 	float floatVal, floatTriple[3];
 	int intVal;
-	FString name;
 	FLightDefaults *defaults;
 
 	// get name
 	sc.GetString();
-	name = sc.String;
+	FName name = sc.String;
 
 	// check for opening brace
 	sc.GetString();
 	if (sc.Compare("{"))
 	{
-		defaults = new FLightDefaults(name.GetChars(), RandomFlickerLight);
+		defaults = new FLightDefaults(name, RandomFlickerLight);
 		ScriptDepth++;
 		while (ScriptDepth)
 		{
@@ -690,23 +609,28 @@ void gl_ParseFlickerLight2(FScanner &sc)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ParseSectorLight(FScanner &sc)
 {
 	int type;
 	float floatVal;
 	float floatTriple[3];
-	FString name;
 	FLightDefaults *defaults;
 
 	// get name
 	sc.GetString();
-	name = sc.String;
+	FName name = sc.String;
 
 	// check for opening brace
 	sc.GetString();
 	if (sc.Compare("{"))
 	{
-		defaults = new FLightDefaults(name.GetChars(), SectorLight);
+		defaults = new FLightDefaults(name, SectorLight);
 		ScriptDepth++;
 		while (ScriptDepth)
 		{
@@ -756,19 +680,26 @@ void gl_ParseSectorLight(FScanner &sc)
 }
 
 
-void gl_AddLightAssociation(FLightAssociation *assoc)
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
+void gl_AddLightAssociation(const char *actor, const char *frame, const char *light)
 {
 	FLightAssociation *temp;
 	unsigned int i;
+	FLightAssociation assoc(actor, frame, light);
 
 	for (i = 0; i < LightAssociations.Size(); i++)
 	{
-		temp = LightAssociations[i];
-		if (stricmp(temp->ActorName(), assoc->ActorName()) == 0)
+		temp = &LightAssociations[i];
+		if (temp->ActorName() == assoc.ActorName())
 		{
-			if (strcmp(temp->FrameName(), assoc->FrameName()) == 0)
+			if (strcmp(temp->FrameName(), assoc.FrameName()) == 0)
 			{
-				temp->ReplaceLightName(assoc->Light());
+				temp->ReplaceLightName(assoc.Light());
 				return;
 			}
 		}
@@ -777,6 +708,12 @@ void gl_AddLightAssociation(FLightAssociation *assoc)
 	LightAssociations.Push(assoc);
 }
 
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
 
 void gl_ParseFrame(FScanner &sc, FString name)
 {
@@ -814,7 +751,7 @@ void gl_ParseFrame(FScanner &sc, FString name)
 				gl_ParseString(sc);
 				// [BB] The server just ignores all light associations.
 				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-					gl_AddLightAssociation(new FLightAssociation(name.GetChars(), frameName.GetChars(), sc.String));
+					gl_AddLightAssociation(name, frameName, sc.String);
 				break;
 			default:
 				sc.ScriptError("Unknown tag: %s\n", sc.String);
@@ -827,6 +764,12 @@ void gl_ParseFrame(FScanner &sc, FString name)
 	}
 }
 
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
 
 void gl_ParseObject(FScanner &sc)
 {
@@ -869,14 +812,15 @@ void gl_ParseObject(FScanner &sc)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
 void gl_ReleaseLights()
 {
    unsigned int i;
-
-   for (i = 0; i < LightAssociations.Size(); i++)
-   {
-      delete LightAssociations[i];
-   }
 
    for (i = 0; i < LightDefaults.Size(); i++)
    {
@@ -887,22 +831,11 @@ void gl_ReleaseLights()
    LightDefaults.Clear();
 }
 
-
-void gl_ReplaceLightAssociations(const char *oldName, const char *newName)
-{
-   unsigned int i;
-
-   //Printf("%s -> %s\n", oldName, newName);
-
-   for (i = 0; i < LightAssociations.Size(); i++)
-   {
-      if (strcmp(LightAssociations[i]->ActorName(), oldName) == 0)
-      {
-         LightAssociations[i]->ReplaceActorName(newName);
-      }
-   }
-}
-
+//==========================================================================
+//
+//
+//
+//==========================================================================
 
 // these are the core types available in the *DEFS lump
 static const char *CoreKeywords[]=
@@ -1002,6 +935,11 @@ protected:
 	FLightDefaults * m_AssocLight;
 };
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
 
 FInternalLightAssociation::FInternalLightAssociation(FLightAssociation * asso)
 {
@@ -1009,7 +947,7 @@ FInternalLightAssociation::FInternalLightAssociation(FLightAssociation * asso)
 	m_AssocLight=NULL;
 	for(unsigned int i=0;i<LightDefaults.Size();i++)
 	{
-		if (!strcmp(asso->Light(), LightDefaults[i]->GetName()))
+		if (LightDefaults[i]->GetName() == asso->Light())
 		{
 			m_AssocLight = LightDefaults[i];
 			break;
@@ -1037,6 +975,12 @@ FInternalLightAssociation::FInternalLightAssociation(FLightAssociation * asso)
 }
 
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
 inline TDeletingArray<FInternalLightAssociation *> * gl_GetActorLights(AActor * actor)
 {
 	return (TDeletingArray<FInternalLightAssociation *>*)actor->lightassociations;
@@ -1044,18 +988,34 @@ inline TDeletingArray<FInternalLightAssociation *> * gl_GetActorLights(AActor * 
 
 TDeletingArray< TDeletingArray<FInternalLightAssociation *> * > AssoDeleter;
 
+//==========================================================================
+//
+// State lights
+//
+//==========================================================================
+TArray<FName> ParsedStateLights;
+TArray<FLightDefaults *> StateLights;
+
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
 void gl_InitializeActorLights()
 {
 	for(unsigned int i=0;i<LightAssociations.Size();i++)
 	{
-		const PClass * ti = PClass::FindClass(LightAssociations[i]->ActorName());
+		const PClass * ti = PClass::FindClass(LightAssociations[i].ActorName());
 		if (ti)
 		{
 			ti = GetRealType(ti);
 			AActor * defaults = GetDefaultByType(ti);
 			if (defaults)
 			{
-				FInternalLightAssociation * iasso = new FInternalLightAssociation(LightAssociations[i]);
+				FInternalLightAssociation * iasso = new FInternalLightAssociation(&LightAssociations[i]);
 
 				if (!defaults->lightassociations)
 				{
@@ -1076,8 +1036,59 @@ void gl_InitializeActorLights()
 			}
 		}
 	}
+	// we don't need the parser data for the light associations anymore
+	LightAssociations.Clear();
+	LightAssociations.ShrinkToFit();
+
+	StateLights.Resize(ParsedStateLights.Size()+1);
+	for(unsigned i=0; i<ParsedStateLights.Size();i++)
+	{
+		if (ParsedStateLights[i] != NAME_None)
+		{
+			StateLights[i] = (FLightDefaults*)-1;	// something invalid that's not NULL.
+			for(unsigned int j=0;j<LightDefaults.Size();j++)
+			{
+				if (LightDefaults[j]->GetName() == ParsedStateLights[i])
+				{
+					StateLights[i] = LightDefaults[j];
+					break;
+				}
+			}
+		}
+		else StateLights[i] = NULL;
+	}
+	StateLights[StateLights.Size()-1] = NULL;	// terminator
+	ParsedStateLights.Clear();
+	ParsedStateLights.ShrinkToFit();
 }
 
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void gl_AttachLight(AActor *actor, unsigned int count, const FLightDefaults *lightdef)
+{
+	ADynamicLight *light;
+
+		// I'm skipping the single rotations because that really doesn't make sense!
+	if (count < actor->dynamiclights.Size()) 
+	{
+		light = barrier_cast<ADynamicLight*>(actor->dynamiclights[count]);
+		assert(light != NULL);
+	}
+	else
+	{
+		light = Spawn<ADynamicLight>(actor->x, actor->y, actor->z, NO_REPLACE);
+		light->target = actor;
+		light->owned = true;
+		actor->dynamiclights.Push(light);
+	}
+	light->flags2&=~MF2_DORMANT;
+	lightdef->ApplyProperties(light);
+}
 
 //==========================================================================
 //
@@ -1088,57 +1099,45 @@ void gl_InitializeActorLights()
 void gl_SetActorLights(AActor *actor)
 {
 	TArray<FInternalLightAssociation *> * l = gl_GetActorLights(actor);
+	unsigned int count = 0;
 
 	All.Clock();
-	if (l && currentrenderer==1)
+	if (l)
 	{
 		TArray<FInternalLightAssociation *> & LightAssociations=*l;
-		ADynamicLight *lights, *tmpLight, *light;
+		ADynamicLight *lights, *tmpLight;
 		unsigned int i;
-		unsigned int count;
 
 		int sprite = actor->state->sprite;
 		int frame = actor->state->GetFrame();
 
 		lights = tmpLight = NULL;
 
-		count=0;
-		
+
 		for (i = 0; i < LightAssociations.Size(); i++)
 		{
 			if (LightAssociations[i]->Sprite() == sprite &&
 				(LightAssociations[i]->Frame()==frame || LightAssociations[i]->Frame()==-1))
 			{
-				// I'm skipping the single rotations because that really doesn't make sense!
-				if (count < actor->dynamiclights.Size()) 
-				{
-					light = barrier_cast<ADynamicLight*>(actor->dynamiclights[count]);
-					assert(light != NULL);
-				}
-				else
-				{
-					light = Spawn<ADynamicLight>(actor->x, actor->y, actor->z, NO_REPLACE);
-					light->target = actor;
-					light->owned = true;
-					actor->dynamiclights.Push(light);
-				}
-				light->flags2&=~MF2_DORMANT;
-				LightAssociations[i]->Light()->ApplyProperties(light);
-				count++;
+				gl_AttachLight(actor, count++, LightAssociations[i]->Light());
 			}
 		}
-		for(;count<actor->dynamiclights.Size();count++)
+	}
+	if (count == 0 && actor->state->Light > 0)
+	{
+		for(int i= actor->state->Light; StateLights[i] != NULL; i++)
 		{
-			actor->dynamiclights[count]->flags2|=MF2_DORMANT;
-			memset(actor->dynamiclights[count]->args, 0, sizeof(actor->args));
+			if (StateLights[i] != (FLightDefaults*)-1)
+			{
+				gl_AttachLight(actor, count++, StateLights[i]);
+			}
 		}
-		// Store the current sprite in the first light to avoid 
-		// redundant reassignments of the light properties.
-		if (actor->dynamiclights.Size())
-		{
-			actor->dynamiclights[0]->special1=(int)actor->sprite;
-			actor->dynamiclights[0]->special2=(int)actor->frame;
-		}
+	}
+
+	for(;count<actor->dynamiclights.Size();count++)
+	{
+		actor->dynamiclights[count]->flags2|=MF2_DORMANT;
+		memset(actor->dynamiclights[count]->args, 0, sizeof(actor->args));
 	}
 	All.Unclock();
 }
@@ -1172,6 +1171,12 @@ void gl_DeleteAllAttachedLights()
 
 
 }
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
 
 void gl_RecreateAllAttachedLights()
 {
@@ -1211,11 +1216,7 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 			{
 				sc.MustGetString();
 				// This is not using sc.Open because it can print a more useful error message when done here
-				lump = Wads.CheckNumForFullName(sc.String);
-				// Try a normal WAD name lookup only if it's a proper name without path
-				// separator and not longer than 8 characters.
-				if (lump==-1 && strlen(sc.String) <= 8 && !strchr(sc.String, '/'))
-					lump = Wads.CheckNumForName(sc.String);
+				lump = Wads.CheckNumForFullName(sc.String, true);
 				if (lump==-1)
 					sc.ScriptError("Lump '%s' not found", sc.String);
 
@@ -1277,7 +1278,13 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 	}
 }
 
-void gl_LoadDynLightDefs(const char * defsLump)
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void gl_LoadGLDefs(const char * defsLump)
 {
 	int workingLump, lastLump;
 
@@ -1287,19 +1294,18 @@ void gl_LoadDynLightDefs(const char * defsLump)
 		FScanner sc(workingLump);
 		gl_DoParseDefs(sc, workingLump);
 	}
-	lastLump = 0;
-	if ((stricmp(defsLump, "GLDEFS") == 0) &&
-		((workingLump = Wads.FindLump("SKYBOXES", &lastLump)) != -1))
-	{
-		FScanner sc(workingLump);
-		gl_ParseVavoomSkybox(sc);
-	}
 }
 
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
 void gl_ParseDefs()
 {
-	const char *defsLump;
+	const char *defsLump = NULL;
 
 	atterm( gl_ReleaseLights ); 
 	switch (gameinfo.gametype)
@@ -1313,12 +1319,35 @@ void gl_ParseDefs()
 	case GAME_Strife:
 		defsLump = "STRFDEFS";
 		break;
-	default:
+	case GAME_Doom:
 		defsLump = "DOOMDEFS";
 		break;
+	case GAME_Chex:
+		defsLump = "CHEXDEFS";
+		break;
 	}
-	gl_LoadDynLightDefs(defsLump);
-	gl_LoadDynLightDefs("GLDEFS");
+	gl_ParseVavoomSkybox();
+	if (defsLump != NULL) gl_LoadGLDefs(defsLump);
+	gl_LoadGLDefs("GLDEFS");
 	gl_InitializeActorLights();
 }
 
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void AddStateLight(FState *State, const char *lname)
+{
+	if (State->Light == 0)
+	{
+		ParsedStateLights.Push(NAME_None);
+		State->Light = ParsedStateLights.Push(FName(lname));
+	}
+	else
+	{
+		ParsedStateLights.Push(FName(lname));
+	}
+}

@@ -65,7 +65,6 @@ struct FLightNode
 // [CO] I merged everything together in this one class so that I don't have
 // to create and re-create an excessive amount of objects
 //
-class FLightDefaults;
 
 class ADynamicLight : public AActor
 {

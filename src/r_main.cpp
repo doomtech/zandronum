@@ -797,47 +797,6 @@ static void R_Shutdown ()
 
 //==========================================================================
 //
-// I am keeping both the original nodes from the WAD and the ones
-// created for the GL renderer. THe original set is only being used
-// to get the sector for in-game positioning of actors but not for rendering.
-//
-// Unfortunately this is necessary because ZDBSP is much more sensitive
-// to sloppy mapping practices that produce overlapping sectors.
-// The crane in P:AR E1M3 is a good example that would be broken If
-// I didn't do this.
-//
-//==========================================================================
-
-
-//==========================================================================
-//
-// P_PointInSubsector
-//
-//==========================================================================
-
-subsector_t *P_PointInSubsector (fixed_t x, fixed_t y)
-{
-	node_t *node;
-	int side;
-
-	// single subsector is a special case
-	if (numgamenodes == 0)
-		return gamesubsectors;
-				
-	node = gamenodes + numgamenodes - 1;
-
-	do
-	{
-		side = R_PointOnSide (x, y, node);
-		node = (node_t *)node->children[side];
-	}
-	while (!((size_t)node & 1));
-		
-	return (subsector_t *)((BYTE *)node - 1);
-}
-
-//==========================================================================
-//
 // R_PointInSubsector
 //
 //==========================================================================
@@ -913,11 +872,11 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 			// Avoid overflowing viewpitch (can happen when a netgame is stalled)
 			if (viewpitch + delta <= viewpitch)
 			{
-				viewpitch = +ANGLE_1*MAX_DN_ANGLE;
+				viewpitch = screen->GetMaxViewPitch(true);
 			}
 			else
 			{
-				viewpitch = MIN(viewpitch + delta, +ANGLE_1*MAX_DN_ANGLE);
+				viewpitch = MIN(viewpitch + delta, screen->GetMaxViewPitch(true));
 			}
 		}
 		else if (delta < 0)
@@ -925,11 +884,11 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 			// Avoid overflowing viewpitch (can happen when a netgame is stalled)
 			if (viewpitch + delta >= viewpitch)
 			{
-				viewpitch = -ANGLE_1*MAX_UP_ANGLE;
+				viewpitch = screen->GetMaxViewPitch(false);
 			}
 			else
 			{
-				viewpitch = MAX(viewpitch + delta, -ANGLE_1*MAX_UP_ANGLE);
+				viewpitch = MAX(viewpitch + delta, screen->GetMaxViewPitch(false));
 			}
 		}
 	}

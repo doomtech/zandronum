@@ -965,3 +965,45 @@ void gl_CheckNodes(MapData * map)
 		numgamesubsectors = numsubsectors;
 	}
 }
+
+//==========================================================================
+//
+// I am keeping both the original nodes from the WAD and the ones
+// created for the GL renderer. THe original set is only being used
+// to get the sector for in-game positioning of actors but not for rendering.
+//
+// Unfortunately this is necessary because ZDBSP is much more sensitive
+// to sloppy mapping practices that produce overlapping sectors.
+// The crane in P:AR E1M3 is a good example that would be broken If
+// I didn't do this.
+//
+//==========================================================================
+
+
+//==========================================================================
+//
+// P_PointInSubsector
+//
+//==========================================================================
+
+subsector_t *P_PointInSubsector (fixed_t x, fixed_t y)
+{
+	node_t *node;
+	int side;
+
+	// single subsector is a special case
+	if (numgamenodes == 0)
+		return gamesubsectors;
+				
+	node = gamenodes + numgamenodes - 1;
+
+	do
+	{
+		side = R_PointOnSide (x, y, node);
+		node = (node_t *)node->children[side];
+	}
+	while (!((size_t)node & 1));
+		
+	return (subsector_t *)((BYTE *)node - 1);
+}
+

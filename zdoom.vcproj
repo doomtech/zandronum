@@ -10750,6 +10750,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\textures\gl_skyboxtexture.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\textures\gl_skyboxtexture.h"
 					>
 				</File>

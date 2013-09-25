@@ -41,9 +41,7 @@
 // case of the generic moving object/actor.
 #include "actor.h"
 
-#include "d_netinf.h"
 #include "r_defs.h"
-
 #include "a_sharedglobal.h"
 #include "bots.h"
 #include "medal.h"
@@ -639,12 +637,6 @@ void P_CheckPlayerSprites();
 
 
 #define CROUCHSPEED (FRACUNIT/12)
-
-EXTERN_CVAR(Float, maxviewpitch)
-
-extern int currentrenderer;
-#define MAX_DN_ANGLE	((int)((netgame || currentrenderer==0)? 56 : maxviewpitch))		// Max looking down angle
-#define MAX_UP_ANGLE	((int)((netgame || currentrenderer==0)? 32 : maxviewpitch))		// Max looking up angle
 
 // [GRB] Custom player classes
 enum

@@ -63,6 +63,9 @@
 #include "colormatcher.h"
 #include "v_palette.h"
 
+// [BB] Use ZDoom's freelook limit for the sotfware renderer.
+// Note: ZDoom's limit is chosen such that the sky is rendered properly.
+CVAR (Bool, cl_oldfreelooklimit, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 IMPLEMENT_ABSTRACT_CLASS (DCanvas)
 IMPLEMENT_ABSTRACT_CLASS (DFrameBuffer)
@@ -1269,7 +1272,49 @@ void DFrameBuffer::DrawRemainingPlayerSprites()
 	R_DrawRemainingPlayerSprites();
 }
 
+//===========================================================================
+//
+// notify the renderer that an actor has changed state
+//
+//===========================================================================
 
+void DFrameBuffer::StateChanged(AActor *actor)
+{
+}
+
+//===========================================================================
+//
+// notify the renderer that serialization of the curent level is about to start/end
+//
+//===========================================================================
+
+void DFrameBuffer::StartSerialize(FArchive &arc)
+{
+}
+
+void DFrameBuffer::EndSerialize(FArchive &arc)
+{
+}
+
+//===========================================================================
+//
+// Get max. view angle (renderer specific information so it goes here now)
+//
+//===========================================================================
+#define MAX_DN_ANGLE	56		// Max looking down angle
+#define MAX_UP_ANGLE	32		// Max looking up angle
+
+int DFrameBuffer::GetMaxViewPitch(bool down)
+{
+	// [BB] The user can restore ZDoom's freelook limit.
+	return down? MAX_DN_ANGLE*ANGLE_1 : -( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 )*ANGLE_1;
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
 
 FNativePalette::~FNativePalette()
 {

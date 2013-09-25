@@ -47,8 +47,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
-#define ZD_SVN_REVISION_STRING "1931"
-#define ZD_SVN_REVISION_NUMBER 1931
+#define ZD_SVN_REVISION_STRING "1936"
+#define ZD_SVN_REVISION_NUMBER 1936
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -128,6 +128,8 @@ static inline const char *MakeSaveSig()
 #define SAVEVER			ZD_SVN_REVISION_NUMBER
 #define SAVESIG			"ZDOOMSAVE"ZD_SVN_REVISION_STRING
 #endif
+
+#define DYNLIGHT
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
 #define GAMESIG "ZANDRONUM"

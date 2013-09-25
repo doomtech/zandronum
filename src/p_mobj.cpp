@@ -63,7 +63,6 @@
 #include "colormatcher.h"
 #include "v_palette.h"
 #include "p_enemy.h"
-#include "gl/gl_functions.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "duel.h"
@@ -358,7 +357,13 @@ void AActor::Serialize (FArchive &arc)
 		arc << DamageFactor;
 	}
 
-	for(int i=0; i<10; i++) arc << uservar[i];
+	// Skip past uservar array in old savegames
+	if (SaveVersion < 1933)
+	{
+		int foo;
+		for (int i = 0; i < 10; ++i)
+			arc << foo;
+	}
 
 	if (arc.IsStoring ())
 	{
@@ -628,7 +633,7 @@ bool AActor::SetState (FState *newstate)
 		}
 	} while (tics == 0);
 
-	gl_SetActorLights(this);
+	screen->StateChanged(this);
 	return true;
 }
 
@@ -702,7 +707,7 @@ bool AActor::SetStateNF (FState *newstate)
 		}
 	} while (tics == 0);
 
-	gl_SetActorLights(this);
+	screen->StateChanged(this);
 	return true;
 }
 
@@ -4698,10 +4703,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 			TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 	}
 
-	bool smt = SpawningMapThing;
-	SpawningMapThing = false;
-	gl_SetActorLights(actor);
-	SpawningMapThing = smt;
+	screen->StateChanged(actor);
 
 	g_SpawnCycles.Unclock();
 	return actor;
@@ -4825,15 +4827,6 @@ void AActor::Deactivate (AActor *activator)
 			}
 		}
 	}
-}
-
-size_t AActor::PropagateMark()
-{
-	for (unsigned i=0; i<dynamiclights.Size(); i++)
-	{
-		GC::Mark(dynamiclights[i]);
-	}
-	return Super::PropagateMark();
 }
 
 //=============================================================================

@@ -60,6 +60,7 @@
 #include "gl/dynlights/gl_glow.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
+#include "gl/gl_functions.h"
 
 void InitGLRMapinfoData();
 void gl_InitData();

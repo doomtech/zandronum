@@ -77,15 +77,6 @@ extern side_t*			sides;
 extern int				numzones;
 extern zone_t*			zones;
 
-// These are the original nodes that are preserved because
-// P_PointInSubsector should use the original data if possible.
-extern node_t * 		gamenodes;
-extern int 				numgamenodes;
-
-extern subsector_t * 	gamesubsectors;
-extern int 				numgamesubsectors;
-
-
 extern FExtraLight*		ExtraLights;
 extern FLightStack*		LightStacks;
 

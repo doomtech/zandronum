@@ -184,7 +184,7 @@ public:
 	fixed_t RowOffset(fixed_t rowoffset) const;
 	fixed_t TextureOffset(fixed_t textureoffset) const;
 
-	float FMaterial::RowOffset(float rowoffset) const;
+	float RowOffset(float rowoffset) const;
 
 	// Returns the size for which texture offset coordinates are used.
 	fixed_t TextureAdjustWidth(ETexUse i) const;
