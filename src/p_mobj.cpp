@@ -633,7 +633,9 @@ bool AActor::SetState (FState *newstate)
 		}
 	} while (tics == 0);
 
-	screen->StateChanged(this);
+	// [BB] The server doesn't have a screen.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		screen->StateChanged(this);
 	return true;
 }
 
@@ -707,7 +709,9 @@ bool AActor::SetStateNF (FState *newstate)
 		}
 	} while (tics == 0);
 
-	screen->StateChanged(this);
+	// [BB] The server doesn't have a screen.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		screen->StateChanged(this);
 	return true;
 }
 
@@ -4703,7 +4707,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 			TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 	}
 
-	screen->StateChanged(actor);
+	// [BB] The server doesn't have a screen.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		screen->StateChanged(actor);
 
 	g_SpawnCycles.Unclock();
 	return actor;

@@ -2110,7 +2110,9 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 		return;
 	}
 
-	screen->StartSerialize(arc);
+	// [BB] The server doesn't have a screen.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		screen->StartSerialize(arc);
 
 	arc << level.flags
 		<< level.flags2
@@ -2231,7 +2233,9 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 			}
 		}
 	}
-	screen->EndSerialize(arc);
+	// [BB] The server doesn't have a screen.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		screen->EndSerialize(arc);
 	STAT_SAVE(arc, hubLoad);
 }
 
