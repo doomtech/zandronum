@@ -1549,7 +1549,7 @@ FISoundChannel *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pi
 			chan->setFrequency(freq);
 		}
 		chan->setVolume(vol);
-		if (!HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq))
+		if (!HandleChannelDelay(chan, reuse_chan, flags & (SNDF_ABSTIME | SNDF_LOOP), freq))
 		{
 			chan->stop();
 			return NULL;
@@ -1656,7 +1656,7 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 			chan->set3DAttributes((FMOD_VECTOR *)&pos[0], (FMOD_VECTOR *)&vel[0]);
 			chan->set3DSpread(snd_3dspread);
 		}
-		if (!HandleChannelDelay(chan, reuse_chan, !!(flags & SNDF_ABSTIME), freq))
+		if (!HandleChannelDelay(chan, reuse_chan, flags & (SNDF_ABSTIME | SNDF_LOOP), freq))
 		{
 			chan->stop();
 			return NULL;
@@ -1693,7 +1693,7 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 //
 //==========================================================================
 
-bool FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, bool abstime, float freq) const
+bool FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, int flags, float freq) const
 {
 	if (reuse_chan != NULL)
 	{ // Sound is being restarted, so seek it to the position
@@ -1703,7 +1703,7 @@ bool FMODSoundRenderer::HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *
 
 		// If abstime is set, the sound is being restored, and
 		// the channel's start time is actually its seek position.
-		if (abstime)
+		if (flags & SNDF_ABSTIME)
 		{
 			unsigned int seekpos = reuse_chan->StartTime.Lo;
 			if (seekpos > 0)

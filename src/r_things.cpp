@@ -1779,6 +1779,12 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 
 	FDynamicColormap *mybasecolormap = basecolormap;
 
+	// Sprites that are added to the scene must fade to black.
+	if (vis->RenderStyle == LegacyRenderStyles[STYLE_Add] && mybasecolormap->Fade != 0)
+	{
+		mybasecolormap = GetSpecialLights(mybasecolormap->Color, 0, mybasecolormap->Desaturate);
+	}
+
 	if (vis->RenderStyle.Flags & STYLEF_FadeToBlack)
 	{
 		if (invertcolormap)

@@ -1895,6 +1895,7 @@ static void TranslateToStartSpot (int tag, int originX, int originY)
 	validcount++;
 	for (i = 0; i < po->numsegs; i++, tempSeg++, tempPt++)
 	{
+		(*tempSeg)->sidedef->Flags |= WALLF_POLYOBJ;
 		if ((*tempSeg)->linedef->validcount != validcount)
 		{
 			(*tempSeg)->linedef->bbox[BOXTOP] -= deltaY;
@@ -1915,16 +1916,17 @@ static void TranslateToStartSpot (int tag, int originX, int originY)
 			(*tempSeg)->v1->x -= deltaX;
 			(*tempSeg)->v1->y -= deltaY;
 		}
-		avg.x += (*tempSeg)->v1->x>>FRACBITS;
-		avg.y += (*tempSeg)->v1->y>>FRACBITS;
+		avg.x += (*tempSeg)->v1->x >> FRACBITS;
+		avg.y += (*tempSeg)->v1->y >> FRACBITS;
 		// the original Pts are based off the startSpot Pt, and are
 		// unique to each seg, not each linedef
 		tempPt->x = (*tempSeg)->v1->x-po->startSpot[0];
 		tempPt->y = (*tempSeg)->v1->y-po->startSpot[1];
 	}
+	// Put polyobj in its subsector.
 	avg.x /= po->numsegs;
 	avg.y /= po->numsegs;
-	sub = R_PointInSubsector (avg.x<<FRACBITS, avg.y<<FRACBITS);
+	sub = R_PointInSubsector (avg.x << FRACBITS, avg.y << FRACBITS);
 	if (sub->poly != NULL)
 	{
 		I_Error ("PO_TranslateToStartSpot: Multiple polyobjs in a single subsector.\n");

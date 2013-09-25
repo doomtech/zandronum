@@ -401,7 +401,10 @@ bool P_TestActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	}
 	if (activationType == SPAC_Use)
 	{
-		if (!P_CheckSwitchRange(mo, line, side)) return false;
+		if (!P_CheckSwitchRange(mo, line, side))
+		{
+			return false;
+		}
 	}
 
 	if ((lineActivation & activationType) == 0)

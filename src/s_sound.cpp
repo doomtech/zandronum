@@ -1848,6 +1848,11 @@ void S_EvictAllChannels()
 			chan->ChanFlags |= CHAN_EVICTED;
 			if (chan->SysChannel != NULL)
 			{
+				if (!(chan->ChanFlags & CHAN_ABSTIME))
+				{
+					chan->StartTime.AsOne = GSnd ? GSnd->GetPosition(chan) : 0;
+					chan->ChanFlags |= CHAN_ABSTIME;
+				}
 				S_StopChannel(chan);
 			}
 //			assert(chan->NextChan == next);
@@ -2127,13 +2132,11 @@ void S_StopChannel(FSoundChan *chan)
 		if (!(chan->ChanFlags & CHAN_EVICTED))
 		{
 			chan->ChanFlags |= CHAN_FORGETTABLE;
+			if (chan->SourceType == SOURCE_Actor)
+			{
+				chan->Actor = NULL;
+			}
 		}
-
-		if (chan->SourceType == SOURCE_Actor)
-		{
-			chan->Actor = NULL;
-		}
-
 		GSnd->StopChannel(chan);
 	}
 	else

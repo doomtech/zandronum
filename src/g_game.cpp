@@ -4420,14 +4420,11 @@ FString G_BuildSaveName (const char *prefix, int slot)
 		{
 			leader = save_dir;
 		}
+		if (leader.IsEmpty())
+		{
 #ifdef unix
-		if (leader.IsEmpty())
-		{
 			leader = "~/" GAME_DIR;
-		}
 #elif defined(__APPLE__)
-		if (leader.IsEmpty())
-		{
 			char cpath[PATH_MAX];
 			FSRef folder;
 
@@ -4436,8 +4433,10 @@ FString G_BuildSaveName (const char *prefix, int slot)
 			{
 				leader << cpath << "/" GAME_DIR "/Savegames/";
 			}
-		}
+#else
+			leader = progdir;
 #endif
+		}
 	}
 	size_t len = leader.Len();
 	if (leader[0] != '\0' && leader[len-1] != '\\' && leader[len-1] != '/')

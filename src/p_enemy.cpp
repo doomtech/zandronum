@@ -2900,6 +2900,10 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			S_Sound (corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 			info = corpsehit->GetDefault ();
 			
+			if (corpsehit->state == corpsehit->FindState(NAME_GenericCrush))
+			{			
+				corpsehit->Translation = info->Translation; // Clean up bloodcolor translation from crushed corpses
+			}
 			if (ib_compatflags & BCOMPATF_VILEGHOSTS)
 			{
 				corpsehit->height <<= 2;
@@ -2918,7 +2922,6 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 						corpsehit->RenderStyle = STYLE_Translucent;
 					}
 				}
-				corpsehit->Translation = info->Translation; // Clean up bloodcolor translation from crushed corpses
 			}
 			else
 			{
