@@ -105,6 +105,7 @@ public:
 	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool expand, bool allowhires, int warp);
 
 	void Clean(bool all);
+	int Dump(int i);
 
 };
 

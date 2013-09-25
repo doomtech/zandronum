@@ -268,6 +268,7 @@ void FVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
 	for(int i=0; i<countvt; i++, vt++)
 	{
 		vt->z = splane.ZatPoint(vt->x, vt->y);
+		if (plane == sector_t::floor && sec->transdoor) vt->z = -1;
 	}
 	if (gl.flags & RFL_MAP_BUFFER_RANGE)
 	{

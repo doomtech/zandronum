@@ -42,6 +42,7 @@
 #include "sbar.h"
 #include "gi.h"
 #include "cmdlib.h"
+#include "c_dispatch.h"
 #include "stats.h"
 #include "r_main.h"
 #include "templates.h"
@@ -990,4 +991,43 @@ void FMaterial::DeleteAll()
 	}
 	mMaterials.Clear();
 	mMaterials.ShrinkToFit();
+}
+
+//==========================================================================
+//
+// Prints some texture info
+//
+//==========================================================================
+
+int FGLTexture::Dump(int i)
+{
+	int cnt = 0;
+	int lump = tex->GetSourceLump();
+	Printf(PRINT_LOG, "Texture '%s' (Index %d, Lump %d, Name '%s'):\n", tex->Name, i, lump, Wads.GetLumpFullName(lump));
+	if (hirestexture) Printf(PRINT_LOG, "\tHirestexture\n");
+	if (glpatch) Printf(PRINT_LOG, "\tPatch\n"),cnt++;
+	if (gltexture[0]) Printf(PRINT_LOG, "\tTexture (x:no,  y:no )\n"),cnt++;
+	if (gltexture[1]) Printf(PRINT_LOG, "\tTexture (x:yes, y:no )\n"),cnt++;
+	if (gltexture[2]) Printf(PRINT_LOG, "\tTexture (x:no,  y:yes)\n"),cnt++;
+	if (gltexture[3]) Printf(PRINT_LOG, "\tTexture (x:yes, y:yes)\n"),cnt++;
+	if (gltexture[4]) Printf(PRINT_LOG, "\tTexture precache\n"),cnt++;
+	return cnt;
+}
+
+CCMD(textureinfo)
+{
+	int cnth = 0, cntt = 0, pix = 0;
+	for(int i=0; i<TexMan.NumTextures(); i++)
+	{
+		FTexture *tex = TexMan.ByIndex(i);
+		FGLTexture *systex = tex->gl_info.SystemTexture;
+		if (systex != NULL) 
+		{
+			int cnt = systex->Dump(i);
+			cnth+=cnt;
+			cntt++;
+			pix += cnt * tex->GetWidth() * tex->GetHeight();
+		}
+	}
+	Printf(PRINT_LOG, "%d system textures, %d hardware textures, %d pixels\n", cntt, cnth, pix);
 }

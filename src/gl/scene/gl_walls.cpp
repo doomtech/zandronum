@@ -717,7 +717,8 @@ void GLWall::CheckTexturePosition()
 	lolft.v -= sub;
 	lorgt.v -= sub;
 
-	if (uplft.v >= 0.f && uprgt.v >= 0.f && lolft.v <= 1.f && lorgt.v <= 1.f)
+	if ((uplft.v == 0.f && uprgt.v == 0.f && lolft.v <= 1.f && lorgt.v <= 1.f) ||
+		(uplft.v >= 0.f && uprgt.v >= 0.f && lolft.v == 1.f && lorgt.v == 1.f))
 	{
 		flags|=GLT_CLAMPY;
 	}

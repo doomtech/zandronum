@@ -140,7 +140,7 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 		for(k = 0, v = sub->firstline; k < sub->numlines; k++, v++)
 		{
 			vertex_t *vt = segs[v].v1;
-			float zc = plane.plane.ZatPoint(vt->fx, vt->fy) + z;
+			float zc = plane.plane.ZatPoint(vt->fx, vt->fy) + dz;
 
 			t1.Set(vt->fx, zc, vt->fy);
 			Vector nearToVert = t1 - nearPt;
@@ -229,7 +229,7 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 	{
 		vertex_t *vt = segs[sub->firstline+k].v1;
 		gl.TexCoord2f(vt->fx/64.f, -vt->fy/64.f);
-		float zc = plane.plane.ZatPoint(vt->fx, vt->fy);// + z;
+		float zc = plane.plane.ZatPoint(vt->fx, vt->fy) + dz;
 		gl.Vertex3f(vt->fx, zc, vt->fy);
 	}
 	gl.End();
@@ -501,8 +501,10 @@ void GLFlat::Process(sector_t * sector, int whichplane, bool fog)
 	}
 
 	// get height from vplane
-	if (whichplane == sector_t::floor && sector->transdoor) z = -1;
-	else z = 0;
+	if (whichplane == sector_t::floor && sector->transdoor) dz = -1;
+	else dz = 0;
+
+	z = plane.plane.ZatPoint(0.f, 0.f);
 	
 	PutFlat(fog);
 	rendered_flats++;

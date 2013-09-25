@@ -251,7 +251,8 @@ public:
 
 	sector_t * sector;
 	subsector_t * sub;	// only used for translucent planes
-	float z; // the z position of the flat (height)
+	float dz; // z offset for rendering hacks
+	float z; // the z position of the flat (only valid for non-sloped planes)
 	FMaterial *gltexture;
 
 	FColormap Colormap;	// light and fog

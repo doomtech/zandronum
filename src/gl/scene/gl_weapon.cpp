@@ -272,6 +272,12 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 
 	// now draw the different layers of the weapon
 	gl_RenderState.EnableBrightmap(true);
+	if (statebright[0] || statebright[1])
+	{
+		// brighten the weapon to reduce the difference between
+		// normal sprite and fullbright flash.
+		lightlevel = (2*lightlevel+255)/3;
+	}
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 	{
 		if (psp->state) 

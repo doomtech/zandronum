@@ -47,8 +47,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
-#define ZD_SVN_REVISION_STRING "1929"
-#define ZD_SVN_REVISION_NUMBER 1929
+#define ZD_SVN_REVISION_STRING "1931"
+#define ZD_SVN_REVISION_NUMBER 1931
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
