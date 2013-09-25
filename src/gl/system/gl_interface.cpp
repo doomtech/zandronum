@@ -342,6 +342,7 @@ static void APIENTRY LoadExtensions()
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 	if (CheckExtension("GL_ARB_texture_compression")) gl->flags|=RFL_TEXTURE_COMPRESSION;
 	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl->flags|=RFL_TEXTURE_COMPRESSION_S3TC;
+	if (strstr(gl->vendorstring, "NVIDIA")) gl->flags|=RFL_NVIDIA;
 
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.0") >= 0) gl->flags|=RFL_GL_20;
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;

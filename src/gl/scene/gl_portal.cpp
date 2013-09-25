@@ -42,6 +42,7 @@
 #include "gl/system/gl_system.h"
 #include "p_local.h"
 #include "vectors.h"
+#include "c_dispatch.h"
 #include "doomstat.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -193,7 +194,8 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 		if (NeedDepthBuffer())
 		{
 			gl.DepthMask(false);							// don't write to Z-buffer!
-			if (gl_noquery) doquery = false;
+			if (!NeedDepthBuffer()) doquery = false;		// too much overhead and nothing to gain.
+			else if (gl_noquery) doquery = false;
 			
 			// If occlusion query is supported let's use it to avoid rendering portals that aren't visible
 			if (doquery && gl.flags&RFL_OCCLUSION_QUERY)
@@ -441,23 +443,58 @@ void GLPortal::StartFrame()
 
 //-----------------------------------------------------------------------------
 //
+// Portal info
+//
+//-----------------------------------------------------------------------------
+
+static bool gl_portalinfo;
+
+CCMD(gl_portalinfo)
+{
+	gl_portalinfo = true;
+}
+
+FString indent;
+
+//-----------------------------------------------------------------------------
+//
 // EndFrame
 //
 //-----------------------------------------------------------------------------
+
 void GLPortal::EndFrame()
 {
 	GLPortal * p;
 
+	if (gl_portalinfo)
+	{
+		Printf("%s%d portals, depth = %d\n%s{\n", indent.GetChars(), portals.Size(), renderdepth, indent.GetChars());
+		indent += "  ";
+	}
+
 	// Only use occlusion query if there are more than 2 portals. 
 	// Otherwise there's too much overhead.
-	bool usequery = portals.Size() > 2;
+	// (And don't forget to consider the separating NULL pointers!)
+	bool usequery = portals.Size() > 2 + renderdepth;
 
 	while (portals.Pop(p) && p)
 	{
+		if (gl_portalinfo) 
+		{
+			Printf("%sProcessing %s, depth = %d, query = %d\n", indent.GetChars(), p->GetName(), renderdepth, usequery);
+		}
+
 		p->RenderPortal(true, usequery);
 		delete p;
 	}
 	renderdepth--;
+
+	if (gl_portalinfo)
+	{
+		indent.Truncate(indent.Len()-2);
+		Printf("%s}\n", indent.GetChars());
+		if (portals.Size() == 0) gl_portalinfo = false;
+	}
 }
 
 
@@ -583,7 +620,6 @@ void GLSkyboxPortal::DrawContents()
 	PlaneMirrorMode=old_pm;
 	extralight = saved_extralight;
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -751,8 +787,6 @@ void GLMirrorPortal::DrawContents()
 }
 
 
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
@@ -893,3 +927,10 @@ void GLHorizonPortal::DrawContents()
 	PortalAll.Unclock();
 
 }
+
+const char *GLSkyPortal::GetName() { return "Sky"; }
+const char *GLSkyboxPortal::GetName() { return "Skybox"; }
+const char *GLSectorStackPortal::GetName() { return "Sectorstack"; }
+const char *GLPlaneMirrorPortal::GetName() { return "Planemirror"; }
+const char *GLMirrorPortal::GetName() { return "Mirror"; }
+const char *GLHorizonPortal::GetName() { return "Horizon"; }

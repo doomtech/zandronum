@@ -55,6 +55,7 @@
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/data/gl_data.h"
+#include "gl/textures/gl_hwtexture.h"
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_translate.h"
 #include "gl/utility/gl_clock.h"
@@ -95,6 +96,7 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	gl_GenerateGlobalBrightmapFromColormap();
 	DoSetGamma();
 	needsetgamma = true;
+	swapped = false;
 
 	// [BB] Backported from GZDoom revision 660.
 	Accel2D = true;
@@ -183,7 +185,9 @@ void OpenGLFrameBuffer::InitializeState()
 // Updates the screen
 //
 //==========================================================================
-CVAR(Bool, gl_draw_synchronized, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+// Testing only for now. 
+CVAR(Bool, gl_draw_sync, true, 0) //false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 void OpenGLFrameBuffer::Update()
 {
@@ -205,18 +209,35 @@ void OpenGLFrameBuffer::Update()
 
 		Begin2D(false);
 	}
+	if (gl_draw_sync || !swapped)
+	{
+		Swap();
+	}
+	swapped = false;
+	Unlock();
+}
+
+
+//==========================================================================
+//
+// Swap the buffers
+//
+//==========================================================================
+
+void OpenGLFrameBuffer::Swap()
+{
 	Finish.Reset();
 	Finish.Clock();
-	if (gl_draw_synchronized) gl.Finish();
+	gl.Finish();
 	if (needsetgamma) 
 	{
-		DoSetGamma();
+		//DoSetGamma();
 		needsetgamma = false;
 	}
 	gl.SwapBuffers();
 	Finish.Unclock();
-
-	Unlock();
+	swapped = true;
+	FHardwareTexture::UnbindAll();
 }
 
 //===========================================================================

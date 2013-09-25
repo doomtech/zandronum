@@ -89,7 +89,7 @@ public:
 	void SetViewArea();
 	void ResetViewport();
 	void SetViewport(GL_IRECT *bounds);
-	sector_t *RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview);
+	sector_t *RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview, bool toscreen);
 	void RenderView(player_t *player);
 	void SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle);
 	void SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror);
@@ -99,7 +99,7 @@ public:
 	void CreateScene();
 	void RenderScene(int recursion);
 	void RenderTranslucent();
-	void DrawScene();
+	void DrawScene(bool toscreen = false);
 	void DrawBlend(sector_t * viewsector);
 
 	void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index, bool hudModelStep);
@@ -131,7 +131,7 @@ public:
 
 	void SetProjection(float fov, float ratio, float fovratio);
 	void SetViewMatrix(bool mirror, bool planemirror);
-	void ProcessScene();
+	void ProcessScene(bool toscreen = false);
 
 	bool StartOffscreen();
 	void EndOffscreen();

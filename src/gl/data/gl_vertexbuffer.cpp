@@ -41,12 +41,13 @@
 #include "gl/system/gl_system.h"
 #include "doomtype.h"
 #include "p_local.h"
+#include "m_argv.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 
 
-
+int vbo_arg = 2;
 
 //==========================================================================
 //
@@ -56,9 +57,13 @@
 
 FVertexBuffer::FVertexBuffer()
 {
+	const char *c = Args->CheckValue("-vbo");
+	if (c) vbo_arg = strtol(c, NULL, 0);
+	// some ATI cards have problems with the VBO update.
+	else if (!(gl.flags & RFL_NVIDIA) && gl.shadermodel < 4) vbo_arg = 1;	
 	vbo_id = 0;
 	map = NULL;
-	if (gl.flags&RFL_VBO)
+	if (gl.flags&RFL_VBO && vbo_arg > 0)
 	{
 		gl.GenBuffers(1, &vbo_id);
 	}
@@ -67,7 +72,7 @@ FVertexBuffer::FVertexBuffer()
 FVertexBuffer::~FVertexBuffer()
 {
 	UnmapVBO();
-	if (gl.flags&RFL_VBO)
+	if (vbo_id != 0)
 	{
 		gl.DeleteBuffers(1, &vbo_id);
 	}
@@ -337,20 +342,23 @@ void FVertexBuffer::BindVBO()
 
 void FVertexBuffer::CheckPlanes(sector_t *sector)
 {
-	if (sector->GetPlaneTexZ(sector_t::ceiling) != sector->vboheight[sector_t::ceiling])
+	if (vbo_arg == 2)
 	{
-		if (sector->ceilingdata == NULL) // only update if there's no thinker attached
+		if (sector->GetPlaneTexZ(sector_t::ceiling) != sector->vboheight[sector_t::ceiling])
 		{
-			UpdatePlaneVertices(sector, sector_t::ceiling);
-			sector->vboheight[sector_t::ceiling] = sector->GetPlaneTexZ(sector_t::ceiling);
+			if (sector->ceilingdata == NULL) // only update if there's no thinker attached
+			{
+				UpdatePlaneVertices(sector, sector_t::ceiling);
+				sector->vboheight[sector_t::ceiling] = sector->GetPlaneTexZ(sector_t::ceiling);
+			}
 		}
-	}
-	if (sector->GetPlaneTexZ(sector_t::floor) != sector->vboheight[sector_t::floor])
-	{
-		if (sector->floordata == NULL) // only update if there's no thinker attached
+		if (sector->GetPlaneTexZ(sector_t::floor) != sector->vboheight[sector_t::floor])
 		{
-			UpdatePlaneVertices(sector, sector_t::floor);
-			sector->vboheight[sector_t::floor] = sector->GetPlaneTexZ(sector_t::floor);
+			if (sector->floordata == NULL) // only update if there's no thinker attached
+			{
+				UpdatePlaneVertices(sector, sector_t::floor);
+				sector->vboheight[sector_t::floor] = sector->GetPlaneTexZ(sector_t::floor);
+			}
 		}
 	}
 }

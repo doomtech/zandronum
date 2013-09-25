@@ -780,17 +780,20 @@ void gl_CleanLevelData()
 		mo=next;
 	}
 
-	for(int i = 0; i < numvertexes; i++) if (vertexes[i].numsectors > 0)
+	if (vertexes != NULL)
 	{
-		if (vertexes[i].sectors != NULL)
+		for(int i = 0; i < numvertexes; i++) if (vertexes[i].numsectors > 0)
 		{
-			delete [] vertexes[i].sectors;
-			vertexes[i].sectors = NULL;
-		}
-		if (vertexes[i].heightlist != NULL)
-		{
-			delete [] vertexes[i].heightlist;
-			vertexes[i].heightlist = NULL;
+			if (vertexes[i].sectors != NULL)
+			{
+				delete [] vertexes[i].sectors;
+				vertexes[i].sectors = NULL;
+			}
+			if (vertexes[i].heightlist != NULL)
+			{
+				delete [] vertexes[i].heightlist;
+				vertexes[i].heightlist = NULL;
+			}
 		}
 	}
 

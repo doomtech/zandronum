@@ -554,12 +554,22 @@ void FGLRenderer::RenderTranslucent()
 // stencil, z-buffer and the projection matrix intact!
 //
 //-----------------------------------------------------------------------------
+EXTERN_CVAR(Bool, gl_draw_sync)
 
-void FGLRenderer::DrawScene()
+void FGLRenderer::DrawScene(bool toscreen)
 {
 	static int recursion=0;
 
 	CreateScene();
+
+	// Up to this point in the main draw call no rendering is performed so we can wait
+	// with swapping the render buffer until now.
+	if (!gl_draw_sync && toscreen)
+	{
+		All.Unclock();
+		static_cast<OpenGLFrameBuffer*>(screen)->Swap();
+		All.Clock();
+	}
 	RenderScene(recursion);
 
 	// Handle all portals after rendering the opaque objects but before
@@ -820,13 +830,13 @@ void FGLRenderer::EndDrawScene(sector_t * viewsector)
 //
 //-----------------------------------------------------------------------------
 
-void FGLRenderer::ProcessScene()
+void FGLRenderer::ProcessScene(bool toscreen)
 {
 	FDrawInfo::StartDrawInfo();
 	iter_dlightf = iter_dlight = draw_dlight = draw_dlightf = 0;
 	GLPortal::BeginScene();
 
-	DrawScene();
+	DrawScene(toscreen);
 	FDrawInfo::EndDrawInfo();
 
 }
@@ -880,7 +890,7 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 //
 //-----------------------------------------------------------------------------
 
-sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
+sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview, bool toscreen)
 {       
 	sector_t * retval;
 	R_SetupFrame (camera);
@@ -916,7 +926,7 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 	angle_t a1 = GLRenderer->FrustumAngle();
 	clipper.SafeAddClipRange(viewangle+a1, viewangle-a1);
 
-	ProcessScene();
+	ProcessScene(toscreen);
 
 	gl_frameCount++;	// This counter must be increased right before the interpolations are restored.
 	interpolator.RestoreInterpolations ();
@@ -1023,7 +1033,7 @@ void FGLRenderer::RenderView (player_t* player)
 	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
-	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true);
+	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true, true);
 	EndDrawScene(viewsector);
 
 	All.Unclock();
@@ -1051,7 +1061,7 @@ void FGLRenderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
 	sector_t *viewsector = RenderViewpoint(players[consoleplayer].camera, &bounds, 
-								FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true);
+								FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true, false);
 	gl.Disable(GL_STENCIL_TEST);
 	screen->Begin2D(false);
 	DrawBlend(viewsector);

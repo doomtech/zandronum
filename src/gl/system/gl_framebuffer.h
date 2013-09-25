@@ -86,6 +86,7 @@ public:
 	void WipeEndScreen();
 	bool WipeDo(int ticks);
 	void WipeCleanup();
+	void Swap();
 
 
 private:
@@ -96,6 +97,7 @@ private:
 	int translation;
 	bool iscomplex;
 	bool needsetgamma;
+	bool swapped;
 
 	PalEntry SourcePalette[256];
 	BYTE *ScreenshotBuffer;

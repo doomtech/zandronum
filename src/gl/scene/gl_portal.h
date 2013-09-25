@@ -127,6 +127,7 @@ protected:
 	virtual bool NeedCap() { return true; }
 	virtual bool NeedDepthBuffer() { return true; }
 	void ClearScreen();
+	virtual const char *GetName() = 0;
 
 public:
 	void RenderPortal(bool usestencil, bool doquery)
@@ -168,6 +169,7 @@ struct GLMirrorPortal : public GLPortal
 protected:
 	virtual void DrawContents();
 	virtual void * GetSource() const { return linedef; }
+	virtual const char *GetName();
 
 public:
 	
@@ -188,6 +190,7 @@ protected:
 	virtual void DrawContents();
 	virtual void * GetSource() const { return origin; }
 	virtual bool IsSky() { return true; } // later!
+	virtual const char *GetName();
 
 public:
 
@@ -209,6 +212,7 @@ protected:
 	virtual void * GetSource() const { return origin; }
 	virtual bool IsSky() { return true; }
 	virtual bool NeedDepthBuffer() { return false; }
+	virtual const char *GetName();
 
 public:
 
@@ -228,6 +232,7 @@ protected:
 	virtual void DrawContents();
 	virtual void * GetSource() const { return origin; }
 	virtual bool IsSky() { return true; }	// although this isn't a real sky it can be handled as one.
+	virtual const char *GetName();
 	GLSectorStackInfo * origin;
 
 public:
@@ -244,6 +249,7 @@ struct GLPlaneMirrorPortal : public GLPortal
 protected:
 	virtual void DrawContents();
 	virtual void * GetSource() const { return origin; }
+	virtual const char *GetName();
 	secplane_t * origin;
 
 public:
@@ -265,6 +271,7 @@ protected:
 	virtual void * GetSource() const { return origin; }
 	virtual bool NeedDepthBuffer() { return false; }
 	virtual bool NeedCap() { return false; }
+	virtual const char *GetName();
 
 public:
 	
