@@ -3432,6 +3432,9 @@ enum EACSFunctions
 	ACSF_CheckActorClass,
 	ACSF_SetUserArray,
 	ACSF_GetUserArray,
+	ACSF_SoundSequenceOnActor,
+	ACSF_SoundSequenceOnSector,
+	ACSF_SoundSequenceOnPolyobj,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	// [BB] Skulltag functions
@@ -3791,6 +3794,61 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			return a->GetClass()->TypeName == FName(FBehavior::StaticLookupString(args[1]));
 		}
 
+		case ACSF_SoundSequenceOnActor:
+			{
+				const char *seqname = FBehavior::StaticLookupString(args[1]);
+				if (seqname != NULL)
+				{
+					if (args[0] == 0)
+					{
+						if (activator != NULL)
+						{
+							SN_StartSequence(activator, seqname, 0);
+						}
+					}
+					else
+					{
+						FActorIterator it(args[0]);
+						AActor *actor;
+
+						while ( (actor = it.Next()) )
+						{
+							SN_StartSequence(actor, seqname, 0);
+						}
+					}
+				}
+			}
+			break;
+
+		case ACSF_SoundSequenceOnSector:
+			{
+				const char *seqname = FBehavior::StaticLookupString(args[1]);
+				int space = args[2] < CHAN_FLOOR || args[2] > CHAN_INTERIOR ? CHAN_FULLHEIGHT : args[2];
+				if (seqname != NULL)
+				{
+					int secnum = -1;
+
+					while ((secnum = P_FindSectorFromTag(args[0], secnum)) >= 0)
+					{
+						SN_StartSequence(&sectors[secnum], args[2], seqname, 0);
+					}
+				}
+			}
+			break;
+
+		case ACSF_SoundSequenceOnPolyobj:
+			{
+				const char *seqname = FBehavior::StaticLookupString(args[1]);
+				if (seqname != NULL)
+				{
+					FPolyObj *poly = PO_GetPolyobj(args[0]);
+					if (poly != NULL)
+					{
+						SN_StartSequence(poly, seqname, 0);
+					}
+				}
+			}
+			break;
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:
@@ -5919,7 +5977,7 @@ int DLevelScript::RunScript ()
 			lookup = FBehavior::StaticLookupString (STACK(1));
 			if (lookup != NULL)
 			{
-				if (activationline)
+				if (activationline != NULL)
 				{
 					SN_StartSequence (activationline->frontsector, CHAN_FULLHEIGHT, lookup, 0);
 

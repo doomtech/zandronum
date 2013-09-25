@@ -1043,7 +1043,6 @@ enum slopetype_t
 #define	TEXCHANGE_BACKTOP		8
 #define	TEXCHANGE_BACKMEDIUM	16
 #define	TEXCHANGE_BACKBOTTOM	32
-
 struct line_t
 {
 	vertex_t	*v1, *v2;	// vertices, from v1 to v2

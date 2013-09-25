@@ -85,7 +85,7 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 	}
 	else
 	{
-		fs_ceilingheight2=fs_ceilingheight1=frontsector->GetPlaneTexZ(sector_t::ceiling);
+		fs_ceilingheight2=fs_ceilingheight1=frontsector->ceilingplane.d;
 	}
 
 	if (frontsector->floorplane.a | frontsector->floorplane.b)
@@ -95,7 +95,7 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 	}
 	else
 	{
-		fs_floorheight2=fs_floorheight1=frontsector->GetPlaneTexZ(sector_t::floor);
+		fs_floorheight2=fs_floorheight1=-frontsector->floorplane.d;
 	}
 	
 	if (backsector->ceilingplane.a | backsector->ceilingplane.b)
@@ -105,7 +105,7 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 	}
 	else
 	{
-		bs_ceilingheight2=bs_ceilingheight1=backsector->GetPlaneTexZ(sector_t::ceiling);
+		bs_ceilingheight2=bs_ceilingheight1=backsector->ceilingplane.d;
 	}
 
 	if (backsector->floorplane.a | backsector->floorplane.b)
@@ -115,7 +115,7 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 	}
 	else
 	{
-		bs_floorheight2=bs_floorheight1=backsector->GetPlaneTexZ(sector_t::floor);
+		bs_floorheight2=bs_floorheight1=-backsector->floorplane.d;
 	}
 
 	// now check for closed sectors!
@@ -159,72 +159,8 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 		return true;
 	}
 
-#if 0	// experimental
-	if (backsector->hasSlopes || frontsector->hasSlopes || !gltest_slopeopt) return false;
-
-	if (fs_ceilingheight1 < bs_ceilingheight1) bs_ceilingheight1 = fs_ceilingheight1;
-	if (fs_floorheight1 < bs_floorheight1) bs_floorheight1 = fs_floorheight1;
-
-	unsigned fs_index = 0;
-	unsigned bs_index = 0;
-
-	while (1)
-	{
-		F3DFloor * ffloor1 = bs_index < backsector->e->XFloor.ffloors.Size()? backsector->e->XFloor.ffloors[bs_index] : NULL;
-		F3DFloor * ffloor2 = fs_index < frontsector->e->XFloor.ffloors.Size()? frontsector->e->XFloor.ffloors[fs_index] : NULL;
-		F3DFloor * ffloor;
-
-		if (ffloor2 == NULL && ffloor1 == NULL) return false;
-
-		if (ffloor1 == NULL)
-		{
-			ffloor = ffloor2;
-			fs_index++;
-		}
-		else if (ffloor2 == NULL || *ffloor1->top.texheight > *ffloor2->top.texheight)
-		{
-			ffloor = ffloor1;
-			bs_index++;
-		}
-		else
-		{
-			ffloor = ffloor2;
-			fs_index++;
-		}
-
-		// does not block view.
-		if (*ffloor->top.texheight < bs_ceilingheight1) return false;
-
-		if ((ffloor->flags & (FF_EXISTS|FF_RENDERSIDES|FF_ADDITIVETRANS|FF_TRANSLUCENT|FF_FOG|FF_THINFLOOR)) == (FF_EXISTS|FF_RENDERSIDES))
-		{
-			FTexture *tex;
-			if (ffloor->flags&FF_UPPERTEXTURE) 
-			{
-				tex = TexMan[sidedef->GetTexture(side_t::top)];
-			}
-			else if (ffloor->flags&FF_LOWERTEXTURE) 
-			{
-				tex = TexMan[sidedef->GetTexture(side_t::bottom)];
-			}
-			else 
-			{
-				tex = TexMan[sides[ffloor->master->sidenum[0]].GetTexture(side_t::mid)];
-			}
-			if (tex != NULL && !tex->bMasked)
-			{
-				bs_ceilingheight1 = *ffloor->bottom.texheight;
-				// The entire view is blocked by 3D floors
-				if (bs_ceilingheight1 <= bs_floorheight1) return true;
-			}
-		}
-	}
-#endif
-
 	return false;
 }
-
-
-
 
 //==========================================================================
 //

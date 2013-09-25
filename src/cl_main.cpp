@@ -115,7 +115,6 @@
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
 //void	ChangeSpy (bool forward);
-FPolyObj *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);
 bool	P_OldAdjustFloorCeil (AActor *thing);
 void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
@@ -11404,7 +11403,7 @@ static void client_DoRotatePoly( BYTESTREAM_s *pByteStream )
 	lPolyNum = NETWORK_ReadShort( pByteStream );
 
 	// Make sure the polyobj exists before we try to work with it.
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -11469,7 +11468,7 @@ static void client_DoMovePoly( BYTESTREAM_s *pByteStream )
 	lPolyNum = NETWORK_ReadShort( pByteStream );
 
 	// Make sure the polyobj exists before we try to work with it.
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -11541,7 +11540,7 @@ static void client_DoPolyDoor( BYTESTREAM_s *pByteStream )
 	lPolyNum = NETWORK_ReadShort( pByteStream );
 
 	// Make sure the polyobj exists before we try to work with it.
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -11611,7 +11610,7 @@ static void client_SetPolyDoorSpeedPosition( BYTESTREAM_s *pByteStream )
 	lX = NETWORK_ReadLong( pByteStream );
 	lY = NETWORK_ReadLong( pByteStream );
 
-	pPoly = GetPolyobj( lPolyID );
+	pPoly = PO_GetPolyobj( lPolyID );
 	if ( pPoly == NULL )
 		return;
 
@@ -11646,7 +11645,7 @@ static void client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream )
 	// Read in the polyobject angle.
 	lAngle = NETWORK_ReadLong( pByteStream );
 
-	pPoly = GetPolyobj( lPolyID );
+	pPoly = PO_GetPolyobj( lPolyID );
 	if ( pPoly == NULL )
 		return;
 
@@ -11674,7 +11673,7 @@ static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 	// Read in the sound to be played.
 	Sound = (NETWORK_POLYOBJSOUND_e)NETWORK_ReadByte( pByteStream );
 
-	pPoly = GetPolyobj( lID );
+	pPoly = PO_GetPolyobj( lID );
 	if ( pPoly == NULL )
 		return;
 
@@ -11712,7 +11711,7 @@ static void client_SetPolyobjPosition( BYTESTREAM_s *pByteStream )
 	lY = NETWORK_ReadLong( pByteStream );
 
 	// Get the polyobject from the index given.
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -11746,7 +11745,7 @@ static void client_SetPolyobjRotation( BYTESTREAM_s *pByteStream )
 	lAngle = NETWORK_ReadLong( pByteStream );
 
 	// Make sure the polyobj exists before we try to work with it.
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES

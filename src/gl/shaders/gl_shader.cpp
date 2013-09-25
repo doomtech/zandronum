@@ -73,6 +73,7 @@ extern long gl_frameMS;
 bool FShader::Load(const char * name, const char * vert_prog_lump, const char * frag_prog_lump, const char * proc_prog_lump, const char * defines)
 {
 	static char buffer[10000];
+	FString error;
 
 	if (gl.shadermodel > 0)
 	{
@@ -131,14 +132,30 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		gl.BindAttribLocation(hShader, VATTR_GLOWDISTANCE, "glowdistance");
 
 		gl.LinkProgram(hShader);
-	
+
+		gl.GetShaderInfoLog(hVertProg, 10000, NULL, buffer);
+		if (*buffer) 
+		{
+			error << "Vertex shader:\n" << buffer << "\n";
+		}
+		gl.GetShaderInfoLog(hFragProg, 10000, NULL, buffer);
+		if (*buffer) 
+		{
+			error << "Vertex shader:\n" << buffer << "\n";
+		}
+
 		gl.GetProgramInfoLog(hShader, 10000, NULL, buffer);
 		if (*buffer) 
 		{
-			Printf("Init Shader '%s':\n%s\n", name, buffer);
+			error << "Linking:\n" << buffer << "\n";
 		}
 		int linked;
 		gl.GetObjectParameteriv(hShader, GL_LINK_STATUS, &linked);
+		if (linked == 0)
+		{
+			// only print message if there's an error.
+			Printf("Init Shader '%s':\n%s\n", name, error.GetChars());
+		}
 		timer_index = gl.GetUniformLocation(hShader, "timer");
 		desaturation_index = gl.GetUniformLocation(hShader, "desaturation_factor");
 		fogenabled_index = gl.GetUniformLocation(hShader, "fogenabled");
@@ -253,7 +270,12 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 			try
 			{
 				FString str = shaderdefines[i];
-				if (i>3 && gl.MaxLights() == 128) str << "#define MAXLIGHTS128\n";
+				if (i>3)
+				{
+					// this can't be in the shader code due to ATI strangeness.
+					str << "#version 120\n#extension GL_EXT_gpu_shader4 : enable\n";
+					if (gl.MaxLights() == 128) str << "#define MAXLIGHTS128\n";
+				}
 				shader[i] = new FShader;
 				if (!shader[i]->Load(name, "shaders/glsl/main.vp", "shaders/glsl/main.fp", ShaderPath, str.GetChars()))
 				{

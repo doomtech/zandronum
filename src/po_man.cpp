@@ -156,7 +156,6 @@ void PO_Init (void);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
-/*static*/ FPolyObj *GetPolyobj (int polyNum);
 // [BC]
 FPolyObj *GetPolyobjByIndex( ULONG ulPolyIdx );
 static int GetPolyobjMirror (int poly);
@@ -222,7 +221,7 @@ DPolyAction::DPolyAction (int polyNum)
 
 void DPolyAction::Destroy()
 {
-	FPolyObj *poly = GetPolyobj (m_PolyObj);
+	FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 
 	if (poly->specialdata == NULL || poly->specialdata == this)
 	{
@@ -235,7 +234,7 @@ void DPolyAction::Destroy()
 
 void DPolyAction::SetInterpolation ()
 {
-	FPolyObj *poly = GetPolyobj (m_PolyObj);
+	FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 	m_Interpolation = poly->SetInterpolation();
 }
 
@@ -439,7 +438,7 @@ void DRotatePoly::Tick ()
 		m_Dist -= absSpeed;
 		if (m_Dist == 0)
 		{
-			FPolyObj *poly = GetPolyobj (m_PolyObj);
+			FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 			if (poly->specialdata == this)
 			{
 				poly->specialdata = NULL;
@@ -467,7 +466,7 @@ void DRotatePoly::Tick ()
 	else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		// [WS] The poly object is blocked, tell clients the rotation!
 	{
-		FPolyObj *poly = GetPolyobj (m_PolyObj);
+		FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 		SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj, poly->angle );
 	}
 }
@@ -486,7 +485,7 @@ bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle,
 	DRotatePoly *pe;
 	FPolyObj *poly;
 
-	if ( (poly = GetPolyobj(polyNum)) )
+	if ( (poly = PO_GetPolyobj(polyNum)) )
 	{
 		if (poly->specialdata && !overRide)
 		{ // poly is already moving
@@ -521,9 +520,9 @@ bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle,
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DoRotatePoly( pe->m_Speed, pe->m_PolyObj );
 
-	while ( (mirror = GetPolyobjMirror( polyNum)) )
+	while ( (mirror = GetPolyobjMirror(polyNum)) )
 	{
-		poly = GetPolyobj(mirror);
+		poly = PO_GetPolyobj(mirror);
 		if (poly == NULL)
 		{
 			I_Error ("EV_RotatePoly: Invalid polyobj num: %d\n", polyNum);
@@ -584,7 +583,7 @@ void DMovePoly::Tick ()
 		m_Dist -= absSpeed;
 		if (m_Dist <= 0)
 		{
-			poly = GetPolyobj (m_PolyObj);
+			poly = PO_GetPolyobj (m_PolyObj);
 			if (poly->specialdata == this)
 			{
 				poly->specialdata = NULL;
@@ -614,7 +613,7 @@ void DMovePoly::Tick ()
 	else if ( NETWORK_GetState ( ) == NETSTATE_SERVER )
 		// [WS] The poly object is blocked, tell clients the position!
 	{
-		poly = GetPolyobj (m_PolyObj);
+		poly = PO_GetPolyobj (m_PolyObj);
 		SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj, poly->startSpot[0], poly->startSpot[1] );
 	}
 }
@@ -633,7 +632,7 @@ bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle,
 	FPolyObj *poly;
 	angle_t an;
 
-	if ( (poly = GetPolyobj(polyNum)) )
+	if ( (poly = PO_GetPolyobj(polyNum)) )
 	{
 		if (poly->specialdata && !overRide)
 		{ // poly is already moving
@@ -671,7 +670,7 @@ bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle,
 
 	while ( (mirror = GetPolyobjMirror(polyNum)) )
 	{
-		poly = GetPolyobj(mirror);
+		poly = PO_GetPolyobj(mirror);
 		if (poly && poly->specialdata && !overRide)
 		{ // mirroring poly is already in motion
 			break;
@@ -729,12 +728,12 @@ void DPolyDoor::Tick ()
 
 		return;
 	}
-	poly = GetPolyobj (m_PolyObj); // [WS] Need to use this in the rest of the function.
+	poly = PO_GetPolyobj (m_PolyObj); // [WS] Need to use this in the rest of the function.
 	if (m_Tics)
 	{
 		if (!--m_Tics)
 		{
-			//poly = GetPolyobj (m_PolyObj); // [WS] We are handling this elsewhere.
+			//poly = PO_GetPolyobj (m_PolyObj); // [WS] We are handling this elsewhere.
 			SN_StartSequence (poly, poly->seqType, SEQ_DOOR, m_Close);
 		}
 		return;
@@ -760,7 +759,7 @@ void DPolyDoor::Tick ()
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_STOPSEQUENCE );
 
-				poly = GetPolyobj (m_PolyObj);
+				poly = PO_GetPolyobj (m_PolyObj);
 				SN_StopSequence (poly);
 				if (!m_Close)
 				{
@@ -796,7 +795,7 @@ void DPolyDoor::Tick ()
 		}
 		else
 		{
-			poly = GetPolyobj (m_PolyObj);
+			poly = PO_GetPolyobj (m_PolyObj);
 			if (poly->crush || !m_Close)
 			{ // continue moving if the poly is a crusher, or is opening
 				return;
@@ -840,7 +839,7 @@ void DPolyDoor::Tick ()
 			m_Dist -= absSpeed;
 			if (m_Dist <= 0)
 			{
-				poly = GetPolyobj (m_PolyObj);
+				poly = PO_GetPolyobj (m_PolyObj);
 				SN_StopSequence (poly);
 
 				// [BC] Tell clients to stop the sound sequence.
@@ -878,7 +877,7 @@ void DPolyDoor::Tick ()
 		}
 		else
 		{
-			poly = GetPolyobj (m_PolyObj);
+			poly = PO_GetPolyobj (m_PolyObj);
 			if(poly->crush || !m_Close)
 			{ // continue moving if the poly is a crusher, or is opening
 				return;
@@ -919,7 +918,7 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 	DPolyDoor *pd;
 	FPolyObj *poly;
 
-	if( (poly = GetPolyobj(polyNum)) )
+	if( (poly = PO_GetPolyobj(polyNum)) )
 	{
 		if (poly->specialdata)
 		{ // poly is already moving
@@ -961,7 +960,7 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 
 	while ( (mirror = GetPolyobjMirror (polyNum)) )
 	{
-		poly = GetPolyobj (mirror);
+		poly = PO_GetPolyobj (mirror);
 		if (poly && poly->specialdata)
 		{ // mirroring poly is already in motion
 			break;
@@ -1003,11 +1002,11 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 
 //==========================================================================
 //
-// GetPolyobj
+// PO_GetPolyobj
 //
 //==========================================================================
 
-/*static*/ FPolyObj *GetPolyobj (int polyNum)
+FPolyObj *PO_GetPolyobj (int polyNum)
 {
 	int i;
 
@@ -1178,7 +1177,7 @@ bool PO_MovePolyobj (int num, int x, int y, bool force)
 {
 	FPolyObj *po;
 
-	if (!(po = GetPolyobj (num)))
+	if (!(po = PO_GetPolyobj (num)))
 	{
 		I_Error ("PO_MovePolyobj: Invalid polyobj number: %d\n", num);
 	}
@@ -1292,7 +1291,7 @@ bool PO_RotatePolyobj (int num, angle_t angle)
 	FPolyObj *po;
 	bool blocked;
 
-	if(!(po = GetPolyobj(num)))
+	if(!(po = PO_GetPolyobj(num)))
 	{
 		I_Error("PO_RotatePolyobj: Invalid polyobj number: %d\n", num);
 	}
@@ -2015,7 +2014,7 @@ bool PO_Busy (int polyobj)
 {
 	FPolyObj *poly;
 
-	poly = GetPolyobj (polyobj);
+	poly = PO_GetPolyobj (polyobj);
 	if (poly == NULL || poly->specialdata == NULL)
 	{
 		return false;

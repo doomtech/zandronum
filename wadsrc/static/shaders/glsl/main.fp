@@ -1,7 +1,9 @@
 
 #ifdef DYNLIGHT
-#version 120
-#extension GL_EXT_gpu_shader4 : enable
+
+// ATI does not like this inside an #ifdef so it will be prepended by the compiling code inside the .EXE now.
+//#version 120
+//#extension GL_EXT_gpu_shader4 : enable
 
 uniform ivec3 lightrange;
 #ifdef MAXLIGHTS128

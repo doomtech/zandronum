@@ -1681,9 +1681,12 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 	ACTION_PARAM_FLOAT(MaxDiff, 6);
 	ACTION_PARAM_CLASS(PuffType, 7);
 
+	AActor *linetarget;
+
 	fixed_t saved_x = self->x;
 	fixed_t saved_y = self->y;
 	angle_t saved_angle = self->angle;
+	fixed_t saved_pitch = self->pitch;
 
 	if (aim && self->target == NULL)
 	{
@@ -1700,16 +1703,20 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 
 	if (aim)
 	{
-
 		self->angle = R_PointToAngle2 (self->x,
 										self->y,
 										self->target->x,
 										self->target->y);
-
 	}
-
-	self->pitch = P_AimLineAttack (self, self->angle, MISSILERANGE);
-
+	self->pitch = P_AimLineAttack (self, self->angle, MISSILERANGE, &linetarget, ANGLE_1*60, false, false, false, aim ? self->target : NULL);
+	if (linetarget == NULL && aim)
+	{
+		// We probably won't hit the target, but aim at it anyway so we don't look stupid.
+		FVector2 xydiff(self->target->x - self->x, self->target->y - self->y);
+		double zdiff = (self->target->z + (self->target->height>>1)) -
+						(self->z + (self->height>>1) - self->floorclip);
+		self->pitch = int(atan2(zdiff, xydiff.Length()) * ANGLE_180 / -M_PI);
+	}
 	// Let the aim trail behind the player
 	if (aim)
 	{
@@ -1744,6 +1751,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 	self->x = saved_x;
 	self->y = saved_y;
 	self->angle = saved_angle;
+	self->pitch = saved_pitch;
 }
 
 //===========================================================================

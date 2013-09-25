@@ -405,7 +405,7 @@ void	P_FindFloorCeiling (AActor *actor, bool onlymidtex = false);
 
 bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget = NULL, fixed_t vrange=0, bool forcenosmart=false, bool check3d = false, bool checknonshootable = false);
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget = NULL, fixed_t vrange=0, bool forcenosmart=false, bool check3d = false, bool checknonshootable = false, AActor *target=NULL);
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, FName damageType, const PClass *pufftype, bool ismelee = false);
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, FName damageType, FName pufftype, bool ismelee = false);
 void	P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *target, angle_t angle, int pitch);
@@ -530,6 +530,7 @@ bool PO_RotatePolyobj (int num, angle_t angle);
 void PO_Init ();
 bool PO_Busy (int polyobj);
 void PO_ClosestPoint(const FPolyObj *poly, fixed_t ox, fixed_t oy, fixed_t &x, fixed_t &y, seg_t **seg);
+struct FPolyObj *PO_GetPolyobj(int polyNum);
 
 //
 // P_SPEC

@@ -78,9 +78,6 @@
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
-// :((((((
-FPolyObj	*GetPolyobj( int polyNum );
-
 EXTERN_CVAR( Float, sv_aircontrol )
 
 //*****************************************************************************
@@ -7056,7 +7053,7 @@ void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 	ULONG		ulIdx;
 	FPolyObj	*pPoly;
 
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 		return;
 
@@ -7086,7 +7083,7 @@ void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 	ULONG		ulIdx;
 	FPolyObj	*pPoly;
 
-	pPoly = GetPolyobj( lPolyNum );
+	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 		return;
 

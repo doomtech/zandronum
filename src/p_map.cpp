@@ -1236,8 +1236,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		damage = tm.thing->GetMissileDamage ((tm.thing->flags4 & MF4_STRIFEDAMAGE) ? 3 : 7, 1);
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			// [GZ] If MF6_FORCEPAIN is set, we need to call P_DamageMobj even if damage is 0!
-			if ((damage > 0) || (tm.thing->flags6 & MF6_FORCEPAIN)) 
+			if (damage >= 0)
 			{
 				if (( tm.thing->target ) &&
 					( tm.thing->target->player ) &&
@@ -1265,7 +1264,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 					}
 				}
 			}
-			else if (damage < 0)
+			else
 			{
 				P_GiveBody (thing, -damage);
 
@@ -3707,7 +3706,7 @@ struct aim_t
 	bool AimTraverse3DFloors(const divline_t &trace, intercept_t * in);
 #endif
 
-	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable = false);
+	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable = false, AActor *target=NULL);
 
 };
 
@@ -3826,7 +3825,7 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 //
 //============================================================================
 
-void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable)
+void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable, AActor *target)
 {
 	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES|PT_ADDTHINGS);
 	intercept_t *in;
@@ -3880,6 +3879,9 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 		th = in->d.thing;
 		if (th == shootthing)
 			continue;					// can't shoot self
+
+		if (target != NULL && th != target)
+			continue;					// only care about target, and you're not it
 
 		if (!checknonshootable)			// For info CCMD, ignore stuff about GHOST and SHOOTABLE flags
 		{
@@ -3996,8 +3998,8 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 				if (sv_smartaim < 2)
 				{
 					// friends don't aim at friends (except players), at least not first
-					thing_friend=th;
-					pitch_friend=thingpitch;
+					thing_friend = th;
+					pitch_friend = thingpitch;
 				}
 			}
 			else if (!(th->flags3&MF3_ISMONSTER) && th->player == NULL)
@@ -4005,27 +4007,27 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 				if (sv_smartaim < 3)
 				{
 					// don't autoaim at barrels and other shootable stuff unless no monsters have been found
-					thing_other=th;
-					pitch_other=thingpitch;
+					thing_other = th;
+					pitch_other = thingpitch;
 				}
 			}
 			else
 			{
-				linetarget=th;
-				aimpitch=thingpitch;
+				linetarget = th;
+				aimpitch = thingpitch;
 				return;
 			}
 		}
 		else
 		{
-			linetarget=th;
-			aimpitch=thingpitch;
+			linetarget = th;
+			aimpitch = thingpitch;
 			return;
 		}
 		if (checknonshootable)
 		{
-			linetarget=th;
-			aimpitch=thingpitch;
+			linetarget = th;
+			aimpitch = thingpitch;
 		}
 	}
 }
@@ -4036,7 +4038,7 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 //
 //============================================================================
 
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, bool forcenosmart, bool check3d, bool checknonshootable)
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, bool forcenosmart, bool check3d, bool checknonshootable, AActor *target)
 {
 	fixed_t x2;
 	fixed_t y2;
@@ -4118,22 +4120,23 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	}
 #endif
 
-	aim.AimTraverse (t1->x, t1->y, x2, y2, checknonshootable);
+	aim.AimTraverse (t1->x, t1->y, x2, y2, checknonshootable, target);
 
 	if (!aim.linetarget) 
 	{
 		if (aim.thing_other)
 		{
-			aim.linetarget=aim.thing_other;
-			aim.aimpitch=aim.pitch_other;
+			aim.linetarget = aim.thing_other;
+			aim.aimpitch = aim.pitch_other;
 		}
 		else if (aim.thing_friend)
 		{
-			aim.linetarget=aim.thing_friend;
-			aim.aimpitch=aim.pitch_friend;
+			aim.linetarget = aim.thing_friend;
+			aim.aimpitch = aim.pitch_friend;
 		}
 	}
-	if (pLineTarget) *pLineTarget = aim.linetarget;
+	if (pLineTarget)
+		*pLineTarget = aim.linetarget;
 
 	// [Spleen]
 	UNLAGGED_Restore( t1 );
@@ -5714,7 +5717,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 			if (P_CheckSight (thing, bombspot, 1))
 			{ // OK to damage; target is in direct path
 				dist = clamp<int>(dist - fulldamagedistance, 0, dist);
-				int damage = Scale (bombdamage, bombdistance-dist, bombdistance-fulldamagedistance);
+				int damage = Scale (bombdamage, bombdistance-dist, bombdistance);
 				damage = (int)((float)damage * splashfactor);
 
 				damage = Scale(damage, thing->GetClass()->Meta.GetMetaFixed(AMETA_RDFactor, FRACUNIT), FRACUNIT);

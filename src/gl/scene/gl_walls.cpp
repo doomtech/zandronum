@@ -1504,13 +1504,13 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 	if (polysub && seg->backsector)
 	{
-		// Textures on 2-sided polyobjects are aligned to the actual seg's sectors!
+		// Textures on 2-sided polyobjects are aligned to the actual seg's sectors
 		realfront = seg->frontsector;
 		realback = seg->backsector;
 	}
 	else
 	{
-		// Need these for aligning the textures!
+		// Need these for aligning the textures
 		realfront = &sectors[frontsector->sectornum];
 		realback = backsector? &sectors[backsector->sectornum] : NULL;
 	}
@@ -1571,7 +1571,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 	else
 	{
-		ffh1 = ffh2 = frontsector->GetPlaneTexZ(sector_t::floor); 
+		ffh1 = ffh2 = -frontsector->floorplane.d; 
 		zfloor[0] = zfloor[1] = TO_GL(ffh2);
 	}
 
@@ -1584,7 +1584,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	}
 	else
 	{
-		fch1 = fch2 = frontsector->GetPlaneTexZ(sector_t::ceiling);
+		fch1 = fch2 = frontsector->ceilingplane.d;
 		zceil[0] = zceil[1] = TO_GL(fch2);
 	}
 
@@ -1626,7 +1626,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		}
 		else
 		{
-			bfh1 = bfh2 = backsector->GetPlaneTexZ(sector_t::floor); 
+			bfh1 = bfh2 = -backsector->floorplane.d;
 		}
 
 		if (backsector->ceilingplane.a | backsector->ceilingplane.b)
@@ -1636,7 +1636,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		}
 		else
 		{
-			bch1 = bch2 = backsector->GetPlaneTexZ(sector_t::ceiling);
+			bch1 = bch2 = backsector->ceilingplane.d;
 		}
 
 		SkyTop(seg,frontsector,backsector,v1,v2);

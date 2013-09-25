@@ -183,6 +183,7 @@ void OpenGLFrameBuffer::InitializeState()
 // Updates the screen
 //
 //==========================================================================
+CVAR(Bool, gl_draw_synchronized, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 void OpenGLFrameBuffer::Update()
 {
@@ -204,17 +205,17 @@ void OpenGLFrameBuffer::Update()
 
 		Begin2D(false);
 	}
-
 	Finish.Reset();
 	Finish.Clock();
-	gl.Finish();
-	Finish.Unclock();
+	if (gl_draw_synchronized) gl.Finish();
 	if (needsetgamma) 
 	{
 		DoSetGamma();
 		needsetgamma = false;
 	}
 	gl.SwapBuffers();
+	Finish.Unclock();
+
 	Unlock();
 }
 
