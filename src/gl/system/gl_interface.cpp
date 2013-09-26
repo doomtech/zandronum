@@ -343,6 +343,7 @@ static void APIENTRY LoadExtensions()
 	if (CheckExtension("GL_ARB_texture_compression")) gl->flags|=RFL_TEXTURE_COMPRESSION;
 	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl->flags|=RFL_TEXTURE_COMPRESSION_S3TC;
 	if (strstr(gl->vendorstring, "NVIDIA")) gl->flags|=RFL_NVIDIA;
+	else if (strstr(gl->vendorstring, "ATI Technologies")) gl->flags|=RFL_ATI;
 
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.0") >= 0) gl->flags|=RFL_GL_20;
 	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;
@@ -1056,9 +1057,6 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.Color4fv = glColor4fv;
 	gl.Color3f = glColor3f;
 	gl.Color3ub = glColor3ub;
-
-	gl.AlphaFunc =  glAlphaFunc;
-	gl.BlendFunc = glBlendFunc;
 
 	gl.ColorMask = glColorMask;
 

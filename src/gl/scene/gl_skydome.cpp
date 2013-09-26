@@ -544,8 +544,8 @@ void GLSkyPortal::DrawContents()
 	}
 
 	gl_RenderState.EnableFog(false);
-	gl.Disable(GL_ALPHA_TEST);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_RenderState.EnableAlphaTest(false);
+	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl.PushMatrix();
 	GLRenderer->SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
@@ -564,7 +564,7 @@ void GLSkyPortal::DrawContents()
 		else R=G=B=1.f;
 
 		RenderBox(origin->skytexno1, origin->texture[0], origin->x_offset[0], CM_Index);
-		gl.Enable(GL_ALPHA_TEST);
+		gl_RenderState.EnableAlphaTest(true);
 	}
 	else
 	{
@@ -579,8 +579,8 @@ void GLSkyPortal::DrawContents()
 			gl_RenderState.SetTextureMode(TM_MODULATE);
 		}
 		
-		gl.Enable(GL_ALPHA_TEST);
-		gl.AlphaFunc(GL_GEQUAL,0.05f);
+		gl_RenderState.EnableAlphaTest(true);
+		gl_RenderState.AlphaFunc(GL_GEQUAL,0.05f);
 		
 		if (origin->doublesky && origin->texture[1])
 		{

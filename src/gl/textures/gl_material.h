@@ -83,6 +83,7 @@ private:
 	FHardwareTexture *glpatch;
 
 	int currentwarp;
+	int currentwarptime;
 
 	bool bHasColorkey;		// only for hires
 	bool bExpand;

@@ -87,8 +87,8 @@ void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 	int tm, sb, db, be;
 
 	gl_GetRenderStyle(style, drawopaque, allowcolorblending, &tm, &sb, &db, &be);
-	gl.BlendEquation(be);
-	gl.BlendFunc(sb, db);
+	gl_RenderState.BlendEquation(be);
+	gl_RenderState.BlendFunc(sb, db);
 	gl_RenderState.SetTextureMode(tm);
 }
 
@@ -133,11 +133,11 @@ void GLSprite::Draw(int pass)
 
 		if (hw_styleflags == STYLEHW_NoAlphaTest)
 		{
-			gl.Disable(GL_ALPHA_TEST);
+			gl_RenderState.EnableAlphaTest(false);
 		}
 		else
 		{
-			gl.AlphaFunc(GL_GEQUAL,trans*gl_mask_sprite_threshold);
+			gl_RenderState.AlphaFunc(GL_GEQUAL,trans*gl_mask_sprite_threshold);
 		}
 
 		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
@@ -161,7 +161,7 @@ void GLSprite::Draw(int pass)
 				minalpha*=factor;
 			}
 
-			gl.AlphaFunc(GL_GEQUAL,minalpha*gl_mask_sprite_threshold);
+			gl_RenderState.AlphaFunc(GL_GEQUAL,minalpha*gl_mask_sprite_threshold);
 			gl.Color4f(0.2f,0.2f,0.2f,fuzzalpha);
 			additivefog = true;
 		}
@@ -281,18 +281,18 @@ void GLSprite::Draw(int pass)
 	if (pass==GLPASS_TRANSLUCENT)
 	{
 		gl_RenderState.EnableBrightmap(true);
-		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl.BlendEquation(GL_FUNC_ADD);
+		gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl_RenderState.BlendEquation(GL_FUNC_ADD);
 		gl_RenderState.SetTextureMode(TM_MODULATE);
 
 		// [BB] Restore the alpha test after drawing a smooth particle.
 		if (hw_styleflags == STYLEHW_NoAlphaTest)
 		{
-			gl.Enable(GL_ALPHA_TEST);
+			gl_RenderState.EnableAlphaTest(true);
 		}
 		else
 		{
-			gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
+			gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 		}
 
 		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))

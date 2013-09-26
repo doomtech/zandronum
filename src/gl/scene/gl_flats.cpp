@@ -68,27 +68,37 @@
 //
 //==========================================================================
 
-void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * gltexture)
+bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * gltexture)
 {
-	float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
-	float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
+	// only manipulate the texture matrix if needed.
+	if (secplane->xoffs != 0 || secplane->yoffs != 0 ||
+		secplane->xscale != FRACUNIT || secplane->yscale != FRACUNIT ||
+		secplane->angle != 0 || 
+		gltexture->TextureWidth(GLUSE_TEXTURE) != 64 ||
+		gltexture->TextureHeight(GLUSE_TEXTURE) != 64)
+	{
+		float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
+		float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
 
-	float xscale1=TO_GL(secplane->xscale);
-	float yscale1=TO_GL(secplane->yscale);
+		float xscale1=TO_GL(secplane->xscale);
+		float yscale1=TO_GL(secplane->yscale);
 
-	float xscale2=64.f/gltexture->TextureWidth(GLUSE_TEXTURE);
-	float yscale2=64.f/gltexture->TextureHeight(GLUSE_TEXTURE);
+		float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
-	float angle=-ANGLE_TO_FLOAT(secplane->angle);
+		float xscale2=64.f/gltexture->TextureWidth(GLUSE_TEXTURE);
+		float yscale2=64.f/gltexture->TextureHeight(GLUSE_TEXTURE);
 
-	gl.MatrixMode(GL_TEXTURE);
+		gl.MatrixMode(GL_TEXTURE);
 
-	gl.PushMatrix();
-	gl.Scalef(xscale1 ,yscale1,1.0f);
+		gl.PushMatrix();
+		gl.Scalef(xscale1 ,yscale1,1.0f);
 	gl.Scalef(xscale2 ,yscale2,1.0f);
-	gl.Translatef(uoffs,voffs,0.0f);
-	gl.Scalef(xscale2 ,yscale2,1.0f);
-	gl.Rotatef(angle,0.0f,0.0f,1.0f);
+		gl.Translatef(uoffs,voffs,0.0f);
+		gl.Scalef(xscale2 ,yscale2,1.0f);
+		gl.Rotatef(angle,0.0f,0.0f,1.0f);
+		return true;
+	}
+	return false;
 }
 
 
@@ -318,6 +328,7 @@ void GLFlat::Draw(int pass)
 {
 	int i;
 	int rel = extralight*gl_weaponlight;
+	bool pushed = false;
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -342,11 +353,13 @@ void GLFlat::Draw(int pass)
 		if (!foggy || pass != GLPASS_BASE_MASKED) gl_SetFog(lightlevel, rel, &Colormap, false);
 		// fall through
 	case GLPASS_TEXTURE:
+	{
 		gltexture->Bind(Colormap.colormap);
-		gl_SetPlaneTextureRotation(&plane, gltexture);
+		pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
 		DrawSubsectors(pass, false);
-		gl.PopMatrix();
+		if (pushed) gl.PopMatrix();
 		break;
+	}
 
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
@@ -388,25 +401,25 @@ void GLFlat::Draw(int pass)
 		break;
 
 	case GLPASS_TRANSLUCENT:
-		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE);
+		if (renderstyle==STYLE_Add) gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE);
 		gl_SetColor(lightlevel, rel, &Colormap, alpha);
 		gl_SetFog(lightlevel, rel, &Colormap, false);
-		gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold*(alpha));
+		gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_threshold*(alpha));
 		if (!gltexture)	gl_RenderState.EnableTexture(false);
 
 		else 
 		{
 			if (foggy) gl_RenderState.EnableBrightmap(false);
 			gltexture->Bind(Colormap.colormap);
-			gl_SetPlaneTextureRotation(&plane, gltexture);
+			pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
 		}
 
 		DrawSubsectors(pass, true);
 
 		gl_RenderState.EnableBrightmap(true);
 		if (!gltexture)	gl_RenderState.EnableTexture(true);
-		else gl.PopMatrix();
-		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else if (pushed) gl.PopMatrix();
+		if (renderstyle==STYLE_Add) gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		break;
 	}
 }

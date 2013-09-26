@@ -22,6 +22,7 @@ struct FVBOVertex	// exactly 32 bytes large
 
 class FVertexBuffer
 {
+	int vbo_arg;
 	unsigned int vbo_id;
 	FVBOVertex *map;
 public:

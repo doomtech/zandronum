@@ -345,6 +345,7 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, i
 		buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
 	}
 	currentwarp = warp;
+	currentwarptime = gl_frameMS;
 
 	return buffer;
 }
@@ -419,7 +420,7 @@ const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int
 
 	if (hwtex)
 	{
-		if (warp != 0 || currentwarp != warp)
+		if ((warp != 0 || currentwarp != warp) && currentwarptime != gl_frameMS)
 		{
 			// must recreate the texture
 			Clean(true);

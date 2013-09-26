@@ -2,6 +2,9 @@
 #define __GL_RENDERSTATE_H
 
 #include <string.h>
+#include "c_cvars.h"
+
+EXTERN_CVAR(Bool, gl_direct_state_change)
 
 struct FStateAttr
 {
@@ -92,6 +95,11 @@ class FRenderState
 	float mLightParms[2];
 	int mNumLights[3];
 	float *mLightData;
+	int mSrcBlend, mDstBlend;
+	int mAlphaFunc;
+	float mAlphaThreshold;
+	bool mAlphaTest;
+	int mBlendEquation;
 
 	FStateVec3 mCameraPos;
 	FStateVec4 mGlowTop, mGlowBottom;
@@ -102,6 +110,11 @@ class FRenderState
 	int mColormapState;
 	float mWarpTime;
 
+	int glSrcBlend, glDstBlend;
+	int glAlphaFunc;
+	float glAlphaThreshold;
+	bool glAlphaTest;
+	int glBlendEquation;
 
 	bool ffTextureEnabled;
 	bool ffFogEnabled;
@@ -118,16 +131,7 @@ public:
 		Reset();
 	}
 
-	void Reset()
-	{
-		mTextureEnabled = true;
-		mBrightmapEnabled = mFogEnabled = mGlowEnabled = mLightEnabled = false;
-		ffTextureEnabled = ffFogEnabled = false;
-		mSpecialEffect = ffSpecialEffect = EFF_NONE;
-		mFogColor.d = ffFogColor.d = -1;
-		mFogDensity = ffFogDensity = 0;
-		mTextureMode = ffTextureMode = -1;
-	}
+	void Reset();
 
 	int SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
 	void Apply(bool forcenoshader = false);
@@ -203,6 +207,56 @@ public:
 		return mFogColor;
 	}
 
+	void BlendFunc(int src, int dst)
+	{
+		if (!gl_direct_state_change)
+		{
+			mSrcBlend = src;
+			mDstBlend = dst;
+		}
+		else
+		{
+			glBlendFunc(src, dst);
+		}
+	}
+
+	void AlphaFunc(int func, float thresh)
+	{
+		if (!gl_direct_state_change)
+		{
+			mAlphaFunc = func;
+			mAlphaThreshold = thresh;
+		}
+		else
+		{
+			::glAlphaFunc(func, thresh);
+		}
+	}
+
+	void EnableAlphaTest(bool on)
+	{
+		if (!gl_direct_state_change)
+		{
+			mAlphaTest = on;
+		}
+		else
+		{
+			if (on) glEnable(GL_ALPHA_TEST);
+			else glDisable(GL_ALPHA_TEST);
+		}
+	}
+
+	void BlendEquation(int eq)
+	{
+		if (!gl_direct_state_change)
+		{
+			mBlendEquation = eq;
+		}
+		else
+		{
+			gl.BlendEquation(eq);
+		}
+	}
 };
 
 extern FRenderState gl_RenderState;

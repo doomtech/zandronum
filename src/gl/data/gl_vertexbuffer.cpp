@@ -47,8 +47,6 @@
 #include "gl/data/gl_vertexbuffer.h"
 
 
-int vbo_arg = 2;
-
 //==========================================================================
 //
 // Create / destroy the VBO
@@ -58,12 +56,17 @@ int vbo_arg = 2;
 FVertexBuffer::FVertexBuffer()
 {
 	const char *c = Args->CheckValue("-vbo");
+
+	if (!(gl.flags&RFL_VBO)) vbo_arg = 0;
 	if (c) vbo_arg = strtol(c, NULL, 0);
-	// some ATI cards have problems with the VBO update.
-	else if (!(gl.flags & RFL_NVIDIA) && gl.shadermodel < 4) vbo_arg = 1;	
+	// on ATI mixing VBO and immediate mode causes performance drops
+	// so this will remain disabled unless ATI's drivers get better.
+	else if ((gl.flags & RFL_ATI)) vbo_arg = 0;	
+	else vbo_arg = 2;
+
 	vbo_id = 0;
 	map = NULL;
-	if (gl.flags&RFL_VBO && vbo_arg > 0)
+	if (vbo_arg > 0)
 	{
 		gl.GenBuffers(1, &vbo_id);
 	}
@@ -342,23 +345,20 @@ void FVertexBuffer::BindVBO()
 
 void FVertexBuffer::CheckPlanes(sector_t *sector)
 {
-	if (vbo_arg == 2)
+	if (sector->GetPlaneTexZ(sector_t::ceiling) != sector->vboheight[sector_t::ceiling])
 	{
-		if (sector->GetPlaneTexZ(sector_t::ceiling) != sector->vboheight[sector_t::ceiling])
+		if (sector->ceilingdata == NULL) // only update if there's no thinker attached
 		{
-			if (sector->ceilingdata == NULL) // only update if there's no thinker attached
-			{
-				UpdatePlaneVertices(sector, sector_t::ceiling);
-				sector->vboheight[sector_t::ceiling] = sector->GetPlaneTexZ(sector_t::ceiling);
-			}
+			UpdatePlaneVertices(sector, sector_t::ceiling);
+			sector->vboheight[sector_t::ceiling] = sector->GetPlaneTexZ(sector_t::ceiling);
 		}
-		if (sector->GetPlaneTexZ(sector_t::floor) != sector->vboheight[sector_t::floor])
+	}
+	if (sector->GetPlaneTexZ(sector_t::floor) != sector->vboheight[sector_t::floor])
+	{
+		if (sector->floordata == NULL) // only update if there's no thinker attached
 		{
-			if (sector->floordata == NULL) // only update if there's no thinker attached
-			{
-				UpdatePlaneVertices(sector, sector_t::floor);
-				sector->vboheight[sector_t::floor] = sector->GetPlaneTexZ(sector_t::floor);
-			}
+			UpdatePlaneVertices(sector, sector_t::floor);
+			sector->vboheight[sector_t::floor] = sector->GetPlaneTexZ(sector_t::floor);
 		}
 	}
 }
@@ -374,7 +374,7 @@ void FVertexBuffer::CheckPlanes(sector_t *sector)
 
 void FVertexBuffer::CheckUpdate(sector_t *sector)
 {
-	if (vbo_id > 0)
+	if (vbo_id > 0 && vbo_arg == 2)
 	{
 		CheckPlanes(sector);
 		sector_t *hs = sector->GetHeightSec();

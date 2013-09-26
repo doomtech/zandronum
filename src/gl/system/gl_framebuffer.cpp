@@ -72,6 +72,7 @@ CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
 IMPLEMENT_CLASS(OpenGLFrameBuffer)
 EXTERN_CVAR (Float, vid_brightness)
 EXTERN_CVAR (Float, vid_contrast)
+EXTERN_CVAR (Bool, vid_vsync)
 
 void gl_SetupMenu();
 
@@ -97,6 +98,7 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	DoSetGamma();
 	needsetgamma = true;
 	swapped = false;
+	if (gl.SetVSync!=NULL) gl.SetVSync(vid_vsync);
 
 	// [BB] Backported from GZDoom revision 660.
 	Accel2D = true;
@@ -158,8 +160,8 @@ void OpenGLFrameBuffer::InitializeState()
 	gl.Disable(GL_DEPTH_TEST);
 	gl.Enable(GL_TEXTURE_2D);
 	gl.Disable(GL_LINE_SMOOTH);
-	gl.AlphaFunc(GL_GEQUAL,0.5f);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glAlphaFunc(GL_GEQUAL,0.5f);
 	gl.Hint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	gl.Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	gl.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);

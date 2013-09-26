@@ -1619,3 +1619,563 @@ brightmap sprite SMgTd0
 	iwad
 	disablefullbright
 }
+
+brightmap sprite vileg1
+{
+  map "brightmaps/doom/vileg1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg2
+{
+  map "brightmaps/doom/vileg2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg3
+{
+  map "brightmaps/doom/vileg3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg4
+{
+  map "brightmaps/doom/vileg4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg5
+{
+  map "brightmaps/doom/vileg5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg6
+{
+  map "brightmaps/doom/vileg6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg7
+{
+  map "brightmaps/doom/vileg7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileg8
+{
+  map "brightmaps/doom/vileg8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh1
+{
+  map "brightmaps/doom/vileh1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh2
+{
+  map "brightmaps/doom/vileh2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh3
+{
+  map "brightmaps/doom/vileh3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh4
+{
+  map "brightmaps/doom/vileh4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh5
+{
+  map "brightmaps/doom/vileh5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh6
+{
+  map "brightmaps/doom/vileh6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh7
+{
+  map "brightmaps/doom/vileh7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileh8
+{
+  map "brightmaps/doom/vileh8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei1
+{
+  map "brightmaps/doom/vilei1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei2
+{
+  map "brightmaps/doom/vilei2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei3
+{
+  map "brightmaps/doom/vilei3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei4
+{
+  map "brightmaps/doom/vilei4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei5
+{
+  map "brightmaps/doom/vilei5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei6
+{
+  map "brightmaps/doom/vilei6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei7
+{
+  map "brightmaps/doom/vilei7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilei8
+{
+  map "brightmaps/doom/vilei8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej1
+{
+  map "brightmaps/doom/vilej1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej2
+{
+  map "brightmaps/doom/vilej2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej3
+{
+  map "brightmaps/doom/vilej3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej4
+{
+  map "brightmaps/doom/vilej4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej5
+{
+  map "brightmaps/doom/vilej5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej6
+{
+  map "brightmaps/doom/vilej6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej7
+{
+  map "brightmaps/doom/vilej7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilej8
+{
+  map "brightmaps/doom/vilej8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek1
+{
+  map "brightmaps/doom/vilek1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek2
+{
+  map "brightmaps/doom/vilek2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek3
+{
+  map "brightmaps/doom/vilek3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek4
+{
+  map "brightmaps/doom/vilek4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek5
+{
+  map "brightmaps/doom/vilek5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek6
+{
+  map "brightmaps/doom/vilek6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek7
+{
+  map "brightmaps/doom/vilek7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilek8
+{
+  map "brightmaps/doom/vilek8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel1
+{
+  map "brightmaps/doom/vilel1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel2
+{
+  map "brightmaps/doom/vilel2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel3
+{
+  map "brightmaps/doom/vilel3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel4
+{
+  map "brightmaps/doom/vilel4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel5
+{
+  map "brightmaps/doom/vilel5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel6
+{
+  map "brightmaps/doom/vilel6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel7
+{
+  map "brightmaps/doom/vilel7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilel8
+{
+  map "brightmaps/doom/vilel8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem1
+{
+  map "brightmaps/doom/vilem1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem2
+{
+  map "brightmaps/doom/vilem2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem3
+{
+  map "brightmaps/doom/vilem3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem4
+{
+  map "brightmaps/doom/vilem4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem5
+{
+  map "brightmaps/doom/vilem5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem6
+{
+  map "brightmaps/doom/vilem6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem7
+{
+  map "brightmaps/doom/vilem7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilem8
+{
+  map "brightmaps/doom/vilem8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen1
+{
+  map "brightmaps/doom/vilen1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen2
+{
+  map "brightmaps/doom/vilen2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen3
+{
+  map "brightmaps/doom/vilen3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen4
+{
+  map "brightmaps/doom/vilen4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen5
+{
+  map "brightmaps/doom/vilen5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen6
+{
+  map "brightmaps/doom/vilen6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen7
+{
+  map "brightmaps/doom/vilen7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilen8
+{
+  map "brightmaps/doom/vilen8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo1
+{
+  map "brightmaps/doom/vileo1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo2
+{
+  map "brightmaps/doom/vileo2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo3
+{
+  map "brightmaps/doom/vileo3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo4
+{
+  map "brightmaps/doom/vileo4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo5
+{
+  map "brightmaps/doom/vileo5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo6
+{
+  map "brightmaps/doom/vileo6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo7
+{
+  map "brightmaps/doom/vileo7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vileo8
+{
+  map "brightmaps/doom/vileo8.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep1
+{
+  map "brightmaps/doom/vilep1.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep2
+{
+  map "brightmaps/doom/vilep2.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep3
+{
+  map "brightmaps/doom/vilep3.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep4
+{
+  map "brightmaps/doom/vilep4.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep5
+{
+  map "brightmaps/doom/vilep5.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep6
+{
+  map "brightmaps/doom/vilep6.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep7
+{
+  map "brightmaps/doom/vilep7.png"
+  iwad
+  disablefullbright
+}
+
+brightmap sprite vilep8
+{
+  map "brightmaps/doom/vilep8.png"
+  iwad
+  disablefullbright
+}

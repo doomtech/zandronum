@@ -32,6 +32,7 @@ enum RenderFlags
 	RFL_FRAMEBUFFER = 2048,
 	RFL_TEXTUREBUFFER = 4096,
 	RFL_NVIDIA = 8192,
+	RFL_ATI = 16384,
 
 
 	RFL_GL_20 = 0x10000000,
@@ -105,8 +106,6 @@ struct RenderContext
 	void (APIENTRY * Color3f) (GLfloat red, GLfloat green, GLfloat blue);
 	void (APIENTRY * Color3ub) (GLubyte red, GLubyte green, GLubyte blue);
 
-	void (APIENTRY * AlphaFunc) (GLenum func, GLclampf ref);
-	void (APIENTRY * BlendFunc) (GLenum sfactor, GLenum dfactor);
 	void (APIENTRY * BlendEquation) (GLenum);
 	void (APIENTRY * ColorMask) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 

@@ -355,8 +355,8 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	gl_SetRenderStyle(actor->RenderStyle, false, false);
 
 	// If srcalpha is one it looks better with a higher alpha threshold
-	if (actor->RenderStyle.SrcAlpha == STYLEALPHA_One) gl.AlphaFunc(GL_GEQUAL, gl_mask_threshold);
-	else gl.AlphaFunc(GL_GREATER, 0.f);
+	if (actor->RenderStyle.SrcAlpha == STYLEALPHA_One) gl_RenderState.AlphaFunc(GL_GEQUAL, gl_mask_threshold);
+	else gl_RenderState.AlphaFunc(GL_GREATER, 0.f);
 
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);

@@ -48,6 +48,35 @@
 FRenderState gl_RenderState;
 int FStateAttr::ChangeCounter;
 
+CVAR(Bool, gl_direct_state_change, true, 0)
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FRenderState::Reset()
+{
+	mTextureEnabled = true;
+	mBrightmapEnabled = mFogEnabled = mGlowEnabled = mLightEnabled = false;
+	ffTextureEnabled = ffFogEnabled = false;
+	mSpecialEffect = ffSpecialEffect = EFF_NONE;
+	mFogColor.d = ffFogColor.d = -1;
+	mFogDensity = ffFogDensity = 0;
+	mTextureMode = ffTextureMode = -1;
+	mSrcBlend = GL_SRC_ALPHA;
+	mDstBlend = GL_ONE_MINUS_SRC_ALPHA;
+	glSrcBlend = glDstBlend = -1;
+	glAlphaFunc = -1;
+	mAlphaFunc = GL_GEQUAL;
+	mAlphaThreshold = 0.5f;
+	mBlendEquation = GL_FUNC_ADD;
+	glBlendEquation = -1;
+}
+
+
 //==========================================================================
 //
 // Set texture shader info
@@ -233,6 +262,33 @@ bool FRenderState::ApplyShader()
 
 void FRenderState::Apply(bool forcenoshader)
 {
+	if (!gl_direct_state_change)
+	{
+		if (mSrcBlend != glSrcBlend || mDstBlend != glDstBlend)
+		{
+			glSrcBlend = mSrcBlend;
+			glDstBlend = mDstBlend;
+			glBlendFunc(mSrcBlend, mDstBlend);
+		}
+		if (mAlphaFunc != glAlphaFunc || mAlphaThreshold != glAlphaThreshold)
+		{
+			glAlphaFunc = mAlphaFunc;
+			glAlphaThreshold = mAlphaThreshold;
+			::glBlendFunc(mAlphaFunc, mAlphaThreshold);
+		}
+		if (mAlphaTest != glAlphaTest)
+		{
+			glAlphaTest = mAlphaTest;
+			if (mAlphaTest) glEnable(GL_ALPHA_TEST);
+			else glDisable(GL_ALPHA_TEST);
+		}
+		if (mBlendEquation != glBlendEquation)
+		{
+			glBlendEquation = mBlendEquation;
+			gl.BlendEquation(mBlendEquation);
+		}
+	}
+
 	if (forcenoshader || !ApplyShader())
 	{
 		GLRenderer->mShaderManager->SetActiveShader(NULL);

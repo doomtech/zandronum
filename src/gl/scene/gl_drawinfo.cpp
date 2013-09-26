@@ -1057,7 +1057,7 @@ void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, boo
 	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
 	gl_SetFog(lightlevel, rel, &Colormap, false);
 	gltexture->Bind(Colormap.colormap);
-	gl_SetPlaneTextureRotation(&plane, gltexture);
+	bool pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
 
 	float fviewx = TO_GL(viewx);
 	float fviewy = TO_GL(viewy);
@@ -1094,8 +1094,11 @@ void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, boo
 
 	gl.End();
 
-	gl.MatrixMode(GL_TEXTURE);
-	gl.PopMatrix();
+	if (pushed)
+	{
+		gl.MatrixMode(GL_TEXTURE);
+		gl.PopMatrix();
+	}
 	gl.MatrixMode(GL_MODELVIEW);
 }
 

@@ -366,7 +366,7 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 
 	gl.Color4f(r, g, b, FIXED2FLOAT(parms.alpha));
 	
-	gl.Disable(GL_ALPHA_TEST);
+	gl_RenderState.EnableAlphaTest(false);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(ox, oy);
@@ -378,13 +378,13 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl.TexCoord2f(cx, cy);
 	glVertex2d(x + w, y + h);
 	gl.End();
-	gl.Enable(GL_ALPHA_TEST);
+	gl_RenderState.EnableAlphaTest(true);
 	
 	gl.Scissor(0, 0, screen->GetWidth(), screen->GetHeight());
 	gl.Disable(GL_SCISSOR_TEST);
 	gl_RenderState.SetTextureMode(TM_MODULATE);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	gl.BlendEquation(GL_FUNC_ADD);
+	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_RenderState.BlendEquation(GL_FUNC_ADD);
 }
 
 //==========================================================================
@@ -433,9 +433,9 @@ void FGLRenderer::Dim(PalEntry color, float damount, int x1, int y1, int w, int 
 	float r, g, b;
 	
 	gl_RenderState.EnableTexture(false);
+	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_RenderState.AlphaFunc(GL_GREATER,0);
 	gl_RenderState.Apply(true);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	gl.AlphaFunc(GL_GREATER,0);
 	
 	r = color.r/255.0f;
 	g = color.g/255.0f;

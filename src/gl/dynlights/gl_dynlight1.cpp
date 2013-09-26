@@ -220,7 +220,7 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 	{
 		Vector v;
 		
-		gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		gl_RenderState.BlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 		v.Set(r, g, b);
 		r = v.Length() - r;
 		g = v.Length() - g;
@@ -228,7 +228,7 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 	}
 	else
 	{
-		gl.BlendEquation(GL_FUNC_ADD);
+		gl_RenderState.BlendEquation(GL_FUNC_ADD);
 	}
 	if (desaturation>0)
 	{

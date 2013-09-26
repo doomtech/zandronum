@@ -145,7 +145,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 		fV2=pti->GetVB();
 	}
 
-	if (tex->tex->gl_info.mIsTransparent) gl.Disable(GL_ALPHA_TEST);
+	if (tex->tex->gl_info.mIsTransparent) gl_RenderState.EnableAlphaTest(false);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(x1,y1);
@@ -153,7 +153,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	gl.TexCoord2f(fU2, fV1); gl.Vertex2f(x2,y1);
 	gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
 	gl.End();
-	if (tex->tex->gl_info.mIsTransparent) gl.Enable(GL_ALPHA_TEST);
+	if (tex->tex->gl_info.mIsTransparent) gl_RenderState.EnableAlphaTest(true);
 }
 
 //==========================================================================
@@ -325,9 +325,9 @@ void FGLRenderer::DrawTargeterSprites()
 		mViewActor!=playermo) return;
 
 	gl_RenderState.EnableBrightmap(false);
-	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	gl.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
-	gl.BlendEquation(GL_FUNC_ADD);
+	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
+	gl_RenderState.BlendEquation(GL_FUNC_ADD);
 	gl.Color3f(1.0f,1.0f,1.0f);
 	gl_RenderState.SetTextureMode(TM_MODULATE);
 
