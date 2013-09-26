@@ -144,6 +144,7 @@ public:
 							// doing it per patch.
 
 	WORD Rotations;
+	SWORD SkyOffset;
 
 	enum // UseTypes
 	{

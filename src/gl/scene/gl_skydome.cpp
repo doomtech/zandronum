@@ -243,14 +243,14 @@ static void RenderSkyHemisphere(int hemi, bool mirror)
 //
 //
 //-----------------------------------------------------------------------------
+CVAR(Float, skyoffset, 0, 0)	// for testing
 
 static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float y_offset, bool mirror, int CM_Index)
 {
 	int texh;
 
-	// Sky stretching is rather pointless with the GL renderer now that it can handle all sky heights.
-	bool skystretch = false; // (r_stretchsky && !(level.flags & LEVEL_FORCENOSKYSTRETCH));
-
+	// 57 worls units roughly represent one sky texel for the glTranslate call.
+	const float skyoffsetfactor = 57;
 
 	if (tex)
 	{
@@ -259,23 +259,19 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		texw = tex->TextureWidth(GLUSE_TEXTURE);
 		texh = tex->TextureHeight(GLUSE_TEXTURE);
 
-		if (texh>190 && skystretch) texh=190;
-
 		gl.Rotatef(-180.0f+x_offset, 0.f, 1.f, 0.f);
-
 		yAdd = y_offset/texh;
+		yMult=1.0f;
 
-		if (texh<=180) // && skystretch)
+		if (texh < 200)
 		{
-			yMult=1.0f;
-			if (!skystretch)
-				gl.Scalef(1.f, texh/230.f, 1.f);
+			gl.Translatef(0.f, -1250.f, 0.f);
+			gl.Scalef(1.f, texh/230.f, 1.f);
 		}
 		else
 		{
-			yMult= 180.0f/texh;
-			if (!skystretch && texh > 190)
-				gl.Scalef(1.f, 230.f/240.f, 1.f);
+			gl.Translatef(0.f, (200 - texh + tex->tex->SkyOffset + skyoffset)*skyoffsetfactor, 0.f);
+			gl.Scalef(1.f, 1.f + ((texh-200.f)/200.f) * 1.17f, 1.f);
 		}
 	}
 
@@ -300,20 +296,6 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 	}
 
 	RenderSkyHemisphere(SKYHEMI_UPPER, mirror);
-
-	if(tex)
-	{
-		yAdd = y_offset/texh;
-
-		if (texh<=180)
-		{
-			yMult=1.0f;
-		}
-		else
-		{
-			yAdd+=180.0f/texh;
-		}
-	}
 
 	if (tex && !secondlayer) 
 	{
@@ -346,13 +328,17 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 //
 //-----------------------------------------------------------------------------
 
-static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int CM_Index)
+static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int CM_Index, bool sky2)
 {
 	FSkyBox * sb = static_cast<FSkyBox*>(gltex->tex);
 	int faces;
 	FMaterial * tex;
 
-	gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
+	if (!sky2)
+		gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector.X, glset.skyrotatevector.Z, glset.skyrotatevector.Y);
+	else
+		gl.Rotatef(-180.0f+x_offset, glset.skyrotatevector2.X, glset.skyrotatevector2.Z, glset.skyrotatevector2.Y);
+
 	gl.Color3f(R, G ,B);
 
 	if (sb->faces[5]) 
@@ -565,14 +551,12 @@ void GLSkyPortal::DrawContents()
 		}
 		else R=G=B=1.f;
 
-		RenderBox(origin->skytexno1, origin->texture[0], origin->x_offset[0], CM_Index);
+		RenderBox(origin->skytexno1, origin->texture[0], origin->x_offset[0], CM_Index, origin->sky2);
 		gl_RenderState.EnableAlphaTest(true);
 	}
 	else
 	{
 		if (origin->texture[0]==origin->texture[1] && origin->doublesky) origin->doublesky=false;	
-
-		gl.Translatef(0.f, -1250.f, 0.f);
 
 		if (origin->texture[0])
 		{

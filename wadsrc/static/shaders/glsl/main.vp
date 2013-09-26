@@ -34,7 +34,7 @@ void main()
 	#ifndef SPHEREMAP_0
 		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 	#else
-		gl_TexCoord[0] = sst;
+		gl_TexCoord[0].xy = sst;
 	#endif
 	
 	#ifdef NUM_LAYERS
@@ -42,49 +42,49 @@ void main()
 			#ifndef SPHEREMAP_1
 				gl_TexCoord[1] = gl_TextureMatrix[1] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[1] = sst;
+				gl_TexCoord[1].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 2
 			#ifndef SPHEREMAP_2
 				gl_TexCoord[2] = gl_TextureMatrix[2] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[2] = sst;
+				gl_TexCoord[2].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 3
 			#ifndef SPHEREMAP_3
 				gl_TexCoord[3] = gl_TextureMatrix[3] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[3] = sst;
+				gl_TexCoord[3].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 4
 			#ifndef SPHEREMAP_4
 				gl_TexCoord[4] = gl_TextureMatrix[4] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[4] = sst;
+				gl_TexCoord[4].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 5
 			#ifndef SPHEREMAP_5
 				gl_TexCoord[5] = gl_TextureMatrix[5] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[5] = sst;
+				gl_TexCoord[5].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 6
 			#ifndef SPHEREMAP_6
 				gl_TexCoord[6] = gl_TextureMatrix[6] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[6] = sst;
+				gl_TexCoord[6].xy = sst;
 			#endif
 		#endif
 		#if NUM_LAYERS > 7
 			#ifndef SPHEREMAP_7
 				gl_TexCoord[7] = gl_TextureMatrix[7] * gl_MultiTexCoord0;
 			#else
-				gl_TexCoord[7] = sst;
+				gl_TexCoord[7].xy = sst;
 			#endif
 		#endif
 	#endif

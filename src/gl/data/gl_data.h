@@ -14,6 +14,7 @@ struct GLRenderSettings
 	SBYTE map_nocoloredspritelighting;
 
 	FVector3 skyrotatevector;
+	FVector3 skyrotatevector2;
 
 };
 

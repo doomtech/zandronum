@@ -209,6 +209,7 @@ struct FGLROptions : public FOptionalMapinfoData
 	int			lightmode;
 	SBYTE		nocoloredspritelighting;
 	FVector3	skyrotatevector;
+	FVector3	skyrotatevector2;
 };
 
 DEFINE_MAP_OPTION(fogdensity, false)
@@ -271,6 +272,22 @@ DEFINE_MAP_OPTION(skyrotate, false)
 	parse.sc.MustGetFloat();
 	opt->skyrotatevector.Z = (float)parse.sc.Float;
 	opt->skyrotatevector.MakeUnit();
+}
+
+DEFINE_MAP_OPTION(skyrotate2, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+
+	parse.ParseAssign();
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector2.X = (float)parse.sc.Float;
+	if (parse.format_type == FMapInfoParser::FMT_New) parse.sc.MustGetStringName(","); 
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector2.Y = (float)parse.sc.Float;
+	if (parse.format_type == FMapInfoParser::FMT_New) parse.sc.MustGetStringName(","); 
+	parse.sc.MustGetFloat();
+	opt->skyrotatevector2.Z = (float)parse.sc.Float;
+	opt->skyrotatevector2.MakeUnit();
 }
 
 void InitGLRMapinfoData()

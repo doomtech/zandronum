@@ -108,11 +108,13 @@
 #ifndef STAT
 #define STAT_NEW(map)
 #define STAT_END(newl)
-#define STAT_SAVE(arc, hub)
+#define STAT_READ(png)
+#define STAT_WRITE(f)
 #else
 void STAT_NEW(const char *lev);
 void STAT_END(const char *newl);
-void STAT_SAVE(FArchive &arc, bool hubload);
+void STAT_READ(PNGHandle *png);
+void STAT_WRITE(FILE *f);
 #endif
 
 EXTERN_CVAR (Float, sv_gravity)
@@ -2236,7 +2238,6 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	// [BB] The server doesn't have a screen.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		screen->EndSerialize(arc);
-	STAT_SAVE(arc, hubLoad);
 }
 
 //==========================================================================
@@ -2357,6 +2358,7 @@ void G_WriteSnapshots (FILE *file)
 {
 	unsigned int i;
 
+	STAT_WRITE(file);
 	for (i = 0; i < wadlevelinfos.Size(); i++)
 	{
 		if (wadlevelinfos[i].snapshot)
@@ -2507,6 +2509,7 @@ void G_ReadSnapshots (PNGHandle *png)
 			arc << pnum;
 		}
 	}
+	STAT_READ(png);
 	png->File->ResetFilePtr();
 }
 

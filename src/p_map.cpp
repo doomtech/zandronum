@@ -1236,7 +1236,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		damage = tm.thing->GetMissileDamage ((tm.thing->flags4 & MF4_STRIFEDAMAGE) ? 3 : 7, 1);
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			if (damage >= 0)
+			if ((damage > 0) || (tm.thing->flags6 & MF6_FORCEPAIN)) 
 			{
 				if (( tm.thing->target ) &&
 					( tm.thing->target->player ) &&

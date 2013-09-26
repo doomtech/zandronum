@@ -155,6 +155,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			{
 				skyinfo.texture[0]=FMaterial::ValidateTexture(sky2texture, true);
 				skyinfo.skytexno1=sky2texture;
+				skyinfo.sky2 = true;
 				skyinfo.x_offset[0] = GLRenderer->mSky2Pos;
 			}
 			else

@@ -57,6 +57,7 @@ struct GLSkyInfo
 	FTextureID skytexno1;
 	bool mirrored;
 	bool doublesky;
+	bool sky2;
 	PalEntry fadecolor;	// if this isn't made part of the dome things will become more complicated when sky fog is used.
 
 	bool operator==(const GLSkyInfo & inf)

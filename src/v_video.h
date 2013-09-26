@@ -108,6 +108,7 @@ enum
 	DTA_BilinearFilter,	// bool: apply bilinear filtering to the image
 	DTA_SpecialColormap,// pointer to FSpecialColormapParameters (likely to be forever hardware-only)
 	DTA_ColormapStyle,	// pointer to FColormapStyle (hardware-only)
+	DTA_Fullscreen,		// Draw image fullscreen (same as DTA_VirtualWidth/Height with graphics size.)
 
 	// floating point duplicates of some of the above:
 	DTA_DestWidthF,
@@ -241,7 +242,7 @@ public:
 		uint32 fillcolor;
 		FRemapTable *remap;
 		const BYTE *translation;
-		DWORD colorOverlay;
+		uint32 colorOverlay;
 		INTBOOL alphaChannel;
 		INTBOOL flipX;
 		fixed_t shadowAlpha;
@@ -415,7 +416,7 @@ public:
 	virtual bool WipeDo(int ticks);
 	virtual void WipeCleanup();
 
-	DWORD GetLastFPS() const { return LastCount; }
+	uint32 GetLastFPS() const { return LastCount; }
 
 #ifdef _WIN32
 	virtual void PaletteChanged () = 0;
@@ -429,7 +430,7 @@ protected:
 	DFrameBuffer () {}
 
 private:
-	DWORD LastMS, LastSec, FrameCount, LastCount, LastTic;
+	uint32 LastMS, LastSec, FrameCount, LastCount, LastTic;
 };
 
 

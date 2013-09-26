@@ -86,9 +86,11 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		FMemLump fp_data = Wads.ReadLump(fp_lump);
 
 
+		FString vp_comb;
 		FString fp_comb;
-		if (gl.shadermodel < 4) fp_comb = "#define NO_SM4\n";
+		if (gl.shadermodel < 4) vp_comb = fp_comb = "#define NO_SM4\n";
 		// This uses GetChars on the strings to get rid of terminating 0 characters.
+		vp_comb << defines << vp_data.GetString().GetChars() << "\n";
 		fp_comb << defines << fp_data.GetString().GetChars() << "\n";
 
 		if (proc_prog_lump != NULL)
@@ -112,10 +114,10 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		hFragProg = gl.CreateShader(GL_FRAGMENT_SHADER);	
 
 
-		int vp_size = (int)vp_data.GetSize();
+		int vp_size = (int)vp_comb.Len();
 		int fp_size = (int)fp_comb.Len();
 
-		const char *vp_ptr = vp_data.GetString().GetChars();
+		const char *vp_ptr = vp_comb.GetChars();
 		const char *fp_ptr = fp_comb.GetChars();
 
 		gl.ShaderSource(hVertProg, 1, &vp_ptr, &vp_size);

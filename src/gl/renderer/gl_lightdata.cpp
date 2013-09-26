@@ -63,7 +63,7 @@ static PalEntry outsidefogcolor;
 static int outsidefogdensity;
 int skyfog;
 
-CVAR (Float, gl_light_ambient, 20.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+CVAR (Int, gl_light_ambient, 20, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Int, gl_weaponlight, 8, CVAR_ARCHIVE);
 CVAR(Bool,gl_enhanced_nightvision,true,CVAR_ARCHIVE)
 
@@ -233,7 +233,7 @@ int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon)
 		light=gl_light_ambient;
 		if (rellight<0) rellight>>=1;
 	}
-	return clamp(quickertoint(light+rellight), 0, 255);
+	return clamp(light+rellight, 0, 255);
 }
 
 //==========================================================================
