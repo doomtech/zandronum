@@ -57,7 +57,6 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 // [BB] New #includes.
 #include "gamemode.h"
 
@@ -148,8 +147,8 @@ void GLSprite::Draw(int pass)
 			// fog + fuzz don't work well without some fiddling with the alpha value!
 			if (!gl_isBlack(Colormap.FadeColor))
 			{
-				float xcamera=TO_GL(viewx);
-				float ycamera=TO_GL(viewy);
+				float xcamera=FIXED2FLOAT(viewx);
+				float ycamera=FIXED2FLOAT(viewy);
 
 				float dist=Dist2(xcamera,ycamera, x,y);
 
@@ -226,7 +225,7 @@ void GLSprite::Draw(int pass)
 			float xcenter = (x1+x2)*0.5;
 			float ycenter = (y1+y2)*0.5;
 			float zcenter = (z1+z2)*0.5;
-			float angleRad = FLOAT_TO_RAD(270. - GLRenderer->mAngles.Yaw);
+			float angleRad = DEG2RAD(270. - float(GLRenderer->mAngles.Yaw));
 			
 			Matrix3x4 mat;
 			mat.MakeIdentity();
@@ -353,8 +352,8 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor->x,actor->y);
 		else lightbottom=frontsector->floorplane.ZatPoint(actor->x,actor->y);
 
-		//maplighttop=TO_GL(lightlist[i].height);
-		maplightbottom=TO_GL(lightbottom);
+		//maplighttop=FIXED2FLOAT(lightlist[i].height);
+		maplightbottom=FIXED2FLOAT(lightbottom);
 		if (maplightbottom<z2) maplightbottom=z2;
 
 		if (maplightbottom<z1)
@@ -402,8 +401,8 @@ void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
 		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor->x,actor->y);
 		else lightbottom=sector->floorplane.ZatPoint(actor->x,actor->y);
 
-		//maplighttop=TO_GL(lightlist[i].height);
-		maplightbottom=TO_GL(lightbottom);
+		//maplighttop=FIXED2FLOAT(lightlist[i].height);
+		maplightbottom=FIXED2FLOAT(lightbottom);
 		if (maplightbottom<z2) maplightbottom=z2;
 
 		if (maplightbottom<center_y)
@@ -500,9 +499,9 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	}
 	
 
-	x = TO_GL(thingx);
-	z = TO_GL(thingz-thing->floorclip);
-	y = TO_GL(thingy);
+	x = FIXED2FLOAT(thingx);
+	z = FIXED2FLOAT(thingz-thing->floorclip);
+	y = FIXED2FLOAT(thingy);
 	
 	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/);
 	if (!modelframe)
@@ -531,7 +530,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			ul=pti->GetUR();
 			ur=pti->GetUL();
 		}
-		r.Scale(TO_GL(thing->scaleX),TO_GL(thing->scaleY));
+		r.Scale(FIXED2FLOAT(thing->scaleX),FIXED2FLOAT(thing->scaleY));
 
 		float rightfac=-r.left;
 		float leftfac=rightfac-r.width;
@@ -556,7 +555,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
 						if (floorh==thing->floorz) 
 						{
-							btm=TO_GL(floorh);
+							btm=FIXED2FLOAT(floorh);
 							break;
 						}
 					}
@@ -566,11 +565,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 					if (thing->flags2&MF2_ONMOBJ && thing->floorz==
 						thing->Sector->heightsec->floorplane.ZatPoint(thingx, thingy))
 					{
-						btm=TO_GL(thing->floorz);
+						btm=FIXED2FLOAT(thing->floorz);
 					}
 				}
 				if (btm==1000000.0f) 
-					btm= TO_GL(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
+					btm= FIXED2FLOAT(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
 
 				float diff = z2 - btm;
 				if (diff >= 0 /*|| !gl_sprite_clip_to_floor*/) diff = 0;
@@ -609,7 +608,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
-	fullbright =
+	fullbright = 
 		(thing->renderflags & RF_FULLBRIGHT) &&
 		(!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright);
 
@@ -697,7 +696,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	RenderStyle = thing->RenderStyle;
 	RenderStyle.CheckFuzz();
-	trans = TO_GL(thing->alpha);
+	trans = FIXED2FLOAT(thing->alpha);
 	hw_styleflags = STYLEHW_Normal;
 
 	if (RenderStyle.Flags & STYLEF_TransSoulsAlpha)
@@ -852,9 +851,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 		}
 	}
 
-	x= TO_GL(particle->x);
-	y= TO_GL(particle->y);
-	z= TO_GL(particle->z);
+	x= FIXED2FLOAT(particle->x);
+	y= FIXED2FLOAT(particle->y);
+	z= FIXED2FLOAT(particle->z);
 	
 	float scalefac=particle->size/4.0f;
 	// [BB] The smooth particles are smaller than the other ones. Compensate for this here.

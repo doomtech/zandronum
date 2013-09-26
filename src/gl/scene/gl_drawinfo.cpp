@@ -51,7 +51,6 @@
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
 #include "gl/shaders/gl_shader.h"
 
@@ -309,7 +308,7 @@ void GLDrawList::SortWallIntoPlane(SortNode * head,SortNode * sort)
 	GLWall * ws=&walls[drawitems[sort->itemindex].index];
 	GLWall * ws1;
 
-	bool ceiling = fh->z > TO_GL(viewz);
+	bool ceiling = fh->z > FIXED2FLOAT(viewz);
 
 
 	if (ws->ztop[0]>fh->z && ws->zbottom[0]<fh->z)
@@ -368,7 +367,7 @@ void GLDrawList::SortSpriteIntoPlane(SortNode * head,SortNode * sort)
 	GLSprite * ss=&sprites[drawitems[sort->itemindex].index];
 	GLSprite * ss1;
 
-	bool ceiling = fh->z > TO_GL(viewz);
+	bool ceiling = fh->z > FIXED2FLOAT(viewz);
 
 	if (ss->z1>fh->z && ss->z2<fh->z)
 	{
@@ -1063,9 +1062,9 @@ void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, boo
 	gl_SetFog(lightlevel, rel, &Colormap, false);
 	gltexture->Bind(Colormap.colormap);
 
-	float fviewx = TO_GL(viewx);
-	float fviewy = TO_GL(viewy);
-	float fviewz = TO_GL(viewz);
+	float fviewx = FIXED2FLOAT(viewx);
+	float fviewy = FIXED2FLOAT(viewy);
+	float fviewz = FIXED2FLOAT(viewz);
 
 	gl_RenderState.Apply();
 
@@ -1142,13 +1141,13 @@ void FDrawInfo::FloodUpperGap(seg_t * seg)
 		v2=seg->linedef->v1;
 	}
 
-	ws.x1= TO_GL(v1->x);
-	ws.y1= TO_GL(v1->y);
-	ws.x2= TO_GL(v2->x);
-	ws.y2= TO_GL(v2->y);
+	ws.x1= FIXED2FLOAT(v1->x);
+	ws.y1= FIXED2FLOAT(v1->y);
+	ws.x2= FIXED2FLOAT(v2->x);
+	ws.y2= FIXED2FLOAT(v2->y);
 
-	ws.z1= TO_GL(frontz);
-	ws.z2= TO_GL(backz);
+	ws.z1= FIXED2FLOAT(frontz);
+	ws.z2= FIXED2FLOAT(backz);
 
 	// Step1: Draw a stencil into the gap
 	SetupFloodStencil(&ws);
@@ -1195,13 +1194,13 @@ void FDrawInfo::FloodLowerGap(seg_t * seg)
 		v2=seg->linedef->v1;
 	}
 
-	ws.x1= TO_GL(v1->x);
-	ws.y1= TO_GL(v1->y);
-	ws.x2= TO_GL(v2->x);
-	ws.y2= TO_GL(v2->y);
+	ws.x1= FIXED2FLOAT(v1->x);
+	ws.y1= FIXED2FLOAT(v1->y);
+	ws.x2= FIXED2FLOAT(v2->x);
+	ws.y2= FIXED2FLOAT(v2->y);
 
-	ws.z2= TO_GL(frontz);
-	ws.z1= TO_GL(backz);
+	ws.z2= FIXED2FLOAT(frontz);
+	ws.z1= FIXED2FLOAT(backz);
 
 	// Step1: Draw a stencil into the gap
 	SetupFloodStencil(&ws);

@@ -182,10 +182,10 @@ public:
 	int GetAreaCount() const { return tex->gl_info.areacount; }
 	FloatRect *GetAreas() const { return tex->gl_info.areas; }
 
-	fixed_t RowOffset(fixed_t rowoffset) const;
 	fixed_t TextureOffset(fixed_t textureoffset) const;
 	float TextureOffset(float textureoffset) const;
 
+	fixed_t RowOffset(fixed_t rowoffset) const;
 	float RowOffset(float rowoffset) const;
 
 	// Returns the size for which texture offset coordinates are used.

@@ -56,7 +56,6 @@
 #include "gl/scene/gl_portal.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
-#include "gl/utility/gl_convert.h"
 
 
 //==========================================================================
@@ -144,9 +143,9 @@ void FLightBuffer::CollectLightSources()
 				rgb.G = light->GetGreen();
 				rgb.B = light->GetBlue();
 				rgb.Type = (light->flags4 & MF4_SUBTRACTIVE)? 128 : (light->flags4 & MF4_ADDITIVE || foggy)? 255:0;
-				pos.X = TO_GL(light->x);
-				pos.Y = TO_GL(light->y); 
-				pos.Z =  TO_GL(light->z);
+				pos.X = FIXED2FLOAT(light->x);
+				pos.Y = FIXED2FLOAT(light->y); 
+				pos.Z =  FIXED2FLOAT(light->z);
 				pos.Distance = (light->GetRadius() * gl_lights_size);
 				light->bufferindex = pPos.Size();
 				pLights.Push(rgb);

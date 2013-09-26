@@ -52,7 +52,6 @@
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 
 struct DecalVertex
 {
@@ -199,9 +198,9 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 			blue = clamp<float>(result[2]+blue, 0, 1.0f);
 		}
 
-		BYTE R = quickertoint(r * red);
-		BYTE G = quickertoint(g * green);
-		BYTE B = quickertoint(b * blue);
+		BYTE R = xs_RoundToInt(r * red);
+		BYTE G = xs_RoundToInt(g * green);
+		BYTE B = xs_RoundToInt(b * blue);
 
 		gl_ModifyColor(R,G,B, Colormap.colormap);
 
@@ -219,13 +218,13 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	
 	
-	a = TO_GL(actor->Alpha);
+	a = FIXED2FLOAT(actor->Alpha);
 	
 	// now clip the decal to the actual polygon
-	float decalwidth = tex->TextureWidth(GLUSE_PATCH)  * TO_GL(actor->ScaleX);
-	float decalheight= tex->TextureHeight(GLUSE_PATCH) * TO_GL(actor->ScaleY);
-	float decallefto = tex->GetLeftOffset(GLUSE_PATCH) * TO_GL(actor->ScaleX);
-	float decaltopo  = tex->GetTopOffset(GLUSE_PATCH)  * TO_GL(actor->ScaleY);
+	float decalwidth = tex->TextureWidth(GLUSE_PATCH)  * FIXED2FLOAT(actor->ScaleX);
+	float decalheight= tex->TextureHeight(GLUSE_PATCH) * FIXED2FLOAT(actor->ScaleY);
+	float decallefto = tex->GetLeftOffset(GLUSE_PATCH) * FIXED2FLOAT(actor->ScaleX);
+	float decaltopo  = tex->GetTopOffset(GLUSE_PATCH)  * FIXED2FLOAT(actor->ScaleY);
 
 	
 	float leftedge = glseg.fracleft * side->TexelLength;
@@ -276,12 +275,12 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 
 	const PatchTextureInfo * pti=tex->BindPatch(p.colormap, actor->Translation);
 
-	dv[1].z=dv[2].z = TO_GL(zpos);
+	dv[1].z=dv[2].z = FIXED2FLOAT(zpos);
 	dv[0].z=dv[3].z = dv[1].z - decalheight;
 	dv[1].v=dv[2].v=pti->GetVT();
 
-	dv[1].u=dv[0].u=pti->GetU(lefttex / TO_GL(actor->ScaleX));
-	dv[3].u=dv[2].u=pti->GetU(righttex / TO_GL(actor->ScaleX));
+	dv[1].u=dv[0].u=pti->GetU(lefttex / FIXED2FLOAT(actor->ScaleX));
+	dv[3].u=dv[2].u=pti->GetU(righttex / FIXED2FLOAT(actor->ScaleX));
 	dv[0].v=dv[3].v=pti->GetVB();
 
 

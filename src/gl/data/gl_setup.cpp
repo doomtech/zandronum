@@ -59,7 +59,6 @@
 #include "gl/dynlights/gl_dynlight.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 #include "gl/gl_functions.h"
 
 void InitGLRMapinfoData();
@@ -630,7 +629,7 @@ static int STACK_ARGS segcmp(const void *a, const void *b)
 {
 	seg_t *A = *(seg_t**)a;
 	seg_t *B = *(seg_t**)b;
-	return quickertoint(FRACUNIT*(A->sidefrac - B->sidefrac));
+	return xs_RoundToInt(FRACUNIT*(A->sidefrac - B->sidefrac));
 }
 
 static void PrepareSegs()
@@ -641,8 +640,8 @@ static void PrepareSegs()
 	// Get floatng point coordinates of vertices
 	for(int i = 0; i < numvertexes; i++)
 	{
-		vertexes[i].fx = TO_GL(vertexes[i].x);
-		vertexes[i].fy = TO_GL(vertexes[i].y);
+		vertexes[i].fx = FIXED2FLOAT(vertexes[i].x);
+		vertexes[i].fy = FIXED2FLOAT(vertexes[i].y);
 		vertexes[i].dirty = true;
 	}
 

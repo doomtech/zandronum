@@ -371,7 +371,7 @@ void ADynamicLight::UpdateLocation()
 		{
 			intensity = m_currentIntensity;
 		}
-		radius = TO_MAP(intensity * 2.0f * gl_lights_size);
+		radius = FLOAT2FIXED(intensity * 2.0f * gl_lights_size);
 
 		if (x!=oldx || y!=oldy || radius!=oldradius) 
 		{
@@ -501,19 +501,19 @@ float ADynamicLight::DistToSeg(seg_t *seg)
 {
    float u, px, py;
 
-   float seg_dx = TO_GL(seg->v2->x - seg->v1->x);
-   float seg_dy = TO_GL(seg->v2->y - seg->v1->y);
+   float seg_dx = FIXED2FLOAT(seg->v2->x - seg->v1->x);
+   float seg_dy = FIXED2FLOAT(seg->v2->y - seg->v1->y);
    float seg_length_sq = seg_dx * seg_dx + seg_dy * seg_dy;
 
-   u = (  TO_GL(x - seg->v1->x) * seg_dx + TO_GL(y - seg->v1->y) * seg_dy) / seg_length_sq;
+   u = (  FIXED2FLOAT(x - seg->v1->x) * seg_dx + FIXED2FLOAT(y - seg->v1->y) * seg_dy) / seg_length_sq;
    if (u < 0.f) u = 0.f; // clamp the test point to the line segment
    if (u > 1.f) u = 1.f;
 
-   px = TO_GL(seg->v1->x) + (u * seg_dx);
-   py = TO_GL(seg->v1->y) + (u * seg_dy);
+   px = FIXED2FLOAT(seg->v1->x) + (u * seg_dx);
+   py = FIXED2FLOAT(seg->v1->y) + (u * seg_dy);
 
-   px -= TO_GL(x);
-   py -= TO_GL(y);
+   px -= FIXED2FLOAT(x);
+   py -= FIXED2FLOAT(y);
 
    return (px*px) + (py*py);
 }
@@ -593,7 +593,7 @@ void ADynamicLight::LinkLight()
 		subsector_t * subSec = R_PointInSubsector(x, y);
 		if (subSec)
 		{
-			float fradius = TO_GL(radius);
+			float fradius = FIXED2FLOAT(radius);
 			CollectWithinRadius(subSec, fradius*fradius);
 		}
 	}
@@ -686,8 +686,8 @@ CCMD(listlights)
 		sectors=0;
 		Printf("%s at (%f, %f, %f), color = 0x%02x%02x%02x, radius = %f ",
 			dl->target? dl->target->GetClass()->TypeName.GetChars() : dl->GetClass()->TypeName.GetChars(),
-			TO_GL(dl->x), TO_GL(dl->y), TO_GL(dl->z), dl->args[LIGHT_RED], 
-			dl->args[LIGHT_GREEN], dl->args[LIGHT_BLUE], TO_GL(dl->radius));
+			FIXED2FLOAT(dl->x), FIXED2FLOAT(dl->y), FIXED2FLOAT(dl->z), dl->args[LIGHT_RED], 
+			dl->args[LIGHT_GREEN], dl->args[LIGHT_BLUE], FIXED2FLOAT(dl->radius));
 		i++;
 
 		if (dl->target)

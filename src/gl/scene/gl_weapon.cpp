@@ -53,7 +53,6 @@
 #include "gl/models/gl_models.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
-#include "gl/utility/gl_convert.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Float, transsouls)
@@ -267,7 +266,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	}
 	else
 	{
-		trans = TO_GL(vis.alpha);
+		trans = FIXED2FLOAT(vis.alpha);
 	}
 
 	// now draw the different layers of the weapon

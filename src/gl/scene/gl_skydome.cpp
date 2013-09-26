@@ -52,7 +52,6 @@
 #include "gl/textures/gl_texture.h"
 #include "gl/textures/gl_skyboxtexture.h"
 #include "gl/textures/gl_material.h"
-#include "gl/utility/gl_convert.h"
 
 
 //-----------------------------------------------------------------------------
@@ -129,9 +128,9 @@ static void SkyVertex(int r, int c)
 	}
 	if (r != 4) y+=FRACUNIT*300;
 	// And finally the vertex.
-	fx =-TO_GL(x);	// Doom mirrors the sky vertically!
-	fy = TO_GL(y);
-	fz = TO_GL(z);
+	fx =-FIXED2FLOAT(x);	// Doom mirrors the sky vertically!
+	fy = FIXED2FLOAT(y);
+	fz = FIXED2FLOAT(z);
 	gl.Vertex3f(fx, fy - 1.f, fz);
 }
 

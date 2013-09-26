@@ -2,7 +2,6 @@
 
 #include <math.h>
 #include <float.h>
-#include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_geometric.h"
 
 static Vector axis[3] = 
@@ -230,10 +229,10 @@ void Plane::Set(secplane_t &plane)
 {
    float a, b, c, d;
 
-   a = TO_GL(plane.a);
-   b = TO_GL(plane.b);
-   c = TO_GL(plane.c);
-   d = TO_GL(plane.d);
+   a = FIXED2FLOAT(plane.a);
+   b = FIXED2FLOAT(plane.b);
+   c = FIXED2FLOAT(plane.c);
+   d = FIXED2FLOAT(plane.d);
 
    m_normal.Set(a, c, b);
    //m_normal.Normalize(); the vector is already normalized

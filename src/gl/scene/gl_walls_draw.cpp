@@ -56,7 +56,6 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
 
 EXTERN_CVAR(Bool, gl_seamless)
@@ -158,9 +157,9 @@ void GLWall::SetupLights()
 
 				Vector fn, pos;
 
-				float x = TO_GL(node->lightsource->x);
-				float y = TO_GL(node->lightsource->y);
-				float z = TO_GL(node->lightsource->z);
+				float x = FIXED2FLOAT(node->lightsource->x);
+				float y = FIXED2FLOAT(node->lightsource->y);
+				float z = FIXED2FLOAT(node->lightsource->z);
 				float dist = fabsf(p.DistToPoint(x, z, y));
 				float radius = (node->lightsource->GetRadius() * gl_lights_size);
 				float scale = 1.0f / ((2.f * radius) - dist);
@@ -316,8 +315,8 @@ void GLWall::RenderFogBoundary()
 			// as the shader version but it's an acceptable compromise.
 			float fogdensity=gl_GetFogDensity(lightlevel, Colormap.FadeColor);
 
-			float xcamera=TO_GL(viewx);
-			float ycamera=TO_GL(viewy);
+			float xcamera=FIXED2FLOAT(viewx);
+			float ycamera=FIXED2FLOAT(viewy);
 
 			float dist1=Dist2(xcamera,ycamera, glseg.x1,glseg.y1);
 			float dist2=Dist2(xcamera,ycamera, glseg.x2,glseg.y2);

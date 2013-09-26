@@ -71,8 +71,8 @@ void GLWall::MirrorPlane(secplane_t * plane, bool ceiling)
 {
 	if (!(gl.flags&RFL_NOSTENCIL))
 	{
-		if (ceiling && TO_GL(viewz) >= plane->ZatPoint(TO_GL(viewx), TO_GL(viewy))) return;
-		if (!ceiling && TO_GL(viewz) <= plane->ZatPoint(TO_GL(viewx), TO_GL(viewy))) return;
+		if (ceiling && FIXED2FLOAT(viewz) >= plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy))) return;
+		if (!ceiling && FIXED2FLOAT(viewz) <= plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy))) return;
 		type=RENDERWALL_PLANEMIRROR;
 		planemirror=plane;
 		PutWall(0);
@@ -136,7 +136,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			if (!skyinfo.texture[0] || skyinfo.texture[0]->tex->UseType == FTexture::TEX_Null) goto normalsky;
 			skyinfo.skytexno1 = texno;
 			skyinfo.x_offset[0] = ANGLE_TO_FLOAT(s->GetTextureXOffset(pos));
-			skyinfo.y_offset = TO_GL(s->GetTextureYOffset(pos));
+			skyinfo.y_offset = FIXED2FLOAT(s->GetTextureYOffset(pos));
 			skyinfo.mirrored = !l->args[2];
 		}
 		else
@@ -246,8 +246,8 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 		}
 		else
 		{
-			zbottom[0]=TO_GL(bs->ceilingplane.ZatPoint(v1));
-			zbottom[1]=TO_GL(bs->ceilingplane.ZatPoint(v2));
+			zbottom[0]=FIXED2FLOAT(bs->ceilingplane.ZatPoint(v1));
+			zbottom[1]=FIXED2FLOAT(bs->ceilingplane.ZatPoint(v2));
 			flags|=GLWF_SKYHACK;	// mid textures on such lines need special treatment!
 		}
 
@@ -263,8 +263,8 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 			fixed_t fsc2=fs->ceilingplane.ZatPoint(v2);
 
 			ztop[0]=ztop[1]=32768.0f;
-			zbottom[0]=TO_GL(fsc1);
-			zbottom[1]=TO_GL(fsc2);
+			zbottom[0]=FIXED2FLOAT(fsc1);
+			zbottom[1]=FIXED2FLOAT(fsc2);
 			if (ceilingsky)	SkyTexture(fs->sky,fs->CeilingSkyBox, true);
 			else MirrorPlane(&fs->ceilingplane, true);
 		}
@@ -298,7 +298,7 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 			else
 			{
 				// Special hack for Vrack2b
-				if (bs->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) > TO_GL(viewz)) return;
+				if (bs->floorplane.ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)) > FIXED2FLOAT(viewz)) return;
 			}
 		}
 		zbottom[0]=zbottom[1]=-32768.0f;
@@ -310,8 +310,8 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 		}
 		else
 		{
-			ztop[0]=TO_GL(bs->floorplane.ZatPoint(v1));
-			ztop[1]=TO_GL(bs->floorplane.ZatPoint(v2));
+			ztop[0]=FIXED2FLOAT(bs->floorplane.ZatPoint(v1));
+			ztop[1]=FIXED2FLOAT(bs->floorplane.ZatPoint(v2));
 			flags|=GLWF_SKYHACK;	// mid textures on such lines need special treatment!
 		}
 
@@ -327,8 +327,8 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 			fixed_t fsc2=fs->floorplane.ZatPoint(v2);
 
 			zbottom[0]=zbottom[1]=-32768.0f;
-			ztop[0]=TO_GL(fsc1);
-			ztop[1]=TO_GL(fsc2);
+			ztop[0]=FIXED2FLOAT(fsc1);
+			ztop[1]=FIXED2FLOAT(fsc2);
 
 			if (floorsky) SkyTexture(fs->sky,fs->FloorSkyBox, false);
 			else MirrorPlane(&fs->floorplane, false);

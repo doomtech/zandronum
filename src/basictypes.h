@@ -23,6 +23,10 @@ typedef int64_t					SQWORD;
 typedef uint64_t				QWORD;
 #endif
 
+typedef SDWORD					int32;
+typedef float					real32;
+typedef double					real64;
+
 // [BC] New additions.
 typedef	unsigned short			USHORT;
 typedef	short					SHORT;

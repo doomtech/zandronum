@@ -54,7 +54,6 @@
 #include "gl/scene/gl_portal.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
-#include "gl/utility/gl_convert.h"
 
 
 //==========================================================================
@@ -81,7 +80,7 @@ void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 			if (!(light->flags2&MF2_DORMANT) &&
 				(!(light->flags4&MF4_DONTLIGHTSELF) || light->target != self))
 			{
-				float dist = FVector3( TO_GL(x - light->x), TO_GL(y - light->y), TO_GL(z - light->z) ).Length();
+				float dist = FVector3( FIXED2FLOAT(x - light->x), FIXED2FLOAT(y - light->y), FIXED2FLOAT(z - light->z) ).Length();
 				radius = light->GetRadius() * gl_lights_size;
 				
 				if (dist < radius)
@@ -147,7 +146,7 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 	g = clamp<float>(result[1]+g, 0, 1.0f) * ThingColor.g/255.f;
 	b = clamp<float>(result[2]+b, 0, 1.0f) * ThingColor.b/255.f;
 	gl.Color4f(r, g, b, alpha);
-	int addlight = quickertoint(result[0]*77 + result[1]*143 + result[2]*36);
+	int addlight = xs_RoundToInt(result[0]*77 + result[1]*143 + result[2]*36);
 	return clamp<int>(lightlevel + addlight , 0, 255);
 }
 

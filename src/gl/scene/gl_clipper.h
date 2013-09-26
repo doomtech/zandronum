@@ -124,7 +124,7 @@ extern Clipper clipper;
 
 inline angle_t R_PointToAnglePrecise (fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 {
-	return quickertoint((float)(atan2f(float(y-viewy), float(x-viewx)) * (ANGLE_180/M_PI)));
+	return xs_RoundToUInt(atan2(double(y-viewy), double(x-viewx)) * (ANGLE_180/M_PI));
 }
 
 inline angle_t vertex_t::GetViewAngle()

@@ -60,7 +60,6 @@
 #include "gl/dynlights/gl_glow.h"
 #include "gl/models/gl_models.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/gl_functions.h"
 // [BC]
@@ -380,8 +379,8 @@ void gl_RecalcVertexHeights(vertex_t * v)
 	{
 		for(j=0;j<2;j++)
 		{
-			if (j==0) height=TO_GL(v->sectors[i]->ceilingplane.ZatPoint(v));
-			else height=TO_GL(v->sectors[i]->floorplane.ZatPoint(v));
+			if (j==0) height=FIXED2FLOAT(v->sectors[i]->ceilingplane.ZatPoint(v));
+			else height=FIXED2FLOAT(v->sectors[i]->floorplane.ZatPoint(v));
 
 			for(k=0;k<v->numheights;k++)
 			{
@@ -482,13 +481,13 @@ CCMD(dumpgeometry)
 				if (seg->linedef)
 				{
 				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
-					TO_GL(seg->v1->x), TO_GL(seg->v1->y), TO_GL(seg->v2->x), TO_GL(seg->v2->y),
+					FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
 					seg-segs, seg->linedef-lines, seg->sidedef != seg->linedef->sidedef[0]);
 				}
 				else
 				{
 					Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
-						TO_GL(seg->v1->x), TO_GL(seg->v1->y), TO_GL(seg->v2->x), TO_GL(seg->v2->y),
+						FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
 						seg-segs);
 				}
 				if (seg->PartnerSeg) 

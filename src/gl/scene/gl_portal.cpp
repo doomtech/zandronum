@@ -57,7 +57,6 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
-#include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
 #include "gl/utility/gl_geometric.h"
 
@@ -309,10 +308,10 @@ inline void GLPortal::ClearClipper()
 	for(unsigned int i=0;i<lines.Size();i++)
 	{
 		angle_t startAngle = R_PointToAnglePrecise(savedviewx, savedviewy, 
-												TO_MAP(lines[i].glseg.x2), TO_MAP(lines[i].glseg.y2));
+												FLOAT2FIXED(lines[i].glseg.x2), FLOAT2FIXED(lines[i].glseg.y2));
 
 		angle_t endAngle = R_PointToAnglePrecise(savedviewx, savedviewy, 
-												TO_MAP(lines[i].glseg.x1), TO_MAP(lines[i].glseg.y1));
+												FLOAT2FIXED(lines[i].glseg.x1), FLOAT2FIXED(lines[i].glseg.y1));
 
 		if (startAngle-endAngle>0) 
 		{
@@ -673,8 +672,8 @@ void GLPlaneMirrorPortal::DrawContents()
 
 	gl.Enable(GL_CLIP_PLANE0+renderdepth);
 	// This only works properly for non-sloped planes so don't bother with the math.
-	//double d[4]={origin->a/65536., origin->c/65536., origin->b/65536., TO_GL(origin->d)};
-	double d[4]={0, PlaneMirrorMode, 0, TO_GL(origin->d)};
+	//double d[4]={origin->a/65536., origin->c/65536., origin->b/65536., FIXED2FLOAT(origin->d)};
+	double d[4]={0, PlaneMirrorMode, 0, FIXED2FLOAT(origin->d)};
 	gl.ClipPlane(GL_CLIP_PLANE0+renderdepth, d);
 
 	GLRenderer->DrawScene();
@@ -738,25 +737,25 @@ void GLMirrorPortal::DrawContents()
 	{ 
 		// any mirror--use floats to avoid integer overflow
 
-		float dx = TO_GL(v2->x - v1->x);
-		float dy = TO_GL(v2->y - v1->y);
-		float x1 = TO_GL(v1->x);
-		float y1 = TO_GL(v1->y);
-		float x = TO_GL(startx);
-		float y = TO_GL(starty);
+		float dx = FIXED2FLOAT(v2->x - v1->x);
+		float dy = FIXED2FLOAT(v2->y - v1->y);
+		float x1 = FIXED2FLOAT(v1->x);
+		float y1 = FIXED2FLOAT(v1->y);
+		float x = FIXED2FLOAT(startx);
+		float y = FIXED2FLOAT(starty);
 
 		// the above two cases catch len == 0
 		float r = ((x - x1)*dx + (y - y1)*dy) / (dx*dx + dy*dy);
 
-		viewx = TO_MAP((x1 + r * dx)*2 - x);
-		viewy = TO_MAP((y1 + r * dy)*2 - y);
+		viewx = FLOAT2FIXED((x1 + r * dx)*2 - x);
+		viewy = FLOAT2FIXED((y1 + r * dy)*2 - y);
 
 		// Compensation for reendering inaccuracies
 		FVector2 v(-dx, dy);
 		v.MakeUnit();
 
-		viewx+= TO_MAP(v[1] * renderdepth / 2);
-		viewy+= TO_MAP(v[0] * renderdepth / 2);
+		viewx+= FLOAT2FIXED(v[1] * renderdepth / 2);
+		viewy+= FLOAT2FIXED(v[0] * renderdepth / 2);
 	}
 	viewangle = 2*R_PointToAnglePrecise (GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y,
 										GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y) - startang;
@@ -832,7 +831,7 @@ void GLHorizonPortal::DrawContents()
 	}
 
 
-	z=TO_GL(sp->texheight);
+	z=FIXED2FLOAT(sp->texheight);
 
 
 	if (gltexture && gltexture->tex->isFullbright())
@@ -858,8 +857,8 @@ void GLHorizonPortal::DrawContents()
 
 	bool pushed = gl_SetPlaneTextureRotation(sp, gltexture);
 
-	float vx=TO_GL(viewx);
-	float vy=TO_GL(viewy);
+	float vx=FIXED2FLOAT(viewx);
+	float vy=FIXED2FLOAT(viewy);
 
 	// Draw to some far away boundary
 	for(float x=-32768+vx; x<32768+vx; x+=4096)
@@ -885,7 +884,7 @@ void GLHorizonPortal::DrawContents()
 		}
 	}
 
-	float vz=TO_GL(viewz);
+	float vz=FIXED2FLOAT(viewz);
 	float tz=(z-vz);///64.0f;
 
 	// fill the gap between the polygon and the true horizon

@@ -120,7 +120,7 @@ angle_t FGLRenderer::FrustumAngle()
 	// ok, this is a gross hack that barely works...
 	// but at least it doesn't overestimate too much...
 	double floatangle=2.0+(45.0+((tilt/1.9)))*mCurrentFoV*48.0/BaseRatioSizes[WidescreenRatio][3]/90.0;
-	angle_t a1 = ANGLE_1*toint(floatangle);
+	angle_t a1 = FLOAT_TO_ANGLE(floatangle);
 	if (a1>=ANGLE_180) return 0xffffffff;
 	return a1;
 }
@@ -239,7 +239,7 @@ void FGLRenderer::SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angl
 
 	mAngles.Yaw = 270.0f-fviewangle;
 	mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
-	mCameraPos = FVector3(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
+	mCameraPos = FVector3(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
 }
 	
 
@@ -339,7 +339,7 @@ void FGLRenderer::RenderScene(int recursion)
 
 	if (!gl_no_skyclear) GLPortal::RenderFirstSkyPortal(recursion);
 
-	gl_RenderState.SetCameraPos(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
+	gl_RenderState.SetCameraPos(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
 
 	gl_RenderState.EnableFog(true);
 	gl_RenderState.BlendFunc(GL_ONE,GL_ZERO);
@@ -530,7 +530,7 @@ void FGLRenderer::RenderTranslucent()
 	RenderAll.Clock();
 
 	gl.DepthMask(false);
-	gl_RenderState.SetCameraPos(TO_GL(viewx), TO_GL(viewy), TO_GL(viewz));
+	gl_RenderState.SetCameraPos(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
 
 	// final pass: translucent stuff
 	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);

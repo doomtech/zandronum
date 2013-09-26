@@ -78,11 +78,11 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 		gltexture->TextureHeight(GLUSE_TEXTURE) != 64 ||
 		(gl.flags & RFL_ATI))	// for some reason skipping this does not work on ATI...
 	{
-		float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
-		float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
+		float uoffs=FIXED2FLOAT(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
+		float voffs=FIXED2FLOAT(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
 
-		float xscale1=TO_GL(secplane->xscale);
-		float yscale1=TO_GL(secplane->yscale);
+		float xscale1=FIXED2FLOAT(secplane->xscale);
+		float yscale1=FIXED2FLOAT(secplane->yscale);
 
 		float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
@@ -601,7 +601,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (((*srf)&SSRF_RENDERFLOOR) || frontsector->floorplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) <= TO_GL(viewz))
+	if (((*srf)&SSRF_RENDERFLOOR) || frontsector->floorplane.ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)) <= FIXED2FLOAT(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERFLOOR;
 
@@ -648,7 +648,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	//
 	//
 	//
-	if (((*srf)&SSRF_RENDERCEILING) || frontsector->ceilingplane.ZatPoint(TO_GL(viewx), TO_GL(viewy)) >= TO_GL(viewz))
+	if (((*srf)&SSRF_RENDERCEILING) || frontsector->ceilingplane.ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)) >= FIXED2FLOAT(viewz))
 	{
 		gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_RENDERCEILING;
 
@@ -728,7 +728,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_top=rover->top.plane->ZatPoint(CenterSpot(sector));
 						if (ff_top<lastceilingheight)
 						{
-							if (TO_GL(viewz) <= rover->top.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
+							if (FIXED2FLOAT(viewz) <= rover->top.plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)))
 							{
 								SetFrom3DFloor(rover, true, !!(rover->flags&FF_FOG));
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
@@ -742,7 +742,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_bottom=rover->bottom.plane->ZatPoint(CenterSpot(sector));
 						if (ff_bottom<lastceilingheight)
 						{
-							if (TO_GL(viewz)<=rover->bottom.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
+							if (FIXED2FLOAT(viewz)<=rover->bottom.plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)))
 							{
 								SetFrom3DFloor(rover, false, !(rover->flags&FF_FOG));
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
@@ -768,7 +768,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_bottom=rover->bottom.plane->ZatPoint(CenterSpot(sector));
 						if (ff_bottom>lastfloorheight || (rover->flags&FF_FIX))
 						{
-							if (TO_GL(viewz) >= rover->bottom.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
+							if (FIXED2FLOAT(viewz) >= rover->bottom.plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)))
 							{
 								SetFrom3DFloor(rover, false, !(rover->flags&FF_FOG));
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
@@ -789,7 +789,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 						fixed_t ff_top=rover->top.plane->ZatPoint(CenterSpot(sector));
 						if (ff_top>lastfloorheight)
 						{
-							if (TO_GL(viewz) >= rover->top.plane->ZatPoint(TO_GL(viewx), TO_GL(viewy)))
+							if (FIXED2FLOAT(viewz) >= rover->top.plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy)))
 							{
 								SetFrom3DFloor(rover, true, !!(rover->flags&FF_FOG));
 								Colormap.FadeColor=frontsector->ColorMap->Fade;

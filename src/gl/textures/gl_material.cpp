@@ -60,7 +60,6 @@
 #include "gl/textures/gl_bitmap.h"
 #include "gl/textures/gl_material.h"
 #include "gl/shaders/gl_shader.h"
-#include "gl/utility/gl_convert.h"
 
 
 EXTERN_CVAR(Bool, gl_render_precise)
@@ -834,12 +833,12 @@ fixed_t FMaterial::RowOffset(fixed_t rowoffset) const
 	if (tempScaleX == FRACUNIT)
 	{
 		if (wti.scaley==1.f || tex->bWorldPanning) return rowoffset;
-		else return quickertoint(rowoffset/wti.scaley);
+		else return xs_RoundToInt(rowoffset/wti.scaley);
 	}
 	else
 	{
 		if (tex->bWorldPanning) return FixedDiv(rowoffset, tempScaleY);
-		else return quickertoint(rowoffset/wti.scaley);
+		else return xs_RoundToInt(rowoffset/wti.scaley);
 	}
 }
 
@@ -858,7 +857,7 @@ float FMaterial::RowOffset(float rowoffset) const
 	}
 	else
 	{
-		if (tex->bWorldPanning) return rowoffset / TO_GL(tempScaleY);
+		if (tex->bWorldPanning) return rowoffset / FIXED2FLOAT(tempScaleY);
 		else return rowoffset / wti.scaley;
 	}
 }
@@ -874,12 +873,12 @@ fixed_t FMaterial::TextureOffset(fixed_t textureoffset) const
 	if (tempScaleX == FRACUNIT)
 	{
 		if (wti.scalex==1.f || tex->bWorldPanning) return textureoffset;
-		else return quickertoint(textureoffset/wti.scalex);
+		else return xs_RoundToInt(textureoffset/wti.scalex);
 	}
 	else
 	{
 		if (tex->bWorldPanning) return FixedDiv(textureoffset, tempScaleX);
-		else return quickertoint(textureoffset/wti.scalex);
+		else return xs_RoundToInt(textureoffset/wti.scalex);
 	}
 }
 
@@ -899,7 +898,7 @@ float FMaterial::TextureOffset(float textureoffset) const
 	}
 	else
 	{
-		if (tex->bWorldPanning) return textureoffset / TO_GL(tempScaleX);
+		if (tex->bWorldPanning) return textureoffset / FIXED2FLOAT(tempScaleX);
 		else return textureoffset/wti.scalex;
 	}
 }

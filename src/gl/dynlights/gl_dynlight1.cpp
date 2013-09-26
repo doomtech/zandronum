@@ -53,7 +53,6 @@
 #include "gl/scene/gl_portal.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
-#include "gl/utility/gl_convert.h"
 
 
 //==========================================================================
@@ -106,9 +105,9 @@ bool gl_GetLight(Plane & p, ADynamicLight * light,
 	Vector fn, pos;
 	int i = 0;
 
-    float x = TO_GL(light->x);
-	float y = TO_GL(light->y);
-	float z = TO_GL(light->z);
+    float x = FIXED2FLOAT(light->x);
+	float y = FIXED2FLOAT(light->y);
+	float z = FIXED2FLOAT(light->z);
 	
 	float dist = fabsf(p.DistToPoint(x, z, y));
 	float radius = (light->GetRadius() * gl_lights_size);
@@ -180,9 +179,9 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 {
 	Vector fn, pos;
 
-    float x = TO_GL(light->x);
-	float y = TO_GL(light->y);
-	float z = TO_GL(light->z);
+    float x = FIXED2FLOAT(light->x);
+	float y = FIXED2FLOAT(light->y);
+	float z = FIXED2FLOAT(light->z);
 	
 	float dist = fabsf(p.DistToPoint(x, z, y));
 	float radius = (light->GetRadius() * gl_lights_size);
