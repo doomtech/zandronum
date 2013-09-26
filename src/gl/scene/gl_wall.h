@@ -343,7 +343,7 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 
 // Light + color
 
-void gl_GetSpriteLight(AActor *Self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
+bool gl_GetSpriteLight(AActor *Self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
 int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 
 void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,

@@ -1011,7 +1011,7 @@ protected:
 	friend bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
 		fixed_t speed, fixed_t height, int crush, int change, bool hexencrush);
 	friend bool EV_FloorCrushStop (int tag);
-	friend bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed);
+	friend bool EV_DoDonut (int tag, line_t *line, fixed_t pillarspeed, fixed_t slimespeed);
 private:
 	DFloor ();
 };
@@ -1022,7 +1022,7 @@ bool EV_BuildStairs (int tag, DFloor::EStair type, line_t *line,
 bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
 	fixed_t speed, fixed_t height, int crush, int change, bool hexencrush);
 bool EV_FloorCrushStop (int tag);
-bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed);
+bool EV_DoDonut (int tag, line_t *line, fixed_t pillarspeed, fixed_t slimespeed);
 
 inline FArchive &operator<< (FArchive &arc, DFloor::EFloor &type)
 {
@@ -1137,7 +1137,7 @@ protected:
 	// [BC] This is the waggle's unique network ID.
 	LONG		m_lWaggleID;
 
-	friend bool EV_StartWaggle (int tag, int height, int speed,
+	friend bool EV_StartWaggle (int tag, line_t *line, int height, int speed,
 		int offset, int timer, bool ceiling);
 
 	void DoWaggle (bool ceiling);
@@ -1148,7 +1148,7 @@ protected:
 	DWaggleBase ();
 };
 
-bool EV_StartWaggle (int tag, int height, int speed,
+bool EV_StartWaggle (int tag, line_t *line, int height, int speed,
 	int offset, int timer, bool ceiling);
 
 class DFloorWaggle : public DWaggleBase

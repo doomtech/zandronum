@@ -298,6 +298,22 @@ unsigned int I_MSTime()
 
 //==========================================================================
 //
+// I_FPSTime
+//
+// Returns the current system time in milliseconds. This is used by the FPS
+// meter of DFrameBuffer::DrawRateStuff(). Since the screen can display
+// before the play simulation is ready to begin, this needs to be
+// separate from I_MSTime().
+//
+//==========================================================================
+
+unsigned int I_FPSTime()
+{
+	return timeGetTime();
+}
+
+//==========================================================================
+//
 // I_GetTimePolled
 //
 // Returns the current time in tics. If saveMS is true, then calls to
@@ -525,11 +541,16 @@ void I_WaitVBL(int count)
 
 void I_DetectOS(void)
 {
-	OSVERSIONINFO info;
+	OSVERSIONINFOEX info;
 	const char *osname;
 
-	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx (&info);
+	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if (!GetVersionEx((OSVERSIONINFO *)&info))
+	{
+		// Retry with the older OSVERSIONINFO structure.
+		info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&info);
+	}
 
 	switch (info.dwPlatformId)
 	{
@@ -567,9 +588,30 @@ void I_DetectOS(void)
 				osname = "Server 2003";
 			}
 		}
-		else if (info.dwMajorVersion == 6 && info.dwMinorVersion == 0)
+		else if (info.dwMajorVersion == 6)
 		{
-			osname = "Vista";
+			if (info.dwMinorVersion == 0)
+			{
+				if (info.wProductType == VER_NT_WORKSTATION)
+				{
+					osname = "Vista";
+				}
+				else
+				{
+					osname = "Server 2008";
+				}
+			}
+			else if (info.dwMinorVersion == 1)
+			{
+				if (info.wProductType == VER_NT_WORKSTATION)
+				{
+					osname = "7";
+				}
+				else
+				{
+					osname = "Server 2008 R2";
+				}
+			}
 		}
 		break;
 
@@ -588,7 +630,7 @@ void I_DetectOS(void)
 	}
 	else
 	{
-		Printf ("OS: Windows %s %lu.%lu (Build %lu)\n    %s\n",
+		Printf ("OS: Windows %s (NT %lu.%lu) Build %lu\n    %s\n",
 				osname,
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber, info.szCSDVersion);

@@ -39,15 +39,16 @@
 #include "tarray.h"
 #include "doomtype.h"
 #include "m_argv.h"
+#include "zstring.h"
+#include "version.h"
+#include "i_system.h"
 #include "gl/system/gl_cvars.h"
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 char myGlBeginCharArray[4] = {0,0,0,0};
 #endif
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
-static void CollectExtensions(HDC);
-#else
+#if defined unix || defined __APPLE__ // [AL] OpenGL on OS X
 #include <SDL.h>
 #define wglGetProcAddress(x) (*SDL_GL_GetProcAddress)(x)
 #endif
@@ -58,17 +59,8 @@ static void APIENTRY glBlendEquationDummy (GLenum mode);
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 #endif
 
-static class DeletingStringArray : public TArray<char*>
-{
-public:
-	~DeletingStringArray()
-	{
-		for(unsigned i=0;i<Size();i++)
-		{
-			if ((*this)[i]!=NULL) delete (*this)[i];
-		}
-	}
-} m_Extensions;
+static TArray<FString>  m_Extensions;
+
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 HWND m_Window;
 HDC m_hDC;
@@ -148,7 +140,6 @@ static HWND InitDummy()
 
 	return dummy;
 }
-#endif
 
 //==========================================================================
 //
@@ -156,13 +147,11 @@ static HWND InitDummy()
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static void ShutdownDummy(HWND dummy)
 {
 	DestroyWindow(dummy);
-	UnregisterClass("OpenGL", GetModuleHandle(NULL));
+	UnregisterClass("GZDoomOpenGLDummyWindow", GetModuleHandle(NULL));
 }
-#endif
 
 
 //==========================================================================
@@ -171,7 +160,6 @@ static void ShutdownDummy(HWND dummy)
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__
 static bool ReadInitExtensions()
 {
 	HDC hDC;
@@ -211,21 +199,7 @@ static bool ReadInitExtensions()
 	hRC = wglCreateContext(hDC);
 	wglMakeCurrent(hDC, hRC);
 
-	CollectExtensions(hDC);
-
 	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-
-	/*
-	if (wglChoosePixelFormatARB == NULL)
-	{
-	Printf("R_OPENGL: Couldn't find wglChoosePixelFormatARB.\n");
-	wglMakeCurrent(NULL, NULL);
-	wglDeleteContext(hRC);
-	ReleaseDC(dummy, hDC);
-	ShutdownDummy(dummy);
-	return false;
-	}
-	*/
 
 	// any extra stuff here?
 
@@ -245,15 +219,13 @@ static bool ReadInitExtensions()
 //==========================================================================
 const char *wgl_extensions;
 
-#if !defined unix && !defined __APPLE__
-static void CollectExtensions(HDC m_hDC)
-#else
 static void CollectExtensions()
-#endif
 {
 	const char *supported = NULL;
 	char *extensions, *extension;
-#if !defined unix && !defined __APPLE__
+
+#if 0
+	// we don't use any WGL extensions so don't bother with checking them.
 	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (wglGetExtString)
@@ -269,8 +241,7 @@ static void CollectExtensions()
 		extension = strtok(extensions, " ");
 		while(extension)
 		{
-			m_Extensions.Push(new char[strlen(extension) + 1]);
-			strcpy(m_Extensions[m_Extensions.Size() - 1], extension);
+			m_Extensions.Push(FString(extension));
 			extension = strtok(NULL, " ");
 		}
 
@@ -288,8 +259,7 @@ static void CollectExtensions()
 		extension = strtok(extensions, " ");
 		while(extension)
 		{
-			m_Extensions.Push(new char[strlen(extension) + 1]);
-			strcpy(m_Extensions[m_Extensions.Size() - 1], extension);
+			m_Extensions.Push(FString(extension));
 			extension = strtok(NULL, " ");
 		}
 
@@ -307,7 +277,7 @@ static bool CheckExtension(const char *ext)
 {
 	for (unsigned int i = 0; i < m_Extensions.Size(); ++i)
 	{
-		if (stricmp(ext, m_Extensions[i]) == 0) return true;
+		if (m_Extensions[i].CompareNoCase(ext) == 0) return true;
 	}
 
 	return false;
@@ -322,9 +292,15 @@ static bool CheckExtension(const char *ext)
 
 static void APIENTRY LoadExtensions()
 {
-#if defined unix || defined __APPLE__ // [AL] OpenGL on OS X
 	CollectExtensions();
-#endif
+
+	const char *version = (const char*)glGetString(GL_VERSION);
+
+	// Don't even start if it's lower than 1.2
+	if (strcmp(version, "1.2") < 0) 
+	{
+		I_FatalError("Unsupported OpenGL version.\nAt least GL 1.2 is required to run "GAMENAME".\n");
+	}
 
 	// This loads any function pointers and flags that require a vaild render context to
 	// initialize properly
@@ -345,9 +321,9 @@ static void APIENTRY LoadExtensions()
 	if (strstr(gl->vendorstring, "NVIDIA")) gl->flags|=RFL_NVIDIA;
 	else if (strstr(gl->vendorstring, "ATI Technologies")) gl->flags|=RFL_ATI;
 
-	if (strcmp((const char*)glGetString(GL_VERSION), "2.0") >= 0) gl->flags|=RFL_GL_20;
-	if (strcmp((const char*)glGetString(GL_VERSION), "2.1") >= 0) gl->flags|=RFL_GL_21;
-	if (strcmp((const char*)glGetString(GL_VERSION), "3.0") >= 0) gl->flags|=RFL_GL_30;
+	if (strcmp(version, "2.0") >= 0) gl->flags|=RFL_GL_20;
+	if (strcmp(version, "2.1") >= 0) gl->flags|=RFL_GL_21;
+	if (strcmp(version, "3.0") >= 0) gl->flags|=RFL_GL_30;
 
 
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
@@ -565,19 +541,17 @@ static void APIENTRY PrintStartupLog()
 //
 //==========================================================================
 
-static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample)
-{
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+static bool SetupPixelFormat(HDC hDC, bool allowsoftware, bool nostencil, int multisample)
+{
 	int colorDepth;
 	HDC deskDC;
 	int attributes[26];
 	int pixelFormat;
 	unsigned int numFormats;
 	float attribsFloat[] = {0.0f, 0.0f};
-#endif
 	int stencil;
 	
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	deskDC = GetDC(GetDesktopWindow());
 	colorDepth = GetDeviceCaps(deskDC, BITSPIXEL);
 	ReleaseDC(GetDesktopWindow(), deskDC);
@@ -589,11 +563,9 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 		return false;
 	}
 	*/
-#endif
 
 	if (!nostencil)
 	{
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 		for (stencil=1;stencil>=0;stencil--)
 		{
 			if (wglChoosePixelFormatARB && stencil)
@@ -646,7 +618,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				attributes[24]	=	0;
 				attributes[25]	=	0;
 			
-				if (!wglChoosePixelFormatARB(m_hDC, attributes, attribsFloat, 1, &pixelFormat, &numFormats))
+				if (!wglChoosePixelFormatARB(hDC, attributes, attribsFloat, 1, &pixelFormat, &numFormats))
 				{
 					Printf("R_OPENGL: Couldn't choose pixel format. Retrying in compatibility mode\n");
 					goto oldmethod;
@@ -683,8 +655,8 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 						0, 0, 0
 				};
 
-				pixelFormat = ChoosePixelFormat(m_hDC, &pfd);
-				DescribePixelFormat(m_hDC, pixelFormat, sizeof(pfd), &pfd);
+				pixelFormat = ChoosePixelFormat(hDC, &pfd);
+				DescribePixelFormat(hDC, pixelFormat, sizeof(pfd), &pfd);
 
 				if (pfd.dwFlags & PFD_GENERIC_FORMAT)
 				{
@@ -706,27 +678,12 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				break;
 			}
 		}
-#else
-		stencil=1;
-		SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  8 );
-		SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  8 );
-		SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  8 );
-		SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  8 );
-		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  24 );
-		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE,  8 );
-//		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 );
-		if (multisample > 0) {
-			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
-			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, multisample );
-		}
-#endif
 	}
 	else
 	{
 		// Use the cheapest mode available and let's hope the driver can handle this...
 		stencil=0;
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 		// If wglChoosePixelFormatARB is not found we have to do it the old fashioned way.
 		static PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),
@@ -747,8 +704,8 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				0, 0, 0
 		};
 
-		pixelFormat = ChoosePixelFormat(m_hDC, &pfd);
-		DescribePixelFormat(m_hDC, pixelFormat, sizeof(pfd), &pfd);
+		pixelFormat = ChoosePixelFormat(hDC, &pfd);
+		DescribePixelFormat(hDC, pixelFormat, sizeof(pfd), &pfd);
 
 		if (pfd.dwFlags & PFD_GENERIC_FORMAT)
 		{
@@ -758,30 +715,59 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				return false;
 			}
 		}
-#else
-	SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  4 );
-	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  4 );
-	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  4 );
-	SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  4 );
-	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  16 );
-	//SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 )*/
-#endif
 	}
 	if (stencil==0)
 	{
 		gl->flags|=RFL_NOSTENCIL;
 	}
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
-	if (!SetPixelFormat(m_hDC, pixelFormat, NULL))
+	if (!SetPixelFormat(hDC, pixelFormat, NULL))
 	{
 		Printf("R_OPENGL: Couldn't set pixel format.\n");
 		return false;
 	}
-#endif
-
 	return true;
 }
+#else
+
+static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample)
+{
+	int stencil;
+	
+	if (!nostencil)
+	{
+		stencil=1;
+		SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  24 );
+		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE,  8 );
+//		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 );
+		if (multisample > 0) {
+			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
+			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, multisample );
+		}
+	}
+	else
+	{
+		// Use the cheapest mode available and let's hope the driver can handle this...
+		stencil=0;
+
+		SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  4 );
+		SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  4 );
+		SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  4 );
+		SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  4 );
+		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  16 );
+		//SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 )*/
+	}
+	if (stencil==0)
+	{
+		gl->flags|=RFL_NOSTENCIL;
+	}
+	return true;
+}
+#endif
 
 
 //==========================================================================
@@ -792,22 +778,16 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample)
-#else
-bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
-#endif
 {
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	m_Window=Window;
 	m_hDC = GetDC(Window);
-#endif
 
-	if (!SetupPixelFormat(allowsoftware, nostencil, multisample))
+	if (!SetupPixelFormat(m_hDC, allowsoftware, nostencil, multisample))
 	{
 		Printf ("R_OPENGL: Reverting to software mode...\n");
 		return false;
 	}
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	m_hRC = wglCreateContext(m_hDC);
 
 	if (m_hRC == NULL)
@@ -817,9 +797,20 @@ bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
 	}
 
 	wglMakeCurrent(m_hDC, m_hRC);
-#endif
 	return true;
 }
+
+#else
+static bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
+{
+	if (!SetupPixelFormat(allowsoftware, nostencil, multisample))
+	{
+		Printf ("R_OPENGL: Reverting to software mode...\n");
+		return false;
+	}
+	return true;
+}
+#endif
 
 
 //==========================================================================
@@ -838,10 +829,8 @@ static void APIENTRY Shutdown()
 	}
 	if (m_hDC) ReleaseDC(m_Window, m_hDC);
 }
-#endif
 
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 static bool APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 {
 	DEVMODE dm;
@@ -879,32 +868,6 @@ static void APIENTRY iSwapBuffers()
 	SwapBuffers(m_hDC);
 #else
 	SDL_GL_SwapBuffers ();
-#endif
-}
-
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
-static void APIENTRY SetGammaRamp (void * ramp)
-#else
-static void APIENTRY SetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
-#endif
-{
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
-	SetDeviceGammaRamp(m_hDC, ramp);
-#else
-	SDL_SetGammaRamp(redtable, greentable, bluetable);
-#endif
-}
-
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
-static bool APIENTRY GetGammaRamp (void * ramp)
-#else
-static bool APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
-#endif
-{
-#if !defined unix && !defined __APPLE__
-	return !!GetDeviceGammaRamp(m_hDC, ramp);
-#else
-	return (SDL_GetGammaRamp(redtable, greentable, bluetable) >= 0);
 #endif
 }
 
@@ -1034,8 +997,6 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.Shutdown = Shutdown;
 #endif
 	gl.SwapBuffers = iSwapBuffers;
-	gl.GetGammaRamp = GetGammaRamp;
-	gl.SetGammaRamp = SetGammaRamp;
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
 	gl.SetFullscreen = SetFullscreen;
 #endif

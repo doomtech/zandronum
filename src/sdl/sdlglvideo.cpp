@@ -307,14 +307,14 @@ SDLGLFB::SDLGLFB (int width, int height, int, int, bool fullscreen)
 	if (Screen == NULL)
 		return;
 
-	m_supportsGamma = gl.GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
+	m_supportsGamma = !!SDL_GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
 }
 
 SDLGLFB::~SDLGLFB ()
 {
 	if (m_supportsGamma) 
 	{
-		gl.SetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
+		SDL_SetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
 	}
 }
 
@@ -345,7 +345,7 @@ bool SDLGLFB::CanUpdate ()
 
 void SDLGLFB::SetGammaTable(WORD *tbl)
 {
-	gl.SetGammaRamp(&tbl[0], &tbl[256], &tbl[512]);
+	SDL_SetGammaRamp(&tbl[0], &tbl[256], &tbl[512]);
 }
 
 bool SDLGLFB::Lock(bool buffered)

@@ -395,6 +395,7 @@ void GLWall::RenderMirrorSurface()
 		gl.DepthMask(true);
 		gl.PolygonOffset(0.0f, 0.0f);
 		gl.Disable(GL_POLYGON_OFFSET_FILL);
+		gl_RenderState.SetTextureMode(TM_MODULATE);
 		gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
@@ -483,13 +484,24 @@ void GLWall::Draw(int pass)
 	case GLPASS_ALL:			// Single-pass rendering
 		SetupLights();
 		// fall through
-
 	case GLPASS_PLAIN:			// Single-pass rendering
+		rel = rellight + (extralight * gl_weaponlight);
+		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
+		if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, rel, &Colormap, false);
+		else gl_SetFog(255, 0, NULL, false);
+
+		gl_RenderState.EnableGlow(!!(flags & GLWF_GLOW));
+		gltexture->Bind(Colormap.colormap, flags, 0);
+		RenderWall(3, NULL);
+		gl_RenderState.EnableGlow(false);
+		gl_RenderState.EnableLight(false);
+		break;
+
 	case GLPASS_BASE:			// Base pass for non-masked polygons (all opaque geometry)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
 		rel = rellight + (extralight * gl_weaponlight);
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
-		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN || pass == GLPASS_ALL) 
+		if (!(flags&GLWF_FOGGY)) 
 		{
 			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, rel, &Colormap, false);
 			else gl_SetFog(255, 0, NULL, false);

@@ -265,7 +265,7 @@ menuitem_t GLPrefItems[] = {
 	{ discrete, "Smooth sprite edges",		{&gl_sprite_blend},				{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
-	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
+	{ slider,	"Ambient light level",		{&gl_light_ambient},			{1.0}, {255.0}, {5.0}, {NULL} },
 	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
 	{ discrete, "Use vertex buffer",		{&gl_usevbo},					{3.0}, {0.0}, {0.0}, {VBOModes} },
 	// [BB]

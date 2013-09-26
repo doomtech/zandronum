@@ -19,6 +19,7 @@
 #include "gl/utility/gl_templates.h"
 
 void gl_CalculateCPUSpeed();
+extern int NewWidth, NewHeight, NewBits, DisplayBits;
 
 CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
 {
@@ -297,14 +298,18 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 		return;
 	}
 
-	m_supportsGamma = gl.GetGammaRamp((void *)m_origGamma);
+	HDC hDC = GetDC(Window);
+	m_supportsGamma = !!GetDeviceGammaRamp(hDC, (void *)m_origGamma);
+	ReleaseDC(Window, hDC);
 }
 
 Win32GLFrameBuffer::~Win32GLFrameBuffer()
 {
 	if (m_supportsGamma) 
 	{
-		gl.SetGammaRamp((void *)m_origGamma);
+		HDC hDC = GetDC(Window);
+		SetDeviceGammaRamp(hDC, (void *)m_origGamma);
+		ReleaseDC(Window, hDC);
 	}
 	I_SaveWindowedPos();
 
@@ -332,7 +337,9 @@ bool Win32GLFrameBuffer::CanUpdate()
 
 void Win32GLFrameBuffer::SetGammaTable(WORD *tbl)
 {
-	gl.SetGammaRamp((void*)tbl);
+	HDC hDC = GetDC(Window);
+	SetDeviceGammaRamp(hDC, (void *)tbl);
+	ReleaseDC(Window, hDC);
 }
 
 bool Win32GLFrameBuffer::Lock(bool buffered)
@@ -404,6 +411,9 @@ void Win32GLFrameBuffer::NewRefreshRate ()
 	if (m_Fullscreen)
 	{
 		setmodeneeded = true;
+		NewWidth = screen->GetWidth();
+		NewHeight = screen->GetHeight();
+		NewBits = DisplayBits;
 	}
 }
 

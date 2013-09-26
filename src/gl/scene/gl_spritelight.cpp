@@ -62,11 +62,12 @@
 //
 //==========================================================================
 
-void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
+bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
 {
 	ADynamicLight *light;
 	float frac, lr, lg, lb;
 	float radius;
+	bool changed = false;
 	
 	out[0]=out[1]=out[2]=0;
 
@@ -104,6 +105,7 @@ void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 						out[0] += lr * frac;
 						out[1] += lg * frac;
 						out[2] += lb * frac;
+						changed = true;
 					}
 				}
 			}
@@ -120,6 +122,7 @@ void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 		out[1]= (out[1]*(31-desaturation)+ gray*desaturation)/31;
 		out[2]= (out[2]*(31-desaturation)+ gray*desaturation)/31;
 	}
+	return changed;
 }
 
 
@@ -136,18 +139,43 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 {
 	float r,g,b;
 	float result[3];
-	gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->colormap : 0, result);
+
 	gl_GetLightColor(lightlevel, rellight, cm, &r, &g, &b, weapon);
+	if (!gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->colormap : 0, result))
+	{
+		r *= ThingColor.r/255.f;
+		g *= ThingColor.g/255.f;
+		b *= ThingColor.b/255.f;
+		gl.Color4f(r, g, b, alpha);
+		return lightlevel;
+	}
+	else
+	{
+		// Note: Due to subtractive lights the values can easily become negative so we have to clamp both
+		// at the low and top end of the range!
+		r = clamp<float>(result[0]+r, 0, 1.0f);
+		g = clamp<float>(result[1]+g, 0, 1.0f);
+		b = clamp<float>(result[2]+b, 0, 1.0f);
 
+		float dlightlevel = r*77 + g*143 + b*36;
 
-	// Note: Due to subtractive lights the values can easily become negative so we have to clamp both
-	// at the low and top end of the range!
-	r = clamp<float>(result[0]+r, 0, 1.0f) * ThingColor.r/255.f;
-	g = clamp<float>(result[1]+g, 0, 1.0f) * ThingColor.g/255.f;
-	b = clamp<float>(result[2]+b, 0, 1.0f) * ThingColor.b/255.f;
-	gl.Color4f(r, g, b, alpha);
-	int addlight = xs_RoundToInt(result[0]*77 + result[1]*143 + result[2]*36);
-	return clamp<int>(lightlevel + addlight , 0, 255);
+		r *= ThingColor.r/255.f;
+		g *= ThingColor.g/255.f;
+		b *= ThingColor.b/255.f;
+
+		gl.Color4f(r, g, b, alpha);
+
+		if (dlightlevel == 0) return 0;
+
+		if (glset.lightmode&2 && dlightlevel<192.f) 
+		{
+			return xs_CRoundToInt(192.f - (192.f - dlightlevel) / 1.95f);
+		}
+		else
+		{
+			return xs_CRoundToInt(dlightlevel);
+		}
+	}
 }
 
 int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,

@@ -337,6 +337,7 @@ void FGLRenderer::RenderScene(int recursion)
 {
 	RenderAll.Clock();
 
+	gl.DepthMask(true);
 	if (!gl_no_skyclear) GLPortal::RenderFirstSkyPortal(recursion);
 
 	gl_RenderState.SetCameraPos(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
@@ -370,7 +371,7 @@ void FGLRenderer::RenderScene(int recursion)
 	}
 
 	gl_RenderState.EnableTexture(gl_texture);
-	gl_RenderState.EnableBrightmap(true);
+	gl_RenderState.EnableBrightmap(gl_fixedcolormap == CM_DEFAULT);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
 	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(pass);
 	gl_RenderState.EnableBrightmap(false);
@@ -945,6 +946,9 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 // renders the view
 //
 //-----------------------------------------------------------------------------
+CVAR(Bool, gl_testdl, false, 0)
+static int dl = -1;
+static int indl = 0;
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 extern char myGlBeginCharArray[4];
@@ -1039,8 +1043,30 @@ void FGLRenderer::RenderView (player_t* player)
 	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
+	if (gl_testdl)
+	{
+		if (dl == -1)
+		{
+			dl = glGenLists(1);
+			glNewList(dl, GL_COMPILE_AND_EXECUTE);
+			indl = true;
+		}
+		else
+		{
+			glCallList(dl);
+			All.Unclock();
+			return;
+		}
+	}
+
 	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true, true);
 	EndDrawScene(viewsector);
+
+	if (gl_testdl && indl)
+	{
+		indl = false;
+		glEndList();
+	}
 
 	All.Unclock();
 }

@@ -1053,7 +1053,7 @@ manual_stair:
 //
 //==========================================================================
 
-bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
+bool EV_DoDonut (int tag, line_t *line, fixed_t pillarspeed, fixed_t slimespeed)
 {
 	sector_t*			s1;
 	sector_t*			s2;
@@ -1064,13 +1064,24 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 	DFloor*				floor;
 	vertex_t*			spot;
 	fixed_t				height;
+	bool				manual = false;
 		
 	secnum = -1;
 	rtn = false;
+
+	if (tag == 0)
+	{
+		if (!line || !(s1 = line->backsector))
+			return rtn;
+		manual = true;
+		goto manual_donut;
+	}
+
 	while ((secnum = P_FindSectorFromTag(tag,secnum)) >= 0)
 	{
 		s1 = &sectors[secnum];					// s1 is pillar's sector
-				
+
+manual_donut:
 		// ALREADY MOVING?	IF SO, KEEP GOING...
 		if (s1->PlaneMoving(sector_t::floor))
 			continue;
@@ -1144,6 +1155,7 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 
 			break;
 		}
+		if (manual) break;
 	}
 	return rtn;
 }
@@ -1324,17 +1336,28 @@ bool EV_DoElevator (line_t *line, DElevator::EElevator elevtype,
 	fixed_t		floorheight, ceilingheight;
 	fixed_t		newheight;
 	vertex_t*	spot;
+	bool		manual = false;
 
 	if (!line && (elevtype == DElevator::elevateCurrent))
 		return false;
 
 	secnum = -1;
 	rtn = false;
+
+	if (tag == 0)
+	{
+		if (!line || !(sec = line->backsector))
+			return rtn;
+		manual = true;
+		goto manual_elevator;
+	}
+
+
 	// act on all sectors with the same tag as the triggering linedef
 	while ((secnum = P_FindSectorFromTag (tag, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
+manual_elevator:
 		// If either floor or ceiling is already activated, skip it
 		if (sec->PlaneMoving(sector_t::floor) || sec->ceilingdata) //jff 2/22/98
 			continue;
@@ -1408,6 +1431,8 @@ bool EV_DoElevator (line_t *line, DElevator::EElevator elevtype,
 			SERVERCOMMANDS_DoElevator( elevator->m_Type, elevator->m_Sector, elevator->m_Speed, elevator->m_Direction, elevator->m_FloorDestDist, elevator->m_CeilingDestDist, elevator->m_lElevatorID );
 			SERVERCOMMANDS_StartElevatorSound( elevator->m_lElevatorID );
 		}
+
+		if (manual) break;
 	}
 	return rtn;
 }
@@ -1765,19 +1790,31 @@ void DCeilingWaggle::Tick ()
 //
 //==========================================================================
 
-bool EV_StartWaggle (int tag, int height, int speed, int offset,
+bool EV_StartWaggle (int tag, line_t *line, int height, int speed, int offset,
 	int timer, bool ceiling)
 {
 	int sectorIndex;
 	sector_t *sector;
 	DWaggleBase *waggle;
 	bool retCode;
+	bool manual = false;
 
 	retCode = false;
 	sectorIndex = -1;
+
+	if (tag == 0)
+	{
+		if (!line || !(sector = line->backsector))
+			return retCode;
+		manual = true;
+		goto manual_waggle;
+	}
+
+
 	while ((sectorIndex = P_FindSectorFromTag(tag, sectorIndex)) >= 0)
 	{
 		sector = &sectors[sectorIndex];
+manual_waggle:
 		if ((!ceiling && sector->PlaneMoving(sector_t::floor)) || 
 			(ceiling && sector->PlaneMoving(sector_t::ceiling)))
 		{ // Already busy with another thinker
@@ -1812,6 +1849,8 @@ bool EV_StartWaggle (int tag, int height, int speed, int offset,
 		// [BC] If we're the server, tell clients to do the waggle.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_DoWaggle( ceiling, sector, waggle->m_OriginalDist, waggle->m_Accumulator, waggle->m_AccDelta, waggle->m_TargetScale, waggle->m_Scale, waggle->m_ScaleDelta, waggle->m_Ticker, waggle->m_State, waggle->m_lWaggleID );
+
+		if (manual) break;
 	}
 	return retCode;
 }

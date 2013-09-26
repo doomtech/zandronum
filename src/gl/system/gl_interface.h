@@ -78,13 +78,6 @@ struct RenderContext
 	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample);
 #endif
 	void (APIENTRY * SwapBuffers) ();
-#if !defined (unix) && !defined (__APPLE__) // [AL] OpenGL on OS X
-	void (APIENTRY * SetGammaRamp) (void * ramp);
-	bool (APIENTRY * GetGammaRamp) (void * ramp);
-#else
-	void (APIENTRY * SetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
-	bool (APIENTRY * GetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
-#endif
 	bool (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
 
 

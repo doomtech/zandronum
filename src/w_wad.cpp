@@ -224,7 +224,7 @@ int FWadCollection::AddExternalFile(const char *filename)
 //==========================================================================
 
 // [BC] Edited a little.
-void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
+void FWadCollection::AddFile (char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
 {
 	int startlump;
 	bool isdir = false;
@@ -254,6 +254,7 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 				return;
 			}
 		}
+		FixPathSeperator(filename);
 	}
 
 	// [BC] Mark whether or not the wad was loaded automatically.
