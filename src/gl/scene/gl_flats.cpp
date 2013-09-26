@@ -75,7 +75,8 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 		secplane->xscale != FRACUNIT || secplane->yscale != FRACUNIT ||
 		secplane->angle != 0 || 
 		gltexture->TextureWidth(GLUSE_TEXTURE) != 64 ||
-		gltexture->TextureHeight(GLUSE_TEXTURE) != 64)
+		gltexture->TextureHeight(GLUSE_TEXTURE) != 64 ||
+		(gl.flags & RFL_ATI))	// for some reason skipping this does not work on ATI...
 	{
 		float uoffs=TO_GL(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
 		float voffs=TO_GL(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
@@ -89,7 +90,6 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 		float yscale2=64.f/gltexture->TextureHeight(GLUSE_TEXTURE);
 
 		gl.MatrixMode(GL_TEXTURE);
-
 		gl.PushMatrix();
 		gl.Scalef(xscale1 ,yscale1,1.0f);
 	gl.Scalef(xscale2 ,yscale2,1.0f);
@@ -328,7 +328,6 @@ void GLFlat::Draw(int pass)
 {
 	int i;
 	int rel = extralight*gl_weaponlight;
-	bool pushed = false;
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -355,9 +354,13 @@ void GLFlat::Draw(int pass)
 	case GLPASS_TEXTURE:
 	{
 		gltexture->Bind(Colormap.colormap);
-		pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
+		bool pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
 		DrawSubsectors(pass, false);
-		if (pushed) gl.PopMatrix();
+		if (pushed) 
+		{
+			gl.PopMatrix();
+			gl.MatrixMode(GL_MODELVIEW);
+		}
 		break;
 	}
 
@@ -405,20 +408,25 @@ void GLFlat::Draw(int pass)
 		gl_SetColor(lightlevel, rel, &Colormap, alpha);
 		gl_SetFog(lightlevel, rel, &Colormap, false);
 		gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_threshold*(alpha));
-		if (!gltexture)	gl_RenderState.EnableTexture(false);
-
+		if (!gltexture)	
+		{
+			gl_RenderState.EnableTexture(false);
+			DrawSubsectors(pass, true);
+			gl_RenderState.EnableTexture(true);
+		}
 		else 
 		{
 			if (foggy) gl_RenderState.EnableBrightmap(false);
 			gltexture->Bind(Colormap.colormap);
-			pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
+			bool pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
+			DrawSubsectors(pass, true);
+			gl_RenderState.EnableBrightmap(true);
+			if (pushed)
+			{
+				gl.PopMatrix();
+				gl.MatrixMode(GL_MODELVIEW);
+			}
 		}
-
-		DrawSubsectors(pass, true);
-
-		gl_RenderState.EnableBrightmap(true);
-		if (!gltexture)	gl_RenderState.EnableTexture(true);
-		else if (pushed) gl.PopMatrix();
 		if (renderstyle==STYLE_Add) gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		break;
 	}

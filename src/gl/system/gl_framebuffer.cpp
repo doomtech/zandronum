@@ -217,6 +217,7 @@ void OpenGLFrameBuffer::Update()
 	}
 	swapped = false;
 	Unlock();
+	CheckBench();
 }
 
 

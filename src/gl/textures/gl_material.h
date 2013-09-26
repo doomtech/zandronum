@@ -184,6 +184,7 @@ public:
 
 	fixed_t RowOffset(fixed_t rowoffset) const;
 	fixed_t TextureOffset(fixed_t textureoffset) const;
+	float TextureOffset(float textureoffset) const;
 
 	float RowOffset(float rowoffset) const;
 

@@ -251,7 +251,6 @@ void GLWall::PutWall(bool translucent)
 
 void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 {
-#ifndef OPTIMIZE_SPLIT
 	bool fadewall = (!translucent && lightlist->caster && (lightlist->caster->flags&FF_FADEWALLS) && 
 		!gl_isBlack((lightlist->extra_colormap)->Fade)) && gl_isBlack(Colormap.FadeColor);
 
@@ -275,11 +274,6 @@ void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 		alpha = 1.0;
 		gltexture = tex;
 	}
-#else
-	lightlevel=*lightlist->p_lightlevel;
-	Colormap.CopyLightColor(*lightlist->p_extra_colormap);
-	gl_drawinfo->AddSplitWall(this);
-#endif
 }
 
 //==========================================================================
@@ -496,24 +490,24 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 	lightlist_t * light;
 
 	// ZDoom doesn't support slopes in a horizon sector so I won't either!
-	ztop[1]=ztop[0]=TO_GL(fs->GetPlaneTexZ(sector_t::ceiling));
-	zbottom[1]=zbottom[0]=TO_GL(fs->GetPlaneTexZ(sector_t::floor));
+	ztop[1] = ztop[0] = TO_GL(fs->GetPlaneTexZ(sector_t::ceiling));
+	zbottom[1] = zbottom[0] = TO_GL(fs->GetPlaneTexZ(sector_t::floor));
 
-	if (viewz<fs->GetPlaneTexZ(sector_t::ceiling))
+	if (viewz < fs->GetPlaneTexZ(sector_t::ceiling))
 	{
-		if (viewz>fs->GetPlaneTexZ(sector_t::floor))
-			zbottom[1]=zbottom[0]=TO_GL(viewz);
+		if (viewz > fs->GetPlaneTexZ(sector_t::floor))
+			zbottom[1] = zbottom[0] = TO_GL(viewz);
 
-		if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
+		if (fs->GetTexture(sector_t::ceiling) == skyflatnum)
 		{
 			SkyTexture(fs->sky, fs->CeilingSkyBox, true);
 		}
 		else
 		{
-			type=RENDERWALL_HORIZON;
+			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, true);
-			hi.lightlevel=GetCeilingLight(fs);
-			hi.colormap=fs->ColorMap;
+			hi.lightlevel = GetCeilingLight(fs);
+			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())
 			{
@@ -524,25 +518,25 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			}
 
 			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
-			horizon=&hi;
+			horizon = &hi;
 			PutWall(0);
 		}
-		ztop[1]=ztop[0]=zbottom[0];
+		ztop[1] = ztop[0] = zbottom[0];
 	}
 
-	if (viewz>fs->GetPlaneTexZ(sector_t::floor))
+	if (viewz > fs->GetPlaneTexZ(sector_t::floor))
 	{
-		zbottom[1]=zbottom[0]=TO_GL(fs->GetPlaneTexZ(sector_t::floor));
-		if (fs->GetTexture(sector_t::floor)==skyflatnum)
+		zbottom[1] = zbottom[0] = TO_GL(fs->GetPlaneTexZ(sector_t::floor));
+		if (fs->GetTexture(sector_t::floor) == skyflatnum)
 		{
 			SkyTexture(fs->sky, fs->FloorSkyBox, false);
 		}
 		else
 		{
-			type=RENDERWALL_HORIZON;
+			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, false);
-			hi.lightlevel=GetFloorLight(fs);
-			hi.colormap=fs->ColorMap;
+			hi.lightlevel = GetFloorLight(fs);
+			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())
 			{
@@ -621,8 +615,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, float texturetop,
 											 
 		float inter_x= TO_GL(coeff);
 
-		glseg.x1=glseg.x1+inter_x*(glseg.x2-glseg.x1);
-		glseg.y1=glseg.y1+inter_x*(glseg.y2-glseg.y1);
+		glseg.x1 = glseg.x1 + inter_x * (glseg.x2 - glseg.x1);
+		glseg.y1 = glseg.y1 + inter_x * (glseg.y2 - glseg.y1);
 		glseg.fracleft = inter_x;
 
 		zbottom[0]=ztop[0]=TO_GL(inter_y);	
@@ -639,7 +633,7 @@ bool GLWall::SetWallCoordinates(seg_t * seg, float texturetop,
 	// set up coordinates for the right side of the polygon
 	//
 	// check left side for intersections
-	if (topright>=bottomright)
+	if (topright >= bottomright)
 	{
 		// normal case
 		ztop[1]=TO_GL(topright)		;
@@ -663,8 +657,8 @@ bool GLWall::SetWallCoordinates(seg_t * seg, float texturetop,
 											 
 		float inter_x= TO_GL(coeff);
 
-		glseg.x2=glseg.x1+inter_x*(glseg.x2-glseg.x1);
-		glseg.y2=glseg.y1+inter_x*(glseg.y2-glseg.y1);
+		glseg.x2 = glseg.x1 + inter_x * (glseg.x2 - glseg.x1);
+		glseg.y2 = glseg.y1 + inter_x * (glseg.y2 - glseg.y1);
 		glseg.fracright = inter_x;
 
 		zbottom[1]=ztop[1]=TO_GL(inter_y);
@@ -704,6 +698,8 @@ void GLWall::CheckTexturePosition()
 
 	if (gltexture->tex->bHasCanvas) return;
 
+	// clamp texture coordinates to a reasonable range.
+	// Extremely large values can cause visual problems
 	if (uplft.v < uprgt.v)
 	{
 		sub = floorf(uplft.v);
@@ -729,7 +725,7 @@ void GLWall::CheckTexturePosition()
 //  Handle one sided walls, upper and lower texture
 //
 //==========================================================================
-void GLWall::DoTexture(int _type,seg_t * seg,int peg,
+void GLWall::DoTexture(int _type,seg_t * seg, int peg,
 					   int ceilingrefheight,int floorrefheight,
 					   int topleft,int topright,
 					   int bottomleft,int bottomright,
@@ -772,14 +768,8 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 	// Add this wall to the render list
 	sector_t * sec = sub? sub->sector : seg->frontsector;
 
-#ifndef OPTIMIZE_SPLIT
 	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(false);
 	else SplitWall(sec, false);
-#else
-	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) numwalls = 1;
-	else numwalls = 0;
-	PutWall(false);
-#endif
 
 	glseg=glsave;
 	flags&=~GLT_CLAMPY;
@@ -1057,14 +1047,8 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 				// Draw the stuff
 				//
 				//
-#ifndef OPTIMIZE_SPLIT
 				if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) split.PutWall(translucent);
 				else split.SplitWall(realfront, translucent);
-#else
-				if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) numwalls = 1;
-				else numwalls = 0;
-				split.PutWall(translucent);
-#endif
 
 				t=1;
 			}
@@ -1077,14 +1061,8 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			// Draw the stuff without splitting
 			//
 			//
-#ifndef OPTIMIZE_SPLIT
 			if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
 			else SplitWall(realfront, translucent);
-#else
-			if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) numwalls = 1;
-			else numwalls = 0;
-			PutWall(translucent);
-#endif
 		}
 		alpha=1.0f;
 	}
@@ -1199,14 +1177,8 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	
 	sector_t * sec = sub? sub->sector : seg->frontsector;
 
-#ifndef OPTIMIZE_SPLIT
 	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
 	else SplitWall(sec, translucent);
-#else
-	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) numwalls = 1;
-	else numwalls = 0;
-	split.PutWall(translucent);
-#endif
 
 	alpha=1.0f;
 	lightlevel = savelight;

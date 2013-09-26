@@ -1498,6 +1498,10 @@ void FMapInfoParser::ParseMapDefinition(level_info_t &info)
 			{
 				if (sc.Compare(((FMapOptInfo *)(*probe))->name))
 				{
+					if (!((FMapOptInfo *)(*probe))->old && format_type != FMT_New)
+					{
+						sc.ScriptError("MAPINFO option '%s' requires the new MAPINFO format", sc.String);
+					}
 					((FMapOptInfo *)(*probe))->handler(*this, &info);
 					success = true;
 					break;

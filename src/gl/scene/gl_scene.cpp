@@ -594,7 +594,12 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 	float extra_red;
 	float extra_green;
 	float extra_blue;
-	player_t * player=players[consoleplayer].camera->player;
+	player_t *player = NULL;
+
+	if (players[consoleplayer].camera != NULL)
+	{
+		player=players[consoleplayer].camera->player;
+	}
 
 	// [RH] Amount of red flash for up to 114 damage points. Calculated by hand
 	//		using a logarithmic scale and my trusty HP48G.

@@ -793,6 +793,7 @@ static int __cdecl dicmp (const void *a, const void *b)
 	const GLDrawItem * di[2];
 	FMaterial * tx[2];
 	int lights[2];
+	int clamp[2];
 	//colormap_t cm[2];
 	di[0]=(const GLDrawItem *)a;
 	di[1]=(const GLDrawItem *)b;
@@ -806,6 +807,7 @@ static int __cdecl dicmp (const void *a, const void *b)
 			GLFlat * f=&sortinfo->flats[di[i]->index];
 			tx[i]=f->gltexture;
 			lights[i]=f->lightlevel;
+			clamp[i] = 0;
 		}
 		break;
 
@@ -814,6 +816,7 @@ static int __cdecl dicmp (const void *a, const void *b)
 			GLWall * w=&sortinfo->walls[di[i]->index];
 			tx[i]=w->gltexture;
 			lights[i]=w->lightlevel;
+			clamp[i] = w->flags & 3;
 		}
 		break;
 
@@ -822,12 +825,14 @@ static int __cdecl dicmp (const void *a, const void *b)
 			GLSprite * s=&sortinfo->sprites[di[i]->index];
 			tx[i]=s->gltexture;
 			lights[i]=s->lightlevel;
+			clamp[i] = 4;
 		}
 		break;
 		case GLDIT_POLY: break;
 		}
 	}
 	if (tx[0]!=tx[1]) return tx[0]-tx[1];
+	if (clamp[0]!=clamp[1]) return clamp[0]-clamp[1];	// clamping forces different textures.
 	return lights[0]-lights[1];
 }
 
@@ -1057,13 +1062,15 @@ void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, boo
 	gl_SetColor(lightlevel, rel, &Colormap, 1.0f);
 	gl_SetFog(lightlevel, rel, &Colormap, false);
 	gltexture->Bind(Colormap.colormap);
-	bool pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
 
 	float fviewx = TO_GL(viewx);
 	float fviewy = TO_GL(viewy);
 	float fviewz = TO_GL(viewz);
 
 	gl_RenderState.Apply();
+
+	bool pushed = gl_SetPlaneTextureRotation(&plane, gltexture);
+
 	gl.Begin(GL_TRIANGLE_FAN);
 	float prj_fac1 = (planez-fviewz)/(ws->z1-fviewz);
 	float prj_fac2 = (planez-fviewz)/(ws->z2-fviewz);
@@ -1096,10 +1103,9 @@ void FDrawInfo::DrawFloodedPlane(wallseg * ws, float planez, sector_t * sec, boo
 
 	if (pushed)
 	{
-		gl.MatrixMode(GL_TEXTURE);
 		gl.PopMatrix();
+		gl.MatrixMode(GL_MODELVIEW);
 	}
-	gl.MatrixMode(GL_MODELVIEW);
 }
 
 //==========================================================================

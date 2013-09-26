@@ -75,8 +75,22 @@ void FCanvasTexture::RenderGLView (AActor *Viewpoint, int FOV)
 	}
 	else
 	{
-		GLRenderer->StartOffscreen();
-		gltex->BindToFrameBuffer();
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
+		__try
+#endif
+		{
+			GLRenderer->StartOffscreen();
+			gltex->BindToFrameBuffer();
+		}
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
+		__except(1)
+		{
+			usefb = false;
+			gl_usefb = false;
+			GLRenderer->EndOffscreen();
+			gl.Flush();
+		}
+#endif
 	}
 
 	GL_IRECT bounds;

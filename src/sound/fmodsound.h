@@ -37,6 +37,9 @@ public:
 	// Returns position of sound on this channel, in samples.
 	unsigned int GetPosition(FISoundChannel *chan);
 
+	// Gets a channel's audibility (real volume).
+	float GetAudibility(FISoundChannel *chan);
+
 	// Synchronizes following sound startups.
 	void Sync (bool sync);
 

@@ -491,7 +491,7 @@ void GLPortal::EndFrame()
 
 	if (gl_portalinfo)
 	{
-		indent.Truncate(indent.Len()-2);
+		indent.Truncate(long(indent.Len()-2));
 		Printf("%s}\n", indent.GetChars());
 		if (portals.Size() == 0) gl_portalinfo = false;
 	}
@@ -850,12 +850,13 @@ void GLHorizonPortal::DrawContents()
 
 
 	gltexture->Bind(origin->colormap.colormap);
-	bool pushed = gl_SetPlaneTextureRotation(sp, gltexture);
 
 	gl_RenderState.EnableAlphaTest(false);
 	gl_RenderState.BlendFunc(GL_ONE,GL_ZERO);
 	gl_RenderState.Apply();
 
+
+	bool pushed = gl_SetPlaneTextureRotation(sp, gltexture);
 
 	float vx=TO_GL(viewx);
 	float vy=TO_GL(viewy);
@@ -922,10 +923,9 @@ void GLHorizonPortal::DrawContents()
 
 	if (pushed)
 	{
-		gl.MatrixMode(GL_TEXTURE);
 		gl.PopMatrix();
+		gl.MatrixMode(GL_MODELVIEW);
 	}
-	gl.MatrixMode(GL_MODELVIEW);
 
 	PortalAll.Unclock();
 

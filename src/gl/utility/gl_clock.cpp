@@ -7,7 +7,12 @@
 #endif
 
 #include "i_system.h"
+#include "g_level.h"
+#include "c_console.h"
+#include "c_dispatch.h"
+#include "r_main.h"
 #include "gl/utility/gl_clock.h"
+#include "gl/utility/gl_convert.h"
 
 
 glcycle_t RenderWall,SetupWall,ClipWall,SplitWall;
@@ -99,6 +104,32 @@ void ResetProfilingData()
 // Rendering statistics
 //
 //-----------------------------------------------------------------------------
+
+static void AppendRenderTimes(FString &str)
+{
+	str.AppendFormat("W: Render=%2.3f, Split = %2.3f, Setup=%2.3f, Clip=%2.3f\n"
+		"F: Render=%2.3f, Setup=%2.3f\n"
+		"S: Render=%2.3f, Setup=%2.3f\n"
+		"All: All=%2.3f, Render=%2.3f, Setup=%2.3f, Portal=%2.3f, Finish=%2.3f\n",
+	RenderWall.TimeMS(), SplitWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
+	RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
+	ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
+}
+
+static void AppendRenderStats(FString &out)
+{
+	out.AppendFormat("Walls: %d (%d splits, %d t-splits, %d vertices)\n"
+		"Flats: %d (%d primitives, %d vertices)\n"
+		"Sprites: %d, Decals=%d\n", 
+		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
+}
+
+static void AppendLightStats(FString &out)
+{
+	out.AppendFormat("DLight - Walls: %d processed, %d rendered - Flats: %d processed, %d rendered\n", 
+		iter_dlight, draw_dlight, iter_dlightf, draw_dlightf );
+}
+
 ADD_STAT(rendertimes)
 {
 	static FString buff;
@@ -106,13 +137,8 @@ ADD_STAT(rendertimes)
 	int t=I_MSTime();
 	if (t-lasttime>1000) 
 	{
-		buff.Format("W: Render=%2.2f, Split = %2.2f, Setup=%2.2f, Clip=%2.2f\n"
-			"F: Render=%2.2f, Setup=%2.2f\n"
-			"S: Render=%2.2f, Setup=%2.2f\n"
-			"All: All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
-		RenderWall.TimeMS(), SplitWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
-		RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
-		ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
+		buff.Truncate(0);
+		AppendRenderTimes(buff);
 		lasttime=t;
 	}
 	return buff;
@@ -121,18 +147,14 @@ ADD_STAT(rendertimes)
 ADD_STAT(renderstats)
 {
 	FString out;
-	out.Format("Walls: %d (%d splits, %d t-splits, %d vertices)\n"
-		"Flats: %d (%d primitives, %d vertices)\n"
-		"Sprites: %d, Decals=%d\n", 
-		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
+	AppendRenderStats(out);
 	return out;
 }
 
 ADD_STAT(lightstats)
 {
 	FString out;
-	out.Format("DLight - Walls: %d processed, %d rendered - Flats: %d processed, %d rendered\n", 
-		iter_dlight, draw_dlight, iter_dlightf, draw_dlightf );
+	AppendLightStats(out);
 	return out;
 }
 
@@ -153,3 +175,60 @@ ADD_STAT(dirty)
 	return buff;
 }
 
+void AppendMissingTextureStats(FString &out);
+extern int viewpitch;
+
+
+static int printstats;
+static bool switchfps;
+static unsigned int waitstart;
+EXTERN_CVAR(Bool, vid_fps)
+
+void CheckBench()
+{
+	if (printstats && ConsoleState == c_up)
+	{
+		// if we started the FPS counter ourselves or ran from the console 
+		// we need to wait for it to stabilize before using it.
+		if (waitstart > 0 && I_MSTime() < waitstart + 5000) return;
+
+		FString compose;
+
+		compose.Format("Map %s: \"%s\",\nx = %1.4f, y = %1.4f, z = %1.4f, angle = 1.4f, pitch = %1.4f\n",
+			level.mapname, level.LevelName.GetChars(), TO_GL(viewx), TO_GL(viewy), TO_GL(viewz),
+			ANGLE_TO_FLOAT(viewangle), ANGLE_TO_FLOAT(viewpitch));
+
+		AppendRenderStats(compose);
+		AppendRenderTimes(compose);
+		AppendLightStats(compose);
+		AppendMissingTextureStats(compose);
+		compose.AppendFormat("%d fps\n\n", screen->GetLastFPS());
+
+		FILE *f = fopen("benchmarks.txt", "at");
+		if (f != NULL)
+		{
+			fputs(compose.GetChars(), f);
+			fclose(f);
+		}
+		Printf("Benchmark info saved\n");
+		if (switchfps) vid_fps = false;
+		printstats = false;
+	}
+}
+
+CCMD(bench)
+{
+	printstats = true;
+	if (vid_fps == 0) 
+	{
+		vid_fps = 1;
+		waitstart = I_MSTime();
+		switchfps = true;
+	}
+	else
+	{
+		if (ConsoleState == c_up) waitstart = I_MSTime();
+		switchfps = false;
+	}
+	C_HideConsole ();
+}

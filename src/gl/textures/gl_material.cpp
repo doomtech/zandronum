@@ -796,7 +796,10 @@ const PatchTextureInfo *FMaterial::GetPatchTextureInfo()
 
 //===========================================================================
 //
-// Untilities
+// This function is needed here to temporarily manipulate the texture
+// for per-wall scaling so that the coordinate functions return proper
+// results. Doing this here is much easier than having the calling code
+// make these calculations.
 //
 //===========================================================================
 
@@ -877,6 +880,27 @@ fixed_t FMaterial::TextureOffset(fixed_t textureoffset) const
 	{
 		if (tex->bWorldPanning) return FixedDiv(textureoffset, tempScaleX);
 		else return quickertoint(textureoffset/wti.scalex);
+	}
+}
+
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+float FMaterial::TextureOffset(float textureoffset) const
+{
+	if (tempScaleX == FRACUNIT)
+	{
+		if (wti.scalex==1.f || tex->bWorldPanning) return textureoffset;
+		else return textureoffset/wti.scalex;
+	}
+	else
+	{
+		if (tex->bWorldPanning) return textureoffset / TO_GL(tempScaleX);
+		else return textureoffset/wti.scalex;
 	}
 }
 

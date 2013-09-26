@@ -171,6 +171,7 @@ void S_NoiseDebug (void)
 	screen->DrawText (SmallFont, CR_GOLD, 300, y, "chan", TAG_DONE);
 	screen->DrawText (SmallFont, CR_GOLD, 340, y, "pri", TAG_DONE);
 	screen->DrawText (SmallFont, CR_GOLD, 380, y, "flags", TAG_DONE);
+	screen->DrawText (SmallFont, CR_GOLD, 460, y, "aud", TAG_DONE);
 	y += 8;
 
 	if (Channels == NULL)
@@ -243,7 +244,7 @@ void S_NoiseDebug (void)
 		screen->DrawText(SmallFont, color, 340, y, temp, TAG_DONE);
 
 		// Flags
-		mysnprintf(temp, countof(temp), "%s3%sZ%sU%sM%sN%sA%sL%sE",
+		mysnprintf(temp, countof(temp), "%s3%sZ%sU%sM%sN%sA%sL%sE%sV",
 			(chan->ChanFlags & CHAN_IS3D)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_LISTENERZ)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_UI)				? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
@@ -251,8 +252,13 @@ void S_NoiseDebug (void)
 			(chan->ChanFlags & CHAN_NOPAUSE)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_AREA)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
 			(chan->ChanFlags & CHAN_LOOP)			? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
-			(chan->ChanFlags & CHAN_EVICTED)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK);
+			(chan->ChanFlags & CHAN_EVICTED)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK,
+			(chan->ChanFlags & CHAN_VIRTUAL)		? TEXTCOLOR_GREEN : TEXTCOLOR_BLACK);
 		screen->DrawText(SmallFont, color, 380, y, temp, TAG_DONE);
+
+		// Audibility
+		mysnprintf(temp, countof(temp), "%.4f", GSnd->GetAudibility(chan));
+		screen->DrawText(SmallFont, color, 460, y, temp, TAG_DONE);
 
 		y += 8;
 		if (chan->PrevChan == &Channels)
@@ -1184,7 +1190,6 @@ void S_RestartSound(FSoundChan *chan)
 	if (chan->ChanFlags & (CHAN_UI|CHAN_NOPAUSE)) startflags |= SNDF_NOPAUSE;
 	if (chan->ChanFlags & CHAN_ABSTIME) startflags |= SNDF_ABSTIME;
 
-	chan->ChanFlags &= ~(CHAN_EVICTED|CHAN_ABSTIME);
 	if (chan->ChanFlags & CHAN_IS3D)
 	{
 		FVector3 pos, vel;
@@ -1201,11 +1206,13 @@ void S_RestartSound(FSoundChan *chan)
 		SoundListener listener;
 		S_SetListener(listener, players[consoleplayer].camera);
 
+		chan->ChanFlags &= ~(CHAN_EVICTED|CHAN_ABSTIME);
 		ochan = (FSoundChan*)GSnd->StartSound3D(sfx->data, &listener, chan->Volume, &chan->Rolloff, chan->DistanceScale, chan->Pitch,
 			chan->Priority, pos, vel, chan->EntChannel, startflags, chan);
 	}
 	else
 	{
+		chan->ChanFlags &= ~(CHAN_EVICTED|CHAN_ABSTIME);
 		ochan = (FSoundChan*)GSnd->StartSound(sfx->data, chan->Volume, chan->Pitch, startflags, chan);
 	}
 	assert(ochan == NULL || ochan == chan);
@@ -2111,6 +2118,25 @@ void S_ChannelEnded(FISoundChannel *ichan)
 			schan->ChanFlags |= CHAN_EVICTED;
 			schan->SysChannel = NULL;
 		}
+	}
+}
+
+//==========================================================================
+//
+// S_ChannelVirtualChanged (callback for sound interface code)
+//
+//==========================================================================
+
+void S_ChannelVirtualChanged(FISoundChannel *ichan, bool is_virtual)
+{
+	FSoundChan *schan = static_cast<FSoundChan*>(ichan);
+	if (is_virtual)
+	{
+		schan->ChanFlags |= CHAN_VIRTUAL;
+	}
+	else
+	{
+		schan->ChanFlags &= ~CHAN_VIRTUAL;
 	}
 }
 

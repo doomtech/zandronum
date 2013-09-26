@@ -705,11 +705,16 @@ void FDrawInfo::DrawUnhandledMissingTextures()
 
 }
 
+void AppendMissingTextureStats(FString &out)
+{
+	out.AppendFormat("Missing textures: %d upper, %d lower, %.3f ms\n", 
+		totalupper, totallower, showtotalms.TimeMS());
+}
+
 ADD_STAT(missingtextures)
 {
 	FString out;
-	out.Format("Missing textures: %d upper, %d lower, %.3f ms\n", 
-		totalupper, totallower, showtotalms.TimeMS());
+	AppendMissingTextureStats(out);
 	return out;
 }
 

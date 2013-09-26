@@ -250,6 +250,7 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 
 	if (tex)
 	{
+		gl.PushMatrix();
 		tex->Bind(CM_Index, 0, 0);
 		texw = tex->TextureWidth(GLUSE_TEXTURE);
 		texh = tex->TextureHeight(GLUSE_TEXTURE);
@@ -330,12 +331,8 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 	}
 
 	RenderSkyHemisphere(SKYHEMI_LOWER);
+	if (tex) gl.PopMatrix();
 
-	if (tex)
-	{
-		gl.Rotatef(180.0f-x_offset, 0, 1, 0);
-		gl.Scalef(1.f, 1.f, 1.f);
-	}
 }
 
 
@@ -547,6 +544,7 @@ void GLSkyPortal::DrawContents()
 	gl_RenderState.EnableAlphaTest(false);
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	gl.MatrixMode(GL_MODELVIEW);
 	gl.PushMatrix();
 	GLRenderer->SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 
