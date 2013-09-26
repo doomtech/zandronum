@@ -268,10 +268,6 @@ angle_t SlopeDiv (unsigned int num, unsigned den)
 
 angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 {
-#if 1
-	// The precision of the code below is abysmal so use the CRT atan2 function instead!
-	return quickertoint((float)(atan2f(float(y-y1), float(x-x1)) * (ANGLE_180/M_PI)));
-#else
 	x -= x1;
 	y -= y1;
 
@@ -333,7 +329,6 @@ angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 			}
 		}
 	}
-#endif
 }
 
 //==========================================================================

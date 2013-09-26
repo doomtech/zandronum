@@ -295,7 +295,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	{
 		return;
 	}
-	SetupWall.Unclock();
 	::SplitWall.Clock();
 
 #ifdef _MSC_VER
@@ -370,7 +369,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 					copyWall1.lorgt.v = copyWall2.lolft.v = lolft.v + coeff * (lorgt.v-lolft.v);
 
 					::SplitWall.Unclock();
-					SetupWall.Clock();
 
 					copyWall1.SplitWall(frontsector, translucent);
 					copyWall2.SplitWall(frontsector, translucent);
@@ -414,7 +412,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 					copyWall1.lorgt.v = copyWall2.lolft.v = lolft.v + coeff * (lorgt.v-lolft.v);
 
 					::SplitWall.Unclock();
-					SetupWall.Clock();
 
 					copyWall1.SplitWall(frontsector, translucent);
 					copyWall2.SplitWall(frontsector, translucent);
@@ -436,7 +433,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 				Colormap=lc;
 
 				::SplitWall.Unclock();
-				SetupWall.Clock();
 
 				return;
 			}
@@ -459,7 +455,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 			if (ztop[0]==zbottom[0] && ztop[1]==zbottom[1]) 
 			{
 				::SplitWall.Unclock();
-				SetupWall.Clock();
 				return;
 			}
 		}
@@ -475,7 +470,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	Colormap=lc;
 	flags &= ~GLWF_NOSPLITUPPER;
 	::SplitWall.Unclock();
-	SetupWall.Clock();
 }
 
 

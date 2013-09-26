@@ -146,7 +146,6 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	if (gl_render_walls)
 	{
-		ClipWall.Unclock();
 		SetupWall.Clock();
 
 		GLWall wall;
@@ -154,7 +153,6 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 		rendered_lines++;
 
 		SetupWall.Unclock();
-		ClipWall.Clock();
 	}
 }
 
@@ -231,8 +229,10 @@ static void DoSubsector(subsector_t * sub)
 	sector_t * fakesector;
 	sector_t fake;
 	
-	// check for visibility of this entire subsector! This requires GL nodes!
-	if (!clipper.CheckBox(sub->bbox)) return;
+	// check for visibility of this entire subsector. This requires GL nodes.
+	// (disabled because it costs more time than it saves.)
+	//if (!clipper.CheckBox(sub->bbox)) return;
+
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -341,7 +341,9 @@ void gl_RenderBSPNode (void *node)
 
 		// Possibly divide back space (away from the viewer).
 		side ^= 1;
-		if (!clipper.CheckBox(bsp->bbox[side]))
+
+		// It is not necessary to use the slower precise version here
+		if (!clipper.CheckBoxFast(bsp->bbox[side]))
 		{
 			return;
 		}

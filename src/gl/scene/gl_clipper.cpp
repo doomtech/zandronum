@@ -294,9 +294,6 @@ void Clipper::RemoveClipRange(angle_t start, angle_t end)
 //  if some part of the bbox might be visible.
 //
 //-----------------------------------------------------------------------------
-
-bool Clipper::CheckBox(const fixed_t *bspcoord) 
-{
 	static const int checkcoord[12][4] = // killough -- static const
 	{
 	  {3,0,2,1},
@@ -312,7 +309,30 @@ bool Clipper::CheckBox(const fixed_t *bspcoord)
 	  {2,1,3,0}
 	};
 
+bool Clipper::CheckBox(const fixed_t *bspcoord) 
+{
+	angle_t angle1, angle2;
 
+	int        boxpos;
+	const int* check;
+	
+	// Find the corners of the box
+	// that define the edges from current viewpoint.
+	boxpos = (viewx <= bspcoord[BOXLEFT] ? 0 : viewx < bspcoord[BOXRIGHT ] ? 1 : 2) +
+		(viewy >= bspcoord[BOXTOP ] ? 0 : viewy > bspcoord[BOXBOTTOM] ? 4 : 8);
+	
+	if (boxpos == 5) return true;
+	
+	check = checkcoord[boxpos];
+	angle1 = R_PointToAnglePrecise (viewx, viewy, bspcoord[check[0]], bspcoord[check[1]]);
+	angle2 = R_PointToAnglePrecise (viewx, viewy, bspcoord[check[2]], bspcoord[check[3]]);
+	
+	return SafeCheckRange(angle2, angle1);
+}
+
+// same as above but using the faster and less precise R_PointToAngle function
+bool Clipper::CheckBoxFast(const fixed_t *bspcoord) 
+{
 	angle_t angle1, angle2;
 
 	int        boxpos;
@@ -331,4 +351,3 @@ bool Clipper::CheckBox(const fixed_t *bspcoord)
 	
 	return SafeCheckRange(angle2, angle1);
 }
-

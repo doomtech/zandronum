@@ -434,7 +434,7 @@ FFlagDef *FindFlag (const PClass *type, const char *part1, const char *part2)
 
 const char *GetFlagName(int flagnum, int flagoffset)
 {
-	for(int i=0; i<countof(ActorFlags); i++)
+	for(unsigned i = 0; i < countof(ActorFlags); i++)
 	{
 		if (ActorFlags[i].flagbit == flagnum && ActorFlags[i].structoffset == flagoffset)
 		{

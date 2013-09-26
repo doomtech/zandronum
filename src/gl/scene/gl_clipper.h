@@ -113,6 +113,7 @@ public:
 
 
 	bool CheckBox(const fixed_t *bspcoord);
+	bool CheckBoxFast(const fixed_t *bspcoord);
 };
 
 
@@ -120,9 +121,15 @@ extern Clipper clipper;
 
 
 // Used to speed up angle calculations during clipping
+
+inline angle_t R_PointToAnglePrecise (fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
+{
+	return quickertoint((float)(atan2f(float(y-viewy), float(x-viewx)) * (ANGLE_180/M_PI)));
+}
+
 inline angle_t vertex_t::GetViewAngle()
 {
-	return angletime == Clipper::anglecache? viewangle : (angletime = Clipper::anglecache, viewangle = R_PointToAngle2(viewx, viewy, x,y));
+	return angletime == Clipper::anglecache? viewangle : (angletime = Clipper::anglecache, viewangle = R_PointToAnglePrecise(viewx, viewy, x,y));
 }
 
 #endif

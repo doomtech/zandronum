@@ -202,7 +202,7 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, double x, double y, uint32 
 		dc_iscale = DivScale32(1, spryscale);
 		dc_texturemid = FixedMul(-sprtopscreen, dc_iscale) + FixedMul(centeryfrac-FRACUNIT, dc_iscale);
 		fixed_t frac = 0;
-		double xiscale = parms.texwidth / parms.destwidth;
+		double xiscale = img->GetWidth() / parms.destwidth;
 		double x2 = x0 + parms.destwidth;
 
 		if (bottomclipper[0] != parms.dclip)
@@ -700,7 +700,7 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 
 	if (parms->style.BlendOp == 255)
 	{
-		if (parms->fillcolor != -1)
+		if (parms->fillcolor != ~0u)
 		{
 			if (parms->alphaChannel)
 			{

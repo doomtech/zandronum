@@ -308,10 +308,10 @@ inline void GLPortal::ClearClipper()
 	clipper.AddClipRange(0,0xffffffff);
 	for(unsigned int i=0;i<lines.Size();i++)
 	{
-		angle_t startAngle = R_PointToAngle2(savedviewx, savedviewy, 
+		angle_t startAngle = R_PointToAnglePrecise(savedviewx, savedviewy, 
 												TO_MAP(lines[i].glseg.x2), TO_MAP(lines[i].glseg.y2));
 
-		angle_t endAngle = R_PointToAngle2(savedviewx, savedviewy, 
+		angle_t endAngle = R_PointToAnglePrecise(savedviewx, savedviewy, 
 												TO_MAP(lines[i].glseg.x1), TO_MAP(lines[i].glseg.y1));
 
 		if (startAngle-endAngle>0) 
@@ -758,7 +758,7 @@ void GLMirrorPortal::DrawContents()
 		viewx+= TO_MAP(v[1] * renderdepth / 2);
 		viewy+= TO_MAP(v[0] * renderdepth / 2);
 	}
-	viewangle = 2*R_PointToAngle2 (GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y,
+	viewangle = 2*R_PointToAnglePrecise (GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y,
 										GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y) - startang;
 
 	GLRenderer->mViewActor = NULL;

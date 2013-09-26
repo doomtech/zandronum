@@ -18,7 +18,7 @@
 glcycle_t RenderWall,SetupWall,ClipWall,SplitWall;
 glcycle_t RenderFlat,SetupFlat;
 glcycle_t RenderSprite,SetupSprite;
-glcycle_t All, Finish, PortalAll;
+glcycle_t All, Finish, PortalAll, Bsp;
 glcycle_t ProcessAll;
 glcycle_t RenderAll;
 glcycle_t Dirty;
@@ -83,6 +83,7 @@ void ResetProfilingData()
 {
 	All.Reset();
 	All.Clock();
+	Bsp.Reset();
 	PortalAll.Reset();
 	RenderAll.Reset();
 	ProcessAll.Reset();
@@ -107,13 +108,17 @@ void ResetProfilingData()
 
 static void AppendRenderTimes(FString &str)
 {
+	double setupwall = SetupWall.TimeMS() - SplitWall.TimeMS();
+	double clipwall = ClipWall.TimeMS() - SetupWall.TimeMS();
+	double bsp = Bsp.TimeMS() - ClipWall.TimeMS() - SetupFlat.TimeMS() - SetupSprite.TimeMS();
+
 	str.AppendFormat("W: Render=%2.3f, Split = %2.3f, Setup=%2.3f, Clip=%2.3f\n"
 		"F: Render=%2.3f, Setup=%2.3f\n"
 		"S: Render=%2.3f, Setup=%2.3f\n"
-		"All: All=%2.3f, Render=%2.3f, Setup=%2.3f, Portal=%2.3f, Finish=%2.3f\n",
-	RenderWall.TimeMS(), SplitWall.TimeMS(), SetupWall.TimeMS(), ClipWall.TimeMS(), RenderFlat.TimeMS(), SetupFlat.TimeMS(),
+		"All=%2.3f, Render=%2.3f, Setup=%2.3f, BSP = %2.3f, Portal=%2.3f, Finish=%2.3f\n",
+	RenderWall.TimeMS(), SplitWall.TimeMS(), setupwall, clipwall, RenderFlat.TimeMS(), SetupFlat.TimeMS(),
 	RenderSprite.TimeMS(), SetupSprite.TimeMS(), All.TimeMS() + Finish.TimeMS(), RenderAll.TimeMS(),
-	ProcessAll.TimeMS(), PortalAll.TimeMS(), Finish.TimeMS());
+	ProcessAll.TimeMS(), bsp, PortalAll.TimeMS(), Finish.TimeMS());
 }
 
 static void AppendRenderStats(FString &out)
@@ -194,7 +199,7 @@ void CheckBench()
 
 		FString compose;
 
-		compose.Format("Map %s: \"%s\",\nx = %1.4f, y = %1.4f, z = %1.4f, angle = 1.4f, pitch = %1.4f\n",
+		compose.Format("Map %s: \"%s\",\nx = %1.4f, y = %1.4f, z = %1.4f, angle = %1.4f, pitch = %1.4f\n",
 			level.mapname, level.LevelName.GetChars(), TO_GL(viewx), TO_GL(viewy), TO_GL(viewz),
 			ANGLE_TO_FLOAT(viewangle), ANGLE_TO_FLOAT(viewpitch));
 

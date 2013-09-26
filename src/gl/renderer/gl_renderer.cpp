@@ -282,11 +282,13 @@ void FGLRenderer::ClearBorders()
 
 void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 {
-	double x = parms.x - parms.left * parms.destwidth / parms.texwidth;
-	double y = parms.y - parms.top * parms.destheight / parms.texheight;
+	double xscale = parms.destwidth / parms.texwidth;
+	double yscale = parms.destheight / parms.texheight;
+	double x = parms.x - parms.left * xscale;
+	double y = parms.y - parms.top * yscale;
 	double w = parms.destwidth;
 	double h = parms.destheight;
-	float ox, oy, cx, cy, r, g, b;
+	float u1, v1, u2, v2, r, g, b;
 	float light = 1.f;
 
 	FMaterial * gltex = FMaterial::ValidateTexture(img);
@@ -319,30 +321,36 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 
 		if (!pti) return;
 
-		ox = pti->GetUL();
-		oy = pti->GetVT();
-		cx = pti->GetUR();
-		cy = pti->GetVB();
+		u1 = pti->GetUL();
+		v1 = pti->GetVT();
+		u2 = pti->GetUR();
+		v2 = pti->GetVB();
 	}
 	else
 	{
 		gltex->Bind(CM_DEFAULT, 0, 0);
-		cx=1.f;
-		cy=-1.f;
-		ox = oy = 0.f;
+		u2=1.f;
+		v2=-1.f;
+		u1 = v1 = 0.f;
 	}
 	
 	if (parms.flipX)
 	{
-		float temp = ox;
-		ox = cx;
-		cx = temp;
+		float temp = u1;
+		u1 = u2;
+		u2 = temp;
 	}
 	
-	// also take into account texInfo->windowLeft and texInfo->windowRight
-	// just ignore for now...
-	if (parms.windowleft || parms.windowright != img->GetScaledWidth()) return;
-	
+
+	if (parms.windowleft > 0 || parms.windowright < parms.texwidth)
+	{
+		x += parms.windowleft * xscale;
+		w -= (parms.texwidth - parms.windowright + parms.windowleft) * xscale;
+
+		u1 = float(u1 + parms.windowleft / parms.texwidth);
+		u2 = float(u2 - (parms.texwidth - parms.windowright) / parms.texwidth);
+	}
+
 	if (parms.style.Flags & STYLEF_ColorIsFixed)
 	{
 		r = RPART(parms.fillcolor)/255.0f;
@@ -369,13 +377,13 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl_RenderState.EnableAlphaTest(false);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_STRIP);
-	gl.TexCoord2f(ox, oy);
+	gl.TexCoord2f(u1, v1);
 	glVertex2d(x, y);
-	gl.TexCoord2f(ox, cy);
+	gl.TexCoord2f(u1, v2);
 	glVertex2d(x, y + h);
-	gl.TexCoord2f(cx, oy);
+	gl.TexCoord2f(u2, v1);
 	glVertex2d(x + w, y);
-	gl.TexCoord2f(cx, cy);
+	gl.TexCoord2f(u2, v2);
 	glVertex2d(x + w, y + h);
 	gl.End();
 	gl_RenderState.EnableAlphaTest(true);

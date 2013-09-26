@@ -78,6 +78,7 @@ static float yMult, yAdd;
 static bool foglayer;
 static bool secondlayer;
 static float R,G,B;
+static bool skymirror; 
 
 #define SKYHEMI_UPPER		0x1
 #define SKYHEMI_LOWER		0x2
@@ -124,7 +125,7 @@ static void SkyVertex(int r, int c)
 		}
 		
 		
-		gl.TexCoord2f(u, v);
+		gl.TexCoord2f(skymirror? -u:u, v);
 	}
 	if (r != 4) y+=FRACUNIT*300;
 	// And finally the vertex.
@@ -142,7 +143,7 @@ static void SkyVertex(int r, int c)
 //
 //-----------------------------------------------------------------------------
 
-static void RenderSkyHemisphere(int hemi)
+static void RenderSkyHemisphere(int hemi, bool mirror)
 {
 	int r, c;
 	
@@ -154,6 +155,8 @@ static void RenderSkyHemisphere(int hemi)
 	{
 		yflip = false;
 	}
+
+	skymirror = mirror;
 	
 	// The top row (row 0) is the one that's faded out.
 	// There must be at least 4 columns. The preferable number
@@ -241,11 +244,12 @@ static void RenderSkyHemisphere(int hemi)
 //
 //-----------------------------------------------------------------------------
 
-static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float y_offset, int CM_Index)
+static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float y_offset, bool mirror, int CM_Index)
 {
 	int texh;
 
-	bool skystretch = (r_stretchsky && !(level.flags & LEVEL_FORCENOSKYSTRETCH));
+	// Sky stretching is rather pointless with the GL renderer now that it can handle all sky heights.
+	bool skystretch = false; // (r_stretchsky && !(level.flags & LEVEL_FORCENOSKYSTRETCH));
 
 
 	if (tex)
@@ -295,7 +299,7 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		}
 	}
 
-	RenderSkyHemisphere(SKYHEMI_UPPER);
+	RenderSkyHemisphere(SKYHEMI_UPPER, mirror);
 
 	if(tex)
 	{
@@ -330,7 +334,7 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		}
 	}
 
-	RenderSkyHemisphere(SKYHEMI_LOWER);
+	RenderSkyHemisphere(SKYHEMI_LOWER, mirror);
 	if (tex) gl.PopMatrix();
 
 }
@@ -573,7 +577,7 @@ void GLSkyPortal::DrawContents()
 		if (origin->texture[0])
 		{
 			gl_RenderState.SetTextureMode(TM_OPAQUE);
-			RenderDome(origin->skytexno1, origin->texture[0], origin->x_offset[0], origin->y_offset, CM_Index);
+			RenderDome(origin->skytexno1, origin->texture[0], origin->x_offset[0], origin->y_offset, origin->mirrored, CM_Index);
 			gl_RenderState.SetTextureMode(TM_MODULATE);
 		}
 		
@@ -583,7 +587,7 @@ void GLSkyPortal::DrawContents()
 		if (origin->doublesky && origin->texture[1])
 		{
 			secondlayer=true;
-			RenderDome(FNullTextureID(), origin->texture[1], origin->x_offset[1], origin->y_offset, CM_Index);
+			RenderDome(FNullTextureID(), origin->texture[1], origin->x_offset[1], origin->y_offset, false, CM_Index);
 			secondlayer=false;
 		}
 
@@ -592,7 +596,7 @@ void GLSkyPortal::DrawContents()
 			gl_RenderState.EnableTexture(false);
 			foglayer=true;
 			gl.Color4f(FadeColor.r/255.0f,FadeColor.g/255.0f,FadeColor.b/255.0f,skyfog/255.0f);
-			RenderDome(FNullTextureID(), NULL, 0, 0, CM_DEFAULT);
+			RenderDome(FNullTextureID(), NULL, 0, 0, false, CM_DEFAULT);
 			gl_RenderState.EnableTexture(true);
 			foglayer=false;
 		}

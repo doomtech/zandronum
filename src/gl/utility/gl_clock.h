@@ -97,7 +97,7 @@ private:
 extern glcycle_t RenderWall,SetupWall,ClipWall,SplitWall;
 extern glcycle_t RenderFlat,SetupFlat;
 extern glcycle_t RenderSprite,SetupSprite;
-extern glcycle_t All, Finish, PortalAll;
+extern glcycle_t All, Finish, PortalAll, Bsp;
 extern glcycle_t ProcessAll;
 extern glcycle_t RenderAll;
 extern glcycle_t Dirty;

@@ -260,7 +260,10 @@ void gl_InitModels()
 				smf.xscale=smf.yscale=smf.zscale=1.f;
 
 				smf.type = PClass::FindClass(sc.String);
-				if (!smf.type) sc.ScriptError("MODELDEF: Unknown actor type '%s'\n", sc.String);
+				if (!smf.type || smf.type->Defaults == NULL) 
+				{
+					sc.ScriptError("MODELDEF: Unknown actor type '%s'\n", sc.String);
+				}
 				GetDefaultByType(smf.type)->hasmodel=true;
 				sc.MustGetStringName("{");
 				while (!sc.CheckString("}"))

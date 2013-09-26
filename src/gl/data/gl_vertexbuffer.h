@@ -22,14 +22,15 @@ struct FVBOVertex	// exactly 32 bytes large
 
 class FVertexBuffer
 {
-	int vbo_arg;
 	unsigned int vbo_id;
 	FVBOVertex *map;
-public:
-	TArray<FVBOVertex> vbo_shadowdata;	// this is kept around for non-VBO rendering
 
 	void MapVBO();
 	void CheckPlanes(sector_t *sector);
+
+public:
+	int vbo_arg;
+	TArray<FVBOVertex> vbo_shadowdata;	// this is kept around for non-VBO rendering
 
 public:
 	FVertexBuffer();

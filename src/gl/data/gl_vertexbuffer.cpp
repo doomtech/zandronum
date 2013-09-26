@@ -42,10 +42,28 @@
 #include "doomtype.h"
 #include "p_local.h"
 #include "m_argv.h"
+#include "c_cvars.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 
+
+CUSTOM_CVAR(Int, gl_usevbo, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+{
+	if (self < -1 || self > 2 || !(gl.flags&RFL_VBO))
+	{
+		self = 0;
+	}
+	else if (self == -1)
+	{
+		if (gl.flags & RFL_ATI) self = 0;
+		else self = 2;
+	}
+	else if (GLRenderer != NULL && GLRenderer->mVBO != NULL && GLRenderer->mVBO->vbo_arg != self)
+	{
+		Printf("Vertex buffer use will be changed for the next level.\n");
+	}
+}
 
 //==========================================================================
 //
@@ -55,19 +73,19 @@
 
 FVertexBuffer::FVertexBuffer()
 {
-	const char *c = Args->CheckValue("-vbo");
-
-	if (!(gl.flags&RFL_VBO)) vbo_arg = 0;
-	if (c) vbo_arg = strtol(c, NULL, 0);
-	// on ATI mixing VBO and immediate mode causes performance drops
-	// so this will remain disabled unless ATI's drivers get better.
-	else if ((gl.flags & RFL_ATI)) vbo_arg = 0;	
-	else vbo_arg = 2;
-
-	vbo_id = 0;
-	map = NULL;
-	if (vbo_arg > 0)
+	if (!(gl.flags&RFL_VBO)) 
 	{
+		vbo_arg = 0;
+		vbo_id = 0;
+		map = NULL;
+	}
+	else
+	{
+		if (gl_usevbo == -1) gl_usevbo.Callback();
+		vbo_arg = gl_usevbo;
+
+		vbo_id = 0;
+		map = NULL;
 		gl.GenBuffers(1, &vbo_id);
 	}
 }
@@ -300,7 +318,7 @@ void FVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
 void FVertexBuffer::CreateVBO()
 {
 	vbo_shadowdata.Clear();
-	if (vbo_id > 0)
+	if (vbo_arg > 0)
 	{
 		CreateFlatVBO();
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
@@ -326,7 +344,7 @@ void FVertexBuffer::CreateVBO()
 
 void FVertexBuffer::BindVBO()
 {
-	if (vbo_id > 0)
+	if (vbo_arg > 0)
 	{
 		UnmapVBO();
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
@@ -374,7 +392,7 @@ void FVertexBuffer::CheckPlanes(sector_t *sector)
 
 void FVertexBuffer::CheckUpdate(sector_t *sector)
 {
-	if (vbo_id > 0 && vbo_arg == 2)
+	if (vbo_arg == 2)
 	{
 		CheckPlanes(sector);
 		sector_t *hs = sector->GetHeightSec();

@@ -310,7 +310,9 @@ void FGLRenderer::CreateScene()
 
 	// clip the scene and fill the drawlists
 	gl_spriteindex=0;
+	Bsp.Clock();
 	gl_RenderBSPNode (nodes + numnodes - 1);
+	Bsp.Unclock();
 
 	// And now the crappy hacks that have to be done to avoid rendering anomalies:
 
