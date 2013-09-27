@@ -49,6 +49,7 @@ int Clipper::anglecache;
 // Destructor
 //
 //-----------------------------------------------------------------------------
+
 Clipper::~Clipper()
 {
 	Clear();
@@ -65,6 +66,7 @@ Clipper::~Clipper()
 // RemoveRange
 //
 //-----------------------------------------------------------------------------
+
 void Clipper::RemoveRange(ClipNode * range)
 {
 	if (range == cliphead)
@@ -85,6 +87,7 @@ void Clipper::RemoveRange(ClipNode * range)
 // Clear
 //
 //-----------------------------------------------------------------------------
+
 void Clipper::Clear()
 {
 	ClipNode *node = cliphead;
@@ -107,6 +110,7 @@ void Clipper::Clear()
 // IsRangeVisible
 //
 //-----------------------------------------------------------------------------
+
 bool Clipper::IsRangeVisible(angle_t startAngle, angle_t endAngle)
 {
 	ClipNode *ci;
@@ -131,6 +135,7 @@ bool Clipper::IsRangeVisible(angle_t startAngle, angle_t endAngle)
 // AddClipRange
 //
 //-----------------------------------------------------------------------------
+
 void Clipper::AddClipRange(angle_t start, angle_t end)
 {
 	ClipNode *node, *temp, *prevNode;
@@ -235,6 +240,7 @@ void Clipper::AddClipRange(angle_t start, angle_t end)
 // RemoveClipRange
 //
 //-----------------------------------------------------------------------------
+
 void Clipper::RemoveClipRange(angle_t start, angle_t end)
 {
 	ClipNode *node, *temp;
@@ -286,6 +292,60 @@ void Clipper::RemoveClipRange(angle_t start, angle_t end)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+// 
+//
+//-----------------------------------------------------------------------------
+
+angle_t Clipper::AngleToPseudo(angle_t ang)
+{
+	double vecx = cos(ang * M_PI / ANGLE_180);
+	double vecy = sin(ang * M_PI / ANGLE_180);
+
+	double result = vecy / (fabs(vecx) + fabs(vecy));
+	if (vecx < 0)
+	{
+		result = 2.f - result;
+	}
+	return xs_Fix<30>::ToFix(result);
+}
+
+//-----------------------------------------------------------------------------
+//
+// ! Returns the pseudoangle between the line p1 to (infinity, p1.y) and the 
+// line from p1 to p2. The pseudoangle has the property that the ordering of 
+// points by true angle anround p1 and ordering of points by pseudoangle are the 
+// same.
+//
+// For clipping exact angles are not needed. Only the ordering matters.
+// This is about as fast as the fixed point R_PointToAngle2 but without
+// the precision issues associated with that function.
+//
+//-----------------------------------------------------------------------------
+
+angle_t R_PointToPseudoAngle (fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
+{
+	// Note: float won't work here as it's less precise than the BAM values being passed as parameters
+	double vecx = double(x-viewx);
+	double vecy = double(y-viewy);
+	
+	if (vecx == 0 && vecy == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		double result = vecy / (fabs(vecx) + fabs(vecy));
+		if (vecx < 0)
+		{
+			result = 2.f - result;
+		}
+		return xs_Fix<30>::ToFix(result);
+	}
+}
+
+
 
 
 //-----------------------------------------------------------------------------
@@ -326,30 +386,9 @@ bool Clipper::CheckBox(const fixed_t *bspcoord)
 	if (boxpos == 5) return true;
 	
 	check = checkcoord[boxpos];
-	angle1 = R_PointToAnglePrecise (viewx, viewy, bspcoord[check[0]], bspcoord[check[1]]);
-	angle2 = R_PointToAnglePrecise (viewx, viewy, bspcoord[check[2]], bspcoord[check[3]]);
+	angle1 = R_PointToPseudoAngle (viewx, viewy, bspcoord[check[0]], bspcoord[check[1]]);
+	angle2 = R_PointToPseudoAngle (viewx, viewy, bspcoord[check[2]], bspcoord[check[3]]);
 	
 	return SafeCheckRange(angle2, angle1);
 }
 
-// same as above but using the faster and less precise R_PointToAngle function
-bool Clipper::CheckBoxFast(const fixed_t *bspcoord) 
-{
-	angle_t angle1, angle2;
-
-	int        boxpos;
-	const int* check;
-	
-	// Find the corners of the box
-	// that define the edges from current viewpoint.
-	boxpos = (viewx <= bspcoord[BOXLEFT] ? 0 : viewx < bspcoord[BOXRIGHT ] ? 1 : 2) +
-		(viewy >= bspcoord[BOXTOP ] ? 0 : viewy > bspcoord[BOXBOTTOM] ? 4 : 8);
-	
-	if (boxpos == 5) return true;
-	
-	check = checkcoord[boxpos];
-	angle1 = R_PointToAngle (bspcoord[check[0]], bspcoord[check[1]]);
-	angle2 = R_PointToAngle (bspcoord[check[2]], bspcoord[check[3]]);
-	
-	return SafeCheckRange(angle2, angle1);
-}

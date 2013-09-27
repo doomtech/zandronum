@@ -307,7 +307,8 @@ public:
 
 	int translation;
 	int index;
-	float scale;
+	int depth;
+
 	float x,y,z;	// needed for sorting!
 
 	float ul,ur;

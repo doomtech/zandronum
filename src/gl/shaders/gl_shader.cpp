@@ -136,6 +136,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		gl.AttachShader(hShader, hFragProg);
 
 		gl.BindAttribLocation(hShader, VATTR_GLOWDISTANCE, "glowdistance");
+		gl.BindAttribLocation(hShader, VATTR_FOGPARAMS, "fogparams");
 
 		gl.LinkProgram(hShader);
 

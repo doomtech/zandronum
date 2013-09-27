@@ -167,7 +167,7 @@ bool FRenderState::ApplyShader()
 			break;
 
 		case 4:
-			useshaders = (!m2D || mEffectState != 0); // all 3D rendering and 2D with texture effects.
+			useshaders = (!m2D || mEffectState != 0 || mColormapState); // all 3D rendering and 2D with texture effects.
 			break;
 
 		default:
@@ -212,25 +212,24 @@ bool FRenderState::ApplyShader()
 		{
 			gl.Uniform3fv(activeShader->camerapos_index, 1, mCameraPos.vec); 
 		}
-		if (mLightParms[0] != activeShader->currentlightfactor || 
-			mLightParms[1] != activeShader->currentlightdist)
-		{
-			activeShader->currentlightdist = mLightParms[1];
-			activeShader->currentlightfactor = mLightParms[0];
-			gl.Uniform2fv(activeShader->lightparms_index, 1, mLightParms);
-		}
-		if (mFogColor != activeShader->currentfogcolor ||
-			mFogDensity != activeShader->currentfogdensity)
+		/*if (mLightParms[0] != activeShader->currentlightfactor || 
+			mLightParms[1] != activeShader->currentlightdist ||
+			mFogDensity != activeShader->currentfogdensity)*/
 		{
 			const float LOG2E = 1.442692f;	// = 1/log(2)
-
-			activeShader->currentfogcolor = mFogColor;
-			activeShader->currentfogdensity = mFogDensity;
-
+			//activeShader->currentlightdist = mLightParms[1];
+			//activeShader->currentlightfactor = mLightParms[0];
+			//activeShader->currentfogdensity = mFogDensity;
 			// premultiply the density with as much as possible here to reduce shader
-			// exection time.
+			// execution time.
+			gl.VertexAttrib4f(VATTR_FOGPARAMS, mLightParms[0], mLightParms[1], mFogDensity * (-LOG2E / 64000.f), 0);
+		}
+		if (mFogColor != activeShader->currentfogcolor)
+		{
+			activeShader->currentfogcolor = mFogColor;
+
 			gl.Uniform4f (activeShader->fogcolor_index, mFogColor.r/255.f, mFogColor.g/255.f, 
-							mFogColor.b/255.f, mFogDensity * (-LOG2E / 64000.f));
+							mFogColor.b/255.f, 0);
 		}
 		if (mGlowEnabled)
 		{

@@ -1,5 +1,7 @@
 #ifndef NO_FOG
 	varying vec4 pixelpos;
+	attribute vec4 fogparams;
+	varying vec4 fogparm;
 #endif
 #ifndef NO_GLOW
 	varying vec2 glowdist;
@@ -16,6 +18,7 @@ void main()
 	#ifndef NO_FOG
 		pixelpos.xyz = gl_Vertex.xyz;
 		pixelpos.w = -eyeCoordPos.z/eyeCoordPos.w;
+		fogparm = fogparams;
 	#endif
 	
 	#ifndef NO_GLOW

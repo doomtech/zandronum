@@ -1458,6 +1458,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"Monster movement is affected by effects",	{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MBFMONSTERMOVE} },
 	{ bitflag,	"Crushed monsters can be resurrected",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_CORPSEGIBS} },
 	{ bitflag,	"Friendly monsters aren't blocked",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_NOBLOCKFRIENDS} },
+	{ bitflag,	"Invert sprite sorting",					{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SPRITESORT} },
 	{ bitflag,	"Limited movement in the air",				{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_INSTANTRESPAWN} },

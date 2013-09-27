@@ -48,5 +48,6 @@ inline FGLSectionLoop *FGLSection::GetLoop(int no)
 	return &SectionLoops[startloop + no];
 }
 
+void gl_CreateSections();
 
 #endif

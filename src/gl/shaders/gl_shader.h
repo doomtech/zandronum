@@ -8,6 +8,7 @@
 extern bool gl_shaderactive;
 
 const int VATTR_GLOWDISTANCE = 15;
+const int VATTR_FOGPARAMS = 14;
 
 //==========================================================================
 //

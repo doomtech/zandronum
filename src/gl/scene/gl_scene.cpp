@@ -932,7 +932,7 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 
 	clipper.Clear();
 	angle_t a1 = GLRenderer->FrustumAngle();
-	clipper.SafeAddClipRange(viewangle+a1, viewangle-a1);
+	clipper.SafeAddClipRangeRealAngles(viewangle+a1, viewangle-a1);
 
 	ProcessScene(toscreen);
 

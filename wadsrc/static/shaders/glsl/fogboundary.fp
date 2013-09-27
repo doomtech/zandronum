@@ -2,6 +2,7 @@ uniform int fogenabled;
 uniform vec4 fogcolor;
 uniform vec3 camerapos;
 varying vec4 pixelpos;
+varying vec4 fogparm;
 
 //===========================================================================
 //
@@ -29,7 +30,7 @@ void main()
 	#else
 		fogdist = pixelpos.w;
 	#endif
-	fogfactor = exp2 (fogcolor.a * fogdist);
+	fogfactor = exp2 (fogparm.z * fogdist);
 	gl_FragColor = vec4(fogcolor.rgb, 1.0 - fogfactor);
 }
 

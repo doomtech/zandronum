@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 
 #include "templates.h"
 #include "doomdef.h"
@@ -2283,13 +2284,9 @@ void R_DrawRemainingPlayerSprites()
 //		gain compared to the old function.
 //
 // Sort vissprites by depth, far to near
-static int STACK_ARGS sv_compare (const void *arg1, const void *arg2)
+static bool sv_compare(vissprite_t *a, vissprite_t *b)
 {
-	int diff = (*(vissprite_t **)arg2)->idepth - (*(vissprite_t **)arg1)->idepth;
-	// If two sprites are the same distance, then the higher one gets precedence
-	if (diff == 0)
-		return (*(vissprite_t **)arg2)->gzt - (*(vissprite_t **)arg1)->gzt;
-	return diff;
+	return a->idepth > b->idepth;
 }
 
 #if 0
@@ -2423,7 +2420,16 @@ void R_SplitVisSprites ()
 }
 #endif
 
-void R_SortVisSprites (int (STACK_ARGS *compare)(const void *, const void *), size_t first)
+#ifdef __GNUC__
+static void swap(vissprite_t *&a, vissprite_t *&b)
+{
+	vissprite_t *t = a;
+	a = b;
+	b = t;
+}
+#endif
+
+void R_SortVisSprites (bool (*compare)(vissprite_t *, vissprite_t *), size_t first)
 {
 	int i;
 	vissprite_t **spr;
@@ -2441,12 +2447,25 @@ void R_SortVisSprites (int (STACK_ARGS *compare)(const void *, const void *), si
 		spritesortersize = MaxVisSprites;
 	}
 
-	for (i = 0, spr = firstvissprite; i < vsprcount; i++, spr++)
+	if (!(i_compatflags & COMPATF_SPRITESORT))
 	{
-		spritesorter[i] = *spr;
+		for (i = 0, spr = firstvissprite; i < vsprcount; i++, spr++)
+		{
+			spritesorter[i] = *spr;
+		}
+	}
+	else
+	{
+		// If the compatibility option is on sprites of equal distance need to
+		// be sorted in inverse order. This is most easily achieved by
+		// filling the sort array backwards before the sort.
+		for (i = 0, spr = firstvissprite + vsprcount-1; i < vsprcount; i++, spr--)
+		{
+			spritesorter[i] = *spr;
+		}
 	}
 
-	qsort (spritesorter, vsprcount, sizeof (vissprite_t *), compare);
+	std::stable_sort(&spritesorter[0], &spritesorter[vsprcount], compare);
 }
 
 

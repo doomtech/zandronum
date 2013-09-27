@@ -781,6 +781,8 @@ void gl_ParseBrightmap(FScanner &sc, int deflump)
 				return;
 			}
 			brightmap->gl_info.bBrightmap = true;
+			brightmap->Name[0] = 0;	// brightmaps don't have names
+			TexMan.AddTexture(brightmap);
 		}
 		else
 		{

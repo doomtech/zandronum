@@ -108,16 +108,6 @@ void GLSprite::Draw(int pass)
 	{
 		// The translucent pass requires special setup for the various modes.
 
-		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))
-		{
-			// Draw translucent non-moving sprites with a slightly altered z-offset to avoid z-fighting 
-			// when in the same position as a regular sprite.
-			// (mostly added for KDiZD's lens flares.)
-			
-			gl.Enable(GL_POLYGON_OFFSET_FILL);
-			gl.PolygonOffset(-1.0f, -64.0f);
-		}
-
 		// Brightmaps will only be used when doing regular drawing ops and having no fog
 		if (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
 			RenderStyle.BlendOp != STYLEOP_Add)
@@ -293,12 +283,6 @@ void GLSprite::Draw(int pass)
 		{
 			gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 		}
-
-		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->velx|actor->vely))
-		{
-			gl.Disable(GL_POLYGON_OFFSET_FILL);
-			gl.PolygonOffset(0, 0);
-		}
 	}
 
 	gl_RenderState.EnableTexture(true);
@@ -314,7 +298,7 @@ inline void GLSprite::PutSprite(bool translucent)
 {
 	int list;
 	// [BB] Allow models to be drawn in the GLDL_TRANSLUCENT pass.
-	if ( translucent || (!modelframe && gl_sprite_blend))
+	if (translucent || !modelframe)
 	{
 		list = GLDL_TRANSLUCENT;
 	}
@@ -600,7 +584,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		z1 = z2 = z;
 		gltexture=NULL;
 	}
-	scale = fabs(GLRenderer->mViewVector.X * (thing->x-viewx) + GLRenderer->mViewVector.Y * (thing->y-viewy));
+
+	depth = DMulScale20 (thing->x-viewx, viewtancos, thing->y-viewy, viewtansin);
 
 	// light calculation
 
@@ -716,7 +701,20 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		// This is a non-translucent sprite (i.e. STYLE_Normal or equivalent)
 		trans=1.f;
 		
-		hw_styleflags = STYLEHW_Solid;
+
+		if (!gl_sprite_blend)
+		{
+			RenderStyle.SrcAlpha = STYLEALPHA_One;
+			RenderStyle.DestAlpha = STYLEALPHA_Zero;
+			hw_styleflags = STYLEHW_Solid;
+		}
+		else
+		{
+			RenderStyle.SrcAlpha = STYLEALPHA_Src;
+			RenderStyle.DestAlpha = STYLEALPHA_InvSrc;
+		}
+
+
 	}
 	if ((gltexture && gltexture->GetTransparent()) || (RenderStyle.Flags & STYLEF_RedIsAlpha))
 	{
@@ -869,7 +867,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	y2=y+viewvecX*scalefac;
 	z1=z-scalefac;
 	z2=z+scalefac;
-	scale = fabs(viewvecX * (particle->x-viewx) + viewvecY * (particle->y-viewy));
+
+	depth = DMulScale20 (particle->x-viewx, viewtancos, particle->y-viewy, viewtansin);
+
 	actor=NULL;
 	this->particle=particle;
 	

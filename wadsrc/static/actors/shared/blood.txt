@@ -7,6 +7,7 @@ ACTOR Blood
 	Mass 5
 	+NOBLOCKMAP
 	+NOTELEPORT
+	+ALLOWPARTICLES
 	// [BC]
 	+NONETID
 	States
@@ -32,6 +33,7 @@ ACTOR BloodSplatter
 	+DROPOFF
 	+NOTELEPORT
 	+CANNOTPUSH
+	+ALLOWPARTICLES
 	Mass 5
 	States
 	{
@@ -55,6 +57,7 @@ ACTOR AxeBlood
 	+DROPOFF
 	+NOTELEPORT
 	+CANNOTPUSH
+	+ALLOWPARTICLES
 	Mass 5
 	States
 	{

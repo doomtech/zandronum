@@ -20,7 +20,8 @@ uniform int fogenabled;
 uniform vec4 fogcolor;
 uniform vec3 camerapos;
 varying vec4 pixelpos;
-uniform vec2 lightparms;
+varying vec4 fogparm;
+//uniform vec2 lightparms;
 uniform float desaturation_factor;
 
 uniform vec4 topglowcolor;
@@ -59,6 +60,25 @@ vec4 getLightColor(float fogdist, float fogfactor)
 {
 	vec4 color = gl_Color;
 
+	#ifndef NO_FOG
+	//
+	// apply light diminishing	
+	//
+	if (fogenabled > 0)
+	{
+		#if !defined NO_SM4 || defined DOOMLIGHT
+			// special lighting mode 'Doom' not available on older cards for performance reasons.
+			if (fogdist < fogparm.y) 
+			{
+				color.rgb *= fogparm.x - (fogdist / fogparm.y) * (fogparm.x - 1.0);
+			}
+		#endif
+		
+		//color = vec4(color.rgb * (1.0 - fogfactor), color.a);
+		color.rgb = mix(vec3(0.0, 0.0, 0.0), color.rgb, fogfactor);
+	}
+	#endif
+	
 	#ifndef NO_GLOW
 	//
 	// handle glowing walls
@@ -72,25 +92,6 @@ vec4 getLightColor(float fogdist, float fogfactor)
 		color.rgb += desaturate(bottomglowcolor * (1.0 - glowdist.y / bottomglowcolor.a)).rgb;
 	}
 	color = min(color, 1.0);
-	#endif
-
-	#ifndef NO_FOG
-	//
-	// apply light diminishing	
-	//
-	if (fogenabled > 0)
-	{
-		#if !defined NO_SM4 || defined DOOMLIGHT
-			// special lighting mode 'Doom' not available on older cards for performance reasons.
-			if (fogdist < lightparms.y) 
-			{
-				color.rgb *= lightparms.x - (fogdist / lightparms.y) * (lightparms.x - 1.0);
-			}
-		#endif
-		
-		//color = vec4(color.rgb * (1.0 - fogfactor), color.a);
-		color.rgb = mix(vec3(0.0, 0.0, 0.0), color.rgb, fogfactor);
-	}
 	#endif
 	
 	// calculation of actual light color is complete.
@@ -174,7 +175,7 @@ void main()
 		#else
 			fogdist = max(16.0, distance(pixelpos.xyz, camerapos));
 		#endif
-		fogfactor = exp2 (fogcolor.a * fogdist);
+		fogfactor = exp2 (fogparm.z * fogdist);
 	}
 	#endif
 	

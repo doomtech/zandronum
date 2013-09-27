@@ -91,7 +91,7 @@ struct vertex_t
 		return x == other.x && y == other.y;
 	}
 
-	angle_t GetViewAngle();
+	angle_t GetClipAngle();
 };
 
 // Forward of LineDefs, for Sectors.

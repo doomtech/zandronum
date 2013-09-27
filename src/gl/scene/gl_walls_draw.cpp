@@ -441,7 +441,7 @@ void GLWall::RenderTranslucentWall()
 
 	// restore default settings
 	if (isadditive) gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if (!transparent) gl_RenderState.EnableAlphaTest(true);
+	if (transparent) gl_RenderState.EnableAlphaTest(true);
 
 	if (!gltexture)	
 	{

@@ -195,38 +195,7 @@ void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_
 //
 //==========================================================================
 
-static bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *source, const secplane_t *opp)
-{
-	bool copy = false;
-
-	// If the planes do not have matching slopes, then always copy them
-	// because clipping would require creating new sectors.
-	if (source->a != dest->a || source->b != dest->b || source->c != dest->c)
-	{
-		copy = true;
-	}
-	else if (opp->a != -dest->a || opp->b != -dest->b || opp->c != -dest->c)
-	{
-		if (source->d < dest->d)
-		{
-			copy = true;
-		}
-	}
-	else if (source->d < dest->d && source->d > -opp->d)
-	{
-		copy = true;
-	}
-
-	if (copy)
-	{
-		*dest = *source;
-	}
-
-	return copy;
-}
-
-
-
+bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *source, const secplane_t *opp);
 
 //==========================================================================
 //

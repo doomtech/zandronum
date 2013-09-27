@@ -52,7 +52,11 @@ class Clipper
 	ClipNode * clipnodes;
 	ClipNode * cliphead;
 
+	static angle_t AngleToPseudo(angle_t ang);
+	bool IsRangeVisible(angle_t startangle, angle_t endangle);
 	void RemoveRange(ClipNode * cn);
+	void AddClipRange(angle_t startangle, angle_t endangle);
+	void RemoveClipRange(angle_t startangle, angle_t endangle);
 
 public:
 
@@ -67,7 +71,7 @@ public:
 
 	void Clear();
 
-	bool IsRangeVisible(angle_t startangle, angle_t endangle);
+
 
 	bool SafeCheckRange(angle_t startAngle, angle_t endAngle)
 	{
@@ -79,7 +83,6 @@ public:
 		return IsRangeVisible(startAngle, endAngle);
 	}
 
-	void AddClipRange(angle_t startangle, angle_t endangle);
 	void SafeAddClipRange(angle_t startangle, angle_t endangle)
 	{
 		if(startangle > endangle)
@@ -95,7 +98,12 @@ public:
 		}
 	}
 
-	void RemoveClipRange(angle_t startangle, angle_t endangle);
+	void SafeAddClipRangeRealAngles(angle_t startangle, angle_t endangle)
+	{
+		SafeAddClipRange(AngleToPseudo(startangle), AngleToPseudo(endangle));
+	}
+
+
 	void SafeRemoveClipRange(angle_t startangle, angle_t endangle)
 	{
 		if(startangle > endangle)
@@ -111,6 +119,10 @@ public:
 		}
 	}
 
+	void SafeRemoveClipRangeRealAngles(angle_t startangle, angle_t endangle)
+	{
+		SafeRemoveClipRange(AngleToPseudo(startangle), AngleToPseudo(endangle));
+	}
 
 	bool CheckBox(const fixed_t *bspcoord);
 	bool CheckBoxFast(const fixed_t *bspcoord);
@@ -119,17 +131,17 @@ public:
 
 extern Clipper clipper;
 
-
-// Used to speed up angle calculations during clipping
+angle_t R_PointToPseudoAngle (fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y);
 
 inline angle_t R_PointToAnglePrecise (fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 {
 	return xs_RoundToUInt(atan2(double(y-viewy), double(x-viewx)) * (ANGLE_180/M_PI));
 }
 
-inline angle_t vertex_t::GetViewAngle()
+// Used to speed up angle calculations during clipping
+inline angle_t vertex_t::GetClipAngle()
 {
-	return angletime == Clipper::anglecache? viewangle : (angletime = Clipper::anglecache, viewangle = R_PointToAnglePrecise(viewx, viewy, x,y));
+	return angletime == Clipper::anglecache? viewangle : (angletime = Clipper::anglecache, viewangle = R_PointToPseudoAngle(viewx, viewy, x,y));
 }
 
 #endif

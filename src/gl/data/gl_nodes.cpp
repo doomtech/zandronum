@@ -1165,6 +1165,7 @@ bool CheckCachedNodes(MapData *map)
 	BYTE md5[16];
 	BYTE md5map[16];
 	DWORD numlin;
+	DWORD *verts;
 
 	FString path = CreateCacheName(map, false);
 	FILE *f = fopen(path, "rb");
@@ -1181,7 +1182,7 @@ bool CheckCachedNodes(MapData *map)
 	map->GetChecksum(md5map);
 	if (memcmp(md5, md5map, 16)) goto errorout;
 
-	DWORD *verts = new DWORD[numlin * 8];
+	verts = new DWORD[numlin * 8];
 	if (fread(verts, 8, numlin, f) != numlin) goto errorout;
 
 	if (fread(magic, 1, 4, f) != 4) goto errorout;
