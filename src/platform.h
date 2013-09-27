@@ -52,6 +52,8 @@ char *I_ConsoleInput (void);
 typedef unsigned char UCHAR;
 typedef bool BOOL;
 
+#define _access(a,b)	access(a,b)
+
 #endif
 
 // [BB] FreeBSD specific defines
