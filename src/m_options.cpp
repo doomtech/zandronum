@@ -3109,113 +3109,10 @@ void M_NewAccount( void )
  *
  *=======================================*/
 
-EXTERN_CVAR (Int, switchonpickup)
-
-//*****************************************************************************
-//
-void M_WeaponSetupMenuDrawer( void )
-{
-	/* [RC] Remove the outmoded text about pressing + and - to change the user's personal weapon order
-	ULONG	ulTextHeight;
-	ULONG	ulCurYPos;
-	char	szString[256];
-
-	ulCurYPos = 182;
-	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
-
-	sprintf( szString, "Use the + and - keys to" );
-	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "change your personal weapon ranking" );
-	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-	*/
-}
-
-static menuitem_t WeaponSetupItems[] = {
-	{ discrete,	"Switch on pickup",			{&switchonpickup},		{4.0}, {0.0}, {0.0}, {SwitchOnPickupVals}  },
-	{ discrete,	"Allow switch with no ammo",{&cl_noammoswitch},		{2.0}, {0.0}, {0.0}, {YesNo}  },
-	{ discrete,	"Cycle with original order",{&cl_useoriginalweaponorder},{2.0}, {0.0}, {0.0}, {YesNo}  },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-//	{ redtext,	"WEAPON PREFERENCES",		NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-};
-
-menu_t WeaponSetupMenu = {
-	"WEAPON SETUP",
-	0,
-	countof(WeaponSetupItems),
-	0,
-	WeaponSetupItems,
-	NULL,
-	0,
-	0,
-	M_WeaponSetupMenuDrawer,
-	false,
-	NULL,
-	MNF_ALIGNLEFT,
-};
-
-//const char *GetWeaponPrefNameByRank( ULONG ulRank );
-void M_RefreshWeaponSetupItems( void )
-{
-	ULONG		ulIdx;
-	ULONG		ulSlotStart;
-	menuitem_t	*pItem;
-
-	// Populate the weapon setup menu with the current weapon preferences.
-	ulSlotStart = 1;
-	for ( ulIdx = 0; ulIdx < static_cast<unsigned> (CurrentMenu->numitems); ulIdx++ )
-	{
-		pItem = CurrentMenu->items + ulIdx;
-		if ( pItem->type == weaponslot )
-		{
-			const char	*pszString;
-
-			pszString = NULL;//GetWeaponPrefNameByRank( ulSlotStart );
-			if ( pszString )
-			{
-				sprintf( g_szWeaponPrefStringBuffer[ulIdx], "Slot %d: \\cc%s", static_cast<unsigned int> (ulSlotStart), pszString );
-				V_ColorizeString( g_szWeaponPrefStringBuffer[ulIdx] );
-				pItem->label = g_szWeaponPrefStringBuffer[ulIdx];
-			}
-			else
-			{
-				g_szWeaponPrefStringBuffer[ulIdx][0] = 0;
-				V_ColorizeString( g_szWeaponPrefStringBuffer[ulIdx] );
-				pItem->label = g_szWeaponPrefStringBuffer[ulIdx];
-			}
-
-			ulSlotStart++;
-		}
-	}
-}
-
 void M_WeaponSetup (void)
 {
 	// [ZZ] Left here for some imaginary compatibility with existing code
 	WeaponOptions();
-	return;
-
-	M_SwitchMenu( &WeaponSetupMenu );
-
-	CurrentItem = 0;
-	M_RefreshWeaponSetupItems( );
 }
 
 /*=======================================
@@ -5381,7 +5278,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				} while (CurrentMenu->items[CurrentItem].type == redtext ||
 						 CurrentMenu->items[CurrentItem].type == whitetext ||
 						 CurrentMenu->items[CurrentItem].type == browserheader ||
-						 (( CurrentMenu->items[CurrentItem].type == weaponslot ) && ( strlen( CurrentMenu->items[CurrentItem].label ) == 0 )) ||
 						 (CurrentMenu->items[CurrentItem].type == browserslot &&
 						  M_ShouldShowServer( CurrentMenu->items[CurrentItem].f.lServer ) == false) ||
 						 (CurrentMenu->items[CurrentItem].type == screenres &&
@@ -5472,7 +5368,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				} while (CurrentMenu->items[CurrentItem].type == redtext ||
 						 CurrentMenu->items[CurrentItem].type == whitetext ||
 						 CurrentMenu->items[CurrentItem].type == browserheader ||
-						 (( CurrentMenu->items[CurrentItem].type == weaponslot ) && ( strlen( CurrentMenu->items[CurrentItem].label ) == 0 )) ||
 						 (CurrentMenu->items[CurrentItem].type == browserslot &&
 						  M_ShouldShowServer( CurrentMenu->items[CurrentItem].f.lServer ) == false) ||
 						 (CurrentMenu->items[CurrentItem].type == screenres &&
@@ -6678,78 +6573,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 		}
 		M_PopMenuStack ();
 		break;
-	case '+':
-
-		if (( CurrentMenu == &WeaponSetupMenu ) && ( item->type == weaponslot ))
-		{
-			ULONG	ulIdx;
-			ULONG	ulRankOn;
-
-			ulRankOn = 0;
-			for ( ulIdx = 0; static_cast<signed> (ulIdx) < CurrentMenu->numitems; ulIdx++ )
-			{
-				if (( CurrentMenu->items + ulIdx )->type == weaponslot )
-					ulRankOn++;
-
-				if ( static_cast<signed> (ulIdx) == CurrentItem )
-					break;
-			}
-
-			if (( ulRankOn != 0 ) && ( static_cast<signed> (ulIdx) != CurrentMenu->numitems ))
-			{
-				const char	*pszString;
-				
-				pszString = NULL;//GetWeaponPrefNameByRank( ulRankOn );
-				if ( pszString )
-				{
-//					if ( IncreaseWeaponPrefPosition( (char *)pszString, false ))
-					if ( 0 )
-					{
-						CurrentItem--;
-						S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
-						M_RefreshWeaponSetupItems( );
-					}
-				}
-			}
-		}
-		break;
-	case '-':
-
-		if (( CurrentMenu == &WeaponSetupMenu ) && ( item->type == weaponslot ))
-		{
-			ULONG	ulIdx;
-			ULONG	ulRankOn;
-
-			ulRankOn = 0;
-			for ( ulIdx = 0; static_cast<signed> (ulIdx) < CurrentMenu->numitems; ulIdx++ )
-			{
-				if (( CurrentMenu->items + ulIdx )->type == weaponslot )
-					ulRankOn++;
-
-				if ( static_cast<signed> (ulIdx) == CurrentItem )
-					break;
-			}
-
-			if (( ulRankOn != 0 ) && ( static_cast<signed> (ulIdx) != CurrentMenu->numitems ))
-			{
-				const char	*pszString;
-				
-				pszString = NULL;//GetWeaponPrefNameByRank( ulRankOn );
-				if ( pszString )
-				{
-//					if ( DecreaseWeaponPrefPosition( (char *)pszString, false ))
-					if ( 0 )
-					{
-						CurrentItem++;
-						S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
-						M_RefreshWeaponSetupItems( );
-					}
-				}
-			}
-		}
-		break;
-		// intentional fall-through
-
 	}
 }
 

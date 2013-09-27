@@ -145,7 +145,6 @@ typedef enum {
 	levelslot,
 	browserheader,
 	browserslot,
-	weaponslot,
 	txslider,
 	mnnumber,
 
