@@ -92,7 +92,6 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 		gl.MatrixMode(GL_TEXTURE);
 		gl.PushMatrix();
 		gl.Scalef(xscale1 ,yscale1,1.0f);
-	gl.Scalef(xscale2 ,yscale2,1.0f);
 		gl.Translatef(uoffs,voffs,0.0f);
 		gl.Scalef(xscale2 ,yscale2,1.0f);
 		gl.Rotatef(angle,0.0f,0.0f,1.0f);
