@@ -111,7 +111,7 @@ FGLTexture::~FGLTexture()
 // Checks for the presence of a hires texture replacement and loads it
 //
 //==========================================================================
-unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
+unsigned char *FGLTexture::LoadHiresTexture(FTexture *tex, int *width, int *height, int cm)
 {
 	if (HiresLump==-1) 
 	{
@@ -273,7 +273,7 @@ BYTE *FGLTexture::WarpBuffer(BYTE *buffer, int Width, int Height, int warp)
 //
 //===========================================================================
 
-unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, int & h, bool expand, bool allowhires, int warp)
+unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, int & h, bool expand, FTexture *hirescheck, int warp)
 {
 	unsigned char * buffer;
 	intptr_t cm = _cm;
@@ -282,9 +282,9 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, i
 
 	// Textures that are already scaled in the texture lump will not get replaced
 	// by hires textures
-	if (gl_texture_usehires && allowhires)
+	if (gl_texture_usehires && hirescheck != NULL)
 	{
-		buffer = LoadHiresTexture (&w, &h, _cm);
+		buffer = LoadHiresTexture (hirescheck, &w, &h, _cm);
 		if (buffer)
 		{
 			return buffer;
@@ -390,7 +390,7 @@ bool FGLTexture::CreatePatch()
 //
 //===========================================================================
 
-const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int translation, bool allowhires, int warp)
+const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int translation, FTexture *hirescheck, int warp)
 {
 	int usebright = false;
 
@@ -437,7 +437,7 @@ const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int
 			
 			if (!tex->bHasCanvas)
 			{
-				buffer = CreateTexBuffer(cm, translation, w, h, false, allowhires, warp);
+				buffer = CreateTexBuffer(cm, translation, w, h, false, hirescheck, warp);
 				tex->ProcessData(buffer, w, h, false);
 			}
 			if (!hwtex->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
@@ -666,7 +666,7 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 	else if (clampmode != -1) clampmode &= 3;
 	else clampmode = 4;
 
-	wti.gltexture = mBaseLayer->Bind(0, cm, clampmode, translation, allowhires, softwarewarp);
+	wti.gltexture = mBaseLayer->Bind(0, cm, clampmode, translation, allowhires? tex:NULL, softwarewarp);
 	if (wti.gltexture != NULL && shaderindex > 0)
 	{
 		for(unsigned i=0;i<mTextureLayers.Size();i++)
@@ -682,7 +682,7 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 			{
 				layer = mTextureLayers[i].texture;
 			}
-			layer->gl_info.SystemTexture->Bind(i+1, CM_DEFAULT, clampmode, 0, allowhires, false);
+			layer->gl_info.SystemTexture->Bind(i+1, CM_DEFAULT, clampmode, 0, NULL, false);
 			maxbound = i+1;
 		}
 	}
@@ -918,6 +918,26 @@ fixed_t FMaterial::TextureAdjustWidth(ETexUse i) const
 		else return FixedDiv(Width[i], tempScaleX);
 	}
 	else return Width[i];
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+int FMaterial::GetAreas(FloatRect **pAreas) const
+{
+	if (mShaderIndex == 0)	// texture splitting can only be done if there's no attached effects
+	{
+		FTexture *tex = mBaseLayer->tex;
+		*pAreas = tex->gl_info.areas;
+		return tex->gl_info.areacount;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 //===========================================================================

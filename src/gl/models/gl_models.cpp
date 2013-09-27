@@ -620,7 +620,40 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	}
 
 	Matrix3x4 ModelToWorld;
+	Matrix3x4 LightTransform;
 	Matrix3x4 *mat;
+
+	// The light transform matrix only contains the inverse rotations and scalings
+	/*
+	LightTransform.MakeIdentity();
+
+	gl.Scalef(	
+		1./FIXED2FLOAT(spr->actor->scaleX) * smf->xscale,
+		1./FIXED2FLOAT(spr->actor->scaleY) * smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
+		1./FIXED2FLOAT(spr->actor->scaleX) * smf->yscale);
+
+	// [BB] Workaround for the missing pitch information.
+	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
+	{
+		const double x = static_cast<double>(spr->actor->velx);
+		const double y = static_cast<double>(spr->actor->vely);
+		const double z = static_cast<double>(spr->actor->velz);
+		// [BB] Calculate the pitch using spherical coordinates.
+		const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+		LightTransform.Rotate(0,0,1,-pitch);
+	}
+	if( smf->flags & MDL_ROTATING )
+	{
+		float offsetAngle = 0.;
+		const float time = smf->rotationSpeed*GetTimeFloat()/200.;
+		offsetAngle = ( (time - static_cast<int>(time)) *360. );
+
+		LightTransform.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, -offsetAngle);
+	}
+	LightTransform.Rotate(0,1,0, ANGLE_TO_FLOAT(spr->actor->angle));
+	*/
+
 
 	if (gl_fogmode != 2)
 	{

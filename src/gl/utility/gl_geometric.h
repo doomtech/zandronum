@@ -238,6 +238,14 @@ public:
 		result.SetZ(vec.X()*m[2][0] + vec.Y()*m[2][1] + vec.Z()*m[2][2] + m[2][3]);
 		return result;
 	}
+
+	void MultiplyVector(float *f3 , float *f3o)
+	{
+		float x = f3[0] * m[0][0] + f3[1] * m[0][1] + f3[2] * m[0][2] + m[0][3];
+		float y = f3[0] * m[1][0] + f3[1] * m[1][1] + f3[2] * m[1][2] + m[1][3];
+		float z = f3[0] * m[2][0] + f3[1] * m[2][1] + f3[2] * m[2][2] + m[2][3];
+		f3o[2] = z; f3o[1] = y; f3o[0] = x;
+	}
 };
 
 #endif

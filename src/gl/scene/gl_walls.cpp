@@ -993,15 +993,15 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// Recognizing vertical gaps is rather simple and well worth the effort.
 		//
 		//
-		int v=gltexture->GetAreaCount();
+		FloatRect *splitrect;
+		int v = gltexture->GetAreas(&splitrect);
 		if (v>0 && !drawfogboundary && !(seg->linedef->flags&ML_WRAP_MIDTEX))
 		{
 			// split the poly!
 			GLWall split;
 			int i,t=0;
-			FloatRect * splitrect=gltexture->GetAreas();
 			float v_factor=(zbottom[0]-ztop[0])/(lolft.v-uplft.v);
-			// only split the vertical area of the polygon that does not contain slopes!
+			// only split the vertical area of the polygon that does not contain slopes.
 			float splittopv = MAX(uplft.v, uprgt.v);
 			float splitbotv = MIN(lolft.v, lorgt.v);
 
@@ -1009,7 +1009,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			for(i=0;i<v;i++)
 			{
 				// the current segment is below the bottom line of the splittable area
-				// (iow. the whole wall has been done)
+				// (IOW. the whole wall has been done)
 				if (splitrect[i].top>=splitbotv) break;
 
 				float splitbot=splitrect[i].top+splitrect[i].height;
@@ -1459,7 +1459,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==11274)
+	if (seg->linedef-lines==8143)
 		__asm nop
 #endif
 #endif

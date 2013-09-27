@@ -162,30 +162,6 @@ public:
 	int RoundedPaletteSize;
 };
 
-// Flags for a buffered quad
-enum
-{
-	BQF_GamePalette		= 1,
-	BQF_CustomPalette	= 7,
-		BQF_Paletted	= 7,
-	BQF_Bilinear		= 8,
-	BQF_WrapUV			= 16,
-	BQF_InvertSource	= 32,
-	BQF_DisableAlphaTest= 64,
-	BQF_Desaturated		= 128,
-};
-
-// Shaders for a buffered quad
-enum
-{
-	BQS_PalTex,
-	BQS_Plain,
-	BQS_RedToAlpha,
-	BQS_ColorOnly,
-	BQS_SpecialColormap,
-	BQS_InGameColormap,
-};
-
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -271,12 +247,15 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	IndexBuffer = NULL;
 	FBTexture = NULL;
 	TempRenderTexture = NULL;
+	RenderTexture[0] = NULL;
+	RenderTexture[1] = NULL;
 	InitialWipeScreen = NULL;
 	ScreenshotTexture = NULL;
 	ScreenshotSurface = NULL;
 	FinalWipeScreen = NULL;
 	PaletteTexture = NULL;
 	GammaTexture = NULL;
+	FrontCopySurface = NULL;
 	for (int i = 0; i < NUM_SHADERS; ++i)
 	{
 		Shaders[i] = NULL;
@@ -300,6 +279,8 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	Packs = NULL;
 	PixelDoubling = 0;
 	SkipAt = -1;
+	CurrRenderTexture = 0;
+	RenderTextureToggle = 0;
 
 	Gamma = 1.0;
 	FlashColor0 = 0;
@@ -647,20 +628,15 @@ void D3DFB::ReleaseResources ()
 void D3DFB::ReleaseDefaultPoolItems()
 {
 	SAFE_RELEASE( FBTexture );
-	if (FinalWipeScreen != NULL)
-	{
-		if (FinalWipeScreen != TempRenderTexture)
-		{
-			FinalWipeScreen->Release();
-		}
-		FinalWipeScreen = NULL;
-	}
-	SAFE_RELEASE( TempRenderTexture );
+	SAFE_RELEASE( FinalWipeScreen );
+	SAFE_RELEASE( RenderTexture[0] );
+	SAFE_RELEASE( RenderTexture[1] );
 	SAFE_RELEASE( InitialWipeScreen );
 	SAFE_RELEASE( VertexBuffer );
 	SAFE_RELEASE( IndexBuffer );
 	SAFE_RELEASE( BlockSurface[0] );
 	SAFE_RELEASE( BlockSurface[1] );
+	SAFE_RELEASE( FrontCopySurface );
 }
 
 //==========================================================================
@@ -772,14 +748,14 @@ void D3DFB::KillNativeTexs()
 
 bool D3DFB::CreateFBTexture ()
 {
-	if (FAILED(D3DDevice->CreateTexture (Width, Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &FBTexture, NULL)))
+	if (FAILED(D3DDevice->CreateTexture(Width, Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &FBTexture, NULL)))
 	{
 		int pow2width, pow2height, i;
 
 		for (i = 1; i < Width; i <<= 1) {} pow2width = i;
 		for (i = 1; i < Height; i <<= 1) {} pow2height = i;
 
-		if (FAILED(D3DDevice->CreateTexture (pow2width, pow2height, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &FBTexture, NULL)))
+		if (FAILED(D3DDevice->CreateTexture(pow2width, pow2height, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &FBTexture, NULL)))
 		{
 			return false;
 		}
@@ -794,20 +770,42 @@ bool D3DFB::CreateFBTexture ()
 		FBWidth = Width;
 		FBHeight = Height;
 	}
-	if (FAILED(D3DDevice->CreateTexture (FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &TempRenderTexture, NULL)))
+	RenderTextureToggle = 0;
+	RenderTexture[0] = NULL;
+	RenderTexture[1] = NULL;
+	if (FAILED(D3DDevice->CreateTexture(FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &RenderTexture[0], NULL)))
 	{
-		TempRenderTexture = NULL;
+		return false;
+	}
+	if (Windowed || PixelDoubling)
+	{
+		// Windowed or pixel doubling: Create another render texture so we can flip between them.
+		RenderTextureToggle = 1;
+		if (FAILED(D3DDevice->CreateTexture(FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &RenderTexture[1], NULL)))
+		{
+			return false;
+		}
 	}
 	else
 	{
-		// Initialize the TempRenderTexture to black.
+		// Fullscreen and not pixel doubling: Create a render target to have the back buffer copied to.
+		if (FAILED(D3DDevice->CreateRenderTarget(Width, Height, D3DFMT_X8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &FrontCopySurface, NULL)))
+		{
+			return false;
+		}
+	}
+	// Initialize the TempRenderTextures to black.
+	for (int i = 0; i <= RenderTextureToggle; ++i)
+	{
 		IDirect3DSurface9 *surf;
-		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &surf)))
+		if (SUCCEEDED(RenderTexture[i]->GetSurfaceLevel(0, &surf)))
 		{
 			D3DDevice->ColorFill(surf, NULL, D3DCOLOR_XRGB(0,0,0));
 			surf->Release();
 		}
 	}
+	TempRenderTexture = RenderTexture[0];
+	CurrRenderTexture = 0;
 	return true;
 }
 
@@ -1180,6 +1178,8 @@ void D3DFB::Flip()
 	DoWindowedGamma();
 	D3DDevice->EndScene();
 
+	CopyNextFrontBuffer();
+
 	// Attempt to counter input lag.
 	if (d3d_antilag && BlockSurface[0] != NULL)
 	{
@@ -1195,6 +1195,49 @@ void D3DFB::Flip()
 	}
 	D3DDevice->Present(NULL, NULL, NULL, NULL);
 	InScene = false;
+
+	if (RenderTextureToggle)
+	{
+		// Flip the TempRenderTexture to the other one now.
+		CurrRenderTexture ^= RenderTextureToggle;
+		TempRenderTexture = RenderTexture[CurrRenderTexture];
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: CopyNextFrontBuffer
+//
+// Duplicates the contents of the back buffer that will become the front
+// buffer upon Present into FrontCopySurface so that we can get the
+// contents of the display without wasting time in GetFrontBufferData().
+//
+//==========================================================================
+
+void D3DFB::CopyNextFrontBuffer()
+{
+	IDirect3DSurface9 *backbuff;
+
+	if (Windowed || PixelDoubling)
+	{
+		// Windowed mode or pixel doubling: TempRenderTexture has what we want
+		SAFE_RELEASE( FrontCopySurface );
+		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &backbuff)))
+		{
+			FrontCopySurface = backbuff;
+		}
+	}
+	else
+	{
+		// Fullscreen, not pixel doubled: The back buffer has what we want,
+		// but it might be letter boxed.
+		if (SUCCEEDED(D3DDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuff)))
+		{
+			RECT srcrect = { 0, LBOffsetI, Width, LBOffsetI + Height };
+			D3DDevice->StretchRect(backbuff, &srcrect, FrontCopySurface, NULL, D3DTEXF_NONE);
+			backbuff->Release();
+		}
+	}
 }
 
 //==========================================================================
@@ -1709,51 +1752,28 @@ void D3DFB::ReleaseScreenshotBuffer()
 //
 //==========================================================================
 
-IDirect3DTexture9 *D3DFB::GetCurrentScreen()
+IDirect3DTexture9 *D3DFB::GetCurrentScreen(D3DPOOL pool)
 {
 	IDirect3DTexture9 *tex;
-	IDirect3DSurface9 *tsurf, *surf;
+	IDirect3DSurface9 *surf;
 	D3DSURFACE_DESC desc;
+	HRESULT hr;
 
-	if (Windowed || PixelDoubling)
+	assert(pool == D3DPOOL_SYSTEMMEM || pool == D3DPOOL_DEFAULT);
+
+	if (FAILED(FrontCopySurface->GetDesc(&desc)))
 	{
-		// The texture we read into must have the same pixel format as
-		// the TempRenderTexture.
-		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
-		{
-			if (FAILED(tsurf->GetDesc(&desc)))
-			{
-				tsurf->Release();
-				return NULL;
-			}
-			tsurf->Release();
-		}
-		else
-		{
-			return NULL;
-		}
+		return NULL;
+	}
+	if (pool == D3DPOOL_SYSTEMMEM)
+	{
+		hr = D3DDevice->CreateTexture(desc.Width, desc.Height, 1, 0, desc.Format, D3DPOOL_SYSTEMMEM, &tex, NULL);
 	}
 	else
 	{
-		if (SUCCEEDED(D3DDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &tsurf)))
-		{
-			if (FAILED(tsurf->GetDesc(&desc)))
-			{
-				tsurf->Release();
-				return NULL;
-			}
-			tsurf->Release();
-		}
-		else
-		{
-			return NULL;
-		}
-		// GetFrontBufferData works only with this format
-		desc.Format = D3DFMT_A8R8G8B8;
+		hr = D3DDevice->CreateTexture(FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT, &tex, NULL);
 	}
-
-	if (FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
-		desc.Format, D3DPOOL_SYSTEMMEM, &tex, NULL)))
+	if (FAILED(hr))
 	{
 		return NULL;
 	}
@@ -1762,35 +1782,23 @@ IDirect3DTexture9 *D3DFB::GetCurrentScreen()
 		tex->Release();
 		return NULL;
 	}
-
-	if (!Windowed && !PixelDoubling)
+	if (pool == D3DPOOL_SYSTEMMEM)
 	{
-		if (FAILED(D3DDevice->GetFrontBufferData(0, surf)))
-		{
-			surf->Release();
-			tex->Release();
-			return NULL;
-		}
+		// Video -> System memory : use GetRenderTargetData
+		hr = D3DDevice->GetRenderTargetData(FrontCopySurface, surf);
 	}
 	else
 	{
-		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
-		{
-			if (FAILED(D3DDevice->GetRenderTargetData(tsurf, surf)))
-			{
-				tsurf->Release();
-				tex->Release();
-				return NULL;
-			}
-			tsurf->Release();
-		}
-		else
-		{
-			tex->Release();
-			return NULL;
-		}
+		// Video -> Video memory : use StretchRect
+		RECT destrect = { 0, 0, Width, Height };
+		hr = D3DDevice->StretchRect(FrontCopySurface, NULL, surf, &destrect, D3DTEXF_POINT);
 	}
 	surf->Release();
+	if (FAILED(hr))
+	{
+		tex->Release();
+		return NULL;
+	}
 	return tex;
 }
 
@@ -1861,7 +1869,7 @@ void D3DFB::DrawPackedTextures(int packnum)
 			quad->ShaderNum = BQS_Plain;
 		}
 		quad->Palette = NULL;
-		quad->Texture = pack;
+		quad->Texture = pack->Tex;
 
 		float x0 = float(x) - 0.5f;
 		float y0 = float(y) - 0.5f;
@@ -3007,7 +3015,7 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, double x, double y, uint32 t
 		return;
 	}
 
-	QuadExtra[QuadBatchPos].Texture = tex->Box->Owner;
+	QuadExtra[QuadBatchPos].Texture = tex->Box->Owner->Tex;
 	if (parms.bilinear)
 	{
 		QuadExtra[QuadBatchPos].Flags |= BQF_Bilinear;
@@ -3148,7 +3156,7 @@ void D3DFB::FlatFill(int left, int top, int right, int bottom, FTexture *src, bo
 		quad->ShaderNum = BQS_Plain;
 	}
 	quad->Palette = NULL;
-	quad->Texture = tex->Box->Owner;
+	quad->Texture = tex->Box->Owner->Tex;
 
 	vert[0].x = x0;
 	vert[0].y = y0;
@@ -3380,11 +3388,13 @@ void D3DFB::EndQuadBatch()
 		{
 			SetPaletteTexture(quad->Palette->Tex, quad->Palette->RoundedPaletteSize, quad->Palette->BorderColor);
 		}
+#if 0
 		// Set paletted bilinear filtering (IF IT WORKED RIGHT!)
 		if ((quad->Flags & (BQF_Paletted | BQF_Bilinear)) == (BQF_Paletted | BQF_Bilinear))
 		{
 			SetPalTexBilinearConstants(quad->Texture);
 		}
+#endif
 
 		// Set the alpha blending
 		SetAlphaBlend(D3DBLENDOP(quad->BlendOp), D3DBLEND(quad->SrcBlend), D3DBLEND(quad->DestBlend));
@@ -3442,7 +3452,7 @@ void D3DFB::EndQuadBatch()
 		// Set the texture
 		if (quad->Texture != NULL)
 		{
-			SetTexture(0, quad->Texture->Tex);
+			SetTexture(0, quad->Texture);
 		}
 
 		// Draw the quad

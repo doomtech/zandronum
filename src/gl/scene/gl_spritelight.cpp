@@ -157,7 +157,7 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 		g = clamp<float>(result[1]+g, 0, 1.0f);
 		b = clamp<float>(result[2]+b, 0, 1.0f);
 
-		float dlightlevel = r*77 + g*143 + b*36;
+		float dlightlevel = r*77 + g*143 + b*35;
 
 		r *= ThingColor.r/255.f;
 		g *= ThingColor.g/255.f;
