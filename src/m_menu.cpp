@@ -3388,9 +3388,8 @@ bool M_Responder (event_t *ev)
 		case GK_PGUP:			mkey = MKEY_PageUp;		break;
 		case GK_PGDN:			mkey = MKEY_PageDown;	break;
 		default:
-			// [BB] Zandronum doesn't have PSetupDef.
-			//if (ch == ' ' && currentMenu == &PSetupDef)
-			if ( false )
+			// [BB] Zandronum uses PlayerSetupMenu instead of PSetupDef.
+			if (ch == ' ' && ( CurrentMenu == &PlayerSetupMenu ) )
 			{
 				mkey = MKEY_Clear;
 			}

@@ -6499,6 +6499,12 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			C_UnbindACommand (item->e.command);
 			item->b.key1 = item->c.key2 = 0;
 		}
+		// [BB] Handle flipping of the player sprite preview
+		else if ( CurrentMenu == &PlayerSetupMenu )
+		{
+			PlayerRotation ^= 8;
+			break;
+		}
 		break;
 /*
 	case '0':
@@ -6742,12 +6748,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			}
 		}
 		break;
-	case ' ':
-		if ( CurrentMenu == &PlayerSetupMenu )
-		{
-			PlayerRotation ^= 8;
-			break;
-		}
 		// intentional fall-through
 
 	}
