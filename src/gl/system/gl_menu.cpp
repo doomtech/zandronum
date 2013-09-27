@@ -390,10 +390,11 @@ void StartGLShaderMenu (void)
 
 void gl_SetupMenu()
 {
-	if (gl.shadermodel < 4)
+	if (gl.shadermodel == 2)
 	{
-		// Radial fog and Doom lighting are only available in SM 4 cards
+		// Radial fog and Doom lighting are not available in SM 2 cards
 		// The way they are implemented does not work well on older hardware.
+		// For SM 3 this is implemented through shader recompilation.
 
 		menuitem_t *lightmodeitem = &GLPrefItems[0];
 		menuitem_t *fogmodeitem = &GLPrefItems[1];

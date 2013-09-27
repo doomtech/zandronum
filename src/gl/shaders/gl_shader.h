@@ -128,6 +128,9 @@ class FShaderManager
 	FShader *mActiveShader;
 	FShader *mEffectShaders[NUM_EFFECTS];
 
+	void Clean();
+	void CompileShaders();
+
 public:
 	FShaderManager();
 	~FShaderManager();
@@ -144,6 +147,8 @@ public:
 		}
 		return NULL;
 	}
+
+	void Recompile();
 };
 
 #define FIRST_USER_SHADER 5

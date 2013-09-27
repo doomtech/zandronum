@@ -7,7 +7,6 @@
 
 bool gl_BrightmapsActive();
 bool gl_GlowActive();
-bool gl_ExtFogActive();
 
 void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
 					   int *tm, int *sb, int *db, int *be);

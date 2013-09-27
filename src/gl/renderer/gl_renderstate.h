@@ -100,6 +100,7 @@ class FRenderState
 	float mAlphaThreshold;
 	bool mAlphaTest;
 	int mBlendEquation;
+	bool m2D;
 
 	FStateVec3 mCameraPos;
 	FStateVec4 mGlowTop, mGlowBottom;
@@ -256,6 +257,11 @@ public:
 		{
 			gl.BlendEquation(eq);
 		}
+	}
+
+	void Set2DMode(bool on)
+	{
+		m2D = on;
 	}
 };
 

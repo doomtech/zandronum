@@ -1113,7 +1113,7 @@ static void LoadZNodes(FileReaderBase &data, int glnodes)
 }
 
 
-static void P_LoadZNodes (FileReader &dalump, DWORD id)
+void P_LoadZNodes (FileReader &dalump, DWORD id)
 {
 	int type;
 	bool compressed;
@@ -4015,17 +4015,23 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 		else if (!map->isText)	// regular nodes are not supported for text maps
 		{
-			times[7].Clock();
-			P_LoadSubsectors (map);
-			times[7].Unclock();
+			// If all 3 node related lumps are empty there's no need to output a message.
+			// This just means that the map has no nodes and the engine is supposed to build them.
+			if (map->Size(ML_SEGS) != 0 || map->Size(ML_SSECTORS) != 0 || map->Size(ML_NODES) != 0)
+			{
+				times[7].Clock();
+				P_LoadSubsectors (map);
+				times[7].Unclock();
 
-			times[8].Clock();
-			if (!ForceNodeBuild) P_LoadNodes (map);
-			times[8].Unclock();
+				times[8].Clock();
+				if (!ForceNodeBuild) P_LoadNodes (map);
+				times[8].Unclock();
 
-			times[9].Clock();
-			if (!ForceNodeBuild) P_LoadSegs (map);
-			times[9].Unclock();
+				times[9].Clock();
+				if (!ForceNodeBuild) P_LoadSegs (map);
+				times[9].Unclock();
+			}
+			else ForceNodeBuild = true;
 		}
 		else ForceNodeBuild = true;
 
@@ -4035,9 +4041,10 @@ void P_SetupLevel (char *lumpname, int position)
 			 if (gl_LoadGLNodes(map)) ForceNodeBuild=false;
 		}
 	}
+	unsigned int startTime=0, endTime=0;
+
 	if (ForceNodeBuild)
 	{
-		unsigned int startTime, endTime;
 
 		startTime = I_MSTime ();
 		TArray<FNodeBuilder::FPolyStart> polyspots, anchors;
@@ -4062,7 +4069,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// If the nodes being loaded are not GL nodes the GL renderer needs to create a second set of nodes.
 	// The originals have to be kept for use by P_PointInSubsector.
-	gl_CheckNodes(map);
+	gl_CheckNodes(map, ForceNodeBuild, endTime - startTime);
 
 	times[10].Clock();
 	P_LoadBlockMap (map);

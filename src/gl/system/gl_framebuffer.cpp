@@ -98,10 +98,8 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	DoSetGamma();
 	needsetgamma = true;
 	swapped = false;
-	if (gl.SetVSync!=NULL) gl.SetVSync(vid_vsync);
-
-	// [BB] Backported from GZDoom revision 660.
 	Accel2D = true;
+	if (gl.SetVSync!=NULL) gl.SetVSync(vid_vsync);
 
 #ifdef _MSC_VER
 	// [BB] Necessary for the hqnx resizing.

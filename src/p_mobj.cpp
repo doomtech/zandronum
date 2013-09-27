@@ -4532,6 +4532,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	actor->picnum.SetInvalid();
 	actor->health = actor->SpawnHealth();
 
+	// Actors with zero gravity need the NOGRAVITY flag set.
+	if (actor->gravity == 0) actor->flags |= MF_NOGRAVITY;
+
 	FRandom &rng = pr_spawnmobj;
 
 	if (actor->isFast() && actor->flags3 & MF3_ISMONSTER)

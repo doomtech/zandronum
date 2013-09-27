@@ -1077,7 +1077,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 			if (!(Flags & CBAF_NORANDOM))
 				damage *= ((pr_cabullet()%3)+1);
 
-			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(pufftype)->DamageType, pufftype);
+			P_LineAttack(self, angle, Range, slope, damage, NAME_None, pufftype);
 		}
     }
 }
@@ -1255,7 +1255,7 @@ void A_FireBulletsHelper ( AActor *self,
 		if (!(Flags & FBF_NORANDOM))
 			damage *= ((pr_cwbullet()%3)+1);
 
-		P_LineAttack(self, bangle, Range, bslope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
+		P_LineAttack(self, bangle, Range, bslope, damage, NAME_None, PuffType);
 	}
 	else 
 	{
@@ -1269,7 +1269,7 @@ void A_FireBulletsHelper ( AActor *self,
 			if (!(Flags & FBF_NORANDOM))
 				damage *= ((pr_cwbullet()%3)+1);
 
-			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
+			P_LineAttack(self, angle, Range, slope, damage, NAME_None, PuffType);
 		}
 	}
 }
@@ -1590,7 +1590,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
-	P_LineAttack (self, angle, Range, pitch, Damage, GetDefaultByType(PuffType)->DamageType, PuffType, true);
+	P_LineAttack (self, angle, Range, pitch, Damage, NAME_None, PuffType, true);
 
 	// turn to face target
 	if (linetarget)
@@ -2697,11 +2697,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIf)
 // A_KillMaster
 //
 //===========================================================================
-DEFINE_ACTION_FUNCTION(AActor, A_KillMaster)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_KillMaster)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_NAME(damagetype, 0);
+
 	if (self->master != NULL)
 	{
-		P_DamageMobj(self->master, self, self, self->master->health, NAME_None, DMG_NO_ARMOR);
+		P_DamageMobj(self->master, self, self, self->master->health, damagetype, DMG_NO_ARMOR | DMG_NO_FACTOR);
 	}
 }
 
@@ -2710,16 +2713,19 @@ DEFINE_ACTION_FUNCTION(AActor, A_KillMaster)
 // A_KillChildren
 //
 //===========================================================================
-DEFINE_ACTION_FUNCTION(AActor, A_KillChildren)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_KillChildren)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_NAME(damagetype, 0);
+
 	TThinkerIterator<AActor> it;
-	AActor * mo;
+	AActor *mo;
 
 	while ( (mo = it.Next()) )
 	{
 		if (mo->master == self)
 		{
-			P_DamageMobj(mo, self, self, mo->health, NAME_None, DMG_NO_ARMOR);
+			P_DamageMobj(mo, self, self, mo->health, damagetype, DMG_NO_ARMOR | DMG_NO_FACTOR);
 		}
 	}
 }
@@ -2729,10 +2735,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_KillChildren)
 // A_KillSiblings
 //
 //===========================================================================
-DEFINE_ACTION_FUNCTION(AActor, A_KillSiblings)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_KillSiblings)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_NAME(damagetype, 0);
+
 	TThinkerIterator<AActor> it;
-	AActor * mo;
+	AActor *mo;
 
 	// [BB] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -2746,7 +2755,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KillSiblings)
 	{
 		if (mo->master == self->master && mo != self)
 		{
-			P_DamageMobj(mo, self, self, mo->health, NAME_None, DMG_NO_ARMOR);
+			P_DamageMobj(mo, self, self, mo->health, damagetype, DMG_NO_ARMOR | DMG_NO_FACTOR);
 		}
 	}
 }

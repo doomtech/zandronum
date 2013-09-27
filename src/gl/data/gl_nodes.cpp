@@ -58,6 +58,7 @@
 #include "p_setup.h"
 #include "x86.h"
 #include "version.h"
+#include "md5.h"
 
 node_t * gamenodes;
 int numgamenodes;
@@ -67,6 +68,14 @@ void P_GetPolySpots (MapData * lump, TArray<FNodeBuilder::FPolyStart> &spots, TA
 
 extern bool	UsingGLNodes;
 extern bool gl_disabled;
+
+CVAR(Bool, gl_cachenodes, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Float, gl_cachetime, 0.6f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+void P_LoadZNodes (FileReader &dalump, DWORD id);
+bool CheckCachedNodes(MapData *map);
+void CreateCachedNodes(MapData *map);
+
 
 // fixed 32 bit gl_vert format v2.0+ (glBsp 1.91)
 typedef struct
@@ -405,7 +414,7 @@ bool gl_LoadGLSegs(FileReader * f, wadlump_t * lump)
 #ifdef _MSC_VER
 	__except(1)
 	{
-		// Invalid data has the bas habit of requiring extensive checks here
+		// Invalid data has the bad habit of requiring extensive checks here
 		// so let's just catch anything invalid and output a message.
 		// (at least under MSVC. GCC can't do SEH even for Windows... :( )
 		Printf("Invalid GL segs. The BSP will have to be rebuilt.\n");
@@ -436,6 +445,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 	
 	if (numsubsectors == 0)
 	{
+		delete [] datab;
 		return false;
 	}
 	
@@ -453,6 +463,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 
 			if (subsectors[i].numlines == 0)
 			{
+				delete [] datab;
 				return false;
 			}
 		}
@@ -471,6 +482,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 
 			if (subsectors[i].numlines == 0)
 			{
+				delete [] datab;
 				return false;
 			}
 		}
@@ -483,9 +495,17 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 			seg_t * seg = &segs[subsectors[i].firstline+j];
 			if (seg->linedef==NULL) seg->frontsector = seg->backsector = segs[subsectors[i].firstline].frontsector;
 		}
-	}
+		seg_t *firstseg = &segs[subsectors[i].firstline];
+		seg_t *lastseg = &segs[subsectors[i].firstline + subsectors[i].numlines - 1];
+		// The subsector must be closed. If it isn't we can't use these nodes and have to do a rebuild.
+		if (lastseg->v2 != firstseg->v1)
+		{
+			delete [] datab;
+			return false;
+		}
 
-	delete datab;	
+	}
+	delete [] datab;
 	return true;
 }
 
@@ -818,76 +838,80 @@ static int FindGLNodesInFile(FileReader * f, const char * label)
 
 bool gl_LoadGLNodes(MapData * map)
 {
-	wadlump_t gwalumps[4];
-	char path[256];
-	int li;
-	int lumpfile = Wads.GetLumpFile(map->lumpnum);
-	bool mapinwad = map->file == Wads.GetFileReader(lumpfile);
-	FileReader * fr = map->file;
-	FILE * f_gwa = NULL;
-
-	const char * name = Wads.GetWadFullName(lumpfile);
-
-	if (mapinwad)
+	if (!CheckCachedNodes(map))
 	{
-		li = FindGLNodesInWAD(map->lumpnum);
+		wadlump_t gwalumps[4];
+		char path[256];
+		int li;
+		int lumpfile = Wads.GetLumpFile(map->lumpnum);
+		bool mapinwad = map->file == Wads.GetFileReader(lumpfile);
+		FileReader * fr = map->file;
+		FILE * f_gwa = NULL;
 
-		if (li>=0)
+		const char * name = Wads.GetWadFullName(lumpfile);
+
+		if (mapinwad)
 		{
-			// GL nodes are loaded with a WAD
-			for(int i=0;i<4;i++)
+			li = FindGLNodesInWAD(map->lumpnum);
+
+			if (li>=0)
 			{
-				gwalumps[i].FilePos=Wads.GetLumpOffset(li+i+1);
-				gwalumps[i].Size=Wads.LumpLength(li+i+1);
+				// GL nodes are loaded with a WAD
+				for(int i=0;i<4;i++)
+				{
+					gwalumps[i].FilePos=Wads.GetLumpOffset(li+i+1);
+					gwalumps[i].Size=Wads.LumpLength(li+i+1);
+				}
+				return gl_DoLoadGLNodes(fr, gwalumps);
 			}
-			return gl_DoLoadGLNodes(fr, gwalumps);
-		}
-		else
-		{
-			strcpy(path, name);
-
-			char * ext = strrchr(path, '.');
-			if (ext)
+			else
 			{
-				strcpy(ext, ".gwa");
-				// Todo: Compare file dates
+				strcpy(path, name);
 
-				f_gwa = fopen(path, "rb");
-				if (f_gwa==NULL) return false;
+				char * ext = strrchr(path, '.');
+				if (ext)
+				{
+					strcpy(ext, ".gwa");
+					// Todo: Compare file dates
 
-				fr = new FileReader(f_gwa);
+					f_gwa = fopen(path, "rb");
+					if (f_gwa==NULL) return false;
 
-				strncpy(map->MapLumps[0].Name, Wads.GetLumpFullName(map->lumpnum), 8);
-			}
-		}
-	}
+					fr = new FileReader(f_gwa);
 
-	bool result = false;
-	li = FindGLNodesInFile(fr, map->MapLumps[0].Name);
-	if (li!=-1)
-	{
-		static const char check[][9]={"GL_VERT","GL_SEGS","GL_SSECT","GL_NODES"};
-		result=true;
-		for(unsigned i=0; i<4;i++)
-		{
-			(*fr) >> gwalumps[i].FilePos;
-			(*fr) >> gwalumps[i].Size;
-			fr->Read(gwalumps[i].Name, 8);
-			if (strnicmp(gwalumps[i].Name, check[i], 8))
-			{
-				result=false;
-				break;
+					strncpy(map->MapLumps[0].Name, Wads.GetLumpFullName(map->lumpnum), 8);
+				}
 			}
 		}
-		if (result) result = gl_DoLoadGLNodes(fr, gwalumps);
-	}
 
-	if (f_gwa)
-	{
-		delete fr;
-		fclose(f_gwa);
+		bool result = false;
+		li = FindGLNodesInFile(fr, map->MapLumps[0].Name);
+		if (li!=-1)
+		{
+			static const char check[][9]={"GL_VERT","GL_SEGS","GL_SSECT","GL_NODES"};
+			result=true;
+			for(unsigned i=0; i<4;i++)
+			{
+				(*fr) >> gwalumps[i].FilePos;
+				(*fr) >> gwalumps[i].Size;
+				fr->Read(gwalumps[i].Name, 8);
+				if (strnicmp(gwalumps[i].Name, check[i], 8))
+				{
+					result=false;
+					break;
+				}
+			}
+			if (result) result = gl_DoLoadGLNodes(fr, gwalumps);
+		}
+
+		if (f_gwa)
+		{
+			delete fr;
+			fclose(f_gwa);
+		}
+		return result;
 	}
-	return result;
+	else return true;
 }
 
 //==========================================================================
@@ -896,7 +920,7 @@ bool gl_LoadGLNodes(MapData * map)
 //
 //==========================================================================
 
-void gl_CheckNodes(MapData * map)
+void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 {
 	// Save the old nodes so that R_PointInSubsector can use them
 	// Unfortunately there are some screwed up WADs which can not
@@ -915,7 +939,8 @@ void gl_CheckNodes(MapData * map)
 		gamenodes=NULL;
 	}
 
-	if (!gl_CheckForGLNodes())
+	// If the map loading code has performed a node rebuild we don't need to check for it again.
+	if (!rebuilt && !gl_CheckForGLNodes())
 	{
 		for (int i = 0; i < numsubsectors; i++)
 		{
@@ -930,7 +955,7 @@ void gl_CheckNodes(MapData * map)
 		segs = NULL;
 		numsegs = 0;
 
-		// Try to load regular GL nodes
+		// Try to load GL nodes (cached or GWA)
 		if (!gl_LoadGLNodes(map))
 		{
 			// none found - we have to build new ones!
@@ -955,8 +980,25 @@ void gl_CheckNodes(MapData * map)
 				vertexes, numvertexes);
 			endTime = I_MSTime ();
 			DPrintf ("BSP generation took %.3f sec (%d segs)\n", (endTime - startTime) * 0.001, numsegs);
+			buildtime = endTime - startTime;
 		}
 	}
+
+#ifdef DEBUG
+	// Building nodes in debug is much slower so let's cache them only if gl_cachenides is on
+	buildtime = 0;
+#endif
+	if (gl_cachenodes && buildtime/1000.f >= gl_cachetime)
+	{
+		DPrintf("Caching nodes\n");
+		CreateCachedNodes(map);
+	}
+	else
+	{
+		DPrintf("Not caching nodes (time = %f)\n", buildtime/1000.f);
+	}
+
+
 	if (!gamenodes)
 	{
 		gamenodes = nodes;
@@ -964,6 +1006,230 @@ void gl_CheckNodes(MapData * map)
 		gamesubsectors = subsectors;
 		numgamesubsectors = numsubsectors;
 	}
+}
+
+//==========================================================================
+//
+// Node caching
+//
+//==========================================================================
+
+typedef TArray<BYTE> MemFile;
+
+
+FString CreateCacheName(MapData *map, bool create)
+{
+	FString path;
+
+	#ifndef unix
+		path = ExpandEnvVars("$LOCALAPPDATA");
+		if (path.Len() != 0) path += '/';
+		path += "gzdoom/cache";
+	#else
+		path = HOME_DIR"/cache";
+	#endif
+	
+	FString lumpname = Wads.GetLumpFullPath(map->lumpnum);
+	int separator = lumpname.IndexOf(':');
+	path << '/' << lumpname.Left(separator);
+	if (create) CreatePath(path);
+
+	lumpname.ReplaceChars('/', '%');
+	path << '/' << lumpname.Right(lumpname.Len() - separator - 1) << ".gzc";
+	return path;
+}
+
+void WriteByte(MemFile &f, BYTE b)
+{
+	f.Push(b);
+}
+
+void WriteWord(MemFile &f, WORD b)
+{
+	int v = f.Reserve(2);
+	f[v] = (BYTE)b;
+	f[v+1] = (BYTE)(b>>8);
+}
+
+void WriteLong(MemFile &f, DWORD b)
+{
+	int v = f.Reserve(4);
+	f[v] = (BYTE)b;
+	f[v+1] = (BYTE)(b>>8);
+	f[v+2] = (BYTE)(b>>16);
+	f[v+3] = (BYTE)(b>>24);
+}
+
+void CreateCachedNodes(MapData *map)
+{
+	MemFile ZNodes;
+
+	WriteLong(ZNodes, 0);
+	WriteLong(ZNodes, numvertexes);
+	for(int i=0;i<numvertexes;i++)
+	{
+		WriteLong(ZNodes, vertexes[i].x);
+		WriteLong(ZNodes, vertexes[i].y);
+	}
+
+	WriteLong(ZNodes, numsubsectors);
+	for(int i=0;i<numsubsectors;i++)
+	{
+		WriteLong(ZNodes, subsectors[i].numlines);
+	}
+
+	WriteLong(ZNodes, numsegs);
+	for(int i=0;i<numsegs;i++)
+	{
+		WriteLong(ZNodes, DWORD(segs[i].v1 - vertexes));
+		WriteLong(ZNodes, DWORD(segs[i].PartnerSeg - segs));
+		if (segs[i].linedef)
+		{
+			WriteLong(ZNodes, DWORD(segs[i].linedef - lines));
+			WriteByte(ZNodes, segs[i].sidedef == segs[i].linedef->sidedef[0]? 0:1);
+		}
+		else
+		{
+			WriteLong(ZNodes, 0xffffffffu);
+			WriteByte(ZNodes, 0);
+		}
+	}
+
+	WriteLong(ZNodes, numnodes);
+	for(int i=0;i<numnodes;i++)
+	{
+		WriteWord(ZNodes, nodes[i].x >> FRACBITS);
+		WriteWord(ZNodes, nodes[i].y >> FRACBITS);
+		WriteWord(ZNodes, nodes[i].dx >> FRACBITS);
+		WriteWord(ZNodes, nodes[i].dy >> FRACBITS);
+		for (int j = 0; j < 2; ++j)
+		{
+			for (int k = 0; k < 4; ++k)
+			{
+				WriteWord(ZNodes, nodes[i].bbox[j][k] >> FRACBITS);
+			}
+		}
+
+		for (int j = 0; j < 2; ++j)
+		{
+			DWORD child;
+			if ((size_t)nodes[i].children[j] & 1)
+			{
+				child = 0x80000000 | DWORD((subsector_t *)((BYTE *)nodes[i].children[j] - 1) - subsectors);
+			}
+			else
+			{
+				child = DWORD((node_t *)nodes[i].children[j] - nodes);
+			}
+			WriteLong(ZNodes, child);
+		}
+	}
+
+	uLongf outlen = ZNodes.Size();
+	BYTE *compressed;
+	int offset = numlines * 8 + 12 + 16;
+	int r;
+	do
+	{
+		compressed = new Bytef[outlen + offset];
+		r = compress (compressed + offset, &outlen, &ZNodes[0], ZNodes.Size());
+		if (r == Z_BUF_ERROR)
+		{
+			delete[] compressed;
+			outlen += 1024;
+		}
+	} 
+	while (r == Z_BUF_ERROR);
+
+	memcpy(compressed, "CACH", 4);
+	DWORD len = LittleLong(numlines);
+	memcpy(compressed+4, &len, 4);
+	map->GetChecksum(compressed+8);
+	for(int i=0;i<numlines;i++)
+	{
+		DWORD ndx[2] = {LittleLong(DWORD(lines[i].v1 - vertexes)), LittleLong(DWORD(lines[i].v2 - vertexes)) };
+		memcpy(compressed+8+16+8*i, ndx, 8);
+	}
+	memcpy(compressed + offset - 4, "ZGL2", 4);
+
+	FString path = CreateCacheName(map, true);
+	FILE *f = fopen(path, "wb");
+	fwrite(compressed, 1, outlen+offset, f);
+	fclose(f);
+}
+
+
+bool CheckCachedNodes(MapData *map)
+{
+	char magic[4] = {0,0,0,0};
+	BYTE md5[16];
+	BYTE md5map[16];
+	DWORD numlin;
+
+	FString path = CreateCacheName(map, false);
+	FILE *f = fopen(path, "rb");
+	if (f == NULL) return false;
+
+	if (fread(magic, 1, 4, f) != 4) goto errorout;
+	if (memcmp(magic, "CACH", 4))  goto errorout;
+
+	if (fread(&numlin, 4, 1, f) != 1) goto errorout; 
+	numlin = LittleLong(numlin);
+	if (numlin != numlines) goto errorout;
+
+	if (fread(md5, 1, 16, f) != 16) goto errorout;
+	map->GetChecksum(md5map);
+	if (memcmp(md5, md5map, 16)) goto errorout;
+
+	DWORD *verts = new DWORD[numlin * 8];
+	if (fread(verts, 8, numlin, f) != numlin) goto errorout;
+
+	if (fread(magic, 1, 4, f) != 4) goto errorout;
+	if (memcmp(magic, "ZGL2", 4))  goto errorout;
+
+
+	try
+	{
+		long pos = ftell(f);
+		FileReader fr(f);
+		fr.Seek(pos, SEEK_SET);
+		P_LoadZNodes (fr, MAKE_ID('Z','G','L','2'));
+	}
+	catch (CRecoverableError &error)
+	{
+		Printf ("Error loading nodes: %s\n", error.GetMessage());
+
+		if (subsectors != NULL)
+		{
+			delete[] subsectors;
+			subsectors = NULL;
+		}
+		if (segs != NULL)
+		{
+			delete[] segs;
+			segs = NULL;
+		}
+		if (nodes != NULL)
+		{
+			delete[] nodes;
+			nodes = NULL;
+		}
+		goto errorout;
+	}
+
+	for(int i=0;i<numlines;i++)
+	{
+		lines[i].v1 = &vertexes[LittleLong(verts[i*2])];
+		lines[i].v2 = &vertexes[LittleLong(verts[i*2+1])];
+	}
+	delete [] verts;
+
+	fclose(f);
+	return true;
+
+errorout:
+	fclose(f);
+	return false;
 }
 
 //==========================================================================
@@ -1006,4 +1272,6 @@ subsector_t *P_PointInSubsector (fixed_t x, fixed_t y)
 		
 	return (subsector_t *)((BYTE *)node - 1);
 }
+
+
 

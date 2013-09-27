@@ -88,7 +88,11 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		FString vp_comb;
 		FString fp_comb;
-		if (gl.shadermodel < 4) vp_comb = fp_comb = "#define NO_SM4\n";
+		if (gl.shadermodel < 4) vp_comb = "#define NO_SM4\n";
+		if (gl_fogmode == 2) vp_comb << "#define FOG_RADIAL\n";
+		if (gl_lightmode == 2) vp_comb << "#define DOOMLIGHT\n";
+
+		fp_comb = vp_comb;
 		// This uses GetChars on the strings to get rid of terminating 0 characters.
 		vp_comb << defines << vp_data.GetString().GetChars() << "\n";
 		fp_comb << defines << fp_data.GetString().GetChars() << "\n";
@@ -411,6 +415,40 @@ static const FEffectShader effectshaders[]=
 
 FShaderManager::FShaderManager()
 {
+	CompileShaders();
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FShaderManager::~FShaderManager()
+{
+	Clean();
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FShaderManager::Recompile()
+{
+	Clean();
+	CompileShaders();
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FShaderManager::CompileShaders()
+{
 	mActiveShader = mEffectShaders[0] = mEffectShaders[1] = NULL;
 	if (gl.shadermodel > 0)
 	{
@@ -433,15 +471,18 @@ FShaderManager::FShaderManager()
 			}
 		}
 
-		for(int i=0;i<NUM_EFFECTS;i++)
+		if (gl.shadermodel > 2)
 		{
-			FShader *eff = new FShader();
-			if (!eff->Load(effectshaders[i].ShaderName, effectshaders[i].vp, effectshaders[i].fp1,
-							effectshaders[i].fp2, effectshaders[i].defines))
+			for(int i=0;i<NUM_EFFECTS;i++)
 			{
-				delete eff;
+				FShader *eff = new FShader();
+				if (!eff->Load(effectshaders[i].ShaderName, effectshaders[i].vp, effectshaders[i].fp1,
+								effectshaders[i].fp2, effectshaders[i].defines))
+				{
+					delete eff;
+				}
+				else mEffectShaders[i] = eff;
 			}
-			else mEffectShaders[i] = eff;
 		}
 	}
 }
@@ -452,7 +493,7 @@ FShaderManager::FShaderManager()
 //
 //==========================================================================
 
-FShaderManager::~FShaderManager()
+void FShaderManager::Clean()
 {
 	SetActiveShader(NULL);
 	for(unsigned int i=0;i<mTextureEffects.Size();i++)
@@ -462,7 +503,9 @@ FShaderManager::~FShaderManager()
 	for(int i=0;i<NUM_EFFECTS;i++)
 	{
 		if (mEffectShaders[i] != NULL) delete mEffectShaders[i];
+		mEffectShaders[i] = NULL;
 	}
+	mTextureEffects.Clear();
 }
 
 //==========================================================================

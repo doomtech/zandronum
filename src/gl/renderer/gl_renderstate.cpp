@@ -74,6 +74,7 @@ void FRenderState::Reset()
 	mAlphaThreshold = 0.5f;
 	mBlendEquation = GL_FUNC_ADD;
 	glBlendEquation = -1;
+	m2D = true;
 }
 
 
@@ -144,7 +145,7 @@ bool FRenderState::ApplyShader()
 	bool useshaders = false;
 	FShader *activeShader = NULL;
 
-	if (mSpecialEffect > 0)
+	if (mSpecialEffect > 0 && gl.shadermodel > 2)
 	{
 		activeShader = GLRenderer->mShaderManager->BindEffect(mSpecialEffect);
 	}
@@ -166,13 +167,7 @@ bool FRenderState::ApplyShader()
 			break;
 
 		case 4:
-			useshaders = (
-				mEffectState != 0 ||	// special shaders
-				(mFogEnabled && gl_fogmode != 0) || // fog requires a shader
-				(mTextureEnabled && mColormapState) ||	// colormap
-				mGlowEnabled ||		// glow requires a shader
-				mLightEnabled
-				);
+			useshaders = (!m2D || mEffectState != 0); // all 3D rendering and 2D with texture effects.
 			break;
 
 		default:

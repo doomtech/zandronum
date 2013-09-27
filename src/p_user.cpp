@@ -693,6 +693,12 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	{ // You can't use items if you're totally frozen
 		return false;
 	}
+	if (( level.flags2 & LEVEL2_FROZEN ) && ( player == NULL || !( player->cheats & CF_TIMEFREEZE )))
+	{
+		// Time frozen
+		return false;
+	}
+
 	if (!Super::UseInventory (item))
 	{
 		// [BB] The server won't call SERVERCOMMANDS_PlayerUseInventory in this case, so we have to 
@@ -3262,11 +3268,15 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->mo->flags &= ~MF_JUSTATTACKED;
 	}
 
+	bool totallyfrozen = (player->cheats & CF_TOTALLYFROZEN || gamestate == GS_TITLELEVEL ||
+		(( level.flags2 & LEVEL2_FROZEN ) && ( player == NULL || !( player->cheats & CF_TIMEFREEZE )))
+		);
+
 	// [BB] Why should a predicting client ignore CF_TOTALLYFROZEN and CF_FROZEN?
 	//if ( CLIENT_PREDICT_IsPredicting( ) == false )
 	{
 		// [RH] Being totally frozen zeros out most input parameters.
-		if (player->cheats & CF_TOTALLYFROZEN || gamestate == GS_TITLELEVEL)
+		if (totallyfrozen)
 		{
 			if (gamestate == GS_TITLELEVEL)
 			{
@@ -3312,7 +3322,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	{
 		if (player->morphTics == 0 && player->health > 0 && level.IsCrouchingAllowed())
 		{
-			if (!(player->cheats & CF_TOTALLYFROZEN))
+			if (!totallyfrozen)
 			{
 				int crouchdir = player->crouching;
 			

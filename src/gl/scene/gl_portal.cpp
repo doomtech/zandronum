@@ -127,6 +127,7 @@ void GLPortal::ClearScreen()
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
 	if (multi) gl.Enable(GL_MULTISAMPLE);
+	gl_RenderState.Set2DMode(false);
 }
 
 

@@ -1160,6 +1160,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		else if (target->flags & MF_ICECORPSE) // frozen
 		{
 			target->tics = 1;
+			target->flags6 |= MF6_SHATTERING;
 			target->velx = target->vely = target->velz = 0;
 
 			// [BC] If we're the server, tell clients to update this thing's tics and
@@ -1276,21 +1277,24 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			( mod == NAME_Telefrag || mod == NAME_SpawnTelefrag ))
 			return;
 
-		DmgFactors * df = target->GetClass()->ActorInfo->DamageFactors;
-		if (df != NULL)
+		if (!(flags & DMG_NO_FACTOR))
 		{
-			fixed_t * pdf = df->CheckKey(mod);
-			if (pdf== NULL && mod != NAME_None) pdf = df->CheckKey(NAME_None);
-			if (pdf != NULL)
+			DmgFactors *df = target->GetClass()->ActorInfo->DamageFactors;
+			if (df != NULL)
 			{
-				damage = FixedMul(damage, *pdf);
-				if (damage <= 0)
-					return;
+				fixed_t *pdf = df->CheckKey(mod);
+				if (pdf== NULL && mod != NAME_None) pdf = df->CheckKey(NAME_None);
+				if (pdf != NULL)
+				{
+					damage = FixedMul(damage, *pdf);
+					if (damage <= 0)
+						return;
+				}
 			}
+			damage = FixedMul(damage, target->DamageFactor);
+			if (damage < 0)
+				return;
 		}
-		damage = FixedMul(damage, target->DamageFactor);
-		if (damage < 0)
-			return;
 
 		damage = target->TakeSpecialDamage (inflictor, source, damage, mod);
 	}

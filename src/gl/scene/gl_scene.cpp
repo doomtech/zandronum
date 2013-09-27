@@ -257,6 +257,7 @@ void FGLRenderer::SetProjection(float fov, float ratio, float fovratio)
 
 	float fovy = 2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovratio));
 	gluPerspective(fovy, ratio, (float)gl_nearclip, 65536.f);
+	gl_RenderState.Set2DMode(false);
 }
 
 //-----------------------------------------------------------------------------

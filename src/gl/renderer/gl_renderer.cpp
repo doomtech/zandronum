@@ -120,6 +120,7 @@ void FGLRenderer::SetupLevel()
 void FGLRenderer::Begin2D()
 {
 	gl_RenderState.EnableFog(false);
+	gl_RenderState.Set2DMode(true);
 }
 
 //===========================================================================
@@ -252,6 +253,7 @@ void FGLRenderer::ClearBorders()
 	gl.Ortho(0.0, width * 1.0, 0.0, trueHeight, -1.0, 1.0);
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.Color3f(0.f, 0.f, 0.f);
+	gl_RenderState.Set2DMode(true);
 	gl_RenderState.EnableTexture(false);
 	gl_RenderState.Apply(true);
 
