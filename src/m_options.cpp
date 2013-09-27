@@ -1331,12 +1331,18 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
  * Gameplay Options (dmflags) Menu
  *
  *=======================================*/
-
 value_t SmartAim[4] = {
 	{ 0.0, "Off" },
 	{ 1.0, "On" },
 	{ 2.0, "Never friends" },
 	{ 3.0, "Only monsters" }
+};
+
+value_t FallingDM[4] = {
+	{ 0, "Off" },
+	{ DF_FORCE_FALLINGZD, "Old" },
+	{ DF_FORCE_FALLINGHX, "Hexen" },
+	{ DF_FORCE_FALLINGZD|DF_FORCE_FALLINGHX, "Strife" }
 };
 
 value_t DF_Jump[3] = {
@@ -1356,8 +1362,8 @@ static menuitem_t DMFlagsItems[] = {
 	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05f},{NULL} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Smart Autoaim",		{&sv_smartaim},	{4.0}, {0.0}, {0.0}, {SmartAim} },
-	{ bitflag,	"Falling damage (old)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGZD} },
-	{ bitflag,	"Falling damage (Hexen)",{&dmflags},	{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGHX} },
+	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
+	{ bitmask,	"Falling damage",		{&dmflags},		{4.0}, {DF_FORCE_FALLINGZD|DF_FORCE_FALLINGHX}, {0}, {FallingDM} },
 	{ bitflag,	"Weapons stay (DM)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_WEAPONS_STAY} },
 	{ bitflag,	"Allow powerups (DM)",	{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_ITEMS} },
 	{ bitflag,	"Allow health (DM)",	{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_HEALTH} },
@@ -4498,7 +4504,6 @@ void M_OptDrawer ()
 		labelofs = 0;
 		fontheight = 8;
 	}
-
 	ytop = y + CurrentMenu->scrolltop * 8;
 
 	for (i = 0; i < CurrentMenu->numitems && y <= 200 - SmallFont->GetHeight(); i++, y += fontheight)
@@ -4641,6 +4646,7 @@ void M_OptDrawer ()
 					screen->DrawText (SmallFont, CR_GREY, x, y, tbuf, DTA_Clean, true, TAG_DONE);
 				}
 				break;
+
 			case bitmask:
 			{
 				int v, vals;
@@ -5258,8 +5264,6 @@ void M_OptDrawer ()
 	}
 }
 
-//bool IncreaseWeaponPrefPosition( char *pszWeaponName, bool bDisplayMessage );
-//bool DecreaseWeaponPrefPosition( char *pszWeaponName, bool bDisplayMessage );
 void M_OptResponder(event_t *ev)
 {
 	menuitem_t *item = CurrentMenu->items + CurrentItem;
@@ -5296,7 +5300,6 @@ void M_OptResponder(event_t *ev)
 			SetModesMenu (NewWidth, NewHeight, NewBits);
 		}
 	}
-
 }
 
 void M_OptButtonHandler(EMenuKey key, bool repeat)
@@ -5685,34 +5688,34 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 						int numvals;
 
 						numvals = (int)item->b.min;
-					if (item->type == joy_map)
-					{
-						value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
-					}
-					else
-					{
-						value = item->a.cvar->GetGenericRep (CVAR_Float);
-					}
-					if (item->type != discretes)
-					{
-						cur = M_FindCurVal (value.Float, item->e.values, numvals);
-					}
-					else
-					{
-						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
-					}
+						if (item->type == joy_map)
+						{
+							value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
+						}
+						else
+						{
+							value = item->a.cvar->GetGenericRep (CVAR_Float);
+						}
+						if (item->type != discretes)
+						{
+							cur = M_FindCurVal (value.Float, item->e.values, numvals);
+						}
+						else
+						{
+							cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+						}
 						if (--cur < 0)
 							cur = numvals - 1;
 
 						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
-					if (item->type == joy_map)
-					{
-						SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
-					}
-					else
-					{
-						item->a.cvar->SetGenericRep (value, CVAR_Float);
-					}
+						if (item->type == joy_map)
+						{
+							SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
+						}
+						else
+						{
+							item->a.cvar->SetGenericRep (value, CVAR_Float);
+						}
 
 						// Hack hack. Rebuild list of resolutions
 						if (item->e.values == Depths)
@@ -5725,6 +5728,7 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
+
 			case ediscrete:
 				value = item->a.cvar->GetGenericRep(CVAR_String);
 				value.String = const_cast<char *>(M_FindPrevVal(value.String, item->e.enumvalues, (int)item->b.numvalues));
@@ -6661,7 +6665,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 		break;
 
 	case MKEY_Back:
-
 		CurrentMenu->lastOn = CurrentItem;
 		if (CurrentMenu->EscapeHandler != NULL)
 		{
