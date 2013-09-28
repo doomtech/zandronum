@@ -141,7 +141,6 @@ typedef enum {
 	classtype,
 	number,
 	botslot,
-	announcer,
 	levelslot,
 	browserheader,
 	browserslot,

@@ -74,6 +74,7 @@
 #include "d_netinf.h"
 #include "gl/gl_functions.h"
 // [BC] New #includes.
+#include "announcer.h"
 #include "chat.h"
 #include "cl_demo.h"
 #include "cl_main.h"
@@ -88,6 +89,8 @@
 // [BB]
 extern bool g_bStringInput;
 extern char g_szStringInputBuffer[64];
+// [BB]
+static TArray<valuestring_t> Announcers;
 
 // MACROS ------------------------------------------------------------------
 
@@ -646,12 +649,34 @@ menuitem_t PlayerSetupItems[] = {
 	{ discrete,	"Unlagged",					{&cl_unlagged},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ more,		"Weapon setup",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_WeaponSetup} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ announcer,"Announcer",				{&cl_announcer},			{0.0}, {0.0}, {0.0}, {NULL} },
+	{ discretes,"Announcer",				{&cl_announcer},			{0.0}, {0.0}, {0.0}, {NULL} },
 	{ slider,	"Announcer volume",			{&snd_announcervolume},	{0.0}, {1.0},	{0.05}, {NULL} },	// [WS] Skulltag Announcer volume.
 // [RC] Moved switch team to the Multiplayer menu
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ more,		"Undo changes",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_UndoPlayerSetupChanges} },
 };
+
+// [BB] Update this define if PlayerSetupItems is altered!
+#define ANNOUNCER_INDEX 17
+
+// [BB]
+void InitAnnouncersList()
+{
+	Announcers.Clear();
+	valuestring_t value;
+	value.value = -1;
+	value.name = "None";
+	Announcers.Push(value);
+	for ( int i = 0; i < ANNOUNCER_GetNumProfiles( ); ++i )
+	{
+		value.value = float(i);
+		value.name = ANNOUNCER_GetName( i );
+		Announcers.Push(value);
+	}
+	// [BB] Moved crosshair selection to the HUD menu.
+	PlayerSetupItems[ANNOUNCER_INDEX].b.numvalues = float(Announcers.Size());
+	PlayerSetupItems[ANNOUNCER_INDEX].e.valuestrings = &Announcers[0];
+}
 
 menu_t PlayerSetupMenu = {
 	"PLAYER SETUP",
@@ -2380,6 +2405,9 @@ void M_PlayerSetup (void)
 
 	// [BC] Initialize all placeholder values for the player setup menu.
 	M_SetupPlayerSetupMenu( );
+
+	// [BB] Init announcer list.
+	InitAnnouncersList();
 
 	// [BC] Switch to the player setup menu.
 	M_SwitchMenu( &PlayerSetupMenu );

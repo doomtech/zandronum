@@ -87,7 +87,6 @@
 #include "m_menu.h"
 
 // [BB] New #includes.
-#include "announcer.h"
 #include "cl_commands.h"
 #include "cl_demo.h"
 #include "cl_main.h"
@@ -4946,13 +4945,6 @@ void M_OptDrawer ()
 					}
 				}
 				break;
-			case announcer:
-
-				if ( ANNOUNCER_GetName( *item->a.intcvar ) == NULL )
-					screen->DrawText( SmallFont, CR_GREY, x, y, "NONE", DTA_Clean, true, TAG_DONE );
-				else
-					screen->DrawText( SmallFont, CR_GREY, x, y, ANNOUNCER_GetName( *item->a.intcvar ), DTA_Clean, true, TAG_DONE );
-				break;
 			case levelslot:
 				{
 					char	szMapName[64];
@@ -5824,20 +5816,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
-			case announcer:
-				{
-					LONG	lAnnouncerIdx;
-					
-					lAnnouncerIdx = *item->a.intcvar;
-
-					lAnnouncerIdx--;
-					if ( lAnnouncerIdx < -1 )
-						lAnnouncerIdx = ANNOUNCER_GetNumProfiles( ) - 1;
-
-					*(item->a.intcvar) = lAnnouncerIdx;
-				}
-				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
-				break;
 			case levelslot:
 				{
 					SHORT	sLevelIdx;
@@ -6303,20 +6281,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 					// Finally, set the index in the botspawn slot.
 					Val.Int = lBotIdx;
 					pVar->SetGenericRep( Val, CVAR_Int );
-				}
-				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
-				break;
-			case announcer:
-				{
-					LONG	lAnnouncerIdx;
-
-					lAnnouncerIdx = *(item->a.intcvar);
-
-					lAnnouncerIdx++;
-					if ( lAnnouncerIdx >= static_cast<signed> (ANNOUNCER_GetNumProfiles( )))
-						lAnnouncerIdx = -1;
-
-					*(item->a.intcvar) = lAnnouncerIdx;
 				}
 				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
