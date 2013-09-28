@@ -4047,6 +4047,10 @@ void M_OptInit (void)
 		VideoItems[1].label = "Enable OpenGL system";
 		ModesItems[1].type = nochoice;
 	}
+
+	// [BB] Player color related stuff.
+	g_bSwitchColorBack = false;
+	g_lSavedColor = 0;
 }
 
 void M_InitVideoModesMenu ()
@@ -4089,29 +4093,8 @@ void M_InitVideoModesMenu ()
 	default:
 		break;
 	}
-
-	if (gameinfo.gametype == GAME_Doom)
-	{
-		LabelColor = CR_UNTRANSLATED;
-		ValueColor = CR_GRAY;
-		MoreColor = CR_GRAY;
-	}
-	else if (gameinfo.gametype == GAME_Heretic)
-	{
-		LabelColor = CR_GREEN;
-		ValueColor = CR_UNTRANSLATED;
-		MoreColor = CR_UNTRANSLATED;
-	}
-	else // Hexen
-	{
-		LabelColor = CR_RED;
-		ValueColor = CR_UNTRANSLATED;
-		MoreColor = CR_UNTRANSLATED;
-	}
-
-	g_bSwitchColorBack = false;
-	g_lSavedColor = 0;
 }
+
 
 //
 //		Toggle messages on/off
