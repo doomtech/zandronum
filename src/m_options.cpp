@@ -35,10 +35,12 @@
 ** make a project of rewriting the entire menu system using Amiga-style
 ** taglists to describe each menu item. We'll see... (Probably not.)
 */
+
 #include "templates.h"
+
 #include "doomdef.h"
 #include "gstrings.h"
-#include <string.h>
+
 #include "c_console.h"
 #include "c_dispatch.h"
 #include "c_bind.h"
@@ -74,6 +76,7 @@
 #include "doomstat.h"
 
 #include "m_misc.h"
+#include "hardware.h"
 #include "sc_man.h"
 #include "cmdlib.h"
 #include "d_event.h"
@@ -83,6 +86,7 @@
 // Data.
 #include "m_menu.h"
 
+// [BB] New #includes.
 #include "announcer.h"
 #include "cl_commands.h"
 #include "cl_demo.h"
@@ -135,6 +139,7 @@ static value_t Renderers[] = {
 };
 //EXTERN_CVAR(Bool, hud_althud)
 extern bool gl_disabled;
+
 
 //
 // defaulted values
@@ -360,7 +365,7 @@ value_t SwitchOnPickupVals[4] = {
 
 menu_t  *CurrentMenu;
 int		CurrentItem;
-static const char	   *OldMessage;
+static const char	*OldMessage;
 static itemtype OldType;
 
 extern	IVideo	*Video;
@@ -5632,6 +5637,7 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
+
 			case inverter:
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
 				value.Float = -value.Float;
@@ -6044,34 +6050,34 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 						int numvals;
 
 						numvals = (int)item->b.min;
-					if (item->type == joy_map)
-					{
-						value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
-					}
-					else
-					{
-						value = item->a.cvar->GetGenericRep (CVAR_Float);
-					}
-					if (item->type != discretes)
-					{
-						cur = M_FindCurVal (value.Float, item->e.values, numvals);
-					}
-					else
-					{
-						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
-					}
+						if (item->type == joy_map)
+						{
+							value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
+						}
+						else
+						{
+							value = item->a.cvar->GetGenericRep (CVAR_Float);
+						}
+						if (item->type != discretes)
+						{
+							cur = M_FindCurVal (value.Float, item->e.values, numvals);
+						}
+						else
+						{
+							cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+						}
 						if (++cur >= numvals)
 							cur = 0;
 
 						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
-					if (item->type == joy_map)
-					{
-						SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
-					}
-					else
-					{
-						item->a.cvar->SetGenericRep (value, CVAR_Float);
-					}
+						if (item->type == joy_map)
+						{
+							SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
+						}
+						else
+						{
+							item->a.cvar->SetGenericRep (value, CVAR_Float);
+						}
 
 						// Hack hack. Rebuild list of resolutions
 						if (item->e.values == Depths)
@@ -6084,6 +6090,7 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
+
 			case ediscrete:
 				value = item->a.cvar->GetGenericRep(CVAR_String);
 				value.String = const_cast<char *>(M_FindNextVal(value.String, item->e.enumvalues, (int)item->b.numvalues));
@@ -6109,6 +6116,7 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
+
 			case inverter:
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
 				value.Float = -value.Float;
@@ -6598,6 +6606,7 @@ static void StartHUDMenu (void)
 {
 	M_SwitchMenu (&HUDMenu);
 }
+
 CCMD (menu_messages)
 {
 	M_StartControlPanel (true);
