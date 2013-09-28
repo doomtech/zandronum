@@ -773,7 +773,13 @@ void I_Init()
 	// [BB] CalculateCPUSpeed() messes with the priority, so I think it's a good place
 	// to set the server priority afterwards.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+
+		// [BB] The server doesn't call I_SelectTimer, so we have to set basetime manually.
+		if (!basetime)
+			basetime = timeGetTime();
+	}
 
 	I_GetTime = I_GetTimeSelect;
 	I_WaitForTic = I_WaitForTicSelect;
