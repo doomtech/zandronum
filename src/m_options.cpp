@@ -240,12 +240,12 @@ value_t GenderVals[3] = {
 
 value_t AutoaimVals[7] = {
 	{ 0.0, "Never" },
-	{ 1.0, "Very Low" },
-	{ 2.0, "Low" },
-	{ 3.0, "Medium" },
-	{ 4.0, "High" },
-	{ 5.0, "Very high" },
-	{ 6.0, "Always" }
+	{ 0.25, "Very Low" },
+	{ 0.5, "Low" },
+	{ 1, "Medium" },
+	{ 2, "High" },
+	{ 3, "Very high" },
+	{ 5000, "Always" }
 };
 
 value_t TrailColorVals[11] = {
@@ -4591,70 +4591,53 @@ void M_OptDrawer ()
 				int v, vals;
 
 				overlay = 0;
-
-				// [BC] Hack for autoaim.
-				if ( strcmp( item->label, "Autoaim" ) == 0 )
+				if (item->type == joy_map)
 				{
-					char	szLabel[32];
-
-					sprintf( szLabel, "%s",	menu_autoaim == 0 ? "Never" :
-						menu_autoaim <= 0.25 ? "Very Low" :
-						menu_autoaim <= 0.5 ? "Low" :
-						menu_autoaim <= 1 ? "Medium" :
-						menu_autoaim <= 2 ? "High" :
-						menu_autoaim <= 3 ? "Very High" : "Always");
-
-					screen->DrawText( SmallFont, ValueColor, x, y, szLabel, DTA_Clean, true, TAG_DONE );
+					value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
 				}
 				else
 				{
-					if (item->type == joy_map)
+					value = item->a.cvar->GetGenericRep (CVAR_Float);
+				}
+				if (item->type == inverter)
+				{
+					value.Float = (value.Float < 0.f);
+					vals = 2;
+				}
+				else
+				{
+					vals = (int)item->b.numvalues;
+				}
+				if (item->type != discretes)
+				{
+					v = M_FindCurVal (value.Float, item->e.values, vals);
+				}
+				else
+				{
+					v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
+				}
+				if (item->type == discrete)
+				{
+					if (item->d.graycheck != NULL && !(**item->d.graycheck))
 					{
-						value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
-					}
-					else
-					{
-						value = item->a.cvar->GetGenericRep (CVAR_Float);
-					}
-					if (item->type == inverter)
-					{
-						value.Float = (value.Float < 0.f);
-						vals = 2;
-					}
-					else
-					{
-						vals = (int)item->b.numvalues;
-					}
-					if (item->type != discretes)
-					{
-						v = M_FindCurVal (value.Float, item->e.values, vals);
-					}
-					else
-					{
-						v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
-					}
-					if (item->type == discrete)
-					{
-						if (item->d.graycheck != NULL && !(**item->d.graycheck))
-						{
-							overlay = MAKEARGB(96,48,0,0);
-						}
-					}
-
-					// [BB] To handle MNF_ALIGNLEFT, "x" is used instead of "indent + 14"
-					if (v == vals)
-					{
-						screen->DrawText (SmallFont, ValueColor, x, y, "Unknown",
-							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
-					}
-					else
-					{
-						screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
-							x, y,
-							item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
-							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
+						overlay = MAKEARGB(96,48,0,0);
 					}
 				}
+
+				// [BB] To handle MNF_ALIGNLEFT, "x" is used instead of "indent + 14"
+				if (v == vals)
+				{
+					screen->DrawText (SmallFont, ValueColor, x, y, "Unknown",
+						DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
+				}
+				else
+				{
+					screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
+						x, y,
+						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
+						DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
+				}
+
 			}
 			break;
 
@@ -5545,68 +5528,46 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			case cdiscrete:
 			case joy_map:
 				{
-					// Hack for autoaim.
-					if ( strcmp( item->label, "Autoaim" ) == 0 )
-					{
-						float ranges[] = { 0, 0.25, 0.5, 1, 2, 3, 5000 };
-						float aim = menu_autoaim;
-						int i;
+					int cur;
+					int numvals;
 
-						// Select a lower autoaim
-						for (i = 6; i >= 1; i--)
-						{
-							if (aim >= ranges[i])
-							{
-								aim = ranges[i - 1];
-								break;
-							}
-						}
-	
-						menu_autoaim = aim;
+					numvals = (int)item->b.min;
+					if (item->type == joy_map)
+					{
+						value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
 					}
 					else
 					{
-						int cur;
-						int numvals;
-
-						numvals = (int)item->b.min;
-						if (item->type == joy_map)
-						{
-							value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
-						}
-						else
-						{
-							value = item->a.cvar->GetGenericRep (CVAR_Float);
-						}
-						if (item->type != discretes)
-						{
-							cur = M_FindCurVal (value.Float, item->e.values, numvals);
-						}
-						else
-						{
-							cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
-						}
-						if (--cur < 0)
-							cur = numvals - 1;
-
-						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
-						if (item->type == joy_map)
-						{
-							SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
-						}
-						else
-						{
-							item->a.cvar->SetGenericRep (value, CVAR_Float);
-						}
-
-						// Hack hack. Rebuild list of resolutions
-						if (item->e.values == Depths)
-							BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
-
-						// Hack for the browser menu. If we changed a setting, rebuild the list.
-						if ( CurrentMenu == &BrowserMenu )
-							M_BuildServerList( );
+						value = item->a.cvar->GetGenericRep (CVAR_Float);
 					}
+					if (item->type != discretes)
+					{
+						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
+					if (--cur < 0)
+						cur = numvals - 1;
+
+					value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
+					if (item->type == joy_map)
+					{
+						SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
+					}
+					else
+					{
+						item->a.cvar->SetGenericRep (value, CVAR_Float);
+					}
+
+					// Hack hack. Rebuild list of resolutions
+					if (item->e.values == Depths)
+						BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
+
+					// [BC] Hack for the browser menu. If we changed a setting, rebuild the list.
+					if ( CurrentMenu == &BrowserMenu )
+						M_BuildServerList( );
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
@@ -5996,68 +5957,46 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			case cdiscrete:
 			case joy_map:
 				{
-					// Hack for autoaim.
-					if ( strcmp( item->label, "Autoaim" ) == 0 )
-					{
-						float ranges[] = { 0, 0.25, 0.5, 1, 2, 3, 5000 };
-						float aim = menu_autoaim;
-						int i;
+					int cur;
+					int numvals;
 
-						// Select a higher autoaim
-						for (i = 5; i >= 0; i--)
-						{
-							if (aim >= ranges[i])
-							{
-								aim = ranges[i + 1];
-								break;
-							}
-						}
-	
-						menu_autoaim = aim;
+					numvals = (int)item->b.min;
+					if (item->type == joy_map)
+					{
+						value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
 					}
 					else
 					{
-						int cur;
-						int numvals;
-
-						numvals = (int)item->b.min;
-						if (item->type == joy_map)
-						{
-							value.Float = (float)SELECTED_JOYSTICK->GetAxisMap(item->a.joyselection);
-						}
-						else
-						{
-							value = item->a.cvar->GetGenericRep (CVAR_Float);
-						}
-						if (item->type != discretes)
-						{
-							cur = M_FindCurVal (value.Float, item->e.values, numvals);
-						}
-						else
-						{
-							cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
-						}
-						if (++cur >= numvals)
-							cur = 0;
-
-						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
-						if (item->type == joy_map)
-						{
-							SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
-						}
-						else
-						{
-							item->a.cvar->SetGenericRep (value, CVAR_Float);
-						}
-
-						// Hack hack. Rebuild list of resolutions
-						if (item->e.values == Depths)
-							BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
-
-						// Hack for the browser menu. If we changed a setting, rebuild the list.
-						if ( CurrentMenu == &BrowserMenu )
-							M_BuildServerList( );
+						value = item->a.cvar->GetGenericRep (CVAR_Float);
 					}
+					if (item->type != discretes)
+					{
+						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
+					if (++cur >= numvals)
+						cur = 0;
+
+					value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
+					if (item->type == joy_map)
+					{
+						SELECTED_JOYSTICK->SetAxisMap(item->a.joyselection, (EJoyAxis)(int)value.Float);
+					}
+					else
+					{
+						item->a.cvar->SetGenericRep (value, CVAR_Float);
+					}
+
+					// Hack hack. Rebuild list of resolutions
+					if (item->e.values == Depths)
+						BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
+
+					// [BC] Hack for the browser menu. If we changed a setting, rebuild the list.
+					if ( CurrentMenu == &BrowserMenu )
+						M_BuildServerList( );
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 				break;
