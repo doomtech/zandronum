@@ -248,6 +248,8 @@ static void CopyPlayer (player_t *dst, player_t *src, const char *name)
 	// needs to come from the save for bots.
 	userinfo_t uibackup = dst->userinfo;
 	int chasecam = dst->cheats & CF_CHASECAM;	// Remember the chasecam setting
+	bool attackdown = dst->attackdown;
+	bool usedown = dst->usedown;
 	*dst = *src;
 	dst->cheats |= chasecam;
 
@@ -257,6 +259,9 @@ static void CopyPlayer (player_t *dst, player_t *src, const char *name)
 	{
 		dst->mo->player = dst;
 	}
+	// These 2 variables may not be overwritten.
+	dst->attackdown = attackdown;
+	dst->usedown = usedown;
 }
 
 static void SpawnExtraPlayers ()

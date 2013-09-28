@@ -344,6 +344,7 @@ public:
 	bool		centering;
 	BYTE		turnticks;
 	bool		attackdown;
+	bool		usedown;
 	DWORD		oldbuttons;
 	int			health;					// only used between levels, mo->health
 										// is used during levels

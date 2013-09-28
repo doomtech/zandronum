@@ -2144,7 +2144,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->LogText = log;
 	p->cheats |= chasecam;
 
-	p->oldbuttons = ~0, p->attackdown = true;	// don't do anything immediately
+	p->oldbuttons = ~0, p->attackdown = true; p->usedown = true;	// don't do anything immediately
 	p->original_oldbuttons = ~0;
 
 	p->bOnTeam = bOnTeam;
@@ -3937,7 +3937,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( sectors[ulIdx].ceilingdata )
 		{
 			// Stop the sound sequence (if any) associated with this sector.
-			SN_StopSequence( &sectors[ulIdx] );
+			SN_StopSequence( &sectors[ulIdx], CHAN_CEILING );
 
 			sectors[ulIdx].ceilingdata->Destroy( );
 			sectors[ulIdx].ceilingdata = NULL;
@@ -3945,7 +3945,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( sectors[ulIdx].floordata )
 		{
 			// Stop the sound sequence (if any) associated with this sector.
-			SN_StopSequence( &sectors[ulIdx] );
+			SN_StopSequence( &sectors[ulIdx], CHAN_FLOOR );
 
 			sectors[ulIdx].floordata->Destroy( );
 			sectors[ulIdx].floordata = NULL;

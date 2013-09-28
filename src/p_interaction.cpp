@@ -479,6 +479,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		if ( invasion )
 			INVASION_RemoveMonsterCorpse();
 	}
+	flags6 |= MF6_KILLED;
+
 	// [RH] Allow the death height to be overridden using metadata.
 	fixed_t metaheight = 0;
 	if (DamageType == NAME_Fire)

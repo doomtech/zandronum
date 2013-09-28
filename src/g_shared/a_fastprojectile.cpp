@@ -125,11 +125,19 @@ void AFastProjectile::Effect()
 			}
 		
 			const PClass *trail = PClass::FindClass(name);
-			// [BB] Assume that the trail is just for decorative purposes and let the
-			// client spawn it on its own.
-			AActor *mo = Spawn (trail, x, y, hitz, ALLOW_REPLACE);
-			if ( mo && NETWORK_InClientMode( ) )
-				mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+			if (trail != NULL)
+			{
+				AActor *act = Spawn (trail, x, y, hitz, ALLOW_REPLACE);
+				if (act != NULL)
+				{
+					act->angle = this->angle;
+
+					// [BB] Assume that the trail is just for decorative purposes and let the
+					// client spawn it on its own.
+					if ( NETWORK_InClientMode( ) )
+						act->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+				}
+			}
 		}
 	}
 }

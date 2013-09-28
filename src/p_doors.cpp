@@ -184,7 +184,7 @@ void DDoor::Tick ()
 				SERVERCOMMANDS_StopSectorSequence( m_Sector );
 			}
 
-			SN_StopSequence (m_Sector);
+			SN_StopSequence (m_Sector, CHAN_CEILING);
 			switch (m_Type)
 			{
 			case doorRaise:
@@ -263,7 +263,7 @@ void DDoor::Tick ()
 				SERVERCOMMANDS_StopSectorSequence( m_Sector );
 			}
 
-			SN_StopSequence (m_Sector);
+			SN_StopSequence (m_Sector, CHAN_CEILING);
 			switch (m_Type)
 			{
 			case doorRaise:

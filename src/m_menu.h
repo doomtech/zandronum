@@ -96,9 +96,6 @@ void M_DeactivateMenuInput ();
 
 void M_NotifyNewSave (const char *file, const char *title, bool okForQuicksave);
 
-// Draw a slider. Set fracdigits negative to not display the current value numerically.
-void M_DrawSlider (int x, int y, double min, double max, double cur, int fracdigits=1);
-
 // Menu flag definitions.
 #define MNF_ALIGNLEFT			1	// Align menu to the left
 #define MNF_CENTERED			2	// Menu text is centered

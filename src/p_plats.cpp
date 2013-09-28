@@ -108,7 +108,7 @@ void DPlat::Tick ()
 					SERVERCOMMANDS_SetSectorCeilingPlane( ULONG( m_Sector - sectors ));
 			}
 
-			SN_StopSequence (m_Sector);
+			SN_StopSequence (m_Sector, CHAN_FLOOR);
 
 			// [BC] If we're the server, tell clients to play the plat sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -174,7 +174,7 @@ void DPlat::Tick ()
 					SERVERCOMMANDS_SetSectorCeilingPlane( ULONG( m_Sector - sectors ));
 			}
 
-			SN_StopSequence (m_Sector);
+			SN_StopSequence (m_Sector, CHAN_FLOOR);
 
 			// [BC] If we're the server, tell clients to play the plat sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )

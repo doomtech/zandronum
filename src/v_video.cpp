@@ -1406,6 +1406,11 @@ bool V_DoModeSetup (int width, int height, int bits)
 	assert(CleanHeight >= 200);
 */
 
+	CleanXfac_1 = MAX(int(CleanXfac) - 1, 1);
+	CleanYfac_1 = MAX(int(CleanYfac) - 1, 1);
+	CleanWidth_1 = width / CleanXfac_1;
+	CleanHeight_1 = height / CleanYfac_1;
+
 	DisplayWidth = width;
 	DisplayHeight = height;
 	DisplayBits = bits;

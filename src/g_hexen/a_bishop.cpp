@@ -84,13 +84,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopAttack2)
 	if (mo != NULL)
 	{
 		mo->tracer = self->target;
-		mo->special2 = 16; // High word == x/y, Low word == z
 
 		// [BB] If we're the server, tell the clients to spawn this missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnMissile( mo );
-			SERVERCOMMANDS_SetThingSpecial2( mo );
 		}
 	}
 	self->special1--;
@@ -104,25 +102,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopAttack2)
 
 DEFINE_ACTION_FUNCTION(AActor, A_BishopMissileWeave)
 {
-	fixed_t newX, newY;
-	int weaveXY, weaveZ;
-	int angle;
-
-	if (self->special2 == 0) self->special2 = 16;
-
-	weaveXY = self->special2 >> 16;
-	weaveZ = self->special2 & 0xFFFF;
-	angle = (self->angle + ANG90) >> ANGLETOFINESHIFT;
-	newX = self->x - FixedMul (finecosine[angle], FloatBobOffsets[weaveXY]<<1);
-	newY = self->y - FixedMul (finesine[angle], FloatBobOffsets[weaveXY]<<1);
-	weaveXY = (weaveXY + 2) & 63;
-	newX += FixedMul (finecosine[angle], FloatBobOffsets[weaveXY]<<1);
-	newY += FixedMul (finesine[angle], FloatBobOffsets[weaveXY]<<1);
-	P_TryMove (self, newX, newY, true);
-	self->z -= FloatBobOffsets[weaveZ];
-	weaveZ = (weaveZ + 2) & 63;
-	self->z += FloatBobOffsets[weaveZ];	
-	self->special2 = weaveZ + (weaveXY<<16);
+	A_Weave(self, 2, 2, 2*FRACUNIT, FRACUNIT);
 }
 
 //============================================================================

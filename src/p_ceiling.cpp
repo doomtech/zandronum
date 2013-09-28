@@ -153,7 +153,7 @@ void DCeiling::Tick ()
 					SERVERCOMMANDS_DestroyCeiling( m_lCeilingID );
 				}
 
-				SN_StopSequence (m_Sector);
+				SN_StopSequence (m_Sector, CHAN_CEILING);
 				Destroy ();
 				break;
 			}
@@ -222,7 +222,7 @@ void DCeiling::Tick ()
 					SERVERCOMMANDS_DestroyCeiling( m_lCeilingID );
 				}
 
-				SN_StopSequence (m_Sector);
+				SN_StopSequence (m_Sector, CHAN_CEILING);
 				Destroy ();
 				break;
 			}
@@ -693,7 +693,7 @@ bool EV_CeilingCrushStop (int tag)
 				SERVERCOMMANDS_StopSectorSequence( scan->m_Sector );
 			}
 
-			SN_StopSequence (scan->m_Sector);
+			SN_StopSequence (scan->m_Sector, CHAN_CEILING);
 			scan->m_OldDirection = scan->m_Direction;
 			scan->m_Direction = 0;		// in-stasis;
 			rtn = true;

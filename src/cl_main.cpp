@@ -9207,7 +9207,7 @@ static void client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream )
 		if ( sectors[ulIdx].ceilingdata )
 		{
 			// Stop the sound sequence (if any) associated with this sector.
-			SN_StopSequence( &sectors[ulIdx] );
+			SN_StopSequence( &sectors[ulIdx], CHAN_CEILING );
 
 			sectors[ulIdx].ceilingdata->Destroy( );
 			sectors[ulIdx].ceilingdata = NULL;
@@ -9216,7 +9216,7 @@ static void client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream )
 		if ( sectors[ulIdx].floordata )
 		{
 			// Stop the sound sequence (if any) associated with this sector.
-			SN_StopSequence( &sectors[ulIdx] );
+			SN_StopSequence( &sectors[ulIdx], CHAN_FLOOR );
 
 			sectors[ulIdx].floordata->Destroy( );
 			sectors[ulIdx].floordata = NULL;
@@ -9871,7 +9871,9 @@ static void client_StopSectorSequence( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Finally, stop the sound sequence for this sector.
-	SN_StopSequence( pSector );
+	// [BB] We don't know which channel is supposed to stop, so just stop floor and ceiling for now.
+	SN_StopSequence( pSector, CHAN_CEILING );
+	SN_StopSequence( pSector, CHAN_FLOOR );
 }
 
 //*****************************************************************************
@@ -10662,7 +10664,7 @@ static void client_DestroyFloor( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	SN_StopSequence( pFloor->GetSector( ));
+	SN_StopSequence( pFloor->GetSector( ), CHAN_FLOOR );
 	pFloor->Destroy( );
 }
 
@@ -10855,7 +10857,7 @@ static void client_DestroyCeiling( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	SN_StopSequence( pCeiling->GetSector( ));
+	SN_StopSequence( pCeiling->GetSector( ), CHAN_CEILING );
 	pCeiling->Destroy( );
 }
 
@@ -11073,7 +11075,7 @@ static void client_PlayPlatSound( BYTESTREAM_s *pByteStream )
 	{
 	case 0:
 
-		SN_StopSequence( pPlat->GetSector( ));
+		SN_StopSequence( pPlat->GetSector( ), CHAN_FLOOR );
 		break;
 	case 1:
 

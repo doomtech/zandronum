@@ -356,6 +356,35 @@ void AActor::Serialize (FArchive &arc)
 	{
 		arc << DamageFactor;
 	}
+	if (SaveVersion > 2036)
+	{
+		arc << WeaveIndexXY << WeaveIndexZ;
+	}
+	else
+	{
+		int index;
+
+		if (SaveVersion < 2036)
+		{
+			index = special2;
+		}
+		else
+		{
+			arc << index;
+		}
+		// A_BishopMissileWeave and A_CStaffMissileSlither stored the weaveXY
+		// value in different parts of the index.
+		if (this->IsKindOf(PClass::FindClass("BishopFX")))
+		{
+			WeaveIndexXY = index >> 16;
+			WeaveIndexZ = index;
+		}
+		else
+		{
+			WeaveIndexXY = index;
+			WeaveIndexZ = 0;
+		}
+	}
 
 	// Skip past uservar array in old savegames
 	if (SaveVersion < 1933)
@@ -1522,7 +1551,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	// [BB] If a missile hits and kills a player, it removes the SHOOTABLE flag from
 	// the killed player. Therefore, the SHOOTABLE check below is never fulfilled.
 	// As workaround we check if the target is a player.
-	if (target != NULL && ( target->flags & (MF_SHOOTABLE|MF_CORPSE) || target->player ) )
+	if (target != NULL && ((target->flags & (MF_SHOOTABLE|MF_CORPSE)) || (target->flags6 & MF6_KILLED) || target->player ) )
 	{
 		if (target->flags & MF_NOBLOOD) nextstate = mo->FindState(NAME_Crash);
 		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
@@ -1558,7 +1587,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		return;
 	}
 
-	if (line != NULL && line->special == Line_Horizon)
+	if (line != NULL && line->special == Line_Horizon && !(mo->flags3 & MF3_SKYEXPLODE))
 	{
 		// [RH] Don't explode missiles on horizon lines.
 		mo->Destroy ();
@@ -2357,14 +2386,15 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				}
 explode:
 				// explode a missile
-				if (tm.ceilingline &&
-					tm.ceilingline->backsector &&
-					tm.ceilingline->backsector->GetTexture(sector_t::ceiling) == skyflatnum &&
-					mo->z >= tm.ceilingline->backsector->ceilingplane.ZatPoint (mo->x, mo->y) && //killough
-					!(mo->flags3 & MF3_SKYEXPLODE))
+				if (!(mo->flags3 & MF3_SKYEXPLODE))
 				{
-					// Hack to prevent missiles exploding against the sky.
-					// Does not handle sky floors.
+					if (tm.ceilingline &&
+						tm.ceilingline->backsector &&
+						tm.ceilingline->backsector->GetTexture(sector_t::ceiling) == skyflatnum &&
+						mo->z >= tm.ceilingline->backsector->ceilingplane.ZatPoint (mo->x, mo->y))
+					{
+						// Hack to prevent missiles exploding against the sky.
+						// Does not handle sky floors.
 
 					// Player didn't strike another player with this missile.
 					if ( mo->target && mo->target->player )
@@ -2374,9 +2404,9 @@ explode:
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_DestroyThing( mo );
 
-					mo->Destroy ();
-					return oldfloorz;
-				}
+						mo->Destroy ();
+						return oldfloorz;
+					}
 
 				// Potentially reward the player who shot this missile with an accuracy/precision medal.
 				if ((( mo->ulSTFlags & STFL_EXPLODEONDEATH ) == false ) && mo->target && mo->target->player )
@@ -2387,15 +2417,16 @@ explode:
 						mo->target->player->ulConsecutiveHits = 0;
 				}
 
-				// [RH] Don't explode on horizon lines.
-				if (mo->BlockingLine != NULL && mo->BlockingLine->special == Line_Horizon)
-				{
+					// [RH] Don't explode on horizon lines.
+					if (mo->BlockingLine != NULL && mo->BlockingLine->special == Line_Horizon)
+					{
 					// [Dusk] Tell the clients that the mobj was deleted
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_DestroyThing( mo );
 
-					mo->Destroy ();
-					return oldfloorz;
+						mo->Destroy ();
+						return oldfloorz;
+					}
 				}
 
 				// [BB] Clients may not explode server handled bouncing missiles on their own if they hit another actor.
@@ -7038,7 +7069,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 
 void AActor::Crash()
 {
-	if ((flags & MF_CORPSE) &&
+	if (((flags & MF_CORPSE) || (flags6 & MF6_KILLED)) &&
 		!(flags3 & MF3_CRASHED) &&
 		!(flags & MF_ICECORPSE))
 	{

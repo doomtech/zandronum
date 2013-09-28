@@ -205,7 +205,7 @@ void DPillar::Tick ()
 			SERVERCOMMANDS_SetSectorCeilingPlane( ULONG( m_Sector - sectors ));
 		}
 
-		SN_StopSequence (m_Sector);
+		SN_StopSequence (m_Sector, CHAN_FLOOR);
 		Destroy ();
 	}
 	else

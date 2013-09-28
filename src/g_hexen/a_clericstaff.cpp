@@ -161,7 +161,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 	mo = P_SpawnPlayerMissile (self, RUNTIME_CLASS(ACStaffMissile), self->angle-(ANG45/15));
 	if (mo)
 	{
-		mo->special2 = 32;
+		mo->WeaveIndexXY = 32;
 
 		// [BC] Clients need to have this information.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -170,7 +170,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 	mo = P_SpawnPlayerMissile (self, RUNTIME_CLASS(ACStaffMissile), self->angle+(ANG45/15));
 	if (mo)
 	{
-		mo->special2 = 0;
+		mo->WeaveIndexXY = 0;
 	}
 
 	// [BC] Apply spread.
@@ -222,19 +222,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 
 DEFINE_ACTION_FUNCTION(AActor, A_CStaffMissileSlither)
 {
-	fixed_t newX, newY;
-	int weaveXY;
-	int angle;
-
-	weaveXY = self->special2;
-	angle = (self->angle+ANG90)>>ANGLETOFINESHIFT;
-	newX = self->x-FixedMul(finecosine[angle], FloatBobOffsets[weaveXY]);
-	newY = self->y-FixedMul(finesine[angle], FloatBobOffsets[weaveXY]);
-	weaveXY = (weaveXY+3)&63;
-	newX += FixedMul(finecosine[angle], FloatBobOffsets[weaveXY]);
-	newY += FixedMul(finesine[angle], FloatBobOffsets[weaveXY]);
-	P_TryMove (self, newX, newY, true);
-	self->special2 = weaveXY;
+	A_Weave(self, 3, 0, FRACUNIT, 0);
 }
 
 //============================================================================

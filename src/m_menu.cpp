@@ -2476,6 +2476,26 @@ static void M_PlayerSetupTicker (void)
 	}
 }
 
+
+static void M_DrawPlayerSlider (int x, int y, int cur)
+{
+	const int range = 255;
+
+	x = (x - 160) * CleanXfac + screen->GetWidth() / 2;
+	y = (y - 100) * CleanYfac + screen->GetHeight() / 2;
+
+	screen->DrawText (ConFont, CR_WHITE, x, y,
+		"\x10\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x12",
+		DTA_CellX, 8 * CleanXfac,
+		DTA_CellY, 8 * CleanYfac,
+		TAG_DONE);
+	screen->DrawText (ConFont, CR_ORANGE, x + (5 + (int)((cur * 78) / range)) * CleanXfac, y,
+		"\x13",
+		DTA_CellX, 8 * CleanXfac,
+		DTA_CellY, 8 * CleanYfac,
+		TAG_DONE);
+}
+
 static void M_PlayerSetupDrawer ()
 {
 	int xo, yo;
@@ -2549,25 +2569,23 @@ static void M_PlayerSetupDrawer ()
 
 	// [BC] NOTE: This part draws the backdrop.
 	{
-		int x = 320 - 88 - 32 + xo, y = ulOldPlayerSetupYOffset + ulLineHeight*3 - 18 + yo;
+		const int x = ( 320 - 88 - 32 + xo ) * CleanXfac_1, y = ( ulOldPlayerSetupYOffset + ulLineHeight*3 - 18 + yo ) * CleanYfac_1;
 
-		x = (x-160)*CleanXfac+(SCREENWIDTH>>1);
-		y = (y-100)*CleanYfac+(SCREENHEIGHT>>1);
 		if (!FireTexture)
 		{
-			screen->Clear (x, y, x + 72 * CleanXfac, y + 80 * CleanYfac-1, 0, 0);
+			screen->Clear (x, y, x + 72 * CleanXfac_1, y + 80 * CleanYfac_1-1, 0, 0);
 		}
 		else
 		{
 			screen->DrawTexture (FireTexture, x, y - 1,
-				DTA_DestWidth, static_cast<int> (72 * CleanXfac),
-				DTA_DestHeight, static_cast<int> (80 * CleanYfac),
+				DTA_DestWidth, 72 * CleanXfac_1,
+				DTA_DestHeight, 80 * CleanYfac_1,
 				DTA_Translation, &FireRemap,
 				DTA_Masked, false,
 				TAG_DONE);
 		}
 
-		M_DrawFrame (x, y, 72*CleanXfac, 80*CleanYfac-1);
+		M_DrawFrame (x, y, 72*CleanXfac_1, 80*CleanYfac_1-1);
 	}
 
 	// [BC] NOTE: This part renders the actual character.
@@ -2600,25 +2618,25 @@ static void M_PlayerSetupDrawer ()
 					tex = TexMan(SpriteFrames[tex->Rotations].Texture[PlayerRotation]);
 				}
 				screen->DrawTexture (tex,
-					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
-					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
-					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, ScaleX),
-					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, ScaleY),
+					(320 - 52 - 32 + xo)*CleanXfac_1,
+					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 4)*CleanYfac_1,
+					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac_1, ScaleX),
+					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac_1, ScaleY),
 					DTA_Translation, translationtables[TRANSLATION_Players](MAXPLAYERS),
 					TAG_DONE);
 			}
 		}
 
 		const char *str = "PRESS SPACE"; // [RC] Color tweak so it sticks out less
-		screen->DrawText (SmallFont, CR_DARKGRAY, 320 - 52 - 32 -
-			SmallFont->StringWidth (str)/2,
-			(ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 3 + 69 ), str,
-			DTA_Clean, true, TAG_DONE);
+		screen->DrawText (SmallFont, CR_DARKGRAY, ( 320 - 52 - 32 -
+			SmallFont->StringWidth (str)/2 ) *  CleanXfac_1,
+			( (ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 3 + 69 ) ) * CleanYfac_1, str,
+			DTA_CleanNoMove_1, true, TAG_DONE);
 		str = PlayerRotation ? "TO SEE FRONT" : "TO SEE BACK";
-		screen->DrawText (SmallFont, CR_DARKGRAY, 320 - 52 - 32 -
-			SmallFont->StringWidth (str)/2,
-			(ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 4 + 69 ), str,
-			DTA_Clean, true, TAG_DONE);
+		screen->DrawText (SmallFont, CR_DARKGRAY, ( 320 - 52 - 32 -
+			SmallFont->StringWidth (str)/2 ) * CleanXfac_1,
+			( (ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 4 + 69 ) ) * CleanYfac_1, str,
+			DTA_CleanNoMove_1, true, TAG_DONE);
 	}
 
 	// [BC] Skulltag doesn't need to draw this.
@@ -2633,9 +2651,9 @@ static void M_PlayerSetupDrawer ()
 	x = SmallFont->StringWidth ("Green") + 8 + PSetupDef.x;
 	color = players[consoleplayer].userinfo.color;
 
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*2+yo, 0.0f, 255.0f, float(RPART(color)), -1);
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*3+yo, 0.0f, 255.0f, float(GPART(color)), -1);
-	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*4+yo, 0.0f, 255.0f, float(BPART(color)), -1);
+	M_DrawPlayerSlider (x, PSetupDef.y + LINEHEIGHT*2+yo, RPART(color));
+	M_DrawPlayerSlider (x, PSetupDef.y + LINEHEIGHT*3+yo, GPART(color));
+	M_DrawPlayerSlider (x, PSetupDef.y + LINEHEIGHT*4+yo, BPART(color));
 
 	// [GRB] Draw class setting
 	int pclass = players[consoleplayer].userinfo.PlayerClass;
@@ -3930,7 +3948,13 @@ void M_Drawer ()
 			screen->DrawText(SmallFont, CR_UNTRANSLATED, 160, y + fontheight + 1, GStrings["TXT_NO"], DTA_Clean, true, TAG_DONE);
 			if (skullAnimCounter < 6)
 			{
-				M_DrawConText(CR_RED, 150, y + (fontheight + 1) * messageSelection, "\xd");
+				screen->DrawText(ConFont, CR_RED,
+					(150 - 160) * CleanXfac + screen->GetWidth() / 2,
+					(y + (fontheight + 1) * messageSelection - 100) * CleanYfac + screen->GetHeight() / 2,
+					"\xd",
+					DTA_CellX, 8 * CleanXfac,
+					DTA_CellY, 8 * CleanYfac,
+					TAG_DONE);
 			}
 		}
 	}

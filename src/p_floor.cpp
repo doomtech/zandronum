@@ -219,7 +219,7 @@ void DFloor::Tick ()
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_StopSectorSequence( m_Sector );
 
-		SN_StopSequence (m_Sector);
+		SN_StopSequence (m_Sector, CHAN_FLOOR);
 
 		if (m_Type == buildStair)
 		{
@@ -785,7 +785,7 @@ bool EV_FloorCrushStop (int tag)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_StopSectorSequence( sec );
 
-			SN_StopSequence (sec);
+			SN_StopSequence (sec, CHAN_FLOOR);
 
 			// [BC] If we're the server, tell clients to destroy the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1294,7 +1294,7 @@ void DElevator::Tick ()
 		}
 
 		// make floor stop sound
-		SN_StopSequence (m_Sector);
+		SN_StopSequence (m_Sector, CHAN_FLOOR);
 
 		m_Sector->floordata = NULL;		//jff 2/22/98
 		m_Sector->ceilingdata = NULL;	//jff 2/22/98
