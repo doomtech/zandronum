@@ -102,20 +102,9 @@ void SERVERCONSOLE_Print( char *pszString )
 #include "p_setup.h"
 #include "doomtype.h"
 #include "r_data.h"
-#include "gl/gl_functions.h"
-#include "gl/gl_texture.h"
-//#include "gl/gl_lights.h"
 
 // [BB] We need the gl nodes even if we don't display anything on the screen, i.e. on the server.
-#include "gl/gl_nodes.cpp"
-/*
-// [BB] This are the necessary things from gl_nodes.cpp
-void gl_CheckNodes(MapData * map) {}
-bool gl_LoadGLNodes(MapData * map) { return false; }
-node_t * gamenodes = NULL;
-int numgamenodes = 0;
-subsector_t * gamesubsectors = NULL;
-*/
+#include "gl/data/gl_nodes.cpp"
 
 #ifdef _WIN32
 
