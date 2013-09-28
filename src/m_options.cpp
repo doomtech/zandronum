@@ -3181,7 +3181,7 @@ CVAR( Int, menu_dmflags2, 512, CVAR_ARCHIVE );
 CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
 
 static menuitem_t SkirmishItems[] = {
-	{ levelslot,"Level",					{&menu_level},			{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ discretes,"Level",					{&menu_level},			{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ discrete,	"Game mode",				{&menu_gamemode},		{16.0}, {0.0}, {0.0}, {GameModeVals} },
 	{ discrete, "Modifier",					{&menu_modifier},		{3.0}, {0.0}, {0.0}, {ModifierVals} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
@@ -3201,6 +3201,30 @@ static menuitem_t SkirmishItems[] = {
 	{ more,		"Start game!",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_StartSkirmishGame} },
 };
 
+// [BB] Update this define if SkirmishItems is altered!
+#define SKIRMISHITEMS_LEVEL_INDEX 0
+
+// [BB]
+static TArray<valuestring_t> SkirmishLevels;
+
+// [BB]
+void InitSkirmishLevelList()
+{
+	SkirmishLevels.Clear();
+	valuestring_t value;
+	for ( int i = 0; i < wadlevelinfos.Size( ); ++i )
+	{
+		value.value = float(i);
+		level_info_t *info = &wadlevelinfos[i];
+		value.name.Format ( "%s - %s", wadlevelinfos[i].mapname, info ? info->LookupLevelName().GetChars() : "" );
+		SkirmishLevels.Push(value);
+	}
+	// [BB] Moved crosshair selection to the HUD menu.
+	SkirmishItems[SKIRMISHITEMS_LEVEL_INDEX].b.numvalues = float(SkirmishLevels.Size());
+	if ( SkirmishLevels.Size() > 0 )
+		SkirmishItems[SKIRMISHITEMS_LEVEL_INDEX].e.valuestrings = &SkirmishLevels[0];
+}
+
 menu_t SkirmishMenu = {
 	"SKIRMISH",
 	0,
@@ -3218,6 +3242,8 @@ menu_t SkirmishMenu = {
 
 void M_Skirmish( void )
 {
+	// [BB] Init list of available levels.
+	InitSkirmishLevelList();
 	M_SwitchMenu( &SkirmishMenu );
 }
 
@@ -4945,25 +4971,6 @@ void M_OptDrawer ()
 					}
 				}
 				break;
-			case levelslot:
-				{
-					char	szMapName[64];
-
-					if ( wadlevelinfos.Size( ) > 0 )
-					{
-						if ( *item->a.intcvar >= static_cast<signed> (wadlevelinfos.Size( )))
-							*item->a.intcvar = 0;
-
-						level_info_t *info = &wadlevelinfos[*item->a.intcvar];
-						sprintf( szMapName, "%s - %s", wadlevelinfos[*item->a.intcvar].mapname, info ? info->LookupLevelName().GetChars() : "" );
-
-						if ( stricmp( szMapName, "(null)" ) == 0 )
-							screen->DrawText( SmallFont, CR_GREY, x, y, "UNKNOWN LEVEL", DTA_Clean, true, TAG_DONE );
-						else
-							screen->DrawText( SmallFont, CR_GREY, x, y, szMapName, DTA_Clean, true, TAG_DONE );
-					}
-				}
-				break;
 
 			case txslider:
 
@@ -5816,20 +5823,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				}
 				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
-			case levelslot:
-				{
-					SHORT	sLevelIdx;
-					
-					sLevelIdx = *item->a.intcvar;
-
-					sLevelIdx--;
-					if ( sLevelIdx < 0 )
-						sLevelIdx = wadlevelinfos.Size( ) - 1;
-
-					*(item->a.intcvar) = sLevelIdx;
-				}
-				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
-				break;
 
 			case txslider:
 				{
@@ -6281,20 +6274,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 					// Finally, set the index in the botspawn slot.
 					Val.Int = lBotIdx;
 					pVar->SetGenericRep( Val, CVAR_Int );
-				}
-				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
-				break;
-			case levelslot:
-				{
-					SHORT	sLevelIdx;
-						
-					sLevelIdx = *(item->a.intcvar);
-
-					sLevelIdx++;
-					if ( sLevelIdx >= static_cast<signed> (wadlevelinfos.Size( )))
-						sLevelIdx = 0;
-
-					*(item->a.intcvar) = sLevelIdx;
 				}
 				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE );
 				break;
