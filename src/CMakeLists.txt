@@ -1011,13 +1011,8 @@ add_executable( zdoom WIN32
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
 set_source_files_properties( sc_man.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h" )
 
-# [BB] Without sound, we don't need gme.
-if( NOT NO_SOUND )
-	set( ZDOOM_LIBS ${ZDOOM_LIBS} gme )
-endif( NOT NO_SOUND )
-
 # [BB] Added GeoIP
-target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb lzma GeoIP )
+target_link_libraries( zdoom ${ZDOOM_LIBS} gme gdtoa dumb lzma GeoIP )
 include_directories( .
 	g_doom
 	g_heretic
