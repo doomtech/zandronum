@@ -146,6 +146,7 @@ static inline const char *MakeSaveSig()
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
 #ifdef unix
+#define HOME_DIR "~/." GAMENAMELOWERCASE
 #define GAME_DIR "." GAMENAMELOWERCASE
 #elif defined(__APPLE__)
 #define GAME_DIR GAMENAME
