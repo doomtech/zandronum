@@ -125,7 +125,6 @@ public:
 	}
 
 	bool CheckBox(const fixed_t *bspcoord);
-	bool CheckBoxFast(const fixed_t *bspcoord);
 };
 
 

@@ -61,7 +61,6 @@
 #include "gl/textures/gl_material.h"
 #include "gl/shaders/gl_shader.h"
 
-
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Bool, gl_precache)

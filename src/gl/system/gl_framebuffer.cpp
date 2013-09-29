@@ -61,10 +61,6 @@
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_templates.h"
 #include "gl/gl_functions.h"
-// [BB] Added include.
-#ifdef _MSC_VER
-#include "../hqnx/hqnx.h"
-#endif
 
 // [BB]
 CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
@@ -100,11 +96,6 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 	swapped = false;
 	Accel2D = true;
 	if (gl.SetVSync!=NULL) gl.SetVSync(vid_vsync);
-
-#ifdef _MSC_VER
-	// [BB] Necessary for the hqnx resizing.
-	InitLUTs();
-#endif
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()

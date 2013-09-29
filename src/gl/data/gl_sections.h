@@ -30,6 +30,7 @@ struct FGLSection
 	TArray<subsector_t *> subsectors;
 	int startloop;
 	int numloops;
+	int validcount;
 
 	FGLSectionLoop *GetLoop(int no);
 };
@@ -37,6 +38,7 @@ struct FGLSection
 extern TArray<FGLSectionLine> SectionLines;
 extern TArray<FGLSectionLoop> SectionLoops;
 extern TArray<FGLSection> Sections;
+extern TArray<int> SectionForSubsector;
 
 inline FGLSectionLine *FGLSectionLoop::GetLine(int no)
 {

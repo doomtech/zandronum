@@ -34,12 +34,13 @@
 **
 */
 
+#include "gl/system/gl_system.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_texture.h"
 #include "c_cvars.h"
 // [BB] hqnx scaling is only supported with the MS compiler.
 #ifdef _MSC_VER
-#include "../hqnx/hqnx.h"
+#include "gl/hqnx/hqnx.h"
 #endif
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
@@ -194,6 +195,13 @@ static unsigned char *hqNxHelper( void (*hqNxFunction) ( int*, unsigned char*, i
 							  int &outWidth,
 							  int &outHeight )
 {
+	static int initdone = false;
+
+	if (!initdone)
+	{
+		InitLUTs();
+		initdone = true;
+	}
 	outWidth = N * inWidth;
 	outHeight = N *inHeight;
 
@@ -229,6 +237,10 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if ( inputTexture->bHasCanvas )
 		return inputBuffer;
 
+	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory.
+	if (gl.shadermodel == 2 || (gl.shadermodel == 3 && inputTexture->bWarped))
+		return inputBuffer;
+
 	switch (inputTexture->UseType)
 	{
 	case FTexture::TEX_Sprite:
@@ -247,6 +259,8 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 
 	if (inputBuffer)
 	{
+		outWidth = inWidth;
+		outHeight = inHeight;
 		int type = gl_texture_hqresize;
 		// hqNx does not preserve the alpha channel so fall back to ScaleNx for such textures
 		if (hasAlpha && type > 3)

@@ -185,19 +185,18 @@ static value_t HqResizeModes[] =
    { 3.0, "Scale4x" },
 // [BB] hqnx scaling is only supported with the MS compiler.
 #ifdef _MSC_VER
-   { 4.0, "Hqn2x" },
-   { 5.0, "Hqn3x" },
-   { 6.0, "Hqn4x" },
+   { 4.0, "hq2x" },
+   { 5.0, "hq3x" },
+   { 6.0, "hq4x" },
 #endif
 };
 
-// [BB]
 #ifdef _MSC_VER
-#define NUM_HQ_RESIZE_MODES 6
+	const float MAXRESIZE = 7.;
 #else
-#define NUM_HQ_RESIZE_MODES 3
+	const float MAXRESIZE = 4.;
 #endif
- 
+
 static value_t HqResizeTargets[] =
 {
    { 0.0, "Everything" },
@@ -235,7 +234,7 @@ menuitem_t GLTextureItems[] = {
 	{ discrete, "Anisotropic filter",		{&gl_texture_filter_anisotropic},{5.0},{0.0}, {0.0}, {Anisotropy} },
 	{ discrete, "Texture Format",			{&gl_texture_format},			{8.0}, {0.0}, {0.0}, {TextureFormats} },
 	{ discrete, "Enable hires textures",	{&gl_texture_usehires},			{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "High Quality Resize mode",	{&gl_texture_hqresize},			{NUM_HQ_RESIZE_MODES + 1.0}, {0.0}, {0.0}, {HqResizeModes} },
+	{ discrete, "High Quality Resize mode",	{&gl_texture_hqresize},			{MAXRESIZE}, {0.0}, {0.0}, {HqResizeModes} },
 	{ discrete, "Resize textures",			{&gl_texture_hqresize_textures},{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Resize sprites",			{&gl_texture_hqresize_sprites},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Resize fonts",				{&gl_texture_hqresize_fonts},	{2.0}, {0.0}, {0.0}, {OnOff} },

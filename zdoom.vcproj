@@ -11062,6 +11062,34 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="hqnx"
+				>
+				<File
+					RelativePath=".\src\gl\hqnx\hq2x.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx\hq3x.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx\hq4x.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx\hqnx.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx\Image.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\hqnx\Image.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="G15 Keyboard"

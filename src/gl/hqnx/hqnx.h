@@ -20,6 +20,8 @@
 #ifndef __HQNX_H__
 #define __HQNX_H__
 
+#pragma warning(disable:4799)
+
 #include "Image.h"
 
 void DLL hq2x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );

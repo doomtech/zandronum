@@ -135,24 +135,20 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	seg->linedef->flags |= ML_MAPPED;
 
-	//if (!gl_render_segs)
+	if (seg->linedef->validcount!=validcount) 
 	{
-		// rendering per linedef as opposed per seg is significantly more efficient
-		// so mark the linedef as rendered here and render it completely.
-		if (seg->linedef->validcount!=validcount) seg->linedef->validcount=validcount;
-		else return;
-	}
+		seg->linedef->validcount=validcount;
 
+		if (gl_render_walls)
+		{
+			SetupWall.Clock();
 
-	if (gl_render_walls)
-	{
-		SetupWall.Clock();
+			GLWall wall;
+			wall.Process(seg, sector, backsector, polysub);
+			rendered_lines++;
 
-		GLWall wall;
-		wall.Process(seg, sector, backsector, polysub);
-		rendered_lines++;
-
-		SetupWall.Unclock();
+			SetupWall.Unclock();
+		}
 	}
 }
 

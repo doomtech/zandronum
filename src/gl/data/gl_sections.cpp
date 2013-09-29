@@ -46,6 +46,8 @@
 TArray<FGLSectionLine> SectionLines;
 TArray<FGLSectionLoop> SectionLoops;
 TArray<FGLSection> Sections;
+TArray<int> SectionForSubsector;
+
 CVAR (Bool, dumpsections, false, 0)
 
 #define ISDONE(no, p) (p[(no)>>3] & (1 << ((no)&7)))
@@ -127,6 +129,7 @@ public:
 		section->subsectors.Clear();
 		section->numloops = 0;
 		section->startloop = SectionLoops.Size();
+		section->validcount = -1;
 		NewLoop();
 	}
 
@@ -407,6 +410,7 @@ public:
 		{
 			FGLSectionLine *ln = &SectionLines[i];
 			seg_t *seg = ln->refseg;
+
 			if (seg != NULL)
 			{
 				seg_t *partner = seg->PartnerSeg;
@@ -462,6 +466,7 @@ public:
 				{
 					SETDONE(subsector-subsectors, processed_subsectors);
 					section->subsectors.Push(subsector);
+					SectionForSubsector[subsector - subsectors] = int(section - &Sections[0]);
 				}
 
 				bool result = AddSubSector(subsector, startpt, &workseg);
@@ -610,6 +615,8 @@ void gl_CreateSections()
 	SectionLines.Clear();
 	SectionLoops.Clear();
 	Sections.Clear();
+	SectionForSubsector.Resize(numsubsectors);
+	memset(&SectionForSubsector[0], -1, numsubsectors * sizeof(SectionForSubsector[0]));
 	FSectionCreator creat;
 	creat.CreateSections();
 	if (dumpsections) DumpSections();

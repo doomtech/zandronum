@@ -535,6 +535,7 @@ void FGLRenderer::RenderTranslucent()
 	gl_RenderState.SetCameraPos(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
 
 	// final pass: translucent stuff
+	gl_RenderState.EnableAlphaTest(true);
 	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -931,7 +932,7 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 	SetViewMatrix(false, false);
 
 	clipper.Clear();
-	angle_t a1 = GLRenderer->FrustumAngle();
+	angle_t a1 = FrustumAngle();
 	clipper.SafeAddClipRangeRealAngles(viewangle+a1, viewangle-a1);
 
 	ProcessScene(toscreen);

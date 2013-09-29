@@ -1117,17 +1117,15 @@ struct subsector_t
 	fixed_t		CenterX, CenterY;
 
 	// subsector related GL data
-	FGLSection *	section;		// section this subsector belongs to
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
 	sector_t *		render_sector;	// The sector this belongs to for rendering
-	int				validcount2;	// Second v
 	fixed_t			bbox[4];		// Bounding box
 	bool			degenerate;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
 
 	// [BL] Constructor to init GZDoom data
-	subsector_t() : render_sector(NULL),  validcount2(0), degenerate(0), hacked(0)
+	subsector_t() : render_sector(NULL), degenerate(0), hacked(0)
 	{
 		bbox[0] = bbox[1] = bbox[2] = bbox[3] = 0;
 		lighthead[0] = lighthead[1] = NULL;

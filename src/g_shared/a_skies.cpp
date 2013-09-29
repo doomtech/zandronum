@@ -40,7 +40,9 @@
 
 // arg0 = Visibility*4 for this skybox
 
-IMPLEMENT_CLASS (ASkyViewpoint)
+IMPLEMENT_POINTY_CLASS (ASkyViewpoint)
+	DECLARE_POINTER(Mate)
+END_POINTERS
 
 // If this actor has no TID, make it the default sky box
 // [BB] The clients don't know the TIDs yet when calling
@@ -150,13 +152,6 @@ void ASkyPicker::PostBeginPlay ()
 // Stacked sectors.
 
 // arg0 = opacity of plane; 0 = invisible, 255 = fully opaque
-
-class AStackPoint : public ASkyViewpoint
-{
-	DECLARE_CLASS (AStackPoint, ASkyViewpoint)
-public:
-	void BeginPlay ();
-};
 
 IMPLEMENT_CLASS (AStackPoint)
 

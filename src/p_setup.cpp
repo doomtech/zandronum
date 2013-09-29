@@ -1773,9 +1773,6 @@ void P_SpawnThings (int position)
 {
 	int numthings = MapThingsConverted.Size();
 
-	// [RH] Spawn slope creating things first.
-	P_SpawnSlopeMakers (&MapThingsConverted[0], &MapThingsConverted[numthings]);
-
 	for (int i=0; i < numthings; i++)
 	{
 		SpawnMapThing (i, &MapThingsConverted[i], position);
@@ -4127,11 +4124,14 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 	}
 
-	// Spawn 3d floors - must be done before spawning things so it can't be done in P_SpawnSpecials
-	P_Spawn3DFloors();
-
 	if (!buildmap)
 	{
+		// [RH] Spawn slope creating things first.
+		P_SpawnSlopeMakers (&MapThingsConverted[0], &MapThingsConverted[MapThingsConverted.Size()]);
+
+		// Spawn 3d floors - must be done before spawning things so it can't be done in P_SpawnSpecials
+		P_Spawn3DFloors();
+
 		times[14].Clock();
 		P_SpawnThings(position);
 

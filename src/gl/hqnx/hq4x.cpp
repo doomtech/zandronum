@@ -5445,6 +5445,7 @@ void DLL InitLUTs()
   }
 }
 
+/*
 int DLL hq4x_32 ( CImage &ImageIn, CImage &ImageOut )
 {
   if ( ImageIn.Convert32To17() != 0 )
@@ -5465,3 +5466,4 @@ int DLL hq4x_32 ( CImage &ImageIn, CImage &ImageOut )
   printf( "\nOK\n" );
   return 0;
 }
+*/
