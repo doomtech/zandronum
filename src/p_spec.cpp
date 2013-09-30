@@ -87,6 +87,8 @@
 #include "unlagged.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
+void P_SetupPortals();
+
 
 // [GrafZahl] Make this message changable by the user! ;)
 CVAR(String, secretmessage, "A Secret is revealed!", CVAR_ARCHIVE)
@@ -1069,6 +1071,102 @@ void DWallLightTransfer::DoTransfer (BYTE lightlevel, int target, BYTE flags)
 	}
 }
 
+//-----------------------------------------------------------------------------
+//
+// Portals
+//
+//-----------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// Upper stacks go in the top sector. Lower stacks go in the bottom sector.
+
+static void SetupFloorPortal (AStackPoint *point)
+{
+	NActorIterator it (NAME_LowerStackLookOnly, point->tid);
+	sector_t *Sector = point->Sector;
+	Sector->FloorSkyBox = static_cast<ASkyViewpoint*>(it.Next());
+	if (Sector->FloorSkyBox != NULL)
+	{
+		Sector->FloorSkyBox->Mate = point;
+		Sector->FloorSkyBox->PlaneAlpha = Scale (point->args[0], OPAQUE, 255);
+	}
+}
+
+static void SetupCeilingPortal (AStackPoint *point)
+{
+	NActorIterator it (NAME_UpperStackLookOnly, point->tid);
+	sector_t *Sector = point->Sector;
+	Sector->CeilingSkyBox = static_cast<ASkyViewpoint*>(it.Next());
+	if (Sector->CeilingSkyBox != NULL)
+	{
+		Sector->CeilingSkyBox->Mate = point;
+		Sector->CeilingSkyBox->PlaneAlpha = Scale (point->args[0], OPAQUE, 255);
+	}
+}
+
+void P_SetupPortals()
+{
+	TThinkerIterator<AStackPoint> it;
+	AStackPoint *pt;
+	TArray<AStackPoint *> points;
+
+	while ((pt = it.Next()))
+	{
+		FName nm = pt->GetClass()->TypeName;
+		if (nm == NAME_UpperStackLookOnly)
+		{
+			SetupFloorPortal(pt);
+		}
+		else if (nm == NAME_LowerStackLookOnly)
+		{
+			SetupCeilingPortal(pt);
+		}
+		pt->special1 = 0;
+		points.Push(pt);
+	}
+
+	for(unsigned i=0;i<points.Size(); i++)
+	{
+		if (points[i]->special1 == 0 && points[i]->Mate != NULL)
+		{
+			for(unsigned j=1;j<points.Size(); j++)
+			{
+				if (points[j]->special1 == 0 && points[j]->Mate != NULL && points[i]->GetClass() == points[j]->GetClass())
+				{
+					fixed_t deltax1 = points[i]->Mate->x - points[i]->x;
+					fixed_t deltay1 = points[i]->Mate->y - points[i]->y;
+					fixed_t deltax2 = points[j]->Mate->x - points[j]->x;
+					fixed_t deltay2 = points[j]->Mate->y - points[j]->y;
+					if (deltax1 == deltax2 && deltay1 == deltay2)
+					{
+						if (points[j]->Sector->FloorSkyBox == points[j])
+							points[j]->Sector->FloorSkyBox == points[i];
+
+						if (points[j]->Sector->CeilingSkyBox == points[j])
+							points[j]->Sector->CeilingSkyBox == points[i];
+
+						points[j]->special1 = 1;
+						break;
+					}
+
+				}
+			}
+		}
+	}
+}
+
+inline void SetPortal(sector_t *sector, INTBOOL ceiling, AStackPoint *portal)
+{
+	if (ceiling)
+	{
+		if (sector->CeilingSkyBox == NULL) sector->CeilingSkyBox = portal;
+	}
+	else
+	{
+		if (sector->FloorSkyBox == NULL) sector->FloorSkyBox = portal;
+	}
+}
+
 void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
 {
 	for (int i=0;i<numlines;i++)
@@ -1099,15 +1197,32 @@ void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
 
 		    for (int s=-1; (s = P_FindSectorFromTag(sectortag,s)) >= 0;)
 			{
-				if (ceiling)
+				SetPortal(&sectors[s], ceiling, reference);
+			}
+
+			for (int j=0;j<numlines;j++)
+			{
+				// Check if this portal needs to be copied to other sectors
+				// This must be done here to ensure that it gets done only after the portal is set up
+				if (lines[i].special == Sector_SetPortal &&
+					lines[i].args[1] == 1 &&
+					lines[i].args[2] == ceiling &&
+					lines[i].args[3] == sectortag)
 				{
-					if (sectors[s].CeilingSkyBox == NULL) sectors[s].CeilingSkyBox = reference;
-				}
-				else
-				{
-					if (sectors[s].FloorSkyBox == NULL) sectors[s].FloorSkyBox = reference;
+					if (lines[i].args[0] == 0)
+					{
+						SetPortal(lines[i].frontsector, ceiling, reference);
+					}
+					else
+					{
+						for (int s=-1; (s = P_FindSectorFromTag(lines[i].args[0],s)) >= 0;)
+						{
+							SetPortal(&sectors[s], ceiling, reference);
+						}
+					}
 				}
 			}
+
 			return;
 		}
 	}
@@ -1124,6 +1239,8 @@ void P_SpawnSpecials (void)
 {
 	sector_t *sector;
 	int i;
+
+	P_SetupPortals();
 
 	//	Init special SECTORs.
 	sector = sectors;

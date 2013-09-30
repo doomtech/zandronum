@@ -237,7 +237,7 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if ( inputTexture->bHasCanvas )
 		return inputBuffer;
 
-	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory.
+	// [BB] Don't upsample non-shader handled warped textures. Needs too much memory and time
 	if (gl.shadermodel == 2 || (gl.shadermodel == 3 && inputTexture->bWarped))
 		return inputBuffer;
 

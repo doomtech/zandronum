@@ -152,6 +152,10 @@ public:
 	FMaterial(FTexture *tex, bool forceexpand);
 	~FMaterial();
 	void Precache();
+	bool isMasked() const
+	{
+		return !!mBaseLayer->tex->bMasked;
+	}
 
 	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0);

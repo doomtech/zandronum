@@ -79,7 +79,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	
 
 	if (actor->RenderFlags & RF_INVISIBLE) return;
-	if (type==RENDERWALL_FFBLOCK && gltexture->tex->bMasked) return;	// No decals on 3D floors with transparent textures.
+	if (type==RENDERWALL_FFBLOCK && gltexture->isMasked()) return;	// No decals on 3D floors with transparent textures.
 
 	//if (actor->sprite != 0xffff)
 	{

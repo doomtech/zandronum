@@ -272,10 +272,9 @@ BYTE *FGLTexture::WarpBuffer(BYTE *buffer, int Width, int Height, int warp)
 //
 //===========================================================================
 
-unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, int & h, bool expand, FTexture *hirescheck, int warp)
+unsigned char * FGLTexture::CreateTexBuffer(int cm, int translation, int & w, int & h, bool expand, FTexture *hirescheck, int warp)
 {
 	unsigned char * buffer;
-	intptr_t cm = _cm;
 	int W, H;
 
 
@@ -283,7 +282,7 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, i
 	// by hires textures
 	if (gl_texture_usehires && hirescheck != NULL)
 	{
-		buffer = LoadHiresTexture (hirescheck, &w, &h, _cm);
+		buffer = LoadHiresTexture (hirescheck, &w, &h, cm);
 		if (buffer)
 		{
 			return buffer;
@@ -337,10 +336,10 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, i
 	// [BB] Potentially upsample the buffer. Note: Even is the buffer is not upsampled,
 	// w, h are set to the width and height of the buffer.
 	// Also don't upsample warped textures.
-	else if (bIsTransparent != 1)
+	else //if (bIsTransparent != 1)
 	{
 		// [BB] Potentially upsample the buffer.
-		buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, ( bIsTransparent == 1 ) || ( cm == CM_SHADE ) );
+		buffer = gl_CreateUpsampledTextureBuffer ( tex, buffer, W, H, w, h, bIsTransparent || cm == CM_SHADE );
 	}
 	currentwarp = warp;
 	currentwarptime = gl_frameMS;

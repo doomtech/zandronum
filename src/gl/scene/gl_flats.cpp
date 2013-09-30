@@ -466,7 +466,7 @@ inline void GLFlat::PutFlat(bool fog)
 		};
 
 		bool light = gl_forcemultipass;
-		bool masked = gltexture->tex->bMasked && ((renderflags&SSRF_RENDER3DPLANES) || stack);
+		bool masked = gltexture->isMasked() && ((renderflags&SSRF_RENDER3DPLANES) || stack);
 
 		if (!gl_fixedcolormap)
 		{
