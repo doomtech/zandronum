@@ -197,9 +197,9 @@ bool P_MoveThing(AActor *source, fixed_t x, fixed_t y, fixed_t z, bool fog)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
-		source->PrevX=x;
-		source->PrevY=y;
-		source->PrevZ=z;
+		source->LastX = source->PrevX = x;
+		source->LastY = source->PrevY = y;
+		source->LastZ = source->PrevZ = z;
 
 		ULONG ulFlags = 0;
 		if ( oldx != source->x )

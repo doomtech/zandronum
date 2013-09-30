@@ -48,6 +48,9 @@ __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE
 
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm);
 
+extern int fogdensity;
+extern int outsidefogdensity;
+extern int skyfog;
 
 
 #endif

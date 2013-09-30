@@ -383,6 +383,10 @@ void OpenGLFrameBuffer::StateChanged(AActor *actor)
 void OpenGLFrameBuffer::StartSerialize(FArchive &arc)
 {
 	gl_DeleteAllAttachedLights();
+	if (SaveVersion >= 2058)
+	{
+		arc << fogdensity << outsidefogdensity << skyfog;
+	}
 }
 
 void OpenGLFrameBuffer::EndSerialize(FArchive &arc)

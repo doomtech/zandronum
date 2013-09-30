@@ -101,9 +101,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			if (ceiling && GLPortal::inlowerstack) return;
 			if (!ceiling && GLPortal::inupperstack) return;
 			type=RENDERWALL_SECTORSTACK;
-			stackinfo.deltax = skyboxx->Mate->x - skyboxx->x;
-			stackinfo.deltay = skyboxx->Mate->y - skyboxx->y;
-			stackinfo.deltaz = 0;
+			stackinfo.origin = skyboxx;
 			stackinfo.isupper= ceiling;
 			stack=&stackinfo;
 		}

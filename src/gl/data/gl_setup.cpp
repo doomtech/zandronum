@@ -64,6 +64,7 @@
 void InitGLRMapinfoData();
 void gl_InitData();
 extern bool gl_disabled;
+void gl_InitPortals();
 
 //==========================================================================
 //
@@ -742,6 +743,8 @@ void gl_PreprocessLevel()
 		sectors[i].sectornum = i;
 		PrepareTransparentDoors(&sectors[i]);
 	}
+
+	gl_InitPortals();
 
 	for(i=0;i<numsides;i++) 
 	{

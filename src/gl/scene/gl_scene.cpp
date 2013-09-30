@@ -566,6 +566,7 @@ void FGLRenderer::DrawScene(bool toscreen)
 	static int recursion=0;
 
 	CreateScene();
+	GLRenderer->mCurrentPortal = NULL;	// this must be reset before any portal recursion takes place.
 
 	// Up to this point in the main draw call no rendering is performed so we can wait
 	// with swapping the render buffer until now.

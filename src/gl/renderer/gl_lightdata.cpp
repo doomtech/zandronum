@@ -58,9 +58,9 @@
 
 // externally settable lighting properties
 static float distfogtable[2][256];	// light to fog conversion table for black fog
-static int fogdensity;
 static PalEntry outsidefogcolor;
-static int outsidefogdensity;
+int fogdensity;
+int outsidefogdensity;
 int skyfog;
 
 CUSTOM_CVAR (Int, gl_light_ambient, 20, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)

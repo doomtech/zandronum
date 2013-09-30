@@ -208,16 +208,19 @@ void gl_ParseVavoomSkybox()
 				if (maplump==-1) 
 					Printf("Texture '%s' not found in Vavoom skybox '%s'\n", sc.String, sb->Name);
 
-				sb->faces[facecount] = FTexture::CreateTexture(maplump, FTexture::TEX_Wall);
-				if (!sb->faces[facecount])
-					Printf("Unable to create texture from '%s' in Vavoom skybox '%s'\n", sc.String, sb->Name);
+				FTextureID tex = TexMan.FindTextureByLumpNum(maplump);
+				if (!tex.isValid())
+				{
+					tex = TexMan.CreateTexture(maplump, FTexture::TEX_MiscPatch);
+				}
+				sb->faces[facecount] = TexMan[tex];
 				sc.MustGetStringName("}");
 			}
 			facecount++;
 		}
 		if (facecount != 6)
 		{
-			sc.ScriptError("%s: Vavoom skybox definition requires 6 faces", sb->Name);
+			sc.ScriptError("%s: Skybox definition requires 6 faces", sb->Name);
 		}
 		sb->SetSize();
 		TexMan.AddTexture(sb);

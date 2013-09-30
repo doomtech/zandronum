@@ -12,6 +12,7 @@ class OpenGLFrameBuffer;
 struct FDrawInfo;
 struct pspdef_t;
 class FShaderManager;
+class GLPortal;
 
 extern int extralight;
 
@@ -44,7 +45,7 @@ class FGLRenderer
 public:
 
 	OpenGLFrameBuffer *framebuffer;
-	line_t * mirrorline;
+	GLPortal *mCurrentPortal;
 	int mMirrorCount;
 	int mPlaneMirrorCount;
 	int mLightCount;
@@ -71,7 +72,7 @@ public:
 	FGLRenderer(OpenGLFrameBuffer *fb) 
 	{
 		framebuffer = fb;
-		mirrorline = NULL;
+		mCurrentPortal = NULL;
 		mMirrorCount = 0;
 		mPlaneMirrorCount = 0;
 		mLightCount = 0;

@@ -44,6 +44,7 @@
 #include "vectors.h"
 #include "c_dispatch.h"
 #include "doomstat.h"
+#include "a_sharedglobal.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
@@ -290,7 +291,6 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	savedviewactor=GLRenderer->mViewActor;
 	savedviewangle=viewangle;
 	savedviewarea=in_area;
-	GLRenderer->mirrorline=NULL;
 	PortalAll.Unclock();
 	return true;
 }
@@ -435,7 +435,6 @@ void GLPortal::StartFrame()
 	if (renderdepth==0)
 	{
 		inskybox=inupperstack=inlowerstack=false;
-		GLRenderer->mirrorline=NULL;
 	}
 	renderdepth++;
 }
@@ -592,9 +591,10 @@ void GLSkyboxPortal::DrawContents()
 
 	gl.Disable(GL_DEPTH_CLAMP_NV);
 
-	viewx = origin->x;
-	viewy = origin->y;
-	viewz = origin->z;
+	viewx = origin->PrevX + FixedMul(r_TicFrac, origin->x - origin->PrevX);
+	viewy = origin->PrevY + FixedMul(r_TicFrac, origin->y - origin->PrevY);
+	viewz = origin->PrevZ + FixedMul(r_TicFrac, origin->z - origin->PrevZ);
+	viewangle += origin->PrevAngle + FixedMul(r_TicFrac, origin->angle - origin->PrevAngle);
 
 	// Don't let the viewpoint be too close to a floor or ceiling!
 	fixed_t floorh = origin->Sector->floorplane.ZatPoint(origin->x, origin->y);
@@ -602,7 +602,6 @@ void GLSkyboxPortal::DrawContents()
 	if (viewz<floorh+4*FRACUNIT) viewz=floorh+4*FRACUNIT;
 	if (viewz>ceilh-4*FRACUNIT) viewz=ceilh-4*FRACUNIT;
 
-	viewangle += origin->angle;
 
 	GLRenderer->mViewActor = origin;
 
@@ -628,10 +627,14 @@ void GLSkyboxPortal::DrawContents()
 //-----------------------------------------------------------------------------
 void GLSectorStackPortal::DrawContents()
 {
-	viewx -= origin->deltax;
-	viewy -= origin->deltay;
-	viewz -= origin->deltaz;
+	FPortal *portal = &::portals[origin->origin->special1];
+	portal->UpdateClipAngles();
+
+	viewx += origin->origin->x - origin->origin->Mate->x;
+	viewy += origin->origin->y - origin->origin->Mate->y;
 	GLRenderer->mViewActor = NULL;
+	GLRenderer->mCurrentPortal = this;
+
 
 	validcount++;
 
@@ -642,6 +645,76 @@ void GLSectorStackPortal::DrawContents()
 	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
 	ClearClipper();
 	GLRenderer->DrawScene();
+}
+
+//-----------------------------------------------------------------------------
+//
+// GLSectorStackPortal::ClipSeg
+//
+//-----------------------------------------------------------------------------
+int GLSectorStackPortal::ClipSeg(seg_t *seg) 
+{ 
+	FPortal *portal = &::portals[origin->origin->special1];
+	angle_t *angles = &portal->ClipAngles[0];
+	unsigned numpoints = portal->ClipAngles.Size()-1;
+	angle_t clipangle = seg->v1->GetClipAngle();
+	unsigned i, j;
+
+	for(i=0;i<numpoints; i++)
+	{
+		if (angles[i+1] - clipangle <= ANGLE_180 && angles[i] - clipangle > ANGLE_180)
+		{
+			int relation = DMulScale32(seg->v1->y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
+				portal->Shape[i]->x - seg->v1->x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
+			if (relation > 0) return PClip_InFront;
+			if (relation < 0) return PClip_Inside;
+			break;
+		}
+	}
+	
+	// The first vertex lies on the outline so we have to check the second one, too
+	clipangle = seg->v2->GetClipAngle();
+	for(j=0;j<numpoints; j++)
+	{
+		if (angles[j+1] - clipangle <= ANGLE_180 && angles[j] - clipangle > ANGLE_180)
+		{
+			int relation = DMulScale32(seg->v2->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
+				portal->Shape[j]->x - seg->v2->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
+			if (relation > 0) return PClip_InFront;
+			if (relation < 0) return PClip_Inside;
+			break;
+		}
+	}
+
+	if (i == j) return PClip_InFront;
+	else return PClip_Inside;
+}
+
+
+//-----------------------------------------------------------------------------
+//
+// GLSectorStackPortal::ClipPoint
+//
+//-----------------------------------------------------------------------------
+int GLSectorStackPortal::ClipPoint(fixed_t x, fixed_t y) 
+{ 
+	FPortal *portal = &::portals[origin->origin->special1];
+	angle_t *angles = &portal->ClipAngles[0];
+	unsigned numpoints = portal->ClipAngles.Size()-1;
+	angle_t clipangle = R_PointToPseudoAngle(viewx, viewy, x, y);
+	unsigned i;
+
+	for(i=0;i<numpoints; i++)
+	{
+		if (clipangle >= angles[i] && clipangle < angles[i+1])
+		{
+			int relation = DMulScale32(y - portal->Shape[i]->y, portal->Shape[i+1]->x - portal->Shape[i]->x,
+				portal->Shape[i]->x - x, portal->Shape[i+1]->y - portal->Shape[i]->y);
+			if (relation > 0) return PClip_InFront;
+			return PClip_Inside;
+		}
+	}
+	return PClip_Inside;
 }
 
 
@@ -707,16 +780,16 @@ void GLMirrorPortal::DrawContents()
 		return;
 	}
 
-	GLRenderer->mirrorline=linedef;
+	GLRenderer->mCurrentPortal = this;
 	angle_t startang = viewangle;
 	fixed_t startx = viewx;
 	fixed_t starty = viewy;
 
-	vertex_t *v1 = GLRenderer->mirrorline->v1;
-	vertex_t *v2 = GLRenderer->mirrorline->v2;
+	vertex_t *v1 = linedef->v1;
+	vertex_t *v2 = linedef->v2;
 
 	// Reflect the current view behind the mirror.
-	if (GLRenderer->mirrorline->dx == 0)
+	if (linedef->dx == 0)
 	{ 
 		// vertical mirror
 		viewx = v1->x - startx + v1->x;
@@ -725,7 +798,7 @@ void GLMirrorPortal::DrawContents()
 		if (startx<v1->x)  viewx -= FRACUNIT/2;
 		else viewx += FRACUNIT/2;
 	}
-	else if (GLRenderer->mirrorline->dy == 0)
+	else if (linedef->dy == 0)
 	{ 
 		// horizontal mirror
 		viewy = v1->y - starty + v1->y;
@@ -760,8 +833,8 @@ void GLMirrorPortal::DrawContents()
 		viewy+= FLOAT2FIXED(v[0] * renderdepth / 2);
 	}
 	// we cannot afford any imprecisions caused by R_PointToAngle2 here. They'd be visible as seams around the mirror.
-	viewangle = 2*R_PointToAnglePrecise (GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y,
-										GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y) - startang;
+	viewangle = 2*R_PointToAnglePrecise (linedef->v1->x, linedef->v1->y,
+										linedef->v2->x, linedef->v2->y) - startang;
 
 	GLRenderer->mViewActor = NULL;
 
@@ -777,15 +850,36 @@ void GLMirrorPortal::DrawContents()
 
 	// [BB] Spleen found out that the caching of the view angles doesn't work for mirrors
 	// (kills performance and causes rendering defects).
-	//angle_t a2 = GLRenderer->mirrorline->v1->GetClipAngle();
-	//angle_t a1 = GLRenderer->mirrorline->v2->GetClipAngle();
-	angle_t a2=R_PointToAngle(GLRenderer->mirrorline->v1->x, GLRenderer->mirrorline->v1->y);
-	angle_t a1=R_PointToAngle(GLRenderer->mirrorline->v2->x, GLRenderer->mirrorline->v2->y);
+	//angle_t a2 = linedef->v1->GetClipAngle();
+	//angle_t a1 = linedef->v2->GetClipAngle();
+	angle_t a2=R_PointToAngle(linedef->v1->x, linedef->v1->y);
+	angle_t a1=R_PointToAngle(linedef->v2->x, linedef->v2->y);
 	clipper.SafeAddClipRange(a1,a2);
 
 	GLRenderer->DrawScene();
 
 	MirrorFlag--;
+}
+
+
+int GLMirrorPortal::ClipSeg(seg_t *seg) 
+{ 
+	// this seg is completely behind the mirror!
+	if (P_PointOnLineSide(seg->v1->x, seg->v1->y, linedef) &&
+		P_PointOnLineSide(seg->v2->x, seg->v2->y, linedef)) 
+	{
+		return PClip_InFront;
+	}
+	return PClip_Inside; 
+}
+
+int GLMirrorPortal::ClipPoint(fixed_t x, fixed_t y) 
+{ 
+	if (P_PointOnLineSide(x, y, linedef)) 
+	{
+		return PClip_InFront;
+	}
+	return PClip_Inside; 
 }
 
 

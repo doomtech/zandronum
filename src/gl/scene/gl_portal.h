@@ -42,6 +42,8 @@
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/utility/gl_templates.h"
 
+class ASkyViewpoint;
+
 struct GLHorizonInfo
 {
 	GLSectorPlane plane;
@@ -72,9 +74,7 @@ struct GLSkyInfo
 
 struct GLSectorStackInfo
 {
-	fixed_t deltax;
-	fixed_t deltay;
-	fixed_t deltaz;
+	ASkyViewpoint *origin;
 	bool isupper;	
 };
 
@@ -89,7 +89,7 @@ class GLPortal
 {
 	static TArray<GLPortal *> portals;
 	static int recursion;
-	static GLuint QueryObject;
+	static unsigned int QueryObject;
 protected:
 	static int MirrorFlag;
 	static int PlaneMirrorFlag;
@@ -110,7 +110,7 @@ private:
 	angle_t savedviewangle;
 	AActor * savedviewactor;
 	area_t savedviewarea;
-	GLboolean clipsave;
+	unsigned char clipsave;
 
 protected:
 	TArray<GLWall> lines;
@@ -131,6 +131,14 @@ protected:
 	virtual const char *GetName() = 0;
 
 public:
+
+	enum
+	{
+		PClip_InFront,
+		PClip_Inside,
+		PClip_Behind
+	};
+
 	void RenderPortal(bool usestencil, bool doquery)
 	{
 		// Start may perform an occlusion query. If that returns 0 there
@@ -153,6 +161,8 @@ public:
 		return recursion;
 	}
 
+	virtual int ClipSeg(seg_t *seg) { return PClip_Inside; }
+	virtual int ClipPoint(fixed_t x, fixed_t y) { return PClip_Inside; }
 
 	static void BeginScene();
 	static void StartFrame();
@@ -180,6 +190,8 @@ public:
 	}
 
 	virtual bool NeedCap() { return false; }
+	virtual int ClipSeg(seg_t *seg);
+	virtual int ClipPoint(fixed_t x, fixed_t y);
 };
 
 
@@ -242,6 +254,8 @@ public:
 	{
 		origin=pt;
 	}
+	int ClipSeg(seg_t *seg);
+	int ClipPoint(fixed_t x, fixed_t y);
 
 };
 

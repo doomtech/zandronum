@@ -424,6 +424,13 @@ const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int
 			hwtex = CreateTexture(clampmode);
 		}
 
+		// Texture has become invalid
+		else if ((warp == 0 && !tex->bHasCanvas) && tex->CheckModified())
+		{
+			Clean(true);
+			hwtex = CreateTexture(clampmode);
+		}
+
 		// Bind it to the system.
 		if (!hwtex->Bind(texunit, cm, translation))
 		{
@@ -478,6 +485,14 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 			Clean(true);
 			CreatePatch();
 		}
+
+		// Texture has become invalid
+		else if ((warp == 0 && !tex->bHasCanvas) && tex->CheckModified())
+		{
+			Clean(true);
+			CreatePatch();
+		}
+
 
 		// Bind it to the system. 
 		if (!glpatch->Bind(texunit, cm, translation))

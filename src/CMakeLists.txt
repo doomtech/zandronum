@@ -618,6 +618,7 @@ if( NOT NO_GL )
 	set( GL_SOURCES
 		gl/data/gl_data.cpp
 		gl/data/gl_nodes.cpp
+		gl/data/gl_portaldata.cpp
 		gl/data/gl_sections.cpp
 		gl/data/gl_setup.cpp
 		gl/data/gl_vertexbuffer.cpp

@@ -10902,6 +10902,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\data\gl_portaldata.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\data\gl_sections.cpp"
 					>
 				</File>

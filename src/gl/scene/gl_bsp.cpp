@@ -47,6 +47,7 @@
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_clipper.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/scene/gl_wall.h"
 #include "gl/utility/gl_clock.h"
 
@@ -73,14 +74,10 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	sector_t * backsector = NULL;
 	sector_t bs;
 
-	if (GLRenderer->mirrorline)
+	if (GLRenderer->mCurrentPortal)
 	{
-		// this seg is completely behind the mirror!
-		if (P_PointOnLineSide(seg->v1->x, seg->v1->y, GLRenderer->mirrorline) &&
-			P_PointOnLineSide(seg->v2->x, seg->v2->y, GLRenderer->mirrorline)) 
-		{
-			return;
-		}
+		int clipres = GLRenderer->mCurrentPortal->ClipSeg(seg);
+		if (clipres == GLPortal::PClip_InFront) return;
 	}
 
 	startAngle = seg->v2->GetClipAngle();
