@@ -57,8 +57,6 @@ int GetCeilingLight (const sector_t *sec);
 
 
 // This is for debugging maps.
-CVAR(Bool, gl_notexturefill, false, 0);
-
 
 FreeList<gl_subsectorrendernode> SSR_List;
 
@@ -676,7 +674,7 @@ void FDrawInfo::DrawUnhandledMissingTextures()
 		if (seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum) continue;
 		if (seg->backsector->CeilingSkyBox && seg->backsector->CeilingSkyBox->bAlways) continue;
 
-		if (!gl_notexturefill) FloodUpperGap(seg);
+		if (!glset.notexturefill) FloodUpperGap(seg);
 	}
 
 	validcount++;
@@ -696,7 +694,7 @@ void FDrawInfo::DrawUnhandledMissingTextures()
 		if (seg->backsector->GetTexture(sector_t::floor)==skyflatnum) continue;
 		if (seg->backsector->FloorSkyBox && seg->backsector->FloorSkyBox->bAlways) continue;
 
-		if (!gl_notexturefill) FloodLowerGap(seg);
+		if (!glset.notexturefill) FloodLowerGap(seg);
 	}
 	MissingUpperTextures.Clear();
 	MissingLowerTextures.Clear();

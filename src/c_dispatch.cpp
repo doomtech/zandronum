@@ -1416,6 +1416,9 @@ void FConsoleAlias::SafeDelete ()
 
 static BYTE PullinBad = 2;
 static const char *PullinFile;
+extern TArray<FString> allwads;
+// [BB]
+extern TArray<FString> autoloadedwads;
 
 int C_ExecFile (const char *file, bool usePullin)
 {
@@ -1532,7 +1535,9 @@ CCMD (pullin)
 						FixPathSeperator (path);
 					}
 				}
-				D_AddFile (path, true, true);	// [BC]
+				// [BB] We consider this file as loaded automatically.
+				if ( D_AddFile (allwads, path) )
+					autoloadedwads.Push ( allwads[ allwads.Size() - 1 ] );
 				if (path != argv[i])
 				{
 					delete[] path;

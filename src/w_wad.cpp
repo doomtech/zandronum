@@ -56,6 +56,10 @@
 #include "doomerrors.h"
 #include "resourcefiles/resourcefile.h"
 
+// [BB]
+extern TArray<FString> allwads;
+extern TArray<FString> autoloadedwads;
+
 // MACROS ------------------------------------------------------------------
 
 #define NULL_INDEX		(0xffffffff)
@@ -160,7 +164,7 @@ void FWadCollection::DeleteAll ()
 //
 //==========================================================================
 
-void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
+void FWadCollection::InitMultipleFiles (/*TArray<FString> &filenames*/) // [BB] Removed argument.
 {
 	int numfiles;
 
@@ -168,14 +172,20 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 	DeleteAll();
 	numfiles = 0;
 
-	while (*filenames)
+	for(unsigned i=0;i<allwads.Size(); i++) // [BB] Changed to allwads.
 	{
-		wadlist_t *next = (*filenames)->next;
 		int baselump = NumLumps;
-		// [BC] Added the "loaded automatically" parameter.
-		AddFile ((*filenames)->name, NULL, (*filenames)->bLoadedAutomatically);
-		M_Free (*filenames);
-		*filenames = next;
+		// [BB] Special handling for automatically loded wads.
+		bool bLoadedAutomatically = false;
+		for ( unsigned int j = 0; j < autoloadedwads.Size(); ++j )
+		{
+			if ( autoloadedwads[j] == allwads[i] )
+			{
+				bLoadedAutomatically = true;
+				break;
+			}
+		}
+		AddFile (allwads[i], NULL, bLoadedAutomatically);
 	}
 
 	NumLumps = LumpInfo.Size();
@@ -224,7 +234,7 @@ int FWadCollection::AddExternalFile(const char *filename)
 //==========================================================================
 
 // [BC] Edited a little.
-void FWadCollection::AddFile (char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
+void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
 {
 	int startlump;
 	bool isdir = false;
@@ -254,7 +264,6 @@ void FWadCollection::AddFile (char *filename, FileReader *wadinfo, bool bLoadedA
 				return;
 			}
 		}
-		FixPathSeperator(filename);
 	}
 
 	// [BC] Mark whether or not the wad was loaded automatically.

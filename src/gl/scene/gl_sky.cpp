@@ -52,7 +52,6 @@
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_convert.h"
 
-EXTERN_CVAR(Bool, gl_notexturefill);
 CVAR(Bool,gl_noskyboxes, false, 0)
 extern int skyfog;
 

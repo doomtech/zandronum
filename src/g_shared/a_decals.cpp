@@ -671,7 +671,7 @@ DImpactDecal *DImpactDecal::StaticCreate (const char *name, fixed_t x, fixed_t y
 
 DImpactDecal *DImpactDecal::StaticCreate (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_t *wall, F3DFloor * ffloor, PalEntry color)
 {
- 	DImpactDecal *decal = NULL;
+	DImpactDecal *decal = NULL;
 	if (tpl != NULL && cl_maxdecals > 0 && !(wall->Flags & WALLF_NOAUTODECALS))
 	{
 		if (tpl->LowerDecal)

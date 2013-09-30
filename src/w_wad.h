@@ -48,19 +48,6 @@ struct wadlump_t
 #define IWAD_ID		MAKE_ID('I','W','A','D')
 #define PWAD_ID		MAKE_ID('P','W','A','D')
 
-
-// [RH] Remove limit on number of WAD files
-struct wadlist_t
-{
-	wadlist_t *next;
-
-	// [BC] Is this a file that was added automatically from a subdirectory?
-	bool	bLoadedAutomatically;
-
-	char name[1];	// +size of string
-};
-extern wadlist_t *wadfiles;
-
 // [RH] Namespaces from BOOM.
 typedef enum {
 	ns_global = 0,
@@ -158,8 +145,8 @@ public:
 	// The wadnum for the IWAD
 	enum { IWAD_FILENUM = 1 };
 
-	void InitMultipleFiles (wadlist_t **filenames);
-	void AddFile (char *filename, FileReader *wadinfo = NULL, bool bLoadedAutomatically = false);	// [BC]
+	void InitMultipleFiles (/*TArray<FString> &filenames*/); // [BB] Removed argument.
+	void AddFile (const char *filename, FileReader *wadinfo = NULL, bool bLoadedAutomatically = false);	// [BC]
 	int CheckIfWadLoaded (const char *name);
 
 	const char *GetWadName (int wadnum) const;

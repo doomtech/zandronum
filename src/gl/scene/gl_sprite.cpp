@@ -701,7 +701,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		trans=1.f;
 		
 
-		if (!gl_sprite_blend)
+		if (!gl_sprite_blend || modelframe)
 		{
 			RenderStyle.SrcAlpha = STYLEALPHA_One;
 			RenderStyle.DestAlpha = STYLEALPHA_Zero;

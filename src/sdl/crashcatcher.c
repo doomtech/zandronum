@@ -9,6 +9,12 @@
 #include <string.h>
 #include <errno.h>
 
+// Solaris doesn't have SA_ONESHOT
+// According to the Linux header this is the same.
+#ifndef SA_ONESHOT
+#define SA_ONESHOT SA_RESETHAND
+#endif
+
 #ifdef __linux__
 #include <sys/prctl.h>
 #ifndef PR_SET_PTRACER

@@ -78,6 +78,11 @@ CUSTOM_CVAR(Float, maxviewpitch, 90.f, CVAR_ARCHIVE|CVAR_SERVERINFO)
 	else if (self<-90.f) self=-90.f;
 }
 
+CUSTOM_CVAR(Bool, gl_notexturefill, false, 0)
+{
+	glset.notexturefill = self;
+}
+
 
 CUSTOM_CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 {
@@ -211,6 +216,7 @@ struct FGLROptions : public FOptionalMapinfoData
 		skyfog = 0;
 		lightmode = -1;
 		nocoloredspritelighting = -1;
+		notexturefill = -1;
 		skyrotatevector = FVector3(0,0,1);
 	}
 	virtual FOptionalMapinfoData *Clone() const
@@ -222,6 +228,7 @@ struct FGLROptions : public FOptionalMapinfoData
 		newopt->skyfog = skyfog;
 		newopt->lightmode = lightmode;
 		newopt->nocoloredspritelighting = nocoloredspritelighting;
+		newopt->notexturefill = notexturefill;
 		newopt->skyrotatevector = skyrotatevector;
 		return newopt;
 	}
@@ -230,6 +237,7 @@ struct FGLROptions : public FOptionalMapinfoData
 	int			skyfog;
 	int			lightmode;
 	SBYTE		nocoloredspritelighting;
+	SBYTE		notexturefill;
 	FVector3	skyrotatevector;
 	FVector3	skyrotatevector2;
 };
@@ -280,6 +288,20 @@ DEFINE_MAP_OPTION(nocoloredspritelighting, false)
 	}
 }
 
+DEFINE_MAP_OPTION(notexturefill, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	if (parse.CheckAssign())
+	{
+		parse.sc.MustGetNumber();
+		opt->notexturefill = !!parse.sc.Number;
+	}
+	else
+	{
+		opt->notexturefill = true;
+	}
+}
+
 DEFINE_MAP_OPTION(skyrotate, false)
 {
 	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
@@ -321,6 +343,7 @@ void InitGLRMapinfoData()
 		gl_SetFogParams(opt->fogdensity, level.info->outsidefog, opt->outsidefogdensity, opt->skyfog);
 		glset.map_lightmode = opt->lightmode;
 		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
+		glset.map_notexturefill = opt->notexturefill;
 		glset.skyrotatevector = opt->skyrotatevector;
 		if (gl.shadermodel == 2 && glset.map_lightmode ==2) glset.map_lightmode = 3;
 	}
@@ -329,6 +352,7 @@ void InitGLRMapinfoData()
 		gl_SetFogParams(0, level.info->outsidefog, 0, 0);
 		glset.map_lightmode = -1;
 		glset.map_nocoloredspritelighting = -1;
+		glset.map_notexturefill = -1;
 		glset.skyrotatevector = FVector3(0,0,1);
 	}
 
@@ -337,6 +361,8 @@ void InitGLRMapinfoData()
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
+	if (glset.map_notexturefill == -1) glset.notexturefill = gl_notexturefill;
+	else glset.notexturefill = !!glset.map_notexturefill;
 }
 
 CCMD(gl_resetmap)
@@ -346,6 +372,8 @@ CCMD(gl_resetmap)
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
+	if (glset.map_notexturefill == -1) glset.notexturefill = gl_notexturefill;
+	else glset.notexturefill = !!glset.map_notexturefill;
 }
 
 

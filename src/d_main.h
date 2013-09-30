@@ -49,8 +49,7 @@ void D_PageTicker (void);
 void D_PageDrawer (void);
 void D_AdvanceDemo (void);
 void D_StartTitle (void);
-// [BC] Added the "bLoadedAutomatically" parameter.
-void D_AddFile (const char *file, bool check = true, bool bLoadedAutomatically = false);
+bool D_AddFile (TArray<FString> &wadfiles, const char *file, bool check = true, int position = -1);
 
 
 // [RH] Set this to something to draw an icon during the next screen refresh.

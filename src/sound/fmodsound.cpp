@@ -45,7 +45,13 @@ extern HWND Window;
 #define TRUE 1
 #endif
 // [BB] FreeBSD doesn't accept malloc.h anymore.
+#if defined(__APPLE__) || defined(__FreeBSD__)
 #include <stdlib.h>
+#elif __sun
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
 
 #include "templates.h"
 #ifndef NO_SOUND

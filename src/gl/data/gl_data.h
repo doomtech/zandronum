@@ -9,9 +9,11 @@ struct GLRenderSettings
 
 	SBYTE lightmode;
 	bool nocoloredspritelighting;
+	bool notexturefill;
 
 	SBYTE map_lightmode;
 	SBYTE map_nocoloredspritelighting;
+	SBYTE map_notexturefill;
 
 	FVector3 skyrotatevector;
 	FVector3 skyrotatevector2;
