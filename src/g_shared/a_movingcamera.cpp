@@ -228,7 +228,6 @@ void APathFollower::BeginPlay ()
 	Super::BeginPlay ();
 	PrevNode = CurrNode = NULL;
 	bActive = false;
-	ChangeStatNum(STAT_ACTORMOVER);
 	// [BB] Init custom Zandronum stuff.
 	bPostBeginPlayCalled = false;
 	bActivateCalledBeforePostBeginPlay = false;
@@ -578,6 +577,7 @@ class AActorMover : public APathFollower
 {
 	DECLARE_CLASS (AActorMover, APathFollower)
 public:
+	void BeginPlay();
 	void PostBeginPlay ();
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
@@ -586,6 +586,11 @@ protected:
 };
 
 IMPLEMENT_CLASS (AActorMover)
+
+void AActorMover::BeginPlay()
+{
+	ChangeStatNum(STAT_ACTORMOVER);
+}
 
 void AActorMover::PostBeginPlay ()
 {
