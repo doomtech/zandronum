@@ -1031,9 +1031,6 @@ public:
 	fixed_t PrevX, PrevY, PrevZ;
 	angle_t PrevAngle;
 
-	fixed_t LastX, LastY, LastZ;
-	angle_t LastAngle;
-
 	// [BB] Last tic in which the server sent a xyz-position / movedir update about this actor to the clients.
 	int	lastNetXUpdateTic, lastNetYUpdateTic, lastNetZUpdateTic, lastNetMomXUpdateTic, lastNetMomYUpdateTic, lastNetMomZUpdateTic, lastNetMovedirUpdateTic;
 
