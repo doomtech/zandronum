@@ -154,8 +154,6 @@ EXTERN_CVAR (Bool, screenshot_quiet)
 // [RC] Played when a chat message arrives. Values: off, default, Doom 1 (dstink), Doom 2 (dsradio).
 CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
 
-extern int	skullAnimCounter;
-
 EXTERN_CVAR (String, name)
 EXTERN_CVAR (Color, color)
 EXTERN_CVAR (String, skin)
@@ -421,7 +419,7 @@ static void MouseOptions (void);
 static void JoystickOptions (void);
 static void GoToConsole (void);
 void M_PlayerSetup (void);
-void M_SkulltagVersionDrawer( void );
+bool M_SkulltagVersionDrawer( void );
 void Reset2Defaults (void);
 void Reset2Saved (void);
 
@@ -2189,7 +2187,7 @@ void M_CallVote( void )
 
 //*****************************************************************************
 //
-void M_SkulltagVersionDrawer( void )
+bool M_SkulltagVersionDrawer( void )
 {
 	ULONG	ulTextHeight;
 	ULONG	ulCurYPos;
@@ -2205,6 +2203,8 @@ void M_SkulltagVersionDrawer( void )
 
 	sprintf( szString, "\"Ask your doctor if it's right for you.\"" );
 	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+
+	return false;
 }
 
 /*=======================================
@@ -2225,7 +2225,7 @@ void M_BuildServerList( void );
 bool M_ScrollServerList( bool bUp );
 LONG M_CalcLastSortedIndex( void );
 bool M_ShouldShowServer( LONG lServer );
-void M_BrowserMenuDrawer( void );
+bool M_BrowserMenuDrawer( void );
 void M_StartInternalBrowse( void );
 
 static	void			browsermenu_SortServers( ULONG ulSortType );
@@ -2341,7 +2341,7 @@ void M_StartInternalBrowse( void )
 
 //*****************************************************************************
 //
-void M_BrowserMenuDrawer( void )
+bool M_BrowserMenuDrawer( void )
 {
 	LONG	lNumServers;
 	char	szString[256];
@@ -2349,6 +2349,8 @@ void M_BrowserMenuDrawer( void )
 	lNumServers = M_CalcLastSortedIndex( );
 	sprintf( szString, "Currently showing %d servers", static_cast<int> (lNumServers) );
 	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
+
+	return false;
 }
 
 //*****************************************************************************
@@ -2703,7 +2705,7 @@ static int STACK_ARGS browsermenu_PlayersCompareFunc( const void *arg1, const vo
  *=======================================*/
 
 void M_ReturnToBrowserMenu( void );
-void M_DrawServerInfo( void );
+bool M_DrawServerInfo( void );
 
 static menuitem_t ServerInfoItems[] =
 {
@@ -2755,7 +2757,7 @@ void M_ReturnToBrowserMenu( void )
 
 //*****************************************************************************
 //
-void M_DrawServerInfo( void )
+bool M_DrawServerInfo( void )
 {
 	ULONG	ulIdx;
 	ULONG	ulCurYPos;
@@ -2763,7 +2765,7 @@ void M_DrawServerInfo( void )
 	char	szString[256];
 
 	if ( g_lSelectedServer == -1 )
-		return;
+		return false;
 
 	ulCurYPos = 32;
 	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
@@ -2858,6 +2860,8 @@ void M_DrawServerInfo( void )
 			ulCurYPos += ulTextHeight;
 		}
 	}
+
+	return false;
 }
 
 //*****************************************************************************
@@ -3931,7 +3935,7 @@ static value_t Anisotropy[] =
 
 CVAR( Float, menu_textsizescalar, 0.0f, 0 )
 
-void	TextScalingMenuDrawer( void );
+bool	TextScalingMenuDrawer( void );
 
 static menuitem_t TextScalingMenuItems[] = {
 	{ discrete,	"Enable text scaling",	{&con_scaletext},		{2.0},	{0.0},	{0.0},	{OnOff} },
@@ -3983,7 +3987,7 @@ void SetupTextScalingMenu( void )
 	M_SwitchMenu( &TextScalingMenu );
 }
 
-void TextScalingMenuDrawer( void )
+bool TextScalingMenuDrawer( void )
 {
 	char		szString[128];
 	UCVarValue	ValWidth;
@@ -4030,6 +4034,8 @@ void TextScalingMenuDrawer( void )
 			DTA_VirtualHeight, ValHeight.Int,
 			TAG_DONE );
 	}
+
+	return false;
 }
 
 static void ActivateConfirm (char *text, void (*func)())
@@ -4383,7 +4389,7 @@ void M_OptDrawer ()
 
 	if (CurrentMenu->PreDraw !=  NULL)
 	{
-		CurrentMenu->PreDraw ();
+		if (CurrentMenu->PreDraw ()) return;
 	}
 
 	if (CurrentMenu->y != 0)
@@ -6557,7 +6563,7 @@ static void DefaultCustomColors ()
 	}
 }
 
-static void ColorPickerDrawer ()
+static bool ColorPickerDrawer ()
 {
 	DWORD newColor = MAKEARGB(255,
 		int(ColorPickerItems[2].a.fval),
@@ -6576,6 +6582,7 @@ static void ColorPickerDrawer ()
 		"Old", DTA_CleanNoMove_1, true, TAG_DONE);
 	screen->DrawText (SmallFont, CR_WHITE, x+(48+24-SmallFont->StringWidth("New")/2)*CleanXfac_1, y,
 		"New", DTA_CleanNoMove_1, true, TAG_DONE);
+	return false;
 }
 
 static void SetColorPickerSliders ()
@@ -6678,7 +6685,7 @@ CCMD (menu_mouse)
 	MouseOptions ();
 }
 
-static void DrawJoystickConfigMenuHeader()
+static bool DrawJoystickConfigMenuHeader()
 {
 	FString joyname = SELECTED_JOYSTICK->GetName();
 	screen->DrawText(BigFont, gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
@@ -6688,6 +6695,7 @@ static void DrawJoystickConfigMenuHeader()
 	screen->DrawText(SmallFont, gameinfo.gametype & GAME_DoomChex ? CR_RED : CR_UNTRANSLATED,
 		(screen->GetWidth() - SmallFont->StringWidth(joyname) * CleanXfac_1) / 2, (8 + BigFont->GetHeight()) * CleanYfac_1,
 		joyname, DTA_CleanNoMove_1, true, TAG_DONE);
+	return false;
 }
 
 static void UpdateJoystickConfigMenu(IJoystickConfig *joy)

@@ -214,10 +214,12 @@ void gl_InitPortals()
 	TThinkerIterator<AStackPoint> it;
 	AStackPoint *pt;
 
+	portals.Clear();
 	while ((pt = it.Next()))
 	{
 		FPortal *portal = NULL;
 		int plane;
+		pt->special1 = -1;
 		for(int i=0;i<numsectors;i++)
 		{
 			if (sectors[i].linecount == 0)
@@ -268,7 +270,7 @@ CCMD(dumpportals)
 			portals[i].origin->x/65536. - portals[i].origin->Mate->x/65536., portals[i].origin->y/65536. - portals[i].origin->Mate->y/65536.);
 		for (unsigned j=0;j<portals[i].Shape.Size(); j++)
 		{
-			Printf("\t(%f,%f)\n", portals[i].Shape[j]->x/65536., portals[i].Shape[j]->y/65536.);
+			Printf("\t(%f,%f)\n", (portals[i].Shape[j]->x + portals[i].xDisplacement)/65536., (portals[i].Shape[j]->y + portals[i].yDisplacement)/65536.);
 		}
 	}
 }

@@ -44,6 +44,7 @@ class PatchTextureInfo
 	friend class FMaterial;
 protected:
 	const FHardwareTexture * glpatch;
+	float SpriteU[2], SpriteV[2];
 
 public:
 	float GetUL() const { return glpatch->GetUL(); }
@@ -52,6 +53,11 @@ public:
 	float GetVB() const { return glpatch->GetVB(); }
 	float GetU(float upix) const { return glpatch->GetU(upix); }
 	float GetV(float vpix) const { return glpatch->GetV(vpix); }
+
+	float GetSpriteUL() const { return SpriteU[0]; }
+	float GetSpriteVT() const { return SpriteV[0]; }
+	float GetSpriteUR() const { return SpriteU[1]; }
+	float GetSpriteVB() const { return SpriteV[1]; }
 };
 
 
@@ -66,6 +72,7 @@ enum ETexUse
 {
 	GLUSE_PATCH,
 	GLUSE_TEXTURE,
+	GLUSE_SPRITE,
 };
 
 
@@ -133,10 +140,10 @@ class FMaterial
 
 	WorldTextureInfo wti;
 	PatchTextureInfo pti;
-	short LeftOffset[2];
-	short TopOffset[2];
-	short Width[2];
-	short Height[2];
+	short LeftOffset[3];
+	short TopOffset[3];
+	short Width[3];
+	short Height[3];
 	short RenderWidth[2];
 	short RenderHeight[2];
 	fixed_t tempScaleX, tempScaleY;
@@ -145,6 +152,7 @@ class FMaterial
 
 	void SetupShader(int shaderindex, int &cm);
 	FGLTexture * ValidateSysTexture(FTexture * tex, bool expand);
+	bool TrimBorders(int *rect);
 
 public:
 	FTexture *tex;
@@ -180,6 +188,7 @@ public:
 
 	void SetWallScaling(fixed_t x, fixed_t y);
 
+	// This is scaled size in integer units as needed by walls and flats
 	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
 	int TextureWidth(ETexUse i) const { return RenderWidth[i]; }
 
@@ -222,6 +231,27 @@ public:
 	int GetScaledTopOffset(ETexUse i) const
 	{
 		return DivScale16(TopOffset[i], tex->yScale);
+	}
+
+	float GetScaledLeftOffsetFloat(ETexUse i) const
+	{
+		return LeftOffset[i] / FIXED2FLOAT(tex->xScale);
+	}
+
+	float GetScaledTopOffsetFloat(ETexUse i) const
+	{
+		return TopOffset[i] / FIXED2FLOAT(tex->yScale);
+	}
+
+	// This is scaled size in floating point as needed by sprites
+	float GetScaledWidthFloat(ETexUse i) const
+	{
+		return Width[i] / FIXED2FLOAT(tex->xScale);
+	}
+
+	float GetScaledHeightFloat(ETexUse i) const
+	{
+		return Height[i] / FIXED2FLOAT(tex->yScale);
 	}
 
 	bool GetTransparent()

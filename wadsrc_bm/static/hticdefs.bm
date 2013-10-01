@@ -343,7 +343,6 @@ brightmap sprite PLAYF4F6
 
 brightmap sprite PLAYF5
 {
-	map "brightmaps/heretic/PLAYf5.png"
 	iwad
 	disablefullbright
 }

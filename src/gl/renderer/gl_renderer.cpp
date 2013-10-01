@@ -334,6 +334,7 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 		u2=1.f;
 		v2=-1.f;
 		u1 = v1 = 0.f;
+		gl_RenderState.SetTextureMode(TM_OPAQUE);
 	}
 	
 	if (parms.flipX)
@@ -373,6 +374,10 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 	gl.Scissor(parms.lclip, btm - parms.dclip + space, parms.rclip - parms.lclip, parms.dclip - parms.uclip);
 	
 	gl_SetRenderStyle(parms.style, !parms.masked, false);
+	if (img->bHasCanvas)
+	{
+		gl_RenderState.SetTextureMode(TM_OPAQUE);
+	}
 
 	gl.Color4f(r, g, b, FIXED2FLOAT(parms.alpha));
 	

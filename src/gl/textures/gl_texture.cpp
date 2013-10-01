@@ -414,7 +414,7 @@ bool FTexture::FindHoles(const unsigned char * buffer, int w, int h)
 	gl_info.areacount=-1;	//whatever happens next, it shouldn't be done twice!
 
 	// large textures are excluded for performance reasons
-	if (h>256) return false;	
+	if (h>512) return false;	
 
 	startdraw=-1;
 	lendraw=0;

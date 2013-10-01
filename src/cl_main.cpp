@@ -135,7 +135,6 @@ EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
 EXTERN_CVAR( Bool, cl_oldfreelooklimit )
 EXTERN_CVAR( Float, turbo )
-EXTERN_CVAR( Int, gl_nearclip )
 EXTERN_CVAR( Float, sv_gravity )
 EXTERN_CVAR( Float, sv_aircontrol )
 
@@ -546,8 +545,6 @@ void CLIENT_LimitProtectedCVARs( void )
 {
 	if ( turbo > 100.f )
 		turbo = 100.f;
-	if ( gl_nearclip != 5 )
-		gl_nearclip = 5;
 }
 
 //*****************************************************************************

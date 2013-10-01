@@ -162,108 +162,107 @@ brightmap sprite MAGEF8
 	disablefullbright
 }
 
+brightmap sprite WRTHE1
+{
+   map "brightmaps/hexen/WRTHE1.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHE2E8
+{
+   map "brightmaps/hexen/WRTHE2E8.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHE3E7
+{
+   map "brightmaps/hexen/WRTHE3E7.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHE4E6
+{
+   map "brightmaps/hexen/WRTHE4E6.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHE5
+{
+   map "brightmaps/hexen/WRTHE5.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHF1
+{
+   map "brightmaps/hexen/WRTHF1.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHF2F8
+{
+   map "brightmaps/hexen/WRTHF2F8.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHF3F7
+{
+   map "brightmaps/hexen/WRTHF3F7.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHF4F6
+{
+   map "brightmaps/hexen/WRTHF4F6.png"
+   iwad
+   disablefullbright
+}
+
+brightmap sprite WRTHF5
+{
+   map "brightmaps/hexen/WRTHF5.png"
+   iwad
+   disablefullbright
+}
+
 brightmap sprite WRTHG1
 {
-	map "brightmaps/hexen/WRTHG1.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG2E8
-{
-	map "brightmaps/hexen/WRTHG2E8.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG3E7
-{
-	map "brightmaps/hexen/WRTHG3E7.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG4E6
-{
-	map "brightmaps/hexen/WRTHG4E6.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG5
-{
-	map "brightmaps/hexen/WRTHG5.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG1
-{
-	map "brightmaps/hexen/WRTHG1.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG2F8
-{
-	map "brightmaps/hexen/WRTHG2F8.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG3F7
-{
-	map "brightmaps/hexen/WRTHG3F7.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG4F6
-{
-	map "brightmaps/hexen/WRTHG4F6.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG5
-{
-	map "brightmaps/hexen/WRTHG5.png"
-	iwad
-	disablefullbright
-}
-
-brightmap sprite WRTHG1
-{
-	map "brightmaps/hexen/WRTHG1.png"
-	iwad
-	disablefullbright
+   map "brightmaps/hexen/WRTHG1.png"
+   iwad
+   disablefullbright
 }
 
 brightmap sprite WRTHG2G8
 {
-	map "brightmaps/hexen/WRTHG2G8.png"
-	iwad
-	disablefullbright
+   map "brightmaps/hexen/WRTHG2G8.png"
+   iwad
+   disablefullbright
 }
 
 brightmap sprite WRTHG3G7
 {
-	map "brightmaps/hexen/WRTHG3G7.png"
-	iwad
-	disablefullbright
+   map "brightmaps/hexen/WRTHG3G7.png"
+   iwad
+   disablefullbright
 }
 
 brightmap sprite WRTHG4G6
 {
-	map "brightmaps/hexen/WRTHG4G6.png"
-	iwad
-	disablefullbright
+   map "brightmaps/hexen/WRTHG4G6.png"
+   iwad
+   disablefullbright
 }
 
 brightmap sprite WRTHG5
 {
-	map "brightmaps/hexen/WRTHG5.png"
-	iwad
-	disablefullbright
+   map "brightmaps/hexen/WRTHG5.png"
+   iwad
+   disablefullbright
 }
-

@@ -568,6 +568,10 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		expanded = false;
 		tx->gl_info.shaderspeed = static_cast<FWarpTexture*>(tx)->GetSpeed();
 	}
+	else if (tx->bHasCanvas)
+	{
+		expanded = false;
+	}
 	else if (gl.shadermodel > 2) 
 	{
 		if (tx->gl_info.shaderindex >= FIRST_USER_SHADER)
@@ -598,11 +602,25 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		RenderWidth[i] = tx->GetScaledWidth();
 		RenderHeight[i] = tx->GetScaledHeight();
 	}
+	Width[GLUSE_SPRITE] = Width[GLUSE_PATCH];
+	Height[GLUSE_SPRITE] = Height[GLUSE_PATCH];
+	LeftOffset[GLUSE_SPRITE] = LeftOffset[GLUSE_PATCH];
+	TopOffset[GLUSE_SPRITE] = TopOffset[GLUSE_PATCH];
+	pti.SpriteU[0] = pti.SpriteV[0] = 0;
+	pti.SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
+	pti.SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
 
 	tempScaleX = tempScaleY = FRACUNIT;
 	wti.scalex = tx->xScale/(float)FRACUNIT;
 	wti.scaley = tx->yScale/(float)FRACUNIT;
 	if (tx->bHasCanvas) wti.scaley=-wti.scaley;
+
+	mTextureLayers.ShrinkToFit();
+	mMaxBound = -1;
+	mMaterials.Push(this);
+	tx->gl_info.Material = this;
+	if (tx->bHasCanvas) tx->gl_info.mIsTransparent = 0;
+	tex = tx;
 
 	FTexture *basetex;
 	if (!expanded)
@@ -614,6 +632,7 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		// Warping can be ignored with SM4 because it's always done
 		// by shader
 		basetex = tx->GetRedirect(gl.shadermodel < 4);
+		mBaseLayer = ValidateSysTexture(basetex, expanded);
 	}
 	else 
 	{
@@ -626,17 +645,27 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		Height[GLUSE_PATCH]+=2;
 		LeftOffset[GLUSE_PATCH]+=1;
 		TopOffset[GLUSE_PATCH]+=1;
+		Width[GLUSE_SPRITE] += 2;
+		Height[GLUSE_SPRITE] += 2;
+		LeftOffset[GLUSE_SPRITE] += 1;
+		TopOffset[GLUSE_SPRITE] += 1;
+
+		int trim[4];
+
+		mBaseLayer = ValidateSysTexture(basetex, expanded);
+		if (TrimBorders(trim))
+		{
+			Width[GLUSE_SPRITE] = trim[2] + 2;
+			Height[GLUSE_SPRITE] = trim[3] + 2;
+			LeftOffset[GLUSE_SPRITE] -= trim[0];
+			TopOffset[GLUSE_SPRITE] -= trim[1];
+
+			pti.SpriteU[0] = pti.SpriteU[1] * (trim[0] / (float)Width[GLUSE_PATCH]);
+			pti.SpriteV[0] = pti.SpriteV[1] * (trim[1] / (float)Height[GLUSE_PATCH]);
+			pti.SpriteU[1] *= (trim[0]+trim[2]+2) / (float)Width[GLUSE_PATCH]; 
+			pti.SpriteV[1] *= (trim[1]+trim[3]+2) / (float)Height[GLUSE_PATCH]; 
+		}
 	}
-
-	// make sure the system texture is valid
-	mBaseLayer = ValidateSysTexture(basetex, expanded);
-
-	mTextureLayers.ShrinkToFit();
-	mMaxBound = -1;
-	mMaterials.Push(this);
-	tx->gl_info.Material = this;
-	if (tx->bHasCanvas) tx->gl_info.mIsTransparent = 0;
-	tex = tx;
 }
 
 //===========================================================================
@@ -658,6 +687,85 @@ FMaterial::~FMaterial()
 
 }
 
+
+//===========================================================================
+// 
+//	Finds gaps in the texture which can be skipped by the renderer
+//  This was mainly added to speed up one area in E4M6 of 007LTSD
+//
+//===========================================================================
+
+bool FMaterial::TrimBorders(int *rect)
+{
+	PalEntry col;
+	int w;
+	int h;
+
+	unsigned char *buffer = CreateTexBuffer(CM_DEFAULT, 0, w, h);
+
+	if (buffer == NULL) 
+	{
+		return false;
+	}
+	if (w != Width[GLUSE_TEXTURE] || h != Height[GLUSE_TEXTURE])
+	{
+		// external Hires replacements cannot be trimmed.
+		delete [] buffer;
+		return false;
+	}
+
+	int size = w*h;
+
+	int first, last;
+
+	for(first = 0; first < size; first++)
+	{
+		if (buffer[first*4+3] != 0) break;
+	}
+	if (first >= size)
+	{
+		rect[0] = 0;
+		rect[1] = 0;
+		rect[2] = 1;
+		rect[3] = 1;
+		return true;
+	}
+
+	for(last = size-1; last >= first; last--)
+	{
+		if (buffer[last*4+3] != 0) break;
+	}
+
+	rect[1] = first / w;
+	rect[3] = 1 + last/w - rect[1];
+
+	rect[0] = 0;
+	rect[2] = w;
+
+	buffer += rect[1] * w * 4;
+	h = rect[3];
+
+	for(int x = 0; x < w; x++)
+	{
+		for(int y = 0; y < h; y++)
+		{
+			if (buffer[(x+y*w)*4+3] != 0) goto outl;
+		}
+		rect[0]++;
+	}
+outl:
+	rect[2] -= rect[0];
+
+	for(int x = w-1; rect[2] > 1; x--)
+	{
+		for(int y = 0; y < h; y++)
+		{
+			if (buffer[(x+y*w)*4+3] != 0) return true;
+		}
+		rect[2]--;
+	}
+	return true;
+}
 
 
 //===========================================================================
@@ -978,10 +1086,10 @@ void FMaterial::BindToFrameBuffer()
 
 void FMaterial::GetRect(FloatRect * r, ETexUse i) const
 {
-	r->left=-(float)GetScaledLeftOffset(i);
-	r->top=-(float)GetScaledTopOffset(i);
-	r->width=(float)TextureWidth(i);
-	r->height=(float)TextureHeight(i);
+	r->left = -GetScaledLeftOffsetFloat(i);
+	r->top = -GetScaledTopOffsetFloat(i);
+	r->width = GetScaledWidthFloat(i);
+	r->height = GetScaledHeightFloat(i);
 }
 
 
@@ -1031,23 +1139,6 @@ void FMaterial::FlushAll()
 		FGLTexture *gltex = TexMan.ByIndex(i)->gl_info.SystemTexture;
 		if (gltex != NULL) gltex->Clean(true);
 	}
-}
-
-//==========================================================================
-//
-// Deletes all hardware dependent data
-//
-//==========================================================================
-
-void FMaterial::DeleteAll()
-{
-	for(int i=mMaterials.Size()-1;i>=0;i--)
-	{
-		mMaterials[i]->tex->gl_info.Material = NULL;
-		delete mMaterials[i];
-	}
-	mMaterials.Clear();
-	mMaterials.ShrinkToFit();
 }
 
 //==========================================================================

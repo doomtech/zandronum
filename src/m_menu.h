@@ -212,7 +212,7 @@ struct menu_t {
 	int				scrolltop;
 	int				scrollpos;
 	int				y;
-	void		  (*PreDraw)(void);
+	bool		  (*PreDraw)(void);
 	bool			DontDim;
 	void		  (*EscapeHandler)(void);
 
@@ -309,6 +309,7 @@ extern menustack_t MenuStack[16];
 extern int MenuStackDepth;
 
 extern bool	OptionsActive;
+extern int	skullAnimCounter;
 
 extern menu_t  *CurrentMenu;
 extern int		CurrentItem;

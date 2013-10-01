@@ -64,7 +64,6 @@
 void InitGLRMapinfoData();
 void gl_InitData();
 extern bool gl_disabled;
-void gl_InitPortals();
 
 //==========================================================================
 //

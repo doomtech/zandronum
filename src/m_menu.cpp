@@ -203,7 +203,7 @@ static void M_EndMessage (int key);
 // [RH] For player setup menu.
 	   void M_PlayerSetup ();
 static void M_PlayerSetupTicker ();
-static void M_PlayerSetupDrawer ();
+static bool M_PlayerSetupDrawer ();
 // [BC] These functions are no longer needed.
 /*
 static void M_EditPlayerName (int choice);
@@ -263,6 +263,7 @@ static int 		saveSlot;		// which slot to save in
 static size_t	saveCharIndex;	// which char we're editing
 
 static int		LINEHEIGHT;
+static const int PLAYERSETUP_LINEHEIGHT = 16;
 
 static char		savegamestring[SAVESTRINGSIZE];
 static FString	EndString;
@@ -2496,8 +2497,9 @@ static void M_DrawPlayerSlider (int x, int y, int cur)
 		TAG_DONE);
 }
 
-static void M_PlayerSetupDrawer ()
+static bool M_PlayerSetupDrawer ()
 {
+	const int LINEHEIGHT = PLAYERSETUP_LINEHEIGHT;
 	int xo, yo;
 	EColorRange label, value;
 	// [BC] Store the line height.
@@ -2695,6 +2697,7 @@ static void M_PlayerSetupDrawer ()
 		autoaim <= 3 ? "Very High" : "Always",
 		DTA_Clean, true, TAG_DONE);
 */
+	return false;
 }
 
 // A 32x32 cloud rendered with Photoshop, plus some other filters
@@ -4028,7 +4031,7 @@ void M_Drawer ()
 					if (skullAnimCounter < 6)
 					{
 						screen->DrawText (ConFont, CR_RED, x - 16,
-							currentMenu->y + itemOn*LINEHEIGHT +
+							currentMenu->y + itemOn*PLAYERSETUP_LINEHEIGHT +
 							(!(gameinfo.gametype & (GAME_DoomStrifeChex)) ? 6 : -1), "\xd",
 							DTA_Clean, true, TAG_DONE);
 					}

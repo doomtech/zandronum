@@ -44,8 +44,9 @@ struct FPortal
 	void UpdateClipAngles();
 };
 
-
 extern TArray<FPortal> portals;
+
+void gl_InitPortals();
 
 
 #endif

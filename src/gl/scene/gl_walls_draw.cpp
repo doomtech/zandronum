@@ -226,9 +226,6 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 	bool glowing;
 	bool split = (gl_seamless && !(textured&4) && !seg->bPolySeg);
 
-	if (seg->linedef - lines == 246)
-		__asm nop
-
 	if (!light)
 	{
 		tcs[0]=lolft;

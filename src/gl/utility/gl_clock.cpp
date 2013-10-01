@@ -139,7 +139,7 @@ ADD_STAT(rendertimes)
 {
 	static FString buff;
 	static int lasttime=0;
-	int t=I_MSTime();
+	int t=I_FPSTime();
 	if (t-lasttime>1000) 
 	{
 		buff.Truncate(0);
@@ -169,7 +169,7 @@ ADD_STAT(dirty)
 {
 	static FString buff;
 	static int lasttime=0;
-	int t=I_MSTime();
+	int t=I_FPSTime();
 	if (t-lasttime>1000) 
 	{
 		buff.Format("Dirty=%2.8f (%d)\n", Dirty.TimeMS(), DirtyCount);

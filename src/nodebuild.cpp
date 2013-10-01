@@ -114,17 +114,6 @@ int FNodeBuilder::CreateNode (DWORD set, fixed_t bbox[4])
 		DWORD set1, set2;
 
 		SplitSegs (set, node, splitseg, set1, set2);
-
-		// Check if the set could be split. It may happen that all segs end up on the same side
-		// in which case we need to create a subsector from such a set.
-		if (set1 == DWORD_MAX)
-		{
-			return 0x80000000 | CreateSubsector (set2, bbox);
-		}
-		else if (set2 == DWORD_MAX)
-		{
-			return 0x80000000 | CreateSubsector (set1, bbox);
-		}
 		D(PrintSet (1, set1));
 		D(Printf (PRINT_LOG, "(%d,%d) delta (%d,%d) from seg %d\n", node.x>>16, node.y>>16, node.dx>>16, node.dy>>16, splitseg));
 		D(PrintSet (2, set2));
@@ -501,9 +490,8 @@ int FNodeBuilder::SelectSplitter (DWORD set, node_t &node, DWORD &splitseg, int 
 
 int FNodeBuilder::Heuristic (node_t &node, DWORD set, bool honorNoSplit)
 {
-	int score = 1000000;	// a high base so that segs that come too close to a splitter
-							// still can be weighed extremely negatively but preventing 
-							// them from creating a negative score.
+	// Set the initial score above 0 so that near vertex anti-weighting is less likely to produce a negative score.
+	int score = 1000000;
 	int segsInSet = 0;
 	int counts[2] = { 0, 0 };
 	int realSegs[2] = { 0, 0 };
@@ -609,7 +597,28 @@ int FNodeBuilder::Heuristic (node_t &node, DWORD set, bool honorNoSplit)
 			frac = InterceptVector (node, *test);
 			if (frac < 0.001 || frac > 0.999)
 			{
-				score -= int(1 / frac);
+				FPrivVert *v1 = &Vertices[test->v1];
+				FPrivVert *v2 = &Vertices[test->v2];
+				double x = v1->x, y = v1->y;
+				x += frac * (v2->x - x);
+				y += frac * (v2->y - y);
+				if (fabs(x - v1->x) < VERTEX_EPSILON+1 && fabs(y - v1->y) < VERTEX_EPSILON+1)
+				{
+					D(Printf("Splitter will produce same start vertex as seg %d\n", i));
+					return -1;
+				}
+				if (fabs(x - v2->x) < VERTEX_EPSILON+1 && fabs(y - v2->y) < VERTEX_EPSILON+1)
+				{
+					D(Printf("Splitter will produce same end vertex as seg %d\n", i));
+					return -1;
+				}
+				if (frac > 0.999)
+				{
+					frac = 1 - frac;
+				}
+				int penalty = int(1 / frac);
+				score = MAX(score - penalty, 1);
+				D(Printf ("Penalized splitter by %d for being near endpt of seg %d (%f).\n", penalty, i, frac));
 			}
 
 			counts[0]++;
@@ -782,23 +791,7 @@ void FNodeBuilder::SplitSegs (DWORD set, node_t &node, DWORD splitseg, DWORD &ou
 
 			if (vertnum == seg->v1 || vertnum == seg->v2)
 			{
-				// Check if the resulting split vertex matches one of the line's ends.
-				// In this case this seg must not be split
-				if ((vertnum == seg->v1 && sidev2 == -1) || (vertnum == seg->v2 && sidev1 == -1))
-				{
-					side = 0;
-					sidev1 = 0;
-					seg->next = outset0;
-					outset0 = set;
-				}
-				else
-				{
-					side = 1;
-					sidev2 = 0;
-					seg->next = outset1;
-					outset1 = set;
-				}
-				break;
+				Printf("SelectVertexClose selected endpoint of seg %u\n", set);
 			}
 
 			seg2 = SplitSeg (set, vertnum, sidev1);
@@ -875,7 +868,7 @@ void FNodeBuilder::SplitSegs (DWORD set, node_t &node, DWORD splitseg, DWORD &ou
 		set = next;
 	}
 	FixSplitSharers (node);
-	if (GLNodes && outset0 != DWORD_MAX && outset1 != DWORD_MAX)
+	if (GLNodes)
 	{
 		AddMinisegs (node, splitseg, outset0, outset1);
 	}
