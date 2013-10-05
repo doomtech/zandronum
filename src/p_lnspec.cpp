@@ -2845,6 +2845,7 @@ enum
 	PROP_UNUSED1,
 	PROP_UNUSED2,
 	PROP_SPEED,
+	PROP_BUDDHA,
 };
 
 FUNC(LS_SetPlayerProperty)
@@ -2989,6 +2990,9 @@ FUNC(LS_SetPlayerProperty)
 	// Set or clear a flag
 	switch (arg2)
 	{
+	case PROP_BUDDHA:
+		mask = CF_BUDDHA;
+		break;
 	case PROP_FROZEN:
 		mask = CF_FROZEN;
 		break;

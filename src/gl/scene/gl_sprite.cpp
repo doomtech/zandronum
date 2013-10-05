@@ -498,19 +498,39 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 
-		vt=pti->GetSpriteVT();
-		vb=pti->GetSpriteVB();
-		gltexture->GetRect(&r, GLUSE_SPRITE);
-		if (mirror)
+		if (gl.flags & RFL_NPOT_TEXTURE)	// trimming only works if non-power-of-2 textures are supported
 		{
-			r.left=-r.width-r.left;	// mirror the sprite's x-offset
-			ul=pti->GetSpriteUL();
-			ur=pti->GetSpriteUR();
+			vt=pti->GetSpriteVT();
+			vb=pti->GetSpriteVB();
+			gltexture->GetRect(&r, GLUSE_SPRITE);
+			if (mirror)
+			{
+				r.left=-r.width-r.left;	// mirror the sprite's x-offset
+				ul=pti->GetSpriteUL();
+				ur=pti->GetSpriteUR();
+			}
+			else
+			{
+				ul=pti->GetSpriteUR();
+				ur=pti->GetSpriteUL();
+			}
 		}
 		else
 		{
-			ul=pti->GetSpriteUR();
-			ur=pti->GetSpriteUL();
+			vt=pti->GetVT();
+			vb=pti->GetVB();
+			gltexture->GetRect(&r, GLUSE_PATCH);
+			if (mirror)
+			{
+				r.left=-r.width-r.left;	// mirror the sprite's x-offset
+				ul=pti->GetUL();
+				ur=pti->GetUR();
+			}
+			else
+			{
+				ul=pti->GetUR();
+				ur=pti->GetUL();
+			}
 		}
 
 		r.Scale(FIXED2FLOAT(thing->scaleX),FIXED2FLOAT(thing->scaleY));

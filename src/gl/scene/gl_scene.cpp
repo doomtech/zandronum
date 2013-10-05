@@ -233,6 +233,14 @@ void FGLRenderer::SetCameraPos(fixed_t viewx, fixed_t viewy, fixed_t viewz, angl
 	mAngles.Yaw = 270.0f-fviewangle;
 	mViewVector = FVector2(cos(DEG2RAD(fviewangle)), sin(DEG2RAD(fviewangle)));
 	mCameraPos = FVector3(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy), FIXED2FLOAT(viewz));
+
+	angle_t ang = viewangle >> ANGLETOFINESHIFT;
+	fixed_t viewsin = finesine[ang];
+	fixed_t viewcos = finecosine[ang];
+
+	viewtansin = FixedMul (FocalTangent, viewsin);
+	viewtancos = FixedMul (FocalTangent, viewcos);
+
 }
 	
 

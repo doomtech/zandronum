@@ -140,7 +140,7 @@ static F3DFloor *Find3DFloor(sector_t *target, sector_t *model)
 int FVertexBuffer::CreateSubsectorVertices(subsector_t *sub, const secplane_t &plane, int floor)
 {
 	int idx = vbo_shadowdata.Reserve(sub->numlines);
-	for(int k=0; k<sub->numlines; k++, idx++)
+	for(unsigned int k=0; k<sub->numlines; k++, idx++)
 	{
 		vbo_shadowdata[idx].SetFlatVertex(segs[sub->firstline+k].v1, plane);
 		if (sub->sector->transdoor && floor) vbo_shadowdata[idx].z -= 1.f;
