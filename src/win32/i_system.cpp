@@ -148,6 +148,9 @@ uint32 LanguageIDs[4];
 
 const IWADInfo *DoomStartupInfo;
 
+// [K6/BB]
+extern FString versionWithOS;
+
 int (*I_GetTime) (bool saveMS);
 int (*I_WaitForTic) (int);
 void (*I_FreezeTime) (bool frozen);
@@ -627,6 +630,10 @@ void I_DetectOS(void)
 				osname,
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber & 0xffff, info.szCSDVersion);
+		// [K6/BB]
+		versionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", DOTVERSIONSTR_REV, osname,
+				info.dwMajorVersion, info.dwMinorVersion,
+				info.dwBuildNumber & 0xffff);
 	}
 	else
 	{
@@ -634,6 +641,10 @@ void I_DetectOS(void)
 				osname,
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber, info.szCSDVersion);
+		// [K6/BB]
+		versionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", DOTVERSIONSTR_REV, osname,
+				info.dwMajorVersion, info.dwMinorVersion,
+				info.dwBuildNumber);
 	}
 
 	if (OSPlatform == os_unknown)

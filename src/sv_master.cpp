@@ -48,6 +48,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#ifndef _WIN32
+#include <sys/utsname.h>
+#endif
 #include "networkheaders.h"
 #include "c_dispatch.h"
 #include "cooperative.h"
@@ -88,6 +91,8 @@ static	LONG				g_lStoredQueryIPTail;
 
 extern	NETADDRESS_s		g_LocalAddress;
 
+FString versionWithOS;
+
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
@@ -122,6 +127,14 @@ void SERVER_MASTER_Construct( void )
 
 	g_lStoredQueryIPHead = 0;
 	g_lStoredQueryIPTail = 0;
+
+#ifndef _WIN32
+	struct utsname u_name;
+	if ( uname(&u_name) < 0 )
+		versionWithOS.Format ( "%s", DOTVERSIONSTR_REV ); //error, no data
+	else
+		versionWithOS.Format ( "%s on %s %s", DOTVERSIONSTR_REV, u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
+#endif
 
 	// Call SERVER_MASTER_Destruct() when Skulltag closes.
 	atterm( SERVER_MASTER_Destruct );
@@ -325,8 +338,8 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// Send the time the launcher sent to us.
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
-	// Send our version.
-	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, DOTVERSIONSTR_REV );
+	// Send our version. [K6] ...with OS
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, versionWithOS.GetChars() );
 
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;
