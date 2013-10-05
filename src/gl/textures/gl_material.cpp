@@ -634,7 +634,7 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		basetex = tx->GetRedirect(gl.shadermodel < 4);
 		mBaseLayer = ValidateSysTexture(basetex, expanded);
 	}
-	else 
+	else
 	{
 		// a little adjustment to make sprites look better with texture filtering:
 		// create a 1 pixel wide empty frame around them.
@@ -650,20 +650,24 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		LeftOffset[GLUSE_SPRITE] += 1;
 		TopOffset[GLUSE_SPRITE] += 1;
 
-		int trim[4];
-
 		mBaseLayer = ValidateSysTexture(basetex, expanded);
-		if (TrimBorders(trim))
-		{
-			Width[GLUSE_SPRITE] = trim[2] + 2;
-			Height[GLUSE_SPRITE] = trim[3] + 2;
-			LeftOffset[GLUSE_SPRITE] -= trim[0];
-			TopOffset[GLUSE_SPRITE] -= trim[1];
 
-			pti.SpriteU[0] = pti.SpriteU[1] * (trim[0] / (float)Width[GLUSE_PATCH]);
-			pti.SpriteV[0] = pti.SpriteV[1] * (trim[1] / (float)Height[GLUSE_PATCH]);
-			pti.SpriteU[1] *= (trim[0]+trim[2]+2) / (float)Width[GLUSE_PATCH]; 
-			pti.SpriteV[1] *= (trim[1]+trim[3]+2) / (float)Height[GLUSE_PATCH]; 
+		if (gl.flags & RFL_NPOT_TEXTURE)	// trimming only works if non-power-of-2 textures are supported
+		{
+			int trim[4];
+
+			if (TrimBorders(trim))
+			{
+				Width[GLUSE_SPRITE] = trim[2] + 2;
+				Height[GLUSE_SPRITE] = trim[3] + 2;
+				LeftOffset[GLUSE_SPRITE] -= trim[0];
+				TopOffset[GLUSE_SPRITE] -= trim[1];
+
+				pti.SpriteU[0] = pti.SpriteU[1] * (trim[0] / (float)Width[GLUSE_PATCH]);
+				pti.SpriteV[0] = pti.SpriteV[1] * (trim[1] / (float)Height[GLUSE_PATCH]);
+				pti.SpriteU[1] *= (trim[0]+trim[2]+2) / (float)Width[GLUSE_PATCH]; 
+				pti.SpriteV[1] *= (trim[1]+trim[3]+2) / (float)Height[GLUSE_PATCH]; 
+			}
 		}
 	}
 }

@@ -3495,7 +3495,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			if (!player->usedown)
 			{
 				player->usedown = true;
-				P_UseLines (player);
+				if (!P_TalkFacing(player->mo))
+				{
+					P_UseLines(player);
+				}
 			}
 		}
 		else

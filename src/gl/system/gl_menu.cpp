@@ -65,6 +65,7 @@ EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
 EXTERN_CVAR(Bool, gl_fakecontrast)
+EXTERN_CVAR(Bool, gl_trimsprites)
 EXTERN_CVAR (Bool, gl_lights_additive)
 EXTERN_CVAR (Int, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
@@ -239,7 +240,8 @@ menuitem_t GLTextureItems[] = {
 	{ discrete, "Resize sprites",			{&gl_texture_hqresize_sprites},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Resize fonts",				{&gl_texture_hqresize_fonts},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Precache GL textures",		{&gl_precache},					{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Camera textures offscreen",	{&gl_usefb},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Camera textures offscreen",{&gl_usefb},					{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Trim sprite edges",		{&gl_trimsprites},				{2.0}, {0.0}, {0.0}, {OnOff} },
 };
 
 menuitem_t GLLightItems[] = {

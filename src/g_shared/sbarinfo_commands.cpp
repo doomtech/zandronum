@@ -55,7 +55,12 @@ class CommandDrawImage : public SBarInfoCommand
 			if(texture == NULL)
 				return;
 
-			statusBar->DrawGraphic(texture, imgx, imgy, block->XOffset(), block->YOffset(), alpha, block->FullScreenOffsets(),
+			// We must calculate this per frame in order to prevent glitches with cl_capfps true.
+			fixed_t frameAlpha = block->Alpha();
+			if(alpha != FRACUNIT)
+				frameAlpha = fixed_t(((double) block->Alpha() / (double) FRACUNIT) * ((double) alpha / (double) OPAQUE) * FRACUNIT);
+
+			statusBar->DrawGraphic(texture, imgx, imgy, block->XOffset(), block->YOffset(), frameAlpha, block->FullScreenOffsets(),
 				translatable, false, offset);
 		}
 		void	Parse(FScanner &sc, bool fullScreenOffsets)
@@ -135,7 +140,7 @@ class CommandDrawImage : public SBarInfoCommand
 		void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged)
 		{
 			texture = NULL;
-			alpha = block->Alpha();
+			alpha = FRACUNIT;
 			if(type == PLAYERICON)
 				texture = TexMan[statusBar->CPlayer->mo->ScoreIcon];
 			else if(type == AMMO1)
@@ -492,6 +497,10 @@ class CommandDrawSwitchableImage : public CommandDrawImage
 			if(drawAlt != 0) //draw 'off' image
 			{
 				texture = statusBar->Images[conditionalImage[drawAlt-1]];
+
+				// Since we're not going to call our parent's tick() method,
+				// be sure to set the alpha value properly.
+				alpha = FRACUNIT;
 				return;
 			}
 			CommandDrawImage::Tick(block, statusBar, hudChanged);
@@ -1103,13 +1112,13 @@ class CommandDrawSelectedInventory : public SBarInfoCommandFlowControl, private 
 			CommandDrawImage::GetCoordinates(sc, fullScreenOffsets, imgx, imgy);
 			startX = imgx + 30;
 			y = imgy + 24;
-			translation = CR_GOLD;
+			normalTranslation = CR_GOLD;
 			if(sc.CheckToken(',')) //more font information
 			{
 				CommandDrawNumber::GetCoordinates(sc, fullScreenOffsets, startX, y);
 				if(sc.CheckToken(','))
 				{
-					translation = CommandDrawNumber::GetTranslation(sc);
+					normalTranslation = CommandDrawNumber::GetTranslation(sc);
 					if(sc.CheckToken(','))
 					{
 						sc.MustGetToken(TK_IntConst);
