@@ -356,8 +356,8 @@ CUSTOM_CVAR( Int, sv_maxpacketsize, 1024, CVAR_ARCHIVE )
 
 void SERVER_Construct( void )
 {
-    char		*pszPort;
-	char		*pszMaxClients;
+	const char	*pszPort;
+	const char	*pszMaxClients;
 	ULONG		ulIdx;
 	USHORT		usPort;
 

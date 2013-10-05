@@ -1536,7 +1536,7 @@ CCMD (vid_setmode)
 
 void V_Init (void) 
 { 
-	char *i;
+	const char *i;
 	int width, height, bits;
 
 	atterm (V_Shutdown);

@@ -96,7 +96,7 @@ static	void	browser_QueryServer( ULONG ulServer );
 
 void BROWSER_Construct( void )
 {
-	char	*pszPort;
+	const char *pszPort;
 
 	g_bWaitingForMasterResponse = false;
 

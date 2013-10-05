@@ -1030,7 +1030,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 				// the bottom line of the current segment is inside the splittable area
 				// use the splitrect's bottom as bottom of this segment
 				// if not use the bottom of the remaining polygon
-				if (splitbot<splitbotv)
+				if (splitbot<=splitbotv)
 				{
 					split.zbottom[0]=split.zbottom[1]=ztop[0]+v_factor*(splitbot-uplft.v);
 					split.lolft.v=split.lorgt.v=splitbot;
@@ -1459,7 +1459,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==8143)
+	if (seg->linedef-lines==7013)
 		__asm nop
 #endif
 #endif

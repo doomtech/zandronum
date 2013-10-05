@@ -551,9 +551,9 @@ void CLIENT_LimitProtectedCVARs( void )
 //
 void CLIENT_Construct( void )
 {
-    char		*pszPort;
-	char		*pszIPAddress;
-	char		*pszDemoName;
+	const char	*pszPort;
+	const char	*pszIPAddress;
+	const char	*pszDemoName;
 	USHORT		usPort;
 	UCVarValue	Val;
 
@@ -12181,7 +12181,7 @@ void APathFollower::InitFromStream ( BYTESTREAM_s *pByteStream )
 
 CCMD( connect )
 {
-	char		*pszDemoName;
+	const char	*pszDemoName;
 	UCVarValue	Val;
 
 	// Servers can't connect to other servers!

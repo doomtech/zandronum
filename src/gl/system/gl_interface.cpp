@@ -224,31 +224,6 @@ static void CollectExtensions()
 	const char *supported = NULL;
 	char *extensions, *extension;
 
-#if 0
-	// we don't use any WGL extensions so don't bother with checking them.
-	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
-
-	if (wglGetExtString)
-	{
-		wgl_extensions = supported = ((char*(__stdcall*)(HDC))wglGetExtString)(m_hDC);
-	}
-
-	if (supported)
-	{
-		extensions = new char[strlen(supported) + 1];
-		strcpy(extensions, supported);
-
-		extension = strtok(extensions, " ");
-		while(extension)
-		{
-			m_Extensions.Push(FString(extension));
-			extension = strtok(NULL, " ");
-		}
-
-		delete [] extensions;
-	}
-#endif
-
 	supported = (char *)glGetString(GL_EXTENSIONS);
 
 	if (supported)
@@ -514,9 +489,6 @@ static void APIENTRY PrintStartupLog()
 	Printf ("GL_VERSION: %s\n", glGetString(GL_VERSION));
 	Printf ("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	Printf ("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
-#ifndef unix
-	Printf ("WGL_EXTENSIONS: %s\n", wgl_extensions);
-#endif
 	int v;
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &v);

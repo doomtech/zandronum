@@ -104,7 +104,7 @@ CVAR( String, sv_testingbinary, "downloads/testing/" GAMEVER_STRING "/ZandroDev"
 //
 void SERVER_MASTER_Construct( void )
 {
-	char	*pszPort;
+	const char *pszPort;
 
 	// Setup our message buffer.
 	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
