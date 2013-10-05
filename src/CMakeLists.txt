@@ -627,13 +627,6 @@ if( NOT NO_GL )
 		gl/dynlights/gl_dynlight1.cpp
 		gl/dynlights/gl_glow.cpp
 		gl/dynlights/gl_lightbuffer.cpp
-# [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
-if( MSVC )
-		gl/hqnx/Image.cpp
-		gl/hqnx/hq2x.cpp 
-		gl/hqnx/hq3x.cpp
-		gl/hqnx/hq4x.cpp
-endif( MSVC )
 		gl/models/gl_models.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models_md3.cpp
@@ -676,6 +669,16 @@ endif( MSVC )
 		gl/utility/gl_cycler.cpp
 		gl/utility/gl_geometric.cpp
 	)
+        # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
+        if( MSVC )
+	set( GL_SOURCES
+                ${GL_SOURCES}
+		gl/hqnx/Image.cpp
+		gl/hqnx/hq2x.cpp
+		gl/hqnx/hq3x.cpp
+		gl/hqnx/hq4x.cpp
+        )
+        endif( MSVC )
 else( NOT NO_GL )
 	set( GL_SOURCES sdl/glstubs.cpp )
 endif( NOT NO_GL )
