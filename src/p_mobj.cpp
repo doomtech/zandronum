@@ -3001,7 +3001,9 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			// old code for boss cube disabled
 			//if ((mo->flags & MF_MISSILE) && (!(gameinfo.gametype & GAME_DoomChex) || !(mo->flags & MF_NOCLIP)))
 
-			if (mo->flags & MF_MISSILE)
+			// We can't remove this completely because it was abused by some DECORATE definitions
+			// (e.g. the monster pack's Afrit)
+			if ((mo->flags & MF_MISSILE) && ((mo->flags & MF_NOGRAVITY) || !(mo->flags & MF_NOCLIP)))
 			{
 				mo->z = mo->floorz;
 				if (mo->BounceFlags & BOUNCE_Floors)
@@ -3749,9 +3751,11 @@ void AActor::Tick ()
 
 	AActor *onmo;
 
-	assert (state != NULL);
+	//assert (state != NULL);
 	if (state == NULL)
 	{
+		Printf("Actor of type %s at (%f,%f) left without a state\n", GetClass()->TypeName.GetChars(),
+			x/65536., y/65536.);
 		Destroy();
 		return;
 	}

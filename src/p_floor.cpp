@@ -943,6 +943,7 @@ manual_stair:
 						sec = tsec;
 						continue;
 					}
+					
 				}
 				newsecnum = (int)(tsec - sectors);
 			}
@@ -966,12 +967,16 @@ manual_stair:
 					if (!igntxt && tsec->GetTexture(sector_t::floor) != texture)
 						continue;
 
-					height += stairstep;
+					// Doom bug: Height was changed before discarding the sector as part of the stairs.
+					// Needs to be compatibility optioned because some maps (Eternall MAP25) depend on it.
+					if (i_compatflags & COMPATF_STAIRINDEX) height += stairstep;
 
 					// if sector's floor already moving, look for another
 					//jff 2/26/98 special lockout condition for retriggering
 					if (tsec->PlaneMoving(sector_t::floor) || tsec->stairlock)
 						continue;
+
+					if (!(i_compatflags & COMPATF_STAIRINDEX)) height += stairstep;
 
 					ok = true;
 					break;

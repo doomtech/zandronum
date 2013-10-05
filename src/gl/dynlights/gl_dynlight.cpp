@@ -1102,6 +1102,7 @@ void gl_SetActorLights(AActor *actor)
 	unsigned int count = 0;
 
 	All.Clock();
+	if (actor->state == NULL) return;
 	if (l)
 	{
 		TArray<FInternalLightAssociation *> & LightAssociations=*l;

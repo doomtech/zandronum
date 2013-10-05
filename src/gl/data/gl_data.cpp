@@ -218,6 +218,7 @@ struct FGLROptions : public FOptionalMapinfoData
 		nocoloredspritelighting = -1;
 		notexturefill = -1;
 		skyrotatevector = FVector3(0,0,1);
+		skyrotatevector2 = FVector3(0,0,1);
 	}
 	virtual FOptionalMapinfoData *Clone() const
 	{
@@ -230,6 +231,7 @@ struct FGLROptions : public FOptionalMapinfoData
 		newopt->nocoloredspritelighting = nocoloredspritelighting;
 		newopt->notexturefill = notexturefill;
 		newopt->skyrotatevector = skyrotatevector;
+		newopt->skyrotatevector2 = skyrotatevector2;
 		return newopt;
 	}
 	int			fogdensity;
@@ -345,6 +347,7 @@ void InitGLRMapinfoData()
 		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
 		glset.map_notexturefill = opt->notexturefill;
 		glset.skyrotatevector = opt->skyrotatevector;
+		glset.skyrotatevector2 = opt->skyrotatevector2;
 		if (gl.shadermodel == 2 && glset.map_lightmode ==2) glset.map_lightmode = 3;
 	}
 	else
@@ -354,6 +357,7 @@ void InitGLRMapinfoData()
 		glset.map_nocoloredspritelighting = -1;
 		glset.map_notexturefill = -1;
 		glset.skyrotatevector = FVector3(0,0,1);
+		glset.skyrotatevector2 = FVector3(0,0,1);
 	}
 
 	// [SP/BB] Don't access gl_lightmode directly.

@@ -637,3 +637,4 @@ void InitThingdef()
 		qsort(&variables[0], variables.Size(), sizeof(variables[0]), varcmp);
 	}
 }
+

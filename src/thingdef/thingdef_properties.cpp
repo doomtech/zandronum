@@ -1624,11 +1624,12 @@ DEFINE_CLASS_PROPERTY(slotpriority, F, Weapon)
 }
 
 //==========================================================================
-// [BB]
+//
 //==========================================================================
 DEFINE_CLASS_PROPERTY(preferredskin, S, Weapon)
 {
 	PROP_STRING_PARM(str, 0);
+	// [BB] Not a dummy in Zandronum
 	defaults->PreferredSkin = str;
 }
 
