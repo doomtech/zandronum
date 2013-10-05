@@ -91,7 +91,7 @@ static	LONG				g_lStoredQueryIPTail;
 
 extern	NETADDRESS_s		g_LocalAddress;
 
-FString versionWithOS;
+FString g_VersionWithOS;
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -131,9 +131,9 @@ void SERVER_MASTER_Construct( void )
 #ifndef _WIN32
 	struct utsname u_name;
 	if ( uname(&u_name) < 0 )
-		versionWithOS.Format ( "%s", DOTVERSIONSTR_REV ); //error, no data
+		g_VersionWithOS.Format ( "%s", DOTVERSIONSTR_REV ); //error, no data
 	else
-		versionWithOS.Format ( "%s on %s %s", DOTVERSIONSTR_REV, u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
+		g_VersionWithOS.Format ( "%s on %s %s", DOTVERSIONSTR_REV, u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
 #endif
 
 	// Call SERVER_MASTER_Destruct() when Skulltag closes.
@@ -339,7 +339,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
 	// Send our version. [K6] ...with OS
-	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, versionWithOS.GetChars() );
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, g_VersionWithOS.GetChars() );
 
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;

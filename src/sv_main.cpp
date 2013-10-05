@@ -2202,7 +2202,7 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 				Printf( "Client banned.\n" );
 
 			// Tell the client why he was banned, and when his ban expires.
-			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, banReason );
 			NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
 		}
 		break;
