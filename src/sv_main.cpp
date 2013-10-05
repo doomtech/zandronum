@@ -2194,12 +2194,17 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, DOTVERSIONSTR );
 		break;
 	case NETWORK_ERRORCODE_BANNED:
+		{
+			FString banReason = SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address );
+			if ( banReason.IsNotEmpty() )
+				Printf( "Client banned (reason: %s)\n", banReason.GetChars() );
+			else
+				Printf( "Client banned.\n" );
 
-		Printf( "Client banned.\n" );
-
-		// Tell the client why he was banned, and when his ban expires.
-		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
-		NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
+			// Tell the client why he was banned, and when his ban expires.
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
+			NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
+		}
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 	case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
