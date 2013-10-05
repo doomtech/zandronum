@@ -1153,19 +1153,20 @@ void P_SetupPortals()
 	}
 }
 
-inline void SetPortal(sector_t *sector, INTBOOL ceiling, AStackPoint *portal)
+inline void SetPortal(sector_t *sector, int plane, AStackPoint *portal)
 {
-	if (ceiling)
+	// plane: 0=floor, 1=ceiling, 2=both
+	if (plane > 0)
 	{
 		if (sector->CeilingSkyBox == NULL) sector->CeilingSkyBox = portal;
 	}
-	else
+	if (plane == 2 || plane == 0)
 	{
 		if (sector->FloorSkyBox == NULL) sector->FloorSkyBox = portal;
 	}
 }
 
-void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
+void P_SpawnPortal(line_t *line, int sectortag, int plane, int alpha)
 {
 	for (int i=0;i<numlines;i++)
 	{
@@ -1174,7 +1175,7 @@ void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
 		if (lines[i].special == Sector_SetPortal &&
 			lines[i].args[0] == sectortag &&
 			lines[i].args[1] == 0 &&
-			lines[i].args[2] == ceiling &&
+			lines[i].args[2] == plane &&
 			lines[i].args[3] == 1)
 		{
 			fixed_t x1 = (line->v1->x + line->v2->x) >> 1;
@@ -1195,7 +1196,7 @@ void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
 
 		    for (int s=-1; (s = P_FindSectorFromTag(sectortag,s)) >= 0;)
 			{
-				SetPortal(&sectors[s], ceiling, reference);
+				SetPortal(&sectors[s], plane, reference);
 			}
 
 			for (int j=0;j<numlines;j++)
@@ -1204,18 +1205,18 @@ void P_SpawnPortal(line_t *line, int sectortag, INTBOOL ceiling, int alpha)
 				// This must be done here to ensure that it gets done only after the portal is set up
 				if (lines[i].special == Sector_SetPortal &&
 					lines[i].args[1] == 1 &&
-					lines[i].args[2] == ceiling &&
+					lines[i].args[2] == plane &&
 					lines[i].args[3] == sectortag)
 				{
 					if (lines[i].args[0] == 0)
 					{
-						SetPortal(lines[i].frontsector, ceiling, reference);
+						SetPortal(lines[i].frontsector, plane, reference);
 					}
 					else
 					{
 						for (int s=-1; (s = P_FindSectorFromTag(lines[i].args[0],s)) >= 0;)
 						{
-							SetPortal(&sectors[s], ceiling, reference);
+							SetPortal(&sectors[s], plane, reference);
 						}
 					}
 				}
@@ -1537,8 +1538,12 @@ void P_SpawnSpecials (void)
 
 		case Sector_SetPortal:
 			// arg 0 = sector tag
-			// arg 1 = type (must be 0, other values reserved for later use)
-			// arg 2 = 0:floor, 1:ceiling
+			// arg 1 = type
+			//	- 0: normal (handled here)
+			//	- 1: copy (handled by the portal they copy)
+			//	- 2: EE-style skybox (handled by the camera object)
+			//	other values reserved for later use
+			// arg 2 = 0:floor, 1:ceiling, 2:both
 			// arg 3 = 0: anchor, 1: reference line
 			// arg 4 = for the anchor only: alpha
 			if (lines[i].args[1] == 0 && lines[i].args[3] == 0)

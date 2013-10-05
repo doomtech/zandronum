@@ -2934,9 +2934,10 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			corpsehit->flags2 = info->flags2;
 			corpsehit->flags3 = info->flags3;
 			corpsehit->flags4 = info->flags4;
+			corpsehit->flags5 = info->flags5;
+			corpsehit->flags6 = info->flags6;
 
 			// [BC] Apply new ST flags as well.
-			corpsehit->flags5 = info->flags5;
 			// [BB] The STFL_LEVELSPAWNED flag may not be removed by the default flags.
 			// Otherwise level spawned actors revived by an Archvile won't be restored
 			// during a call of GAME_ResetMap.

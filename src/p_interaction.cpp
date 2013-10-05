@@ -1363,6 +1363,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 			thrust = FLOAT2FIXED(fltthrust);
 
+			// Don't apply ultra-small damage thrust
+			if (thrust < FRACUNIT/100) thrust = 0;
+
 			// make fall forwards sometimes
 			if ((damage < 40) && (damage > target->health)
 				 && (target->z - origin->z > 64*FRACUNIT)

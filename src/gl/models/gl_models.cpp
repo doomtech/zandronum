@@ -670,8 +670,9 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
 			gl.Rotatef(pitch, 0, 0, 1);
 		}
+
 		// [BB] Workaround for the missing pitch information.
-		else if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
+		if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
 
 		// [BB] Special flag for flat, beam like models.
 		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
@@ -680,7 +681,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		// Model rotation.
 		// [BB] Added Doomsday like rotation of the weapon pickup models.
 		// The rotation angle is based on the elapsed time.
-		
+
 		if( smf->flags & MDL_ROTATING )
 		{
 			gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
@@ -722,8 +723,9 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
 			ModelToWorld.Rotate(0,0,1,pitch);
 		}
+
 		// [BB] Workaround for the missing pitch information.
-		if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
+		if (pitch != 0) ModelToWorld.Rotate(0,0,1,pitch);
 
 		// [BB] Special flag for flat, beam like models.
 		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
@@ -755,8 +757,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			NormalTransform.MakeIdentity();
 
 			NormalTransform.Scale(1.f/scaleFactorX, 1.f/scaleFactorZ, 1.f/scaleFactorY);
-			if (pitch != 0) NormalTransform.Rotate(0,0,1,-pitch);
 			if( smf->flags & MDL_ROTATING ) NormalTransform.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, -rotateOffset);
+			if (pitch != 0) NormalTransform.Rotate(0,0,1,-pitch);
 			if (angle != 0) NormalTransform.Rotate(0,1,0, angle);
 
 			gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, &ModelToWorld, &NormalTransform, translation );
