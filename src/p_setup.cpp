@@ -1882,7 +1882,11 @@ void P_SetLineID (line_t *ld)
 		case Polyobj_ExplicitLine:
 			ld->id = ld->args[4];
 			break;
-
+			
+		case Plane_Align:
+			ld->id = ld->args[2];
+			break;
+			
 		case Static_Init:
 			if (ld->args[1] == Init_SectorLink) ld->id = ld->args[0];
 			break;

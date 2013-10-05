@@ -172,7 +172,7 @@ class CommandDrawImage : public SBarInfoCommand
 				if (item != NULL)
 					texture = TexMan[item->Icon];
 			}
-			else if(type == HEXENARMOR_ARMOR || type == HEXENARMOR_SHIELD || type == HEXENARMOR_AMULET || type == HEXENARMOR_ARMOR)
+			else if(type == HEXENARMOR_ARMOR || type == HEXENARMOR_SHIELD || type == HEXENARMOR_HELM || type == HEXENARMOR_AMULET)
 			{
 				int armorType = type - HEXENARMOR_ARMOR;
 			
@@ -617,6 +617,8 @@ class CommandDrawNumber : public CommandDrawString
 					value = AMMO1;
 				else if(sc.Compare("ammo2"))
 					value = AMMO2;
+				else if(sc.Compare("score"))
+					value = SCORE;
 				else if(sc.Compare("ammo")) //request the next string to be an ammo type
 				{
 					value = AMMO;
@@ -761,6 +763,10 @@ class CommandDrawNumber : public CommandDrawString
 			else if(value == ARMOR)
 				interpolationSpeed = script->interpolateArmor ? script->armorInterpolationSpeed : interpolationSpeed;
 		}
+		void	Reset()
+		{
+			drawValue = 0;
+		}
 		void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged)
 		{
 			int num = valueArgument;
@@ -829,6 +835,9 @@ class CommandDrawNumber : public CommandDrawString
 					break;
 				case SECRETS:
 					num = level.found_secrets;
+					break;
+				case SCORE:
+					num = statusBar->CPlayer->mo->Score;
 					break;
 				case TOTALSECRETS:
 					num = level.total_secrets;
@@ -961,6 +970,7 @@ class CommandDrawNumber : public CommandDrawString
 			POWERUPTIME,
 			AIRTIME,
 			SELECTEDINVENTORY,
+			SCORE,
 			// [BB]
 			TEAMSCORE,
 
@@ -1985,6 +1995,10 @@ class CommandDrawBar : public SBarInfoCommand
 			{
 				sc.MustGetToken(TK_IntConst);
 				border = sc.Number;
+
+				// Flip the direction since it represents the area to clip
+				if(border != 0)
+					reverse = !reverse;
 			}
 			sc.MustGetToken(';');
 		
@@ -1992,6 +2006,10 @@ class CommandDrawBar : public SBarInfoCommand
 				interpolationSpeed = script->interpolateHealth ? script->interpolationSpeed : interpolationSpeed;
 			else if(type == ARMOR)
 				interpolationSpeed = script->interpolateArmor ? script->armorInterpolationSpeed : interpolationSpeed;
+		}
+		void	Reset()
+		{
+			drawValue = 0;
 		}
 		void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged)
 		{
@@ -2405,6 +2423,10 @@ class CommandDrawGem : public SBarInfoCommand
 				interpolationSpeed = script->interpolateHealth ? script->interpolationSpeed : interpolationSpeed;
 			else
 				interpolationSpeed = script->interpolateArmor ? script->armorInterpolationSpeed : interpolationSpeed;
+		}
+		void	Reset()
+		{
+			drawValue = 0;
 		}
 		void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged)
 		{

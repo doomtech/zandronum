@@ -88,14 +88,18 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		FString vp_comb;
 		FString fp_comb;
-		if (gl.shadermodel < 4) vp_comb = "#define NO_SM4\n";
-		if (gl_fogmode == 2) vp_comb << "#define FOG_RADIAL\n";
-		if (gl_lightmode == 2) vp_comb << "#define DOOMLIGHT\n";
+		vp_comb = defines;
+		if (gl.shadermodel < 4) 
+		{
+			vp_comb << "#define NO_SM4\n";
+			if (gl_fogmode == 2) vp_comb << "#define FOG_RADIAL\n";
+			if (gl_lightmode == 2) vp_comb << "#define DOOMLIGHT\n";
+		}
 
 		fp_comb = vp_comb;
 		// This uses GetChars on the strings to get rid of terminating 0 characters.
-		vp_comb << defines << vp_data.GetString().GetChars() << "\n";
-		fp_comb << defines << fp_data.GetString().GetChars() << "\n";
+		vp_comb << vp_data.GetString().GetChars() << "\n";
+		fp_comb << fp_data.GetString().GetChars() << "\n";
 
 		if (proc_prog_lump != NULL)
 		{
