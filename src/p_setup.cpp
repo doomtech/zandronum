@@ -4186,6 +4186,15 @@ void P_SetupLevel (char *lumpname, int position)
 	// [BB] The server may not execute this
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		gl_PreprocessLevel();
+	// [BB] but still needs to initialize some stuff.
+	else
+	{
+		for ( int i = 0; i < numvertexes; ++i )
+		{
+			vertexes[i].numheights=0;
+			vertexes[i].numsectors=0;
+		}
+	}
 
 	// [BC] Now that all the items have been loaded, potentially set the game mode.
 	GAME_CheckMode( );
