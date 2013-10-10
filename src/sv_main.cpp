@@ -1572,6 +1572,13 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	if ( lCommand == -1 )
 		return;
 
+	if ( lCommand == MSC_IPISBANNED && NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ) &&
+		SERVER_STATISTIC_GetTotalSecondsElapsed( ) < 20 )
+	{
+		Printf( "\n*** ERROR: You are banned from hosting on the master server!\n" );
+		return;
+	}
+
 	// If it's not a launcher querying the server, it must be a client.
 	if ( lCommand != CLCC_ATTEMPTCONNECTION )
 	{
