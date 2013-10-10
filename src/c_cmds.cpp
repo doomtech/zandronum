@@ -262,6 +262,13 @@ CCMD (buddha)
 	if (CheckCheatmode())
 		return;
 
+	// [BB] Clients need to request the cheat from the server.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		CLIENTCOMMANDS_GenericCheat( CHT_BUDDHA );
+		return;
+	}
+
 	Net_WriteByte(DEM_GENERICCHEAT);
 	Net_WriteByte(CHT_BUDDHA);
 }
