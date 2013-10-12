@@ -138,7 +138,6 @@ static value_t Renderers[] = {
 	{ 1.0, "OpenGL" },
 };
 //EXTERN_CVAR(Bool, hud_althud)
-extern bool gl_disabled;
 
 //
 // defaulted values
@@ -4078,13 +4077,6 @@ void M_OptInit (void)
 		LabelColor = CR_RED;
 		ValueColor = CR_UNTRANSLATED;
 		MoreColor = CR_UNTRANSLATED;
-	}
-
-	if (gl_disabled)
-	{
-		// If the GL system is permanently disabled change the GL menu items.
-		VideoItems[1].label = "Enable OpenGL system";
-		ModesItems[1].type = nochoice;
 	}
 
 	// [BB] Player color related stuff.

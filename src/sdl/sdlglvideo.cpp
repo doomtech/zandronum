@@ -62,8 +62,6 @@ CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_
 
 RenderContext gl;
 
-CVAR(Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 // Dummy screen sizes to pass when windowed
@@ -294,7 +292,7 @@ SDLGLFB::SDLGLFB (int width, int height, int, int, bool fullscreen)
 
 	UpdatePending = false;
 	
-	if (!gl.InitHardware(gl_vid_allowsoftware, gl_vid_compatibility, localmultisample))
+	if (!gl.InitHardware(false, gl_vid_compatibility, localmultisample))
 	{
 		vid_renderer = 0;
 		return;

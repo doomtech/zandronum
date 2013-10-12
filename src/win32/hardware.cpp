@@ -68,19 +68,12 @@ IVideo *Video;
 void I_RestartRenderer();
 int currentrenderer=1;
 bool changerenderer;
-bool gl_disabled;
-EXTERN_CVAR(Bool, gl_nogl)
 
 // [ZDoomGL]
 CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	// 0: Software renderer
 	// 1: OpenGL renderer
-
-	if (gl_disabled) 
-	{
-		return;
-	}
 
 	if (self != currentrenderer)
 	{
@@ -104,14 +97,11 @@ CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINI
 
 CCMD (vid_restart)
 {
-	//if (!gl_disabled) changerenderer = true;
 }
 
 /*
 void I_CheckRestartRenderer()
 {
-	if (gl_disabled) return;
-	
 	while (changerenderer)
 	{
 		currentrenderer = vid_renderer;
@@ -143,8 +133,6 @@ void I_InitGraphics ()
 {
 	UCVarValue val;
 
-	gl_disabled = gl_nogl;
-
 	// If the focus window is destroyed, it doesn't go back to the active window.
 	// (e.g. because the net pane was up, and a button on it had focus)
 	if (GetFocus() == NULL && GetActiveWindow() == Window)
@@ -160,12 +148,10 @@ void I_InitGraphics ()
 		// not receive a WM_ACTIVATEAPP message, so both games think they
 		// are the active app. Huh?
 	}
-
 	val.Bool = !!Args->CheckParm ("-devparm");
 	ticker.SetGenericRepDefault (val, CVAR_Bool);
 
-	if (gl_disabled) currentrenderer=0;
-	else currentrenderer = vid_renderer;
+	currentrenderer = vid_renderer;
 #ifndef NO_GL
 	if (currentrenderer==1) Video = new Win32GLVideo(0);
 	else Video = new Win32Video (0);

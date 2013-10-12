@@ -42,19 +42,12 @@ CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 extern value_t YesNo[2];
 extern value_t NoYes[2];
 extern value_t OnOff[2];
-extern bool gl_disabled;
 
 void StartGLLightMenu (void);
 void StartGLTextureMenu (void);
 void StartGLPrefMenu (void);
 void StartGLShaderMenu (void);
-void StartDisableGL();
 void ReturnToMainMenu();
-
-CUSTOM_CVAR(Bool, gl_nogl, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE|CVAR_NOINITCALL)
-{
-	Printf("This won't take effect until "GAMENAME" is restarted.\n");
-}
 
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
@@ -216,16 +209,12 @@ static menuitem_t OpenGLItems[] = {
 	{ more,     "Texture Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLTextureMenu} },
 	{ more,     "Shader Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLShaderMenu} },
 	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
 };
 
 static menuitem_t OpenGLItems2[] = {
 	{ more,     "Dynamic Light Options",	{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLLightMenu} },
 	{ more,     "Texture Options",			{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLTextureMenu} },
 	{ more,     "Preferences",				{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartGLPrefMenu} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ more,     "Disable GL system",		{NULL}, {0.0}, {0.0},	{0.0},	{(value_t *)StartDisableGL} },
 };
 
 
@@ -341,12 +330,6 @@ menu_t GLShaderMenu = {
    0,
 };
 
-void StartDisableGL()
-{
-	M_SwitchMenu(&OpenGLMessage);
-	gl_nogl=true;
-}
-
 void ReturnToMainMenu()
 {
 	M_StartControlPanel(false);
@@ -354,15 +337,7 @@ void ReturnToMainMenu()
 
 void StartGLMenu (void)
 {
-	if (!gl_disabled)
-	{
-		M_SwitchMenu(&OpenGLMenu);
-	}
-	else
-	{
-		M_SwitchMenu(&OpenGLMessage);
-		gl_nogl=false;
-	}
+	M_SwitchMenu(&OpenGLMenu);
 }
 
 void StartGLLightMenu (void)

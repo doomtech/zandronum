@@ -126,7 +126,6 @@ EXTERN_CVAR (Bool, queryiwad);
 EXTERN_CVAR (Int, vid_renderer)
 EXTERN_CVAR (Bool, fullscreen)
 EXTERN_CVAR (Bool, gl_vid_compatibility)
-EXTERN_CVAR (Bool, gl_nogl)
 
 
 extern HWND Window, ConWindow, GameTitleWindow;
@@ -1165,8 +1164,7 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		SetDlgItemText (hDlg, IDC_WELCOME_VERSION, szString);
 
 		// Check the current video settings.
-		// [BB] Take into account that gl_nogl overrides vid_renderer.
-		SendDlgItemMessage( hDlg, ( ( gl_nogl == false ) && vid_renderer ) ? IDC_WELCOME_OPENGL : IDC_WELCOME_SOFTWARE, BM_SETCHECK, BST_CHECKED, 0 );
+		SendDlgItemMessage( hDlg, vid_renderer ? IDC_WELCOME_OPENGL : IDC_WELCOME_SOFTWARE, BM_SETCHECK, BST_CHECKED, 0 );
 		SendDlgItemMessage( hDlg, IDC_WELCOME_FULLSCREEN, BM_SETCHECK, fullscreen ? BST_CHECKED : BST_UNCHECKED, 0 );
 		SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_SETCHECK, gl_vid_compatibility ? BST_CHECKED : BST_UNCHECKED, 0 );
 
@@ -1234,9 +1232,6 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		{
 			SetQueryIWad(hDlg);
 			vid_renderer = SendDlgItemMessage( hDlg, IDC_WELCOME_OPENGL, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
-			// [BB] If the users wants OpenGL, we need to make sure that gl_nogl is false.
-			if ( ( vid_renderer == 1 ) && ( gl_nogl == true ) )
-				gl_nogl = false;
 			gl_vid_compatibility = SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
 			fullscreen = SendDlgItemMessage( hDlg, IDC_WELCOME_FULLSCREEN, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
 			ctrl = GetDlgItem (hDlg, IDC_IWADLIST);

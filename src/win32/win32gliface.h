@@ -27,8 +27,6 @@ EXTERN_CVAR(Int, vid_defwidth);
 EXTERN_CVAR(Int, vid_defheight);
 EXTERN_CVAR(Int, vid_renderer);
 
-EXTERN_CVAR(Bool, gl_vid_allowsoftware);
-
 extern HINSTANCE g_hInst;
 extern HWND Window;
 extern IVideo *Video;

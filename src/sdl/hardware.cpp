@@ -61,23 +61,17 @@ bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
 #endif
 
-EXTERN_CVAR(Bool, gl_nogl)
 #ifndef NO_GL
 int currentrenderer=1;
 #else
 int currentrenderer=0;
 #endif
-bool gl_disabled = gl_nogl;
 
 // [ZDoomGL]
 CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	// 0: Software renderer
 	// 1: OpenGL renderer
-	if (gl_disabled)
-	{
-		return;
-	}
 
 	if (self != currentrenderer)
 	{
@@ -123,16 +117,12 @@ void I_InitGraphics ()
 		fprintf (stderr, "To enable OpenGL, restart X with 32 color (try 'startx -- :1 -depth 24'), and enable OpenGL in the Display Options.nn");
 		gl_nogl=true;
 	} 
-	gl_disabled = gl_nogl;
-#else
-	gl_disabled = true;
 #endif
 	val.Bool = !!Args->CheckParm ("-devparm");
 	ticker.SetGenericRepDefault (val, CVAR_Bool);
 
 #ifndef NO_GL
-	if (gl_disabled) currentrenderer=0;
-	else currentrenderer = vid_renderer;
+	currentrenderer = vid_renderer;
 	if (currentrenderer==1) Video = new SDLGLVideo(0);
 	else Video = new SDLVideo (0);
 #else

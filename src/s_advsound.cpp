@@ -117,7 +117,7 @@ protected:
 	void Free ();
 };
 
-static struct AmbientSound
+struct FAmbientSound
 {
 	unsigned	type;		// type of ambient sound
 	int			periodmin;	// # of tics between repeats
@@ -125,7 +125,8 @@ static struct AmbientSound
 	float		volume;		// relative volume of sound
 	float		attenuation;
 	FString		sound;		// Logical name of sound to play
-} *Ambients[256];
+};
+TMap<int, FAmbientSound> Ambients;
 
 enum SICommands
 {
@@ -512,6 +513,7 @@ int S_AddSoundLump (const char *logicalname, int lump)
 	newsfx.Rolloff.RolloffType = ROLLOFF_Doom;
 	newsfx.Rolloff.MinDistance = 0;
 	newsfx.Rolloff.MaxDistance = 0;
+	newsfx.LoopStart = -1;
 
 	return (int)S_sfx.Push (newsfx);
 }
@@ -839,15 +841,7 @@ static void S_ClearSoundData()
 		S_UnloadSound(&S_sfx[i]);
 	}
 	S_sfx.Clear();
-
-	for(i = 0; i < countof(Ambients); i++)
-	{
-		if (Ambients[i] != NULL)
-		{
-			delete Ambients[i];
-			Ambients[i] = NULL;
-		}
-	}
+	Ambients.Clear();
 	while (MusicVolumes != NULL)
 	{
 		FMusicVolume *me = MusicVolumes;
@@ -970,23 +964,10 @@ static void S_AddSNDINFO (int lump)
 				// $ambient <num> <logical name> [point [atten] | surround | [world]]
 				//			<continuous | random <minsecs> <maxsecs> | periodic <secs>>
 				//			<volume>
-				AmbientSound *ambient, dummy;
+				FAmbientSound *ambient;
 
 				sc.MustGetNumber ();
-				if (sc.Number < 0 || sc.Number > 255)
-				{
-					Printf ("Bad ambient index (%d)\n", sc.Number);
-					ambient = &dummy;
-				}
-				else if (Ambients[sc.Number] == NULL)
-				{
-					ambient = new AmbientSound;
-					Ambients[sc.Number] = ambient;
-				}
-				else
-				{
-					ambient = Ambients[sc.Number];
-				}
+				ambient = &Ambients[sc.Number];
 				ambient->type = 0;
 				ambient->periodmin = 0;
 				ambient->periodmax = 0;
@@ -1369,18 +1350,15 @@ static void S_AddSNDINFO (int lump)
 
 static void S_AddBloodSFX (int lumpnum)
 {
-	char name[13];
-	FMemLump sfxlump = Wads.ReadLump (lumpnum);
+	FMemLump sfxlump = Wads.ReadLump(lumpnum);
 	const FBloodSFX *sfx = (FBloodSFX *)sfxlump.GetMem();
-	int rawlump = Wads.CheckNumForName (sfx->RawName, ns_bloodraw);
+	int rawlump = Wads.CheckNumForName(sfx->RawName, ns_bloodraw);
 	int sfxnum;
 
 	if (rawlump != -1)
 	{
-		Wads.GetLumpName (name, lumpnum);
-		name[8] = 0;
-		strcat (name, ".SFX");
-		sfxnum = S_AddSound (name, rawlump);
+		const char *name = Wads.GetLumpFullName(lumpnum);
+		sfxnum = S_AddSound(name, rawlump);
 		if (sfx->Format == 5)
 		{
 			S_sfx[sfxnum].bForce22050 = true;
@@ -1390,6 +1368,17 @@ static void S_AddBloodSFX (int lumpnum)
 			S_sfx[sfxnum].bForce11025 = true;
 		}
 		S_sfx[sfxnum].bLoadRAW = true;
+		S_sfx[sfxnum].LoopStart = LittleLong(sfx->LoopStart);
+		// Make an ambient sound out of it, whether it has a loop point
+		// defined or not. (Because none of the standard Blood ambient
+		// sounds are explicitly defined as looping.)
+		FAmbientSound *ambient = &Ambients[Wads.GetLumpIndexNum(lumpnum)];
+		ambient->type = CONTINUOUS;
+		ambient->periodmin = 0;
+		ambient->periodmax = 0;
+		ambient->volume = 1;
+		ambient->attenuation = 1;
+		ambient->sound = name;
 	}
 }
 
@@ -1927,11 +1916,17 @@ public:
 protected:
 	bool bActive;
 private:
-	void SetTicker (struct AmbientSound *ambient);
+	void SetTicker (struct FAmbientSound *ambient);
 	int NextCheck;
 };
 
 IMPLEMENT_CLASS (AAmbientSound)
+
+//==========================================================================
+//
+// AmbientSound :: Serialize
+//
+//==========================================================================
 
 void AAmbientSound::Serialize (FArchive &arc)
 {
@@ -1969,6 +1964,11 @@ void AAmbientSound::Serialize (FArchive &arc)
 	}
 }
 
+//==========================================================================
+//
+// AmbientSound :: Tick
+//
+//==========================================================================
 
 void AAmbientSound::Tick ()
 {
@@ -1977,22 +1977,40 @@ void AAmbientSound::Tick ()
 	if (!bActive || gametic < NextCheck)
 		return;
 
-	AmbientSound *ambient = Ambients[args[0]];
-
-	// [BC] Break out if the ambient sound is invalid.
-	if ( ambient == NULL )
-		return;
-
+	FAmbientSound *ambient;
 	int loop = 0;
+
+	ambient = Ambients.CheckKey(args[0]);
+	if (ambient == NULL)
+	{
+		return;
+	}
 
 	if ((ambient->type & CONTINUOUS) == CONTINUOUS)
 	{
 		loop = CHAN_LOOP;
 	}
 
-	if (ambient->sound[0])
+	if (ambient->sound.IsNotEmpty())
 	{
-		S_Sound(this, CHAN_BODY | loop, ambient->sound, ambient->volume, ambient->attenuation);
+		// The second argument scales the ambient sound's volume.
+		// 0 and 128 are normal volume. The maximum volume level
+		// possible is always 1.
+		float volscale = args[1] == 0 ? 1 : args[1] / 128.f;
+		float usevol = clamp(ambient->volume * volscale, 0.f, 1.f);
+
+		// The third argument is the minimum distance for audible fading, and
+		// the fourth argument is the maximum distance for audibility. Setting
+		// either of these to 0 or setting  min distance > max distance will
+		// use the standard rolloff.
+		if ((args[2] | args[3]) == 0 || args[2] > args[3])
+		{
+			S_Sound(this, CHAN_BODY | loop, ambient->sound, usevol, ambient->attenuation);
+		}
+		else
+		{
+			S_SoundMinMaxDist(this, CHAN_BODY | loop, ambient->sound, usevol, float(args[2]), float(args[3]));
+		}
 		if (!loop)
 		{
 			SetTicker (ambient);
@@ -2008,8 +2026,13 @@ void AAmbientSound::Tick ()
 	}
 }
 
+//==========================================================================
+//
+// AmbientSound :: SetTicker
+//
+//==========================================================================
 
-void AAmbientSound::SetTicker (struct AmbientSound *ambient)
+void AAmbientSound::SetTicker (struct FAmbientSound *ambient)
 {
 	if ((ambient->type & CONTINUOUS) == CONTINUOUS)
 	{
@@ -2027,17 +2050,31 @@ void AAmbientSound::SetTicker (struct AmbientSound *ambient)
 	}
 }
 
+//==========================================================================
+//
+// AmbientSound :: BeginPlay
+//
+//==========================================================================
+
 void AAmbientSound::BeginPlay ()
 {
 	Super::BeginPlay ();
 	Activate (NULL);
 }
 
+//==========================================================================
+//
+// AmbientSound :: Activate
+//
+// Starts playing a sound (or does nothing of the sound is already playing).
+//
+//==========================================================================
+
 void AAmbientSound::Activate (AActor *activator)
 {
 	Super::Activate (activator);
 
-	AmbientSound *amb = Ambients[args[0]];
+	FAmbientSound *amb = Ambients.CheckKey(args[0]);
 
 	if (amb == NULL)
 	{
@@ -2075,22 +2112,23 @@ void AAmbientSound::Activate (AActor *activator)
 	}
 }
 
+//==========================================================================
+//
+// AmbientSound :: Deactivate
+//
+// Stops playing CONTINUOUS sounds immediately. Also prevents further
+// occurrences of repeated sounds.
+//
+//==========================================================================
+
 void AAmbientSound::Deactivate (AActor *activator)
 {
-	// [BC]
-	AmbientSound	*pAmbient;
-
 	Super::Deactivate (activator);
 	if (bActive)
 	{
 		bActive = false;
-
-		// [BC] Break out if the ambient sound is invalid.
-		pAmbient = Ambients[args[0]];
-		if ( pAmbient == NULL )
-			return;
-
-		if ((pAmbient->type & CONTINUOUS) == CONTINUOUS)
+		FAmbientSound *ambient = Ambients.CheckKey(args[0]);
+		if (ambient != NULL && (ambient->type & CONTINUOUS) == CONTINUOUS)
 		{
 			S_StopSound (this, CHAN_BODY);
 		}

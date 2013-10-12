@@ -29,7 +29,6 @@ CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_
 RenderContext gl;
 
 
-CVAR(Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 EXTERN_CVAR(Bool, gl_vid_compatibility)
 EXTERN_CVAR(Int, vid_refreshrate)
 
@@ -292,7 +291,7 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 	SetWindowPos(Window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	I_RestoreWindowedPos();
 
-	if (!gl.InitHardware(Window, gl_vid_allowsoftware, gl_vid_compatibility, localmultisample))
+	if (!gl.InitHardware(Window, false, gl_vid_compatibility, localmultisample))
 	{
 		vid_renderer = 0;
 		return;

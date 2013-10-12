@@ -63,7 +63,6 @@
 
 void InitGLRMapinfoData();
 void gl_InitData();
-extern bool gl_disabled;
 
 //==========================================================================
 //
@@ -730,8 +729,6 @@ void gl_PreprocessLevel()
 		}
 	}
 	
-	if (gl_disabled) return;
-
 	PrepareSegs();
 	PrepareSectorData();
 	InitVertexData();

@@ -133,7 +133,7 @@ public:
 		SoundHandle retval = { NULL };
 		return retval;
 	}
-	SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits)
+	SoundHandle LoadSoundRaw(BYTE *sfxdata, int length, int frequency, int channels, int bits, int loopstart)
 	{
 		SoundHandle retval = { NULL };
 		return retval;

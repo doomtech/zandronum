@@ -67,7 +67,6 @@ int numgamesubsectors;
 void P_GetPolySpots (MapData * lump, TArray<FNodeBuilder::FPolyStart> &spots, TArray<FNodeBuilder::FPolyStart> &anchors);
 
 extern bool	UsingGLNodes;
-extern bool gl_disabled;
 
 CVAR(Bool, gl_cachenodes, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_cachetime, 0.6f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -932,7 +931,6 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 		numgamenodes = numnodes;
 		gamesubsectors = subsectors;
 		numgamesubsectors = numsubsectors;
-		if (gl_disabled) return;
 	}
 	else
 	{
