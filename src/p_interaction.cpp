@@ -2539,6 +2539,7 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 	// Reset a bunch of other stuff.
 	pPlayer->extralight = 0;
 	pPlayer->fixedcolormap = NOFIXEDCOLORMAP;
+	pPlayer->fixedlightlevel = -1;
 	pPlayer->damagecount = 0;
 	pPlayer->bonuscount = 0;
 	pPlayer->hazardcount= 0;

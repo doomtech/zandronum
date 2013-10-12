@@ -4018,6 +4018,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pPlayer->morphTics = 0;
 	pPlayer->extralight = 0;
 	pPlayer->fixedcolormap = NOFIXEDCOLORMAP;
+	pPlayer->fixedlightlevel = -1;
 	pPlayer->viewheight = pPlayer->mo->ViewHeight;
 
 	pPlayer->attacker = NULL;
