@@ -24,7 +24,6 @@
 #include "dumb.h"
 #include "internal/it.h"
 
-// [BB] FreeBSD doesn't accept malloc.h anymore.
 #include <stdlib.h>
 #include <assert.h>
 

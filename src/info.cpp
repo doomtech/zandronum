@@ -312,6 +312,25 @@ void FActorInfo::SetPainChance(FName type, int chance)
 //
 //==========================================================================
 
+void FActorInfo::SetColorSet(int index, const FPlayerColorSet *set)
+{
+	if (set != NULL) 
+	{
+		if (ColorSets == NULL) ColorSets = new FPlayerColorSetMap;
+		ColorSets->Insert(index, *set);
+	}
+	else 
+	{
+		if (ColorSets != NULL) 
+			ColorSets->Remove(index);
+	}
+}
+
+//==========================================================================
+//
+//
+//==========================================================================
+
 FDoomEdMap DoomEdMap;
 
 FDoomEdMap::FDoomEdEntry *FDoomEdMap::DoomEdHash[DOOMED_HASHSIZE];
