@@ -404,7 +404,7 @@ bool level_info_t::isValid()
 void cluster_info_t::Reset()
 {
 	cluster = 0;
-	finaleflat[0] = 0;
+	FinaleFlat = "";
 	ExitText = "";
 	EnterText = "";
 	MessageMusic = "";
@@ -630,6 +630,12 @@ void FMapInfoParser::ParseLumpOrTextureName(char *name)
 	name[8]=0;
 }
 
+void FMapInfoParser::ParseLumpOrTextureName(FString &name)
+{
+	sc.MustGetString();
+	name = sc.String;
+}
+
 
 //==========================================================================
 //
@@ -706,12 +712,12 @@ void FMapInfoParser::ParseCluster()
 		else if (sc.Compare("flat"))
 		{
 			ParseAssign();
-			ParseLumpOrTextureName(clusterinfo->finaleflat);
+			ParseLumpOrTextureName(clusterinfo->FinaleFlat);
 		}
 		else if (sc.Compare("pic"))
 		{
 			ParseAssign();
-			ParseLumpOrTextureName(clusterinfo->finaleflat);
+			ParseLumpOrTextureName(clusterinfo->FinaleFlat);
 			clusterinfo->flags |= CLUSTER_FINALEPIC;
 		}
 		else if (sc.Compare("hub"))

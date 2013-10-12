@@ -37,21 +37,6 @@ public:
 	}
 	bool Update();
 	int GetIndex() const { return Index; }
-
-	static int GetIndex(FRemapTable *remap)
-	{
-		GLTranslationPalette * pal = static_cast<GLTranslationPalette*>(remap->GetNative());
-		if (pal) return pal->GetIndex();
-		else return 0;
-	}
-
-	static int GetIndex(unsigned int translation_code)
-	{
-		if (translation_code == 0) return 0;
-		else if (translation_code == TRANSLATION(TRANSLATION_Standard, 7)) return TRANSLATION_ICE;
-		else if (translation_code == TRANSLATION(TRANSLATION_Standard, 8)) return TRANSLATION_INTENSITY;
-		else return GetInternalTranslation(translation_code);
-	}
 };
 
 

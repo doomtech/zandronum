@@ -308,7 +308,7 @@ void FGLRenderer::DrawTexture(FTexture *img, DCanvas::DrawParms &parms)
 		if (!parms.alphaChannel) 
 		{
 			int translation = 0;
-			if (parms.remap != NULL)
+			if (parms.remap != NULL && !parms.remap->Inactive)
 			{
 				GLTranslationPalette * pal = static_cast<GLTranslationPalette*>(parms.remap->GetNative());
 				if (pal) translation = -pal->GetIndex();

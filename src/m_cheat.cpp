@@ -51,8 +51,6 @@
 #include "team.h"
 #include "gamemode.h"
 
-EXTERN_CVAR(Bool, r_forceplayertranslation)
-
 // [RH] Actually handle the cheat. The cheat code in st_stuff.c now just
 // writes some bytes to the network data stream, and the network code
 // later calls us.

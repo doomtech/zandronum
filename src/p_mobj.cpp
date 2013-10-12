@@ -146,14 +146,6 @@ CUSTOM_CVAR (Float, sv_gravity, 800.f, CVAR_SERVERINFO|CVAR_NOSAVE)
 	}
 }
 
-CUSTOM_CVAR(Bool, r_forceplayertranslation, false, CVAR_ARCHIVE|CVAR_NOINITCALL)
-{
-	// [BB] Changed "!multiplayer" check
-	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && players[0].mo != NULL)
-	{
-		players[0].mo->Translation = self? TRANSLATION(TRANSLATION_Players, 0) : 0;
-	}
-}
 
 CVAR (Bool, cl_missiledecals, true, CVAR_ARCHIVE)
 CVAR (Bool, addrocketexplosion, false, CVAR_ARCHIVE)
@@ -5148,11 +5140,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		R_BuildPlayerTranslation (playernum);
 
 		// [RH] set color translations for player sprites
-		// [BB] Changed "!multiplayer" check
-		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) || r_forceplayertranslation)
-			mobj->Translation = TRANSLATION(TRANSLATION_Players,playernum);
-		else
-			mobj->Translation = 0;
+		mobj->Translation = TRANSLATION(TRANSLATION_Players,playernum);
 	}
 
 

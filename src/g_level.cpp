@@ -1667,7 +1667,7 @@ void G_WorldDone (void)
 	{
 		F_StartFinale (thiscluster->MessageMusic, thiscluster->musicorder,
 			thiscluster->cdtrack, thiscluster->cdid,
-			thiscluster->finaleflat, thiscluster->ExitText,
+			thiscluster->FinaleFlat, thiscluster->ExitText,
 			thiscluster->flags & CLUSTER_EXITTEXTINLUMP,
 			thiscluster->flags & CLUSTER_FINALEPIC,
 			thiscluster->flags & CLUSTER_LOOKUPEXITTEXT,
@@ -1685,7 +1685,7 @@ void G_WorldDone (void)
 			{
 				F_StartFinale (nextcluster->MessageMusic, nextcluster->musicorder,
 					nextcluster->cdtrack, nextcluster->cdid,
-					nextcluster->finaleflat, nextcluster->EnterText,
+					nextcluster->FinaleFlat, nextcluster->EnterText,
 					nextcluster->flags & CLUSTER_ENTERTEXTINLUMP,
 					nextcluster->flags & CLUSTER_FINALEPIC,
 					nextcluster->flags & CLUSTER_LOOKUPENTERTEXT,
@@ -1695,7 +1695,7 @@ void G_WorldDone (void)
 			{
 				F_StartFinale (thiscluster->MessageMusic, thiscluster->musicorder,
 					thiscluster->cdtrack, nextcluster->cdid,
-					thiscluster->finaleflat, thiscluster->ExitText,
+					thiscluster->FinaleFlat, thiscluster->ExitText,
 					thiscluster->flags & CLUSTER_EXITTEXTINLUMP,
 					thiscluster->flags & CLUSTER_FINALEPIC,
 					thiscluster->flags & CLUSTER_LOOKUPEXITTEXT,

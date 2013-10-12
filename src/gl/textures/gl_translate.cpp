@@ -79,7 +79,7 @@ int GLTranslationPalette::GetInternalTranslation(int trans)
 	if (trans <= 0) return 0;
 
 	FRemapTable *remap = TranslationToTable(trans);
-	if (remap == NULL) return 0;
+	if (remap == NULL || remap->Inactive) return 0;
 
 	GLTranslationPalette *tpal = static_cast<GLTranslationPalette*>(remap->GetNative());
 	if (tpal == NULL) return 0;

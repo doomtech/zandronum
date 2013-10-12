@@ -79,6 +79,7 @@ struct FMapInfoParser
 	bool ParseLookupName(FString &dest);
 	void ParseMusic(FString &name, int &order);
 	void ParseLumpOrTextureName(char *name);
+	void ParseLumpOrTextureName(FString &name);
 
 	void ParseCluster();
 	void ParseNextMap(char *mapname);
@@ -450,7 +451,7 @@ extern TArray<EndSequence> EndSequences;
 struct cluster_info_t
 {
 	int			cluster;
-	char		finaleflat[9];
+	FString		FinaleFlat;
 	FString		ExitText;
 	FString		EnterText;
 	FString		MessageMusic;
