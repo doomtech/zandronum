@@ -120,7 +120,6 @@
 
 extern FButtonStatus MenuButtons[NUM_MKEYS];
 
-void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
 void M_StartMessage (const char *string, void (*routine)(int));
 
 EXTERN_CVAR(Bool, nomonsterinterpolation)
