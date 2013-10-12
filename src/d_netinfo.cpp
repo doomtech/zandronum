@@ -251,8 +251,7 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 	}
 	else
 	{
-		// [BB] Zandronum doesn't use info->color.
-		int color = players[player].userinfo.color;
+		color = info->color;
 	}
 
 	RGBtoHSV (RPART(color)/255.f, GPART(color)/255.f, BPART(color)/255.f,
