@@ -181,7 +181,8 @@ void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_
 		fixed_t fz1 = s->floorplane.ZatPoint(v1);
 		fixed_t fz2 = s->floorplane.ZatPoint(v2);
 
-		if (cz1<=fz1 && cz2<=fz2) 
+		// allow some tolerance in case slopes are involved
+		if (cz1 <= fz1 + FRACUNIT/100 && cz2<=fz2 + FRACUNIT/100) 
 			in_area=area_below;
 		else 
 			in_area=area_normal;
