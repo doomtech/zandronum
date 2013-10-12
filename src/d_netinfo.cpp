@@ -73,7 +73,9 @@ EXTERN_CVAR (Bool, teamplay)
 CVAR (Float,	autoaim,				5000.f,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Color,	color,					0x40cf00,	CVAR_USERINFO | CVAR_ARCHIVE);
-CVAR (Int,		colorset,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
+// [BB] For now Zandronum doesn't let the player use the color sets.
+const int colorset = -1;
+//CVAR (Int,		colorset,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] "team" is no longer a cvar.
 //CVAR (Int,		team,					TEAM_NONE,	CVAR_USERINFO | CVAR_ARCHIVE);
