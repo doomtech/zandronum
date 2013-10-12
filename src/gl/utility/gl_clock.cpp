@@ -24,7 +24,7 @@ glcycle_t RenderAll;
 glcycle_t Dirty;
 int vertexcount, flatvertices, flatprimitives;
 
-int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
+int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals, rendered_portals;
 int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
 
 double		gl_SecondsPerCycle = 1e-8;
@@ -97,7 +97,7 @@ void ResetProfilingData()
 	SetupSprite.Reset();
 
 	flatvertices=flatprimitives=vertexcount=0;
-	render_texsplit=render_vertexsplit=rendered_lines=rendered_flats=rendered_sprites=rendered_decals = 0;
+	render_texsplit=render_vertexsplit=rendered_lines=rendered_flats=rendered_sprites=rendered_decals=rendered_portals = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -125,8 +125,8 @@ static void AppendRenderStats(FString &out)
 {
 	out.AppendFormat("Walls: %d (%d splits, %d t-splits, %d vertices)\n"
 		"Flats: %d (%d primitives, %d vertices)\n"
-		"Sprites: %d, Decals=%d\n", 
-		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals );
+		"Sprites: %d, Decals=%d, Portals: %d\n",
+		rendered_lines, render_vertexsplit, render_texsplit, vertexcount, rendered_flats, flatprimitives, flatvertices, rendered_sprites,rendered_decals, rendered_portals );
 }
 
 static void AppendLightStats(FString &out)

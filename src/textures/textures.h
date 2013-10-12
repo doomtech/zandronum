@@ -64,6 +64,8 @@ protected:
 	FTextureID(int num) { texnum = num; }
 private:
 	int texnum;
+
+	friend void AddTiles (void *tiles);
 };
 
 class FNullTextureID : public FTextureID

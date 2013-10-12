@@ -1994,9 +1994,9 @@ void AAmbientSound::Tick ()
 	if (ambient->sound.IsNotEmpty())
 	{
 		// The second argument scales the ambient sound's volume.
-		// 0 and 128 are normal volume. The maximum volume level
+		// 0 and 100 are normal volume. The maximum volume level
 		// possible is always 1.
-		float volscale = args[1] == 0 ? 1 : args[1] / 128.f;
+		float volscale = args[1] == 0 ? 1 : args[1] / 100.f;
 		float usevol = clamp(ambient->volume * volscale, 0.f, 1.f);
 
 		// The third argument is the minimum distance for audible fading, and
@@ -2009,7 +2009,14 @@ void AAmbientSound::Tick ()
 		}
 		else
 		{
-			S_SoundMinMaxDist(this, CHAN_BODY | loop, ambient->sound, usevol, float(args[2]), float(args[3]));
+			float min = float(args[2]), max = float(args[3]);
+			// The fifth argument acts as a scalar for the preceding two, if it's non-zero.
+			if (args[4] > 0)
+			{
+				min *= args[4];
+				max *= args[4];
+			}
+			S_SoundMinMaxDist(this, CHAN_BODY | loop, ambient->sound, usevol, min, max);
 		}
 		if (!loop)
 		{

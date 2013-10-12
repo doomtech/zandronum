@@ -174,6 +174,7 @@ void GLPortal::DrawPortalStencil()
 
 bool GLPortal::Start(bool usestencil, bool doquery)
 {
+	rendered_portals++;
 	PortalAll.Clock();
 	if (usestencil)
 	{

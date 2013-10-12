@@ -104,6 +104,7 @@ extern glcycle_t Dirty;
 
 extern int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
 extern int rendered_lines,rendered_flats,rendered_sprites,rendered_decals,render_vertexsplit,render_texsplit;
+extern int rendered_portals;
 
 extern int vertexcount, flatvertices, flatprimitives;
 
