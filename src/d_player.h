@@ -234,9 +234,6 @@ typedef enum
 	CF_WEAPONSWITCHOK	= 1 << 26,		// It is okay to switch away from this weapon
 	CF_BUDDHA			= 1 << 27,		// [SP] Buddha mode - take damage, but don't die
 
-	// [BC] Player can move freely while the game is in freeze mode.
-	CF_FREEZE			= 1 << 28,
-
 	// [BC] Rune effects.
 	CF_SPREAD			= 1 << 29,
 	CF_SPEED25			= 1 << 30,

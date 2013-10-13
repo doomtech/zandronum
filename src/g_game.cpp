@@ -2168,8 +2168,6 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->ulPingAverages = ulPingAverages;
 	p->ulWins = ulWins;
 	p->ulTime = ulTime;
-	if ( lCheats & CF_FREEZE )
-		p->cheats |= CF_FREEZE;
 	// [BB] Players who were able to move while a APowerTimeFreezer is active,
 	// should also be able to do so after being reborn.
 	if ( lCheats & CF_TIMEFREEZE )
@@ -5274,8 +5272,8 @@ CCMD( freeze )
 		Printf( "Freeze mode %s\n", ( level.flags2 & LEVEL2_FROZEN ) ? "ON" : "OFF" );
 
 		if ( level.flags2 & LEVEL2_FROZEN )
-			players[consoleplayer].cheats |= CF_FREEZE;
+			players[consoleplayer].cheats |= CF_TIMEFREEZE;
 		else
-			players[consoleplayer].cheats &= ~CF_FREEZE;
+			players[consoleplayer].cheats &= ~CF_TIMEFREEZE;
 	}
 }
