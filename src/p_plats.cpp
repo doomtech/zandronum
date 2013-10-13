@@ -353,9 +353,9 @@ void DPlat::SetType( EPlatType Type )
 }
 
 // [BC]
-void DPlat::SetCrush( bool bCrush )
+void DPlat::SetCrush( LONG lCrush )
 {
-	m_Crush = bCrush;
+	m_Crush = lCrush;
 }
 
 // [BC]

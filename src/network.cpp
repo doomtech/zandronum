@@ -853,7 +853,7 @@ NETBUFFER_s *NETWORK_GetNetworkMessageBuffer( void )
 
 //*****************************************************************************
 //
-ULONG NETWORK_ntohs( ULONG ul )
+USHORT NETWORK_ntohs( ULONG ul )
 {
 	return ( ntohs( (u_short)ul ));
 }

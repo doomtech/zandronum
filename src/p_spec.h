@@ -503,7 +503,7 @@ public:
 	void		SetStatus( LONG lStatus );
 
 	void	SetType( EPlatType Type );
-	void	SetCrush( bool bCrush );
+	void	SetCrush( LONG lCrush );
 	void	SetTag( LONG lTag );
 	void	SetSpeed( LONG lSpeed );
 	void	SetDelay( LONG lDelay );

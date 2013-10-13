@@ -344,7 +344,7 @@ void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
 NETADDRESS_s	NETWORK_GetCachedLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
-ULONG			NETWORK_ntohs( ULONG ul );
+USHORT			NETWORK_ntohs( ULONG ul );
 bool			NETWORK_IsGeoIPAvailable( void );
 FString			NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address );
 USHORT			NETWORK_GetLocalPort( void );
