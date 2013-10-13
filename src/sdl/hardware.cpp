@@ -115,7 +115,6 @@ void I_InitGraphics ()
 	if ((i->vfmt)->BytesPerPixel != 4) {
 		fprintf (stderr, "n32 bit colour not found, disabling OpenGL.n");
 		fprintf (stderr, "To enable OpenGL, restart X with 32 color (try 'startx -- :1 -depth 24'), and enable OpenGL in the Display Options.nn");
-		gl_nogl=true;
 	} 
 #endif
 	val.Bool = !!Args->CheckParm ("-devparm");
