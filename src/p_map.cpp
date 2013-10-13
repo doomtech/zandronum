@@ -3713,8 +3713,7 @@ struct aim_t
 	AActor *		linetarget;
 	AActor *		thing_friend, * thing_other;
 	angle_t			pitch_friend, pitch_other;
-	bool			notsmart;
-	bool			check3d;
+	int				flags;
 #ifdef _3DFLOORS
 	sector_t *		lastsector;
 	secplane_t *	lastfloorplane;
@@ -3725,7 +3724,7 @@ struct aim_t
 	bool AimTraverse3DFloors(const divline_t &trace, intercept_t * in);
 #endif
 
-	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable = false, AActor *target=NULL);
+	void AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, AActor *target=NULL);
 
 };
 
@@ -3844,7 +3843,7 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 //
 //============================================================================
 
-void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, bool checknonshootable, AActor *target)
+void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy, AActor *target)
 {
 	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES|PT_ADDTHINGS);
 	intercept_t *in;
@@ -3902,18 +3901,23 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 		if (target != NULL && th != target)
 			continue;					// only care about target, and you're not it
 
-		if (!checknonshootable)			// For info CCMD, ignore stuff about GHOST and SHOOTABLE flags
+		// If we want to start a conversation anything that has one should be
+		// found, regardless of other settings.
+		if (!(flags & ALF_CHECKCONVERSATION) || th->Conversation == NULL)
 		{
- 			if (!(th->flags&MF_SHOOTABLE))
-				continue;					// corpse or something
-
-			// check for physical attacks on a ghost
-			if ((th->flags3 & MF3_GHOST) && 
-				shootthing->player &&	// [RH] Be sure shootthing is a player
-				shootthing->player->ReadyWeapon &&
-				(shootthing->player->ReadyWeapon->flags2 & MF2_THRUGHOST))
+			if (!(flags & ALF_CHECKNONSHOOTABLE))			// For info CCMD, ignore stuff about GHOST and SHOOTABLE flags
 			{
-				continue;
+ 				if (!(th->flags&MF_SHOOTABLE))
+					continue;					// corpse or something
+
+				// check for physical attacks on a ghost
+				if ((th->flags3 & MF3_GHOST) && 
+					shootthing->player &&	// [RH] Be sure shootthing is a player
+					shootthing->player->ReadyWeapon &&
+					(shootthing->player->ReadyWeapon->flags2 & MF2_THRUGHOST))
+				{
+					continue;
+				}
 			}
 		}
 		dist = FixedMul (attackrange, in->frac);
@@ -3987,7 +3991,7 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 		
 		thingpitch = thingtoppitch/2 + thingbottompitch/2;
 		
-		if (check3d)
+		if (flags & ALF_CHECK3D)
 		{
 			// We need to do a 3D distance check here because this is nearly always used in
 			// combination with P_LineAttack. P_LineAttack uses 3D distance but FPathTraverse
@@ -4004,7 +4008,7 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 			}
 		}
 
-		if (sv_smartaim && !notsmart)
+		if (sv_smartaim != 0 && !(flags & ALF_FORCENOSMART))
 		{
 			// try to be a little smarter about what to aim at!
 			// In particular avoid autoaiming at friends amd barrels.
@@ -4043,11 +4047,6 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 			aimpitch = thingpitch;
 			return;
 		}
-		if (checknonshootable)
-		{
-			linetarget = th;
-			aimpitch = thingpitch;
-		}
 	}
 }
 
@@ -4057,7 +4056,8 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 //
 //============================================================================
 
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, bool forcenosmart, bool check3d, bool checknonshootable, AActor *target)
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **pLineTarget, fixed_t vrange, 
+						 int flags, AActor *target)
 {
 	fixed_t x2;
 	fixed_t y2;
@@ -4067,8 +4067,8 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	UNLAGGED_Reconcile( t1 );
 
 	angle >>= ANGLETOFINESHIFT;
+	aim.flags = flags;
 	aim.shootthing = t1;
-	aim.check3d = check3d;
 
 	x2 = t1->x + (distance>>FRACBITS)*finecosine[angle];
 	y2 = t1->y + (distance>>FRACBITS)*finesine[angle];
@@ -4111,7 +4111,6 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	}
 	aim.toppitch = t1->pitch - vrange;
 	aim.bottompitch = t1->pitch + vrange;
-	aim.notsmart = forcenosmart;
 
 	aim.attackrange = distance;
 	aim.linetarget = NULL;
@@ -4140,7 +4139,7 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 	}
 #endif
 
-	aim.AimTraverse (t1->x, t1->y, x2, y2, checknonshootable, target);
+	aim.AimTraverse (t1->x, t1->y, x2, y2, target);
 
 	if (!aim.linetarget) 
 	{
@@ -4156,7 +4155,9 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, AActor **p
 		}
 	}
 	if (pLineTarget)
+	{
 		*pLineTarget = aim.linetarget;
+	}
 
 	// [Spleen]
 	UNLAGGED_Restore( t1 );
@@ -5037,13 +5038,13 @@ bool P_TalkFacing(AActor *player)
 {
 	AActor *linetarget;
 
-	P_AimLineAttack(player, player->angle, TALKRANGE, &linetarget, ANGLE_1*35, true);
+	P_AimLineAttack(player, player->angle, TALKRANGE, &linetarget, ANGLE_1*35, ALF_FORCENOSMART|ALF_CHECKCONVERSATION);
 	if (linetarget == NULL)
 	{
-		P_AimLineAttack(player, player->angle + (ANGLE_90 >> 4), TALKRANGE, &linetarget, ANGLE_1*35, true);
+		P_AimLineAttack(player, player->angle + (ANGLE_90 >> 4), TALKRANGE, &linetarget, ANGLE_1*35, ALF_FORCENOSMART|ALF_CHECKCONVERSATION);
 		if (linetarget == NULL)
 		{
-			P_AimLineAttack(player, player->angle - (ANGLE_90 >> 4), TALKRANGE, &linetarget, ANGLE_1*35, true);
+			P_AimLineAttack(player, player->angle - (ANGLE_90 >> 4), TALKRANGE, &linetarget, ANGLE_1*35, ALF_FORCENOSMART|ALF_CHECKCONVERSATION);
 			if (linetarget == NULL)
 			{
 				return false;

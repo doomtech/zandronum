@@ -80,18 +80,8 @@ CVAR (Bool, gl_light_sprites, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR (Bool, gl_light_particles, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CUSTOM_CVAR (Bool, gl_lights_additive, false,  CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	TThinkerIterator<ADynamicLight> it;
-	ADynamicLight * mo;
-
-	// Relink the lights if they switch lists
-	while ((mo=it.Next()))
-	{
-		if (!(mo->flags&MF4_ADDITIVE))
-		{
-			mo->UnlinkLight();
-			mo->LinkLight();
-		}
-	}
+	gl_DeleteAllAttachedLights();
+	gl_RecreateAllAttachedLights();
 }
 
 //==========================================================================

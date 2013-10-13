@@ -1049,8 +1049,8 @@ CCMD(info)
 	AActor *linetarget;
 
 	if (CheckCheatmode () || players[consoleplayer].mo == NULL) return;
-	P_AimLineAttack(players[consoleplayer].mo,players[consoleplayer].mo->angle,MISSILERANGE, &linetarget, 0,
-		false, false, true);
+	P_AimLineAttack(players[consoleplayer].mo,players[consoleplayer].mo->angle,MISSILERANGE, 
+		&linetarget, 0,	ALF_CHECKNONSHOOTABLE|ALF_FORCENOSMART);
 	if (linetarget)
 	{
 		Printf("Target=%s, Health=%d, Spawnhealth=%d\n",
