@@ -272,7 +272,7 @@ static bool gl_LoadVertexes(FileReader * f, wadlump_t * lump)
 		vertexes[i].y = LittleLong(mgl->y);
 		mgl++;
 	}
-	delete gldata;
+	delete[] gldata;
 	return true;
 }
 

@@ -448,12 +448,12 @@ const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int
 			if (!hwtex->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
 			{
 				// could not create texture
-				delete buffer;
+				delete[] buffer;
 				return NULL;
 			}
 			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (clampmode & GLT_CLAMPX)? GL_CLAMP_TO_EDGE : GL_REPEAT);
 			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (clampmode & GLT_CLAMPY)? GL_CLAMP_TO_EDGE : GL_REPEAT);
-			delete buffer;
+			delete[] buffer;
 		}
 
 		if (tex->bHasCanvas) static_cast<FCanvasTexture*>(tex)->NeedUpdate();
@@ -505,10 +505,10 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{
 				// could not create texture
-				delete buffer;
+				delete[] buffer;
 				return NULL;
 			}
-			delete buffer;
+			delete[] buffer;
 			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		}

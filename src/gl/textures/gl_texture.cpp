@@ -351,7 +351,7 @@ void FTexture::GetGlowColor(float *data)
 		if (buffer)
 		{
 			gl_info.GlowColor = averageColor((DWORD *) buffer, w*h, 6*FRACUNIT/10);
-			delete buffer;
+			delete[] buffer;
 		}
 
 		// Black glow equals nothing so switch glowing off
@@ -388,7 +388,7 @@ PalEntry FTexture::GetSkyCapColor(bool bottom)
 				gl_info.FloorSkyColor = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, 0);
 			}
 			else gl_info.FloorSkyColor = gl_info.CeilingSkyColor;
-			delete buffer;
+			delete[] buffer;
 		}
 	}
 	return bottom? gl_info.FloorSkyColor : gl_info.CeilingSkyColor;
