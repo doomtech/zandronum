@@ -812,6 +812,7 @@ void D_Display ()
 		switch (gamestate)
 		{
 		case GS_FULLCONSOLE:
+			R_UpdateAnimations(I_MSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			C_DrawConsole (false);
@@ -914,6 +915,7 @@ void D_Display ()
 			break;
 
 		case GS_INTERMISSION:
+			R_UpdateAnimations(I_MSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			WI_Drawer ();
@@ -942,12 +944,14 @@ void D_Display ()
 			break;
 
 		case GS_FINALE:
+			R_UpdateAnimations(I_MSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			F_Drawer ();
 			break;
 
 		case GS_DEMOSCREEN:
+			R_UpdateAnimations(I_MSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			D_PageDrawer ();
@@ -2251,9 +2255,14 @@ void D_DoomMain (void)
 
 	CopyFiles(allwads, pwads);
 
+	// Since this function will never leave we must delete this array here manually.
+	pwads.Clear();
+	pwads.ShrinkToFit();
+
 	Printf ("W_Init: Init WADfiles.\n");
 	Wads.InitMultipleFiles (/*allwads*/); // [BB] Removed argument.
 	allwads.Clear();
+	allwads.ShrinkToFit();
 
 	// Initialize the chat module.
 	CHAT_Construct( );

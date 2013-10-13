@@ -794,7 +794,7 @@ bool BOTS_IsVisible( AActor *pActor1, AActor *pActor2 )
 	angle_t	Angle;
 
 	// Check if we have a line of sight to this object.
-	if ( P_CheckSight( pActor1, pActor2, 2 ) == false )
+	if ( P_CheckSight( pActor1, pActor2, SF_SEEPASTBLOCKEVERYTHING ) == false )
 		return ( false );
 
 	Angle = R_PointToAngle2( pActor1->x,

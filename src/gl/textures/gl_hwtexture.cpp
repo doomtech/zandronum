@@ -169,6 +169,9 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 
 	if (deletebuffer) free(buffer);
 
+	// When using separate samplers the stuff below is not needed.
+	// if (gl.flags & RFL_SAMPLER_OBJECTS) return;
+
 	if (mipmap && use_mipmapping)
 	{
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].minfilter);

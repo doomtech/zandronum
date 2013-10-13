@@ -1117,7 +1117,7 @@ static void botcmd_LookForPlayerEnemies( CSkullBot *pBot )
 		}
 
 		// Check if we have a line of sight to this player.
-		if ( P_CheckSight( pBot->GetPlayer( )->mo, players[ulIdx].mo, 2 ))
+		if ( P_CheckSight( pBot->GetPlayer( )->mo, players[ulIdx].mo, SF_SEEPASTBLOCKEVERYTHING ))
 		{
 			angle_t	Angle;
 
@@ -1168,7 +1168,7 @@ static void botcmd_GetClosestPlayerEnemy( CSkullBot *pBot )
 		}
 
 		// Check if we have a line of sight to this player.
-		if ( P_CheckSight( pBot->GetPlayer( )->mo, players[ulIdx].mo, 2 ) == false )
+		if ( P_CheckSight( pBot->GetPlayer( )->mo, players[ulIdx].mo, SF_SEEPASTBLOCKEVERYTHING ) == false )
 			continue;
 
 		Angle = R_PointToAngle2( pBot->GetPlayer( )->mo->x,
@@ -1799,7 +1799,7 @@ static void botcmd_IsItemVisible( CSkullBot *pBot )
 		pActor = g_NetIDList[lIdx].pActor;
 
 		// Check if we have a line of sight to this object.
-		if ( P_CheckSight( pBot->GetPlayer( )->mo, pActor, 2 ))
+		if ( P_CheckSight( pBot->GetPlayer( )->mo, pActor, SF_SEEPASTBLOCKEVERYTHING ))
 		{
 			angle_t	Angle;
 
@@ -1927,7 +1927,7 @@ static void botcmd_IsEnemyVisible( CSkullBot *pBot )
 {
 	if (( pBot->m_ulPlayerEnemy != MAXPLAYERS ) && ( players[pBot->m_ulPlayerEnemy].mo ))
 	{
-		g_bReturnBool = ( P_CheckSight( pBot->GetPlayer( )->mo, players[pBot->m_ulPlayerEnemy].mo, 2 ));
+		g_bReturnBool = ( P_CheckSight( pBot->GetPlayer( )->mo, players[pBot->m_ulPlayerEnemy].mo, SF_SEEPASTBLOCKEVERYTHING ));
 	}
 	else
 		g_bReturnBool = false;

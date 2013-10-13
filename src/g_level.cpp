@@ -691,7 +691,7 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 
 	if (strncmp(levelname, "enDSeQ", 6) != 0)
 	{
-		nextinfo = FindLevelInfo (nextlevel);
+		nextinfo = FindLevelInfo (levelname);
 		if (nextinfo != NULL)
 		{
 			level_info_t *nextredir = nextinfo->CheckLevelRedirect();

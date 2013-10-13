@@ -205,16 +205,16 @@ void P_RecursiveSound (sector_t *sec, AActor *soundtarget, bool splash, int soun
 //
 //----------------------------------------------------------------------------
 
-void P_NoiseAlert (AActor *target, AActor *emmiter, bool splash)
+void P_NoiseAlert (AActor *target, AActor *emitter, bool splash)
 {
-	if (emmiter == NULL)
+	if (emitter == NULL)
 		return;
 
 	if (target != NULL && target->player && (target->player->cheats & CF_NOTARGET))
 		return;
 
 	validcount++;
-	P_RecursiveSound (emmiter->Sector, target, splash, 0);
+	P_RecursiveSound (emitter->Sector, target, splash, 0);
 }
 
 
@@ -315,7 +315,7 @@ bool P_CheckMissileRange (AActor *actor)
 {
 	fixed_t dist;
 		
-	if (!P_CheckSight (actor, actor->target, 4))
+	if (!P_CheckSight (actor, actor->target, SF_SEEPASTBLOCKEVERYTHING|SF_SEEPASTSHOOTABLELINES))
 		return false;
 		
 	if (actor->flags & MF_JUSTHIT)
@@ -1286,7 +1286,7 @@ bool P_IsVisible(AActor *lookee, AActor *other, INTBOOL allaround, FLookExParams
 	}
 
 	// P_CheckSight is by far the most expensive operation in here so let's do it last.
-	return P_CheckSight(lookee, other, 2);
+	return P_CheckSight(lookee, other, SF_SEEPASTBLOCKEVERYTHING);
 }
 
 //---------------------------------------------------------------------------
@@ -1308,7 +1308,7 @@ bool P_LookForMonsters (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( false );
 
-	if (!P_CheckSight (players[0].mo, actor, 2))
+	if (!P_CheckSight (players[0].mo, actor, SF_SEEPASTBLOCKEVERYTHING))
 	{ // Player can't see monster
 		return false;
 	}
@@ -1337,7 +1337,7 @@ bool P_LookForMonsters (AActor *actor)
 		{ // [RH] Don't go after same species
 			continue;
 		}
-		if (!P_CheckSight (actor, mo, 2))
+		if (!P_CheckSight (actor, mo, SF_SEEPASTBLOCKEVERYTHING))
 		{ // Out of sight
 			continue;
 		}
@@ -1971,7 +1971,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look)
 
 			if (self->flags & MF_AMBUSH)
 			{
-				if (P_CheckSight (self, self->target, 2))
+				if (P_CheckSight (self, self->target, SF_SEEPASTBLOCKEVERYTHING))
 					goto seeyou;
 			}
 			else
@@ -2150,7 +2150,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
 				{
 					dist = P_AproxDistance (self->target->x - self->x,
 											self->target->y - self->y);
-					if (P_CheckSight (self, self->target, 2) &&
+					if (P_CheckSight (self, self->target, SF_SEEPASTBLOCKEVERYTHING) &&
 						(!minseedist || dist > minseedist) &&
 						(!maxseedist || dist < maxseedist))
 					{
@@ -2297,7 +2297,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look2)
 		{
 			if (self->flags & MF_AMBUSH)
 			{
-				if (!P_CheckSight (self, targ, 2))
+				if (!P_CheckSight (self, targ, SF_SEEPASTBLOCKEVERYTHING))
 					goto nosee;
 			}
 			self->target = targ;
@@ -2707,7 +2707,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		&& ( CLIENTDEMO_IsPlaying( ) == false )
 		// [BB] In invasion mode, player doesn't have to be visible to be chased by monsters.
 		// [BB] The flags argument of P_CheckSight has to be the same here as it is in P_LookForPlayers.
-		&& !P_CheckSight (actor, actor->target, 2) && ( invasion == false ) )
+		&& !P_CheckSight (actor, actor->target, SF_SEEPASTBLOCKEVERYTHING) && ( invasion == false ) )
 	{
 		bool lookForBetter = false;
 		bool gotNew;

@@ -361,7 +361,7 @@ void P_Ticker (void)
 			if (( playeringame[ulIdx] ) && ( players[ulIdx].pSkullBot ))
 			{
 				// Also, if they have an enemy, and can see it, update their known enemy position.
-				if (( players[ulIdx].pSkullBot->m_ulPlayerEnemy != MAXPLAYERS ) && ( P_CheckSight( players[ulIdx].mo, players[players[ulIdx].pSkullBot->m_ulPlayerEnemy].mo, 2 )))
+				if (( players[ulIdx].pSkullBot->m_ulPlayerEnemy != MAXPLAYERS ) && ( P_CheckSight( players[ulIdx].mo, players[players[ulIdx].pSkullBot->m_ulPlayerEnemy].mo, SF_SEEPASTBLOCKEVERYTHING )))
 					players[ulIdx].pSkullBot->SetEnemyPosition( players[players[ulIdx].pSkullBot->m_ulPlayerEnemy].mo->x, players[players[ulIdx].pSkullBot->m_ulPlayerEnemy].mo->y, players[players[ulIdx].pSkullBot->m_ulPlayerEnemy].mo->z );
 
 				// Now that all the players have moved to their final location for this tick,

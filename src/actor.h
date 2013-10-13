@@ -698,9 +698,6 @@ public:
 
 	virtual void Tick ();
 
-	// Smallest yaw interval for a mapthing to be spawned with
-	virtual angle_t AngleIncrements ();
-
 	// Called when actor dies
 	virtual void Die (AActor *source, AActor *inflictor);
 
@@ -834,6 +831,28 @@ public:
 	{
 		fixed_t blockdist = radius + other->radius;
 		return ( abs(x - other->x) < blockdist && abs(y - other->y) < blockdist);
+	}
+
+	PalEntry GetBloodColor() const
+	{
+		return (PalEntry)GetClass()->Meta.GetMetaInt(AMETA_BloodColor);
+	}
+
+	const PClass *GetBloodType(int type = 0) const
+	{
+		if (type == 0)
+		{
+			return PClass::FindClass((ENamedName)GetClass()->Meta.GetMetaInt(AMETA_BloodType, NAME_Blood));
+		}
+		else if (type == 1)
+		{
+			return PClass::FindClass((ENamedName)GetClass()->Meta.GetMetaInt(AMETA_BloodType2, NAME_BloodSplatter));
+		}
+		else if (type == 2)
+		{
+			return  PClass::FindClass((ENamedName)GetClass()->Meta.GetMetaInt(AMETA_BloodType3, NAME_AxeBlood));
+		}
+		else return NULL;
 	}
 
 	// Calculate amount of missile damage
@@ -985,6 +1004,7 @@ public:
 	FSoundIDNoInit UseSound;		// [RH] Sound to play when an actor is used.
 	FSoundIDNoInit BounceSound;
 	FSoundIDNoInit WallBounceSound;
+	FSoundIDNoInit CrushPainSound;
 
 	fixed_t Speed;
 	fixed_t FloatSpeed;
