@@ -2017,6 +2017,8 @@ void G_InitLevelLocals ()
 		compatflags.Callback();
 
 	NormalLight.ChangeFade (level.fadeto);
+
+	level.DefaultEnvironment = info->DefaultEnvironment;
 }
 
 //==========================================================================

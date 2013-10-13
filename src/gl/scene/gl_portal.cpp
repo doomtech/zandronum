@@ -756,6 +756,19 @@ int GLSectorStackPortal::ClipPoint(fixed_t x, fixed_t y)
 
 	for(i=0;i<numpoints; i++)
 	{
+		if (angles[i+1] - clipangle <= ANGLE_180 && angles[i] - clipangle > ANGLE_180 && angles[i+1] - angles[i] < ANGLE_180)
+		{
+			int relation = DMulScale32(y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
+				portal->Shape[i]->x - x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
+			if (relation > 0) return PClip_InFront;
+			return PClip_Inside;
+		}
+	}
+	return PClip_Inside;
+
+	/*
+	for(i=0;i<numpoints; i++)
+	{
 		if (clipangle >= angles[i] && clipangle < angles[i+1])
 		{
 			int relation = DMulScale32(y - portal->Shape[i]->y, portal->Shape[i+1]->x - portal->Shape[i]->x,
@@ -764,6 +777,7 @@ int GLSectorStackPortal::ClipPoint(fixed_t x, fixed_t y)
 			return PClip_Inside;
 		}
 	}
+	*/
 	return PClip_Inside;
 }
 

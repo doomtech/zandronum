@@ -286,6 +286,7 @@ struct level_info_t
 	DWORD		compatflags;
 	DWORD		compatmask;
 	FString		Translator;	// for converting Doom-format linedef and sector types.
+	int			DefaultEnvironment;	// Default sound environment for the map.
 
 	// Redirection: If any player is carrying the specified item, then
 	// you go to the RedirectMap instead of this one.
@@ -402,6 +403,7 @@ struct FLevelLocals
 	fixed_t		aircontrol;
 	fixed_t		airfriction;
 	int			airsupply;
+	int			DefaultEnvironment;		// Default sound environment.
 
 	FSectorScrollValues	*Scrolls;		// NULL if no DScrollers in this level
 

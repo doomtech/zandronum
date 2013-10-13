@@ -3687,7 +3687,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MonsterRefire)
 	if (!self->target
 		|| P_HitFriend (self)
 		|| self->target->health <= 0
-		|| !P_CheckSight (self, self->target, 0) )
+		|| !P_CheckSight (self, self->target, SF_SEEPASTBLOCKEVERYTHING|SF_SEEPASTSHOOTABLELINES) )
 	{
 		ACTION_JUMP(jump,CLIENTUPDATE_FRAME);	// [BB] Since monsters don't have targets on the client end, we need to send an update.
 	}
