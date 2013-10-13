@@ -392,6 +392,7 @@ xx(Repeatspecial)
 
 xx(Playercross)
 xx(Playeruse)
+xx(Playeruseback)
 xx(Monstercross)
 xx(Impact)
 xx(Playerpush)

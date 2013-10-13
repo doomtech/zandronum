@@ -3195,7 +3195,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_XScream)
 DEFINE_ACTION_FUNCTION(AActor, A_ScreamAndUnblock)
 {
 	CALL_ACTION(A_Scream, self);
-	CALL_ACTION(A_NoBlocking, self);
+	A_Unblock(self, true);
 }
 
 //===========================================================================
@@ -3221,7 +3221,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_ActiveSound)
 DEFINE_ACTION_FUNCTION(AActor, A_ActiveAndUnblock)
 {
 	CALL_ACTION(A_ActiveSound, self);
-	CALL_ACTION(A_NoBlocking, self);
+	A_Unblock(self, true);
 }
 
 //---------------------------------------------------------------------------

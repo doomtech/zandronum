@@ -178,7 +178,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PainDie)
 		self->flags &= ~MF_FRIENDLY;
 	}
 	const PClass *spawntype = GetSpawnType(PUSH_PARAMINFO);
-	CALL_ACTION(A_NoBlocking, self);
+	A_Unblock(self, true);
 	A_PainShootSkull (self, self->angle + ANG90, spawntype);
 	A_PainShootSkull (self, self->angle + ANG180, spawntype);
 	A_PainShootSkull (self, self->angle + ANG270, spawntype);
