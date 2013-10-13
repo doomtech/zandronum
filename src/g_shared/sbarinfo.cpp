@@ -866,11 +866,6 @@ public:
 		{
 			patchnames[i+script->Images.Size()] = InventoryBarLumps[i];
 		}
-		// [BB] changed numskins to skins.Size()
-		for (i = 0;i < skins.Size();i++)
-		{
-			AddFaceToImageCollection (&skins[i], &Images);
-		}
 		invBarOffset = script->Images.Size();
 		Images.Init(&patchnames[0], patchnames.Size());
 	}

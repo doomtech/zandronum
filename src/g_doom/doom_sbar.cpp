@@ -80,11 +80,6 @@ public:
 		}
 	}
 
-	void AddFaceToImageCollection (void *skn, FImageCollection *images)
-	{
-		AddFaceToImageCollectionActual (skn, images, true);
-	}
-
 	void MultiplayerChanged ()
 	{
 		DBaseStatusBar::MultiplayerChanged ();
@@ -100,10 +95,6 @@ public:
 		player_t *oldplayer = CPlayer;
 
 		DBaseStatusBar::AttachToPlayer (player);
-		if (oldplayer != CPlayer || savegamerestore/*added for morphing*/)
-		{
-			SetFace (&skins[CPlayer->morphTics ? CPlayer->MorphedPlayerClass : CPlayer->userinfo.skin]);
-		}
 		if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 		{
 			// set face background color

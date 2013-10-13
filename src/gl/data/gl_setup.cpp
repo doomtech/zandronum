@@ -506,7 +506,7 @@ static void SetupDependencies()
 		mSector->e->VertexDependencies.ShrinkToFit();
 	}
 
-	delete checkmap;
+	delete [] checkmap;
 	delete [] vt_linelists;
 }
 

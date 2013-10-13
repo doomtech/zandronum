@@ -405,7 +405,7 @@ void FDecalLib::ReadDecals(FScanner &sc)
 		}
 		else
 		{
-			sc.MustGetStringName(NULL);
+			sc.ScriptError("Unknown decaldef keyword '%s'", sc.String);
 		}
 	}
 }

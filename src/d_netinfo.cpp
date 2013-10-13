@@ -1154,10 +1154,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				// Rebuild translation in case the new skin uses a different range
 				// than the old one.
 				R_BuildPlayerTranslation (i);
-				if (StatusBar != NULL && i == StatusBar->GetPlayer())
-				{
-					StatusBar->SetFace (&skins[info->skin]);
-				}
 
 				// If the skin was hidden, reveal it!
 				if ( skins[info->skin].bRevealed == false )

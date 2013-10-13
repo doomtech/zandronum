@@ -5165,9 +5165,6 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 
 	// [GRB] Reset skin
 	p->userinfo.skin = R_FindSkin (skins[p->userinfo.skin].name, p->CurrentPlayerClass);
-	// [BC] The server does not have a status bar.
-	if (( StatusBar ) && ( StatusBar->GetPlayer( ) == ( p - players )))
-		StatusBar->SetFace (&skins[p->userinfo.skin]);
 
 
 	if (!(mobj->flags2 & MF2_DONTTRANSLATE))

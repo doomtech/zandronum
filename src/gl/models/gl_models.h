@@ -239,7 +239,7 @@ public:
 //
 // [BB] Model rendering flags.
 //
-typedef enum
+enum
 {
 	// [BB] Color translations for the model skin are ignored. This is
 	// useful if the skin texture is not using the game palette.
