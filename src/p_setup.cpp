@@ -1189,12 +1189,29 @@ void P_LoadZNodes (FileReader &dalump, DWORD id)
 
 //===========================================================================
 //
+// P_CheckV4Nodes
+// http://www.sbsoftware.com/files/DeePBSPV4specs.txt
+//
+//===========================================================================
+
+static bool P_CheckV4Nodes(MapData *map)
+{
+	char header[8];
+
+	map->Read(ML_NODES, header, 8);
+	return !memcmp(header, "xNd4\0\0\0\0", 8);
+}
+
+
+//===========================================================================
+//
 // P_LoadSegs
 //
 // killough 5/3/98: reformatted, cleaned up
 //
 //===========================================================================
 
+template<class segtype>
 void P_LoadSegs (MapData * map)
 {
 	int  i;
@@ -1211,7 +1228,7 @@ void P_LoadSegs (MapData * map)
 
 	memset (vertchanged,0,numvertexes); // phares 10/4/98
 
-	numsegs = lumplen / sizeof(mapseg_t);
+	numsegs = lumplen / sizeof(segtype);
 
 	if (numsegs == 0)
 	{
@@ -1244,13 +1261,13 @@ void P_LoadSegs (MapData * map)
 		for (i = 0; i < numsegs; i++)
 		{
 			seg_t *li = segs+i;
-			mapseg_t *ml = (mapseg_t *) data + i;
+			segtype *ml = ((segtype *) data) + i;
 
 			int side, linedef;
 			line_t *ldef;
 
-			vnum1 = LittleShort(ml->v1);
-			vnum2 = LittleShort(ml->v2);
+			vnum1 = ml->V1();
+			vnum2 = ml->V2();
 
 			if (vnum1 >= numvertexes || vnum2 >= numvertexes)
 			{
@@ -1380,12 +1397,13 @@ void P_LoadSegs (MapData * map)
 //
 //===========================================================================
 
+template<class subsectortype, class segtype>
 void P_LoadSubsectors (MapData * map)
 {
 	int i;
-	DWORD maxseg = map->Size(ML_SEGS) / sizeof(mapseg_t);
+	DWORD maxseg = map->Size(ML_SEGS) / sizeof(segtype);
 
-	numsubsectors = map->MapLumps[ML_SSECTORS].Size / sizeof(mapsubsector_t);
+	numsubsectors = map->MapLumps[ML_SSECTORS].Size / sizeof(subsectortype);
 
 	if (numsubsectors == 0 || maxseg == 0 )
 	{
@@ -1402,11 +1420,11 @@ void P_LoadSubsectors (MapData * map)
 	
 	for (i = 0; i < numsubsectors; i++)
 	{
-		WORD numsegs, firstseg;
+		subsectortype subd;
 
-		(*map->file) >> numsegs >> firstseg;
+		(*map->file) >> subd.numsegs >> subd.firstseg;
 
-		if (numsegs == 0)
+		if (subd.numsegs == 0)
 		{
 			Printf ("Subsector %i is empty.\n", i);
 			delete[] subsectors;
@@ -1415,8 +1433,8 @@ void P_LoadSubsectors (MapData * map)
 			return;
 		}
 
-		subsectors[i].numlines = numsegs;
-		subsectors[i].firstline = firstseg;
+        subsectors[i].numlines = subd.numsegs;
+        subsectors[i].firstline = subd.firstseg;
 
 		if (subsectors[i].firstline >= maxseg)
 		{
@@ -1559,6 +1577,7 @@ void P_LoadSectors (MapData * map)
 //
 //===========================================================================
 
+template<class nodetype, class subsectortype>
 void P_LoadNodes (MapData * map)
 {
 	FMemLump	data;
@@ -1566,13 +1585,13 @@ void P_LoadNodes (MapData * map)
 	int 		j;
 	int 		k;
 	char		*mnp;
-	mapnode_t	*mn;
+	nodetype	*mn;
 	node_t* 	no;
 	WORD*		used;
 	int			lumplen = map->Size(ML_NODES);
-	int			maxss = map->Size(ML_SSECTORS) / sizeof(mapsubsector_t);
+	int			maxss = map->Size(ML_SSECTORS) / sizeof(subsectortype);
 
-	numnodes = lumplen / sizeof(mapnode_t);
+	numnodes = (lumplen - nodetype::NF_LUMPOFFSET) / sizeof(nodetype);
 
 	if ((numnodes == 0 && maxss != 1) || maxss == 0)
 	{
@@ -1585,8 +1604,9 @@ void P_LoadNodes (MapData * map)
 	memset (used, 0, sizeof(WORD)*numnodes);
 
 	mnp = new char[lumplen];
-	mn = (mapnode_t*)mnp;
-	map->Read(ML_NODES, mn);
+
+	mn = (nodetype*)(mnp + nodetype::NF_LUMPOFFSET);
+	map->Read(ML_NODES, mnp);
 	no = nodes;
 	
 	for (i = 0; i < numnodes; i++, no++, mn++)
@@ -1597,10 +1617,10 @@ void P_LoadNodes (MapData * map)
 		no->dy = LittleShort(mn->dy)<<FRACBITS;
 		for (j = 0; j < 2; j++)
 		{
-			WORD child = LittleShort(mn->children[j]);
-			if (child & NF_SUBSECTOR)
+			int child = mn->Child(j);
+			if (child & nodetype::NF_SUBSECTOR)
 			{
-				child &= ~NF_SUBSECTOR;
+				child &= ~nodetype::NF_SUBSECTOR;
 				if (child >= maxss)
 				{
 					Printf ("BSP node %d references invalid subsector %d.\n"
@@ -4046,17 +4066,34 @@ void P_SetupLevel (char *lumpname, int position)
 			// This just means that the map has no nodes and the engine is supposed to build them.
 			if (map->Size(ML_SEGS) != 0 || map->Size(ML_SSECTORS) != 0 || map->Size(ML_NODES) != 0)
 			{
-				times[7].Clock();
-				P_LoadSubsectors (map);
-				times[7].Unclock();
+				if (!P_CheckV4Nodes(map))
+				{
+					times[7].Clock();
+					P_LoadSubsectors<mapsubsector_t, mapseg_t> (map);
+					times[7].Unclock();
 
-				times[8].Clock();
-				if (!ForceNodeBuild) P_LoadNodes (map);
-				times[8].Unclock();
+					times[8].Clock();
+					if (!ForceNodeBuild) P_LoadNodes<mapnode_t, mapsubsector_t> (map);
+					times[8].Unclock();
 
-				times[9].Clock();
-				if (!ForceNodeBuild) P_LoadSegs (map);
-				times[9].Unclock();
+					times[9].Clock();
+					if (!ForceNodeBuild) P_LoadSegs<mapseg_t> (map);
+					times[9].Unclock();
+				}
+				else
+				{
+					times[7].Clock();
+					P_LoadSubsectors<mapsubsector4_t, mapseg4_t> (map);
+					times[7].Unclock();
+					
+					times[8].Clock();
+					if (!ForceNodeBuild) P_LoadNodes<mapnode4_t, mapsubsector4_t> (map);
+					times[8].Unclock();
+					
+					times[9].Clock();
+					if (!ForceNodeBuild) P_LoadSegs<mapseg4_t> (map);
+					times[9].Unclock();
+				}
 			}
 			else ForceNodeBuild = true;
 		}

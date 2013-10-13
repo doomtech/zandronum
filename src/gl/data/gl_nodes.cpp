@@ -513,7 +513,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 // P_LoadNodes
 //
 //==========================================================================
-
+#define NF_SUBSECTOR 0x8000
 static bool gl_LoadNodes (FileReader * f, wadlump_t * lump)
 {
 	int 		i;
@@ -1234,12 +1234,12 @@ errorout:
 //==========================================================================
 //
 // I am keeping both the original nodes from the WAD and the ones
-// created for the GL renderer. THe original set is only being used
+// created for the GL renderer. The original set is only being used
 // to get the sector for in-game positioning of actors but not for rendering.
 //
 // Unfortunately this is necessary because ZDBSP is much more sensitive
 // to sloppy mapping practices that produce overlapping sectors.
-// The crane in P:AR E1M3 is a good example that would be broken If
+// The crane in P:AR E1M3 is a good example that would be broken if
 // I didn't do this.
 //
 //==========================================================================

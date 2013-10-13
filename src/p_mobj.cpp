@@ -1367,8 +1367,8 @@ bool AActor::Grind(bool items)
 		// ZDoom behavior differs from standard as crushed corpses cannot be raised.
 		// The reason for the change was originally because of a problem with players,
 		// see rh_log entry for February 21, 1999. Don't know if it is still relevant.
-		if (state == NULL 												// Only use the default crushed state if:
-			&& !(flags & MF_NOBLOOD)						// 1. the monster bleeeds,
+		if (state == NULL 									// Only use the default crushed state if:
+			&& !(flags & MF_NOBLOOD)						// 1. the monster bleeds,
 			&& (i_compatflags & COMPATF_CORPSEGIBS)			// 2. the compat setting is on,
 			&& player == NULL)								// 3. and the thing isn't a player.
 		{
