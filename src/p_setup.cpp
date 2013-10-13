@@ -1260,7 +1260,7 @@ void P_LoadSegs (MapData * map)
 	{
 		for (i = 0; i < numsegs; i++)
 		{
-			seg_t *li = segs+i;
+			seg_t *li = segs + i;
 			segtype *ml = ((segtype *) data) + i;
 
 			int side, linedef;
@@ -1433,8 +1433,8 @@ void P_LoadSubsectors (MapData * map)
 			return;
 		}
 
-        subsectors[i].numlines = subd.numsegs;
-        subsectors[i].firstline = subd.firstseg;
+		subsectors[i].numlines = subd.numsegs;
+		subsectors[i].firstline = subd.firstseg;
 
 		if (subsectors[i].firstline >= maxseg)
 		{
