@@ -76,35 +76,35 @@
 //	VARIABLES
 
 static	MEDAL_t	g_Medals[NUM_MEDALS] =
-{	
-	{ "EXCLA0", S_EXCELLENT, "Excellent!", CR_GRAY, "Excellent", NUM_MEDALS, {NULL},	},
-	{ "INCRA0", S_INCREDIBLE, "Incredible!", CR_RED, "Incredible", MEDAL_EXCELLENT, {NULL}, },	
+{
+	{ "EXCLA0", S_EXCELLENT, "Excellent!", CR_GRAY, "Excellent", NUM_MEDALS, "",	},
+	{ "INCRA0", S_INCREDIBLE, "Incredible!", CR_RED, "Incredible", MEDAL_EXCELLENT, "", },
 
-	{ "IMPRA0", S_IMPRESSIVE, "Impressive!", CR_GRAY, "Impressive", NUM_MEDALS, {NULL}, },
-	{ "MIMPA0", S_MOST_IMPRESSIVE, "Most impressive!", CR_RED, "MostImpressive", MEDAL_IMPRESSIVE, {NULL}, },
-	
-	{ "DOMNA0", S_DOMINATION, "Domination!", CR_GRAY, "Domination", NUM_MEDALS, {NULL}, },	
-	{ "TDOMA0", S_TOTAL_DOMINATION, "Total domination!", CR_RED, "TotalDomination", MEDAL_DOMINATION, {NULL}, },	
-	
-	{ "ACCUA0", S_ACCURACY, "Accuracy!", CR_GRAY, "Accuracy", NUM_MEDALS, {NULL}, },
-	{ "PRECA0", S_PRECISION, "Precision!", CR_RED, "Precision", MEDAL_ACCURACY, {NULL}, },
+	{ "IMPRA0", S_IMPRESSIVE, "Impressive!", CR_GRAY, "Impressive", NUM_MEDALS, "", },
+	{ "MIMPA0", S_MOST_IMPRESSIVE, "Most impressive!", CR_RED, "MostImpressive", MEDAL_IMPRESSIVE, "", },
 
-	{ "FAILA0", S_YOUFAILIT, "You fail it!", CR_GREEN, "YouFailIt", NUM_MEDALS, {NULL}, },	
-	{ "SKILA0", S_YOURSKILLISNOTENOUGH, "Your skill is not enough!", CR_ORANGE, "YourSkillIsNotEnough", MEDAL_YOUFAILIT, {NULL}, },
+	{ "DOMNA0", S_DOMINATION, "Domination!", CR_GRAY, "Domination", NUM_MEDALS, "", },
+	{ "TDOMA0", S_TOTAL_DOMINATION, "Total domination!", CR_RED, "TotalDomination", MEDAL_DOMINATION, "", },
+
+	{ "ACCUA0", S_ACCURACY, "Accuracy!", CR_GRAY, "Accuracy", NUM_MEDALS, "", },
+	{ "PRECA0", S_PRECISION, "Precision!", CR_RED, "Precision", MEDAL_ACCURACY, "", },
+
+	{ "FAILA0", S_YOUFAILIT, "You fail it!", CR_GREEN, "YouFailIt", NUM_MEDALS, "", },
+	{ "SKILA0", S_YOURSKILLISNOTENOUGH, "Your skill is not enough!", CR_ORANGE, "YourSkillIsNotEnough", MEDAL_YOUFAILIT, "", },
 
 	{ "LLAMA0", S_LLAMA, "Llama!", CR_GREEN, "Llama", NUM_MEDALS, "misc/llama", },
-	{ "SPAMA0", S_SPAM, "Spam!", CR_GREEN, "Spam", MEDAL_LLAMA, "misc/spam", },	
+	{ "SPAMA0", S_SPAM, "Spam!", CR_GREEN, "Spam", MEDAL_LLAMA, "misc/spam", },
 
-	{ "VICTA0", S_VICTORY, "Victory!", CR_GRAY, "Victory", NUM_MEDALS, {NULL}, },
-	{ "PFCTA0", S_PERFECT, "Perfect!", CR_RED, "Perfect", MEDAL_VICTORY, {NULL}, },	
+	{ "VICTA0", S_VICTORY, "Victory!", CR_GRAY, "Victory", NUM_MEDALS, "", },
+	{ "PFCTA0", S_PERFECT, "Perfect!", CR_RED, "Perfect", MEDAL_VICTORY, "", },
 
-	{ "TRMAA0", S_TERMINATION, "Termination!", CR_GRAY, "Termination", NUM_MEDALS, {NULL}, },	
-	{ "FFRGA0", S_FIRSTFRAG, "First frag!", CR_GRAY, "FirstFrag", NUM_MEDALS, {NULL}, },	
-	{ "CAPTA0", S_CAPTURE, "Capture!", CR_GRAY, "Capture", NUM_MEDALS, {NULL}, },	
-	{ "STAGA0", S_TAG, "Tag!", CR_GRAY, "Tag", NUM_MEDALS, {NULL}, },	
-	{ "ASSTA0", S_ASSIST, "Assist!", CR_GRAY, "Assist", NUM_MEDALS, {NULL}, },	
-	{ "DFNSA0", S_DEFENSE, "Defense!", CR_GRAY, "Defense", NUM_MEDALS, {NULL}, },	
-	{ "FISTA0", S_FISTING, "Fisting!", CR_GRAY, "Fisting", NUM_MEDALS, {NULL}, },
+	{ "TRMAA0", S_TERMINATION, "Termination!", CR_GRAY, "Termination", NUM_MEDALS, "", },
+	{ "FFRGA0", S_FIRSTFRAG, "First frag!", CR_GRAY, "FirstFrag", NUM_MEDALS, "", },
+	{ "CAPTA0", S_CAPTURE, "Capture!", CR_GRAY, "Capture", NUM_MEDALS, "", },
+	{ "STAGA0", S_TAG, "Tag!", CR_GRAY, "Tag", NUM_MEDALS, "", },
+	{ "ASSTA0", S_ASSIST, "Assist!", CR_GRAY, "Assist", NUM_MEDALS, "", },
+	{ "DFNSA0", S_DEFENSE, "Defense!", CR_GRAY, "Defense", NUM_MEDALS, "", },
+	{ "FISTA0", S_FISTING, "Fisting!", CR_GRAY, "Fisting", NUM_MEDALS, "", },
 };
 
 enum
@@ -229,8 +229,9 @@ void MEDAL_Render( void )
 	ULONG		ulPlayer;
 	ULONG		ulMedal;
 	ULONG		ulTick;
-	char		szString[64];
-	char		szPatchName[32];
+	FString		string;
+	FString		patchName;
+	long		lAlpha = OPAQUE;
 
 	if ( players[consoleplayer].camera == NULL )
 		return;
@@ -248,9 +249,12 @@ void MEDAL_Render( void )
 	ulMedal	= g_MedalQueue[ulPlayer][0].ulMedal;
 	ulTick	= g_MedalQueue[ulPlayer][0].ulTick;
 
+	if ( ulTick > ( 1 * TICRATE ))
+		lAlpha = OPAQUE * ((float) ulTick / TICRATE );
+
 	// Get the graphic from the global array.
-	sprintf( szPatchName, "%s", g_Medals[ulMedal].szLumpName );
-	if ( szPatchName[0] )
+	patchName = g_Medals[ulMedal].szLumpName;
+	if ( patchName.IsNotEmpty() )
 	{
 		ULONG	ulCurXPos;
 		ULONG	ulCurYPos;
@@ -259,7 +263,7 @@ void MEDAL_Render( void )
 
 		// Determine how much actual screen space it will take to render the amount of
 		// medals the player has received up until this point.
-		ulLength = ulNumMedals * TexMan[szPatchName]->GetWidth( );
+		ulLength = ulNumMedals * TexMan[patchName]->GetWidth( );
 
 		if ( viewheight <= ST_Y )
 			ulCurYPos = ((int)( ST_Y - 11 * CleanYfac ));
@@ -271,24 +275,30 @@ void MEDAL_Render( void )
 		{
 			ulCurXPos = 160;
 
+			const char* szColor1 = TEXTCOLOR_WHITE,
+				*szColor2 = TEXTCOLOR_RED;
+
 			if ( g_Medals[ulMedal].ulTextColor == CR_RED )
-				sprintf( szString, TEXTCOLOR_RED "%s " TEXTCOLOR_WHITE "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
+			{
+				szColor1 = TEXTCOLOR_RED;
+				szColor2 = TEXTCOLOR_WHITE;
+			}
 			else if ( g_Medals[ulMedal].ulTextColor == CR_GREEN )
-				sprintf( szString, TEXTCOLOR_GREEN "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
-			else
-				sprintf( szString, TEXTCOLOR_WHITE "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
+				szColor1 = TEXTCOLOR_GREEN;
 
-			if ( ulTick > ( 1 * TICRATE ))
-				screen->DrawTexture( TexMan[szPatchName], ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), DTA_Clean, true, TAG_DONE );
-			else
-				screen->DrawTexture( TexMan[szPatchName], ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+			string.Format( "%s%s%s X %lu", szColor1, g_Medals[ulMedal].szStr, szColor2, ulNumMedals );
 
-			ulCurXPos = 160 - ( SmallFont->StringWidth( szString ) / 2 );
+			screen->DrawTexture( TexMan[patchName], ulCurXPos, (LONG)( ulCurYPos / CleanYfac ),
+				DTA_Clean, true,
+				DTA_Alpha, lAlpha,
+				TAG_DONE );
 
-			if ( ulTick > ( 1 * TICRATE ))
-				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
-			else
-				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+			ulCurXPos = 160 - ( SmallFont->StringWidth( string ) / 2 );
+
+			screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), string,
+				DTA_Clean, true,
+				DTA_Alpha, lAlpha,
+				TAG_DONE );
 		}
 		// Display the medal icon <usNumMedals> times centered on the screen.
 		else
@@ -296,24 +306,26 @@ void MEDAL_Render( void )
 			ULONG	ulIdx;
 
 			ulCurXPos = 160 - ( ulLength / 2 );
-			sprintf( szString, "%s", g_Medals[ulMedal].szStr );
+			string = g_Medals[ulMedal].szStr;
 
 			for ( ulIdx = 0; ulIdx < ulNumMedals; ulIdx++ )
 			{
-				if ( ulTick > ( 1 * TICRATE ))
-					screen->DrawTexture( TexMan[szPatchName], ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ), (LONG)( ulCurYPos / CleanYfac ), DTA_Clean, true, TAG_DONE );
-				else
-					screen->DrawTexture( TexMan[szPatchName], ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ), (LONG)( ulCurYPos / CleanYfac ), DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+				screen->DrawTexture( TexMan[patchName],
+					ulCurXPos + ( TexMan[patchName]->GetWidth( ) / 2 ),
+					(long)( ulCurYPos / CleanYfac ),
+					DTA_Clean, true,
+					DTA_Alpha, lAlpha,
+					TAG_DONE );
 
-				ulCurXPos += TexMan[szPatchName]->GetWidth( );
+				ulCurXPos += TexMan[patchName]->GetWidth( );
 			}
-				
-			ulCurXPos = 160 - ( SmallFont->StringWidth( szString ) / 2 );
 
-			if ( ulTick >  ( 1 * TICRATE ))
-				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, TAG_DONE );
-			else
-				screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), szString, DTA_Clean, true, DTA_Alpha, (LONG)( OPAQUE * (float)( (float)ulTick / (float)TICRATE )), TAG_DONE );
+			ulCurXPos = 160 - ( SmallFont->StringWidth( string ) / 2 );
+
+			screen->DrawText( SmallFont, g_Medals[ulMedal].ulTextColor, ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), string,
+				DTA_Clean, true,
+				DTA_Alpha, lAlpha,
+				TAG_DONE );
 		}
 	}
 }
@@ -324,7 +336,7 @@ void MEDAL_Render( void )
 void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_t	*pPlayer;
-	ULONG		ulWhereToInsertMedal = static_cast<unsigned int> (-1);
+	ULONG		ulWhereToInsertMedal = UINT_MAX;
 
 	// Make sure all inputs are valid first.
 	if (( ulPlayer >= MAXPLAYERS ) ||
@@ -336,11 +348,11 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	{
 		return;
 	}
-	
+
 	pPlayer = &players[ulPlayer];
 
 	// Increase the player's count of this type of medal.
-	pPlayer->ulMedalCount[ulMedal]++;	
+	pPlayer->ulMedalCount[ulMedal]++;
 
 	// The queue is empty, so put this medal first.
 	if ( !g_MedalQueue[ulPlayer][0].ulTick )
@@ -356,7 +368,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 				 g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal == ulMedal )
 			{
 				// Commandeer its slot!
-				if ( ulWhereToInsertMedal == static_cast<unsigned int> (-1) )
+				if ( ulWhereToInsertMedal == UINT_MAX )
 				{
 					ulWhereToInsertMedal = ulQueueIdx;
 					ulQueueIdx++;
@@ -380,7 +392,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	}
 
 	// [RC] No special place for the medal, so just queue it.
-	if ( ulWhereToInsertMedal == static_cast<unsigned int> (-1) )
+	if ( ulWhereToInsertMedal == UINT_MAX )
 		medal_AddToQueue( ulPlayer, ulMedal );
 	else
 	{
@@ -413,7 +425,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 	ULONG		ulCurYPos;
 	ULONG		ulLength;
 	ULONG		ulIdx;
-	char		szPatchName[32];
+	FString		patchName;
 
 	if ( players[consoleplayer].camera == NULL )
 		return;
@@ -424,10 +436,10 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 
 	ulPlayer = ULONG( pPlayer - players );
 
-	if ( viewheight <= ST_Y )
-		ulCurYPos = (LONG)((( ST_Y - 11 * CleanYfac ) + lYOffset ) / CleanYfac );
-	else
-		ulCurYPos = (LONG)((( SCREENHEIGHT - 11 * CleanYfac ) + lYOffset ) / CleanYfac );
+	{
+		int y0 = ( viewheight <= ST_Y ) ? ST_Y : SCREENHEIGHT;
+		ulCurYPos = (LONG)((( y0 - 11 * CleanYfac ) + lYOffset ) / CleanYfac );
+	}
 
 	// Determine length of all medals strung together.
 	ulLength = 0;
@@ -435,9 +447,9 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 	{
 		if ( pPlayer->ulMedalCount[ulIdx] )
 		{
-			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
-			if ( szPatchName[0] )
-				ulLength += ( TexMan[szPatchName]->GetWidth( ) * pPlayer->ulMedalCount[ulIdx] );
+			patchName = g_Medals[ulIdx].szLumpName;
+			if ( patchName.IsNotEmpty() )
+				ulLength += ( TexMan[patchName]->GetWidth( ) * pPlayer->ulMedalCount[ulIdx] );
 		}
 	}
 
@@ -445,7 +457,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 	if ( ulLength >= 320 )
 	{
 		bool	bScale;
-		char	szString[8];
+		FString	string;
 
 		// Recalculate the length of all the medals strung together.
 		ulLength = 0;
@@ -454,9 +466,9 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 			if ( pPlayer->ulMedalCount[ulIdx] == 0 )
 				continue;
 
-			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
-			if ( szPatchName[0] )
-				ulLength += TexMan[szPatchName]->GetWidth( );
+			patchName = g_Medals[ulIdx].szLumpName;
+			if ( patchName.IsNotEmpty() )
+				ulLength += TexMan[patchName]->GetWidth( );
 		}
 
 		// If the length of all our medals goes beyond 320, we cannot scale them.
@@ -474,21 +486,23 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 			if ( pPlayer->ulMedalCount[ulIdx] == 0 )
 				continue;
 
-			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
-			if ( szPatchName[0] )
+			patchName = g_Medals[ulIdx].szLumpName;
+			if ( patchName.IsNotEmpty() )
 			{
-				screen->DrawTexture( TexMan[szPatchName],
-					ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
+				screen->DrawTexture( TexMan[patchName],
+					ulCurXPos + ( TexMan[patchName]->GetWidth( ) / 2 ),
 					ulCurYPos,
-					DTA_Clean, bScale, TAG_DONE );
-	
-				sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
+					DTA_Clean, bScale,
+					TAG_DONE );
+
+				string.Format( "%lu", pPlayer->ulMedalCount[ulIdx] );
 				screen->DrawText( SmallFont, CR_RED,
-					ulCurXPos - ( SmallFont->StringWidth( szString ) / 2 ) + TexMan[szPatchName]->GetWidth( ) / 2,
+					ulCurXPos - ( SmallFont->StringWidth( string ) / 2 ) + TexMan[patchName]->GetWidth( ) / 2,
 					ulCurYPos,
-					szString,
-					DTA_Clean, bScale, TAG_DONE );
-				ulCurXPos += TexMan[szPatchName]->GetWidth( );
+					string,
+					DTA_Clean, bScale,
+					TAG_DONE );
+				ulCurXPos += TexMan[patchName]->GetWidth( );
 			}
 		}
 	}
@@ -497,15 +511,19 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 		ulCurXPos = 160 - ( ulLength / 2 );
 		for ( ulIdx = 0; ulIdx < NUM_MEDALS; ulIdx++ )
 		{
-			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
-			if ( szPatchName[0] )
+			patchName = g_Medals[ulIdx].szLumpName;
+			if ( patchName.IsNotEmpty() )
 			{
 				ULONG	ulMedalIdx;
 
 				for ( ulMedalIdx = 0; ulMedalIdx < pPlayer->ulMedalCount[ulIdx]; ulMedalIdx++ )
 				{
-					screen->DrawTexture( TexMan[szPatchName], ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ), ulCurYPos, DTA_Clean, true, TAG_DONE );
-					ulCurXPos += TexMan[szPatchName]->GetWidth( );
+					screen->DrawTexture( TexMan[patchName],
+						ulCurXPos + ( TexMan[patchName]->GetWidth( ) / 2 ),
+						ulCurYPos,
+						DTA_Clean, true,
+						TAG_DONE );
+					ulCurXPos += TexMan[patchName]->GetWidth( );
 				}
 			}
 		}
@@ -520,7 +538,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	ULONG		ulCurXPos;
 	ULONG		ulCurYPos;
 	ULONG		ulIdx;
-	char		szString[8];
+	FString		string;
 	UCVarValue	ValWidth;
 	UCVarValue	ValHeight;
 	float		fXScale = 0.0f;
@@ -627,13 +645,13 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
+		string.Format( "%lu", pPlayer->ulMedalCount[ulIdx] );
 		if ( bScale )
 		{
 			screen->DrawText( BigFont, CR_RED,
 				ulCurXPos + 64,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - BigFont->GetHeight( ) / 2,
-				szString,
+				string,
 				DTA_VirtualWidth, ValWidth.Int,
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
@@ -643,7 +661,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 			screen->DrawText( BigFont, CR_RED,
 				ulCurXPos + 64,
 				ulCurYPos + ( TexMan[g_Medals[ulIdx].szLumpName]->GetHeight( )) / 2 - BigFont->GetHeight( ) / 2,
-				szString,
+				string,
 				TAG_DONE );
 		}
 
@@ -960,7 +978,7 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 		if ( pPlayer->mo->CheckLocalView( consoleplayer ) )
 		{
 			if ( g_Medals[ulMedal].szAnnouncerEntry[0] )
-				ANNOUNCER_PlayEntry( cl_announcer, (const char *)g_Medals[ulMedal].szAnnouncerEntry );
+				ANNOUNCER_PlayEntry( cl_announcer, g_Medals[ulMedal].szAnnouncerEntry );
 		}
 		// If a player besides the console player got the medal, play the remote sound.
 		else
@@ -983,7 +1001,7 @@ ULONG medal_GetDesiredIcon( player_t *pPlayer, AInventory *&pTeamItem )
 		return NUM_SPRITES;
 
 	// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
-	// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value). 
+	// [BB] In free spectate mode, we don't have allies (and SCOREBOARD_GetViewPlayer doesn't return a useful value).
 	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( CLIENTDEMO_IsInFreeSpectateMode() == false ) )
 	{
 		// [BB] Dead spectators shall see the icon for their teammates.
@@ -1204,7 +1222,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 			}
 		}
 
-		ULONG	ulFrame = 65535;
+		ULONG	ulFrame = UINT_MAX;
 		const ULONG ulDesiredSprite = medal_GetDesiredIcon ( pPlayer, pTeamItem );
 
 		// [BB] Determine the frame based on the desired sprite.
@@ -1247,7 +1265,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// We have an icon that needs to be spawned.
-		if ((( ulFrame != 65535 ) && ( ulDesiredSprite != NUM_SPRITES )))
+		if ((( ulFrame != UINT_MAX ) && ( ulDesiredSprite != NUM_SPRITES )))
 		{
 			// [BB] If a TeamItem icon replaces an existing non-team icon, we have to delete the old icon first.
 			if ( pPlayer->pIcon && ( pPlayer->pIcon->bTeamItemFloatyIcon == false ) && pTeamItem )

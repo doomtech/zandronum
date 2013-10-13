@@ -59,59 +59,63 @@
 #define	MEDAL_ICON_DURATION			( 3 * TICRATE )
 
 // Same values as defined in AFloatyIcon::States[].
-#define	S_TERMINATORARTIFACT			0
-#define S_CHAT					( S_TERMINATORARTIFACT + 4 )
-#define S_INCONSOLE				( S_CHAT + 1 )
-#define S_ALLY					( S_INCONSOLE + 2 )
-#define	S_WHITEFLAG				( S_ALLY + 1 )
-#define	S_EXCELLENT				( S_WHITEFLAG + 6 )
-#define	S_INCREDIBLE			( S_EXCELLENT + 1 )
-#define	S_IMPRESSIVE			( S_INCREDIBLE + 1 )
-#define	S_MOST_IMPRESSIVE		( S_IMPRESSIVE + 1 )
-#define	S_DOMINATION			( S_MOST_IMPRESSIVE + 1 )
-#define	S_TOTAL_DOMINATION		( S_DOMINATION + 1 )
-#define	S_ACCURACY				( S_TOTAL_DOMINATION + 1 )
-#define	S_PRECISION				( S_ACCURACY + 1 )
-#define	S_VICTORY				( S_PRECISION + 1 )
-#define	S_PERFECT				( S_VICTORY + 1 )
-#define	S_FIRSTFRAG				( S_PERFECT + 1 )
-#define	S_TERMINATION			( S_FIRSTFRAG + 1 )
-#define	S_CAPTURE				( S_TERMINATION + 1 )
-#define	S_TAG					( S_CAPTURE + 1 )
-#define	S_ASSIST				( S_TAG + 1 )
-#define	S_DEFENSE				( S_ASSIST + 1 )
-#define	S_LLAMA					( S_DEFENSE + 1 )
-#define	S_YOUFAILIT				( S_LLAMA + 1 )
-#define	S_YOURSKILLISNOTENOUGH	( S_YOUFAILIT + 1 )
-#define	S_LAG					( S_YOURSKILLISNOTENOUGH + 1 )
-#define	S_FISTING				( S_LAG + 1 )
-#define	S_SPAM					( S_FISTING + 1 )
-#define	S_POSSESSIONARTIFACT		( S_SPAM + 1 )
+// [Dusk] Now an enumeration.
+enum
+{
+	S_TERMINATORARTIFACT		= 0,
+	S_CHAT						= ( S_TERMINATORARTIFACT + 4 ),
+	S_INCONSOLE					= ( S_CHAT + 1 ),
+	S_ALLY						= ( S_INCONSOLE + 2 ),
+	S_WHITEFLAG					= ( S_ALLY + 1 ),
+	S_EXCELLENT					= ( S_WHITEFLAG + 6 ),
+	S_INCREDIBLE				= ( S_EXCELLENT + 1 ),
+	S_IMPRESSIVE				= ( S_INCREDIBLE + 1 ),
+	S_MOST_IMPRESSIVE			= ( S_IMPRESSIVE + 1 ),
+	S_DOMINATION				= ( S_MOST_IMPRESSIVE + 1 ),
+	S_TOTAL_DOMINATION			= ( S_DOMINATION + 1 ),
+	S_ACCURACY					= ( S_TOTAL_DOMINATION + 1 ),
+	S_PRECISION					= ( S_ACCURACY + 1 ),
+	S_VICTORY					= ( S_PRECISION + 1 ),
+	S_PERFECT					= ( S_VICTORY + 1 ),
+	S_FIRSTFRAG					= ( S_PERFECT + 1 ),
+	S_TERMINATION				= ( S_FIRSTFRAG + 1 ),
+	S_CAPTURE					= ( S_TERMINATION + 1 ),
+	S_TAG						= ( S_CAPTURE + 1 ),
+	S_ASSIST					= ( S_TAG + 1 ),
+	S_DEFENSE					= ( S_ASSIST + 1 ),
+	S_LLAMA						= ( S_DEFENSE + 1 ),
+	S_YOUFAILIT					= ( S_LLAMA + 1 ),
+	S_YOURSKILLISNOTENOUGH		= ( S_YOUFAILIT + 1 ),
+	S_LAG						= ( S_YOURSKILLISNOTENOUGH + 1 ),
+	S_FISTING					= ( S_LAG + 1 ),
+	S_SPAM						= ( S_FISTING + 1 ),
+	S_POSSESSIONARTIFACT		= ( S_SPAM + 1 ),
+};
 
 //*****************************************************************************
 enum
-{	
+{
 	MEDAL_EXCELLENT,
 	MEDAL_INCREDIBLE,
 
 	MEDAL_IMPRESSIVE,
 	MEDAL_MOSTIMPRESSIVE,
-	
+
 	MEDAL_DOMINATION,
 	MEDAL_TOTALDOMINATION,
-	
+
 	MEDAL_ACCURACY,
 	MEDAL_PRECISION,
-	
+
 	MEDAL_YOUFAILIT,
 	MEDAL_YOURSKILLISNOTENOUGH,
 
 	MEDAL_LLAMA,
-	MEDAL_SPAM,	
+	MEDAL_SPAM,
 
 	MEDAL_VICTORY,
 	MEDAL_PERFECT,
-	
+
 	MEDAL_TERMINATION,
 	MEDAL_FIRSTFRAG,
 	MEDAL_CAPTURE,
@@ -151,9 +155,7 @@ typedef struct
 	ULONG		ulLowerMedal;
 
 	// Name of sound to play when this medal type is triggered.
-	const char	szSoundName[64];
-
-	
+	const char	*szSoundName;
 
 } MEDAL_t;
 
