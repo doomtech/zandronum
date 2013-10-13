@@ -257,7 +257,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurDecide)
 			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Charge"), MAXPLAYERS, 0, false );
 
 		// Don't call the state function right away
-		self->SetStateNF (self->FindState ("Charge"));
+		self->SetState (self->FindState ("Charge"), true);
 		self->flags |= MF_SKULLFLY;
 		if (!friendly)
 		{ // Heretic's Minotaur is invulnerable during charge attack
@@ -727,7 +727,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurLook)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
 
-		self->SetStateNF (self->SeeState);
+		self->SetState (self->SeeState, true);
 	}
 	else
 	{
@@ -735,7 +735,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurLook)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Roam") );
 
-		self->SetStateNF (self->FindState ("Roam"));
+		self->SetState (self->FindState ("Roam"), true);
 	}
 }
 

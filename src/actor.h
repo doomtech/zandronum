@@ -1083,8 +1083,7 @@ public:
 	void SetOrigin (fixed_t x, fixed_t y, fixed_t z);
 	bool InStateSequence(FState * newstate, FState * basestate);
 	int GetTics(FState * newstate);
-	bool SetState (FState *newstate);
-	bool SetStateNF (FState *newstate);
+	bool SetState (FState *newstate, bool nofunction=false);
 	// [BB] Free the network ID of the actor.
 	void FreeNetID ();
 	// [BB] Completely hides the actor if it's still needed for a map reset, otherwise destroys the actor.

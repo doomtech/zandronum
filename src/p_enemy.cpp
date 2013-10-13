@@ -1727,7 +1727,7 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params)
 
 						if (actor->MissileState != NULL)
 						{
-							actor->SetStateNF(actor->SeeState);
+							actor->SetState(actor->SeeState, true);
 							actor->flags &= ~MF_JUSTHIT;
 						}
 

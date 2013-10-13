@@ -3600,7 +3600,7 @@ void CLIENT_SetActorToLastDeathStateFrame ( AActor *pActor )
 		pBaseState = pDeadState;
 		if ( pBaseState != NULL )
 		{
-			pActor->SetStateNF( pBaseState );
+			pActor->SetState( pBaseState, true );
 			pDeadState = pBaseState->GetNextState( );
 		}
 	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
@@ -6992,7 +6992,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 			if ( bCallStateFunction )
 				pActor->SetState( pBaseState + lOffset );
 			else
-				pActor->SetStateNF( pBaseState + lOffset );
+				pActor->SetState( pBaseState + lOffset, true );
 		}
 		return;
 	}
@@ -7017,7 +7017,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 		if ( bCallStateFunction )
 			pActor->SetState( pNewState );
 		else
-			pActor->SetStateNF( pNewState );
+			pActor->SetState( pNewState, true );
 	}
 }
 
