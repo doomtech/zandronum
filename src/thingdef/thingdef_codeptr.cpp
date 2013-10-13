@@ -1843,11 +1843,17 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_GiveToTarget)
 //
 //===========================================================================
 
+enum
+{
+	TIF_NOTAKEINFINITE = 1,
+};
+
 void DoTakeInventory(AActor * receiver, DECLARE_PARAMINFO)
 {
-	ACTION_PARAM_START(2);
+	ACTION_PARAM_START(3);
 	ACTION_PARAM_CLASS(item, 0);
 	ACTION_PARAM_INT(amount, 1);
+	ACTION_PARAM_INT(flags, 2);
 	bool	bNeedClientUpdate;
 
 	
@@ -1880,7 +1886,15 @@ void DoTakeInventory(AActor * receiver, DECLARE_PARAMINFO)
 		{
 			res = true;
 		}
-		if (!amount || amount>=inv->Amount) 
+		// Do not take ammo if the "no take infinite/take as ammo depletion" flag is set
+		// and infinite ammo is on
+		if (flags & TIF_NOTAKEINFINITE &&
+			((dmflags & DF_INFINITE_AMMO) || (receiver->player->cheats & CF_INFINITEAMMO)) &&
+			inv->IsKindOf(RUNTIME_CLASS(AAmmo)))
+		{
+			// Nothing to do here, except maybe res = false;? Would it make sense?
+		}
+		else if (!amount || amount>=inv->Amount) 
 		{
 			// [BC] Take the player's inventory.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
@@ -2481,13 +2495,17 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 			return;
 	}
 
-	if (reduce == 0) reduce = FRACUNIT/10;
+	if (reduce == 0)
+	{
+		reduce = FRACUNIT/10;
+	}
 
 	// [BB] If the RenderStyle is changed, we have to inform the clients.
 	const bool renderStyleChanged = !!( self->RenderStyle.Flags & STYLEF_Alpha1 );
 
 	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
 	self->alpha += reduce;
+	// Should this clamp alpha to 1.0?
 
 	// [BB] Inform the clients about the alpha change and possibly about RenderStyle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2497,7 +2515,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 		SERVERCOMMANDS_SetThingProperty( self, APROP_Alpha );
 	}
 
-	//if (self->alpha<=0) self->Destroy();
 }
 
 //===========================================================================
@@ -2521,8 +2538,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 			return;
 	}
 
-	if (reduce == 0) reduce = FRACUNIT/10;
-
+	if (reduce == 0)
+	{
+		reduce = FRACUNIT/10;
+	}
 	// [BB] If the RenderStyle is changed, we have to inform the clients.
 	const bool renderStyleChanged = !!( self->RenderStyle.Flags & STYLEF_Alpha1 );
 
@@ -2538,7 +2557,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 	}
 
 	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-	if (self->alpha<=0 && remove)
+	if (self->alpha <= 0 && remove)
 	{
 		// [BB] Deleting player bodies is a very bad idea.
 		if ( self->player && ( self->player->mo == self ) )
@@ -2552,6 +2571,47 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 			SERVERCOMMANDS_DestroyThing( self );
 
 		self->HideOrDestroyIfSafe ();
+	}
+}
+
+//===========================================================================
+//
+// A_FadeTo
+//
+// fades the actor to a specified transparency by a specified amount and
+// destroys it if so desired
+//
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeTo)
+{
+	ACTION_PARAM_START(3);
+	ACTION_PARAM_FIXED(target, 0);
+	ACTION_PARAM_FIXED(amount, 1);
+	ACTION_PARAM_BOOL(remove, 2);
+
+	self->RenderStyle.Flags &= ~STYLEF_Alpha1;
+
+	if (self->alpha > target)
+	{
+		self->alpha -= amount;
+
+		if (self->alpha < target)
+		{
+			self->alpha = target;
+		}
+	}
+	else if (self->alpha < target)
+	{
+		self->alpha += amount;
+
+		if (self->alpha > target)
+		{
+			self->alpha = target;
+		}
+	}
+	if (self->alpha == target && remove)
+	{
+		self->Destroy();
 	}
 }
 
