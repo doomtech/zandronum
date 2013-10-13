@@ -84,7 +84,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 
 	// decide which patch to use
 	bool mirror;
-	FTextureID lump = gl_GetSpriteFrame(psp->state->sprite, psp->state->GetFrame(), 0, 0, &mirror);
+	FTextureID lump = gl_GetSpriteFrame(psp->sprite, psp->frame, 0, 0, &mirror);
 	if (!lump.isValid()) return;
 
 	FMaterial * tex=FMaterial::ValidateTexture(lump, false);
