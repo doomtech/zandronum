@@ -1509,22 +1509,9 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	Colormap=frontsector->ColorMap;
 	flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
 
-	lightlevel = seg->sidedef->GetLightLevel(true, frontsector->lightlevel);
-
-	if (lightlevel<255 && !(flags&GLWF_FOGGY))
-	{
-		if (gl_fakecontrast)
-		{
-			// In GL it's preferable to use the relative light for fake contrast instead of
-			// altering the base light level which is also used to set fog density.
-			rellight = seg->sidedef->GetLightLevel(false, frontsector->lightlevel) - lightlevel;
-		}
-		else if (!(seg->sidedef->Flags & WALLF_ABSLIGHTING))
-		{
-			rellight = seg->sidedef->Light;
-		}
-	}
-	else rellight = 0;
+	int rel = 0;
+	lightlevel = seg->sidedef->GetLightLevel(!!(flags&GLWF_FOGGY), frontsector->lightlevel, &rel);
+	rellight = rel;
 
 	alpha=1.0f;
 	RenderStyle=STYLE_Normal;

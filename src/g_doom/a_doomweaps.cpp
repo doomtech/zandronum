@@ -206,6 +206,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	ACTION_PARAM_SOUND(hitsound, 1);
 	ACTION_PARAM_INT(damage, 2);
 	ACTION_PARAM_CLASS(pufftype, 3);
+	ACTION_PARAM_FIXED(Range, 4)
+	ACTION_PARAM_FIXED(LifeSteal, 5);
 
 
 
@@ -229,19 +231,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	angle += pr_saw.Random2() << 18;
 	
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
-	P_LineAttack (self, angle, MELEERANGE+1,
-				  P_AimLineAttack (self, angle, MELEERANGE+1, &linetarget), damage,
+	if (Range == 0) Range = MELEERANGE+1;
+
+	P_LineAttack (self, angle, Range,
+				  P_AimLineAttack (self, angle, Range, &linetarget), damage,
 				  NAME_None, pufftype);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1,
-					  P_AimLineAttack( self, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1, &linetarget ), damage,
+		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), Range,
+					  P_AimLineAttack( self, angle + ( ANGLE_45 / 3 ), Range, &linetarget ), damage,
 					  NAME_None, pufftype );
 
-		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1,
-					  P_AimLineAttack( self, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1, &linetarget ), damage,
+		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), Range,
+					  P_AimLineAttack( self, angle - ( ANGLE_45 / 3 ), Range, &linetarget ), damage,
 					  NAME_None, pufftype );
 	}
 
@@ -264,6 +268,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( fullsound ), 1, ATTN_NORM );
 		return;
 	}
+
+	if (LifeSteal)
+		P_GiveBody (self, (damage * LifeSteal) >> FRACBITS);
+
 	S_Sound (self, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 	// [BC] If we're the server, tell clients to play the saw sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

@@ -1549,6 +1549,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	ACTION_PARAM_BOOL(UseAmmo, 2);
 	ACTION_PARAM_CLASS(PuffType, 3);
 	ACTION_PARAM_FIXED(Range, 4);
+	ACTION_PARAM_FIXED(LifeSteal, 5);
 
 	if (!self->player) return;
 
@@ -1596,6 +1597,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	// turn to face target
 	if (linetarget)
 	{
+		if (LifeSteal)
+			P_GiveBody (self, (Damage * LifeSteal) >> FRACBITS);
+
 		S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 		self->angle = R_PointToAngle2 (self->x,

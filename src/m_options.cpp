@@ -681,6 +681,7 @@ EXTERN_CVAR (Int,  wipetype)
 EXTERN_CVAR (Bool, vid_palettehack)
 EXTERN_CVAR (Bool, vid_attachedsurfaces)
 EXTERN_CVAR (Int,  screenblocks)
+EXTERN_CVAR (Int, r_fakecontrast)
 EXTERN_CVAR (Int,  cl_grenadetrails)
 EXTERN_CVAR (Float,  blood_fade_scalar)
 EXTERN_CVAR (Bool, r_drawtrans)
@@ -732,6 +733,12 @@ static value_t Endoom[] = {
 	{ 2.0, "Only modified" }
 };
 
+static value_t Contrast[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "On" },
+	{ 2.0, "Smooth" }
+};
+
 static menuitem_t VideoItems[] = {
 	{ more,		"Message Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartMessagesMenu} },
 	{ more,     "OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartGLMenu} },
@@ -764,6 +771,7 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "Use attached surfaces", {&vid_attachedsurfaces},{2.0}, {0.0},	{0.0}, {OnOff} },
 #endif
 
+	{ discrete, "Use fake contrast",	{&r_fakecontrast},		{3.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Display nametags",		{&displaynametags},		{2.0}, {0.0},	{0.0}, {YesNo} },
 };
 
