@@ -1972,7 +1972,6 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	return;
 }
 
-bool CheckCheatmode ();
 
 //*****************************************************************************
 //

@@ -789,6 +789,10 @@ struct sector_t
 	int				vboindex[4];	// VBO indices of the 4 planes this sector uses during rendering
 	fixed_t			vboheight[2];	// Last calculated height for the 2 planes of this actual sector
 	int				vbocount[2];	// Total count of vertices belonging to this sector's planes
+#ifdef IBO_TEST
+	int				iboindex[4];	// VBO indices of the 4 planes this sector uses during rendering
+	int				ibocount;
+#endif
 
 	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
 	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }

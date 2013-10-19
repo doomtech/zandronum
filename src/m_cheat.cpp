@@ -1156,7 +1156,6 @@ void cht_Suicide (player_t *plyr)
 	}
 }
 
-bool CheckCheatmode ();
 
 CCMD (mdk)
 {

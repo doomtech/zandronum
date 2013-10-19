@@ -101,7 +101,7 @@ CCMD (toggleconsole)
 	C_ToggleConsole();
 }
 
-bool CheckCheatmode ()
+bool CheckCheatmode (bool printmsg)
 {
 	if ((( G_SkillProperty( SKILLP_DisableCheats )) ||
 		( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -109,9 +109,12 @@ bool CheckCheatmode ()
 		( NETWORK_GetState( ) == NETSTATE_SERVER )) &&
 		( sv_cheats == false ))
 	{
-		// [BB] Don't allow clients to lag themself by flooding the cheat message.
-		if ( ( NETWORK_InClientMode() == false ) || CLIENT_AllowSVCheatMessage( ) )
-			Printf ("sv_cheats must be true to enable this command.\n");
+		if (printmsg)
+		{
+			// [BB] Don't allow clients to lag themself by flooding the cheat message.
+			if ( ( NETWORK_InClientMode() == false ) || CLIENT_AllowSVCheatMessage( ) )
+ 				Printf ("sv_cheats must be true to enable this command.\n");
+ 		}
 		return true;
 	}
 	else

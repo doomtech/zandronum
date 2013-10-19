@@ -1511,13 +1511,20 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 	lightlevel = seg->sidedef->GetLightLevel(true, frontsector->lightlevel);
 
-	if (lightlevel<255 && gl_fakecontrast && !(flags&GLWF_FOGGY))
+	if (lightlevel<255 && !(flags&GLWF_FOGGY))
 	{
-		// In GL it's preferable to use the relative light for fake contrast instead of
-		// altering the base light level which is also used to set fog density.
-		rellight = seg->sidedef->GetLightLevel(false, frontsector->lightlevel) - lightlevel;
+		if (gl_fakecontrast)
+		{
+			// In GL it's preferable to use the relative light for fake contrast instead of
+			// altering the base light level which is also used to set fog density.
+			rellight = seg->sidedef->GetLightLevel(false, frontsector->lightlevel) - lightlevel;
+		}
+		else if (!(seg->sidedef->Flags & WALLF_ABSLIGHTING))
+		{
+			rellight = seg->sidedef->Light;
+		}
 	}
-	else rellight=0;
+	else rellight = 0;
 
 	alpha=1.0f;
 	RenderStyle=STYLE_Normal;

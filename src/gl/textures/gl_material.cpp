@@ -793,7 +793,7 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 
 	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->gl_info.shaderspeed);
 
-	if (tex->bHasCanvas) clampmode = 0;
+	if (tex->bHasCanvas || tex->bWarped) clampmode = 0;
 	else if (clampmode != -1) clampmode &= 3;
 	else clampmode = 4;
 
