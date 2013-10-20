@@ -882,11 +882,11 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 				PalEntry color = in->GetBlend ();
 
 				// Need special handling for light amplifiers 
-				if (in->IsA(RUNTIME_CLASS(APowerTorch)))
+				if (in->IsKindOf(RUNTIME_CLASS(APowerTorch)))
 				{
 					gl_fixedcolormap = cplayer->fixedlightlevel + CM_TORCH;
 				}
-				else if (in->IsA(RUNTIME_CLASS(APowerLightAmp)))
+				else if (in->IsKindOf(RUNTIME_CLASS(APowerLightAmp)))
 				{
 					gl_fixedcolormap = CM_LITE;
 				}

@@ -619,12 +619,27 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfHealthLower)
 // State jump function
 //
 //==========================================================================
-DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfCloser)
+void DoJumpIfCloser(AActor *target, DECLARE_PARAMINFO)
 {
 	ACTION_PARAM_START(2);
 	ACTION_PARAM_FIXED(dist, 0);
 	ACTION_PARAM_STATE(jump, 1);
 
+	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
+
+	// No target - no jump
+	if (target != NULL && P_AproxDistance(self->x-target->x, self->y-target->y) < dist &&
+		( (self->z > target->z && self->z - (target->z + target->height) < dist) || 
+		  (self->z <=target->z && target->z - (self->z + self->height) < dist) 
+		)
+	   )
+	{
+		ACTION_JUMP(jump,CLIENTUPDATE_FRAME|CLIENTUPDATE_POSITION);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
+	}
+}
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfCloser)
+{
 	AActor *target;
 
 	// [BC] Don't jump here in client mode.
@@ -637,27 +652,28 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfCloser)
 
 	if (!self->player)
 	{
-		target=self->target;
+		target = self->target;
 	}
 	else
 	{
 		// Does the player aim at something that can be shot?
 		P_BulletSlope(self, &target);
 	}
+	DoJumpIfCloser(target, PUSH_PARAMINFO);
+}
 
-	ACTION_SET_RESULT(false);	// Jumps should never set the result for inventory state chains!
-
-	// No target - no jump
-	if (target==NULL) return;
-
-	if (P_AproxDistance(self->x-target->x, self->y-target->y) < dist &&
-		( (self->z > target->z && self->z - (target->z + target->height) < dist) || 
-		  (self->z <=target->z && target->z - (self->z + self->height) < dist) 
-		)
-	   )
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTracerCloser)
+{
+	// Is there really any reason to limit this to seeker missiles?
+	if (self->flags2 & MF2_SEEKERMISSILE)
 	{
-		ACTION_JUMP(jump,CLIENTUPDATE_FRAME|CLIENTUPDATE_POSITION);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
+		DoJumpIfCloser(self->tracer, PUSH_PARAMINFO);
 	}
+}
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfMasterCloser)
+{
+	DoJumpIfCloser(self->master, PUSH_PARAMINFO);
 }
 
 //==========================================================================
@@ -1234,6 +1250,7 @@ enum FB_Flags
 {
 	FBF_USEAMMO = 1,
 	FBF_NORANDOM = 2,
+	FBF_EXPLICITANGLE = 4,
 };
 
 // [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
@@ -1263,8 +1280,19 @@ void A_FireBulletsHelper ( AActor *self,
 		if (NumberOfBullets == -1) NumberOfBullets = 1;
 		for (int i=0 ; i<NumberOfBullets ; i++)
 		{
-			int angle = bangle + pr_cwbullet.Random2() * (Spread_XY / 255);
-			int slope = bslope + pr_cwbullet.Random2() * (Spread_Z / 255);
+			int angle = bangle;
+			int slope = bslope;
+
+			if (Flags & FBF_EXPLICITANGLE)
+			{
+				angle += Spread_XY;
+				slope += Spread_Z;
+			}
+			else
+			{
+				angle += pr_cwbullet.Random2() * (Spread_XY / 255);
+				slope += pr_cwbullet.Random2() * (Spread_Z / 255);
+			}
 			int damage = DamagePerBullet;
 
 			if (!(Flags & FBF_NORANDOM))

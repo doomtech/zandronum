@@ -28,7 +28,6 @@ CVAR(Bool,gl_mirrors,true,0)	// This is for debugging only!
 CVAR(Bool,gl_mirror_envmap, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 
 
 CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -57,7 +56,6 @@ EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
-EXTERN_CVAR(Bool, gl_fakecontrast)
 EXTERN_CVAR(Bool, gl_trimsprites)
 EXTERN_CVAR (Bool, gl_lights_additive)
 EXTERN_CVAR (Int, gl_light_ambient)
@@ -248,7 +246,6 @@ menuitem_t GLLightItems[] = {
 menuitem_t GLPrefItems[] = {
 	{ discrete, "Sector light mode",		{&gl_lightmode},				{4.0}, {0.0}, {0.0}, {LightingModes} },
 	{ discrete, "Fog mode",					{&gl_fogmode},					{3.0}, {0.0}, {0.0}, {FogMode} },
-	{ discrete, "Fake contrast",			{&gl_fakecontrast},				{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Enhanced night vision mode",{&gl_enhanced_nightvision},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{3.0}, {0.0}, {0.0}, {SpriteclipModes} },
