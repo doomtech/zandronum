@@ -195,8 +195,8 @@ class SBarInfoCommand
 				}
 			}
 
-			if(!fullScreenOffsets)
-				y.SetCoord((negative ? -sc.Number : sc.Number) - (200 - script->height));
+			//if(!fullScreenOffsets)
+			//	y.SetCoord((negative ? -sc.Number : sc.Number) - (200 - script->height));
 		}
 		EColorRange	GetTranslation(FScanner &sc)
 		{
@@ -372,6 +372,7 @@ enum //Key words
 	SBARINFO_COMPLETEBORDER,
 	SBARINFO_MONOSPACEFONTS,
 	SBARINFO_LOWERHEALTHCAP,
+	SBARINFO_RESOLUTION,
 	SBARINFO_STATUSBAR,
 	SBARINFO_MUGSHOT,
 	SBARINFO_CREATEPOPUP,
@@ -399,6 +400,7 @@ static const char *SBarInfoTopLevel[] =
 	"completeborder",
 	"monospacefonts",
 	"lowerhealthcap",
+	"resolution",
 	"statusbar",
 	"mugshot",
 	"createpopup",
@@ -584,6 +586,14 @@ void SBarInfo::ParseSBarInfo(int lump)
 				}
 				sc.MustGetToken(';');
 				break;
+			case SBARINFO_RESOLUTION:
+				sc.MustGetToken(TK_IntConst);
+				resW = sc.Number;
+				sc.MustGetToken(',');
+				sc.MustGetToken(TK_IntConst);
+				resH = sc.Number;
+				sc.MustGetToken(';');
+				break;
 			case SBARINFO_STATUSBAR:
 			{
 				if(!baseSet) //If the user didn't explicitly define a base, do so now.
@@ -766,6 +776,8 @@ void SBarInfo::Init()
 	armorInterpolationSpeed = 8;
 	height = 0;
 	spacingCharacter = '\0';
+	resW = 320;
+	resH = 200;
 
 	for(unsigned int i = 0;i < NUMHUDS;i++)
 		huds[i] = new SBarInfoMainBlock(this);
@@ -907,7 +919,7 @@ class DSBarInfo : public DBaseStatusBar
 {
 	DECLARE_CLASS(DSBarInfo, DBaseStatusBar)
 public:
-	DSBarInfo (SBarInfo *script=NULL) : DBaseStatusBar(script->height),
+	DSBarInfo (SBarInfo *script=NULL) : DBaseStatusBar(script->height, script->resW, script->resH),
 		ammo1(NULL), ammo2(NULL), ammocount1(0), ammocount2(0), armor(NULL),
 		pendingPopup(POP_None), currentPopup(POP_None), lastHud(-1),
 		lastInventoryBar(NULL), lastPopup(NULL)
@@ -1119,7 +1131,7 @@ public:
 			fixed_t tmp = 0;
 			// I'll handle the conversion from fixed to int myself for more control
 			fixed_t fx = (x + ST_X).Coordinate() << FRACBITS;
-			fixed_t fy = (y + ST_Y).Coordinate() << FRACBITS;
+			fixed_t fy = (y + ST_Y - (Scaled ? script->resH : 200) + script->height).Coordinate() << FRACBITS;
 			fixed_t fw = (forceWidth <= -1 ? texture->GetScaledWidth() : forceWidth) << FRACBITS;
 			fixed_t fh = (forceHeight <= -1 ? texture->GetScaledHeight() : forceHeight) << FRACBITS;
 			fixed_t fcx = cx == 0 ? 0 : fx + cx - (texture->GetScaledLeftOffset() << FRACBITS);
@@ -1129,10 +1141,16 @@ public:
 			if(Scaled)
 			{
 				if(cx != 0 || cy != 0)
-					screen->VirtualToRealCoordsFixed(fcx, fcy, tmp, tmp, 320, 200, true);
+					screen->VirtualToRealCoordsFixed(fcx, fcy, tmp, tmp, script->resW, script->resH, true);
 				if(cr != 0 || cb != 0 || clearDontDraw)
-					screen->VirtualToRealCoordsFixed(fcr, fcb, tmp, tmp, 320, 200, true);
-				screen->VirtualToRealCoordsFixed(fx, fy, fw, fh, 320, 200, true);
+					screen->VirtualToRealCoordsFixed(fcr, fcb, tmp, tmp, script->resW, script->resH, true);
+				screen->VirtualToRealCoordsFixed(fx, fy, fw, fh, script->resW, script->resH, true);
+			}
+			else
+			{
+				fy += (200 - script->resH)<<FRACBITS;
+				fcy += (200 - script->resH)<<FRACBITS;
+				fcb += (200 - script->resH)<<FRACBITS;
 			}
 			// Round to nearest
 			w = (fw + (FRACUNIT>>1)) >> FRACBITS;
@@ -1182,10 +1200,26 @@ public:
 			int rx, ry, rcx=0, rcy=0, rcr=INT_MAX, rcb=INT_MAX;
 			ADJUST_RELCENTER(x,y,rx,ry)
 
+			// We can't use DTA_HUDRules since it forces a width and height.
+			// Translation: No high res.
+			bool xright = rx < 0;
+			bool ybot = ry < 0;
+
 			w = (forceWidth <= -1 ? texture->GetScaledWidth() : forceWidth);
 			h = (forceHeight <= -1 ? texture->GetScaledHeight() : forceHeight);
 			if(vid_fps && rx < 0 && ry >= 0)
 				ry += 10;
+			if(hud_scale)
+			{
+				rx *= (int) (CleanXfac * 320.0/script->resW);
+				ry *= (int) (CleanYfac * 200.0/script->resH);
+				w *= (int) (CleanXfac * 320.0/script->resW);
+				h *= (int) (CleanYfac * 200.0/script->resH);
+			}
+			if(xright)
+				rx = SCREENWIDTH + rx;
+			if(ybot)
+				ry = SCREENHEIGHT + ry;
 
 			// Check for clipping
 			if(cx != 0 || cy != 0 || cr != 0 || cb != 0)
@@ -1198,34 +1232,34 @@ public:
 				if(ry < 0)
 				{
 					if(rcy != 0)
-						rcy = hud_scale ? SCREENHEIGHT + (rcy*CleanYfac) : SCREENHEIGHT + rcy;
+						rcy = hud_scale ? SCREENHEIGHT + (int) (rcy*CleanYfac*200.0/script->resH) : SCREENHEIGHT + rcy;
 					if(rcb != INT_MAX)
-						rcb = hud_scale ? SCREENHEIGHT + (rcb*CleanYfac) : SCREENHEIGHT + rcb;
+						rcb = hud_scale ? SCREENHEIGHT + (int) (rcb*CleanYfac*200.0/script->resH) : SCREENHEIGHT + rcb;
 				}
 				else if(hud_scale)
 				{
-					rcy *= CleanYfac;
+					rcy *= (int) (CleanYfac*200.0/script->resH);
 					if(rcb != INT_MAX)
-						rcb *= CleanYfac;
+						rcb *= (int) (CleanYfac*200.0/script->resH);
 				}
 				if(rx < 0)
 				{
 					if(rcx != 0)
-						rcx = hud_scale ? SCREENWIDTH + (rcx*CleanXfac) : SCREENWIDTH + rcx;
+						rcx = hud_scale ? SCREENWIDTH + (int) (rcx*CleanXfac*320.0/script->resW) : SCREENWIDTH + rcx;
 					if(rcr != INT_MAX)
-						rcr = hud_scale ? SCREENWIDTH + (rcr*CleanXfac) : SCREENWIDTH + rcr;
+						rcr = hud_scale ? SCREENWIDTH + (int) (rcr*CleanXfac*320.0/script->resW) : SCREENWIDTH + rcr;
 				}
 				else if(hud_scale)
 				{
-					rcx *= CleanXfac;
+					rcx *= (int) (CleanXfac*320.0/script->resW);
 					if(rcr != INT_MAX)
-						rcr *= CleanXfac;
+						rcr *= (int) (CleanXfac*320.0/script->resW);
 				}
 			}
 
 			if(clearDontDraw)
 			{
-				screen->Clear(rcx, rcy, MIN<int>(rcr, w*(hud_scale ? CleanXfac : 1)), MIN<int>(rcb, h*(hud_scale ? CleanYfac : 1)), GPalette.BlackIndex, 0);
+				screen->Clear(rcx, rcy, MIN<int>(rcr, w), MIN<int>(rcb, h), GPalette.BlackIndex, 0);
 			}
 			else
 			{
@@ -1241,7 +1275,6 @@ public:
 						DTA_Translation, translate ? GetTranslation() : 0,
 						DTA_ColorOverlay, dim ? DIM_OVERLAY : 0,
 						DTA_CenterBottomOffset, (offsetflags & SBarInfoCommand::CENTER_BOTTOM) == SBarInfoCommand::CENTER_BOTTOM,
-						DTA_HUDRules, HUD_Normal,
 						DTA_Alpha, alpha,
 						DTA_AlphaChannel, alphaMap,
 						DTA_FillColor, 0,
@@ -1259,7 +1292,6 @@ public:
 						DTA_Translation, translate ? GetTranslation() : 0,
 						DTA_ColorOverlay, dim ? DIM_OVERLAY : 0,
 						DTA_CenterBottomOffset, (offsetflags & SBarInfoCommand::CENTER_BOTTOM) == SBarInfoCommand::CENTER_BOTTOM,
-						DTA_HUDRules, HUD_Normal,
 						DTA_Alpha, alpha,
 						TAG_DONE);
 				}
@@ -1306,9 +1338,13 @@ public:
 			if(!fullScreenOffsets)
 			{
 				rx += ST_X;
-				ry += ST_Y;
+				ry += ST_Y - (Scaled ? script->resH : 200) + script->height;
 				if(Scaled)
-					screen->VirtualToRealCoordsInt(rx, ry, rw, rh, 320, 200, true);
+					screen->VirtualToRealCoordsInt(rx, ry, rw, rh, script->resW, script->resH, true);
+				else
+				{
+					ry += (200 - script->resH);
+				}
 			}
 			else
 			{
@@ -1349,12 +1385,26 @@ public:
 			}
 			else
 			{
+				bool xright = rx < 0;
+				bool ybot = ry < 0;
+
+				if(hud_scale)
+				{
+					rx *= (int) (CleanXfac * 320.0/script->resW);
+					ry *= (int) (CleanYfac * 200.0/script->resH);
+					rw *= (int) (CleanXfac * 320.0/script->resW);
+					rh *= (int) (CleanYfac * 200.0/script->resH);
+				}
+				if(xright)
+					rx = SCREENWIDTH + rx;
+				if(ybot)
+					ry = SCREENHEIGHT + ry;
+
 				screen->DrawTexture(character, rx, ry,
 					DTA_DestWidth, rw,
 					DTA_DestHeight, rh,
 					DTA_Translation, font->GetColorTranslation(translation),
 					DTA_Alpha, alpha,
-					DTA_HUDRules, HUD_Normal,
 					TAG_DONE);
 			}
 			if(script->spacingCharacter == '\0')
