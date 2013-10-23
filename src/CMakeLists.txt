@@ -764,7 +764,6 @@ add_executable( zdoom WIN32
 	gamemode.cpp #ST
 	gi.cpp
 	#hu_scores.cpp
-	huffman.cpp #ST
 	i_net.cpp
 	info.cpp
 	invasion.cpp #ST
@@ -886,6 +885,11 @@ add_executable( zdoom WIN32
 	zstrformat.cpp
 	zstring.cpp
 	cooperative.cpp #ST [BB] This needs to be linked after deathmatch.cpp and team.cpp (see above).
+	# [BL] Huffman is ZAN
+	huffman/bitreader.cpp
+	huffman/bitwriter.cpp
+	huffman/huffcodec.cpp
+	huffman/huffman.cpp
 	g_doom/a_doomartifacts.cpp #ST
 	g_doom/a_doommisc.cpp
 	g_doom/doom_sbar.cpp #ST doesn't use the SBARINFO version of the Doom status bar yet.
@@ -1033,7 +1037,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} nsl socket)
 endif(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
 
-# [BB] Added GeoIP
+# [BB] Added GeoIP & huffman
 target_link_libraries( zdoom ${ZDOOM_LIBS} gme gdtoa dumb lzma GeoIP )
 include_directories( .
 	g_doom
@@ -1043,6 +1047,7 @@ include_directories( .
 	g_strife
 	g_shared
 	fragglescript
+	huffman #ZAN
 	Linux
 	oplsynth
 	sound
