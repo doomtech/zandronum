@@ -454,7 +454,7 @@ void NETWORK_Destruct( void )
 int NETWORK_GetPackets( void )
 {
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes;
+	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketFrom;
 	INT					iSocketFromLength;
 
@@ -536,7 +536,7 @@ int NETWORK_GetLANPackets( void )
 		return 0;
 
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes;
+	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketFrom;
 	INT					iSocketFromLength;
 
@@ -617,7 +617,7 @@ NETADDRESS_s NETWORK_GetFromAddress( void )
 void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 {
 	LONG				lNumBytes;
-	INT					iNumBytesOut;
+	INT					iNumBytesOut = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketAddress;
 
 	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
