@@ -2133,12 +2133,15 @@ void D_DoomMain (void)
 #endif
 #endif
 
+	// Check response files before coalescing file parameters.
+	M_FindResponseFile ();
+
 	// Combine different file parameters with their pre-switch bits.
 	Args->CollectFiles("-deh", ".deh");
 	Args->CollectFiles("-bex", ".bex");
 	Args->CollectFiles("-exec", ".cfg");
 	Args->CollectFiles("-playdemo", ".lmp");
-	Args->CollectFiles("-file", NULL);	// anythnig left goes after -file
+	Args->CollectFiles("-file", NULL);	// anything left goes after -file
 
 	PClass::StaticInit ();
 	atterm (C_DeinitConsole);
@@ -2174,7 +2177,6 @@ void D_DoomMain (void)
 	CALLVOTE_Construct( );
 
 	FRandom::StaticClearRandom ();
-	M_FindResponseFile ();
 
 	Printf ("M_LoadDefaults: Load system defaults.\n");
 	M_LoadDefaults ();			// load before initing other systems
