@@ -303,7 +303,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					I_PutInClipboard( szIPString );
 				}
 				else if ( iIndex == 3 )
-					DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSTATISTICS ), hDlg, SERVERCONSOLE_ServerStatisticsCallback );
+					DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSTATISTICS ), hDlg, (DLGPROC)SERVERCONSOLE_ServerStatisticsCallback );
 			}
 			break;
 		}
@@ -416,15 +416,15 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				break;
 			case ID_SETTINGS_CONFIGREDMFLAGS:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_DMFLAGS ), hDlg, SERVERCONSOLE_DMFlagsCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_DMFLAGS ), hDlg, (DLGPROC)SERVERCONSOLE_DMFlagsCallback );
 				break;
 			case ID_SETTINGS_MAPROTATION:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MAPROTATION ), hDlg, SERVERCONSOLE_MapRotationCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MAPROTATION ), hDlg, (DLGPROC)SERVERCONSOLE_MapRotationCallback );
 				break;
 			case ID_SERVER_STATISTICS:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSTATISTICS ), hDlg, SERVERCONSOLE_ServerStatisticsCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSTATISTICS ), hDlg, (DLGPROC)SERVERCONSOLE_ServerStatisticsCallback );
 				break;
 			case ID_ADMIN_ADDREMOVEBOT:
 
@@ -438,15 +438,15 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			case ID_ADMIN_CHANGEMAP:
 
 				if ( g_bServerLoaded )
-					DialogBox( g_hInst, MAKEINTRESOURCE( IDD_CHANGEMAP ), hDlg, SERVERCONSOLE_ChangeMapCallback );
+					DialogBox( g_hInst, MAKEINTRESOURCE( IDD_CHANGEMAP ), hDlg, (DLGPROC)SERVERCONSOLE_ChangeMapCallback );
 				break;
 			case ID_ADMIN_BANIP:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANIP ), hDlg, SERVERCONSOLE_BanIPCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANIP ), hDlg, (DLGPROC)SERVERCONSOLE_BanIPCallback );
 				break;
 			case ID_ADMIN_VIEWBANLIST:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, SERVERCONSOLE_BanListCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, (DLGPROC)SERVERCONSOLE_BanListCallback );
 				break;
 			case IDM_HOW_TO_USE1:
 
@@ -769,10 +769,10 @@ void serverconsole_ScoreboardRightClicked( void )
 		if ( iSelection == IDR_PLAYER_BAN_DIALOG )
 		{
 			strcpy( g_szScoreboard_Reason, "" );
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_ADV ), g_hDlg, serverconsole_BanPlayerAdvancedCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_ADV ), g_hDlg, (DLGPROC)serverconsole_BanPlayerAdvancedCallback );
 		}
 		else if ( strlen( g_szBanLength ))
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_SIMPLE ), g_hDlg, serverconsole_BanPlayerSimpleCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_SIMPLE ), g_hDlg, (DLGPROC)serverconsole_BanPlayerSimpleCallback );
 	}
 }
 
@@ -1143,7 +1143,7 @@ BOOL CALLBACK serverconsole_BanPlayerSimpleCallback( HWND hDlg, UINT Message, WP
 
 				GetDlgItemText( hDlg, IDC_REASON, g_szScoreboard_Reason, 512 );				
 				EndDialog( hDlg, -1 );
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_ADV ), g_hDlg, serverconsole_BanPlayerAdvancedCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER_ADV ), g_hDlg, (DLGPROC)serverconsole_BanPlayerAdvancedCallback );
 				break;
 			case IDCANCEL:
 
@@ -1346,7 +1346,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 					if ( lIdx != LB_ERR )
 					{
 						SendDlgItemMessage( hDlg, IDC_BANLIST, LB_GETTEXT, lIdx, (LPARAM)g_szBanEditString );
-						if ( DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITBAN ), hDlg, SERVERCONSOLE_EditBanCallback ))
+						if ( DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITBAN ), hDlg, (DLGPROC)SERVERCONSOLE_EditBanCallback ))
 						{
 							SendDlgItemMessage( hDlg, IDC_BANLIST, LB_DELETESTRING, lIdx, 0 );
 							SendDlgItemMessage( hDlg, IDC_BANLIST, LB_INSERTSTRING, lIdx, (LPARAM)g_szBanEditString );

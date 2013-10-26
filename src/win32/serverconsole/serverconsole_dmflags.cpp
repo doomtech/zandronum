@@ -533,7 +533,7 @@ void flags_ReadNewValue( HWND hDlg, int iControlID, ULONG &ulFlags )
 static void flags_InsertTab( char *pszTitle, int iResource, HWND hDlg, TCITEM tcitem, HWND edit, RECT tabrect, RECT tcrect, int &index )
 {
 	tcitem.pszText = pszTitle;
-	tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( iResource ), hDlg, flags_GenericTabCallback, (LPARAM) edit );
+	tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( iResource ), hDlg, (DLGPROC)flags_GenericTabCallback, (LPARAM) edit );
 	TabCtrl_InsertItem( edit, index, &tcitem );
 	SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 		tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );

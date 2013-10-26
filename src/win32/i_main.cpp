@@ -923,7 +923,7 @@ void DoMain (HINSTANCE hInstance)
 		if ( Args->CheckParm( "-host" ))
 		{
 			// This never returns.
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERDIALOG ), NULL/*(HWND)Window*/, SERVERCONSOLE_ServerDialogBoxCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERDIALOG ), NULL/*(HWND)Window*/, (DLGPROC)SERVERCONSOLE_ServerDialogBoxCallback );
 		}
 		else
 		{

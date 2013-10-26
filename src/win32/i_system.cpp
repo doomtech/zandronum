@@ -1433,9 +1433,9 @@ BOOL CALLBACK NoIWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 			// Create the child dialogs.
 			if ( g_hDlg_NoIWAD_Welcome == NULL )
 			{
-				g_hDlg_NoIWAD_Welcome = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_WELCOME ), hDlg, NoIWADBox_Welcome_Callback, NULL );
-				g_hDlg_NoIWAD_NoDoom = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_NODOOM ), hDlg, NoIWADBox_NoDoom_Callback, NULL );
-				g_hDlg_NoIWAD_Redirect = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_REDIRECT ), hDlg, NoIWADBox_Redirect_Callback, NULL );
+				g_hDlg_NoIWAD_Welcome = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_WELCOME ), hDlg, (DLGPROC)NoIWADBox_Welcome_Callback, NULL );
+				g_hDlg_NoIWAD_NoDoom = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_NODOOM ), hDlg, (DLGPROC)NoIWADBox_NoDoom_Callback, NULL );
+				g_hDlg_NoIWAD_Redirect = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_NOIWADS_REDIRECT ), hDlg, (DLGPROC)NoIWADBox_Redirect_Callback, NULL );
 				SetParent( g_hDlg_NoIWAD_Welcome, hDlg );
 				SetParent( g_hDlg_NoIWAD_NoDoom, hDlg );
 				SetParent( g_hDlg_NoIWAD_Redirect, hDlg );

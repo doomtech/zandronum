@@ -144,7 +144,7 @@ BOOL	CALLBACK		settings_AccessTab_Callback( HWND hDlg, UINT Message, WPARAM wPar
 
 void SERVERCONSOLE_SETTINGS_Display( HWND hDlg )
 {
-	DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_DIALOG ), hDlg, settings_Dialog_Callback );
+	DialogBox( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_DIALOG ), hDlg, (DLGPROC)settings_Dialog_Callback );
 }
 
 //==========================================================================
@@ -397,25 +397,25 @@ BOOL CALLBACK settings_Dialog_Callback( HWND hDlg, UINT Message, WPARAM wParam, 
 
 		// Create the tabs.
 		tcitem.pszText = "Server information";
-		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_SERVERTAB ), hDlg, settings_ServerTab_Callback, (LPARAM) edit );
+		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_SERVERTAB ), hDlg, (DLGPROC)settings_ServerTab_Callback, (LPARAM) edit );
 		TabCtrl_InsertItem( edit, 0, &tcitem );
 		SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );
 
 		tcitem.pszText = "Gameplay";
-		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_GAMEPLAYTAB ), hDlg, settings_GameplayTab_Callback, (LPARAM) edit );
+		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_GAMEPLAYTAB ), hDlg, (DLGPROC)settings_GameplayTab_Callback, (LPARAM) edit );
 		TabCtrl_InsertItem( edit, 1, &tcitem );		
 		SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );
 
 		tcitem.pszText = "Access";
-		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_ACCESSTAB ), hDlg, settings_AccessTab_Callback, (LPARAM) edit );
+		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_ACCESSTAB ), hDlg, (DLGPROC)settings_AccessTab_Callback, (LPARAM) edit );
 		TabCtrl_InsertItem( edit, 3, &tcitem );		
 		SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );
 
 		tcitem.pszText = "Administration";
-		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_ADMINTAB ), hDlg, settings_AdminTab_Callback, (LPARAM) edit );
+		tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SERVERSETTINGS_ADMINTAB ), hDlg, (DLGPROC)settings_AdminTab_Callback, (LPARAM) edit );
 		TabCtrl_InsertItem( edit, 4, &tcitem );		
 		SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );
@@ -625,7 +625,7 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 	case WM_COMMAND:
 
 		if ( LOWORD( wParam ) == IDC_STARTUPMESSAGE )
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITMOTD ), hDlg, settings_ServerTab_MOTDCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITMOTD ), hDlg, (DLGPROC)settings_ServerTab_MOTDCallback );
 		break;
 	}
 
@@ -746,9 +746,9 @@ BOOL CALLBACK settings_GameplayTab_Callback( HWND hDlg, UINT Message, WPARAM wPa
 		if ( LOWORD( wParam ) == IDC_GAMEPLAYMODE )
 			settings_GameplayTab_ShowOrHideItems( hDlg );
 		if ( LOWORD( wParam ) == IDC_MAPLIST )
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MAPROTATION ), hDlg, SERVERCONSOLE_MapRotationCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MAPROTATION ), hDlg, (DLGPROC)SERVERCONSOLE_MapRotationCallback );
 		if ( LOWORD( wParam ) == IDC_SHOWFLAGS )
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_DMFLAGS ), hDlg, SERVERCONSOLE_DMFlagsCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_DMFLAGS ), hDlg, (DLGPROC)SERVERCONSOLE_DMFlagsCallback );
 		break;
 	}
 
@@ -821,9 +821,9 @@ BOOL CALLBACK settings_AdminTab_Callback( HWND hDlg, UINT Message, WPARAM wParam
 		}
 
 		if ( LOWORD( wParam ) == IDC_MESSAGES )
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MESSAGEOPTIONS ), hDlg, SERVERCONSOLE_MessagesCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_MESSAGEOPTIONS ), hDlg, (DLGPROC)SERVERCONSOLE_MessagesCallback );
 		if ( LOWORD( wParam ) == IDC_BANLIST )
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, SERVERCONSOLE_BanListCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, (DLGPROC)SERVERCONSOLE_BanListCallback );
 
 		break;
 	}
@@ -926,7 +926,7 @@ BOOL CALLBACK settings_AccessTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 			break;
 		case IDC_BANLIST:
 
-			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, SERVERCONSOLE_BanListCallback );
+			DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANLIST ), hDlg, (DLGPROC)SERVERCONSOLE_BanListCallback );
 			/*
 			SERVERCONSOLE_IPLIST_Display( hDlg, IPLIST_BAN );			
 			break;
