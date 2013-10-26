@@ -607,7 +607,7 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 					break;
 				}
 				else
-					sprintf( szString + strlen ( szString ), " %s", *i );
+					sprintf( szString + strlen ( szString ), " %s", *i->first.GetChars( ));
 			}
 
 			g_ulNumPWADs = NETWORK_GetPWADList( )->size( );
