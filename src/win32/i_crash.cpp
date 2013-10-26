@@ -3271,7 +3271,7 @@ void DisplayCrashLog ()
 		int i = 0;
 		do
 		{
-			sprintf( Filename, "%sCrashReport%03d.zip", autoname, i );
+			sprintf( Filename, "%sCrashReport%03d.zip", autoname.GetChars(), i );
 			i++;
 		} while ( FileExists( Filename ) && i < 999 );
 		
