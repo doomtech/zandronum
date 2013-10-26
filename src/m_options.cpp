@@ -219,13 +219,14 @@ value_t OffOn[2] = {
 	{ 1.0, "Off" }
 };
 
-value_t CompatModes[6] = {
+value_t CompatModes[] = {
 	{ 0.0, "Default" },
 	{ 1.0, "Doom" },
 	{ 2.0, "Doom (strict)" },
 	{ 3.0, "Boom" },
-	{ 4.0, "ZDoom 2.0.63" },
+	{ 6.0, "Boom (strict)" },
 	{ 5.0, "MBF" },
+	{ 4.0, "ZDoom 2.0.63" },
 };
 
 value_t GenderVals[3] = {
@@ -1445,7 +1446,7 @@ static menu_t DMFlagsMenu =
  *=======================================*/
 
 static menuitem_t CompatibilityItems[] = {
-	{ discrete, "Compatibility mode",						{&compatmode},	{6.0}, {1.0},	{0.0}, {CompatModes} },
+	{ discrete, "Compatibility mode",						{&compatmode},	{7.0}, {1.0},	{0.0}, {CompatModes} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
 	{ bitflag,	"Find shortest textures like Doom",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SHORTTEX} },
 	{ bitflag,	"Use buggier stair building",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_STAIRINDEX} },
@@ -1475,6 +1476,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"Crushed monsters can be resurrected",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_CORPSEGIBS} },
 	{ bitflag,	"Friendly monsters aren't blocked",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_NOBLOCKFRIENDS} },
 	{ bitflag,	"Invert sprite sorting",					{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SPRITESORT} },
+	{ bitflag,	"Use Doom code for hitscan checks",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_HITSCAN} },
 	{ bitflag,	"Limited movement in the air",				{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_INSTANTRESPAWN} },

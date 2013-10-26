@@ -298,7 +298,7 @@ class FBlockThingsIterator
 public:
 	FBlockThingsIterator(int minx, int miny, int maxx, int maxy);
 	FBlockThingsIterator(const FBoundingBox &box);
-	AActor *Next();
+	AActor *Next(bool centeronly = false);
 	void Reset() { StartBlock(minx, miny); }
 };
 
@@ -313,7 +313,7 @@ class FPathTraverse
 	unsigned int count;
 
 	void AddLineIntercepts(int bx, int by);
-	void AddThingIntercepts(int bx, int by, FBlockThingsIterator &it);
+	void AddThingIntercepts(int bx, int by, FBlockThingsIterator &it, bool compatible);
 public:
 
 	intercept_t *Next();
@@ -326,6 +326,7 @@ public:
 
 #define PT_ADDLINES 	1
 #define PT_ADDTHINGS	2
+#define PT_COMPATIBLE	4
 
 AActor *P_BlockmapSearch (AActor *mo, int distance, AActor *(*check)(AActor*, int, void *), void *params = NULL);
 AActor *P_RoughMonsterSearch (AActor *mo, int distance);
