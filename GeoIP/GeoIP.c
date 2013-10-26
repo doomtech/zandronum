@@ -33,7 +33,10 @@
 #ifndef ssize_t
 typedef long ssize_t;
 #endif
+#endif
 
+// [BB] Add stuff missing in VC++ and MinGW.
+#if defined ( _MSC_VER ) || defined(__MINGW32_VERSION) || defined(__MINGW64__)
 ssize_t pread(unsigned int fd, char *buf, size_t count, int offset)
 {
 	if (_lseek(fd, offset, SEEK_SET) != offset) {
