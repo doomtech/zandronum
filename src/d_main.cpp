@@ -1527,8 +1527,11 @@ void D_DoAdvanceDemo (void)
 	case 2:
 		pagetic = (int)(gameinfo.pageTime * TICRATE);
 		gamestate = GS_DEMOSCREEN;
-		pagename = gameinfo.creditPages[pagecount];
-		pagecount = (pagecount+1) % gameinfo.creditPages.Size();
+		if (gameinfo.creditPages.Size() > 0)
+		{
+			pagename = gameinfo.creditPages[pagecount];
+			pagecount = (pagecount+1) % gameinfo.creditPages.Size();
+		}
 		demosequence = 1;
 		break;
 	}

@@ -2504,8 +2504,10 @@ class CommandPlayerClass : public SBarInfoCommandFlowControl
 						break;
 					}
 				}
+				/*
 				if(!foundClass)
 					sc.ScriptError("Unkown PlayerClass '%s'.", sc.String);
+				*/
 				if(!sc.CheckToken(','))
 					break;
 			}
