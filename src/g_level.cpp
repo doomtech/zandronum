@@ -648,10 +648,8 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 static FString	nextlevel;
 static int		startpos;	// [RH] Support for multiple starts per level
 extern int		NoWipe;		// [RH] Don't wipe when travelling in hubs
-static bool		startkeepfacing;	// [RH] Support for keeping your facing angle
-static bool		resetinventory;	// Reset the inventory to the player's default for the next level
+static int		changeflags;
 static bool		unloading;
-static bool		g_nomonsters;
 
 //==========================================================================
 //
@@ -662,8 +660,7 @@ static bool		g_nomonsters;
 //==========================================================================
 
 
-void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nextSkill, 
-				   bool nointermission, bool resetinv, bool nomonsters)
+void G_ChangeLevel(const char *levelname, int position, int flags, int nextSkill)
 {
 	level_info_t *nextinfo = NULL;
 
@@ -692,25 +689,32 @@ void G_ChangeLevel(const char *levelname, int position, bool keepFacing, int nex
 	if (nextSkill != -1)
 		NextSkill = nextSkill;
 
-	g_nomonsters = nomonsters;
-
-	if (nointermission) level.flags |= LEVEL_NOINTERMISSION;
+	if (flags & CHANGELEVEL_NOINTERMISSION)
+	{
+		level.flags |= LEVEL_NOINTERMISSION;
+	}
 
 	cluster_info_t *thiscluster = FindClusterInfo (level.cluster);
 	cluster_info_t *nextcluster = nextinfo? FindClusterInfo (nextinfo->cluster) : NULL;
 
 	startpos = position;
-	startkeepfacing = keepFacing;
 	gameaction = ga_completed;
-	resetinventory = resetinv;
 		
 	if (nextinfo != NULL) 
 	{
 		if (thiscluster != nextcluster || (thiscluster && !(thiscluster->flags & CLUSTER_HUB)))
 		{
-			resetinventory |= !!(nextinfo->flags2 & LEVEL2_RESETINVENTORY);
+			if (nextinfo->flags2 & LEVEL2_RESETINVENTORY)
+			{
+				flags |= CHANGELEVEL_RESETINVENTORY;
+			}
+			if (nextinfo->flags2 & LEVEL2_RESETHEALTH)
+			{
+				flags |= CHANGELEVEL_RESETHEALTH;
+			}
 		}
 	}
+	changeflags = flags;
 
 	// [RH] Give scripts a chance to do something
 	unloading = true;
@@ -852,8 +856,7 @@ void G_ExitLevel (int position, bool keepFacing)
 	// [BB] We need to pass ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) as last
 	// argument, otherwise this flag will be cleared by G_ChangeLevel, no matter if
 	// it is set or not.
-	G_ChangeLevel(G_GetExitMap(), position, keepFacing, 
-	              /*int nextSkill=*/-1, /*bool nointermission=*/false, /*bool resetinventory=*/false, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) );
+	G_ChangeLevel(G_GetExitMap(), position, ( keepFacing ? CHANGELEVEL_KEEPFACING : 0 ) | ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) ? CHANGELEVEL_NOMONSTERS : 0 ); 
 }
 
 void G_SecretExitLevel (int position) 
@@ -866,8 +869,7 @@ void G_SecretExitLevel (int position)
 	}
 	
 	// [TL] Pass additional parameters to make "nextsecret" CCMD work online.
-	G_ChangeLevel(G_GetSecretExitMap(), position, false,
-	              /*int nextSkill=*/-1, /*bool nointermission=*/false, /*bool resetinventory=*/false, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) );
+	G_ChangeLevel(G_GetSecretExitMap(), position, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) ? CHANGELEVEL_NOMONSTERS : 0 );
 }
 
 //==========================================================================
@@ -980,7 +982,7 @@ void G_DoCompleted (void)
 	{
 		if (playeringame[i])
 		{ // take away appropriate inventory
-			G_PlayerFinishLevel (i, mode, resetinventory);
+			G_PlayerFinishLevel (i, mode, changeflags);
 		}
 	}
 
@@ -1442,7 +1444,7 @@ void G_DoLoadLevel (int position, bool autosave)
 //			players[i].bSpectating = true;
 	}
 
-	if (g_nomonsters)
+	if (changeflags & CHANGELEVEL_NOMONSTERS)
 	{
 		level.flags2 |= LEVEL2_NOMONSTERS;
 	}
@@ -1835,7 +1837,7 @@ void G_FinishTravel ()
 			// [BC]
 			lSavedNetID = pawndup->lNetID;
 			pawndup = pawn->player->mo;
-			if (!startkeepfacing)
+			if (!changeflags & CHANGELEVEL_KEEPFACING)
 			{
 				pawn->angle = pawndup->angle;
 				pawn->pitch = pawndup->pitch;

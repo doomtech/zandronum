@@ -796,3 +796,58 @@ void gl_ParseBrightmap(FScanner &sc, int deflump)
 	tex->gl_info.bBrightmapDisablesFullbright = disable_fullbright;
 }
 
+//==========================================================================
+//
+// Parses a GLBoom+ detail texture definition
+//
+// Syntax is this:
+//	detail
+//	{
+//		(walls | flats) [default_detail_name [width [height [offset_x [offset_y]]]]]
+//		{
+//			texture_name [detail_name [width [height [offset_x [offset_y]]]]]
+//		}
+//	}
+// This merely parses the block and returns no error if valid. The feature
+// is not actually implemented, so nothing else happens.
+//==========================================================================
+
+void gl_ParseDetailTexture(FScanner &sc)
+{
+	while (!sc.CheckToken('}'))
+	{
+		sc.MustGetString();
+		if (sc.Compare("walls") || sc.Compare("flats"))
+		{
+			if (!sc.CheckToken('{'))
+			{
+				sc.MustGetString();  // Default detail texture
+				if (sc.CheckFloat()) // Width
+				if (sc.CheckFloat()) // Height
+				if (sc.CheckFloat()) // OffsX
+				if (sc.CheckFloat()) // OffsY
+				{
+					// Nothing
+				}
+			}
+			else sc.UnGet();
+			sc.MustGetToken('{');
+			while (!sc.CheckToken('}'))
+			{
+				sc.MustGetString();  // Texture
+				if (sc.GetString())	 // Detail texture
+				{
+					if (sc.CheckFloat()) // Width
+					if (sc.CheckFloat()) // Height
+					if (sc.CheckFloat()) // OffsX
+					if (sc.CheckFloat()) // OffsY
+					{
+						// Nothing
+					}
+				}
+				else sc.UnGet();
+			}
+		}
+	}
+}
+

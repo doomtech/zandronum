@@ -568,7 +568,7 @@ FShader *FShaderManager::BindEffect(int effect)
 
 //==========================================================================
 //
-// Parses a brightmap definition
+// Parses a shader definition
 //
 //==========================================================================
 
