@@ -1551,9 +1551,6 @@ static int PatchWeapon (int weapNum)
 					if (info->AmmoUse1 == 0)
 					{
 						info->AmmoUse1 = 1;
-
-						// [BC] Also apply this to the amount of ammo used in DM.
-//						info->AmmoUseDM1 = 1;
 					}
 				}
 			}
@@ -1578,9 +1575,6 @@ static int PatchWeapon (int weapNum)
 		else if (stricmp (Line1, "Ammo use") == 0 || stricmp (Line1, "Ammo per shot") == 0)
 		{
 			info->AmmoUse1 = val;
-
-			// [BC] Also apply this to the amount of ammo used in DM.
-//			info->AmmoUseDM1 = val;
 		}
 		else if (stricmp (Line1, "Min ammo") == 0)
 		{
@@ -1595,9 +1589,6 @@ static int PatchWeapon (int weapNum)
 	if (info->AmmoType1 == NULL)
 	{
 		info->AmmoUse1 = 0;
-
-		// [BC] Also apply this to the amount of ammo used in DM.
-//		info->AmmoUseDM1 = 0;
 	}
 
 	if (patchedStates)
@@ -1738,9 +1729,6 @@ static int PatchMisc (int dummy)
 			if (stricmp (Line1, "BFG Cells/Shot") == 0)
 			{
 				((AWeapon*)GetDefaultByName ("BFG9000"))->AmmoUse1 = atoi (Line2);
-
-				// [BC] Also apply this to the amount of ammo used in DM.
-//				((AWeapon*)GetDefaultByName ("BFG9000"))->AmmoUseDM1 = atoi (Line2);
 			}
 			else if (stricmp (Line1, "Rocket Explosion Style") == 0)
 			{

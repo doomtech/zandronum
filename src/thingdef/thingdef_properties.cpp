@@ -1532,9 +1532,6 @@ DEFINE_CLASS_PROPERTY(ammouse1, I, Weapon)
 {
 	PROP_INT_PARM(i, 0);
 	defaults->AmmoUse1 = i;
-
-	// [BC] Also apply this to the amount of ammo used in DM. It can be overridden.
-//	defaults->AmmoUseDM1 = sc.Number;
 }
 
 //==========================================================================
@@ -1544,9 +1541,6 @@ DEFINE_CLASS_PROPERTY(ammouse2, I, Weapon)
 {
 	PROP_INT_PARM(i, 0);
 	defaults->AmmoUse2 = i;
-
-	// [BC] Also apply this to the amount of ammo used in DM. It can be overridden.
-//	defaults->AmmoUseDM2 = sc.Number;
 }
 
 //==========================================================================

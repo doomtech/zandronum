@@ -59,8 +59,6 @@ void AWeapon::Serialize (FArchive &arc)
 		<< AmmoGive1 << AmmoGive2
 		<< MinAmmo1 << MinAmmo2
 		<< AmmoUse1 << AmmoUse2
-		// [BC] Also archive the amount of ammo used in DM.
-//		<< AmmoUseDM1 << AmmoUseDM2
 		<< Kickback
 		<< YAdjust
 		<< UpSound << ReadySound
@@ -558,13 +556,7 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 	count1 = (Ammo1 != NULL) ? Ammo1->Amount : 0;
 	count2 = (Ammo2 != NULL) ? Ammo2->Amount : 0;
 
-	// [BC] If this is deathmatch, then use the ammo usage levels for DM instead.
-/*
-	if ( deathmatch || teamgame )
-		enough = (count1 >= AmmoUseDM1) | ((count2 >= AmmoUseDM2) << 1);
-	else
-*/
-		enough = (count1 >= AmmoUse1) | ((count2 >= AmmoUse2) << 1);
+	enough = (count1 >= AmmoUse1) | ((count2 >= AmmoUse2) << 1);
 	if (WeaponFlags & (WIF_PRIMARY_USES_BOTH << altFire))
 	{
 		enoughmask = 3;
@@ -618,46 +610,22 @@ bool AWeapon::DepleteAmmo (bool altFire, bool checkEnough)
 		{
 			if (Ammo1 != NULL)
 			{
-				// [BC] If this is deathmatch, then use the ammo usage levels for DM instead.
-/*
-				if ( deathmatch || teamgame )
-					Ammo1->Amount -= AmmoUseDM1;
-				else
-*/
-					Ammo1->Amount -= AmmoUse1;
+				Ammo1->Amount -= AmmoUse1;
 			}
 			if ((WeaponFlags & WIF_PRIMARY_USES_BOTH) && Ammo2 != NULL)
 			{
-				// [BC] If this is deathmatch, then use the ammo usage levels for DM instead.
-/*
-				if ( deathmatch || teamgame )
-					Ammo2->Amount -= AmmoUseDM2;
-				else
-*/
-					Ammo2->Amount -= AmmoUse2;
+				Ammo2->Amount -= AmmoUse2;
 			}
 		}
 		else
 		{
 			if (Ammo2 != NULL)
 			{
-				// [BC] If this is deathmatch, then use the ammo usage levels for DM instead.
-/*
-				if ( deathmatch || teamgame )
-					Ammo2->Amount -= AmmoUseDM2;
-				else
-*/
-					Ammo2->Amount -= AmmoUse2;
+				Ammo2->Amount -= AmmoUse2;
 			}
 			if ((WeaponFlags & WIF_ALT_USES_BOTH) && Ammo1 != NULL)
 			{
-				// [BC] If this is deathmatch, then use the ammo usage levels for DM instead.
-/*
-				if ( deathmatch || teamgame )
-					Ammo1->Amount -= AmmoUseDM1;
-				else
-*/
-					Ammo1->Amount -= AmmoUse1;
+				Ammo1->Amount -= AmmoUse1;
 			}
 		}
 		if (Ammo1 != NULL && Ammo1->Amount < 0)
@@ -1600,17 +1568,6 @@ CCMD (setslot)
 			Net_WriteWeapon(PClass::FindClass(argv[i]));
 		}
 	}
-
-	/* [BB] Some old code from before ZDoom completely changed how weapon slots are handled.
-			const PClass *replacee;
-			replacee = PClass::FindClass (argv[i]);
-			// [BB] This weapon has been replaced. It's reasonable to add the replacement to the same slot.
-			if( replacee && replacee->ActorInfo->Replacement )
-			{
-				LocalWeapons.Slots[slot].AddWeapon ( replacee->ActorInfo->Replacement->Class->TypeName.GetChars() );
-				Printf( "%s is replaced, adding %s to slot %d too.\n", argv[i], replacee->ActorInfo->Replacement->Class->TypeName.GetChars(), slot );
-			}
-	*/
 }
 
 //===========================================================================
