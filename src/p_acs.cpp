@@ -1661,7 +1661,7 @@ void FBehavior::LoadScriptsDirectory ()
 					// Make the closed version the first one.
 					if (Scripts[i+1].Type == SCRIPT_Closed)
 					{
-						swap(Scripts[i], Scripts[i+1]);
+						swapvalues(Scripts[i], Scripts[i+1]);
 					}
 				}
 			}
@@ -2318,7 +2318,7 @@ int DLevelScript::Random (int min, int max)
 {
 	if (max < min)
 	{
-		swap (max, min);
+		swapvalues (max, min);
 	}
 
 	return min + pr_acs(max - min + 1);
@@ -4165,7 +4165,7 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_SWAP:
-			swap(Stack[sp-2], Stack[sp-1]);
+			swapvalues(Stack[sp-2], Stack[sp-1]);
 			break;
 
 		case PCD_LSPEC1:

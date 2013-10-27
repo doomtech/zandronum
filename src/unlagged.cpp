@@ -220,8 +220,8 @@ void UNLAGGED_SwapSectorUnlaggedStatus( )
 
 	for (int i = 0; i < numsectors; ++i)
 	{
-		swap ( sectors[i].floorplane.d, sectors[i].floorplane.restoreD );
-		swap ( sectors[i].ceilingplane.d, sectors[i].ceilingplane.restoreD );
+		swapvalues ( sectors[i].floorplane.d, sectors[i].floorplane.restoreD );
+		swapvalues ( sectors[i].ceilingplane.d, sectors[i].ceilingplane.restoreD );
 	}
 }
 
