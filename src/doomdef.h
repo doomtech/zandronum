@@ -306,7 +306,7 @@ enum
 	DF2_DONTCHECKAMMO		= 1 << 30,	// Don't Check ammo when switching weapons.
 	DF2_DISALLOW_SPYING		= 1 << 25,	// You can spy on your allies.
 	DF2_CHASECAM			= 1 << 26,	// Players can use the chasecam cheat.
-	DF2_NOSUICIDE			= 1 << 27,	// Players are allowed to suicide.
+	DF2_NOSUICIDE			= 1 << 27,	// Players are not allowed to suicide.
 	DF2_NOAUTOAIM			= 1 << 28,	// Players cannot use autoaim.
 
 	// [BB] Enforces some Gl rendering options to their default values.

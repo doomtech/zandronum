@@ -488,9 +488,19 @@ void SBarInfo::ParseSBarInfo(int lump)
 					ParseSBarInfo(lump);
 				}
 				else if(sc.Compare("Heretic"))
-					gameType = GAME_Heretic;
+				{
+					int lump = Wads.CheckNumForFullName("sbarinfo/heretic.txt", true);
+					if(lump == -1)
+						sc.ScriptError("Standard Heretic Status Bar not found.");
+					ParseSBarInfo(lump);
+				}
 				else if(sc.Compare("Hexen"))
-					gameType = GAME_Hexen;
+				{
+					int lump = Wads.CheckNumForFullName("sbarinfo/hexen.txt", true);
+					if(lump == -1)
+						sc.ScriptError("Standard Hexen Status Bar not found.");
+					ParseSBarInfo(lump);
+				}
 				else if(sc.Compare("Strife"))
 					gameType = GAME_Strife;
 				else if(sc.Compare("None"))
@@ -563,6 +573,19 @@ void SBarInfo::ParseSBarInfo(int lump)
 					spacingCharacter = '\0';
 					sc.MustGetToken(',');
 					sc.MustGetToken(TK_StringConst); //Don't tell anyone we're just ignoring this ;)
+				}
+				if(sc.CheckToken(','))
+				{
+					// Character alignment
+					sc.MustGetToken(TK_Identifier);
+					if(sc.Compare("left"))
+						spacingAlignment = ALIGN_LEFT;
+					else if(sc.Compare("center"))
+						spacingAlignment = ALIGN_CENTER;
+					else if(sc.Compare("right"))
+						spacingAlignment = ALIGN_RIGHT;
+					else
+						sc.ScriptError("Unknown alignment '%s'.", sc.String);
 				}
 				sc.MustGetToken(';');
 				break;
@@ -768,6 +791,7 @@ void SBarInfo::Init()
 	armorInterpolationSpeed = 8;
 	height = 0;
 	spacingCharacter = '\0';
+	spacingAlignment = ALIGN_CENTER;
 	resW = 320;
 	resH = 200;
 
@@ -1138,8 +1162,8 @@ public:
 			double tmp = 0;
 			dx += ST_X;
 			dy += ST_Y - (Scaled ? script->resH : 200) + script->height;
-			w = forceWidth < 0 ? texture->GetScaledWidth() : forceWidth;
-			h = forceHeight < 0 ? texture->GetScaledHeight() : forceHeight;
+			w = forceWidth < 0 ? texture->GetScaledWidthDouble() : forceWidth;
+			h = forceHeight < 0 ? texture->GetScaledHeightDouble() : forceHeight;
 			double dcx = cx == 0 ? 0 : dx + ((double) cx / FRACUNIT) - texture->GetScaledLeftOffsetDouble();
 			double dcy = cy == 0 ? 0 : dy + ((double) cy / FRACUNIT) - texture->GetScaledTopOffsetDouble();
 			double dcr = cr == 0 ? INT_MAX : dx + w - ((double) cr / FRACUNIT);
@@ -1159,6 +1183,7 @@ public:
 				dcy += 200 - script->resH;
 				dcb += 200 - script->resH;
 			}
+
 			if(clearDontDraw)
 				screen->Clear(static_cast<int>(MAX<double>(dx, dcx)), static_cast<int>(MAX<double>(dy, dcy)), static_cast<int>(dcr), static_cast<int>(dcb), GPalette.BlackIndex, 0);
 			else
@@ -1170,8 +1195,8 @@ public:
 						DTA_DestHeightF, h,
 						DTA_ClipLeft, static_cast<int>(dcx),
 						DTA_ClipTop, static_cast<int>(dcy),
-						DTA_ClipRight, static_cast<int>(dcr),
-						DTA_ClipBottom, static_cast<int>(dcb),
+						DTA_ClipRight, static_cast<int>(MIN<double>(INT_MAX, dcr)),
+						DTA_ClipBottom, static_cast<int>(MIN<double>(INT_MAX, dcb)),
 						DTA_Translation, translate ? GetTranslation() : 0,
 						DTA_ColorOverlay, dim ? DIM_OVERLAY : 0,
 						DTA_CenterBottomOffset, (offsetflags & SBarInfoCommand::CENTER_BOTTOM) == SBarInfoCommand::CENTER_BOTTOM,
@@ -1187,8 +1212,8 @@ public:
 						DTA_DestHeightF, h,
 						DTA_ClipLeft, static_cast<int>(dcx),
 						DTA_ClipTop, static_cast<int>(dcy),
-						DTA_ClipRight, static_cast<int>(dcr),
-						DTA_ClipBottom, static_cast<int>(dcb),
+						DTA_ClipRight, static_cast<int>(MIN<double>(INT_MAX, dcr)),
+						DTA_ClipBottom, static_cast<int>(MIN<double>(INT_MAX, dcb)),
 						DTA_Translation, translate ? GetTranslation() : 0,
 						DTA_ColorOverlay, dim ? DIM_OVERLAY : 0,
 						DTA_CenterBottomOffset, (offsetflags & SBarInfoCommand::CENTER_BOTTOM) == SBarInfoCommand::CENTER_BOTTOM,
@@ -1304,7 +1329,7 @@ public:
 		}
 	}
 
-	void DrawString(FFont *font, const char* str, SBarInfoCoordinate x, SBarInfoCoordinate y, int xOffset, int yOffset, int alpha, bool fullScreenOffsets, EColorRange translation, int spacing=0, bool drawshadow=false) const
+	void DrawString(FFont *font, const char* str, SBarInfoCoordinate x, SBarInfoCoordinate y, int xOffset, int yOffset, int alpha, bool fullScreenOffsets, EColorRange translation, int spacing=0, bool drawshadow=false, int shadowX=2, int shadowY=2) const
 	{
 		x += spacing;
 		double ax = *x;
@@ -1349,6 +1374,23 @@ public:
 			ry = ay + yOffset;
 			rw = character->GetScaledWidthDouble();
 			rh = character->GetScaledHeightDouble();
+
+			if(script->spacingCharacter != '\0')
+			{
+				double spacingSize = font->GetCharWidth((int) script->spacingCharacter);
+				switch(script->spacingAlignment)
+				{
+					default:
+						break;
+					case SBarInfo::ALIGN_CENTER:
+						rx += (spacingSize/2)-(rw/2);
+						break;
+					case SBarInfo::ALIGN_RIGHT:
+						rx += spacingSize-rw;
+						break;
+				}
+			}
+
 			if(!fullScreenOffsets)
 			{
 				rx += ST_X;
@@ -1383,7 +1425,9 @@ public:
 			if(drawshadow)
 			{
 				int salpha = fixed_t(((double) alpha / (double) FRACUNIT) * ((double) HR_SHADOW / (double) FRACUNIT) * FRACUNIT);
-				screen->DrawTexture(character, rx+2, ry+2,
+				double srx = rx + (shadowX*xScale);
+				double sry = ry + (shadowY*yScale);
+				screen->DrawTexture(character, srx, sry,
 					DTA_DestWidthF, rw,
 					DTA_DestHeightF, rh,
 					DTA_Alpha, salpha,
@@ -1454,15 +1498,7 @@ DBaseStatusBar *CreateStatusBar ()
 		}
 		else
 		//Did the user specify a "base"
-		if(cstype == GAME_Heretic)
-		{
-			sbar = CreateHereticStatusBar();
-		}
-		else if(cstype == GAME_Hexen)
-		{
-			sbar = CreateHexenStatusBar();
-		}
-		else if(cstype == GAME_Strife)
+		if(cstype == GAME_Strife)
 		{
 			sbar = CreateStrifeStatusBar();
 		}
@@ -1480,14 +1516,6 @@ DBaseStatusBar *CreateStatusBar ()
 		if (gameinfo.gametype & GAME_DoomChex)
 		{
 			sbar = CreateCustomStatusBar (SCRIPT_DEFAULT);
-		}
-		else if (gameinfo.gametype == GAME_Heretic)
-		{
-			sbar = CreateHereticStatusBar ();
-		}
-		else if (gameinfo.gametype == GAME_Hexen)
-		{
-			sbar = CreateHexenStatusBar ();
 		}
 		else if (gameinfo.gametype == GAME_Strife)
 		{

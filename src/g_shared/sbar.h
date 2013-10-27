@@ -383,8 +383,6 @@ extern DBaseStatusBar *StatusBar;
 
 // Status bar factories -----------------------------------------------------
 
-DBaseStatusBar *CreateHereticStatusBar();
-DBaseStatusBar *CreateHexenStatusBar();
 DBaseStatusBar *CreateStrifeStatusBar();
 DBaseStatusBar *CreateCustomStatusBar(int script=0);
 DBaseStatusBar *CreateStatusBar ();

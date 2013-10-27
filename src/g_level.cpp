@@ -518,15 +518,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			int cstype = SBarInfoScript[SCRIPT_CUSTOM]->GetGameType();
 
 			//Did the user specify a "base"
-			if(cstype == GAME_Heretic)
-			{
-				StatusBar = CreateHereticStatusBar();
-			}
-			else if(cstype == GAME_Hexen)
-			{
-				StatusBar = CreateHexenStatusBar();
-			}
-			else if(cstype == GAME_Strife)
+			if(cstype == GAME_Strife)
 			{
 				StatusBar = CreateStrifeStatusBar();
 			}
@@ -541,17 +533,9 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		}
 		if (StatusBar == NULL)
 		{
-			if (gameinfo.gametype & GAME_DoomChex)
+			if (gameinfo.gametype & (GAME_DoomChex|GAME_Heretic|GAME_Hexen))
 			{
 				StatusBar = CreateCustomStatusBar (SCRIPT_DEFAULT);
-			}
-			else if (gameinfo.gametype == GAME_Heretic)
-			{
-				StatusBar = CreateHereticStatusBar ();
-			}
-			else if (gameinfo.gametype == GAME_Hexen)
-			{
-				StatusBar = CreateHexenStatusBar ();
 			}
 			else if (gameinfo.gametype == GAME_Strife)
 			{

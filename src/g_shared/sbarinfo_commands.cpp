@@ -532,14 +532,15 @@ class CommandDrawString : public SBarInfoCommand
 {
 	public:
 		CommandDrawString(SBarInfo *script) : SBarInfoCommand(script),
-			shadow(false), spacing(0), font(NULL), translation(CR_UNTRANSLATED),
-			cache(-1), strValue(CONSTANT), valueArgument(0)
+			shadow(false), shadowX(2), shadowY(2), spacing(0), font(NULL),
+			translation(CR_UNTRANSLATED), cache(-1), strValue(CONSTANT),
+			valueArgument(0)
 		{
 		}
 
 		void	Draw(const SBarInfoMainBlock *block, const DSBarInfo *statusBar)
 		{
-			statusBar->DrawString(font, str.GetChars(), x, y, block->XOffset(), block->YOffset(), block->Alpha(), block->FullScreenOffsets(), translation, spacing, shadow);
+			statusBar->DrawString(font, str.GetChars(), x, y, block->XOffset(), block->YOffset(), block->Alpha(), block->FullScreenOffsets(), translation, spacing, shadow, shadowX, shadowY);
 		}
 		void	Parse(FScanner &sc, bool fullScreenOffsets)
 		{
@@ -599,7 +600,7 @@ class CommandDrawString : public SBarInfoCommand
 					str = sc.String;
 			}
 			sc.MustGetToken(',');
-			GetCoordinates(sc, fullScreenOffsets, x, y);
+			GetCoordinates(sc, fullScreenOffsets, startX, y);
 			if(sc.CheckToken(',')) //spacing
 			{
 				sc.MustGetToken(TK_IntConst);
@@ -607,10 +608,7 @@ class CommandDrawString : public SBarInfoCommand
 			}
 			sc.MustGetToken(';');
 
-			if(script->spacingCharacter == '\0')
-				x -= static_cast<int> (font->StringWidth(str)+(spacing * str.Len()));
-			else //monospaced, so just multiplay the character size
-				x -= static_cast<int> ((font->GetCharWidth((int) script->spacingCharacter) + spacing) * str.Len());
+			RealignString();
 		}
 		void	Reset()
 		{
@@ -636,6 +634,7 @@ class CommandDrawString : public SBarInfoCommand
 					{
 						cache = level.lumpnum;
 						str = level.LevelName;
+						RealignString();
 					}
 					break;
 				case LEVELLUMP:
@@ -643,6 +642,7 @@ class CommandDrawString : public SBarInfoCommand
 					{
 						cache = level.lumpnum;
 						str = level.mapname;
+						RealignString();
 					}
 					break;
 				case SKILLNAME:
@@ -650,6 +650,7 @@ class CommandDrawString : public SBarInfoCommand
 					{
 						cache = level.lumpnum;
 						str = G_SkillName();
+						RealignString();
 					}
 					break;
 				case PLAYERCLASS:
@@ -657,6 +658,7 @@ class CommandDrawString : public SBarInfoCommand
 					{
 						cache = statusBar->CPlayer->userinfo.PlayerClass;
 						str = statusBar->CPlayer->cls->Meta.GetMetaString(APMETA_DisplayName);
+						RealignString();
 					}
 					break;
 				case AMMO1TAG:
@@ -675,12 +677,14 @@ class CommandDrawString : public SBarInfoCommand
 					// Can't think of a good way to detect changes to this, so
 					// I guess copying it every tick will have to do.
 					str = statusBar->CPlayer->userinfo.netname;
+					RealignString();
 					break;
 				case GLOBALVAR:
 					if(ACS_GlobalVars[valueArgument] != cache)
 					{
 						cache = ACS_GlobalVars[valueArgument];
 						str = FBehavior::StaticLookupString(ACS_GlobalVars[valueArgument]);
+						RealignString();
 					}
 					break;
 				case GLOBALARRAY:
@@ -688,6 +692,7 @@ class CommandDrawString : public SBarInfoCommand
 					{
 						cache = ACS_GlobalArrays[valueArgument][consoleplayer];
 						str = FBehavior::StaticLookupString(ACS_GlobalArrays[valueArgument][consoleplayer]);
+						RealignString();
 					}
 					break;
 				default:
@@ -695,6 +700,15 @@ class CommandDrawString : public SBarInfoCommand
 			}
 		}
 	protected:
+		void RealignString()
+		{
+			x = startX;
+			if(script->spacingCharacter == '\0')
+				x -= static_cast<int> (font->StringWidth(str)+(spacing * str.Len()));
+			else //monospaced, so just multiplay the character size
+				x -= static_cast<int> ((font->GetCharWidth((int) script->spacingCharacter) + spacing) * str.Len());
+		}
+
 		enum StringValueType
 		{
 			LEVELNAME,
@@ -713,9 +727,12 @@ class CommandDrawString : public SBarInfoCommand
 		};
 
 		bool				shadow;
+		int					shadowX;
+		int					shadowY;
 		int					spacing;
 		FFont				*font;
 		EColorRange			translation;
+		SBarInfoCoordinate	startX;
 		SBarInfoCoordinate	x;
 		SBarInfoCoordinate	y;
 		int					cache; /// General purpose cache.
@@ -732,6 +749,7 @@ class CommandDrawString : public SBarInfoCommand
 				{
 					cache = actor->GetClass()->ClassIndex;
 					str = actor->GetTag();
+					RealignString();
 				}
 			}
 			else
@@ -886,7 +904,18 @@ class CommandDrawNumber : public CommandDrawString
 				else if(sc.Compare("whennotzero"))
 					whenNotZero = true;
 				else if(sc.Compare("drawshadow"))
+				{
+					if(sc.CheckToken('('))
+					{
+						sc.MustGetToken(TK_IntConst);
+						shadowX = sc.Number;
+						sc.MustGetToken(',');
+						sc.MustGetToken(TK_IntConst);
+						shadowY = sc.Number;
+						sc.MustGetToken(')');
+					}
 					shadow = true;
+				}
 				else if(sc.Compare("interpolate"))
 				{
 					sc.MustGetToken('(');
@@ -1087,9 +1116,7 @@ class CommandDrawNumber : public CommandDrawString
 				translation = lowTranslation;
 			else if(highValue != -1 && drawValue >= highValue) //high
 				translation = highTranslation;
-		
-			x = startX;
-		
+
 			// 10^9 is a largest we can hold in a 32-bit int.  So if we go any larger we have to toss out the positions limit.
 			int maxval = length <= 9 ? (int) ceil(pow(10., length))-1 : INT_MAX;
 			if(!fillZeros || length == 1)
@@ -1109,10 +1136,8 @@ class CommandDrawNumber : public CommandDrawString
 						str.Insert(0, "0");
 				}
 			}
-			if(script->spacingCharacter == '\0')
-				x -= static_cast<int> (font->StringWidth(str)+(spacing * str.Len()));
-			else //monospaced, so just multiplay the character size
-				x -= static_cast<int> ((font->GetCharWidth((int) script->spacingCharacter) + spacing) * str.Len());
+
+			RealignString();
 		}
 	protected:
 		enum ValueType
@@ -1158,8 +1183,6 @@ class CommandDrawNumber : public CommandDrawString
 		EColorRange			normalTranslation;
 		ValueType			value;
 		const PClass		*inventoryItem;
-
-		SBarInfoCoordinate	startX;
 
 		friend class CommandDrawInventoryBar;
 };
@@ -1278,7 +1301,18 @@ class CommandDrawSelectedInventory : public SBarInfoCommandFlowControl, private 
 				else if(sc.Compare("centerbottom"))
 					offset = static_cast<Offset> (HMIDDLE|BOTTOM);
 				else if(sc.Compare("drawshadow"))
+				{
+					if(sc.CheckToken('('))
+					{
+						sc.MustGetToken(TK_IntConst);
+						shadowX = sc.Number;
+						sc.MustGetToken(',');
+						sc.MustGetToken(TK_IntConst);
+						shadowY = sc.Number;
+						sc.MustGetToken(')');
+					}
 					shadow = true;
+				}
 				else
 				{
 					font = V_GetFont(sc.String);
