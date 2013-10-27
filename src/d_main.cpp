@@ -529,6 +529,7 @@ CVAR (Flag, sv_disallowspying,		dmflags2, DF2_DISALLOW_SPYING);
 CVAR (Flag, sv_chasecam,			dmflags2, DF2_CHASECAM);
 CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
 CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
+CVAR (Flag, sv_dontcheckammo,		dmflags2, DF2_DONTCHECKAMMO);
 CVAR (Flag, sv_forcegldefaults,		dmflags2, DF2_FORCE_GL_DEFAULTS);
 CVAR (Flag, sv_norocketjumping,		dmflags2, DF2_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
@@ -623,14 +624,15 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 
 	case 1:	// Doom2.exe compatible with a few relaxed settings
 		v = COMPATF_SHORTTEX|COMPATF_STAIRINDEX|COMPATF_USEBLOCKING|COMPATF_NODOORLIGHT|COMPATF_SPRITESORT|
-			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_DEHHEALTH|COMPATF_CROSSDROPOFF;
+			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_DEHHEALTH|COMPATF_CROSSDROPOFF|
+			COMPATF_LIGHT;
 		break;
 
 	case 2:	// same as 1 but stricter (NO_PASSMOBJ and INVISIBILITY are also set)
 		v = COMPATF_SHORTTEX|COMPATF_STAIRINDEX|COMPATF_USEBLOCKING|COMPATF_NODOORLIGHT|COMPATF_SPRITESORT|
 			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_NO_PASSMOBJ|COMPATF_LIMITPAIN|
 			COMPATF_DEHHEALTH|COMPATF_INVISIBILITY|COMPATF_CROSSDROPOFF|COMPATF_CORPSEGIBS|COMPATF_HITSCAN|
-			COMPATF_WALLRUN|COMPATF_NOTOSSDROPS;
+			COMPATF_WALLRUN|COMPATF_NOTOSSDROPS|COMPATF_LIGHT;
 		break;
 
 	case 3: // Boom compat mode
@@ -638,7 +640,7 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 		break;
 
 	case 4: // Old ZDoom compat mode
-		v = COMPATF_SOUNDTARGET;
+		v = COMPATF_SOUNDTARGET|COMPATF_LIGHT;
 		break;
 
 	case 5: // MBF compat mode
@@ -684,6 +686,7 @@ CVAR (Flag, compat_corpsegibs,	compatflags, COMPATF_CORPSEGIBS);
 CVAR (Flag, compat_noblockfriends,compatflags,COMPATF_NOBLOCKFRIENDS);
 CVAR (Flag, compat_spritesort,	compatflags,COMPATF_SPRITESORT);
 CVAR (Flag, compat_hitscan,		compatflags,COMPATF_HITSCAN);
+CVAR (Flag, compat_light,		compatflags,COMPATF_LIGHT);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, zacompatflags, ZACOMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	zacompatflags, ZACOMPATF_PLASMA_BUMP_BUG);

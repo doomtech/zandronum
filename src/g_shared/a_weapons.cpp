@@ -945,7 +945,7 @@ int FWeaponSlot::LocateWeapon(const PClass *type)
 //
 //===========================================================================
 
-AWeapon *FWeaponSlot::PickWeapon(player_t *player)
+AWeapon *FWeaponSlot::PickWeapon(player_t *player, bool checkammo)
 {
 	int i, j;
 
@@ -974,10 +974,13 @@ AWeapon *FWeaponSlot::PickWeapon(player_t *player)
 				{
 					AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory(Weapons[j].Type));
 
-					// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-					if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
+					if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)))
 					{
-						return weap;
+						// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
+						if ( cl_noammoswitch || !checkammo || weap->CheckAmmo(AWeapon::EitherFire, false))
+						{
+							return weap;
+						}
 					}
 				}
 			}
@@ -987,10 +990,13 @@ AWeapon *FWeaponSlot::PickWeapon(player_t *player)
 	{
 		AWeapon *weap = static_cast<AWeapon *> (player->mo->FindInventory(Weapons[i].Type));
 
-		// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
-		if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)) && ( cl_noammoswitch || ( weap->CheckAmmo(AWeapon::EitherFire, false) )))
+		if (weap != NULL && weap->IsKindOf(RUNTIME_CLASS(AWeapon)))
 		{
-			return weap;
+			// [BC] New cl_noammoswitch option: Allow users to switch to weapons even if they're out of ammo for them.
+			if (cl_noammoswitch || !checkammo || weap->CheckAmmo(AWeapon::EitherFire, false))
+			{
+				return weap;
+			}
 		}
 	}
 	return player->ReadyWeapon;

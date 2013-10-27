@@ -303,6 +303,7 @@ enum
 	DF2_KILL_MONSTERS		= 1 << 22,	// All monsters must be killed before the level exits.
 	DF2_NO_AUTOMAP			= 1 << 23,	// Players are allowed to see the automap.
 	DF2_NO_AUTOMAP_ALLIES	= 1 << 24,	// Allies can been seen on the automap.
+	DF2_DONTCHECKAMMO		= 1 << 30,	// Don't Check ammo when switching weapons.
 	DF2_DISALLOW_SPYING		= 1 << 25,	// You can spy on your allies.
 	DF2_CHASECAM			= 1 << 26,	// Players can use the chasecam cheat.
 	DF2_NOSUICIDE			= 1 << 27,	// Players are allowed to suicide.
@@ -382,6 +383,7 @@ enum
 	COMPATF_NOBLOCKFRIENDS	= 1 << 26,	// Friendly monsters aren't blocked by monster-blocking lines.
 	COMPATF_SPRITESORT		= 1 << 27,	// Invert sprite sorting order for sprites of equal distance
 	COMPATF_HITSCAN			= 1 << 28,	// Hitscans use original blockmap anf hit check code.
+	COMPATF_LIGHT			= 1 << 29,	// Find neighboring light level like Doom
 };
 
 // [BB] Zandronum compatibility flags.
