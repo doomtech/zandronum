@@ -486,6 +486,10 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< MorphWeapon
 		<< DamageFade
 		<< PlayerFlags;
+	if (SaveVersion < 2435)
+	{
+		DamageFade.a = 255;
+	}
 }
 
 //===========================================================================

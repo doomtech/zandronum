@@ -634,7 +634,7 @@ void GiveSpawner (player_t *player, const PClass *type, int amount)
 
 void cht_Give (player_t *player, const char *name, int amount)
 {
-	bool giveall;
+	enum { ALL_NO, ALL_YES, ALL_YESYES } giveall;
 	int i;
 	const PClass *type;
 
@@ -648,9 +648,17 @@ void cht_Give (player_t *player, const char *name, int amount)
 		return;
 	}
 
-	giveall = (stricmp (name, "all") == 0);
+	giveall = ALL_NO;
+	if (stricmp (name, "all") == 0)
+	{
+		giveall = ALL_YES;
+	}
+	else if (stricmp (name, "everything") == 0)
+	{
+		giveall = ALL_YESYES;
+	}
 
-	if (giveall || stricmp (name, "health") == 0)
+	if (stricmp (name, "health") == 0)
 	{
 		if (amount > 0)
 		{
@@ -681,9 +689,6 @@ void cht_Give (player_t *player, const char *name, int amount)
 			ULONG playerIdx = static_cast<ULONG> ( player - players );
 			SERVERCOMMANDS_SetPlayerHealth( playerIdx );
 		}
-
-		if (!giveall)
-			return;
 	}
 
 	if (giveall || stricmp (name, "backpack") == 0)
@@ -833,7 +838,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 				}
 
 					AWeapon *def = (AWeapon*)GetDefaultByType (type);
-					if (!(def->WeaponFlags & WIF_CHEATNOTWEAPON))
+					if (giveall == ALL_YESYES || !(def->WeaponFlags & WIF_CHEATNOTWEAPON))
 					{
 						GiveSpawner (player, type, 1);
 					}
@@ -880,7 +885,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 					!type->IsDescendantOf (RUNTIME_CLASS(APowerup)) &&
 					!type->IsDescendantOf (RUNTIME_CLASS(AArmor)))
 				{
-					GiveSpawner (player, type, 1);
+					GiveSpawner (player, type, amount <= 0 ? def->MaxAmount : amount);
 				}
 			}
 		}
@@ -898,7 +903,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 				AInventory *def = (AInventory*)GetDefaultByType (type);
 				if (def->Icon.isValid())
 				{
-					GiveSpawner (player, type, 1);
+					GiveSpawner (player, type, amount <= 0 ? def->MaxAmount : amount);
 				}
 			}
 		}
