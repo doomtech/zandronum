@@ -28,6 +28,7 @@ struct FGLSection
 {
 	sector_t *sector;
 	TArray<subsector_t *> subsectors;
+	TArray<int> vertices;
 	int startloop;
 	int numloops;
 	int validcount;

@@ -38,10 +38,13 @@
 **
 */
 
+#include "gl/system/gl_system.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "c_dispatch.h"
 #include "gl/data/gl_sections.h"
+
+typedef void (CALLBACK *tessFunc)();
 
 TArray<FGLSectionLine> SectionLines;
 TArray<FGLSectionLoop> SectionLoops;
@@ -65,8 +68,16 @@ inline vertex_t *V2(side_t *s)
 	return s == ln->sidedef[0]? ln->v2: ln->v1;
 }
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
 class FSectionCreator
 {
+	static FSectionCreator *creator;
+
 	BYTE *processed_segs;
 	BYTE *processed_subsectors;
 	int *section_for_segs;
@@ -179,6 +190,29 @@ public:
 
 	//==========================================================================
 	//
+	// Utility stuff
+	//
+	//==========================================================================
+
+	sector_t *FrontRenderSector(seg_t *seg)
+	{
+		return seg->Subsector->render_sector;
+	}
+
+	sector_t *BackRenderSector(seg_t *seg)
+	{
+		if (seg->PartnerSeg == NULL) return NULL;
+		return seg->PartnerSeg->Subsector->render_sector;
+	}
+
+	bool IntraSectorSeg(seg_t *seg)
+	{
+		return FrontRenderSector(seg) == BackRenderSector(seg);
+	}
+
+
+	//==========================================================================
+	//
 	// returns the seg whose partner seg determines where this
 	// section continues
 	//
@@ -207,6 +241,7 @@ public:
 				seg_t *seg = &segs[subsec->firstline + i];
 
 				if (seg->sidedef == NULL) continue;
+				if (IntraSectorSeg(seg)) continue;
 				if (ISDONE(seg-segs, processed_segs)) continue;
 				break;
 			}
@@ -220,17 +255,13 @@ public:
 		}
 
 		seg_t *thisseg = &segs[subsec->firstline + i];
-		if (thisseg->sidedef == NULL && thisseg->PartnerSeg != NULL)	// miniseg
+		if (IntraSectorSeg(thisseg))
 		{
-			if (thisseg->Subsector->render_sector == thisseg->PartnerSeg->Subsector->render_sector)
-			{
-				SETDONE(thisseg-segs, processed_segs);
-				// continue with the loop in the adjoining subsector
-				*pNextSeg = thisseg;
-				return true;
-			}
+			SETDONE(thisseg-segs, processed_segs);
+			// continue with the loop in the adjoining subsector
+			*pNextSeg = thisseg;
+			return true;
 		}
-
 
 		while(1)
 		{
@@ -252,15 +283,12 @@ public:
 				return false;	// Nodes are bad
 			}
 
-			if (nextseg->sidedef == NULL && nextseg->PartnerSeg != NULL)	// miniseg
+			if (IntraSectorSeg(nextseg))
 			{
-				if (nextseg->Subsector->render_sector == nextseg->PartnerSeg->Subsector->render_sector)
-				{
-					SETDONE(nextseg-segs, processed_segs);
-					// continue with the loop in the adjoining subsector
-					*pNextSeg = nextseg;
-					return true;
-				}
+				SETDONE(nextseg-segs, processed_segs);
+				// continue with the loop in the adjoining subsector
+				*pNextSeg = nextseg;
+				return true;
 			}
 			thisseg = nextseg;
 		}
@@ -281,20 +309,18 @@ public:
 			for(unsigned j = 0; j < section->subsectors[i]->numlines; j++)
 			{
 				seg_t *seg = &segs[section->subsectors[i]->firstline+j];
+				bool intra = IntraSectorSeg(seg);
 
-				if (seg->sidedef != NULL && !ISDONE(seg-segs, processed_segs))
+				if (!intra && !ISDONE(seg-segs, processed_segs))
 				{
 					*pSeg = seg;
 					return true;
 				}
-				else if (seg->sidedef == NULL && seg->PartnerSeg != NULL && 
+				else if (intra && 
 					!ISDONE(seg->PartnerSeg->Subsector-subsectors, processed_subsectors))
 				{
-					if (seg->Subsector->render_sector == seg->PartnerSeg->Subsector->render_sector)
-					{
-						*pSeg = seg->PartnerSeg;
-						return true;
-					}
+					*pSeg = seg->PartnerSeg;
+					return true;
 				}
 			}
 		}
@@ -309,12 +335,13 @@ public:
 	//=============================================================================
 	bool CheckSections()
 	{
+		bool res = true;
 		for (int i = 0; i < numsegs; i++)
 		{
-			if (segs[i].sidedef != NULL && !ISDONE(i, processed_segs))
+			if (segs[i].sidedef != NULL && !ISDONE(i, processed_segs) && !IntraSectorSeg(&segs[i]))
 			{
 				Printf("Seg %d (Linedef %d) not processed during section creation\n", i, segs[i].linedef-lines);
-				return false;
+				res = false;
 			}
 		}
 		for (int i = 0; i < numsubsectors; i++)
@@ -322,10 +349,10 @@ public:
 			if (!ISDONE(i, processed_subsectors))
 			{
 				Printf("Subsector %d (Sector %d) not processed during section creation\n", i, subsectors[i].sector-sectors);
-				return false;
+				res = false;
 			}
 		}
-		return true;
+		return res;
 	}
 
 	//=============================================================================
@@ -438,6 +465,158 @@ public:
 
 	//=============================================================================
 	//
+	// cbTessBegin
+	//
+	// called when the tesselation of a new loop starts
+	//
+	//=============================================================================
+
+	static void CALLBACK cbTessBegin(GLenum type, void *section)
+	{
+		FGLSection *sect = (FGLSection*)section;
+		sect->vertices.Push(-int(type));
+	}
+
+	//=============================================================================
+	//
+	// cbTessError
+	//
+	// called when the tesselation failed
+	//
+	//=============================================================================
+
+	static void CALLBACK cbTessError(GLenum error, void *section)
+	{
+	}
+
+	//=============================================================================
+	//
+	// cbTessCombine
+	//
+	// called when the two or more vertexes are on the same coordinate
+	//
+	//=============================================================================
+
+	static void CALLBACK cbTessCombine( GLdouble coords[3], void *vert[4], GLfloat w[4], void **dataOut )
+	{
+		*dataOut = vert[0];
+	}
+
+	//=============================================================================
+	//
+	// cbTessVertex
+	//
+	// called when a vertex is found
+	//
+	//=============================================================================
+
+	static void CALLBACK cbTessVertex( void *vert, void *section )
+	{
+		FGLSection *sect = (FGLSection*)section;
+		sect->vertices.Push(int(intptr_t(vert)));
+	}
+
+	//=============================================================================
+	//
+	// cbTessEnd
+	//
+	// called when the tesselation of a the current loop ends
+	//
+	//=============================================================================
+
+	static void CALLBACK cbTessEnd(void *section)
+	{
+	}
+
+	//=============================================================================
+	//
+	//
+	//
+	//=============================================================================
+	void tesselateSections()
+	{
+		// init tesselator
+		GLUtesselator *tess = gluNewTess();
+		if (!tess)
+		{
+			return;
+		}
+		// set callbacks
+		gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (tessFunc)cbTessBegin);
+		gluTessCallback(tess, GLU_TESS_VERTEX_DATA, (tessFunc)cbTessVertex);
+		gluTessCallback(tess, GLU_TESS_ERROR_DATA, (tessFunc)cbTessError);
+		gluTessCallback(tess, GLU_TESS_COMBINE, (tessFunc)cbTessCombine);
+		gluTessCallback(tess, GLU_TESS_END_DATA, (tessFunc)cbTessEnd);
+
+		for(unsigned int i=0;i<Sections.Size(); i++)
+		{
+			FGLSection *sect = &Sections[i];
+
+			gluTessBeginPolygon(tess, sect);
+
+			for(int j=0; j< sect->numloops; j++)
+			{
+				gluTessBeginContour(tess);
+				FGLSectionLoop *loop = sect->GetLoop(j);
+				for(int k=0; k<loop->numlines; k++)
+				{
+					FGLSectionLine *line = loop->GetLine(k);
+					vertex_t *vert = line->start;
+					GLdouble v[3] = {
+						-(double)vert->x/(double)FRACUNIT,	// negate to get proper winding
+						0.0,
+						(double)vert->y/(double)FRACUNIT 
+					};
+				    gluTessVertex(tess, v, (void*)(vert - vertexes));
+				}
+				gluTessEndContour(tess);
+			}
+			gluTessEndPolygon(tess);
+			sect->vertices.Push(-1337);
+			sect->vertices.ShrinkToFit();
+		}
+		gluDeleteTess(tess);
+	}
+
+
+	//=============================================================================
+	//
+	// First mark all subsectors that have no outside boundaries as processed
+	// No line in such a subsector will ever be part of a section's border
+	//
+	//=============================================================================
+
+	void MarkInternalSubsectors()
+	{
+		for(int i=0; i < numsubsectors; i++)
+		{
+			subsector_t *sub = &subsectors[i];
+			int j;
+
+			for(j=0; j < sub->numlines; j++)
+			{
+				seg_t *seg = &segs[sub->firstline + j];
+				if (!IntraSectorSeg(seg)) break;
+			}
+			if (j==sub->numlines)
+			{
+				// All lines are intra-sector so mark this as processed
+				SETDONE(i, processed_subsectors);
+				for(j=0; j < sub->numlines; j++)
+				{
+					seg_t *seg = &segs[sub->firstline + j];
+					SETDONE(sub->firstline+j, processed_segs);
+					if (seg->PartnerSeg != NULL)
+					{
+						SETDONE(int(seg->PartnerSeg - segs), processed_segs);
+					}
+				}
+			}
+		}
+	}
+
+	//=============================================================================
+	//
 	//
 	//
 	//=============================================================================
@@ -445,6 +624,7 @@ public:
 	{
 		int pick = 0;
 
+		MarkInternalSubsectors();
 		while (pick < numsubsectors)
 		{
 			if (ISDONE(pick, processed_subsectors)) 
@@ -521,10 +701,14 @@ public:
 		SectionLoops.ShrinkToFit();
 		SectionLines.ShrinkToFit();
 
+		tesselateSections();
+
 		return true;
 	}
-
 };
+
+FSectionCreator *FSectionCreator::creator;
+
 
 //=============================================================================
 //
@@ -586,6 +770,41 @@ void DumpSection(int no, FGLSection *sect)
 			Printf(PRINT_LOG, "\n");
 		}
 		Printf(PRINT_LOG, "\t}\n");
+	}
+	int prim = 1;
+	for(unsigned i = 0; i < sect->vertices.Size(); i++)
+	{
+		int v = sect->vertices[i];
+		if (v < 0)
+		{
+			if (i > 0)
+			{
+				Printf(PRINT_LOG, "\t}\n");
+			}
+			switch (v)
+			{
+			case -GL_TRIANGLE_FAN:
+				Printf(PRINT_LOG, "\t%d: Triangle fan\n\t{\n", prim);
+				break;
+
+			case -GL_TRIANGLE_STRIP:
+				Printf(PRINT_LOG, "\t%d: Triangle strip\n\t{\n", prim);
+				break;
+
+			case -GL_TRIANGLES:
+				Printf(PRINT_LOG, "\t%d: Triangles\n\t{\n", prim);
+				break;
+
+			default:
+				break;
+			}
+			prim++;
+		}
+		else
+		{
+			Printf(PRINT_LOG, "\t\tVertex %d: (%1.2f, %1.2f)\n", 
+				v, vertexes[v].x/65536.f, vertexes[v].y/65536.f);
+		}
 	}
 	Printf(PRINT_LOG, "}\n\n");
 }

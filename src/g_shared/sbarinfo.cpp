@@ -298,17 +298,18 @@ class SBarInfoMainBlock : public SBarInfoCommandFlowControl
 {
 	public:
 		SBarInfoMainBlock(SBarInfo *script) : SBarInfoCommandFlowControl(script),
-			alpha(FRACUNIT), forceScaled(false), fullScreenOffsets(false)
+			alpha(FRACUNIT), currentAlpha(FRACUNIT), forceScaled(false),
+			fullScreenOffsets(false)
 		{
 			SetTruth(true, NULL, NULL);
 		}
 
-		int		Alpha() const { return alpha; }
+		int		Alpha() const { return currentAlpha; }
 		void	Draw(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, int xOffset, int yOffset, int alpha)
 		{
 			this->xOffset = xOffset;
 			this->yOffset = yOffset;
-			this->alpha = alpha;
+			this->currentAlpha = fixed_t((((double) this->alpha / (double) FRACUNIT) * ((double) alpha / (double) FRACUNIT)) * FRACUNIT);
 			SBarInfoCommandFlowControl::Draw(this, statusBar);
 		}
 		bool	ForceScaled() const { return forceScaled; }
@@ -341,8 +342,9 @@ class SBarInfoMainBlock : public SBarInfoCommandFlowControl
 		int		XOffset() const { return xOffset; }
 		int		YOffset() const { return yOffset; }
 
-	private:
+	protected:
 		int		alpha;
+		int		currentAlpha;
 		bool	forceScaled;
 		bool	fullScreenOffsets;
 		int		xOffset;
@@ -1124,12 +1126,12 @@ public:
 
 		if((offsetflags & SBarInfoCommand::CENTER) == SBarInfoCommand::CENTER)
 		{
-			x -= (texture->GetScaledWidthDouble()/2.0)-texture->LeftOffset;
-			y -= (texture->GetScaledHeightDouble()/2.0)-texture->TopOffset;
+			dx -= (texture->GetScaledWidthDouble()/2.0)-texture->LeftOffset;
+			dy -= (texture->GetScaledHeightDouble()/2.0)-texture->TopOffset;
 		}
 
-		x += xOffset;
-		y += yOffset;
+		dx += xOffset;
+		dy += yOffset;
 		double w, h;
 		if(!fullScreenOffsets)
 		{
