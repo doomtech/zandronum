@@ -423,7 +423,6 @@ oldmenuitem_t EpisodeMenu[MAX_EPISODES] =
 	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
 };
 
-// [BB] Increased size to 9 to ensure that the map names are terminated.
 char EpisodeMaps[MAX_EPISODES][9];
 // [BC] Customizeable titles for skill menu.
 char EpisodeSkillHeaders[MAX_EPISODES][64];

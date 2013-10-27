@@ -77,6 +77,21 @@ DEFINE_ACTION_FUNCTION(AActor, A_BrainDie)
 	if ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))
 		return;
 
+	// New dmflag: Kill all boss spawned monsters before ending the level.
+	if (dmflags2 & DF2_KILLBOSSMONST)
+	{
+		TThinkerIterator<AActor> it;
+		AActor *mo;
+		while ((mo = it.Next()))
+		{
+			if (mo->flags4 & MF4_BOSSSPAWNED)
+			{
+				P_DamageMobj(mo, self, self, mo->health, NAME_None, 
+					DMG_NO_ARMOR|DMG_FORCED|DMG_THRUSTLESS|DMG_NO_FACTOR);
+			}
+		}
+	}
+
 	G_ExitLevel (0, false);
 }
 
@@ -292,6 +307,7 @@ static void SpawnFly(AActor *self, const PClass *spawntype, FSoundID sound)
 						SERVERCOMMANDS_SetThingState( newmobj, STATE_SEE );
 				}
 			}
+			newmobj->flags4 |= MF4_BOSSSPAWNED;
 		}
 	}
 

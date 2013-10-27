@@ -304,6 +304,7 @@ enum
 	DF2_NO_AUTOMAP			= 1 << 23,	// Players are allowed to see the automap.
 	DF2_NO_AUTOMAP_ALLIES	= 1 << 24,	// Allies can been seen on the automap.
 	DF2_DONTCHECKAMMO		= 1 << 30,	// Don't Check ammo when switching weapons.
+	DF2_KILLBOSSMONST		= 1 << 31,	// Kills all monsters spawned by a boss cube when the boss dies
 	DF2_DISALLOW_SPYING		= 1 << 25,	// You can spy on your allies.
 	DF2_CHASECAM			= 1 << 26,	// Players can use the chasecam cheat.
 	DF2_NOSUICIDE			= 1 << 27,	// Players are not allowed to suicide.

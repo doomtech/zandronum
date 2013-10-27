@@ -318,7 +318,6 @@ extern int		CurrentItem;
 
 extern oldmenuitem_t EpisodeMenu[MAX_EPISODES];
 extern bool EpisodeNoSkill[MAX_EPISODES];
-// [BB] Increased size to 9 to ensure that the map names are terminated.
 extern char EpisodeMaps[MAX_EPISODES][9];
 extern char EpisodeSkillHeaders[MAX_EPISODES][64];
 extern oldmenu_t EpiDef;

@@ -1864,7 +1864,6 @@ void FMapInfoParser::ParseEpisodeInfo ()
 		EpisodeMenu[i].bBotSkill = bBotEpisode;
 		EpisodeMenu[i].bBotSkillFullText = !bBotSkillPicIsGFX;
 		strncpy (EpisodeMaps[i], map, 8);
-		// [BB] Terminate the string.
 		EpisodeMaps[i][8] = 0;
 		if ( bBotEpisode )
 			sprintf( EpisodeSkillHeaders[i], "%s", szBotSkillTitle );

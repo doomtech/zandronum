@@ -1639,7 +1639,6 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 {
 	sector_t *newsec;
 	AActor *thingblocker;
-	AActor *fakedblocker;
 	fixed_t realheight = thing->height;
 
 	tm.thing = thing;
@@ -1706,7 +1705,6 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	// Check things first, possibly picking things up.
 	thing->BlockingMobj = NULL;
 	thingblocker = NULL;
-	fakedblocker = NULL;
 	if (thing->player)
 	{ // [RH] Fake taller height to catch stepping up into things.
 		thing->height = realheight + thing->MaxStepHeight;
@@ -1753,7 +1751,6 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 					}
 					// Nothing is blocking us, but this actor potentially could
 					// if there is something else to step on.
-					fakedblocker = BlockingMobj;
 					thing->BlockingMobj = NULL;
 				}
 				else
