@@ -39,8 +39,7 @@
 // State.
 #include "r_state.h"
 #include "templates.h"
-
-#include "gl/gl_functions.h"
+#include "po_man.h"
 
 static AActor *RoughBlockCheck (AActor *mo, int index, void *);
 
@@ -368,7 +367,6 @@ void AActor::LinkToWorld (sector_t *sec)
 		return;
 	}
 	Sector = sec;
-	subsector = R_PointInSubsector(x, y);	// this is from the rendering nodes, not the gameplay nodes!
 
 	if ( !(flags & MF_NOSECTOR) )
 	{
@@ -507,8 +505,7 @@ static int R_PointOnSideSlow (fixed_t x, fixed_t y, node_t *node)
 
 sector_t *AActor::LinkToWorldForMapThing ()
 {
-	// [GZDoom]
-	node_t *node = gamenodes + numgamenodes - 1;
+	node_t *node = nodes + numnodes - 1;
 
 	do
 	{
@@ -744,9 +741,9 @@ line_t *FBlockLinesIterator::Next()
 					polyLink->polyobj->validcount = validcount;
 				}
 
-				line_t *ld = polyLink->polyobj->lines[polyIndex];
+				line_t *ld = polyLink->polyobj->Linedefs[polyIndex];
 
-				if (++polyIndex >= polyLink->polyobj->numlines)
+				if (++polyIndex >= (int)polyLink->polyobj->Linedefs.Size())
 				{
 					polyLink = polyLink->next;
 					polyIndex = 0;

@@ -49,6 +49,7 @@
 #include "r_main.h"
 #include "r_things.h"
 #include "sbar.h"
+#include "po_man.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -307,6 +308,7 @@ void FGLRenderer::CreateScene()
 {
 	// reset the portal manager
 	GLPortal::StartFrame();
+	PO_LinkToSubsectors();
 
 	ProcessAll.Clock();
 

@@ -75,6 +75,7 @@
 #include "p_acs.h"
 #include "templates.h"
 #include "a_movingcamera.h"
+#include "po_man.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
@@ -7071,8 +7072,8 @@ void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 		SERVER_CheckClientBuffer( ulIdx, 11, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPOLYOBJPOSITION );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->startSpot[0] );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->startSpot[1] );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->StartSpot.x );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->StartSpot.y );
 	}
 }
 

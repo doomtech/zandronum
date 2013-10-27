@@ -110,6 +110,7 @@
 #include "a_lightning.h"
 #include "a_movingcamera.h"
 #include "d_netinf.h"
+#include "po_man.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -11614,10 +11615,10 @@ static void client_SetPolyDoorSpeedPosition( BYTESTREAM_s *pByteStream )
 	if ( pPoly == NULL )
 		return;
 
-	lDeltaX = lX - pPoly->startSpot[0];
-	lDeltaY = lY - pPoly->startSpot[1];
+	lDeltaX = lX - pPoly->StartSpot.x;
+	lDeltaY = lY - pPoly->StartSpot.y;
 
-	PO_MovePolyobj( lPolyID, lDeltaX, lDeltaY );
+	pPoly->MovePolyobj( lDeltaX, lDeltaY );
 	
 	if ( pPoly->specialdata == NULL )
 		return;
@@ -11651,7 +11652,7 @@ static void client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream )
 
 	lDeltaAngle = lAngle - pPoly->angle;
 
-	PO_RotatePolyobj( lPolyID, lDeltaAngle );
+	pPoly->RotatePolyobj( lDeltaAngle );
 
 	if ( pPoly->specialdata == NULL )
 		return;
@@ -11720,13 +11721,13 @@ static void client_SetPolyobjPosition( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	lDeltaX = lX - pPoly->startSpot[0];
-	lDeltaY = lY - pPoly->startSpot[1];
+	lDeltaX = lX - pPoly->StartSpot.x;
+	lDeltaY = lY - pPoly->StartSpot.y;
 
 //	Printf( "DeltaX: %d\nDeltaY: %d\n", lDeltaX, lDeltaY );
 
 	// Finally, set the polyobject action.
-	PO_MovePolyobj( lPolyNum, lDeltaX, lDeltaY );
+	pPoly->MovePolyobj( lDeltaX, lDeltaY );
 }
 
 //*****************************************************************************
@@ -11757,7 +11758,7 @@ static void client_SetPolyobjRotation( BYTESTREAM_s *pByteStream )
 	lDeltaAngle = lAngle - pPoly->angle;
 
 	// Finally, set the polyobject action.
-	PO_RotatePolyobj( lPolyNum, lDeltaAngle );
+	pPoly->RotatePolyobj( lDeltaAngle );
 }
 
 //*****************************************************************************

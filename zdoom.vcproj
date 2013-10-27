@@ -4756,6 +4756,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\po_man.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\possession.h"
 				>
 			</File>
@@ -6410,7 +6414,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|x64"
+					Name="Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -6418,7 +6422,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
 					<Tool

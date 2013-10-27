@@ -58,6 +58,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "p_3dmidtex.h"
+#include "po_man.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -177,18 +178,14 @@ bool P_BlockLinesIterator (int x, int y, bool(*func)(line_t*))
 			polyLink = PolyBlockMap[offset];
 			while (polyLink)
 			{
-				if (polyLink->polyobj && polyLink->polyobj->validcount != validcount)
-				{
-					int i;
-					seg_t **tempSeg = polyLink->polyobj->segs;
-					polyLink->polyobj->validcount = validcount;
-
-					for (i = polyLink->polyobj->numsegs; i; i--, tempSeg++)
+				if (polyLink->polyobj)
+				{ // only check non-empty links
+					if (polyLink->polyobj->validcount != validcount)
 					{
-						if ((*tempSeg)->linedef->validcount != validcount)
+						polyLink->polyobj->validcount = validcount;
+						for (unsigned int i = 0; i < polyLink->polyobj->Linedefs.Size(); i++)
 						{
-							(*tempSeg)->linedef->validcount = validcount;
-							if (!func ((*tempSeg)->linedef))
+							if (!func  (polyLink->polyobj->Linedefs[i]))
 								return false;
 						}
 					}

@@ -114,6 +114,7 @@
 #include "a_movingcamera.h"
 #include "cl_main.h"
 #include "d_netinf.h"
+#include "po_man.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

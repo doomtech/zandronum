@@ -111,6 +111,7 @@
 #include "unlagged.h"
 #include "p_3dmidtex.h"
 #include "a_lightning.h"
+#include "po_man.h"
 
 #include <zlib.h>
 
@@ -3351,10 +3352,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( pPoly->bMoved )
 		{
 
-			const LONG lDeltaX = pPoly->SavedStartSpot[0] - pPoly->startSpot[0];
-			const LONG lDeltaY = pPoly->SavedStartSpot[1] - pPoly->startSpot[1];
+			const LONG lDeltaX = pPoly->SavedStartSpot[0] - pPoly->StartSpot.x;
+			const LONG lDeltaY = pPoly->SavedStartSpot[1] - pPoly->StartSpot.y;
 
-			PO_MovePolyobj( pPoly->tag, lDeltaX, lDeltaY, true );
+			pPoly->MovePolyobj( lDeltaX, lDeltaY, true );
 			pPoly->bMoved = false;
 
 			// [BB] If we're the server, tell clients about this polyobj reset.
@@ -3367,7 +3368,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			// [BB] AFAIK a polyobj always starts with angle 0;
 			const LONG lDeltaAngle = 0 - pPoly->angle;
 
-			PO_RotatePolyobj( pPoly->tag, lDeltaAngle );
+			pPoly->RotatePolyobj( lDeltaAngle );
 			pPoly->bRotated = false;
 
 			// [BB] If we're the server, tell clients about this polyobj reset.

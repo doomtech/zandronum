@@ -42,6 +42,7 @@
 #include "p_local.h"
 #include "a_sharedglobal.h"
 #include "r_sky.h"
+#include "po_man.h"
 
 #include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
@@ -132,7 +133,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	seg->linedef->flags |= ML_MAPPED;
 
-	if (seg->linedef->validcount!=validcount) 
+	if (seg->linedef->validcount!=validcount || polysub != NULL) 
 	{
 		seg->linedef->validcount=validcount;
 
@@ -154,17 +155,59 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 //
 //
 //==========================================================================
+static int STACK_ARGS polycmp(const void *a, const void *b)
+{
+   const FPolyNode *A = *(FPolyNode **)a;
+   const FPolyNode *B = *(FPolyNode **)b;
+
+   return A->dist - B->dist;
+}
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+static void AddPolyobjs(subsector_t *sub, sector_t *sector)
+{
+	static TArray<FPolyNode *> sortedpolys;
+
+	FPolyNode *pn = sub->polys;
+	sortedpolys.Clear();
+	while (pn != NULL)
+	{
+		sortedpolys.Push(pn);
+		pn->dist = R_PointToDist2(pn->poly->CenterSpot.x - viewx, pn->poly->CenterSpot.y - viewy);
+		pn = pn->pnext;
+	}
+	if (sortedpolys.Size() > 1)
+	{
+		qsort(&sortedpolys[0], sortedpolys.Size(), sizeof (sortedpolys[0]), polycmp);
+	}
+
+	for(unsigned i=0; i<sortedpolys.Size(); i++)
+	{
+		pn = sortedpolys[i];
+		for(unsigned j=0; j<pn->segs.Size(); j++)
+		{
+			AddLine (&pn->segs[j], sector, sub);
+		}
+	}
+}
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
 static inline void AddLines(subsector_t * sub, sector_t * sector)
 {
 	ClipWall.Clock();
-	if (sub->poly)
-	{ // Render the polyobj in the subsector first
-		int polyCount = sub->poly->numsegs;
-		seg_t **polySeg = sub->poly->segs;
-		while (polyCount--)
-		{
-			AddLine (*polySeg++, sector, sub);
-		}
+	if (sub->polys != NULL)
+	{
+		AddPolyobjs(sub, sector);
 	}
 
 	int count = sub->numlines;
@@ -205,6 +248,7 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 	}
 	SetupSprite.Unclock();
 }
+
 
 //==========================================================================
 //
