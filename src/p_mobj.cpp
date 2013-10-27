@@ -1029,7 +1029,7 @@ AInventory *AActor::DropInventory (AInventory *item)
 //
 //============================================================================
 
-AInventory *AActor::FindInventory (const PClass *type)
+AInventory *AActor::FindInventory (const PClass *type, bool subclass)
 {
 	AInventory *item;
 
@@ -1038,9 +1038,19 @@ AInventory *AActor::FindInventory (const PClass *type)
 	assert (type->ActorInfo != NULL);
 	for (item = Inventory; item != NULL; item = item->Inventory)
 	{
-		if (item->GetClass() == type)
+		if (!subclass)
 		{
-			break;
+			if (item->GetClass() == type)
+			{
+				break;
+			}
+		}
+		else
+		{
+			if (item->IsKindOf(type))
+			{
+				break;
+			}
 		}
 	}
 	return item;

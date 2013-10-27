@@ -1569,12 +1569,20 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 // Berserk is not handled here. That can be done with A_CheckIfInventory
 //
 //==========================================================================
+
+enum
+{
+	CPF_USEAMMO = 1,
+	CPF_DAGGER = 2,
+	CPF_PULLIN = 4,
+};
+
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 {
 	ACTION_PARAM_START(5);
 	ACTION_PARAM_INT(Damage, 0);
 	ACTION_PARAM_BOOL(norandom, 1);
-	ACTION_PARAM_BOOL(UseAmmo, 2);
+	ACTION_PARAM_INT(flags, 2);
 	ACTION_PARAM_CLASS(PuffType, 3);
 	ACTION_PARAM_FIXED(Range, 4);
 	ACTION_PARAM_FIXED(LifeSteal, 5);
@@ -1604,7 +1612,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	pitch = P_AimLineAttack (self, angle, Range, &linetarget);
 
 	// only use ammo when actually hitting something!
-	if (UseAmmo && linetarget && weapon)
+	if ((flags & CPF_USEAMMO) && linetarget && weapon)
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true)) return;	// out of ammo
 
@@ -1620,7 +1628,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
-	P_LineAttack (self, angle, Range, pitch, Damage, NAME_None, PuffType, true);
+	P_LineAttack (self, angle, Range, pitch, Damage, NAME_None, PuffType, true, &linetarget);
 
 	// turn to face target
 	if (linetarget)
@@ -1634,6 +1642,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 										self->y,
 										linetarget->x,
 										linetarget->y);
+
+		if (flags & CPF_PULLIN) self->flags |= MF_JUSTATTACKED;
+		if (flags & CPF_DAGGER) P_DaggerAlert (self, linetarget);
 
 		// [BC] Play the hit sound to clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2431,6 +2442,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Print)
 
 		con_midtime = saved;
 	}
+	ACTION_SET_RESULT(false);	// Prints should never set the result for inventory state chains!
 }
 
 //===========================================================================
@@ -2461,6 +2473,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PrintBold)
 	FString formatted = strbin1(text);
 	C_MidPrintBold(font != NULL ? font : SmallFont, formatted.GetChars());
 	con_midtime = saved;
+	ACTION_SET_RESULT(false);	// Prints should never set the result for inventory state chains!
 }
 
 //===========================================================================
@@ -2474,6 +2487,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Log)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_STRING(text, 0);
 	Printf("%s\n", text);
+	ACTION_SET_RESULT(false);	// Prints should never set the result for inventory state chains!
 }
 
 //===========================================================================
@@ -2487,6 +2501,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LogInt)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_INT(num, 0);
 	Printf("%d\n", num);
+	ACTION_SET_RESULT(false);	// Prints should never set the result for inventory state chains!
 }
 
 //===========================================================================
