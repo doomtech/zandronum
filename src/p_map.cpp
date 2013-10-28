@@ -4760,7 +4760,7 @@ static bool ProcessNoPierceRailHit (FTraceResults &res)
 //
 //==========================================================================
 
-void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puffclass, bool pierce)
+void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puffclass, bool pierce, angle_t angleoffset, angle_t pitchoffset)
 {
 	fixed_t vx, vy, vz;
 	angle_t angle, pitch;
@@ -4774,8 +4774,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 	if (puffclass == NULL) puffclass = PClass::FindClass(NAME_BulletPuff);
 
-	pitch = (angle_t)(-source->pitch) >> ANGLETOFINESHIFT;
-	angle = source->angle >> ANGLETOFINESHIFT;
+	pitch = ((angle_t)(-source->pitch) + pitchoffset) >> ANGLETOFINESHIFT;
+	angle = (source->angle + angleoffset) >> ANGLETOFINESHIFT;
 
 	vx = FixedMul (finecosine[pitch], finecosine[angle]);
 	vy = FixedMul (finecosine[pitch], finesine[angle]);
@@ -4795,7 +4795,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		shootz += 8*FRACUNIT;
 	}
 
-	angle = (source->angle - ANG90) >> ANGLETOFINESHIFT;
+	angle = ((source->angle + angleoffset) - ANG90) >> ANGLETOFINESHIFT;
 	x1 += offset*finecosine[angle];
 	y1 += offset*finesine[angle];
 
@@ -4859,10 +4859,10 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			else
 			{
 				spawnpuff = (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF);
-				P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
+				P_SpawnBlood (x, y, z, (source->angle + angleoffset) - ANG180, damage, RailHits[i].HitActor);
 				P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
 			}
-			if (spawnpuff) P_SpawnPuff (source, puffclass, x, y, z, source->angle - ANG90, 1, PF_HITTHING);
+			if (spawnpuff) P_SpawnPuff (source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, PF_HITTHING);
 			// [BC] Damage is server side.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 				( CLIENTDEMO_IsPlaying( ) == false ))
@@ -4919,7 +4919,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		SpawnShootDecal (source, trace);
 		if (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF) 
 		{
-			P_SpawnPuff (source, puffclass, trace.X, trace.Y, trace.Z, source->angle - ANG90, 1, 0);
+			P_SpawnPuff (source, puffclass, trace.X, trace.Y, trace.Z, (source->angle + angleoffset) - ANG90, 1, 0);
 		}
 
 	}
@@ -4957,7 +4957,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	}
 }
 
-void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff, bool pierce)
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, const PClass *puff, bool pierce, angle_t angleoffset, angle_t pitchoffset)
 {
 	// [BB] Sanity check.
 	if ( source == NULL )
@@ -4992,7 +4992,7 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 	// [BB] Recall ulConsecutiveRailgunHits from before the attack to handle medals.
 	const ULONG ulConsecutiveRailgunHitsBefore = ( source->player ) ? source->player->ulConsecutiveRailgunHits : 0;
 
-	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
+	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce, angleoffset, pitchoffset );
 
 	// [BB] Apply spread and handle the Railgun medals.
 	if (NULL != source->player )
@@ -5004,11 +5004,11 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			SavedActorAngle = source->angle;
 
 			source->angle += ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce, angleoffset, pitchoffset );
 			source->angle = SavedActorAngle;
 
 			source->angle -= ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff, pierce, angleoffset, pitchoffset );
 			source->angle = SavedActorAngle;
 		}
 

@@ -189,9 +189,19 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 //
 // A_Saw
 //
+enum SAW_Flags
+{
+	SF_NORANDOM = 1,
+	SF_RANDOMLIGHTMISS = 2,
+	SF_RANDOMLIGHTHIT = 4,
+	SF_NOUSEAMMOMISS = 8,
+	SF_NOUSEAMMO = 16,
+};
+
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 {
-	angle_t 	angle;
+	angle_t angle;
+	angle_t slope;
 	player_t *player;
 	AActor *linetarget;
 
@@ -202,13 +212,16 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 		return;
 	}
 	
-	ACTION_PARAM_START(4);
+	ACTION_PARAM_START(9);
 	ACTION_PARAM_SOUND(fullsound, 0);
 	ACTION_PARAM_SOUND(hitsound, 1);
 	ACTION_PARAM_INT(damage, 2);
 	ACTION_PARAM_CLASS(pufftype, 3);
-	ACTION_PARAM_FIXED(Range, 4)
-	ACTION_PARAM_FIXED(LifeSteal, 5);
+	ACTION_PARAM_INT(Flags, 4);
+	ACTION_PARAM_FIXED(Range, 5);
+	ACTION_PARAM_ANGLE(Spread_XY, 6);
+	ACTION_PARAM_ANGLE(Spread_Z, 7);
+	ACTION_PARAM_FIXED(LifeSteal, 8);
 
 
 
@@ -217,25 +230,20 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 		return;
 	}
 
-	AWeapon *weapon = self->player->ReadyWeapon;
-	if (weapon != NULL)
-	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
-			return;
-	}
-
 	if (pufftype == NULL) pufftype = PClass::FindClass(NAME_BulletPuff);
 	if (damage == 0) damage = 2;
-	
-	damage *= (pr_saw()%10+1);
-	angle = self->angle;
-	angle += pr_saw.Random2() << 18;
+
+	if (!(Flags & SF_NORANDOM))
+		damage *= (pr_saw()%10+1);
 	
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
 	if (Range == 0) Range = MELEERANGE+1;
 
+	angle = self->angle + (pr_saw.Random2() * (Spread_XY / 255));
+	slope = P_AimLineAttack (self, angle, Range, &linetarget) + (pr_saw.Random2() * (Spread_Z / 255));
+
 	P_LineAttack (self, angle, Range,
-				  P_AimLineAttack (self, angle, Range, &linetarget), damage,
+				  slope, damage,
 				  NAME_None, pufftype);
 
 	// [BC] Apply spread.
@@ -256,18 +264,46 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	else
 		self->player->ulConsecutiveHits = 0;
 
+	AWeapon *weapon = self->player->ReadyWeapon;
+	if ((weapon != NULL) && !(Flags & SF_NOUSEAMMO) && !(!linetarget && (Flags & SF_NOUSEAMMOMISS)))
+	{
+		if (!weapon->DepleteAmmo (weapon->bAltFire))
+			return;
+	}
+
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 //	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 //		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), linetarget ? hitsound : fullsound, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	if (!linetarget)
 	{
+		if ((Flags & SF_RANDOMLIGHTMISS) && (pr_saw() > 64))
+		{
+			player->extralight = !player->extralight;
+		}
 		S_Sound (self, CHAN_WEAPON, fullsound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, tell clients to play the saw sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( fullsound ), 1, ATTN_NORM );
 		return;
+	}
+
+	if (Flags & SF_RANDOMLIGHTHIT)
+	{
+		int randVal = pr_saw();
+		if (randVal < 64)
+		{
+			player->extralight = 0;
+		}
+		else if (randVal < 160)
+		{
+			player->extralight = 1;
+		}
+		else
+		{
+			player->extralight = 2;
+		}
 	}
 
 	if (LifeSteal)
