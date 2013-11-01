@@ -39,7 +39,7 @@
 #include "gl/textures/gl_texture.h"
 #include "c_cvars.h"
 // [BB] hqnx scaling is only supported with the MS compiler.
-#ifdef _MSC_VER
+#if (defined _MSC_VER) && (!defined _WIN64)
 #include "gl/hqnx/hqnx.h"
 #endif
 
@@ -186,7 +186,7 @@ static unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32*
 }
 
 // [BB] hqnx scaling is only supported with the MS compiler.
-#ifdef _MSC_VER
+#if (defined _MSC_VER) && (!defined _WIN64)
 static unsigned char *hqNxHelper( void (*hqNxFunction) ( int*, unsigned char*, int, int, int ),
 							  const int N,
 							  unsigned char *inputBuffer,
@@ -277,7 +277,7 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 		case 3:
 			return scaleNxHelper( &scale4x, 4, inputBuffer, inWidth, inHeight, outWidth, outHeight );
 // [BB] hqnx scaling is only supported with the MS compiler.
-#ifdef _MSC_VER
+#if (defined _MSC_VER) && (!defined _WIN64)
 		case 4:
 			return hqNxHelper( &hq2x_32, 2, inputBuffer, inWidth, inHeight, outWidth, outHeight );
 		case 5:

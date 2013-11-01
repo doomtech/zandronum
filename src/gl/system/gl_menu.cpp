@@ -176,14 +176,14 @@ static value_t HqResizeModes[] =
    { 2.0, "Scale3x" },
    { 3.0, "Scale4x" },
 // [BB] hqnx scaling is only supported with the MS compiler.
-#ifdef _MSC_VER
+#if (defined _MSC_VER) && (!defined _WIN64)
    { 4.0, "hq2x" },
    { 5.0, "hq3x" },
    { 6.0, "hq4x" },
 #endif
 };
 
-#ifdef _MSC_VER
+#if (defined _MSC_VER) && (!defined _WIN64)
 	const float MAXRESIZE = 7.;
 #else
 	const float MAXRESIZE = 4.;

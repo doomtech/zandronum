@@ -182,7 +182,6 @@ int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * 
 					   float alpha, PalEntry ThingColor, bool weapon)
 { 
 	subsector_t * subsec = thing->subsector;
-
 	return gl_SetSpriteLight(thing, thing->x, thing->y, thing->z+(thing->height>>1), subsec, 
 					  lightlevel, rellight, cm, alpha, ThingColor, weapon);
 }

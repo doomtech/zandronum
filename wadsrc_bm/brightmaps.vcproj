@@ -37,7 +37,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Checking brightmaps.pk3..."
-				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot;&#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;&#x0D;&#x0A;"
+				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; -ud &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot;&#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -59,7 +59,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Checking brightmaps.pk3..."
-				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot;&#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;&#x0D;&#x0A;"
+				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; -ud &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot;&#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -81,7 +81,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Checking brightmaps.pk3..."
-				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot; &#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;"
+				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; -ud &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot; &#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Checking brightmaps.pk3..."
-				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot; &#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;"
+				CommandLine="&quot;$(SolutionDir)tools\zipdir\zipdir.exe&quot; -ud &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(InputDir)static&quot; &#x0D;&#x0A;copy &quot;$(InputDir)brightmaps.pk3&quot; &quot;$(SolutionDir)..\brightmaps.pk3&quot;"
 			/>
 		</Configuration>
 	</Configurations>
