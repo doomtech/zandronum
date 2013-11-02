@@ -160,7 +160,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 //
 //==========================================================================
 
-// Make these 2 variables static for the polyobj stuff to avoid passing them through all recursions.
+// Make this variable static for the polyobj stuff to avoid passing them through all recursions.
 static sector_t *fakesector;
 
 static void PolySubsector(subsector_t * sub)
@@ -189,11 +189,6 @@ static void PolySubsector(subsector_t * sub)
 
 static void RenderPolyBSPNode (void *node)
 {
-	if (numnodes == 0)
-	{
-		PolySubsector (subsectors);
-		return;
-	}
 	while (!((size_t)node & 1))  // Keep going until found a subsector
 	{
 		node_t *bsp = (node_t *)node;

@@ -52,8 +52,10 @@ class IVideo
 
 	virtual bool SetResolution (int width, int height, int bits);
 
+#ifndef unix
 	// Base class implementation does something sensible.
 	virtual void DumpAdapters();
+#endif
 
 };
 
