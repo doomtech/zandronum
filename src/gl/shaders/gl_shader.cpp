@@ -622,7 +622,7 @@ void gl_ParseHardwareShader(FScanner &sc, int deflump)
 		tex->gl_info.shaderspeed = speed; 
 		for(unsigned i=0;i<usershaders.Size();i++)
 		{
-			if (usershaders[i].CompareNoCase(maplumpname))
+			if (!usershaders[i].CompareNoCase(maplumpname))
 			{
 				tex->gl_info.shaderindex = i + FIRST_USER_SHADER;
 				return;

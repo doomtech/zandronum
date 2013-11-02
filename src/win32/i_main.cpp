@@ -122,7 +122,6 @@ extern BYTE *ST_Util_BitsForBitmap (BITMAPINFO *bitmap_info);
 extern EXCEPTION_POINTERS CrashPointers;
 extern BITMAPINFO *StartupBitmap;
 extern UINT TimerPeriod;
-extern HCURSOR TheArrowCursor, TheInvisibleCursor;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
@@ -947,9 +946,6 @@ void DoMain (HINSTANCE hInstance)
 				x = y = 0;
 			}
 
-			TheInvisibleCursor = LoadCursor (hInstance, MAKEINTRESOURCE(IDC_INVISIBLECURSOR));
-			TheArrowCursor = LoadCursor (NULL, IDC_ARROW);
-
 			WNDCLASS WndClass;
 			WndClass.style			= 0;
 			WndClass.lpfnWndProc	= LConProc;
@@ -957,7 +953,7 @@ void DoMain (HINSTANCE hInstance)
 			WndClass.cbWndExtra		= 0;
 			WndClass.hInstance		= hInstance;
 			WndClass.hIcon			= LoadIcon (hInstance, MAKEINTRESOURCE(IDI_ICONST));
-			WndClass.hCursor		= TheArrowCursor;
+			WndClass.hCursor		= LoadCursor (NULL, IDC_ARROW);
 			WndClass.hbrBackground	= NULL;
 			WndClass.lpszMenuName	= NULL;
 			WndClass.lpszClassName	= (LPCTSTR)WinClassName;

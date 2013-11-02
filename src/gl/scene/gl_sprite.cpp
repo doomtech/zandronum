@@ -61,10 +61,12 @@
 #include "gamemode.h"
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_spritebrightfog, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
 CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
 CVAR(Int, gl_billboard_mode, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, gl_enhanced_nv_stealth, 3, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 extern bool r_showviewer;
 EXTERN_CVAR (Float, transsouls)
@@ -100,6 +102,11 @@ void GLSprite::Draw(int pass)
 {
 	if (pass!=GLPASS_PLAIN && pass != GLPASS_ALL && pass!=GLPASS_TRANSLUCENT) return;
 
+	// Hack to enable bright sprites in faded maps
+	uint32 backupfade = Colormap.FadeColor.d;
+	if (gl_spritebrightfog && fullbright)
+		Colormap.FadeColor = 0;
+
 
 	bool additivefog = false;
 	int rel = extralight*gl_weaponlight;
@@ -109,8 +116,8 @@ void GLSprite::Draw(int pass)
 		// The translucent pass requires special setup for the various modes.
 
 		// Brightmaps will only be used when doing regular drawing ops and having no fog
-		if (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
-			RenderStyle.BlendOp != STYLEOP_Add)
+		if (!gl_spritebrightfog && (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
+			RenderStyle.BlendOp != STYLEOP_Add))
 		{
 			gl_RenderState.EnableBrightmap(false);
 		}
@@ -284,6 +291,10 @@ void GLSprite::Draw(int pass)
 			gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 		}
 	}
+
+	// End of gl_sprite_brightfog hack: restore FadeColor to normalcy
+	if (backupfade != Colormap.FadeColor.d)
+		Colormap.FadeColor = backupfade;
 
 	gl_RenderState.EnableTexture(true);
 }
@@ -541,13 +552,18 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		z1=z-r.top;
 		z2=z1-r.height;
 
+		float spriteheight = FIXED2FLOAT(thing->scaleY) * pti->GetHeight();
+		
 		// Tests show that this doesn't look good for many decorations and corpses
-		if (gl_spriteclip>0)
+		if (spriteheight>0 && gl_spriteclip>0)
 		{
-			if (((thing->player || thing->flags3&MF3_ISMONSTER || thing->IsKindOf(RUNTIME_CLASS(AInventory))) && 
-				(thing->flags&MF_ICECORPSE || !(thing->flags&MF_CORPSE))) || gl_spriteclip==2)
+			bool smarterclip = false; // Set to true if one condition triggers the test below
+			if (((thing->player || thing->flags3&MF3_ISMONSTER ||
+				thing->IsKindOf(RUNTIME_CLASS(AInventory)))	&& (thing->flags&MF_ICECORPSE ||
+				!(thing->flags&MF_CORPSE))) || (gl_spriteclip==3 && (smarterclip = true)) || gl_spriteclip > 1)
 			{
-				float btm=1000000.0f;
+				float btm= 1000000.0f;
+				float top=-1000000.0f;
 				extsector_t::xfloor &x = thing->Sector->e->XFloor;
 
 				if (x.ffloors.Size())
@@ -556,9 +572,17 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 					{
 						F3DFloor * ff=x.ffloors[i];
 						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
+						fixed_t ceilingh=ff->bottom.plane->ZatPoint(thingx, thingy);
 						if (floorh==thing->floorz) 
 						{
 							btm=FIXED2FLOAT(floorh);
+						}
+						if (ceilingh==thing->ceilingz) 
+						{
+							top=FIXED2FLOAT(ceilingh);
+						}
+						if (btm != 1000000.0f && top != -1000000.0f)
+						{
 							break;
 						}
 					}
@@ -569,23 +593,55 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 						thing->Sector->heightsec->floorplane.ZatPoint(thingx, thingy))
 					{
 						btm=FIXED2FLOAT(thing->floorz);
+						top=FIXED2FLOAT(thing->ceilingz);
 					}
 				}
 				if (btm==1000000.0f) 
 					btm= FIXED2FLOAT(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
+				if (top==-1000000.0f)
+					top= FIXED2FLOAT(thing->Sector->ceilingplane.ZatPoint(thingx, thingy));
 
-				float diff = z2 - btm;
-				if (diff >= 0 /*|| !gl_sprite_clip_to_floor*/) diff = 0;
-				if (diff <=-10)	// such a large displacement can't be correct! 
+				float diffb = z2 - btm;
+				float difft = z1 - top;
+				if (diffb >= 0 /*|| !gl_sprite_clip_to_floor*/) diffb = 0;
+				if (diffb <=-10)	// such a large displacement can't be correct! 
 				{
 					// for living monsters standing on the floor allow a little more.
-					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diff<-18)
+					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diffb<-18)
 					{
-						diff=0;
+						diffb=0;
 					}
 				}
-				z2-=diff;
-				z1-=diff;
+				// Adjust sprites clipping into ceiling
+				if (smarterclip)
+				{
+					// Reduce slightly clipping adjustment of corpses
+					if (thing->flags & MF_CORPSE || spriteheight > abs(diffb))
+					{
+						float ratio = abs(diffb)/spriteheight;
+						clamp<float>(ratio, 0.5, 1.0);
+						diffb*=ratio;
+					}
+					if (difft <= 0) difft = 0;
+					if (difft >= 10) 
+					{
+						// dumb copy of the above.
+						if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || difft > 18)
+						{
+							difft=0;
+						}
+					}
+					if (spriteheight > abs(difft))
+					{
+						float ratio = abs(difft)/spriteheight;
+						clamp<float>(ratio, 0.5, 1.0);
+						difft*=ratio;
+					}
+					z2-=difft;
+					z1-=difft;
+				}
+				z2-=diffb;
+				z1-=diffb;
 			}
 		}
 		float viewvecX = GLRenderer->mViewVector.X;
@@ -625,7 +681,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// colormap stuff is a little more complicated here...
 	if (gl_fixedcolormap) 
 	{
-		enhancedvision=true;
+		if ((gl_enhanced_nv_stealth > 0 && gl_fixedcolormap == CM_LITE)		// Infrared powerup only
+			|| (gl_enhanced_nv_stealth == 2 && gl_fixedcolormap >= CM_TORCH)// Also torches
+			|| (gl_enhanced_nv_stealth == 3))								// Any fixed colormap
+			enhancedvision=true;
+
 		Colormap.GetFixedColormap();
 
 		if (gl_fixedcolormap==CM_LITE)

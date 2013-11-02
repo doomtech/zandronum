@@ -53,6 +53,8 @@ public:
 	float GetVB() const { return glpatch->GetVB(); }
 	float GetU(float upix) const { return glpatch->GetU(upix); }
 	float GetV(float vpix) const { return glpatch->GetV(vpix); }
+	float GetWidth () const { return glpatch->GetWidth (); }
+	float GetHeight() const { return glpatch->GetHeight(); }
 
 	float GetSpriteUL() const { return SpriteU[0]; }
 	float GetSpriteVT() const { return SpriteV[0]; }

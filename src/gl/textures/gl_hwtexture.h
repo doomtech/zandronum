@@ -83,6 +83,8 @@ public:
 	float GetVB() const { return scaleyfac; }
 	float GetU(float upix) const { return upix/(float)texwidth * scalexfac; }
 	float GetV(float vpix) const { return vpix/(float)texheight* scaleyfac; }
+	float GetWidth () const { return (float)texwidth * scalexfac; }
+	float GetHeight() const { return (float)texheight* scaleyfac; }
 
 	// gets a texture coordinate from a pixel coordinate
 	float FloatToTexU(float v) const { return v/(float)texwidth; }

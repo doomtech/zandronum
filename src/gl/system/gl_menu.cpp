@@ -50,15 +50,17 @@ void ReturnToMainMenu();
 
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
-EXTERN_CVAR (Bool, vid_vsync)
+EXTERN_CVAR(Bool, vid_vsync)
 EXTERN_CVAR(Int, gl_spriteclip)
+EXTERN_CVAR(Bool, gl_spritebrightfog)
+EXTERN_CVAR(Int, gl_enhanced_nv_stealth)
 EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
 EXTERN_CVAR(Bool, gl_trimsprites)
-EXTERN_CVAR (Bool, gl_lights_additive)
-EXTERN_CVAR (Int, gl_light_ambient)
+EXTERN_CVAR(Bool, gl_lights_additive)
+EXTERN_CVAR(Int, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
 EXTERN_CVAR(Int, gl_particles_style)
 EXTERN_CVAR(Int, gl_texture_hqresize)
@@ -73,6 +75,15 @@ static value_t SpriteclipModes[]=
 	{ 0.0, "Never" },
 	{ 1.0, "Smart" },
 	{ 2.0, "Always" },
+	{ 3.0, "Smarter" },
+};
+
+static value_t EnhancedStealth[]=
+{
+	{ 0.0, "Never" },
+	{ 1.0, "Infrared only" },
+	{ 2.0, "Infrared and torch" },
+	{ 3.0, "Any fixed colormap" },
 };
 
 static value_t VBOModes[]=
@@ -248,7 +259,9 @@ menuitem_t GLPrefItems[] = {
 	{ discrete, "Fog mode",					{&gl_fogmode},					{3.0}, {0.0}, {0.0}, {FogMode} },
 	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Enhanced night vision mode",{&gl_enhanced_nightvision},	{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{3.0}, {0.0}, {0.0}, {SpriteclipModes} },
+	{ discrete, "ENV shows stealth monsters",{&gl_enhanced_nv_stealth},		{4.0}, {0.0}, {0.0}, {EnhancedStealth} },
+	{ discrete, "Force brightness in fog",	{&gl_spritebrightfog},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{4.0}, {0.0}, {0.0}, {SpriteclipModes} },
 	{ discrete, "Smooth sprite edges",		{&gl_sprite_blend},				{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },

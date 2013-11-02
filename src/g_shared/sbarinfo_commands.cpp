@@ -93,7 +93,10 @@ class CommandDrawImage : public SBarInfoCommand
 					else if(sc.Compare("amulet"))
 						type = HEXENARMOR_AMULET;
 					else
-						sc.ScriptError("Unkown armor type: '%s'", sc.String);
+					{
+						sc.ScriptMessage("Unkown armor type: '%s'", sc.String);
+						type = HEXENARMOR_ARMOR;
+					}
 					sc.MustGetToken(',');
 					getImage = true;
 				}
@@ -111,9 +114,12 @@ class CommandDrawImage : public SBarInfoCommand
 					const PClass* item = PClass::FindClass(sc.String);
 					if(item == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(item)) //must be a kind of Inventory
 					{
-						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
 					}
-					sprite = ((AInventory *)GetDefaultByType(item))->Icon;
+					else
+					{
+						sprite = ((AInventory *)GetDefaultByType(item))->Icon;
+					}
 					image = -1;
 				}
 			}
@@ -342,7 +348,7 @@ class CommandDrawSwitchableImage : public CommandDrawImage
 				const PClass* item = PClass::FindClass(sc.String);
 				if(item == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(item)) //must be a kind of Inventory
 				{
-					sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+					sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
 				}
 				GetOperation(sc, conditionalOperator[0], conditionalValue[0]);
 			}
@@ -367,7 +373,7 @@ class CommandDrawSwitchableImage : public CommandDrawImage
 					const PClass* item = PClass::FindClass(sc.String);
 					if(item == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(item)) //must be a kind of Inventory
 					{
-						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
 					}
 					GetOperation(sc, conditionalOperator[1], conditionalValue[1]);
 				}
@@ -547,7 +553,10 @@ class CommandDrawString : public SBarInfoCommand
 			sc.MustGetToken(TK_Identifier);
 			font = V_GetFont(sc.String);
 			if(font == NULL)
-				sc.ScriptError("Unknown font '%s'.", sc.String);
+			{
+				sc.ScriptMessage("Unknown font '%s'.", sc.String);
+				font = SmallFont;
+			}
 			sc.MustGetToken(',');
 			translation = GetTranslation(sc);
 			sc.MustGetToken(',');
@@ -825,7 +834,10 @@ class CommandDrawNumber : public CommandDrawString
 			sc.MustGetToken(TK_Identifier);
 			font = V_GetFont(sc.String);
 			if(font == NULL)
-				sc.ScriptError("Unknown font '%s'.", sc.String);
+			{
+				sc.ScriptMessage("Unknown font '%s'.", sc.String);
+				font = SmallFont;
+			}
 			sc.MustGetToken(',');
 			normalTranslation = GetTranslation(sc);
 			sc.MustGetToken(',');
@@ -855,7 +867,8 @@ class CommandDrawNumber : public CommandDrawString
 					inventoryItem = PClass::FindClass(sc.String);
 					if(inventoryItem == NULL || !RUNTIME_CLASS(AAmmo)->IsAncestorOf(inventoryItem)) //must be a kind of ammo
 					{
-						sc.ScriptError("'%s' is not a type of ammo.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of ammo.", sc.String);
+						inventoryItem = RUNTIME_CLASS(AAmmo);
 					}
 				}
 				else if(sc.Compare("ammocapacity"))
@@ -865,7 +878,8 @@ class CommandDrawNumber : public CommandDrawString
 					inventoryItem = PClass::FindClass(sc.String);
 					if(inventoryItem == NULL || !RUNTIME_CLASS(AAmmo)->IsAncestorOf(inventoryItem)) //must be a kind of ammo
 					{
-						sc.ScriptError("'%s' is not a type of ammo.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of ammo.", sc.String);
+						inventoryItem = RUNTIME_CLASS(AAmmo);
 					}
 				}
 				else if(sc.Compare("frags"))
@@ -907,9 +921,10 @@ class CommandDrawNumber : public CommandDrawString
 					value = POWERUPTIME;
 					sc.MustGetToken(TK_Identifier);
 					inventoryItem = PClass::FindClass(sc.String);
-					if(inventoryItem == NULL || !PClass::FindClass("PowerupGiver")->IsAncestorOf(inventoryItem))
+					if(inventoryItem == NULL || !RUNTIME_CLASS(APowerupGiver)->IsAncestorOf(inventoryItem))
 					{
-						sc.ScriptError("'%s' is not a type of PowerupGiver.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of PowerupGiver.", sc.String);
+						inventoryItem = RUNTIME_CLASS(APowerupGiver);
 					}
 				}
 				// [BB]
@@ -934,9 +949,10 @@ class CommandDrawNumber : public CommandDrawString
 				{
 					value = INVENTORY;
 					inventoryItem = PClass::FindClass(sc.String);
-					if(inventoryItem == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(inventoryItem)) //must be a kind of ammo
+					if(inventoryItem == NULL || !RUNTIME_CLASS(AInventory)->IsAncestorOf(inventoryItem)) //must be a kind of ammo
 					{
-						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+						sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
+						inventoryItem = RUNTIME_CLASS(AInventory);
 					}
 				}
 				sc.MustGetToken(',');
@@ -1375,7 +1391,10 @@ class CommandDrawSelectedInventory : public SBarInfoCommandFlowControl, private 
 				{
 					font = V_GetFont(sc.String);
 					if(font == NULL)
-						sc.ScriptError("Unknown font '%s'.", sc.String);
+					{
+						sc.ScriptMessage("Unknown font '%s'.", sc.String);
+						font = SmallFont;
+					}
 					sc.MustGetToken(',');
 					break;
 				}
@@ -1895,7 +1914,10 @@ class CommandDrawInventoryBar : public SBarInfoCommand
 			sc.MustGetToken(TK_Identifier);
 			font = V_GetFont(sc.String);
 			if(font == NULL)
+			{
 				sc.ScriptError("Unknown font '%s'.", sc.String);
+				font = SmallFont;
+			}
 		
 			sc.MustGetToken(',');
 			GetCoordinates(sc, fullScreenOffsets, x, y);
@@ -2178,8 +2200,11 @@ class CommandDrawBar : public SBarInfoCommand
 				if(sc.CheckToken(TK_Identifier)) //comparing reference
 				{
 					inventoryItem = PClass::FindClass(sc.String);
-					if(inventoryItem == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(inventoryItem)) //must be a kind of inventory
-						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+					if(inventoryItem == NULL || !RUNTIME_CLASS(AInventory)->IsAncestorOf(inventoryItem)) //must be a kind of inventory
+					{
+						sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
+						inventoryItem = RUNTIME_CLASS(AInventory);
+					}
 				}
 			}
 			else if(sc.Compare("armor"))
@@ -2188,8 +2213,11 @@ class CommandDrawBar : public SBarInfoCommand
 				if(sc.CheckToken(TK_Identifier))
 				{
 					inventoryItem = PClass::FindClass(sc.String);
-					if(inventoryItem == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(inventoryItem)) //must be a kind of inventory
-						sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+					if(inventoryItem == NULL || !RUNTIME_CLASS(AInventory)->IsAncestorOf(inventoryItem)) //must be a kind of inventory
+					{
+						sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
+						inventoryItem = RUNTIME_CLASS(AInventory);
+					}
 				}
 			}
 			else if(sc.Compare("ammo1"))
@@ -2203,7 +2231,8 @@ class CommandDrawBar : public SBarInfoCommand
 				inventoryItem = PClass::FindClass(sc.String);
 				if(inventoryItem == NULL || !RUNTIME_CLASS(AAmmo)->IsAncestorOf(inventoryItem)) //must be a kind of ammo
 				{
-					sc.ScriptError("'%s' is not a type of ammo.", sc.String);
+					sc.ScriptMessage("'%s' is not a type of ammo.", sc.String);
+					inventoryItem = RUNTIME_CLASS(AAmmo);
 				}
 			}
 			else if(sc.Compare("frags"))
@@ -2221,9 +2250,10 @@ class CommandDrawBar : public SBarInfoCommand
 				type = POWERUPTIME;
 				sc.MustGetToken(TK_Identifier);
 				inventoryItem = PClass::FindClass(sc.String);
-				if(inventoryItem == NULL || !PClass::FindClass("PowerupGiver")->IsAncestorOf(inventoryItem))
+				if(inventoryItem == NULL || !RUNTIME_CLASS(APowerupGiver)->IsAncestorOf(inventoryItem))
 				{
-					sc.ScriptError("'%s' is not a type of PowerupGiver.", sc.String);
+					sc.ScriptMessage("'%s' is not a type of PowerupGiver.", sc.String);
+					inventoryItem = RUNTIME_CLASS(APowerupGiver);
 				}
 			}
 			// [BB]
@@ -2250,7 +2280,8 @@ class CommandDrawBar : public SBarInfoCommand
 				inventoryItem = PClass::FindClass(sc.String);
 				if(inventoryItem == NULL || !RUNTIME_CLASS(AInventory)->IsAncestorOf(inventoryItem))
 				{
-					sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+					sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
+					inventoryItem = RUNTIME_CLASS(AInventory);
 				}
 			}
 			sc.MustGetToken(',');
@@ -2507,7 +2538,10 @@ class CommandIsSelected : public SBarInfoCommandFlowControl
 			{
 				weapon[i] = PClass::FindClass(sc.String);
 				if(weapon[i] == NULL || !RUNTIME_CLASS(AWeapon)->IsAncestorOf(weapon[i]))
-					sc.ScriptError("'%s' is not a type of weapon.", sc.String);
+				{
+					sc.ScriptMessage("'%s' is not a type of weapon.", sc.String);
+					weapon[i] = RUNTIME_CLASS(AWeapon);
+				}
 		
 				if(sc.CheckToken(','))
 				{
@@ -2609,7 +2643,10 @@ class CommandHasWeaponPiece : public SBarInfoCommandFlowControl
 			sc.MustGetToken(TK_Identifier);
 			weapon = PClass::FindClass(sc.String);
 			if(weapon == NULL || !RUNTIME_CLASS(AWeapon)->IsAncestorOf(weapon)) //must be a weapon
-				sc.ScriptError("%s is not a kind of weapon.", sc.String);
+			{
+				sc.ScriptMessage("%s is not a kind of weapon.", sc.String);
+				weapon = RUNTIME_CLASS(AWeapon);
+			}
 			sc.MustGetToken(',');
 			sc.MustGetToken(TK_IntConst);
 			if(sc.Number < 1)
@@ -2798,7 +2835,10 @@ class CommandWeaponAmmo : public SBarInfoCommandFlowControl
 			{
 				ammo[i] = PClass::FindClass(sc.String);
 				if(ammo[i] == NULL || !RUNTIME_CLASS(AAmmo)->IsAncestorOf(ammo[i])) //must be a kind of ammo
-					sc.ScriptError("'%s' is not a type of ammo.", sc.String);
+				{
+					sc.ScriptMessage("'%s' is not a type of ammo.", sc.String);
+					ammo[i] = RUNTIME_CLASS(AAmmo);
+				}
 		
 				if(sc.CheckToken(TK_OrOr))
 				{
@@ -2898,7 +2938,10 @@ class CommandInInventory : public SBarInfoCommandFlowControl
 			{
 				item[i] = PClass::FindClass(sc.String);
 				if(item[i] == NULL || !RUNTIME_CLASS(AInventory)->IsAncestorOf(item[i]))
-					sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
+				{
+					sc.ScriptMessage("'%s' is not a type of inventory item.", sc.String);
+					item[i] = RUNTIME_CLASS(AInventory);
+				}
 		
 				if (sc.CheckToken(','))
 				{

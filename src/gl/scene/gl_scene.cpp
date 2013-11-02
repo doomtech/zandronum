@@ -41,6 +41,7 @@
 #include "gl/system/gl_system.h"
 #include "gi.h"
 #include "m_png.h"
+#include "m_random.h"
 #include "st_stuff.h"
 #include "dobject.h"
 #include "doomstat.h"
@@ -953,6 +954,8 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 // renders the view
 //
 //-----------------------------------------------------------------------------
+static FRandom pr_glhom;
+EXTERN_CVAR(Int, r_clearbuffer)
 CVAR(Bool, gl_testdl, false, 0)
 static int dl = -1;
 static int indl = 0;
@@ -1002,7 +1005,37 @@ void FGLRenderer::RenderView (player_t* player)
 	}
 #endif
 
-	AActor *&LastCamera = static_cast<OpenGLFrameBuffer*>(screen)->LastCamera;
+	OpenGLFrameBuffer* GLTarget = static_cast<OpenGLFrameBuffer*>(screen);
+
+	if (r_clearbuffer != 0)
+	{
+		int color;
+		int hom = r_clearbuffer;
+
+		if (hom == 3)
+		{
+			hom = ((I_FPSTime() / 128) & 1) + 1;
+		}
+		if (hom == 1)
+		{
+			color = GPalette.BlackIndex;
+		}
+		else if (hom == 2)
+		{
+			color = GPalette.WhiteIndex;
+		}
+		else if (hom == 4)
+		{
+			color = (I_FPSTime() / 32) & 255;
+		}
+		else
+		{
+			color = pr_glhom();
+		}
+		GLTarget->Clear(0, 0, screen->GetWidth(), screen->GetHeight(), color, 0);
+	}
+
+	AActor *&LastCamera = GLTarget->LastCamera;
 
 	if (player->camera != LastCamera)
 	{
