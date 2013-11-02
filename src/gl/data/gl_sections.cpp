@@ -225,7 +225,7 @@ public:
 			// find the seg in this subsector that starts at the given vertex
 			for(i = 0; i < subsec->numlines; i++)
 			{
-				if (segs[subsec->firstline + i].v1 == startpt) break;
+				if (subsec->firstline[i].v1 == startpt) break;
 			}
 			if (i == subsec->numlines) 
 			{
@@ -238,7 +238,7 @@ public:
 			// Find the first unprocessed non-miniseg
 			for(i = 0; i < subsec->numlines; i++)
 			{
-				seg_t *seg = &segs[subsec->firstline + i];
+				seg_t *seg = subsec->firstline + i;
 
 				if (seg->sidedef == NULL) continue;
 				if (IntraSectorSeg(seg)) continue;
@@ -251,10 +251,10 @@ public:
 				return false;	// Nodes are bad
 			}
 	
-			startpt = segs[subsec->firstline+i].v1;
+			startpt = subsec->firstline[i].v1;
 		}
 
-		seg_t *thisseg = &segs[subsec->firstline + i];
+		seg_t *thisseg = subsec->firstline + i;
 		if (IntraSectorSeg(thisseg))
 		{
 			SETDONE(thisseg-segs, processed_segs);
@@ -275,7 +275,7 @@ public:
 			if (!AddSeg(thisseg)) return NULL;
 
 			i = (i+1) % subsec->numlines;
-			seg_t *nextseg = &segs[subsec->firstline + i];
+			seg_t *nextseg = subsec->firstline + i;
 
 			if (thisseg->v2 != nextseg->v1)
 			{
@@ -308,7 +308,7 @@ public:
 		{
 			for(unsigned j = 0; j < section->subsectors[i]->numlines; j++)
 			{
-				seg_t *seg = &segs[section->subsectors[i]->firstline+j];
+				seg_t *seg = section->subsectors[i]->firstline + j;
 				bool intra = IntraSectorSeg(seg);
 
 				if (!intra && !ISDONE(seg-segs, processed_segs))
@@ -595,7 +595,7 @@ public:
 
 			for(j=0; j < sub->numlines; j++)
 			{
-				seg_t *seg = &segs[sub->firstline + j];
+				seg_t *seg = sub->firstline + j;
 				if (!IntraSectorSeg(seg)) break;
 			}
 			if (j==sub->numlines)
@@ -604,8 +604,8 @@ public:
 				SETDONE(i, processed_subsectors);
 				for(j=0; j < sub->numlines; j++)
 				{
-					seg_t *seg = &segs[sub->firstline + j];
-					SETDONE(sub->firstline+j, processed_segs);
+					seg_t *seg = sub->firstline + j;
+					SETDONE((sub->firstline-segs)+j, processed_segs);
 					if (seg->PartnerSeg != NULL)
 					{
 						SETDONE(int(seg->PartnerSeg - segs), processed_segs);

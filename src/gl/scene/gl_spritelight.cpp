@@ -73,7 +73,7 @@ bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 
 	for(int j=0;j<2;j++)
 	{
-		// Go through moth light lists
+		// Go through both light lists
 		FLightNode * node = subsec->lighthead[j];
 		while (node)
 		{

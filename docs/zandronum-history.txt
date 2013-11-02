@@ -15,7 +15,7 @@
 2.0
 ---
 
-*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 2474 / GZDoom SVN revision 874 [Torr Samaho]
+*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 2474 / GZDoom SVN revision 875 [Torr Samaho]
 +	- Added the OS used to the version string the server sends to the launchers (adapted form Konar6's kpatch). [Torr Samaho]
 +	- When a banned client is prevented from connecting, the ban reason (if specified in the banlist) is logged to the server console (adapted form Konar6's kpatch). [Torr Samaho]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 

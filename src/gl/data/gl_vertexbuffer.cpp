@@ -142,7 +142,7 @@ int FVertexBuffer::CreateSubsectorVertices(subsector_t *sub, const secplane_t &p
 	int idx = vbo_shadowdata.Reserve(sub->numlines);
 	for(unsigned int k=0; k<sub->numlines; k++, idx++)
 	{
-		vbo_shadowdata[idx].SetFlatVertex(segs[sub->firstline+k].v1, plane);
+		vbo_shadowdata[idx].SetFlatVertex(sub->firstline[k].v1, plane);
 		if (sub->sector->transdoor && floor) vbo_shadowdata[idx].z -= 1.f;
 	}
 	return idx;

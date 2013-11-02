@@ -535,7 +535,7 @@ void ADynamicLight::CollectWithinRadius(subsector_t *subSec, float radius)
 
 	for (unsigned int i = 0; i < subSec->numlines; i++)
 	{
-		seg_t * seg = segs + subSec->firstline + i;
+		seg_t * seg = subSec->firstline + i;
 
 		if (seg->sidedef && seg->linedef && seg->linedef->validcount!=::validcount)
 		{

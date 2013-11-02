@@ -112,7 +112,8 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 	Plane p;
 	Vector nearPt, up, right, t1;
 	float scale;
-	int k, v;
+	int k;
+	seg_t *v;
 
 	FLightNode * node = sub->lighthead[pass==GLPASS_LIGHT_ADDITIVE];
 	gl_RenderState.Apply(true);
@@ -148,7 +149,7 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 		gl.Begin(GL_TRIANGLE_FAN);
 		for(k = 0, v = sub->firstline; k < sub->numlines; k++, v++)
 		{
-			vertex_t *vt = segs[v].v1;
+			vertex_t *vt = v->v1;
 			float zc = plane.plane.ZatPoint(vt->fx, vt->fy) + dz;
 
 			t1.Set(vt->fx, zc, vt->fy);
@@ -236,7 +237,7 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 
 	for(int k=0; k<sub->numlines; k++)
 	{
-		vertex_t *vt = segs[sub->firstline+k].v1;
+		vertex_t *vt = sub->firstline[k].v1;
 		gl.TexCoord2f(vt->fx/64.f, -vt->fy/64.f);
 		float zc = plane.plane.ZatPoint(vt->fx, vt->fy) + dz;
 		gl.Vertex3f(vt->fx, zc, vt->fy);

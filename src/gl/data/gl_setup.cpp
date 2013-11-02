@@ -92,7 +92,7 @@ static void SpreadHackedFlag(subsector_t * sub)
 	// The subsector pointer hasn't been set yet!
 	for(DWORD i=0;i<sub->numlines;i++)
 	{
-		seg_t * seg = &segs[sub->firstline+i];
+		seg_t * seg = sub->firstline + i;
 
 		if (seg->PartnerSeg)
 		{
@@ -177,7 +177,7 @@ static void PrepareSectorData()
 		// For rendering pick the sector from the first seg that is a sector boundary
 		// this takes care of self-referencing sectors
 		ss = &subsectors[i];
-		seg_t *seg = &segs[ss->firstline];
+		seg_t *seg = ss->firstline;
 
 		// Check for one-dimensional subsectors. These aren't rendered and should not be
 		// subject to filling areas with bleeding flats
@@ -192,15 +192,16 @@ static void PrepareSectorData()
 			}
 		}
 
-		seg = &segs[ss->firstline];
+		seg = ss->firstline;
 		M_ClearBox(ss->bbox);
 		for(jj=0; jj<ss->numlines; jj++)
 		{
 			M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
+			seg->Subsector = ss;
 			seg++;
 		}
 
-		seg = &segs[ss->firstline];
+		seg = ss->firstline;
 		for(j=0; j<ss->numlines; j++)
 		{
 			if(seg->sidedef && (!seg->PartnerSeg || seg->sidedef->sector!=seg->PartnerSeg->sidedef->sector))
@@ -223,7 +224,7 @@ static void PrepareSectorData()
 		for(i=undetermined.Size()-1;i>=0;i--)
 		{
 			ss=undetermined[i];
-			seg_t * seg = &segs[ss->firstline];
+			seg_t * seg = ss->firstline;
 			
 			for(j=0; j<ss->numlines; j++)
 			{
@@ -279,7 +280,7 @@ static void PrepareSectorData()
 	{
 		if (subsectors[i].sector == subsectors[i].render_sector)
 		{
-			seg_t * seg = &segs[subsectors[i].firstline];
+			seg_t * seg = subsectors[i].firstline;
 			for(DWORD j=0;j<subsectors[i].numlines;j++)
 			{
 				if (!(subsectors[i].hacked&1) && seg[j].linedef==0 && 

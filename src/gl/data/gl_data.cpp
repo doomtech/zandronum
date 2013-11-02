@@ -531,7 +531,7 @@ CCMD(dumpgeometry)
 			Printf("    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
 			for(DWORD k=0;k<sub->numlines;k++)
 			{
-				seg_t * seg = &segs[sub->firstline+k];
+				seg_t * seg = sub->firstline + k;
 				if (seg->linedef)
 				{
 				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 

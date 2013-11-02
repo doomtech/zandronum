@@ -173,8 +173,8 @@ bool gl_CheckForGLNodes()
 	for(i=0;i<numsubsectors;i++)
 	{
 		subsector_t * sub = &subsectors[i];
-		seg_t * firstseg = &segs[sub->firstline];
-		seg_t * lastseg = &segs[sub->firstline+sub->numlines-1];
+		seg_t * firstseg = sub->firstline;
+		seg_t * lastseg = sub->firstline + sub->numlines - 1;
 
 		if (firstseg->v1 != lastseg->v2)
 		{
@@ -458,7 +458,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 		for (i=0; i<numsubsectors; i++)
 		{
 			subsectors[i].numlines  = LittleShort(data[i].numsegs );
-			subsectors[i].firstline = LittleShort(data[i].firstseg);
+			subsectors[i].firstline = segs + LittleShort(data[i].firstseg);
 
 			if (subsectors[i].numlines == 0)
 			{
@@ -477,7 +477,7 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 		for (i=0; i<numsubsectors; i++)
 		{
 			subsectors[i].numlines  = LittleLong(data[i].numsegs );
-			subsectors[i].firstline = LittleLong(data[i].firstseg);
+			subsectors[i].firstline = segs + LittleLong(data[i].firstseg);
 
 			if (subsectors[i].numlines == 0)
 			{
@@ -491,11 +491,11 @@ bool gl_LoadGLSubsectors(FileReader * f, wadlump_t * lump)
 	{
 		for(unsigned j=0;j<subsectors[i].numlines;j++)
 		{
-			seg_t * seg = &segs[subsectors[i].firstline+j];
-			if (seg->linedef==NULL) seg->frontsector = seg->backsector = segs[subsectors[i].firstline].frontsector;
+			seg_t * seg = subsectors[i].firstline + j;
+			if (seg->linedef==NULL) seg->frontsector = seg->backsector = subsectors[i].firstline->frontsector;
 		}
-		seg_t *firstseg = &segs[subsectors[i].firstline];
-		seg_t *lastseg = &segs[subsectors[i].firstline + subsectors[i].numlines - 1];
+		seg_t *firstseg = subsectors[i].firstline;
+		seg_t *lastseg = subsectors[i].firstline + subsectors[i].numlines - 1;
 		// The subsector must be closed. If it isn't we can't use these nodes and have to do a rebuild.
 		if (lastseg->v2 != firstseg->v1)
 		{
@@ -687,7 +687,7 @@ bool gl_DoLoadGLNodes(FileReader * f, wadlump_t * lumps)
 
 	for (int i = 0; i < numsubsectors; i++)
 	{
-		seg_t * seg = &segs[subsectors[i].firstline];
+		seg_t * seg = subsectors[i].firstline;
 		if (!seg->sidedef) 
 		{
 			Printf("GL nodes contain invalid data. The BSP has to be rebuilt.\n");
@@ -942,7 +942,7 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 	{
 		for (int i = 0; i < numsubsectors; i++)
 		{
-			gamesubsectors[i].sector = segs[gamesubsectors[i].firstline].sidedef->sector;
+			gamesubsectors[i].sector = gamesubsectors[i].firstline->sidedef->sector;
 		}
 
 		nodes = NULL;
@@ -969,7 +969,7 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 				lines, numlines
 			};
 			leveldata.FindMapBounds ();
-			FNodeBuilder builder (leveldata, polyspots, anchors, true, CPU.bSSE2);
+			FNodeBuilder builder (leveldata, polyspots, anchors, true);
 			UsingGLNodes = true;
 			delete[] vertexes;
 			builder.Extract (nodes, numnodes,

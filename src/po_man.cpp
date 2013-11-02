@@ -27,6 +27,8 @@
 #include "r_interpolate.h"
 #include "g_level.h"
 #include "po_man.h"
+#include "p_setup.h"
+#include "vectors.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -66,11 +68,11 @@ public:
 	DPolyAction (int polyNum);
 	void Serialize (FArchive &arc);
 	void Destroy();
+	void Stop();
 	int GetSpeed() const { return m_Speed; }
 
 	void StopInterpolation ();
 
-	LONG	GetSpeed( void );
 	void	SetSpeed( LONG lSpeed );
 
 	LONG	GetDist( void );
@@ -128,6 +130,23 @@ protected:
 	friend bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
 };
 
+class DMovePolyTo : public DPolyAction
+{
+	DECLARE_CLASS(DMovePolyTo, DPolyAction)
+public:
+	DMovePolyTo(int polyNum);
+	void Serialize(FArchive &arc);
+	void Tick();
+protected:
+	DMovePolyTo();
+	fixed_t m_xSpeed;
+	fixed_t m_ySpeed;
+	fixed_t m_xTarget;
+	fixed_t m_yTarget;
+
+	friend bool EV_MovePolyTo(line_t *line, int polyNum, int speed, int x, int y, bool overRide);
+};
+
 
 class DPolyDoor : public DMovePoly
 {
@@ -180,6 +199,9 @@ static void TranslateToStartSpot (int tag, int originX, int originY);
 static void DoMovePolyobj (FPolyObj *po, int x, int y);
 static void InitSegLists ();
 static void KillSegLists ();
+static FPolyNode *NewPolyNode();
+static void FreePolyNode();
+static void ReleaseAllPolyNodes();
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -195,6 +217,7 @@ polyspawns_t *polyspawns; // [RH] Let P_SpawnMapThings() find our thingies for u
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static TArray<SDWORD> KnownPolySides;
+static FPolyNode *FreePolyNodes;
 
 // CODE --------------------------------------------------------------------
 
@@ -232,13 +255,20 @@ void DPolyAction::Destroy()
 {
 	FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 
-	if (poly->specialdata == NULL || poly->specialdata == this)
+	if (poly->specialdata == this)
 	{
 		poly->specialdata = NULL;
 	}
 
 	StopInterpolation();
 	Super::Destroy();
+}
+
+void DPolyAction::Stop()
+{
+	FPolyObj *poly = PO_GetPolyobj(m_PolyObj);
+	SN_StopSequence(poly);
+	Destroy();
 }
 
 void DPolyAction::SetInterpolation ()
@@ -254,11 +284,6 @@ void DPolyAction::StopInterpolation ()
 		m_Interpolation->DelRef();
 		m_Interpolation = NULL;
 	}
-}
-
-LONG DPolyAction::GetSpeed ()
-{
-	return ( m_Speed );
 }
 
 void DPolyAction::SetSpeed (LONG lSpeed)
@@ -375,6 +400,34 @@ void DMovePoly::SetAngle (LONG lAngle)
 //
 //
 //
+//
+//==========================================================================
+
+IMPLEMENT_CLASS(DMovePolyTo)
+
+DMovePolyTo::DMovePolyTo()
+{
+}
+
+void DMovePolyTo::Serialize(FArchive &arc)
+{
+	Super::Serialize(arc);
+	arc << m_xSpeed << m_ySpeed << m_xTarget << m_yTarget;
+}
+
+DMovePolyTo::DMovePolyTo(int polyNum)
+	: Super(polyNum)
+{
+	m_xSpeed = 0;
+	m_ySpeed = 0;
+	m_xTarget = 0;
+	m_yTarget = 0;
+}
+
+//==========================================================================
+//
+//
+//
 //==========================================================================
 
 IMPLEMENT_CLASS (DPolyDoor)
@@ -474,10 +527,6 @@ void DRotatePoly::Tick ()
 		m_Dist -= absSpeed;
 		if (m_Dist == 0)
 		{
-			if (poly->specialdata == this)
-			{
-				poly->specialdata = NULL;
-			}
 
 			// [BC] Now that our destination has been reached, tell clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -623,10 +672,6 @@ void DMovePoly::Tick ()
 			m_Dist -= absSpeed;
 			if (m_Dist <= 0)
 			{
-				if (poly->specialdata == this)
-				{
-					poly->specialdata = NULL;
-				}
 
 				// [BC] Now that our destination has been reached, tell clients.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -740,6 +785,111 @@ bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle,
 
 //==========================================================================
 //
+// DMovePolyTo :: Tick
+//
+//==========================================================================
+
+void DMovePolyTo::Tick ()
+{
+	FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
+
+	if (poly != NULL)
+	{
+		if (poly->MovePolyobj (m_xSpeed, m_ySpeed))
+		{
+			int absSpeed = abs (m_Speed);
+			m_Dist -= absSpeed;
+			if (m_Dist <= 0)
+			{
+				SN_StopSequence (poly);
+				Destroy ();
+			}
+			else if (m_Dist < absSpeed)
+			{
+				m_Speed = m_Dist * (m_Speed < 0 ? -1 : 1);
+				m_xSpeed = m_xTarget - poly->StartSpot.x;
+				m_ySpeed = m_yTarget - poly->StartSpot.y;
+			}
+		}
+	}
+}
+
+//==========================================================================
+//
+// EV_MovePolyTo
+//
+//==========================================================================
+
+bool EV_MovePolyTo(line_t *line, int polyNum, int speed, int ix, int iy, bool overRide)
+{
+	fixed_t targx = ix << FRACBITS;
+	fixed_t targy = iy << FRACBITS;
+	int mirror;
+	DMovePolyTo *pe;
+	FPolyObj *poly;
+	TVector2<double> dist;
+	double distlen;
+	bool nointerp;
+
+	if ( (poly = PO_GetPolyobj(polyNum)) )
+	{
+		if (poly->specialdata && !overRide)
+		{ // poly is already moving
+			return false;
+		}
+	}
+	else
+	{
+		Printf("EV_MovePolyTo: Invalid polyobj num: %d\n", polyNum);
+		return false;
+	}
+	dist.X = targx - poly->StartSpot.x;
+	dist.Y = targy - poly->StartSpot.y;
+	pe = new DMovePolyTo(polyNum);
+	poly->specialdata = pe;
+	pe->m_Dist = xs_RoundToInt(distlen = dist.MakeUnit());
+	pe->m_Speed = speed;
+	pe->m_xSpeed = xs_RoundToInt(speed * dist.X);
+	pe->m_ySpeed = xs_RoundToInt(speed * dist.Y);
+	pe->m_xTarget = targx;
+	pe->m_yTarget = targy;
+
+	nointerp = (pe->m_Dist / pe->m_Speed) <= 2;
+	if (nointerp)
+	{
+		pe->StopInterpolation();
+	}
+
+	while ( (mirror = poly->GetMirror()) )
+	{
+		poly = PO_GetPolyobj(mirror);
+		if (poly && poly->specialdata && !overRide)
+		{ // mirroring poly is already in motion
+			break;
+		}
+		// reverse the direction
+		dist.X = -dist.X;
+		dist.Y = -dist.Y;
+		pe = new DMovePolyTo(mirror);
+		poly->specialdata = pe;
+		pe->m_Dist = xs_RoundToInt(distlen);
+		pe->m_Speed = speed;
+		pe->m_xSpeed = xs_RoundToInt(speed * dist.X);
+		pe->m_ySpeed = xs_RoundToInt(speed * dist.Y);
+		pe->m_xTarget = xs_RoundToInt(poly->StartSpot.x + distlen * dist.X);
+		pe->m_yTarget = xs_RoundToInt(poly->StartSpot.y + distlen * dist.Y);
+		polyNum = mirror;
+		SN_StartSequence(poly, poly->seqType, SEQ_DOOR, 0);
+		if (nointerp)
+		{
+			pe->StopInterpolation();
+		}
+	}
+	return true;
+}
+
+//==========================================================================
+//
 // T_PolyDoor
 //
 //==========================================================================
@@ -817,10 +967,6 @@ void DPolyDoor::Tick ()
 				}
 				else
 				{
-					if (poly->specialdata == this)
-					{
-						poly->specialdata = NULL;
-					}
 
 					// [BC] If we're the server, tell clients to destroy the poly door.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -897,10 +1043,6 @@ void DPolyDoor::Tick ()
 				}
 				else
 				{
-					if (poly->specialdata == this)
-					{
-						poly->specialdata = NULL;
-					}
 
 					// [BC] Tell clients to destroy the poly door.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1035,7 +1177,28 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 	}
 	return true;
 }
-	
+
+//==========================================================================
+//
+// EV_StopPoly
+//
+//==========================================================================
+
+bool EV_StopPoly(int polynum)
+{
+	FPolyObj *poly;
+
+	if (NULL != (poly = PO_GetPolyobj(polynum)))
+	{
+		if (poly->specialdata != NULL)
+		{
+			poly->specialdata->Stop();
+		}
+		return true;
+	}
+	return false;
+}
+
 // ===== Higher Level Poly Interface code =====
 
 //==========================================================================
@@ -1093,7 +1256,6 @@ FPolyObj::FPolyObj()
 	subsectorlinks = NULL;
 	specialdata = NULL;
 	interpolation = NULL;
-	SVIndex = -1;
 }
 
 //==========================================================================
@@ -1493,20 +1655,18 @@ bool FPolyObj::CheckMobjBlocking (side_t *sd)
 
 void FPolyObj::LinkPolyobj ()
 {
-	int leftX, rightX;
-	int topY, bottomY;
 	polyblock_t **link;
 	polyblock_t *tempLink;
 
 	// calculate the polyobj bbox
-	vertex_t *vt = Sidedefs[0]->V1();
-	rightX = leftX = vt->x;
-	topY = bottomY = vt->y;
-
 	Bounds.ClearBox();
-	for(unsigned i = 1; i < Sidedefs.Size(); i++)
+	for(unsigned i = 0; i < Sidedefs.Size(); i++)
 	{
-		vt = Sidedefs[i]->V1();
+		vertex_t *vt;
+		
+		vt = Sidedefs[i]->linedef->v1;
+		Bounds.AddToBox(vt->x, vt->y);
+		vt = Sidedefs[i]->linedef->v2;
 		Bounds.AddToBox(vt->x, vt->y);
 	}
 	bbox[BOXRIGHT] = (Bounds.Right() - bmaporgx) >> MAPBLOCKSHIFT;
@@ -1626,20 +1786,6 @@ void FPolyObj::ClosestPoint(fixed_t fx, fixed_t fy, fixed_t &ox, fixed_t &oy, si
 	}
 }
 
-vertex_t *FPolyObj::GetNewVertex()
-{
-	if (SVIndex == ~0u || SplitVertices[SVIndex]->used == 10)
-	{
-		SVIndex++;
-		if (SVIndex >= SplitVertices.Size())
-		{
-			SplitVertices.Push(new FPolyVertexBlock);
-		}
-		SplitVertices[SVIndex]->clear();
-	}
-	return &SplitVertices[SVIndex]->vertices[SplitVertices[SVIndex]->used++];
-}
-
 //==========================================================================
 //
 // InitBlockMap
@@ -1694,39 +1840,56 @@ static void KillSideLists ()
 
 //==========================================================================
 //
+// AddPolyVert
+//
+// Helper function for IterFindPolySides()
+//
+//==========================================================================
+
+static void AddPolyVert(TArray<DWORD> &vnum, DWORD vert)
+{
+	for (unsigned int i = vnum.Size() - 1; i-- != 0; )
+	{
+		if (vnum[i] == vert)
+		{ // Already in the set. No need to add it.
+			return;
+		}
+	}
+	vnum.Push(vert);
+}
+
+//==========================================================================
+//
 // IterFindPolySides
+//
+// Beginning with the first vertex of the starting side, for each vertex
+// in vnum, add all the sides that use it as a first vertex to the polyobj,
+// and add all their second vertices to vnum. This continues until there
+// are no new vertices in vnum.
 //
 //==========================================================================
 
 static void IterFindPolySides (FPolyObj *po, side_t *side)
 {
-	SDWORD j;
-	int i;
-	vertex_t *v1 = side->V1();
+	static TArray<DWORD> vnum;
+	unsigned int vnumat;
 
-	po->Sidedefs.Push(side);
+	assert(sidetemp != NULL);
 
-	// This for loop exists solely to avoid infinitely looping on badly
-	// formed polyobjects.
-	for (i = 0; i < numsides; i++)
+	vnum.Clear();
+	vnum.Push(DWORD(side->V1() - vertexes));
+	vnumat = 0;
+
+	while (vnum.Size() != vnumat)
 	{
-		int v2 = int(side->V2() - vertexes);
-		j = side->RightSide;
-
-		if (j == NO_SIDE)
+		DWORD sidenum = sidetemp[vnum[vnumat++]].b.first;
+		while (sidenum != NO_SIDE)
 		{
-			break;
+			po->Sidedefs.Push(&sides[sidenum]);
+			AddPolyVert(vnum, DWORD(sides[sidenum].V2() - vertexes));
+			sidenum = sidetemp[sidenum].b.next;
 		}
-		side = &sides[j];
-
-		if (side->V1() == v1)
-		{
-			return;
-		}
-		po->Sidedefs.Push(side);
 	}
-	I_Error ("IterFindPolySides: Non-closed Polyobj at linedef %d.\n",
-		side->linedef-lines);
 }
 
 
@@ -2055,11 +2218,6 @@ bool PO_Busy (int polyobj)
 
 void FPolyObj::ClearSubsectorLinks()
 {
-	for(unsigned i=0; i<SplitVertices.Size(); i++)
-	{
-		SplitVertices[i]->clear();
-	}
-	SVIndex = -1;
 	while (subsectorlinks != NULL)
 	{
 		assert(subsectorlinks->state == 1337);
@@ -2081,6 +2239,12 @@ void FPolyObj::ClearSubsectorLinks()
 		{
 			subsectorlinks->subsector->polys = subsectorlinks->pnext;
 		}
+
+		if (subsectorlinks->subsector->BSP != NULL)
+		{
+			subsectorlinks->subsector->BSP->bDirty = true;
+		}
+
 		subsectorlinks->state = -1;
 		delete subsectorlinks;
 		subsectorlinks = next;
@@ -2090,10 +2254,11 @@ void FPolyObj::ClearSubsectorLinks()
 
 void FPolyObj::ClearAllSubsectorLinks()
 {
-	for(int i=0;i<po_NumPolyobjs;i++)
+	for (int i = 0; i < po_NumPolyobjs; i++)
 	{
 		polyobjs[i].ClearSubsectorLinks();
 	}
+	ReleaseAllPolyNodes();
 }
 
 //==========================================================================
@@ -2104,16 +2269,16 @@ void FPolyObj::ClearAllSubsectorLinks()
 //
 //==========================================================================
 
-static bool GetIntersection(seg_t *seg, node_t *bsp, vertex_t *v)
+static bool GetIntersection(FPolySeg *seg, node_t *bsp, FPolyVertex *v)
 {
 	double frac;
 	double num;
 	double den;
 
-	double v2x = (double)seg->v1->x;
-	double v2y = (double)seg->v1->y;
-	double v2dx = (double)(seg->v2->x - seg->v1->x);
-	double v2dy = (double)(seg->v2->y - seg->v1->y);
+	double v2x = (double)seg->v1.x;
+	double v2y = (double)seg->v1.y;
+	double v2dx = (double)(seg->v2.x - seg->v1.x);
+	double v2dy = (double)(seg->v2.y - seg->v1.y);
 	double v1x = (double)bsp->x;
 	double v1y = (double)bsp->y;
 	double v1dx = (double)bsp->dx;
@@ -2142,7 +2307,7 @@ static bool GetIntersection(seg_t *seg, node_t *bsp, vertex_t *v)
 //
 //==========================================================================
 
-static double PartitionDistance(vertex_t *vt, node_t *node)
+static double PartitionDistance(FPolyVertex *vt, node_t *node)
 {	
 	return fabs(double(-node->dy) * (vt->x - node->x) + double(node->dx) * (vt->y - node->y)) / node->len;
 }
@@ -2179,7 +2344,7 @@ static void AddToBBox(fixed_t child[4], fixed_t parent[4])
 //
 //==========================================================================
 
-static void AddToBBox(vertex_t *v, fixed_t bbox[4])
+static void AddToBBox(FPolyVertex *v, fixed_t bbox[4])
 {
 	if (v->x < bbox[BOXLEFT])
 	{
@@ -2207,7 +2372,7 @@ static void AddToBBox(vertex_t *v, fixed_t bbox[4])
 
 static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 {
-	static TArray<seg_t> lists[2];
+	static TArray<FPolySeg> lists[2];
 	static const double POLY_EPSILON = 0.3125;
 
 	if (!((size_t)node & 1))  // Keep going until found a subsector
@@ -2220,7 +2385,7 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 		lists[1].Clear();
 		for(unsigned i=0;i<pnode->segs.Size(); i++)
 		{
-			seg_t *seg = &pnode->segs[i];
+			FPolySeg *seg = &pnode->segs[i];
 
 			// Parts of the following code were taken from Eternity and are
 			// being used with permission.
@@ -2228,8 +2393,8 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 			// get distance of vertices from partition line
 			// If the distance is too small, we may decide to
 			// change our idea of sidedness.
-			double dist_v1 = PartitionDistance(seg->v1, bsp);
-			double dist_v2 = PartitionDistance(seg->v2, bsp);
+			double dist_v1 = PartitionDistance(&seg->v1, bsp);
+			double dist_v2 = PartitionDistance(&seg->v2, bsp);
 
 			// If the distances are less than epsilon, consider the points as being
 			// on the same side as the polyobj origin. Why? People like to build
@@ -2250,27 +2415,27 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 				}
 				else
 				{
-					int side = R_PointOnSide(seg->v2->x, seg->v2->y, bsp);
+					int side = R_PointOnSide(seg->v2.x, seg->v2.y, bsp);
 					lists[side].Push(*seg);
 				}
 			}
 			else if (dist_v2 <= POLY_EPSILON)
 			{
-				int side = R_PointOnSide(seg->v1->x, seg->v1->y, bsp);
+				int side = R_PointOnSide(seg->v1.x, seg->v1.y, bsp);
 				lists[side].Push(*seg);
 			}
 			else 
 			{
-				int side1 = R_PointOnSide(seg->v1->x, seg->v1->y, bsp);
-				int side2 = R_PointOnSide(seg->v2->x, seg->v2->y, bsp);
+				int side1 = R_PointOnSide(seg->v1.x, seg->v1.y, bsp);
+				int side2 = R_PointOnSide(seg->v2.x, seg->v2.y, bsp);
 
 				if(side1 != side2)
 				{
 					// if the partition line crosses this seg, we must split it.
 
-					vertex_t  *vert = pnode->poly->GetNewVertex();
+					FPolyVertex vert;
 
-					if (GetIntersection(seg, bsp, vert))
+					if (GetIntersection(seg, bsp, &vert))
 					{
 						lists[0].Push(*seg);
 						lists[1].Push(*seg);
@@ -2303,13 +2468,8 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 		else
 		{
 			// create the new node 
-			FPolyNode *newnode = new FPolyNode;
-			newnode->state = 1337;
+			FPolyNode *newnode = NewPolyNode();
 			newnode->poly = pnode->poly;
-			newnode->pnext = NULL;
-			newnode->pprev = NULL;
-			newnode->subsector = NULL;
-			newnode->snext = NULL;
 			newnode->segs = lists[1];
 
 			// set segs for original node
@@ -2351,8 +2511,8 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 
 		for (unsigned i = 0; i < pnode->segs.Size(); ++i)
 		{
-			AddToBBox(pnode->segs[i].v1, subbbox);
-			AddToBBox(pnode->segs[i].v2, subbbox);
+			AddToBBox(&pnode->segs[i].v1, subbbox);
+			AddToBBox(&pnode->segs[i].v2, subbbox);
 		}
 		// Potentially expand the parent node's bounding box to contain these bits of polyobject.
 		AddToBBox(subbbox, bbox);
@@ -2367,31 +2527,23 @@ static void SplitPoly(FPolyNode *pnode, void *node, fixed_t bbox[4])
 
 void FPolyObj::CreateSubsectorLinks()
 {
-	FPolyNode *node = new FPolyNode;
-	fixed_t dummybbox[4];
+	FPolyNode *node = NewPolyNode();
+	// Even though we don't care about it, we need to initialize this
+	// bounding box to something so that Valgrind won't complain about it
+	// when SplitPoly modifies it.
+	fixed_t dummybbox[4] = { 0 };
 
-	node->state = 1337;
 	node->poly = this;
-	node->pnext = NULL;
-	node->pprev = NULL;
-	node->snext = NULL;
 	node->segs.Resize(Sidedefs.Size());
 
 	for(unsigned i=0; i<Sidedefs.Size(); i++)
 	{
-		seg_t *seg = &node->segs[i];
+		FPolySeg *seg = &node->segs[i];
 		side_t *side = Sidedefs[i];
 
 		seg->v1 = side->V1();
 		seg->v2 = side->V2();
-		seg->sidedef = side;
-		seg->linedef = side->linedef;
-		seg->frontsector = side->sector;
-		seg->backsector = side->linedef->frontsector == side->sector? 
-			side->linedef->backsector : side->linedef->frontsector;
-		seg->Subsector = NULL;
-		seg->PartnerSeg = NULL;
-		seg->bPolySeg = true;
+		seg->wall = side;
 	}
 	SplitPoly(node, nodes + numnodes - 1, dummybbox);
 }
@@ -2410,5 +2562,63 @@ void PO_LinkToSubsectors()
 		{
 			polyobjs[i].CreateSubsectorLinks();
 		}
+	}
+}
+
+//==========================================================================
+//
+// NewPolyNode
+//
+//==========================================================================
+
+static FPolyNode *NewPolyNode()
+{
+	FPolyNode *node;
+
+	if (FreePolyNodes != NULL)
+	{
+		node = FreePolyNodes;
+		FreePolyNodes = node->pnext;
+	}
+	else
+	{
+		node = new FPolyNode;
+	}
+	node->state = 1337;
+	node->poly = NULL;
+	node->pnext = NULL;
+	node->pprev = NULL;
+	node->subsector = NULL;
+	node->snext = NULL;
+	return node;
+}
+
+//==========================================================================
+//
+// FreePolyNode
+//
+//==========================================================================
+
+void FreePolyNode(FPolyNode *node)
+{
+	node->segs.Clear();
+	node->pnext = FreePolyNodes;
+	FreePolyNodes = node;
+}
+
+//==========================================================================
+//
+// ReleaseAllPolyNodes
+//
+//==========================================================================
+
+void ReleaseAllPolyNodes()
+{
+	FPolyNode *node, *next;
+
+	for (node = FreePolyNodes; node != NULL; node = next)
+	{
+		next = node->pnext;
+		delete node;
 	}
 }

@@ -274,13 +274,13 @@ bool FDrawInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 	// Do this first to avoid unnecessary recursion
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		if (segs[subsec->firstline + i].backsector == NULL) return false;
-		if (segs[subsec->firstline + i].PartnerSeg == NULL) return false;
+		if (subsec->firstline[i].backsector == NULL) return false;
+		if (subsec->firstline[i].PartnerSeg == NULL) return false;
 	}
 
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		seg_t * seg = &segs[subsec->firstline + i];
+		seg_t * seg = subsec->firstline +i;
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// already checked?
@@ -332,13 +332,13 @@ bool FDrawInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 	// Do this first to avoid unnecessary recursion
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		if (segs[subsec->firstline + i].backsector == NULL) return false;
-		if (segs[subsec->firstline + i].PartnerSeg == NULL) return false;
+		if (subsec->firstline[i].backsector == NULL) return false;
+		if (subsec->firstline[i].PartnerSeg == NULL) return false;
 	}
 
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		seg_t * seg = &segs[subsec->firstline + i];
+		seg_t * seg = subsec->firstline + i;
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// already checked?
@@ -391,13 +391,13 @@ bool FDrawInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 	// Do this first to avoid unnecessary recursion
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		if (segs[subsec->firstline + i].backsector == NULL) return false;
-		if (segs[subsec->firstline + i].PartnerSeg == NULL) return false;
+		if (subsec->firstline[i].backsector == NULL) return false;
+		if (subsec->firstline[i].PartnerSeg == NULL) return false;
 	}
 
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		seg_t * seg = &segs[subsec->firstline + i];
+		seg_t * seg = subsec->firstline + i;
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// already checked?
@@ -444,13 +444,13 @@ bool FDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 	// Do this first to avoid unnecessary recursion
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		if (segs[subsec->firstline + i].backsector == NULL) return false;
-		if (segs[subsec->firstline + i].PartnerSeg == NULL) return false;
+		if (subsec->firstline[i].backsector == NULL) return false;
+		if (subsec->firstline[i].PartnerSeg == NULL) return false;
 	}
 
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
-		seg_t * seg = &segs[subsec->firstline + i];
+		seg_t * seg = subsec->firstline + i;
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// already checked?
@@ -746,7 +746,7 @@ bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (!seg->PartnerSeg) return true;
 
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -808,7 +808,7 @@ bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 	// to be checked as well
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
 			subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -852,7 +852,7 @@ bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (!seg->PartnerSeg) return true;
 
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -909,7 +909,7 @@ bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 	// to be checked as well
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
 			subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -1073,7 +1073,7 @@ void FDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
 			subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -1121,7 +1121,7 @@ void FDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
-		seg_t * seg = &segs[sub->firstline+j];
+		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
 			subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -1149,7 +1149,7 @@ void FDrawInfo::ProcessSectorStacks()
 		HandledSubsectors.Clear();
 		for(DWORD j=0;j<sub->numlines;j++)
 		{
-			seg_t * seg = &segs[sub->firstline+j];
+			seg_t * seg = sub->firstline + j;
 			if (seg->PartnerSeg)
 			{
 				subsector_t * backsub = seg->PartnerSeg->Subsector;
@@ -1179,7 +1179,7 @@ void FDrawInfo::ProcessSectorStacks()
 		HandledSubsectors.Clear();
 		for(DWORD j=0;j<sub->numlines;j++)
 		{
-			seg_t * seg = &segs[sub->firstline+j];
+			seg_t * seg = sub->firstline + j;
 			if (seg->PartnerSeg)
 			{
 				subsector_t	* backsub = seg->PartnerSeg->Subsector;

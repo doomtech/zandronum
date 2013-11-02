@@ -519,8 +519,9 @@ typedef enum
 
 bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
 bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
+bool EV_MovePolyTo (line_t *line, int polyNum, int speed, int x, int y, bool overRide);
 bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle, int delay, int distance, podoortype_t type);
-
+bool EV_StopPoly (int polyNum);
 
 
 // [RH] Data structure for P_SpawnMapThing() to keep track
@@ -569,10 +570,11 @@ public:
 	DPolyAction (int polyNum);
 	void Serialize (FArchive &arc);
 	void Destroy();
+	void Stop();
+	int GetSpeed() const { return m_Speed; }
 
 	void StopInterpolation ();
 
-	LONG	GetSpeed( void );
 	void	SetSpeed( LONG lSpeed );
 
 	LONG	GetDist( void );
@@ -632,6 +634,23 @@ protected:
 	fixed_t m_ySpeed;
 
 	friend bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
+};
+
+class DMovePolyTo : public DPolyAction
+{
+	DECLARE_CLASS(DMovePolyTo, DPolyAction)
+public:
+	DMovePolyTo(int polyNum);
+	void Serialize(FArchive &arc);
+	void Tick();
+protected:
+	DMovePolyTo();
+	fixed_t m_xSpeed;
+	fixed_t m_ySpeed;
+	fixed_t m_xTarget;
+	fixed_t m_yTarget;
+
+	friend bool EV_MovePolyTo(line_t *line, int polyNum, int speed, int x, int y, bool overRide);
 };
 
 
