@@ -58,7 +58,6 @@ class D3DPal;
 class Win32Video : public IVideo
 {
  public:
-
 	Win32Video (int parm);
 	~Win32Video ();
 

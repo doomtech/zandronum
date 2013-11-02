@@ -38,6 +38,7 @@
 #define DIRECTDRAW_VERSION 0x0300
 #define DIRECT3D_VERSION 0x0900
 
+#define _WIN32_WINNT 0x0501
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <ddraw.h>
@@ -51,6 +52,7 @@
 #include <ddraw.h>
 #include <d3d9.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #define USE_WINDOWS_DWORD
 #include "doomtype.h"
@@ -355,12 +357,19 @@ void Win32Video::BlankForGDI ()
 //
 // Win32Video :: DumpAdapters
 //
-// Dumps the list of display adapters to the console. 
+// Dumps the list of display adapters to the console. Only meaningful for
+// Direct3D.
 //
 //==========================================================================
 
 void Win32Video::DumpAdapters()
 {
+	if (D3D == NULL)
+	{
+		Printf("Multi-monitor support requires Direct3D.\n");
+		return;
+	}
+
 	UINT num_adapters = D3D->GetAdapterCount();
 
 	for (UINT i = 0; i < num_adapters; ++i)
