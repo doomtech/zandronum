@@ -64,6 +64,8 @@ CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_spritebrightfog, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
+CVAR(Float, gl_sclipthreshold, 10.0, CVAR_ARCHIVE)
+CVAR(Float, gl_sclipfactor, 1.8, CVAR_ARCHIVE)
 CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
 CVAR(Int, gl_billboard_mode, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, gl_enhanced_nv_stealth, 3, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -429,6 +431,7 @@ void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
 // 
 //
 //==========================================================================
+
 void GLSprite::Process(AActor* thing,sector_t * sector)
 {
 	sector_t rs;
@@ -604,41 +607,39 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 				float diffb = z2 - btm;
 				float difft = z1 - top;
 				if (diffb >= 0 /*|| !gl_sprite_clip_to_floor*/) diffb = 0;
-				if (diffb <=-10)	// such a large displacement can't be correct! 
-				{
-					// for living monsters standing on the floor allow a little more.
-					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diffb<-18)
-					{
-						diffb=0;
-					}
-				}
-				// Adjust sprites clipping into ceiling
+				// Adjust sprites clipping into ceiling and adjust clipping adjustment for tall graphics
 				if (smarterclip)
 				{
 					// Reduce slightly clipping adjustment of corpses
 					if (thing->flags & MF_CORPSE || spriteheight > abs(diffb))
 					{
-						float ratio = abs(diffb)/spriteheight;
-						clamp<float>(ratio, 0.5, 1.0);
+						float ratio = clamp<float>((abs(diffb) * (float)gl_sclipfactor/(spriteheight+1)), 0.5, 1.0);
 						diffb*=ratio;
 					}
 					if (difft <= 0) difft = 0;
-					if (difft >= 10) 
+					if (difft >= (float)gl_sclipthreshold) 
 					{
 						// dumb copy of the above.
-						if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || difft > 18)
+						if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || difft > (float)gl_sclipthreshold)
 						{
 							difft=0;
 						}
 					}
 					if (spriteheight > abs(difft))
 					{
-						float ratio = abs(difft)/spriteheight;
-						clamp<float>(ratio, 0.5, 1.0);
+						float ratio = clamp<float>((abs(difft) * (float)gl_sclipfactor/(spriteheight+1)), 0.5, 1.0);
 						difft*=ratio;
 					}
 					z2-=difft;
 					z1-=difft;
+				}
+				if (diffb <= (0 - (float)gl_sclipthreshold))	// such a large displacement can't be correct! 
+				{
+					// for living monsters standing on the floor allow a little more.
+					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diffb<(-1.8*(float)gl_sclipthreshold))
+					{
+						diffb=0;
+					}
 				}
 				z2-=diffb;
 				z1-=diffb;

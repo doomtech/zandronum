@@ -81,8 +81,8 @@ FGLRenderer *GLRenderer;
 //
 //==========================================================================
 
-OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refreshHz, bool fullscreen) : 
-	Super(width, height, bits, refreshHz, fullscreen) 
+OpenGLFrameBuffer::OpenGLFrameBuffer(void *hMonitor, int width, int height, int bits, int refreshHz, bool fullscreen) : 
+	Super(hMonitor, width, height, bits, refreshHz, fullscreen) 
 {
 	GLRenderer = new FGLRenderer(this);
 	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
@@ -166,7 +166,9 @@ void OpenGLFrameBuffer::InitializeState()
 
 	gl.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	gl.Viewport(0, (GetTrueHeight()-GetHeight())/2, GetWidth(), GetHeight()); 
+	int trueH = GetTrueHeight();
+	int h = GetHeight();
+	gl.Viewport(0, (trueH - h)/2, GetWidth(), GetHeight()); 
 
 	Begin2D(false);
 	GLRenderer->Initialize();

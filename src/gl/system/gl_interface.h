@@ -78,7 +78,7 @@ struct RenderContext
 	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample);
 #endif
 	void (APIENTRY * SwapBuffers) ();
-	bool (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
+	bool (APIENTRY * SetFullscreen) (const char *devicename, int w, int h, int bits, int hz);
 
 
 	void (APIENTRY * Begin) (GLenum mode);

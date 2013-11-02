@@ -200,7 +200,7 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 //		flashAmount = 0;
 	}
 	
-	SDLGLFB *fb = new OpenGLFrameBuffer (width, height, 32, 60, fullscreen);
+	SDLGLFB *fb = new OpenGLFrameBuffer (0, width, height, 32, 60, fullscreen);
 	retry = 0;
 	
 	// If we could not create the framebuffer, try again with slightly
@@ -279,7 +279,7 @@ bool SDLGLVideo::SetResolution (int width, int height, int bits)
 
 // FrameBuffer implementation -----------------------------------------------
 
-SDLGLFB::SDLGLFB (int width, int height, int, int, bool fullscreen)
+SDLGLFB::SDLGLFB (void *, int width, int height, int, int, bool fullscreen)
 	: DFrameBuffer (width, height)
 {
 	static int localmultisample=-1;

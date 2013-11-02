@@ -1024,7 +1024,7 @@ FString CreateCacheName(MapData *map, bool create)
 		if (path.Len() != 0) path += '/';
 		path += "gzdoom/cache";
 	#else
-		path = HOME_DIR"/cache";
+		path = NicePath(HOME_DIR"/cache");
 	#endif
 	
 	FString lumpname = Wads.GetLumpFullPath(map->lumpnum);

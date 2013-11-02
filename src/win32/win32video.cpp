@@ -355,19 +355,12 @@ void Win32Video::BlankForGDI ()
 //
 // Win32Video :: DumpAdapters
 //
-// Dumps the list of display adapters to the console. Only meaningful for
-// Direct3D.
+// Dumps the list of display adapters to the console. 
 //
 //==========================================================================
 
 void Win32Video::DumpAdapters()
 {
-	if (D3D == NULL)
-	{
-		Printf("Multi-monitor support requires Direct3D.\n");
-		return;
-	}
-
 	UINT num_adapters = D3D->GetAdapterCount();
 
 	for (UINT i = 0; i < num_adapters; ++i)
@@ -404,14 +397,6 @@ void Win32Video::DumpAdapters()
 		Printf("%s%u. %s%s\n",
 			i == m_Adapter ? TEXTCOLOR_BOLD : "",
 			i + 1, ai.Description, moreinfo);
-	}
-}
-
-CCMD(vid_listadapters)
-{
-	if (Video != NULL)
-	{
-		static_cast<Win32Video *>(Video)->DumpAdapters();
 	}
 }
 
