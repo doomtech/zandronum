@@ -182,7 +182,19 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	if (player->fixedcolormap==NOFIXEDCOLORMAP)
 	{
 		for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
-			if (psp->state != NULL) statebright[i] = !!psp->state->GetFullbright();
+			if (psp->state != NULL)
+			{
+				bool disablefullbright = false;
+				FTextureID lump = gl_GetSpriteFrame(psp->sprite, psp->frame, 0, 0, NULL);
+				if (lump.isValid() && gl_BrightmapsActive())
+				{
+					FMaterial * tex=FMaterial::ValidateTexture(lump, false);
+					if (tex)
+						disablefullbright = tex->tex->gl_info.bBrightmapDisablesFullbright;
+				}
+				statebright[i] = !!psp->state->GetFullbright() && !disablefullbright;
+			}
+				
 	}
 
 	if (gl_fixedcolormap) 

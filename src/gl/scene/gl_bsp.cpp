@@ -191,6 +191,7 @@ static void AddPolyobjs(subsector_t *sub, sector_t *sector)
 		pn = sortedpolys[i];
 		for(unsigned j=0; j<pn->segs.Size(); j++)
 		{
+			pn->segs[j].Subsector = sub;
 			AddLine (&pn->segs[j], sector, sub);
 		}
 	}

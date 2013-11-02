@@ -1030,7 +1030,7 @@ void FGLRenderer::RenderView (player_t* player)
 
 	// I stopped using BaseRatioSizes here because the information there wasn't well presented.
 	#define RMUL (1.6f/1.333333f)
-	static float ratios[]={RMUL*1.333333f, RMUL*1.777777f, RMUL*1.6f, RMUL*1.333333f, RMUL*1.2f};
+	static float ratios[]={RMUL*1.333333f, RMUL*1.777777f, RMUL*1.6f, RMUL*1.333333f, RMUL*1.25f};
 
 	// now render the main view
 	float fovratio;
