@@ -70,6 +70,7 @@
 #include "cmdlib.h"
 #include "m_png.h"
 #include "p_setup.h"
+#include "po_man.h"
 // [BB] New #includes.
 #include "announcer.h"
 #include "deathmatch.h"
@@ -3524,6 +3525,8 @@ enum EACSFunctions
 	ACSF_SoundSequenceOnActor,
 	ACSF_SoundSequenceOnSector,
 	ACSF_SoundSequenceOnPolyobj,
+	ACSF_GetPolyobjX,
+	ACSF_GetPolyobjY,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	// [BB] Skulltag functions
@@ -3938,6 +3941,26 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				}
 			}
 			break;
+
+		case ACSF_GetPolyobjX:
+			{
+				FPolyObj *poly = PO_GetPolyobj(args[0]);
+				if (poly != NULL)
+				{
+					return poly->StartSpot.x;
+				}
+			}
+			return FIXED_MAX;
+
+		case ACSF_GetPolyobjY:
+			{
+				FPolyObj *poly = PO_GetPolyobj(args[0]);
+				if (poly != NULL)
+				{
+					return poly->StartSpot.y;
+				}
+			}
+			return FIXED_MAX;
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:
