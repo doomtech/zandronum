@@ -346,7 +346,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 		// north
 		tex = FMaterial::ValidateTexture(sb->faces[0]);
-		tex->BindPatch(CM_Index, 0);
+		tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
@@ -361,7 +361,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 		// east
 		tex = FMaterial::ValidateTexture(sb->faces[1]);
-		tex->BindPatch(CM_Index, 0);
+		tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
@@ -376,7 +376,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 		// south
 		tex = FMaterial::ValidateTexture(sb->faces[2]);
-		tex->BindPatch(CM_Index, 0);
+		tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
@@ -391,7 +391,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 		// west
 		tex = FMaterial::ValidateTexture(sb->faces[3]);
-		tex->BindPatch(CM_Index, 0);
+		tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
 		gl.TexCoord2f(0, 0);
@@ -409,7 +409,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 		faces=1;
 		// all 4 sides
 		tex = FMaterial::ValidateTexture(sb->faces[0]);
-		tex->BindPatch(CM_Index, 0);
+		tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_FAN);
@@ -462,7 +462,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 	// top
 	tex = FMaterial::ValidateTexture(sb->faces[faces]);
-	tex->BindPatch(CM_Index, 0);
+	tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	if (!sb->fliptop)
@@ -492,7 +492,7 @@ static void RenderBox(FTextureID texno, FMaterial * gltex, float x_offset, int C
 
 	// bottom
 	tex = FMaterial::ValidateTexture(sb->faces[faces+1]);
-	tex->BindPatch(CM_Index, 0);
+	tex->Bind(CM_Index, GLT_CLAMPX|GLT_CLAMPY, 0);
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.TexCoord2f(0, 0);

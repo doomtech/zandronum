@@ -123,7 +123,7 @@ bool FSkyBox::UseBasePalette()
 
 void FSkyBox::Unload () 
 {
-	for(int i=0;i<6;i++) if (faces[i]) faces[i]->Unload();
+	//for(int i=0;i<6;i++) if (faces[i]) faces[i]->Unload();
 }
 
 //-----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ void FSkyBox::Unload ()
 
 void FSkyBox::PrecacheGL()
 {
-	for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
+	//for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
 }
 
 //-----------------------------------------------------------------------------

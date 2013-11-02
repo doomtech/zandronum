@@ -780,6 +780,8 @@ void gl_ParseObject(FScanner &sc)
 	// get name
 	sc.GetString();
 	name = sc.String;
+	if (!PClass::FindClass(name))
+		sc.ScriptMessage("Warning: dynamic lights attached to non-existent actor %s\n", name.GetChars());
 
 	// check for opening brace
 	sc.GetString();

@@ -47,6 +47,7 @@ public:
 	void GetFlash(PalEntry &rgb, int &amount);
 	int GetPageCount();
 	bool Begin2D(bool copy3d);
+	void GetHitlist(BYTE *hitlist);
 
 	// Retrieves a buffer containing image data for a screenshot.
 	// Hint: Pitch can be negative for upside-down images, in which case buffer

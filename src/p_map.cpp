@@ -1231,7 +1231,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 					S_Sound (tm.thing, CHAN_BODY, "misc/ripslop", 1, ATTN_IDLE);
 
 					// Do poisoning (if using new style poison)
-					if (tm.thing->PoisonDuration != INT_MIN)
+					if (tm.thing->PoisonDamage > 0 && tm.thing->PoisonDuration != INT_MIN)
 					{
 						P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod);
 					}
@@ -1261,7 +1261,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		}
 
 		// Do poisoning (if using new style poison)
-		if (tm.thing->PoisonDuration != INT_MIN)
+		if (tm.thing->PoisonDamage > 0 && tm.thing->PoisonDuration != INT_MIN)
 		{
 			P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod);
 		}
@@ -4468,7 +4468,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			}
 
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
-			if (puffDefaults->PoisonDuration != INT_MIN)
+			if (puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 			{
 				P_PoisonMobj(trace.Actor, puff ? puff : t1, t1, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod);
 			}
@@ -4868,7 +4868,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 
-				if (puffDefaults && puffDefaults->PoisonDuration != INT_MIN)
+			if (puffDefaults && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 					P_PoisonMobj(RailHits[i].HitActor, thepuff ? thepuff : source, source, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod);
 
 				// Support for instagib.

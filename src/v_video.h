@@ -410,6 +410,7 @@ public:
 	virtual FNativePalette *CreatePalette(FRemapTable *remap);
 
 	// Precaches or unloads a texture
+	virtual void GetHitlist(BYTE *hitlist);
 	virtual void PrecacheTexture(FTexture *tex, int cache);
 
 	// Screen wiping
