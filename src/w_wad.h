@@ -212,6 +212,9 @@ public:
 	// [BB] Returns the number of the wad this given lump is in.
 	int GetWadnumFromLumpnum ( int lumpnum ) const;
 
+	// [BB] Returns the number of the wad with the given full name.
+	int GetWadnumFromWadFullName ( const char *FullName ) const;
+
 protected:
 
 	struct LumpRecord;

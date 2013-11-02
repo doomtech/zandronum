@@ -1218,6 +1218,26 @@ int FWadCollection::GetWadnumFromLumpnum( int lumpnum ) const
 
 //==========================================================================
 //
+// [BB] GetWadnumFromWadFullName
+//
+// Returns the number of the wad with the given full name.
+// Returns a negative value if no wad with this name is loaded.
+//
+//==========================================================================
+
+int FWadCollection::GetWadnumFromWadFullName ( const char *FullName ) const
+{
+	for ( unsigned int i = 0; i < Files.Size( ); ++i )
+	{
+		if ( strcmp ( Files[i]->Filename, FullName ) == 0 )
+			return ( i );
+	}
+
+	return -1;
+}
+
+//==========================================================================
+//
 // IsUncompressedFile
 //
 // Returns true when the lump is available as an uncompressed portion of

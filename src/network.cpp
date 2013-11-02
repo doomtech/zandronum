@@ -956,6 +956,22 @@ bool network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *
 	NETWORK_GenerateLumpMD5Hash( LumpNum, MD5Hash );
 
 	int wadNum = Wads.GetWadnumFromLumpnum ( LumpNum );
+
+	// [BB] Check whether this wad is embedded in another file. In this case,
+	// we have to check whether the containing file was loaded automatically.
+	if ( wadNum >= 0 )
+	{
+		FString wadName = Wads.GetWadFullName( wadNum );
+		int index = wadName.LastIndexOf ( ":" );
+		if ( index > wadName.LastIndexOf ( ":/" ) )
+		{
+			wadName.Truncate (index);
+			int containerWadNum = Wads.GetWadnumFromWadFullName ( wadName );
+			if ( containerWadNum >= 0 )
+				wadNum = containerWadNum;
+		}
+	}
+
 	if ( ( wadNum >= 0 ) && Wads.GetLoadedAutomatically ( wadNum ) )
 	{
 		Printf ( PRINT_BOLD, "%s contains protected lump %s\n", Wads.GetWadFullName( wadNum ), LumpName );
