@@ -120,7 +120,7 @@ void DrawHUD_CoopInfo()
 {
 	// [BB] Only draw the info if the user wishes to see it (cl_drawcoopinfo)
 	// and if this is a cooperative or team based game mode. Further don't draw this in single player.
-	if ( ( cl_drawcoopinfo == false ) || ( dmflags3 & DF3_NO_COOP_INFO )
+	if ( ( cl_drawcoopinfo == false ) || ( zadmflags & ZADF_NO_COOP_INFO )
 		|| ! ( (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
 			|| (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS) )
 		|| NETWORK_GetState() == NETSTATE_SINGLE )

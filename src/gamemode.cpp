@@ -579,7 +579,7 @@ bool GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void )
 		if (( teamlms || lastmanstanding ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
 			return true;
 
-		if ( ( dmflags3 & DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS ) && GAMEMODE_IsGameInProgress() )
+		if ( ( zadmflags & ZADF_ALWAYS_APPLY_LMS_SPECTATORSETTINGS ) && GAMEMODE_IsGameInProgress() )
 			return true;
 	}
 

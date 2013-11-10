@@ -1291,7 +1291,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	if ( lastmanstanding || teamlms )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
-	// [BB] Due to DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS, this is necessary in all game modes.
+	// [BB] Due to ZADF_ALWAYS_APPLY_LMS_SPECTATORSETTINGS, this is necessary in all game modes.
 	SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.
@@ -5616,7 +5616,7 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	if ( lastmanstanding || teamlms )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
-	// [BB] Due to DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS, this is necessary in all game modes.
+	// [BB] Due to ZADF_ALWAYS_APPLY_LMS_SPECTATORSETTINGS, this is necessary in all game modes.
 	SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is CTF or ST, tell the client whether or not we're in simple mode.

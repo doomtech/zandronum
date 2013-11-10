@@ -582,7 +582,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 5 );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags2 );
-		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags3 );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, zadmflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags );
 		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, zacompatflags );
 	}

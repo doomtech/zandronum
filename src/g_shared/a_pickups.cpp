@@ -1152,7 +1152,7 @@ void AInventory::Touch (AActor *toucher)
 		SCOREBOARD_RefreshHUD( );
 
 	// [Dusk] If it's a key and we wish to share it, tell other players we got it
-	if ( dmflags3 & DF3_SHARE_KEYS &&
+	if ( zadmflags & ZADF_SHARE_KEYS &&
 		NETWORK_GetState( ) == NETSTATE_SERVER &&
 		IsKindOf( RUNTIME_CLASS( AKey )) &&
 		toucher->player )

@@ -1574,7 +1574,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	}
 
 	// [Dusk] If we are sharing keys, give this player the keys other players have.
-	if (( dmflags3 & DF3_SHARE_KEYS ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+	if (( zadmflags & ZADF_SHARE_KEYS ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 	{
 		for ( int i = 0; i < MAXPLAYERS; ++i )
 		{

@@ -67,13 +67,13 @@
 //[BL] New Include
 #include "domination.h"
 
-// [BB] Helper function to handle DF3_UNBLOCK_PLAYERS.
+// [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
 bool ActorHasThruspecies ( const AActor *pActor )
 {
 	if ( pActor == NULL )
 		return false;
 
-	if ( ( dmflags3 & DF3_UNBLOCK_PLAYERS ) && ( pActor->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) )
+	if ( ( zadmflags & ZADF_UNBLOCK_PLAYERS ) && ( pActor->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) )
 		return true;
 
 	return !!( pActor->flags6 & MF6_THRUSPECIES );
@@ -940,7 +940,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	if ((thing->flags2 | tm.thing->flags2) & MF2_THRUACTORS) 
 		return true;
 
-	// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+	// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
 	if (ActorHasThruspecies(tm.thing) && (tm.thing->GetSpecies() == thing->GetSpecies()))
 		return true;
 
@@ -1918,7 +1918,7 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 		{
 			continue;
 		}
-		// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
 		if (ActorHasThruspecies(actor) && (thing->GetSpecies() == actor->GetSpecies()))
 		{
 			continue;
@@ -6169,7 +6169,7 @@ int P_PushUp (AActor *thing, FChangePosition *cpos)
 		// Should there be MF2_THRUGHOST / MF3_GHOST checks there too for consistency?
 		// Or would that risk breaking established behavior? THRUGHOST, like MTHRUSPECIES,
 		// is normally for projectiles which would have exploded by now anyway...
-		// [BB] Adapted this for DF3_UNBLOCK_PLAYERS.
+		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
 		if (ActorHasThruspecies(thing) && thing->GetSpecies() == intersect->GetSpecies())
 			continue;
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||

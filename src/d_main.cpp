@@ -545,11 +545,11 @@ CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 
 //==========================================================================
 //
-// [BB] CVAR dmflags3
+// [BB] CVAR zadmflags
 //
 //==========================================================================
 
-CUSTOM_CVAR (Int, dmflags3, 0, CVAR_SERVERINFO)
+CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO)
 {
 	// [BB] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
@@ -559,12 +559,12 @@ CUSTOM_CVAR (Int, dmflags3, 0, CVAR_SERVERINFO)
 	}
 }
 
-CVAR (Flag, sv_noidentifytarget,			dmflags3, DF3_NO_IDENTIFY_TARGET);
-CVAR (Flag, sv_applylmsspectatorsettings,	dmflags3, DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS);
-CVAR (Flag, sv_nocoopinfo,			dmflags3, DF3_NO_COOP_INFO);
-CVAR (Flag, sv_unblockplayers,			dmflags3, DF3_UNBLOCK_PLAYERS);
-CVAR (Flag, sv_nomedals,			dmflags3, DF3_NO_MEDALS);
-CVAR (Flag, sv_sharekeys,			dmflags3, DF3_SHARE_KEYS);
+CVAR (Flag, sv_noidentifytarget,			zadmflags, ZADF_NO_IDENTIFY_TARGET);
+CVAR (Flag, sv_applylmsspectatorsettings,	zadmflags, ZADF_ALWAYS_APPLY_LMS_SPECTATORSETTINGS);
+CVAR (Flag, sv_nocoopinfo,			zadmflags, ZADF_NO_COOP_INFO);
+CVAR (Flag, sv_unblockplayers,			zadmflags, ZADF_UNBLOCK_PLAYERS);
+CVAR (Flag, sv_nomedals,			zadmflags, ZADF_NO_MEDALS);
+CVAR (Flag, sv_sharekeys,			zadmflags, ZADF_SHARE_KEYS);
 
 //==========================================================================
 //

@@ -3,9 +3,10 @@
   ZANDRONUM Launcher Protocol
   ==========================
 
-  v0.59
+  v0.60
 
   Version history:
+    - v0.60: Renamed dmflags3 to zadmflags [Torr Samaho]
     - v0.59: Renamed compatflags2 to zacompatflags [Torr Samaho]
     - v0.58: Added SQF_SECURITY_SETTINGS [Torr Samaho]
     - v0.57: Added SQF_ALL_DMFLAGS [Torr Samaho]
@@ -224,7 +225,7 @@ Followed by:
                                     (skulltag.wad/skulltag_data.pk3) the server uses.
   Byte    SQF_ALL_DMFLAGS       The number of flags that will be sent.
   Long    SQF_ALL_DMFLAGS       The value of the flags (Sent for each flag in the order
-                                    dmflags, dmflags2, dmflags3, compatflags, zacompatflags)
+                                    dmflags, dmflags2, zadmflags, compatflags, zacompatflags)
   Byte    SQF_SECURITY_SETTINGS Whether the server is enforcing the master ban list - true (1) / false (0)
                                     The other bits of this byte may be used to transfer other 
                                     security related settings in the future.

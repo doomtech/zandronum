@@ -7880,9 +7880,9 @@ static void client_SetGameDMFlags( BYTESTREAM_s *pByteStream )
 	Value.Int = NETWORK_ReadLong( pByteStream );
 	zacompatflags.ForceSet( Value, CVAR_Int );
 
-	// [BB] ... and dmflags3.
+	// [BB] ... and zadmflags.
 	Value.Int = NETWORK_ReadLong( pByteStream );
-	dmflags3.ForceSet( Value, CVAR_Int );
+	zadmflags.ForceSet( Value, CVAR_Int );
 }
 
 //*****************************************************************************

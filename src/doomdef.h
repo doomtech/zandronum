@@ -330,25 +330,25 @@ enum
 enum
 {
 	// [BB] Enforces clients not to identify players, i.e. behave as if cl_identifytarget == 0.
-	DF3_NO_IDENTIFY_TARGET		= 1 << 0,
+	ZADF_NO_IDENTIFY_TARGET		= 1 << 0,
 
 	// [BB] Apply lmsspectatorsettings in all game modes.
-	DF3_ALWAYS_APPLY_LMS_SPECTATORSETTINGS		= 1 << 1,
+	ZADF_ALWAYS_APPLY_LMS_SPECTATORSETTINGS		= 1 << 1,
 
 	// [BB] Enforces clients not to draw coop info, i.e. behave as if cl_drawcoopinfo == 0.
-	DF3_NO_COOP_INFO		= 1 << 2,
+	ZADF_NO_COOP_INFO		= 1 << 2,
 
 	// [Spleen] Don't use ping-based backwards reconciliation for player-fired hitscans and rails.
-	DF3_NOUNLAGGED			= 1 << 3,
+	ZADF_NOUNLAGGED			= 1 << 3,
 
 	// [BB] Handle player bodies as if they had MF6_THRUSPECIES.
-	DF3_UNBLOCK_PLAYERS			= 1 << 4,
+	ZADF_UNBLOCK_PLAYERS			= 1 << 4,
 
 	// [BB] Enforces clients not to show medals, i.e. behave as if cl_medals == 0.
-	DF3_NO_MEDALS			= 1 << 5,
+	ZADF_NO_MEDALS			= 1 << 5,
 
 	// [Dusk] Share keys between all players
-	DF3_SHARE_KEYS			= 1 << 6,
+	ZADF_SHARE_KEYS			= 1 << 6,
 };
 
 // [RH] Compatibility flags.
