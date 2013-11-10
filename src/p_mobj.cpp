@@ -4449,7 +4449,7 @@ void ACTOR_RebuildNetIDList( void )
 
 	while ( (pActor = it.Next()) )
 	{
-		if ( pActor->lNetID > 0 )
+		if (( pActor->lNetID > 0 ) && ( pActor->lNetID < MAX_NETID ))
 		{
 			g_NetIDList[pActor->lNetID].bFree = false;
 			g_NetIDList[pActor->lNetID].pActor = pActor;
