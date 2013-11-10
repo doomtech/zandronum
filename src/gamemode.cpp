@@ -537,7 +537,7 @@ void GAMEMODE_ResetPlayersKillCount( const bool bInformClients )
 	{
 		players[ulIdx].killcount = 0;
 		players[ulIdx].ulRailgunShots = 0;
-		// [BB] Also reset the things for DF2_AWARD_DAMAGE_INSTEAD_KILLS.
+		// [BB] Also reset the things for ZADF_AWARD_DAMAGE_INSTEAD_KILLS.
 		players[ulIdx].lPointCount = 0;
 		players[ulIdx].ulUnrewardedDamageDealt = 0;
 

@@ -213,7 +213,7 @@ IDD_DMFLAGS_COOP DIALOGEX 1, 13, 342, 181
 STYLE DS_CONTROL | DS_SHELLFONT | WS_CHILDWINDOW
 FONT 8, "Tahoma", 0, 0, 1
 {
-    AUTOCHECKBOX    "Count damage done, not kills", IDC_DF2_AWARD_DAMAGE_INSTEAD_KILLS, 15, 15, 109, 10
+    AUTOCHECKBOX    "Count damage done, not kills", IDC_ZADF_AWARD_DAMAGE_INSTEAD_KILLS, 15, 15, 109, 10
     AUTOCHECKBOX    "Don't spawn Deathmatch weapons", IDC_NO_COOP_MP_WEAPON_SPAWN, 20, 50, 127, 10
     AUTOCHECKBOX    "are fast (like Nightmare)", IDC_FAST_MONSTERS, 28, 81, 93, 10
     AUTOCHECKBOX    "respawn (like Nightmare)", IDC_MONSTERS_RESPAWN, 28, 91, 95, 10
@@ -270,7 +270,7 @@ FONT 8, "Tahoma", 0, 0, 1
     AUTOCHECKBOX    "Mega powerups respawn", IDC_RESPAWN_SUPER, 45, 86, 96, 10
     AUTOCHECKBOX    "Server picks teams", IDC_NO_TEAM_SELECT, 199, 24, 76, 10
     AUTOCHECKBOX    "Players can't switch teams", IDC_NO_TEAM_SWITCH, 215, 35, 100, 10
-    AUTOCHECKBOX    "Keep teams after a map change", IDC_DF2_YES_KEEP_TEAMS, 215, 45, 118, 10
+    AUTOCHECKBOX    "Keep teams after a map change", IDC_ZADF_YES_KEEP_TEAMS, 215, 45, 118, 10
     AUTOCHECKBOX    "Hide allies on the automap", IDC_DF2_NO_AUTOMAP_ALLIES, 199, 60, 100, 10
     AUTOCHECKBOX    "Don't let players spy on allies", IDC_DF2_DISALLOW_SPYING, 215, 70, 109, 10
     AUTOCHECKBOX    "Instant flag/skull return", IDC_INSTANT_RETURN, 200, 88, 91, 10
@@ -316,13 +316,13 @@ FONT 8, "Tahoma", 0, 0, 1
 {
     AUTOCHECKBOX    "Suicide", IDC_DF2_NOSUICIDE, 25, 24, 38, 10
     AUTOCHECKBOX    "Respawn", IDC_DF2_NO_RESPAWN, 25, 34, 45, 10
-    AUTOCHECKBOX    "Rocket jump", IDC_DF2_NO_ROCKET_JUMPING, 25, 44, 55, 10
+    AUTOCHECKBOX    "Rocket jump", IDC_ZADF_NO_ROCKET_JUMPING, 25, 44, 55, 10
     AUTOCHECKBOX    "Taunt", IDC_DISABLETAUNTS, 25, 54, 35, 10
     AUTOCHECKBOX    "Use automap", IDC_DF2_NO_AUTOMAP, 25, 68, 58, 10
     AUTOCHECKBOX    "Can use chasecam", IDC_DF2_CHASECAM, 195, 99, 75, 10
     AUTOCHECKBOX    "Use crosshairs", IDC_COMPATF_NO_CROSSHAIR, 25, 78, 62, 10
-    AUTOCHECKBOX    "Use custom GL lighting settings", IDC_DF2_FORCE_GL_DEFAULTS, 25, 88, 115, 10
-    AUTOCHECKBOX    "Turn off translucency", IDC_DF2_FORCE_ALPHA, 25, 98, 85, 10
+    AUTOCHECKBOX    "Use custom GL lighting settings", IDC_ZADF_FORCE_GL_DEFAULTS, 25, 88, 115, 10
+    AUTOCHECKBOX    "Turn off translucency", IDC_ZADF_FORCE_ALPHA, 25, 98, 85, 10
     AUTOCHECKBOX    "Use autoaim", IDC_DF2_NOAUTOAIM, 25, 114, 55, 10
     AUTOCHECKBOX    "Use FOV", IDC_NO_FOV, 25, 124, 43, 10
     AUTOCHECKBOX    "Use freelook", IDC_NO_FREELOOK, 25, 134, 56, 10

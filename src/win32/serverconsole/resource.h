@@ -161,9 +161,9 @@
 #define IDC_DF2_CHASECAM                        2258
 #define IDC_DF2_NOSUICIDE                       2259
 #define IDC_DF2_NOAUTOAIM                       2260
-#define IDC_DF2_FORCE_GL_DEFAULTS               2261
-#define IDC_DF2_NO_ROCKET_JUMPING               2262
-#define IDC_DF2_FORCE_ALPHA                     2264
+#define IDC_ZADF_FORCE_GL_DEFAULTS              2261
+#define IDC_ZADF_NO_ROCKET_JUMPING              2262
+#define IDC_ZADF_FORCE_ALPHA                    2264
 #define IDC_COMPATF_SILENT_INSTANT_FLOORS       2275
 #define IDC_COMPATF_SECTORSOUNDS                2276
 #define IDC_COMPATF_MISSILECLIP                 2277
@@ -175,7 +175,7 @@
 #define IDC_DMF_JUMPING                         2286
 #define IDC_DMF_CROUCHING                       2288
 #define IDC_FALLINGDAMAGE                       2289
-#define IDC_DF2_AWARD_DAMAGE_INSTEAD_KILLS      2290
+#define IDC_ZADF_AWARD_DAMAGE_INSTEAD_KILLS     2290
 #define IDC_SPAWN_FARTHEST                      2300
 #define IDC_STAIRINDEX                          2305
 #define IDC_USEBLOCKING                         2318
@@ -188,7 +188,7 @@
 #define IDC_NO_TEAM_SWITCH                      2423
 #define IDC_NO_TEAM_SELECT                      2424
 #define IDC_INSTANT_RETURN                      2425
-#define IDC_DF2_YES_KEEP_TEAMS                  2426
+#define IDC_ZADF_YES_KEEP_TEAMS                 2426
 #define IDC_DISABLETAUNTS                       2429
 #define IDC_WEAPONS_STAY                        2432
 #define IDC_NO_RUNES                            2433

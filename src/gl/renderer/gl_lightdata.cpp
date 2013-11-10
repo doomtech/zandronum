@@ -138,7 +138,7 @@ CUSTOM_CVAR(Int, gl_lightmode, 3 ,CVAR_ARCHIVE|CVAR_NOINITCALL)
 	if (self == 2 && gl.shadermodel == 2) self = 3;
 
 	// [BB] Enforce Doom lighting if requested by the dmflags.
-	if ( dmflags2 & DF2_FORCE_GL_DEFAULTS )
+	if ( zadmflags & ZADF_FORCE_GL_DEFAULTS )
 		glset.lightmode = 3;
 	else
 		glset.lightmode = self;
@@ -269,7 +269,7 @@ PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor)
 
 // [BB]
 int gl_GetLightMode () {
-	return ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 3 : gl_lightmode;
+	return ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 3 : gl_lightmode;
 }
 
 //==========================================================================
@@ -280,9 +280,9 @@ int gl_GetLightMode () {
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon)
 {
 	// [BB] This construction purposely overrides the CVAR gl_light_ambient with a local variable of the same name.
-	// This allows to implement DF2_FORCE_GL_DEFAULTS without any further changes in this function.
+	// This allows to implement ZADF_FORCE_GL_DEFAULTS without any further changes in this function.
 	const float gl_light_ambient_CVAR_value = gl_light_ambient;
-	const float gl_light_ambient = ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
+	const float gl_light_ambient = ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
 
 	float & r=*pred,& g=*pgreen,& b=*pblue;
 	int torch=0;
@@ -443,10 +443,10 @@ void gl_SetShaderLight(float level, float olight)
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isadditive)
 {
 	// [BB] This construction purposely overrides the CVAR gl_light_ambient with a local variable of the same name.
-	// This allows to implement DF2_FORCE_GL_DEFAULTS without any further changes in this function.
+	// This allows to implement ZADF_FORCE_GL_DEFAULTS without any further changes in this function.
 	const float gl_light_ambient_CVAR_value = gl_light_ambient;
-	const float gl_light_ambient = ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
-	// [BB] Take care of gl_fogmode and DF2_FORCE_GL_DEFAULTS.
+	const float gl_light_ambient = ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
+	// [BB] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	PalEntry fogcolor;

@@ -102,6 +102,7 @@ static	ULONG			g_ulCompatFlags;
 static	ULONG			g_ulCompatFlags2;
 static	ULONG			g_ulDMFlags;
 static	ULONG			g_ulDMFlags2;
+static	ULONG			g_ulZADMFlags;
 static	ULONG			g_ulLMSAllowedWeapons;
 static	ULONG			g_ulLMSSpectatorSettings;
 
@@ -147,7 +148,7 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ DF2_NO_RESPAWN_INVUL,				IDC_NO_RESPAWN_INVUL,			&g_ulDMFlags2, },
 	{ DF2_COOP_SHOTGUNSTART,			IDC_SHOTGUN_START,				&g_ulDMFlags2, },
 	{ DF2_SAME_SPAWN_SPOT,				IDC_SAME_SPAWN_SPOT,			&g_ulDMFlags2, },
-	{ DF2_YES_KEEP_TEAMS,				IDC_DF2_YES_KEEP_TEAMS,			&g_ulDMFlags2, },
+	{ ZADF_YES_KEEP_TEAMS,				IDC_ZADF_YES_KEEP_TEAMS,		&g_ulZADMFlags, },
 	{ DF2_YES_KEEPFRAGS,				IDC_DF2_YES_KEEP_FRAGS,			&g_ulDMFlags2, },
 	{ DF2_NO_RESPAWN,					IDC_DF2_NO_RESPAWN,				&g_ulDMFlags2, },
 	{ DF2_YES_LOSEFRAG,					IDC_DF2_YES_LOSEFRAG,			&g_ulDMFlags2, },
@@ -159,11 +160,11 @@ static	FLAGMAPPING_t	g_Flags[NUMBER_OF_FLAGS] =
 	{ DF2_CHASECAM,						IDC_DF2_CHASECAM,				&g_ulDMFlags2, },
 	{ DF2_NOSUICIDE,					IDC_DF2_NOSUICIDE,				&g_ulDMFlags2, },
 	{ DF2_NOAUTOAIM,					IDC_DF2_NOAUTOAIM,				&g_ulDMFlags2, },
-	{ DF2_FORCE_GL_DEFAULTS,			IDC_DF2_FORCE_GL_DEFAULTS,		&g_ulDMFlags2, },
-	{ DF2_NO_ROCKET_JUMPING,			IDC_DF2_NO_ROCKET_JUMPING,		&g_ulDMFlags2, },
-	{ DF2_AWARD_DAMAGE_INSTEAD_KILLS,	IDC_DF2_AWARD_DAMAGE_INSTEAD_KILLS,	&g_ulDMFlags2, },
-	{ DF2_FORCE_ALPHA,					IDC_DF2_FORCE_ALPHA,			&g_ulDMFlags2, },
-	{ DF2_COOP_SP_ACTOR_SPAWN,			NULL,							&g_ulDMFlags2, },
+	{ ZADF_FORCE_GL_DEFAULTS,			IDC_ZADF_FORCE_GL_DEFAULTS,		&g_ulZADMFlags, },
+	{ ZADF_NO_ROCKET_JUMPING,			IDC_ZADF_NO_ROCKET_JUMPING,		&g_ulZADMFlags, },
+	{ ZADF_AWARD_DAMAGE_INSTEAD_KILLS,	IDC_ZADF_AWARD_DAMAGE_INSTEAD_KILLS,	&g_ulZADMFlags, },
+	{ ZADF_FORCE_ALPHA,					IDC_ZADF_FORCE_ALPHA,			&g_ulZADMFlags, },
+	{ ZADF_COOP_SP_ACTOR_SPAWN,			NULL,							&g_ulZADMFlags, },
 	{ COMPATF_SHORTTEX,					IDC_SHORTTEX,					&g_ulCompatFlags, },
 	{ COMPATF_STAIRINDEX,				IDC_STAIRINDEX,					&g_ulCompatFlags, },
 	{ COMPATF_LIMITPAIN,				IDC_LIMITPAIN,					&g_ulCompatFlags, },
@@ -292,6 +293,7 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			g_hDlg = hDlg;
 			g_ulDMFlags = dmflags;
 			g_ulDMFlags2 = dmflags2;
+			g_ulZADMFlags = zadmflags;
 			g_ulCompatFlags = compatflags;
 			g_ulCompatFlags2 = zacompatflags;
 			g_ulLMSAllowedWeapons = lmsallowedweapons;
@@ -369,6 +371,8 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 				dmflags = g_ulDMFlags;
 			if ( dmflags2 != g_ulDMFlags2 )
 				dmflags2 = g_ulDMFlags2;
+			if ( zadmflags != g_ulZADMFlags )
+				zadmflags = g_ulZADMFlags;
 			if ( compatflags != g_ulCompatFlags )
 				compatflags = g_ulCompatFlags;
 			if ( zacompatflags != g_ulCompatFlags2 )

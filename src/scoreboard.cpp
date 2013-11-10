@@ -2872,7 +2872,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 //
 static void scoreboard_SetColumnZeroToKillsAndSortPlayers( void )
 {
-	if ( dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS )
+	if ( zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS )
 	{
 		g_aulColumnType[0] = COLUMN_POINTS;
 

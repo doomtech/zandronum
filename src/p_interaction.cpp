@@ -1572,7 +1572,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 
 	// [BB] Save the damage the player has dealt to monsters here, it's only converted to points
-	// though if DF2_AWARD_DAMAGE_INSTEAD_KILLS is set.
+	// though if ZADF_AWARD_DAMAGE_INSTEAD_KILLS is set.
 	if ( source && source->player
 	     && ( target->player == false )
 	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT )
@@ -2907,7 +2907,7 @@ LONG PLAYER_GetRailgunColor( player_t *pPlayer )
 //
 void PLAYER_AwardDamagePointsForAllPlayers( void )
 {
-	if ( (dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS)
+	if ( (zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS)
 		&& (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS) )
 	{
 		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

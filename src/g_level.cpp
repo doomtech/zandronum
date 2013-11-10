@@ -1113,8 +1113,8 @@ void G_DoLoadLevel (int position, bool autosave)
 	{
 		// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
 		const level_info_t *info = FindLevelInfo (level.mapname);
-		// [BB] We clear the teams if either DF2_YES_KEEP_TEAMS is not on or if the new level is a lobby.
-		const bool bClearTeams = ( !(dmflags2 & DF2_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
+		// [BB] We clear the teams if either ZADF_YES_KEEP_TEAMS is not on or if the new level is a lobby.
+		const bool bClearTeams = ( !(zadmflags & ZADF_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
 
 		if ( bClearTeams )
 		{

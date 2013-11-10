@@ -1823,7 +1823,7 @@ void SERVERCONSOLE_SetupColumns( void )
 			ColumnData.pszText = "Wins";
 		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 			ColumnData.pszText = "Frags";
-		else if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS ) && ( dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS )))
+		else if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS ) && ( zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS )))
 			ColumnData.pszText = "Points";
 		else
 			ColumnData.pszText = "Kills";
@@ -1927,7 +1927,7 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 			else
 				sprintf( szString, "%d", players[lPlayer].fragcount );
 		}
-		else if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS ) && ( dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS )))
+		else if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS ) && ( zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS )))
 			sprintf( szString, "%ld", players[lPlayer].lPointCount );
 		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
 			sprintf( szString, "%d", players[lPlayer].fragcount );

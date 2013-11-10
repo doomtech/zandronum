@@ -22,15 +22,15 @@ extern int 				numgamesubsectors;
 // External entry points for the GL renderer
 void gl_PreprocessLevel();
 void gl_CleanLevelData();
-// [BB] Get value of gl_lightmode, respecting DF2_FORCE_GL_DEFAULTS.
+// [BB] Get value of gl_lightmode, respecting ZADF_FORCE_GL_DEFAULTS.
 int gl_GetLightMode ( );
 
 // [BB] This construction purposely overrides the CVAR gl_fogmode with a local variable of the same name.
-// This allows to implement DF2_FORCE_GL_DEFAULTS by only putting this define at the beginning of a function
+// This allows to implement ZADF_FORCE_GL_DEFAULTS by only putting this define at the beginning of a function
 // that uses gl_fogmode without any further changes in that function.
 #define OVERRIDE_FOGMODE_IF_NECESSARY \
 	const int gl_fogmode_CVAR_value = gl_fogmode; \
-	const int gl_fogmode = ( ( dmflags2 & DF2_FORCE_GL_DEFAULTS ) && ( gl_fogmode_CVAR_value == 0 ) ) ? 1 : gl_fogmode_CVAR_value;
+	const int gl_fogmode = ( ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) && ( gl_fogmode_CVAR_value == 0 ) ) ? 1 : gl_fogmode_CVAR_value;
 
 void gl_LinkLights();
 void gl_SetActorLights(AActor *);

@@ -5783,8 +5783,8 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 								thing->vely += fixed_t (finesine[ang] * thrust);
 							}
 
-							// [BB] If DF2_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
-							if ( ( (dmflags2 & DF2_NO_ROCKET_JUMPING) == false ) ||
+							// [BB] If ZADF_NO_ROCKET_JUMPING is on, don't give players any z-momentum if the attack was made by a player.
+							if ( ( (zadmflags & ZADF_NO_ROCKET_JUMPING) == false ) ||
 								( bombsource == NULL ) || ( bombsource->player == NULL ) || ( thing->player == NULL ) )
 							{
 								if (bombdodamage)

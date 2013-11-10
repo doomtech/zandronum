@@ -292,41 +292,22 @@ enum
 	DF2_NO_RESPAWN_INVUL	= 1 << 10,	// No respawn invulnerability.
 	DF2_COOP_SHOTGUNSTART	= 1 << 11,	// All playres start with a shotgun when they respawn
 	DF2_SAME_SPAWN_SPOT		= 1 << 12,	// Players respawn in the same place they died (co-op)
-
-	// [BB] I don't want to change the dmflag numbers compared to 97D.
-	DF2_YES_KEEP_TEAMS		= 1 << 13,	// Player keeps his team after a map change.
-
-	DF2_YES_KEEPFRAGS		= 1 << 14,	// Don't clear frags after each level
-	DF2_NO_RESPAWN			= 1 << 15,	// Player cannot respawn
-	DF2_YES_LOSEFRAG		= 1 << 16,	// Lose a frag when killed. More incentive to try to not get yerself killed
-	DF2_INFINITE_INVENTORY	= 1 << 17,	// Infinite inventory.
-	DF2_KILL_MONSTERS		= 1 << 22,	// All monsters must be killed before the level exits.
-	DF2_NO_AUTOMAP			= 1 << 23,	// Players are allowed to see the automap.
-	DF2_NO_AUTOMAP_ALLIES	= 1 << 24,	// Allies can been seen on the automap.
-	DF2_DONTCHECKAMMO		= 1 << 30,	// Don't Check ammo when switching weapons.
-	DF2_KILLBOSSMONST		= 1 << 31,	// Kills all monsters spawned by a boss cube when the boss dies
-	DF2_DISALLOW_SPYING		= 1 << 25,	// You can spy on your allies.
-	DF2_CHASECAM			= 1 << 26,	// Players can use the chasecam cheat.
-	DF2_NOSUICIDE			= 1 << 27,	// Players are not allowed to suicide.
-	DF2_NOAUTOAIM			= 1 << 28,	// Players cannot use autoaim.
-
-	// [BB] Enforces some Gl rendering options to their default values.
-	DF2_FORCE_GL_DEFAULTS		= 1 << 18,
-
-	// [BB] P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping.
-	DF2_NO_ROCKET_JUMPING		= 1 << 19,
-
-	// [BB] Award actual damage dealt instead of kills.
-	DF2_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 20,
-
-	// [BB] Enforces clients to display alpha, i.e. render as if r_drawtrans == 1.
-	DF2_FORCE_ALPHA		= 1 << 21,
-
-	// [BB] Spawn map actors in coop as if the game was single player.
-	DF2_COOP_SP_ACTOR_SPAWN		= 1 << 29,
+	DF2_YES_KEEPFRAGS		= 1 << 13,	// Don't clear frags after each level
+	DF2_NO_RESPAWN			= 1 << 14,	// Player cannot respawn
+	DF2_YES_LOSEFRAG		= 1 << 15,	// Lose a frag when killed. More incentive to try to not get yerself killed
+	DF2_INFINITE_INVENTORY	= 1 << 16,	// Infinite inventory.
+	DF2_KILL_MONSTERS		= 1 << 17,	// All monsters must be killed before the level exits.
+	DF2_NO_AUTOMAP			= 1 << 18,	// Players are allowed to see the automap.
+	DF2_NO_AUTOMAP_ALLIES	= 1 << 19,	// Allies can been seen on the automap.
+	DF2_DISALLOW_SPYING		= 1 << 20,	// You can spy on your allies.
+	DF2_CHASECAM			= 1 << 21,	// Players can use the chasecam cheat.
+	DF2_NOSUICIDE			= 1 << 22,	// Players are not allowed to suicide.
+	DF2_NOAUTOAIM			= 1 << 23,	// Players cannot use autoaim.
+	DF2_DONTCHECKAMMO		= 1 << 24,	// Don't Check ammo when switching weapons.
+	DF2_KILLBOSSMONST		= 1 << 25,	// Kills all monsters spawned by a boss cube when the boss dies
 };
 
-// [BB] Even more dmflags...
+// [BB] Zandronum dmflags.
 enum
 {
 	// [BB] Enforces clients not to identify players, i.e. behave as if cl_identifytarget == 0.
@@ -349,6 +330,24 @@ enum
 
 	// [Dusk] Share keys between all players
 	ZADF_SHARE_KEYS			= 1 << 6,
+
+	// [BB] Player keeps his team after a map change.
+	ZADF_YES_KEEP_TEAMS		= 1 << 7,
+
+	// [BB] Enforces some Gl rendering options to their default values.
+	ZADF_FORCE_GL_DEFAULTS		= 1 << 8,
+
+	// [BB] P_RadiusAttack doesn't give players any z-momentum if the attack was made by a player. This essentially disables rocket jumping.
+	ZADF_NO_ROCKET_JUMPING		= 1 << 9,
+
+	// [BB] Award actual damage dealt instead of kills.
+	ZADF_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 10,
+
+	// [BB] Enforces clients to display alpha, i.e. render as if r_drawtrans == 1.
+	ZADF_FORCE_ALPHA		= 1 << 11,
+
+	// [BB] Spawn map actors in coop as if the game was single player.
+	ZADF_COOP_SP_ACTOR_SPAWN		= 1 << 12,
 };
 
 // [RH] Compatibility flags.

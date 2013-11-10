@@ -448,7 +448,7 @@ CVAR (Flag, sv_coop_halveammo,		dmflags, DF_COOP_HALVE_AMMO);
 //
 //==========================================================================
 
-// [BB] Only necessary to handle DF2_FORCE_GL_DEFAULTS.
+// [BB] Only necessary to handle ZADF_FORCE_GL_DEFAULTS.
 #ifndef NO_GL
 EXTERN_CVAR(Int, gl_lightmode)
 #endif
@@ -503,7 +503,7 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 	}
 
 #ifndef NO_GL
-	// [BB] This makes gl_lightmode handle DF2_FORCE_GL_DEFAULTS.
+	// [BB] This makes gl_lightmode handle ZADF_FORCE_GL_DEFAULTS.
 	// [BB] Don't do this on startup since gl.flags is not properly initialized yet.
 	if ( gamestate != GS_STARTUP )
 		gl_lightmode = gl_lightmode;
@@ -531,17 +531,11 @@ CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
 CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
 CVAR (Flag, sv_dontcheckammo,		dmflags2, DF2_DONTCHECKAMMO);
 CVAR (Flag, sv_killbossmonst,		dmflags2, DF2_KILLBOSSMONST);
-CVAR (Flag, sv_forcegldefaults,		dmflags2, DF2_FORCE_GL_DEFAULTS);
-CVAR (Flag, sv_norocketjumping,		dmflags2, DF2_NO_ROCKET_JUMPING);
-CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
-CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
-CVAR (Flag, sv_coop_spactorspawn,	dmflags2, DF2_COOP_SP_ACTOR_SPAWN);
 
 CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);
 CVAR (Flag, sv_noteamselect,		dmflags2, DF2_NO_TEAM_SELECT);
 CVAR (Flag, sv_shotgunstart,		dmflags2, DF2_COOP_SHOTGUNSTART);
-CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 
 //==========================================================================
 //
@@ -565,6 +559,12 @@ CVAR (Flag, sv_nocoopinfo,			zadmflags, ZADF_NO_COOP_INFO);
 CVAR (Flag, sv_unblockplayers,			zadmflags, ZADF_UNBLOCK_PLAYERS);
 CVAR (Flag, sv_nomedals,			zadmflags, ZADF_NO_MEDALS);
 CVAR (Flag, sv_sharekeys,			zadmflags, ZADF_SHARE_KEYS);
+CVAR (Flag, sv_keepteams,			zadmflags, ZADF_YES_KEEP_TEAMS);
+CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_GL_DEFAULTS);
+CVAR (Flag, sv_norocketjumping,		zadmflags, ZADF_NO_ROCKET_JUMPING);
+CVAR (Flag, sv_awarddamageinsteadkills,		zadmflags, ZADF_AWARD_DAMAGE_INSTEAD_KILLS);
+CVAR (Flag, sv_forcealpha,		zadmflags, ZADF_FORCE_ALPHA);
+CVAR (Flag, sv_coop_spactorspawn,	zadmflags, ZADF_COOP_SP_ACTOR_SPAWN);
 
 //==========================================================================
 //
