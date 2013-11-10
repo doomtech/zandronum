@@ -130,7 +130,10 @@ void P_Ticker (void)
 				break;
 		}
 
-		if ( i == MAXPLAYERS )
+		// [BB] If the freeze command was executed from the console, the sound needs to
+		// be resumed. In this case, the music isn't paused. The other check is only meant
+		// not to resume the music.
+		if ( ( i == MAXPLAYERS ) || ( S_IsMusicPaused () == false ) )
 			S_ResumeSound (false);
 		P_ResetSightCounters (false);
 

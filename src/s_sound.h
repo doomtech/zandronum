@@ -279,6 +279,7 @@ void S_CacheRandomSound (sfxinfo_t *sfx);
 bool S_CheckSingular (int sound_id);
 
 // [BB]
+bool S_IsMusicPaused ( void );
 void S_StopSoundID (int sound_id, int channel);
 
 // Stops a sound emanating from one of an emitter's channels.
