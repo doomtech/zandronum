@@ -7303,7 +7303,7 @@ ADD_STAT( spawns )
 #ifdef _DEBUG
 // [BC]
 #include "c_dispatch.h"
-CCMD( dumpactors )
+CCMD( dumpcurrentactors )
 {
 	AActor						*pActor;
 	TThinkerIterator<AActor>	Iterator;
