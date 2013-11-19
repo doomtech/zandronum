@@ -3324,29 +3324,35 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		if ( pPoly == NULL )
 			continue;
 
-		// [WS] Did the door move or rotate?
-		if (pPoly->bMoved || pPoly->bRotated)
+		// [BB] Is this object being moved?
+		if ( pPoly->specialdata != NULL )
 		{
-			// [WS] Is the poly object a door?
-			DPolyAction *pPolyDoor = static_cast<DPolyDoor*>(pPoly->specialdata);
-
+			DPolyAction *pPolyAction = pPoly->specialdata;
 			// [WS] We have a poly object door, lets destroy it.
-			if (pPolyDoor)
+			if ( pPolyAction->IsKindOf ( RUNTIME_CLASS( DPolyDoor ) ) )
 			{
-				pPoly->specialdata = NULL;
-
-				// [WS] Tell clients to destroy the door and stop its sound.
+				// [WS] Tell clients to destroy the door.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				{
-					SERVERCOMMANDS_DestroyPolyDoor( pPolyDoor->GetPolyObj() );
-					SERVERCOMMANDS_PlayPolyobjSound( pPolyDoor->GetPolyObj(), POLYSOUND_STOPSEQUENCE );
-				}
-
-				// [BB] Stop all sounds associated with this object. Shouldn't we
-				// destroy all sounds for all poly objects, not only for the doors?
-				SN_StopSequence( pPoly );
-				pPolyDoor->Destroy();
+					SERVERCOMMANDS_DestroyPolyDoor( pPolyAction->GetPolyObj() );
 			}
+			// [BB] We also have to destroy all other movers.
+			else
+			{
+				// [BB] Tell clients to destroy this mover.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyMovePoly( pPolyAction->GetPolyObj() );
+			}
+
+			// [BB] Tell clients to destroy the door and stop its sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_PlayPolyobjSound( pPolyAction->GetPolyObj(), POLYSOUND_STOPSEQUENCE );
+
+			// [BB] Stop all sounds associated with this object.
+			SN_StopSequence( pPoly );
+			pPolyAction->Destroy();
+
+			// [BB] We have destoyed the mover, so remove the pointer to it from the polyobj.
+			pPoly->specialdata = NULL;
 		}
 
 		if ( pPoly->bMoved )
