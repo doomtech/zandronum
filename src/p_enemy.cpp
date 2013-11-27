@@ -3520,7 +3520,9 @@ bool CheckBossDeath (AActor *actor)
 	{
 		if (other != actor &&
 			(other->health > 0 || (other->flags & MF_ICECORPSE))
-			&& other->GetClass() == actor->GetClass())
+			&& other->GetClass() == actor->GetClass()
+			// [BB] Don't count actors hidden by HideOrDestroyIfSafe()
+			&& !( other->ulSTFlags & STFL_HIDDEN_INSTEAD_OF_DESTROYED ) )
 		{ // Found a living boss
 		  // [RH] Frozen bosses don't count as dead until they shatter
 			return false;

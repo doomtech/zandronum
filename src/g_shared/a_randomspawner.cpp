@@ -201,9 +201,12 @@ class ARandomSpawner : public AActor
 		Super::Tick();
 		if (tracer == NULL || tracer->health <= 0)
 		{
-			CALL_ACTION(A_BossDeath, this);
-			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-			HideOrDestroyIfSafe();
+			// [BB] Don't do this on actors that already have been hidden by HideOrDestroyIfSafe()
+			if ( ( this->ulSTFlags & STFL_HIDDEN_INSTEAD_OF_DESTROYED ) == false ) {
+				CALL_ACTION(A_BossDeath, this);
+				// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+				HideOrDestroyIfSafe();
+			}
 		}
 	}
 

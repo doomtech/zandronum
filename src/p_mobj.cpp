@@ -717,6 +717,9 @@ void AActor::HideOrDestroyIfSafe ()
 		flags2 |= MF2_DORMANT;
 		flags &= ~MF_SOLID;
 		SetState( RUNTIME_CLASS ( AInventory )->ActorInfo->FindState("HideIndefinitely") );
+
+		// [BB] Remember that this was hidden. These things sometimes have to be explicitly excluded, e.g. in CheckBossDeath.
+		ulSTFlags |= STFL_HIDDEN_INSTEAD_OF_DESTROYED;
 	}
 	else
 		Destroy();
