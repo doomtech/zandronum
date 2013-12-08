@@ -3210,7 +3210,7 @@ static menuitem_t SkirmishItems[] = {
 	{ discrete, "Modifier",					{&menu_modifier},		{3.0}, {0.0}, {0.0}, {ModifierVals} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ number,	"Timelimit",				{&menu_timelimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
-	{ number,	"Fraglimit",				{&menu_fraglimit},		{0.0}, {100.0}, {5.0}, {NULL}  },
+	{ number,	"Fraglimit",				{&menu_fraglimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
 	{ number,	"Pointlimit",				{&menu_pointlimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
 	{ number,	"Duellimit",				{&menu_duellimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
 	{ number,	"Winlimit",					{&menu_winlimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
