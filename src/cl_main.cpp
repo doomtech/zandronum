@@ -5005,6 +5005,9 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
+	// [BB] Remember whether we already had this ammo.
+	const bool hadAmmo = ( players[ulPlayer].mo->FindInventory( NETWORK_GetClassFromIdentification( usActorNetworkIndex ) ) != NULL );
+
 	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, NETWORK_GetClassFromIdentification( usActorNetworkIndex ));
 
 	if ( pAmmo == NULL )
@@ -5012,6 +5015,11 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 
 	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
 		return;
+
+	// [BB] If we didn't have this kind of ammo yet, CLIENT_FindPlayerInventory gave it to us.
+	// In this case make sure that the amount is zero.
+	if ( hadAmmo == false )
+		pAmmo->Amount = 0;
 
 	// Set the new maximum amount of the inventory object.
 	pAmmo->MaxAmount = lMaxAmount;

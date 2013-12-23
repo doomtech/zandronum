@@ -472,6 +472,13 @@ static void ClearInventory (AActor *activator)
 {
 	// [BB]
 	bool bSuccess = true;
+	// [BB] Save the original amount.
+	int oldAmount = -1;
+	{
+		AInventory *pInventory = ( ( actor->player ) && ( actor->player->mo ) ) ? actor->player->mo->FindInventory( info ) : NULL;
+		if ( pInventory )
+			oldAmount = pInventory->Amount;
+	}
 
 	AWeapon *savedPendingWeap = actor->player != NULL
 		? actor->player->PendingWeapon : NULL;
@@ -534,10 +541,14 @@ static void ClearInventory (AActor *activator)
 	// [BC] If we're the server, give the item to clients.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( item ))
 	{
-		SERVERCOMMANDS_GiveInventory( actor->player - players, item );
-		// [BB] The armor display amount has to be updated separately.
-		if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
-		  SERVERCOMMANDS_SetPlayerArmor( actor->player - players );
+		// [BB] Only bother the clients if the amount has actually changed (unless it's armor).
+		if ( ( item->Amount != oldAmount ) || item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)) )
+		{
+			SERVERCOMMANDS_GiveInventory( actor->player - players, item );
+			// [BB] The armor display amount has to be updated separately.
+			if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
+				SERVERCOMMANDS_SetPlayerArmor( actor->player - players );
+		}
 	}
 
 	// [BB]
@@ -600,10 +611,14 @@ static void DoTakeInv (AActor *actor, const PClass *info, int amount)
 	AInventory *item = actor->FindInventory (info);
 	if (item != NULL)
 	{
+		// [BB] Save the original amount.
+		const int oldAmount = item->Amount;
+
 		item->Amount -= amount;
 		// [BC] If we're the server, tell clients to take the item away.
 		// [BB] We may not pass a negative amount to SERVERCOMMANDS_TakeInventory.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ))
+		// [BB] Also only inform the client if it had actually had something that could be taken.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( ( oldAmount > 0 ) || ( amount < 0 ) ) )
 			SERVERCOMMANDS_TakeInventory( actor->player - players, item->GetClass( )->TypeName.GetChars( ), MAX ( 0, item->Amount ) );
 		if (item->Amount <= 0)
 		{
@@ -2953,6 +2968,9 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 	if ( actor->player && actor->player->bSpectating )
 		return;
 
+	// [BB]
+	int oldValue = 0;
+
 	switch (property)
 	{
 	case APROP_Health:
@@ -2971,10 +2989,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_Speed:
+		// [BB] Save the original value.
+		oldValue = actor->Speed;
+
 		actor->Speed = value;
 
 		// [BC] If we're the server, tell clients to update this actor property.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		// [BB] Only bother the clients if the speed has actually changed.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( oldValue != actor->Speed ) )
 			SERVERCOMMANDS_SetThingProperty( actor, APROP_Speed );
 		break;
 
@@ -3081,10 +3103,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_Gravity:
+		// [BB] Save the original value.
+		oldValue = actor->gravity;
+
 		actor->gravity = value;
 
 		// [BB] If we're the server, tell clients to update this actor's gravity.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		// [BB] Only bother the clients if the gravity has actually changed.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( oldValue != actor->gravity ) )
 			SERVERCOMMANDS_SetThingGravity( actor );
 		break;
 
@@ -6536,6 +6562,10 @@ int DLevelScript::RunScript ()
 				if (type != NULL && type->ParentClass == RUNTIME_CLASS(AAmmo))
 				{
 					item = activator->FindInventory (type);
+
+					// [BB] Save the original value.
+					const int oldMaxAmount = item ? item->MaxAmount : -1;
+
 					if (item != NULL)
 					{
 						item->MaxAmount = STACK(1);
@@ -6547,7 +6577,8 @@ int DLevelScript::RunScript ()
 						item->Amount = 0;
 					}
 					// [BB] If the activator is a player, tell the clients about the changed capacity.
-					if ( activator->player && NETWORK_GetState() == NETSTATE_SERVER )
+					// [BB] Only bother the clients if MaxAmount has actually changed.
+					if ( activator->player && NETWORK_GetState() == NETSTATE_SERVER && ( oldMaxAmount != item->MaxAmount ) )
 						SERVERCOMMANDS_SetPlayerAmmoCapacity( activator->player - players, item );
 				}
 			}
