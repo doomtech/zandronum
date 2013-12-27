@@ -5004,20 +5004,20 @@ void M_OptDrawer ()
 				// draw the temporary string and the cursor.
 				if ( g_bStringInput && i == CurrentItem )
 				{
-					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
 
 					// Draw the cursor.
 					screen->DrawText( SmallFont, CR_GREY,
-						x + SmallFont->StringWidth( g_szStringInputBuffer ),
+						x + SmallFont->StringWidth( g_szStringInputBuffer ) * CleanXfac_1,
 						y,
-						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_Clean, true, TAG_DONE );
+						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_CleanNoMove_1, true, TAG_DONE );
 				}
 				else
 				{
 					char	szString[16];
 				
 					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
-					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 				}
 				break;
 			default:
