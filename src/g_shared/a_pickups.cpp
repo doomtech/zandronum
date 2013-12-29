@@ -1178,7 +1178,7 @@ void AInventory::Touch (AActor *toucher)
 
 			// [Dusk] Determine how to write the key's name. Tag is preferred,
 			// if not present, use the class name.
-			if (( keyname = GetClass()->Meta.GetMetaString( AMETA_StrifeName )).IsEmpty() )
+			if (( keyname = Tag ).IsEmpty() )
 				keyname = GetClass()->TypeName;
 
 			SERVER_Printf( PRINT_HIGH, "\\cD%s\\c- has located the \\cF%s!\n",
