@@ -3193,11 +3193,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				player->mo->pitch -= look;
 				if (look > 0)
 				{ // look up
-					player->mo->pitch = MAX(player->mo->pitch, screen->GetMaxViewPitch(false));
+					// [BB] The server doesn't have a screen.
+					player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetMaxViewPitch(false) : (32*ANGLE_1) );
 				}
 				else
 				{ // look down
-					player->mo->pitch = MIN(player->mo->pitch, screen->GetMaxViewPitch(true));
+					// [BB] The server doesn't have a screen.
+					player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  screen->GetMaxViewPitch(true) : (56*ANGLE_1) );
 				}
 			}
 		}
@@ -3404,11 +3406,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					player->mo->pitch -= look;
 					if (look > 0)
 					{ // look up
-						player->mo->pitch = MAX(player->mo->pitch, screen->GetMaxViewPitch(false));
+						// [BB] The server doesn't have a screen.
+						player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetMaxViewPitch(false) : (32*ANGLE_1) );
 					}
 					else
 					{ // look down
-						player->mo->pitch = MIN(player->mo->pitch, screen->GetMaxViewPitch(true));
+						// [BB] The server doesn't have a screen.
+						player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  screen->GetMaxViewPitch(true) : (56*ANGLE_1) );
 					}
 				}
 			}
