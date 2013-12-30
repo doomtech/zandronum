@@ -64,6 +64,9 @@ int CleanWidth, CleanHeight;
 
 CVAR (Bool, hud_scale, false, CVAR_ARCHIVE);
 
+// [BB]
+CVAR (Bool, con_scaletext_usescreenratio, false, CVAR_ARCHIVE)
+
 // For routines that take RGB colors, cache the previous lookup in case there
 // are several repetitions with the same color.
 static int LastPal = -1;
@@ -611,6 +614,8 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 			{
 				parms->virtWidth = con_virtualwidth;
 				parms->virtHeight = con_virtualheight;
+				// [BB]
+				parms->keepratio = con_scaletext_usescreenratio;
 			}
 			break;
 		}
