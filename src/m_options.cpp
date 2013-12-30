@@ -3961,6 +3961,7 @@ static menuitem_t TextScalingMenuItems[] = {
 	{ txslider,	"Text size scalar",		{&menu_textsizescalar},	{0.0},	{0.0},	{1.0},	{NULL} },
 	{ mnnumber,	"Virtual width",		{&con_virtualwidth},	{0.0},	{0.0},	{0.0},	{NULL} },
 	{ mnnumber,	"Virtual height",		{&con_virtualheight},	{0.0},	{0.0},	{0.0},	{NULL} },
+	{ discrete,	"Use screen ratio",				{&con_scaletext_usescreenratio},				{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ redtext,	" ",					{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },
 	{ redtext,	" ",					{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },
 	{ whitetext,"SAMPLE TEXT",			{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },

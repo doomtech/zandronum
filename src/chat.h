@@ -87,6 +87,7 @@ void	CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 EXTERN_CVAR( Bool, con_scaletext )
 EXTERN_CVAR( Int, con_virtualwidth )
 EXTERN_CVAR( Int, con_virtualheight )
+EXTERN_CVAR( Bool, con_scaletext_usescreenratio ) // [BB]
 EXTERN_CVAR( Bool, show_messages )
 
 #endif	// __CHAT_H__
