@@ -20,6 +20,10 @@ Actor SkyCamCompat : SkyViewpoint 9083 native
 
 ACTOR StackPoint : SkyViewpoint native 
 {
+	// [BB] Portals are static (so the client can spawn them) and they are
+	// initialized before the server informs the client about actors (so the
+	// client has to spawn them)
+	+ALLOWCLIENTSPAWN
 }
 
 ACTOR UpperStackLookOnly : StackPoint 9077
