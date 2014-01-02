@@ -912,12 +912,8 @@ void GLMirrorPortal::DrawContents()
 	angle_t af = GLRenderer->FrustumAngle();
 	if (af<ANGLE_180) clipper.SafeAddClipRangeRealAngles(viewangle+af, viewangle-af);
 
-	// [BB] Spleen found out that the caching of the view angles doesn't work for mirrors
-	// (kills performance and causes rendering defects).
-	//angle_t a2 = linedef->v1->GetClipAngle();
-	//angle_t a1 = linedef->v2->GetClipAngle();
-	angle_t a2=R_PointToAngle(linedef->v1->x, linedef->v1->y);
-	angle_t a1=R_PointToAngle(linedef->v2->x, linedef->v2->y);
+	angle_t a2 = linedef->v1->GetClipAngle();
+	angle_t a1 = linedef->v2->GetClipAngle();
 	clipper.SafeAddClipRange(a1,a2);
 
 	GLRenderer->DrawScene();
