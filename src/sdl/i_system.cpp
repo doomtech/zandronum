@@ -290,7 +290,8 @@ void I_SelectTimer()
 	I_GetTime = I_GetTimePolled;
 	I_FreezeTime = I_FreezeTimePolled;
 
-	if (setitimer(ITIMER_REAL, &itv, NULL) != 0)
+	// [BB] For now I_WaitForTicSignaled doesn't work on the client.
+	if ( NETWORK_InClientMode() || ( setitimer(ITIMER_REAL, &itv, NULL) != 0 ) )
 	{
 		//I_GetTime = I_GetTimePolled;
 		//I_FreezeTime = I_FreezeTimePolled;
