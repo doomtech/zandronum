@@ -1492,8 +1492,9 @@ bool V_DoModeSetup (int width, int height, int bits)
 		}
 		else
 		{
-			CleanXfac_1 = MAX(int(CleanXfac) - 1, 1);
-			CleanYfac_1 = MAX(int(CleanYfac) - 1, 1);
+			// [BB] Rounding down is necessary here.
+			CleanXfac_1 = MAX(int(floor(CleanXfac)) - 1, 1);
+			CleanYfac_1 = MAX(int(floor(CleanYfac)) - 1, 1);
 		}
 		CleanWidth_1 = width / CleanXfac_1;
 		CleanHeight_1 = height / CleanYfac_1;
