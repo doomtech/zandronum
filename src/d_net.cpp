@@ -1697,167 +1697,78 @@ void D_QuitNetGame (void)
 //
 void TryRunTics (void)
 {
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	int 		i;
+	int 		lowtic;
+	int 		realtics;
+	int 		availabletics;
+	int 		counts;
+	int 		numplaying;
+
+	// If paused, do not eat more CPU time than we need, because it
+	// will all be wasted anyway.
+	bool doWait = cl_capfps || r_NoInterpolate /*|| netgame*/;
+
+	// get real tics
+	if (doWait)
 	{
-		int			entertic;
-		static	int	oldentertics;
-		int 		i;
-		int 		lowtic;
-		int 		realtics;
-		int 		availabletics;
-		int 		counts;
-		int 		numplaying;
-
-		// If paused, do not eat more CPU time than we need, because it
-		// will all be wasted anyway.
-		bool doWait = cl_capfps || r_NoInterpolate /*|| netgame*/;
-
-		// get real tics
-		if (doWait)
-		{
-			entertic = I_WaitForTic (oldentertics);
-		}
-		else
-		{
-			entertic = I_GetTime (false);
-		}
-		realtics = entertic - oldentertics;
-		oldentertics = entertic;
-
-		// get available tics
-		NetUpdate ();
-
-		lowtic = INT_MAX;
-		numplaying = 0;
-		for (i = 0; i < doomcom.numnodes; i++)
-		{
-			if (nodeingame[i])
-			{
-				numplaying++;
-				if (nettics[i] < lowtic)
-					lowtic = nettics[i];
-			}
-		}
-
-		if (ticdup == 1)
-		{
-			availabletics = lowtic - gametic;
-		}
-		else
-		{
-			availabletics = lowtic - gametic / ticdup;
-		}
-
-		// decide how many tics to run
-		if (realtics < availabletics-1)
-			counts = realtics+1;
-		else if (realtics < availabletics)
-			counts = realtics;
-		else
-			counts = availabletics;
-		
-		if (counts == 0 && !doWait)
-		{
-			return;
-		}
-
-		if (counts < 1)
-			counts = 1;
-
-		frameon++;
-
-		// run the count tics
-		if (counts > 0)
-		{
-			while (counts--)
-			{
-				if (advancedemo)
-				{
-					D_DoAdvanceDemo ();
-				}
-				C_Ticker ();
-				M_Ticker ();
-				I_GetTime (true);
-				G_Ticker ();
-				gametic++;
-
-				NetUpdate ();	// check for new console commands
-			}
-		}
-		S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
+		entertic = I_WaitForTic (oldentertics);
 	}
 	else
 	{
-		int 		i;
-		int 		lowtic;
-		int 		realtics;
-		int 		availabletics;
-		int 		counts;
-		int 		numplaying;
+		entertic = I_GetTime (false);
+	}
+	realtics = entertic - oldentertics;
+	oldentertics = entertic;
 
-		// If paused, do not eat more CPU time than we need, because it
-		// will all be wasted anyway.
-		bool doWait = cl_capfps || r_NoInterpolate /*|| netgame*/;
+	// get available tics
+	NetUpdate ();
 
-		// get real tics
-		if (doWait)
+	lowtic = INT_MAX;
+	numplaying = 0;
+	for (i = 0; i < doomcom.numnodes; i++)
+	{
+		if (nodeingame[i])
 		{
-			entertic = I_WaitForTic (oldentertics);
+			numplaying++;
+			if (nettics[i] < lowtic)
+				lowtic = nettics[i];
 		}
-		else
-		{
-			entertic = I_GetTime (false);
-		}
-		realtics = entertic - oldentertics;
-		oldentertics = entertic;
+	}
 
-		// get available tics
-		NetUpdate ();
+	if (ticdup == 1)
+	{
+		availabletics = lowtic - gametic;
+	}
+	else
+	{
+		availabletics = lowtic - gametic / ticdup;
+	}
 
-		lowtic = INT_MAX;
-		numplaying = 0;
-		for (i = 0; i < doomcom.numnodes; i++)
-		{
-			if (nodeingame[i])
-			{
-				numplaying++;
-				if (nettics[i] < lowtic)
-					lowtic = nettics[i];
-			}
-		}
+	// decide how many tics to run
+	if (realtics < availabletics-1)
+		counts = realtics+1;
+	else if (realtics < availabletics)
+		counts = realtics;
+	else
+		counts = availabletics;
+	
+	if (counts == 0 && !doWait)
+	{
+		return;
+	}
 
-		if (ticdup == 1)
-		{
-			availabletics = lowtic - gametic;
-		}
-		else
-		{
-			availabletics = lowtic - gametic / ticdup;
-		}
+	if (counts < 1)
+		counts = 1;
 
-		// decide how many tics to run
-		if (realtics < availabletics-1)
-			counts = realtics+1;
-		else if (realtics < availabletics)
-			counts = realtics;
-		else
-			counts = availabletics;
-		
-		if (counts == 0 && !doWait)
-		{
-			return;
-		}
+	frameon++;
 
-		if (counts < 1)
-			counts = 1;
+	if (debugfile)
+		fprintf (debugfile,
+				 "=======real: %i  avail: %i  game: %i\n",
+				 realtics, availabletics, counts);
 
-		frameon++;
-
-		if (debugfile)
-			fprintf (debugfile,
-					 "=======real: %i  avail: %i  game: %i\n",
-					 realtics, availabletics, counts);
-
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	{
 		// [BC] Support for client-side demos.
 		if (!demoplayback && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
@@ -1931,8 +1842,9 @@ void TryRunTics (void)
 				return;
 			}
 		}
+	}
 
-		// run the count tics
+	// run the count tics
 	if (counts > 0)
 	{
 		while (counts--)
@@ -1955,7 +1867,6 @@ void TryRunTics (void)
 			NetUpdate ();	// check for new console commands
 		}
 		S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
-		}
 	}
 }
 
