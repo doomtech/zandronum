@@ -3475,7 +3475,11 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 
 	memset( &pPlayer->cmd, 0, sizeof( pPlayer->cmd ));
 	if (( pPlayer - players ) != consoleplayer )
+	{
 		memset( &pPlayer->userinfo, 0, sizeof( pPlayer->userinfo ));
+		// [BB] For now Zandronum doesn't let the player use the color sets.
+		pPlayer->userinfo.colorset = -1;
+	}
 	memset( pPlayer->psprites, 0, sizeof( pPlayer->psprites ));
 
 	memset( &pPlayer->ulMedalCount, 0, sizeof( ULONG ) * NUM_MEDALS );
