@@ -472,13 +472,6 @@ static void ClearInventory (AActor *activator)
 {
 	// [BB]
 	bool bSuccess = true;
-	// [BB] Save the original amount.
-	int oldAmount = -1;
-	{
-		AInventory *pInventory = ( ( actor->player ) && ( actor->player->mo ) ) ? actor->player->mo->FindInventory( info ) : NULL;
-		if ( pInventory )
-			oldAmount = pInventory->Amount;
-	}
 
 	AWeapon *savedPendingWeap = actor->player != NULL
 		? actor->player->PendingWeapon : NULL;
@@ -541,14 +534,10 @@ static void ClearInventory (AActor *activator)
 	// [BC] If we're the server, give the item to clients.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( item ))
 	{
-		// [BB] Only bother the clients if the amount has actually changed (unless it's armor).
-		if ( ( item->Amount != oldAmount ) || item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)) )
-		{
-			SERVERCOMMANDS_GiveInventory( actor->player - players, item );
-			// [BB] The armor display amount has to be updated separately.
-			if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
-				SERVERCOMMANDS_SetPlayerArmor( actor->player - players );
-		}
+		SERVERCOMMANDS_GiveInventory( actor->player - players, item );
+		// [BB] The armor display amount has to be updated separately.
+		if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
+			SERVERCOMMANDS_SetPlayerArmor( actor->player - players );
 	}
 
 	// [BB]

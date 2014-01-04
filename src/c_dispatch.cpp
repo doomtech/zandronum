@@ -57,6 +57,7 @@
 #include "p_local.h"
 #include "g_level.h"
 #include "p_acs.h"
+#include "cl_demo.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -601,6 +602,10 @@ void C_DoCommand (const char *cmd, int keynum)
 					{
 						if ( players[consoleplayer].mo )
 							players[consoleplayer].mo->pitch = 0;
+
+						// [BB] We need to record this for the demo.
+						if ( CLIENTDEMO_IsRecording( ))
+							CLIENTDEMO_WriteLocalCommand( CLD_CENTERVIEW, NULL );
 					}
 				}
 			}
