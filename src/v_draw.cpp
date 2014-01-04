@@ -687,6 +687,7 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 
 		case DTA_ColormapStyle:
 			parms->colormapstyle = va_arg(tags, FColormapStyle *);
+			break;
 
 		// [BC] Is what we're drawing text? If so, handle it differently.
 		case DTA_IsText:
