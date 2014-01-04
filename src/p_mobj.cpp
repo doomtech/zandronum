@@ -3064,7 +3064,10 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				mo->HitFloor ();
 				if (mo->player)
 				{
-					if (mo->player->jumpTics != 0 && mo->velz < -grav*4)
+					// [BB] This check from ZDoom revision 2238 breaks jumpmaze wads.
+					// For now we just keep the old behavior. Possibly we need to introduce
+					// a compat flag for this in the future.
+					//if (mo->player->jumpTics != 0 && mo->velz < -grav*4)
 					{ // delay any jumping for a short while
 						mo->player->jumpTics = 7;
 					}
