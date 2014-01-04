@@ -1646,6 +1646,10 @@ void FBehavior::LoadScriptsDirectory ()
 	{
 		Scripts[i].Flags = 0;
 		Scripts[i].VarCount = LOCAL_SIZE;
+
+		// [BB] ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999.
+		if ( Scripts[i].Number > 999 )
+			I_FatalError ( "Error: Script number %d exceeds 999!\n", Scripts[i].Number );
 	}
 
 	// Sort scripts, so we can use a binary search to find them
