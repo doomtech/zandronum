@@ -7111,32 +7111,18 @@ void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 //
 void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration, LONG lTemorRadius, FSoundID Quakesound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pCenter) )
 		return;
 
 	const char *pszQuakeSound = S_GetName( Quakesound );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6 + static_cast<ULONG> ( strlen ( pszQuakeSound ) ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EARTHQUAKE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pCenter->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lIntensity );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDuration );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTemorRadius );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszQuakeSound );
-	}
+	NetCommand command ( SVC_EARTHQUAKE );
+	command.addShort ( pCenter->lNetID );
+	command.addByte ( lIntensity );
+	command.addByte ( lDuration );
+	command.addShort ( lTemorRadius );
+	command.addString ( pszQuakeSound );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
