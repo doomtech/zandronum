@@ -11791,7 +11791,7 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 	lIntensity = NETWORK_ReadByte( pByteStream );
 
 	// Read in the duration of the quake.
-	lDuration = NETWORK_ReadByte( pByteStream );
+	lDuration = NETWORK_ReadShort( pByteStream );
 
 	// Read in the tremor radius of the quake.
 	lTremorRadius = NETWORK_ReadShort( pByteStream );

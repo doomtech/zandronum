@@ -7119,7 +7119,7 @@ void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration
 	NetCommand command ( SVC_EARTHQUAKE );
 	command.addShort ( pCenter->lNetID );
 	command.addByte ( lIntensity );
-	command.addByte ( lDuration );
+	command.addShort ( lDuration );
 	command.addShort ( lTemorRadius );
 	command.addString ( pszQuakeSound );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
