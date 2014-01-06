@@ -1178,8 +1178,7 @@ void AInventory::Touch (AActor *toucher)
 
 			// [Dusk] Determine how to write the key's name. Tag is preferred,
 			// if not present, use the class name.
-			if (( keyname = Tag ).IsEmpty() )
-				keyname = GetClass()->TypeName;
+			keyname = ( Tag != NAME_None ) ? Tag : GetClass()->TypeName;
 
 			SERVER_Printf( PRINT_HIGH, "\\cD%s\\c- has located the \\cF%s!\n",
 				toucher->player->userinfo.netname, keyname.GetChars( ));
