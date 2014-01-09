@@ -809,6 +809,12 @@ const char *G_GetExitMap()
 	{
 		return ( level.mapname );
 	}
+	// If we're using the lobby cvar and we're not in the lobby already, the lobby is the next map.
+	// [AM] In theory, there can be more than one MAPINFO-lobby map, so we only obey the lobby cvar here.
+	else if ( strcmp( lobby, "" ) != 0 && stricmp( lobby, level.mapname ) != 0 )
+	{
+		return lobby;
+	}
 	// Check to see if we're using map rotation.
 	else if (( sv_maprotation ) &&
 			 ( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
