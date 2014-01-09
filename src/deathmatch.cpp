@@ -66,6 +66,7 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "v_video.h"
+#include "g_level.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -394,6 +395,38 @@ CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 
 		// Update the scoreboard.
 		SERVERCONSOLE_UpdateScoreboard( );
+	}
+}
+
+// [AM] Set or unset a map as being a "lobby" map.
+CUSTOM_CVAR(String, lobby, "", CVAR_SERVERINFO)
+{
+	if (strcmp(*self, "") == 0)
+	{
+		// Lobby map is empty.  Tell the client that if necessary.
+		if ((NETWORK_GetState() == NETSTATE_SERVER) && (gamestate != GS_STARTUP))
+		{
+			SERVER_Printf(PRINT_HIGH, "%s unset\n", self.GetName());
+			SERVERCOMMANDS_SetGameModeLimits();
+		}
+	}
+	else
+	{
+		// Prevent setting a lobby map that doesn't exist.
+		level_info_t *map = FindLevelByName(*self);
+		if (map == NULL)
+		{
+			Printf("map %s doesn't exist.\n", *self);
+			self = "";
+			return;
+		}
+
+		// Update the client about the lobby map if necessary.
+		if ((NETWORK_GetState() == NETSTATE_SERVER) && (gamestate != GS_STARTUP))
+		{
+			SERVER_Printf(PRINT_HIGH, "%s changed to: %s\n", self.GetName(), *self);
+			SERVERCOMMANDS_SetGameModeLimits();
+		}
 	}
 }
 
