@@ -389,6 +389,10 @@ bool GAMEMODE_IsGameInProgressOrResultSequence( void )
 //
 bool GAMEMODE_IsTimelimitActive( void )
 {
+	// [AM] If the map is a lobby, ignore the timelimit.
+	if ( level.flags2 & LEVEL2_ISLOBBY )
+		return false;
+
 	// [BB] In gamemodes that reset the time during a map reset, the timelimit doesn't make sense when the game is not in progress.
 	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESET_RESETS_MAPTIME ) && ( GAMEMODE_IsGameInProgress( ) == false ) )
 		return false;
