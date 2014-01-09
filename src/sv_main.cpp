@@ -576,7 +576,18 @@ void SERVER_Tick( void )
 			{
 				char	szString[128];
 
-				sprintf( szString, "map %s", level.mapname );
+				if ( strcmp( lobby, "" ) != 0 )
+				{
+					// [AM] If we're using a lobby map, reset to the lobby.
+					//      In theory, there can be many MAPINFO-lobbies, but there is only
+					//      one lobby cvar setting, so we only need to bother with the cvar.
+					sprintf(szString, "map %s", *lobby);
+				}
+				else
+				{
+					sprintf(szString, "map %s", level.mapname);
+				}
+
 				AddCommandString( szString );
 			}
 		}
@@ -2897,6 +2908,15 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 		// If playing Domination reset ownership
 		if ( domination )
 			DOMINATION_Reset();
+	}
+
+	// If no one is left on the server and we're using a cvar lobby map,
+	// reset to it after 30 seconds.
+	if ( strcmp( lobby, "" ) != 0 &&
+		 stricmp( lobby, level.mapname ) != 0 &&
+		 SERVER_CalcNumPlayers( ) == 0 )
+	{
+		g_lMapRestartTimer = TICRATE * 30;
 	}
 }
 
