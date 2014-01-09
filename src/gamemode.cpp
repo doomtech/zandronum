@@ -387,10 +387,17 @@ bool GAMEMODE_IsGameInProgressOrResultSequence( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsLobbyMap( void )
+{
+	return level.flags2 & LEVEL2_ISLOBBY || stricmp(level.mapname, lobby) == 0;
+}
+
+//*****************************************************************************
+//
 bool GAMEMODE_IsTimelimitActive( void )
 {
 	// [AM] If the map is a lobby, ignore the timelimit.
-	if ( level.flags2 & LEVEL2_ISLOBBY )
+	if ( GAMEMODE_IsLobbyMap( ) )
 		return false;
 
 	// [BB] In gamemodes that reset the time during a map reset, the timelimit doesn't make sense when the game is not in progress.

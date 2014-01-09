@@ -205,7 +205,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 	// Is this a deathmatch game and we're not allowed to exit?
 	// [BC] Teamgame, too.
 	// [BB] Ignore DF_NO_EXIT in lobby maps.
-	if ( ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT) && !( level.flags2 & LEVEL2_ISLOBBY ) )
+	if ( ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT) && !( GAMEMODE_IsLobbyMap( ) ) )
 	     // [BB] Don't allow anybody to exit during the survival countdown.
 	     || (( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
 	   )

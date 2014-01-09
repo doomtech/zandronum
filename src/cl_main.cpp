@@ -7961,6 +7961,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [WS] Read in, and set the value for alwaysapplydmflags.
 	Value.Bool = !!NETWORK_ReadByte( pByteStream );
 	alwaysapplydmflags.ForceSet( Value, CVAR_Bool );
+
+	// [AM] Read in, and set the value for lobby.
+	Value.String = const_cast<char*>(NETWORK_ReadString( pByteStream ));
+	lobby.ForceSet( Value, CVAR_String );
 }
 
 //*****************************************************************************

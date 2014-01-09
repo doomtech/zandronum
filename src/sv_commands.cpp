@@ -3418,6 +3418,8 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 	command.addFloat( sv_coop_damagefactor );
 	// [WS] Send in alwaysapplydmflags.
 	command.addByte( alwaysapplydmflags );
+	// [AM] Send lobby map.
+	command.addString( lobby );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
