@@ -2628,7 +2628,9 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 
 			// [RH] Double gravity only if running off a ledge. Coming down from
 			// an upward thrust (e.g. a jump) should not double it.
-			if (mo->momz == 0 && oldfloorz > mo->floorz && mo->z == oldfloorz)
+			// [AM] Old versions of ZDoom didn't have double gravity.
+			if (mo->momz == 0 && oldfloorz > mo->floorz && mo->z == oldfloorz &&
+				!(compatflags2 & COMPATF2_ZDOOM_123B33_JUMP_PHYSICS))
 			{
 				mo->momz -= grav + grav;
 			}
