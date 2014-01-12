@@ -568,7 +568,7 @@ void SERVER_Tick( void )
 			if ( SERVER_IsValidClient( ulIdx ) == false )
 				continue;
 
-			for ( int i = 0; i < min ( g_aClients[ulIdx].MoveCMDs.Size(), 2 ); ++i )
+			for ( unsigned int i = 0; i < MIN ( g_aClients[ulIdx].MoveCMDs.Size(), 2u ); ++i )
 			{
 				server_ProcessMoveCommand( g_aClients[ulIdx].MoveCMDs[0], ulIdx );
 				g_aClients[ulIdx].MoveCMDs.Delete( 0 );
