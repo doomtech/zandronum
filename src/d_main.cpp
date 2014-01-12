@@ -2046,6 +2046,15 @@ static FString ParseGameInfo(TArray<FString> &pwads, const char *fn, const char 
 			}
 			while (sc.CheckToken(','));
 		}
+		else
+		{
+			// Silently ignore unknown properties
+			do
+			{
+				sc.MustGetAnyToken();
+			}
+			while(sc.CheckToken(','));
+		}
 	}
 	return iwad;
 }
