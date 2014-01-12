@@ -3367,30 +3367,13 @@ void SERVERCOMMANDS_SetGameSkill( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	LONG	lDMFlags;
-
-	lDMFlags = dmflags;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 13, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEDMFLAGS );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDMFlags );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, dmflags2 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, compatflags );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, zacompatflags );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, zadmflags );
-	}
+	NetCommand command ( SVC_SETGAMEDMFLAGS );
+	command.addLong ( dmflags );
+	command.addLong ( dmflags2 );
+	command.addLong ( compatflags );
+	command.addLong ( zacompatflags );
+	command.addLong ( zadmflags );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
