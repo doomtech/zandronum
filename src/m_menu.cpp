@@ -4124,10 +4124,10 @@ void M_Drawer ()
 			screen->DrawText(SmallFont, CR_UNTRANSLATED, 160, y + fontheight + 1, GStrings["TXT_NO"], DTA_Clean, true, TAG_DONE);
 			if (skullAnimCounter < 6)
 			{
-				// [BB] Using Skulltag's increased precision of CleanXfac/CleanYfac is wrong here.
+				// [BB] Except for the y-position, using Skulltag's increased precision of CleanXfac/CleanYfac is wrong here.
 				screen->DrawText(ConFont, CR_RED,
 					(150 - 160) * static_cast<int>(CleanXfac) + screen->GetWidth() / 2,
-					(y + (fontheight + 1) * messageSelection - 100) * static_cast<int>(CleanYfac) + screen->GetHeight() / 2,
+					(y + (fontheight + 1) * messageSelection - 100) * CleanYfac + screen->GetHeight() / 2,
 					"\xd",
 					DTA_CellX, 8 * static_cast<int>(CleanXfac),
 					DTA_CellY, 8 * static_cast<int>(CleanYfac),
