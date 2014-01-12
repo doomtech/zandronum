@@ -159,6 +159,7 @@ static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
 static	bool	server_Puke( BYTESTREAM_s *pByteStream );
 static	bool	server_MorphCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
+static	bool	server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -560,6 +561,19 @@ void SERVER_Tick( void )
 
 		// Recieve packets.
 		SERVER_GetPackets( );
+
+		// [BB] Process up to two movement commands for each client.
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( SERVER_IsValidClient( ulIdx ) == false )
+				continue;
+
+			for ( int i = 0; i < min ( g_aClients[ulIdx].MoveCMDs.Size(), 2 ); ++i )
+			{
+				server_ProcessMoveCommand( g_aClients[ulIdx].MoveCMDs[0], ulIdx );
+				g_aClients[ulIdx].MoveCMDs.Delete( 0 );
+			}
+		}
 
 		G_Ticker ();
 
@@ -4577,25 +4591,18 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 //
 static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 {
-	player_t		*pPlayer;
-	ticcmd_t		*pCmd;
-	angle_t			Angle;
-	angle_t			Pitch;
-	ULONG			ulGametic;
-	ULONG			ulBits;
-	USHORT			usActorNetworkIndex;
-	const PClass	*pType;
-	AInventory		*pInventory;
-//	ULONG			ulIdx;
-
-	pPlayer = &players[g_lCurrentClient];
-	pCmd = &pPlayer->cmd;
+	// [BB] We don't process the movement command immediately, but store it
+	// in a buffer. This way we can limit the amount of movement commands
+	// we process for a player in a given tic to prevent the player from
+	// seemingly teleporting in case too many movement commands arrive at once.
+	CLIENT_MOVE_COMMAND_s clientMoveCmd;
+	ticcmd_t *pCmd = &clientMoveCmd.cmd;
 
 	// Read in the client's gametic.
-	ulGametic = NETWORK_ReadLong( pByteStream );
+	clientMoveCmd.ulGametic = NETWORK_ReadLong( pByteStream );
 
 	// Read in the information the client is sending us.
-	ulBits = NETWORK_ReadByte( pByteStream );
+	const ULONG ulBits = NETWORK_ReadByte( pByteStream );
 
 	if ( ulBits & CLIENT_UPDATE_YAW )
 		pCmd->ucmd.yaw = NETWORK_ReadShort( pByteStream );
@@ -4633,14 +4640,14 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		pCmd->ucmd.upmove = 0;
 
 	// Always read in the angle and pitch.
-	Angle = NETWORK_ReadLong( pByteStream );
-	Pitch = NETWORK_ReadLong( pByteStream );
+	clientMoveCmd.angle = NETWORK_ReadLong( pByteStream );
+	clientMoveCmd.pitch = NETWORK_ReadLong( pByteStream );
 
 	// [BB] Extra scope to create a local variable.
 	{
 		const SDWORD check = NETWORK_ReadLong( pByteStream );
 #ifdef LOG_SUSPICIOUS_CLIENTS
-		const bool angleCheckFailed = ( ( pCmd->ucmd.yaw == 0 ) && ( pPlayer->mo->reactiontime == 0 ) && ( pPlayer->playerstate == PST_LIVE ) && ( pPlayer->mo ) && ( Angle != pPlayer->mo->angle ) && ( ( g_aClients[g_lCurrentClient].ulClientGameTic + 1 ) == ulGametic ) );
+		const bool angleCheckFailed = ( ( pCmd->ucmd.yaw == 0 ) && ( pPlayer->mo->reactiontime == 0 ) && ( pPlayer->playerstate == PST_LIVE ) && ( pPlayer->mo ) && ( clientMoveCmd.angle != pPlayer->mo->angle ) && ( ( g_aClients[g_lCurrentClient].ulClientGameTic + 1 ) == ulGametic ) );
 		// [BB] If the received checksum doesn't match the checksum of the received ticcmd,
 		// something (e.g. an aimbot) most likely manipulated the ticcmd after it was generated.
 		if ( check != NETWORK_Check ( pCmd ) )
@@ -4654,15 +4661,35 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		}
 #endif
 	}
+	// [BB] If the client is attacking, he always sends the name of the weapon he's using.
+	if ( pCmd->ucmd.buttons & BT_ATTACK )
+		clientMoveCmd.usWeaponNetworkIndex = NETWORK_ReadShort( pByteStream );
+	else
+		clientMoveCmd.usWeaponNetworkIndex = 0;
+
+	// Don't timeout.
+	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
+
+	g_aClients[g_lCurrentClient].MoveCMDs.Push ( clientMoveCmd );
+
+	return false;
+}
+
+static bool server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient )
+{
+	player_t *pPlayer = &players[ulClient];
+	ticcmd_t *pCmd = &pPlayer->cmd;
+	memcpy( pCmd, &ClientMoveCmd.cmd, sizeof( ticcmd_t ));
+
+	g_aClients[ulClient].ulClientGameTic = ClientMoveCmd.ulGametic;
 
 	// If the client is attacking, he always sends the name of the weapon he's using.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
-		usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 		// If the name of the weapon the client is using doesn't match the name of the
 		// weapon we think he's using, do something to rectify the situation.
 		// [BB] Only do this if the client is fully spawned and authenticated.
-		if ( ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) && ( ( pPlayer->ReadyWeapon == NULL ) || ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != usActorNetworkIndex ) ) )
+		if ( ( SERVER_GetClient( ulClient )->State == CLS_SPAWNED ) && ( ( pPlayer->ReadyWeapon == NULL ) || ( pPlayer->ReadyWeapon->GetClass( )->getActorNetworkIndex() != ClientMoveCmd.usWeaponNetworkIndex ) ) )
 		{
 			// [BB] Directly after a map change this workaround seems to do more harm than good,
 			// (client and server are possibly changing weapons and one of them is slightly ahead)
@@ -4670,14 +4697,14 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 			// on the clients after a map change most likely has to do with this slight sync issues.
 			// [BB] Do this anyway if the server thinks that the player doesn't have any weapon.
 			if ( ( level.maptime > 3*TICRATE )
-				|| ( ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) && ( pPlayer->ReadyWeapon == NULL ) && ( pPlayer->PendingWeapon == WP_NOCHANGE ) ) )
+				|| ( ( SERVER_GetClient( ulClient )->State == CLS_SPAWNED ) && ( pPlayer->ReadyWeapon == NULL ) && ( pPlayer->PendingWeapon == WP_NOCHANGE ) ) )
 			{
-				pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
+				const PClass *pType = NETWORK_GetClassFromIdentification( ClientMoveCmd.usWeaponNetworkIndex );
 				if (( pType ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
 				{
 					if ( pPlayer->mo )
 					{
-						pInventory = pPlayer->mo->FindInventory( pType );
+						AInventory *pInventory = pPlayer->mo->FindInventory( pType );
 						if ( pInventory )
 						{
 							pPlayer->PendingWeapon = static_cast<AWeapon *>( pInventory );
@@ -4686,27 +4713,27 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 							pPlayer->bClientSelectedWeapon = true;
 
 							// Update other spectators with this info.
-							SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
+							SERVERCOMMANDS_SetPlayerPendingWeapon( ulClient, ulClient, SVCF_SKIPTHISCLIENT );
 						}
 //						else if ( g_ulWeaponCheckGracePeriodTicks == 0 )
 //						{
-//							SERVER_KickPlayer( g_lCurrentClient, "Using unowned weapon." );
+//							SERVER_KickPlayer( ulClient, "Using unowned weapon." );
 //							return ( true );
 //						}
 					}
 				}
 				else
 				{
-					if( usActorNetworkIndex == 0 )
+					if( ClientMoveCmd.usWeaponNetworkIndex == 0 )
 					{
 						// [BB] For some reason the clients think he as no ready weapon, 
 						// but the server thinks he as one. Although this should not happen,
 						// we make a workaround for this here. Just tell the client to bring
 						// up the weapon, the server thinks he is using.
-						SERVERCOMMANDS_WeaponChange( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+						SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 					}
 					else{
-						SERVER_KickPlayer( g_lCurrentClient, "Using unknown weapon type." );
+						SERVER_KickPlayer( ulClient, "Using unknown weapon type." );
 						return ( true );
 					}
 				}
@@ -4714,15 +4741,11 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	// Don't timeout.
-	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
-	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
-
 	// [BB] Instead of kicking players that send too many movement commands, we just ignroe the excessive commands.
 	// Note: The kick code is still there, but isn't triggered anymore since we are reducing lOverMovementLevel here.
-	if ( g_aClients[g_lCurrentClient].lOverMovementLevel >= ( MAX_OVERMOVEMENT_LEVEL - 1 ) )
+	if ( g_aClients[ulClient].lOverMovementLevel >= ( MAX_OVERMOVEMENT_LEVEL - 1 ) )
 	{
-		g_aClients[g_lCurrentClient].lOverMovementLevel--;
+		g_aClients[ulClient].lOverMovementLevel--;
 		return false;
 	}
 
@@ -4732,9 +4755,9 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		{
 			// [BB] Ignore the angle and pitch sent by the client if the client isn't authenticated yet.
 			// In this case the client still sends these values based on the previous map.
-			if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED ) {
-				pPlayer->mo->angle = Angle;
-				pPlayer->mo->pitch = Pitch;
+			if ( SERVER_GetClient( ulClient )->State == CLS_SPAWNED ) {
+				pPlayer->mo->angle = ClientMoveCmd.angle;
+				pPlayer->mo->pitch = ClientMoveCmd.pitch;
 			}
 
 			// Makes sure the pitch is valid (should we kick them if it's not?)
@@ -4744,8 +4767,14 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 				pPlayer->mo->pitch = ( ANGLE_1 * 90 );
 
 			P_PlayerThink( pPlayer );
+
+			// [BB] The server blocks AActor::Tick() for non-bot player actors unless the player
+			// is the "current client". So we have to work around this.
+			const LONG savedCurrentClient = g_lCurrentClient;
+			g_lCurrentClient = ulClient;
 			if ( pPlayer->mo )
 				pPlayer->mo->Tick( );
+			g_lCurrentClient = savedCurrentClient;
 
 			// [BB] We possibly process more than one move of this client per tic,
 			// so we have to update oldbuttons (otherwise a door that just started to
@@ -4765,17 +4794,17 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 		( pCmd->ucmd.upmove != 0 ))
 	{
 		// [K6/BB] The client is pressing a button, so not afk.
-		g_aClients[g_lCurrentClient].lLastActionTic = gametic;
+		g_aClients[ulClient].lLastActionTic = gametic;
 		if ( pPlayer->bChatting )
 		{
 			pPlayer->bChatting = false;
-			SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+			SERVERCOMMANDS_SetPlayerChatStatus( ulClient );
 		}
 
 		if ( pPlayer->bInConsole )
 		{
 			pPlayer->bInConsole = false;
-			SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+			SERVERCOMMANDS_SetPlayerConsoleStatus( ulClient );
 		}
 	}
 

@@ -35,6 +35,8 @@
 +	- Added new dmflag sv_sharekeys. When enabled, any keys picked are shared between players. Also, players joining the game get the keys others have as well. [Dusk]
 +	- The ACS commands TakeInventory, SetActorProperty (only for speed and gravity) and SetAmmoCapacity don't cause network traffic unless they actually make a change to the affected actor. [Torr Samaho]
 +	- The text scaling scaling mechanism (controlled by con_scaletext, con_virtualwidth and con_virtualheight) now can use the aspect ratio of the screen instead of 4:3. The new behavior can be activated using a new option in the text scaling menu or with the new CVAR con_scaletext_usescreenratio. [Torr Samaho]
++	- The authentication mechanism for non-map related lumps now allows Freedoom 0.8/Doom clients to join Doom/Freedoom 0.8 servers. [Torr Samaho] 
++	- Added a client movement buffer. Instead of processing all movement commands of a client immediately, they are stored in this buffer now. Each tic per client up to two commands in this buffer are processed. This way, players with an instable connection shouldn't appear as teleporting instead of moving to players with a stable connection. Note: This only changes how a player perceives the movement of other players. It has not effect on how a player perceives his own movement. [Torr Samaho] 
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]
 -	- Fixed: Clients were not properly informed about the reset of moving non-door polyobjects during map resets. [Torr Samaho]

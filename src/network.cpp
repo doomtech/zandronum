@@ -378,9 +378,11 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 					if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( workingLump, lumpsToAuthenticate[i].c_str(), checksum ) )
 						noProtectedLumpsAutoloaded = false;
 
-					// [BB] To make Doom and Freedoom 0.8-beta1 network compatible, we need to ignore its DEHACKED lump.
+					// [BB] To make Doom and Freedoom network compatible, we need to ignore its DEHACKED lump.
 					// Since this lump only changes some strings, this should cause no problems.
-					if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "DEHACKED" ) == 0 ) && ( stricmp ( checksum.GetChars(), "3c48ccc87e71d791ee3df64668b3fb42" ) == 0 ) )
+					if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "DEHACKED" ) == 0 )
+						&& ( ( stricmp ( checksum.GetChars(), "3c48ccc87e71d791ee3df64668b3fb42" ) == 0 ) // Freedoom 0.8-beta1
+							|| ( stricmp ( checksum.GetChars(), "9de9ddd0bc435cb8572db76a13d3140f" ) == 0 ) ) ) // Freedoom 0.8
 						continue;
 
 					longChecksum += checksum;
