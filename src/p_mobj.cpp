@@ -2843,7 +2843,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	}
 
 	// [W] Added old ZDoom physics compatibility
-	if (!(zacompatflags & ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS) && !(mo->flags2 & MF2_FLOATBOB))
+	if (!(zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT) && !(mo->flags2 & MF2_FLOATBOB))
 	{
 		mo->z += mo->velz;
 	}
@@ -2862,7 +2862,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			// an upward thrust (e.g. a jump) should not double it.
 			// [AM] Old versions of ZDoom didn't have double gravity.
 			if (mo->velz == 0 && oldfloorz > mo->floorz && mo->z == oldfloorz &&
-				!(zacompatflags & ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS))
+				!(zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT))
 			{
 				mo->velz -= grav + grav;
 			}
@@ -2888,7 +2888,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	}
 
 	// [W/BB] Apply the old ZDoom gravity here instead
-	if ( ( zacompatflags & ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS ) || (mo->flags2 & MF2_FLOATBOB) )
+	if ((zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT) || (mo->flags2 & MF2_FLOATBOB))
 	{
 		mo->z += mo->velz;
 	}

@@ -707,7 +707,7 @@ CVAR (Flag, compat_nogravity_spheres,		zacompatflags, ZACOMPATF_NOGRAVITY_SPHERE
 CVAR (Flag, compat_dont_stop_player_scripts_on_disconnect,		zacompatflags, ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT);
 CVAR (Flag, compat_explosionthrust,		zacompatflags, ZACOMPATF_OLD_EXPLOSION_THRUST);
 CVAR (Flag, compat_bridgedrops,		zacompatflags, ZACOMPATF_OLD_BRIDGE_DROPS);
-CVAR (Flag, compat_123b33jumpphysics,		zacompatflags, ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS);
+CVAR (Flag, compat_oldzdoomzmovement, zacompatflags, ZACOMPATF_OLD_ZDOOM_ZMOVEMENT);
 CVAR (Flag, compat_fullweaponlower,		zacompatflags, ZACOMPATF_FULL_WEAPON_LOWER);
 CVAR (Flag, compat_silentwestspawns,	zacompatflags, ZACOMPATF_SILENT_WEST_SPAWNS);
 

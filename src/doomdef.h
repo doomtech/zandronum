@@ -415,7 +415,7 @@ enum
 	// through invisible bridges.
 	ZACOMPATF_OLD_BRIDGE_DROPS		= 1 << 7,
 	// [CK] Uses old ZDoom jump physics, it's a minor bug in the gravity code that causes gravity application in the wrong place
-	ZACOMPATF_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
+	ZACOMPATF_OLD_ZDOOM_ZMOVEMENT = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
 	// [CK] Vanilla doom had silent west spawns
