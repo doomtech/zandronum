@@ -176,6 +176,16 @@ typedef struct
 //*****************************************************************************
 typedef struct
 {
+	ticcmd_t		cmd;
+	angle_t			angle;
+	angle_t			pitch;
+	USHORT			usWeaponNetworkIndex;
+	ULONG				ulGametic;
+} CLIENT_MOVE_COMMAND_s;
+
+//*****************************************************************************
+typedef struct
+{
 	// The network address of this client.
 	NETADDRESS_s	Address;
 
@@ -289,6 +299,9 @@ typedef struct
 
 	// [K6] Last tic we got some action from the client. Used to determine his presence.
 	LONG			lLastActionTic;
+
+	// [BB] Buffer storing all movement commands received from the client we haven't executed yet.
+	TArray<CLIENT_MOVE_COMMAND_s>	MoveCMDs;
 
 } CLIENT_s;
 
