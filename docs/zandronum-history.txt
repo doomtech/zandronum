@@ -24,9 +24,11 @@
 +	- Both types of lobby maps (MAPINFO and cvar) now ignore timelimits. [AlexMax]
 -	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
 -	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
+-	- Fixed: Gravity was applied twice in one tic when running off a cliff with compat_123b33jumpphysics enabled when it shouldn't be. [AlexMax]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
 !	- Renamed dmflags3 to zadmflags, moved all Zandronum/Skulltag exclusive dmflags2 from dmflags2 to zadmflags and changed the remaining dmflags2 values to match the ZDoom values to resolve compatibility problems with future ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
 !	- Since ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999, Zandronum now gracefully errors out when encountering a script with an invalid number instead of crashing randomly. [Torr Samaho] 
+!	- Renamed compat_123b33jumpphysics to compat_oldzdoomzmovement, which is a more accurate description of what the flag actually does. [AlexMax]
 
 
 1.3
