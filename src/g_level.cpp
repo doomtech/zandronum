@@ -810,8 +810,7 @@ const char *G_GetExitMap()
 		return ( level.mapname );
 	}
 	// If we're using the lobby cvar and we're not in the lobby already, the lobby is the next map.
-	// [AM] In theory, there can be more than one MAPINFO-lobby map, so we only obey the lobby cvar here.
-	else if ( strcmp( lobby, "" ) != 0 && stricmp( lobby, level.mapname ) != 0 )
+	else if ( GAMEMODE_IsNextMapCvarLobby( ) )
 	{
 		return lobby;
 	}
@@ -1117,10 +1116,8 @@ void G_DoLoadLevel (int position, bool autosave)
 	// [BB] Clients shouldn't mess with the team settings on their own.
 	if ( NETWORK_InClientMode ( ) == false )
 	{
-		// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
-		const level_info_t *info = FindLevelInfo (level.mapname);
 		// [BB] We clear the teams if either ZADF_YES_KEEP_TEAMS is not on or if the new level is a lobby.
-		const bool bClearTeams = ( !(zadmflags & ZADF_YES_KEEP_TEAMS) || ( ( info != NULL ) && ( info->flags2 & LEVEL2_ISLOBBY ) ) );
+		const bool bClearTeams = ( !(zadmflags & ZADF_YES_KEEP_TEAMS) || GAMEMODE_IsLobbyMap( level.mapname ) );
 
 		if ( bClearTeams )
 		{

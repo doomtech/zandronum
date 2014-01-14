@@ -394,6 +394,30 @@ bool GAMEMODE_IsLobbyMap( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsLobbyMap( const char* mapname )
+{
+	// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
+	const level_info_t *levelinfo = FindLevelInfo( mapname );
+
+	if (levelinfo == NULL)
+	{
+		return false;
+	}
+
+	return levelinfo->flags2 & LEVEL2_ISLOBBY || stricmp( levelinfo->mapname, lobby ) == 0;
+}
+
+//*****************************************************************************
+//
+bool GAMEMODE_IsNextMapCvarLobby( void )
+{
+	// If we're using a CVAR lobby and we're not on the lobby map, the next map
+	// should always be the lobby.
+	return strcmp(lobby, "") != 0 && stricmp(lobby, level.mapname) != 0;
+}
+
+//*****************************************************************************
+//
 bool GAMEMODE_IsTimelimitActive( void )
 {
 	// [AM] If the map is a lobby, ignore the timelimit.

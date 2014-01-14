@@ -590,7 +590,7 @@ void SERVER_Tick( void )
 			{
 				char	szString[128];
 
-				if ( strcmp( lobby, "" ) != 0 )
+				if ( GAMEMODE_IsNextMapCvarLobby( ) )
 				{
 					// [AM] If we're using a lobby map, reset to the lobby.
 					//      In theory, there can be many MAPINFO-lobbies, but there is only
@@ -2926,8 +2926,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 	// If no one is left on the server and we're using a cvar lobby map,
 	// reset to it after 30 seconds.
-	if ( strcmp( lobby, "" ) != 0 &&
-		 stricmp( lobby, level.mapname ) != 0 &&
+	if ( GAMEMODE_IsNextMapCvarLobby( ) &&
 		 SERVER_CalcNumPlayers( ) == 0 )
 	{
 		g_lMapRestartTimer = TICRATE * 30;
