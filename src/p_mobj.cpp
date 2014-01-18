@@ -3626,10 +3626,9 @@ void AActor::PlayActiveSound ()
 
 bool AActor::IsOkayToAttack (AActor *link)
 {
-	// [BB] Don't do this in client mode.
-	// Moved this here from AMinotaurFriend::IsOkayToAttack when this function was
-	// removed / merged with this. Needs to be checked.
-	if ( NETWORK_InClientMode() )
+	// [BB] Don't do this in client mode for MinotaurFriend.
+	// That's the only actor that is adapted such that the server handles this check.
+	if ( NETWORK_InClientMode() && this->IsKindOf( PClass::FindClass("MinotaurFriend") ) )
 		return ( false );
 
 	if (!(player							// Original AActor::IsOkayToAttack was only for players
