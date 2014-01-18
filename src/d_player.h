@@ -571,6 +571,7 @@ public:
 	fixed_t		restoreZ;
 
 	fixed_t		restoreFloorZ;
+	fixed_t		restoreCeilingZ;
 
 	// [BC] End of ST additions.
 

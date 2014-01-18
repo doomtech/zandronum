@@ -44,6 +44,7 @@
 -	- Fixed: Clients were not properly informed about the reset of moving non-door polyobjects during map resets. [Torr Samaho]
 -	- Fixed: Using SetAmmoCapacity on an ammo type a player didn't have online caused the clients to assume that the player now has a small amount of this ammo type. [Torr Samaho]
 -	- Fixed: The view was not centered in demos when the recording player released the mouse look button and lookspring was true. [Torr Samaho]
+-	- Fixed: Players sometimes could jump up through solid 3D floors online when unlagged was on. [Torr Samaho]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 

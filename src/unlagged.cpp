@@ -162,6 +162,8 @@ void UNLAGGED_Reconcile( AActor *actor )
 			//Work around limitations of SetOrigin to prevent players
 			//from getting stuck in ledges
 			players[i].restoreFloorZ = players[i].mo->floorz;
+			// [BB] ... and from jumping up through solid 3D floors.
+			players[i].restoreCeilingZ = players[i].mo->ceilingz;
 
 			//Also, don't reconcile the shooter because the client is supposed
 			//to predict him
@@ -250,6 +252,7 @@ void UNLAGGED_Restore( AActor *actor )
 		{
 			players[i].mo->SetOrigin( players[i].restoreX, players[i].restoreY, players[i].restoreZ );
 			players[i].mo->floorz = players[i].restoreFloorZ;
+			players[i].mo->ceilingz = players[i].restoreCeilingZ;
 		}
 	}
 
