@@ -589,6 +589,9 @@ IMPLEMENT_CLASS (AActorMover)
 
 void AActorMover::BeginPlay()
 {
+	// [BB] The Zandronum specific members of APathFollower must be initialized.
+	Super::BeginPlay ();
+
 	ChangeStatNum(STAT_ACTORMOVER);
 }
 
