@@ -595,7 +595,10 @@ IDB_SETUP				BITMAP  MOVEABLE PURE   "setup.bmp"
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #ifndef NO_MANIFEST
+// [BB] Using the ZDoom manifest will link the binary to the 32 bit version of comctl32.dll.
+#ifndef __MINGW64__
    CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "zdoom.exe.manifest"
+#endif
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
