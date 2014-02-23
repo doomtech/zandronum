@@ -493,6 +493,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireFlamer)
 	}
 
 	self->angle += pr_flamethrower.Random2() << 18;
+
+	// [Dusk] Update the player's angle now.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_ANGLE );
+
 	self = P_SpawnPlayerMissile (self, PClass::FindClass("FlameMissile"));
 	if (self != NULL)
 	{
