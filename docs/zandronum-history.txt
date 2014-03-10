@@ -45,6 +45,10 @@
 -	- Fixed: Using SetAmmoCapacity on an ammo type a player didn't have online caused the clients to assume that the player now has a small amount of this ammo type. [Torr Samaho]
 -	- Fixed: The view was not centered in demos when the recording player released the mouse look button and lookspring was true. [Torr Samaho]
 -	- Fixed: Players sometimes could jump up through solid 3D floors online when unlagged was on. [Torr Samaho]
+-	- Fixed: A_CrusaderRefire did not work properly online, causing the Crusader to desync. [Dusk]
+-	- Fixed: Strife's Flamethrower did not shake the player's view online. [Dusk]
+-	- Fixed: The server would crash with join passwords longer than 64 characters. [Dusk]
+-	- Fixed: Skins defined with SKININFO didn't work properly if the sprite entry was not set explicitly. [Torr Samaho]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 

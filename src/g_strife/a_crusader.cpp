@@ -124,6 +124,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepRight)
 
 DEFINE_ACTION_FUNCTION(AActor, A_CrusaderRefire)
 {
+	// [Dusk] The client should not execute this.
+	if( NETWORK_InClientMode( ))
+		return;
+
 	if (self->target == NULL ||
 		self->target->health <= 0 ||
 		!P_CheckSight (self, self->target))

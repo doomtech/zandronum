@@ -160,6 +160,7 @@ static	bool	server_Puke( BYTESTREAM_s *pByteStream );
 static	bool	server_MorphCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
 static	bool	server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient );
+static	bool	server_CheckJoinPassword( const FString& clientPassword );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -5048,13 +5049,11 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 //
 static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
-	UCVarValue	Val;
 	FString		clientJoinPassword;
 	ULONG		ulGametic;
 
 	// Read in the join password.
 	clientJoinPassword = NETWORK_ReadString( pByteStream );
-	clientJoinPassword.ToUpper();
 
 	// [BB/Spleen] Read in the client's gametic.
 	ulGametic = NETWORK_ReadLong( pByteStream );
@@ -5067,23 +5066,9 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
-	// If we're forcing a join password, kick him if it doesn't match.
-	Val = sv_joinpassword.GetGenericRep( CVAR_String );
-	if (( sv_forcejoinpassword ) && ( strlen( Val.String )))
-	{
-		char	szServerJoinPassword[64];
-
-		// Store password in temporary buffer (becuase we strupr it).
-		strcpy( szServerJoinPassword, Val.String );
-
-		// Check their password against ours (both not case sensitive).
-		if ( strcmp( strupr( szServerJoinPassword ), clientJoinPassword.GetChars() ) != 0 )
-		{
-			// Tell the client that the password didn't match.
-			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
-			return ( false );
-		}
-	}
+	// If we're forcing a join password, prevent him from joining if it doesn't match.
+	if ( server_CheckJoinPassword( clientJoinPassword ) == false )
+		return ( false );
 
 	// If there aren't currently any slots available, just put the person in line.
 	if ( GAMEMODE_PreventPlayersFromJoining() )
@@ -5230,7 +5215,6 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// Read in the join password.
 	clientJoinPassword = NETWORK_ReadString( pByteStream );
-	clientJoinPassword.ToUpper();
 
 	lDesiredTeam = NETWORK_ReadByte( pByteStream );
 	if ( playeringame[g_lCurrentClient] == false )
@@ -5285,23 +5269,9 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 
-	// If we're forcing a join password, kick him if it doesn't match.
-	Val = sv_joinpassword.GetGenericRep( CVAR_String );
-	if (( sv_forcejoinpassword ) && ( strlen( Val.String )))
-	{
-		char	szServerJoinPassword[64];
-
-		// Store password in temporary buffer (becuase we strupr it).
-		strcpy( szServerJoinPassword, Val.String );
-
-		// Check their password against ours (both not case sensitive).
-		if ( strcmp( strupr( szServerJoinPassword ), clientJoinPassword.GetChars() ) != 0 )
-		{
-			// Tell the client that the password didn't match.
-			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
-			return ( false );
-		}
-	}
+	// If we're forcing a join password, prevent him from joining if it doesn't match.
+	if ( server_CheckJoinPassword( clientJoinPassword ) == false )
+		return ( false );
 
 	// [BB] If this is a spectator and players are not allowed to join at the moment, put him in line.
 	if ( PLAYER_IsTrueSpectator ( &players[g_lCurrentClient] ) && GAMEMODE_PreventPlayersFromJoining ( g_lCurrentClient ) )
@@ -6044,6 +6014,23 @@ static bool server_MorphCheat( BYTESTREAM_s *pByteStream )
 	}
 
 	return ( false );
+}
+
+//*****************************************************************************
+//
+static bool server_CheckJoinPassword( const FString& clientPassword )
+{
+	if (( sv_forcejoinpassword ) && ( FString( sv_joinpassword ).IsNotEmpty( )))
+	{
+		if ( clientPassword.CompareNoCase( sv_joinpassword ) != 0 )
+		{
+			// Tell the client that the password didn't match.
+			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //*****************************************************************************
