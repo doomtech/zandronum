@@ -1026,6 +1026,9 @@ static void R_CreateSkin()
 	skin.ScaleX = GetDefaultByType (type)->scaleX;
 	skin.ScaleY = GetDefaultByType (type)->scaleY;
 
+	// [BC/BB] We need to initialize the default sprite, because when we create a skin
+	// using SKININFO, we don't necessarily specify a sprite.
+	skin.sprite = GetDefaultByType (type)->SpawnState->sprite;
 	// [BL] Hidden skins
 	skin.bRevealed = true;
 	skin.bRevealedByDefault = true;
