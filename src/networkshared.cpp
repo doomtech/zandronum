@@ -219,11 +219,18 @@ const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
 			break;
 
 		// Place this character into our string.
-		s_szString[ulIdx++] = static_cast<char> ( c );
+		// [BB] Even if we don't have enough space in s_szString, we have to fully 
+		// parse the received string. Otherwise we can't continue parsing the packet.
+		if ( ulIdx < MAX_NETWORK_STRING - 1 )
+			s_szString[ulIdx] = static_cast<char> ( c );
 
-	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
+		++ulIdx;
 
-	s_szString[ulIdx] = '\0';
+	} while ( true );
+
+	// [BB] We may have read more chars than we can store.
+	const int endIndex = ( ulIdx < MAX_NETWORK_STRING ) ? ulIdx : MAX_NETWORK_STRING - 1;
+	s_szString[endIndex] = '\0';
 	return ( s_szString );
 }
 

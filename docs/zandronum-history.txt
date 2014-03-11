@@ -11,6 +11,10 @@
 =
 ===============================================================================================================
 
+1.2.1
+-----
+
+-	- Fixed: A malformed packet could make the server kick the clients. Thanks to Konar6 for supplying a proof-of-concept exploit that allowed to debug the issue. [Torr Samaho]
 
 1.2
 ---
