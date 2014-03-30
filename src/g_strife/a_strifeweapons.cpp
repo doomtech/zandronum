@@ -258,19 +258,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireArrow)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_CLASS(ti, 0);
 
-	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		S_Sound( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM );
-		return;
-	}
-
-
-	// [BC] If we're the server, play the firing sound to other clients.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/xbowshoot", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
-
 	if (self->player == NULL)
 		return;
 
@@ -298,9 +285,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireArrow)
 		self->angle = savedangle;
 		S_Sound (self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM);
 
-	// [BC] If we're the server, play the firing sound to other clients.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/xbowshoot", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+		// [BC] If we're the server, play the firing sound to other clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/xbowshoot", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 }
 
