@@ -180,26 +180,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\huffman.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="main.cpp"
 				>
 				<FileConfiguration
@@ -293,6 +273,46 @@
 			</File>
 			<File
 				RelativePath=".\resource.rc"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Huffman"
+			>
+			<File
+				RelativePath="..\src\huffman\bitreader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitreader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitwriter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitwriter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\codec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffcodec.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffcodec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffman.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffman.h"
 				>
 			</File>
 		</Filter>
