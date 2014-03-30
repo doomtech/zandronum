@@ -820,7 +820,7 @@ void CLIENTDEMO_ReadDemoWads( void )
 				error.AppendFormat( "\\cc- %s%s\\c-\n",
 				WadNames[i].GetChars( ), (!i) ? " (IWAD)" : "");
 
-			I_Error( error );
+			I_Error( "%s", error.GetChars() );
 		}
 		else
 		{

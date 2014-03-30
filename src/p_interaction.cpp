@@ -2540,7 +2540,7 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 
 	// [BB] If the spectator used the chasecam or noclip cheat (which is always allowed for spectators)
 	// remove it now that he joins the game.
-	if ( pPlayer->cheats & CF_CHASECAM|CF_NOCLIP )
+	if ( pPlayer->cheats & ( CF_CHASECAM|CF_NOCLIP ))
 	{
 		pPlayer->cheats &= ~(CF_CHASECAM|CF_NOCLIP);
 		if ( NETWORK_GetState() == NETSTATE_SERVER  )
