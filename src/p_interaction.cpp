@@ -2881,7 +2881,7 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 
 	// Set the ready and pending weapon.
 	// [BB] When playing a client side demo, the weapon for the consoleplayer will
-	// be selected by a recorded CLD_INVUSE command.
+	// be selected by a recorded CLD_LCMD_INVUSE command.
 	if ( ( CLIENTDEMO_IsPlaying() == false ) || ( pPlayer - players ) != consoleplayer )
 		pPlayer->ReadyWeapon = pPlayer->PendingWeapon = pWeapon;
 
@@ -2893,7 +2893,7 @@ void PLAYER_SetWeapon( player_t *pPlayer, AWeapon *pWeapon, bool bClearWeaponFor
 		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( ));
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pWeapon->GetClass( )->TypeName.GetChars( ) );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, pWeapon->GetClass( )->TypeName.GetChars( ) );
 	}
 	// [BB] Make sure to inform clients of bot weapon changes.
 	else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pPlayer->bIsBot == true ) )
@@ -3078,6 +3078,6 @@ CCMD( taunt )
 			CLIENTCOMMANDS_Taunt( );
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_TAUNT, NULL );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_TAUNT, NULL );
 	}
 }

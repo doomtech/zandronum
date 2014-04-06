@@ -3588,7 +3588,7 @@ void CLIENT_UpdatePendingWeapon( const player_t *pPlayer )
 		CLIENTCOMMANDS_WeaponSelect( pPlayer->PendingWeapon->GetClass( ));
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, pPlayer->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
 	}
 }
 
@@ -4127,8 +4127,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			CLIENTCOMMANDS_WeaponSelect( pPlayer->ReadyWeapon->GetClass( ));
 
 			if ( CLIENTDEMO_IsRecording( ))
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
-			// [BB] When playing a demo, we will bring up what we recorded with CLD_INVUSE.
+				CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+			// [BB] When playing a demo, we will bring up what we recorded with CLD_LCMD_INVUSE.
 			else if ( CLIENTDEMO_IsPlaying() )
 				PLAYER_ClearWeapon ( pPlayer );
 		}

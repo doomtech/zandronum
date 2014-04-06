@@ -129,7 +129,7 @@ bool AWeapon::Use (bool pickup)
 			CLIENTCOMMANDS_WeaponSelect( useweap->GetClass( ));
 
 			if ( CLIENTDEMO_IsRecording( ))
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, useweap->GetClass( )->TypeName.GetChars( ) );
+				CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, useweap->GetClass( )->TypeName.GetChars( ) );
 		}
 		else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
 			SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
@@ -364,7 +364,7 @@ void AWeapon::AttachToOwner (AActor *other)
 					CLIENTCOMMANDS_WeaponSelect( this->GetClass( ));
 
 					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
+						CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
 				}
 				else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
 					SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
@@ -390,7 +390,7 @@ void AWeapon::AttachToOwner (AActor *other)
 						CLIENTCOMMANDS_WeaponSelect( this->GetClass( ));
 
 						if ( CLIENTDEMO_IsRecording( ))
-							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
+							CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, this->GetClass( )->TypeName.GetChars( ) );
 					}
 					else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player->bIsBot == true ) )
 						SERVERCOMMANDS_SetPlayerPendingWeapon( static_cast<ULONG> ( Owner->player - players ) );
@@ -717,7 +717,7 @@ void AWeapon::EndPowerup ()
 					CLIENTCOMMANDS_WeaponSelect( SisterWeapon->GetClass( ));
 
 					if ( CLIENTDEMO_IsRecording( ))
-						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, SisterWeapon->GetClass( )->TypeName.GetChars( ) );
+						CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, SisterWeapon->GetClass( )->TypeName.GetChars( ) );
 				}
 			}
 		}
@@ -731,7 +731,7 @@ void AWeapon::EndPowerup ()
 				CLIENTCOMMANDS_WeaponSelect( SisterWeapon->GetClass( ));
 
 				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, SisterWeapon->GetClass( )->TypeName.GetChars( ) );
+					CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, SisterWeapon->GetClass( )->TypeName.GetChars( ) );
 			}
 		}
 	}
