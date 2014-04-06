@@ -71,6 +71,7 @@
 #include "version.h"
 #include "templates.h"
 #include "r_translate.h"
+#include "m_cheat.h"
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -521,6 +522,10 @@ void CLIENTDEMO_ReadPacket( void )
 			case CLD_LCMD_TAUNT:
 
 				PLAYER_Taunt( &players[consoleplayer] );
+				break;
+			case CLD_LCMD_NOCLIP:
+
+				cht_DoCheat( &players[consoleplayer], CHT_NOCLIP );
 				break;
 			}
 			break;
