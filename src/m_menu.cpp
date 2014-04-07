@@ -695,7 +695,7 @@ void InitAnnouncersList()
 	value.value = -1;
 	value.name = "None";
 	Announcers.Push(value);
-	for ( int i = 0; i < ANNOUNCER_GetNumProfiles( ); ++i )
+	for ( unsigned int i = 0; i < ANNOUNCER_GetNumProfiles( ); ++i )
 	{
 		value.value = float(i);
 		value.name = ANNOUNCER_GetName( i );

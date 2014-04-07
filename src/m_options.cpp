@@ -3236,7 +3236,7 @@ void InitSkirmishLevelList()
 {
 	SkirmishLevels.Clear();
 	valuestring_t value;
-	for ( int i = 0; i < wadlevelinfos.Size( ); ++i )
+	for ( unsigned int i = 0; i < wadlevelinfos.Size( ); ++i )
 	{
 		value.value = float(i);
 		level_info_t *info = &wadlevelinfos[i];
