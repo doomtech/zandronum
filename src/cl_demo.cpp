@@ -71,6 +71,7 @@
 #include "version.h"
 #include "templates.h"
 #include "r_translate.h"
+#include "m_cheat.h"
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -494,29 +495,39 @@ void CLIENTDEMO_ReadPacket( void )
 				}
 			}
 			break;
-		case CLD_INVUSE:
+		case CLD_LOCALCOMMAND:
 
+			switch( static_cast<ClientDemoLocalCommand>( NETWORK_ReadByte( &g_ByteStream )))
 			{
-				AInventory	*pInventory;
+			case CLD_LCMD_INVUSE:
 
-				pszString = NETWORK_ReadString( &g_ByteStream );
+				{
+					AInventory	*pInventory;
+
+					pszString = NETWORK_ReadString( &g_ByteStream );
+
+					if ( players[consoleplayer].mo )
+					{
+						pInventory = players[consoleplayer].mo->FindInventory( pszString );
+						if ( pInventory )
+							players[consoleplayer].mo->UseInventory( pInventory );
+					}
+				}
+				break;
+			case CLD_LCMD_CENTERVIEW:
 
 				if ( players[consoleplayer].mo )
-				{
-					pInventory = players[consoleplayer].mo->FindInventory( pszString );
-					if ( pInventory )
-						players[consoleplayer].mo->UseInventory( pInventory );
-				}
+					players[consoleplayer].mo->pitch = 0;
+				break;
+			case CLD_LCMD_TAUNT:
+
+				PLAYER_Taunt( &players[consoleplayer] );
+				break;
+			case CLD_LCMD_NOCLIP:
+
+				cht_DoCheat( &players[consoleplayer], CHT_NOCLIP );
+				break;
 			}
-			break;
-		case CLD_CENTERVIEW:
-
-			if ( players[consoleplayer].mo )
-				players[consoleplayer].mo->pitch = 0;
-			break;
-		case CLD_TAUNT:
-
-			PLAYER_Taunt( &players[consoleplayer] );
 			break;
 		case CLD_DEMOEND:
 
@@ -663,29 +674,18 @@ LONG CLIENTDEMO_GetGameticOffset( void )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg )
+void CLIENTDEMO_WriteLocalCommand( ClientDemoLocalCommand command, const char* pszArg )
 {
-	if ( pszArg )
-		clientdemo_CheckDemoBuffer( (ULONG)strlen( pszArg ) + 1 );
+	if ( pszArg != NULL )
+		clientdemo_CheckDemoBuffer( (ULONG)strlen( pszArg ) + 2 );
 	else
-		clientdemo_CheckDemoBuffer( 1 );
+		clientdemo_CheckDemoBuffer( 2 );
 
-	switch ( lCommand )
-	{
-	case CLD_INVUSE:
+	NETWORK_WriteByte( &g_ByteStream, CLD_LOCALCOMMAND );
+	NETWORK_WriteByte( &g_ByteStream, command );
 
-		NETWORK_WriteByte( &g_ByteStream, CLD_INVUSE );
+	if ( pszArg != NULL )
 		NETWORK_WriteString( &g_ByteStream, pszArg );
-		break;
-	case CLD_CENTERVIEW:
-
-		NETWORK_WriteByte( &g_ByteStream, CLD_CENTERVIEW );
-		break;
-	case CLD_TAUNT:
-
-		NETWORK_WriteByte( &g_ByteStream, CLD_TAUNT );
-		break;
-	}
 }
 
 //*****************************************************************************
@@ -820,7 +820,7 @@ void CLIENTDEMO_ReadDemoWads( void )
 				error.AppendFormat( "\\cc- %s%s\\c-\n",
 				WadNames[i].GetChars( ), (!i) ? " (IWAD)" : "");
 
-			I_Error( error );
+			I_Error( "%s", error.GetChars() );
 		}
 		else
 		{

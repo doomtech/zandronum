@@ -1476,7 +1476,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					Printf ( "The server reports %d pwad(s):\n", numServerPWADs );
 					for( std::list<std::pair<FString, FString> >::iterator i = serverPWADs.begin( ); i != serverPWADs.end( ); ++i )
 						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
-					Printf ( "You have loaded %d pwad(s):\n", NETWORK_GetPWADList( )->size() );
+					Printf ( "You have loaded %d pwad(s):\n", static_cast<int>( NETWORK_GetPWADList( )->size() ));
 					for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
 						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
 
@@ -3001,7 +3001,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 #ifdef	_DEBUG
 		if ( pActor == players[consoleplayer].mo )
 		{
-			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body! lNetID = %d\n", lNetID );
+			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body! lNetID = %ld\n", lNetID );
 			return NULL;
 		}
 #endif
@@ -3589,7 +3589,7 @@ void CLIENT_UpdatePendingWeapon( const player_t *pPlayer )
 		CLIENTCOMMANDS_WeaponSelect( pPlayer->PendingWeapon->GetClass( ));
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, pPlayer->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
 	}
 }
 
@@ -4130,8 +4130,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			CLIENTCOMMANDS_WeaponSelect( pPlayer->ReadyWeapon->GetClass( ));
 
 			if ( CLIENTDEMO_IsRecording( ))
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
-			// [BB] When playing a demo, we will bring up what we recorded with CLD_INVUSE.
+				CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+			// [BB] When playing a demo, we will bring up what we recorded with CLD_LCMD_INVUSE.
 			else if ( CLIENTDEMO_IsPlaying() )
 				PLAYER_ClearWeapon ( pPlayer );
 		}

@@ -367,7 +367,7 @@ CCMD (centerview)
 			players[consoleplayer].mo->pitch = 0;
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_CENTERVIEW, NULL );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_CENTERVIEW, NULL );
 	}
 }
 

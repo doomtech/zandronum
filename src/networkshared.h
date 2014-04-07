@@ -455,7 +455,7 @@ public:
 	void put ( DataType Entry )
 	{
 		_data[_position] = Entry;
-		_position = ( ++_position % Length );
+		_position = (_position+1) % Length;
 	}
 	DataType getOldestEntry ( unsigned int Offset = 0 ) const
 	{

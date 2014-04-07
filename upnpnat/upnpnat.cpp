@@ -106,7 +106,7 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 *******************************************************************/
 #define HTTP_HEADER_ACTION "POST %s HTTP/1.1\r\n"                         \
                            "HOST: %s:%u\r\n"                                  \
-                           "Content-Length: %d \r\n" \
+                           "Content-Length: %ud \r\n" \
                            "CONTENT-TYPE: text/xml\r\n"             \
                            "SOAPACTION:\"%s#%s\"\r\n"   \
 						   "\r\n"
@@ -478,7 +478,7 @@ bool UPNPNAT::add_port_mapping(const char * _description, const char * _destinat
 	std::string soap_message=buff;
 
 	const char *pathString = ( ( path.c_str()[0] == '/' ) && ( path.c_str()[1] == '/' ) ) ? ( path.c_str() + 1 ) : path.c_str();
-	sprintf(buff,HTTP_HEADER_ACTION,pathString,host.c_str(),port,soap_message.size(),service_type.c_str(),ACTION_ADD);
+	sprintf(buff,HTTP_HEADER_ACTION,pathString,host.c_str(),port,static_cast<unsigned int>(soap_message.size()),service_type.c_str(),ACTION_ADD);
 	std::string action_message=buff;
 
 	std::string http_request=action_message+soap_message;

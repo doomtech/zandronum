@@ -203,7 +203,7 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 		const char		*pszBan = NETWORK_ReadString( pByteStream );
 		std::string		Message;
 
-		g_MasterServerBans.addEntry( pszBan, "", "", Message, NULL );
+		g_MasterServerBans.addEntry( pszBan, "", "", Message, 0 );
 	}
 
 	// Read the list of exemptions.
@@ -212,7 +212,7 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 		const char		*pszBan = NETWORK_ReadString( pByteStream );
 		std::string		Message;
 
-		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, NULL );
+		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, 0 );
 	}
 
 	// [BB] If we are enforcing the master bans, make sure newly master bannded players are kicked now.
@@ -255,9 +255,9 @@ void SERVERBAN_ReadMasterServerBanlistPart( BYTESTREAM_s *pByteStream )
 				std::string Message;
 
 				if ( lCommand == MSB_BAN )
-					g_MasterServerBans.addEntry( pszBan, "", "", Message, NULL );
+					g_MasterServerBans.addEntry( pszBan, "", "", Message, 0 );
 				else
-					g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, NULL );
+					g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, 0 );
 			}
 			break;
 
@@ -288,12 +288,13 @@ time_t SERVERBAN_ParseBanLength( const char *szLengthString )
 	FString	fInput = szLengthString;	
 
 	// If the ban is permanent, use NULL.
+	// [Dusk] Can't use NULL for time_t...
 	if ( stricmp( szLengthString, "perm" ) == 0 )
-		return NULL;
+		return 0;
 	else
-	{		
+	{
 		time( &tNow );
-		tExpiration = NULL;
+		tExpiration = 0;
 
 		// Now we check for patterns in the string.
 
@@ -477,12 +478,12 @@ static LONG serverban_ExtractBanLength( FString fSearchString, const char *pszPa
 static time_t serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tNow )
 {
 	// Convert to a time in the future (45 MINUTEs becomes 2,700 seconds).
-	if ( lAmount > 0 )		
+	if ( lAmount > 0 )
 		return tNow + ulUnitSize * lAmount;
 
 	// Not found, or bad format.
 	else
-		return NULL;
+		return 0;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -648,7 +649,7 @@ CCMD( addbanexemption )
 	}
 
 	std::string message;
-	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message, NULL );
+	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message, 0 );
 	Printf( "addbanexemption: %s", message.c_str() );
 }
 

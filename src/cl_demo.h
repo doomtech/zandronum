@@ -70,13 +70,19 @@ enum
 	CLD_USERINFO,
 	CLD_BODYSTART,
 	CLD_TICCMD,
-	CLD_INVUSE,
-	CLD_CENTERVIEW,
-	CLD_TAUNT,
+	CLD_LOCALCOMMAND, // [Dusk]
 	CLD_DEMOEND,
 	CLD_DEMOWADS, // [Dusk]
 
 	NUM_DEMO_COMMANDS
+};
+
+enum ClientDemoLocalCommand
+{
+	CLD_LCMD_INVUSE,
+	CLD_LCMD_CENTERVIEW,
+	CLD_LCMD_TAUNT,
+	CLD_LCMD_NOCLIP,
 };
 
 //*****************************************************************************
@@ -96,7 +102,7 @@ void		CLIENTDEMO_FinishRecording( void );
 void		CLIENTDEMO_DoPlayDemo( const char *pszDemoName );
 void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
-void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg );
+void		CLIENTDEMO_WriteLocalCommand( ClientDemoLocalCommand command, const char *pszArg );
 void		CLIENTDEMO_ReadDemoWads( void );
 BYTESTREAM_s *CLIENTDEMO_GetDemoStream( void );
 

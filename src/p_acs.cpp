@@ -1991,7 +1991,7 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				ACS_IsScriptClientSide( ptr ))
 			{
-				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, NULL, level.mapname, 0, arg1, 0, 0, always );
+				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, 0, level.mapname, 0, arg1, 0, 0, always );
 				continue;
 			}
 

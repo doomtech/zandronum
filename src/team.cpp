@@ -114,9 +114,9 @@ void TEAM_Construct( void )
 		TEAM_SetAnnouncedLeadState( i, false );
 		TEAM_SetAssistPlayer( i, MAXPLAYERS );
 
-		teams[i].g_Origin.x = NULL;
-		teams[i].g_Origin.y = NULL;
-		teams[i].g_Origin.z = NULL;
+		teams[i].g_Origin.x = 0;
+		teams[i].g_Origin.y = 0;
+		teams[i].g_Origin.z = 0;
 
 		switch ( i )
 		{
@@ -178,9 +178,9 @@ void TEAM_Reset( void )
 		TEAM_SetAnnouncedLeadState( i, false );
 		TEAM_SetAssistPlayer( i, MAXPLAYERS );
 
-		teams[i].g_Origin.x = NULL;
-		teams[i].g_Origin.y = NULL;
-		teams[i].g_Origin.z = NULL;
+		teams[i].g_Origin.x = 0;
+		teams[i].g_Origin.y = 0;
+		teams[i].g_Origin.z = 0;
 
 		switch ( i )
 		{
@@ -932,7 +932,7 @@ int TEAM_GetColor( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lPlayerColor );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -991,7 +991,7 @@ LONG TEAM_GetRailgunColor( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lRailColor );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -1009,7 +1009,7 @@ LONG TEAM_GetScore( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lScore );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -1251,7 +1251,7 @@ ULONG TEAM_GetReturnTicks( ULONG ulTeamIdx )
 	else if ( ulTeamIdx == teams.Size( ) )
 		return ( g_ulWhiteFlagReturnTicks );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -1275,7 +1275,7 @@ LONG TEAM_GetFragCount( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lFragCount );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -1314,7 +1314,7 @@ LONG TEAM_GetDeathCount( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lDeathCount );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************
@@ -1335,7 +1335,7 @@ LONG TEAM_GetWinCount( ULONG ulTeamIdx )
 	if ( TEAM_CheckIfValid( ulTeamIdx ))
 		return ( teams[ulTeamIdx].lWinCount );
 	else
-		return ( NULL );
+		return ( 0 );
 }
 
 //*****************************************************************************

@@ -224,10 +224,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\huffman.cpp"
-				>
-			</File>
-			<File
 				RelativePath="main.cpp"
 				>
 				<FileConfiguration
@@ -355,6 +351,64 @@
 			</File>
 			<File
 				RelativePath=".\tray_icon.ico"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Huffman"
+			>
+			<File
+				RelativePath="..\src\huffman\bitreader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitreader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitwriter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\bitwriter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\codec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffcodec.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffcodec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffman.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\huffman\huffman.h"
 				>
 			</File>
 		</Filter>

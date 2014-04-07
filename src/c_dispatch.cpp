@@ -605,7 +605,7 @@ void C_DoCommand (const char *cmd, int keynum)
 
 						// [BB] We need to record this for the demo.
 						if ( CLIENTDEMO_IsRecording( ))
-							CLIENTDEMO_WriteLocalCommand( CLD_CENTERVIEW, NULL );
+							CLIENTDEMO_WriteLocalCommand( CLD_LCMD_CENTERVIEW, NULL );
 					}
 				}
 			}

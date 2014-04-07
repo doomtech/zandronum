@@ -1090,6 +1090,11 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	// [BB] Remove any kind of trailing crap.
 	V_RemoveTrailingCrapFromFString ( cleanedChatString );
 
+	// [K6] Idk why is this part processed as FString, but let me join in on the fun and possibly strip ascii control characters.
+	// ...except 28 which is TEXTCOLOR_ESCAPE.
+	static const char strips[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,29,30,31,127,0 };
+	cleanedChatString.StripChars ( strips );
+
 	// [BB] If the chat string is empty now, it only contained crap and is ignored.
 	if ( cleanedChatString.IsEmpty() )
 		return;

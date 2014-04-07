@@ -825,7 +825,7 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 			if (( CLIENTDEMO_IsRecording( )) &&
 				( CLIENT_IsParsingPacket( ) == false ))
 			{
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
+				CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
 			}
 		}
 		// [BB] The server needs to tell the clients about bot weapon changes.
@@ -864,7 +864,7 @@ void APlayerPawn::CheckWeaponSwitch(const PClass *ammotype)
 				CLIENTCOMMANDS_WeaponSelect( best->GetClass( ));
 
 				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
+					CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
 			}
 		}
 	}
@@ -1341,7 +1341,7 @@ void APlayerPawn::GiveDefaultInventory ()
 					player->StartingWeaponName = item ? item->GetClass()->TypeName : NAME_None;
 				}
 				// [BB] When playing a client side demo, the default weapon for the consoleplayer
-				// will be selected by a recorded CLD_INVUSE command.
+				// will be selected by a recorded CLD_LCMD_INVUSE command.
 				else if ( ( CLIENTDEMO_IsPlaying() == false ) || ( player - players ) != consoleplayer )
 					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
 			}
@@ -1355,7 +1355,7 @@ void APlayerPawn::GiveDefaultInventory ()
 		CLIENTCOMMANDS_WeaponSelect( player->PendingWeapon->GetClass( ));
 
 		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, player->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
+			CLIENTDEMO_WriteLocalCommand( CLD_LCMD_INVUSE, player->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
 	}
 
 	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player

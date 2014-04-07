@@ -80,6 +80,7 @@
 #include "cl_commands.h"
 #include "cooperative.h"
 #include "survival.h"
+#include "m_cheat.h"
 
 extern FILE *Logfile;
 extern bool insave;
@@ -318,7 +319,22 @@ CCMD (noclip)
 		return;
 
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// [Dusk] Don't bother sending a request to the server when we're spectating.
+		// Spectator movement is entirely client-side and thus we can noclip on our own.
+		if ( players[consoleplayer].bSpectating )
+		{
+			cht_DoCheat( &players[consoleplayer], CHT_NOCLIP );
+
+			// [Dusk] If we are recording a demo, we need to write this noclip use down
+			// so that it can be re-enacted correctly
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_LCMD_NOCLIP, NULL );
+			return;
+		}
+
 		CLIENTCOMMANDS_GenericCheat( CHT_NOCLIP );
+	}
 	else
 	{
 		Net_WriteByte (DEM_GENERICCHEAT);

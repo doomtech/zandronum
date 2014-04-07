@@ -202,7 +202,7 @@ CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
 CVAR (Bool, sv_logfiletimestamp_usedate, false, CVAR_ARCHIVE)
 
 // [Dusk] This now refers to con_notifylines instead of hardcoded 4.
-#define NUMNOTIFIES (NotifyStrings.Size()) // 4
+#define NUMNOTIFIES ( static_cast<signed>( NotifyStrings.Size() )) // 4
 #define NOTIFYFADETIME 6
 
 // [Dusk] Changed from C-style array to TArray, typedefing the
@@ -225,7 +225,7 @@ CUSTOM_CVAR (Int, con_notifylines, 4, CVAR_ARCHIVE)
 	else if ( self > 50 )
 		self = 50;
 
-	// Whenever this is changed, the array needs to be resize to fit.
+	// Whenever this is changed, the array needs to be resized to fit.
 	NotifyStrings.Resize( self );
 }
 
