@@ -114,6 +114,19 @@ static const struct ColorList {
 	{NULL}
 };
 
+// [Dusk] Lookup table based on the old rainbow trail code
+static int g_rainbowParticleColorIndex = 0;
+static int* g_rainbowParticleColors[] =
+{
+	&red,
+	&orange,
+	&yellow,
+	&green,
+	&blue,
+	&purple,
+	&purple3,
+};
+
 void P_InitEffects ()
 {
 	const struct ColorList *color = Colors;
@@ -454,6 +467,13 @@ void P_DrawSplash2 (int count, fixed_t x, fixed_t y, fixed_t z, angle_t angle, i
 	}
 }
 
+// [Dusk]
+static int P_RainbowParticleColor( )
+{
+	int index = g_rainbowParticleColorIndex++ % countof( g_rainbowParticleColors );
+	return *( g_rainbowParticleColors[index] );
+}
+
 void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end, int color1, int color2, float maxdiff, bool silent)
 {
 	// [BC] The server has no need to draw a railgun trail.
@@ -541,9 +561,6 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 	// Create the outer spiral.
 	if (color1 != -1)
 	{
-		// [BC] 
-		static LONG	s_lParticleColor = 0;
-
 		// [BC] If color1 is -2, then we want a rainbow trail.
 		if ( color1 != -2 )
 			color1 = color1 == 0 ? -1 : ColorMatcher.Pick(RPART(color1), GPART(color1), BPART(color1));
@@ -588,60 +605,10 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 					p->color = rblue4;
 			}
 			// [BC] Handle the rainbow trail.
+			// [Dusk] Refactored.
 			else if ( color1 == -2 )
 			{
-				switch ( s_lParticleColor )
-				{
-				// Red.
-				case 0:
-
-					p->color = 0xff0000;
-					s_lParticleColor++;
-					break;
-				// Orange.
-				case 1:
-
-					p->color = 0xff8f00;
-					s_lParticleColor++;
-					break;
-				// Yellow.
-				case 2:
-
-					p->color = 0xffff00;
-					s_lParticleColor++;
-					break;
-				// Green.
-				case 3:
-
-					p->color = 0x00ff00;
-					s_lParticleColor++;
-					break;
-				// Blue.
-				case 4:
-
-					p->color = 0x0000ff;
-					s_lParticleColor++;
-					break;
-				// Indigo.
-				case 5:
-
-					p->color = 0xff00ff;
-					s_lParticleColor = 0;
-					break;
-				// Violet.
-				case 6:
-
-					p->color = 0x8f008f;
-					s_lParticleColor = 0;
-					break;
-				default:
-
-					p->color = 0xffffff;
-					s_lParticleColor = 0;
-					break;
-				}
-
-				p->color = ColorMatcher.Pick(RPART(p->color), GPART(p->color), BPART(p->color));
+				p->color = P_RainbowParticleColor();
 			}
 			else
 			{
@@ -702,60 +669,10 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 					p->color = grey1;
 			}
 			// [BC] Handle the rainbow trail.
-			else if ( color2 == -2 )
+			// [Dusk] Refactored.
+			else if ( color1 == -2 )
 			{
-				switch ( s_lParticleColor )
-				{
-				// Red.
-				case 0:
-
-					p->color = 0xff0000;
-					s_lParticleColor++;
-					break;
-				// Orange.
-				case 1:
-
-					p->color = 0xff8f00;
-					s_lParticleColor++;
-					break;
-				// Yellow.
-				case 2:
-
-					p->color = 0xffff00;
-					s_lParticleColor++;
-					break;
-				// Green.
-				case 3:
-
-					p->color = 0x00ff00;
-					s_lParticleColor++;
-					break;
-				// Blue.
-				case 4:
-
-					p->color = 0x0000ff;
-					s_lParticleColor++;
-					break;
-				// Indigo.
-				case 5:
-
-					p->color = 0xff00ff;
-					s_lParticleColor = 0;
-					break;
-				// Violet.
-				case 6:
-
-					p->color = 0x8f008f;
-					s_lParticleColor = 0;
-					break;
-				default:
-
-					p->color = 0xffffff;
-					s_lParticleColor = 0;
-					break;
-				}
-
-				p->color = ColorMatcher.Pick(RPART(p->color), GPART(p->color), BPART(p->color));
+				p->color = P_RainbowParticleColor();
 			}
 			else 
 			{
