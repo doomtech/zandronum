@@ -93,6 +93,8 @@ void DOMINATION_LoadInit(unsigned int numpoints, unsigned int* pointowners)
 
 	finished = false;
 	NumPoints = numpoints;
+	if ( PointOwners )
+		delete[] PointOwners;
 	PointOwners = pointowners;
 }
 
