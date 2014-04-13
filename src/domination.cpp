@@ -187,6 +187,9 @@ void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 	if(!domination)
 		return;
 
+	if(point >= NumPoints)
+		return;
+
 	if(!toucher->bOnTeam) //The toucher must be on a team
 		return;
 

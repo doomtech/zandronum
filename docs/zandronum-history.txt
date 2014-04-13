@@ -17,6 +17,7 @@
 -	- Fixed: A malformed packet could make the server kick the clients. Thanks to Konar6 for supplying a proof-of-concept exploit that allowed to debug the issue. [Torr Samaho]
 -	- Fixed an exploit with color codes in player names (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed a client memory exhaustion vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho]
+-	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
 
 1.2
 ---
