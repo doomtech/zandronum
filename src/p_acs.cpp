@@ -3421,6 +3421,7 @@ enum EACSFunctions
 	ACSF_GetPlayerLivesLeft,
 	ACSF_SetPlayerLivesLeft,
 	ACSF_KickFromGame,
+	ACSF_GetGamemodeState,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3720,6 +3721,12 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				}
 				else
 					return 0;
+			}
+
+		// [BB]
+		case ACSF_GetGamemodeState:
+			{
+				return GAMEMODE_GetState();
 			}
 
 		default:
