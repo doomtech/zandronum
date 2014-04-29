@@ -1370,6 +1370,10 @@ void medal_CheckForFisting( ULONG ulPlayer )
 	if ( players[ulPlayer].ReadyWeapon == NULL )
 		return;
 
+	// [BB/K6] Neither Fist nor BFG9000 will cause this MeansOfDeath.
+	if ( MeansOfDeath == NAME_Telefrag )
+		return;
+
 	// If the player killed him with this fist, award him a "Fisting!" medal.
 	if ( players[ulPlayer].ReadyWeapon->GetClass( ) == PClass::FindClass( "Fist" ))
 		medal_GiveMedal( ulPlayer, MEDAL_FISTING );

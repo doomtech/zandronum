@@ -80,6 +80,16 @@ typedef enum
 } MODIFIER_e;
 
 //*****************************************************************************
+typedef enum
+{
+	GAMESTATE_UNSPECIFIED = -1,
+	GAMESTATE_WAITFORPLAYERS = 0,
+	GAMESTATE_COUNTDOWN,
+	GAMESTATE_INPROGRESS,
+	GAMESTATE_INRESULTSEQUENCE
+} GAMESTATE_e;
+
+//*****************************************************************************
 //	STRUCTURES
 
 typedef struct
@@ -111,6 +121,7 @@ char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
+bool		GAMEMODE_IsGameInCountdown( void );
 bool		GAMEMODE_IsGameInProgress( void );
 bool		GAMEMODE_IsGameInResultSequence( void );
 bool		GAMEMODE_IsGameInProgressOrResultSequence( void );
@@ -132,6 +143,7 @@ void		GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor );
 void		GAMEMODE_SpawnSpecialGamemodeThings ( void );
 void		GAMEMODE_ResetSpecalGamemodeStates ( void );
 bool		GAMEMODE_IsSpectatorAllowedSpecial ( const int Special );
+GAMESTATE_e	GAMEMODE_GetState ( void );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInformClients = false );

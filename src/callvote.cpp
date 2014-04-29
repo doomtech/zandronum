@@ -745,8 +745,9 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "You cannot votekick yourself!\n" );
   						return ( false );
 					}
-					// [BB] Don't allow anyone to kick somebody who is on the admin list.
-					if ( SERVER_GetAdminList()->isIPInList( SERVER_GetClient( ulIdx )->Address ) )
+					// [BB] Don't allow anyone to kick somebody who is on the admin list. [K6] ...or is logged into RCON.
+					if ( SERVER_GetAdminList()->isIPInList( SERVER_GetClient( ulIdx )->Address )
+						|| SERVER_GetClient( ulIdx )->bRCONAccess )
 					{
 						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "This player is a server admin and thus can't be kicked!\n" );
   						return ( false );

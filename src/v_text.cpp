@@ -813,13 +813,16 @@ void V_RemoveTrailingCrap( char *pszString )
 		// [BB] Remove trailing incomplete color code of type "\c[X".
 		else
 		{
-			const char* pChar = strrchr(pszString, '[');
+			// [K6] We remove any unclosed color codes here.
+			int i = 0;
+			for ( i = ulStringLength-2; i >= 2; --i )
+			{
+				if ( pszString[i] == '[' && V_ColorCodeStart ( pszString, i-2 ))
+					break;
+			}
+			const char* pChar = &pszString[i];
 			if ( pChar > strrchr(pszString, ']') )
 			{
-				// [BB] The string may have some '[' trailing "\c[", skip those.
-				while ( ( ( pChar - pszString ) > 0 ) && *(pChar-1) == '[' )
-					--pChar;
-
 				const int index = pChar - pszString;
 				if ( ( index > 2 ) && V_ColorCodeStart ( pszString, index-2 ) )
 				{

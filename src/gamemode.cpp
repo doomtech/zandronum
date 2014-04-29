@@ -340,6 +340,49 @@ void GAMEMODE_DetermineGameMode( void )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsGameWaitingForPlayers( void )
+{
+	if ( survival )
+		return ( SURVIVAL_GetState( ) == SURVS_WAITINGFORPLAYERS );
+	else if ( invasion )
+		return ( INVASION_GetState( ) == IS_WAITINGFORPLAYERS );
+	else if ( duel )
+		return ( DUEL_GetState( ) == DS_WAITINGFORPLAYERS );
+	else if ( teamlms || lastmanstanding )
+		return ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS );
+	else if ( possession || teampossession )
+		return ( POSSESSION_GetState( ) == PSNS_WAITINGFORPLAYERS );
+	// [BB] Non-coop game modes need two or more players.
+	else if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( ) ) & GMF_COOPERATIVE ) == false )
+		return ( GAME_CountActivePlayers( ) < 2 );
+	// [BB] For coop games one player is enough.
+	else
+		return ( GAME_CountActivePlayers( ) < 1 );
+}
+
+//*****************************************************************************
+//
+bool GAMEMODE_IsGameInCountdown( void )
+{
+	if ( survival )
+		return ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN );
+	// [BB] What about IS_COUNTDOWN?
+	else if ( invasion )
+		return ( INVASION_GetState( ) == IS_FIRSTCOUNTDOWN );
+	else if ( duel )
+		return ( DUEL_GetState( ) == DS_COUNTDOWN );
+	else if ( teamlms || lastmanstanding )
+		return ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN );
+	// [BB] What about PSNS_PRENEXTROUNDCOUNTDOWN?
+	else if ( possession || teampossession )
+		return ( ( POSSESSION_GetState( ) == PSNS_COUNTDOWN ) || ( POSSESSION_GetState( ) == PSNS_NEXTROUNDCOUNTDOWN ) );
+	// [BB] The other game modes don't have a countdown.
+	else
+		return ( false );
+}
+
+//*****************************************************************************
+//
 bool GAMEMODE_IsGameInProgress( void )
 {
 	// [BB] Since there is currently no way unified way to check the state of
@@ -354,10 +397,13 @@ bool GAMEMODE_IsGameInProgress( void )
 		return ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS );
 	else if ( possession || teampossession )
 		return ( ( POSSESSION_GetState( ) == PSNS_INPROGRESS ) || ( POSSESSION_GetState( ) == PSNS_ARTIFACTHELD ) );
-	// [BB] In the game modes without warmup phase, we just says the game is
+	// [BB] In non-coop game modes without warmup phase, we just say the game is
 	// in progress when there are two or more players.
-	else
+	else if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( ) ) & GMF_COOPERATIVE ) == false )
 		return ( GAME_CountActivePlayers( ) >= 2 );
+	// [BB] For coop games one player is enough.
+	else
+		return ( GAME_CountActivePlayers( ) >= 1 );
 }
 
 //*****************************************************************************
@@ -735,6 +781,23 @@ void GAMEMODE_ResetSpecalGamemodeStates ( void )
 bool GAMEMODE_IsSpectatorAllowedSpecial ( const int Special )
 {
 	return ( ( Special == Teleport ) || ( Special == Teleport_NoFog ) || ( Special == Teleport_Line ) );
+}
+
+//*****************************************************************************
+//
+GAMESTATE_e GAMEMODE_GetState( void )
+{
+	if ( GAMEMODE_IsGameWaitingForPlayers() )
+		return GAMESTATE_WAITFORPLAYERS;
+	else if ( GAMEMODE_IsGameInCountdown() )
+		return GAMESTATE_COUNTDOWN;
+	else if ( GAMEMODE_IsGameInProgress() )
+		return GAMESTATE_INPROGRESS;
+	else if ( GAMEMODE_IsGameInResultSequence() )
+		return GAMESTATE_INRESULTSEQUENCE;
+
+	// [BB] Some of the above should apply, but this function always has to return something.
+	return GAMESTATE_UNSPECIFIED;
 }
 
 //*****************************************************************************

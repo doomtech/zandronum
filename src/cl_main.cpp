@@ -8205,6 +8205,18 @@ static void client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream )
 static void client_SetDominationState( BYTESTREAM_s *pByteStream )
 {
 	unsigned int NumPoints = NETWORK_ReadLong( pByteStream );
+
+	// [BB] It's impossible that the server sends us this many points
+	// in a single packet, so something must be wrong. Just parse
+	// what the server has claimed to have send, but don't try to store
+	// it or allocate memory for it.
+	if ( NumPoints > MAX_UDP_PACKET )
+	{
+		for ( unsigned int i = 0; i < NumPoints; ++i )
+			NETWORK_ReadByte( pByteStream );
+		return;
+	}
+
 	unsigned int *PointOwners = new unsigned int[NumPoints];
 	for(unsigned int i = 0;i < NumPoints;i++)
 	{

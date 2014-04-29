@@ -41,6 +41,8 @@
 +	- Added a client movement buffer. Instead of processing all movement commands of a client immediately, they are stored in this buffer now. Each tic per client up to two commands in this buffer are processed. This way, players with an instable connection shouldn't appear as teleporting instead of moving to players with a stable connection. Note: This only changes how a player perceives the movement of other players. It has not effect on how a player perceives his own movement. [Torr Samaho] 
 +	- The mdk cheat command can now be used online in cheat servers. Unlike in ZDoom, it is also allowed in deathmatch modes. [Dusk]
 +	- The noclip command for spectators is now client-sided for increased responsivity. [Dusk]
++	- Added new ACS command GetGamemodeState. The return values are GAMESTATE_UNSPECIFIED = -1, GAMESTATE_WAITFORPLAYERS = 0, GAMESTATE_COUNTDOWN = 1, GAMESTATE_INPROGRESS = 2 and GAMESTATE_INRESULTSEQUENCE = 3. [Torr Samaho]
+-	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]
 -	- Fixed: Clients were not properly informed about the reset of moving non-door polyobjects during map resets. [Torr Samaho]
@@ -54,9 +56,14 @@
 -	- Fixed: A malformed packet could make the server kick the clients. Thanks to Konar6 for supplying a proof-of-concept exploit that allowed to debug the issue. [Torr Samaho]
 - 	- Fixed: Tampered clients could insert ASCII control characters into chat messages (e.g. line breaks) (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Strife's crossbow did not appear to use ammo on clients online. [Dusk]
+-	- Fixed an exploit with color codes in player names (ported from Konar6's kpatch). [Torr Samaho]
+-	- Fixed a client memory exhaustion vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho]
+-	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
+-	- Fixed: Clients using endgame while attempting to connect would not terminate the connection attempt. [Dusk]
+-	- Fixed: Telefregging shouldn't count towards awarding the Fisting and Spam medals (ported from Konar6's kpatch). [Torr Samaho]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
-
+!	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
 
 1.2
 ---

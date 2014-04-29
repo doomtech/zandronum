@@ -1570,6 +1570,14 @@ void D_StartTitle (void)
 
 CCMD (endgame)
 {
+	// [Dusk] If we're a client, ending the game involves disconnecting.
+	// Therefore this should do whatever disconnect does so I'll just call that.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		C_DoCommand( "disconnect" );
+		return;
+	}
+
 	if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 	{
 		gameaction = ga_fullconsole;

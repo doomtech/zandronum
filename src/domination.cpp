@@ -93,6 +93,8 @@ void DOMINATION_LoadInit(unsigned int numpoints, unsigned int* pointowners)
 
 	finished = false;
 	NumPoints = numpoints;
+	if ( PointOwners )
+		delete[] PointOwners;
 	PointOwners = pointowners;
 }
 
@@ -183,6 +185,9 @@ void DOMINATION_WinSequence(unsigned int winner)
 void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 {
 	if(!domination)
+		return;
+
+	if(point >= NumPoints)
 		return;
 
 	if(!toucher->bOnTeam) //The toucher must be on a team
