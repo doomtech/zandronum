@@ -78,6 +78,7 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "templates.h"
+#include "d_event.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -96,6 +97,11 @@ static	ULONG	g_ulWhiteFlagReturnTicks;
 static	bool	g_bSpawningTemporaryFlag = false;
 
 static FRandom	g_JoinTeamSeed( "JoinTeamSeed" );
+
+//*****************************************************************************
+//	CONSOLE VARIABLES
+
+CVAR( Bool, sv_forcerandom, false, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -1844,12 +1850,15 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 	if ( pPlayer->userinfo.PlayerClass == -1 )
 		return;
 
+	// [BB] The additional checks prevent this from being done while the map is loaded.
+	const bool forcerandom = ( sv_forcerandom && ( gameaction == ga_nothing ) && PLAYER_IsValidPlayer ( static_cast<ULONG> ( pPlayer - players ) ) );
+
 	// [BB] The class is valid, nothing to do.
-	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) )
+	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) && ( ( forcerandom == false ) || ( pPlayer->userinfo.PlayerClass == -1 ) ) )
 		return;
 
 	// [BB] The current class is invalid, select a valid one.
-	pPlayer->userinfo.PlayerClass = TEAM_FindValidClassForPlayer ( pPlayer );
+	pPlayer->userinfo.PlayerClass = forcerandom ? -1 : TEAM_FindValidClassForPlayer ( pPlayer );
 	// [BB] This should respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
 	pPlayer->playerstate = PST_REBORNNOINVENTORY;
