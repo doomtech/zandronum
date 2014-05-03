@@ -23,7 +23,7 @@
 +	- The mdk cheat command can now be used online in cheat servers. Unlike in ZDoom, it is also allowed in deathmatch modes. [Dusk]
 +	- The noclip command for spectators is now client-sided for increased responsivity. [Dusk]
 +	- Added new ACS command GetGamemodeState. The return values are GAMESTATE_UNSPECIFIED = -1, GAMESTATE_WAITFORPLAYERS = 0, GAMESTATE_COUNTDOWN = 1, GAMESTATE_INPROGRESS = 2 and GAMESTATE_INRESULTSEQUENCE = 3. [Torr Samaho]
-+	- Added new CVAR sv_forcerandom. If this is true, all players use the random player class regardless of the class they selected. [Torr Samaho] 
++	- Added new CVAR sv_forcerandomclass. If this is true, all players use the random player class regardless of the class they selected. [Torr Samaho] 
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]
