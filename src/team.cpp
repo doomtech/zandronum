@@ -499,9 +499,9 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 	// Create the console message.
 	if( ( bAssisted ) && ( ! bSelfAssisted ) )
-		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, TEAM_GetName( pPlayer->ulTeam ));
+		sprintf(szString, "%s \\c-and %s\\c- scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 	else
-		sprintf(szString, "%s \\c-scored for the %s team!\n", pPlayer->userinfo.netname, TEAM_GetName( pPlayer->ulTeam ) );
+		sprintf(szString, "%s \\c-scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
@@ -725,6 +725,7 @@ void TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ), ulTeamIdx );
+		SERVER_Printf( PRINT_MEDIUM, "%s \\c-lost the \\c%c%s \\c-%s.\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( ulTeamIdx)), TEAM_GetName( ulTeamIdx), ( skulltag ) ? "skull" : "flag" );
 		return;
 	}
 
@@ -1059,7 +1060,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	if ( TEAM_GetScore( ulTeamIdx ) >= (LONG)pointlimit )
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_Printf( PRINT_HIGH, "%s has won the game!\n", TEAM_GetName( ulTeamIdx ));
+			SERVER_Printf( PRINT_HIGH, "\\c%c%s \\c-has won the game!\n", V_GetColorChar( TEAM_GetTextColor( ulTeamIdx )), TEAM_GetName( ulTeamIdx ));
 		else
 			Printf( "%s has won the game!\n", TEAM_GetName( ulTeamIdx ));
 
