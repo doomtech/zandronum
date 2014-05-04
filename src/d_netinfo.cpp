@@ -1280,12 +1280,12 @@ CCMD (playerinfo)
 			{
 				// [BB] Only call Printf once to prevent problems with sv_logfiletimestamp.
 				FString infoString;
-				infoString.AppendFormat("%d. %s", i, players[i].userinfo.netname);
+				infoString.AppendFormat("\\c%c%d. %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', i, players[i].userinfo.netname);
 
 				// [RC] Are we the server? Draw their IPs as well.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					infoString.AppendFormat("\\cj - IP %s", NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
+					infoString.AppendFormat("\\c%c - IP %s", PLAYER_IsTrueSpectator( &players[i] ) ? 'k' : 'j', NETWORK_AddressToString ( SERVER_GetClient( i )->Address ) );
 					// [BB] If we detected suspicious behavior of this client, print this now.
 					if ( SERVER_GetClient( i )->bSuspicious )
 						infoString.AppendFormat ( " * %lu", SERVER_GetClient( i )->ulNumConsistencyWarnings );
@@ -1294,6 +1294,9 @@ CCMD (playerinfo)
 					if ( NETWORK_IsGeoIPAvailable() )
 						infoString.AppendFormat ( "\\ce - FROM %s", NETWORK_GetCountryCodeFromAddress ( SERVER_GetClient( i )->Address ).GetChars() );
 				}
+
+				if ( PLAYER_IsTrueSpectator( &players[i] ))
+					infoString.AppendFormat("\\ck (SPEC)");
 
 				Printf("%s\n", infoString.GetChars());
 			}

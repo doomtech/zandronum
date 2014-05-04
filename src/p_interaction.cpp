@@ -3065,11 +3065,37 @@ void PLAYER_LeavesGame( const ULONG ulPlayer )
 	{
 		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayer );
 		PLAYER_RemoveFriends ( ulPlayer );
+		PLAYER_ClearEnemySoundFields( ulPlayer );
 	}
 
 	// [BB] Clear the players medals and the medal related counters. The former is something also clients need to do.
 	memset( players[ulPlayer].ulMedalCount, 0, sizeof( ULONG ) * NUM_MEDALS );
 	PLAYER_ResetSpecialCounters ( &players[ulPlayer] );
+}
+
+//*****************************************************************************
+//
+// [Dusk] Remove sound targets from the given player
+//
+void PLAYER_ClearEnemySoundFields( const ULONG ulPlayer )
+{
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	TThinkerIterator<AActor> it;
+	AActor* mo;
+
+	while (( mo = it.Next() ) != NULL )
+	{
+		if ( mo->LastHeard != NULL && mo->LastHeard->player == &players[ulPlayer] )
+			mo->LastHeard = NULL;
+	}
+
+	for ( int i = 0; i < numsectors; ++i )
+	{
+		if ( sectors[i].SoundTarget != NULL && sectors[i].SoundTarget->player == &players[ulPlayer] )
+			sectors[i].SoundTarget = NULL;
+	}
 }
 
 CCMD (kill)

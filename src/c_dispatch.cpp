@@ -526,7 +526,8 @@ void ResetButtonStates ()
 	{
 		FButtonStatus *button = ActionMaps[i].Button;
 
-		if (button != &Button_Mlook && button != &Button_Klook)
+		//[jam] Also don't reset the Button_Crouch state, to prevent possible toggle crouch to reset.
+		if (button != &Button_Mlook && button != &Button_Klook && button != &Button_Crouch)
 		{
 			button->ReleaseKey (0);
 		}

@@ -42,6 +42,8 @@
 +	- The mdk cheat command can now be used online in cheat servers. Unlike in ZDoom, it is also allowed in deathmatch modes. [Dusk]
 +	- The noclip command for spectators is now client-sided for increased responsivity. [Dusk]
 +	- Added new ACS command GetGamemodeState. The return values are GAMESTATE_UNSPECIFIED = -1, GAMESTATE_WAITFORPLAYERS = 0, GAMESTATE_COUNTDOWN = 1, GAMESTATE_INPROGRESS = 2 and GAMESTATE_INRESULTSEQUENCE = 3. [Torr Samaho]
++	- Added new CVAR sv_forcerandomclass. If this is true, all players use the random player class regardless of the class they selected. [Torr Samaho] 
++	- Colored team names in exiting console messages and added extra console messages for CTF and Skulltag (scores, pickups, drops, etc.) (ported from Konar6's kpatch). [Torr Samaho]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]
@@ -61,9 +63,12 @@
 -	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
 -	- Fixed: Clients using endgame while attempting to connect would not terminate the connection attempt. [Dusk]
 -	- Fixed: Telefregging shouldn't count towards awarding the Fisting and Spam medals (ported from Konar6's kpatch). [Torr Samaho]
+-	- Fixed: Toggle crouch shouldn't reset when menu is activated during a netgame. [Jam]
+-	- Fixed: Monsters would become "blind" if the player who awoke them by sound became a spectator. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
+!	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
 
 1.2
 ---
