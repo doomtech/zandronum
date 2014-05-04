@@ -95,5 +95,6 @@ void	CLIENTCOMMANDS_ExitConsole( void );
 void	CLIENTCOMMANDS_Puke ( LONG lScript, int arg[3], ULONG ulArgn );
 void	CLIENTCOMMANDS_MorphCheat ( const char *pszMorphClass );
 void	CLIENTCOMMANDS_FullUpdateReceived ( void );
+void	CLIENTCOMMANDS_Linetarget( AActor* mobj );
 
 #endif	// __CL_COMMANDS_H__

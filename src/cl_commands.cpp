@@ -576,3 +576,14 @@ void CLIENTCOMMANDS_FullUpdateReceived ( void )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_FULLUPDATE );
 }
+
+//*****************************************************************************
+// [Dusk]
+void CLIENTCOMMANDS_Linetarget( AActor* mobj )
+{
+	if ( mobj == NULL || mobj->lNetID == -1 )
+		return;
+
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_LINETARGET );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, mobj->lNetID );
+}
