@@ -5980,6 +5980,25 @@ void SERVERCOMMANDS_SetFastChaseStrafeCount( AActor *mobj, ULONG ulPlayerExtra, 
 
 //*****************************************************************************
 //
+// [Dusk] This function is called to set an actor's health directly on the
+// client. I don't expect many things to call it (it was created for the sake
+// of syncing hellstaff rain health fields) so it's an extended command for now
+// instead of a regular one, despite its genericness.
+//
+void SERVERCOMMANDS_SetThingHealth( AActor* mobj, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	if ( !EnsureActorHasNetID (mobj) )
+		return;
+
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETTHINGHEALTH );
+	command.addShort( mobj->lNetID );
+	command.addByte( mobj->health );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
 	SERVER_CheckClientBuffer( ulClient, 2, true );

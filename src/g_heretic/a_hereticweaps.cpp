@@ -1512,11 +1512,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_AddPlayerRain)
 	ARainTracker *tracker;
 
 	// [BC] Let the server spawn rain.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
+	if ( NETWORK_InClientMode() )
 		return;
-	}
 
 	if (self->target == NULL || self->target->health <= 0)
 	{ // Shooter is dead or nonexistant
@@ -1536,6 +1533,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_AddPlayerRain)
 				if (tracker->Rain1->health > 16)
 				{
 					tracker->Rain1->health = 16;
+
+					// [Dusk] Sync the new health value to clients.
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingHealth( tracker->Rain1 );
 				}
 				tracker->Rain1 = NULL;
 			}
@@ -1544,6 +1545,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_AddPlayerRain)
 				if (tracker->Rain2->health > 16)
 				{
 					tracker->Rain2->health = 16;
+
+					// [Dusk] Sync the new health value to clients.
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingHealth( tracker->Rain2 );
 				}
 				tracker->Rain2 = NULL;
 			}

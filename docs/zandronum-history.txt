@@ -46,6 +46,7 @@
 -	- Fixed: Telefregging shouldn't count towards awarding the Fisting and Spam medals (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Toggle crouch shouldn't reset when menu is activated during a netgame. [Jam]
 -	- Fixed: Monsters would become "blind" if the player who awoke them by sound became a spectator. [Dusk]
+-	- Fixed: When spawning more than 2 hellstaff rains in Heretic, the old ones would linger around on the client instead of disappearing. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
