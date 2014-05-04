@@ -76,6 +76,7 @@
 #include "templates.h"
 #include "a_movingcamera.h"
 #include "po_man.h"
+#include "i_system.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
@@ -148,14 +149,20 @@ public:
  * \author Benjamin Berkels
  */
 class NetCommand {
-	NETBUFFER_s _buffer;
+	NETBUFFER_s	_buffer;
+	const int	_header;
+	bool		_unreliable;
+
 public:
-	NetCommand ( const int Header )
+	NetCommand ( const int Header ) :
+		_header( Header ),
+		_unreliable( false )
 	{
 		NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &_buffer );
-		addInteger<BYTE> ( Header );
+		addInteger<BYTE>( Header );
 	}
+
 	~NetCommand ( )
 	{
 		NETWORK_FreeBuffer ( &_buffer );
@@ -166,7 +173,7 @@ public:
 	{
 		if ( ( _buffer.ByteStream.pbStream + sizeof ( IntType ) ) > _buffer.ByteStream.pbStreamEnd )
 		{
-			Printf( "NetCommand::AddInteger: Overflow!\n" );
+			Printf( "NetCommand::AddInteger: Overflow! Header: %d\n", _header );
 			return;
 		}
 
@@ -203,7 +210,7 @@ public:
 
 		if ( len > MAX_NETWORK_STRING )
 		{
-			Printf( "NETWORK_WriteString: String exceeds %d characters!\n", MAX_NETWORK_STRING );
+			Printf( "NETWORK_WriteString: String exceeds %d characters! Header: %d\n", MAX_NETWORK_STRING , _header );
 			return;
 		}
 
@@ -217,12 +224,32 @@ public:
 		NETWORK_WriteBuffer( &ByteStream, _buffer.pbData, _buffer.ulCurrentSize );
 	}
 
-	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 ) const {
+	// [Dusk]
+	BYTESTREAM_s& getBytestreamForClient( ULONG i ) const {
+		if ( _unreliable )
+			return SERVER_GetClient( i )->UnreliablePacketBuffer.ByteStream;
+
+		return SERVER_GetClient( i )->PacketBuffer.ByteStream;
+	}
+
+	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 ) {
 		for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
-		{
-			SERVER_CheckClientBuffer( *it, _buffer.ulCurrentSize, true );
-			writeCommandToStream ( SERVER_GetClient( *it )->PacketBuffer.ByteStream );
-		}
+			sendCommandToOneClient( *it );
+	}
+
+	void sendCommandToOneClient( ULONG i ) {
+		SERVER_CheckClientBuffer( i, _buffer.ulCurrentSize, _unreliable == false );
+		writeCommandToStream( getBytestreamForClient( i ));
+	}
+
+	// [Dusk]
+	bool isUnreliable() const {
+		return _unreliable;
+	}
+
+	// [Dusk]
+	void setUnreliable ( bool a ) {
+		_unreliable = a;
 	}
 };
 
@@ -433,17 +460,10 @@ void CheckPositionReuse( AActor *pActor, ULONG &ulBits )
 //
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 5, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_PING );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulTime );
-	}
+	NetCommand command( SVC_PING );
+	command.addLong( ulTime );
+	command.setUnreliable( true );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
@@ -453,8 +473,9 @@ void SERVERCOMMANDS_Nothing( ULONG ulPlayer, bool bReliable )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1, bReliable );
-	NETWORK_WriteHeader( bReliable ? &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream : &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_NOTHING );
+	NetCommand command( SVC_NOTHING );
+	command.setUnreliable( true );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
@@ -464,8 +485,8 @@ void SERVERCOMMANDS_BeginSnapshot( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_BEGINSNAPSHOT );
+	NetCommand command( SVC_BEGINSNAPSHOT );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
@@ -475,8 +496,8 @@ void SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_ENDSNAPSHOT );
+	NetCommand command( SVC_ENDSNAPSHOT );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
@@ -484,8 +505,6 @@ void SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra, ULONG ulFlags, bool bMorph )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -494,44 +513,26 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	if ( players[ulPlayer].mo )
 		usActorNetworkIndex = players[ulPlayer].mo->GetClass( )->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue; 
+	NetCommand command( bMorph ? SVC_SPAWNMORPHPLAYER : SVC_SPAWNPLAYER );
+	command.addByte( ulPlayer );
+	command.addByte( lPlayerState );
+	command.addByte( players[ulPlayer].bIsBot );
+	// Do we really need to send this? Shouldn't it always be PST_LIVE?
+	command.addByte( players[ulPlayer].playerstate );
+	command.addByte( players[ulPlayer].bSpectating );
+	command.addByte( players[ulPlayer].bDeadSpectator );
+	command.addShort( players[ulPlayer].mo->lNetID );
+	command.addLong( players[ulPlayer].mo->angle );
+	command.addLong( players[ulPlayer].mo->x );
+	command.addLong( players[ulPlayer].mo->y );
+	command.addLong( players[ulPlayer].mo->z );
+	command.addShort( players[ulPlayer].CurrentPlayerClass );
+	// command.addByte( players[ulPlayer].userinfo.PlayerClass );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( bMorph )
+		command.addShort( usActorNetworkIndex );
 
-		if ( bMorph )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 28, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMORPHPLAYER );
-		}
-		else
-		{
-			SERVER_CheckClientBuffer( ulIdx, 26, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPLAYER );
-		}
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPlayerState );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].bIsBot );
-		// Do we really need to send this? Shouldn't it always be PST_LIVE?
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].playerstate );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].bSpectating );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].bDeadSpectator );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->lNetID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->angle );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->x );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->y );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->z );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
-		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
-		if ( bMorph )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
 	// [BB]: If the player still has any cheats activated from the last level, tell
 	// him about it. Not doing this leads for example to jerky movement on client side
@@ -545,7 +546,6 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 //
 void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	ULONG ulPlayerAttackFlags = 0;
 
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
@@ -557,48 +557,32 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 	if ( players[ulPlayer].cmd.ucmd.buttons & BT_ALTATTACK )
 		ulPlayerAttackFlags |= PLAYER_ALTATTACK;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	NetCommand fullCommand( SVC_MOVEPLAYER );
+	fullCommand.setUnreliable( true );
+	fullCommand.addByte( ulPlayer );
+	fullCommand.addByte( PLAYER_VISIBLE | ulPlayerAttackFlags );
+	// [BB] The x/y position has to be sent at full precision, otherwise the player may be rounded to a neighboring sector
+	// on the clients, potentially completely changing its Z position.
+	fullCommand.addLong( players[ulPlayer].mo->x );
+	fullCommand.addLong( players[ulPlayer].mo->y );
+	fullCommand.addShort( players[ulPlayer].mo->z >> FRACBITS );
+	fullCommand.addLong( players[ulPlayer].mo->angle );
+	fullCommand.addShort( players[ulPlayer].mo->velx >> FRACBITS );
+	fullCommand.addShort( players[ulPlayer].mo->vely >> FRACBITS );
+	fullCommand.addShort( players[ulPlayer].mo->velz >> FRACBITS );
+	fullCommand.addByte(( players[ulPlayer].crouchdir >= 0 ) ? true : false );
+
+	NetCommand stubCommand( SVC_MOVEPLAYER );
+	stubCommand.setUnreliable( true );
+	stubCommand.addByte( ulPlayer );
+	stubCommand.addByte( ulPlayerAttackFlags );
+
+	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 24, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_MOVEPLAYER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
-
-		// If this player cannot be seen by (or is not allowed to be seen by) the
-		// player, don't send position information.
-		if ( SERVER_IsPlayerVisible( ulIdx, ulPlayer ) == false )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayerAttackFlags );
+		if ( SERVER_IsPlayerVisible( *it, ulPlayer ))
+			fullCommand.sendCommandToOneClient( *it );
 		else
-		{
-			// The player IS visible, so his info is coming!
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, PLAYER_VISIBLE|ulPlayerAttackFlags );
-
-			// Write position.
-			// [BB] The x/y position has to be sent at full precision, otherwise the player may be rounded to a neighboring sector
-			// on the clients, potentially completely changing its Z position.
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x );
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->y );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->z >> FRACBITS );
-
-			// Write angle.
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->angle );
-
-			// Write velocity.
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->velx >> FRACBITS );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->vely >> FRACBITS );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->velz >> FRACBITS );
-
-			// Write whether or not the player is crouching.
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ( players[ulPlayer].crouchdir >= 0 ) ? true : false );
-		}
+			stubCommand.sendCommandToOneClient( *it );
 	}
 }
 
@@ -606,7 +590,6 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 {
-	ULONG		ulIdx;
 	ULONG		ulArmorPoints;
 	AInventory	*pArmor;
 
@@ -625,30 +608,27 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 		ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 	}
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	NetCommand fullCommand( SVC_DAMAGEPLAYER );
+	fullCommand.addByte( ulPlayer );
+	fullCommand.addShort( players[ulPlayer].health );
+	fullCommand.addShort( ulArmorPoints );
+	fullCommand.addShort( players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
+
+	NetCommand stubCommand( SVC_DAMAGEPLAYER );
+	stubCommand.addByte( ulPlayer );
+	stubCommand.addShort( 100 );
+	stubCommand.addShort( 100 );
+	stubCommand.addShort( -1 );
+
+	for ( ClientIterator it; it.notAtEnd(); ++it )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DAMAGEPLAYER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-
 		// Only send the player who's being damaged to this player if this player is
 		// allowed to know what his health is. Otherwise, just tell them it's 100/100
 		// (WHICH IS A LIE!!!!!!).
-		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
-		{
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].health );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArmorPoints );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
-		}
+		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
+			fullCommand.sendCommandToOneClient( *it );
 		else
-		{
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-		}
+			stubCommand.sendCommandToOneClient( *it );
 	}
 }
 
@@ -695,51 +675,32 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 	// [BB] We only send the health as short, so make sure that it doesn't exceed the corresponding range.
 	WORD wHealth = clamp ( players[ulPlayer].mo->health, SHRT_MIN, SHRT_MAX );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 10 + static_cast<ULONG> ( strlen ( MOD.GetChars() ) ) + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
-
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, wHealth );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, MOD.GetChars() );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command ( SVC_KILLPLAYER );
+	command.addByte( ulPlayer );
+	command.addShort( lSourceID );
+	command.addShort( lInflictorID );
+	command.addShort( wHealth );
+	command.addString( MOD.GetChars() );
+	command.addString( players[ulPlayer].mo->DamageType.GetChars() );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	NetCommand command ( SVC_SETPLAYERHEALTH );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].health );
+
+	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
-		{
-			SERVER_CheckClientBuffer( ulIdx, 3, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERHEALTH );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].health );
-		}
+		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
+			command.sendCommandToOneClient( *it );
 	}
 }
 
@@ -753,30 +714,19 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 
-	// [BB] The ( ulArmorPoints > 0 ) check ensures ( pArmor != NULL ) inside the block below.
-	if ( ulArmorPoints > 0 ){
-		FString armorIconTexName = pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "";
+	// [BB] This check ensures ( pArmor != NULL ) below.
+	if ( ulArmorPoints == 0 )
+		return;
 
-		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if ( SERVER_IsValidClient( ulIdx ) == false )
-				continue;
+	NetCommand command ( SVC_SETPLAYERARMOR );
+	command.addByte( ulPlayer );
+	command.addShort( ulArmorPoints );
+	command.addString( pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "" );
 
-			if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-				(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-			{
-				continue;
-			}
-
-			if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
-			{
-				SERVER_CheckClientBuffer( ulPlayer, 4 + (ULONG)strlen( armorIconTexName.GetChars() ), true );
-				NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERARMOR );
-				NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-				NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArmorPoints );
-				NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, armorIconTexName.GetChars() );
-			}
-		}
+	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
+	{
+		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
+			command.sendCommandToOneClient( *it );
 	}
 }
 
@@ -829,83 +779,57 @@ void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlay
 //
 void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERSTATE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
-	}
+	NetCommand command( SVC_SETPLAYERSTATE );
+	command.addByte( ulPlayer );
+	command.addByte( ulState );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_SETPLAYERUSERINFO );
+	command.addByte( ulPlayer );
+	command.addShort( ulUserInfoFlags );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( ulUserInfoFlags & USERINFO_NAME )
+		command.addString( players[ulPlayer].userinfo.netname );
 
-		SERVER_CheckClientBuffer( ulIdx, 13 + (ULONG)( strlen( players[ulPlayer].userinfo.netname ) + strlen( skins[players[ulPlayer].userinfo.skin].name )), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERUSERINFO );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulUserInfoFlags );
-		if ( ulUserInfoFlags & USERINFO_NAME )
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.netname );
+	if ( ulUserInfoFlags & USERINFO_GENDER )
+		command.addByte( players[ulPlayer].userinfo.gender );
 
-		if ( ulUserInfoFlags & USERINFO_GENDER )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.gender );
+	if ( ulUserInfoFlags & USERINFO_COLOR )
+		command.addLong( players[ulPlayer].userinfo.color );
 
-		if ( ulUserInfoFlags & USERINFO_COLOR )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.color );
+	if ( ulUserInfoFlags & USERINFO_RAILCOLOR )
+		command.addByte( players[ulPlayer].userinfo.lRailgunTrailColor );
 
-		if ( ulUserInfoFlags & USERINFO_RAILCOLOR )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lRailgunTrailColor );
+	if ( ulUserInfoFlags & USERINFO_SKIN )
+		command.addString( SERVER_GetClient( ulPlayer )->szSkin );
 
-		if ( ulUserInfoFlags & USERINFO_SKIN )
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SERVER_GetClient( ulPlayer )->szSkin );
+	if ( ulUserInfoFlags & USERINFO_HANDICAP )
+		command.addByte( players[ulPlayer].userinfo.lHandicap );
 
-		if ( ulUserInfoFlags & USERINFO_HANDICAP )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lHandicap );
+	if ( ulUserInfoFlags & USERINFO_UNLAGGED )
+		command.addByte( players[ulPlayer].userinfo.bUnlagged );
 
-		if ( ulUserInfoFlags & USERINFO_UNLAGGED )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bUnlagged );
+	if ( ulUserInfoFlags & USERINFO_RESPAWNONFIRE )
+		command.addByte( players[ulPlayer].userinfo.bRespawnonfire );
 
-		if ( ulUserInfoFlags & USERINFO_RESPAWNONFIRE )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.bRespawnonfire );
+	if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
+		command.addByte( players[ulPlayer].userinfo.ulTicsPerUpdate );
 
-		if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.ulTicsPerUpdate );
+	if ( ulUserInfoFlags & USERINFO_CONNECTIONTYPE )
+		command.addByte( players[ulPlayer].userinfo.ulConnectionType );
 
-		if ( ulUserInfoFlags & USERINFO_CONNECTIONTYPE )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.ulConnectionType );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -925,81 +849,39 @@ void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPOINTS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].lPointCount );
-	}
+	NetCommand command( SVC_SETPLAYERPOINTS );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].lPointCount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERWINS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].ulWins );
-	}
+	NetCommand command( SVC_SETPLAYERWINS );
+	command.addByte( ulPlayer );
+	command.addByte( players[ulPlayer].ulWins );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERKILLCOUNT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].killcount );
-	}
+	NetCommand command( SVC_SETPLAYERKILLCOUNT );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].killcount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1035,57 +917,31 @@ void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iHeader );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bValue );
-	}
+	NetCommand command( iHeader );
+	command.addByte( ulPlayer );
+	command.addByte( bValue );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_SETPLAYERTEAM );
+	command.addByte( ulPlayer );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( players[ulPlayer].bOnTeam == false )
+		command.addByte( teams.Size( ));
+	else
+		command.addByte( players[ulPlayer].ulTeam );
 
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERTEAM );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		if ( players[ulPlayer].bOnTeam == false )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, teams.Size( ) );
-		else
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].ulTeam );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1095,105 +951,60 @@ void SERVERCOMMANDS_SetPlayerCamera( ULONG ulPlayer, LONG lCameraNetID, bool bRe
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 4, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETPLAYERCAMERA );
-	NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, lCameraNetID );
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, bRevertPlease );
+	NetCommand command( SVC_SETPLAYERCAMERA );
+	command.addShort( lCameraNetID );
+	command.addByte( bRevertPlease );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPOISONCOUNT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].poisoncount );
-	}
+	NetCommand command( SVC_SETPLAYERPOISONCOUNT );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].poisoncount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	if ( pAmmo == NULL )
-		return;
-
-	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
+		( pAmmo == NULL ) ||
+		( pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo)) == false ))
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->getActorNetworkIndex() );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
+		return;
 	}
+
+	NetCommand command( SVC_SETPLAYERAMMOCAPACITY );
+	command.addByte( ulPlayer );
+	command.addShort( pAmmo->GetClass( )->getActorNetworkIndex() );
+	command.addShort( pAmmo->MaxAmount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERCHEATS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].cheats );
-	}
+	NetCommand command( SVC_SETPLAYERCHEATS );
+	command.addByte( ulPlayer );
+	command.addLong( players[ulPlayer].cheats );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
@@ -1207,28 +1018,13 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 	else
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		// Only send this info to spectators.
-		// [BB] Or if this is a COOP game.
-		// [BB] Everybody needs to know this. Otherwise the Railgun sound is broken and spying in demos doesn't work properly.
-		//if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
-		//	continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPENDINGWEAPON );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	// Only send this info to spectators.
+	// [BB] Or if this is a COOP game.
+	// [BB] Everybody needs to know this. Otherwise the Railgun sound is broken and spying in demos doesn't work properly.
+	NetCommand command( SVC_SETPLAYERPENDINGWEAPON );
+	command.addByte( ulPlayer );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1236,27 +1032,13 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 /* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPIECES );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].pieces );
-	}
+	NetCommand command( SVC_SETPLAYERPIECES );
+	command.addByte( ulPlayer );
+	command.addByte( players[ulPlayer].pieces );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 */
 
@@ -1266,7 +1048,6 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 {
 	FString			stateLabel;
 	LONG			lOffset;
-	ULONG			ulIdx;
 
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -1297,24 +1078,12 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 			stateLabel = ":R";
 	}
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4 + static_cast<ULONG>( stateLabel.Len() ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPSPRITE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, stateLabel.GetChars() );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
-	}
+	NetCommand command( SVC_SETPLAYERPSPRITE );
+	command.addByte( ulPlayer );
+	command.addString( stateLabel.GetChars() );
+	command.addByte( lOffset );
+	command.addByte( lPosition );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1324,53 +1093,26 @@ void SERVERCOMMANDS_SetPlayerBlend( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 18, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERBLEND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].BlendR );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].BlendG );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].BlendB );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].BlendA );
-	}
+	NetCommand command( SVC_SETPLAYERBLEND );
+	command.addByte( ulPlayer );
+	command.addFloat( players[ulPlayer].BlendR );
+	command.addFloat( players[ulPlayer].BlendG );
+	command.addFloat( players[ulPlayer].BlendB );
+	command.addFloat( players[ulPlayer].BlendA );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPlayerMaxHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false || players[ulPlayer].mo == NULL )
 		return;
 
-	if ( players[ulPlayer].mo == NULL )
-		return;
-
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERMAXHEALTH );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->MaxHealth );
-	}
+	NetCommand command( SVC_SETPLAYERMAXHEALTH );
+	command.addByte( ulPlayer );
+	command.addLong( players[ulPlayer].mo->MaxHealth );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1380,22 +1122,10 @@ void SERVERCOMMANDS_SetPlayerLivesLeft( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERLIVESLEFT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].ulLivesLeft );
-	}
+	NetCommand command( SVC_SETPLAYERLIVESLEFT );
+	command.addByte( ulPlayer );
+	command.addByte( players[ulPlayer].ulLivesLeft );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1420,27 +1150,14 @@ void SERVERCOMMANDS_SyncPlayerAmmoAmount( ULONG ulPlayer, ULONG ulPlayerExtra, U
 //
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERPING );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].ulPing );
-	}
+	NetCommand command( SVC_UPDATEPLAYERPING );
+	command.setUnreliable( true );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].ulPing );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1450,97 +1167,66 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( PLAYER_IsValidPlayer( ulDisplayPlayer ) == false ))
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 18, false );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYEREXTRADATA );
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, ulDisplayPlayer );
-
-//	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].pendingweapon );
-//	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].readyweapon );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].mo->pitch );
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].mo->waterlevel );
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].cmd.ucmd.buttons );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].viewz );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulDisplayPlayer].bob );
-
+	NetCommand command( SVC_UPDATEPLAYEREXTRADATA );
+	command.setUnreliable( true );
+	command.addByte( ulDisplayPlayer );
+//	command.addByte( players[ulDisplayPlayer].pendingweapon );
+//	command.addByte( players[ulDisplayPlayer].readyweapon );
+	command.addLong( players[ulDisplayPlayer].mo->pitch );
+	command.addByte( players[ulDisplayPlayer].mo->waterlevel );
+	command.addByte( players[ulDisplayPlayer].cmd.ucmd.buttons );
+	command.addLong( players[ulDisplayPlayer].viewz );
+	command.addLong( players[ulDisplayPlayer].bob );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulPlayer, 4, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERTIME );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
-	}
+	NetCommand command( SVC_UPDATEPLAYERTIME );
+	command.setUnreliable( true );
+	command.addByte( ulPlayer );
+	command.addShort(( players[ulPlayer].ulTime / ( TICRATE * 60 )));
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 {
-	if ( SERVER_IsValidClient( ulPlayer ) == false )
+	if ( SERVER_IsValidClient( ulPlayer ) == false || players[ulPlayer].mo == NULL )
 		return;
 
-	if ( players[ulPlayer].mo == NULL )
-		return;
-
-	SERVER_CheckClientBuffer( ulPlayer, 29, false );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_MOVELOCALPLAYER );
-
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SERVER_GetClient( ulPlayer )->ulClientGameTic );
+	NetCommand command( SVC_MOVELOCALPLAYER );
+	command.setUnreliable( true );
+	command.addLong( SERVER_GetClient( ulPlayer )->ulClientGameTic );
 
 	// Write position.
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->y );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->z );
+	command.addLong( players[ulPlayer].mo->x );
+	command.addLong( players[ulPlayer].mo->y );
+	command.addLong( players[ulPlayer].mo->z );
 
 	// Write velocity.
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->velx );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->vely );
-	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->velz );
+	command.addLong( players[ulPlayer].mo->velx );
+	command.addLong( players[ulPlayer].mo->vely );
+	command.addLong( players[ulPlayer].mo->velz );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DisconnectPlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DISCONNECTPLAYER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command( SVC_DISCONNECTPLAYER );
+	command.addByte( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -1550,9 +1236,9 @@ void SERVERCOMMANDS_SetConsolePlayer( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 2, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETCONSOLEPLAYER );
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulPlayer );
+	NetCommand command( SVC_SETCONSOLEPLAYER );
+	command.addByte( ulPlayer );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
@@ -1562,111 +1248,60 @@ void SERVERCOMMANDS_ConsolePlayerKicked( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_CONSOLEPLAYERKICKED );
+	NetCommand command( SVC_CONSOLEPLAYERKICKED );
+	command.sendCommandToOneClient( ulPlayer );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_GivePlayerMedal( ULONG ulPlayer, ULONG ulMedal, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEPLAYERMEDAL );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMedal );
-	}
+	NetCommand command( SVC_GIVEPLAYERMEDAL );
+	command.addByte( ulPlayer );
+	command.addByte( ulMedal );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ResetAllPlayersFragcount( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESETALLPLAYERSFRAGCOUNT );
-	}
+	NetCommand command( SVC_RESETALLPLAYERSFRAGCOUNT );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerIsSpectator( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERISSPECTATOR );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].bDeadSpectator );
-	}
+	NetCommand command( SVC_PLAYERISSPECTATOR );
+	command.addByte( ulPlayer );
+	command.addByte( players[ulPlayer].bDeadSpectator );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMode, bool bForbidChatToPlayers, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
+	if ( ulPlayer != MAXPLAYERS && PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return;
 
-	if ( ulPlayer != MAXPLAYERS )
+	NetCommand command( SVC_PLAYERSAY );
+	command.addByte( ulPlayer );
+	command.addByte( ulMode );
+	command.addString( pszString );
+
+	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
 	{
-		if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
-			return;
-	}
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
 		// Don't allow the chat message to be broadcasted to this player.
-		if (( bForbidChatToPlayers ) && ( players[ulIdx].bSpectating == false ))
+		if (( bForbidChatToPlayers ) && ( players[*it].bSpectating == false ))
 			continue;
 
 		// The player is sending a message to his teammates.
@@ -1675,12 +1310,12 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				// If either player is not on a team, don't send the message.
-				if ( (( players[ulIdx].bOnTeam == false ) || ( players[ulPlayer].bOnTeam == false ))
-					&& (( PLAYER_IsTrueSpectator ( &players[ulIdx] ) == false ) || ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false )) )
+				if ( (( players[*it].bOnTeam == false ) || ( players[ulPlayer].bOnTeam == false ))
+					&& (( PLAYER_IsTrueSpectator ( &players[*it] ) == false ) || ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false )) )
 					continue;
 
 				// If the players are not on the same team, don't send the message.
-				if ( ( players[ulIdx].ulTeam != players[ulPlayer].ulTeam ) && ( ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) != PLAYER_IsTrueSpectator ( &players[ulPlayer] ) ) || ( PLAYER_IsTrueSpectator ( &players[ulIdx] ) == false ) ) )
+				if ( ( players[*it].ulTeam != players[ulPlayer].ulTeam ) && ( ( PLAYER_IsTrueSpectator ( &players[*it] ) != PLAYER_IsTrueSpectator ( &players[ulPlayer] ) ) || ( PLAYER_IsTrueSpectator ( &players[*it] ) == false ) ) )
 					continue;
 			}
 			// Not in a team mode.
@@ -1688,11 +1323,7 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 				continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( pszString ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERSAY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMode );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+		command.sendCommandToOneClient( *it );
 	}
 }
 
@@ -1700,59 +1331,30 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 //
 void SERVERCOMMANDS_PlayerTaunt( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERTAUNT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command( SVC_PLAYERTAUNT );
+	command.addByte( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERRESPAWNINVULNERABILITY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command( SVC_PLAYERRESPAWNINVULNERABILITY );
+	command.addByte( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
@@ -1765,29 +1367,16 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 	if ( NETWORK_GetClassNameFromIdentification ( usActorNetworkIndex ) == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERUSEINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command( SVC_PLAYERUSEINVENTORY );
+	command.addByte( ulPlayer );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	USHORT		usActorNetworkIndex = 0;
 
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
@@ -1800,46 +1389,31 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 	if ( NETWORK_GetClassNameFromIdentification ( usActorNetworkIndex ) == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERDROPINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command( SVC_PLAYERDROPINVENTORY );
+	command.addByte( ulPlayer );
+	command.addShort( usActorNetworkIndex );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PotentiallyIgnorePlayer( ULONG ulPlayer )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ClientIterator it; it.notAtEnd(); ++it )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false || ( ulIdx == ulPlayer ))
-			continue; 
-
 		// Check whether this player is ignoring the newcomer's address.
-		LONG lTicks = SERVER_GetPlayerIgnoreTic( ulIdx, SERVER_GetClient( ulPlayer )->Address );
-		if ( lTicks != 0 )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 6, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_IGNOREPLAYER );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTicks );
-		}
+		LONG lTicks = SERVER_GetPlayerIgnoreTic( *it, SERVER_GetClient( ulPlayer )->Address );
+
+		if ( lTicks == 0 )
+			continue;
+
+		NetCommand command( SVC_IGNOREPLAYER );
+		command.addByte( ulPlayer );
+		command.addLong( lTicks );
+		command.sendCommandToOneClient( *it );
 	}
 }
 
-//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
@@ -2073,27 +1647,18 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 //
 void SERVERCOMMANDS_DamageThing( AActor *pActor )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DAMAGETHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command( SVC_DAMAGETHING );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflictor )
 {
-	ULONG	ulIdx;
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
@@ -2110,169 +1675,96 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 	else
 		lInflictorID = -1;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 9 + ULONG(strlen(pActor->DamageType.GetChars())), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->health );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType.GetChars() );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
-	}
+	NetCommand command( SVC_KILLTHING );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->health );
+	command.addString( pActor->DamageType.GetChars() );
+	command.addShort( lSourceID );
+	command.addShort( lInflictorID );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSTATE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
-	}
+	NetCommand command( SVC_SETTHINGSTATE );
+	command.addShort( pActor->lNetID );
+	command.addByte( ulState );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingTarget( AActor *pActor )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) || !EnsureActorHasNetID(pActor->target) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTARGET );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->target->lNetID );
-	}
+	NetCommand command( SVC_SETTHINGTARGET );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->target->lNetID );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command( SVC_DESTROYTHING );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients();
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGANGLE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle >> FRACBITS );
-	}
+	NetCommand command( SVC_SETTHINGANGLE );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->angle >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGANGLEEXACT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
-	}
+	NetCommand command( SVC_SETTHINGANGLEEXACT );
+	command.addShort( pActor->lNetID );
+	command.addLong( pActor->angle );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGWATERLEVEL );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->waterlevel );
-	}
+	NetCommand command( SVC_SETTHINGWATERLEVEL );
+	command.addShort( pActor->lNetID );
+	command.addByte( pActor->waterlevel );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	ULONG	ulActorFlags;
 
 	if ( !EnsureActorHasNetID (pActor) )
@@ -2280,52 +1772,20 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlay
 
 	switch ( ulFlagSet )
 	{
-	case FLAGSET_FLAGS:
-
-		ulActorFlags = pActor->flags;
-		break;
-	case FLAGSET_FLAGS2:
-
-		ulActorFlags = pActor->flags2;
-		break;
-	case FLAGSET_FLAGS3:
-
-		ulActorFlags = pActor->flags3;
-		break;
-	case FLAGSET_FLAGS4:
-
-		ulActorFlags = pActor->flags4;
-		break;
-	case FLAGSET_FLAGS5:
-
-		ulActorFlags = pActor->flags5;
-		break;
-	case FLAGSET_FLAGSST:
-
-		ulActorFlags = pActor->ulSTFlags;
-		break;
-	default:
-
-		return;
+		case FLAGSET_FLAGS:		ulActorFlags = pActor->flags; break;
+		case FLAGSET_FLAGS2:	ulActorFlags = pActor->flags2; break;
+		case FLAGSET_FLAGS3:	ulActorFlags = pActor->flags3; break;
+		case FLAGSET_FLAGS4:	ulActorFlags = pActor->flags4; break;
+		case FLAGSET_FLAGS5:	ulActorFlags = pActor->flags5; break;
+		case FLAGSET_FLAGSST:	ulActorFlags = pActor->ulSTFlags; break;
+		default: return;
 	}
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFLAGS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulFlagSet );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulActorFlags );
-	}
+	NetCommand command( SVC_SETTHINGFLAGS );
+	command.addShort( pActor->lNetID );
+	command.addByte( ulFlagSet );
+	command.addLong( ulActorFlags );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2359,65 +1819,36 @@ void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlaye
 //
 void SERVERCOMMANDS_SetThingArguments( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGARGUMENTS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->args[0] );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->args[1] );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->args[2] );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->args[3] );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->args[4] );
-	}
+	NetCommand command( SVC_SETTHINGARGUMENTS );
+	command.addShort( pActor->lNetID );
+	command.addByte( pActor->args[0] );
+	command.addByte( pActor->args[1] );
+	command.addByte( pActor->args[2] );
+	command.addByte( pActor->args[3] );
+	command.addByte( pActor->args[4] );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingTranslation( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTRANSLATION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->Translation );
-	}
+	NetCommand command( SVC_SETTHINGTRANSLATION );
+	command.addShort( pActor->lNetID );
+	command.addLong( pActor->Translation );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	ULONG	ulPropertyValue = 0;
 
 	if ( !EnsureActorHasNetID (pActor) )
@@ -2448,51 +1879,25 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 		return;
 	}
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGPROPERTY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulProperty );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPropertyValue );
-	}
+	NetCommand command( SVC_SETTHINGPROPERTY );
+	command.addShort( pActor->lNetID );
+	command.addByte( ulProperty );
+	command.addLong( ulPropertyValue );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4 + static_cast<ULONG>(strlen( pszSound )), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSound );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-	}
+	NetCommand command( SVC_SETTHINGSOUND );
+	command.addShort( pActor->lNetID );
+	command.addByte( ulSound );
+	command.addString( pszSound );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2502,24 +1907,12 @@ void SERVERCOMMANDS_SetThingSpawnPoint( AActor *pActor, ULONG ulPlayerExtra, ULO
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 15, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSPAWNPOINT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->SpawnPoint[0] );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->SpawnPoint[1] );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->SpawnPoint[2] );
-	}
+	NetCommand command( SVC_SETTHINGSPAWNPOINT );
+	command.addShort( pActor->lNetID );
+	command.addLong( pActor->SpawnPoint[0] );
+	command.addLong( pActor->SpawnPoint[1] );
+	command.addLong( pActor->SpawnPoint[2] );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2540,81 +1933,39 @@ void SERVERCOMMANDS_SetThingSpecial( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 //
 void SERVERCOMMANDS_SetThingSpecial1( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSPECIAL1 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special1 );
-	}
+	NetCommand command( SVC_SETTHINGSPECIAL1 );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->special1 );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSPECIAL2 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special2 );
-	}
+	NetCommand command( SVC_SETTHINGSPECIAL2 );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->special2 );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTICS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tics );
-	}
+	NetCommand command( SVC_SETTHINGTICS );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->tics );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2635,54 +1986,26 @@ void SERVERCOMMANDS_SetThingReactionTime( AActor *pActor, ULONG ulPlayerExtra, U
 //
 void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tid );
-	}
+	NetCommand command( SVC_SETTHINGTID );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->tid );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGGRAVITY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->gravity );
-	}
+	NetCommand command( SVC_SETTHINGGRAVITY );
+	command.addShort( pActor->lNetID );
+	command.addLong( pActor->gravity );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2795,7 +2118,6 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 			stateLabel = ":S";
 	}
 
-	// [Dusk] Use NetCommand
 	NetCommand command( bCallStateFunction ? SVC_SETTHINGFRAME : SVC_SETTHINGFRAMENF );
 	command.addShort( pActor->lNetID );
 	command.addString( stateLabel.GetChars( ) );
@@ -2807,235 +2129,127 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 //
 void SERVERCOMMANDS_SetWeaponAmmoGive( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	if ( pActor->IsKindOf( RUNTIME_CLASS( AWeapon )) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETWEAPONAMMOGIVE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, static_cast<AWeapon *>( pActor )->AmmoGive1 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, static_cast<AWeapon *>( pActor )->AmmoGive2 );
-	}
+	NetCommand command( SVC_SETWEAPONAMMOGIVE );
+	command.addShort( pActor->lNetID );
+	command.addShort( static_cast<AWeapon *>( pActor )->AmmoGive1 );
+	command.addShort( static_cast<AWeapon *>( pActor )->AmmoGive2 );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ThingIsCorpse( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_THINGISCORPSE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->CountsAsKill( ) ? true : false );
-	}
+	NetCommand command( SVC_THINGISCORPSE );
+	command.addShort( pActor->lNetID );
+	command.addByte( pActor->CountsAsKill( ) ? true : false );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_HideThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// [BB] The client will call HideIndefinitely on the actor, which only is possible on AInventory and descendants.
 	if ( !EnsureActorHasNetID (pActor) || !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_HIDETHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command( SVC_HIDETHING );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_TeleportThing( AActor *pActor, bool bSourceFog, bool bDestFog, bool bTeleZoom, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-	
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 24, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_TELEPORTTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->velx >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->vely >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->velz >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->reactiontime );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bSourceFog );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bDestFog );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bTeleZoom );
-	}
+	NetCommand command( SVC_TELEPORTTHING );
+	command.addShort( pActor->lNetID );
+	command.addShort( pActor->x >> FRACBITS );
+	command.addShort( pActor->y >> FRACBITS );
+	command.addShort( pActor->z >> FRACBITS );
+	command.addShort( pActor->velx >> FRACBITS );
+	command.addShort( pActor->vely >> FRACBITS );
+	command.addShort( pActor->velz >> FRACBITS );
+	command.addShort( pActor->reactiontime );
+	command.addLong( pActor->angle );
+	command.addByte( bSourceFog );
+	command.addByte( bDestFog );
+	command.addByte( bTeleZoom );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ThingActivate( AActor *pActor, AActor *pActivator, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_THINGACTIVATE );
+	command.addShort( pActor->lNetID );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( pActivator != NULL )
+		command.addShort( pActivator->lNetID );
+	else
+		command.addShort( -1 );
 
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_THINGACTIVATE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		if ( pActivator )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActivator->lNetID );
-		else
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ThingDeactivate( AActor *pActor, AActor *pActivator, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_THINGDEACTIVATE );
+	command.addShort( pActor->lNetID );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( pActivator != NULL )
+		command.addShort( pActivator->lNetID );
+	else
+		command.addShort( -1 );
 
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_THINGDEACTIVATE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		if ( pActivator )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActivator->lNetID );
-		else
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_RespawnDoomThing( AActor *pActor, bool bFog, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNDOOMTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bFog );
-	}
+	NetCommand command( SVC_RESPAWNDOOMTHING );
+	command.addShort( pActor->lNetID );
+	command.addByte( bFog );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNRAVENTHING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-	}
+	NetCommand command( SVC_RESPAWNRAVENTHING );
+	command.addShort( pActor->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -3063,63 +2277,35 @@ void SERVERCOMMANDS_SpawnBloodSplatter( fixed_t x, fixed_t y, fixed_t z, AActor 
 	if ( originator == NULL )
 		return;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 9, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, isBloodSplatter2 ? SVC_SPAWNBLOODSPLATTER2 : SVC_SPAWNBLOODSPLATTER );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, originator->lNetID );
-	}
+	NetCommand command( isBloodSplatter2 ? SVC_SPAWNBLOODSPLATTER2 : SVC_SPAWNBLOODSPLATTER );
+	command.addShort( x >> FRACBITS );
+	command.addShort( y >> FRACBITS );
+	command.addShort( z >> FRACBITS );
+	command.addShort( originator->lNetID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pActor == NULL )
 		return;
 
-	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
+	USHORT usActorNetworkIndex = pActor->GetClass()->getActorNetworkIndex();
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_SPAWNPUFF );
+	command.addShort( pActor->x >> FRACBITS );
+	command.addShort( pActor->y >> FRACBITS );
+	command.addShort( pActor->z >> FRACBITS );
+	command.addShort( usActorNetworkIndex );
+	command.addByte( ulState );
+	command.addByte( !!bSendTranslation );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( bSendTranslation )
+		command.addLong( pActor->Translation );
 
-		if ( bSendTranslation )
-			SERVER_CheckClientBuffer( ulIdx, 15, true );
-		else
-			SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPUFF );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bSendTranslation );
-		if ( bSendTranslation )
-			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->Translation );
-	}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -3127,48 +2313,20 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslat
 //
 void SERVERCOMMANDS_Print( const char *pszString, ULONG ulPrintLevel, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPrintLevel );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-    }
+	NetCommand command( SVC_PRINT );
+	command.addByte( ulPrintLevel );
+	command.addString( pszString );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PrintMid( const char *pszString, bool bBold, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTMID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bBold );
-    }
+	NetCommand command( SVC_PRINTMID );
+	command.addString( pszString );
+	command.addByte( !!bBold );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -3184,133 +2342,77 @@ void SERVERCOMMANDS_PrintMOTD( const char *pszString, ULONG ulPlayerExtra, ULONG
 //
 void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 23 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGE );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDWidth );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDHeight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lColor );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-    }
+	NetCommand command( SVC_PRINTHUDMESSAGE );
+	command.addString( pszString );
+	command.addFloat( fX );
+	command.addFloat( fY );
+	command.addShort( lHUDWidth );
+	command.addShort( lHUDHeight );
+	command.addByte( lColor );
+	command.addFloat( fHoldTime );
+	command.addString( pszFont );
+	command.addByte( !!bLog );
+	command.addLong( lID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 27 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGEFADEOUT );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDWidth );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDHeight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lColor );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-    }
+	NetCommand command( SVC_PRINTHUDMESSAGEFADEOUT );
+	command.addString( pszString );
+	command.addFloat( fX );
+	command.addFloat( fY );
+	command.addShort( lHUDWidth );
+	command.addShort( lHUDHeight );
+	command.addByte( lColor );
+	command.addFloat( fHoldTime );
+	command.addFloat( fFadeOutTime );
+	command.addString( pszFont );
+	command.addByte( !!bLog );
+	command.addLong( lID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeInTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 31 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGEFADEINOUT );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDWidth );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDHeight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lColor );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeInTime );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-    }
+	NetCommand command( SVC_PRINTHUDMESSAGEFADEINOUT );
+	command.addString( pszString );
+	command.addFloat( fX );
+	command.addFloat( fY );
+	command.addShort( lHUDWidth );
+	command.addShort( lHUDHeight );
+	command.addByte( lColor );
+	command.addFloat( fHoldTime );
+	command.addFloat( fFadeInTime );
+	command.addFloat( fFadeOutTime );
+	command.addString( pszFont );
+	command.addByte( !!bLog );
+	command.addLong( lID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fTypeTime, float fHoldTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 31 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGETYPEONFADEOUT );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDWidth );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHUDHeight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lColor );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTypeTime );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-    }
+	NetCommand command( SVC_PRINTHUDMESSAGETYPEONFADEOUT );
+	command.addString( pszString );
+	command.addFloat( fX );
+	command.addFloat( fY );
+	command.addShort( lHUDWidth );
+	command.addShort( lHUDHeight );
+	command.addByte( lColor );
+	command.addFloat( fTypeTime );
+	command.addFloat( fHoldTime );
+	command.addFloat( fFadeOutTime );
+	command.addString( pszFont );
+	command.addByte( !!bLog );
+	command.addLong( lID );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -3318,49 +2420,21 @@ void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float f
 //
 void SERVERCOMMANDS_SetGameMode( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, GAMEMODE_GetCurrentMode( ));
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, instagib );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, buckshot );
-    }
+	NetCommand command( SVC_SETGAMEMODE );
+	command.addByte( GAMEMODE_GetCurrentMode( ));
+	command.addByte( instagib );
+	command.addByte( buckshot );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetGameSkill( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMESKILL );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, gameskill );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, botskill );
-    }
+	NetCommand command( SVC_SETGAMESKILL );
+	command.addByte( gameskill );
+	command.addByte( botskill );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -3410,570 +2484,261 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_SetGameEndLevelDelay( ULONG ulEndLevelDelay, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEENDLEVELDELAY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulEndLevelDelay );
-    }
+	NetCommand command( SVC_SETGAMEENDLEVELDELAY );
+	command.addShort( ulEndLevelDelay );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulCountdownTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODESTATE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulCountdownTicks );
-    }
+	NetCommand command( SVC_SETGAMEMODESTATE );
+	command.addByte( ulState );
+	command.addShort( ulCountdownTicks );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetDuelNumDuels( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumDuels;
-
-	ulNumDuels = DUEL_GetNumDuels( );
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETDUELNUMDUELS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulNumDuels );
-    }
+	NetCommand command( SVC_SETDUELNUMDUELS );
+	command.addByte( DUEL_GetNumDuels( ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetLMSSpectatorSettings( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLMSSPECTATORSETTINGS );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lmsspectatorsettings );
-    }
+	NetCommand command( SVC_SETLMSSPECTATORSETTINGS );
+	command.addLong( lmsspectatorsettings );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetLMSAllowedWeapons( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLMSALLOWEDWEAPONS );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lmsallowedweapons );
-    }
+	NetCommand command( SVC_SETLMSALLOWEDWEAPONS );
+	command.addLong( lmsallowedweapons );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetInvasionNumMonstersLeft( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETINVASIONNUMMONSTERSLEFT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, INVASION_GetNumMonstersLeft( ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, INVASION_GetNumArchVilesLeft( ));
-    }
+	NetCommand command( SVC_SETINVASIONNUMMONSTERSLEFT );
+	command.addShort( INVASION_GetNumMonstersLeft( ));
+	command.addShort( INVASION_GetNumArchVilesLeft( ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetInvasionWave( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETINVASIONWAVE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, INVASION_GetCurrentWave( ));
-    }
+	NetCommand command( SVC_SETINVASIONWAVE );
+	command.addByte( INVASION_GetCurrentWave( ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSimpleCTFSTMode( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSIMPLECTFSTMODE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleCTFSTMode( ));
-    }
+	NetCommand command( SVC_SETSIMPLECTFSTMODE );
+	command.addByte( !!TEAM_GetSimpleCTFSTMode( ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoPossessionArtifactPickedUp( ULONG ulPlayer, ULONG ulTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPOSSESSIONARTIFACTPICKEDUP );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTicks );
-    }
+	NetCommand command( SVC_DOPOSSESSIONARTIFACTPICKEDUP );
+	command.addByte( ulPlayer );
+	command.addShort( ulTicks );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoPossessionArtifactDropped( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPOSSESSIONARTIFACTDROPPED );
-    }
+	NetCommand command( SVC_DOPOSSESSIONARTIFACTDROPPED );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoGameModeFight( ULONG ulCurrentWave, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOGAMEMODEFIGHT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulCurrentWave );
-    }
+	NetCommand command( SVC_DOGAMEMODEFIGHT );
+	command.addByte( ulCurrentWave );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoGameModeCountdown( ULONG ulTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOGAMEMODECOUNTDOWN );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTicks );
-    }
+	NetCommand command( SVC_DOGAMEMODECOUNTDOWN );
+	command.addShort( ulTicks );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOGAMEMODEWINSEQUENCE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulWinner );
-    }
+	NetCommand command( SVC_DOGAMEMODEWINSEQUENCE );
+	command.addByte( ulWinner );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
+	unsigned int NumPoints = DOMINATION_NumPoints();
+	unsigned int *PointOwners = DOMINATION_PointOwners();
+	NetCommand command( SVC_SETDOMINATIONSTATE );
+	command.addLong( NumPoints );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for( unsigned int i = 0u; i < NumPoints; i++ )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		unsigned int NumPoints = DOMINATION_NumPoints();
-		unsigned int *PointOwners = DOMINATION_PointOwners();
-		SERVER_CheckClientBuffer( ulIdx, NumPoints + 5, true);
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETDOMINATIONSTATE );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, NumPoints );
-		for(unsigned int i = 0;i < NumPoints;i++)
-		{
-			//one byte should be enough to hold the value of the team.
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, PointOwners[i] );
-		}
+		//one byte should be enough to hold the value of the team.
+		command.addByte( PointOwners[i] );
 	}
+
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetDominationPointOwnership( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true);
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETDOMINATIONPOINTOWNER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPoint );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command( SVC_SETDOMINATIONPOINTOWNER );
+	command.addByte( ulPoint );
+	command.addByte( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTEAMFRAGS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFrags );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAnnounce );
-    }
+	NetCommand command( SVC_SETTEAMFRAGS );
+	command.addByte( ulTeam );
+	command.addShort( lFrags );
+	command.addByte( bAnnounce );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTEAMSCORE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lScore );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAnnounce );
-    }
+	NetCommand command( SVC_SETTEAMSCORE );
+	command.addByte( ulTeam );
+	command.addShort( lScore );
+	command.addByte( bAnnounce );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTEAMWINS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lWins );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAnnounce );
-    }
+	NetCommand command( SVC_SETTEAMWINS );
+	command.addByte( ulTeam );
+	command.addShort( lWins );
+	command.addByte( bAnnounce );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// [BB] Allow teams.Size( ) here, this handles the white flag.
-	if ( ( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size( ) ) )
+	if (( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size() ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTEAMRETURNTICKS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulReturnTicks );
-    }
+	NetCommand command( SVC_SETTEAMRETURNTICKS );
+	command.addByte( ulTeam );
+	command.addShort( ulReturnTicks );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// [BB] Allow teams.Size( ) here, this handles the white flag.
-	if ( ( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size( ) ) )
+	if (( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size() ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_TEAMFLAGRETURNED );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-    }
+	NetCommand command( SVC_TEAMFLAGRETURNED );
+	command.addByte( ulTeam );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_TEAMFLAGDROPPED );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
-
-    }
+	NetCommand command( SVC_TEAMFLAGDROPPED );
+	command.addByte( ulPlayer );
+	command.addByte( ulTeam );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
-//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pMissile == NULL )
 		return;
 
-	usActorNetworkIndex = pMissile->GetClass( )->getActorNetworkIndex();
+	NetCommand command( SVC_SPAWNMISSILE );
+	command.addShort( pMissile->x >> FRACBITS );
+	command.addShort( pMissile->y >> FRACBITS );
+	command.addShort( pMissile->z >> FRACBITS );
+	command.addLong( pMissile->velx );
+	command.addLong( pMissile->vely );
+	command.addLong( pMissile->velz );
+	command.addShort( pMissile->GetClass()->getActorNetworkIndex() );
+	command.addShort( pMissile->lNetID );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	if ( pMissile->target )
+		command.addShort( pMissile->target->lNetID );
+	else
+		command.addShort( -1 );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
-		SERVER_CheckClientBuffer( ulIdx, 25, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMISSILE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->z >> FRACBITS );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->velx );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->vely );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->velz );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
-		if ( pMissile->target )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
-		else
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-	}
 	// [BB] It's possible that the angle can't be derived from the momentum
 	// of the missle. In this case the correct angle has to be told to the clients.
- 	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ) )
+ 	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ))
 		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, ulFlags );
 }
 
@@ -3981,40 +2746,26 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
-	USHORT		usActorNetworkIndex = 0;
-
 	if ( pMissile == NULL )
 		return;
 
-	usActorNetworkIndex = pMissile->GetClass( )->getActorNetworkIndex();
+	NetCommand command( SVC_SPAWNMISSILEEXACT );
+	command.addLong( pMissile->x );
+	command.addLong( pMissile->y );
+	command.addLong( pMissile->z );
+	command.addLong( pMissile->velx );
+	command.addLong( pMissile->vely );
+	command.addLong( pMissile->velz );
+	command.addShort( pMissile->GetClass()->getActorNetworkIndex() );
+	command.addShort( pMissile->lNetID );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	if ( pMissile->target )
+		command.addShort( pMissile->target->lNetID );
+	else
+		command.addShort( -1 );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
-		SERVER_CheckClientBuffer( ulIdx, 31, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMISSILEEXACT );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->x );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->y );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->z );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->velx );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->vely );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->velz );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
-		if ( pMissile->target )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
-		else
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-	}
 	// [BB] It's possible that the angle can't be derived from the momentum
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ) )
@@ -4025,33 +2776,21 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 //
 void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( !EnsureActorHasNetID (pMissile) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_MISSILEEXPLODE );
+	command.addShort( pMissile->lNetID );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( pLine != NULL )
+		command.addShort( pLine - lines );
+	else
+		command.addShort( -1 );
 
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MISSILEEXPLODE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
-		if ( pLine )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ULONG( pLine - lines ));
-		else
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->x >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->y >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->z >> FRACBITS );
-	}
+	command.addShort( pMissile->x >> FRACBITS );
+	command.addShort( pMissile->y >> FRACBITS );
+	command.addShort( pMissile->z >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -4059,60 +2798,26 @@ void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPla
 //
 void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONSOUND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-	}
+	NetCommand command( SVC_WEAPONSOUND );
+	command.addByte( ulPlayer );
+	command.addString( pszSound );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	USHORT	usActorNetworkIndex = 0;
-
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false || players[ulPlayer].ReadyWeapon == NULL )
 		return;
 
-	if ( players[ulPlayer].ReadyWeapon != NULL )
-		usActorNetworkIndex = players[ulPlayer].ReadyWeapon->GetClass( )->getActorNetworkIndex();
-	else
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONCHANGE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
-	}
+	NetCommand command( SVC_WEAPONCHANGE );
+	command.addByte( ulPlayer );
+	command.addShort( players[ulPlayer].ReadyWeapon->GetClass()->getActorNetworkIndex() );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -4143,580 +2848,288 @@ void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const
 //
 void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFLOORPLANE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floorplane.d >> FRACBITS );
-	}
+	NetCommand command( SVC_SETSECTORFLOORPLANE );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].floorplane.d >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORCEILINGPLANE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceilingplane.d >> FRACBITS );
-	}
+	NetCommand command( SVC_SETSECTORCEILINGPLANE );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].ceilingplane.d >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFLOORPLANESLOPE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floorplane.a >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floorplane.b >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floorplane.c >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floorplane.ic >> FRACBITS );
-	}
+	NetCommand command( SVC_SETSECTORFLOORPLANESLOPE );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].floorplane.a >> FRACBITS );
+	command.addShort( sectors[ulSector].floorplane.b >> FRACBITS );
+	command.addShort( sectors[ulSector].floorplane.c >> FRACBITS );
+	command.addShort( sectors[ulSector].floorplane.ic >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORCEILINGPLANESLOPE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceilingplane.a >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceilingplane.b >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceilingplane.c >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceilingplane.ic >> FRACBITS );
-	}
+	NetCommand command( SVC_SETSECTORCEILINGPLANESLOPE );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].ceilingplane.a >> FRACBITS );
+	command.addShort( sectors[ulSector].ceilingplane.b >> FRACBITS );
+	command.addShort( sectors[ulSector].ceilingplane.c >> FRACBITS );
+	command.addShort( sectors[ulSector].ceilingplane.ic >> FRACBITS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORLIGHTLEVEL );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].lightlevel );
-	}
+	NetCommand command( SVC_SETSECTORLIGHTLEVEL );
+	command.addShort( ulSector );
+	command.addByte( sectors[ulSector].lightlevel );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORCOLOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Color.r );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Color.g );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Color.b );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Desaturate );
-	}
+	NetCommand command( SVC_SETSECTORCOLOR );
+	command.addShort( ulSector );
+	command.addByte( sectors[ulSector].ColorMap->Color.r );
+	command.addByte( sectors[ulSector].ColorMap->Color.g );
+	command.addByte( sectors[ulSector].ColorMap->Color.b );
+	command.addByte( sectors[ulSector].ColorMap->Desaturate );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorColorByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulDesaturate, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORCOLORBYTAG );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTag );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulRed );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulGreen );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBlue );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulDesaturate );
-	}
+	NetCommand command( SVC_SETSECTORCOLORBYTAG );
+	command.addShort( ulTag );
+	command.addByte( ulRed );
+	command.addByte( ulGreen );
+	command.addByte( ulBlue );
+	command.addByte( ulDesaturate );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFADE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Fade.r );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Fade.g );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ColorMap->Fade.b );
-	}
+	NetCommand command( SVC_SETSECTORFADE );
+	command.addShort( ulSector );
+	command.addByte( sectors[ulSector].ColorMap->Fade.r );
+	command.addByte( sectors[ulSector].ColorMap->Fade.g );
+	command.addByte( sectors[ulSector].ColorMap->Fade.b );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorFadeByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG	ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFADEBYTAG );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTag );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulRed );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulGreen );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBlue );
-	}
+	NetCommand command( SVC_SETSECTORFADEBYTAG );
+	command.addShort( ulTag );
+	command.addByte( ulRed );
+	command.addByte( ulGreen );
+	command.addByte( ulBlue );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name ) + (ULONG)strlen( TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFLAT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name );
-	}
+	NetCommand command( SVC_SETSECTORFLAT );
+	command.addShort( ulSector );
+	command.addString( TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name );
+	command.addString( TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORPANNING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
-	}
+	NetCommand command( SVC_SETSECTORPANNING );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
+	command.addShort( sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
+	command.addShort( sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
+	command.addShort( sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORROTATION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::ceiling,false) / ANGLE_1 ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::floor,false) / ANGLE_1 ));
-	}
+	NetCommand command( SVC_SETSECTORROTATION );
+	command.addShort( ulSector );
+	command.addShort(( sectors[ulSector].GetAngle(sector_t::ceiling,false) / ANGLE_1 ));
+	command.addShort(( sectors[ulSector].GetAngle(sector_t::floor,false) / ANGLE_1 ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorRotationByTag( ULONG ulTag, LONG lFloorRot, LONG lCeilingRot, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORROTATIONBYTAG );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTag );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCeilingRot );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorRot );
-	}
+	NetCommand command( SVC_SETSECTORROTATIONBYTAG );
+	command.addShort( ulTag );
+	command.addShort( lCeilingRot );
+	command.addShort( lFloorRot );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORSCALE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetXScale(sector_t::ceiling) / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetYScale(sector_t::ceiling) / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetXScale(sector_t::floor) / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetYScale(sector_t::floor) / FRACBITS ));
-	}
+	NetCommand command( SVC_SETSECTORSCALE );
+	command.addShort( ulSector );
+	command.addShort( ( sectors[ulSector].GetXScale(sector_t::ceiling) / FRACBITS ));
+	command.addShort( ( sectors[ulSector].GetYScale(sector_t::ceiling) / FRACBITS ));
+	command.addShort( ( sectors[ulSector].GetXScale(sector_t::floor) / FRACBITS ));
+	command.addShort( ( sectors[ulSector].GetYScale(sector_t::floor) / FRACBITS ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorSpecial( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORSPECIAL );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].special );
-	}
+	NetCommand command( SVC_SETSECTORSPECIAL );
+	command.addShort( ulSector );
+	command.addShort( sectors[ulSector].special );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFRICTION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].friction );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].movefactor );
-	}
+	NetCommand command( SVC_SETSECTORFRICTION );
+	command.addShort( ulSector );
+	command.addLong( sectors[ulSector].friction );
+	command.addLong( sectors[ulSector].movefactor );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 19, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORANGLEYOFFSET );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::ceiling].xform.base_angle );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::ceiling].xform.base_yoffs );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::floor].xform.base_angle );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::floor].xform.base_yoffs );
-	}
+	NetCommand command( SVC_SETSECTORANGLEYOFFSET );
+	command.addShort( ulSector );
+	command.addLong( sectors[ulSector].planes[sector_t::ceiling].xform.base_angle );
+	command.addLong( sectors[ulSector].planes[sector_t::ceiling].xform.base_yoffs );
+	command.addLong( sectors[ulSector].planes[sector_t::floor].xform.base_angle );
+	command.addLong( sectors[ulSector].planes[sector_t::floor].xform.base_yoffs );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORGRAVITY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].gravity );
-	}
+	NetCommand command( SVC_SETSECTORGRAVITY );
+	command.addShort( ulSector );
+	command.addFloat( sectors[ulSector].gravity );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorReflection( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORREFLECTION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceiling_reflect );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floor_reflect );
-	}
+	NetCommand command( SVC_SETSECTORREFLECTION );
+	command.addShort( ulSector );
+	command.addFloat( sectors[ulSector].ceiling_reflect );
+	command.addFloat( sectors[ulSector].floor_reflect );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_StopSectorLightEffect( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_STOPSECTORLIGHTEFFECT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-	}
+	NetCommand command( SVC_STOPSECTORLIGHTEFFECT );
+	command.addShort( ulSector );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyAllSectorMovers( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYALLSECTORMOVERS );
-	}
+	NetCommand command( SVC_DESTROYALLSECTORMOVERS );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -4724,200 +3137,102 @@ void SERVERCOMMANDS_DestroyAllSectorMovers( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_DoSectorLightFireFlicker( ULONG ulSector, LONG lMaxLight, LONG lMinLight, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTFIREFLICKER );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMaxLight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMinLight );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTFIREFLICKER );
+	command.addShort( ulSector );
+	command.addByte( lMaxLight );
+	command.addByte( lMinLight );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightFlicker( ULONG ulSector, LONG lMaxLight, LONG lMinLight, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTFLICKER );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMaxLight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMinLight );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTFLICKER );
+	command.addShort( ulSector );
+	command.addByte( lMaxLight );
+	command.addByte( lMinLight );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightLightFlash( ULONG ulSector, LONG lMaxLight, LONG lMinLight, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTLIGHTFLASH );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMaxLight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMinLight );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTLIGHTFLASH );
+	command.addShort( ulSector );
+	command.addByte( lMaxLight );
+	command.addByte( lMinLight );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightStrobe( ULONG ulSector, LONG lDarkTime, LONG lBrightTime, LONG lMaxLight, LONG lMinLight, LONG lCount, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 10, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTSTROBE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDarkTime );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBrightTime );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMaxLight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMinLight );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCount );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTSTROBE );
+	command.addShort( ulSector );
+	command.addShort( lDarkTime );
+	command.addShort( lBrightTime );
+	command.addByte( lMaxLight );
+	command.addByte( lMinLight );
+	command.addByte( lCount );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightGlow( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTGLOW );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTGLOW );
+	command.addShort( ulSector );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightGlow2( ULONG ulSector, LONG lStart, LONG lEnd, LONG lTics, LONG lMaxTics, bool bOneShot, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 10, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTGLOW2 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lStart );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lEnd );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTics );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lMaxTics );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bOneShot );
-	}
+	NetCommand command( SVC_DOSECTORLIGHTGLOW2 );
+	command.addShort( ulSector );
+	command.addByte( lStart );
+	command.addByte( lEnd );
+	command.addShort( lTics );
+	command.addShort( lMaxTics );
+	command.addByte( bOneShot );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoSectorLightPhased( ULONG ulSector, LONG lBaseLevel, LONG lPhase, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSector >= (ULONG)numsectors )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSECTORLIGHTPHASED );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBaseLevel );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPhase );
-	}
+	NetCommand command ( SVC_DOSECTORLIGHTPHASED );
+	command.addShort ( ulSector );
+	command.addByte ( lBaseLevel );
+	command.addByte ( lPhase );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -4925,35 +3240,19 @@ void SERVERCOMMANDS_DoSectorLightPhased( ULONG ulSector, LONG lBaseLevel, LONG l
 //
 void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulLine >= (ULONG)numlines )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINEALPHA );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].Alpha );
-	}
+	NetCommand command ( SVC_SETLINEALPHA );
+	command.addShort ( ulLine );
+	command.addLong ( lines[ulLine].Alpha );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulLine >= (ULONG)numlines )
 		return;
 
@@ -4961,78 +3260,66 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 	if ( lines[ulLine].ulTexChangeFlags == 0 )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTTOP )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+		NetCommand command ( SVC_SETLINETEXTURE );
+		command.addShort( ulLine );
+		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
+		command.addByte( 0 );
+		command.addByte( 0 );
+		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	}
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
+	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTMEDIUM )
+	{
+		NetCommand command ( SVC_SETLINETEXTURE );
+		command.addShort( ulLine );
+		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
+		command.addByte( 0 );
+		command.addByte( 1 );
+		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	}
 
-		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTTOP )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
-		}
+	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTBOTTOM )
+	{
+		NetCommand command ( SVC_SETLINETEXTURE );
+		command.addShort( ulLine );
+		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
+		command.addByte( 0 );
+		command.addByte( 2 );
+		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	}
 
-		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTMEDIUM )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
-		}
-
-		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTBOTTOM )
-		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
-		}
-
-		if ( lines[ulLine].sidedef[1] == NULL )
-			continue;
-
+	if ( lines[ulLine].sidedef[1] != NULL )
+	{
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKTOP )
 		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
+			NetCommand command ( SVC_SETLINETEXTURE );
+			command.addShort( ulLine );
+			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
+			command.addByte( 1 );
+			command.addByte( 0 );
+			command.sendCommandToClients( ulPlayerExtra, ulFlags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKMEDIUM )
 		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
+			NetCommand command ( SVC_SETLINETEXTURE );
+			command.addShort( ulLine );
+			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
+			command.addByte( 1 );
+			command.addByte( 1 );
+			command.sendCommandToClients( ulPlayerExtra, ulFlags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKBOTTOM )
 		{
-			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
+			NetCommand command ( SVC_SETLINETEXTURE );
+			command.addShort( ulLine );
+			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
+			command.addByte( 1 );
+			command.addByte( 2 );
+			command.sendCommandToClients( ulPlayerExtra, ulFlags );
 		}
 	}
 }
@@ -5041,66 +3328,25 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 //
 void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG	ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5 + (ULONG)strlen(pszTexName) , true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTUREBYID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLineID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszTexName );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSide );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPosition );
-	}
+	NetCommand command ( SVC_SETLINETEXTUREBYID );
+	command.addShort ( ulLineID );
+	command.addString ( pszTexName );
+	command.addByte ( ulSide );
+	command.addByte ( ulPosition );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG	lSelectedFlags;
-	ULONG	ulIdx;
-
 	if ( ulLine >= (ULONG)numlines )
 		return;
 
-	// I bet there's a better way to do this... alas, my knowledge of bits is not
-	// wonderful.
-	lSelectedFlags = 0;
-	if ( lines[ulLine].flags & ML_BLOCKING )
-		lSelectedFlags |= ML_BLOCKING;
-	if ( lines[ulLine].flags & ML_BLOCKEVERYTHING )
-		lSelectedFlags |= ML_BLOCKEVERYTHING;
-	if ( lines[ulLine].flags & ML_RAILING )
-		lSelectedFlags |= ML_RAILING;
-	if ( lines[ulLine].flags & ML_BLOCK_PLAYERS )
-		lSelectedFlags |= ML_BLOCK_PLAYERS;
-	if ( lines[ulLine].flags & ML_ADDTRANS )
-		lSelectedFlags |= ML_ADDTRANS;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSOMELINEFLAGS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSelectedFlags );
-	}
+	NetCommand command ( SVC_SETSOMELINEFLAGS );
+	command.addShort ( ulLine );
+	command.addLong ( lines[ulLine].flags & ( ML_BLOCKING | ML_BLOCKEVERYTHING | ML_RAILING | ML_BLOCK_PLAYERS | ML_ADDTRANS ));
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5108,7 +3354,6 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lActivatorID;
 
 	if ( pActivator == NULL )
@@ -5116,29 +3361,17 @@ void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 	else
 		lActivatorID = pActivator->lNetID;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 21 + (ULONG)strlen( pszMap ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ACSSCRIPTEXECUTE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulScript );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lActivatorID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLineIdx );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMap );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bBackSide );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg0 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg1 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg2 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAlways );
-	}
+	NetCommand command ( SVC_ACSSCRIPTEXECUTE );
+	command.addShort ( ulScript );
+	command.addShort ( lActivatorID );
+	command.addShort ( lLineIdx );
+	command.addString ( pszMap );
+	command.addByte ( bBackSide );
+	command.addLong ( iArg0 );
+	command.addLong ( iArg1 );
+	command.addLong ( iArg2 );
+	command.addByte ( bAlways );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5146,27 +3379,13 @@ void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 //
 void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( ulSide >= (ULONG)numsides )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSIDEFLAGS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSide );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[ulSide].Flags );
-	}
+	NetCommand command ( SVC_SETSIDEFLAGS );
+	command.addShort ( ulSide );
+	command.addByte ( sides[ulSide].Flags );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5176,24 +3395,12 @@ void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, f
 {
 	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SOUND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lChannel );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, LONG( fVolume * 127 ));
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAttenuation );
-	}
+	NetCommand command ( SVC_SOUND );
+	command.addByte ( lChannel );
+	command.addString ( pszSound );
+	command.addByte ( LONG(fVolume*127) );
+	command.addByte ( lAttenuation );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5210,27 +3417,13 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 		return;
 	}
 
-	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
-
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bRespectActorPlayingSomething ? SVC_SOUNDACTORIFNOTPLAYING : SVC_SOUNDACTOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lChannel );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, LONG( fVolume * 127 ));
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAttenuation );
-	}
+	NetCommand command ( bRespectActorPlayingSomething ? SVC_SOUNDACTORIFNOTPLAYING : SVC_SOUNDACTOR );
+	command.addShort( pActor->lNetID );
+	command.addShort( lChannel );
+	command.addString( pszSound );
+	command.addByte( LONG( fVolume * 127 ));
+	command.addByte( NETWORK_AttenuationFloatToInt ( fAttenuation ));
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5239,48 +3432,24 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const 
 {
 	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 10 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SOUNDPOINT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lX >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lY >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lZ >> FRACBITS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lChannel );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, LONG( fVolume * 127 ));
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAttenuation );
-	}
+	NetCommand command ( SVC_SOUNDPOINT );
+	command.addShort ( lX>>FRACBITS );
+	command.addShort ( lY>>FRACBITS );
+	command.addShort ( lZ>>FRACBITS );
+	command.addByte ( lChannel );
+	command.addString ( pszSound );
+	command.addByte ( LONG(fVolume*127) );
+	command.addByte ( lAttenuation );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszSound ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ANNOUNCERSOUND );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
-	}
+	NetCommand command ( SVC_ANNOUNCERSOUND );
+	command.addString ( pszSound );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5304,28 +3473,15 @@ void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, const int Channel, c
 //
 void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
 	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_STOPSECTORSEQUENCE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-	}
+	NetCommand command ( SVC_STOPSECTORSEQUENCE );
+	command.addShort ( lSectorID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5333,79 +3489,37 @@ void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, 
 //
 void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, FString Reason, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + ULONG( Command.Len() ) + ULONG ( Parameters.Len() ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CALLVOTE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Command.GetChars() );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Parameters.GetChars() );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Reason.GetChars() );
-	}
+	NetCommand command ( SVC_CALLVOTE );
+	command.addByte ( ulPlayer );
+	command.addString ( Command.GetChars() );
+	command.addString ( Parameters.GetChars() );
+	command.addString ( Reason.GetChars() );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayerVote( ULONG ulPlayer, bool bVoteYes, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERVOTE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bVoteYes );
-	}
+	NetCommand command ( SVC_PLAYERVOTE );
+	command.addByte ( ulPlayer );
+	command.addByte ( bVoteYes );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_VoteEnded( bool bVotePassed, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_VOTEENDED );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bVotePassed );
-	}
+	NetCommand command ( SVC_VOTEENDED );
+	command.addByte ( bVotePassed );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5413,77 +3527,35 @@ void SERVERCOMMANDS_VoteEnded( bool bVotePassed, ULONG ulPlayerExtra, ULONG ulFl
 //
 void SERVERCOMMANDS_MapLoad( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( level.mapname ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MAPLOAD );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.mapname );
-	}
+	NetCommand command ( SVC_MAPLOAD );
+	command.addString ( level.mapname );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszMapName ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MAPNEW );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMapName );
-	}
+	NetCommand command ( SVC_MAPNEW );
+	command.addString ( pszMapName );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( pszNextMap == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszNextMap ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MAPEXIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszNextMap );
-	}
+	NetCommand command ( SVC_MAPEXIT );
+	command.addByte ( lPosition );
+	command.addString ( pszNextMap );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 
 	// [BB] The clients who are authenticated, but still didn't finish loading
 	// the map are not covered by the code above and need special treatment.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_GetClient( ulIdx )->State == CLS_AUTHENTICATED )
 			SERVER_GetClient( ulIdx )->State = CLS_AUTHENTICATED_BUT_OUTDATED_MAP;
@@ -5494,208 +3566,82 @@ void SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPla
 //
 void SERVERCOMMANDS_MapAuthenticate( const char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszMapName ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MAPAUTHENTICATE );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMapName );
-	}
+	NetCommand command ( SVC_MAPAUTHENTICATE );
+	command.addString ( pszMapName );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPTIME );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.time );
-	}
+	NetCommand command ( SVC_SETMAPTIME );
+	command.addLong ( level.time );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPNUMKILLEDMONSTERS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.killed_monsters );
-	}
+	NetCommand command ( SVC_SETMAPNUMKILLEDMONSTERS );
+	command.addShort ( level.killed_monsters );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPNUMFOUNDITEMS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.found_items );
-	}
+	NetCommand command ( SVC_SETMAPNUMFOUNDITEMS );
+	command.addShort ( level.found_items );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPNUMFOUNDSECRETS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.found_secrets );
-	}
+	NetCommand command ( SVC_SETMAPNUMFOUNDSECRETS );
+	command.addShort ( level.found_secrets );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPNUMTOTALMONSTERS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.total_monsters );
-	}
+	NetCommand command ( SVC_SETMAPNUMTOTALMONSTERS );
+	command.addShort ( level.total_monsters );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPNUMTOTALITEMS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.total_items );
-	}
+	NetCommand command ( SVC_SETMAPNUMTOTALITEMS );
+	command.addShort ( level.total_items );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszMusic ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPMUSIC );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMusic );
-	}
+	NetCommand command ( SVC_SETMAPMUSIC );
+	command.addString ( pszMusic );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( level.skypic1 ) + (ULONG)strlen( level.skypic2 ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETMAPSKY );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.skypic1 );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, level.skypic2 );
-	}
+	NetCommand command ( SVC_SETMAPSKY );
+	command.addString ( level.skypic1 );
+	command.addString ( level.skypic2 );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5703,8 +3649,6 @@ void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -5714,23 +3658,11 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 	if ( pInventory->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->getActorNetworkIndex() );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->Amount );
-	}
+	NetCommand command ( SVC_GIVEINVENTORY );
+	command.addByte ( ulPlayer );
+	command.addShort (  pInventory->GetClass()->getActorNetworkIndex() );
+	command.addShort ( pInventory->Amount );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 
 	// [BB] Clients don't know that a BackpackItem may be depleted. In this case we have to resync the ammo count.
 	if ( pInventory->IsKindOf (RUNTIME_CLASS(ABackpackItem)) && static_cast<ABackpackItem*> ( pInventory )->bDepleted )
@@ -5762,8 +3694,6 @@ void SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInven
 //
 void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -5771,23 +3701,11 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 	if ( pType == NULL || ( GetDefaultByType ( pType )->ulNetworkFlags & NETFL_SERVERSIDEONLY ) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszClassName ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_TAKEINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszClassName );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulAmount );
-	}
+	NetCommand command ( SVC_TAKEINVENTORY );
+	command.addByte ( ulPlayer );
+	command.addString ( pszClassName );
+	command.addShort ( ulAmount );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5852,7 +3770,6 @@ void SERVERCOMMANDS_GiveWeaponHolder( ULONG ulPlayer, AWeaponHolder *pHolder, UL
 //
 void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName, const char *pszPickupMessage, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lLength;
 
 	lLength = 0;
@@ -5864,46 +3781,20 @@ void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName,
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + lLength, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOINVENTORYPICKUP );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszClassName );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszPickupMessage );
-	}
+	NetCommand command ( SVC_DOINVENTORYPICKUP );
+	command.addByte ( ulPlayer );
+	command.addString ( pszClassName );
+	command.addString ( pszPickupMessage );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyAllInventory( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYALLINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command ( SVC_DESTROYALLINVENTORY );
+	command.addByte ( ulPlayer );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5915,25 +3806,12 @@ void SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, UL
 
 	FString iconTexName = TexMan( pInventory->Icon )->Name;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5 + (ULONG)strlen( iconTexName.GetChars() ), true );
-
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_SETINVENTORYICON );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->getActorNetworkIndex() );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iconTexName.GetChars() );
-	}
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SETINVENTORYICON );
+	command.addByte ( ulPlayer );
+	command.addShort ( pInventory->GetClass()->getActorNetworkIndex() );
+	command.addString ( iconTexName.GetChars() );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -5949,7 +3827,7 @@ void SERVERCOMMANDS_SetHexenArmorSlots( ULONG ulPlayer, AHexenArmor *aHXArmor, U
 	NetCommand command( SVC_EXTENDEDCOMMAND );
 	command.addByte( SVC2_SETHEXENARMORSLOTS );
 	command.addByte( ulPlayer );
-	for (short i = 0; i <= 4; i++)
+	for (int i = 0; i <= 4; i++)
 		command.addLong( aHXArmor->Slots[i] );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
@@ -5982,9 +3860,9 @@ void SERVERCOMMANDS_SetFastChaseStrafeCount( AActor *mobj, ULONG ulPlayerExtra, 
 //
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
-	SERVER_CheckClientBuffer( ulClient, 2, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC2_FULLUPDATECOMPLETED );
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_FULLUPDATECOMPLETED );
+	command.sendCommandToOneClient( ulClient );
 }
 
 //*****************************************************************************
@@ -6000,19 +3878,19 @@ void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect )
 {
-	SERVER_CheckClientBuffer( ulClient, 3, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC2_SETIGNOREWEAPONSELECT );
-	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, bIgnoreWeaponSelect );
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SETIGNOREWEAPONSELECT );
+	command.addByte ( bIgnoreWeaponSelect );
+	command.sendCommandToOneClient( ulClient );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient )
 {
-	SERVER_CheckClientBuffer( ulClient, 2, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-	NETWORK_WriteByte( &SERVER_GetClient( ulClient )->PacketBuffer.ByteStream, SVC2_CLEARCONSOLEPLAYERWEAPON );
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_CLEARCONSOLEPLAYERWEAPON );
+	command.sendCommandToOneClient( ulClient );
 }
 
 //*****************************************************************************
@@ -6028,23 +3906,10 @@ void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_CANCELFADE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-	}
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_CANCELFADE );
+	command.addByte ( ulPlayer );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6054,24 +3919,11 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_EXTENDEDCOMMAND );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC2_PLAYBOUNCESOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bOnfloor );
-	}
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_PLAYBOUNCESOUND );
+	command.addShort ( pActor->lNetID );
+	command.addByte ( bOnfloor );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6079,7 +3931,6 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 //
 void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
@@ -6092,78 +3943,38 @@ void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LON
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DODOOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLightTag );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DODOOR );
+	command.addShort ( lSectorID );
+	command.addLong ( lSpeed );
+	command.addByte ( lDirection );
+	command.addShort ( lLightTag );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyDoor( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYDOOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYDOOR );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeDoorDirection( LONG lID, LONG lDirection, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// Since we still want to send direction as a byte, but -1 can't be represented in byte
 	// form, adjust the value into something that can be represented.
 	lDirection = SERVER_AdjustDoorDirection( lDirection );
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGEDOORDIRECTION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-	}
+	NetCommand command ( SVC_CHANGEDOORDIRECTION );
+	command.addShort ( lID );
+	command.addByte ( lDirection );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6171,7 +3982,6 @@ void SERVERCOMMANDS_ChangeDoorDirection( LONG lID, LONG lDirection, ULONG ulPlay
 //
 void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirection, LONG lSpeed, LONG lFloorDestDist, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
@@ -6184,150 +3994,68 @@ void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirec
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 15, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLOOR );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorDestDist );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOFLOOR );
+	command.addByte ( (ULONG)Type );
+	command.addShort ( lSectorID );
+	command.addByte ( lDirection );
+	command.addLong ( lSpeed );
+	command.addLong ( lFloorDestDist );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyFloor( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYFLOOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYFLOOR );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeFloorDirection( LONG lID, LONG lDirection, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// Since we still want to send direction as a byte, but -1 can't be represented in byte
 	// form, adjust the value into something that can be represented.
 	lDirection = SERVER_AdjustFloorDirection( lDirection );
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGEFLOORDIRECTION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-	}
+	NetCommand command ( SVC_CHANGEFLOORDIRECTION );
+	command.addShort ( lID );
+	command.addByte ( lDirection );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeFloorType( LONG lID, DFloor::EFloor Type, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGEFLOORTYPE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
-	}
+	NetCommand command ( SVC_CHANGEFLOORTYPE );
+	command.addShort ( lID );
+	command.addByte ( (ULONG)Type );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeFloorDestDist( LONG lID, LONG lFloorDestDist, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGEFLOORDESTDIST );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorDestDist );
-	}
+	NetCommand command ( SVC_CHANGEFLOORDESTDIST );
+	command.addShort ( lID );
+	command.addLong ( lFloorDestDist );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_STARTFLOORSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_STARTFLOORSOUND );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6335,7 +4063,6 @@ void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 //
 void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
@@ -6348,129 +4075,61 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 23, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOCEILING );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBottomHeight );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTopHeight );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCrush );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSilent );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOCEILING );
+	command.addByte ( (ULONG)Type );
+	command.addShort ( lSectorID );
+	command.addByte ( lDirection );
+	command.addLong ( lBottomHeight );
+	command.addLong ( lTopHeight );
+	command.addLong ( lSpeed );
+	command.addShort ( lCrush );
+	command.addShort ( lSilent );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyCeiling( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYCEILING );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYCEILING );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeCeilingDirection( LONG lID, LONG lDirection, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	// Since we still want to send direction as a byte, but -1 can't be represented in byte
 	// form, adjust the value into something that can be represented.
 	lDirection = SERVER_AdjustCeilingDirection( lDirection );
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGECEILINGDIRECTION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-	}
+	NetCommand command ( SVC_CHANGECEILINGDIRECTION );
+	command.addShort ( lID );
+	command.addByte ( lDirection );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangeCeilingSpeed( LONG lID, LONG lSpeed, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGECEILINGSPEED );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-	}
+	NetCommand command ( SVC_CHANGECEILINGSPEED );
+	command.addShort ( lID );
+	command.addLong ( lSpeed );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayCeilingSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYCEILINGSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_PLAYCEILINGSOUND );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6478,105 +4137,50 @@ void SERVERCOMMANDS_PlayCeilingSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_DoPlat( DPlat::EPlatType Type, sector_t *pSector, DPlat::EPlatState Status, LONG lHigh, LONG lLow, LONG lSpeed, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
 	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 19, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPLAT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Status );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lHigh );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLow );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOPLAT );
+	command.addByte ( (ULONG)Type );
+	command.addShort ( lSectorID );
+	command.addByte ( (ULONG)Status );
+	command.addLong ( lHigh );
+	command.addLong ( lLow );
+	command.addLong ( lSpeed );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyPlat( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYPLAT );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYPLAT );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ChangePlatStatus( LONG lID, DPlat::EPlatState Status, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CHANGEPLATSTATUS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Status );
-	}
+	NetCommand command ( SVC_CHANGEPLATSTATUS );
+	command.addShort ( lID );
+	command.addByte ( (ULONG)Status );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayPlatSound( LONG lID, LONG lSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYPLATSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSound );
-	}
+	NetCommand command ( SVC_PLAYPLATSOUND );
+	command.addShort ( lID );
+	command.addByte ( lSound );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6584,7 +4188,6 @@ void SERVERCOMMANDS_PlayPlatSound( LONG lID, LONG lSound, ULONG ulPlayerExtra, U
 //
 void SERVERCOMMANDS_DoElevator( DElevator::EElevator Type, sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lFloorDestDist, LONG lCeilingDestDist, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
@@ -6597,73 +4200,33 @@ void SERVERCOMMANDS_DoElevator( DElevator::EElevator Type, sector_t *pSector, LO
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 13, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOELEVATOR );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Type );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorDestDist );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCeilingDestDist );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOELEVATOR );
+	command.addByte ( Type );
+	command.addShort ( lSectorID );
+	command.addLong ( lSpeed );
+	command.addByte ( lDirection );
+	command.addLong ( lFloorDestDist );
+	command.addLong ( lCeilingDestDist );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyElevator( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYELEVATOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYELEVATOR );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_StartElevatorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_STARTELEVATORSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_STARTELEVATORSOUND );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6671,57 +4234,30 @@ void SERVERCOMMANDS_StartElevatorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulF
 //
 void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFloorSpeed, LONG lCeilingSpeed, LONG lFloorTarget, LONG lCeilingTarget, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
 	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 22, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPILLAR );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Type );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCeilingSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFloorTarget );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCeilingTarget );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOPILLAR );
+	command.addByte ( Type );
+	command.addShort ( lSectorID );
+	command.addLong ( lFloorSpeed );
+	command.addLong ( lCeilingSpeed );
+	command.addLong ( lFloorTarget );
+	command.addLong ( lCeilingTarget );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyPillar( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYPILLAR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYPILLAR );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6729,85 +4265,45 @@ void SERVERCOMMANDS_DestroyPillar( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags 
 //
 void SERVERCOMMANDS_DoWaggle( bool bCeiling, sector_t *pSector, LONG lOriginalDistance, LONG lAccumulator, LONG lAccelerationDelta, LONG lTargetScale, LONG lScale, LONG lScaleDelta, LONG lTicker, LONG lState, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
 	if (( lSectorID < 0 ) || ( lSectorID >= numsectors ))
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 35, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOWAGGLE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bCeiling );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOriginalDistance );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAccumulator );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAccelerationDelta );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTargetScale );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lScale );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lScaleDelta );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTicker );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lState );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DOWAGGLE );
+	command.addByte ( !!bCeiling );
+	command.addShort ( lSectorID );
+	command.addLong ( lOriginalDistance );
+	command.addLong ( lAccumulator );
+	command.addLong ( lAccelerationDelta );
+	command.addLong ( lTargetScale );
+	command.addLong ( lScale );
+	command.addLong ( lScaleDelta );
+	command.addLong ( lTicker );
+	command.addByte ( lState );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyWaggle( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYWAGGLE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DESTROYWAGGLE );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_UpdateWaggle( LONG lID, LONG lAccumulator, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEWAGGLE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, lID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, lAccumulator );
-	}
+	NetCommand command( SVC_UPDATEWAGGLE );
+	command.setUnreliable( true );
+	command.addShort( lID );
+	command.addLong( lAccumulator );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6815,47 +4311,19 @@ void SERVERCOMMANDS_UpdateWaggle( LONG lID, LONG lAccumulator, ULONG ulPlayerExt
 //
 void SERVERCOMMANDS_DoRotatePoly( LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOROTATEPOLY );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DOROTATEPOLY );
+	command.addLong ( lSpeed );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyRotatePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYROTATEPOLY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DESTROYROTATEPOLY );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6863,48 +4331,20 @@ void SERVERCOMMANDS_DestroyRotatePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG
 //
 void SERVERCOMMANDS_DoMovePoly( LONG lXSpeed, LONG lYSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOMOVEPOLY );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DOMOVEPOLY );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyMovePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYMOVEPOLY );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DESTROYMOVEPOLY );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -6912,183 +4352,89 @@ void SERVERCOMMANDS_DestroyMovePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG u
 //
 void SERVERCOMMANDS_DoPolyDoor( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 16, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPOLYDOOR );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lType );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DOPOLYDOOR );
+	command.addByte ( lType );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addLong ( lSpeed );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DestroyPolyDoor( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DESTROYPOLYDOOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-	}
+	NetCommand command ( SVC_DESTROYPOLYDOOR );
+	command.addShort ( lPolyNum );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPolyDoorSpeedPosition( LONG lPolyNum, LONG lXSpeed, LONG lYSpeed, LONG lX, LONG lY, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 19, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPOLYDOORSPEEDPOSITION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lX );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lY );
-	}
+	NetCommand command ( SVC_SETPOLYDOORSPEEDPOSITION );
+	command.addShort ( lPolyNum );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addLong ( lX );
+	command.addLong ( lY );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPolyDoorSpeedRotation( LONG lPolyNum, LONG lSpeed, LONG lAngle, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG	ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPOLYDOORSPEEDROTATION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAngle );
-	}
+	NetCommand command ( SVC_SETPOLYDOORSPEEDROTATION );
+	command.addShort ( lPolyNum );
+	command.addLong ( lSpeed );
+	command.addLong ( lAngle );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, NETWORK_POLYOBJSOUND_e Sound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYPOLYOBJSOUND );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Sound );
-	}
+	NetCommand command ( SVC_PLAYPOLYOBJSOUND );
+	command.addShort ( lPolyNum );
+	command.addByte ( (ULONG)Sound );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	FPolyObj	*pPoly;
 
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPOLYOBJPOSITION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->StartSpot.x );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->StartSpot.y );
-	}
+	NetCommand command ( SVC_SETPOLYOBJPOSITION );
+	command.addShort ( lPolyNum );
+	command.addLong ( pPoly->StartSpot.x );
+	command.addLong ( pPoly->StartSpot.y );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG		ulIdx;
 	FPolyObj	*pPoly;
 
 	pPoly = PO_GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPOLYOBJROTATION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPolyNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPoly->angle );
-	}
+	NetCommand command ( SVC_SETPOLYOBJROTATION );
+	command.addShort ( lPolyNum );
+	command.addLong ( pPoly->angle );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -7114,24 +4460,13 @@ void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration
 //
 void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	LONG	lPosition;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )	
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+		LONG lPosition = JOINQUEUE_GetPositionInLine( *it );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		lPosition = JOINQUEUE_GetPositionInLine( ulIdx );
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETQUEUEPOSITION );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( lPosition != -1  ) ? lPosition : 255 );
+		NetCommand command( SVC_SETQUEUEPOSITION );
+		command.addByte( lPosition != -1 ? lPosition : 255 );
+		command.sendCommandToOneClient( *it );
 	}
 }
 
@@ -7139,172 +4474,85 @@ void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAffectee, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		// [BB] Shouldn't the 8 be a 10? (1+1+4+4+2)
-		// [BC] Should be 12 :)
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSCROLLER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lType );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lAffectee );
-	}
+	NetCommand command ( SVC_DOSCROLLER );
+	command.addByte ( lType );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addShort ( lAffectee );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lTag, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		// [BB] Shouldn't the 8 be a 10? (1+1+4+4+2)
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSCROLLER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lType );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTag );
-	}
+	NetCommand command ( SVC_SETSCROLLER );
+	command.addByte ( lType );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addShort ( lTag );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, LONG lWhere, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 18, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETWALLSCROLLER );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lId );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSidechoice );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lWhere );
-	}
+	NetCommand command ( SVC_SETWALLSCROLLER );
+	command.addLong ( lId );
+	command.addByte ( lSidechoice );
+	command.addLong ( lXSpeed );
+	command.addLong ( lYSpeed );
+	command.addLong ( lWhere );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 38, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLASHFADER );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer);
-	}
+	NetCommand command ( SVC_DOFLASHFADER );
+	command.addFloat ( fR1 );
+	command.addFloat ( fG1 );
+	command.addFloat ( fB1 );
+	command.addFloat ( fA1 );
+	command.addFloat ( fR2 );
+	command.addFloat ( fG2 );
+	command.addFloat ( fB2 );
+	command.addFloat ( fA2 );
+	command.addFloat ( fTime );
+	command.addByte ( ulPlayer );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GENERICCHEAT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulCheat );
-	}
+	NetCommand command ( SVC_GENERICCHEAT );
+	command.addByte ( ulPlayer );
+	command.addByte ( ulCheat );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG lFOV, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-
 	if ((!EnsureActorHasNetID (pCamera) ) ||
 		( pszTexture == NULL ))
 	{
 		return;
 	}
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 3 + (ULONG)strlen( pszTexture ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETCAMERATOTEXTURE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pCamera->lNetID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszTexture );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFOV );
-	}
+	NetCommand command ( SVC_SETCAMERATOTEXTURE );
+	command.addShort ( pCamera->lNetID );
+	command.addString ( pszTexture );
+	command.addByte ( lFOV );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -7313,26 +4561,15 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 {
 	const bool bIsEdited = SERVER_IsTranslationEdited ( ulTranslation );
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command ( SVC_CREATETRANSLATION );
+	command.addShort ( ulTranslation );
+	command.addByte ( bIsEdited );
+	command.addByte ( ulStart );
+	command.addByte ( ulEnd );
+	command.addByte ( ulPal1 );
+	command.addByte ( ulPal2 );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CREATETRANSLATION );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTranslation );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bIsEdited );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulStart );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulEnd );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPal1 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPal2 );
-	}
 }
 //*****************************************************************************
 //
@@ -7340,77 +4577,41 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 {
 	const bool bIsEdited = SERVER_IsTranslationEdited ( ulTranslation );
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CREATETRANSLATION2 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTranslation );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bIsEdited );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulStart );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulEnd );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulR1 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulG1 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulB1 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulR2 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulG2 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulB2 );
-	}
+	NetCommand command ( SVC_CREATETRANSLATION2 );
+	command.addShort ( ulTranslation );
+	command.addByte ( bIsEdited );
+	command.addByte ( ulStart );
+	command.addByte ( ulEnd );
+	command.addByte ( ulR1 );
+	command.addByte ( ulG1 );
+	command.addByte ( ulB1 );
+	command.addByte ( ulR2 );
+	command.addByte ( ulG2 );
+	command.addByte ( ulB2 );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_ReplaceTextures( int iFromname, int iToname, int iTexFlags, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 10, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_REPLACETEXTURES );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iFromname );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iToname );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iTexFlags );
-	}
+	NetCommand command ( SVC_REPLACETEXTURES );
+	command.addLong ( iFromname );
+	command.addLong ( iToname );
+	command.addByte ( iTexFlags );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetSectorLink( ULONG ulSector, int iArg1, int iArg2, int iArg3, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORLINK );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg1 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg2 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg3 );
-	}
+	NetCommand command ( SVC_SETSECTORLINK );
+	command.addShort ( ulSector );
+	command.addShort ( iArg1 );
+	command.addByte ( iArg2 );
+	command.addByte ( iArg3 );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -7420,50 +4621,26 @@ void SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int i
 	const int iLineNum = pLine ? static_cast<ULONG>( pLine - lines ) : -1;
 	const LONG lSourceNetID = pSource ? pSource->lNetID : -1;
 
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 16, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOPUSHER );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulType );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iLineNum );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iMagnitude );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iAngle );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iAffectee );
-	}
+	NetCommand command ( SVC_DOPUSHER );
+	command.addByte ( ulType );
+	command.addShort ( iLineNum );
+	command.addLong ( iMagnitude );
+	command.addLong ( iAngle );
+	command.addShort ( lSourceNetID );
+	command.addShort ( iAffectee );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ulType, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ADJUSTPUSHER );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iTag );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iMagnitude );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iAngle );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulType );
-	}
+	NetCommand command ( SVC_ADJUSTPUSHER );
+	command.addShort ( iTag );
+	command.addLong ( iMagnitude );
+	command.addLong ( iAngle );
+	command.addByte ( ulType );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 
@@ -7519,5 +4696,5 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	command.addShort( this->CurrNode ? this->CurrNode->lNetID : -1 );
 	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
 	command.addFloat( this->Time );
-	command.sendCommandToClients( ulClient, SVCF_ONLYTHISCLIENT );
+	command.sendCommandToOneClient( ulClient );
 }
