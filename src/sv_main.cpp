@@ -161,6 +161,7 @@ static	bool	server_MorphCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
 static	bool	server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient );
 static	bool	server_CheckJoinPassword( const FString& clientPassword );
+static	bool	server_Linetarget( BYTESTREAM_s* pByteStream );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -4294,6 +4295,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// [BB] The client just confirmed receiving the full update.
 		SERVER_GetClient ( g_lCurrentClient )->bFullUpdateIncomplete = false;
 		return ( false );
+	case CLC_LINETARGET:
+
+		// [Dusk]
+		return ( server_Linetarget( pByteStream ));
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -6036,6 +6041,38 @@ static bool server_CheckJoinPassword( const FString& clientPassword )
 	}
 
 	return true;
+}
+
+//*****************************************************************************
+//
+// [Dusk] Client wishes to apply the linetarget cheat on a particularly
+// interesting actor but cannot because they don't know the health of it.
+// Let's help it out. :)
+//
+static bool server_Linetarget( BYTESTREAM_s *pByteStream )
+{
+	LONG lID = NETWORK_ReadShort( pByteStream );
+	AActor* linetarget = CLIENT_FindThingByNetID( lID );
+
+	// [Dusk] Except not if we don't allow cheats.
+	if ( sv_cheats == false )
+	{
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
+		return true;
+	}
+
+	if ( linetarget == NULL )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient,
+			"The server couldn't find the actor you're pointing at! netid: %ld\n", lID );
+		return false;
+	}
+
+	SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Target=%s, Health=%d, Spawnhealth=%d\n",
+		linetarget->GetClass()->TypeName.GetChars(),
+		linetarget->health,
+		linetarget->GetDefault()->health);
+	return false;
 }
 
 //*****************************************************************************

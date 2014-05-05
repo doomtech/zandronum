@@ -9,6 +9,10 @@
 
 #include <cstdlib>
 
+// [ZZ] 2014 - added new CVars to control exact behavior on same weight or if involving unknown weapon.
+CVAR(Bool, pwo_switchonsameweight, true, CVAR_ARCHIVE);
+CVAR(Bool, pwo_switchonunknown, false, CVAR_ARCHIVE);
+
 TArray<PWODef> PWODefs;
 PWODef** PWODefsByOrder = NULL;
 unsigned int PWODefsByOrderSz = 0;
@@ -79,9 +83,10 @@ bool PWO_CheckWeapons(AWeapon* first, AWeapon* pending)
 	found_first = PWO_WeightByClass(first, weight_first);
 	found_pending = PWO_WeightByClass(pending, weight_pending);
 
-	if(!found_first || !found_pending) return false; // don't switch if one of weights is undefined
-	if(weight_pending >= weight_first) return true;
-	return false;
+	if(!found_first || !found_pending) return pwo_switchonunknown; // don't switch if one of weights is undefined
+	if(weight_pending > weight_first) return true;
+	else if(weight_pending == weight_first) return pwo_switchonsameweight;
+	else return false;
 }
 
 int
@@ -445,6 +450,16 @@ void PWO_GenerateMenu()
 	onoff.b.numvalues = 2.0;
 	onoff.e.values = YesNo;
 	onoff.a.cvar = &cl_noammoswitch;
+	Items2.Push(onoff);
+	onoff.label = "Switch on same weight (PWO)";
+	onoff.b.numvalues = 2.0;
+	onoff.e.values = YesNo;
+	onoff.a.cvar = &pwo_switchonsameweight;
+	Items2.Push(onoff);
+	onoff.label = "Switch on unk.weapon (PWO)";
+	onoff.b.numvalues = 2.0;
+	onoff.e.values = YesNo;
+	onoff.a.cvar = &pwo_switchonunknown;
 	Items2.Push(onoff);
 	// don't add "Cycle with original order" item here, it seems to be completely obsolete
 	Items2.Push(OptionsPWOseparator);
