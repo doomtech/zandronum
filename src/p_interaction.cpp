@@ -2592,6 +2592,11 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 			}
 		}
 	}
+
+	// [BB] Remove all dynamic lights associated to the player's body.
+	for ( unsigned int i = 0; i < pPlayer->mo->dynamiclights.Size(); ++i )
+		pPlayer->mo->dynamiclights[i]->Destroy();
+	pPlayer->mo->dynamiclights.Clear();
 }
 
 //*****************************************************************************
