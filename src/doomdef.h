@@ -420,6 +420,8 @@ enum
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
 	// [CK] Vanilla doom had silent west spawns
 	ZACOMPATF_SILENT_WEST_SPAWNS = 1 << 10,
+	// [CK] Force blood brightness to max scalar on clients to emulate vanilla screen damage
+	ZACOMPATF_MAX_BLOOD_SCALAR = 1 << 11,
 
 	// Limited movement in the air.
 	ZACOMPATF_LIMITED_AIRMOVEMENT	= 1 << 17,
