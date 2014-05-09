@@ -306,6 +306,18 @@ DEFINE_ACTION_FUNCTION(AActor, A_PoisonBagInit)
 	if (mo)
 	{
 		mo->target = self->target;
+
+		// [CK] This is executed both server and clientside, resulting in 
+		// clientside clouds with no netID, but the server does have a netID. 
+		// Clearing of clouds therefore fail because the client's poisoncloud 
+		// netID is -1.
+		// This is run on both the server and client, so since we can safely
+		// assume this is clientside only, we can ensure proper cleanup by
+		// setting NETFL_CLIENTSIDEONLY, resulting in proper removal when
+		// GAME_ResetMap() is executed.
+		if (NETWORK_GetState() == NETSTATE_CLIENT) {
+			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+		}
 	}
 }
 
