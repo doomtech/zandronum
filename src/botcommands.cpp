@@ -80,7 +80,7 @@
 
 static	void	botcmd_ChangeState( CSkullBot *pBot );
 static	void	botcmd_Delay( CSkullBot *pBot );
-static	void	botcmd_Rand( CSkullBot *pBot );
+static	void	botcmd_Random( CSkullBot *pBot );
 static	void	botcmd_StringsAreEqual( CSkullBot *pBot );
 static	void	botcmd_LookForPowerups( CSkullBot *pBot );
 static	void	botcmd_LookForWeapons( CSkullBot *pBot );
@@ -189,7 +189,7 @@ static	BOTCMD_s	g_BotCommands[NUM_BOTCMDS] =
 {
 	{ "changestate", botcmd_ChangeState, 1, 0, RETURNVAL_VOID },
 	{ "delay", botcmd_Delay, 1, 0, RETURNVAL_VOID },
-	{ "rand", botcmd_Rand, 2, 0, RETURNVAL_INT },
+	{ "Random", botcmd_Random, 2, 0, RETURNVAL_INT },
 	{ "StringsAreEqual", botcmd_StringsAreEqual, 0, 2, RETURNVAL_BOOLEAN },
 	{ "LookForPowerups", botcmd_LookForPowerups, 2, 0, RETURNVAL_INT },
 	{ "LookForWeapons", botcmd_LookForWeapons, 2, 0, RETURNVAL_INT },
@@ -840,7 +840,7 @@ static void botcmd_Delay( CSkullBot *pBot )
 
 //*****************************************************************************
 //
-static void botcmd_Rand( CSkullBot *pBot )
+static void botcmd_Random( CSkullBot *pBot )
 {
 	LONG	lMin;
 	LONG	lMax;
@@ -852,7 +852,7 @@ static void botcmd_Rand( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if ( lMax < lMin )
-		I_Error( "botcmd_Rand: Maximum value is less than the minimum value!" );
+		std::swap ( lMax, lMin );
 
 	if ( lMax == lMin )
 	{
@@ -860,9 +860,7 @@ static void botcmd_Rand( CSkullBot *pBot )
 		return;
 	}
 
-	g_iReturnInt = g_RandomBotCmdSeed.Random( ) % lMax;
-	while ( g_iReturnInt < lMin )
-		g_iReturnInt += ( lMax - lMin );
+	g_iReturnInt = g_RandomBotCmdSeed.Random( ) % ( lMax - lMin + 1 ) + lMin;
 }
 
 //*****************************************************************************
