@@ -2254,10 +2254,8 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	// [BB] Block this IP for ten seconds to prevent log flooding.
 	g_floodProtectionIPQueue.addAddress ( g_aClients[ulClient].Address, g_lGameTime / 1000 );
 
-	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
-	g_aClients[ulClient].State = CLS_FREE;
-	g_aClients[ulClient].ulLastGameTic = 0;
-	playeringame[ulClient] = false;
+	// [BB] Be sure to properly disconnect the client.
+	SERVER_DisconnectClient( ulClient, false, false );
 }
 
 //*****************************************************************************

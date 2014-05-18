@@ -51,6 +51,7 @@
 -	- Fixed: The linetarget cheat now prints the actor's actual health value. [Dusk]
 -	- Fixed: When a player turned into spectator the dynamic lights associated to the player's body were not removed. [Torr Samaho]
 -	- Fixed an exploit based on out of bounds userinfo sent by a malicious client (ported from Konar6's kpatch). [Torr Samaho]
+-	- Fixed an exploit based on improperly disconnected malicious clients. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho] 
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
