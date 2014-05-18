@@ -5944,6 +5944,14 @@ static bool server_Puke( BYTESTREAM_s *pByteStream )
 {
 	ULONG ulScript = NETWORK_ReadShort( pByteStream );
 	ULONG ulArgn = NETWORK_ReadByte( pByteStream );
+
+	// [BB] Valid clients don't send more than three args.
+	if ( ulArgn > 3 )
+	{
+		SERVER_KickPlayer( g_lCurrentClient, "Sent a malformed packet!" );
+		return true;
+	}
+
 	int arg[3] = { 0, 0, 0 };
 	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx)
 		arg[ulIdx] = NETWORK_ReadLong ( pByteStream );
