@@ -2124,11 +2124,11 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// [BB]
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
-		pPlayer->userinfo.ulTicsPerUpdate = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.ulTicsPerUpdate = clamp ( NETWORK_ReadByte( pByteStream ), 1, 3 );
 
 	// [BB]
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		pPlayer->userinfo.ulConnectionType = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.ulConnectionType = clamp ( NETWORK_ReadByte( pByteStream ), 0, 1 );
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
