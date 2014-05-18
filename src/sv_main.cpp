@@ -1249,6 +1249,14 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] A client who is already spawned but not authenticated shouldn't ask for a new connection.
+	// Just ask the client to authenticate again in this case.
+	if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
+	{
+		SERVERCOMMANDS_MapAuthenticate ( level.mapname, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		return;
+	}
+
 	// This player is now in the game.
 	playeringame[g_lCurrentClient] = true;
 
