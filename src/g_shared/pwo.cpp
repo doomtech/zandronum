@@ -442,7 +442,7 @@ void PWO_GenerateMenu()
 	onoff.a.cvar = &switchonpickup;
 	onoff.b.numvalues = 4.0;
 	onoff.c.max = 0.0;
-	onoff.d.step = 0.0;
+	onoff.d.graycheck = NULL;
 	onoff.e.values = SwitchOnPickupVals;
 	onoff.f.lServer = 0;
 	Items2.Push(onoff);

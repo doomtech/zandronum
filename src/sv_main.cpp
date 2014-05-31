@@ -1262,6 +1262,14 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] A client who is already spawned but not authenticated shouldn't ask for a new connection.
+	// Just ask the client to authenticate again in this case.
+	if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
+	{
+		SERVERCOMMANDS_MapAuthenticate ( level.mapname, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		return;
+	}
+
 	// This player is now in the game.
 	playeringame[g_lCurrentClient] = true;
 
@@ -2137,11 +2145,11 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// [BB]
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
-		pPlayer->userinfo.ulTicsPerUpdate = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.ulTicsPerUpdate = clamp ( NETWORK_ReadByte( pByteStream ), 1, 3 );
 
 	// [BB]
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		pPlayer->userinfo.ulConnectionType = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.ulConnectionType = clamp ( NETWORK_ReadByte( pByteStream ), 0, 1 );
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
@@ -2272,10 +2280,8 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	// [BB] Block this IP for ten seconds to prevent log flooding.
 	g_floodProtectionIPQueue.addAddress ( g_aClients[ulClient].Address, g_lGameTime / 1000 );
 
-	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
-	g_aClients[ulClient].State = CLS_FREE;
-	g_aClients[ulClient].ulLastGameTic = 0;
-	playeringame[ulClient] = false;
+	// [BB] Be sure to properly disconnect the client.
+	SERVER_DisconnectClient( ulClient, false, false );
 }
 
 //*****************************************************************************
@@ -5980,6 +5986,14 @@ static bool server_Puke( BYTESTREAM_s *pByteStream )
 {
 	ULONG ulScript = NETWORK_ReadShort( pByteStream );
 	ULONG ulArgn = NETWORK_ReadByte( pByteStream );
+
+	// [BB] Valid clients don't send more than three args.
+	if ( ulArgn > 3 )
+	{
+		SERVER_KickPlayer( g_lCurrentClient, "Sent a malformed packet!" );
+		return true;
+	}
+
 	int arg[3] = { 0, 0, 0 };
 	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx)
 		arg[ulIdx] = NETWORK_ReadLong ( pByteStream );

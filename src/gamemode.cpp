@@ -398,12 +398,13 @@ bool GAMEMODE_IsGameInProgress( void )
 	else if ( possession || teampossession )
 		return ( ( POSSESSION_GetState( ) == PSNS_INPROGRESS ) || ( POSSESSION_GetState( ) == PSNS_ARTIFACTHELD ) );
 	// [BB] In non-coop game modes without warmup phase, we just say the game is
-	// in progress when there are two or more players.
+	// in progress when there are two or more players and the game is not frozen
+	// due to the end level delay.
 	else if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( ) ) & GMF_COOPERATIVE ) == false )
-		return ( GAME_CountActivePlayers( ) >= 2 );
+		return ( ( GAME_CountActivePlayers( ) >= 2 ) && ( GAME_GetEndLevelDelay () == 0 ) );
 	// [BB] For coop games one player is enough.
 	else
-		return ( GAME_CountActivePlayers( ) >= 1 );
+		return ( ( GAME_CountActivePlayers( ) >= 1 ) && ( GAME_GetEndLevelDelay () == 0 ) );
 }
 
 //*****************************************************************************
@@ -420,8 +421,10 @@ bool GAMEMODE_IsGameInResultSequence( void )
 		return ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE );
 	// [BB] The other game modes don't have such a sequnce. Arguably, possession
 	// with PSNS_HOLDERSCORED could also be considered for this.
+	// As substitute for such a sequence we consider whether the game is
+	// frozen because of the end level delay.
 	else
-		return ( false );
+		return ( GAME_GetEndLevelDelay () > 0 );
 }
 
 //*****************************************************************************
