@@ -130,7 +130,7 @@ public:
 	void EndDrawScene(sector_t * viewsector);
 	void Flush() {}
 
-	void SetProjection(float fov, float ratio, float fovratio);
+	void SetProjection(float fov, float ratio, float fovratio, float eyeShift=0); // [BB] Added eyeShift from GZ3Doom.
 	void SetViewMatrix(bool mirror, bool planemirror);
 	void ProcessScene(bool toscreen = false);
 
