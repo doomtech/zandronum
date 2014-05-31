@@ -37,12 +37,8 @@
 -	- Fixed: Strife's Flamethrower did not shake the player's view online. [Dusk]
 -	- Fixed: The server would crash with join passwords longer than 64 characters. [Dusk]
 -	- Fixed: Skins defined with SKININFO didn't work properly if the sprite entry was not set explicitly. [Torr Samaho]
--	- Fixed: A malformed packet could make the server kick the clients. Thanks to Konar6 for supplying a proof-of-concept exploit that allowed to debug the issue. [Torr Samaho]
 - 	- Fixed: Tampered clients could insert ASCII control characters into chat messages (e.g. line breaks) (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Strife's crossbow did not appear to use ammo on clients online. [Dusk]
--	- Fixed an exploit with color codes in player names (ported from Konar6's kpatch). [Torr Samaho]
--	- Fixed a client memory exhaustion vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho]
--	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
 -	- Fixed: Clients using endgame while attempting to connect would not terminate the connection attempt. [Dusk]
 -	- Fixed: Telefregging shouldn't count towards awarding the Fisting and Spam medals (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Toggle crouch shouldn't reset when menu is activated during a netgame. [Jam]
@@ -50,14 +46,24 @@
 -	- Fixed: When spawning more than 2 hellstaff rains in Heretic, the old ones would linger around on the client instead of disappearing. [Dusk]
 -	- Fixed: The linetarget cheat now prints the actor's actual health value. [Dusk]
 -	- Fixed: When a player turned into spectator the dynamic lights associated to the player's body were not removed. [Torr Samaho]
--	- Fixed an exploit based on out of bounds userinfo sent by a malicious client (ported from Konar6's kpatch). [Torr Samaho]
--	- Fixed an exploit based on improperly disconnected malicious clients. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho] 
--	- Fixed an exploit that allowed malicious clients to create additional bodies. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho] 
--	- Fixed: A malformed packet could crash the server. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho] 
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
-!	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
+
+
+1.2.1
+-----
+
+-	- Fixed: A malformed packet could make the server kick the clients. Thanks to Konar6 for supplying a proof-of-concept exploit that allowed to debug the issue. [Torr Samaho]
+-	- Fixed an exploit with color codes in player names (ported from Konar6's kpatch). [Torr Samaho]
+-	- Fixed a client memory exhaustion vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho]
+-	- Fixed a client heap corruption vulnerability. Thanks to AgentME for reporting the vulnerability and submitting a patch. [Torr Samaho]
+-	- Fixed an exploit based on out of bounds userinfo sent by a malicious client (ported from Konar6's kpatch). [Torr Samaho]
+-	- Fixed an exploit based on improperly disconnected malicious clients. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho]
+-	- Fixed an exploit that allowed malicious clients to create additional bodies. Kudos to kgsws for finding and reporting this exploit. [Torr Samaho] 
+-	- Fixed: A malformed packet could crash the server. Thanks to AgentME for reporting the vulnerability and submitting a preliminary patch. [Torr Samaho] 
+!	- The linux binaries are not compiled with -fno-stack-protector anymore. This was originally intended to increase compatibility with distros using older glibc versions but is not necessary anymore since the source is open. Thanks to AgentME for pointing this out. [Torr Samaho]
+
 
 1.2
 ---
