@@ -671,15 +671,27 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		ulNumMedal++;
 	}
 
+	// [CK] Update the names as well
+	std::string medalStatusString = "";
+	bool isConsolePlayer = (pPlayer - &players[consoleplayer] == 0);
+
 	// The player has not earned any medals, so nothing was drawn.
 	if ( ulNumMedal == 0 )
 	{
+		if ( isConsolePlayer )
+			medalStatusString += "YOU HAVE NOT YET EARNED ANY MEDALS.";
+		else
+		{
+			medalStatusString += pPlayer->userinfo.netname;
+			medalStatusString += " HAS NOT YET EARNED ANY MEDALS.";
+		}
+
 		if ( bScale )
 		{
 			screen->DrawText( SmallFont, CR_WHITE,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( "YOU HAVE NOT YET EARNED ANY MEDALS." ) / 2 )),
+				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( medalStatusString.c_str() ) / 2 )),
 				26,
-				"YOU HAVE NOT YET EARNED ANY MEDALS.",
+				medalStatusString.c_str(),
 				DTA_VirtualWidth, ValWidth.Int,
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
@@ -687,20 +699,28 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		else
 		{
 			screen->DrawText( SmallFont, CR_WHITE,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( "YOU HAVE NOT YET EARNED ANY MEDALS." ) / 2 ),
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( medalStatusString.c_str() ) / 2 ),
 				26,
-				"YOU HAVE NOT YET EARNED ANY MEDALS.",
+				medalStatusString.c_str(),
 				TAG_DONE );
 		}
 	}
 	else
 	{
+		if ( isConsolePlayer )
+			medalStatusString += "YOU HAVE EARNED THE FOLLOWING MEDALS:";
+		else
+		{
+			medalStatusString += pPlayer->userinfo.netname;
+			medalStatusString += " HAS EARNED THE FOLLOWING MEDALS:";
+		}
+
 		if ( bScale )
 		{
 			screen->DrawText( SmallFont, CR_WHITE,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( "YOU HAVE EARNED THE FOLLOWING MEDALS:" ) / 2 )),
+				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( medalStatusString.c_str() ) / 2 )),
 				26,
-				"YOU HAVE EARNED THE FOLLOWING MEDALS:",
+				medalStatusString.c_str(),
 				DTA_VirtualWidth, ValWidth.Int,
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
@@ -708,9 +728,9 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 		else
 		{
 			screen->DrawText( SmallFont, CR_WHITE,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( "YOU HAVE EARNED THE FOLLOWING MEDALS:" ) / 2 ),
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( medalStatusString.c_str() ) / 2 ),
 				26,
-				"YOU HAVE EARNED THE FOLLOWING MEDALS:",
+				medalStatusString.c_str(),
 				TAG_DONE );
 		}
 	}

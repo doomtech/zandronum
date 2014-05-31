@@ -916,7 +916,7 @@ void D_Display ()
 				if ( Button_ShowMedals.bDown )
 				{
 					if (( players[consoleplayer].camera != NULL ) && ( players[consoleplayer].camera->player != NULL ))
-						MEDAL_RenderAllMedalsFullscreen( players[consoleplayer].mo->player );
+						MEDAL_RenderAllMedalsFullscreen( players[consoleplayer].camera->player ); // [CK] Fixed 'mo' to 'camera' (which was probably intended)
 					else
 						MEDAL_RenderAllMedalsFullscreen( &players[consoleplayer] );
 				}
