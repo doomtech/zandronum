@@ -79,6 +79,8 @@ set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lzma/C" )
 add_subdirectory( bzip2 )
 # [BB] Library that allows to map IP addresses to country names.
 add_subdirectory( GeoIP )
+# [BB] Library for the database backend.
+add_subdirectory( sqlite )
 # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
 if( MSVC )
   add_subdirectory( hqnx )

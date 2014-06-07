@@ -830,6 +830,7 @@ add_executable( zdoom WIN32
 	v_video.cpp
 	w_wad.cpp
 	wi_stuff.cpp
+	za_database.cpp #ZA
 	zstrformat.cpp
 	zstring.cpp
 	cooperative.cpp #ST [BB] This needs to be linked after deathmatch.cpp and team.cpp (see above).
@@ -975,8 +976,8 @@ if( NOT NO_SOUND )
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} snes_spc )
 endif( NOT NO_SOUND )
 
-# [BB] Added GeoIP & huffman
-target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb bzip2 lzma GeoIP )
+# [BB] Added GeoIP, huffman & sqlite
+target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb bzip2 lzma GeoIP sqlite3 )
 include_directories( .
 	g_doom
 	g_heretic
@@ -996,6 +997,7 @@ include_directories( .
 	../snes_spc/snes_spc
 	../gdtoa
 	../dumb/include
+        ../sqlite/ #ZA
 	../upnpnat/ #ST
 	${CMAKE_BINARY_DIR}/gdtoa
 	${SYSTEM_SOURCES_DIR} )

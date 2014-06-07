@@ -82,6 +82,7 @@
 #include "invasion.h"
 #include "sv_commands.h"
 #include "network/nettraffic.h"
+#include "za_database.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -177,6 +178,16 @@ TArray<FString>
 
 #define STRINGBUILDER_START(Builder) if (*Builder.GetChars() || ACS_StringBuilderStack.Size()) { ACS_StringBuilderStack.Push(Builder); Builder = ""; }
 #define STRINGBUILDER_FINISH(Builder) if (!ACS_StringBuilderStack.Pop(Builder)) Builder = "";
+
+// [BB] Extracted from PCD_SAVESTRING.
+int ACS_PushAndReturnDynamicString ( const FString &Work )
+{
+	unsigned int str_otf = ACS_StringsOnTheFly.Push(strbin1(Work));
+	if (str_otf > 0xffff)
+		return (-1);
+	else
+		return ((SDWORD)str_otf|ACSSTRING_OR_ONTHEFLY);
+}
 
 //============================================================================
 //
@@ -3422,6 +3433,11 @@ enum EACSFunctions
 	ACSF_SetPlayerLivesLeft,
 	ACSF_KickFromGame,
 	ACSF_GetGamemodeState,
+	ACSF_SetDBEntryInt,
+	ACSF_GetDBEntryInt,
+	ACSF_SetDBEntryString,
+	ACSF_GetDBEntryString,
+	ACSF_IncrementDBEntryInt,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3727,6 +3743,39 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 		case ACSF_GetGamemodeState:
 			{
 				return GAMEMODE_GetState();
+			}
+
+		// [BB]
+		case ACSF_SetDBEntryInt:
+			{
+				DATABASE_SaveSetEntryInt ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), args[2] );
+				return 1;
+			}
+
+		// [BB]
+		case ACSF_GetDBEntryInt:
+			{
+				return DATABASE_SaveGetEntry ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]) ).ToLong();
+			}
+
+		// [BB]
+		case ACSF_SetDBEntryString:
+			{
+				DATABASE_SaveSetEntry ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), FBehavior::StaticLookupString(args[2]) );
+				return 1;
+			}
+
+		// [BB]
+		case ACSF_GetDBEntryString:
+			{
+				return ACS_PushAndReturnDynamicString ( DATABASE_SaveGetEntry ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]) ) );
+			}
+
+		// [BB]
+		case ACSF_IncrementDBEntryInt:
+			{
+				DATABASE_SaveIncrementEntryInt ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), args[2] );
+				return 1;
 			}
 
 		default:
