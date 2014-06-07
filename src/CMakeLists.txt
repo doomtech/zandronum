@@ -889,6 +889,7 @@ add_executable( zdoom WIN32
 	v_video.cpp
 	w_wad.cpp
 	wi_stuff.cpp
+	za_database.cpp #ZA
 	zstrformat.cpp
 	zstring.cpp
 	cooperative.cpp #ST [BB] This needs to be linked after deathmatch.cpp and team.cpp (see above).
@@ -1042,8 +1043,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
 	set( ZDOOM_LIBS ${ZDOOM_LIBS} nsl socket)
 endif(${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
 
-# [BB] Added GeoIP & huffman
-target_link_libraries( zdoom ${ZDOOM_LIBS} gme gdtoa dumb lzma GeoIP )
+# [BB] Added GeoIP, huffman & sqlite
+target_link_libraries( zdoom ${ZDOOM_LIBS} gme gdtoa dumb lzma GeoIP sqlite3 )
 include_directories( .
 	g_doom
 	g_heretic
@@ -1063,6 +1064,7 @@ include_directories( .
 	../game-music-emu/gme
 	../gdtoa
 	../dumb/include
+        ../sqlite/ #ZA
 	../upnpnat/ #ST
 	${CMAKE_BINARY_DIR}/gdtoa
 	${SYSTEM_SOURCES_DIR} )

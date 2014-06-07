@@ -105,6 +105,8 @@ set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lzma/C" )
 
 # [BB] Library that allows to map IP addresses to country names.
 add_subdirectory( GeoIP )
+# [BB] Library for the database backend.
+add_subdirectory( sqlite )
 add_subdirectory( lzma )
 add_subdirectory( tools )
 add_subdirectory( game-music-emu )

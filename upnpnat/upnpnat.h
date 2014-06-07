@@ -4,7 +4,10 @@
 #include <string>
 #include <vector>
 
+// [Dusk] GCC complains about this #pragma
+#ifdef _MSC_VER
 #pragma   warning(disable:   4251) 
+#endif
 
 #define DefaultTimeOut  10
 #define DefaultInterval 200

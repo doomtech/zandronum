@@ -36,6 +36,13 @@
 1.3
 ---
 
+*+	- Added persistent storage based on an SQLite3 database. The new CVAR databasefile controls where the database is saved (defaults to ":memory:", i.e. volatile in-memory database). The new ACS functions
+        void SetDBEntryInt ( string Namespace, string EntryName, int EntryValue )
+        int GetDBEntryInt ( string Namespace, string EntryName ),
+        void SetDBEntryString ( string Namespace, string EntryName, string EntryValue )
+        string GetDBEntryString (string Namespace, string EntryName )
+        void IncrementDBEntryInt ( string Namespace, string EntryName, int Increment )
+      allow mods to access the underlying database. [Torr Samaho]
 +	- Added new dmflag sv_sharekeys. When enabled, any keys picked are shared between players. Also, players joining the game get the keys others have as well. [Dusk]
 +	- The ACS commands TakeInventory, SetActorProperty (only for speed and gravity) and SetAmmoCapacity don't cause network traffic unless they actually make a change to the affected actor. [Torr Samaho]
 +	- The text scaling scaling mechanism (controlled by con_scaletext, con_virtualwidth and con_virtualheight) now can use the aspect ratio of the screen instead of 4:3. The new behavior can be activated using a new option in the text scaling menu or with the new CVAR con_scaletext_usescreenratio. [Torr Samaho]
@@ -72,6 +79,7 @@
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
+!	- Botscript rand() renamed to random() and now returns a value between min and max inclusive instead of leaving max out of the possibilities. Now is actually random and now swaps min and max if min is greater than max instead of throwing a runtime error. [Dusk]
 
 
 1.2.1
