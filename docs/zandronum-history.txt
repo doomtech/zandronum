@@ -32,6 +32,7 @@
 +	- Added new ACS command GetGamemodeState. The return values are GAMESTATE_UNSPECIFIED = -1, GAMESTATE_WAITFORPLAYERS = 0, GAMESTATE_COUNTDOWN = 1, GAMESTATE_INPROGRESS = 2 and GAMESTATE_INRESULTSEQUENCE = 3. [Torr Samaho]
 +	- Added new CVAR sv_forcerandomclass. If this is true, all players use the random player class regardless of the class they selected. [Torr Samaho] 
 +	- Colored team names in exiting console messages and added extra console messages for CTF and Skulltag (scores, pickups, drops, etc.) (ported from Konar6's kpatch). [Torr Samaho]
++	- Added clientside CVAR cl_overrideplayercolors that overrides players' color translations. Allies will take the color of cl_allycolor and enemies the color of cl_enemycolor. These CVARs are white and black by default, respectively. cl_enemycolor is no-op when there are more than 2 teams, though cl_allycolor will still apply. [Dusk]
 -	- Added settings to fine tune the PWO behavior (CVARs pwo_switchonsameweight and pwo_switchonunknown). [Circunei Z]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]

@@ -94,6 +94,23 @@ CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control specify his connection speed (higher is faster).
 CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 
+// [Dusk] Let the user force custom ally/enemy colors
+// If any of these cvars are updated, we need to rebuild all the translations.
+CUSTOM_CVAR( Color, cl_allycolor, 0xFFFFFF, CVAR_ARCHIVE )
+{
+	R_BuildAllPlayerTranslations();
+}
+
+CUSTOM_CVAR( Color, cl_enemycolor, 0x707070, CVAR_ARCHIVE )
+{
+	R_BuildAllPlayerTranslations();
+}
+
+CUSTOM_CVAR( Bool, cl_overrideplayercolors, false, CVAR_ARCHIVE )
+{
+	R_BuildAllPlayerTranslations();
+}
+
 // [BB] Two variables to keep track of client side name changes.
 static	ULONG	g_ulLastNameChangeTime = 0;
 static	FString g_oldPlayerName;
@@ -234,6 +251,27 @@ int D_PlayerClassToInt (const char *classname)
 
 void D_GetPlayerColor (int player, float *h, float *s, float *v)
 {
+	// [Dusk] The user can override these colors.
+	int cameraplayer;
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) &&
+		( cl_overrideplayercolors ) &&
+		( players[consoleplayer].camera != NULL ) &&
+		( PLAYER_IsValidPlayerWithMo( cameraplayer = players[consoleplayer].camera->player - players )) &&
+		( PLAYER_IsValidPlayerWithMo( player )) &&
+		( players[cameraplayer].bSpectating == false ))
+	{
+		bool isally = players[cameraplayer].mo->IsTeammate( players[player].mo );
+
+		if ((( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == 0 ) ||
+			( TEAM_GetNumAvailableTeams() <= 2 ) ||
+			( isally ))
+		{
+			int color = isally ? cl_allycolor : cl_enemycolor;
+			RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
+			return;
+		}
+	}
+
 /* [BB] New team code by Karate Chris. Currently not used in ST.
 	userinfo_t *info = &players[player].userinfo;
 	int color = info->color;

@@ -99,6 +99,9 @@ void R_DeinitTranslationTables();
 // [RH] Actually create a player's translation table.
 void R_BuildPlayerTranslation (int player);
 
+// [Dusk] Does R_BuildPlayerTranslation for all active players.
+void R_BuildAllPlayerTranslations();
+
 extern const BYTE IcePalette[16][3];
 
 extern TArray<PalEntry> BloodTranslationColors;

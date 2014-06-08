@@ -2270,6 +2270,10 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 		P_BringUpWeapon(pPlayer);
 	}
+
+	// [Dusk] Update player translations if we override the colors, odds are they're very different now.
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
+		R_BuildAllPlayerTranslations();
 }
 
 //*****************************************************************************
@@ -2451,6 +2455,10 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Update this player's info on the scoreboard.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
+
+	// [Dusk] If we left the game, we need to rebuild player translations if we overrid them.
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ) && ( pPlayer - players == consoleplayer ))
+		R_BuildAllPlayerTranslations();
 }
 
 //*****************************************************************************

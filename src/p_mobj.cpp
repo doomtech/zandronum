@@ -5134,6 +5134,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		ASTAR_ClearPath( p - players );
 	}
 
+	// [Dusk] Set up the player's translation now if we override it.
+	// Note: this mostly takes care of offline handling. Clients do this
+	// in CLIENT_SpawnPlayer.
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
+		R_BuildPlayerTranslation( p - players );
+
 	SCOREBOARD_RefreshHUD( );
 
 	// [Spleen] Reset reconciliation buffer when player gets spawned

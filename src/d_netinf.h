@@ -37,6 +37,7 @@
 #include "c_cvars.h"
 
 EXTERN_CVAR (Float, autoaim)
+EXTERN_CVAR( Bool, cl_overrideplayercolors ) // [Dusk]
 
 int D_GenderToInt (const char *gender);
 extern const char *GenderNames[3];
