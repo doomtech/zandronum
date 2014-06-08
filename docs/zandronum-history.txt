@@ -55,6 +55,7 @@
 -	- Fixed: When a player turned into spectator the dynamic lights associated to the player's body were not removed. [Torr Samaho]
 -	- Fixed: A_PoisonBagInit desyncs between the client and server. [Water]
 -	- Fixed: Medals now show for who you are spectating instead of always your own. [Water]
+-	- Fixed: The server possibly announced player disconnects for players that didn't fully connect. [Torr Samaho]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]

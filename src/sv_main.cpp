@@ -2786,10 +2786,15 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 	if ( bBroadcast )
 	{
-		if (( gametic - g_aClients[ulClient].ulLastCommandTic ) == ( CLIENT_TIMEOUT * 35 ) && players[ulClient].userinfo.netname )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-timed out.\n", players[ulClient].userinfo.netname );
-		else if ( players[ulClient].userinfo.netname )
-			SERVER_Printf( PRINT_HIGH, "client %s \\c-disconnected.\n", players[ulClient].userinfo.netname );
+		// [BB] Only broadcast disconnects if we already announced the connect
+		// (which we do when the player is spawned in SERVER_ConnectNewPlayer)
+		if ( players[ulClient].userinfo.netname && ( SERVER_GetClient( ulClient )->State >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
+		{
+			if ( ( gametic - g_aClients[ulClient].ulLastCommandTic ) == ( CLIENT_TIMEOUT * 35 ) )
+				SERVER_Printf( PRINT_HIGH, "%s \\c-timed out.\n", players[ulClient].userinfo.netname );
+			else
+				SERVER_Printf( PRINT_HIGH, "client %s \\c-disconnected.\n", players[ulClient].userinfo.netname );
+		}
 		else
 			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 	}
