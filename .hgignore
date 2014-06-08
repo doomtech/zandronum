@@ -16,6 +16,8 @@ ccdv
 debugobj
 server-releaseobj
 server-debugobj
+*.kdev4
+.kdev4
 
 # /getwad/
 getwad/*.ncb
@@ -63,6 +65,10 @@ rcon_utility/svnrevision.h
 snes_spc/Debug
 snes_spc/Release
 snes_spc/*.user
+
+# /sqlite/
+sqlite/*.c
+sqlite/*.h
 
 # /src/
 src/sc_man_scanner.h
