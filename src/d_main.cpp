@@ -566,6 +566,7 @@ CVAR (Flag, sv_norocketjumping,		zadmflags, ZADF_NO_ROCKET_JUMPING);
 CVAR (Flag, sv_awarddamageinsteadkills,		zadmflags, ZADF_AWARD_DAMAGE_INSTEAD_KILLS);
 CVAR (Flag, sv_forcealpha,		zadmflags, ZADF_FORCE_ALPHA);
 CVAR (Flag, sv_coop_spactorspawn,	zadmflags, ZADF_COOP_SP_ACTOR_SPAWN);
+CVAR (Flag, sv_maxbloodscalar,		zadmflags, ZADF_MAX_BLOOD_SCALAR);
 
 //==========================================================================
 //
@@ -711,7 +712,6 @@ CVAR (Flag, compat_bridgedrops,		zacompatflags, ZACOMPATF_OLD_BRIDGE_DROPS);
 CVAR (Flag, compat_oldzdoomzmovement, zacompatflags, ZACOMPATF_OLD_ZDOOM_ZMOVEMENT);
 CVAR (Flag, compat_fullweaponlower,		zacompatflags, ZACOMPATF_FULL_WEAPON_LOWER);
 CVAR (Flag, compat_silentwestspawns,	zacompatflags, ZACOMPATF_SILENT_WEST_SPAWNS);
-CVAR (Flag, compat_maxbloodscalar,		zacompatflags, ZACOMPATF_MAX_BLOOD_SCALAR);
 
 //==========================================================================
 //

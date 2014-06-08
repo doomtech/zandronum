@@ -1641,7 +1641,7 @@ void DBaseStatusBar::BlendView (float blend[4])
 			
 		// [BC] Allow users to tone down the intensity of the blood on the screen.
 		// [CK] If the server wants us to force max blood on the screen, do not multiply it by our scalar
-		if ((zacompatflags & ZACOMPATF_MAX_BLOOD_SCALAR) == 0)
+		if (( zadmflags & ZADF_MAX_BLOOD_SCALAR ) == 0 )
 			cnt = (int)( cnt * blood_fade_scalar );
 
 		if (cnt)
