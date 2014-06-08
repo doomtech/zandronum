@@ -1152,48 +1152,60 @@ void AInventory::Touch (AActor *toucher)
 		SCOREBOARD_RefreshHUD( );
 
 	// [Dusk] If it's a key and we wish to share it, tell other players we got it
-	if (( zadmflags & ZADF_SHARE_KEYS ) &&
-		( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( IsKindOf( RUNTIME_CLASS( AKey ))) &&
-		( toucher->player ))
+	if ( zadmflags & ZADF_SHARE_KEYS &&
+		NETWORK_GetState( ) == NETSTATE_SERVER &&
+		IsKindOf( RUNTIME_CLASS( AKey )) &&
+		toucher->player )
 	{
 		// [Dusk] Announce it too, but only if nobody else has it.
-		bool				announce = true;
-		AInventory*		newkey;
-		TArray<int>		recipients;
-		int				idx;
+		bool bAnnounce = true;
 
-		// [Dusk] Figure out who to give this key to.
-		for ( int i = 0; i < MAXPLAYERS; ++i )
+		for ( int i = 0; i < MAXPLAYERS; i++ )
 		{
-			if ( !PLAYER_IsValidPlayerWithMo( i  ) || players[i].bSpectating )
-				continue;
-
-			if (( &players[i] != toucher->player ) && ( players[i].mo->FindInventory( GetClass() ) == false ))
-				recipients.Push( i );
+			if ( PLAYER_IsValidPlayerWithMo( i ) &&
+				players[i].bSpectating == false &&
+				i != toucher->player - players &&
+				players[i].mo->FindInventory( GetClass( )))
+			{
+				bAnnounce = false;
+				break;
+			}
 		}
 
-		// [Dusk] If there are recipients, announce the key.
-		if ( recipients.Size() > 0 )
+		if ( bAnnounce )
 		{
+			FString keyname;
+
 			// [Dusk] Determine how to write the key's name. Tag is preferred,
 			// if not present, use the class name.
-			FName keyname = ( Tag != NAME_None ) ? Tag : GetClass()->TypeName;
+			keyname = ( Tag != NAME_None ) ? Tag : GetClass()->TypeName;
 
 			SERVER_Printf( PRINT_HIGH, "\\cD%s\\c- has located the \\cF%s!\n",
 				toucher->player->userinfo.netname, keyname.GetChars( ));
 
-			// [Dusk] Audio cue - skip the player picking the key because he
+			// Audio cue - skip the player picking the key because he
 			// hears the pickup sound from the original key
 			if ( S_FindSound( "misc/k_pkup" ))
 				SERVERCOMMANDS_Sound( CHAN_AUTO, "misc/k_pkup", 1.0, ATTN_NONE,
 					SVCF_SKIPTHISCLIENT, toucher->player - players );
 		}
 
-		// [Dusk] Now pass around the keys to the recipients.
-		while ( recipients.Pop( idx ))
-			if (( newkey = players[idx].mo->GiveInventoryType( GetClass( ))) != NULL )
-				SERVERCOMMANDS_GiveInventory( idx, newkey );
+		for ( int i = 0; i < MAXPLAYERS; i++ )
+		{
+			// [Dusk] See if the player should get this key
+			if ( PLAYER_IsValidPlayerWithMo( i ) == false ||
+				i == toucher->player - players ||
+				players[i].bSpectating ||
+				players[i].mo->FindInventory( GetClass( )))
+			{
+				continue;
+			}
+
+			// [Dusk] Try give the key to the player
+			AInventory* newkey;
+			if (( newkey = players[i].mo->GiveInventoryType( GetClass( ))) != NULL )
+				SERVERCOMMANDS_GiveInventory( i, newkey );
+		}
 	}
 }
 
