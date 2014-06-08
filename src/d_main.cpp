@@ -546,6 +546,10 @@ CVAR (Flag, sv_shotgunstart,		dmflags2, DF2_COOP_SHOTGUNSTART);
 
 CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO)
 {
+	// [Dusk] If we just turned sv_sharedkeys on, share keys now.
+	if ((( self ^ self.GetPastValue() ) & ZADF_SHARE_KEYS ) & ( self & ZADF_SHARE_KEYS ))
+		SERVER_SyncSharedKeys( MAXPLAYERS, true );
+
 	// [BB] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{

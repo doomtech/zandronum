@@ -3928,6 +3928,75 @@ void SERVER_ErrorCleanup( void )
 
 //*****************************************************************************
 //
+// [Dusk] If sv_sharekeys is set, this passes all found keys to one player or
+// all players.
+//
+void SERVER_SyncSharedKeys( int playerToSync, bool withmessage )
+{
+	if ((( zadmflags & ZADF_SHARE_KEYS ) == 0 ) || ( NETWORK_GetState() != NETSTATE_SERVER ))
+		return;
+
+	FString keylist;
+
+	for ( unsigned int keyidx = 0; keyidx < g_keysFound.Size(); ++keyidx )
+	{
+		const PClass* keyclass = NETWORK_GetClassFromIdentification( g_keysFound[keyidx] );
+
+		if ( keyclass == NULL )
+		{
+			Printf( "SERVER_SyncSharedKeys: shared keys: bad key class index %u! This shouldn't be happening!",
+				g_keysFound[keyidx] );
+			return;
+		}
+
+		if ( withmessage )
+		{
+			if ( keylist.IsNotEmpty() )
+				keylist += ", ";
+
+			keylist += keyclass->GetPrettyName();
+		}
+
+		for ( int player = 0; player < MAXPLAYERS; ++player )
+		{
+			// [Dusk] If playerToSync is MAXPLAYERS we sync everybody.
+			if (( playerToSync != MAXPLAYERS ) && ( player != playerToSync ))
+				continue;
+
+			// [Dusk] See if the player should get this key
+			if ( PLAYER_IsValidPlayerWithMo( player ) &&
+				players[player].bSpectating == false &&
+				players[player].mo->FindInventory( keyclass ) == false )
+			{
+				// [Dusk] Try give the key to the player.
+				AInventory* newkey;
+				if (( newkey = players[player].mo->GiveInventoryType( keyclass )) != NULL )
+					SERVERCOMMANDS_GiveInventory( player, newkey );
+			}
+		}
+	}
+
+	// [Dusk] Hack: don't show the "no keys found yet" every time a survival round
+	// starts. This is because Zandronum resets dmflags2 for some reason. So only
+	// do this if we have some time in our clock.
+	if (( withmessage ) && ( level.time > 0 ))
+	{
+		FString message;
+
+		if ( keylist.IsNotEmpty() )
+			message.Format( "Keys found: %s\n", keylist.GetChars() );
+		else
+			message = "No keys found yet.\n";
+
+		if ( playerToSync != MAXPLAYERS )
+			SERVER_PrintfPlayer( PRINT_HIGH, playerToSync, "%s", message.GetChars() );
+		else
+			SERVER_Printf( PRINT_HIGH, "%s", message.GetChars() );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVER_IgnoreIP( NETADDRESS_s Address )
 {
 	g_floodProtectionIPQueue.addAddress( Address, g_lGameTime / 1000 );

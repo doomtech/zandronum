@@ -486,6 +486,17 @@ const PClass *PClass::NativeClass() const
 	return cls;
 }
 
+// [Dusk] Returns the actor's most human-readable name.
+FString PClass::GetPrettyName() const
+{
+	FString rep;
+
+	if (( rep = Meta.GetMetaString( AMETA_StrifeName )).IsNotEmpty() )
+		return rep;
+
+	return TypeName.GetChars();
+}
+
 // Symbol tables ------------------------------------------------------------
 
 PSymbol::~PSymbol()

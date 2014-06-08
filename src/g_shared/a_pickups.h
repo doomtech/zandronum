@@ -513,4 +513,7 @@ public:
 };
 
 
+// [Dusk]
+extern TArray<unsigned short> g_keysFound;
+
 #endif //__A_PICKUPS_H__

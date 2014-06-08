@@ -1204,6 +1204,12 @@ static void FinishChangeSpy( int pnum )
 	players[consoleplayer].camera = players[pnum].mo;
 	S_UpdateSounds(players[consoleplayer].camera);
 	StatusBar->AttachToPlayer (&players[pnum]);
+
+	// [Dusk] Rebuild translations if we're overriding player colors, they
+	// may very likely have changed by now.
+	if ( cl_overrideplayercolors )
+		R_BuildAllPlayerTranslations();
+
 	// [BC] We really no longer need to do this since we have a message
 	// that says "FOLLOWING - xxx" on the status bar.
 /*
@@ -3276,6 +3282,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;
+
+	// [Dusk] Clear list of keys found now.
+	g_keysFound.Clear();
 
 	// [BB] itemcount and secretcount are not synced between client and server, so just reset them here.
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )

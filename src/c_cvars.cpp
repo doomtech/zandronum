@@ -688,7 +688,7 @@ FIntCVar::FIntCVar (const char *name, int def, DWORD flags, void (*callback)(FIn
 {
 	DefaultValue = def;
 	if (Flags & CVAR_ISDEFAULT)
-		Value = def;
+		Value = PastValue = def; // [Dusk] Store PastValue here
 }
 
 ECVarType FIntCVar::GetRealType () const
@@ -734,6 +734,7 @@ void FIntCVar::SetGenericRepDefault (UCVarValue value, ECVarType type)
 
 void FIntCVar::DoSet (UCVarValue value, ECVarType type)
 {
+	PastValue = Value; // [Dusk]
 	Value = ToInt (value, type);
 }
 
@@ -1445,6 +1446,12 @@ void C_ArchiveCVars (FConfigFile *f, int type)
 		}
 		cvar = cvar->m_Next;
 	}
+}
+
+// [Dusk]
+FBaseCVar* C_GetRootCVar()
+{
+	return CVars;
 }
 
 void FBaseCVar::CmdSet (const char *newval)

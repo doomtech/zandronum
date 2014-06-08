@@ -78,6 +78,7 @@
 #include "survival.h"
 #include "network/nettraffic.h"
 #include "unlagged.h"
+#include "d_netinf.h"
 #include <set>
 
 // MACROS ------------------------------------------------------------------
@@ -5257,6 +5258,15 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 				mobj->health = p->health;
 			}
 		}
+
+		// [Dusk] If we are sharing keys, give this player the keys that have been found.
+		if (( bClientUpdate ) &&
+			( zadmflags & ZADF_SHARE_KEYS ) &&
+			( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( state == PST_ENTER || state == PST_ENTERNOINVENTORY ))
+		{
+			SERVER_SyncSharedKeys( p - players, true );
+		}
 	}
 
 	// setup gun psprite
@@ -5436,6 +5446,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		p->pSkullBot->m_ulPathType = BOTPATHTYPE_NONE;
 		ASTAR_ClearPath( p - players );
 	}
+
+	// [Dusk] Set up the player's translation now if we override it.
+	// Note: this mostly takes care of offline handling. Clients do this
+	// in CLIENT_SpawnPlayer.
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
+		R_BuildPlayerTranslation( p - players );
 
 	SCOREBOARD_RefreshHUD( );
 

@@ -35,6 +35,8 @@
 
 static FRandom pr_restore ("RestorePos");
 
+TArray<unsigned short> g_keysFound;
+
 IMPLEMENT_CLASS (AAmmo)
 
 //===========================================================================
@@ -1151,61 +1153,51 @@ void AInventory::Touch (AActor *toucher)
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		SCOREBOARD_RefreshHUD( );
 
-	// [Dusk] If it's a key and we wish to share it, tell other players we got it
-	if ( zadmflags & ZADF_SHARE_KEYS &&
-		NETWORK_GetState( ) == NETSTATE_SERVER &&
-		IsKindOf( RUNTIME_CLASS( AKey )) &&
-		toucher->player )
+	// [Dusk] If it's a key, share it to others if sv_sharekeys is on. Note:
+	// we store the key as having been found even if shared keys is off. This
+	// way the server still remembers what keys were found and begins sharing
+	// them when sv_sharekeys is toggled on.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( IsKindOf( RUNTIME_CLASS( AKey ))) &&
+		( toucher->player != NULL ))
 	{
-		// [Dusk] Announce it too, but only if nobody else has it.
-		bool bAnnounce = true;
+		// [Dusk] Check if the key has not been picked up yet.
+		bool pickedup = false;
 
-		for ( int i = 0; i < MAXPLAYERS; i++ )
+		for ( unsigned int i = 0; i < g_keysFound.Size(); ++i )
 		{
-			if ( PLAYER_IsValidPlayerWithMo( i ) &&
-				players[i].bSpectating == false &&
-				i != toucher->player - players &&
-				players[i].mo->FindInventory( GetClass( )))
+			if ( g_keysFound[i] == GetClass()->getActorNetworkIndex() )
 			{
-				bAnnounce = false;
+				pickedup = true;
 				break;
 			}
 		}
 
-		if ( bAnnounce )
+		if ( pickedup == false )
 		{
-			FString keyname;
+			// [Dusk] Store this key as having been found. For some reason
+			// storing the raw PClass pointer crashes Zandronum when sharing
+			// the keys later on so we store the actor network index instead.
+			g_keysFound.Push( GetClass()->getActorNetworkIndex() );
 
-			// [Dusk] Determine how to write the key's name. Tag is preferred,
-			// if not present, use the class name.
-			if (( keyname = GetClass()->Meta.GetMetaString( AMETA_StrifeName )).IsEmpty() )
-				keyname = GetClass()->TypeName;
-
-			SERVER_Printf( PRINT_HIGH, "\\cD%s\\c- has located the \\cF%s!\n",
-				toucher->player->userinfo.netname, keyname.GetChars( ));
-
-			// Audio cue - skip the player picking the key because he
-			// hears the pickup sound from the original key
-			if ( S_FindSound( "misc/k_pkup" ))
-				SERVERCOMMANDS_Sound( CHAN_AUTO, "misc/k_pkup", 1.0, ATTN_NONE,
-					SVCF_SKIPTHISCLIENT, toucher->player - players );
-		}
-
-		for ( int i = 0; i < MAXPLAYERS; i++ )
-		{
-			// [Dusk] See if the player should get this key
-			if ( PLAYER_IsValidPlayerWithMo( i ) == false ||
-				i == toucher->player - players ||
-				players[i].bSpectating ||
-				players[i].mo->FindInventory( GetClass( )))
+			if ( zadmflags & ZADF_SHARE_KEYS )
 			{
-				continue;
-			}
+				// [Dusk] Announcement message
+				SERVER_Printf( PRINT_HIGH, TEXTCOLOR_GREEN "%s" TEXTCOLOR_NORMAL " has found the " TEXTCOLOR_GOLD "%s!\n",
+					toucher->player->userinfo.netname, GetClass()->GetPrettyName().GetChars() );
 
-			// [Dusk] Try give the key to the player
-			AInventory* newkey;
-			if (( newkey = players[i].mo->GiveInventoryType( GetClass( ))) != NULL )
-				SERVERCOMMANDS_GiveInventory( i, newkey );
+				// [Dusk] Audio cue - skip the player picking the key because he
+				// hears the pickup sound from the original key. The little *bloop*
+				// might not matter much in Doom but the *clink* in Heretic is quite
+				// indicative. :)
+				if ( S_FindSound( "misc/k_pkup" ))
+				{
+					SERVERCOMMANDS_Sound( CHAN_AUTO, "misc/k_pkup", 1.0, ATTN_NONE,
+						toucher->player - players, SVCF_SKIPTHISCLIENT );
+				}
+
+				SERVER_SyncSharedKeys( MAXPLAYERS, false );
+			}
 		}
 	}
 }

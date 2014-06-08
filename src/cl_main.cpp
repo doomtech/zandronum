@@ -4155,6 +4155,22 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		}
 	}
 
+	// [Dusk] If we're overriding colors, rebuild translations now.
+	if ( cl_overrideplayercolors )
+	{
+		// [Dusk] If we just joined the game, rebuild all translations,
+		// otherwise recoloring the player in question is sufficient.
+		if (( ulPlayer == static_cast<ULONG>( consoleplayer )) &&
+			( lPlayerState == PST_ENTER || lPlayerState == PST_ENTERNOINVENTORY ))
+		{
+			R_BuildAllPlayerTranslations();
+		}
+		else
+		{
+			R_BuildPlayerTranslation( ulPlayer );
+		}
+	}
+
 	// Refresh the HUD because this is potentially a new player.
 	SCOREBOARD_RefreshHUD( );
 }
