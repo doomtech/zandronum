@@ -1567,41 +1567,6 @@ void APlayerPawn::GiveDefaultInventory ()
 			PLAYER_SetWeapon( player, pPendingWeapon, true );
 		}
 	}
-
-	// [Dusk] If we are sharing keys, give this player the keys other players have.
-	if (( dmflags3 & DF3_SHARE_KEYS ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-	{
-		for ( int i = 0; i < MAXPLAYERS; ++i )
-		{
-			if (( PLAYER_IsValidPlayerWithMo( i ) == false ) ||
-				( i == player - players ) ||
-				( players[i].bSpectating == true ))
-			{
-				continue;
-			}
-
-			bool bGotKeys = false;
-
-			// [Dusk] Snoop over this guy's pockets and try find keys.
-			for ( AInventory* inv = players[i].mo->Inventory; inv != NULL; inv = inv->Inventory )
-			{
-				AInventory* newkey;
-
-				// [Dusk] If we find any keys, quickly try make a copy before he notices anything.
-				if ( inv->IsKindOf( RUNTIME_CLASS( AKey )) &&
-					( newkey = GiveInventoryType( inv->GetClass() )) != NULL )
-				{
-					SERVERCOMMANDS_GiveInventory( player - players, newkey );
-					bGotKeys = true;
-				}
-			}
-
-			// [Dusk] If we got any keys, stop here. Any following players
-			// won't have anything this one doesn't have.
-			if ( bGotKeys )
-				break;
-		}
-	}
 }
 
 void APlayerPawn::MorphPlayerThink ()

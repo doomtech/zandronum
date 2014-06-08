@@ -4954,6 +4954,15 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 				mobj->health = p->health;
 			}
 		}
+
+		// [Dusk] If we are sharing keys, give this player the keys that have been found.
+		if (( bClientUpdate ) &&
+			( dmflags3 & DF3_SHARE_KEYS ) &&
+			( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( state == PST_ENTER || state == PST_ENTERNOINVENTORY ))
+		{
+			SERVER_SyncSharedKeys( p - players, true );
+		}
 	}
 
 	// setup gun psprite

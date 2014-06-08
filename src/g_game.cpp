@@ -3222,6 +3222,9 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// [BB] We are going to reset the map now, so any request for a reset is fulfilled.
 	g_bResetMap = false;
 
+	// [Dusk] Clear list of keys found now.
+	g_keysFound.Clear();
+
 	// [BB] itemcount and secretcount are not synced between client and server, so just reset them here.
 	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ++ulIdx )
 	{

@@ -1364,6 +1364,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	if (level.flags2 & LEVEL2_FORCETEAMPLAYOFF)
 		teamplay = false;
 
+	// [Dusk] Clear keys found
+	g_keysFound.Clear();
+
 	// [BC] In server mode, display the level name slightly differently.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
