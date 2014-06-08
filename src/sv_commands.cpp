@@ -614,21 +614,14 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 	fullCommand.addShort( ulArmorPoints );
 	fullCommand.addShort( players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
 
-	NetCommand stubCommand( SVC_DAMAGEPLAYER );
-	stubCommand.addByte( ulPlayer );
-	stubCommand.addShort( 100 );
-	stubCommand.addShort( 100 );
-	stubCommand.addShort( -1 );
-
 	for ( ClientIterator it; it.notAtEnd(); ++it )
 	{
-		// Only send the player who's being damaged to this player if this player is
-		// allowed to know what his health is. Otherwise, just tell them it's 100/100
-		// (WHICH IS A LIE!!!!!!).
+		// [EP] Send the updated health and armor of the player who's being damaged to this client
+		// only if this client is allowed to know (still, don't forget the pain state!).
 		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
 			fullCommand.sendCommandToOneClient( *it );
 		else
-			stubCommand.sendCommandToOneClient( *it );
+			SERVERCOMMANDS_SetThingState( players[ulPlayer].mo, STATE_PAIN, *it, SVCF_ONLYTHISCLIENT );
 	}
 }
 
@@ -1686,7 +1679,7 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
+void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -1694,7 +1687,7 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 	NetCommand command( SVC_SETTHINGSTATE );
 	command.addShort( pActor->lNetID );
 	command.addByte( ulState );
-	command.sendCommandToClients();
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
