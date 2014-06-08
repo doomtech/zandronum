@@ -135,7 +135,7 @@ void	SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 void	SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DamageThing( AActor *pActor );
 void	SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflictor );
-void	SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState );
+void	SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingTarget( AActor *pActor );
 void	SERVERCOMMANDS_DestroyThing( AActor *pActor );
 void	SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

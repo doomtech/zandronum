@@ -632,25 +632,20 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
+		// [EP] Send the updated health and armor of the player who's being damaged to this client
+		// only if this client is allowed to know (still, don't forget the pain state!).
+		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ) == false ) {
+			SERVERCOMMANDS_SetThingState( players[ulPlayer].mo, STATE_PAIN, ulIdx, SVCF_ONLYTHISCLIENT );
+			continue;
+		}
+
 		SERVER_CheckClientBuffer( ulIdx, 8, true );
+
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DAMAGEPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-
-		// Only send the player who's being damaged to this player if this player is
-		// allowed to know what his health is. Otherwise, just tell them it's 100/100
-		// (WHICH IS A LIE!!!!!!).
-		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
-		{
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].health );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArmorPoints );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
-		}
-		else
-		{
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 100 );
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
-		}
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].health );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArmorPoints );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].attacker ? players[ulPlayer].attacker->lNetID : -1 );
 	}
 }
 
@@ -2129,23 +2124,18 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
+void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+	NetCommand command( SVC_SETTHINGSTATE );
+	command.addShort( pActor->lNetID );
+	command.addByte( ulState );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSTATE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
-	}
 }
 
 //*****************************************************************************
