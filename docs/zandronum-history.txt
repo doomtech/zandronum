@@ -58,6 +58,7 @@
 -	- Fixed: Medals now show for who you are spectating instead of always your own. [Water]
 -	- Fixed: The server possibly announced player disconnects for players that didn't fully connect. [Torr Samaho]
 -	- Fixed: When a player is damaged, don't send useless inconsistent values of HP and Armor (100/100) to the clients if they're not allowed to see the real HP/Armor. [Edward-san]
+-	- Fixed: Line_SetBlocking didn't work properly online. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]

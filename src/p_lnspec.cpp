@@ -2727,6 +2727,10 @@ FUNC(LS_Line_SetBlocking)
 	for(int line = -1; (line = P_FindLineFromID (arg0, line)) >= 0; )
 	{
 		lines[line].flags = (lines[line].flags & ~clearflags) | setflags;
+
+		// [Dusk] Update clients on the line flags
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetSomeLineFlags( line );
 	}
 	return true;
 }
