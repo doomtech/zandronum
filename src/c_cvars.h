@@ -130,6 +130,8 @@ public:
 
 	static void ListVars (const char *filter, bool plain);
 
+	inline FBaseCVar* GetNext() const { return m_Next; } // [Dusk]
+
 protected:
 	FBaseCVar () {}
 	virtual void DoSet (UCVarValue value, ECVarType type) = 0;
@@ -241,11 +243,15 @@ public:
 	inline operator int () const { return Value; }
 	inline int operator *() const { return Value; }
 
+	// [Dusk]
+	inline int GetPastValue() const { return PastValue; }
+
 protected:
 	virtual void DoSet (UCVarValue value, ECVarType type);
 
 	int Value;
 	int DefaultValue;
+	int PastValue; // [Dusk] What was this CVar before?
 
 	friend class FFlagCVar;
 };
@@ -338,6 +344,9 @@ public:
 	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
 	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
 
+	inline FIntCVar const& GetValueVar() const { return ValueVar; } // [Dusk]
+	inline uint32 GetBitVal() const { return BitVal; } // [Dusk]
+
 	bool operator= (bool boolval)
 		{ UCVarValue val; val.Bool = boolval; SetGenericRep (val, CVAR_Bool); return boolval; }
 	bool operator= (FFlagCVar &flag)
@@ -399,6 +408,8 @@ void C_RestoreCVars (void);
 
 void C_ForgetCVars (void);
 
+// [Dusk] For CVar iteration
+FBaseCVar* C_GetRootCVar();
 
 #define CUSTOM_CVAR(type,name,def,flags) \
 	static void cvarfunc_##name(F##type##CVar &); \
