@@ -2813,6 +2813,14 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
+		// [BB] Possibly check if the player is authenticated.
+		if ( sv_forcelogintojoin )
+		{
+			const ULONG ulPlayer = static_cast<ULONG> ( pPlayer - players );
+			if ( SERVER_IsValidClient ( ulPlayer ) && SERVER_GetClient ( ulPlayer )->loggedIn == false )
+				return true;
+		}
+
 		// If there's a join password, the player should start as a spectator.
 		Val = sv_joinpassword.GetGenericRep( CVAR_String );
 		if (( sv_forcejoinpassword ) && ( strlen( Val.String )))

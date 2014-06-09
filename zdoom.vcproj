@@ -90,7 +90,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodex_vc.lib setupapi.lib ws2_32.lib oleaut32.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodex_vc.lib setupapi.lib ws2_32.lib oleaut32.lib opengl32.lib glu32.lib libeay32.lib ssleay32.lib "
 				ShowProgress="0"
 				OutputFile="..\$(ProjectName).exe"
 				LinkIncremental="1"
@@ -201,7 +201,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib oleaut32.lib opengl32.lib glu32.lib fmodex_vc.lib $(NOINHERIT)"
+				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib oleaut32.lib opengl32.lib glu32.lib fmodex_vc.lib  libeay32.lib ssleay32.lib $(NOINHERIT)"
 				OutputFile="..\$(ProjectName)-debug.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -11388,6 +11388,42 @@
 			</File>
 			<File
 				RelativePath=".\src\resourcefiles\resourcefile.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Network"
+			>
+			<File
+				RelativePath=".\src\network\cl_auth.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\network\cl_auth.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\network\srp.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CallingConvention="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\network\srp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\network\sv_auth.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\network\sv_auth.h"
 				>
 			</File>
 		</Filter>

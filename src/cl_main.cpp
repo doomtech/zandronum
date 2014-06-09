@@ -111,6 +111,7 @@
 #include "a_movingcamera.h"
 #include "d_netinf.h"
 #include "po_man.h"
+#include "network/cl_auth.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2735,6 +2736,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				{
 					APathFollower::InitFromStream ( pByteStream );
 				}
+				break;
+
+			case SVC2_SRP_USER_PROCESS_CHALLENGE:
+			case SVC2_SRP_USER_VERIFY_SESSION:
+				CLIENT_ProcessSRPServerCommand ( lExtCommand, pByteStream );
 				break;
 
 			case SVC2_SETTHINGHEALTH:

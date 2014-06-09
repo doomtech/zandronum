@@ -512,6 +512,11 @@ else ( NOT NO_SOUND )
 	include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" )
 endif ( NOT NO_SOUND )
 
+# [BB] We need OpenSSL for csrp.
+FIND_PACKAGE ( OpenSSL REQUIRED )
+include_directories( ${OPENSSL_INCLUDE_DIR} )
+set ( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENSSL_LIBRARIES} )
+
 # [AL/BB] OpenGL on OS X: GLEW include directory
 if( APPLE )
 	include_directories( "${GLEW_INCLUDE_DIR}" )
@@ -795,7 +800,10 @@ add_executable( zdoom WIN32
 	name.cpp
 	network.cpp #ST
 	networkshared.cpp #ST
+	network/cl_auth.cpp #ZA
 	network/nettraffic.cpp #ST
+	network/srp.cpp #ZA
+	network/sv_auth.cpp #ZA
 	nodebuild.cpp
 	nodebuild_classify_nosse2.cpp
 	nodebuild_events.cpp

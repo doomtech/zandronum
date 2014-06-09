@@ -115,6 +115,8 @@
 #include "cl_main.h"
 #include "d_netinf.h"
 #include "po_man.h"
+#include "network/cl_auth.h"
+#include "network/sv_auth.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -162,6 +164,7 @@ static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
 static	bool	server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient );
 static	bool	server_CheckJoinPassword( const FString& clientPassword );
 static	bool	server_Linetarget( BYTESTREAM_s* pByteStream );
+static	bool	server_CheckLogin( const ULONG ulClient );
 
 // [RC]
 #ifdef CREATE_PACKET_LOG
@@ -267,6 +270,7 @@ CVAR( Bool, sv_nodrop, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
 CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE ) // [K6]
+CVAR( Bool, sv_forcelogintojoin, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
@@ -1052,6 +1056,13 @@ void SERVER_GetPackets( void )
 		// Packet is not from an existing client; must be someone trying to connect!
 		if ( g_lCurrentClient == -1 )
 		{
+			// [BB] Or it's from the auth server.
+			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), NETWORK_AUTH_GetCachedServerAddress( ), false ) )
+			{
+				SERVER_AUTH_ParsePacket( pByteStream );
+				continue;
+			}
+
 			SERVER_DetermineConnectionType( pByteStream );
 			continue;
 		}
@@ -1987,6 +1998,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].ulNumConsistencyWarnings = 0;
 	g_aClients[lClient].szSkin[0] = 0;
 	g_aClients[lClient].IgnoredAddresses.clear();
+
+	SERVER_InitClientSRPData ( lClient );
 
 	// [BB] Inform the client that he is connected and needs to authenticate the map.
 	SERVER_RequestClientToAuthenticate( lClient );
@@ -4379,6 +4392,11 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// [Dusk]
 		return ( server_Linetarget( pByteStream ));
+
+	case CLC_SRP_USER_START_AUTHENTICATION:
+	case CLC_SRP_USER_PROCESS_CHALLENGE:
+
+		return SERVER_ProcessSRPClientCommand( lCommand, pByteStream );
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
@@ -5160,6 +5178,10 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	if ( server_CheckJoinPassword( clientJoinPassword ) == false )
 		return ( false );
 
+	// [BB] Possibly the player needs to login before joining.
+	if ( server_CheckLogin ( g_lCurrentClient ) == false )
+		return ( false );
+
 	// If there aren't currently any slots available, just put the person in line.
 	if ( GAMEMODE_PreventPlayersFromJoining() )
 	{
@@ -5361,6 +5383,10 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// If we're forcing a join password, prevent him from joining if it doesn't match.
 	if ( server_CheckJoinPassword( clientJoinPassword ) == false )
+		return ( false );
+
+	// [BB] Possibly the player needs to login before joining.
+	if ( server_CheckLogin ( g_lCurrentClient ) == false )
 		return ( false );
 
 	// [BB] If this is a spectator and players are not allowed to join at the moment, put him in line.
@@ -6126,6 +6152,19 @@ static bool server_CheckJoinPassword( const FString& clientPassword )
 			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
 			return false;
 		}
+	}
+
+	return true;
+}
+
+//*****************************************************************************
+//
+static bool server_CheckLogin ( const ULONG ulClient )
+{
+	if ( sv_forcelogintojoin && ( g_aClients[ulClient].loggedIn == false ) )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, ulClient, "You need to login before joining.\n" );
+		return ( false );
 	}
 
 	return true;
