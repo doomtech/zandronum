@@ -66,6 +66,7 @@
 #include "lastmanstanding.h"
 #include "possession.h"
 #include "p_lnspec.h"
+#include "p_acs.h"
 // [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
 #include "sbar.h"
 #include "v_video.h"
@@ -196,6 +197,30 @@ void GAMEMODE_Construct( void )
 
 	// Our default game mode is co-op.
 	g_CurrentGameMode = GAMEMODE_COOPERATIVE;
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_Tick( void )
+{
+	static GAMESTATE_e oldState = GAMESTATE_UNSPECIFIED;
+	const GAMESTATE_e state = GAMEMODE_GetState();
+
+	// [BB] If the state change, potentially trigger an event and update the saved state.
+	if ( oldState != state )
+	{
+		// [BB] Apparently the round just ended.
+		if ( ( oldState == GAMESTATE_INPROGRESS ) && ( state == GAMESTATE_INRESULTSEQUENCE ) )
+			GAMEMODE_HandleEvent ( GAMEEVENT_ROUND_ENDS );
+		// [BB] Changing from GAMESTATE_INPROGRESS to anything but GAMESTATE_INRESULTSEQUENCE means the roudn was aborted.
+		else if ( oldState == GAMESTATE_INPROGRESS )
+			GAMEMODE_HandleEvent ( GAMEEVENT_ROUND_ABORTED );
+		// [BB] Changing from anything to GAMESTATE_INPROGRESS means the round started.
+		else if ( state == GAMESTATE_INPROGRESS )
+			GAMEMODE_HandleEvent ( GAMEEVENT_ROUND_STARTS );			
+
+		oldState = state;
+	}
 }
 
 //*****************************************************************************
@@ -766,6 +791,21 @@ GAMESTATE_e GAMEMODE_GetState( void )
 
 	// [BB] Some of the above should apply, but this function always has to return something.
 	return GAMESTATE_UNSPECIFIED;
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator, const int DataOne, const int DataTwo )
+{
+	// [BB] Clients don't start scripts.
+	if ( NETWORK_InClientMode() )
+		return;
+
+	// [BB] The activator of the event activates the event script.
+	// The first argument is the type, e.g. GAMEEVENT_PLAYERFRAGS,
+	// the second and third are specific to the event, e.g. the second is the number of the fragged player.
+	// The third argument will be zero if it isn't used in the script.
+	FBehavior::StaticStartTypedScripts( SCRIPT_Event, pActivator, true, Event, false, false, DataOne, DataTwo );
 }
 
 //*****************************************************************************

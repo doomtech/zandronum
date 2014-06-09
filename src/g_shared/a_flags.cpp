@@ -200,6 +200,9 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 		// If we're in simple CTF mode, we need to display the pickup messages.
 		if ( TEAM_GetSimpleCTFSTMode( ))
 		{
+			// [CK] Signal that the flag/skull/some pickableable team item was taken
+			GAMEMODE_HandleEvent ( GAMEEVENT_TOUCHES, pToucher, static_cast<int> ( TEAM_GetTeamFromItem( this ) ) );
+
 			// Display the flag taken message.
 			DisplayFlagTaken( pToucher );
 
@@ -411,6 +414,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 	DHUDMessageFadeOut	*pMsg;
 	AInventory			*pInventory;
 	bool				selfAssist = false;
+	int playerAssistNumber = GAMEEVENT_CAPTURE_NOASSIST; // [CK] Need these for game event activators
 
 	// If this object being given isn't a flag, then we don't really care.
 	if ( pItem->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
@@ -519,6 +523,9 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			if ( bAssisted )
 			{
+				// [CK] Mark the assisting player
+				playerAssistNumber = TEAM_GetAssistPlayer( Owner->player->ulTeam );
+
 				MEDAL_GiveMedal( TEAM_GetAssistPlayer( Owner->player->ulTeam ), MEDAL_ASSIST );
 
 				// Tell clients about the medal that been given.
@@ -527,6 +534,10 @@ bool AFlag::HandlePickup( AInventory *pItem )
 
 				TEAM_SetAssistPlayer( Owner->player->ulTeam, MAXPLAYERS );
 			}
+
+			// [CK] Now we have the information to trigger an event script (Activator is the capturer, assister is the second arg)
+			// PlayerAssistNumber will be GAMEEVENT_CAPTURE_NOASSIST (-1) if there was no assister
+			GAMEMODE_HandleEvent ( GAMEEVENT_CAPTURES, Owner, playerAssistNumber );
 
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
@@ -740,11 +751,18 @@ void AFlag::ReturnFlag( AActor *pReturner )
 		// [RC] Create the "returned by" message for this team.
 		ULONG playerIndex = ULONG( pReturner->player - players );
 		sprintf( szString, "\\c%cReturned by: %s", V_GetColorChar( TEAM_GetTextColor( players[playerIndex].ulTeam )), players[playerIndex].userinfo.netname );
+
+		// [CK] Send out an event that a flag/skull was returned, this is the easiest place to do it
+		// Second argument is the team index, third argument is what kind of return it was
+		GAMEMODE_HandleEvent ( GAMEEVENT_RETURNS, pReturner, static_cast<int> ( ulItemTeam ), GAMEEVENT_RETURN_PLAYERRETURN );
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
 		sprintf( szString, "\\c%cReturned automatically.", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))));
+
+		// [CK] Indicate the server returned the flag/skull after a timeout
+		GAMEMODE_HandleEvent ( GAMEEVENT_RETURNS, NULL, static_cast<int> ( ulItemTeam ), GAMEEVENT_RETURN_TIMEOUTRETURN );
 	}
 
 	V_ColorizeString( szString );

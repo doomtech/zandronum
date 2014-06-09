@@ -141,6 +141,7 @@ enum
 	SCRIPT_Unloading	= 13,
 	SCRIPT_Disconnect	= 14,
 	SCRIPT_Return		= 15,
+	SCRIPT_Event		= 16, // [BB]
 };
 
 // Script flags
@@ -211,7 +212,7 @@ public:
 	BYTE *FindChunk (DWORD id) const;
 	BYTE *NextChunk (BYTE *chunk) const;
 	const ScriptPtr *FindScript (int number) const;
-	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts=false);
+	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts=false, int arg2=0, int arg3=0); // [BB] Added arg2+arg3
 	int CountTypedScripts( WORD type );
 	DWORD PC2Ofs (int *pc) const { return (DWORD)((BYTE *)pc - Data); }
 	int *Ofs2PC (DWORD ofs) const {	return (int *)(Data + ofs); }
@@ -236,7 +237,7 @@ public:
 
 	static const ScriptPtr *StaticFindScript (int script, FBehavior *&module);
 	static const char *StaticLookupString (DWORD index);
-	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false, bool onlyClientSideScripts=false);
+	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false, bool onlyClientSideScripts=false, int arg2=0, int arg3=0); // [BB] Added arg2+arg3
 	static void StaticStopMyScripts (AActor *actor);
 	static int StaticCountTypedScripts( WORD type );
 

@@ -1969,16 +1969,16 @@ const char *FBehavior::LookupString (DWORD index) const
 	}
 }
 
-void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts)
+void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts, int arg2, int arg3) // [BB] Added arg2+arg3
 {
 	DPrintf("Starting all scripts of type %d\n", type);
 	for (unsigned int i = 0; i < StaticModules.Size(); ++i)
 	{
-		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyClientSideScripts);
+		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyClientSideScripts, arg2, arg3); // [BB] Added arg2+arg3
 	}
 }
 
-void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts)
+void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts, int arg2, int arg3) // [BB] Added arg2+arg3
 {
 	const ScriptPtr *ptr;
 	int i;
@@ -1998,12 +1998,12 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				ACS_IsScriptClientSide( ptr ))
 			{
-				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, 0, level.mapname, 0, arg1, 0, 0, always );
+				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, 0, level.mapname, 0, arg1, arg2, arg3, always );
 				continue;
 			}
 
 			DLevelScript *runningScript = P_GetScriptGoing (activator, NULL, ptr->Number,
-				ptr, this, 0, arg1, 0, 0, always);
+				ptr, this, 0, arg1, arg2, arg3, always); // [BB] Added arg2+arg3
 			if (runNow)
 			{
 				runningScript->RunScript ();

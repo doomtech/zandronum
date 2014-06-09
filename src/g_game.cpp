@@ -1608,6 +1608,9 @@ void G_Ticker ()
 			// Tick the domination module.
 			DOMINATION_Tick( );
 
+			// [BB]
+			GAMEMODE_Tick( );
+
 			// Reset the bot cycles counter before we tick their logic.
 			BOTS_ResetCyclesCounter( );
 

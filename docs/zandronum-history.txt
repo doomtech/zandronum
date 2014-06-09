@@ -33,6 +33,16 @@
 +	- Added new CVAR sv_forcerandomclass. If this is true, all players use the random player class regardless of the class they selected. [Torr Samaho] 
 +	- Colored team names in exiting console messages and added extra console messages for CTF and Skulltag (scores, pickups, drops, etc.) (ported from Konar6's kpatch). [Torr Samaho]
 +	- Added clientside CVAR cl_overrideplayercolors that overrides players' color translations. Allies will take the color of cl_allycolor and enemies the color of cl_enemycolor. These CVARs are white and black by default, respectively. cl_enemycolor is no-op when there are more than 2 teams, though cl_allycolor will still apply. [Dusk]
++	- Added new script type EVENT. By calling EVENT scripts the engine notifies a mod that a noteworthy event happened and also provides some information about the event using 'arg1' and 'arg2'. So far the following events are supported:
+		GAMEEVENT_PLAYERFRAGS (player frags another player)
+		GAMEEVENT_MEDALS (player receives a medal)
+		GAMEEVENT_CAPTURES (player captures the flag/skull)
+		GAMEEVENT_TOUCHES (player touches the flag/skull)
+		GAMEEVENT_RETURNS (the flag/skull is returned)
+		GAMEEVENT_ROUND_STARTS
+		GAMEEVENT_ROUND_ENDS (the current round ends and the win sequence starts, e.g. when the fraglimit is hit)
+		GAMEEVENT_ROUND_ABORTED  (the current round is ended prematurely, e.g. if all players leave the game)
+	[Torr Samaho, Water] 
 -	- Added settings to fine tune the PWO behavior (CVARs pwo_switchonsameweight and pwo_switchonunknown). [Circunei Z]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]

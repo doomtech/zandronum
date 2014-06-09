@@ -339,6 +339,9 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	
 	pPlayer = &players[ulPlayer];
 
+	// [CK] Trigger events if a medal is received
+	GAMEMODE_HandleEvent ( GAMEEVENT_MEDALS, pPlayer->mo, static_cast<int> ( ulMedal ) );
+
 	// Increase the player's count of this type of medal.
 	pPlayer->ulMedalCount[ulMedal]++;	
 

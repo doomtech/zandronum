@@ -557,6 +557,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			}
 			else
 			{
+				// [BB] A player just fragged another player.
+				GAMEMODE_HandleEvent ( GAMEEVENT_PLAYERFRAGS, source->player->mo, static_cast<int> ( player - players ) );
+
 				// [BC] Frags are server side.
 				// [BC] Player receives 10 frags for killing the terminator!
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
