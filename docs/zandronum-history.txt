@@ -79,6 +79,7 @@
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
 !	- Botscript rand() renamed to random() and now returns a value between min and max inclusive instead of leaving max out of the possibilities. Now is actually random and now swaps min and max if min is greater than max instead of throwing a runtime error. [Dusk]
+!	- Medals are only awarded when the game has started (is not in countdown). [Water]
 
 
 1.2.1
