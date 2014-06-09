@@ -3438,6 +3438,8 @@ enum EACSFunctions
 	ACSF_SetDBEntryString,
 	ACSF_GetDBEntryString,
 	ACSF_IncrementDBEntryInt,
+	ACSF_PlayerIsLoggedIn,
+	ACSF_GetPlayerAccountName,
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3776,6 +3778,33 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			{
 				DATABASE_SaveIncrementEntryInt ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), args[2] );
 				return 1;
+			}
+
+		// [BB]
+		case ACSF_PlayerIsLoggedIn:
+			{
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && SERVER_IsValidClient ( ulPlayer ) )
+					return SERVER_GetClient ( ulPlayer )->loggedIn;
+				else
+					return false;
+			}
+
+		// [BB]
+		case ACSF_GetPlayerAccountName:
+			{
+				FString work;
+				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
+				// [BB] If the sanity checks fail, we'll return an empty string.
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && SERVER_IsValidClient ( ulPlayer ) )
+				{
+					if ( SERVER_GetClient ( ulPlayer )->loggedIn )
+						work = SERVER_GetClient ( ulPlayer )->username;
+					// Anonymous players get an account name based on their player slot.
+					else
+						work.AppendFormat ( "%d@localhost", ulPlayer );
+				}
+				return ACS_PushAndReturnDynamicString ( work );
 			}
 
 		default:

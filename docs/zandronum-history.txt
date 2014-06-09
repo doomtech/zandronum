@@ -22,6 +22,12 @@
         string GetDBEntryString (string Namespace, string EntryName )
         void IncrementDBEntryInt ( string Namespace, string EntryName, int Increment )
       allow mods to access the underlying database. [Torr Samaho]
+*+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
+		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
+		- The new CCMD login allows a client to authenticate with the auth server the server has selected with its authhostname setting.
+		- The new CVAR sv_forcelogintojoin (default false) can prevent unauthenticated players from joining the game (they can still connect as spectators).
+		- The new ACS functions "int PlayerIsLoggedIn( int Player )" and "string GetPlayerAccountName ( int Player )" allow mods to obtain information about the account of a player.
+	[Torr Samaho]
 +	- Added new dmflag sv_sharekeys. When enabled, any keys picked are shared between players. Also, players joining the game get the keys others have as well. [Dusk]
 +	- The ACS commands TakeInventory, SetActorProperty (only for speed and gravity) and SetAmmoCapacity don't cause network traffic unless they actually make a change to the affected actor. [Torr Samaho]
 +	- The text scaling scaling mechanism (controlled by con_scaletext, con_virtualwidth and con_virtualheight) now can use the aspect ratio of the screen instead of 4:3. The new behavior can be activated using a new option in the text scaling menu or with the new CVAR con_scaletext_usescreenratio. [Torr Samaho]
