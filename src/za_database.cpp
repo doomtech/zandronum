@@ -97,6 +97,13 @@ public:
 			Printf ( "Could not bind text. Error: %s\n", sqlite3_errmsg ( g_db ) );
 	}
 
+	void bindInt ( const int Index, const int IntValue )
+	{
+		int error = sqlite3_bind_int ( _stmt, Index, IntValue );
+		if ( error != SQLITE_OK )
+			Printf ( "Could not bind integer. Error: %s\n", sqlite3_errmsg ( g_db ) );
+	}
+
 	void finalize ( )
 	{
 		if ( _stmt != NULL )
