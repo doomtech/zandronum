@@ -82,7 +82,7 @@ static	UCHAR			g_ucHuffmanBuffer[131072];
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void			network_Error( char *pszError );
+static	void			network_Error( const char *pszError );
 static	SOCKET			network_AllocateSocket( void );
 static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
 
@@ -419,7 +419,7 @@ USHORT NETWORK_GetLocalPort( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-void network_Error( char *pszError )
+void network_Error( const char *pszError )
 {
 	printf( "\\cd%s\n", pszError );
 }

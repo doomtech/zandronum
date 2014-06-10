@@ -673,7 +673,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	printf( "* Received unknown challenge (%d) from %s. Ignoring for 10 seconds...\n", lCommand, NETWORK_AddressToString( AddressFrom ));
+	printf( "* Received unknown challenge (%ld) from %s. Ignoring for 10 seconds...\n", lCommand, NETWORK_AddressToString( AddressFrom ));
 	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 }
 
