@@ -1733,11 +1733,9 @@ static void DoGiveInventory(AActor * receiver, DECLARE_PARAMINFO)
 	{
 		bNeedClientUpdate = true;
 		
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
-		{
+		// [BB] The server will let the client know about the outcome.
+		if ( NETWORK_InClientModeAndActorNotClientHandled ( self ) )
 			return;
-		}
 	}
 
 	if (receiver == NULL) return;
