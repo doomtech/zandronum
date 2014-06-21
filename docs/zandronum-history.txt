@@ -82,6 +82,7 @@
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
 !	- Botscript rand() renamed to random() and now returns a value between min and max inclusive instead of leaving max out of the possibilities. Now is actually random and now swaps min and max if min is greater than max instead of throwing a runtime error. [Dusk]
 !	- Medals are only awarded when the game has started (is not in countdown). [Water]
+!	- If the map rotation is not empty, the server now prevents map/changemap votes to maps that are not in the rotation, regardless of whether of sv_maprotation is true. This allows the server to restrict these votes without enforcing the rotation itself, which would also enforce the order in which the maps are played (adapted from an old patch of TIHan). [Torr Samaho]
 
 
 1.2.2
