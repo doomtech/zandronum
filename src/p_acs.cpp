@@ -3814,6 +3814,13 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 	return 0;
 }
 
+enum
+{
+	PRINTNAME_LEVELNAME		= -1,
+	PRINTNAME_LEVEL			= -2,
+	PRINTNAME_SKILL			= -3,
+};
+
 
 #define NEXTWORD	(LittleLong(*pc++))
 #define NEXTBYTE	(fmt==ACS_LittleEnhanced?getbyte(pc):NEXTWORD)
@@ -5275,7 +5282,27 @@ int DLevelScript::RunScript ()
 			{
 				player_t *player = NULL;
 
-				if (STACK(1) == 0 || (unsigned)STACK(1) > MAXPLAYERS)
+				if (STACK(1) < 0)
+				{
+					switch (STACK(1))
+					{
+					case PRINTNAME_LEVELNAME:
+						work += level.LevelName;
+						break;
+
+					case PRINTNAME_LEVEL:
+						work += level.mapname;
+						break;
+
+					default:
+						work += ' ';
+						break;
+					}
+					sp--;
+					break;
+
+				}
+				else if (STACK(1) == 0 || (unsigned)STACK(1) > MAXPLAYERS)
 				{
 					if (activator)
 					{
