@@ -83,6 +83,12 @@
 !	- Medals are only awarded when the game has started (is not in countdown). [Water]
 
 
+1.2.2
+-----
+
+-	- Fixed: The server reported to be using a testing build instead of a stable one. [Torr Samaho]
+
+
 1.2.1
 -----
 
