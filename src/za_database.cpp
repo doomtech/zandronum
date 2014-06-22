@@ -434,11 +434,12 @@ void DATABASE_SaveIncrementEntryInt ( const char *Namespace, const char *EntryNa
 	FString newVal;
 	if ( DATABASE_EntryExists ( Namespace, EntryName ) )
 	{
-		// [BB] Try to make the get/set pair atomic.
-		database_ExecuteCommand ( "BEGIN EXCLUSIVE TRANSACTION" );
-		newVal.AppendFormat ( "%d", DATABASE_GetEntry ( Namespace, EntryName ).ToLong() + Increment );
-		DATABASE_SetEntry ( Namespace, EntryName, newVal.GetChars() );
-		database_ExecuteCommand ( "COMMIT TRANSACTION" );
+		// [BB] Get the old value and set the incremented value in a single query.
+		DataBaseCommand cmd ( "UPDATE "TABLENAME" SET Value=(SELECT CAST(Value AS INTEGER) FROM "TABLENAME" WHERE Namespace=?1 AND KeyName=?2)+?3,Timestamp=("TIMEQUERY") WHERE Namespace=?1 AND KeyName=?2" );
+		cmd.bindString ( 1, Namespace );
+		cmd.bindString ( 2, EntryName );
+		cmd.bindInt ( 3, Increment );
+		cmd.exec ( );
 	}
 	else
 	{
