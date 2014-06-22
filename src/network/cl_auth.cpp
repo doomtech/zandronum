@@ -144,7 +144,7 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 
 	default:
-		Printf ( "Error: Received unknown SRP command '%d' from client %d.\n", lCommand, SERVER_GetCurrentClient() );
+		Printf ( "Error: Received unknown SRP command '%d' from client %d.\n", static_cast<int>(lCommand), static_cast<int>(SERVER_GetCurrentClient()) );
 		break;
 	}
 }

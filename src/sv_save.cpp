@@ -154,7 +154,7 @@ void SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo )
 //
 void server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo )
 {
-	if (( ulSlot < 0 ) || ( ulSlot >= MAXPLAYERS ))
+	if ( ulSlot >= MAXPLAYERS )
 		return;
 
 	g_SavedPlayerInfo[ulSlot].bInitialized		= true;

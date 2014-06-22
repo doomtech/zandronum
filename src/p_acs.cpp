@@ -3802,7 +3802,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 						work = SERVER_GetClient ( ulPlayer )->username;
 					// Anonymous players get an account name based on their player slot.
 					else
-						work.AppendFormat ( "%d@localhost", ulPlayer );
+						work.AppendFormat ( "%d@localhost", static_cast<int>(ulPlayer) );
 				}
 				return ACS_PushAndReturnDynamicString ( work );
 			}
