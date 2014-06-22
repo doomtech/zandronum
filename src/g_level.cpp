@@ -101,6 +101,7 @@
 #include "gi.h"
 #include "survival.h"
 #include "network/nettraffic.h"
+#include <set> // [CK] For CCMD listmusic
 
 #include "g_hub.h"
 
@@ -2636,6 +2637,39 @@ CCMD(listmaps)
 	}
 }
 
+// [CK] Lists all the music loaded in the wad
+CCMD( listmusic )
+{
+	std::set<FString> musicNames;
 
+	for ( unsigned int i = 0; i < wadlevelinfos.Size(); i++ )
+	{
+		level_info_t *info = &wadlevelinfos[i];
+		if ( info != NULL )
+		{
+			musicNames.insert( info->Music );
+		}
+	}
+	
+	if ( musicNames.size() <= 0 )
+	{
+		Printf( "No music lumps loaded." );
+		return;
+	}
 
-
+	Printf( "Loaded music:\n" );
+	for ( std::set<FString>::iterator it = musicNames.begin(); it != musicNames.end(); it++ )
+	{
+		if ( it->Len() <= 0)
+			continue;
+		
+		if ( (*it)[0] == '$' )
+		{
+			Printf( "   D_%s\n", GStrings( it->GetChars() + 1 ) );
+		} 
+		else
+		{
+			Printf( "  %s\n", it->GetChars() );
+		}
+	}
+}

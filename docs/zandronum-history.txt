@@ -49,6 +49,7 @@
 		GAMEEVENT_ROUND_ENDS (the current round ends and the win sequence starts, e.g. when the fraglimit is hit)
 		GAMEEVENT_ROUND_ABORTED  (the current round is ended prematurely, e.g. if all players leave the game)
 	[Torr Samaho, Water] 
++	- Added new CCMD: listmusic, which will list all the currently loaded music. [Water]
 -	- Added settings to fine tune the PWO behavior (CVARs pwo_switchonsameweight and pwo_switchonunknown). [Circunei Z]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
