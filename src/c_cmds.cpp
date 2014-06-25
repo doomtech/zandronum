@@ -697,7 +697,7 @@ CCMD (puke)
 			}
 			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ACS_IsScriptPukeable ( ulScript ) )
 			{
-				CLIENTCOMMANDS_Puke ( script, arg, argn );
+				CLIENTCOMMANDS_Puke ( script, arg );
 			}
 		}
 		else

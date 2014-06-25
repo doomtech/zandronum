@@ -83,6 +83,7 @@
 #include "sv_commands.h"
 #include "network/nettraffic.h"
 #include "za_database.h"
+#include "cl_commands.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -7457,6 +7458,50 @@ static void SetScriptState (int script, DLevelScript::EScriptState state)
 		controller->RunningScripts[script]->SetState (state);
 }
 
+//
+// [Dusk] Check client-to-server ACS. Returns true if the parent function should return,
+// possibly with the given result value.
+//
+static bool P_CheckClientToServerACS ( int script, int arg0, int arg1, int arg2, bool always,
+	bool wantResultCode, const ScriptPtr* scriptdata, int* resultptr )
+{
+	if ( ( NETWORK_GetState() != NETSTATE_CLIENT ) || ( scriptdata->Flags & SCRIPTF_ClientSide ) )
+		return false;
+
+	if ( scriptdata->Flags & SCRIPTF_Net )
+	{
+		if ( resultptr != NULL )
+			*resultptr = 1;
+
+		// [Dusk] This is no-op with demos
+		if ( CLIENTDEMO_IsPlaying() )
+			return true;
+
+		// [Dusk] If the script is NET, we can request a puke.
+		int args[3] = { arg0, arg1, arg2 };
+		DPrintf( "P_CheckClientToServerACS: Requesting puke of script %d (%d, %d, %d)\n",
+			( always ? -script : script ), arg0, arg1, arg2 );
+		CLIENTCOMMANDS_Puke( ( always ? -script : script ), args );
+
+		if ( wantResultCode )
+		{
+			Printf( "P_CheckClientToServerACS: Calling server-side NET script %d from the client "
+				"will not yield a result value.\n", script );
+		}
+	}
+	else
+	{
+		// [Dusk] If the script is not NET, print a warn and don't run any scripts.
+		if ( resultptr != NULL )
+			*resultptr = 0;
+
+		Printf( "P_CheckClientToServerACS: Cannot run server-side non-NET script %d "
+			"from the client.\n", script );
+	}
+
+	return true;
+}
+
 void P_DoDeferedScripts ()
 {
 	acsdefered_t *def;
@@ -7475,6 +7520,13 @@ void P_DoDeferedScripts ()
 			scriptdata = FBehavior::StaticFindScript (def->script, module);
 			if (scriptdata)
 			{
+				// [Dusk] Check if the client-to-server mechanism handles this.
+				if ( P_CheckClientToServerACS ( def->script, def->arg0, def->arg1, def->arg2,
+					( def->type == acsdefered_t::defexealways ), false, scriptdata, NULL ))
+				{
+					return;
+				}
+
 				P_GetScriptGoing ((unsigned)def->playernum < MAXPLAYERS &&
 					playeringame[def->playernum] ? players[def->playernum].mo : NULL,
 					NULL, def->script,
@@ -7552,6 +7604,18 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool
 					return false;
 				}
 			}
+
+			// [Dusk] Check if the client-to-server mechanism handles this.
+			{
+				int result;
+
+				if ( P_CheckClientToServerACS ( script, arg0, arg1, arg2, always,
+					wantResultCode, scriptdata, &result ))
+				{
+					return result;
+				}
+			}
+
 			DLevelScript *runningScript = P_GetScriptGoing (who, where, script,
 				scriptdata, module, backSide, arg0, arg1, arg2, always);
 			if (runningScript != NULL)
