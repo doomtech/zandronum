@@ -1252,7 +1252,7 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			else if ( stricmp( szKey, "chatfrequency" ) == 0 )
 			{
 				BotInfo.ulChatFrequency = atoi( szValue );
-				if (( BotInfo.ulChatFrequency < 0 ) || ( BotInfo.ulChatFrequency > 100 ))
+				if ( BotInfo.ulChatFrequency > 100 )
 					I_Error( "BOTS_ParseBotInfo: Expected value from 0-100 for field \"chatfrequency\"!" );
 			}
 			else if ( stricmp( szKey, "revealed" ) == 0 )

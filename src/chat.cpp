@@ -837,10 +837,11 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 	}
 	
 	LONG	lTicks = -1;
+	const LONG lArgv2 = ( argv.argc( ) >= 3 ) ? atoi( argv[2] ) : -1;
 	
 	// Did the user specify a set duration?
-	if ( argv.argc( ) >= 3 && ( atoi( argv[2] ) > 0 ) && ( atoi( argv[2] ) < LONG_MAX / ( TICRATE * MINUTE )))
-		lTicks = atoi( argv[2] ) * TICRATE * MINUTE;
+	if ( ( lArgv2 > 0 ) && ( lArgv2 < LONG_MAX / ( TICRATE * MINUTE )))
+		lTicks = lArgv2 * TICRATE * MINUTE;
 
 	if ( ulPlayer == MAXPLAYERS )
 		Printf( "There isn't a player named %s\\c-.\n", argv[1] );
@@ -854,7 +855,7 @@ void chat_IgnorePlayer( FCommandLine &argv, const ULONG ulPlayer )
 		players[ulPlayer].lIgnoreChatTicks = lTicks;
 		Printf( "%s\\c- will now be ignored", players[ulPlayer].userinfo.netname );
 		if ( lTicks > 0 )
-			Printf( ", for %d minutes", atoi( argv[2] ));
+			Printf( ", for %d minutes", static_cast<int>(lArgv2));
 		Printf( ".\n" );
 
 		// Add a helpful note about bots.
