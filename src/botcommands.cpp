@@ -1960,7 +1960,7 @@ static void botcmd_GetEnemyInvulnerabilityTicks( CSkullBot *pBot )
 {
 	APowerInvulnerable		*pInvulnerability;
 
-	if (( pBot->m_ulPlayerEnemy >= MAXPLAYERS ) || ( pBot->m_ulPlayerEnemy < 0 ) || ( playeringame[pBot->m_ulPlayerEnemy] == false ))
+	if ( PLAYER_IsValidPlayer ( pBot->m_ulPlayerEnemy ) == false )
 		g_iReturnInt = -1;
 	else
 	{
