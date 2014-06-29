@@ -7465,8 +7465,12 @@ static void SetScriptState (int script, DLevelScript::EScriptState state)
 static bool P_CheckClientToServerACS ( int script, int arg0, int arg1, int arg2, bool always,
 	bool wantResultCode, const ScriptPtr* scriptdata, int* resultptr )
 {
-	if ( ( NETWORK_GetState() != NETSTATE_CLIENT ) || ( scriptdata->Flags & SCRIPTF_ClientSide ) )
+	if ( ( NETWORK_GetState() != NETSTATE_CLIENT ) ||
+		( scriptdata->Flags & SCRIPTF_ClientSide ) ||
+		( compatflags2 & COMPATF2_CLIENT_ACS_EXECUTE ) )
+	{
 		return false;
+	}
 
 	if ( scriptdata->Flags & SCRIPTF_Net )
 	{

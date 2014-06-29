@@ -398,6 +398,8 @@ enum
 	COMPATF2_ZDOOM_123B33_JUMP_PHYSICS = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	COMPATF2_FULL_WEAPON_LOWER = 1 << 9,
+	// [Dusk] Clients run server-side scripts called from client-side scripts on their own
+	COMPATF2_CLIENT_ACS_EXECUTE = 1 << 10,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar
