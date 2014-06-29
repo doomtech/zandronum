@@ -232,7 +232,7 @@ void SERVER_AUTH_SRPMessage ( const int MagicNumber, const int SessionID, const 
 	NETWORK_ClearBuffer( &g_AuthServerBuffer );
 	NETWORK_WriteLong( &g_AuthServerBuffer.ByteStream, MagicNumber );
 	NETWORK_WriteLong( &g_AuthServerBuffer.ByteStream, SessionID );
-	NETWORK_WriteLong( &g_AuthServerBuffer.ByteStream, Bytes.Size() );
+	NETWORK_WriteShort( &g_AuthServerBuffer.ByteStream, Bytes.Size() );
 	for ( unsigned int i = 0; i < Bytes.Size(); ++i )
 		NETWORK_WriteByte( &g_AuthServerBuffer.ByteStream, Bytes[i] );
 	NETWORK_LaunchPacket( &g_AuthServerBuffer, g_AuthServerAddress );
@@ -274,7 +274,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 		case AUTH_SERVER_SRP_STEP_TWO:
 			{
 				const int sessionID = NETWORK_ReadLong( pByteStream );
-				const int lenB = NETWORK_ReadLong( pByteStream );
+				const int lenB = NETWORK_ReadShort( pByteStream );
 				TArray<unsigned char> bytesB;
 				bytesB.Resize( lenB );
 				for ( int i = 0; i < lenB; ++i )
@@ -290,7 +290,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 		case AUTH_SERVER_SRP_STEP_FOUR:
 			{
 				const int sessionID = NETWORK_ReadLong( pByteStream );
-				const int lenHAMK = NETWORK_ReadLong( pByteStream );
+				const int lenHAMK = NETWORK_ReadShort( pByteStream );
 				TArray<unsigned char> bytesHAMK;
 				bytesHAMK.Resize( lenHAMK );
 				for ( int i = 0; i < lenHAMK; ++i )
@@ -398,7 +398,7 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
 
 			pClient->username = NETWORK_ReadString( pByteStream );
-			const int lenA = NETWORK_ReadLong( pByteStream );
+			const int lenA = NETWORK_ReadShort( pByteStream );
 			pClient->bytesA.Resize ( lenA ); 
 			for ( int i = 0; i < lenA; ++i )
 				pClient->bytesA[i] = NETWORK_ReadByte( pByteStream );
@@ -451,7 +451,7 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		{
 			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
 
-			const int lenM = NETWORK_ReadLong( pByteStream );
+			const int lenM = NETWORK_ReadShort( pByteStream );
 			pClient->bytesM.Resize ( lenM ); 
 			for ( int i = 0; i < lenM; ++i )
 				pClient->bytesM[i] = NETWORK_ReadByte( pByteStream );
