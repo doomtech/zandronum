@@ -3434,11 +3434,11 @@ enum EACSFunctions
 	ACSF_SetPlayerLivesLeft,
 	ACSF_KickFromGame,
 	ACSF_GetGamemodeState,
-	ACSF_SetDBEntryInt,
-	ACSF_GetDBEntryInt,
+	ACSF_SetDBEntry,
+	ACSF_GetDBEntry,
 	ACSF_SetDBEntryString,
 	ACSF_GetDBEntryString,
-	ACSF_IncrementDBEntryInt,
+	ACSF_IncrementDBEntry,
 	ACSF_PlayerIsLoggedIn,
 	ACSF_GetPlayerAccountName,
 	// ZDaemon
@@ -3749,14 +3749,14 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 
 		// [BB]
-		case ACSF_SetDBEntryInt:
+		case ACSF_SetDBEntry:
 			{
 				DATABASE_SaveSetEntryInt ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), args[2] );
 				return 1;
 			}
 
 		// [BB]
-		case ACSF_GetDBEntryInt:
+		case ACSF_GetDBEntry:
 			{
 				return DATABASE_SaveGetEntry ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]) ).ToLong();
 			}
@@ -3775,7 +3775,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 
 		// [BB]
-		case ACSF_IncrementDBEntryInt:
+		case ACSF_IncrementDBEntry:
 			{
 				DATABASE_SaveIncrementEntryInt ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), args[2] );
 				return 1;

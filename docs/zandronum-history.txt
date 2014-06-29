@@ -16,11 +16,11 @@
 ---
 
 *+	- Added persistent storage based on an SQLite3 database. The new CVAR databasefile controls where the database is saved (defaults to ":memory:", i.e. volatile in-memory database). The new ACS functions
-        void SetDBEntryInt ( string Namespace, string EntryName, int EntryValue )
-        int GetDBEntryInt ( string Namespace, string EntryName ),
+        void SetDBEntry ( string Namespace, string EntryName, int EntryValue )
+        int GetDBEntry ( string Namespace, string EntryName ),
         void SetDBEntryString ( string Namespace, string EntryName, string EntryValue )
         string GetDBEntryString (string Namespace, string EntryName )
-        void IncrementDBEntryInt ( string Namespace, string EntryName, int Increment )
+        void IncrementDBEntry ( string Namespace, string EntryName, int Increment )
       allow mods to access the underlying database. [Torr Samaho]
 *+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
 		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
