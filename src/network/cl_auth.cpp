@@ -79,7 +79,7 @@ void client_RequestLogin ( const char* Username, const char* Password )
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SRP_USER_START_AUTHENTICATION );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, Username );
-	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, lenA );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, lenA );
 	for ( int i = 0; i < lenA; ++i )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bytesA[i] );
 }
@@ -97,7 +97,7 @@ void client_SRPUserProcessChallenge ( TArray<unsigned char> &Salt, TArray<unsign
 	else
 	{
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SRP_USER_PROCESS_CHALLENGE );
-		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, lenM );
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, lenM );
 		for ( int i = 0; i < lenM; ++i )
 			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bytesM[i] );
 	}
@@ -116,7 +116,7 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			salt.Resize ( lenSalt ); 
 			for ( int i = 0; i < lenSalt; ++i )
 				salt[i] = NETWORK_ReadByte( pByteStream );
-			const int lenB = NETWORK_ReadLong( pByteStream );
+			const int lenB = NETWORK_ReadShort( pByteStream );
 			TArray<unsigned char> bytesB;
 			bytesB.Resize ( lenB ); 
 			for ( int i = 0; i < lenB; ++i )
@@ -127,7 +127,7 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVC2_SRP_USER_VERIFY_SESSION:
 		{
-			const int lenHAMK = NETWORK_ReadLong( pByteStream );
+			const int lenHAMK = NETWORK_ReadShort( pByteStream );
 			TArray<unsigned char> bytesHAMK;
 			// [BB] We may need to allocate more then lenHAMK!
 			bytesHAMK.Resize ( srp_user_get_session_key_length( g_usr ) ); 
@@ -144,7 +144,7 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 
 	default:
-		Printf ( "Error: Received unknown SRP command '%d' from client %d.\n", lCommand, SERVER_GetCurrentClient() );
+		Printf ( "Error: Received unknown SRP command '%d' from client %d.\n", static_cast<int>(lCommand), static_cast<int>(SERVER_GetCurrentClient()) );
 		break;
 	}
 }

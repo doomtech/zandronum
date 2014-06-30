@@ -1318,7 +1318,7 @@ static void botcmd_CheckTerrain( CSkullBot *pBot )
 
 	lAngle *= ANGLE_1;
 	if ( lAngle < 0 )
-		lAngle = ANGLE_MAX - abs( lAngle );
+		lAngle = ANGLE_MAX - labs( lAngle );
 
 	Angle = pBot->GetPlayer( )->mo->angle;
 	Angle += lAngle;
@@ -1875,7 +1875,7 @@ static void botcmd_Turn( CSkullBot *pBot )
 
 	// Adjust the bot's angle.
 	if ( lBuffer < 0 )
-		pBot->GetPlayer( )->mo->angle -= ANGLE_1 * abs( lBuffer );
+		pBot->GetPlayer( )->mo->angle -= ANGLE_1 * labs( lBuffer );
 	else
 		pBot->GetPlayer( )->mo->angle += ANGLE_1 * lBuffer;
 }
@@ -1960,7 +1960,7 @@ static void botcmd_GetEnemyInvulnerabilityTicks( CSkullBot *pBot )
 {
 	APowerInvulnerable		*pInvulnerability;
 
-	if (( pBot->m_ulPlayerEnemy >= MAXPLAYERS ) || ( pBot->m_ulPlayerEnemy < 0 ) || ( playeringame[pBot->m_ulPlayerEnemy] == false ))
+	if ( PLAYER_IsValidPlayer ( pBot->m_ulPlayerEnemy ) == false )
 		g_iReturnInt = -1;
 	else
 	{

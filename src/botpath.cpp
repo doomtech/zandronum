@@ -461,7 +461,7 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 	OneStepDeltaY = YDistance / lNumSteps;
 
 	// [Dusk] Calculate the jump height the bot has instead of relying on a hardcoded 60.
-	fixed_t jumpheight = static_cast<APlayerPawn*>( pActor )->CalcJumpHeight( );
+	fixed_t jumpheight = ( pActor->IsKindOf (RUNTIME_CLASS (APlayerPawn)) ) ? static_cast<APlayerPawn*>( pActor )->CalcJumpHeight( ) : 60;
 
 	do
 	{

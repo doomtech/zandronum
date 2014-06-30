@@ -37,11 +37,11 @@
 ---
 
 *+	- Added persistent storage based on an SQLite3 database. The new CVAR databasefile controls where the database is saved (defaults to ":memory:", i.e. volatile in-memory database). The new ACS functions
-        void SetDBEntryInt ( string Namespace, string EntryName, int EntryValue )
-        int GetDBEntryInt ( string Namespace, string EntryName ),
+        void SetDBEntry ( string Namespace, string EntryName, int EntryValue )
+        int GetDBEntry ( string Namespace, string EntryName ),
         void SetDBEntryString ( string Namespace, string EntryName, string EntryValue )
         string GetDBEntryString (string Namespace, string EntryName )
-        void IncrementDBEntryInt ( string Namespace, string EntryName, int Increment )
+        void IncrementDBEntry ( string Namespace, string EntryName, int Increment )
       allow mods to access the underlying database. [Torr Samaho]
 *+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
 		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
@@ -70,6 +70,7 @@
 		GAMEEVENT_ROUND_ENDS (the current round ends and the win sequence starts, e.g. when the fraglimit is hit)
 		GAMEEVENT_ROUND_ABORTED  (the current round is ended prematurely, e.g. if all players leave the game)
 	[Torr Samaho, Water] 
++	- Added new CCMD: listmusic, which will list all the currently loaded music. [Water]
 -	- Added settings to fine tune the PWO behavior (CVARs pwo_switchonsameweight and pwo_switchonunknown). [Circunei Z]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
@@ -96,10 +97,22 @@
 -	- Fixed: The server possibly announced player disconnects for players that didn't fully connect. [Torr Samaho]
 -	- Fixed: When a player is damaged, don't send useless inconsistent values of HP and Armor (100/100) to the clients if they're not allowed to see the real HP/Armor. [Edward-san]
 -	- Fixed: Line_SetBlocking didn't work properly online. [Dusk]
+-	- Fixed: A_GiveInventory and A_GiveToTarget didn't work on CLIENTSIDEONLY actors. [Torr Samaho]
+-	- Fixed: "botdebug_walktest 1" caused the game to crash when the player was looking through the eyes of a non-player actor. [Torr Samaho]
+-	- Fixed: turn180 did not work as a spectator. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
 !	- Botscript rand() renamed to random() and now returns a value between min and max inclusive instead of leaving max out of the possibilities. Now is actually random and now swaps min and max if min is greater than max instead of throwing a runtime error. [Dusk]
+!	- Medals are only awarded when the game has started (is not in countdown). [Water]
+!	- If the map rotation is not empty, the server now prevents map/changemap votes to maps that are not in the rotation, regardless of whether of sv_maprotation is true. This allows the server to restrict these votes without enforcing the rotation itself, which would also enforce the order in which the maps are played (adapted from an old patch of TIHan). [Torr Samaho]
+!	- Calling a server-side NET script from the client-side will now request the server to puke the script. This mechanism cannot retrieve the return value of the script and non-NET scripts cannot be run at all. However, defering client-to-server scripts is possible. The old behavior can be restored with a new compatflag: compat_clientacsexecute. [Dusk]
+
+
+1.2.2
+-----
+
+-	- Fixed: The server reported to be using a testing build instead of a stable one. [Torr Samaho]
 
 
 1.2.1

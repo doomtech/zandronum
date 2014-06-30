@@ -3199,6 +3199,12 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		if ( player->pSkullBot )
 			player->pSkullBot->Tick( );
 
+		// [RH] Check for fast turn around
+		if (cmd->ucmd.buttons & BT_TURN180 && !(player->oldbuttons & BT_TURN180))
+		{
+			player->turnticks = TURN180_TICKS;
+		}
+
 		// Done with spectator specific logic.
 		return;
 	}

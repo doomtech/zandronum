@@ -1245,7 +1245,7 @@ static void network_InitPWADList( void )
 	g_PWADs.clear( );
 
 	// Find the IWAD index.
-	ULONG ulNumPWADs = 0, ulRealIWADIdx;
+	ULONG ulNumPWADs = 0, ulRealIWADIdx = 0;
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
 		if ( Wads.GetLoadedAutomatically( ulIdx ) == false ) // Since WADs can now be loaded within pk3 files, we have to skip over all the ones automatically loaded. To my knowledge, the only way to do this is to skip wads that have a colon in them.

@@ -48,6 +48,8 @@ jpeg-6b/*.a
 # /masterserver/
 masterserver/Debug
 masterserver/Release
+masterserver/debug
+masterserver/release
 masterserver/*.ncb
 masterserver/*.suo
 masterserver/*.user

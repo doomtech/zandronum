@@ -338,6 +338,10 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	player_t	*pPlayer;
 	ULONG		ulWhereToInsertMedal = UINT_MAX;
 
+	// [CK] Do not award if it's a countdown sequence
+	if ( GAMEMODE_IsGameInCountdown() )
+		return;
+
 	// Make sure all inputs are valid first.
 	if (( ulPlayer >= MAXPLAYERS ) ||
 		(( deathmatch || teamgame ) == false ) ||
@@ -1342,6 +1346,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 //
 void medal_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 {
+	// [CK] Clients do not need to know if they got a medal during countdown
+	if ( GAMEMODE_IsGameInCountdown() )
+		return;
+
 	// Give the player the medal, and if we're the server, tell clients.
 	MEDAL_GiveMedal( ulPlayer, ulMedal );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

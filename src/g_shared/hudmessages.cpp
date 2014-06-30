@@ -284,7 +284,7 @@ void DHUDMessage::Draw (int bottom)
 	UCVarValue	ValHeight;
 	float		fXScale;
 	float		fYScale;
-	ULONG		lBottomDelta;
+	LONG		lBottomDelta;
 
 	// [BC] Initialization.
 	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );

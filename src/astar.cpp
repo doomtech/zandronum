@@ -620,14 +620,14 @@ void ASTAR_SelectRandomMapLocation( POS_t *pPos, fixed_t X, fixed_t Y )
 		do
 		{
 			lXIdx = g_RandomRoamSeed.Random( ) % g_lNumHorizontalNodes;
-		} while ( abs( lXNode - lXIdx ) > 8 );
+		} while ( labs( lXNode - lXIdx ) > 8 );
 	}
 	else
 	{
 		do
 		{
 			lXIdx = g_RandomRoamSeed.Random( ) % g_lNumHorizontalNodes;
-		} while (( abs( lXNode - lXIdx ) > 8 ) || ( abs( lXNode - lXIdx ) < 2 ));
+		} while (( labs( lXNode - lXIdx ) > 8 ) || ( labs( lXNode - lXIdx ) < 2 ));
 	}
 
 	if ( g_lNumVerticalNodes <= 3 )
@@ -635,14 +635,14 @@ void ASTAR_SelectRandomMapLocation( POS_t *pPos, fixed_t X, fixed_t Y )
 		do
 		{
 			lYIdx = g_RandomRoamSeed.Random( ) % g_lNumVerticalNodes;
-		} while ( abs( lYNode - lYIdx ) > 8 );
+		} while ( labs( lYNode - lYIdx ) > 8 );
 	}
 	else
 	{
 		do
 		{
 			lYIdx = g_RandomRoamSeed.Random( ) % g_lNumVerticalNodes;
-		} while (( abs( lYNode - lYIdx ) > 8 ) || ( abs( lYNode - lYIdx ) < 2 ));
+		} while (( labs( lYNode - lYIdx ) > 8 ) || ( labs( lYNode - lYIdx ) < 2 ));
 	}
 
 	*pPos = ASTAR_GetPositionFromIndex( lXIdx, lYIdx );
@@ -798,7 +798,7 @@ static LONG astar_GetCostToGoalEstimate( ASTARPATH_t *pPath, ASTARNODE_t *pNode 
 
 	return ( P_AproxDistance( PosNode.x - PosGoal.x, PosNode.y - PosGoal.y ));
 
-//	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + ( abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ))) * 64 );
+//	return (( labs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + ( labs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ))) * 64 );
 
 	LONG	lXDiff;
 	LONG	lYDiff;
@@ -814,10 +814,10 @@ static LONG astar_GetCostToGoalEstimate( ASTARPATH_t *pPath, ASTARNODE_t *pNode 
 
 	return ( (LONG)sqrt(((( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) * 64 ) ^ 2 ) + ((( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ) * 64 ) ^ 2 )));
 
-//	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )) * 15 );
+//	return (( labs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + labs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )) * 15 );
 
-	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) * abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx )) + 
-			( abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ) * abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )));
+	return (( labs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) * labs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx )) + 
+			( labs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ) * labs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )));
 */
 }
 

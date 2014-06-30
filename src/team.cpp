@@ -896,7 +896,7 @@ bool TEAM_SpawningTemporaryFlag( void )
 //
 bool TEAM_CheckIfValid( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < 0 || ulTeamIdx >= TEAM_GetNumAvailableTeams( ))
+	if ( ulTeamIdx >= TEAM_GetNumAvailableTeams( ))
 		return ( false );
 
 	return ( true );
@@ -1795,7 +1795,7 @@ bool TEAM_CheckTeamRestriction( ULONG ulTeam, ULONG ulTeamRestriction )
 bool TEAM_IsActorAllowedForTeam( AActor *pActor, ULONG ulTeam )
 {
 	// [BB] Safety checks.
-	if ( (pActor == NULL) )
+	if ( pActor == NULL )
 		return false;
 
 	return TEAM_CheckTeamRestriction( ulTeam, pActor->ulLimitedToTeam );
