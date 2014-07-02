@@ -5332,7 +5332,7 @@ void M_OptResponder (event_t *ev)
 						}
 						// [BB] We still need to increment the pointer, otherwise the while loop never ends.
 						else
-							*clip++;
+							++clip;
 					}
 				}
 			}
