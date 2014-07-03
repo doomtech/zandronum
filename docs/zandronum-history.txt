@@ -83,6 +83,7 @@
 -	- Fixed: "botdebug_walktest 1" caused the game to crash when the player was looking through the eyes of a non-player actor. [Torr Samaho]
 -	- Fixed: turn180 did not work as a spectator. [Dusk]
 -	- Fixed: Gravity was applied twice in one tic when running off a cliff with compat_123b33jumpphysics enabled when it shouldn't be. [AlexMax]
+-	- Fixed: Some ordinals weren't written correctly in the spectator queue message. [Esum]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
