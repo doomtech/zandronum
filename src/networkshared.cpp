@@ -921,7 +921,7 @@ void IPList::removeExpiredEntries( void )
 			sprintf( szMessage, "Temporary ban for %s.%s.%s.%s", _ipVector[ulIdx].szIP[0], _ipVector[ulIdx].szIP[1], _ipVector[ulIdx].szIP[2], _ipVector[ulIdx].szIP[3] );
 			
 			// Add the ban reason.
-			if ( _ipVector[ulIdx].szComment && strlen( _ipVector[ulIdx].szComment ))
+			if ( strlen( _ipVector[ulIdx].szComment ) )
 				sprintf( szMessage, "%s (%s)", szMessage,  _ipVector[ulIdx].szComment );
 
 			sprintf( szMessage, "%s has expired", szMessage );

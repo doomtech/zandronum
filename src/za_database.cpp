@@ -54,6 +54,8 @@
 
 #define TABLENAME "Zandronum"
 
+#define TIMEQUERY "SELECT (julianday('now') - 2440587.5)*86400.0"
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -95,6 +97,13 @@ public:
 		int error = sqlite3_bind_text ( _stmt, Index, String, -1, SQLITE_STATIC );
 		if ( error != SQLITE_OK )
 			Printf ( "Could not bind text. Error: %s\n", sqlite3_errmsg ( g_db ) );
+	}
+
+	void bindInt ( const int Index, const int IntValue )
+	{
+		int error = sqlite3_bind_int ( _stmt, Index, IntValue );
+		if ( error != SQLITE_OK )
+			Printf ( "Could not bind integer. Error: %s\n", sqlite3_errmsg ( g_db ) );
 	}
 
 	void finalize ( )
@@ -240,7 +249,7 @@ void DATABASE_CreateTable ( )
 	if ( DATABASE_IsAvailable ( "DATABASE_CreateTable" ) == false )
 		return;
 
-	database_ExecuteCommand ( "CREATE TABLE if not exists "TABLENAME"(Namespace text, KeyName text, Value text, PRIMARY KEY (Namespace, KeyName))" );
+	database_ExecuteCommand ( "CREATE TABLE if not exists "TABLENAME"(Namespace text, KeyName text, Value text, Timestamp text, PRIMARY KEY (Namespace, KeyName))" );
 }
 
 //*****************************************************************************
@@ -296,7 +305,7 @@ void DATABASE_DumpNamespace ( const char *Namespace )
 	DataBaseCommand cmd ( "SELECT * from "TABLENAME" WHERE Namespace=?1" );
 	cmd.bindString ( 1, Namespace );
 	while ( cmd.step( ) )
-		Printf ( "%s %s\n", cmd.getText(1), cmd.getText(2) );
+		Printf ( "%s %s %s\n", cmd.getText(1), cmd.getText(2), cmd.getText(3) );
 	cmd.finalize();
 }
 
@@ -307,7 +316,7 @@ void DATABASE_AddEntry ( const char *Namespace, const char *EntryName, const cha
 	if ( DATABASE_IsAvailable ( "DATABASE_AddEntry" ) == false )
 		return;
 
-	DataBaseCommand cmd ( "INSERT INTO "TABLENAME" VALUES(?1,?2,?3)" );
+	DataBaseCommand cmd ( "INSERT INTO "TABLENAME" VALUES(?1,?2,?3,("TIMEQUERY"))" );
 	cmd.bindString ( 1, Namespace );
 	cmd.bindString ( 2, EntryName );
 	cmd.bindString ( 3, EntryValue );
@@ -321,7 +330,7 @@ void DATABASE_SetEntry ( const char *Namespace, const char *EntryName, const cha
 	if ( DATABASE_IsAvailable ( "DATABASE_SetEntry" ) == false )
 		return;
 
-	DataBaseCommand cmd ( "UPDATE "TABLENAME" SET Value=?3 WHERE Namespace=?1 AND KeyName=?2" );
+	DataBaseCommand cmd ( "UPDATE "TABLENAME" SET Value=?3,Timestamp=("TIMEQUERY") WHERE Namespace=?1 AND KeyName=?2" );
 	cmd.bindString ( 1, Namespace );
 	cmd.bindString ( 2, EntryName );
 	cmd.bindString ( 3, EntryValue );
@@ -425,11 +434,12 @@ void DATABASE_SaveIncrementEntryInt ( const char *Namespace, const char *EntryNa
 	FString newVal;
 	if ( DATABASE_EntryExists ( Namespace, EntryName ) )
 	{
-		// [BB] Try to make the get/set pair atomic.
-		database_ExecuteCommand ( "BEGIN EXCLUSIVE TRANSACTION" );
-		newVal.AppendFormat ( "%d", DATABASE_GetEntry ( Namespace, EntryName ).ToLong() + Increment );
-		DATABASE_SetEntry ( Namespace, EntryName, newVal.GetChars() );
-		database_ExecuteCommand ( "COMMIT TRANSACTION" );
+		// [BB] Get the old value and set the incremented value in a single query.
+		DataBaseCommand cmd ( "UPDATE "TABLENAME" SET Value=(SELECT CAST(Value AS INTEGER) FROM "TABLENAME" WHERE Namespace=?1 AND KeyName=?2)+?3,Timestamp=("TIMEQUERY") WHERE Namespace=?1 AND KeyName=?2" );
+		cmd.bindString ( 1, Namespace );
+		cmd.bindString ( 2, EntryName );
+		cmd.bindInt ( 3, Increment );
+		cmd.exec ( );
 	}
 	else
 	{

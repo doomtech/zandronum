@@ -366,27 +366,27 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			g_BottomString += "\\cdSPECTATING - WAITING TO RESPAWN";
 		else if ( lPosition != -1 )
 		{
-			switch ( lPosition )
-			{
-			case 0:
-
-				g_BottomString += "\\cdWAITING TO PLAY - 1ST IN LINE";
-				break;
-			case 1:
-
-				g_BottomString += "\\cdWAITING TO PLAY - 2ND IN LINE";
-				break;
-			case 2:
-
-				g_BottomString += "\\cdWAITING TO PLAY - 3RD IN LINE";
-				break;
-			default:
-
-				g_BottomString += "\\cdWAITING TO PLAY - ";
-				g_BottomString.AppendFormat( "%d", static_cast<int> (lPosition + 1) );
+			g_BottomString += "\\cdWAITING TO PLAY - ";
+			g_BottomString.AppendFormat( "%d", static_cast<int> (lPosition + 1) );
+			//[ES] This way all ordinals are correctly written.
+			if ( lPosition%100/10 != 1 )
+				switch ( lPosition%10 )
+				{
+				case 0:
+					g_BottomString += "ST IN LINE";
+					break;
+				case 1:
+					g_BottomString += "ND IN LINE";
+					break;
+				case 2:
+					g_BottomString += "RD IN LINE";
+					break;
+				default:
+					g_BottomString += "TH IN LINE";
+					break;
+				}
+			else
 				g_BottomString += "TH IN LINE";
-				break;
-			}
 		}
 		else
 			g_BottomString += "\\cdSPECTATING - SPACE TO JOIN";
