@@ -528,6 +528,12 @@ MusInfo *I_RegisterSong (const char *filename, BYTE *musiccache, int offset, int
 			{
 				info = new MIDISong2(file, musiccache, len, MIDI_Timidity);
 			}
+#ifdef HAVE_FLUIDSYNTH
+			else if (snd_mididevice == -5 && device == MDEV_DEFAULT)
+			{
+				info = new MIDISong2(file, musiccache, len, MIDI_Fluid);
+			}
+#endif
 			if (info != NULL && !info->IsValid())
 			{
 				delete info;
@@ -803,7 +809,7 @@ CCMD (writeopl)
 	}
 	else
 	{
-		Printf ("Usage: writeopl <filename>");
+		Printf ("Usage: writeopl <filename>\n");
 	}
 }
 

@@ -22,6 +22,8 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	endif( APPLE )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
+option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" )
+
 if( CMAKE_SIZEOF_VOID_P MATCHES "8" )
 	set( X64 64 )
 endif( CMAKE_SIZEOF_VOID_P MATCHES "8" )
@@ -578,8 +580,10 @@ if( APPLE )
 endif( APPLE )
 
 if( FLUIDSYNTH_FOUND )
-	set( ZDOOM_LIBS "${FLUIDSYNTH_LIBRARIES}" )
+  if( NOT DYN_FLUIDSYNTH)
+	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FLUIDSYNTH_LIBRARIES}" )
 	include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
+  endif( NOT DYN_FLUIDSYNTH )
 endif( FLUIDSYNTH_FOUND )
 
 # Start defining source files for ZDoom
@@ -697,9 +701,11 @@ else( SSE_MATTERS )
 	set( X86_SOURCES )
 endif( SSE_MATTERS )
 
-if( FLUIDSYNTH_FOUND )
+if( DYN_FLUIDSYNTH )
+	add_definitions( -DHAVE_FLUIDSYNTH -DDYN_FLUIDSYNTH )
+elseif( FLUIDSYNTH_FOUND )
 	add_definitions( -DHAVE_FLUIDSYNTH )
-endif( FLUIDSYNTH_FOUND )
+endif( DYN_FLUIDSYNTH )
 
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
@@ -1058,6 +1064,7 @@ add_executable( zdoom WIN32
 	sound/music_mus_opl.cpp
 	sound/music_stream.cpp
 	sound/music_fluidsynth_mididevice.cpp
+	sound/music_softsynth_mididevice.cpp
 	sound/music_timidity_mididevice.cpp
 	sound/music_win_mididevice.cpp
 	textures/automaptexture.cpp

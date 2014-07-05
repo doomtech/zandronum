@@ -56,7 +56,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;game-music-emu\gme;gdtoa;bzip2;lzma\C;src\huffman;sqlite;src\win32\g15\include"
-				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,NO_MANIFEST;_DO_NOT_DECLARE_INTERLOCKED_INTRINSICS_IN_MEMORY,NO_VA_COPY;BACKPATCH"
+				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,NO_MANIFEST;_DO_NOT_DECLARE_INTERLOCKED_INTRINSICS_IN_MEMORY,NO_VA_COPY;BACKPATCH,HAVE_FLUIDSYNTH,DYN_FLUIDSYNTH"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -170,7 +170,7 @@
 				AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 				Optimization="0"
 				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;game-music-emu\gme;gdtoa;bzip2;lzma\C;src\huffman;sqlite;src\win32\g15\include"
-				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,NO_MANIFEST,NO_VA_COPY;BACKPATCH"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,NO_MANIFEST,NO_VA_COPY;BACKPATCH,HAVE_FLUIDSYNTH,DYN_FLUIDSYNTH"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
@@ -9911,6 +9911,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sound\music_fluidsynth_mididevice.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sound\music_gme.cpp"
 				>
 			</File>
@@ -9936,6 +9940,10 @@
 			</File>
 			<File
 				RelativePath=".\src\sound\music_mus_opl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sound\music_softsynth_mididevice.cpp"
 				>
 			</File>
 			<File
