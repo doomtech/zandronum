@@ -127,7 +127,7 @@ EXTERN_CVAR(Int, showendoom)
 EXTERN_CVAR(Bool, hud_althud)
 EXTERN_CVAR(Int, compatmode)
 EXTERN_CVAR (Bool, vid_vsync)
-EXTERN_CVAR(Bool, displaynametags)
+EXTERN_CVAR(Int, displaynametags)
 EXTERN_CVAR (Int, snd_channels)
 
 void StartGLMenu (void);
@@ -741,6 +741,13 @@ static value_t Contrast[] = {
 	{ 2.0, "Smooth" }
 };
 
+static value_t DisplayTagsTypes[] = {
+	{ 0.0, "None" },
+	{ 1.0, "Items" },
+	{ 2.0, "Weapons" },
+	{ 3.0, "Both" }
+};
+
 static menuitem_t VideoItems[] = {
 	{ more,		"Message Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartMessagesMenu} },
 	{ more,     "OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartGLMenu} },
@@ -774,7 +781,7 @@ static menuitem_t VideoItems[] = {
 #endif
 
 	{ discrete, "Use fake contrast",	{&r_fakecontrast},		{3.0}, {0.0},	{0.0}, {Contrast} },
-	{ discrete, "Display nametags",		{&displaynametags},		{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Display nametags",		{&displaynametags},		{4.0}, {0.0},	{0.0}, {DisplayTagsTypes} },
 };
 
 // [BB] Moved crosshair selection to the HUD menu.
