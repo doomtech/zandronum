@@ -41,7 +41,7 @@
 #endif
 #include <float.h>
 
-#ifdef unix
+#if defined(unix) || defined(__APPLE__)
 #include <unistd.h>
 #endif
 

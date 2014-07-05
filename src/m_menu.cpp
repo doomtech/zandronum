@@ -223,6 +223,7 @@ static void M_ChangeClass (int choice);
 static void M_ChangeGender (int choice);
 static void M_ChangeSkin (int choice);
 static void M_ChangeAutoAim (int choice);
+static void M_ChangeSwitchPickup (int choice);
 */
 static void PickPlayerClass ();
 
@@ -231,6 +232,7 @@ static void PickPlayerClass ();
 EXTERN_CVAR (String, playerclass)
 EXTERN_CVAR (String, name)
 EXTERN_CVAR (Int, team)
+EXTERN_CVAR(Bool, neverswitchonpickup)
 
 extern bool		sendpause;
 extern int		flagsvar;
@@ -600,7 +602,8 @@ static oldmenuitem_t PlayerSetupMenu[] =
 	{ 2,0,'t',NULL,M_ChangeClass, CR_UNTRANSLATED},
 	{ 2,0,'s',NULL,M_ChangeSkin, CR_UNTRANSLATED},
 	{ 2,0,'e',NULL,M_ChangeGender, CR_UNTRANSLATED},
-	{ 2,0,'a',NULL,M_ChangeAutoAim, CR_UNTRANSLATED}
+	{ 2,0,'a',NULL,M_ChangeAutoAim, CR_UNTRANSLATED},
+	{ 2,0,'p',NULL,M_ChangeSwitchPickup, CR_UNTRANSLATED}
 };
 
 enum
@@ -2739,6 +2742,13 @@ static bool M_PlayerSetupDrawer ()
 		autoaim <= 2 ? "High" :
 		autoaim <= 3 ? "Very High" : "Always",
 		DTA_Clean, true, TAG_DONE);
+
+	// Draw Switch on Pickup setting
+	x = SmallFont->StringWidth ("Switch on Pickup") + 8 + PSetupDef.x;
+	screen->DrawText (SmallFont, label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*9+yo, "Switch on Pickup", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (SmallFont, value, x, PSetupDef.y + LINEHEIGHT*9+yo,
+		neverswitchonpickup == false ? "Yes" : "No",
+		DTA_Clean, true, TAG_DONE);
 */
 	return false;
 }
@@ -3049,6 +3059,14 @@ static void M_ChangeAutoAim (int choice)
 	}
 
 	autoaim = aim;
+}
+
+static void M_ChangeSwitchPickup (int choice)
+{
+	if (!choice)
+		neverswitchonpickup = (neverswitchonpickup == 1) ? 0 : 1;
+	else
+		neverswitchonpickup = (neverswitchonpickup == 0) ? 1 : 0;
 }
 
 static void M_EditPlayerName (int choice)
