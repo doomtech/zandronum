@@ -1486,6 +1486,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"Invert sprite sorting",					{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SPRITESORT} },
 	{ bitflag,	"Use Doom code for hitscan checks",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_HITSCAN} },
 	{ bitflag,	"Cripple sound for silent BFG trick",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_MAGICSILENCE} },
+	{ bitflag,	"Draw polyobjects like Hexen",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_POLYOBJ} },
 	{ bitflag,	"Limited movement in the air",				{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&zacompatflags}, {0}, {0}, {0}, {(value_t *)ZACOMPATF_INSTANTRESPAWN} },

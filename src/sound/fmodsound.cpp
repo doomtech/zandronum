@@ -106,6 +106,7 @@ EXTERN_CVAR (Int, snd_buffersize)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Bool, snd_pitched)
 EXTERN_CVAR (Int, snd_channels)
+EXTERN_CVAR (String, snd_midipatchset)
 
 extern int sfx_empty;
 
@@ -120,7 +121,6 @@ CVAR (Bool, snd_waterreverb, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_resampler, "Linear", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_speakermode, "Auto", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_output_format, "PCM-16", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (String, snd_midipatchset, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, snd_profile, false, 0)
 
 // Underwater low-pass filter cutoff frequency. Set to 0 to disable the filter.
@@ -713,7 +713,8 @@ bool FMODSoundRenderer::Init()
 
 	if (!ShowedBanner)
 	{
-		Printf("FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2009.\n");
+		// '\xa9' is the copyright symbol in the Windows-1252 code page.
+		Printf("FMOD Sound System, copyright \xa9 Firelight Technologies Pty, Ltd., 1994-2009.\n");
 		Printf("Loaded FMOD version %x.%02x.%02x\n", version >> 16, (version >> 8) & 255, version & 255);
 		ShowedBanner = true;
 	}
@@ -1342,10 +1343,10 @@ FString FMODSoundRenderer::GatherStats()
 #endif
 
 	out.Format ("%d channels,"TEXTCOLOR_YELLOW"%5.2f"TEXTCOLOR_NORMAL"%% CPU "
-		"(DSP:"TEXTCOLOR_YELLOW"%2.2f"TEXTCOLOR_NORMAL"%%  "
-		"Stream:"TEXTCOLOR_YELLOW"%2.2f"TEXTCOLOR_NORMAL"%%  "
-		"Geometry:"TEXTCOLOR_YELLOW"%2.2f"TEXTCOLOR_NORMAL"%%  "
-		"Update:"TEXTCOLOR_YELLOW"%2.2f"TEXTCOLOR_NORMAL"%%)",
+		"(DSP:"TEXTCOLOR_YELLOW"%5.2f"TEXTCOLOR_NORMAL"%% "
+		"Stream:"TEXTCOLOR_YELLOW"%5.2f"TEXTCOLOR_NORMAL"%% "
+		"Geometry:"TEXTCOLOR_YELLOW"%5.2f"TEXTCOLOR_NORMAL"%% "
+		"Update:"TEXTCOLOR_YELLOW"%5.2f"TEXTCOLOR_NORMAL"%%)",
 		channels, total, dsp, stream, geometry, update);
 	return out;
 }

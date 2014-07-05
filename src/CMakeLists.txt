@@ -34,6 +34,10 @@ endif( CMAKE_SIZEOF_VOID_P MATCHES "8" )
 #   fmodapi<version>linux[64] -or simply- fmod
 #   jpeg-6b
 #   ...
+# The recommended method is to put it in the zdoom tree, since its
+# headers are unversioned. Especially now that we can't work properly
+# with anything newer than 4.26.xx, you probably don't want to use
+# a system-wide version.
 
 # Construct version numbers for searching for the FMOD library on Linux.
 set( MINOR_VERSIONS "50" "49" "48" "47" "46" "45" "44" "43" "42" "41"
@@ -294,6 +298,10 @@ else( FMOD_LIBRARY )
 endif( FMOD_LIBRARY )
 
 
+# Search for FluidSynth
+
+include( ../FindFluidSynth.cmake )
+
 # Search for NASM
 
 if( NOT NO_ASM )
@@ -442,7 +450,8 @@ endif( SSE_MATTERS )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
 	if( PROFILE )
-		set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg" )
+		set( CMAKE_C_FLinclude( FindFluidSynth.cmake )
+AGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg" )
 		set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg" )
 		set( CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -pg" )
 		set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -pg" )
@@ -548,6 +557,7 @@ add_custom_target( revision_check ALL
 
 # Libraries ZDoom needs
 
+message( STATUS "Fluid synth libs: ${FLUIDSYNTH_LIBRARIES}" )
 set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" "${BZIP2_LIBRARIES}" )
 # [BB] Without sound, we don't need FMOD.
 if ( NOT NO_SOUND )
@@ -566,6 +576,11 @@ set ( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENSSL_LIBRARIES} )
 if( APPLE )
 	include_directories( "${GLEW_INCLUDE_DIR}" )
 endif( APPLE )
+
+if( FLUIDSYNTH_FOUND )
+	set( ZDOOM_LIBS "${FLUIDSYNTH_LIBRARIES}" )
+	include_directories( "${FLUIDSYNTH_INCLUDE_DIR}" )
+endif( FLUIDSYNTH_FOUND )
 
 # Start defining source files for ZDoom
 
@@ -682,6 +697,9 @@ else( SSE_MATTERS )
 	set( X86_SOURCES )
 endif( SSE_MATTERS )
 
+if( FLUIDSYNTH_FOUND )
+	add_definitions( -DHAVE_FLUIDSYNTH )
+endif( FLUIDSYNTH_FOUND )
 
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
@@ -1039,6 +1057,7 @@ add_executable( zdoom WIN32
 	sound/music_mus_midiout.cpp
 	sound/music_mus_opl.cpp
 	sound/music_stream.cpp
+	sound/music_fluidsynth_mididevice.cpp
 	sound/music_timidity_mididevice.cpp
 	sound/music_win_mididevice.cpp
 	textures/automaptexture.cpp

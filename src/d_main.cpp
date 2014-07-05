@@ -138,6 +138,7 @@
 #include "compatibility.h"
 #include "m_joy.h"
 #include "sc_man.h"
+#include "po_man.h"
 #include "resourcefiles/resourcefile.h"
 #include "r_3dfloors.h"
 
@@ -592,7 +593,12 @@ static int GetCompatibility(int mask)
 // [BB] Removed the CVAR_ARCHIVE flag.
 CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 {
+	int old = i_compatflags;
 	i_compatflags = GetCompatibility(self) | ii_compatflags;
+	if ((old ^i_compatflags) & COMPATF_POLYOBJ)
+	{
+		FPolyObj::ClearAllSubsectorLinks();
+	}
 
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
@@ -694,6 +700,7 @@ CVAR (Flag, compat_noblockfriends,compatflags,COMPATF_NOBLOCKFRIENDS);
 CVAR (Flag, compat_spritesort,	compatflags,COMPATF_SPRITESORT);
 CVAR (Flag, compat_hitscan,		compatflags,COMPATF_HITSCAN);
 CVAR (Flag, compat_light,		compatflags,COMPATF_LIGHT);
+CVAR (Flag, compat_polyobj,		compatflags,COMPATF_POLYOBJ);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, zacompatflags, ZACOMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	zacompatflags, ZACOMPATF_PLASMA_BUMP_BUG);
