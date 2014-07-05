@@ -1431,8 +1431,8 @@ void P_LoadSubsectors (MapData * map)
 		if ((size_t)subsectors[i].firstline >= maxseg)
 		{
 			Printf ("Subsector %d contains invalid segs %u-%u\n"
-				"The BSP will be rebuilt.\n", i, (unsigned)subsectors[i].firstline,
-				(unsigned)subsectors[i].firstline + subsectors[i].numlines - 1);
+				"The BSP will be rebuilt.\n", i, (unsigned)((size_t)subsectors[i].firstline),
+				(unsigned)((size_t)subsectors[i].firstline) + subsectors[i].numlines - 1);
 			ForceNodeBuild = true;
 			delete[] nodes;
 			delete[] subsectors;
@@ -1442,7 +1442,7 @@ void P_LoadSubsectors (MapData * map)
 		{
 			Printf ("Subsector %d contains invalid segs %u-%u\n"
 				"The BSP will be rebuilt.\n", i, maxseg,
-				(unsigned)subsectors[i].firstline + subsectors[i].numlines - 1);
+				(unsigned)((size_t)subsectors[i].firstline) + subsectors[i].numlines - 1);
 			ForceNodeBuild = true;
 			delete[] nodes;
 			delete[] subsectors;
@@ -2287,10 +2287,11 @@ static void P_LoopSidedefs ()
 {
 	int i;
 
-	if (sidetemp == NULL)
+	if (sidetemp != NULL)
 	{
-		sidetemp = new sidei_t[MAX(numvertexes, numsides)];
+		delete[] sidetemp;
 	}
+	sidetemp = new sidei_t[MAX(numvertexes, numsides)];
 
 	for (i = 0; i < numvertexes; ++i)
 	{

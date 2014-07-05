@@ -1181,6 +1181,30 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	flags&=~GLT_CLAMPY;
 }
 
+
+//==========================================================================
+//
+// 
+//
+//==========================================================================
+
+__forceinline void GLWall::GetPlanePos(F3DFloor::planeref *planeref, int &left, int &right)
+{
+	if (planeref->plane->a | planeref->plane->b)
+	{
+		left=planeref->plane->ZatPoint(vertexes[0]);
+		right=planeref->plane->ZatPoint(vertexes[1]);
+	}
+	else if(planeref->isceiling == sector_t::ceiling)
+	{
+		left = right = planeref->plane->d;
+	}
+	else
+	{
+		left = right = -planeref->plane->d;
+	}
+}
+
 //==========================================================================
 //
 // 
@@ -1204,25 +1228,8 @@ void GLWall::InverseFloors(seg_t * seg, sector_t * frontsector,
 		fixed_t ff_bottomleft;
 		fixed_t ff_bottomright;
 
-		if (rover->top.plane->a | rover->top.plane->b)
-		{
-			ff_topleft=rover->top.plane->ZatPoint(vertexes[0]);
-			ff_topright=rover->top.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_topleft = ff_topright = *rover->top.texheight;
-		}
-
-		if (rover->bottom.plane->a | rover->bottom.plane->b)
-		{
-			ff_bottomleft=rover->bottom.plane->ZatPoint(vertexes[0]);
-			ff_bottomright=rover->bottom.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_bottomleft = ff_bottomright = *rover->bottom.texheight;
-		}
+		GetPlanePos(&rover->top, ff_topleft, ff_topright);
+		GetPlanePos(&rover->bottom, ff_bottomleft, ff_bottomright);
 
 		// above ceiling
 		if (ff_bottomleft>topleft && ff_bottomright>topright) continue;
@@ -1274,31 +1281,15 @@ void GLWall::ClipFFloors(seg_t * seg, F3DFloor * ffloor, sector_t * frontsector,
 		fixed_t ff_bottomleft;
 		fixed_t ff_bottomright;
 
-		if (rover->top.plane->a | rover->top.plane->b)
-		{
-			ff_topleft=rover->top.plane->ZatPoint(vertexes[0]);
-			ff_topright=rover->top.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_topleft = ff_topright = *rover->top.texheight;
-		}
+		GetPlanePos(&rover->top, ff_topleft, ff_topright);
 
 		// we are completely below the bottom so unless there are some
 		// (unsupported) intersections there won't be any more floors that
 		// could clip this one.
 		if (ff_topleft<bottomleft && ff_topright<bottomright) goto done;
 
-		if (rover->bottom.plane->a | rover->bottom.plane->b)
-		{
-			ff_bottomleft=rover->bottom.plane->ZatPoint(vertexes[0]);
-			ff_bottomright=rover->bottom.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_bottomleft = ff_bottomright = *rover->bottom.texheight;
-		}
-		// above top line
+		GetPlanePos(&rover->bottom, ff_bottomleft, ff_bottomright);
+		// above top line?
 		if (ff_bottomleft>topleft && ff_bottomright>topright) continue;
 
 		// overlapping the top line
@@ -1388,26 +1379,8 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 		fixed_t ff_bottomleft;
 		fixed_t ff_bottomright;
 
-		if (rover->top.plane->a | rover->top.plane->b)
-		{
-			ff_topleft=rover->top.plane->ZatPoint(vertexes[0]);
-			ff_topright=rover->top.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_topleft = ff_topright = *rover->top.texheight;
-		}
-
-		if (rover->bottom.plane->a | rover->bottom.plane->b)
-		{
-			ff_bottomleft=rover->bottom.plane->ZatPoint(vertexes[0]);
-			ff_bottomright=rover->bottom.plane->ZatPoint(vertexes[1]);
-		}
-		else
-		{
-			ff_bottomleft = ff_bottomright = *rover->bottom.texheight;
-		}
-
+		GetPlanePos(&rover->top, ff_topleft, ff_topright);
+		GetPlanePos(&rover->bottom, ff_bottomleft, ff_bottomright);
 
 		// completely above ceiling
 		if (ff_bottomleft>topleft && ff_bottomright>topright && !renderedsomething) continue;
@@ -1461,7 +1434,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==7013)
+	if (seg->linedef-lines==8)
 		__asm nop
 #endif
 #endif
@@ -1667,12 +1640,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 
 		/* mid texture */
-
-		// in all other cases this might create more problems than it solves.
-		bool drawfogboundary=((frontsector->ColorMap->Fade&0xffffff)!=0 && 
-							(backsector->ColorMap->Fade&0xffffff)==0 &&
-							!gl_fixedcolormap &&
-							(frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum));
+		bool drawfogboundary = gl_CheckFog(frontsector, backsector);
 
 		gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
 		if (gltexture || drawfogboundary)

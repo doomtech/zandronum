@@ -755,7 +755,8 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 		if (player->bonuscount)
 		{
 			cnt = player->bonuscount << 3;
-			DBaseStatusBar::AddBlend (0.8431f, 0.7333f, 0.2706f, cnt > 128 ? 0.5f : cnt / 256.f, blend);
+			DBaseStatusBar::AddBlend (RPART(gameinfo.pickupcolor)/255.f, GPART(gameinfo.pickupcolor)/255.f, 
+						BPART(gameinfo.pickupcolor)/255.f, cnt > 128 ? 0.5f : cnt / 255.f, blend);
 		}
 		
 		if (player->mo->DamageFade.a != 0)
@@ -791,7 +792,7 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 			DBaseStatusBar::AddBlend (0.25f, 0.25f, 0.853f, 0.4f, blend);
 		}
 
-		// translucency may not go below 50%!
+		// translucency may not go below 50%
 		if (blend[3] > maxinvalpha) blend[3] = maxinvalpha;
 	}
 	

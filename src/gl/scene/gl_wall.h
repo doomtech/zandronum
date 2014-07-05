@@ -188,6 +188,8 @@ private:
 					  fixed_t fch1, fixed_t fch2, fixed_t ffh1, fixed_t ffh2,
 					  fixed_t bch1, fixed_t bch2, fixed_t bfh1, fixed_t bfh2);
 
+	void GetPlanePos(F3DFloor::planeref *planeref, int &left, int &right);
+
 	void BuildFFBlock(seg_t * seg, F3DFloor * rover,
 					  fixed_t ff_topleft, fixed_t ff_topright, 
 					  fixed_t ff_bottomleft, fixed_t ff_bottomright);
@@ -275,7 +277,7 @@ public:
 	void DrawSubsectorLights(subsector_t * sub, int pass);
 	void DrawSubsectors(int pass, bool istrans);
 
-	void PutFlat(bool fog = false);
+	void PutFlat(sector_t *sec, bool fog = false);
 	void Process(sector_t * sector, int whichplane, bool notexture);
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);

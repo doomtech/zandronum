@@ -50,6 +50,7 @@
 #include "c_dispatch.h"
 #include "p_local.h"
 #include "g_level.h"
+#include "r_sky.h"
 
 // [BB] New #includes.
 #include "gl/gl_functions.h"
@@ -203,7 +204,7 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 {
 	fogdensity=_fogdensity;
 	outsidefogcolor=_outsidefogcolor;
-	outsidefogdensity=_outsidefogdensity? _outsidefogdensity : _fogdensity? _fogdensity:70;
+	outsidefogdensity=_outsidefogdensity;
 	skyfog=_skyfog;
 
 	outsidefogdensity>>=1;
@@ -375,7 +376,7 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 		// case 1: black fog
 		density=distfogtable[glset.lightmode!=0][lightlevel];
 	}
-	else if (outsidefogcolor.a!=0xff && (fogcolor.d & 0xffffff) == (outsidefogcolor.d & 0xffffff))
+	else if (outsidefogdensity != 0 && outsidefogcolor.a!=0xff && (fogcolor.d & 0xffffff) == (outsidefogcolor.d & 0xffffff))
 	{
 		// case 2. outsidefogdensity has already been set as needed
 		density=outsidefogdensity;
@@ -385,14 +386,79 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 		// case 3: level has fog density set
 		density=fogdensity;
 	}
-	else 
+	else if (lightlevel < 248)
 	{
 		// case 4: use light level
 		density=clamp<int>(255-lightlevel,30,255);
 	}
+	else 
+	{
+		density = 0.f;
+	}
 	return density;
 }
 
+
+//==========================================================================
+//
+// Check if the current linedef is a candidate for a fog boundary
+//
+//==========================================================================
+
+bool gl_CheckFog(sector_t *frontsector, sector_t *backsector)
+{
+	// Check for fog boundaries. This needs a few more checks for the sectors
+	bool frontfog, backfog;
+
+	PalEntry fogcolor = frontsector->ColorMap->Fade;
+
+	if ((fogcolor.d & 0xffffff) == 0)
+	{
+		frontfog = false;
+	}
+	else if (outsidefogdensity != 0 && outsidefogcolor.a!=0xff && (fogcolor.d & 0xffffff) == (outsidefogcolor.d & 0xffffff))
+	{
+		frontfog = true;
+	}
+	else  if (fogdensity!=0)
+	{
+		// case 3: level has fog density set
+		frontfog = true;
+	}
+	else 
+	{
+		// case 4: use light level
+		frontfog = frontsector->lightlevel < 248;
+	}
+
+	if (backsector == NULL) return frontfog;
+
+	fogcolor = backsector->ColorMap->Fade;
+
+	if ((fogcolor.d & 0xffffff) == 0)
+	{
+		backfog = false;
+	}
+	else if (outsidefogdensity != 0 && outsidefogcolor.a!=0xff && (fogcolor.d & 0xffffff) == (outsidefogcolor.d & 0xffffff))
+	{
+		backfog = true;
+	}
+	else  if (fogdensity!=0)
+	{
+		// case 3: level has fog density set
+		backfog = true;
+	}
+	else 
+	{
+		// case 4: use light level
+		backfog = backsector->lightlevel < 248;
+	}
+
+	// in all other cases this might create more problems than it solves.
+	return (frontfog && !backfog && !gl_fixedcolormap &&
+			(frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || 
+			 backsector->GetTexture(sector_t::ceiling)!=skyflatnum));
+}
 
 //==========================================================================
 //

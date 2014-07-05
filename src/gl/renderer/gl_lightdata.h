@@ -19,6 +19,8 @@ void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, Pal
 void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor=0xffffff, bool weapon=false);
 
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
+struct sector_t;
+bool gl_CheckFog(sector_t *frontsector, sector_t *backsector);
 
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cm, bool isadditive);
 
