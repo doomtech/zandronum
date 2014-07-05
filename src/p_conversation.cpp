@@ -980,9 +980,10 @@ static bool DrawConversationMenu ()
 		{
 			int x = (CurrentMenu->indent + 3 - 160) * CleanXfac + screen->GetWidth() / 2;
 			int yy = (y-1+labelofs - 100) * CleanYfac + screen->GetHeight() / 2;
+			// [BB] Using Skulltag's increased precision of CleanXfac/CleanYfac is wrong here.
 			screen->DrawText (ConFont, CR_RED, x, yy, "\xd",
-				DTA_CellX, 8 * CleanXfac,
-				DTA_CellY, 8 * CleanYfac,
+				DTA_CellX, 8 * static_cast<int>(CleanXfac),
+				DTA_CellY, 8 * static_cast<int>(CleanYfac),
 				TAG_DONE);
 		}
 	}
