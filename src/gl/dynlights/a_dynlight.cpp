@@ -97,7 +97,7 @@ void AVavoomLight::BeginPlay ()
 
 void AVavoomLightWhite::BeginPlay ()
 {
-	m_intensity[0] = args[0];
+	m_intensity[0] = args[0] * 4;
 	args[LIGHT_RED] = 128;
 	args[LIGHT_GREEN] = 128;
 	args[LIGHT_BLUE] = 128;
@@ -110,7 +110,7 @@ void AVavoomLightColor::BeginPlay ()
 	int l_args[5];
 	memcpy(l_args, args, sizeof(l_args));
 	memset(args, 0, 5);
-	m_intensity[0] = l_args[0]*4;
+	m_intensity[0] = l_args[0] * 4;
 	args[LIGHT_RED] = l_args[1] >> 1;
 	args[LIGHT_GREEN] = l_args[2] >> 1;
 	args[LIGHT_BLUE] = l_args[3] >> 1;

@@ -4192,7 +4192,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// If the nodes being loaded are not GL nodes the GL renderer needs to create a second set of nodes.
 	// The originals have to be kept for use by P_PointInSubsector.
-	gl_CheckNodes(map, ForceNodeBuild, endTime - startTime);
+	ForceNodeBuild = gl_CheckNodes(map, ForceNodeBuild, endTime - startTime);
 
 	times[10].Clock();
 	P_LoadBlockMap (map);
@@ -4308,6 +4308,7 @@ void P_SetupLevel (char *lumpname, int position)
 	P_RemoveThings( );
 
 	times[16].Clock();
+	if (ForceNodeBuild) P_LoopSidedefs ();
 	PO_Init ();	// Initialize the polyobjs
 	times[16].Unclock();
 

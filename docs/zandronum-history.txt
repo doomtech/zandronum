@@ -15,7 +15,7 @@
 2.0
 ---
 
-*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 2509 / GZDoom SVN revision 880 [Torr Samaho]
+*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 2509 / GZDoom SVN revision 885 [Torr Samaho]
 *+	- Added quad-buffered stereo / 3D Vision support to the GL renderer (minimal invasive implementation based on biospud's GZ3Doom). [Torr Samaho]
 +	- Added the OS used to the version string the server sends to the launchers (adapted form Konar6's kpatch). [Torr Samaho]
 +	- When a banned client is prevented from connecting, the ban reason (if specified in the banlist) is logged to the server console (adapted form Konar6's kpatch). [Torr Samaho]

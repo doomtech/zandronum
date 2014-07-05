@@ -919,8 +919,9 @@ bool gl_LoadGLNodes(MapData * map)
 //
 //==========================================================================
 
-void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
+bool gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 {
+	bool ret = false;
 	// Save the old nodes so that R_PointInSubsector can use them
 	// Unfortunately there are some screwed up WADs which can not
 	// be reliably processed by the internal node builder
@@ -940,6 +941,7 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 	// If the map loading code has performed a node rebuild we don't need to check for it again.
 	if (!rebuilt && !gl_CheckForGLNodes())
 	{
+		ret = true;	// we are not using the level's original nodes if we get here.
 		for (int i = 0; i < numsubsectors; i++)
 		{
 			gamesubsectors[i].sector = gamesubsectors[i].firstline->sidedef->sector;
@@ -983,7 +985,7 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 	}
 
 #ifdef DEBUG
-	// Building nodes in debug is much slower so let's cache them only if gl_cachenides is on
+	// Building nodes in debug is much slower so let's cache them only if gl_cachenodes is on
 	buildtime = 0;
 #endif
 	if (gl_cachenodes && buildtime/1000.f >= gl_cachetime)
@@ -1004,6 +1006,7 @@ void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 		gamesubsectors = subsectors;
 		numgamesubsectors = numsubsectors;
 	}
+	return ret;
 }
 
 //==========================================================================

@@ -38,7 +38,7 @@ void gl_DeleteAllAttachedLights();
 void gl_RecreateAllAttachedLights();
 void gl_ParseDefs();
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
-void gl_CheckNodes(MapData * map, bool rebuilt, int buildtime);
+bool gl_CheckNodes(MapData * map, bool rebuilt, int buildtime);
 bool gl_LoadGLNodes(MapData * map);
 
 
