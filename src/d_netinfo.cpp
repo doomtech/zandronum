@@ -256,27 +256,6 @@ int D_PlayerClassToInt (const char *classname)
 
 void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet **set)
 {
-	// [Dusk] The user can override these colors.
-	int cameraplayer;
-	if (( NETWORK_GetState() != NETSTATE_SERVER ) &&
-		( cl_overrideplayercolors ) &&
-		( players[consoleplayer].camera != NULL ) &&
-		( PLAYER_IsValidPlayerWithMo( cameraplayer = players[consoleplayer].camera->player - players )) &&
-		( PLAYER_IsValidPlayerWithMo( player )) &&
-		( players[cameraplayer].bSpectating == false ))
-	{
-		bool isally = players[cameraplayer].mo->IsTeammate( players[player].mo );
-
-		if ((( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == 0 ) ||
-			( TEAM_GetNumAvailableTeams() <= 2 ) ||
-			( isally ))
-		{
-			int color = isally ? cl_allycolor : cl_enemycolor;
-			RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
-			return;
-		}
-	}
-
 	userinfo_t *info = &players[player].userinfo;
 	FPlayerColorSet *colorset = NULL;
 	int color;
@@ -352,6 +331,26 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 			*v = *v*0.4f+0.3f;
 		}
 */
+	}
+
+	// [Dusk] The user can override these colors.
+	int cameraplayer;
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) &&
+		( cl_overrideplayercolors ) &&
+		( players[consoleplayer].camera != NULL ) &&
+		( PLAYER_IsValidPlayerWithMo( cameraplayer = players[consoleplayer].camera->player - players )) &&
+		( PLAYER_IsValidPlayerWithMo( player )) &&
+		( players[cameraplayer].bSpectating == false ))
+	{
+		bool isally = players[cameraplayer].mo->IsTeammate( players[player].mo );
+
+		if ((( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == 0 ) ||
+			( TEAM_GetNumAvailableTeams() <= 2 ) ||
+			( isally ))
+		{
+			int color = isally ? cl_allycolor : cl_enemycolor;
+			RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
+		}
 	}
 }
 
