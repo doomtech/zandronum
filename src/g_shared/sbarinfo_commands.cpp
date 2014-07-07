@@ -1642,6 +1642,8 @@ class CommandAspectRatio : public SBarInfoCommandFlowControl
 		}
 		void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged)
 		{
+			SBarInfoCommandFlowControl::Tick(block, statusBar, hudChanged);
+
 			SetTruth(CheckRatio(screen->GetWidth(), screen->GetHeight()) == ratio, block, statusBar);
 		}
 	protected:
