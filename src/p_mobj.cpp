@@ -5537,6 +5537,9 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	mobj->tid = mthing->thingid;
 	mobj->AddToHash ();
 
+	// [Dusk] Save TID for map resets.
+	mobj->SavedTID = mobj->tid;
+
 	mobj->angle = (DWORD)((mthing->angle * UCONST64(0x100000000)) / 360);
 	mobj->BeginPlay ();
 	if (!(mobj->ObjectFlags & OF_EuthanizeMe))

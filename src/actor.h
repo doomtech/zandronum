@@ -851,6 +851,7 @@ public:
 	BYTE			SavedSpecial;	// [BC] Saved actor special for when a map gets reset.
 	int				args[5];		// special arguments
 	int				SavedArgs[5];	// [Dusk] More map reset stuff
+	int				SavedTID;		// [Dusk]
 
 	AActor			*inext, **iprev;// Links to other mobjs in same bucket
 	TObjPtr<AActor> goal;			// Monster's goal if not chasing anything
