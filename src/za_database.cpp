@@ -68,6 +68,13 @@ CUSTOM_CVAR( String, databasefile, ":memory:", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 	DATABASE_Init ( );
 }
 
+// [BB] The max page count allows to limit the size of the database.
+CUSTOM_CVAR( Int, database_maxpagecount, 32768, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+{
+	if ( DATABASE_IsAvailable() )
+		DATABASE_SetMaxPageCount ( self );
+}
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -142,6 +149,11 @@ public:
 	{
 		return sqlite3_column_text ( _stmt, ColumnIndex );
 	}
+
+	int getInteger ( const int ColumnIndex )
+	{
+		return sqlite3_column_int ( _stmt, ColumnIndex );
+	}
 };
 
 //*****************************************************************************
@@ -209,6 +221,9 @@ void DATABASE_Init ( void )
 
 	// [BB] Make sure we have a table.
 	DATABASE_CreateTable ( );
+
+	// [BB] Now that the database is ready, we can set the max page count.
+	DATABASE_SetMaxPageCount ( database_maxpagecount );
 }
 
 //*****************************************************************************
@@ -220,6 +235,17 @@ bool DATABASE_IsAvailable ( const char *CallingFunction )
 		Printf ( "%s error: No database.\n", CallingFunction );
 
 	return available;
+}
+
+//*****************************************************************************
+//
+void DATABASE_SetMaxPageCount ( const unsigned int MaxPageCount )
+{
+	FString commandString;
+	// [BB] Binding MaxPageCount to the query doesn't seem to work, so
+	// we'll have to use this workaround.
+	commandString.Format ( "PRAGMA max_page_count=%d", MaxPageCount );
+	database_ExecuteCommand ( commandString.GetChars() );
 }
 
 //*****************************************************************************
@@ -446,6 +472,66 @@ void DATABASE_SaveIncrementEntryInt ( const char *Namespace, const char *EntryNa
 		newVal.AppendFormat ( "%d", Increment );
 		DATABASE_AddEntry ( Namespace, EntryName, newVal.GetChars() );
 	}
+}
+
+//*****************************************************************************
+//
+int DATABASE_GetEntryRank ( const char *Namespace, const char *EntryName, const bool Descending )
+{
+	if ( DATABASE_IsAvailable ( "DATABASE_GetEntryRank" ) == false )
+		return -1;
+
+	if ( DATABASE_EntryExists ( Namespace, EntryName ) )
+	{
+		// [BB] To get the rank of a certain entry, we get the value of the entry,
+		// count how many values are lower (or higher) than the value and return
+		// the count + 1.
+		FString commandString;
+		commandString.Format ( "SELECT COUNT(*) from "TABLENAME" WHERE Namespace=?1 AND CAST(Value AS INTEGER)" );
+		commandString += Descending ? ">" : "<";
+		commandString += ( "(SELECT CAST(Value AS INTEGER) FROM "TABLENAME" WHERE Namespace=?2 AND KeyName=?3)" );
+		DataBaseCommand cmd ( commandString.GetChars() );
+		cmd.bindString ( 1, Namespace );
+		cmd.bindString ( 2, Namespace );
+		cmd.bindString ( 3, EntryName );
+		cmd.step( );
+		const int res = cmd.getInteger(0) + 1 ;
+		return res;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+//*****************************************************************************
+//
+int DATABASE_GetSortedEntries ( const char *Namespace, const int N, const int Offset, const bool Descending, TArray<std::pair<FString, FString> > &Entries )
+{
+	if ( DATABASE_IsAvailable ( "DATABASE_GetSortedEntryAsPair" ) == false )
+	{
+		Entries.Clear();
+		return 0;
+	}
+
+	FString commandString;
+	commandString.Format ( "SELECT * from "TABLENAME" WHERE Namespace=?1 ORDER BY CAST(Value AS INTEGER) " );
+	commandString += Descending ? "DESC" : "ASC";
+	commandString += " LIMIT ?2 OFFSET ?3";
+	DataBaseCommand cmd ( commandString.GetChars() );
+	cmd.bindString ( 1, Namespace );
+	cmd.bindInt ( 2, N );
+	cmd.bindInt ( 3, Offset );
+	while ( cmd.step( ) )
+	{
+		std::pair<FString, FString> value;
+		value.first.Format ( "%s", cmd.getText(1) );
+		value.second.Format ( "%s", cmd.getText(2) );
+		Entries.Push ( value );
+	}
+	cmd.finalize();
+
+	return Entries.Size();
 }
 
 //*****************************************************************************

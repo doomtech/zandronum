@@ -87,6 +87,9 @@
 
 #include "g_shared/a_pickups.h"
 
+// [BB] A std::pair inside TArray inside TArray didn't seem to work.
+std::vector<TArray<std::pair<FString, FString> > > g_dbQueries;
+
 extern FILE *Logfile;
 
 FRandom pr_acs ("ACS");
@@ -212,6 +215,10 @@ void P_ClearACSVars(bool alsoglobal)
 		{
 			ACS_GlobalArrays[i].Clear ();
 		}
+
+		// [BB] When the global vars are cleared, our query handles surely shouldn't
+		// be needed anymore. So clear them in case mods forgot to do so.
+		g_dbQueries.clear();
 	}
 }
 
@@ -3441,6 +3448,14 @@ enum EACSFunctions
 	ACSF_IncrementDBEntry,
 	ACSF_PlayerIsLoggedIn,
 	ACSF_GetPlayerAccountName,
+	ACSF_SortDBEntries,
+	ACSF_CountDBResults,
+	ACSF_FreeDBResults,
+	ACSF_GetDBResultKeyString,
+	ACSF_GetDBResultValueString,
+	ACSF_GetDBResultValue,
+	ACSF_GetDBEntryRank,
+
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
 };
@@ -3807,6 +3822,72 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				}
 				return ACS_PushAndReturnDynamicString ( work );
 			}
+
+		case ACSF_SortDBEntries:
+			{
+				g_dbQueries.resize ( g_dbQueries.size() + 1 );
+				DATABASE_GetSortedEntries ( FBehavior::StaticLookupString(args[0]), args[1], args[2], !!(args[3]), g_dbQueries.back() );
+				return ( g_dbQueries.size() - 1 );
+			}
+
+		case ACSF_CountDBResults:
+			{
+				const unsigned int handle = static_cast<unsigned int> ( args[0] );
+				if ( handle < g_dbQueries.size() )
+					return g_dbQueries[handle].Size();
+				else
+					return -1;
+			}
+
+		case ACSF_FreeDBResults:
+			{
+				const unsigned int handle = static_cast<unsigned int> ( args[0] );
+				if ( handle < g_dbQueries.size() )
+				{
+					g_dbQueries[handle].Clear();
+					if ( handle == ( g_dbQueries.size() - 1 ) )
+						g_dbQueries.resize ( g_dbQueries.size() - 1 );
+				}
+			}
+
+		case ACSF_GetDBResultKeyString:
+		case ACSF_GetDBResultValueString:
+			{
+				FString work;
+
+				const unsigned int handle = static_cast<unsigned int> ( args[0] );
+				if ( handle < g_dbQueries.size() )
+				{
+					const unsigned int index = static_cast<unsigned int> ( args[1] );
+					if ( index < g_dbQueries[handle].Size() )
+					{
+						if ( funcIndex == ACSF_GetDBResultKeyString )
+							work = g_dbQueries[handle][index].first;
+						else
+							work = g_dbQueries[handle][index].second;
+					}
+					else
+						work = "Invalid index";
+				}
+				else
+					work = "Invalid handle";
+				return ACS_PushAndReturnDynamicString ( work );
+			}
+
+		case ACSF_GetDBResultValue:
+			{
+				const unsigned int handle = static_cast<unsigned int> ( args[0] );
+				if ( handle < g_dbQueries.size() )
+				{
+					const unsigned int index = static_cast<unsigned int> ( args[1] );
+					if ( index < g_dbQueries[handle].Size() )
+						return ( g_dbQueries[handle][index].second.ToLong() );
+				}
+				return 0;
+			}
+
+		case ACSF_GetDBEntryRank:
+			return DATABASE_GetEntryRank ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), !!(args[2]) );
 
 		default:
 			break;
