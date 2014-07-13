@@ -101,7 +101,7 @@ static FRandom	g_JoinTeamSeed( "JoinTeamSeed" );
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( Bool, sv_forcerandomclass, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_forcerandomclass, false, 0 )
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -1851,8 +1851,8 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 	if ( pPlayer->userinfo.PlayerClass == -1 )
 		return;
 
-	// [BB] The additional checks prevent this from being done while the map is loaded.
-	const bool forcerandom = ( sv_forcerandomclass && ( gameaction == ga_nothing ) && PLAYER_IsValidPlayer ( static_cast<ULONG> ( pPlayer - players ) ) );
+	// [BB] The additional checks prevent this from being done when there is only one class and while the map is loaded.
+	const bool forcerandom = ( sv_forcerandomclass && (PlayerClasses.Size () > 1) && ( gameaction == ga_nothing ) && PLAYER_IsValidPlayer ( static_cast<ULONG> ( pPlayer - players ) ) );
 
 	// [BB] The class is valid, nothing to do.
 	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) && ( ( forcerandom == false ) || ( pPlayer->userinfo.PlayerClass == -1 ) ) )

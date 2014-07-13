@@ -4739,7 +4739,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		playernum = p - players;
 
 	// [BB] Make sure that the player only uses a class available to his team.
-	TEAM_EnsurePlayerHasValidClass ( p );
+	if ( tempplayer == false )
+		TEAM_EnsurePlayerHasValidClass ( p );
 
 	// [BB] We may not filter coop inventory if the player changed the player class.
 	// Thus we need to keep track of the old class.
