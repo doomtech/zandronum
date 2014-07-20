@@ -269,6 +269,8 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 
 					SERVER_AUTH_SRPMessage ( SERVER_AUTH_SRP_STEP_ONE, sessionID, SERVER_GetClient(clientID)->bytesA );
 				}
+				else
+					Printf ( "AUTH_SERVER_NEGOTIATE: Can't find client with username '%s'.\n", username.GetChars() );
 			}
 			break;
 		case AUTH_SERVER_SRP_STEP_TWO:
@@ -343,6 +345,8 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 					SERVER_InitClientSRPData ( clientID );
 					SERVER_PrintfPlayer( PRINT_HIGH, clientID, "User authentication failed! %s", errorMessage.GetChars() );
 				}
+				else
+					Printf ( "AUTH_SERVER_USER_ERROR: Can't find client with username '%s'.\n", username.GetChars() );
 			}
 			break;
 		case AUTH_SERVER_SESSION_ERROR:
