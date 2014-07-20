@@ -5008,7 +5008,7 @@ static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 	const ULONG ticLength = 1000 / TICRATE;
 	player_t *p = &players[g_lCurrentClient];
 	// [BB] Lag spike, reset the averaging.
-	if ( labs (currentPing - p->ulPing) > 3.5 * ticLength )
+	if ( labs (static_cast<int>(currentPing) - static_cast<int>(p->ulPing)) > 3.5 * ticLength )
 	{
 		p->ulPing = currentPing;
 		p->ulPingAverages = 0;
