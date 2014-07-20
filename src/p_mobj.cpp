@@ -5020,7 +5020,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		playernum = p - players;
 
 	// [BB] Make sure that the player only uses a class available to his team.
-	TEAM_EnsurePlayerHasValidClass ( p );
+	if ( tempplayer == false )
+		TEAM_EnsurePlayerHasValidClass ( p );
 
 	// [BB] We may not filter coop inventory if the player changed the player class.
 	// Thus we need to keep track of the old class.
@@ -5821,6 +5822,9 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	// [RH] Add ThingID to mobj and link it in with the others
 	mobj->tid = mthing->thingid;
 	mobj->AddToHash ();
+
+	// [Dusk] Save TID for map resets.
+	mobj->SavedTID = mobj->tid;
 
 	mobj->PrevAngle = mobj->angle = (DWORD)((mthing->angle * UCONST64(0x100000000)) / 360);
 	mobj->BeginPlay ();

@@ -31,12 +31,19 @@
 1.3
 ---
 
-*+	- Added persistent storage based on an SQLite3 database. The new CVAR databasefile controls where the database is saved (defaults to ":memory:", i.e. volatile in-memory database). The new ACS functions
-        void SetDBEntry ( string Namespace, string EntryName, int EntryValue )
-        int GetDBEntry ( string Namespace, string EntryName ),
-        void SetDBEntryString ( string Namespace, string EntryName, string EntryValue )
-        string GetDBEntryString (string Namespace, string EntryName )
-        void IncrementDBEntry ( string Namespace, string EntryName, int Increment )
+*+	- Added persistent storage based on an SQLite3 database. The new CVAR databasefile controls where the database is saved (defaults to ":memory:", i.e. volatile in-memory database) and the new CVAR database_maxpagecount (defaults to 32768) controls the maximal allowed size in pages of the database. The new ACS functions
+        void SetDBEntry ( string Namespace, string Key, int Value )
+        int GetDBEntry ( string Namespace, string Key ),
+        void SetDBEntryString ( string Namespace, string Key, string Value )
+        string GetDBEntryString (string Namespace, string Key )
+        void IncrementDBEntry ( string Namespace, string Key, int Increment )
+        int SortDBEntries ( string Namespace, int Limit, int Offset, bool Descending )
+        int CountDBResults ( int Handle )
+        void FreeDBResults ( int Handle )
+        string GetDBResultKeyString ( int Handle, Index )
+        string GetDBResultValueString ( int Handle, Index )
+        int GetDBResultValue ( int Handle, Index )
+        int GetDBEntryRank ( string Namespace, string Key, bool Descending )
       allow mods to access the underlying database. [Torr Samaho]
 *+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
 		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
@@ -100,6 +107,7 @@
 -	- Fixed: turn180 did not work as a spectator. [Dusk]
 -	- Fixed: Gravity was applied twice in one tic when running off a cliff with compat_123b33jumpphysics enabled when it shouldn't be. [AlexMax]
 -	- Fixed: Some ordinals weren't written correctly in the spectator queue message. [Esum]
+-	- Fixed: Non-interacting actors like map spots would have their TIDs reset to 0 on map resets. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]

@@ -3747,7 +3747,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				pNewActor->SpawnAngle = pActor->SpawnAngle;
 				pNewActor->SpawnFlags = pActor->SpawnFlags;
 				pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
-				pNewActor->tid = pActor->tid;
+				pNewActor->tid = pActor->SavedTID;
+				pNewActor->SavedTID = pActor->SavedTID;
 				pNewActor->special = pActor->SavedSpecial;
 				pNewActor->SavedSpecial = pActor->SavedSpecial;
 				for ( int i = 0; i < 5; ++i )
@@ -3816,6 +3817,13 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			if ( pActor->CountsAsKill( ) && !(pActor->flags & MF_FRIENDLY) )
 				level.total_monsters++;
 
+			// [Dusk] The TID may have changed, update that.
+			if ( pActor->tid != pActor->SavedTID )
+			{
+				pActor->RemoveFromHash();
+				pActor->tid = pActor->SavedTID;
+				pActor->AddToHash();
+			}
 			continue;
 		}
 
@@ -3876,7 +3884,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			// require this to be true.
 			P_FindFloorCeiling ( pNewActor, pNewActor->Sector ? !(pNewActor->Sector->e->XFloor.ffloors.Size()) : true );
 			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
-			pNewActor->tid = pActor->tid;
+			pNewActor->tid = pActor->SavedTID;
+			pNewActor->SavedTID = pActor->SavedTID;
 			pNewActor->special = pActor->SavedSpecial;
 			pNewActor->SavedSpecial = pActor->SavedSpecial;
 			for ( int i = 0; i < 5; ++i )
