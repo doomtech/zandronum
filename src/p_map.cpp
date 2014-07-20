@@ -2243,6 +2243,22 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				return false;
 			}
 		}
+		/* [BB] Zandronum doesn't use ZDoom's bot code.
+		//Added by MC: To prevent bot from getting into dangerous sectors.
+		if (thing->player && thing->player->isbot && thing->flags & MF_SHOOTABLE)
+		{
+			if (tm.sector != thing->Sector
+				&& bglobal.IsDangerous (tm.sector))
+			{
+				thing->player->prev = thing->player->dest;
+				thing->player->dest = NULL;
+				thing->velx = 0;
+				thing->vely = 0;
+				thing->z = oldz;
+				return false;
+			}
+		} 
+		*/
 	}
 
 	// [RH] Check status of eyes against fake floor/ceiling in case
