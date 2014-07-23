@@ -79,6 +79,7 @@
 #include "network/nettraffic.h"
 #include "unlagged.h"
 #include "d_netinf.h"
+#include "domination.h"
 #include <set>
 
 // MACROS ------------------------------------------------------------------
@@ -4299,6 +4300,48 @@ void AActor::Tick ()
 
 	// [BB] Stop the net traffic measurement and add the result to this actor's traffic.
 	NETTRAFFIC_AddActorTraffic ( this, NETWORK_StopTrafficMeasurement ( ) );
+}
+
+//==========================================================================
+//
+// AActor :: CheckSectorTransition
+//
+// Fire off some sector triggers if the actor has changed sectors.
+//
+//==========================================================================
+
+void AActor::CheckSectorTransition(sector_t *oldsec)
+{
+	if (oldsec != Sector)
+	{
+		if (oldsec->SecActTarget != NULL)
+		{
+			oldsec->SecActTarget->TriggerAction(this, SECSPAC_Exit);
+		}
+		if (Sector->SecActTarget != NULL)
+		{
+			int act = SECSPAC_Enter;
+			if (z <= Sector->floorplane.ZatPoint(x, y))
+			{
+				act |= SECSPAC_HitFloor;
+			}
+			if (z + height >= Sector->ceilingplane.ZatPoint(x, y))
+			{
+				act |= SECSPAC_HitCeiling;
+			}
+			if (Sector->heightsec != NULL && z == Sector->heightsec->floorplane.ZatPoint(x, y))
+			{
+				act |= SECSPAC_HitFakeFloor;
+			}
+			Sector->SecActTarget->TriggerAction(this, act);
+		}
+
+		// [BL] Trigger Domination check if player enters a new sector in Domination
+		if (this->player)
+		{
+			DOMINATION_EnterSector(this->player);
+		}
+	}
 }
 
 //==========================================================================

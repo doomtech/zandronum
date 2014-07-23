@@ -324,6 +324,8 @@ enum
 	MF6_ADDITIVEPOISONDAMAGE	= 0x00100000,
 	MF6_ADDITIVEPOISONDURATION	= 0x00200000,
 
+	MF6_INTRYMOVE		= 0x10000000,	// Executing P_TryMove
+
 	// [BC] More object flags for Skulltag.
 
 	// Object can only be picked up by blue team members.
@@ -869,6 +871,8 @@ public:
 	bool IsSentient() const;
 	const char *GetTag(const char *def = NULL) const;
 
+	// Triggers SECSPAC_Exit/SECSPAC_Enter and related events if oldsec != current sector
+	void CheckSectorTransition(sector_t *oldsec);
 
 // info for drawing
 // NOTE: The first member variable *must* be x.

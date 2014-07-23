@@ -64,9 +64,6 @@
 #include "gamemode.h"
 #include "unlagged.h"
 
-//[BL] New Include
-#include "domination.h"
-
 // [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
 bool ActorHasThruspecies ( const AActor *pActor )
 {
@@ -332,6 +329,7 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefrag)
 {
 	FCheckPosition tmf;
+	sector_t *oldsec = thing->Sector;
 	
 	// kill anything occupying the position
 		
@@ -429,6 +427,13 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 	thing->PrevX = x;
 	thing->PrevY = y;
 	thing->PrevZ = z;
+
+	// If this teleport was caused by a move, P_TryMove() will handle the
+	// sector transition messages better than we can here.
+	if (!(thing->flags6 & MF6_INTRYMOVE))
+	{
+		thing->CheckSectorTransition(oldsec);
+	}
 
 	return true;
 }
@@ -2080,6 +2085,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	{
 		thing->z = onfloor->ZatPoint (x, y);
 	}
+	thing->flags6 |= MF6_INTRYMOVE;
 	// [WS] For clients, check to see if we are allowed to clip our actor's movement.
 	if (!P_CheckPosition (thing, x, y, tm) && CLIENT_CanClipMovement(thing))
 	{
@@ -2108,6 +2114,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 		if (!(tm.thing->flags2 & MF2_PASSMOBJ) || (i_compatflags & COMPATF_NO_PASSMOBJ))
 		{
 			thing->z = oldz;
+			thing->flags6 &= ~MF6_INTRYMOVE;
 			return false;
 		}
 	}
@@ -2217,6 +2224,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 					!(thing->flags2 & MF2_BLASTED))
 				{ // Can't move over a dropoff unless it's been blasted
 					thing->z = oldz;
+					thing->flags6 &= ~MF6_INTRYMOVE;
 					return false;
 				}
 			}
@@ -2225,7 +2233,11 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				// special logic to move a monster off a dropoff
 				// this intentionally does not check for standing on things.
 				if (thing->floorz - tm.floorz > thing->MaxDropOffHeight ||
-					thing->dropoffz - tm.dropoffz > thing->MaxDropOffHeight) return false;
+					thing->dropoffz - tm.dropoffz > thing->MaxDropOffHeight)
+				{
+					thing->flags6 &= ~MF6_INTRYMOVE;
+					return false;
+				}
 			}
 		}
 		if (thing->flags2 & MF2_CANTLEAVEFLOORPIC
@@ -2240,6 +2252,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				thing->z = oldz;
+				thing->flags6 &= ~MF6_INTRYMOVE;
 				return false;
 			}
 		}
@@ -2255,6 +2268,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				thing->velx = 0;
 				thing->vely = 0;
 				thing->z = oldz;
+				thing->flags6 &= ~MF6_INTRYMOVE;
 				return false;
 			}
 		} 
@@ -2282,7 +2296,10 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	if (thing->BounceFlags & BOUNCE_MBF &&  // killough 8/13/98
 			!(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&
 			!thing->IsSentient() && tm.floorz - thing->z > 16*FRACUNIT)
-	return false; // too big a step up for MBF bouncers under gravity
+	{ // too big a step up for MBF bouncers under gravity
+		thing->flags6 &= ~MF6_INTRYMOVE;
+		return false;
+	}
 
 	// the move is ok, so link the thing into its new position
 	thing->UnlinkFromWorld ();
@@ -2312,6 +2329,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	// [RH] Don't activate anything if just predicting
 	if (thing->player && (thing->player->cheats & CF_PREDICTING))
 	{
+		thing->flags6 &= ~MF6_INTRYMOVE;
 		return true;
 	}
 */
@@ -2396,40 +2414,12 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 		return true;
 
 	// [RH] If changing sectors, trigger transitions
-	if (oldsec != newsec)
-	{
-		if (oldsec->SecActTarget)
-		{
-			oldsec->SecActTarget->TriggerAction (thing, SECSPAC_Exit);
-		}
-		if (newsec->SecActTarget)
-		{
-			int act = SECSPAC_Enter;
-			if (thing->z <= newsec->floorplane.ZatPoint (thing->x, thing->y))
-			{
-				act |= SECSPAC_HitFloor;
-			}
-			if (thing->z + thing->height >= newsec->ceilingplane.ZatPoint (thing->x, thing->y))
-			{
-				act |= SECSPAC_HitCeiling;
-			}
-			if (newsec->heightsec &&
-				thing->z == newsec->heightsec->floorplane.ZatPoint (thing->x, thing->y))
-			{
-				act |= SECSPAC_HitFakeFloor;
-			}
-			newsec->SecActTarget->TriggerAction (thing, act);
-		}
-
-		// [BL] Trigger Domination check if player enters a new sector in Domination
-		if (thing->player)
-		{
-			DOMINATION_EnterSector(thing->player);
-		}
-	}
+	thing->CheckSectorTransition(oldsec);
+	thing->flags6 &= ~MF6_INTRYMOVE;
 	return true;
 
 pushline:
+	thing->flags6 &= ~MF6_INTRYMOVE;
 /*
 	// [RH] Don't activate anything if just predicting
 	if (thing->player && (thing->player->cheats & CF_PREDICTING))
