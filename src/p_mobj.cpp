@@ -4335,6 +4335,14 @@ void AActor::CheckSectorTransition(sector_t *oldsec)
 			}
 			Sector->SecActTarget->TriggerAction(this, act);
 		}
+		if (z == floorz)
+		{
+			P_CheckFor3DFloorHit(this);
+		}
+		if (z + height == ceilingz)
+		{
+			P_CheckFor3DCeilingHit(this);
+		}
 
 		// [BL] Trigger Domination check if player enters a new sector in Domination
 		if (this->player)
