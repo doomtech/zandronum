@@ -4386,6 +4386,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// [Dusk]
 		return ( server_Linetarget( pByteStream ));
 
+	case CLC_SRP_USER_REQUEST_LOGIN:
 	case CLC_SRP_USER_START_AUTHENTICATION:
 	case CLC_SRP_USER_PROCESS_CHALLENGE:
 

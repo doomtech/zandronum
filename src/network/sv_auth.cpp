@@ -176,7 +176,7 @@ int SERVER_FindClientWithUsername ( const char *Username )
 		if ( SERVER_IsValidClient ( i ) == false )
 			continue;
 
-		if ( SERVER_GetClient(i)->username.Compare ( Username ) == 0 )
+		if ( SERVER_GetClient(i)->username.CompareNoCase ( Username ) == 0 )
 			return i;
 	}
 	return MAXPLAYERS;
@@ -257,17 +257,25 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 				const int sessionID = NETWORK_ReadLong( pByteStream );
 				const int lenSalt = NETWORK_ReadByte( pByteStream );
 				TArray<unsigned char> bytesSalt;
-				bytesSalt.Resize( lenSalt );
-				for ( int i = 0; i < lenSalt; ++i )
-					bytesSalt[i] = NETWORK_ReadByte( pByteStream );
+				if ( lenSalt > 0 )
+				{
+					bytesSalt.Resize( lenSalt );
+					for ( int i = 0; i < lenSalt; ++i )
+						bytesSalt[i] = NETWORK_ReadByte( pByteStream );
+				}
+				else
+					Printf ( "AUTH_SERVER_NEGOTIATE: Invalid length\n" );
 				const FString username = NETWORK_ReadString( pByteStream );
 				const int clientID = SERVER_FindClientWithUsername ( username.GetChars() );
 				if ( clientID < MAXPLAYERS )
 				{
+					// [BB] We need to use the username the auth server sent us.
+					SERVER_GetClient(clientID)->username = username;
 					SERVER_GetClient(clientID)->SRPsessionID = sessionID;
 					SERVER_GetClient(clientID)->salt = bytesSalt;
 
-					SERVER_AUTH_SRPMessage ( SERVER_AUTH_SRP_STEP_ONE, sessionID, SERVER_GetClient(clientID)->bytesA );
+					// [BB] Tell the client the true username to start the authentication.
+					SERVERCOMMANDS_SRPUserStartAuthentication ( clientID );
 				}
 				else
 					Printf ( "AUTH_SERVER_NEGOTIATE: Can't find client with username '%s'.\n", username.GetChars() );
@@ -278,15 +286,22 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 				const int sessionID = NETWORK_ReadLong( pByteStream );
 				const int lenB = NETWORK_ReadShort( pByteStream );
 				TArray<unsigned char> bytesB;
-				bytesB.Resize( lenB );
-				for ( int i = 0; i < lenB; ++i )
-					bytesB[i] = NETWORK_ReadByte( pByteStream );
+				if ( lenB > 0 )
+				{
+					bytesB.Resize( lenB );
+					for ( int i = 0; i < lenB; ++i )
+						bytesB[i] = NETWORK_ReadByte( pByteStream );
+				}
+				else
+					Printf ( "AUTH_SERVER_SRP_STEP_TWO: Invalid length\n" );
 				const int clientID = SERVER_FindClientWithSessionID ( sessionID );
 				if ( clientID < MAXPLAYERS )
 				{
 					SERVER_GetClient(clientID)->bytesB = bytesB;
 					SERVERCOMMANDS_SRPUserProcessChallenge ( clientID );
 				}
+				else
+					Printf ( "AUTH_SERVER_SRP_STEP_TWO: Can't find client with session ID '%d'.\n", sessionID );
 			}
 			break;
 		case AUTH_SERVER_SRP_STEP_FOUR:
@@ -294,9 +309,14 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 				const int sessionID = NETWORK_ReadLong( pByteStream );
 				const int lenHAMK = NETWORK_ReadShort( pByteStream );
 				TArray<unsigned char> bytesHAMK;
-				bytesHAMK.Resize( lenHAMK );
-				for ( int i = 0; i < lenHAMK; ++i )
-					bytesHAMK[i] = NETWORK_ReadByte( pByteStream );
+				if ( lenHAMK > 0 )
+				{
+					bytesHAMK.Resize( lenHAMK );
+					for ( int i = 0; i < lenHAMK; ++i )
+						bytesHAMK[i] = NETWORK_ReadByte( pByteStream );
+				}
+				else
+					Printf ( "AUTH_SERVER_SRP_STEP_FOUR: Invalid length\n" );
 				const int clientID = SERVER_FindClientWithSessionID ( sessionID );
 				if ( clientID < MAXPLAYERS )
 				{
@@ -310,6 +330,8 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 					SERVER_GetClient(clientID)->bytesHAMK = bytesHAMK;
 					SERVERCOMMANDS_SRPUserVerifySession ( clientID );
 				}
+				else
+					Printf ( "AUTH_SERVER_SRP_STEP_FOUR: Can't find client with session ID '%d'.\n", sessionID );
 			}
 			break;
 		case AUTH_SERVER_USER_ERROR:
@@ -397,15 +419,35 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 {
 	switch ( lCommand )
 	{
-	case CLC_SRP_USER_START_AUTHENTICATION:
+	case CLC_SRP_USER_REQUEST_LOGIN:
 		{
 			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
 
 			pClient->username = NETWORK_ReadString( pByteStream );
+
+#if EMULATE_AUTH_SERVER
+			SERVERCOMMANDS_SRPUserStartAuthentication ( SERVER_GetCurrentClient() );
+#else
+			// [BB] The client wants to log in, so start negotiating with the auth server.
+			SERVER_AUTH_Negotiate ( pClient->username.GetChars() );
+#endif
+		}
+		break;
+
+	case CLC_SRP_USER_START_AUTHENTICATION:
+		{
+			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
+
 			const int lenA = NETWORK_ReadShort( pByteStream );
-			pClient->bytesA.Resize ( lenA ); 
-			for ( int i = 0; i < lenA; ++i )
-				pClient->bytesA[i] = NETWORK_ReadByte( pByteStream );
+
+			if ( lenA > 0 )
+			{
+				pClient->bytesA.Resize ( lenA ); 
+				for ( int i = 0; i < lenA; ++i )
+					pClient->bytesA[i] = NETWORK_ReadByte( pByteStream );
+			}
+			else
+				Printf ( "CLC_SRP_USER_START_AUTHENTICATION: Invalid length\n" );
 
 #if EMULATE_AUTH_SERVER
 			const unsigned char * bytesS = NULL;
@@ -444,8 +486,7 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			free( (char *)bytesS );
 			free( (char *)bytesV );
 #else
-			// [BB] The client wants to log in, so start negotiating with the auth server.
-			SERVER_AUTH_Negotiate ( pClient->username.GetChars() );
+			SERVER_AUTH_SRPMessage ( SERVER_AUTH_SRP_STEP_ONE, pClient->SRPsessionID, pClient->bytesA );
 #endif
 
 			return ( false );
@@ -456,9 +497,14 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
 
 			const int lenM = NETWORK_ReadShort( pByteStream );
-			pClient->bytesM.Resize ( lenM ); 
-			for ( int i = 0; i < lenM; ++i )
-				pClient->bytesM[i] = NETWORK_ReadByte( pByteStream );
+			if ( lenM > 0 )
+			{
+				pClient->bytesM.Resize ( lenM ); 
+				for ( int i = 0; i < lenM; ++i )
+					pClient->bytesM[i] = NETWORK_ReadByte( pByteStream );
+			}
+			else
+				Printf ( "CLC_SRP_USER_PROCESS_CHALLENGE: Invalid length\n" );
 
 #if EMULATE_AUTH_SERVER
 			unsigned char bytesM[SHA512_DIGEST_LENGTH];

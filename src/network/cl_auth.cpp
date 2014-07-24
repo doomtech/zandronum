@@ -55,6 +55,7 @@
 //	VARIABLES
 
 static struct SRPUser* g_usr = NULL;
+static FString g_password;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -66,19 +67,27 @@ static struct SRPUser* g_usr = NULL;
 //
 void client_RequestLogin ( const char* Username, const char* Password )
 {
+	g_password = Password;
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SRP_USER_REQUEST_LOGIN );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, Username );
+}
+
+//*****************************************************************************
+//
+void client_SRPStartAuthentication ( const char *Username )
+{
     const unsigned char * bytesA = 0;
     int lenA = 0;
     const char * authUsername = NULL; 
 
 	if ( g_usr != NULL )
 		srp_user_delete( g_usr );
-	g_usr = srp_user_new( SRP_SHA256, SRP_NG_2048, Username, reinterpret_cast<const unsigned char*> ( Password ), strlen ( Password ), NULL, NULL, 1 );
+	g_usr = srp_user_new( SRP_SHA256, SRP_NG_2048, Username, reinterpret_cast<const unsigned char*> ( g_password.GetChars() ), g_password.Len(), NULL, NULL, 1 );
 	srp_user_start_authentication( g_usr, &authUsername, &bytesA, &lenA );
 	if ( strcmp( authUsername, Username ) != 0 )
 		Printf ( "Username problem when calling srp_user_start_authentication.\n" );
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SRP_USER_START_AUTHENTICATION );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, Username );
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, lenA );
 	for ( int i = 0; i < lenA; ++i )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, bytesA[i] );
@@ -109,6 +118,12 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 {
 	switch ( lCommand )
 	{
+	case SVC2_SRP_USER_START_AUTHENTICATION:
+		{
+			const FString username = NETWORK_ReadString( pByteStream );
+			client_SRPStartAuthentication ( username.GetChars() );
+		}
+		break;
 	case SVC2_SRP_USER_PROCESS_CHALLENGE:
 		{
 			const int lenSalt = NETWORK_ReadByte( pByteStream );

@@ -7530,6 +7530,19 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 }
 
 //*****************************************************************************
+void SERVERCOMMANDS_SRPUserStartAuthentication ( const ULONG ulClient )
+{
+	if ( SERVER_IsValidClient( ulClient ) == false )
+		return;
+
+	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SRP_USER_START_AUTHENTICATION );
+	command.addString ( pClient->username.GetChars() );
+	command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
+}
+
+//*****************************************************************************
 void SERVERCOMMANDS_SRPUserProcessChallenge ( const ULONG ulClient )
 {
 	if ( SERVER_IsValidClient( ulClient ) == false )
