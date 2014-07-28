@@ -643,7 +643,6 @@ CVAR (Flag, compat_explosionthrust,		compatflags2, COMPATF2_OLD_EXPLOSION_THRUST
 CVAR (Flag, compat_bridgedrops,		compatflags2, COMPATF2_OLD_BRIDGE_DROPS);
 CVAR (Flag, compat_oldzdoomzmovement, compatflags2, COMPATF2_OLD_ZDOOM_ZMOVEMENT);
 CVAR (Flag, compat_fullweaponlower,		compatflags2, COMPATF2_FULL_WEAPON_LOWER);
-CVAR (Flag, compat_clientacsexecute,	compatflags2, COMPATF2_CLIENT_ACS_EXECUTE);
 
 //==========================================================================
 //
