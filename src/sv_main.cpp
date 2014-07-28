@@ -4393,6 +4393,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// [Dusk]
 		return ( server_Linetarget( pByteStream ));
 
+	case CLC_SRP_USER_REQUEST_LOGIN:
 	case CLC_SRP_USER_START_AUTHENTICATION:
 	case CLC_SRP_USER_PROCESS_CHALLENGE:
 
@@ -5006,11 +5007,16 @@ static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 
 	ulPing = NETWORK_ReadLong( pByteStream );
 
-	ULONG currentPing = (I_MSTime( ) - ulPing);
+	const unsigned int nowTime = I_MSTime( );
+	// [BB] This ping information from the client doesn't make sense.
+	if ( ulPing > nowTime )
+		return false;
+
+	ULONG currentPing = (nowTime - ulPing);
 	const ULONG ticLength = 1000 / TICRATE;
 	player_t *p = &players[g_lCurrentClient];
 	// [BB] Lag spike, reset the averaging.
-	if ( labs (currentPing - p->ulPing) > 3.5 * ticLength )
+	if ( labs (static_cast<int>(currentPing) - static_cast<int>(p->ulPing)) > 3.5 * ticLength )
 	{
 		p->ulPing = currentPing;
 		p->ulPingAverages = 0;
