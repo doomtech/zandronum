@@ -61,6 +61,7 @@
 +	- Added a new cvar: lobby, which applies lobby characteristics to a single map lump. In addition, if a map is set as a lobby map via the cvar, it is returned to after every other map. The lobby map is also returned to if the server is empty for more than 30 seconds. [AlexMax]
 +	- Added an alias for the islobby MAPINFO tag: lobby. [AlexMax]
 +	- Both types of lobby maps (MAPINFO and cvar) now ignore timelimits. [AlexMax]
++	- Added new ACS function RequestScriptPuke which requests execution of the given script on the server. The function must only be called from CLIENTSIDE scripts the script executed must be NET. [Dusk]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]
@@ -98,7 +99,6 @@
 !	- Botscript rand() renamed to random() and now returns a value between min and max inclusive instead of leaving max out of the possibilities. Now is actually random and now swaps min and max if min is greater than max instead of throwing a runtime error. [Dusk]
 !	- Medals are only awarded when the game has started (is not in countdown). [Water]
 !	- If the map rotation is not empty, the server now prevents map/changemap votes to maps that are not in the rotation, regardless of whether of sv_maprotation is true. This allows the server to restrict these votes without enforcing the rotation itself, which would also enforce the order in which the maps are played (adapted from an old patch of TIHan). [Torr Samaho]
-!	- Calling a server-side NET script from the client-side will now request the server to puke the script. This mechanism cannot retrieve the return value of the script and non-NET scripts cannot be run at all. However, defering client-to-server scripts is possible. The old behavior can be restored with a new compatflag: compat_clientacsexecute. [Dusk]
 !	- Renamed compat_123b33jumpphysics to compat_oldzdoomzmovement, which is a more accurate description of what the flag actually does. [AlexMax]
 !	- The server now ignores client ping packets that don't make sense. [Torr Samaho]
 

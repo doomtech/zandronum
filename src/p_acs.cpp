@@ -872,6 +872,62 @@ static int GetTeamProperty (unsigned int team, int prop) {
 	return 0;
 }
 
+
+//============================================================================
+//
+// [Dusk] RequestScriptPuke
+//
+// Requests execution of a NET script on the server.
+//
+//============================================================================
+static int RequestScriptPuke ( FBehavior* module, AActor* activator, SDWORD* args )
+{
+	// [Dusk] Run a script over the network
+	int result;
+	const SDWORD& script = args[0];
+	const SDWORD& arg0 = args[1];
+	const SDWORD& arg1 = args[2];
+	const SDWORD& arg2 = args[3];
+	const ScriptPtr* scriptdata = FBehavior::StaticFindScript (args[0], module);
+
+	// [Dusk] Don't do anything on the server.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+	{
+		Printf( "RequestScriptPuke: Attempted to call script %d on the server. Only use "
+			"RequestScriptPuke in CLIENTSIDE scripts.\n", script );
+		return 0;
+	}
+
+	if (( scriptdata->Flags & SCRIPTF_Net ) == 0 )
+	{
+		// [Dusk] If the script is not NET, print a warn and don't run any scripts.
+		Printf( "RequestScriptPuke: Cannot run server-side non-NET script %d "
+			"from the client.\n", script );
+		return 0;
+	}
+
+	// [Dusk] This is no-op with demos
+	if ( CLIENTDEMO_IsPlaying() )
+		return 1;
+
+	// [Dusk] If we're offline we can just run the script. Unfortunately we cannot check for the
+	// script being CLIENTSIDE here.
+	if (( NETWORK_GetState() == NETSTATE_SINGLE ) || ( NETWORK_GetState() == NETSTATE_SINGLE_MULTIPLAYER ))
+	{
+		AActor* newactivator = NETWORK_GetState() == NETSTATE_SERVER ? activator : players[consoleplayer].mo;
+		P_StartScript ( newactivator, NULL, script, NULL, false, arg0, arg1, arg2,
+			true, false, true );
+		return 1;
+	}
+
+	// [Dusk]
+	int scriptargs[3] = { arg0, arg1, arg2 };
+	DPrintf( "RequestScriptPuke: Requesting puke of script %d (%d, %d, %d)\n",
+		script, arg0, arg1, arg2 );
+	CLIENTCOMMANDS_Puke( -script, scriptargs );
+	return 1;
+}
+
 //---- Plane watchers ----//
 
 class DPlaneWatcher : public DThinker
@@ -3455,6 +3511,7 @@ enum EACSFunctions
 	ACSF_GetDBResultValueString,
 	ACSF_GetDBResultValue,
 	ACSF_GetDBEntryRank,
+	ACSF_RequestScriptPuke,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
@@ -3888,6 +3945,9 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 
 		case ACSF_GetDBEntryRank:
 			return DATABASE_GetEntryRank ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), !!(args[2]) );
+
+		case ACSF_RequestScriptPuke:
+			return RequestScriptPuke( activeBehavior, activator, args );
 
 		default:
 			break;
@@ -7539,54 +7599,6 @@ static void SetScriptState (int script, DLevelScript::EScriptState state)
 		controller->RunningScripts[script]->SetState (state);
 }
 
-//
-// [Dusk] Check client-to-server ACS. Returns true if the parent function should return,
-// possibly with the given result value.
-//
-static bool P_CheckClientToServerACS ( int script, int arg0, int arg1, int arg2, bool always,
-	bool wantResultCode, const ScriptPtr* scriptdata, int* resultptr )
-{
-	if ( ( NETWORK_GetState() != NETSTATE_CLIENT ) ||
-		( scriptdata->Flags & SCRIPTF_ClientSide ) ||
-		( compatflags2 & COMPATF2_CLIENT_ACS_EXECUTE ) )
-	{
-		return false;
-	}
-
-	if ( scriptdata->Flags & SCRIPTF_Net )
-	{
-		if ( resultptr != NULL )
-			*resultptr = 1;
-
-		// [Dusk] This is no-op with demos
-		if ( CLIENTDEMO_IsPlaying() )
-			return true;
-
-		// [Dusk] If the script is NET, we can request a puke.
-		int args[3] = { arg0, arg1, arg2 };
-		DPrintf( "P_CheckClientToServerACS: Requesting puke of script %d (%d, %d, %d)\n",
-			( always ? -script : script ), arg0, arg1, arg2 );
-		CLIENTCOMMANDS_Puke( ( always ? -script : script ), args );
-
-		if ( wantResultCode )
-		{
-			Printf( "P_CheckClientToServerACS: Calling server-side NET script %d from the client "
-				"will not yield a result value.\n", script );
-		}
-	}
-	else
-	{
-		// [Dusk] If the script is not NET, print a warn and don't run any scripts.
-		if ( resultptr != NULL )
-			*resultptr = 0;
-
-		Printf( "P_CheckClientToServerACS: Cannot run server-side non-NET script %d "
-			"from the client.\n", script );
-	}
-
-	return true;
-}
-
 void P_DoDeferedScripts ()
 {
 	acsdefered_t *def;
@@ -7605,13 +7617,6 @@ void P_DoDeferedScripts ()
 			scriptdata = FBehavior::StaticFindScript (def->script, module);
 			if (scriptdata)
 			{
-				// [Dusk] Check if the client-to-server mechanism handles this.
-				if ( P_CheckClientToServerACS ( def->script, def->arg0, def->arg1, def->arg2,
-					( def->type == acsdefered_t::defexealways ), false, scriptdata, NULL ))
-				{
-					return;
-				}
-
 				P_GetScriptGoing ((unsigned)def->playernum < MAXPLAYERS &&
 					playeringame[def->playernum] ? players[def->playernum].mo : NULL,
 					NULL, def->script,
@@ -7687,17 +7692,6 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool
 					Printf (PRINT_BOLD, "%s tried to puke script %d (%d, %d, %d)\n",
 						who->player->userinfo.netname, script, arg0, arg1, arg2);
 					return false;
-				}
-			}
-
-			// [Dusk] Check if the client-to-server mechanism handles this.
-			{
-				int result;
-
-				if ( P_CheckClientToServerACS ( script, arg0, arg1, arg2, always,
-					wantResultCode, scriptdata, &result ))
-				{
-					return result;
 				}
 			}
 
