@@ -37,6 +37,10 @@ static FRandom pr_restore ("RestorePos");
 
 TArray<unsigned short> g_keysFound;
 
+// [Dark-Assassin] Announcer Pickup ------------------------------------------------
+// Toggle to play Announcer Sounds on Pickups
+CVAR (Bool, cl_announcepickups, 1, CVAR_ARCHIVE);
+
 IMPLEMENT_CLASS (AAmmo)
 
 //===========================================================================
@@ -1127,7 +1131,7 @@ void AInventory::Touch (AActor *toucher)
 	}
 
 	// [BC] If the item has an announcer sound, play it.
-	if ( toucher->CheckLocalView( consoleplayer ))
+	if ( toucher->CheckLocalView( consoleplayer ) && cl_announcepickups )
 		ANNOUNCER_PlayEntry( cl_announcer, this->PickupAnnouncerEntry( ));
 
 	// [BC] Potentially give clients update about this item.
