@@ -509,6 +509,31 @@ bool GAMEMODE_IsTimelimitActive( void )
 	// [BB] SuperGod insisted to have timelimit in coop, e.g. for jumpmaze, but its implementation conceptually doesn't work in invasion or survival.
 	return (/*( deathmatch || teamgame ) &&*/ ( invasion == false ) && ( survival == false ) && timelimit );
 }
+
+//*****************************************************************************
+//
+void GAMEMODE_GetTimeLeftString( FString &TimeLeftString )
+{
+	LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
+	ULONG	ulHours, ulMinutes, ulSeconds;
+
+	if ( lTimeLeft <= 0 )
+		ulHours = ulMinutes = ulSeconds = 0;
+	else
+	{
+		ulHours = lTimeLeft / ( TICRATE * 3600 );
+		lTimeLeft -= ulHours * TICRATE * 3600;
+		ulMinutes = lTimeLeft / ( TICRATE * 60 );
+		lTimeLeft -= ulMinutes * TICRATE * 60;
+		ulSeconds = lTimeLeft / TICRATE;
+	}
+
+	if ( ulHours )
+		TimeLeftString.Format ( "%02d:%02d:%02d", static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
+	else
+		TimeLeftString.Format ( "%02d:%02d", static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
+}
+
 //*****************************************************************************
 //
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
