@@ -176,9 +176,22 @@ FWorldGlobalArray ACS_GlobalArrays[NUM_GLOBALVARS];
 #define LIB_ACSSTRINGS_ONTHEFLY 0x7fff
 #define ACSSTRING_OR_ONTHEFLY (LIB_ACSSTRINGS_ONTHEFLY<<16)
 
-TArray<FString>
-	ACS_StringsOnTheFly,
-	ACS_StringBuilderStack;
+class OnTheFlyArray : public TArray<FString>
+{
+public:
+	// Returns a valid string identifier for this tick, or
+	// -1 if we ran out of room.
+	int Push(FString &str)
+	{
+		if (Size() >= 0x10000)
+		{
+			return -1;
+		}
+		return (int)TArray<FString>::Push(str) | ACSSTRING_OR_ONTHEFLY;
+	}
+}
+ACS_StringsOnTheFly;
+TArray<FString> ACS_StringBuilderStack;
 
 #define STRINGBUILDER_START(Builder) if (*Builder.GetChars() || ACS_StringBuilderStack.Size()) { ACS_StringBuilderStack.Push(Builder); Builder = ""; }
 #define STRINGBUILDER_FINISH(Builder) if (!ACS_StringBuilderStack.Pop(Builder)) Builder = "";
@@ -186,11 +199,7 @@ TArray<FString>
 // [BB] Extracted from PCD_SAVESTRING.
 int ACS_PushAndReturnDynamicString ( const FString &Work )
 {
-	unsigned int str_otf = ACS_StringsOnTheFly.Push(strbin1(Work));
-	if (str_otf > 0xffff)
-		return (-1);
-	else
-		return ((SDWORD)str_otf|ACSSTRING_OR_ONTHEFLY);
+	return ACS_StringsOnTheFly.Push(strbin1(Work));
 }
 
 //============================================================================
@@ -858,12 +867,8 @@ static int GetTeamProperty (unsigned int team, int prop) {
 				break;
 			}
 
-			// [Dusk] Copied over from PCD_SAVESTRING - not touching ZDoom code like this..
-			unsigned int str_otf = ACS_StringsOnTheFly.Push(strbin1(work));
-			if (str_otf > 0xffff)
-				res = (-1);
-			else
-				res = ((SDWORD)str_otf|ACSSTRING_OR_ONTHEFLY);
+			// [Dusk]
+			res = ACS_PushAndReturnDynamicString ( work );
 
 			STRINGBUILDER_FINISH(work);
 			return res;
@@ -3625,6 +3630,7 @@ enum EACSFunctions
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
+	ACSF_GetCVarString = 56, // [BB] Backported from ZDoom
 	ACSF_SetCVarString = 57, // [BB] Backported from ZDoom
 
 	// [BB] Skulltag functions
@@ -3788,11 +3794,16 @@ static void DoSetCVar(FBaseCVar *cvar, int value, bool is_string, bool force=fal
 }
 
 // Converts floating- to fixed-point as required.
-static int DoGetCVar(FBaseCVar *cvar)
+static int DoGetCVar(FBaseCVar *cvar, bool is_string)
 {
 	UCVarValue val;
 
-	if (cvar->GetRealType() == CVAR_Float)
+	if (is_string)
+	{
+		val = cvar->GetGenericRep(CVAR_String);
+		return ACS_StringsOnTheFly.Push(FString(val.String));
+	}
+	else if (cvar->GetRealType() == CVAR_Float)
 	{
 		val = cvar->GetGenericRep(CVAR_Float);
 		return FLOAT2FIXED(val.Float);
@@ -3804,7 +3815,7 @@ static int DoGetCVar(FBaseCVar *cvar)
 	}
 }
 
-static int GetCVar(AActor *activator, const char *cvarname)
+static int GetCVar(AActor *activator, const char *cvarname, bool is_string)
 {
 	FBaseCVar *cvar = FindCVar(cvarname, NULL);
 	// Either the cvar doesn't exist, or it's for a mod that isn't loaded, so return 0.
@@ -3822,10 +3833,10 @@ static int GetCVar(AActor *activator, const char *cvarname)
 			{
 				return 0;
 			}
-			return GetUserCVar(int(activator->player - players), cvarname);
+			return GetUserCVar(int(activator->player - players), cvarname, is_string);
 		}
 		*/
-		return DoGetCVar(cvar);
+		return DoGetCVar(cvar, is_string);
 	}
 }
 
@@ -4246,6 +4257,13 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
 			return 0;
+
+		case ACSF_GetCVarString:
+			if (argCount == 1)
+			{
+				return GetCVar(activator, FBehavior::StaticLookupString(args[0]), true);
+			}
+			break;
 
 		case ACSF_SetCVar:
 			if (argCount == 2)
@@ -7541,7 +7559,7 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GETCVAR:
-			STACK(1) = GetCVar(activator, FBehavior::StaticLookupString(STACK(1)));
+			STACK(1) = GetCVar(activator, FBehavior::StaticLookupString(STACK(1)), false);
 			break;
 
 		case PCD_SETHUDSIZE:
@@ -8002,15 +8020,7 @@ int DLevelScript::RunScript ()
 		case PCD_SAVESTRING:
 			// Saves the string
 			{
-				unsigned int str_otf = ACS_StringsOnTheFly.Push(strbin1(work));
-				if (str_otf > 0xffff)
-				{
-					PushToStack(-1);
-				}
-				else
-				{
-					PushToStack((SDWORD)str_otf|ACSSTRING_OR_ONTHEFLY);
-				}
+				PushToStack(ACS_StringsOnTheFly.Push(strbin1(work)));
 				STRINGBUILDER_FINISH(work);
 			}		
 			break;
