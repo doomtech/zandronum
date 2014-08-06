@@ -639,7 +639,8 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			name = cleanedName;
 			return;
 		}
-		V_ColorizeString( val.String );
+		// [BB] Get rid of this cast.
+		V_ColorizeString( const_cast<char *> ( val.String ) );
 
 		ulUpdateFlags |= USERINFO_NAME;
 

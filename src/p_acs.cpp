@@ -3625,6 +3625,7 @@ enum EACSFunctions
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
+	ACSF_SetCVarString = 57, // [BB] Backported from ZDoom
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -3749,7 +3750,7 @@ static int GetUserVariable(AActor *self, FName varname, int index)
 }
 
 // Converts fixed- to floating-point as required.
-static void DoSetCVar(FBaseCVar *cvar, int value, bool force=false)
+static void DoSetCVar(FBaseCVar *cvar, int value, bool is_string, bool force=false)
 {
 	UCVarValue val;
 	ECVarType type;
@@ -3761,7 +3762,12 @@ static void DoSetCVar(FBaseCVar *cvar, int value, bool force=false)
 	{
 		return;
 	}
-	if (cvar->GetRealType() == CVAR_Float)
+	if (is_string)
+	{
+		val.String = FBehavior::StaticLookupString(value);
+		type = CVAR_String;
+	}
+	else if (cvar->GetRealType() == CVAR_Float)
 	{
 		val.Float = FIXED2FLOAT(value);
 		type = CVAR_Float;
@@ -3823,7 +3829,7 @@ static int GetCVar(AActor *activator, const char *cvarname)
 	}
 }
 
-static int SetCVar(AActor *activator, const char *cvarname, int value)
+static int SetCVar(AActor *activator, const char *cvarname, int value, bool is_string)
 {
 	FBaseCVar *cvar = FindCVar(cvarname, NULL);
 	// Only mod-created cvars may be set.
@@ -3839,10 +3845,10 @@ static int SetCVar(AActor *activator, const char *cvarname, int value)
 		{
 			return 0;
 		}
-		return SetUserCVar(int(activator->player - players), cvarname, value);
+		return SetUserCVar(int(activator->player - players), cvarname, value, is_string);
 	}
 	*/
-	DoSetCVar(cvar, value);
+	DoSetCVar(cvar, value, is_string);
 	return 1;
 }
 
@@ -4244,7 +4250,14 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 		case ACSF_SetCVar:
 			if (argCount == 2)
 			{
-				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1]);
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], false);
+			}
+			break;
+
+		case ACSF_SetCVarString:
+			if (argCount == 2)
+			{
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], true);
 			}
 			break;
 
