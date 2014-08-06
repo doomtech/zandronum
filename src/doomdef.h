@@ -423,8 +423,6 @@ enum
 	ZACOMPATF_OLD_ZDOOM_ZMOVEMENT = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
-	// [Dusk] Clients run server-side scripts called from client-side scripts on their own
-	ZACOMPATF_CLIENT_ACS_EXECUTE = 1 << 10,
 	// [CK] Vanilla doom had silent west spawns
 	ZACOMPATF_SILENT_WEST_SPAWNS = 1 << 11,
 

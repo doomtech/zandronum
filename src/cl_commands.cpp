@@ -351,7 +351,7 @@ void CLIENTCOMMANDS_Spectate( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_RequestJoin( char *pszJoinPassword )
+void CLIENTCOMMANDS_RequestJoin( const char *pszJoinPassword )
 {
 	if (( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 10 ))))
 	{
@@ -399,7 +399,7 @@ void CLIENTCOMMANDS_Suicide( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_ChangeTeam( char *pszJoinPassword, LONG lDesiredTeam )
+void CLIENTCOMMANDS_ChangeTeam( const char *pszJoinPassword, LONG lDesiredTeam )
 {
 	if (!( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
 	{

@@ -148,6 +148,7 @@ bool		GAMEMODE_IsLobbyMap( void );
 bool		GAMEMODE_IsLobbyMap( const char* levelinfo );
 bool		GAMEMODE_IsNextMapCvarLobby( void );
 bool		GAMEMODE_IsTimelimitActive( void );
+void		GAMEMODE_GetTimeLeftString( FString &TimeLeftString );
 void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNOINVENTORY );
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS, playerstate_t PlayerState = PST_ENTER );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );

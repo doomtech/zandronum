@@ -2625,25 +2625,10 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines, bool bAcceptColors
 	// Render the timelimit string. - [BB] if the gamemode uses it.
 	if ( GAMEMODE_IsTimelimitActive() )
 	{
-		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
-		ULONG	ulHours, ulMinutes, ulSeconds;
+		FString TimeLeftString;
+		GAMEMODE_GetTimeLeftString ( TimeLeftString );
 		const char *szRound = ( lastmanstanding || teamlms ) ? "Round" : "Level";
-
-		if ( lTimeLeft <= 0 )
-			ulHours = ulMinutes = ulSeconds = 0;
-		else
-		{
-			ulHours = lTimeLeft / ( TICRATE * 3600 );
-			lTimeLeft -= ulHours * TICRATE * 3600;
-			ulMinutes = lTimeLeft / ( TICRATE * 60 );
-			lTimeLeft -= ulMinutes * TICRATE * 60;
-			ulSeconds = lTimeLeft / TICRATE;
-		}
-
-		if ( ulHours )
-			sprintf( szString, "%s ends in %02d:%02d:%02d", szRound, static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
-		else
-			sprintf( szString, "%s ends in %02d:%02d", szRound, static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
+		sprintf( szString, "%s ends in %s", szRound, TimeLeftString.GetChars() );
 		lines.push_back( szString );
 	}
 
