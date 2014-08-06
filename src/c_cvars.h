@@ -61,15 +61,17 @@ enum
 	CVAR_GLOBALCONFIG	= 1024,	// cvar is saved to global config section
 	CVAR_VIDEOCONFIG	= 2048, // cvar is saved to video config section (not implemented)
 	CVAR_NOSAVE			= 4096, // when used with CVAR_SERVERINFO, do not save var to savegame
+	CVAR_MOD			= 8192,	// cvar was defined by a mod
+	CVAR_IGNORE			= 16384,// do not send cvar across the network/inaccesible from ACS (dummy mod cvar)
 
 	// [BC] Cvar cannot be set from console during campaign mode.
-	CVAR_CAMPAIGNLOCK	= 8192,
+	CVAR_CAMPAIGNLOCK	= 32768,
 
 	// [BC] Cvar is a password; don't display it when typed in the console, etc.
-	CVAR_PASSWORD		= 16384,
+	CVAR_PASSWORD		= 65536,
 
 	// [BB] This cvar may not be changed by ConsoleCommand.
-	CVAR_NOSETBYACS = 32768,
+	CVAR_NOSETBYACS = 131072,
 };
 
 union UCVarValue

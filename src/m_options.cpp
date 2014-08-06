@@ -6509,6 +6509,8 @@ void Reset2Saved (void)
 {
 	GameConfig->DoGlobalSetup ();
 	GameConfig->DoGameSetup (GameNames[gameinfo.gametype]);
+	// [BB] This DoModSetup call was backported and its argument will need to adjusted when the ZDoom base is upgraded.
+	GameConfig->DoModSetup (GameNames[gameinfo.gametype]);
 	UpdateStuff();
 }
 
