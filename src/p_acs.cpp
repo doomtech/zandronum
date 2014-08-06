@@ -3624,6 +3624,8 @@ enum EACSFunctions
     ACSF_CheckSight,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
+	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
+
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
@@ -3744,6 +3746,104 @@ static int GetUserVariable(AActor *self, FName varname, int index)
 		return ((int *)(reinterpret_cast<BYTE *>(self) + var->offset))[index];
 	}
 	return 0;
+}
+
+// Converts fixed- to floating-point as required.
+static void DoSetCVar(FBaseCVar *cvar, int value, bool force=false)
+{
+	UCVarValue val;
+	ECVarType type;
+
+	// For serverinfo variables, only the arbitrator should set it.
+	// The actual change to this cvar will not show up until it's
+	// been replicated to all peers.
+	if ((cvar->GetFlags() & CVAR_SERVERINFO) && consoleplayer != Net_Arbitrator)
+	{
+		return;
+	}
+	if (cvar->GetRealType() == CVAR_Float)
+	{
+		val.Float = FIXED2FLOAT(value);
+		type = CVAR_Float;
+	}
+	else
+	{
+		val.Int = value;
+		type = CVAR_Int;
+	}
+	if (force)
+	{
+		cvar->ForceSet(val, type, true);
+	}
+	else
+	{
+		cvar->SetGenericRep(val, type);
+	}
+}
+
+// Converts floating- to fixed-point as required.
+static int DoGetCVar(FBaseCVar *cvar)
+{
+	UCVarValue val;
+
+	if (cvar->GetRealType() == CVAR_Float)
+	{
+		val = cvar->GetGenericRep(CVAR_Float);
+		return FLOAT2FIXED(val.Float);
+	}
+	else
+	{
+		val = cvar->GetGenericRep(CVAR_Int);
+		return val.Int;
+	}
+}
+
+static int GetCVar(AActor *activator, const char *cvarname)
+{
+	FBaseCVar *cvar = FindCVar(cvarname, NULL);
+	// Either the cvar doesn't exist, or it's for a mod that isn't loaded, so return 0.
+	if (cvar == NULL || (cvar->GetFlags() & CVAR_IGNORE))
+	{
+		return 0;
+	}
+	else
+	{
+		/* [BB] Zandronum doesn't have user CVars yet.
+		// For userinfo cvars, redirect to GetUserCVar
+		if (cvar->GetFlags() & CVAR_USERINFO)
+		{
+			if (activator == NULL || activator->player == NULL)
+			{
+				return 0;
+			}
+			return GetUserCVar(int(activator->player - players), cvarname);
+		}
+		*/
+		return DoGetCVar(cvar);
+	}
+}
+
+static int SetCVar(AActor *activator, const char *cvarname, int value)
+{
+	FBaseCVar *cvar = FindCVar(cvarname, NULL);
+	// Only mod-created cvars may be set.
+	if (cvar == NULL || (cvar->GetFlags() & (CVAR_IGNORE|CVAR_NOSET)) || !(cvar->GetFlags() & CVAR_MOD))
+	{
+		return 0;
+	}
+	/* [BB] Zandronum doesn't have user CVars yet.
+	// For userinfo cvars, redirect to SetUserCVar
+	if (cvar->GetFlags() & CVAR_USERINFO)
+	{
+		if (activator == NULL || activator->player == NULL)
+		{
+			return 0;
+		}
+		return SetUserCVar(int(activator->player - players), cvarname, value);
+	}
+	*/
+	DoSetCVar(cvar, value);
+	return 1;
 }
 
 int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
@@ -4140,6 +4240,13 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
 			return 0;
+
+		case ACSF_SetCVar:
+			if (argCount == 2)
+			{
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1]);
+			}
+			break;
 
 		// [BB]
 		case ACSF_ResetMap:
@@ -7421,19 +7528,7 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GETCVAR:
-			{
-				FBaseCVar *cvar = FindCVar (FBehavior::StaticLookupString (STACK(1)), NULL);
-				// Either the cvar doesn't exist, or it's for a mod that isn't loaded, so return 0.
-				if (cvar == NULL || (cvar->GetFlags() & CVAR_IGNORE))
-				{
-					STACK(1) = 0;
-				}
-				else
-				{
-					UCVarValue val = cvar->GetGenericRep (CVAR_Int);
-					STACK(1) = val.Int;
-				}
-			}
+			STACK(1) = GetCVar(activator, FBehavior::StaticLookupString(STACK(1)));
 			break;
 
 		case PCD_SETHUDSIZE:
