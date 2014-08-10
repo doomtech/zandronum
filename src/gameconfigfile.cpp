@@ -507,12 +507,12 @@ void FGameConfigFile::ArchiveGameData (const char *gamename)
 	strncpy (subsection, "Player", sublen);
 	SetSection (section, true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, 4);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_USERINFO);
 
 	strncpy (subsection, "ConsoleVariables", sublen);
 	SetSection (section, true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, 0);
+	C_ArchiveCVars (this, CVAR_ARCHIVE);
 
 	strncpy (subsection, ( NETWORK_GetState( ) != NETSTATE_SINGLE ) ? "NetServerInfo" : "LocalServerInfo", sublen);
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || consoleplayer == 0)
@@ -520,13 +520,13 @@ void FGameConfigFile::ArchiveGameData (const char *gamename)
 	  // this machine was not the initial host.
 		SetSection (section, true);
 		ClearCurrentSection ();
-		C_ArchiveCVars (this, 5);
+		C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_SERVERINFO);
 	}
 
 	strncpy (subsection, "UnknownConsoleVariables", sublen);
 	SetSection (section, true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, 2);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_AUTO);
 
 	strncpy (subsection, "ConsoleAliases", sublen);
 	SetSection (section, true);
@@ -557,11 +557,11 @@ void FGameConfigFile::ArchiveGlobalData ()
 
 	SetSection ("GlobalSettings", true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, 1);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
 	SetSection ("GlobalSettings.Unknown", true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, 3);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_AUTO);
 }
 
 FString FGameConfigFile::GetConfigPath (bool tryProg)
