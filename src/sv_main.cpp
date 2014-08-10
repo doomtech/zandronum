@@ -5965,6 +5965,13 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		bVoteAllowed = !sv_nokickvote;
 		sprintf( szCommand, "kick" );
 		break;
+
+	case VOTECMD_KICKFROMGAME:
+
+		bVoteAllowed = !sv_noforcespecvote;
+		sprintf( szCommand, "forcespec" );
+		break;
+
 	case VOTECMD_MAP:
 
 		bVoteAllowed = !sv_nomapvote;

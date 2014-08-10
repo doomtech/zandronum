@@ -93,6 +93,7 @@ static	ULONG			callvote_CountPlayersWhoVotedNo( void );
 static	bool			callvote_CheckForFlooding( FString &Command, FString &Parameters, ULONG ulPlayer );
 static	bool			callvote_CheckValidity( FString &Command, FString &Parameters );
 static	ULONG			callvote_GetVoteType( const char *pszCommand );
+static	bool			callvote_IsKickVote( const ULONG ulVoteType );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -155,9 +156,14 @@ void CALLVOTE_Tick( void )
 				{
 					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
 					// [Dusk] Write the kick reason into the ban reason, [BB] but only if it's not empty.
-					if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
+					// [BB] "forcespec" votes need a similar handling.
+					if ( ( strncmp( g_VoteCommand, "kick", 4 ) == 0 ) || ( strncmp( g_VoteCommand, "forcespec", 9 ) == 0 ) )
 					{
-						g_VoteCommand.Format( "addban %s 10min \"Vote kick, %d to %d", NETWORK_AddressToString( g_KickVoteVictimAddress ), static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
+						if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
+							g_VoteCommand.Format( "addban %s 10min \"Vote kick", NETWORK_AddressToString( g_KickVoteVictimAddress ) );
+						else
+							g_VoteCommand.Format( "kickfromgame_idx %d \"Vote forcespec", SERVER_FindClientByAddress ( g_KickVoteVictimAddress ) );
+						g_VoteCommand.AppendFormat( ", %d to %d", static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
 						if ( g_VoteReason.IsNotEmpty() )
 							g_VoteCommand.AppendFormat ( " (%s)", g_VoteReason.GetChars( ) );
 						g_VoteCommand += ".\"";
@@ -213,7 +219,7 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 		VoteRecord.Address = SERVER_GetClient( g_ulVoteCaller )->Address;
 		VoteRecord.ulVoteType = callvote_GetVoteType( Command );
 
-		if ( VoteRecord.ulVoteType == VOTECMD_KICK )
+		if ( callvote_IsKickVote ( VoteRecord.ulVoteType ) )
 			VoteRecord.KickAddress = g_KickVoteVictimAddress; 
 
 		g_PreviousVotes.push_back( VoteRecord );
@@ -664,7 +670,7 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 	for( std::list<VOTE_s>::reverse_iterator i = g_PreviousVotes.rbegin(); i != g_PreviousVotes.rend(); ++i )
 	{
 		// One *type* of vote per voter per ## minutes (excluding kick votes if they passed).
-		if ( !( i->ulVoteType == VOTECMD_KICK && i->bPassed ) && NETWORK_CompareAddress( i->Address, Address, true ) && ( ulVoteType == i->ulVoteType ) && (( tNow - i->tTimeCalled ) < VOTER_VOTETYPE_INTERVAL * MINUTE ))
+		if ( !( callvote_IsKickVote ( i->ulVoteType ) && i->bPassed ) && NETWORK_CompareAddress( i->Address, Address, true ) && ( ulVoteType == i->ulVoteType ) && (( tNow - i->tTimeCalled ) < VOTER_VOTETYPE_INTERVAL * MINUTE ))
 		{
 			int iMinutesLeft = static_cast<int>( 1 + ( i->tTimeCalled + VOTER_VOTETYPE_INTERVAL * MINUTE - tNow ) / MINUTE );
 			SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "You must wait %d minute%s to call another %s vote.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ), Command.GetChars() );
@@ -685,14 +691,14 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 			int iMinutesLeft = static_cast<int>( 1 + ( i->tTimeCalled + VOTE_LITERALREVOTE_INTERVAL * MINUTE - tNow ) / MINUTE );
 
 			// Kickvotes (can't give the IP to clients!).
-			if (( i->ulVoteType == VOTECMD_KICK ) && ( !i->bPassed ) && NETWORK_CompareAddress( i->KickAddress, g_KickVoteVictimAddress, true ))
+			if ( callvote_IsKickVote ( i->ulVoteType ) && ( !i->bPassed ) && NETWORK_CompareAddress( i->KickAddress, g_KickVoteVictimAddress, true ))
 			{
-				SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "That specific player was recently on voted to be kicked, but the vote failed. You must wait %d minute%s to call it again.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
+				SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "That specific player was recently on voted to be kicked or forced to spectate, but the vote failed. You must wait %d minute%s to call it again.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
 				return false;
 			}
 
 			// Other votes.
-			if (( i->ulVoteType != VOTECMD_KICK ) && ( stricmp( i->fsParameter.GetChars(), Parameters.GetChars() ) == 0 ))
+			if ( ( callvote_IsKickVote ( i->ulVoteType ) == false ) && ( stricmp( i->fsParameter.GetChars(), Parameters.GetChars() ) == 0 ))
 			{
 				SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "That specific vote (\"%s %s\") was recently called, and failed. You must wait %d minute%s to call it again.\n", Command.GetChars(), Parameters.GetChars(), iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
 				return false;
@@ -713,7 +719,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		return ( false );
 
 	// Check for any illegal characters.
-	if ( ulVoteCmd != VOTECMD_KICK )
+	if ( callvote_IsKickVote ( ulVoteCmd ) == false )
 	{
 		int i = 0;
 		while ( Parameters.GetChars()[i] != '\0' )
@@ -733,6 +739,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 	switch ( ulVoteCmd )
 	{
 	case VOTECMD_KICK:
+	case VOTECMD_KICKFROMGAME:
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
@@ -742,14 +749,14 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 				{
 					if ( static_cast<LONG>(ulIdx) == SERVER_GetCurrentClient( ))
 					{
-						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "You cannot votekick yourself!\n" );
+						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "You cannot call a vote to kick or to force to spectate yourself!\n" );
   						return ( false );
 					}
 					// [BB] Don't allow anyone to kick somebody who is on the admin list. [K6] ...or is logged into RCON.
 					if ( SERVER_GetAdminList()->isIPInList( SERVER_GetClient( ulIdx )->Address )
 						|| SERVER_GetClient( ulIdx )->bRCONAccess )
 					{
-						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "This player is a server admin and thus can't be kicked!\n" );
+						SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient( ), "This player is a server admin and thus can't be kicked or forced to spectate!\n" );
   						return ( false );
 					}
 					g_KickVoteVictimAddress = SERVER_GetClient( ulIdx )->Address;
@@ -836,6 +843,8 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 {
 	if ( stricmp( "kick", pszCommand ) == 0 )
 		return VOTECMD_KICK;
+	else if ( stricmp( "forcespec", pszCommand ) == 0 )
+		return VOTECMD_KICKFROMGAME;
 	else if ( stricmp( "map", pszCommand ) == 0 )
 		return VOTECMD_MAP;
 	else if ( stricmp( "changemap", pszCommand ) == 0 )
@@ -855,6 +864,13 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 }
 
 //*****************************************************************************
+//
+static bool callvote_IsKickVote( const ULONG ulVoteType )
+{
+	return ( ( ulVoteType == VOTECMD_KICK ) || ( ulVoteType == VOTECMD_KICKFROMGAME ) );
+}
+
+//*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
 CUSTOM_CVAR( Int, sv_minvoters, 1, CVAR_ARCHIVE )
@@ -864,6 +880,7 @@ CUSTOM_CVAR( Int, sv_minvoters, 1, CVAR_ARCHIVE )
 }
 CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
 CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE );
+CVAR( Bool, sv_noforcespecvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nofraglimitvote, false, CVAR_ARCHIVE );
