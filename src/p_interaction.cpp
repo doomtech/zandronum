@@ -92,6 +92,7 @@ static FRandom pr_poison ("PoisonDamage");
 static FRandom pr_switcher ("SwitchTarget");
 
 EXTERN_CVAR (Bool, show_obituaries)
+EXTERN_CVAR( Int, menu_teamidxjointeammenu )
 
 
 FName MeansOfDeath;
@@ -2277,6 +2278,20 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	// [Dusk] Update player translations if we override the colors, odds are they're very different now.
 	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
 		R_BuildAllPlayerTranslations();
+
+	// [Dusk] Update the "join team" menu now if it was not random, so that when the map changes,
+	// we can just rejoin the team without changing the team in the menu. This is super annoying to
+	// deal with manually in for instance private CTF when the wrong team is accidentally chosen,
+	// fixed with "changeteam" and then causing you to wind up in the wrong team on map restart
+	// again...
+	if (( NETWORK_GetState() != NETSTATE_SERVER )
+		&& ( pPlayer == &players[consoleplayer] )
+		&& ( pPlayer->bOnTeam )
+		// This filters out the random team case.
+		&& ( menu_teamidxjointeammenu < signed( TEAM_GetNumAvailableTeams( ) )))
+	{
+		menu_teamidxjointeammenu = ulTeam;
+	}
 }
 
 //*****************************************************************************
