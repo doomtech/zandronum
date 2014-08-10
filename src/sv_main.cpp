@@ -2661,6 +2661,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_SetMapSky( ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
+	// [BB] Inform the client about the values of server mod cvars.
+	SERVER_SyncServerModCVars ( ulClient );
+
 	// [BB] Let the client know that the full update is completed.
 	SERVERCOMMANDS_FullUpdateCompleted( ulClient );
 	// [BB] The client will let us know that it received the update.
@@ -4005,6 +4008,21 @@ void SERVER_SyncSharedKeys( int playerToSync, bool withmessage )
 			SERVER_PrintfPlayer( PRINT_HIGH, playerToSync, "%s", message.GetChars() );
 		else
 			SERVER_Printf( PRINT_HIGH, "%s", message.GetChars() );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVER_SyncServerModCVars ( const int PlayerToSync )
+{
+	FBaseCVar *cvar = CVars;
+
+	while ( cvar )
+	{
+		if ( ( cvar->GetFlags() & CVAR_MOD ) && ( cvar->GetFlags() & CVAR_SERVERINFO ) )
+			SERVERCOMMANDS_SetCVar ( *cvar, PlayerToSync, SVCF_ONLYTHISCLIENT );
+
+		cvar = cvar->GetNext();
 	}
 }
 

@@ -189,6 +189,9 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 		{
 			ForceSet (value, type);
 //			D_SendServerInfoChange (this, value, type);
+			// [BB] Inform the clients about changes of server mod cvars.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Flags & CVAR_MOD ) )
+				SERVERCOMMANDS_SetCVar ( *this );
 		}
 	}
 	else
