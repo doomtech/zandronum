@@ -1617,9 +1617,10 @@ void D_CheckNetGame (void)
 		debugfile = fopen (filename, "w");
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
+	// [BB] Only the server reads the net cvars.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-//		GameConfig->ReadNetVars ();	// [RH] Read network ServerInfo cvars
+		GameConfig->ReadNetVars ();	// [RH] Read network ServerInfo cvars
 //		D_ArbitrateNetStart ();
 	}
 
