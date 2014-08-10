@@ -2762,6 +2762,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 				break;
 
+			case SVC2_SETCVAR:
+				{
+					const FString cvarName = NETWORK_ReadString( pByteStream );
+					const FString cvarValue = NETWORK_ReadString( pByteStream );
+					cvar_forceset ( cvarName.GetChars(), cvarValue.GetChars() );
+				}
+				break;
+
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
 				CLIENT_QuitNetworkGame( szString );

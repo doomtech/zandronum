@@ -79,6 +79,7 @@
 +	- Both types of lobby maps (MAPINFO and cvar) now ignore timelimits. [AlexMax]
 +	- Added new ACS function RequestScriptPuke which requests execution of the given script on the server. The function must only be called from CLIENTSIDE scripts the script executed must be NET. [Dusk]
 +	- Announcer sounds for pickups now can be disabled with the new CVAR cl_announcepickups (default true) (patch by dark-slayer-201). [Torr Samaho]
++	- Added the new vote type "forcespec" that forces a player to spectate. It can be disabled with the new CVAR sv_noforcespecvote (default false). [Torr Samaho]
 -	- Extended the vote kick protection for admins to include players logged into RCON (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: The server didn't report when the master server notified the server that it's banned (ported from Konar6's kpatch). [Torr Samaho]
 -	- Fixed: Blood actors (or anything else which do not use net IDs) within save games would crash the game upon loading. [Dusk]

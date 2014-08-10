@@ -4697,6 +4697,17 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_SetCVar( const FBaseCVar &CVar, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	NetCommand command( SVC_EXTENDEDCOMMAND );
+	command.addByte( SVC2_SETCVAR );
+	command.addString( CVar.GetName() );
+	command.addString( CVar.GetGenericRep (CVAR_String).String );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
 void SERVERCOMMANDS_SRPUserStartAuthentication ( const ULONG ulClient )
 {
 	if ( SERVER_IsValidClient( ulClient ) == false )

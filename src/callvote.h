@@ -70,6 +70,7 @@
 enum
 {
 	VOTECMD_KICK,
+	VOTECMD_KICKFROMGAME,
 	VOTECMD_MAP,
 	VOTECMD_CHANGEMAP,
 	VOTECMD_FRAGLIMIT,
@@ -143,6 +144,7 @@ bool			CALLVOTE_ShouldShowVoteScreen( void );
 EXTERN_CVAR( Int, sv_minvoters );
 EXTERN_CVAR( Int, sv_nocallvote )
 EXTERN_CVAR( Bool, sv_nokickvote );
+EXTERN_CVAR( Bool, sv_noforcespecvote );
 EXTERN_CVAR( Bool, sv_nomapvote );
 EXTERN_CVAR( Bool, sv_nochangemapvote );
 EXTERN_CVAR( Bool, sv_nofraglimitvote );
