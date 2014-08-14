@@ -120,6 +120,7 @@
 !	- If the map rotation is not empty, the server now prevents map/changemap votes to maps that are not in the rotation, regardless of whether of sv_maprotation is true. This allows the server to restrict these votes without enforcing the rotation itself, which would also enforce the order in which the maps are played (adapted from an old patch of TIHan). [Torr Samaho]
 !	- Renamed compat_123b33jumpphysics to compat_oldzdoomzmovement, which is a more accurate description of what the flag actually does. [AlexMax]
 !	- The server now ignores client ping packets that don't make sense. [Torr Samaho]
+!	- The team selection menu now is kept in sync with the local player's team, unless it was set to random. [Dusk]
 
 
 1.2.2
