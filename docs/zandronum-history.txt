@@ -21,6 +21,7 @@
 +	- When a banned client is prevented from connecting, the ban reason (if specified in the banlist) is logged to the server console (adapted form Konar6's kpatch). [Torr Samaho]
 +	- Added a new compatflags cvar: compat_silentwestspawns, emulates Vanilla compatibility by not performing any spawnfog/sounds for west angled spawns. [Water]
 +	- Added compat_maxbloodscalar which will enforce vanilla red screen damage as if the blood_fade_scalar was 1.0. [Water]
++	- Ported CVARINFO lump support and the ACS functions SetCVar, GetCVarString and SetCVarString from ZDoom. This includes support for CVars that are automatically synced between server and clients. User CVars are not support for now though. [Torr Samaho]
 -	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
 -	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
