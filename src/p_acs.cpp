@@ -120,13 +120,12 @@ FRandom pr_acs ("ACS");
 
 struct CallReturn
 {
-	CallReturn(int pc, ScriptFunction *func, FBehavior *module, SDWORD *locals, bool discard, FString &str)
+	CallReturn(int pc, ScriptFunction *func, FBehavior *module, SDWORD *locals, bool discard)
 		: ReturnFunction(func),
 		  ReturnModule(module),
 		  ReturnLocals(locals),
 		  ReturnAddress(pc),
-		  bDiscardResult(discard),
-		  StringBuilder(str)
+		  bDiscardResult(discard)
 	{}
 
 	ScriptFunction *ReturnFunction;
@@ -134,7 +133,6 @@ struct CallReturn
 	SDWORD *ReturnLocals;
 	int ReturnAddress;
 	int bDiscardResult;
-	FString StringBuilder;
 };
 
 static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
@@ -193,8 +191,8 @@ public:
 ACS_StringsOnTheFly;
 TArray<FString> ACS_StringBuilderStack;
 
-#define STRINGBUILDER_START(Builder) if (*Builder.GetChars() || ACS_StringBuilderStack.Size()) { ACS_StringBuilderStack.Push(Builder); Builder = ""; }
-#define STRINGBUILDER_FINISH(Builder) if (!ACS_StringBuilderStack.Pop(Builder)) Builder = "";
+#define STRINGBUILDER_START(Builder) if (Builder.IsNotEmpty() || ACS_StringBuilderStack.Size()) { ACS_StringBuilderStack.Push(Builder); Builder = ""; }
+#define STRINGBUILDER_FINISH(Builder) if (!ACS_StringBuilderStack.Pop(Builder)) { Builder = ""; }
 
 // [BB] Extracted from PCD_SAVESTRING.
 int ACS_PushAndReturnDynamicString ( const FString &Work )
@@ -4896,7 +4894,7 @@ int DLevelScript::RunScript ()
 				}
 				sp += i;
 				::new(&Stack[sp]) CallReturn(activeBehavior->PC2Ofs(pc), activeFunction,
-					activeBehavior, mylocals, pcd == PCD_CALLDISCARD, work);
+					activeBehavior, mylocals, pcd == PCD_CALLDISCARD);
 				sp += (sizeof(CallReturn) + sizeof(int) - 1) / sizeof(int);
 				pc = module->Ofs2PC (func->Address);
 				activeFunction = func;
@@ -4935,7 +4933,6 @@ int DLevelScript::RunScript ()
 				{
 					Stack[sp++] = value;
 				}
-				work = ret->StringBuilder;
 				ret->~CallReturn();
 			}
 			break;
@@ -8384,8 +8381,6 @@ void DACSThinker::DumpScriptStatus ()
 	}
 }
 
-#undef STRINGBUILDER_START
-#undef STRINGBUILDER_FINISH
 
 //*****************************************************************************
 //
