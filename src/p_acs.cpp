@@ -202,6 +202,27 @@ int ACS_PushAndReturnDynamicString ( const FString &Work )
 
 //============================================================================
 //
+// uallong
+//
+// Read a possibly unaligned four-byte little endian integer from memory.
+//
+//============================================================================
+
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__)
+inline int uallong(const int &foo)
+{
+	return foo;
+}
+#else
+inline int uallong(const int &foo)
+{
+	const unsigned char *bar = (const unsigned char *)&foo;
+	return bar[0] | (bar[1] << 8) | (bar[2] << 16) | (bar[3] << 24);
+}
+#endif
+
+//============================================================================
+//
 //
 //
 //============================================================================
@@ -1377,6 +1398,14 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 			Functions += 8;
 		}
 
+		// Load JUMP points
+		chunk = (DWORD *)FindChunk (MAKE_ID('J','U','M','P'));
+		if (chunk != NULL)
+		{
+			for (i = 0;i < (int)LittleLong(chunk[1]);i += 4)
+				JumpPoints.Push(LittleLong(chunk[2 + i/4]));
+		}
+
 		// Initialize this object's map variables
 		memset (MapVarStore, 0, sizeof(MapVarStore));
 		chunk = (DWORD *)FindChunk (MAKE_ID('M','I','N','I'));
@@ -1474,6 +1503,34 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 						}
 					}
 				}
+			}
+
+			// [BL] Newer version of ASTR for structure aware compilers although we only have one array per chunk
+			chunk = (DWORD *)FindChunk (MAKE_ID('A','T','A','G'));
+			while (chunk != NULL)
+			{
+				const BYTE* chunkData = (const BYTE*)(chunk + 2);
+				// First byte is version, it should be 0
+				if(*chunkData++ == 0)
+				{
+					int arraynum = MapVarStore[uallong(*(const int*)(chunkData))];
+					chunkData += 4;
+					if ((unsigned)arraynum < (unsigned)NumArrays)
+					{
+						SDWORD *elems = ArrayStore[arraynum].Elements;
+						// Ending zeros may be left out.
+						for (int j = MIN(chunk[1]-5, ArrayStore[arraynum].ArraySize); j > 0; --j, ++elems, ++chunkData)
+						{
+							// For ATAG, a value of 0 = Integer, 1 = String, 2 = FunctionPtr
+							// Our implementation uses the same tags for both String and FunctionPtr
+							if(*chunkData)
+								*elems |= LibraryID;
+						}
+						i += 4+ArrayStore[arraynum].ArraySize;
+					}
+				}
+
+				chunk = (DWORD *)NextChunk ((BYTE *)chunk);
 			}
 		}
 
@@ -4547,20 +4604,6 @@ inline int getshort (int *&pc)
 	return res;
 }
 
-// Read a possibly unaligned four-byte little endian integer.
-#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) 
-inline int uallong(int &foo)
-{
-	return foo;
-}
-#else
-inline int uallong(int &foo)
-{
-	unsigned char *bar = (unsigned char *)&foo;
-	return bar[0] | (bar[1] << 8) | (bar[2] << 16) | (bar[3] << 24);
-}
-#endif
-
 int DLevelScript::RunScript ()
 {
 	DACSThinker *controller = DACSThinker::ActiveThinker;
@@ -5694,6 +5737,11 @@ int DLevelScript::RunScript ()
 
 		case PCD_GOTO:
 			pc = activeBehavior->Ofs2PC (LittleLong(*pc));
+			break;
+
+		case PCD_GOTOSTACK:
+			pc = activeBehavior->Jump2PC (STACK(1));
+			sp--;
 			break;
 
 		case PCD_IFGOTO:

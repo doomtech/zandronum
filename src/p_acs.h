@@ -221,6 +221,7 @@ public:
 	int CountTypedScripts( WORD type );
 	DWORD PC2Ofs (int *pc) const { return (DWORD)((BYTE *)pc - Data); }
 	int *Ofs2PC (DWORD ofs) const {	return (int *)(Data + ofs); }
+	int *Jump2PC (DWORD jumpPoint) const { return Ofs2PC(JumpPoints[jumpPoint]); }
 	ACSFormat GetFormat() const { return Format; }
 	ScriptFunction *GetFunction (int funcnum, FBehavior *&module) const;
 	int GetArrayVal (int arraynum, int index) const;
@@ -268,6 +269,7 @@ private:
 	TArray<FBehavior *> Imports;
 	DWORD LibraryID;
 	char ModuleName[9];
+	TArray<int> JumpPoints;
 
 	static TArray<FBehavior *> StaticModules;
 
@@ -650,6 +652,7 @@ public:
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
 		// [CW] End team additions.
+		PCD_GOTOSTACK,
 
 /*353*/	PCODE_COMMAND_COUNT
 	};
