@@ -995,6 +995,9 @@ void G_DoCompleted (void)
 	if (mode == FINISH_SameHub)
 	{ // Remember the level's state for re-entry.
 		G_SnapshotLevel ();
+			// Do not free any global strings this level might reference
+			// while it's not loaded.
+			FBehavior::StaticLockLevelVarStrings();
 	}
 	else
 	{ // Forget the states of all existing levels.
@@ -2316,6 +2319,11 @@ void G_UnSnapshotLevel (bool hubLoad)
 	}
 	// No reason to keep the snapshot around once the level's been entered.
 	level.info->ClearSnapshot();
+	if (hubLoad)
+	{
+		// Unlock ACS global strings that were locked when the snapshot was made.
+		FBehavior::StaticUnlockLevelVarStrings();
+	}
 }
 
 //==========================================================================
