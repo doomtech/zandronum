@@ -3979,6 +3979,15 @@ int DLevelScript::GetActorProperty (int tid, int property)
 							}
 	case APROP_Score:		return actor->Score;
 	case APROP_MasterTID:	return DoGetMasterTID (actor);
+
+	case APROP_SeeSound:	return GlobalACSStrings.AddString(actor->SeeSound);
+	case APROP_AttackSound:	return GlobalACSStrings.AddString(actor->AttackSound);
+	case APROP_PainSound:	return GlobalACSStrings.AddString(actor->PainSound);
+	case APROP_DeathSound:	return GlobalACSStrings.AddString(actor->DeathSound);
+	case APROP_ActiveSound:	return GlobalACSStrings.AddString(actor->ActiveSound);
+	case APROP_Species:		return GlobalACSStrings.AddString(actor->GetSpecies());
+	case APROP_NameTag:		return GlobalACSStrings.AddString(actor->GetTag());
+
 	default:				return 0;
 	}
 }
@@ -4022,7 +4031,8 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_Notrigger:
 			return (GetActorProperty(tid, property) == (!!value));
 
-		// Strings are not covered by GetActorProperty, so make the check here
+		// Strings are covered by GetActorProperty, but they're fairly
+		// heavy-duty, so make the check here.
 		case APROP_SeeSound:	string = actor->SeeSound; break;
 		case APROP_AttackSound:	string = actor->AttackSound; break;
 		case APROP_PainSound:	string = actor->PainSound; break;
