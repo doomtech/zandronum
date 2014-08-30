@@ -4309,6 +4309,7 @@ enum EACSFunctions
 	ACSF_SetCVarString,
 	ACSF_GetUserCVarString, // [BB] Not supported yet.
 	ACSF_SetUserCVarString, // [BB] Not supported yet.
+	ACSF_LineAttack,
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -5037,6 +5038,33 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 			}
 			break;
 */
+
+		//[RC] A bullet firing function for ACS. Thanks to DavidPH.
+		case ACSF_LineAttack:
+			{
+				fixed_t	angle		= args[1] << FRACBITS;
+				fixed_t	pitch		= args[2] << FRACBITS;
+				int	damage			= args[3];
+				FName pufftype		= argCount > 4 && args[4]? FName(FBehavior::StaticLookupString(args[4])) : NAME_BulletPuff;
+				FName damagetype	= argCount > 5 && args[5]? FName(FBehavior::StaticLookupString(args[5])) : NAME_None;
+				fixed_t	range		= argCount > 6 && args[6]? args[6] : 0x7FFFFFFF;
+
+				if (args[0] == 0)
+				{
+					P_LineAttack(activator, angle, range, pitch, damage, damagetype, pufftype);
+				}
+				else
+				{
+					AActor *source;
+					FActorIterator it(args[0]);
+
+					while ((source = it.Next()) != NULL)
+					{
+						P_LineAttack(activator, angle, range, pitch, damage, damagetype, pufftype);
+					}
+				}
+			}
+			break;
 
 		// [BB]
 		case ACSF_ResetMap:
