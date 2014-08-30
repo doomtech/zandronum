@@ -4303,8 +4303,12 @@ enum EACSFunctions
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
-	ACSF_GetCVarString = 56, // [BB] Backported from ZDoom
-	ACSF_SetCVarString = 57, // [BB] Backported from ZDoom
+	ACSF_GetUserCVar, // [BB] Not supported yet.
+	ACSF_SetUserCVar, // [BB] Not supported yet.
+	ACSF_GetCVarString,
+	ACSF_SetCVarString,
+	ACSF_GetUserCVarString, // [BB] Not supported yet.
+	ACSF_SetUserCVarString, // [BB] Not supported yet.
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -4491,6 +4495,23 @@ static int DoGetCVar(FBaseCVar *cvar, bool is_string)
 	}
 }
 
+/* [BB] Zandronum doesn't have user CVars yet.
+static int GetUserCVar(int playernum, const char *cvarname, bool is_string)
+{
+	if ((unsigned)playernum >= MAXPLAYERS || !playeringame[playernum])
+	{
+		return 0;
+	}
+	FBaseCVar **cvar_p = players[playernum].userinfo.CheckKey(FName(cvarname, true));
+	FBaseCVar *cvar;
+	if (cvar_p == NULL || (cvar = *cvar_p) == NULL || (cvar->GetFlags() & CVAR_IGNORE))
+	{
+		return 0;
+	}
+	return DoGetCVar(cvar, is_string);
+}
+*/
+
 static int GetCVar(AActor *activator, const char *cvarname, bool is_string)
 {
 	FBaseCVar *cvar = FindCVar(cvarname, NULL);
@@ -4515,6 +4536,38 @@ static int GetCVar(AActor *activator, const char *cvarname, bool is_string)
 		return DoGetCVar(cvar, is_string);
 	}
 }
+
+/* [BB] Zandronum doesn't have user CVars yet.
+static int SetUserCVar(int playernum, const char *cvarname, int value, bool is_string)
+{
+	if ((unsigned)playernum >= MAXPLAYERS || !playeringame[playernum])
+	{
+		return 0;
+	}
+	FBaseCVar **cvar_p = players[playernum].userinfo.CheckKey(FName(cvarname, true));
+	FBaseCVar *cvar;
+	// Only mod-created cvars may be set.
+	if (cvar_p == NULL || (cvar = *cvar_p) == NULL || (cvar->GetFlags() & CVAR_IGNORE) || !(cvar->GetFlags() & CVAR_MOD))
+	{
+		return 0;
+	}
+	DoSetCVar(cvar, value, is_string);
+
+	// If we are this player, then also reflect this change in the local version of this cvar.
+	if (playernum == consoleplayer)
+	{
+		FBaseCVar *cvar = FindCVar(cvarname, NULL);
+		// If we can find it in the userinfo, then we should also be able to find it in the normal cvar list,
+		// but check just to be safe.
+		if (cvar != NULL)
+		{
+			DoSetCVar(cvar, value, is_string, true);
+		}
+	}
+
+	return 1;
+}
+*/
 
 static int SetCVar(AActor *activator, const char *cvarname, int value, bool is_string)
 {
@@ -4954,6 +5007,36 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], true);
 			}
 			break;
+
+/* [BB] Zandronum doesn't have user CVars yet.
+		case ACSF_GetUserCVar:
+			if (argCount == 2)
+			{
+				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), false);
+			}
+			break;
+
+		case ACSF_GetUserCVarString:
+			if (argCount == 2)
+			{
+				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), true);
+			}
+			break;
+
+		case ACSF_SetUserCVar:
+			if (argCount == 3)
+			{
+				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], false);
+			}
+			break;
+
+		case ACSF_SetUserCVarString:
+			if (argCount == 3)
+			{
+				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], true);
+			}
+			break;
+*/
 
 		// [BB]
 		case ACSF_ResetMap:
