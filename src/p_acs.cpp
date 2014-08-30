@@ -579,11 +579,7 @@ int ACSStringPool::InsertString(FString &str, unsigned int h, unsigned int bucke
 	}
 	else
 	{ // Scan for the next free entry
-		unsigned int i;
-		for (i = FirstFreeEntry + 1; i < Pool.Size() && Pool[i].Next != FREE_ENTRY; ++i)
-		{
-		}
-		FirstFreeEntry = i;
+		FindFirstFreeEntry(FirstFreeEntry + 1);
 	}
 	PoolEntry *entry = &Pool[index];
 	entry->Str = str;
@@ -592,6 +588,23 @@ int ACSStringPool::InsertString(FString &str, unsigned int h, unsigned int bucke
 	entry->LockCount = 0;
 	PoolBuckets[bucketnum] = index;
 	return index | STRPOOL_LIBRARYID_OR;
+}
+
+//============================================================================
+//
+// ACSStringPool :: FindFirstFreeEntry
+//
+// Finds the first free entry, starting at base.
+//
+//============================================================================
+
+void ACSStringPool::FindFirstFreeEntry(unsigned base)
+{
+	while (base < Pool.Size() && Pool[base].Next != FREE_ENTRY)
+	{
+		base++;
+	}
+	FirstFreeEntry = base;
 }
 
 //============================================================================
@@ -642,6 +655,7 @@ void ACSStringPool::ReadStrings(PNGHandle *png, DWORD id)
 		{
 			delete[] str;
 		}
+		FindFirstFreeEntry(0);
 	}
 }
 
@@ -694,6 +708,7 @@ void ACSStringPool::Dump() const
 			Printf("%4u. (%2d) \"%s\"\n", i, Pool[i].LockCount, Pool[i].Str.GetChars());
 		}
 	}
+	Printf("First free %u\n", FirstFreeEntry);
 }
 
 //============================================================================
