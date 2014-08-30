@@ -4310,6 +4310,8 @@ enum EACSFunctions
 	ACSF_GetUserCVarString, // [BB] Not supported yet.
 	ACSF_SetUserCVarString, // [BB] Not supported yet.
 	ACSF_LineAttack,
+	ACSF_PlaySound,
+	ACSF_StopSound,
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -5061,6 +5063,62 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 					while ((source = it.Next()) != NULL)
 					{
 						P_LineAttack(activator, angle, range, pitch, damage, damagetype, pufftype);
+					}
+				}
+			}
+			break;
+
+		case ACSF_PlaySound:
+			// PlaySound(tid, "SoundName", channel, volume, looping, attenuation)
+			{
+				const char *lookup = FBehavior::StaticLookupString(args[1]);
+				if (lookup != NULL)
+				{
+					FActorIterator it(args[0]);
+					AActor *spot;
+
+					FSoundID sid(lookup);
+					int chan = argCount > 2 ? args[2] : CHAN_BODY;
+					float vol = argCount > 3 ? FIXED2FLOAT(args[3]) : 1.f;
+					INTBOOL looping = argCount > 4 ? args[4] : false;
+					float atten = argCount > 5 ? FIXED2FLOAT(args[5]) : ATTN_NORM;
+
+					if (args[0] == 0)
+					{
+						spot = activator;
+						goto doplaysound;
+					}
+					while ((spot = it.Next()) != NULL)
+					{
+doplaysound:			if (!looping)
+						{
+							S_Sound(spot, chan, sid, vol, atten);
+						}
+						else if (!S_IsActorPlayingSomething(spot, chan, sid))
+						{
+							S_Sound(spot, chan | CHAN_LOOP, sid, vol, atten);
+						}
+					}
+				}
+			}
+			break;
+
+		case ACSF_StopSound:
+			{
+				int chan = argCount > 1 ? args[1] : CHAN_BODY;
+
+				if (args[0] == 0)
+				{
+					S_StopSound(activator, chan);
+				}
+				else
+				{
+					FActorIterator it(args[0]);
+					AActor *spot;
+
+					while ((spot = it.Next()) != NULL)
+					{
+						S_StopSound(spot, chan);
 					}
 				}
 			}
