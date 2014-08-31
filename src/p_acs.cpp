@@ -3512,6 +3512,8 @@ enum EACSFunctions
 	ACSF_GetDBResultValue,
 	ACSF_GetDBEntryRank,
 	ACSF_RequestScriptPuke,
+	ACSF_BeginDBTransaction,
+	ACSF_EndDBTransaction,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
@@ -3948,6 +3950,14 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 
 		case ACSF_RequestScriptPuke:
 			return RequestScriptPuke( activeBehavior, activator, args );
+
+		case ACSF_BeginDBTransaction:
+			DATABASE_BeginTransaction();
+			break;
+
+		case ACSF_EndDBTransaction:
+			DATABASE_EndTransaction();
+			break;
 
 		default:
 			break;

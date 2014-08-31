@@ -28,6 +28,8 @@
         string GetDBResultValueString ( int Handle, Index )
         int GetDBResultValue ( int Handle, Index )
         int GetDBEntryRank ( string Namespace, string Key, bool Descending )
+        void BeginDBTransaction ( )
+        void EndDBTransaction ( )
       allow mods to access the underlying database. [Torr Samaho]
 *+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
 		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
