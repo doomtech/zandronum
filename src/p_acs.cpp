@@ -3965,6 +3965,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_Score:
 		actor->Score = value;
+		break;
 
 	case APROP_NameTag:
 		actor->Tag = FBehavior::StaticLookupString(value);
