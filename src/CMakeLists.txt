@@ -784,6 +784,7 @@ add_executable( zdoom WIN32
 	${SYSTEM_SOURCES}
 	${X86_SOURCES}
 	x86.cpp
+	actorptrselect.cpp
 	am_map.cpp
 	announcer.cpp #ST
 	astar.cpp #ST
