@@ -4349,6 +4349,7 @@ enum EACSFunctions
 	ACSF_GetPolyobjX,
 	ACSF_GetPolyobjY,
     ACSF_CheckSight,
+	ACSF_SpawnForced,
 	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
 
 	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
@@ -5032,6 +5033,9 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			}
             return 0;
         }
+
+		case ACSF_SpawnForced:
+			return DoSpawn(args[0], args[1], args[2], args[3], args[4], args[5], true);
 
 
 		// [BL] Skulltag function
