@@ -169,6 +169,20 @@ const float ATTN_NORM = 1;
 const float ATTN_IDLE = 1.001;
 const float ATTN_STATIC = 3;
 
+// Pointer constants, bitfield-enabled
+
+Const Int AAPTR_DEFAULT = 0;
+Const Int AAPTR_NULL = 1;
+Const Int AAPTR_TARGET = 2;
+Const Int AAPTR_MASTER = 4;
+Const Int AAPTR_TRACER = 8;
+
+// Pointer operation flags
+
+Const Int PTROP_UNSAFETARGET = 1;
+Const Int PTROP_UNSAFEMASTER = 2;
+Const Int PTROP_NOSAFEGUARDS = PTROP_UNSAFETARGET|PTROP_UNSAFEMASTER;
+
 
 // This is only here to provide one global variable for testing.
 native int testglobalvar;

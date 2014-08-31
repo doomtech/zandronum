@@ -1157,7 +1157,7 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 //
 //============================================================================
 
-void AActor::CopyFriendliness (AActor *other, bool changeTarget)
+void AActor::CopyFriendliness (AActor *other, bool changeTarget, bool resetHealth)
 {
 	level.total_monsters -= CountsAsKill();
 
@@ -1178,7 +1178,7 @@ void AActor::CopyFriendliness (AActor *other, bool changeTarget)
 		// LastHeard must be set as well so that A_Look can react to the new target if called
 		LastHeard = target = other->target;
 	}	
-	health = SpawnHealth();	
+	if (resetHealth) health = SpawnHealth();	
 	level.total_monsters += CountsAsKill();
 
 	// [BB] If the number of total monsters was increased, update the invasion monster count accordingly.
