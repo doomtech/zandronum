@@ -75,3 +75,4 @@ FString	DATABASE_SaveGetEntry ( const char *Namespace, const char *EntryName );
 void	DATABASE_SaveIncrementEntryInt ( const char *Namespace, const char *EntryName, int Increment );
 int		DATABASE_GetEntryRank ( const char *Namespace, const char *EntryName, const bool Descending );
 int		DATABASE_GetSortedEntries ( const char *Namespace, const int N, const int Offset, const bool Descending, TArray<std::pair<FString, FString> > &Entries );
+int		DATABASE_GetEntries ( const char *Namespace, TArray<std::pair<FString, FString> > &Entries );

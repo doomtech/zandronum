@@ -3514,6 +3514,7 @@ enum EACSFunctions
 	ACSF_RequestScriptPuke,
 	ACSF_BeginDBTransaction,
 	ACSF_EndDBTransaction,
+	ACSF_GetDBEntries,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
@@ -3958,6 +3959,13 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 		case ACSF_EndDBTransaction:
 			DATABASE_EndTransaction();
 			break;
+
+		case ACSF_GetDBEntries:
+			{
+				g_dbQueries.resize ( g_dbQueries.size() + 1 );
+				DATABASE_GetEntries ( FBehavior::StaticLookupString(args[0]), g_dbQueries.back() );
+				return ( g_dbQueries.size() - 1 );
+			}
 
 		default:
 			break;
