@@ -99,6 +99,7 @@
 -	- Fixed: Some ordinals weren't written correctly in the spectator queue message. [Esum]
 -	- Fixed: Non-interacting actors like map spots would have their TIDs reset to 0 on map resets. [Dusk]
 -	- Fixed: The server didn't load the archived value of SERVERINFO CVARs (e.g. sv_smartaim). [Torr Samaho]
+-	- Fixed: The chat length limit of 128s was not enforced online. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]

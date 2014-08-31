@@ -4684,6 +4684,14 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 	// Or, relay the chat message onto clients.
 	else
 	{
+		// [TP] Kick clients who send too long chat messages (the client is expected to restrict
+		// the length of the messages by itself).
+		if ( strlen ( pszChatString ) > MAX_CHATBUFFER_LENGTH )
+		{
+			SERVER_KickPlayer( ulPlayer, "Client sent an excessively long chat string" );
+			return ( true );
+		}
+
 		SERVER_SendChatMessage( ulPlayer, ulChatMode, pszChatString );
 		return ( false );
 	}

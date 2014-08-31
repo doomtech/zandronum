@@ -60,6 +60,7 @@
 #include "gamemode.h"
 #include "lastmanstanding.h"
 #include "deathmatch.h"
+#include "chat.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -200,9 +201,15 @@ void CLIENTCOMMANDS_ExitConsole( void )
 //
 void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 {
+	// [TP] Limit messages to certain length.
+	FString chatstring ( pszString );
+
+	if ( chatstring.Len() > MAX_CHATBUFFER_LENGTH )
+		chatstring = chatstring.Left( MAX_CHATBUFFER_LENGTH );
+
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SAY );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulMode );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, chatstring );
 }
 
 //*****************************************************************************
