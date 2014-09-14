@@ -109,6 +109,7 @@
 !	- Renamed compat_123b33jumpphysics to compat_oldzdoomzmovement, which is a more accurate description of what the flag actually does. [AlexMax]
 !	- The server now ignores client ping packets that don't make sense. [Torr Samaho]
 !	- The team selection menu now is kept in sync with the local player's team, unless it was set to random. [Dusk]
+!	- Changed the chat muting report: the server will inform the muted client how much time is left also in seconds. [Edward-san]
 
 
 1.2.2

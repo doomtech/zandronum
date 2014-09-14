@@ -4605,6 +4605,40 @@ static bool server_CheckForClientMinorCommandFlood( ULONG ulClient )
 	return ( false );
 }
 
+static bool server_CheckForChatFlood( ULONG ulPlayer )
+{
+	ULONG ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
+	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
+
+	// Mute the player if this is the...
+
+	// ...second time he has chatted in a 7 tick interval (~1/5 of a second, ~1/5 of a second chat interval).
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 1 ) % MAX_CHATINSTANCE_STORAGE] )
+		<= 7 )
+	{
+		return true;
+	}
+
+	// ..third time he has chatted in a 42 tick interval (~1.5 seconds, ~.75 second chat interval).
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 2 ) % MAX_CHATINSTANCE_STORAGE] )
+		<= 42 )
+	{
+		return true;
+	}
+
+	// ...fourth time he has chatted in a 105 tick interval (~3 seconds, ~1 second interval).
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 3 ) % MAX_CHATINSTANCE_STORAGE] )
+		<= 105 )
+	{
+		return true;
+	}
+
+	return false;
+}
+
 //*****************************************************************************
 //
 static bool server_Say( BYTESTREAM_s *pByteStream )
@@ -4628,53 +4662,53 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 	if ( players[ulPlayer].bIgnoreChat )
 	{
 		// [BB] Tell the player that (and for how long) he is muted.
-		FString message = "The server has muted you. Nobody can hear you chat";
-		int iMinutes = 1 + players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
+		// Except when the muting time is not limited.
+		FString message = "The server has muted you. Nobody can see your messages";
 		if ( players[ulPlayer].lIgnoreChatTicks != -1 )
-			message.AppendFormat ( " for the next %d minute%s.\n", iMinutes, (iMinutes == 1) ? "" : "s");
-		else
-			message += ".\n";
+		{
+			// [EP] Print how many minutes and how many seconds are left.
+			LONG lMinutes = players[ulPlayer].lIgnoreChatTicks / ( TICRATE * MINUTE );
+			LONG lSeconds = ( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE;
+			if ( ( lMinutes > 0 ) && ( lSeconds > 0 ) )
+			{
+				message.AppendFormat( "for %d minute%s and %d second%s",
+							static_cast<int>(lMinutes),
+							lMinutes == 1 ? "" : "s",
+							static_cast<int>(lSeconds),
+							lSeconds == 1 ? "" : "s");
+			}
+			// [EP] If the time to wait is just some tics,
+			// tell the player that he can wait just a bit.
+			// There's no need to print the tics.
+			else if ( ( lMinutes == 0 ) && ( lSeconds == 0 ) )
+			{
+				message += "for less than a second";
+			}
+			else
+			{
+				if ( lMinutes > 0 )
+				{
+					message.AppendFormat( "for %d minute%s",
+							static_cast<int>(lMinutes),
+							lMinutes == 1 ? "" : "s");
+				}
+
+				if ( lSeconds > 0 )
+				{
+					message.AppendFormat( "for %d second%s",
+							static_cast<int>(lSeconds),
+							lSeconds == 1 ? "" : "s");
+				}
+			}
+		}
+		message += ".\n";
 
 		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, message.GetChars() );
 		return ( false );
 	}
 
-	//==========================
 	// Check for chat flooding.
-	//==========================
-
-	bool bMutePlayer = false;
-	ULONG ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
-	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
-
-	// Mute the player if this is the...
-
-	// ...second time he has chatted in a 7 tick interval (~1/5 of a second, ~1/5 of a second chat interval).
-	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 1 ) % MAX_CHATINSTANCE_STORAGE] )
-		<= 7 )
-	{
-		bMutePlayer = true;
-	}
-
-	// ..third time he has chatted in a 42 tick interval (~1.5 seconds, ~.75 second chat interval).
-	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 2 ) % MAX_CHATINSTANCE_STORAGE] )
-		<= 42 )
-	{
-		bMutePlayer = true;
-	}
-
-	// ...fourth time he has chatted in a 105 tick interval (~3 seconds, ~1 second interval).
-	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 3 ) % MAX_CHATINSTANCE_STORAGE] )
-		<= 105 )
-	{
-		bMutePlayer = true;
-	}
-
-	// Mute the player.
-	if ( bMutePlayer )
+	if ( server_CheckForChatFlood ( ulPlayer ) == true )
 	{
 		players[ulPlayer].bIgnoreChat = true;
 		players[ulPlayer].lIgnoreChatTicks = 15 * TICRATE;
