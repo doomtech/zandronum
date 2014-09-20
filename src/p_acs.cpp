@@ -883,7 +883,6 @@ static int GetTeamProperty (unsigned int team, int prop) {
 static int RequestScriptPuke ( FBehavior* module, AActor* activator, SDWORD* args )
 {
 	// [Dusk] Run a script over the network
-	int result;
 	const SDWORD& script = args[0];
 	const SDWORD& arg0 = args[1];
 	const SDWORD& arg1 = args[2];
