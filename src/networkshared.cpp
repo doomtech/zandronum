@@ -376,14 +376,16 @@ bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 	struct hostent  *h;
 	struct sockaddr_in sadr;
 	char    *colon;
-	char    copy[128];
+	char    copy[512];
 
 	memset (&sadr, 0, sizeof(sadr));
 	sadr.sin_family = AF_INET;
 
 	sadr.sin_port = 0;
 
-	strcpy (copy, s);
+	strncpy (copy, s, 512-1);
+	copy[512-1] = 0;
+
 	// strip off a trailing :port if present
 	for (colon = copy ; *colon ; colon++)
 	{
