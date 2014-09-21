@@ -888,7 +888,6 @@ static int GetTeamProperty (unsigned int team, int prop) {
 static int RequestScriptPuke ( FBehavior* module, AActor* activator, SDWORD* args )
 {
 	// [Dusk] Run a script over the network
-	int result;
 	const SDWORD& script = args[0];
 	const SDWORD& arg0 = args[1];
 	const SDWORD& arg1 = args[2];
@@ -3657,6 +3656,9 @@ enum EACSFunctions
 	ACSF_GetDBResultValue,
 	ACSF_GetDBEntryRank,
 	ACSF_RequestScriptPuke,
+	ACSF_BeginDBTransaction,
+	ACSF_EndDBTransaction,
+	ACSF_GetDBEntries,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
@@ -4496,6 +4498,21 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 
 		case ACSF_RequestScriptPuke:
 			return RequestScriptPuke( activeBehavior, activator, args );
+
+		case ACSF_BeginDBTransaction:
+			DATABASE_BeginTransaction();
+			break;
+
+		case ACSF_EndDBTransaction:
+			DATABASE_EndTransaction();
+			break;
+
+		case ACSF_GetDBEntries:
+			{
+				g_dbQueries.resize ( g_dbQueries.size() + 1 );
+				DATABASE_GetEntries ( FBehavior::StaticLookupString(args[0]), g_dbQueries.back() );
+				return ( g_dbQueries.size() - 1 );
+			}
 
 		default:
 			break;

@@ -325,14 +325,14 @@ bool FindStateAddressRecursor( AActor *pActor, FState *pState, FString prefix, F
 	return false;
 }
 
-void FindStateLabelAndOffset( AActor *pActor, FState *pState, FString &stateLabel, LONG &lOffset )
+void FindStateLabelAndOffset( AActor *pActor, FState *pState, FString &stateLabel, LONG &lOffset, const bool bSuppressWarning = false )
 {
 	stateLabel = "";
 	lOffset = 0;
 	FStateLabels *pStateList = pActor->GetClass()->ActorInfo->StateList;
 
 	bool found = FindStateAddressRecursor( pActor, pState, "", pStateList, stateLabel, lOffset );
-	if ( found == false && sv_showwarnings )
+	if ( found == false && sv_showwarnings && ( bSuppressWarning == false ) )
 		Printf ("FindStateLabelAndOffset: Couldn't find state!\n");
 }
 
@@ -1049,7 +1049,7 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 		return;
 
 	// [BB] Try to find the state label and the correspoding offset belonging to the target state.
-	FindStateLabelAndOffset( players[ulPlayer].ReadyWeapon, pState, stateLabel, lOffset );
+	FindStateLabelAndOffset( players[ulPlayer].ReadyWeapon, pState, stateLabel, lOffset, true );
 
 	// Couldn't find the state, so just try to go based off the spawn state.
 	if ( stateLabel.IsEmpty() )
@@ -1062,6 +1062,10 @@ void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosi
 			lOffset = LONG( pState - pFlashState );
 			if ( OffsetAndStateOwnershipValidityCheck ( lOffset, players[ulPlayer].ReadyWeapon, pFlashState ) == false )
 			{
+				// [BB] If we still couldn't find the state, show a warning.
+				if ( sv_showwarnings )
+					Printf ( "SERVERCOMMANDS_SetPlayerPSprite: Couldn't find state!\n" );
+
 				return;
 			}
 			else
@@ -2041,7 +2045,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	}
 
 	// [BB] Try to find the state label and the correspoding offset belonging to the target state.
-	FindStateLabelAndOffset( pActor, pState, stateLabel, lOffset );
+	FindStateLabelAndOffset( pActor, pState, stateLabel, lOffset, true );
 
 	// Couldn't find the state, so just try to go based off one of the standard states.
 	// [BB] This is a workaround. Therefore let the name of the state string begin

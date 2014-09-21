@@ -45,6 +45,9 @@
         string GetDBResultValueString ( int Handle, Index )
         int GetDBResultValue ( int Handle, Index )
         int GetDBEntryRank ( string Namespace, string Key, bool Descending )
+        void BeginDBTransaction ( )
+        void EndDBTransaction ( )
+        int GetDBEntries ( string Namespace )
       allow mods to access the underlying database. [Torr Samaho]
 *+	- Added the Zandronum side of an optional account system based on authentication with the Secure Remote Password (SRP) protocol, AlexMax is working on the login server (https://github.com/AlexMax/charonauth).
 		- The login server hostname can be specified with the new CVAR authhostname (masterhostname analog, port can be specified with ":port").
@@ -113,6 +116,8 @@
 -	- Fixed: Some ordinals weren't written correctly in the spectator queue message. [Esum]
 -	- Fixed: Non-interacting actors like map spots would have their TIDs reset to 0 on map resets. [Dusk]
 -	- Fixed: The server didn't load the archived value of SERVERINFO CVARs (e.g. sv_smartaim). [Torr Samaho]
+-	- Fixed: The chat length limit of 128s was not enforced online. [Dusk]
+-	- Fixed: The server could erroneously show "FindStateLabelAndOffset" warnings. [Torr Samaho]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
@@ -122,6 +127,7 @@
 !	- Renamed compat_123b33jumpphysics to compat_oldzdoomzmovement, which is a more accurate description of what the flag actually does. [AlexMax]
 !	- The server now ignores client ping packets that don't make sense. [Torr Samaho]
 !	- The team selection menu now is kept in sync with the local player's team, unless it was set to random. [Dusk]
+!	- Changed the chat muting report: the server will inform the muted client how much time is left also in seconds. [Edward-san]
 
 
 1.2.2
