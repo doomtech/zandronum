@@ -5103,7 +5103,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			return 0;
 
 		case ACSF_UniqueTID:
-			return P_FindUniqueTID(argCount > 0 ? args[0] : 0, argCount > 1 ? args[1] : 0);
+			return P_FindUniqueTID(argCount > 0 ? args[0] : 0, (argCount > 1 && args[1] >= 0) ? args[1] : 0);
 			break;
 
 		case ACSF_IsTIDUsed:
