@@ -71,6 +71,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "scoreboard.h"
+#include "p_acs.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -356,7 +357,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	pPlayer = &players[ulPlayer];
 
 	// [CK] Trigger events if a medal is received
-	GAMEMODE_HandleEvent ( GAMEEVENT_MEDALS, pPlayer->mo, static_cast<int> ( ulMedal ) );
+	GAMEMODE_HandleEvent ( GAMEEVENT_MEDALS, pPlayer->mo, ACS_PushAndReturnDynamicString ( g_Medals[ulMedal].szAnnouncerEntry, NULL, 0 ) );
 
 	// Increase the player's count of this type of medal.
 	pPlayer->ulMedalCount[ulMedal]++;

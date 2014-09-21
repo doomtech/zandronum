@@ -942,6 +942,7 @@ bool	ACS_IsScriptClientSide( ULONG ulScript );
 bool	ACS_IsScriptClientSide( const ScriptPtr *pScriptData );
 bool	ACS_IsScriptPukeable( ULONG ulScript );
 int		ACS_GetTranslationIndex( FRemapTable *pTranslation );
+int		ACS_PushAndReturnDynamicString ( const FString &Work, const SDWORD *stack, int stackdepth );
 
 // [BL] Export DoClearInv
 void	DoClearInv(AActor *actor);
