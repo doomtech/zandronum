@@ -6436,28 +6436,37 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	AActor *linetarget;
 	int vrange = nofreeaim? ANGLE_1*35 : 0;
 
-	// see which target is to be aimed at
-	i = 2;
-	do
+	if (source && source->player && source->player->ReadyWeapon && (source->player->ReadyWeapon->WeaponFlags & WIF_NOAUTOAIM))
 	{
-		an = angle + angdiff[i];
-		pitch = P_AimLineAttack (source, an, 16*64*FRACUNIT, &linetarget, vrange);
-
-		if (source->player != NULL &&
-			!nofreeaim &&
-			level.IsFreelookAllowed() &&
-			source->player->userinfo.GetAimDist() <= ANGLE_1/2)
-		{
-			break;
-		}
-	} while (linetarget == NULL && --i >= 0);
-
-	if (linetarget == NULL)
-	{
+		// Keep exactly the same angle and pitch as the player's own aim
 		an = angle;
-		// [BB] No freeaiming and no target means that we shoot at a pitch of zero.
-		if ( nofreeaim )
-			pitch = 0;
+		pitch = source->pitch;
+		linetarget = NULL;
+	}
+	else // see which target is to be aimed at
+	{
+		i = 2;
+		do
+		{
+			an = angle + angdiff[i];
+			pitch = P_AimLineAttack (source, an, 16*64*FRACUNIT, &linetarget, vrange);
+
+			if (source->player != NULL &&
+				!nofreeaim &&
+				level.IsFreelookAllowed() &&
+				source->player->userinfo.GetAimDist() <= ANGLE_1/2)
+			{
+				break;
+			}
+		} while (linetarget == NULL && --i >= 0);
+
+		if (linetarget == NULL)
+		{
+			an = angle;
+			// [BB] No freeaiming and no target means that we shoot at a pitch of zero.
+			if ( nofreeaim )
+				pitch = 0;
+		}
 	}
 	if (pLineTarget) *pLineTarget = linetarget;
 

@@ -102,6 +102,7 @@
 -	- Fixed: The chat length limit of 128s was not enforced online. [Dusk]
 -	- Fixed: The server could erroneously show "FindStateLabelAndOffset" warnings. [Torr Samaho]
 -	- Fixed: an opportune string could cause a buffer overflow while getting the address from a hostname. Thanks to kazzmir for reporting the vulnerability. [Edward-san]
+-	- Fixed: +WEAPON.NOAUTOAIM did not disable horizontal autoaim with projectile weapons. [Dusk]
 !	- Changed huffman code from Hexen II's to that provided by Vortex Cortex. [Blzut3, Vortex Cortex]
 !	- Changed the Offline Skirmish frag slider bar to go in intervals of 1 instead of 5. [Water]
 !	- The CCMD playerinfo now distinguishes true spectators from in game players (ported from Konar6's kpatch). [Torr Samaho]
