@@ -4671,7 +4671,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 			LONG lSeconds = ( players[ulPlayer].lIgnoreChatTicks / TICRATE ) % MINUTE;
 			if ( ( lMinutes > 0 ) && ( lSeconds > 0 ) )
 			{
-				message.AppendFormat( "for %d minute%s and %d second%s",
+				message.AppendFormat( " for %d minute%s and %d second%s",
 							static_cast<int>(lMinutes),
 							lMinutes == 1 ? "" : "s",
 							static_cast<int>(lSeconds),
@@ -4682,20 +4682,20 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 			// There's no need to print the tics.
 			else if ( ( lMinutes == 0 ) && ( lSeconds == 0 ) )
 			{
-				message += "for less than a second";
+				message += " for less than a second";
 			}
 			else
 			{
 				if ( lMinutes > 0 )
 				{
-					message.AppendFormat( "for %d minute%s",
+					message.AppendFormat( " for %d minute%s",
 							static_cast<int>(lMinutes),
 							lMinutes == 1 ? "" : "s");
 				}
 
 				if ( lSeconds > 0 )
 				{
-					message.AppendFormat( "for %d second%s",
+					message.AppendFormat( " for %d second%s",
 							static_cast<int>(lSeconds),
 							lSeconds == 1 ? "" : "s");
 				}
