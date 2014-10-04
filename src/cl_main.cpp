@@ -147,6 +147,8 @@ EXTERN_CVAR( Float, sv_aircontrol )
 #ifdef	_DEBUG
 CVAR( Bool, cl_emulatepacketloss, false, 0 )
 #endif
+// [BB]
+CVAR( Bool, cl_connectsound, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -3842,6 +3844,11 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// [BB] Don't let the client send the server WeaponSelect commands for all weapons that
 	// are temporarily selected while getting the inventory. 
 	CLIENT_IgnoreWeaponSelect ( true );
+
+	// [BB] Possibly play a connect sound.
+	if ( cl_connectsound && ( playeringame[ulPlayer] == false ) && bSpectating && ( ulPlayer != static_cast<ULONG>(consoleplayer) )
+		&& ( CLIENT_GetConnectionState() != CTS_RECEIVINGSNAPSHOT ) )
+		S_Sound( CHAN_AUTO, "zandronum/connect", 1.f, ATTN_NONE );
 
 	// This player is now in the game!
 	playeringame[ulPlayer] = true;

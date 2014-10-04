@@ -50,6 +50,9 @@ misc/icebreak			icebrk1a
 // Retail Doom and Strife use 200.
 $rolloff * 200 1200
 
+// [BB] Connect sound for Zandronum.
+zandronum/connect   cnnctsnd
+
 /****************************************************************************/
 /*																			*/
 /* DOOM SOUNDS																*/
