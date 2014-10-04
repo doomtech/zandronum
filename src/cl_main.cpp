@@ -3184,7 +3184,14 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 	// [BB] SetOrigin doesn't set the actor's floorz value properly, so we need to correct this.
 	if ( ( pActor->flags & MF_NOBLOCKMAP ) == false )
 	{
+		// [BB] Unfortunately, P_OldAdjustFloorCeil messes up the floorz value under some circumstances.
+		// Save the old value, so that we can restore it if necessary.
+		fixed_t oldfloorz = pActor->floorz;
 		P_OldAdjustFloorCeil( pActor );
+		// [BB] An actor can't be below its floorz, if the value is correct.
+		// In this case, P_OldAdjustFloorCeil apparently didn't work, so revert to the old value.
+		if ( pActor->floorz > pActor->z )
+			pActor->floorz = oldfloorz;
 	}
 }
 
