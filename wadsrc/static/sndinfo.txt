@@ -57,6 +57,9 @@ dog/death			dsdgdth
 dog/pain			dsdgpain
 dog/sight			dsdgsit
 
+// [BB] Connect sound for Zandronum.
+zandronum/connect   cnnctsnd
+
 /****************************************************************************/
 /*																			*/
 /* DOOM SOUNDS																*/
