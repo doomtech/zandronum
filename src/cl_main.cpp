@@ -4181,20 +4181,14 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		}
 	}
 
-	// [Dusk] If we're overriding colors, rebuild translations now.
-	if ( cl_overrideplayercolors )
+	// [TP] If we're overriding colors, rebuild translations now.
+	// If we just joined the game, rebuild all translations,
+	// otherwise recoloring the player in question is sufficient.
+	if ( D_ShouldOverridePlayerColors() )
 	{
-		// [Dusk] If we just joined the game, rebuild all translations,
-		// otherwise recoloring the player in question is sufficient.
-		if (( ulPlayer == static_cast<ULONG>( consoleplayer )) &&
-			( lPlayerState == PST_ENTER || lPlayerState == PST_ENTERNOINVENTORY ))
-		{
-			R_BuildAllPlayerTranslations();
-		}
-		else
-		{
-			R_BuildPlayerTranslation( ulPlayer );
-		}
+		bool joinedgame = ( ulPlayer == static_cast<ULONG>( consoleplayer ))
+			&& ( lPlayerState == PST_ENTER || lPlayerState == PST_ENTERNOINVENTORY );
+		D_UpdatePlayerColors( joinedgame ? MAXPLAYERS : ulPlayer );
 	}
 
 	// Refresh the HUD because this is potentially a new player.

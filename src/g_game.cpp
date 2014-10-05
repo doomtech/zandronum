@@ -1147,10 +1147,10 @@ static void FinishChangeSpy( int pnum )
 	S_UpdateSounds(players[consoleplayer].camera);
 	StatusBar->AttachToPlayer (&players[pnum]);
 
-	// [Dusk] Rebuild translations if we're overriding player colors, they
+	// [TP] Rebuild translations if we're overriding player colors, they
 	// may very likely have changed by now.
-	if ( cl_overrideplayercolors )
-		R_BuildAllPlayerTranslations();
+	if ( D_ShouldOverridePlayerColors() )
+		D_UpdatePlayerColors( MAXPLAYERS );
 
 	// [BC] We really no longer need to do this since we have a message
 	// that says "FOLLOWING - xxx" on the status bar.

@@ -2275,9 +2275,9 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		P_BringUpWeapon(pPlayer);
 	}
 
-	// [Dusk] Update player translations if we override the colors, odds are they're very different now.
-	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
-		R_BuildAllPlayerTranslations();
+	// [TP] Update player translations if we override the colors, odds are they're very different now.
+	if ( D_ShouldOverridePlayerColors() )
+		D_UpdatePlayerColors();
 
 	// [Dusk] Update the "join team" menu now if it was not random, so that when the map changes,
 	// we can just rejoin the team without changing the team in the menu. This is super annoying to
@@ -2474,9 +2474,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
 
-	// [Dusk] If we left the game, we need to rebuild player translations if we overrid them.
-	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ) && ( pPlayer - players == consoleplayer ))
-		R_BuildAllPlayerTranslations();
+	// [TP] If we left the game, we need to rebuild player translations if we overrid them.
+	if ( D_ShouldOverridePlayerColors() && pPlayer - players == consoleplayer )
+		D_UpdatePlayerColors();
 }
 
 //*****************************************************************************

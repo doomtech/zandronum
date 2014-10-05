@@ -94,21 +94,89 @@ CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control specify his connection speed (higher is faster).
 CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 
-// [Dusk] Let the user force custom ally/enemy colors
-// If any of these cvars are updated, we need to rebuild all the translations.
+// ============================================================================
+//
+// [TP] cl_overrideplayercolors
+//
+// Lets the user force custom ally/enemy colors.
+//
+enum OverridePlayerColorsValue
+{
+	CL_OPC_Never, // never override
+	CL_OPC_NoTeams, // only in non-team gamemodes
+	CL_OPC_Max2Teams, // not with more than 2 teams
+	CL_OPC_Always, // always
+
+	CL_OPC_NumValues
+};
+
+// ============================================================================
+//
 CUSTOM_CVAR( Color, cl_allycolor, 0xFFFFFF, CVAR_ARCHIVE )
 {
-	R_BuildAllPlayerTranslations();
+	D_UpdatePlayerColors();
 }
 
 CUSTOM_CVAR( Color, cl_enemycolor, 0x707070, CVAR_ARCHIVE )
 {
-	R_BuildAllPlayerTranslations();
+	D_UpdatePlayerColors();
 }
 
-CUSTOM_CVAR( Bool, cl_overrideplayercolors, false, CVAR_ARCHIVE )
+CUSTOM_CVAR( Int, cl_overrideplayercolors, CL_OPC_Never, CVAR_ARCHIVE )
 {
-	R_BuildAllPlayerTranslations();
+	if ( self < 0 )
+		self = 0;
+	else if ( self > CL_OPC_NumValues - 1 )
+		self = CL_OPC_NumValues - 1;
+	else
+		D_UpdatePlayerColors();
+}
+
+// ============================================================================
+//
+// [TP] Should we be overriding player colors?
+//
+bool D_ShouldOverridePlayerColors()
+{
+	// Sure as heck not overriding any colors as the server.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		return false;
+
+	bool withteams = GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS;
+
+	switch ( OverridePlayerColorsValue ( (int) cl_overrideplayercolors ))
+	{
+		case CL_OPC_NumValues:
+		case CL_OPC_Never:
+			return false;
+
+		case CL_OPC_NoTeams:
+			return withteams == false;
+
+		case CL_OPC_Max2Teams:
+			return ( withteams == false ) || ( TEAM_GetNumAvailableTeams() <= 2 );
+
+		case CL_OPC_Always:
+			return true;
+	}
+
+	return false;
+}
+
+// ============================================================================
+//
+// [TP] Update player colors now
+//
+void D_UpdatePlayerColors( ULONG ulPlayer )
+{
+	if ( ulPlayer == MAXPLAYERS )
+		R_BuildAllPlayerTranslations();
+	else
+		R_BuildPlayerTranslation( ulPlayer );
+
+	// [TP] Reattach the status bar to refresh the mugshot.
+	if ( StatusBar != NULL )
+		StatusBar->AttachToPlayer( StatusBar->CPlayer );
 }
 
 // [BB] Two variables to keep track of client side name changes.
@@ -253,23 +321,16 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 {
 	// [Dusk] The user can override these colors.
 	int cameraplayer;
-	if (( NETWORK_GetState() != NETSTATE_SERVER ) &&
-		( cl_overrideplayercolors ) &&
-		( players[consoleplayer].camera != NULL ) &&
-		( PLAYER_IsValidPlayerWithMo( cameraplayer = players[consoleplayer].camera->player - players )) &&
-		( PLAYER_IsValidPlayerWithMo( player )) &&
-		( players[cameraplayer].bSpectating == false ))
+	if (( D_ShouldOverridePlayerColors() )
+		&& ( players[consoleplayer].camera != NULL )
+		&& ( PLAYER_IsValidPlayerWithMo( cameraplayer = players[consoleplayer].camera->player - players ))
+		&& ( PLAYER_IsValidPlayerWithMo( player ))
+		&& ( players[cameraplayer].bSpectating == false ))
 	{
 		bool isally = players[cameraplayer].mo->IsTeammate( players[player].mo );
-
-		if ((( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == 0 ) ||
-			( TEAM_GetNumAvailableTeams() <= 2 ) ||
-			( isally ))
-		{
-			int color = isally ? cl_allycolor : cl_enemycolor;
-			RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
-			return;
-		}
+		int color = isally ? cl_allycolor : cl_enemycolor;
+		RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
+		return;
 	}
 
 /* [BB] New team code by Karate Chris. Currently not used in ST.

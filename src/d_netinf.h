@@ -37,7 +37,6 @@
 #include "c_cvars.h"
 
 EXTERN_CVAR (Float, autoaim)
-EXTERN_CVAR( Bool, cl_overrideplayercolors ) // [Dusk]
 
 int D_GenderToInt (const char *gender);
 extern const char *GenderNames[3];
@@ -60,5 +59,9 @@ void D_PickRandomTeam (int player);
 int D_PickRandomTeam ();
 class player_t;
 int D_GetFragCount (player_t *player);
+
+// [TP]
+void D_UpdatePlayerColors( ULONG ulPlayer = MAXPLAYERS );
+bool D_ShouldOverridePlayerColors();
 
 #endif //__D_CLIENTINFO_H__

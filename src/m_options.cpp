@@ -159,6 +159,7 @@ EXTERN_CVAR (Bool, freelook)
 EXTERN_CVAR (Int, sv_smartaim)
 EXTERN_CVAR (Int, am_colorset)
 EXTERN_CVAR (String,	playerclass)
+EXTERN_CVAR( Int, cl_overrideplayercolors ) // [TP]
 
 /*static*/	ULONG		g_ulPlayerSetupSkin;
 /*static*/	ULONG		g_ulPlayerSetupColor;
@@ -258,6 +259,14 @@ value_t AllowSkinVals[3] = {
 value_t ConnectionTypeVals[2] = {
 	{ 0.0, "56k/ISDN" },
 	{ 1.0, "DSL" },
+};
+
+// [TP]
+value_t OverridePlayerColors[4] = {
+	{ 0.0, "Never" },
+	{ 1.0, "FFA only" },
+	{ 2.0, "With 2 teams max" },
+	{ 3.0, "Always" },
 };
 
 value_t GameskillVals[5] = {
@@ -2149,7 +2158,7 @@ static menuitem_t MultiplayerItems[] =
 //	{ discrete, "Allow icons",			{&cl_icons},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete,	"Identify players",		{&cl_identifytarget},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete,	"Start as spectator",	{&cl_startasspectator},	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete,	"Override player colors",	{&cl_overrideplayercolors},	{4.0}, {0.0},	{0.0}, {OverridePlayerColors} },
 	{ string,	"Server password",		{&cl_password},				{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Join password",		{&cl_joinpassword},		{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Connection type",		{&cl_connectiontype},	{2.0}, {0.0}, {0.0}, {ConnectionTypeVals} },

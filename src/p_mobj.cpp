@@ -5146,11 +5146,15 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		ASTAR_ClearPath( p - players );
 	}
 
-	// [Dusk] Set up the player's translation now if we override it.
+	// [TP] Set up the player's translation now if we override it.
 	// Note: this mostly takes care of offline handling. Clients do this
 	// in CLIENT_SpawnPlayer.
-	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( cl_overrideplayercolors ))
-		R_BuildPlayerTranslation( p - players );
+	if ( D_ShouldOverridePlayerColors() )
+	{
+		bool joinedgame = ( p == &players[consoleplayer] )
+			&& ( state == PST_ENTER || state == PST_ENTERNOINVENTORY );
+		D_UpdatePlayerColors( joinedgame ? MAXPLAYERS : p - players );
+	}
 
 	SCOREBOARD_RefreshHUD( );
 
