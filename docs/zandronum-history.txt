@@ -12,6 +12,11 @@
 ===============================================================================================================
 
 
+1.4
+---
+
+-	+ Added CVAR sv_limitcommands which can be set to false to disable various flooding limits (allow constant suiciding, team changing, disable command flood auto-kick, etc). Should not be set to false in public servers. [Dusk]
+
 1.3
 ---
 

@@ -360,7 +360,7 @@ void CLIENTCOMMANDS_Spectate( void )
 //
 void CLIENTCOMMANDS_RequestJoin( const char *pszJoinPassword )
 {
-	if (( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 10 ))))
+	if (( sv_limitcommands ) && ( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 10 ))))
 	{
 		Printf( "You must wait at least 10 seconds before joining again.\n" );
 		return;
@@ -394,7 +394,7 @@ void CLIENTCOMMANDS_RCONCommand( char *pszCommand )
 //
 void CLIENTCOMMANDS_Suicide( void )
 {
-	if (( g_ulLastSuicideTime > 0 ) && ( (ULONG)gametic < ( g_ulLastSuicideTime + ( TICRATE * 10 ))))
+	if (( sv_limitcommands ) && ( g_ulLastSuicideTime > 0 ) && ( (ULONG)gametic < ( g_ulLastSuicideTime + ( TICRATE * 10 ))))
 	{
 		Printf( "You must wait at least 10 seconds before suiciding again.\n" );
 		return;
@@ -408,7 +408,7 @@ void CLIENTCOMMANDS_Suicide( void )
 //
 void CLIENTCOMMANDS_ChangeTeam( const char *pszJoinPassword, LONG lDesiredTeam )
 {
-	if (!( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
+	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
 	{
 		Printf( "You must wait at least 10 seconds before changing teams again.\n" );
 		return;
@@ -525,16 +525,19 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 //
 void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 {
-	if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+	if ( sv_limitcommands )
 	{
-		Printf( "Dropping is not allowed in non-cooperative game modes.\n" );
-		return;
-	}
+		if ( !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) )
+		{
+			Printf( "Dropping is not allowed in non-cooperative game modes.\n" );
+			return;
+		}
 
-	if (( g_ulLastDropTime > 0 ) && ( (ULONG)gametic < ( g_ulLastDropTime + ( TICRATE ))))
-	{
-		Printf( "You must wait at least one second before using drop again.\n" );
-		return;
+		if (( g_ulLastDropTime > 0 ) && ( (ULONG)gametic < ( g_ulLastDropTime + ( TICRATE ))))
+		{
+			Printf( "You must wait at least one second before using drop again.\n" );
+			return;
+		}
 	}
 
 	if ( pItem == NULL )

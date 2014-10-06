@@ -3397,6 +3397,8 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 	command.addByte( alwaysapplydmflags );
 	// [AM] Send lobby map.
 	command.addString( lobby );
+	// [TP] Send sv_limitcommands
+	command.addByte( sv_limitcommands );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 

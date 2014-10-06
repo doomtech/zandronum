@@ -8019,6 +8019,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [AM] Read in, and set the value for lobby.
 	Value.String = const_cast<char*>(NETWORK_ReadString( pByteStream ));
 	lobby.ForceSet( Value, CVAR_String );
+
+	// [TP] Yea.
+	Value.Bool = !!NETWORK_ReadByte( pByteStream );
+	sv_limitcommands.ForceSet( Value, CVAR_Bool );
 }
 
 //*****************************************************************************

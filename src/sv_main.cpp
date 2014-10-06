@@ -358,6 +358,17 @@ CUSTOM_CVAR( Int, sv_maxpacketsize, 1024, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
+// [TP] Whether to enforce command limits. Set this false to disable
+// flood protection.
+//
+CUSTOM_CVAR( Bool, sv_limitcommands, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+{
+	// [TP] The client also enforces command limits so this cvar must be synced.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetGameModeLimits();
+}
+
+//*****************************************************************************
 //	FUNCTIONS
 
 void SERVER_Construct( void )
@@ -2021,7 +2032,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	pPlayer = &players[g_lCurrentClient];
 
-	if ( bAllowKick )
+	// [TP] Don't check for userinfo flooding if we're not enforcing command limits.
+	if (( bAllowKick ) && ( sv_limitcommands ))
 	{
 		ulUserInfoInstance = ( ++g_aClients[g_lCurrentClient].ulLastUserInfoInstance % MAX_USERINFOINSTANCE_STORAGE );
 		g_aClients[g_lCurrentClient].lUserInfoInstances[ulUserInfoInstance] = gametic;
@@ -4562,6 +4574,10 @@ static bool server_Ignore( BYTESTREAM_s *pByteStream )
 //
 static bool server_CheckForClientCommandFlood( ULONG ulClient )
 {
+	// [TP] The client isn't flooding if we're not enforcing limits.
+	if ( sv_limitcommands == false )
+		return ( false );
+
 	// [BB] If a client issues more commands in floodWindowLength seconds than
 	// his commandInstances can hold, he is temporarily banned.
 	const LONG floodWindowLength = 60;
@@ -4589,6 +4605,10 @@ static bool server_CheckForClientCommandFlood( ULONG ulClient )
 // we probably don't win enough if it's rewritten to cut down the code duplication here.
 static bool server_CheckForClientMinorCommandFlood( ULONG ulClient )
 {
+	// [TP] The client isn't flooding if we're not enforcing limits.
+	if ( sv_limitcommands == false )
+		return ( false );
+
 	// [BB] If a client issues more commands in floodWindowLength seconds than
 	// his commandInstances can hold, he is temporarily banned.
 	const LONG floodWindowLength = 10;
@@ -4607,6 +4627,10 @@ static bool server_CheckForClientMinorCommandFlood( ULONG ulClient )
 
 static bool server_CheckForChatFlood( ULONG ulPlayer )
 {
+	// [TP] The client isn't flooding if we're not enforcing limits.
+	if ( sv_limitcommands == false )
+		return ( false );
+
 	ULONG ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
 	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
 
@@ -5340,7 +5364,7 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 
 	// If this player has tried to suicide recently, ignore the request.
 	// [BB] Don't check this when the player never tried to suicide yet.
-	if ( ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )) ) && ( g_aClients[g_lCurrentClient].ulLastSuicideTime > 0 ) )
+	if ( ( sv_limitcommands ) && ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )) ) && ( g_aClients[g_lCurrentClient].ulLastSuicideTime > 0 ) )
 		return ( false );
 
 	// [BB] The server may forbid suiciding completely.
@@ -5396,7 +5420,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// If this player has tried to change teams recently, ignore the request.
 	// [BB] Don't check this when the player never tried to join yet, i.e. when g_aClients[g_lCurrentClient].ulLastChangeTeamTime == 0.
-	if (!( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )) && ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime > 0 ) )
+	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )) && ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime > 0 ) )
 		return ( false );
 
 	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
