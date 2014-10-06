@@ -47,6 +47,7 @@
 
 #include "c_dispatch.h"
 #include "i_system.h"
+#include "m_random.h"
 #include "network.h"
 #include "cl_auth.h"
 #include "sv_auth.h"
@@ -184,6 +185,21 @@ int SERVER_FindClientWithUsername ( const char *Username )
 
 //*****************************************************************************
 //
+int SERVER_FindClientWithClientSessionID ( const int ClientSessionID )
+{
+	for ( int i = 0; i < MAXPLAYERS; ++i )
+	{
+		if ( SERVER_IsValidClient ( i ) == false )
+			continue;
+
+		if ( SERVER_GetClient(i)->clientSessionID == ClientSessionID )
+			return i;
+	}
+	return MAXPLAYERS;
+}
+
+//*****************************************************************************
+//
 int SERVER_FindClientWithSessionID ( const int SessionID )
 {
 	for ( int i = 0; i < MAXPLAYERS; ++i )
@@ -205,6 +221,7 @@ void SERVER_InitClientSRPData ( const ULONG ulClient )
 		return;
 
 	SERVER_GetClient(ulClient)->username = "";
+	SERVER_GetClient(ulClient)->clientSessionID = 0;
 	SERVER_GetClient(ulClient)->SRPsessionID = -1;
 	SERVER_GetClient(ulClient)->loggedIn = false;
 	SERVER_GetClient(ulClient)->bytesA.Clear();
@@ -216,11 +233,12 @@ void SERVER_InitClientSRPData ( const ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVER_AUTH_Negotiate ( const char *Username )
+void SERVER_AUTH_Negotiate ( const char *Username, const unsigned int ClientSessionID )
 {
 	NETWORK_ClearBuffer( &g_AuthServerBuffer );
 	NETWORK_WriteLong( &g_AuthServerBuffer.ByteStream, SERVER_AUTH_NEGOTIATE );
 	NETWORK_WriteByte( &g_AuthServerBuffer.ByteStream, AUTH_PROTOCOL_VERSION );
+	NETWORK_WriteLong( &g_AuthServerBuffer.ByteStream, ClientSessionID);
 	NETWORK_WriteString( &g_AuthServerBuffer.ByteStream, Username );
 	NETWORK_LaunchPacket( &g_AuthServerBuffer, g_AuthServerAddress );
 }
@@ -254,6 +272,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 		case AUTH_SERVER_NEGOTIATE:
 			{
 				const int protovolVersion = NETWORK_ReadByte( pByteStream );
+				const unsigned int clientSessionID = NETWORK_ReadLong( pByteStream );
 				const int sessionID = NETWORK_ReadLong( pByteStream );
 				const int lenSalt = NETWORK_ReadByte( pByteStream );
 				TArray<unsigned char> bytesSalt;
@@ -266,7 +285,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 				else
 					Printf ( "AUTH_SERVER_NEGOTIATE: Invalid length\n" );
 				const FString username = NETWORK_ReadString( pByteStream );
-				const int clientID = SERVER_FindClientWithUsername ( username.GetChars() );
+				const int clientID = SERVER_FindClientWithClientSessionID ( clientSessionID );
 				if ( clientID < MAXPLAYERS )
 				{
 					// [BB] We need to use the username the auth server sent us.
@@ -278,7 +297,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 					SERVERCOMMANDS_SRPUserStartAuthentication ( clientID );
 				}
 				else
-					Printf ( "AUTH_SERVER_NEGOTIATE: Can't find client with username '%s'.\n", username.GetChars() );
+					Printf ( "AUTH_SERVER_NEGOTIATE: Can't find client with client session id %d (username '%s').\n", clientSessionID, username.GetChars() );
 			}
 			break;
 		case AUTH_SERVER_SRP_STEP_TWO:
@@ -424,12 +443,13 @@ bool SERVER_ProcessSRPClientCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			CLIENT_s *pClient = SERVER_GetClient(SERVER_GetCurrentClient());
 
 			pClient->username = NETWORK_ReadString( pByteStream );
+			pClient->clientSessionID = M_Random.GenRand32();
 
 #if EMULATE_AUTH_SERVER
 			SERVERCOMMANDS_SRPUserStartAuthentication ( SERVER_GetCurrentClient() );
 #else
 			// [BB] The client wants to log in, so start negotiating with the auth server.
-			SERVER_AUTH_Negotiate ( pClient->username.GetChars() );
+			SERVER_AUTH_Negotiate ( pClient->username.GetChars(), pClient->clientSessionID );
 #endif
 		}
 		break;
