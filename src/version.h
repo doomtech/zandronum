@@ -42,8 +42,8 @@
 
 #define GAME_MAJOR_VERSION 1
 #define GAME_MINOR_VERSION 2
-#define GAMEVER_STRING "1.3"
-#define DOTVERSIONSTR GAMEVER_STRING
+#define GAMEVER_STRING "1.4"
+#define DOTVERSIONSTR GAMEVER_STRING "-alpha"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.3.1"
@@ -66,8 +66,8 @@
 #define BUILD_PRIVATE		3
 
 // [RC] Release code ID for this build.
-#define BUILD_ID			BUILD_RELEASE
-#define BUILD_ID_STR		"Release" // Used in the exe's metadata.
+#define BUILD_ID			BUILD_INTERNAL
+#define BUILD_ID_STR		"Internal" // Used in the exe's metadata.
 
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
