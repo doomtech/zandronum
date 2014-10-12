@@ -20,6 +20,7 @@
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
+-	- Fixed: MAPINFO lumps were not protected. [Dusk]
 
 
 1.3

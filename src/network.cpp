@@ -308,6 +308,8 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	lumpsToAuthenticate.push_back( "GAMEMODE" );
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "MAPINFO" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 
 	FString checksum, longChecksum;
 	bool noProtectedLumpsAutoloaded = true;
