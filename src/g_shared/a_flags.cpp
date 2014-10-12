@@ -303,6 +303,10 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 		return ( DENY_PICKUP );
 	}
 
+	// [CK] Do not let pickups occur after the match has ended
+	if ( GAMEMODE_IsGameInProgress( ) == false ) 
+		return ( DENY_PICKUP );
+
 	// Player is touching the enemy flag.
 	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
 		return ( ALLOW_PICKUP );
