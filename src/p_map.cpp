@@ -6313,6 +6313,12 @@ void PIT_FloorRaise (AActor *thing, FChangePosition *cpos)
 
 	P_AdjustFloorCeil (thing, cpos);
 
+	// [BB] Unfortunately, P_AdjustFloorCeil fails to calculate floorz properly under
+	// some circumstances on the client. An actor's floorz should never be bigger
+	// than the z-position of sector we assume the actor to be in.
+	if ( NETWORK_InClientMode() && ( thing->Sector->floorplane.ZatPoint (thing->x, thing->y) < thing->floorz ) )
+		thing->floorz = oldfloorz;
+
 	if (oldfloorz == thing->floorz) return;
 
 	// Move things intersecting the floor up

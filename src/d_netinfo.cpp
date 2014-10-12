@@ -712,7 +712,8 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			if ( strcmp ( g_oldPlayerName.GetChars(), val.String ) == 0 )
 				ulUpdateFlags &= ~USERINFO_NAME;
 			// [BB] The client recently changed its name, don't allow to change it again yet.
-			else if (( g_ulLastNameChangeTime > 0 ) && ( (ULONG)gametic < ( g_ulLastNameChangeTime + ( TICRATE * 30 ))))
+			// [TP] Made conditional with sv_limitcommands
+			else if (( sv_limitcommands ) && ( g_ulLastNameChangeTime > 0 ) && ( (ULONG)gametic < ( g_ulLastNameChangeTime + ( TICRATE * 30 ))))
 			{
 				Printf( "You must wait at least 30 seconds before changing your name again.\n" );
 				name = g_oldPlayerName;

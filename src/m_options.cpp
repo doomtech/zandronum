@@ -427,6 +427,7 @@ static void SoundOptions (void);
 static void MouseOptions (void);
 static void JoystickOptions (void);
 static void GoToConsole (void);
+static void NetworkOptions (void); // [CK]
 void M_PlayerSetup (void);
 bool M_SkulltagVersionDrawer( void );
 void Reset2Defaults (void);
@@ -462,6 +463,7 @@ static menuitem_t OptionItems[] =
 	{ more,		"Gameplay Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)GameplayOptions} },
 	{ more,		"Compatibility Options",{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)CompatibilityOptions} },
 	{ more,		"Sound Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)SoundOptions} },
+	{ more,		"Network Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)NetworkOptions} }, // [CK]
 	{ more,		"Display Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)VideoOptions} },
 	{ more,		"Set video mode",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)SetVidMode} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -1358,6 +1360,35 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		StatusBar->ScreenSizeChanged();
 	}	
 }
+
+//-----------------------------------------------------------------------------
+// [CK] Network menu support
+//-----------------------------------------------------------------------------
+EXTERN_CVAR( Bool, cl_unlagged )
+EXTERN_CVAR( Int, cl_ticsperupdate )
+
+static value_t TickUpdateRate[] = {
+	{ 1, "Fastest (every tick)" },
+	{ 2, "Medium (every second tick)" },
+	{ 3, "Slow (every third tick)" }
+};
+
+static menuitem_t NetworkItems[] = {
+	
+	{ discrete,		"Unlagged",				{&cl_unlagged},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ redtext,		" ",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ discrete,		"Update rate",			{&cl_ticsperupdate},	{3.0}, {0.0}, {0.0}, {TickUpdateRate} },
+	{ discrete, 	"Connection type",		{&cl_connectiontype},	{2.0}, {0.0}, {0.0}, {ConnectionTypeVals} },
+};
+
+menu_t NetworkMenu =
+{
+	"NETWORK OPTIONS",
+	0,
+	countof(NetworkItems),
+	0,
+	NetworkItems,
+};
 
 /*=======================================
  *
@@ -7196,6 +7227,12 @@ static void SetVidMode ()
 		}
 	}
 	M_SwitchMenu (&ModesMenu);
+}
+
+// [CK]
+static void NetworkOptions ()
+{
+	M_SwitchMenu (&NetworkMenu);
 }
 
 CCMD (menu_video)

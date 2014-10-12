@@ -663,7 +663,8 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 		g_PreviousVotes.pop_front( );
 
 	// [BB] If the server doesn't want to limit the number of votes, there is no check anything.
-	if ( sv_limitnumvotes == false )
+	// [TP] sv_limitcommands == false also implies limitless voting.
+	if ( sv_limitnumvotes == false || sv_limitcommands == false )
 		return true;
 
 	// Run through the vote cache (backwards, from recent to old) and search for grounds on which to reject the vote.
