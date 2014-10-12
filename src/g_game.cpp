@@ -3235,6 +3235,21 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		players[ulIdx].secretcount = 0;
 	}
 
+	// [BB] Destroy all lighting effects that were not spawned by the map.
+	{
+		TThinkerIterator<DLighting>		Iterator;
+		DLighting						*pEffect;
+
+		while (( pEffect = Iterator.Next( )) != NULL )
+		{
+			if ( pEffect->bNotMapSpawned == true )
+			{
+				pEffect->GetSector()->lightlevel = pEffect->GetSector()->SavedLightLevel;
+				pEffect->Destroy( );
+			}
+		}
+	}
+
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))

@@ -27,8 +27,10 @@
 
 #include "doomdef.h"
 #include "p_local.h"
+// [BB] New #includes.
 #include "network.h"
 #include "sv_commands.h"
+#include "g_level.h"
 
 #include "p_lnspec.h"
 
@@ -45,12 +47,17 @@ IMPLEMENT_CLASS (DLighting)
 
 DLighting::DLighting ()
 {
+	// [BB] Workaround to save whether this lighting was created by the map.
+	bNotMapSpawned = ( level.time > 0 );
 }
 
 DLighting::DLighting (sector_t *sector)
 	: DSectorEffect (sector)
 {
 	ChangeStatNum (STAT_LIGHT);
+
+	// [BB] Workaround to save whether this lighting was created by the map.
+	bNotMapSpawned = ( level.time > 0 );
 }
 
 //
