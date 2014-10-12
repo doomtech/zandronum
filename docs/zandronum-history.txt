@@ -18,6 +18,7 @@
 -	+ Added CVAR sv_limitcommands which can be set to false to disable various flooding limits (allow constant suiciding, team changing, disable command flood auto-kick, etc). Should not be set to false in public servers. [Dusk]
 -	+ Added a Network Options menu which will contain all new network options. [Water]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
+-	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 
 
 1.3
