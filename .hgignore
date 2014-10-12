@@ -16,6 +16,7 @@ ccdv
 debugobj
 server-releaseobj
 server-debugobj
+fmodapi*linux
 *.kdev4
 .kdev4
 
