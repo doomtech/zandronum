@@ -722,7 +722,17 @@ void EV_StartLightFading (int tag, int value, int tics)
 
 		if (tics <= 0)
 		{
-			sec->lightlevel = value;
+			// [CK] Only update if the values are not the same, since this is
+			// an instant function with zero tics.
+			if ( sec->lightlevel != value )
+			{
+				sec->lightlevel = value;
+
+				// [CK] Since we know it's instant, this is a simple light level
+				// change and not a fade.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetSectorLightLevel( secnum );
+			}
 		}
 		else
 		{
