@@ -727,6 +727,7 @@ void EV_StartLightFading (int tag, int value, int tics)
 			if ( sec->lightlevel != value )
 			{
 				sec->lightlevel = value;
+				sec->bLightChange = true;
 
 				// [CK] Since we know it's instant, this is a simple light level
 				// change and not a fade.
