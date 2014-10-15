@@ -22,6 +22,7 @@
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
 -	- Fixed: MAPINFO lumps were not protected. [Dusk]
 -	- Fixed: Instant light fading was not updated on the client's side. [Water]
+-	- Fixed: Frozen corpses were not properly cleaned up during the countdown phase, leading to unexpected behavior with player viewpoints. [Water, Torr Samaho]
 
 
 1.3
