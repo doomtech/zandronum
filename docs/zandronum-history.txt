@@ -27,6 +27,7 @@
 -	- Fixed: Frozen corpses were not properly cleaned up during the countdown phase, leading to unexpected behavior with player viewpoints. [Water, Torr Samaho]
 -	- Trying to generate bot nodes on very large maps caused the game to crash. This should now be fixed at least on extremely large maps. Bots are disabled in this case. [Torr Samaho]
 -	- Fixed: The crouched sprite wasn't displayed for skins enforced through Weapon.PreferredSkin if the player class had +NOSKIN. [Esum, Torr Samaho]
+-	- Fixed: Player spawn height now is on the ground so any player starts in the air will not result in team telefragging unless all spawns are full. [Water, Torr Samaho]
 
 
 1.3
