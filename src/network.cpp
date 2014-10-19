@@ -363,10 +363,11 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 				// 2e01ae6258f2a0fdad32125537efe1af Freedoom PLAYPAL hash
 				// bb535e66cae508e3833a5d2de974267b Freedoom COLORMAP hash
 				// 4804c7f34b5285c334a7913dd98fae16 Freedoom 0.8-beta1 PLAYPAL hash
-				// 061a4c0f80aa8029f2c1bc12dc2e261e Freedoom 0.8-beta1 COLORMAP hash
+				// 100c2c81afe87bb6dd1dbcadee9a7e58 Freedoom 0.8-beta1 COLORMAP hash
+				// 4c7d4028a88f7929d9c553f65bb265ba Freedoom 0.9 COLORMAP hash
 				if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "PLAYPAL" ) == 0 ) && ( ( stricmp ( checksum.GetChars(), "2e01ae6258f2a0fdad32125537efe1af" ) == 0 ) || ( stricmp ( checksum.GetChars(), "4804c7f34b5285c334a7913dd98fae16" ) == 0 ) ) )
 					checksum = "4804c7f34b5285c334a7913dd98fae16";
-				else if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "COLORMAP" ) == 0 ) && ( ( stricmp ( checksum.GetChars(), "bb535e66cae508e3833a5d2de974267b" ) == 0 ) || ( stricmp ( checksum.GetChars(), "100c2c81afe87bb6dd1dbcadee9a7e58" ) == 0 ) ) )
+				else if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "COLORMAP" ) == 0 ) && ( ( stricmp ( checksum.GetChars(), "bb535e66cae508e3833a5d2de974267b" ) == 0 ) || ( stricmp ( checksum.GetChars(), "100c2c81afe87bb6dd1dbcadee9a7e58" ) == 0 ) || ( stricmp ( checksum.GetChars(), "4c7d4028a88f7929d9c553f65bb265ba" ) == 0 ) ) )
 					checksum = "061a4c0f80aa8029f2c1bc12dc2e261e";
 
 				longChecksum += checksum;
@@ -385,7 +386,8 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 					// Since this lump only changes some strings, this should cause no problems.
 					if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "DEHACKED" ) == 0 )
 						&& ( ( stricmp ( checksum.GetChars(), "3c48ccc87e71d791ee3df64668b3fb42" ) == 0 ) // Freedoom 0.8-beta1
-							|| ( stricmp ( checksum.GetChars(), "9de9ddd0bc435cb8572db76a13d3140f" ) == 0 ) ) ) // Freedoom 0.8
+							|| ( stricmp ( checksum.GetChars(), "9de9ddd0bc435cb8572db76a13d3140f" ) == 0 ) // Freedoom 0.8
+							|| ( stricmp ( checksum.GetChars(), "90e9007b1efc1e35eeacc99c5971a15b" ) == 0 ) ) ) // Freedoom 0.9
 						continue;
 
 					longChecksum += checksum;
