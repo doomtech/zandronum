@@ -9736,17 +9736,18 @@ static void client_SetSideFlags( BYTESTREAM_s *pByteStream )
 //
 static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 {
-	ULONG		ulScript;
-	LONG		lID;
-	LONG		lLineIdx;
-	const char	*pszMap;
-	bool		bBackSide;
-	int			iArg0;
-	int			iArg1;
-	int			iArg2;
-	bool		bAlways;
-	AActor		*pActor;
-	line_t		*pLine;
+	ULONG			ulScript;
+	LONG			lID;
+	LONG			lLineIdx;
+	bool			bBackSide;
+	int				args[3] = {0};
+	bool			bAlways;
+	AActor			*pActor;
+	line_t			*pLine;
+	FString			mapname;
+	level_info_t*	levelinfo;
+	int				levelnum;
+	BYTE			argheader;
 
 	// Read in the script to be executed.
 	ulScript = NETWORK_ReadShort( pByteStream );
@@ -9757,17 +9758,44 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	// Read in the line index.
 	lLineIdx = NETWORK_ReadShort( pByteStream );
 
-	// Read in the name of the map the script is being executed on (hopefully this one).
-	pszMap = NETWORK_ReadString( pByteStream );
+	// [TP] Read in the levelnum of the map to execute the script on
+	levelnum = NETWORK_ReadByte( pByteStream );
 
-	bBackSide = !!NETWORK_ReadByte( pByteStream );
+	// [TP] Argument header, see notes in sv_commands.cpp
+	argheader = NETWORK_ReadByte( pByteStream );
 
-	// Read in the script's arguments.
-	iArg0 = NETWORK_ReadLong( pByteStream );
-	iArg1 = NETWORK_ReadLong( pByteStream );
-	iArg2 = NETWORK_ReadLong( pByteStream );
+	// [TP] Read in the arguments using the argument header data
+	for( int i = 0; i < 3; ++i )
+	{
+		switch (( argheader >> ( 2 * i )) & 3 )
+		{
+			case 1: args[i] = NETWORK_ReadByte( pByteStream ); break;
+			case 2: args[i] = NETWORK_ReadShort( pByteStream ); break;
+			case 3: args[i] = NETWORK_ReadLong( pByteStream ); break;
+			default: break;
+		}
+	}
 
-	bAlways = !!NETWORK_ReadByte( pByteStream );
+	// [TP] Unpack bBackSide and bAlways
+	bBackSide = !!(( argheader >> 6 ) & 1 );
+	bAlways = !!(( argheader >> 7 ) & 1 );
+
+	// [TP] Make a name out of the levelnum
+	if ( levelnum == 0 )
+	{
+		mapname = level.mapname;
+	}
+	else if (( levelinfo = FindLevelByNum ( levelnum )))
+	{
+		mapname = levelinfo->mapname;
+	}
+	else
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_ACSScriptExecute: Couldn't find map by levelnum: %d\n", levelnum );
+#endif
+		return;
+	}
 
 	// Find the actor that matches the given network ID.
 	// [BB] If the netID is invalid, assume that there is no activator, i.e. the world activated the script.
@@ -9790,7 +9818,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	else
 		pLine = &lines[lLineIdx];
 
-	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, iArg0, iArg1, iArg2, bAlways, false );
+	P_StartScript( pActor, pLine, ulScript, mapname, bBackSide, args[0], args[1], args[2], bAlways, false );
 }
 
 //*****************************************************************************

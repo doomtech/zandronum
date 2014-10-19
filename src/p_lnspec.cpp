@@ -1692,28 +1692,20 @@ FUNC(LS_ACS_Execute)
 {
 	level_info_t *info;
 
+	// [BC] If this script is client side, just let clients execute it themselves.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( ACS_IsScriptClientSide( arg0 )))
+	{
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, arg2, arg3, arg4, false );
+		return ( true );
+	}
+
 	if (arg1 == 0)
 	{
-		// [BC] If this script is client side, just let clients execute it themselves.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsScriptClientSide( arg0 )))
-		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, false );
-			return ( true );
-		}
-
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, false, false);
 	}
 	else if ((info = FindLevelByNum (arg1)) )
 	{
-		// [BC] If this script is client side, just let clients execute it themselves.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsScriptClientSide( arg0 )))
-		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, false );
-			return ( true );
-		}
-
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, false, false);
 	}
 	else return false;
@@ -1724,28 +1716,20 @@ FUNC(LS_ACS_ExecuteAlways)
 {
 	level_info_t *info;
 
+	// [BC] If this script is client side, just let clients execute it themselves.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( ACS_IsScriptClientSide( arg0 )))
+	{
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), arg1, backSide, arg2, arg3, arg4, true );
+		return ( true );
+	}
+
 	if (arg1 == 0)
 	{
-		// [BC] If this script is client side, just let clients execute it themselves.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsScriptClientSide( arg0 )))
-		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
-			return ( true );
-		}
-
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, true, false);
 	}
 	else if ((info = FindLevelByNum (arg1)) )
 	{
-		// [BC] If this script is client side, just let clients execute it themselves.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( ACS_IsScriptClientSide( arg0 )))
-		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, true );
-			return ( true );
-		}
-
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, true, false);
 	}
 	else return false;
@@ -1779,7 +1763,7 @@ FUNC(LS_ACS_ExecuteWithResult)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsScriptClientSide( arg0 )))
 	{
-		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), 0, backSide, arg2, arg3, arg4, true );
 		return ( false );
 	}
 

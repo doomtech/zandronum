@@ -5102,39 +5102,65 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG u
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
-	LONG	lActivatorID;
+	LONG lActivatorID = ( pActivator ? pActivator->lNetID : -1 );
 
-	if ( pActivator == NULL )
-		lActivatorID = -1;
-	else
-		lActivatorID = pActivator->lNetID;
+	// [TP] Argument header:
+	// Bits 0-1: length of arg0
+	// Bits 2-3: length of arg1
+	// Bits 4-5: length of arg2
+	// Bit 6: bBackSide
+	// Bit 7: bAlways
+	//
+	// Length is:
+	//	0: not sent, assume 0
+	//	1: sent as a signed byte [-128, 127]
+	//	2: sent as a signed short [-32768, 32767]
+	//	3: sent as a signed long (<= -32769 || >= -32768)
+	//
+	BYTE argheader = 0;
+	const int args[] = {iArg0, iArg1, iArg2};
+	int arglength[3];
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( int i = 0; i < 3; ++i )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+		if ( args[i] == 0 )
+			arglength[i] = 0;
+		else if (( args[i] <= 0x7F ) && ( args[i] >= -0x80 ))
+			arglength[i] = 1;
+		else if (( args[i] <= 0x7FFF ) && ( args[i] >= -0x8000 ))
+			arglength[i] = 2;
+		else
+			arglength[i] = 3;
 
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 21 + (ULONG)strlen( pszMap ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ACSSCRIPTEXECUTE );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulScript );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lActivatorID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLineIdx );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMap );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bBackSide );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg0 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg1 );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, iArg2 );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAlways );
+		// [TP] Store length in the argument header
+		argheader |= arglength[i] << ( 2 * i );
 	}
+
+	argheader |= ( bBackSide ? 1 : 0 ) << 6;
+	argheader |= ( bAlways ? 1 : 0 ) << 7;
+
+	NetCommand command ( SVC_ACSSCRIPTEXECUTE );
+	command.addShort( ulScript );
+	command.addShort( lActivatorID );
+	command.addShort( lLineIdx );
+	command.addByte( levelnum );
+	command.addByte( argheader );
+
+	// [TP] Now send the arguments.
+	for ( int i = 0; i < 3; ++i )
+	{
+		switch( arglength[i] )
+		{
+			case 1: command.addByte( args[i] ); break;
+			case 2: command.addShort( args[i] ); break;
+			case 3: command.addLong( args[i] ); break;
+			default: break;
+		}
+	}
+
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
