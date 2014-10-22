@@ -262,6 +262,9 @@ class DLighting : public DSectorEffect
 	DECLARE_CLASS (DLighting, DSectorEffect)
 public:
 	DLighting (sector_t *sector);
+
+	// [BB] Necessary for GAME_ResetMap
+	bool bNotMapSpawned;
 protected:
 	DLighting ();
 };

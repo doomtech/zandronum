@@ -27,8 +27,10 @@
 
 #include "doomdef.h"
 #include "p_local.h"
+// [BB] New #includes.
 #include "network.h"
 #include "sv_commands.h"
+#include "g_level.h"
 
 #include "p_lnspec.h"
 
@@ -51,12 +53,17 @@ IMPLEMENT_CLASS (DLighting)
 
 DLighting::DLighting ()
 {
+	// [BB] Workaround to save whether this lighting was created by the map.
+	bNotMapSpawned = ( level.time > 0 );
 }
 
 DLighting::DLighting (sector_t *sector)
 	: DSectorEffect (sector)
 {
 	ChangeStatNum (STAT_LIGHT);
+
+	// [BB] Workaround to save whether this lighting was created by the map.
+	bNotMapSpawned = ( level.time > 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -830,7 +837,18 @@ void EV_StartLightFading (int tag, int value, int tics)
 
 		if (tics <= 0)
 		{
-			sec->SetLightLevel(value);
+			// [CK] Only update if the values are not the same, since this is
+			// an instant function with zero tics.
+			if ( sec->GetLightLevel() != value )
+			{
+				sec->SetLightLevel(value);
+				sec->bLightChange = true;
+
+				// [CK] Since we know it's instant, this is a simple light level
+				// change and not a fade.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetSectorLightLevel( secnum );
+			}
 		}
 		else
 		{

@@ -61,6 +61,7 @@
 #include "i_system.h"
 #include "stats.h"
 #include "botpath.h"
+#include "doomerrors.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -144,6 +145,13 @@ void ASTAR_BuildNodes( void )
 
 	// Allocate a bunch of nodes for the master node list. The size of the master node list
 	// is the maximum number of nodes per search: length * width.
+	// [BB] This is certainly more memory than we want to assign for the bots...
+	if ( sizeof ( ASTARNODE_t ) * g_lNodeListSize > INT_MAX )
+	{
+		Printf ( "Unable to allocate bot nodes. Disabling bots on this map.\n");
+		g_bIsInitialized = true;
+		return;
+	}
 	g_aMasterNodeList = new ASTARNODE_t[g_lNodeListSize];
 
 	for ( ulIdx = 0; ulIdx < (ULONG)g_lNumHorizontalNodes; ulIdx++ )

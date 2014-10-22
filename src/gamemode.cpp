@@ -578,7 +578,9 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 		}
 		players[ulIdx].playerstate = Playerstate;
 
-		if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
+		// [CK] Ice corpses that are persistent between rounds must not affect
+		// the client post-death in any gamemode with a countdown.
+		if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 || players[ulIdx].mo->flags & MF_ICECORPSE ))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );

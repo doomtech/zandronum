@@ -32,10 +32,16 @@
 1.4
 ---
 
--	+ Added CVAR sv_limitcommands which can be set to false to disable various flooding limits (allow constant suiciding, team changing, disable command flood auto-kick, etc). Should not be set to false in public servers. [Dusk]
--	+ Added a Network Options menu which will contain all new network options. [Water]
++	- Added CVAR sv_limitcommands which can be set to false to disable various flooding limits (allow constant suiciding, team changing, disable command flood auto-kick, etc). Should not be set to false in public servers. [Dusk]
++	- Added a Network Options menu which will contain all new network options. [Water, Torr Samaho]
++	- The authentication mechanism for non-map related lumps now allows Freedoom 0.9/Doom clients to join Doom/Freedoom 0.9 servers. [Torr Samaho] 
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
+-	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
+-	- Fixed: MAPINFO lumps were not protected. [Dusk]
+-	- Fixed: Instant light fading was not updated on the client's side. [Water]
+-	- Fixed: Frozen corpses were not properly cleaned up during the countdown phase, leading to unexpected behavior with player viewpoints. [Water, Torr Samaho]
+-	- Trying to generate bot nodes on very large maps caused the game to crash. This should now be fixed at least on extremely large maps. Bots are disabled in this case. [Torr Samaho]
 
 
 1.3
