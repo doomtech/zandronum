@@ -28,6 +28,7 @@
 -	- Trying to generate bot nodes on very large maps caused the game to crash. This should now be fixed at least on extremely large maps. Bots are disabled in this case. [Torr Samaho]
 -	- Fixed: The crouched sprite wasn't displayed for skins enforced through Weapon.PreferredSkin if the player class had +NOSKIN. [Esum, Torr Samaho]
 -	- Fixed: Player spawn height now is on the ground so any player starts in the air will not result in team telefragging unless all spawns are full. [Water, Torr Samaho]
+!	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 
 
 1.3
