@@ -162,7 +162,7 @@ void CALLVOTE_Tick( void )
 						if ( strncmp( g_VoteCommand, "kick", 4 ) == 0 )
 							g_VoteCommand.Format( "addban %s 10min \"Vote kick", NETWORK_AddressToString( g_KickVoteVictimAddress ) );
 						else
-							g_VoteCommand.Format( "kickfromgame_idx %d \"Vote forcespec", SERVER_FindClientByAddress ( g_KickVoteVictimAddress ) );
+							g_VoteCommand.Format( "kickfromgame_idx %d \"Vote forcespec", static_cast<int>(SERVER_FindClientByAddress ( g_KickVoteVictimAddress )) );
 						g_VoteCommand.AppendFormat( ", %d to %d", static_cast<int>(callvote_CountPlayersWhoVotedYes( )), static_cast<int>(callvote_CountPlayersWhoVotedNo( )) );
 						if ( g_VoteReason.IsNotEmpty() )
 							g_VoteCommand.AppendFormat ( " (%s)", g_VoteReason.GetChars( ) );
