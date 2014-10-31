@@ -710,58 +710,58 @@ endif( DYN_FLUIDSYNTH )
 # [BB] Only complile the gl sources, if we want GL support.
 if( NOT NO_GL )
 	set( GL_SOURCES
-		gl/data/gl_data.cpp
-		gl/data/gl_nodes.cpp
-		gl/data/gl_portaldata.cpp
 		gl/data/gl_sections.cpp
+		gl/data/gl_nodes.cpp
+		gl/data/gl_data.cpp
+		gl/data/gl_portaldata.cpp
 		gl/data/gl_setup.cpp
 		gl/data/gl_vertexbuffer.cpp
 		gl/dynlights/a_dynlight.cpp
-		gl/dynlights/gl_dynlight.cpp
-		gl/dynlights/gl_dynlight1.cpp
-		gl/dynlights/gl_glow.cpp
-		gl/dynlights/gl_lightbuffer.cpp
-		gl/models/gl_models.cpp
-		gl/models/gl_models_md2.cpp
-		gl/models/gl_models_md3.cpp
-		gl/renderer/gl_lightdata.cpp
-		gl/renderer/gl_renderer.cpp
-		gl/renderer/gl_renderstate.cpp
-		gl/scene/gl_bsp.cpp
-		gl/scene/gl_clipper.cpp
-		gl/scene/gl_decal.cpp
-		gl/scene/gl_drawinfo.cpp
-		gl/scene/gl_fakeflat.cpp
-		gl/scene/gl_flats.cpp
-		gl/scene/gl_portal.cpp
-		gl/scene/gl_renderhacks.cpp
-		gl/scene/gl_scene.cpp
-		gl/scene/gl_sky.cpp
-		gl/scene/gl_skydome.cpp
-		gl/scene/gl_sprite.cpp
-		gl/scene/gl_spritelight.cpp
-		gl/scene/gl_vertex.cpp
-		gl/scene/gl_walls.cpp
-		gl/scene/gl_walls_draw.cpp
-		gl/scene/gl_weapon.cpp
-		gl/shaders/gl_shader.cpp
-		gl/shaders/gl_texshader.cpp
-		gl/system/gl_framebuffer.cpp
-		gl/system/gl_interface.cpp
-		gl/system/gl_menu.cpp
-		gl/system/gl_wipe.cpp
-		gl/textures/gl_bitmap.cpp
-		gl/textures/gl_cameratexture.cpp
-		gl/textures/gl_hirestex.cpp
-		gl/textures/gl_hqresize.cpp
-		gl/textures/gl_hwtexture.cpp
-		gl/textures/gl_material.cpp
-		gl/textures/gl_skyboxtexture.cpp
-		gl/textures/gl_texture.cpp
-		gl/textures/gl_translate.cpp
 		gl/utility/gl_clock.cpp
 		gl/utility/gl_cycler.cpp
 		gl/utility/gl_geometric.cpp
+		gl/renderer/gl_renderer.cpp
+		gl/renderer/gl_renderstate.cpp
+		gl/renderer/gl_lightdata.cpp
+		gl/textures/gl_hwtexture.cpp
+		gl/textures/gl_texture.cpp
+		gl/textures/gl_material.cpp
+		gl/textures/gl_hirestex.cpp
+		gl/textures/gl_bitmap.cpp
+		gl/textures/gl_cameratexture.cpp
+		gl/textures/gl_translate.cpp
+		gl/textures/gl_hqresize.cpp
+		gl/textures/gl_skyboxtexture.cpp
+		gl/scene/gl_bsp.cpp
+		gl/scene/gl_fakeflat.cpp
+		gl/scene/gl_clipper.cpp
+		gl/scene/gl_decal.cpp
+		gl/scene/gl_drawinfo.cpp
+		gl/scene/gl_flats.cpp
+		gl/scene/gl_walls.cpp
+		gl/scene/gl_sprite.cpp
+		gl/scene/gl_skydome.cpp
+		gl/scene/gl_renderhacks.cpp
+		gl/scene/gl_weapon.cpp
+		gl/scene/gl_scene.cpp
+		gl/scene/gl_sky.cpp
+		gl/scene/gl_portal.cpp
+		gl/scene/gl_walls_draw.cpp
+		gl/scene/gl_vertex.cpp
+		gl/scene/gl_spritelight.cpp
+		gl/dynlights/gl_dynlight.cpp
+		gl/dynlights/gl_glow.cpp
+		gl/dynlights/gl_dynlight1.cpp
+		gl/dynlights/gl_lightbuffer.cpp
+		gl/shaders/gl_shader.cpp
+		gl/shaders/gl_texshader.cpp
+		gl/system/gl_interface.cpp
+		gl/system/gl_framebuffer.cpp
+		gl/system/gl_menu.cpp
+		gl/system/gl_wipe.cpp
+		gl/models/gl_models_md3.cpp
+		gl/models/gl_models_md2.cpp
+		gl/models/gl_models.cpp
 	)
         # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
         if( MSVC )
