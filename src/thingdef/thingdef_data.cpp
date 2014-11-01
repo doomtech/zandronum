@@ -226,6 +226,7 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG(STFL, NODE, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, USESTBOUNCESOUND, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, EXPLODEONDEATH, AActor, ulSTFlags),
+	DEFINE_FLAG(STFL, DONTIDENTIFYTARGET, AActor, ulSTFlags), // [CK]
 
 	// [BB] New DECORATE network related flag defines here.
 	DEFINE_FLAG(NETFL, NONETID, AActor, ulNetworkFlags),

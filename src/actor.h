@@ -383,6 +383,9 @@ enum
 	// [BB] The actor is an obsolete spectator body, that should be deleted once the player is reborn.
 	STFL_OBSOLETE_SPECTATOR_BODY		= 0x00200000,
 
+	// [CK] For making a player class not identifiable
+	STFL_DONTIDENTIFYTARGET		= 0x00400000,
+
 // More flags for Skulltag... these having to do with the network.
 
 	// This object does not have a network ID.

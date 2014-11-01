@@ -1722,6 +1722,10 @@ void DBaseStatusBar::DrawTargetName ()
 		if ( pTargetPlayer == NULL )
 			return;
 
+		// [CK] If the player shouldn't be identified from decorate flags, ignore them
+		if ( pTargetPlayer->mo != NULL && ( pTargetPlayer->mo->ulSTFlags & STFL_DONTIDENTIFYTARGET ) != 0 ) 
+			return;
+
 		// Build the string and text color;
 		ulTextColor = CR_GRAY;
 
