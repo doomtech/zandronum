@@ -201,7 +201,13 @@ public:
 
 	void addFloat ( const float FloatValue )
 	{
-		addInteger<SDWORD> ( *(reinterpret_cast<const SDWORD*> ( &FloatValue )) );
+		union
+		{
+			float	f;
+			SDWORD	l;
+		} dat;
+		dat.f = FloatValue;
+		addInteger<SDWORD> ( dat.l );
 	}
 
 	void addString ( const char *pszString )

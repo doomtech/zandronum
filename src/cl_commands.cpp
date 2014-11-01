@@ -564,8 +564,8 @@ void CLIENTCOMMANDS_Puke ( LONG lScript, int args[3] )
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) ? -lScript : lScript );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, argn );
 
-	for ( ULONG ulIdx = 0; ulIdx < argn; ++ulIdx )
-		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, args[ulIdx] );
+	for ( int Idx = 0; Idx < argn; ++Idx )
+		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, args[Idx] );
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) );
 }

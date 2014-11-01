@@ -185,7 +185,7 @@ int SERVER_FindClientWithUsername ( const char *Username )
 
 //*****************************************************************************
 //
-int SERVER_FindClientWithClientSessionID ( const int ClientSessionID )
+int SERVER_FindClientWithClientSessionID ( const unsigned int ClientSessionID )
 {
 	for ( int i = 0; i < MAXPLAYERS; ++i )
 	{
