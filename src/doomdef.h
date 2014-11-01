@@ -398,6 +398,8 @@ enum
 	COMPATF2_OLD_ZDOOM_ZMOVEMENT = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	COMPATF2_FULL_WEAPON_LOWER = 1 << 9,
+	// [CK] We use more tracers to fill in the gaps, this reverts it to vanilla's 3 tracer behavior
+	COMPATF2_AUTOAIM = 1 << 10,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar

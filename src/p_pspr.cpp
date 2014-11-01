@@ -39,6 +39,12 @@
 #define LOWERSPEED				FRACUNIT*6
 #define RAISESPEED				FRACUNIT*6
 
+// [CK] The minimum binary angle for autoaim to trigger against other players.
+// This was determined by making a triangle from the max autoaim range (1024) by
+// player radius (16) to get an angle of ~0.89 degrees. This below value is the
+// binary value of this angle.
+#define AUTOAIM_MINANGLE		0xA20500
+
 // TYPES -------------------------------------------------------------------
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
@@ -800,7 +806,10 @@ DEFINE_ACTION_FUNCTION(AInventory, A_GunFlash)
 
 angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 {
-	static const int angdiff[3] = { -1<<26, 1<<26, 0 };
+	static const int angdiff[15] = { -1<<26, 1<<26, 0,
+		-AUTOAIM_MINANGLE, AUTOAIM_MINANGLE, -AUTOAIM_MINANGLE << 1, AUTOAIM_MINANGLE << 1,
+		-AUTOAIM_MINANGLE * 3, AUTOAIM_MINANGLE * 3, -AUTOAIM_MINANGLE << 2, AUTOAIM_MINANGLE << 2,
+		-AUTOAIM_MINANGLE * 5, AUTOAIM_MINANGLE * 5, -AUTOAIM_MINANGLE * 6, AUTOAIM_MINANGLE * 6 }; // [CK] New angles
 	int i;
 	angle_t an;
 	angle_t pitch;
@@ -811,7 +820,7 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 	UNLAGGED_AddReconciliationBlocker( );
 
 	// see which target is to be aimed at
-	i = 2;
+	i = compatflags2 & COMPATF2_AUTOAIM ? 2 : 14; // [CK] Our starting index depends on compatflags.
 	do
 	{
 		an = mo->angle + angdiff[i];
