@@ -129,7 +129,7 @@ void SERVER_RCON_Construct( );
 void SERVER_RCON_Destruct( );
 void SERVER_RCON_Tick( );
 void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s *pByteStream );
-void SERVER_RCON_Printf( const char *pszString );
+void SERVER_RCON_Print( const char *pszString );
 void SERVER_RCON_UpdateInfo( int iUpdateType );
 
 #endif

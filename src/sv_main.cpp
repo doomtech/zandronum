@@ -3513,7 +3513,7 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, szKickString );
+		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
 	}
 }
 
@@ -4788,7 +4788,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 		}
 		message += ".\n";
 
-		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, message.GetChars() );
+		SERVER_PrintfPlayer( PRINT_HIGH, ulPlayer, "%s", message.GetChars() );
 		return ( false );
 	}
 
@@ -6072,7 +6072,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	// Make sure we have the required number of voters.
 	if ( static_cast<int>( CALLVOTE_CountNumEligibleVoters( )) < sv_minvoters )
 	{
-		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server requires at least %d eligible voters to call a vote.\n", static_cast<ULONG>( sv_minvoters ));
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "This server requires at least %d eligible voters to call a vote.\n", static_cast<int>( sv_minvoters ));
 		return false;
 	}
 
@@ -6261,7 +6261,7 @@ static bool server_MorphCheat( BYTESTREAM_s *pByteStream )
 	{
 		const char *msg = cht_Morph (players + g_lCurrentClient, PClass::FindClass (pszMorphClass), false);
 		FString messageString = *msg != '\0' ? msg : "Morph failed.";
-		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, messageString.GetChars() );
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s", messageString.GetChars() );
 	}
 	// If not, boot their ass!
 	else
