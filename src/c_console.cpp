@@ -995,9 +995,9 @@ int PrintString (int printlevel, const char *outline)
 		if ( printlevel != PRINT_LOW )
 		{			
 			// [RC] Send this to any connected RCON clients.
-			SERVER_RCON_Printf( outlinecopy );
+			SERVER_RCON_Print( outlinecopy );
 			if ( g_ulRCONPlayer != MAXPLAYERS )
-				SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outlinecopy );
+				SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, "%s", outlinecopy );
 
 			SERVERCONSOLE_Print( outlinecopy );
 		}

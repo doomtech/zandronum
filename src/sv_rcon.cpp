@@ -201,13 +201,13 @@ void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s
 
 //==========================================================================
 //
-// SERVER_RCON_Printf
+// SERVER_RCON_Print
 //
 // Sends the message to all connected administrators.
 //
 //==========================================================================
 
-void SERVER_RCON_Printf( const char *pszString )
+void SERVER_RCON_Print( const char *pszString )
 {
 	for ( unsigned int i = 0; i < g_AuthedClients.Size( ); i++ )
 	{
@@ -379,7 +379,7 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 	{
 		// Wrong password.
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_INVALIDPASSWORD );
-		NETWORK_LaunchPacket( &g_MessageBuffer, g_Candidates[iCandidateIndex].Address ); // [RC] Note: Be sure to finish any packets before calling Printf(). Otherwise SERVER_RCON_Printf will clear your buffer.
+		NETWORK_LaunchPacket( &g_MessageBuffer, g_Candidates[iCandidateIndex].Address ); // [RC] Note: Be sure to finish any packets before calling Printf(). Otherwise SERVER_RCON_Print will clear your buffer.
 
 		// To prevent mass password flooding, ignore the IP for a few seconds.
 		g_BadRequestFloodQueue.addAddress( g_Candidates[iCandidateIndex].Address, gametic / 1000 );
