@@ -2227,7 +2227,8 @@ void P_CheckPlayerSprites()
 				{
 					crouchspriteno = mo->crouchsprite;
 				}
-				else if (!(player->mo->flags4 & MF4_NOSKIN) &&
+				// [BB] PreferredSkin overrides NOSKIN.
+				else if ( ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) &&
 						(mo->sprite == skins[lSkin].sprite ||
 						 mo->sprite == skins[lSkin].crouchsprite))
 				{

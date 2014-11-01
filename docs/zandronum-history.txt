@@ -36,6 +36,7 @@
 +	- Added a Network Options menu which will contain all new network options. [Water, Torr Samaho]
 +	- The authentication mechanism for non-map related lumps now allows Freedoom 0.9/Doom clients to join Doom/Freedoom 0.9 servers. [Torr Samaho] 
 +	- Significantly bandwidth-optimized server-to-client ACS_Execute (and friends) calls. Such a call now uses 9 to 21 bytes of bandwidth per client per call (depending on the size of arguments), instead of 22 to 29 bytes. [Dusk]
++	- Added cl_showspawns, which creates a particle fountain at active spawns. [Water, Torr Samaho]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
@@ -43,6 +44,9 @@
 -	- Fixed: Instant light fading was not updated on the client's side. [Water]
 -	- Fixed: Frozen corpses were not properly cleaned up during the countdown phase, leading to unexpected behavior with player viewpoints. [Water, Torr Samaho]
 -	- Trying to generate bot nodes on very large maps caused the game to crash. This should now be fixed at least on extremely large maps. Bots are disabled in this case. [Torr Samaho]
+-	- Fixed: The crouched sprite wasn't displayed for skins enforced through Weapon.PreferredSkin if the player class had +NOSKIN. [Esum, Torr Samaho]
+-	- Fixed: Player spawn height now is on the ground so any player starts in the air will not result in team telefragging unless all spawns are full. [Water, Torr Samaho]
+!	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 
 
 1.3

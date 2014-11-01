@@ -53,10 +53,17 @@
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
+#include "team.h" // [CK]
+#include "doomdata.h"
+#include "v_palette.h"
+
+// [CK] Prototypes
+static void MakeFountain (fixed_t x, fixed_t y, fixed_t z, fixed_t radius, fixed_t height, int color1, int color2);
 
 CVAR (Int, cl_rockettrails, 1, CVAR_ARCHIVE);
 CVAR (Int, cl_grenadetrails, 1, CVAR_ARCHIVE);
 CVAR (Int, cl_respawninvuleffect, 1, CVAR_ARCHIVE);
+CVAR (Bool, cl_showspawns, false, CVAR_ARCHIVE); // [CK] Particle fountains at spawns
 CVAR (Bool, r_rail_smartspiral, 0, CVAR_ARCHIVE);
 CVAR (Int, r_rail_spiralsparsity, 1, CVAR_ARCHIVE);
 CVAR (Int, r_rail_trailsparsity, 1, CVAR_ARCHIVE);
@@ -182,6 +189,27 @@ void P_ThinkParticles ()
 	}
 }
 
+// [CK] Refactored code to generate a fountain.
+static void GenerateShowSpawnFountain ( FMapThing &ts, const int color, const int pnum )
+{
+	fixed_t floorZ;
+	sector_t *pSector;
+	int rejectnum;
+	pSector = P_PointInSector( ts.x, ts.y );
+
+	// Do not spawn particles if the sector is null
+	if ( pSector != NULL )
+	{
+		// Only draw the fountain if it's potentially visible
+		rejectnum = pnum + int(pSector - sectors);
+		if (rejectmatrix == NULL || !(rejectmatrix[rejectnum>>3] & (1 << (rejectnum & 7))))
+		{
+			floorZ = pSector->floorplane.ZatPoint( ts.x, ts.y );
+			MakeFountain( ts.x, ts.y, floorZ, 16 << FRACBITS, 0, color, color );
+		}
+	}
+}
+
 //
 // P_RunEffects
 //
@@ -204,6 +232,30 @@ void P_RunEffects ()
 			int rnum = pnum + int(actor->Sector - sectors);
 			if (rejectmatrix == NULL || !(rejectmatrix[rnum>>3] & (1 << (rnum & 7))))
 				P_RunEffect (actor, actor->effects);
+		}
+	}
+
+	// [CK] If the client wants to show particles at spawns, do so.
+	// Teams get special handling due to colors.
+	if ( cl_showspawns ) 
+	{
+		if ( teamgame ) 
+		{
+			for ( ULONG t = 0; t < teams.Size(); t++ )
+			{
+				int color = ColorMatcher.Pick( RPART( teams[t].lPlayerColor ), GPART( teams[t].lPlayerColor ), BPART( teams[t].lPlayerColor ) );
+				for ( ULONG i = 0; i < teams[t].TeamStarts.Size( ); i++ )
+				{
+					GenerateShowSpawnFountain( teams[t].TeamStarts[i], color, pnum );
+				}
+			}
+		}
+		else 
+		{
+			for ( ULONG i = 0; i < deathmatchstarts.Size( ); i++)
+			{
+				GenerateShowSpawnFountain( deathmatchstarts[i], grey4, pnum );
+			}
 		}
 	}
 }
@@ -235,7 +287,8 @@ particle_t *JitterParticle (int ttl)
 	return particle;
 }
 
-static void MakeFountain (AActor *actor, int color1, int color2)
+// [CK] Refactored fountain that allows custom spawners to be used
+static void MakeFountain (fixed_t x, fixed_t y, fixed_t z, fixed_t radius, fixed_t height, int color1, int color2)
 {
 	particle_t *particle;
 
@@ -247,12 +300,12 @@ static void MakeFountain (AActor *actor, int color1, int color2)
 	if (particle)
 	{
 		angle_t an = M_Random()<<(24-ANGLETOFINESHIFT);
-		fixed_t out = FixedMul (actor->radius, M_Random()<<8);
+		fixed_t out = FixedMul (radius, M_Random()<<8);
 
-		particle->x = actor->x + FixedMul (out, finecosine[an]);
-		particle->y = actor->y + FixedMul (out, finesine[an]);
-		particle->z = actor->z + actor->height + FRACUNIT;
-		if (out < actor->radius/8)
+		particle->x = x + FixedMul (out, finecosine[an]);
+		particle->y = y + FixedMul (out, finesine[an]);
+		particle->z = z + height + FRACUNIT;
+		if (out < radius/8)
 			particle->velz += FRACUNIT*10/3;
 		else
 			particle->velz += FRACUNIT*3;
@@ -265,6 +318,15 @@ static void MakeFountain (AActor *actor, int color1, int color2)
 			particle->color = color1;
 		}
 	}
+}
+
+static void MakeFountain (AActor *actor, int color1, int color2)
+{
+	if ( actor == NULL )
+		return;
+
+	// [CK] We now use a general function
+	MakeFountain(actor->x, actor->y, actor->z, actor->radius, actor->height, color1, color2);
 }
 
 void P_RunEffect (AActor *actor, int effects)

@@ -2243,6 +2243,11 @@ bool G_CheckSpot (int playernum, FMapThing *mthing)
 	y = mthing->y;
 	z = mthing->z;
 
+	// [CK] Setting to zero for now to prevent ground telefragging that happens
+	// NOTE to Torr: This will be fixed in ZDoom with a backport, this is a
+	// temporary fix.
+	z = 0;
+
 	z += P_PointInSector (x, y)->floorplane.ZatPoint (x, y);
 
 	if (!players[playernum].mo)

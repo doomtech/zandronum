@@ -3543,19 +3543,55 @@ void SERVER_DeleteCommand( void )
 
 //*****************************************************************************
 //
+// [CK] Function overhaul to support moving on if all in game players are ready,
+// and to handle spectators properly.
 bool SERVER_IsEveryoneReadyToGoOn( void )
 {
 	ULONG	ulIdx;
+	ULONG	ulClientCount = 0;
+	ULONG	ulSpectatorCountReady = 0;
+	bool	bIsOnlySpectators = true;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( players[ulIdx].bReadyToGoOn == false )
-			return ( false );
+		ulClientCount++;
+
+		// Need to handle this differently by looking at who is not a
+		// spectator with priority.
+		// Note that for now, a player who has 0 lives is not considered a
+		// spectator and will be treated as an active player.
+		if ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false )
+		{
+			bIsOnlySpectators = false;
+
+			// If there's a valid player in game who is not ready to go on, we
+			// know we can't proceed.
+			if ( players[ulIdx].bReadyToGoOn == false )
+				return ( false );
+		}
+		else
+		{
+			// Else if we're dealing with a spectator, we must handle it in a
+			// different way.
+			if ( players[ulIdx].bReadyToGoOn == true )
+				ulSpectatorCountReady++;
+		}
 	}
 
+	// If there's no clients, we can safely move on.
+	if ( ulClientCount == 0 )
+		return ( true );
+
+	// If it is all spectators, then our return value is based on if all of them
+	// are ready.
+	if ( bIsOnlySpectators == true )
+		return ( ulClientCount == ulSpectatorCountReady );
+
+	// If we got this far, that means there is actual players in the game and
+	// all of them are ready to go on, which means we should.
 	return ( true );
 }
 

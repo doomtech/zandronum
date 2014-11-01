@@ -169,6 +169,7 @@ EXTERN_CVAR (Bool, am_showkeys)
 EXTERN_CVAR (Int, vid_aspect)
 EXTERN_CVAR (String,	playerclass)
 EXTERN_CVAR( Int, cl_overrideplayercolors ) // [TP]
+EXTERN_CVAR( Bool, cl_showspawns ) // [CK]
 
 /*static*/	ULONG		g_ulPlayerSetupSkin;
 /*static*/	ULONG		g_ulPlayerSetupColor;
@@ -785,6 +786,7 @@ static menuitem_t VideoItems[] = {
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Column render mode",	{&r_columnmethod},		{2.0}, {0.0},	{0.0}, {ColumnMethods} },
 	{ discrete, "Disable alpha",		{&r_drawtrans},			{2.0}, {0.0},	{0.0}, {NoYes} },
+	{ discrete, "Show player spawns",	{&cl_showspawns},		{2.0}, {0.0},	{0.0}, {OnOff} }, // [CK]
 #ifdef _WIN32
 	{ discrete,	"Show ENDOOM screen",	{&showendoom},			{3.0}, {0.0},	{0.0}, {Endoom} },
 	{ discrete, "DirectDraw palette hack", {&vid_palettehack},	{2.0}, {0.0},	{0.0}, {OnOff} },
