@@ -423,6 +423,8 @@ enum
 	ZACOMPATF_OLD_ZDOOM_ZMOVEMENT = 1 << 8,
 	// [CK] You can't change weapons mid raise/lower in vanilla
 	ZACOMPATF_FULL_WEAPON_LOWER = 1 << 9,
+	// [CK] We use more tracers to fill in the gaps, this reverts it to vanilla's 3 tracer behavior
+	ZACOMPATF_AUTOAIM = 1 << 10,
 	// [CK] Vanilla doom had silent west spawns
 	ZACOMPATF_SILENT_WEST_SPAWNS = 1 << 11,
 
