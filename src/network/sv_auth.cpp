@@ -56,7 +56,7 @@
 
 #define	DEFAULT_AUTH_SERVER_PORT 15301
 
-#define AUTH_PROTOCOL_VERSION 1
+#define AUTH_PROTOCOL_VERSION 2
 
 //*****************************************************************************
 //	DEFINES
@@ -356,8 +356,8 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 		case AUTH_SERVER_USER_ERROR:
 			{
 				const int errorCode = NETWORK_ReadByte( pByteStream );
-				const FString username = NETWORK_ReadString( pByteStream );
-				Printf ( "Error: Error authenticating user '%s':.\n", username.GetChars() );
+				const unsigned int clientSessionID = NETWORK_ReadLong( pByteStream );
+				Printf ( "Error: Error authenticating user with session id %u.\n", clientSessionID );
 				FString errorMessage = "";
 				switch ( errorCode )
 				{
@@ -379,7 +379,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 				}
 				Printf ( "%s", errorMessage.GetChars() );
 
-				const int clientID = SERVER_FindClientWithUsername ( username.GetChars() );
+				const int clientID = SERVER_FindClientWithClientSessionID ( clientSessionID );
 				if ( clientID < MAXPLAYERS )
 				{
 					// [BB] Since the authentication failed, clear all authentication related data of this client.
@@ -387,7 +387,7 @@ void SERVER_AUTH_ParsePacket( BYTESTREAM_s *pByteStream )
 					SERVER_PrintfPlayer( PRINT_HIGH, clientID, "User authentication failed! %s", errorMessage.GetChars() );
 				}
 				else
-					Printf ( "AUTH_SERVER_USER_ERROR: Can't find client with username '%s'.\n", username.GetChars() );
+					Printf ( "AUTH_SERVER_NEGOTIATE: Can't find client with client session id %u.\n", clientSessionID );
 			}
 			break;
 		case AUTH_SERVER_SESSION_ERROR:
