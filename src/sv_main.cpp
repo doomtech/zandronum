@@ -2158,14 +2158,6 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
 
-	// [Spleen] Read in the player's unlagged preference.
-	if ( ulFlags & USERINFO_UNLAGGED )
-		pPlayer->userinfo.bUnlagged = !!NETWORK_ReadByte( pByteStream );
-
-	// [BB]
-	if ( ulFlags & USERINFO_RESPAWNONFIRE )
-		pPlayer->userinfo.bRespawnonfire = !!NETWORK_ReadByte( pByteStream );
-
 	// [BB]
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
 		pPlayer->userinfo.ulTicsPerUpdate = clamp ( NETWORK_ReadByte( pByteStream ), 1, 3 );
@@ -2173,6 +2165,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	// [BB]
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
 		pPlayer->userinfo.ulConnectionType = clamp ( NETWORK_ReadByte( pByteStream ), 0, 1 );
+
+	// [CK] We use a bitfield now.
+	if ( ulFlags & USERINFO_CLIENTFLAGS )
+		pPlayer->userinfo.clientFlags = NETWORK_ReadByte( pByteStream );
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )

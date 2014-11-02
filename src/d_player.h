@@ -278,18 +278,15 @@ struct userinfo_t
 	LONG		lRailgunTrailColor;
 	LONG		lHandicap;
 
-	// [Spleen] Let the user enable or disable unlagged shots for themselves.
-	bool		bUnlagged;
-
-	// [BB] Let the user decide whether he wants to respawn when pressing fire.
-	bool		bRespawnonfire;
-
 	// [BB] Let the user decide how often he wants the player positions to be updated.
 	ULONG		ulTicsPerUpdate;
 
 	// [BB] Let the user specify his connection type. This way we can try to save
 	// bandwidth on slow connections (possibly causing visual inaccuracies).
 	ULONG		ulConnectionType;
+
+	// [CK] Client flags for various booleans masked in a bitfield.
+	BYTE		clientFlags;
 };
 
 FArchive &operator<< (FArchive &arc, userinfo_t &info);

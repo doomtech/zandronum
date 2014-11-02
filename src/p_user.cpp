@@ -2881,7 +2881,7 @@ void P_DeathThink (player_t *player)
 
 	if ( level.time >= player->respawn_time )
 	{
-		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.bRespawnonfire == true ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
+		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.clientFlags & CLIENTFLAGS_RESPAWNONFIRE ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
 			(( deathmatch || teamgame || alwaysapplydmflags ) &&
 			( dmflags & DF_FORCE_RESPAWN ))) && !(dmflags2 & DF2_NO_RESPAWN) )
 		{

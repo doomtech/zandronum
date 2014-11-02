@@ -580,7 +580,7 @@ EXTERN_CVAR( Bool, cl_run )
 EXTERN_CVAR( Int, menu_handicap )
 EXTERN_CVAR( Int, menu_railcolor )
 EXTERN_CVAR( Float, menu_autoaim )
-EXTERN_CVAR( Bool, cl_unlagged )
+EXTERN_CVAR( Flag, cl_unlagged )
 EXTERN_CVAR( Int, cl_announcer )
 EXTERN_CVAR(Float, snd_announcervolume)	// [WS] Skulltag's announcer volume.
 
