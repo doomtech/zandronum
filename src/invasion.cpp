@@ -87,12 +87,13 @@ static	ULONG		invasion_GetNumThingsThisWave( ULONG ulNumOnFirstWave, ULONG ulWav
 //*****************************************************************************
 //	VARIABLES
 
-static	ULONG				g_ulCurrentWave = 0;
-static	ULONG				g_ulNumMonstersLeft = 0;
-static	ULONG				g_ulNumArchVilesLeft = 0;
-static	ULONG				g_ulInvasionCountdownTicks = 0;
+// [EP] TODO: remove the 'ul' mark from the name of the variables which aren't ULONG anymore
+static	unsigned int		g_ulCurrentWave = 0;
+static	unsigned int		g_ulNumMonstersLeft = 0;
+static	unsigned int		g_ulNumArchVilesLeft = 0;
+static	unsigned int		g_ulInvasionCountdownTicks = 0;
 static	INVASIONSTATE_e		g_InvasionState;
-static	ULONG				g_ulNumBossMonsters = 0;
+static	unsigned int		g_ulNumBossMonsters = 0;
 static	bool				g_bIncreaseNumMonstersOnSpawn = true;
 static	std::vector<AActor*> g_MonsterCorpsesFromPreviousWave;
 
@@ -215,7 +216,7 @@ void ABaseMonsterInvasionSpot::Tick( void )
 void ABaseMonsterInvasionSpot::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave;
+	arc << lNextSpawnTick << lNumLeftThisWave;
 }
 
 //*****************************************************************************
@@ -385,7 +386,7 @@ void ABasePickupInvasionSpot::Tick( void )
 void ABasePickupInvasionSpot::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave;
+	arc << lNextSpawnTick << lNumLeftThisWave;
 }
 
 //*****************************************************************************
@@ -554,7 +555,7 @@ void ABaseWeaponInvasionSpot::Tick( void )
 void ABaseWeaponInvasionSpot::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)lNextSpawnTick;
+	arc << lNextSpawnTick;
 }
 
 //*****************************************************************************
@@ -1361,11 +1362,11 @@ void INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease )
 //
 void INVASION_WriteSaveInfo( FILE *pFile )
 {
-	ULONG				ulInvasionState;
+	unsigned int				ulInvasionState;
 	FPNGChunkArchive	arc( pFile, MAKE_ID( 'i','n','V','s' ));
 
-	ulInvasionState = (ULONG)g_InvasionState;
-	arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters << (DWORD &) g_ulNumArchVilesLeft;
+	ulInvasionState = g_InvasionState;
+	arc << g_ulNumMonstersLeft << g_ulInvasionCountdownTicks << g_ulCurrentWave << ulInvasionState << g_ulNumBossMonsters << g_ulNumArchVilesLeft;
 }
 
 //*****************************************************************************
@@ -1377,10 +1378,10 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 	Length = M_FindPNGChunk( pPng, MAKE_ID( 'i','n','V','s' ));
 	if ( Length != 0 )
 	{
-		ULONG				ulInvasionState;
+		unsigned int		ulInvasionState;
 		FPNGChunkArchive	arc( pPng->File->GetFile( ), MAKE_ID( 'i','n','V','s' ), Length );
 
-		arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters << (DWORD &) g_ulNumArchVilesLeft;
+		arc << g_ulNumMonstersLeft << g_ulInvasionCountdownTicks << g_ulCurrentWave << ulInvasionState << g_ulNumBossMonsters << g_ulNumArchVilesLeft;
 		g_InvasionState = (INVASIONSTATE_e)ulInvasionState;
 	}
 }

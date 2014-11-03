@@ -922,7 +922,8 @@ struct line_t
 	sector_t	*frontsector, *backsector;
 	int 		validcount;	// if == validcount, already checked
 	// [BC] Have any of this line's textures been changed during the course of the level?
-	ULONG		ulTexChangeFlags;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulTexChangeFlags;
 
 	// [BC] Saved properties for when a map resets, or when we need to give updates
 	// to new clients connecting.

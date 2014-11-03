@@ -63,7 +63,7 @@ void DFloor::Serialize (FArchive &arc)
 		<< m_PerStepTime
 		<< m_Hexencrush
 		// [BC]
-		<< (DWORD &)m_lFloorID;
+		<< m_lFloorID;
 }
 
 IMPLEMENT_POINTY_CLASS (DElevator)
@@ -86,7 +86,7 @@ void DElevator::Serialize (FArchive &arc)
 		<< m_Interp_Floor
 		<< m_Interp_Ceiling
 		// [BC]
-		<< (DWORD &)m_lElevatorID;
+		<< m_lElevatorID;
 }
 
 void DElevator::Destroy()
@@ -176,7 +176,7 @@ void DWaggleBase::Serialize (FArchive &arc)
 		<< m_State
 		<< m_Interpolation
 		// [BC]
-		<< (DWORD &)m_lWaggleID;
+		<< m_lWaggleID;
 }
 
 

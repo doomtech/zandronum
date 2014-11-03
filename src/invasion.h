@@ -87,8 +87,9 @@ public:
 	void		Tick( void );
 	void		Serialize( FArchive &arc );
 
-	LONG	lNextSpawnTick;
-	LONG	lNumLeftThisWave;
+	// [EP] TODO: remove the 'l' prefix from the name of the variables which aren't LONG anymore
+	int		lNextSpawnTick;
+	int		lNumLeftThisWave;
 	bool	bIsBossMonster;
 };
 
@@ -107,8 +108,9 @@ public:
 	void		Serialize( FArchive &arc );
 	void		PickedUp( void );
 
-	LONG	lNextSpawnTick;
-	LONG	lNumLeftThisWave;
+	// [EP] TODO: remove the 'l' prefix from the name of the variables which aren't LONG anymore
+	int		lNextSpawnTick;
+	int		lNumLeftThisWave;
 };
 
 //*****************************************************************************
@@ -124,7 +126,8 @@ public:
 	void		Tick( void );
 	void		Serialize( FArchive &arc );
 
-	LONG		lNextSpawnTick;
+	// [EP] TODO: remove the 'l' prefix from the name of the variable which isn't LONG anymore
+	int			lNextSpawnTick;
 };
 
 //*****************************************************************************

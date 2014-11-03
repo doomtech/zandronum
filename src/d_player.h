@@ -420,7 +420,8 @@ public:
 	bool		bOnTeam;
 
 	// Team this player is on for ST/CTF.
-	ULONG		ulTeam;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulTeam;
 
 	// Amount of points this player has scored so far.
 	LONG		lPointCount;
@@ -471,7 +472,8 @@ public:
 	bool		bStruckPlayer;
 
 	// Number of times the railgun has been fired. Every 4 times, a reload is in order.
-	ULONG		ulRailgunShots;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulRailgunShots;
 
 	// Number of medals the player currently has of each type.
 	ULONG		ulMedalCount[NUM_MEDALS];
@@ -480,7 +482,8 @@ public:
 	AFloatyIcon	*pIcon;
 
 	// Bonus to the maximum amount of health the player can have.
-	LONG		lMaxHealthBonus;
+	// [EP] TODO: remove the 'l' prefix from this variable, it isn't LONG anymore
+	int			lMaxHealthBonus;
 
 	// Consecutive wins in duel mode.
 	ULONG		ulWins;

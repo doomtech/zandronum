@@ -811,19 +811,23 @@ public:
 	DWORD			flags6;			// Shit! Where did all the flags go?
 
 	// [BB] If 0, not limited to any team, if > 0, limited to the team with number (ulLimitedToTeam-1).
-	ULONG			ulLimitedToTeam;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int	ulLimitedToTeam;
 
 	// [BB] If 0, everybody can see the actor, if > 0, only members of team (ulVisibleToTeam-1) can see it.
-	ULONG			ulVisibleToTeam;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int	ulVisibleToTeam;
 
 	// [BB] If NAME_None, all players can see the actor, else only players whose playerclass name is VisibleToPlayerClass can see it.
 	FNameNoInit		VisibleToPlayerClass;
 
 	// [BC] A new set of flags that ST uses.
-	ULONG			ulSTFlags;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int	ulSTFlags;
 
 	// [BC] A new set of flags that deal with network games.
-	ULONG			ulNetworkFlags;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int	ulNetworkFlags;
 
 	int				special1;		// Special info
 	int				special2;		// Special info
@@ -935,17 +939,20 @@ public:
 
 	// [BC] Bunch of new stuff for ST.
 	// Should this actor be drawn with a different colormap?
-	LONG		lFixedColormap;
+	// [EP] TODO: remove the 'l' prefix from this variable, it isn't LONG anymore
+	int			lFixedColormap;
 
 	// ID used to identify this actor over network games.
-	LONG		lNetID;
+	// [EP] TODO: remove the 'l' prefix from this variable, it isn't LONG anymore
+	int			lNetID;
 
 	// Pointer to the pickup spot this item was spawned from.
 	ABaseMonsterInvasionSpot		*pMonsterSpot;
 	ABasePickupInvasionSpot			*pPickupSpot;
 
 	// What wave does this monster belong to in invasion mode?
-	ULONG		ulInvasionWave;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulInvasionWave;
 
 	// [BC] End of ST stuff.
 

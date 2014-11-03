@@ -55,12 +55,14 @@ public:
 		return !!( ulPowerupFlags & ( 1 << ulFrame ));
 	}
 
-	ULONG	ulCurrentFrame;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulCurrentFrame;
 
 protected:
 	const char *PickupMessage ();
 
-	ULONG	ulPowerupFlags;
+	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
+	unsigned int ulPowerupFlags;
 };
 
 DEFINE_ACTION_FUNCTION(AActor, A_RandomPowerupFrame)
@@ -168,7 +170,7 @@ bool ARandomPowerup::Use (bool pickup)
 void ARandomPowerup::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)ulCurrentFrame << (DWORD &)ulPowerupFlags;
+	arc << ulCurrentFrame << ulPowerupFlags;
 }
 
 const char *ARandomPowerup::PickupMessage( )

@@ -330,12 +330,12 @@ void AActor::Serialize (FArchive &arc)
 		<< BlockingMobj
 		<< BlockingLine
 		<< DesignatedTeam
-		<< (DWORD &)ulLimitedToTeam // [BB]
-		<< (DWORD &)ulVisibleToTeam // [BB]
-		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
-		<< (DWORD &)ulSTFlags
-		<< (DWORD &)ulNetworkFlags
-		<< (DWORD &)ulInvasionWave
+		<< ulLimitedToTeam // [BB]
+		<< ulVisibleToTeam // [BB]
+		<< lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
+		<< ulSTFlags
+		<< ulNetworkFlags
+		<< ulInvasionWave
 		<< pMonsterSpot
 		<< pPickupSpot;
 

@@ -3792,11 +3792,11 @@ void player_t::Serialize (FArchive &arc)
 		<< accuracy << stamina
 		// [BB] Skulltag additions - start
 		<< bOnTeam
-		<< (DWORD &)ulTeam
+		<< ulTeam
 		<< bChatting
 		<< bInConsole
-		<< (DWORD &)ulRailgunShots
-		<< (DWORD &)lMaxHealthBonus
+		<< ulRailgunShots
+		<< lMaxHealthBonus
 		// [BB] Skulltag additions - end
 		<< LogText
 		<< ConversationNPC
