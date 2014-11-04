@@ -2761,6 +2761,11 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				{
 					mo->momz = 0;
 					P_HitFloor (mo);
+
+					// [TP] Tell clients the missile stopped moving vertically
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveThing( mo, CM_MOMZ );
+
 					return;
 				}
 				else if (mo->flags3 & MF3_FLOORHUGGER)
