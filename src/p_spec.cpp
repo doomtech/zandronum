@@ -227,7 +227,8 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	{
 		// [BB] It's possible, that a monster exits the level, so self->player can be 0.
-		if( self->player != 0 )
+		// [TP] A voodoo doll may also exit.
+		if (( self->player != NULL ) && ( self->player->mo == self ))
 		{
 			// [K6/BB] The server should let the clients know who exited the level.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
