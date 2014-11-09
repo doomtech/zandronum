@@ -2348,9 +2348,10 @@ static void P_LoopSidedefs (bool firstloop)
 
 			right = sidetemp[right].b.first;
 
-			if (firstloop && right == NO_SIDE)
-			{ // There is no right side!
-				Printf ("Line %d's right edge is unconnected\n", linemap[unsigned(line-lines)]);
+			if (right == NO_SIDE)
+			{ 
+				// There is no right side!
+				if (firstloop) Printf ("Line %d's right edge is unconnected\n", linemap[unsigned(line-lines)]);
 				continue;
 			}
 
@@ -2395,6 +2396,8 @@ static void P_LoopSidedefs (bool firstloop)
 				right = bestright;
 			}
 		}
+		assert((unsigned)i<(unsigned)numsides);
+		assert(right<(unsigned)numsides);
 		sides[i].RightSide = right;
 		sides[right].LeftSide = i;
 	}
