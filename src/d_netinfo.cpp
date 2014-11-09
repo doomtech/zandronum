@@ -88,14 +88,17 @@ CVAR (String,	playerclass,			"Fighter",	CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] New userinfo entries for Skulltag.
 CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
-// [Spleen] Let the user enable or disable unlagged shots for themselves.
-CVAR (Bool,		cl_unlagged,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
-// [BB] Let the user decide whether he wants to respawn when pressing fire.
-CVAR (Bool,		cl_respawnonfire,			true,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [Spleen] Let the user enable or disable unlagged shots for themselves. [CK] Now a bitfield.
+CVAR (Flag,		cl_unlagged,				cl_clientflags, CLIENTFLAGS_UNLAGGED );
+// [BB] Let the user decide whether he wants to respawn when pressing fire. [CK] Now a bitfield.
+CVAR (Flag, 	cl_respawnonfire, 			cl_clientflags, CLIENTFLAGS_RESPAWNONFIRE );
 // [BB] Let the user control how often the server sends updated player positions to him.
 CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control specify his connection speed (higher is faster).
 CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
+
+// [CK] CVARs that affect cl_clientflags
+CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE );
 
 // ============================================================================
 //
@@ -202,14 +205,12 @@ enum
 	INFO_PlayerClass,
 	INFO_ColorSet,
 
-	// [Spleen] The player's unlagged preference.
-	INFO_Unlagged,
-	// [BB]
-	INFO_Respawnonfire,
 	// [BB]
 	INFO_Ticsperupdate,
 	// [BB]
-	INFO_ConnectionType
+	INFO_ConnectionType,
+	// [CK}
+	INFO_ClientFlags
 };
 
 const char *GenderNames[3] = { "male", "female", "other" };
@@ -637,17 +638,14 @@ void D_SetupUserInfo ()
 	else if ( coninfo->lHandicap > deh.MaxSoulsphere )
 		coninfo->lHandicap = deh.MaxSoulsphere;
 
-	// [Spleen] Handle cl_unlagged.
-	coninfo->bUnlagged = cl_unlagged;
-
-	// [BB]
-	coninfo->bRespawnonfire = cl_respawnonfire;
-
 	// [BB]
 	coninfo->ulTicsPerUpdate = cl_ticsperupdate;
 
 	// [BB]
 	coninfo->ulConnectionType = cl_connectiontype;
+
+	// [CK] Client booleans are used here.
+	coninfo->clientFlags = cl_clientflags;
 
 	R_BuildPlayerTranslation (consoleplayer);
 }
@@ -775,15 +773,10 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 			return;
 		}
 	}
-	// [Spleen] User changed his unlagged setting.
-	else if ( cvar == &cl_unlagged )
+	// [CK] Multiple CVARs are controlled by this now.
+	else if ( cvar == &cl_clientflags )
 	{
-		ulUpdateFlags |= USERINFO_UNLAGGED;
-	}
-	// [BB]
-	else if ( cvar == &cl_respawnonfire )
-	{
-		ulUpdateFlags |= USERINFO_RESPAWNONFIRE;
+		ulUpdateFlags |= USERINFO_CLIENTFLAGS;
 	}
 	// [BB]
 	else if ( cvar == &cl_ticsperupdate )
@@ -1030,10 +1023,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\movebob\\%g"
 					 "\\stillbob\\%g"
 					 "\\playerclass\\%s"
-					 "\\unlagged\\%s" // [Spleen]
-					 "\\respawnonfire\\%s" // [BB]
 					 "\\ticsperupdate\\%lu" // [BB]
 					 "\\connectiontype\\%lu" // [BB]
+					 "\\clientflags\\%u" // [CK]
 					 ,
 					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
@@ -1051,14 +1043,12 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 info->PlayerClass == -1 ? "Random" :
 						D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
 
-					 // [Spleen] Write the player's unlagged preference.
-					 info->bUnlagged ? "on" : "off",
-					 // [BB]
-					 info->bRespawnonfire ? "on" : "off",
 					 // [BB]
 					 info->ulTicsPerUpdate,
 					 // [BB]
-					 info->ulConnectionType
+					 info->ulConnectionType,
+					 // [CK]
+					 info->clientFlags
 				);
 		}
 		else
@@ -1078,10 +1068,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%g"			// stillbob
 				"\\%s"			// playerclass
 				"\\%d"			// colorset
-				"\\%s"			// [Spleen] unlagged
-				"\\%s"			// [BB] respawnonfire
 				"\\%lu"			// [BB] ticsperupdate
 				"\\%lu"			// [BB] connectiontype
+				"\\%u"			// [CK] Clientflags
 				,
 				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
@@ -1099,14 +1088,12 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars(),
 				info->colorset,
 
-				// [Spleen] Write the player's unlagged preference.
-				info->bUnlagged ? "on" : "off",
-				// [BB]
-				info->bRespawnonfire ? "on" : "off",
 				// [BB]
 				info->ulTicsPerUpdate,
 				// [BB]
-				info->ulConnectionType
+				info->ulConnectionType,
+				// [CK]
+				info->clientFlags
 			);
 		}
 	}
@@ -1306,22 +1293,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				info->PlayerClass = D_PlayerClassToInt (value);
 				break;
 
-			// [Spleen] Read the player's unlagged preference.
-			case INFO_Unlagged:
-				if ( ( stricmp( value, "on" ) == 0 ) || ( stricmp( value, "true" ) == 0 ) || ( atoi( value ) > 0 ) )
-					info->bUnlagged = true;
-				else
-					info->bUnlagged = false;
-				break;
-
-			// [BB]
-			case INFO_Respawnonfire:
-				if ( ( stricmp( value, "on" ) == 0 ) || ( stricmp( value, "true" ) == 0 ) || ( atoi( value ) > 0 ) )
-					info->bRespawnonfire = true;
-				else
-					info->bRespawnonfire = false;
-				break;
-
 			// [BB]
 			case INFO_Ticsperupdate:
 				info->ulTicsPerUpdate = clamp ( atoi (value), 1, 3 );
@@ -1330,6 +1301,11 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 			// [BB]
 			case INFO_ConnectionType:
 				info->ulConnectionType = clamp ( atoi (value), 0, 1 );
+				break;
+
+			// [CK]
+			case INFO_ClientFlags:
+				info->clientFlags = atoi( value );
 				break;
 
 			default:
@@ -1430,14 +1406,14 @@ CCMD (playerinfo)
 			ui->PlayerClass);
 		if (argv.argc() > 2) PrintMiscActorInfo(players[i].mo);
 
-		// [Spleen] The player's unlagged preference.
-		Printf ("Unlagged:       %s\n", ui->bUnlagged ? "on" : "off");
-		// [BB]
-		Printf ("Respawnonfire:  %s\n", ui->bRespawnonfire ? "on" : "off");
 		// [BB]
 		Printf ("Ticsperupdate:  %lu\n", ui->ulTicsPerUpdate);
 		// [BB]
 		Printf ("ConnectionType:  %lu\n", ui->ulConnectionType);
+		// [CK]
+		Printf ( "ClientFlags:  %u\n", ui->clientFlags );
+		Printf ( "    Unlagged      = %s\n", ui->clientFlags & CLIENTFLAGS_UNLAGGED ? "\\cdon" : "\\cgoff");
+		Printf ( "    RespawnOnFire = %s\n", ui->clientFlags & CLIENTFLAGS_RESPAWNONFIRE ? "\\cdon" : "\\cgoff");
 	}
 }
 

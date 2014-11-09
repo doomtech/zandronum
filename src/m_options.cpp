@@ -1366,7 +1366,7 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 //-----------------------------------------------------------------------------
 // [CK] Network menu support
 //-----------------------------------------------------------------------------
-EXTERN_CVAR( Bool, cl_unlagged )
+EXTERN_CVAR( Flag, cl_unlagged )
 EXTERN_CVAR( Int, cl_ticsperupdate )
 
 static value_t TickUpdateRate[] = {

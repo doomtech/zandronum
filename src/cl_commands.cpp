@@ -152,14 +152,12 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lRailgunTrailColor );
 	if ( ulFlags & USERINFO_HANDICAP )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lHandicap );
-	if ( ulFlags & USERINFO_UNLAGGED )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bUnlagged );
-	if ( ulFlags & USERINFO_RESPAWNONFIRE )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.bRespawnonfire );
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.ulTicsPerUpdate );
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.ulConnectionType );
+	if ( ulFlags & USERINFO_CLIENTFLAGS )
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.clientFlags ); // [CK] Bitfields are used now.
 	if (( PlayerClasses.Size( ) > 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
 	{
 		if ( players[consoleplayer].userinfo.PlayerClass == -1 )

@@ -37,6 +37,17 @@
 #include "c_cvars.h"
 
 EXTERN_CVAR (Float, autoaim)
+EXTERN_CVAR ( Int, cl_clientflags ) // [CK]
+
+// [CK] We are using bitfields now for boolean flags to save bandwidth.
+enum
+{
+	CLIENTFLAGS_UNLAGGED = 			0x01,
+	CLIENTFLAGS_RESPAWNONFIRE = 	0x02,
+
+	// This is the default flags used for cl_clientflags
+	CLIENTFLAGS_DEFAULT = CLIENTFLAGS_UNLAGGED | CLIENTFLAGS_RESPAWNONFIRE
+};
 
 int D_GenderToInt (const char *gender);
 extern const char *GenderNames[3];

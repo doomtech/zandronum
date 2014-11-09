@@ -816,17 +816,15 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 	if ( ulUserInfoFlags & USERINFO_HANDICAP )
 		command.addByte( players[ulPlayer].userinfo.lHandicap );
 
-	if ( ulUserInfoFlags & USERINFO_UNLAGGED )
-		command.addByte( players[ulPlayer].userinfo.bUnlagged );
-
-	if ( ulUserInfoFlags & USERINFO_RESPAWNONFIRE )
-		command.addByte( players[ulPlayer].userinfo.bRespawnonfire );
-
 	if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
 		command.addByte( players[ulPlayer].userinfo.ulTicsPerUpdate );
 
 	if ( ulUserInfoFlags & USERINFO_CONNECTIONTYPE )
 		command.addByte( players[ulPlayer].userinfo.ulConnectionType );
+
+	// [CK] We use a bitfield now.
+	if ( ulUserInfoFlags & USERINFO_CLIENTFLAGS )
+		command.addByte( players[ulPlayer].userinfo.clientFlags );
 
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
