@@ -346,13 +346,13 @@ void AActor::Serialize (FArchive &arc)
 		<< Score
 		<< Tag
 		<< DesignatedTeam
-		<< (DWORD &)ulLimitedToTeam // [BB]
-		<< (DWORD &)ulVisibleToTeam // [BB]
-		<< (DWORD &)lFixedColormap // [BB]
-		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
-		<< (DWORD &)ulSTFlags
-		<< (DWORD &)ulNetworkFlags
-		<< (DWORD &)ulInvasionWave
+		<< ulLimitedToTeam // [BB]
+		<< ulVisibleToTeam // [BB]
+		<< lFixedColormap // [BB]
+		<< lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
+		<< ulSTFlags
+		<< ulNetworkFlags
+		<< ulInvasionWave
 		<< pMonsterSpot
 		<< pPickupSpot;
 	if (SaveVersion >= 1904)
@@ -2996,6 +2996,11 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				{
 					P_HitFloor (mo);
 					mo->velz = 0;
+
+					// [TP] Tell clients the missile stopped moving vertically
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveThing( mo, CM_MOMZ );
+
 					return;
 				}
 				else if (mo->flags3 & MF3_FLOORHUGGER)

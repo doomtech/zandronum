@@ -61,7 +61,7 @@ void DCeiling::Serialize (FArchive &arc)
 		<< m_OldDirection
 		<< m_Hexencrush
 		// [BC]
-		<< (DWORD &)m_lCeilingID;
+		<< m_lCeilingID;
 }
 
 void DCeiling::PlayCeilingSound ()

@@ -90,7 +90,7 @@ void DPillar::Serialize (FArchive &arc)
 		<< m_Interp_Floor
 		<< m_Interp_Ceiling
 		// [BC]
-		<< (DWORD &)m_lPillarID;
+		<< m_lPillarID;
 }
 
 // [BC]
