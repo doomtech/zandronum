@@ -23,6 +23,7 @@
 +	- Added a decorate flag DONTIDENTIFYTARGET which prevents player identification from being done to the actor. [Water]
 +	- Added CVAR compat_autoaim which restores vanilla autoaim, as there was a switch to autoaim filling in the gaps due to limited number of tracers from vanilla. [Water]
 +	- Added CVAR cl_clientflags which controls both cl_unlagged and cl_respawnonfire to save bandwidth and make future booleans easier to transmit over the network. [Water, Torr Samaho]
++	- Added a menu entry to for the GZDoom HUD, i.e. CVAR hud_althud. [Torr Samaho]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
