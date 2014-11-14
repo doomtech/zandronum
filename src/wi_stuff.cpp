@@ -56,6 +56,7 @@
 #include "team.h"
 #include "sv_main.h"
 #include "network.h"
+#include "m_misc.h"
 
 // States for the intermission
 typedef enum
@@ -69,6 +70,7 @@ typedef enum
 CVAR (Bool, wi_percents, true, CVAR_ARCHIVE)
 CVAR (Bool, wi_showtotaltime, true, CVAR_ARCHIVE)
 CVAR (Bool, wi_noautostartmap, false, CVAR_ARCHIVE)
+CVAR (Int, wi_autoscreenshot, false, CVAR_ARCHIVE) // [CK]
 
 
 void WI_loadData ();
@@ -172,6 +174,7 @@ struct in_anim_t
 
 static TArray<lnode_t> lnodes;
 static TArray<in_anim_t> anims;
+static bool bTakeIntermissionScreenshot = false; // [CK] If we want to get a screenshot for end game stats.
 
 
 //
@@ -2604,6 +2607,13 @@ void WI_Drawer (void)
 			WI_drawNetgameStats();
 		else
 			WI_drawStats();
+
+		// [CK] Since we've now rendered the stats, take a screenshot once.
+		if ( bTakeIntermissionScreenshot )
+		{
+			M_ScreenShot( NULL );
+			bTakeIntermissionScreenshot = false;
+		}
 		break;
 	
 	case ShowNextLoc:
@@ -2635,6 +2645,10 @@ void WI_initVariables (wbstartstruct_t *wbstartstruct)
 void WI_Start (wbstartstruct_t *wbstartstruct)
 {
 	ULONG	ulIdx;
+
+	// [CK] If the player wants to screenshot intermissions, do so.
+	// 1 = always, 2 = only online.
+	bTakeIntermissionScreenshot = ( wi_autoscreenshot == 1 && CLIENTDEMO_IsPlaying( ) == false ) || ( NETWORK_GetState( ) == NETSTATE_CLIENT && wi_autoscreenshot == 2 );
 
 	noautostartmap = false;
 	V_SetBlend (0,0,0,0);
