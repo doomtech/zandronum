@@ -93,9 +93,22 @@ CVAR (Flag, 	cl_respawnonfire, 			cl_clientflags, CLIENTFLAGS_RESPAWNONFIRE );
 CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control specify his connection speed (higher is faster).
 CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
+// [CK] Let the user control if they want clientside puffs or not.
+CVAR (Flag,		cl_clientsidepuffs,			cl_clientflags, CLIENTFLAGS_CLIENTSIDEPUFFS );
 
 // [CK] CVARs that affect cl_clientflags
-CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE );
+CUSTOM_CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE )
+{
+	// Predicted puffs will look really bad if unlagged is off, therefore anyone
+	// who turns off unlagged will also turn off clientside puffs.
+	// We will invert the clientside puff flag, then AND it to turn off the
+	// clientside puff flag since unlagged is off.
+	if ( ( ( self & CLIENTFLAGS_UNLAGGED ) == 0 ) && ( self & CLIENTFLAGS_CLIENTSIDEPUFFS ) )
+	{
+		self = ( self & ( ~CLIENTFLAGS_CLIENTSIDEPUFFS ) );
+		Printf( "Clientside puffs have been disabled as unlagged has been turned off.\n" );
+	}
+}
 
 // ============================================================================
 //

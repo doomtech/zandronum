@@ -25,6 +25,7 @@
 +	- Added CVAR cl_clientflags which controls both cl_unlagged and cl_respawnonfire to save bandwidth and make future booleans easier to transmit over the network. [Water, Torr Samaho]
 +	- Added a menu entry to for the GZDoom HUD, i.e. CVAR hud_althud. [Torr Samaho]
 +	- Added a CVAR (wi_autoscreenshot) to allow screenshots to automatically be taken upon entering the intermission screen. [Water, Torr Samaho]
++	- Added CVAR cl_clientsidepuffs which allows clients to predict puffs, which makes bullet puffs from hitscan weapons appear instantly. [Water, Torr Samaho]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]

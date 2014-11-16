@@ -5577,6 +5577,28 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 // [BC] Added bTellClientToSpawn.
 AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, int flags, bool bTellClientToSpawn)
 {
+	// [CK] If we're a client in this function and we're supposed to be a server
+	// telling clients to spawn it, then we will get information later from the
+	// server.
+	if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
+		return NULL;
+
+	// [CK] The client also should not be doing this puff prediction if it's not
+	// for themselves.
+	if ( NETWORK_InClientMode( ) )
+	{
+		// If these aren't valid or the player is not the console player, don't 
+		// predict anything.
+		if ( source == NULL || source->player == NULL || source->player - players != consoleplayer )
+			return NULL;
+
+		// We want to see if the actor would have NONETID on the actor without
+		// spawning it. Therefore we will get the type, and check the flag here.
+		AActor *pPuffActor = GetDefaultByType( pufftype );
+		if ( pPuffActor == NULL || ( ( pPuffActor->ulNetworkFlags & NETFL_NONETID ) == 0 ) )
+			return NULL;
+	}
+
 	AActor *puff;
 	// [BB] The whole "puff spawning on clients" is pretty awful right now,
 	// but currently I don't see how to fix it without increasing net traffic
@@ -5588,6 +5610,11 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 
 	puff = Spawn (pufftype, x, y, z, ALLOW_REPLACE);
 	if (puff == NULL) return NULL;
+
+	// [CK] The puff has been made if we're a client, so any client prediction 
+	// of puffs is done, meaning we can exit now.
+	if ( NETWORK_InClientMode( ) )
+		return NULL;
 
 	// [BB] If the clients don't spawn it, make sure it doesn't have a netID.
 	if ( bTellClientToSpawn == false )
@@ -5647,7 +5674,35 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 			SERVERCOMMANDS_SpawnThing( puff );
 		}
 		else
-			SERVERCOMMANDS_SpawnThingNoNetID( puff );
+		{
+			// [CK] If a player is the source that is firing this, check and see
+			// if the attacker is predicting and exclude them (and only them)
+			// from getting the predicted puff if the bullet puff has +NONETID.
+			if ( source && source->player )
+			{
+				// [CK] Only spawn for players who are not predicting puffs.
+				ULONG activatorPlayerNumber = source->player - players;
+				for ( ULONG ulPlayer = 0; ulPlayer < MAXPLAYERS; ulPlayer++ )
+				{
+					// [CK] Don't send to invalid clients
+					if ( SERVER_IsValidClient( ulPlayer ) == false )
+						continue;
+
+					// [CK] If the player is the source, and the player fired a
+					// puff with +NONETID, and the player wants to predict puffs
+					// then we won't send them this command.
+					if ( ( activatorPlayerNumber == ulPlayer ) && ( puff->ulNetworkFlags & NETFL_NONETID ) && ( source->player->userinfo.clientFlags & CLIENTFLAGS_CLIENTSIDEPUFFS ) )
+						continue;
+
+					SERVERCOMMANDS_SpawnThingNoNetID( puff, ulPlayer, SVCF_ONLYTHISCLIENT );
+				}
+			}
+			else
+			{
+				// [CK] It is always sent when fired from a non-player.
+				SERVERCOMMANDS_SpawnThingNoNetID( puff );
+			}
+		}
 	}
 
 	if (!(flags & PF_TEMPORARY))

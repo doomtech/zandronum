@@ -1305,8 +1305,10 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
-		( cl_hitscandecalhack == false ))
+	// [CK] This also includes predicted puffs.
+	if ( NETWORK_InClientMode( )
+		&& cl_hitscandecalhack == false
+		&& CLIENT_ShouldPredictPuffs( ) == false )
 	{
 		return;
 	}
@@ -1319,7 +1321,7 @@ void A_CustomFireBullets( AActor *self,
 		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
 	}
 
-	// [BB] Even with the online hitscan decal hack, a client has to stop here.
+	// [BB] Even with the online hitscan decal hack (and clientside puffs), a client has to stop here.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
