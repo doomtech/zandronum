@@ -115,6 +115,7 @@
 
 // [ZZ] PWO header file
 #include "g_shared/pwo.h"
+#include "d_netinf.h" // [CK] For cl_clientsidepuffs
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
@@ -840,7 +841,7 @@ static menuitem_t HUDMenuItems[] = {
 	{ redtext,	" ",						{NULL},						{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discretes,"Crosshair",				{&crosshair},			   	{8.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Large frag messages",		{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
-//	{ discrete, "GZDoom HUD",				{&hud_althud},				{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "GZDoom HUD",				{&hud_althud},				{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "One key display",			{&cl_onekey},				{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Draw coop info",		{&cl_drawcoopinfo},{2.0}, {0.0},	{0.0}, {YesNo} },
 
@@ -1381,7 +1382,8 @@ static menuitem_t NetworkItems[] = {
 	{ redtext,		" ",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete,		"Update rate",			{&cl_ticsperupdate},	{3.0}, {0.0}, {0.0}, {TickUpdateRate} },
 	{ discrete, 	"Connection type",		{&cl_connectiontype},	{2.0}, {0.0}, {0.0}, {ConnectionTypeVals} },
-	{ discrete,		"Hitscan decals",				{&cl_hitscandecalhack},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete,		"Hitscan decals",		{&cl_hitscandecalhack},	{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete,		"Clientside puffs",		{&cl_clientsidepuffs},	{2.0}, {0.0}, {0.0}, {OnOff} },
 };
 
 menu_t NetworkMenu =

@@ -63,6 +63,7 @@
 #include "cl_main.h"
 #include "gamemode.h"
 #include "unlagged.h"
+#include "d_netinf.h"
 
 // [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
 bool ActorHasThruspecies ( const AActor *pActor )
@@ -4251,8 +4252,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, FName damageType, const PClass *pufftype, bool ismeleeattack, AActor **victim)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
-		( cl_hitscandecalhack == false ))
+	// [CK] And also predicted puffs.
+	if ( NETWORK_InClientMode( )
+		&& cl_hitscandecalhack == false
+		&& CLIENT_ShouldPredictPuffs( ) == false )
 	{
 		return NULL;
 	}
@@ -4318,12 +4321,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 	if (!hitSomething)
 	{ // hit nothing
-		// [BB] No decal will be spawned, so the client stops here. 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
-		{
+		// [BB] No decal will be spawned, so the client stops here.
+		// [CK] But continue on if we want clientside puffs since it may occur.
+		if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
 			return NULL;
-		}
+
 		if (puffDefaults == NULL)
 		{
 		}
@@ -4338,6 +4340,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		if (puffDefaults->flags3 & MF3_ALWAYSPUFF)
 		{ // Spawn the puff anyway
 			puff = P_SpawnPuff (t1, pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2, flags);
+
+			// [CK] We don't want this function returning an actor if it's a
+			// client predicting. The client would be done regardless.
+			if ( NETWORK_InClientMode( ) )
+				return NULL;
 		}
 		else
 		{
@@ -4351,8 +4358,8 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		if (trace.HitType != TRACE_HitActor)
 		{
 			// [BB] The client only spawns decals, no puffs.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			// [CK] Now there is an option for clientside puffs.
+			if ( ( NETWORK_InClientMode( ) == false ) || CLIENT_ShouldPredictPuffs( ) )
 			{
 				// position a bit closer for puffs
 				if (trace.HitType != TRACE_HitWall || trace.Line->special != Line_Horizon)
@@ -4363,6 +4370,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 						shootz + FixedMul (vz, closer), angle - ANG90, 0, flags);
 				}
 			}
+
+			// [CK] If we don't want decals, stop before entering.
+			if ( NETWORK_InClientMode( ) && cl_hitscandecalhack == false ) 
+				return NULL;
 
 			// [RH] Spawn a decal
 			if (trace.HitType == TRACE_HitWall && trace.Line->special != Line_Horizon)
@@ -4397,6 +4408,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				trace.Sector->heightsec == NULL &&
 				trace.HitType == TRACE_HitFloor)
 			{
+				// [CK] We are not predicting water splashes.
+				if ( NETWORK_InClientMode( ) )
+					return NULL;
+
 				// Using the puff's position is not accurate enough.
 				// Instead make it splash at the actual hit position
 				hitx = t1->x + FixedMul (vx, trace.Distance);
@@ -4413,12 +4428,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		}
 		else
 		{
-			// [BB] No decal will be spawned, so the client stops here. 
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
-			{
+			// [BB] No decal will be spawned, so the client stops here.
+			// [CK] Unless we want clientside puffs.
+			if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
 				return NULL;
-			}
 
 			bool bloodsplatter = (t1->flags5 & MF5_BLOODSPLATTER) ||
 									(t1->player != NULL &&	t1->player->ReadyWeapon != NULL &&
@@ -4449,6 +4462,13 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				// We must pass the unreplaced puff type here 
 				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING);
 			}
+
+			// [CK] The client by this point has predicted their desired
+			// puff and should only be here if they want puff prediction,
+			// so we can exit.
+			if ( NETWORK_InClientMode( ) )
+				return NULL;
+
 			if (!(puffDefaults->flags3&MF3_BLOODLESSIMPACT))
 			{
 				if (!bloodsplatter && !axeBlood &&
@@ -4522,6 +4542,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		}
 		if (trace.CrossedWater)
 		{
+			// [CK] We do not want to predict splashes right now. This puff is
+			// destroyed further down, so we can assume it would be bad to do
+			// any prediction here.
+			if ( NETWORK_InClientMode( ) )
+				return NULL;
 
 			if (puff == NULL)
 			{ // Spawn puff just to get a mass for the splash
@@ -4531,6 +4556,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			SpawnDeepSplash (t1, trace, puff, vx, vy, vz, shootz);
 		}
 	}
+
+	// [CK] In case the client ever gets this far, it should end now.
+	if ( NETWORK_InClientMode( ) )
+		return NULL;
+
 	if (killPuff && puff != NULL)
 	{
 		// [BB] Remove the temporary puff from the clients.
