@@ -2564,7 +2564,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 				SERVERCOMMANDS_SetThingArguments( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// [BB] Clients need to know the SectorAction specials to predict them.
-			if ( NETWORK_IsClientPredictedSpecial ( pActor->special ) && pActor->IsKindOf( PClass::FindClass( "SectorAction" ) ) )
+			// [EP] Spectators need to know the allowed specials to use them.
+			if ( ( NETWORK_IsClientPredictedSpecial ( pActor->special ) || GAMEMODE_IsSpectatorAllowedSpecial ( pActor->special ) )
+				&& pActor->IsKindOf( PClass::FindClass( "SectorAction" ) ) )
 				SERVERCOMMANDS_SetThingSpecial ( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// [BB] Some things like AMovingCamera rely on the AActor tid.

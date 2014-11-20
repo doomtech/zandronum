@@ -290,19 +290,8 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	INTBOOL buttonSuccess;
 	BYTE special;
 
-	// [BC] Lines are server side. However, allow spectators to cross teleports.
-	if (( NETWORK_InClientMode ( ) ) &&
-		( ( NETWORK_IsConsolePlayer ( mo ) == false ) ||
-		( ( ( mo->player->bSpectating == false ) || (( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) ) == false ) )
-			&& ( NETWORK_IsClientPredictedSpecial( line->special ) == false ) )
-		))
-	{
-		return ( false );
-	}
-
-	// [BB] Spectators can't activate anything but teleports.
-	if ( ( mo != NULL ) && ( mo->player != NULL ) && ( mo->player->bSpectating == true )
-		&& ( GAMEMODE_IsSpectatorAllowedSpecial ( line->special ) == false ) )
+	// Special Zandronum checks
+	if ( GAMEMODE_IsHandledSpecial (mo, line->special) == false )
 		return false;
 
 	if (!P_TestActivateLine (line, mo, side, activationType))

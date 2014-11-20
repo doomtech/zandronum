@@ -40,6 +40,7 @@
 -	- Fixed: Reflection desync between client and server if it doesn't have a Doom/Hexen bouncetype property. [Water, Torr Samaho]
 -	- Fixed a server crash related to the client movement buffer. [Torr Samaho]
 -	- Fixed: SetFont() would 'leak' into other scripts online. [Dusk]
+-	- Fixed: Spectators could not trigger allowed action specials with sectors. The only exceptions are the 'Use' and the 'UseWall' action triggers. [Edward-san, Torr Samaho]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 

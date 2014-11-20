@@ -37,6 +37,7 @@
 // [BB] New #includes.
 #include "d_player.h"
 #include "network.h"
+#include "gamemode.h"
 
 // The base class for sector actions ----------------------------------------
 
@@ -109,9 +110,8 @@ bool ASectorAction::TriggerAction (AActor *triggerer, int activationType)
 
 bool ASectorAction::CheckTrigger (AActor *triggerer) const
 {
-	// [BB] Clients predict a very limited amount of specials and ignore all others.
-	if ( NETWORK_InClientMode() &&
-		( ( NETWORK_IsConsolePlayer ( triggerer ) == false ) || ( NETWORK_IsClientPredictedSpecial ( special ) == false ) ) )
+	// Special Zandronum checks
+	if ( GAMEMODE_IsHandledSpecial (triggerer, special) == false )
 		return false;
 
 	if (special &&
