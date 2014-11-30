@@ -134,7 +134,8 @@ void P_SetPsprite (player_t *player, int position, FState *state, bool nofunctio
 			psp->sy = state->GetMisc2()<<FRACBITS;
 		}
 
-		if (!nofunction && player->mo != NULL)
+		// [BB] Some action functions rely on the fact that ReadyWeapon is not NULL.
+		if (!nofunction && player->mo != NULL && player->ReadyWeapon)
 		{
 			if (state->CallAction(player->mo, player->ReadyWeapon))
 			{

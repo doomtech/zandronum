@@ -2368,6 +2368,11 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 						mo->tracer = mo->target;
 					}
 					mo->target = BlockingMobj;
+
+					// [CK/BB] Inform the client about the reflection.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
+
 					return oldfloorz;
 				}
 explode:
