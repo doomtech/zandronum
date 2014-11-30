@@ -1136,6 +1136,7 @@ void R_InitSprites ()
 
 		int maxwidth = 0, maxheight = 0;
 		char	szTempLumpName[9];
+		szTempLumpName[8]=0;
 		FString maxwidthSprite, maxheightSprite;
 
 		// [BB] Loop through all the lumps searching for sprites of this skin.
