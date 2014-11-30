@@ -218,7 +218,6 @@ static	LONG		g_lInboundDataTransferLastSecond = 0;
 
 // This is the current font the "screen" is using when it displays messages.
 static	char		g_szCurrentFont[16];
-static	char		g_szScriptActiveFont[16];
 
 // This is the music the loaded map is currently using.
 static	FString		g_MapMusic;
@@ -461,7 +460,6 @@ void SERVER_Construct( void )
 	g_lMapRestartTimer = 0;
 
 	sprintf( g_szCurrentFont, "SmallFont" );
-	sprintf( g_szScriptActiveFont, "SmallFont" );
 
 #ifdef CREATE_PACKET_LOG
 
@@ -3662,20 +3660,6 @@ const char *SERVER_GetCurrentFont( void )
 void SERVER_SetCurrentFont( const char *pszFont )
 {
 	sprintf( g_szCurrentFont, "%s", pszFont );
-}
-
-//*****************************************************************************
-//
-const char *SERVER_GetScriptActiveFont( void )
-{
-	return ( g_szScriptActiveFont );
-}
-
-//*****************************************************************************
-//
-void SERVER_SetScriptActiveFont( const char *pszFont )
-{
-	sprintf( g_szScriptActiveFont, "%s", pszFont );
 }
 
 //*****************************************************************************
