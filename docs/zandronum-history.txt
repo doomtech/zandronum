@@ -38,6 +38,7 @@
 -	- Fixed: Missiles with the +NOEXPLODEFLOOR flag desynced online. [Dusk]
 -	- Fixed: A voodoo doll exiting the level would print a bogus " exited the level" message. [Dusk]
 -	- Fixed: Reflection desync between client and server if it doesn't have a Doom/Hexen bouncetype property. [Water, Torr Samaho]
+-	- Fixed a server crash related to the client movement buffer. [Torr Samaho]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 
