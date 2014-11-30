@@ -3593,13 +3593,12 @@ void DLevelScript::DoSetFont (int fontnum)
 
 	// [BC] Since the server doesn't have a screen, we have to save the active font some
 	// other way.
+	// [TP] activefont is a member, it cannot be stored as a single variable on the server.
+	activefontname = activefont ? fontname : "SmallFont";
+
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		if ( activefont == NULL )
-			SERVER_SetScriptActiveFont( "SmallFont" );
-		else
-			SERVER_SetScriptActiveFont( fontname );
-		SERVER_SetCurrentFont( SERVER_GetScriptActiveFont() );
+		SERVER_SetCurrentFont( activefontname );
 		return;
 	}
 
@@ -5668,7 +5667,7 @@ int DLevelScript::RunScript ()
 	// [BC] Since the server doesn't have a screen, we have to save the active font some
 	// other way.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetCurrentFont( SERVER_GetScriptActiveFont( ));
+		SERVER_SetCurrentFont( activefontname );
 
 	while (state == SCRIPT_Running)
 	{
@@ -9306,8 +9305,8 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 
 	// [BC] Since the server doesn't have a screen, we have to save the active font some
 	// other way.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetScriptActiveFont( "SmallFont" );
+	// [TP] We need to store this as activefontname instead.
+	activefontname = "SmallFont";
 
 	hudwidth = hudheight = 0;
 	state = SCRIPT_Running;

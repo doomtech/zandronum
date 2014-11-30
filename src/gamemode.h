@@ -163,6 +163,7 @@ void		GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor );
 void		GAMEMODE_SpawnSpecialGamemodeThings ( void );
 void		GAMEMODE_ResetSpecalGamemodeStates ( void );
 bool		GAMEMODE_IsSpectatorAllowedSpecial ( const int Special );
+bool		GAMEMODE_IsHandledSpecial ( AActor *Activator, int Special );
 GAMESTATE_e	GAMEMODE_GetState ( void );
 void		GAMEMODE_HandleEvent ( const GAMEEVENT_e Event, AActor *pActivator = NULL, const int DataOne = 0, const int DataTwo = 0 );
 

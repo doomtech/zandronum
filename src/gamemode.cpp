@@ -840,6 +840,26 @@ bool GAMEMODE_IsSpectatorAllowedSpecial ( const int Special )
 
 //*****************************************************************************
 //
+bool GAMEMODE_IsHandledSpecial ( AActor *Activator, int Special )
+{
+	// [BB] Only player activated specials are restricted.
+	if ( Activator == NULL || Activator->player == NULL )
+		return true;
+
+	// [EP/BB] Spectators activate a very limited amount of specials and ignore all others.
+	if ( Activator->player->bSpectating )
+		return ( GAMEMODE_IsSpectatorAllowedSpecial( Special ) );
+
+	// [BB] Clients predict a very limited amount of specials for the local player and ignore all others (spectators were already handled)
+	if ( NETWORK_InClientMode() )
+		return ( NETWORK_IsConsolePlayer ( Activator ) && NETWORK_IsClientPredictedSpecial( Special ) );
+
+	// [BB] Neither spectator, nor client.
+	return true;
+}
+
+//*****************************************************************************
+//
 GAMESTATE_e GAMEMODE_GetState( void )
 {
 	if ( GAMEMODE_IsGameWaitingForPlayers() )

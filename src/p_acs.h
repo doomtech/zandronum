@@ -840,6 +840,7 @@ protected:
 	FFont			*activefont;
 	int				hudwidth, hudheight;
 	FBehavior	    *activeBehavior;
+	FString			activefontname; // [TP]
 
 	void Link ();
 	void Unlink ();

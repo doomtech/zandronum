@@ -2344,16 +2344,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			oldside = P_PointOnLineSide (oldx, oldy, ld);
 			if (side != oldside && ld->special && !(thing->flags6 & MF6_NOTRIGGER))
 			{
-				// [BC] Don't activate specials if the thing is a spectating player.
-				if ( thing->player && thing->player->bSpectating )
-				{
-					// Although teleport specials are okay.
-					if ( GAMEMODE_IsSpectatorAllowedSpecial ( ld->special ) )
-					{ 
-						P_ActivateLine (ld, thing, oldside, SPAC_Cross); 
-					}
-				}
-				else if (thing->player)
+				if (thing->player)
 				{
 					P_ActivateLine (ld, thing, oldside, SPAC_Cross);
 				}
@@ -2409,10 +2400,6 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			}
 		}
 	}
-
-	// [BB] Spectators don't trigger transitions.
-	if ( thing->player && thing->player->bSpectating )
-		return true;
 
 	// [RH] If changing sectors, trigger transitions
 	thing->CheckSectorTransition(oldsec);
@@ -2572,18 +2559,7 @@ bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
 			oldside = P_PointOnLineSide (oldx, oldy, ld);
 			if (side != oldside && ld->special)
 			{
-				// Don't activate specials if the thing is a spectating player.
-				if ( thing->player && thing->player->bSpectating )
-				{
-					// Although teleport specials are okay.
-					if (ld->special == Teleport ||
-				     ld->special == Teleport_NoFog ||
-					 ld->special == Teleport_Line)
-					{ 
-						P_ActivateLine (ld, thing, oldside, SPAC_Cross); 
-					}
-				}
-				else if (thing->player)
+				if (thing->player)
 				{
 					P_ActivateLine (ld, thing, oldside, SPAC_Cross);
 				}
