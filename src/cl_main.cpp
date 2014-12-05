@@ -1496,6 +1496,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				sprintf( szErrorString, "Too many connections from your IP." );
 				break;
+			case NETWORK_ERRORCODE_USERINFOREJECTED:
+
+				sprintf( szErrorString, "The server rejected the userinfo." );
+				break;
 			default:
 
 				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www." DOMAIN_NAME "/ for updates.", static_cast<unsigned int> (ulErrorCode) );
