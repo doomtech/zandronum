@@ -487,6 +487,8 @@ struct sector_t
 	// [BB] Added bInformClients and bExecuteOnClient.
 	void SetFade(int r, int g, int b, bool bInformClients = true, bool bExecuteOnClient = false);
 	void ClosestPoint(fixed_t x, fixed_t y, fixed_t &ox, fixed_t &oy) const;
+	// [BB] Backported from ZDoom revision 3600.
+	sector_t *GetHeightSec() const;
 
 	DInterpolation *SetInterpolation(int position, bool attach);
 	void StopInterpolation(int position);
@@ -649,14 +651,6 @@ struct sector_t
 	{
 		planes[pos].TexZ += val;
 		SetDirty(true, true);
-	}
-
-	sector_t *GetHeightSec() const 
-	{
-		return (heightsec &&
-			!(heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) &&
-			!(this->e && this->e->XFloor.ffloors.Size())
-			)? heightsec : NULL;
 	}
 
 	void ChangeLightLevel(int newval)
