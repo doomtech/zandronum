@@ -650,7 +650,7 @@ void SERVER_Tick( void )
 			if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
 				continue;
 
-			if ( g_aClients[ulIdx].lLastMoveTick != gametic )
+			if ( g_aClients[ulIdx].lLastMoveTick != gametic && g_aClients[ulIdx].lOverMovementLevel > 0 )
 			{
 				g_aClients[ulIdx].lOverMovementLevel--;
 //					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
@@ -2201,6 +2201,14 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	if ( bKickPlayer )
 	{
+		// [TP] If the client isn't fully in yet, send an error and disconnect him.
+		if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
+		{
+			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "\n%s\n", kickReason.GetChars() );
+			SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_USERINFOREJECTED );
+			return ( false );
+		}
+
 		SERVER_KickPlayer( g_lCurrentClient, kickReason.GetChars() );
 		return ( false );
 	}
@@ -2288,6 +2296,10 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
 
 		Printf( "Failed to send userinfo.\n" );
+		break;
+	case NETWORK_ERRORCODE_USERINFOREJECTED:
+
+		Printf( "Userinfo rejected.\n" );
 		break;
 	}
 

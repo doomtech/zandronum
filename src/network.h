@@ -221,6 +221,9 @@ enum
 	// [BB] The protected lump authentication failed.
 	NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED,
 
+	// [TP] The client sent bad userinfo
+	NETWORK_ERRORCODE_USERINFOREJECTED,
+
 	NUM_NETWORK_ERRORCODES
 };
 

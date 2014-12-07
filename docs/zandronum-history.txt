@@ -43,6 +43,7 @@
 +	- Added a menu entry to for the GZDoom HUD, i.e. CVAR hud_althud. [Torr Samaho]
 +	- Added a CVAR (wi_autoscreenshot) to allow screenshots to automatically be taken upon entering the intermission screen. [Water, Torr Samaho]
 +	- Added CVAR cl_clientsidepuffs which allows clients to predict puffs, which makes bullet puffs from hitscan weapons appear instantly. [Water, Torr Samaho]
++	- Added bloodsplatter effects to also be performed when cl_hitscandecalhack is set to true. [Water]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
@@ -60,6 +61,7 @@
 -	- Fixed: Spectators could not trigger allowed action specials with sectors. The only exceptions are the 'Use' and the 'UseWall' action triggers. [Edward-san, Torr Samaho]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
+!	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]
 
 
 1.3

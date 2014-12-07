@@ -4228,7 +4228,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, FName damageType, const PClass *pufftype, bool ismeleeattack, AActor **victim)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
-	// [CK] And also predicted puffs.
+	// [CK] And also predicted puffs and blood decals.
 	if ( NETWORK_InClientMode( )
 		&& cl_hitscandecalhack == false
 		&& CLIENT_ShouldPredictPuffs( ) == false )
@@ -4405,8 +4405,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		else
 		{
 			// [BB] No decal will be spawned, so the client stops here.
-			// [CK] Unless we want clientside puffs.
-			if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
+			// [CK] Also exit if we don't want puffs, or blood decals.
+			if ( NETWORK_InClientMode( )
+					&& CLIENT_ShouldPredictPuffs( ) == false
+					&& cl_hitscandecalhack == false )
 				return NULL;
 
 			bool bloodsplatter = (t1->flags5 & MF5_BLOODSPLATTER) ||
@@ -4431,9 +4433,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			hitz += trace.unlaggedHitOffset[2];
 
 			// Spawn bullet puffs or blood spots, depending on target type.
-			if ((puffDefaults->flags3 & MF3_PUFFONACTORS) ||
+			// [CK] We don't want to enter here unless we're predicting puffs.
+			if (((puffDefaults->flags3 & MF3_PUFFONACTORS) ||
 				(trace.Actor->flags & MF_NOBLOOD) ||
 				(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)))
+				&& ( NETWORK_InClientMode( ) == false || CLIENT_ShouldPredictPuffs( ) ) )
 			{
 				// We must pass the unreplaced puff type here 
 				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING);
@@ -4441,22 +4445,26 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 			// [CK] The client by this point has predicted their desired
 			// puff and should only be here if they want puff prediction,
-			// so we can exit.
-			if ( NETWORK_InClientMode( ) )
+			// so we can exit. We will only continue on if we want blood decals.
+			if ( NETWORK_InClientMode( ) && cl_hitscandecalhack == false )
 				return NULL;
 
 			if (!(puffDefaults->flags3&MF3_BLOODLESSIMPACT))
 			{
+				// [CK] Do not perform if we are a client.
 				if (!bloodsplatter && !axeBlood &&
 					!(trace.Actor->flags & MF_NOBLOOD) &&
-					!(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)))
+					!(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)) &&
+					NETWORK_InClientMode( ) == false )
 				{
 					P_SpawnBlood (hitx, hity, hitz, angle - ANG180, damage, trace.Actor);
 				}
 	
 				if (damage)
 				{
-					if (bloodsplatter || axeBlood)
+					// [CK] Do not do any blood splatters, that is not the function
+					// we intend to predict with blood decals.
+					if ((bloodsplatter || axeBlood) && NETWORK_InClientMode( ) == false )
 					{
 						if (!(trace.Actor->flags&MF_NOBLOOD) &&
 							!(trace.Actor->flags2&(MF2_INVULNERABLE|MF2_DORMANT)))

@@ -1511,7 +1511,7 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
-	// [CK] This also includes predicted puffs.
+	// [CK] This also includes predicted puffs and blood decals.
 	if ( NETWORK_InClientMode( )
 		&& cl_hitscandecalhack == false
 		&& CLIENT_ShouldPredictPuffs( ) == false )
