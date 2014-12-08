@@ -5172,13 +5172,11 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
-
 	NetCommand command ( SVC_SOUND );
 	command.addByte ( lChannel );
 	command.addString ( pszSound );
 	command.addByte ( LONG(fVolume*127) );
-	command.addByte ( lAttenuation );
+	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
@@ -5209,8 +5207,6 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 //
 void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
-
 	NetCommand command ( SVC_SOUNDPOINT );
 	command.addShort ( lX>>FRACBITS );
 	command.addShort ( lY>>FRACBITS );
@@ -5218,7 +5214,7 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const 
 	command.addByte ( lChannel );
 	command.addString ( pszSound );
 	command.addByte ( LONG(fVolume*127) );
-	command.addByte ( lAttenuation );
+	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
