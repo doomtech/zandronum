@@ -441,6 +441,7 @@ static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream, bool bIsTypeTwo );
 static	void	client_DoPusher( BYTESTREAM_s *pByteStream );
 static	void	client_AdjustPusher( BYTESTREAM_s *pByteStream );
+static	const char* client_ReadBytestreamSound( BYTESTREAM_s *pByteStream );
 
 class STClient {
 public:
@@ -527,6 +528,9 @@ static	LONG				g_lMissingPacketTicks;
 
 // Debugging variables.
 static	LONG				g_lLastCmd;
+
+// [CK] Our sndinfo string lookup table.
+static	TArray<FSoundID>	g_SndinfoLookupTable;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -2776,6 +2780,35 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					const FString cvarName = NETWORK_ReadString( pByteStream );
 					const FString cvarValue = NETWORK_ReadString( pByteStream );
 					cvar_forceset ( cvarName.GetChars(), cvarValue.GetChars() );
+				}
+				break;
+
+			// [CK]
+			case SVC2_SNDINFOLOOKUPTABLEENTRY:
+				{
+					const int bytesteamSoundIndex = NETWORK_ReadShort( pByteStream );
+
+					// Sound index 0 isn't used, so we will make use of it by
+					// having an index of zero be a marker for the incoming 
+					// table size.
+					if ( bytesteamSoundIndex == 0 )
+					{
+						const int tableSize = NETWORK_ReadShort( pByteStream );
+						g_SndinfoLookupTable.Clear( );
+						g_SndinfoLookupTable.Resize( static_cast<unsigned int>( tableSize ) );
+						break;
+					}
+
+					const char *pszSoundStr = NETWORK_ReadString( pByteStream );
+
+					// The sound index must be in a valid range.
+					if ( bytesteamSoundIndex <= 0 || bytesteamSoundIndex > static_cast<int>( g_SndinfoLookupTable.Size( ) ) )
+						I_Error( "Server sent us an invalid sound index: %d\n", bytesteamSoundIndex );
+
+					// We will be sending an index that is one ahead of what it
+					// should be. Therefore we subtract one to get it's actual
+					// index.
+					g_SndinfoLookupTable[bytesteamSoundIndex - 1] = pszSoundStr;
 				}
 				break;
 
@@ -6729,7 +6762,6 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 {
 	LONG		lID;
 	ULONG		ulSound;
-	const char	*pszSound;
 	AActor		*pActor;
 
 	// Get the ID of the actor whose translation is being updated.
@@ -6739,7 +6771,7 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 	ulSound = NETWORK_ReadByte( pByteStream );
 
 	// Read in the actor's new sound.
-	pszSound = NETWORK_ReadString( pByteStream );
+	const char* pszSound = client_ReadBytestreamSound( pByteStream );
 
 	// Now try to find the corresponding actor.
 	pActor = CLIENT_FindThingByNetID( lID );
@@ -8534,13 +8566,12 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulPlayer;
-	const char	*pszSound;
 
 	// Read in the player who's creating a weapon sound.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the sound that's being played.
-	pszSound = NETWORK_ReadString( pByteStream );
+	const char* pszSound = client_ReadBytestreamSound( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out. Also, don't
 	// play the sound if the console player is spying through this player's eyes.
@@ -9822,7 +9853,6 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 //
 static void client_Sound( BYTESTREAM_s *pByteStream )
 {
-	const char	*pszSoundString;
 	LONG		lChannel;
 	LONG		lVolume;
 	LONG		lAttenuation;
@@ -9831,7 +9861,7 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 	lChannel = NETWORK_ReadByte( pByteStream );
 
 	// Read in the name of the sound to play.
-	pszSoundString = NETWORK_ReadString( pByteStream );
+	const char* pszSoundString = client_ReadBytestreamSound( pByteStream );
 
 	// Read in the volume.
 	lVolume = NETWORK_ReadByte( pByteStream );
@@ -9850,7 +9880,6 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlayingSomething )
 {
 	LONG		lID;
-	const char	*pszSoundString;
 	LONG		lChannel;
 	LONG		lVolume;
 	LONG		lAttenuation;
@@ -9863,7 +9892,7 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 	lChannel = NETWORK_ReadShort( pByteStream );
 
 	// Read in the name of the sound to play.
-	pszSoundString = NETWORK_ReadString( pByteStream );
+	const char* pszSoundString = client_ReadBytestreamSound( pByteStream );
 
 	// Read in the volume.
 	lVolume = NETWORK_ReadByte( pByteStream );
@@ -9896,7 +9925,6 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream, bool bRespectActorPlay
 //
 static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 {
-	const char	*pszSoundString;
 	LONG		lChannel;
 	LONG		lVolume;
 	LONG		lAttenuation;
@@ -9913,7 +9941,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	lChannel = NETWORK_ReadByte( pByteStream );
 
 	// Read in the name of the sound to play.
-	pszSoundString = NETWORK_ReadString( pByteStream );
+	const char* pszSoundString = client_ReadBytestreamSound( pByteStream );
 
 	// Read in the volume.
 	lVolume = NETWORK_ReadByte( pByteStream );
@@ -9931,9 +9959,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 //
 static void client_AnnouncerSound( BYTESTREAM_s *pByteStream )
 {
-	const char	*pszEntry;
-
-	pszEntry = NETWORK_ReadString( pByteStream );
+	const char* pszEntry = client_ReadBytestreamSound( pByteStream );
 	ANNOUNCER_PlayEntry ( cl_announcer, pszEntry );
 }
 
@@ -12306,6 +12332,15 @@ void APathFollower::InitFromStream ( BYTESTREAM_s *pByteStream )
 #endif
 		return;
 	}
+}
+
+//*****************************************************************************
+// [CK] Reads the bytestream for what sound is incoming.
+//
+static const char* client_ReadBytestreamSound( BYTESTREAM_s *pByteStream )
+{
+	const LONG soundIndex = NETWORK_ReadShort( pByteStream );
+	return ( soundIndex < 0 || soundIndex >= g_SndinfoLookupTable.Size( ) ) ? "" : g_SndinfoLookupTable[soundIndex];
 }
 
 //*****************************************************************************

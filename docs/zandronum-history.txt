@@ -46,6 +46,7 @@
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]
+!	- Changed sound transmission from a string to a lookup table short, thus saving a Significant amount of bandwidth. [Water]
 
 
 1.3

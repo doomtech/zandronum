@@ -1362,6 +1362,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Send the map music.
 	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
+	// [CK] Send the sndinfo table data so we can deploy sound incides to the
+	// clients instead of strings.
+	SERVERCOMMANDS_SendSndinfoLookupTable( g_lCurrentClient );
+
 	// Send the message of the day.
 	Val = sv_motd.GetGenericRep( CVAR_String );
 	FString motd = Val.String;
