@@ -6132,7 +6132,7 @@ void SERVERCOMMANDS_ChangeDoorDirection( LONG lID, LONG lDirection, ULONG ulPlay
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirection, LONG lSpeed, LONG lFloorDestDist, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirection, LONG lSpeed, LONG lFloorDestDist, LONG Crush, bool Hexencrush, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -6152,6 +6152,8 @@ void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirec
 	command.addByte ( lDirection );
 	command.addLong ( lSpeed );
 	command.addLong ( lFloorDestDist );
+	command.addByte ( clamp<LONG>(Crush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -6283,7 +6285,7 @@ void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, bool Hexencrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -6304,7 +6306,8 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 	command.addLong ( lBottomHeight );
 	command.addLong ( lTopHeight );
 	command.addLong ( lSpeed );
-	command.addShort ( lCrush );
+	command.addByte ( clamp<LONG>(lCrush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lSilent );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -6606,7 +6609,7 @@ void SERVERCOMMANDS_StartElevatorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulF
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFloorSpeed, LONG lCeilingSpeed, LONG lFloorTarget, LONG lCeilingTarget, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFloorSpeed, LONG lCeilingSpeed, LONG lFloorTarget, LONG lCeilingTarget, LONG Crush, bool Hexencrush, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -6621,6 +6624,8 @@ void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFl
 	command.addLong ( lCeilingSpeed );
 	command.addLong ( lFloorTarget );
 	command.addLong ( lCeilingTarget );
+	command.addByte ( clamp<LONG>(Crush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }

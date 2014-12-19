@@ -10708,6 +10708,8 @@ static void client_DoFloor( BYTESTREAM_s *pByteStream )
 	LONG			FloorDestDist;
 	LONG			lSpeed;
 	LONG			lSectorID;
+	LONG			Crush;
+	bool			Hexencrush;
 	LONG			lFloorID;
 	sector_t		*pSector;
 	DFloor			*pFloor;
@@ -10726,6 +10728,12 @@ static void client_DoFloor( BYTESTREAM_s *pByteStream )
 
 	// Read in the floor's destination height.
 	FloorDestDist = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's crush.
+	Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
+
+	// Read in the floor's crush type.
+	Hexencrush = NETWORK_ReadByte( pByteStream );
 
 	// Read in the floor's network ID.
 	lFloorID = NETWORK_ReadShort( pByteStream );
@@ -10748,6 +10756,8 @@ static void client_DoFloor( BYTESTREAM_s *pByteStream )
 
 	pFloor = new DFloor( pSector );
 	pFloor->SetType( (DFloor::EFloor)lType );
+	pFloor->SetCrush( Crush );
+	pFloor->SetHexencrush( Hexencrush );
 	pFloor->SetDirection( lDirection );
 	pFloor->SetFloorDestDist( FloorDestDist );
 	pFloor->SetSpeed( lSpeed );
@@ -10893,6 +10903,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	fixed_t			TopHeight;
 	LONG			lSpeed;
 	LONG			lCrush;
+	bool			Hexencrush;
 	LONG			lSilent;
 	LONG			lDirection;
 	LONG			lSectorID;
@@ -10919,7 +10930,10 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lSpeed = NETWORK_ReadLong( pByteStream );
 
 	// Does this ceiling damage those who get squashed by it?
-	lCrush = NETWORK_ReadShort( pByteStream );
+	lCrush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
+
+	// Is this ceiling crush Hexen style?
+	Hexencrush = NETWORK_ReadByte( pByteStream );
 
 	// Does this ceiling make noise?
 	lSilent = NETWORK_ReadShort( pByteStream );
@@ -10943,6 +10957,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	pCeiling->SetBottomHeight( BottomHeight );
 	pCeiling->SetTopHeight( TopHeight );
 	pCeiling->SetCrush( lCrush );
+	pCeiling->SetHexencrush( Hexencrush );
 	pCeiling->SetDirection( lDirection );
 	pCeiling->SetID( lCeilingID );
 }
@@ -11321,6 +11336,8 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 	LONG			lCeilingSpeed;
 	LONG			lFloorTarget;
 	LONG			lCeilingTarget;
+	LONG			Crush;
+	bool			Hexencrush;
 	LONG			lPillarID;
 	sector_t		*pSector;
 	DPillar			*pPillar;
@@ -11339,6 +11356,10 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 	lFloorTarget = NETWORK_ReadLong( pByteStream );
 	lCeilingTarget = NETWORK_ReadLong( pByteStream );
 
+	// Read in the crush info.
+	Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
+	Hexencrush = NETWORK_ReadByte( pByteStream );
+
 	// Read in the pillar ID.
 	lPillarID = NETWORK_ReadShort( pByteStream );
 
@@ -11355,6 +11376,8 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 	pPillar->SetCeilingSpeed( lCeilingSpeed );
 	pPillar->SetFloorTarget( lFloorTarget );
 	pPillar->SetCeilingTarget( lCeilingTarget );
+	pPillar->SetCrush( Crush );
+	pPillar->SetHexencrush( Hexencrush );
 	pPillar->SetID( lPillarID );
 
 	// Begin playing the sound sequence for the pillar.

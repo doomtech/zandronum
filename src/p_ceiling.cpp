@@ -256,7 +256,7 @@ void DCeiling::Tick ()
 
 void DCeiling::UpdateToClient( ULONG ulClient )
 {
-	SERVERCOMMANDS_DoCeiling( m_Type, m_Sector, m_Direction, m_BottomHeight, m_TopHeight, m_Speed, m_Crush, m_Silent, m_lCeilingID, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_DoCeiling( m_Type, m_Sector, m_Direction, m_BottomHeight, m_TopHeight, m_Speed, m_Crush, m_Hexencrush, m_Silent, m_lCeilingID, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 DCeiling::DCeiling (sector_t *sec)
@@ -344,6 +344,16 @@ LONG DCeiling::GetCrush( void )
 void DCeiling::SetCrush( LONG lCrush )
 {
 	m_Crush = lCrush;
+}
+
+bool DCeiling::GetHexencrush( void )
+{
+	return ( m_Hexencrush );
+}
+
+void DCeiling::SetHexencrush( bool Hexencrush )
+{
+	m_Hexencrush = Hexencrush;
 }
 
 //
@@ -569,7 +579,7 @@ manual_ceiling:
 
 		// [BC] If we're the server, tell clients to create a ceiling.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DoCeiling( type, &sectors[secnum], ceiling->m_Direction, ceiling->m_BottomHeight, ceiling->m_TopHeight, ceiling->m_Speed, ceiling->m_Crush, ceiling->m_Silent, ceiling->m_lCeilingID );
+			SERVERCOMMANDS_DoCeiling( type, &sectors[secnum], ceiling->m_Direction, ceiling->m_BottomHeight, ceiling->m_TopHeight, ceiling->m_Speed, ceiling->m_Crush, ceiling->m_Hexencrush, ceiling->m_Silent, ceiling->m_lCeilingID );
 
 		// set texture/type change properties
 		if (change & 3)		// if a texture change is indicated

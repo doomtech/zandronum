@@ -96,7 +96,7 @@ void DPillar::Serialize (FArchive &arc)
 // [BC]
 void DPillar::UpdateToClient( ULONG ulClient )
 {
-	SERVERCOMMANDS_DoPillar( m_Type, m_Sector, m_FloorSpeed, m_CeilingSpeed, m_FloorTarget, m_CeilingTarget, m_lPillarID, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_DoPillar( m_Type, m_Sector, m_FloorSpeed, m_CeilingSpeed, m_FloorTarget, m_CeilingTarget, m_Crush, m_Hexencrush, m_lPillarID, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 // [BC]
@@ -169,6 +169,26 @@ void DPillar::SetCeilingTarget( LONG lTarget )
 LONG DPillar::GetCeilingTarget( )
 {
 	return m_CeilingTarget;
+}
+
+LONG DPillar::GetCrush( void )
+{
+	return ( m_Crush );
+}
+
+void DPillar::SetCrush( LONG lCrush )
+{
+	m_Crush = lCrush;
+}
+
+bool DPillar::GetHexencrush( void )
+{
+	return ( m_Hexencrush );
+}
+
+void DPillar::SetHexencrush( bool Hexencrush )
+{
+	m_Hexencrush = Hexencrush;
 }
 
 void DPillar::Tick ()
@@ -341,7 +361,7 @@ bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
 
 			// [BC] If we're the server, tell clients to create the pillar.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DoPillar( pPillar->GetType(), sec, pPillar->GetFloorSpeed(), pPillar->GetCeilingSpeed(), pPillar->GetFloorTarget(), pPillar->GetCeilingTarget(), pPillar->GetID() );
+				SERVERCOMMANDS_DoPillar( pPillar->GetType(), sec, pPillar->GetFloorSpeed(), pPillar->GetCeilingSpeed(), pPillar->GetFloorTarget(), pPillar->GetCeilingTarget(), pPillar->GetCrush(), pPillar->GetHexencrush(), pPillar->GetID() );
 		}
 	}
 	return rtn;

@@ -606,6 +606,10 @@ public:
 	LONG	GetFloorTarget( );
 	void	SetCeilingTarget( LONG lTarget );
 	LONG	GetCeilingTarget( );
+	LONG	GetCrush( void );
+	void	SetCrush( LONG Crush );
+	bool	GetHexencrush( void );
+	void	SetHexencrush( bool hexencrush );
 
 protected:
 	EPillar		m_Type;
@@ -851,6 +855,9 @@ public:
 	LONG	GetCrush( void );
 	void	SetCrush( LONG lCrush );
 
+	bool	GetHexencrush( void );
+	void	SetHexencrush( bool Hexencrush );
+
 protected:
 	ECeiling	m_Type;
 	fixed_t 	m_BottomHeight;
@@ -974,6 +981,9 @@ public:
 
 	LONG	GetCrush( void );
 	void	SetCrush( LONG lCrush );
+
+	bool	GetHexencrush( void );
+	void	SetHexencrush( bool hexencrush );
 
 	fixed_t	GetSpeed( void );
 	void	SetSpeed( fixed_t Speed );
