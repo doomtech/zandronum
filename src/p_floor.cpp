@@ -330,7 +330,7 @@ void DFloor::Tick ()
 
 void DFloor::UpdateToClient( ULONG ulClient )
 {
-	SERVERCOMMANDS_DoFloor( m_Type, m_Sector, m_Direction, m_Speed, m_FloorDestDist, m_lFloorID, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_DoFloor( m_Type, m_Sector, m_Direction, m_Speed, m_FloorDestDist, m_Crush, m_Hexencrush, m_lFloorID, ulClient, SVCF_ONLYTHISCLIENT );
 	SERVERCOMMANDS_StartFloorSound( m_lFloorID );
 }
 
@@ -404,6 +404,16 @@ LONG DFloor::GetCrush( void )
 void DFloor::SetCrush( LONG lCrush )
 {
 	m_Crush = lCrush;
+}
+
+bool DFloor::GetHexencrush( void ) 
+{
+	return ( m_Hexencrush );
+}
+
+void DFloor::SetHexencrush( bool Hexencrush )
+{
+	m_Hexencrush = Hexencrush;
 }
 
 fixed_t DFloor::GetSpeed( void )
@@ -692,7 +702,7 @@ manual_floor:
 		// [BC] If we're the server, tell clients to create the floor.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_DoFloor( floortype, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_lFloorID );
+			SERVERCOMMANDS_DoFloor( floortype, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
 			SERVERCOMMANDS_StartFloorSound( floor->m_lFloorID );
 		}
 
@@ -918,7 +928,7 @@ manual_stair:
 
 		// [BC] If we're the server, tell clients to create the floor.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_lFloorID );
+			SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
 
 		// Find next sector to raise
 		// 1. Find 2-sided line with same sector side[0] (lowest numbered)
@@ -1036,7 +1046,7 @@ manual_stair:
 				// [BC] If we're the server, tell clients to create the floor.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_lFloorID );
+					SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
 					SERVERCOMMANDS_StartFloorSound( floor->m_lFloorID );
 				}
 			}
@@ -1133,7 +1143,7 @@ manual_donut:
 			// [BC] If we're the server, tell clients to create the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_DoFloor( floor->m_Type, floor->m_Sector, floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_lFloorID );
+				SERVERCOMMANDS_DoFloor( floor->m_Type, floor->m_Sector, floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
 				SERVERCOMMANDS_StartFloorSound( floor->m_lFloorID );
 			}
 
@@ -1158,7 +1168,7 @@ manual_donut:
 			// [BC] If we're the server, tell clients to create the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_DoFloor( floor->m_Type, floor->m_Sector, floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_lFloorID );
+				SERVERCOMMANDS_DoFloor( floor->m_Type, floor->m_Sector, floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
 				SERVERCOMMANDS_StartFloorSound( floor->m_lFloorID );
 			}
 

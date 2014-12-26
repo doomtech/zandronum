@@ -512,6 +512,13 @@ void SERVER_Destruct( void )
 	// Free the clients' buffers.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
+		// [TP] If we still do have clients, tell them the server is going down
+		if ( SERVER_IsValidClient( ulIdx ))
+		{
+			SERVER_KickPlayer( ulIdx, "Server is shutting down" );
+			NETWORK_LaunchPacket( &SERVER_GetClient( ulIdx )->PacketBuffer, SERVER_GetClient( ulIdx )->Address );
+		}
+
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].PacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
@@ -1363,6 +1370,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 */
 	// Send the map music.
 	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
+	// [CK] Send the sndinfo table data so we can deploy sound incides to the
+	// clients instead of strings.
+	SERVERCOMMANDS_SendSndinfoLookupTable( g_lCurrentClient );
 
 	// Send the message of the day.
 	Val = sv_motd.GetGenericRep( CVAR_String );

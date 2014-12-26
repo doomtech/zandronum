@@ -1894,10 +1894,14 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, const char *ps
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
+
 	NetCommand command( SVC_SETTHINGSOUND );
 	command.addShort( pActor->lNetID );
 	command.addByte( ulSound );
-	command.addString( pszSound );
+	command.addShort( soundIndex );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -2804,9 +2808,13 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
+
 	NetCommand command( SVC_WEAPONSOUND );
 	command.addByte( ulPlayer );
-	command.addString( pszSound );
+	command.addShort( soundIndex );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -3435,13 +3443,15 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
 
 	NetCommand command ( SVC_SOUND );
 	command.addByte ( lChannel );
-	command.addString ( pszSound );
+	command.addShort ( soundIndex );
 	command.addByte ( LONG(fVolume*127) );
-	command.addByte ( lAttenuation );
+	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
@@ -3459,10 +3469,14 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 		return;
 	}
 
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
+
 	NetCommand command ( bRespectActorPlayingSomething ? SVC_SOUNDACTORIFNOTPLAYING : SVC_SOUNDACTOR );
 	command.addShort( pActor->lNetID );
 	command.addShort( lChannel );
-	command.addString( pszSound );
+	command.addShort( soundIndex );
 	command.addByte( LONG( fVolume * 127 ));
 	command.addByte( NETWORK_AttenuationFloatToInt ( fAttenuation ));
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -3472,16 +3486,18 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 //
 void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	LONG lAttenuation = NETWORK_AttenuationFloatToInt ( fAttenuation );
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
 
 	NetCommand command ( SVC_SOUNDPOINT );
 	command.addShort ( lX>>FRACBITS );
 	command.addShort ( lY>>FRACBITS );
 	command.addShort ( lZ>>FRACBITS );
 	command.addByte ( lChannel );
-	command.addString ( pszSound );
+	command.addShort ( soundIndex );
 	command.addByte ( LONG(fVolume*127) );
-	command.addByte ( lAttenuation );
+	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
@@ -3489,8 +3505,12 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const 
 //
 void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+	const int soundIndex = S_FindSound( pszSound );
+	if ( soundIndex <= 0 )
+		return;
+
 	NetCommand command ( SVC_ANNOUNCERSOUND );
-	command.addString ( pszSound );
+	command.addShort ( soundIndex );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
@@ -4041,7 +4061,7 @@ void SERVERCOMMANDS_ChangeDoorDirection( LONG lID, LONG lDirection, ULONG ulPlay
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirection, LONG lSpeed, LONG lFloorDestDist, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirection, LONG lSpeed, LONG lFloorDestDist, LONG Crush, bool Hexencrush, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -4061,6 +4081,8 @@ void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirec
 	command.addByte ( lDirection );
 	command.addLong ( lSpeed );
 	command.addLong ( lFloorDestDist );
+	command.addByte ( clamp<LONG>(Crush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -4122,7 +4144,7 @@ void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, bool Hexencrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -4143,7 +4165,8 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 	command.addLong ( lBottomHeight );
 	command.addLong ( lTopHeight );
 	command.addLong ( lSpeed );
-	command.addShort ( lCrush );
+	command.addByte ( clamp<LONG>(lCrush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lSilent );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -4293,7 +4316,7 @@ void SERVERCOMMANDS_StartElevatorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulF
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFloorSpeed, LONG lCeilingSpeed, LONG lFloorTarget, LONG lCeilingTarget, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFloorSpeed, LONG lCeilingSpeed, LONG lFloorTarget, LONG lCeilingTarget, LONG Crush, bool Hexencrush, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -4308,6 +4331,8 @@ void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFl
 	command.addLong ( lCeilingSpeed );
 	command.addLong ( lFloorTarget );
 	command.addLong ( lCeilingTarget );
+	command.addByte ( clamp<LONG>(Crush,-128,127) );
+	command.addByte ( Hexencrush );
 	command.addShort ( lID );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -4815,4 +4840,41 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
 	command.addFloat( this->Time );
 	command.sendCommandToOneClient( ulClient );
+}
+
+//*****************************************************************************
+// [CK]
+void SERVERCOMMANDS_SendSndinfoLookupTable( ULONG ulClient )
+{
+	if ( SERVER_IsValidClient( ulClient ) == false )
+		return;
+
+	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
+	if ( pClient == NULL )
+		return;
+
+	// This should never happen, but just in case...
+	int soundTableSize = static_cast<int>( S_sfx.Size( ) );
+	if ( soundTableSize > 0x7FFE )
+	{
+		Printf( PRINT_HIGH, "\\cgWarning: This mod exceeds the sound limit of 32766 sounds. Some sounds will not play.\n" );
+		soundTableSize = 0x7FFE;
+	}
+
+	// Send the first index of zero as the table header.
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_SNDINFOLOOKUPTABLEENTRY );
+	command.addShort ( 0 );
+	command.addShort ( static_cast<int>( S_sfx.Size( ) ) );
+	command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
+
+	// Send every sound.
+	for ( int si = 1; si <= soundTableSize; si++ )
+	{
+		NetCommand command ( SVC_EXTENDEDCOMMAND );
+		command.addByte ( SVC2_SNDINFOLOOKUPTABLEENTRY );
+		command.addShort ( si );
+		command.addString ( S_sfx[si - 1].name.GetChars( ) ); // Send index 0 as 'slot 1', the client will know what to do.
+		command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
+	}
 }
