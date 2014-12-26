@@ -510,6 +510,13 @@ void SERVER_Destruct( void )
 	// Free the clients' buffers.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
+		// [TP] If we still do have clients, tell them the server is going down
+		if ( SERVER_IsValidClient( ulIdx ))
+		{
+			SERVER_KickPlayer( ulIdx, "Server is shutting down" );
+			NETWORK_LaunchPacket( &SERVER_GetClient( ulIdx )->PacketBuffer, SERVER_GetClient( ulIdx )->Address );
+		}
+
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].PacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
