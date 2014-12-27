@@ -2404,3 +2404,19 @@ static bool C_TabCompleteList ()
 	}
 	return true;
 }
+
+//
+// [TP]
+//
+TArray<FString> C_GetTabCompletes (const FString& part)
+{
+	TArray<FString> result;
+
+	for ( unsigned int i = 0; i < TabCommands.Size(); ++i )
+	{
+		if ( FindDiffPoint( TabCommands[i].TabName, part ) >= int( part.Len() ))
+			result.Push( FString( TabCommands[i].TabName.GetChars() ));
+	}
+
+	return result;
+}

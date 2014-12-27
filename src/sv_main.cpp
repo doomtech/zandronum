@@ -1660,6 +1660,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLRC_COMMAND:
 		case CLRC_PONG:
 		case CLRC_DISCONNECT:
+		case CLRC_TABCOMPLETE:
 
 			SERVER_RCON_ParseMessage( NETWORK_GetFromAddress( ), lCommand, pByteStream );
 			return;

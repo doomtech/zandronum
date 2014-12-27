@@ -36,6 +36,7 @@
 
 #include <stdarg.h>
 #include "basictypes.h"
+#include "tarray.h" // [TP]
 
 struct event_t;
 
@@ -86,5 +87,9 @@ bool C_Responder (event_t *ev);
 void C_AddTabCommand (const char *name);
 void C_RemoveTabCommand (const char *name);
 void C_ClearTabCommands();		// Removes all tab commands
+
+// [TP] For RCON clients
+class FString;
+TArray<FString> C_GetTabCompletes (const FString& part);
 
 #endif
