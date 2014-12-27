@@ -494,6 +494,8 @@ void DElevator::StartFloorSound ()
 DFloor::DFloor (sector_t *sec)
 	: DMovingFloor (sec)
 {
+	// [EP]
+	m_lFloorID = -1;
 }
 
 LONG DFloor::GetID( void )
@@ -642,8 +644,6 @@ manual_floor:
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
-		else
-			floor->m_lFloorID = -1;
 
 		floor->StartFloorSound ();
 
@@ -1097,8 +1097,6 @@ manual_stair:
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
-		else
-			floor->m_lFloorID = -1;
 
 		// [BC] If we're the server, tell clients to create the floor.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1209,8 +1207,6 @@ manual_stair:
 				// [BC] Assign the floor's network ID. However, don't do this on the client end.
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					floor->m_lFloorID = P_GetFirstFreeFloorID( );
-				else
-					floor->m_lFloorID = -1;
 
 				// [BC] If we're the server, tell clients to create the floor.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1290,8 +1286,6 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
-			else
-				floor->m_lFloorID = -1;
 
 			// [BC] If we're the server, tell clients to create the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1315,8 +1309,6 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
-			else
-				floor->m_lFloorID = -1;
 
 			// [BC] If we're the server, tell clients to create the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1338,6 +1330,8 @@ DElevator::DElevator (sector_t *sec)
 	sec->ceilingdata = this;
 	m_Interp_Floor = sec->SetInterpolation(sector_t::FloorMove, true);
 	m_Interp_Ceiling = sec->SetInterpolation(sector_t::CeilingMove, true);
+	// [EP]
+	m_lElevatorID = -1;
 }
 
 //
@@ -1385,8 +1379,6 @@ bool EV_DoElevator (line_t *line, DElevator::EElevator elevtype,
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			elevator->m_lElevatorID = P_GetFirstFreeElevatorID( );
-		else
-			elevator->m_lElevatorID = -1;
 
 		floorheight = sec->CenterFloor ();
 		ceilingheight = sec->CenterCeiling ();
@@ -1462,6 +1454,8 @@ bool EV_DoElevator (line_t *line, DElevator::EElevator elevtype,
 DWaggleBase::DWaggleBase (sector_t *sec)
 	: Super (sec)
 {
+	// [EP]
+	m_lWaggleID = -1;
 }
 
 void DWaggleBase::Destroy()
@@ -1725,8 +1719,6 @@ bool EV_StartWaggle (int tag, int height, int speed, int offset,
 		// [BC] Assign the waggle's network ID. However, don't do this on the client end.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			waggle->m_lWaggleID = P_GetFirstFreeWaggleID( );
-		else
-			waggle->m_lWaggleID = -1;
 
 		// [BC] If we're the server, tell clients to do the waggle.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

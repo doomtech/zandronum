@@ -412,6 +412,8 @@ void DDoor::DoorSound (bool raise) const
 DDoor::DDoor (sector_t *sector)
 	: DMovingCeiling (sector)
 {
+	// [EP]
+	m_lDoorID = -1;
 }
 
 // [RH] Merged EV_VerticalDoor and EV_DoLockedDoor into EV_DoDoor
