@@ -842,9 +842,9 @@ bool GAMEMODE_IsSpectatorAllowedSpecial ( const int Special )
 //
 bool GAMEMODE_IsHandledSpecial ( AActor *Activator, int Special )
 {
-	// [BB] Only player activated specials are restricted.
+	// [BB] Non-player activated specials are never handled by the client.
 	if ( Activator == NULL || Activator->player == NULL )
-		return true;
+		return ( NETWORK_InClientMode() == false );
 
 	// [EP/BB] Spectators activate a very limited amount of specials and ignore all others.
 	if ( Activator->player->bSpectating )
