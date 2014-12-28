@@ -885,8 +885,9 @@ static void botcmd_StringsAreEqual( CSkullBot *pBot )
 }
 
 //*****************************************************************************
-//
-static void botcmd_LookForPowerups( CSkullBot *pBot )
+// [BB] Helperfunction to reduce code duplication.
+template <typename T>
+int botcmd_LookForItemType( CSkullBot *pBot, const char *FunctionName )
 {
 	LONG		lIdx;
 	bool		bVisibilityCheck;
@@ -898,54 +899,46 @@ static void botcmd_LookForPowerups( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForPowerups: Illegal item index, %d!", static_cast<int> (lIdx) );
+		I_Error( "%s: Illegal item index, %d!", FunctionName, static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( APowerupGiver )) == false ))
+		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
 	{
 		if ( ++lIdx == MAX_NETID )
 			break;
 	}
 
 	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
+		return g_iReturnInt = -1;
 	else
-		g_iReturnInt = lIdx;
+		return g_iReturnInt = lIdx;
+}
+
+//*****************************************************************************
+//
+static void botcmd_LookForPowerups( CSkullBot *pBot )
+{
+	g_iReturnInt = botcmd_LookForItemType<APowerupGiver> ( pBot, "botcmd_LookForPowerups" );
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForWeapons( CSkullBot *pBot )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForWeapons: Illegal item index, %d!", static_cast<int> (lIdx) );
-
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false ))
-	{
-		if ( ++lIdx == MAX_NETID )
-			break;
-	}
-
-	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
-	else
-		g_iReturnInt = lIdx;
+	g_iReturnInt = botcmd_LookForItemType<AWeapon> ( pBot, "botcmd_LookForWeapons" );
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForAmmo( CSkullBot *pBot )
 {
+	g_iReturnInt = botcmd_LookForItemType<AAmmo> ( pBot, "botcmd_LookForAmmo" );
+}
+
+//*****************************************************************************
+// [BB] Helperfunction to reduce code duplication.
+int botcmd_LookForItemWithFlag( CSkullBot *pBot, const int Flag, const char *FunctionName )
+{
 	LONG		lIdx;
 	bool		bVisibilityCheck;
 
@@ -956,135 +949,47 @@ static void botcmd_LookForAmmo( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForAmmo: Illegal item index, %d!", static_cast<int> (lIdx) );
+		I_Error( "%s: Illegal item index, %d!", FunctionName, static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AAmmo )) == false ))
+		(( g_NetIDList[lIdx].pActor->ulSTFlags & Flag ) == false ))
 	{
 		if ( ++lIdx == MAX_NETID )
 			break;
 	}
 
 	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
+		return -1;
 	else
-		g_iReturnInt = lIdx;
+		return lIdx;
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForBaseHealth( CSkullBot *pBot )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForBaseHealth: Illegal item index, %d!", static_cast<int> (lIdx) );
-
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_BASEHEALTH ) == false ))
-	{
-		if ( ++lIdx == MAX_NETID )
-			break;
-	}
-
-	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
-	else
-		g_iReturnInt = lIdx;
+	g_iReturnInt = botcmd_LookForItemWithFlag ( pBot, STFL_BASEHEALTH, "botcmd_LookForBaseHealth" );
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForBaseArmor( CSkullBot *pBot )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForBaseArmor: Illegal item index, %d!", static_cast<int> (lIdx) );
-
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_BASEARMOR ) == false ))
-	{
-		if ( ++lIdx == MAX_NETID )
-			break;
-	}
-
-	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
-	else
-		g_iReturnInt = lIdx;
+	g_iReturnInt = botcmd_LookForItemWithFlag ( pBot, STFL_BASEARMOR, "botcmd_LookForBaseArmor" );
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForSuperHealth( CSkullBot *pBot )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForSuperHealth: Illegal item index, %d!", static_cast<int> (lIdx) );
-
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_SUPERHEALTH ) == false ))
-	{
-		if ( ++lIdx == MAX_NETID )
-			break;
-	}
-
-	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
-	else
-		g_iReturnInt = lIdx;
+	g_iReturnInt = botcmd_LookForItemWithFlag ( pBot, STFL_SUPERHEALTH, "botcmd_LookForSuperHealth" );
 }
 
 //*****************************************************************************
 //
 static void botcmd_LookForSuperArmor( CSkullBot *pBot )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
-	pBot->PopStack( );
-
-	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForSuperArmor: Illegal item index, %d!", static_cast<int> (lIdx) );
-
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_SUPERARMOR ) == false ))
-	{
-		if ( ++lIdx == MAX_NETID )
-			break;
-	}
-
-	if ( lIdx == MAX_NETID )
-		g_iReturnInt = -1;
-	else
-		g_iReturnInt = lIdx;
+	g_iReturnInt = botcmd_LookForItemWithFlag ( pBot, STFL_SUPERARMOR, "botcmd_LookForSuperArmor" );
 }
 
 //*****************************************************************************
