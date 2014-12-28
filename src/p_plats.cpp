@@ -304,6 +304,8 @@ void DPlat::UpdateToClient( ULONG ulClient )
 DPlat::DPlat (sector_t *sector)
 	: DMovingFloor (sector)
 {
+	// [EP]
+	m_lPlatID = -1;
 }
 
 // [BC]
@@ -450,9 +452,7 @@ manual_plat:
 		plat->m_Wait = delay;
 
 		// [BC] Potentially create the platform's network ID.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-			plat->m_lPlatID = -1;
-		else
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			plat->m_lPlatID = P_GetFirstFreePlatID( );
 
 		//jff 1/26/98 Avoid raise plat bouncing a head off a ceiling and then

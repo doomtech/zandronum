@@ -266,6 +266,7 @@ void DCeiling::UpdateToClient( ULONG ulClient )
 DCeiling::DCeiling (sector_t *sec)
 	: DMovingCeiling (sec)
 {
+	// [BB]
 	m_lCeilingID = -1;
 }
 
@@ -277,6 +278,7 @@ DCeiling::DCeiling (sector_t *sec, fixed_t speed1, fixed_t speed2, int silent)
 	m_Speed = m_Speed1 = speed1;
 	m_Speed2 = speed2;
 	m_Silent = silent;
+	// [BB]
 	m_lCeilingID = -1;
 }
 

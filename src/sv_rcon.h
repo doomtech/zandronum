@@ -59,7 +59,8 @@
 //-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define PROTOCOL_VERSION			3
+#define PROTOCOL_VERSION			4
+#define MIN_PROTOCOL_VERSION        3
 #define RCON_CANDIDATE_TIMEOUT_TIME 10
 #define RCON_CLIENT_TIMEOUT_TIME	40
 #define BAD_QUERY_IGNORE_TIME		4
@@ -75,6 +76,8 @@ enum
 	SVRC_INVALIDPASSWORD,
 	SVRC_MESSAGE,
 	SVRC_UPDATE,
+	SVRC_TABCOMPLETE,
+	SVRC_TOOMANYTABCOMPLETES,
 };
 
 //*****************************************************************************
@@ -86,6 +89,7 @@ enum
 	CLRC_COMMAND,
 	CLRC_PONG,
 	CLRC_DISCONNECT,
+	CLRC_TABCOMPLETE,
 };
 
 //*****************************************************************************

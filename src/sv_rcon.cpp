@@ -196,6 +196,34 @@ void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s
 			Printf( "RCON client at %s disconnected.\n", NETWORK_AddressToString( Address ));
 		}
 		break;
+	case CLRC_TABCOMPLETE:
+
+		// [TP] RCON client wishes to tab-complete
+		iIndex = server_rcon_FindClient( Address );
+		if ( iIndex != -1 )
+		{
+			const char* part = NETWORK_ReadString( pByteStream );
+			TArray<FString> list = C_GetTabCompletes( part );
+			NETWORK_ClearBuffer( &g_MessageBuffer );
+
+			// [TP] Let's not send too many of these though
+			if ( list.Size() < 50 )
+			{
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_TABCOMPLETE );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, list.Size() );
+
+				for ( unsigned i = 0; i < list.Size(); ++i )
+					NETWORK_WriteString( &g_MessageBuffer.ByteStream, list[i] );
+			}
+			else
+			{
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_TOOMANYTABCOMPLETES );
+				NETWORK_WriteShort( &g_MessageBuffer.ByteStream, list.Size() );
+			}
+
+			NETWORK_LaunchPacket( &g_MessageBuffer, g_AuthedClients[iIndex].Address );
+		}
+		break;
 	}
 }
 
@@ -320,7 +348,7 @@ static void server_rcon_HandleNewConnection( NETADDRESS_s Address,  int iProtoco
 	}
 
 	// Old protocol version? Notify, ignore, and quit.
-	if ( iProtocolVersion < PROTOCOL_VERSION )
+	if ( iProtocolVersion < MIN_PROTOCOL_VERSION )
 	{
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_OLDPROTOCOL );
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, PROTOCOL_VERSION );

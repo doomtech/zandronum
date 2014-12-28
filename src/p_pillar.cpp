@@ -60,6 +60,8 @@ DPillar::DPillar(sector_t *sector)
 	sector->ceilingdata = this;
 	m_Interp_Floor = sector->SetInterpolation(sector_t::FloorMove, true);
 	m_Interp_Ceiling = sector->SetInterpolation(sector_t::CeilingMove, true);
+	// [EP]
+	m_lPillarID = -1;
 }
 
 void DPillar::Destroy()
@@ -255,6 +257,8 @@ DPillar::DPillar (sector_t *sector, EPillar type, fixed_t speed,
 	m_Type = type;
 	m_Crush = crush;
 	m_Hexencrush = hexencrush;
+	// [EP]
+	m_lPillarID = -1;
 
 	if (type == pillarBuild)
 	{
@@ -364,8 +368,6 @@ bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
 			// [BC] Assign the mover's network ID. However, don't do this on the client end.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				pPillar->SetID ( P_GetFirstFreePillarID( ) );
-			else
-				pPillar->SetID ( -1 );
 
 			// [BC] If we're the server, tell clients to create the pillar.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
