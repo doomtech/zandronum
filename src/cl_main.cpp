@@ -2776,7 +2776,23 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				{
 					const FString cvarName = NETWORK_ReadString( pByteStream );
 					const FString cvarValue = NETWORK_ReadString( pByteStream );
-					cvar_forceset ( cvarName.GetChars(), cvarValue.GetChars() );
+
+					// [TP] Only allow the server to set mod CVARs.
+					FBaseCVar* cvar = FindCVar( cvarName, NULL );
+
+					if (( cvar == NULL ) || (( cvar->GetFlags() & CVAR_MOD ) == 0 ))
+					{
+#ifdef CLIENT_WARNING_MESSAGES
+						Printf( "SVC2_SETCVAR: The server attempted to set the value of "
+							"non-existant or non-mod CVAR \"%s\" to \"%s\"\n",
+							cvarName.GetChars(), cvarValue.GetChars() );
+#endif
+						break;
+					}
+
+					UCVarValue vval;
+					vval.String = cvarValue;
+					cvar->ForceSet( vval, CVAR_String );
 				}
 				break;
 
