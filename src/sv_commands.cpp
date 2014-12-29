@@ -6066,7 +6066,6 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 //
 void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
 	LONG	lSectorID;
 
 	lSectorID = LONG( pSector - sectors );
@@ -6079,25 +6078,13 @@ void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LON
 	if ( lDirection == INT_MIN )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DODOOR );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lDirection );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLightTag );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
-	}
+	NetCommand command ( SVC_DODOOR );
+	command.addShort ( lSectorID );
+	command.addLong ( lSpeed );
+	command.addByte ( lDirection );
+	command.addShort ( lLightTag );
+	command.addShort ( lID );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
