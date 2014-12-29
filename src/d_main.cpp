@@ -719,7 +719,8 @@ void D_Display ()
 
 	// [RH] Allow temporarily disabling wipes
 	// [BB] Wipes cause more harm than good on the client. Disable them for now.
-	if (NoWipe || (NETWORK_GetState() == NETSTATE_CLIENT) )
+	// [Leo] Disable them while playing demos too.
+	if ( NoWipe || NETWORK_InClientMode() ) 
 	{
 		BorderNeedRefresh = screen->GetPageCount ();
 		NoWipe--;
@@ -767,6 +768,10 @@ void D_Display ()
 		case GS_LEVEL:
 		case GS_TITLELEVEL:
 			if (!gametic)
+				break;
+
+			// [Leo] Don't do that while requesting/receiving a snapshot to prevent potential HOMs.
+			if ( ( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState( ) != CTS_ACTIVE ) )
 				break;
 
 			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
