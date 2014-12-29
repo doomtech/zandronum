@@ -6963,11 +6963,21 @@ void SERVERCOMMANDS_SetPolyDoorSpeedRotation( LONG lPolyNum, LONG lSpeed, LONG l
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, NETWORK_POLYOBJSOUND_e Sound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, bool PolyMode, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	NetCommand command ( SVC_PLAYPOLYOBJSOUND );
 	command.addShort ( lPolyNum );
-	command.addByte ( (ULONG)Sound );
+	command.addByte ( PolyMode );
+	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_StopPolyobjSound( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_STOPPOLYOBJSOUND );
+	command.addShort ( lPolyNum );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 

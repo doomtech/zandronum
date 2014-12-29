@@ -182,16 +182,6 @@ typedef enum
 #define NUMBER_OF_WEAPON_NAME_KEY_LETTERS	10
 
 //*****************************************************************************
-typedef enum
-{
-	POLYSOUND_STOPSEQUENCE,
-	POLYSOUND_SEQ_DOOR,
-
-	NUM_NETWORK_POLYOBJSOUNDS,
-
-} NETWORK_POLYOBJSOUND_e;
-
-//*****************************************************************************
 enum
 {
 	// Client has the wrong password.

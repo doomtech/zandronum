@@ -426,6 +426,7 @@ static  void	client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream );
 
 // Generic polyobject commands.
 static	void	client_PlayPolyobjSound( BYTESTREAM_s *pByteStream );
+static	void	client_StopPolyobjSound( BYTESTREAM_s *pByteStream );
 static	void	client_SetPolyobjPosition( BYTESTREAM_s *pByteStream );
 static	void	client_SetPolyobjRotation( BYTESTREAM_s *pByteStream );
 
@@ -2815,6 +2816,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					// index.
 					g_SndinfoLookupTable[bytesteamSoundIndex - 1] = pszSoundStr;
 				}
+				break;
+
+			// [EP]
+			case SVC2_STOPPOLYOBJSOUND:
+				client_StopPolyobjSound( pByteStream );
 				break;
 
 			default:
@@ -11831,33 +11837,38 @@ static void client_SetPolyDoorSpeedRotation( BYTESTREAM_s *pByteStream )
 //
 static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 {
-	LONG						lID;
-	NETWORK_POLYOBJSOUND_e		Sound;
+	LONG		lID;
+	bool		PolyMode;
 	FPolyObj	*pPoly;
 
 	// Read in the polyobject ID.
 	lID = NETWORK_ReadShort( pByteStream );
 
-	// Read in the sound to be played.
-	Sound = (NETWORK_POLYOBJSOUND_e)NETWORK_ReadByte( pByteStream );
+	// Read in the polyobject mode.
+	PolyMode = NETWORK_ReadByte( pByteStream );
 
 	pPoly = GetPolyobj( lID );
 	if ( pPoly == NULL )
 		return;
 
-	switch ( Sound )
-	{
-	case POLYSOUND_STOPSEQUENCE:
+	SN_StartSequence( pPoly, pPoly->seqType, SEQ_DOOR, PolyMode );
+}
 
-		SN_StopSequence( pPoly );
-		break;
-	case POLYSOUND_SEQ_DOOR:
+//*****************************************************************************
+//
+static void client_StopPolyobjSound( BYTESTREAM_s *pByteStream )
+{
+	LONG		lID;
+	FPolyObj	*pPoly;
 
-		SN_StartSequence( pPoly, pPoly->seqType, SEQ_DOOR, 0 );
-		break;
-	default:
-		break;
-	}
+	// Read in the polyobject ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	pPoly = GetPolyobj( lID );
+	if ( pPoly == NULL )
+		return;
+
+	SN_StopSequence( pPoly );
 }
 
 //*****************************************************************************
