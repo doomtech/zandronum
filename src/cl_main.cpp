@@ -3232,7 +3232,8 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 		P_OldAdjustFloorCeil( pActor );
 		// [BB] An actor can't be below its floorz, if the value is correct.
 		// In this case, P_OldAdjustFloorCeil apparently didn't work, so revert to the old value.
-		if ( pActor->floorz > pActor->z )
+		// [BB] But don't do this for the console player, it messes up the prediction.
+		if ( ( NETWORK_IsConsolePlayer ( pActor ) == false ) && ( pActor->floorz > pActor->z ) )
 			pActor->floorz = oldfloorz;
 	}
 }
