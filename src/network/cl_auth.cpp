@@ -143,6 +143,11 @@ void CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC2_SRP_USER_VERIFY_SESSION:
 		{
 			const int lenHAMK = NETWORK_ReadShort( pByteStream );
+
+			// [BB] The following crashes if g_usr is not properly initialized.
+			if ( g_usr == NULL )
+				break;
+
 			TArray<unsigned char> bytesHAMK;
 			// [BB] We may need to allocate more then lenHAMK!
 			bytesHAMK.Resize ( srp_user_get_session_key_length( g_usr ) ); 
