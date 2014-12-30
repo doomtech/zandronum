@@ -50,6 +50,7 @@
 -	- Fixed: a closing polyobject door made no sound online. [Dusk, Edward-san]
 -	- Fixed: The server did not inform the clients correctly about the type of the door action, making the clients hear the wrong door sound. [Edward-san]
 -	- Fixed: The client could potentially get HOMs while requesting a snapshot. [Leonard]
+-	- Fixed: CVAR sv_unblockplayers now works with different species. [Leonard]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]
