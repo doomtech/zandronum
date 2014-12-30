@@ -296,7 +296,7 @@ argv(0) noclip
 CCMD (noclip)
 {
 	// [BB] Allow spectators to use noclip.
-	if ( ( players[consoleplayer].bSpectating == false ) && CheckCheatmode ())
+	if ( ( CLIENTDEMO_IsInFreeSpectateMode( ) == false ) && ( players[consoleplayer].bSpectating == false ) && CheckCheatmode( ) )
 		return;
 
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -316,6 +316,8 @@ CCMD (noclip)
 
 		CLIENTCOMMANDS_GenericCheat( CHT_NOCLIP );
 	}
+	else if ( CLIENTDEMO_IsInFreeSpectateMode( ) )
+		cht_DoCheat( CLIENTDEMO_GetFreeSpectatorPlayer( ), CHT_NOCLIP );
 	else
 	{
 		Net_WriteByte (DEM_GENERICCHEAT);

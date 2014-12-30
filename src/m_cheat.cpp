@@ -51,6 +51,7 @@
 #include "team.h"
 #include "gamemode.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 
 // [RH] Actually handle the cheat. The cheat code in st_stuff.c now just
 // writes some bytes to the network data stream, and the network code
@@ -524,7 +525,7 @@ void cht_DoCheat (player_t *player, int cheat)
 			&& ( player->bSpectating == false ) && !(dmflags2 & DF2_CHASECAM))){
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVER_Printf( PRINT_HIGH, "%s is a cheater: %s\n", player->userinfo.netname, msg );
-		else if (player == &players[consoleplayer])
+		else if ( player == &players[consoleplayer] || CLIENTDEMO_IsFreeSpectatorPlayer( player ) )
 			Printf ("%s\n", msg);
 		// [BB] The server already ensures that all clients see the cheater message.
 		else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
