@@ -772,7 +772,11 @@ void D_Display ()
 
 			// [Leo] Don't do that while requesting/receiving a snapshot to prevent potential HOMs.
 			if ( ( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState( ) != CTS_ACTIVE ) )
+			{
+				// [BB] We still need to refresh the display.
+				hw2d = screen->Begin2D(false);
 				break;
+			}
 
 			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
 			// This happens for example if you start a new game, while being on a server.
