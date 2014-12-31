@@ -66,7 +66,7 @@
 -	- Fixed problems with the client side Z position prediction near ledges. [Torr Samaho]
 -	- Fixed: a closing polyobject door made no sound online. [Dusk, Edward-san]
 -	- Fixed: The server did not inform the clients correctly about the type of the door action, making the clients hear the wrong door sound. [Edward-san]
--	- Fixed: The client could potentially get HOMs while requesting a snapshot. [Leonard]
+-	- Fixed: The client could potentially get HOMs while requesting a snapshot. [Leonard, Torr Samaho]
 -	- Fixed: CVAR sv_unblockplayers now works with different species. [Leonard]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
