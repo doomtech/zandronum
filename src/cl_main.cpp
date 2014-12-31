@@ -3757,6 +3757,9 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 	// We're all done! Set the new client connection state to active.
 	CLIENT_SetConnectionState( CTS_ACTIVE );
 
+	// Display in the console that we have the snapshot now.
+	Printf( "Snapshot received.\n" );
+
 	// Hide the console.
 	C_HideConsole( );
 
