@@ -4010,7 +4010,7 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoDoor( sector_t *pSector, DDoor::EVlDoor type, LONG lSpeed, LONG lDirection, LONG lLightTag, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	LONG	lSectorID;
 
@@ -4026,6 +4026,7 @@ void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LON
 
 	NetCommand command ( SVC_DODOOR );
 	command.addShort ( lSectorID );
+	command.addByte ( (BYTE)type );
 	command.addLong ( lSpeed );
 	command.addByte ( lDirection );
 	command.addShort ( lLightTag );

@@ -313,7 +313,7 @@ void DDoor::Tick ()
 
 void DDoor::UpdateToClient( ULONG ulClient )
 {
-	SERVERCOMMANDS_DoDoor( m_Sector, m_Speed, m_Direction, m_LightTag, m_lDoorID, ulClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_DoDoor( m_Sector, m_Type, m_Speed, m_Direction, m_LightTag, m_lDoorID, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 int DDoor::GetDirection ()
@@ -631,7 +631,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 		if ( (pDoor = new DDoor (sec, type, speed, delay, lightTag)))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DoDoor( sec, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));
+				SERVERCOMMANDS_DoDoor( sec, type, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));
 
 			rtn = true;
 		}
@@ -650,7 +650,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 			if ( (pDoor = new DDoor (sec, type, speed, delay, lightTag)))
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_DoDoor( sec, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));
+					SERVERCOMMANDS_DoDoor( sec, type, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));
 
 				rtn = true;
 			}
