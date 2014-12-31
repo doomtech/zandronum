@@ -116,6 +116,7 @@ void		CLIENTDEMO_SetSkippingToNextMap( bool bSkipToNextMap );
 bool		CLIENTDEMO_IsInFreeSpectateMode( void );
 void		CLIENTDEMO_SetFreeSpectatorTiccmd( ticcmd_t *pCmd );
 void		CLIENTDEMO_FreeSpectatorPlayerThink( void );
+player_t	*CLIENTDEMO_GetFreeSpectatorPlayer( void );
 bool		CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer );
 void		CLIENTDEMO_ClearFreeSpectatorPlayer( void );
 

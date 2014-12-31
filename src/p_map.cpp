@@ -66,15 +66,12 @@
 #include "d_netinf.h"
 
 // [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
-bool ActorHasThruspecies ( const AActor *pActor )
+bool ActorUnblockPlayers ( const AActor *pActor1, const AActor *pActor2 )
 {
-	if ( pActor == NULL )
+	if ( ( pActor1 == NULL ) || ( pActor2 == NULL ) )
 		return false;
 
-	if ( ( zadmflags & ZADF_UNBLOCK_PLAYERS ) && ( pActor->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) )
-		return true;
-
-	return !!( pActor->flags6 & MF6_THRUSPECIES );
+	return ( ( zadmflags & ZADF_UNBLOCK_PLAYERS ) && ( pActor1->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) && ( pActor2->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) );
 }
 
 #define WATER_SINK_FACTOR		3
@@ -953,7 +950,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		return true;
 
 	// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-	if (ActorHasThruspecies(tm.thing) && (tm.thing->GetSpecies() == thing->GetSpecies()))
+	if (ActorUnblockPlayers(tm.thing, thing) || ((tm.thing->flags6 & MF6_THRUSPECIES) && (tm.thing->GetSpecies() == thing->GetSpecies())))
 		return true;
 
 	tm.thing->BlockingMobj = thing;
@@ -1938,7 +1935,7 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 			continue;
 		}
 		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-		if (ActorHasThruspecies(actor) && (thing->GetSpecies() == actor->GetSpecies()))
+		if (ActorUnblockPlayers(actor, thing) || ((actor->flags6 & MF6_THRUSPECIES) && (thing->GetSpecies() == actor->GetSpecies())))
 		{
 			continue;
 		}
@@ -6208,7 +6205,7 @@ int P_PushUp (AActor *thing, FChangePosition *cpos)
 		// Or would that risk breaking established behavior? THRUGHOST, like MTHRUSPECIES,
 		// is normally for projectiles which would have exploded by now anyway...
 		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-		if (ActorHasThruspecies(thing) && thing->GetSpecies() == intersect->GetSpecies())
+		if (ActorUnblockPlayers(thing, intersect) || (thing->flags6 & MF6_THRUSPECIES && thing->GetSpecies() == intersect->GetSpecies()))
 			continue;
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||
 			(!(intersect->flags3 & MF3_ISMONSTER) &&

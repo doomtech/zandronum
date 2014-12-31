@@ -759,6 +759,13 @@ void CLIENTDEMO_FreeSpectatorPlayerThink( void )
 
 //*****************************************************************************
 //
+player_t *CLIENTDEMO_GetFreeSpectatorPlayer( void )
+{
+	return &g_demoCameraPlayer;
+}
+
+//*****************************************************************************
+//
 bool CLIENTDEMO_IsFreeSpectatorPlayer( player_t *pPlayer )
 {
 	return ( &g_demoCameraPlayer == pPlayer );
