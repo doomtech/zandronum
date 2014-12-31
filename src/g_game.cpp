@@ -3718,9 +3718,17 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ));
 	}
 
-	// Reload the actors on this level.
+	// [BB] TThinkerIterator<AActor> doesn't seem to like if we create new actors while
+	// iterating. So just create a list with all current actors and then go through it.
+	TArray<AActor *> existingActors;
 	while (( pActor = ActorIterator.Next( )) != NULL )
+		existingActors.Push ( pActor );
+
+	// Reload the actors on this level.
+	for ( unsigned int i = 0; i < existingActors.Size(); ++i )
 	{
+		pActor = existingActors[i];
+
 		// Don't reload players.
 		// [BB] but reload voodoo dolls.
 		if ( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )) && pActor->player && ( pActor->player->mo == pActor ) )
