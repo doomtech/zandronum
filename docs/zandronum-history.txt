@@ -64,6 +64,7 @@
 -	- Fixed: The server did not inform the clients fully about the crush behavior of floors, ceilings and pillars. [Edward-san]
 -	- Fixed: The server could crash the clients with malicious packets. [Torr Samaho]
 -	- Fixed problems with the client side Z position prediction near ledges. [Torr Samaho]
+-	- Fixed: a closing polyobject door made no sound online. [Dusk, Edward-san]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]

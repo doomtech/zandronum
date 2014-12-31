@@ -460,7 +460,7 @@ void DPolyDoor::UpdateToClient( ULONG ulClient )
 	else // [WS] Door is in motion, inform the client.
 	{
 		// [WS] Play the sound.
-		SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_SEQ_DOOR );
+		SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, 0 );
 		SERVERCOMMANDS_DoPolyDoor( m_Type, m_xSpeed, m_ySpeed, m_Speed, m_PolyObj, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 }
@@ -535,7 +535,7 @@ void DRotatePoly::Tick ()
 			// [BC] Tell clients to stop the sound sequence, and destroy the rotate poly.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_STOPSEQUENCE );
+				SERVERCOMMANDS_StopPolyobjSound( m_PolyObj );
 				SERVERCOMMANDS_DestroyRotatePoly( m_PolyObj );
 			}
 
@@ -680,7 +680,7 @@ void DMovePoly::Tick ()
 				// [BC] Tell clients to stop the sound sequence, and destroy the move poly.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_STOPSEQUENCE );
+					SERVERCOMMANDS_StopPolyobjSound( m_PolyObj );
 					SERVERCOMMANDS_DestroyMovePoly( m_PolyObj );
 				}
 
@@ -925,6 +925,9 @@ void DPolyDoor::Tick ()
 		if (!--m_Tics)
 		{
 			SN_StartSequence (poly, poly->seqType, SEQ_DOOR, m_Close);
+			// [EP] Tell the clients to play the closing door sound sequence
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, m_Close );
 		}
 		return;
 	}
@@ -947,7 +950,7 @@ void DPolyDoor::Tick ()
 			{
 				// [BC] Tell clients to stop the sound sequence.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_STOPSEQUENCE );
+					SERVERCOMMANDS_StopPolyobjSound( m_PolyObj );
 
 				SN_StopSequence (poly);
 				if (!m_Close)
@@ -997,7 +1000,7 @@ void DPolyDoor::Tick ()
 				// [WS] Tell clients to update the speed and position.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_SEQ_DOOR );
+					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, 0 );
 					SERVERCOMMANDS_SetPolyDoorSpeedPosition( m_PolyObj, m_xSpeed, m_ySpeed,
 														poly->StartSpot.x,
 														poly->StartSpot.y );
@@ -1026,7 +1029,7 @@ void DPolyDoor::Tick ()
 
 				// [BC] Tell clients to stop the sound sequence.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_STOPSEQUENCE );
+					SERVERCOMMANDS_StopPolyobjSound( m_PolyObj );
 
 				if (!m_Close)
 				{
@@ -1070,7 +1073,7 @@ void DPolyDoor::Tick ()
 				// [WS] Tell clients to update the speed and rotation.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, POLYSOUND_SEQ_DOOR );
+					SERVERCOMMANDS_PlayPolyobjSound( m_PolyObj, 0 );
 					SERVERCOMMANDS_SetPolyDoorSpeedRotation( m_PolyObj, m_Speed, poly->angle );
 				}
 			}
@@ -1133,7 +1136,7 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_DoPolyDoor( pd->m_Type, pd->m_xSpeed, pd->m_ySpeed, pd->m_Speed, pd->m_PolyObj );
-		SERVERCOMMANDS_PlayPolyobjSound( polyNum, POLYSOUND_SEQ_DOOR );
+		SERVERCOMMANDS_PlayPolyobjSound( polyNum, 0 );
 	}
 
 	while ( (mirror = poly->GetMirror()) )
@@ -1168,7 +1171,7 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_DoPolyDoor( pd->m_Type, pd->m_xSpeed, pd->m_ySpeed, pd->m_Speed, pd->m_PolyObj );
-			SERVERCOMMANDS_PlayPolyobjSound( mirror, POLYSOUND_SEQ_DOOR );
+			SERVERCOMMANDS_PlayPolyobjSound( mirror, 0 );
 		}
 
 		polyNum = mirror;

@@ -3391,7 +3391,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 			// [BB] Tell clients to destroy the door and stop its sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_PlayPolyobjSound( pPolyAction->GetPolyObj(), POLYSOUND_STOPSEQUENCE );
+				SERVERCOMMANDS_StopPolyobjSound( pPolyAction->GetPolyObj() );
 
 			// [BB] Stop all sounds associated with this object.
 			SN_StopSequence( pPoly );
