@@ -87,15 +87,16 @@ void DDoor::Tick ()
 	switch (m_Direction)
 	{
 	case 0:
+		// [BC] If we're the client, don't change the door's direction. It could
+		// de-sync the game. Instead, wait for the server to tell us to change
+		// the door's direction.
+		// [EP] Don't let the clients read the undefined m_TopCountdown variable
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+			break;
+
 		// WAITING
 		if (!--m_TopCountdown)
 		{
-			// [BC] If we're the client, don't change the door's direction. It could
-			// de-sync the game. Instead, wait for the server to tell us to change
-			// the door's direction.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-				break;
-
 			switch (m_Type)
 			{
 			case doorRaise:
@@ -125,15 +126,16 @@ void DDoor::Tick ()
 		break;
 		
 	case 2:
+		// [BC] If we're the client, don't change the door's direction. It could
+		// de-sync the game. Instead, wait for the server to tell us to change
+		// the door's direction.
+		// [EP] Don't let the clients read the undefined m_TopCountdown variable
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+			break;
+
 		//	INITIAL WAIT
 		if (!--m_TopCountdown)
 		{
-			// [BC] If we're the client, don't change the door's direction. It could
-			// de-sync the game. Instead, wait for the server to tell us to change
-			// the door's direction.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-				break;
-
 			switch (m_Type)
 			{
 			case doorRaiseIn5Mins:

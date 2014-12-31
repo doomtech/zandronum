@@ -1355,6 +1355,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		strncpy( g_szMapName, NETWORK_ReadString( pByteStream ), 8 );
 		g_szMapName[8] = 0;
 
+		// [BB] If we don't have the map, something went horribly wrong.
+		if ( P_CheckIfMapExists( g_szMapName ) == false )
+			I_Error ( "SVCC_AUTHENTICATE: Unknown map: %s\n", g_szMapName );
+
 		// The next step is the authenticate the level.
 		if ( CLIENTDEMO_IsPlaying( ) == false )
 		{
@@ -1398,8 +1402,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				// Restore our demo recording status.
 				CLIENTDEMO_SetPlaying( bPlaying );
 			}
+			// [BB] If we don't have the map, something went horribly wrong.
 			else
-				Printf( "CLIENT_ProcessCommand: Unknown map: %s\n", g_szMapName );
+				I_Error ( "SVCC_MAPLOAD: Unknown map: %s\n", g_szMapName );
 
 			// Now that we've loaded the map, request a snapshot from the server.
 			if ( CLIENTDEMO_IsPlaying( ) == false )
@@ -3240,7 +3245,8 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 		P_OldAdjustFloorCeil( pActor );
 		// [BB] An actor can't be below its floorz, if the value is correct.
 		// In this case, P_OldAdjustFloorCeil apparently didn't work, so revert to the old value.
-		if ( pActor->floorz > pActor->z )
+		// [BB] But don't do this for the console player, it messes up the prediction.
+		if ( ( NETWORK_IsConsolePlayer ( pActor ) == false ) && ( pActor->floorz > pActor->z ) )
 			pActor->floorz = oldfloorz;
 	}
 }
@@ -3984,7 +3990,9 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		// [BB] Get the morphed player class.
 		pType = NETWORK_GetClassFromIdentification( usActorNetworkIndex );
-		if ( pType )
+		// [BB] We'll be casting the spawned body to APlayerPawn, so we must check
+		// if the desired class is valid.
+		if ( pType && pType->IsDescendantOf( RUNTIME_CLASS( APlayerPawn ) ) )
 			pPlayer->cls = pType;
 	}
 
