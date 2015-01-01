@@ -250,7 +250,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 		sclipTop = sec->ceilingplane.ZatPoint(viewx, viewy);
 	}
 
-	if (!fixedlightlev)
+	if (fixedlightlev < 0)
 	{
 		for (i = frontsector->e->XFloor.lightlist.Size() - 1; i >= 0; i--)
 		{
@@ -541,7 +541,7 @@ void R_RenderFakeWall(drawseg_t *ds, int x1, int x2, F3DFloor *rover)
 		dc_texturemid = MulScale16(dc_texturemid - viewz, yscale) + rowoffset;
 	}
 
-	if (fixedlightlev)
+	if (fixedlightlev >= 0)
 		dc_colormap = basecolormap->Maps + fixedlightlev;
 	else if (fixedcolormap != NULL)
 		dc_colormap = fixedcolormap;
@@ -771,7 +771,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 			// correct colors now
 			basecolormap = frontsector->ColorMap;
 			wallshade = ds->shade;
-			if (!fixedlightlev)
+			if (fixedlightlev < 0)
 			{
 				if ((ds->bFakeBoundary & 3) == 2)
 				{
@@ -944,7 +944,7 @@ void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2)
 			// correct colors now
 			basecolormap = frontsector->ColorMap;
 			wallshade = ds->shade;
-			if (!fixedlightlev)
+			if (fixedlightlev < 0)
 			{
 				if ((ds->bFakeBoundary & 3) == 2)
 				{

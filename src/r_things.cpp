@@ -2127,7 +2127,7 @@ void R_DrawPlayerSprites (void)
 
 	sec = NULL;
 	rover = NULL;
-	if(!fixedlightlev && viewsector->e && viewsector->e->XFloor.lightlist.Size()) {
+	if(fixedlightlev < 0 && viewsector->e && viewsector->e->XFloor.lightlist.Size()) {
 		for(i = viewsector->e->XFloor.lightlist.Size() - 1; i >= 0; i--)
 			if(viewz <= viewsector->e->XFloor.lightlist[i].plane.Zat0()) {
 				rover = viewsector->e->XFloor.lightlist[i].caster;
@@ -2513,7 +2513,7 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 	if ((fake3D & FAKE3D_CLIPTOP)    && spr->gz >= sclipTop) return;
 
 	// kg3D - correct colors now
-	if (!fixedcolormap && !fixedlightlev && spr->sector->e && spr->sector->e->XFloor.lightlist.Size()) 
+	if (!fixedcolormap && fixedlightlev < 0 && spr->sector->e && spr->sector->e->XFloor.lightlist.Size()) 
 	{
 		if (!(fake3D & FAKE3D_CLIPTOP))
 		{
@@ -2578,7 +2578,7 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 			{
 				mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
 			}
-			if (fixedlightlev)
+			if (fixedlightlev >= 0)
 			{
 				spr->colormap = mybasecolormap->Maps + fixedlightlev;
 			}

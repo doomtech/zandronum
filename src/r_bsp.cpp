@@ -1172,7 +1172,7 @@ void R_Subsector (subsector_t *sub)
 	r_actualextralight = foggy ? 0 : extralight << 4;
 
 	// kg3D - fake lights
-	if (!fixedlightlev && frontsector->e && frontsector->e->XFloor.lightlist.Size())
+	if (fixedlightlev < 0 && frontsector->e && frontsector->e->XFloor.lightlist.Size())
 	{
 		light = P_GetPlaneLight(frontsector, &frontsector->ceilingplane, false);
 		basecolormap = light->extra_colormap;
@@ -1201,7 +1201,7 @@ void R_Subsector (subsector_t *sub)
 					frontsector->CeilingSkyBox
 					) : NULL;
 
-	if (!fixedlightlev && frontsector->e && frontsector->e->XFloor.lightlist.Size())
+	if (fixedlightlev < 0 && frontsector->e && frontsector->e->XFloor.lightlist.Size())
 	{
 		light = P_GetPlaneLight(frontsector, &frontsector->floorplane, false);
 		basecolormap = light->extra_colormap;
@@ -1273,7 +1273,7 @@ void R_Subsector (subsector_t *sub)
 				} else position = sector_t::floor;
 				frontsector = &tempsec;
 
-				if (!fixedlightlev && sub->sector->e->XFloor.lightlist.Size())
+				if (fixedlightlev < 0 && sub->sector->e->XFloor.lightlist.Size())
 				{
 					light = P_GetPlaneLight(sub->sector, &frontsector->floorplane, false);
 					basecolormap = light->extra_colormap;
@@ -1336,7 +1336,7 @@ void R_Subsector (subsector_t *sub)
 				frontsector = &tempsec;
 
 				tempsec.ceilingplane.ChangeHeight(-1);
-				if (!fixedlightlev && sub->sector->e->XFloor.lightlist.Size())
+				if (fixedlightlev < 0 && sub->sector->e->XFloor.lightlist.Size())
 				{
 					light = P_GetPlaneLight(sub->sector, &frontsector->ceilingplane, false);
 					basecolormap = light->extra_colormap;
