@@ -2307,16 +2307,6 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					{
 						// Bounce test and code moved to P_BounceActor
 						if (!P_BounceActor(mo, BlockingMobj))
-
-							// [BB] Inform the clients.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							{
-								SERVERCOMMANDS_PlayBounceSound( mo, true );
-								// [BB] We need to inform the clients about the new momentum and sync the position,
-								// but can only do this after calling P_ZMovement. Mark the actor accordingly.
-								mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
-							}
-
 						{	// Struck a player/creature
 						
 							// Potentially reward the player who shot this missile with an accuracy/precision medal.

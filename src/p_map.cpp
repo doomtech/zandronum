@@ -3698,6 +3698,16 @@ bool P_BounceActor (AActor *mo, AActor * BlockingMobj)
 		mo->velx = FixedMul (speed, finecosine[angle]);
 		mo->vely = FixedMul (speed, finesine[angle]);
 		mo->PlayBounceSound(true);
+
+		// [BB] Inform the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_PlayBounceSound( mo, true );
+			// [BB] We need to inform the clients about the new momentum and sync the position,
+			// but can only do this after calling P_ZMovement. Mark the actor accordingly.
+			mo->ulNetworkFlags |= NETFL_BOUNCED_OFF_ACTOR;
+		}
+
 		return true;
 	}
 	else return false;
