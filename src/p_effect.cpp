@@ -237,6 +237,7 @@ void P_RunEffects ()
 
 	// [CK] If the client wants to show particles at spawns, do so.
 	// Teams get special handling due to colors.
+	// [BB] DM and Coop starts need different treatment, too.
 	if ( cl_showspawns ) 
 	{
 		if ( teamgame ) 
@@ -250,11 +251,19 @@ void P_RunEffects ()
 				}
 			}
 		}
-		else 
+		else if ( deathmatch )
 		{
 			for ( ULONG i = 0; i < deathmatchstarts.Size( ); i++)
 			{
 				GenerateShowSpawnFountain( deathmatchstarts[i], grey4, pnum );
+			}
+		}
+		else
+		{
+			for ( ULONG i = 0; i < MAXPLAYERS; i++)
+			{
+				if ( playerstarts[i].type != 0 )
+					GenerateShowSpawnFountain( playerstarts[i], grey4, pnum );
 			}
 		}
 	}

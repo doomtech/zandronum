@@ -2607,7 +2607,10 @@ void WI_Drawer (void)
 		// [CK] Since we've now rendered the stats, take a screenshot once.
 		if ( bTakeIntermissionScreenshot )
 		{
-			M_ScreenShot( NULL );
+			// [BB] Depending on the renderer, the stats are possibly only scheduled
+			// for rendering, but not rendered yet. So tell the engine to make
+			// a screenshot as next game action.
+			G_ScreenShot( NULL );
 			bTakeIntermissionScreenshot = false;
 		}
 		break;
