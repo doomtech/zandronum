@@ -758,6 +758,8 @@ void D_Display ()
 		switch (gamestate)
 		{
 		case GS_FULLCONSOLE:
+// [BB] Added label
+drawfullconsole:
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			C_DrawConsole (false);
@@ -773,9 +775,8 @@ void D_Display ()
 			// [Leo] Don't do that while requesting/receiving a snapshot to prevent potential HOMs.
 			if ( ( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState( ) != CTS_ACTIVE ) )
 			{
-				// [BB] We still need to refresh the display.
-				hw2d = screen->Begin2D(false);
-				break;
+				// [BB] Keep drawing the console.
+				goto drawfullconsole;
 			}
 
 			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
