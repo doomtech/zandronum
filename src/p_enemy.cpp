@@ -1739,7 +1739,8 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params)
 #endif
 		// [SP] If you don't see any enemies in deathmatch, look for players (but only when friend to a specific player.)
 		if (actor->FriendPlayer == 0) return result;
-		if (result || !deathmatch) return true;
+		// [BB] Adapted to take into account teamgame.
+		if (result || (!deathmatch && !teamgame)) return true;
 
 
 	}	// [SP] if false, and in deathmatch, intentional fall-through
