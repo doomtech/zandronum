@@ -1666,7 +1666,7 @@ void R_RenderSegLoop ()
 			{
 				rw_offset = rw_offset_mid;
 			}
-			if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+			if (fixedcolormap != NULL || fixedlightlev >= 0 || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 			{
 				wallscan (x1, x2-1, walltop, wallbottom, swall, lwall, yscale);
 			}
@@ -1705,7 +1705,7 @@ void R_RenderSegLoop ()
 				{
 					rw_offset = rw_offset_top;
 				}
-				if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+				if (fixedcolormap != NULL || fixedlightlev >= 0 || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 				{
 					wallscan (x1, x2-1, walltop, wallupper, swall, lwall, yscale);
 				}
@@ -1747,7 +1747,7 @@ void R_RenderSegLoop ()
 				{
 					rw_offset = rw_offset_bottom;
 				}
-				if (fixedcolormap != NULL || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
+				if (fixedcolormap != NULL || fixedlightlev >= 0 || !(frontsector->e && frontsector->e->XFloor.lightlist.Size()))
 				{
 					wallscan (x1, x2-1, walllower, wallbottom, swall, lwall, yscale);
 				}
