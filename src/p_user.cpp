@@ -567,6 +567,7 @@ void APlayerPawn::Tick()
 
 void APlayerPawn::PostBeginPlay()
 {
+	Super::PostBeginPlay();
 	SetupWeaponSlots();
 }
 

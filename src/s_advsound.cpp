@@ -2324,3 +2324,6 @@ bool AMusicChanger::TriggerAction (AActor *triggerer, int activationType)
 	}
 	return Super::TriggerAction (triggerer, activationType);
 }
+
+// [BB] When AMusicChanger::PostBeginPlay() is added, it needs to get "Super::PostBeginPlay();"
+// due to a fix backport from GZDoom 1302.

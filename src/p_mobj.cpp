@@ -4859,10 +4859,11 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 			TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 	}
 
-	if (screen != NULL)
-	{
-		screen->StateChanged(actor);
-	}
+	// [BB] Moved to backport GZDoom revision 1302. Needs to be adapted when our GZDoom base is updated.
+	//if (screen != NULL)
+	//{
+	//	screen->StateChanged(actor);
+	//}
 
 	g_SpawnCycles.Unclock();
 	return actor;
@@ -4951,6 +4952,11 @@ void AActor::BeginPlay ()
 
 void AActor::PostBeginPlay ()
 {
+	// [BB] Backported from GZDoom revision 1302. Needs to be adapted when our GZDoom base is updated.
+	if (screen != NULL)
+	{
+		screen->StateChanged(this);
+	}
 	PrevAngle = angle;
 }
 
