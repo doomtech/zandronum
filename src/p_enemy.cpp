@@ -1580,7 +1580,8 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 	}
 	else if (actor->flags & MF_FRIENDLY)
 	{
-		if (!deathmatch) // [SP] If you don't see any enemies in deathmatch, look for players.
+		// [BB] Adapted to take into account teamgame.
+		if (!deathmatch && !teamgame) // [SP] If you don't see any enemies in deathmatch, look for players.
 			return P_LookForEnemies (actor, allaround);
 		else if ( P_LookForEnemies (actor, allaround) )
 			return true;
