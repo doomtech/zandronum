@@ -53,6 +53,7 @@
 -	- Fixed: CVAR sv_unblockplayers now works with different species. [Leonard]
 -	- Fixed: The scale of skins enforced through Weapon.PreferredSkin was ignored if the player class had +NOSKIN. [Torr Samaho]
 -	- Fixed: In "teamgame" based game modes, friendly monsters didn't attack players of opposing teams unless provoked. [Torr Samaho]
+-	- Fixed: If the packet with the end of a snapshot was dropped on a server with no active players, a client possibly waited forever for the snapshot to finish. [Torr Samaho]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]

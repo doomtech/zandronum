@@ -680,6 +680,26 @@ void CLIENT_Tick( void )
 		// Send data request and userinfo.
 		CLIENT_RequestSnapshot( );
 		break;
+
+	// [BB] We started receiving the snapshot. Make sure that we don't wait
+	// for it forever to finish, if the packet with the end of the snapshot
+	// was dropped and the server had no reason to send more packets.
+	case CTS_RECEIVINGSNAPSHOT:
+		if ( g_ulRetryTicks )
+		{
+			g_ulRetryTicks--;
+			break;
+		}
+
+		g_ulRetryTicks = GAMESTATE_RESEND_TIME;
+
+		// [BB] This will cause the server to send another reliable packet.
+		// This way, we notice whether we are missing the latest packets
+		// from the server.
+		CLIENTCOMMANDS_EndChat();
+
+		break;
+
 	default:
 
 		break;
@@ -3748,6 +3768,8 @@ static void client_BeginSnapshot( BYTESTREAM_s *pByteStream )
 	// Set the client connection state to receiving a snapshot. This disables things like
 	// announcer sounds.
 	CLIENT_SetConnectionState( CTS_RECEIVINGSNAPSHOT );
+	// [BB] If we don't receive the full snapshot in time, we need to request what's missing eventually.
+	g_ulRetryTicks = GAMESTATE_RESEND_TIME;
 }
 
 //*****************************************************************************
