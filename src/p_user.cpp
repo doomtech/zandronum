@@ -2214,7 +2214,8 @@ void P_CheckPlayerSprites()
 				mo->sprite = skins[lSkin].sprite;
 			}
 
-			if (lSkin != 0 && !(player->mo->flags4 & MF4_NOSKIN))
+			// [BB] PreferredSkin overrides NOSKIN.
+			if (lSkin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) )
 			{
 				defscaleY = skins[lSkin].ScaleY;
 				defscaleX = skins[lSkin].ScaleX;
