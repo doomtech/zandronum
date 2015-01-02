@@ -396,29 +396,6 @@ void P_BobWeapon (player_t *player, pspdef_t *psp, fixed_t *x, fixed_t *y)
 
 //============================================================================
 //
-// PROC A_WeaponBob
-//
-// The player's weapon will bob, but they cannot fire it at this time.
-//
-//---------------------------------------------------------------------------
-
-DEFINE_ACTION_FUNCTION(AInventory, A_WeaponBob)
-{
-	player_t *player = self->player;
-
-	if (player == NULL || player->ReadyWeapon == NULL)
-	{
-		return;
-	}
-
-	// Prepare for bobbing action.
-	player->cheats |= CF_WEAPONBOBBING;
-	player->psprites[ps_weapon].sx = 0;
-	player->psprites[ps_weapon].sy = WEAPONTOP;
-}
-
-//---------------------------------------------------------------------------
-//
 // PROC A_WeaponReady
 //
 // Readies a weapon for firing or bobbing with its three ancillary functions,
