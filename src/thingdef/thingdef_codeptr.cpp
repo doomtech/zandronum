@@ -2128,6 +2128,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 
 			if ( mo->Translation )
 				SERVERCOMMANDS_SetThingTranslation( mo );
+
+			// [BB] To properly handle actor-actor bouncing, the client must know the target.
+			if ( mo->bouncetype != BOUNCE_None )
+				SERVERCOMMANDS_SetThingTarget ( mo );
 		}
 
 		// [BC] Flag this actor as being client-spawned.
