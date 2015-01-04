@@ -1894,14 +1894,10 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, const char *ps
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command( SVC_SETTHINGSOUND );
 	command.addShort( pActor->lNetID );
 	command.addByte( ulSound );
-	command.addShort( soundIndex );
+	command.addString( pszSound );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -2808,13 +2804,9 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command( SVC_WEAPONSOUND );
 	command.addByte( ulPlayer );
-	command.addShort( soundIndex );
+	command.addString( pszSound );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -3443,13 +3435,9 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command ( SVC_SOUND );
 	command.addByte ( lChannel );
-	command.addShort ( soundIndex );
+	command.addString ( pszSound );
 	command.addByte ( LONG(fVolume*127) );
 	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -3469,14 +3457,10 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 		return;
 	}
 
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command ( bRespectActorPlayingSomething ? SVC_SOUNDACTORIFNOTPLAYING : SVC_SOUNDACTOR );
 	command.addShort( pActor->lNetID );
 	command.addShort( lChannel );
-	command.addShort( soundIndex );
+	command.addString( pszSound );
 	command.addByte( LONG( fVolume * 127 ));
 	command.addByte( NETWORK_AttenuationFloatToInt ( fAttenuation ));
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -3486,16 +3470,12 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 //
 void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command ( SVC_SOUNDPOINT );
 	command.addShort ( lX>>FRACBITS );
 	command.addShort ( lY>>FRACBITS );
 	command.addShort ( lZ>>FRACBITS );
 	command.addByte ( lChannel );
-	command.addShort ( soundIndex );
+	command.addString ( pszSound );
 	command.addByte ( LONG(fVolume*127) );
 	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -3505,12 +3485,8 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const 
 //
 void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	const int soundIndex = S_FindSound( pszSound );
-	if ( soundIndex <= 0 )
-		return;
-
 	NetCommand command ( SVC_ANNOUNCERSOUND );
-	command.addShort ( soundIndex );
+	command.addString ( pszSound );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 
@@ -4851,41 +4827,4 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
 	command.addFloat( this->Time );
 	command.sendCommandToOneClient( ulClient );
-}
-
-//*****************************************************************************
-// [CK]
-void SERVERCOMMANDS_SendSndinfoLookupTable( ULONG ulClient )
-{
-	if ( SERVER_IsValidClient( ulClient ) == false )
-		return;
-
-	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
-	if ( pClient == NULL )
-		return;
-
-	// This should never happen, but just in case...
-	int soundTableSize = static_cast<int>( S_sfx.Size( ) );
-	if ( soundTableSize > 0x7FFE )
-	{
-		Printf( PRINT_HIGH, "\\cgWarning: This mod exceeds the sound limit of 32766 sounds. Some sounds will not play.\n" );
-		soundTableSize = 0x7FFE;
-	}
-
-	// Send the first index of zero as the table header.
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SNDINFOLOOKUPTABLEENTRY );
-	command.addShort ( 0 );
-	command.addShort ( static_cast<int>( S_sfx.Size( ) ) );
-	command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
-
-	// Send every sound.
-	for ( int si = 1; si <= soundTableSize; si++ )
-	{
-		NetCommand command ( SVC_EXTENDEDCOMMAND );
-		command.addByte ( SVC2_SNDINFOLOOKUPTABLEENTRY );
-		command.addShort ( si );
-		command.addString ( S_sfx[si - 1].name.GetChars( ) ); // Send index 0 as 'slot 1', the client will know what to do.
-		command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
-	}
 }
