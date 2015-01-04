@@ -3182,7 +3182,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		// [RH] check for jump
 		// [Dusk] Apply cl_spectatormove
 		if ( cmd->ucmd.buttons & BT_JUMP )
-			player->mo->velz = 3 * cl_spectatormove * FRACUNIT;
+			player->mo->velz = FixedMul(3 * FRACUNIT, FLOAT2FIXED(cl_spectatormove));
 
 		if ( cmd->ucmd.upmove == -32768 )
 		{ // Only land if in the air
@@ -3194,7 +3194,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 		// [Dusk] Apply cl_spectatormove here
 		else if ( cmd->ucmd.upmove != 0 )
-			player->mo->velz = (cmd->ucmd.upmove << 9) * cl_spectatormove;
+			player->mo->velz = FixedMul(cmd->ucmd.upmove << 9, FLOAT2FIXED(cl_spectatormove));
 
 		// Calculate player's viewheight.
 		P_CalcHeight( player );
