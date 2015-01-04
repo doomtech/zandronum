@@ -1839,6 +1839,10 @@ void G_FinishTravel ()
 			if ( pawn->player->health <= 0 )
 				pawn->player->playerstate = PST_REBORN;
 
+			// [TP] Unlike P_SpawnPlayer, G_CooperativeSpawnPlayer causes the dummy player to eat
+			// items that occupy its spawn spot and and we don't want that.
+			pawndup->flags &= ~MF_PICKUP;
+
 			// The player being spawned here is a short lived dummy and
 			// must not start any ENTER script or big problems will happen.
 			//pawndup = P_SpawnPlayer (&playerstarts[pawn->player - players], true);
