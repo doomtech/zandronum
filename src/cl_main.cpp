@@ -10597,7 +10597,7 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].bonuscount = BONUSADD;
 
 	// Play the announcer pickup entry as well.
-	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ))
+	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ) && cl_announcepickups )
 		ANNOUNCER_PlayEntry( cl_announcer, pInventory->PickupAnnouncerEntry( ));
 
 	// Finally, destroy the temporarily spawned inventory item.

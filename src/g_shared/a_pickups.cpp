@@ -37,10 +37,6 @@ static FRandom pr_restore ("RestorePos");
 
 TArray<unsigned short> g_keysFound;
 
-// [Dark-Assassin] Announcer Pickup ------------------------------------------------
-// Toggle to play Announcer Sounds on Pickups
-CVAR (Bool, cl_announcepickups, 1, CVAR_ARCHIVE);
-
 IMPLEMENT_CLASS (AAmmo)
 
 //===========================================================================
