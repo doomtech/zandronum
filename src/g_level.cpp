@@ -2136,6 +2136,11 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 		<< level.maptime
 		<< i;
 
+	if (SaveVersion >= 3313)
+	{
+		arc << level.nextmusic;
+	}
+
 	// Hub transitions must keep the current total time
 	if (!hubLoad)
 		level.totaltime = i;
