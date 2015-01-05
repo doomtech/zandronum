@@ -1851,7 +1851,7 @@ void G_FinishTravel ()
 			// [BC]
 			lSavedNetID = pawndup->lNetID;
 			pawndup = pawn->player->mo;
-			if (!changeflags & CHANGELEVEL_KEEPFACING)
+			if (!(changeflags & CHANGELEVEL_KEEPFACING))
 			{
 				pawn->angle = pawndup->angle;
 				pawn->pitch = pawndup->pitch;
