@@ -1501,7 +1501,9 @@ class CommandGameMode : public SBarInfoCommandFlowControl
 				((modes & TEAMLMS) && teamlms) ||
 				((modes & SURVIVAL) && survival) ||
 				((modes & INSTAGIB) && instagib) ||
-				((modes & BUCKSHOT) && buckshot), block, statusBar);
+				((modes & BUCKSHOT) && buckshot) ||
+				((modes & DOMINATION) && domination) ||
+				((modes & CUSTOMTEAMGAME) && teamgame && !(oneflagctf || ctf || skulltag || domination)), block, statusBar);
 		}
 	protected:
 		static const char* const	modeNames[];
@@ -1523,6 +1525,8 @@ class CommandGameMode : public SBarInfoCommandFlowControl
 			SURVIVAL = 0x1000,
 			INSTAGIB = 0x2000,
 			BUCKSHOT = 0x4000,
+			DOMINATION = 0x8000,
+			CUSTOMTEAMGAME = 0x10000
 		};
 
 		unsigned int	modes;
@@ -1546,6 +1550,8 @@ const char* const CommandGameMode::modeNames[] =
 	"survival",
 	"instagib",
 	"buckshot",
+	"domination",
+	"customteamgame",
 
 	NULL
 };
