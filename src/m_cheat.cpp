@@ -613,7 +613,7 @@ void GiveSpawner (player_t *player, const PClass *type, int amount)
 			// [BB] This construction is more or less a hack, but at least the give cheats are now working.
 			SERVER_GiveInventoryToPlayer( player, item );
 			// [BC] Play the announcer sound.
-			if ( players[consoleplayer].camera == players[consoleplayer].mo )
+			if ( players[consoleplayer].camera == players[consoleplayer].mo && cl_announcepickups )
 				ANNOUNCER_PlayEntry( cl_announcer, item->PickupAnnouncerEntry( ));
 		}
 	}

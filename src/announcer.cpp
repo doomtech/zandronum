@@ -565,6 +565,10 @@ static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 
 CVAR( Int, cl_announcer, 0, CVAR_ARCHIVE )
 
+// [Dark-Assassin] Announcer Pickup ------------------------------------------------
+// Toggle to play Announcer Sounds on Pickups
+CVAR (Bool, cl_announcepickups, 1, CVAR_ARCHIVE);
+
 // Display all the announce profiles that are loaded.
 CCMD( announcers )
 {

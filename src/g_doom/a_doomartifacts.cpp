@@ -144,7 +144,7 @@ bool ARandomPowerup::Use (bool pickup)
 		if ( bReturnValue )
 		{
 			// [BC] If the item has an announcer sound, play it.
-			if ( Owner->CheckLocalView( consoleplayer ))
+			if ( Owner->CheckLocalView( consoleplayer ) && cl_announcepickups )
 				ANNOUNCER_PlayEntry( cl_announcer, pItem->PickupAnnouncerEntry( ));
 
 			// [BC] Tell the client that he successfully picked up the item.

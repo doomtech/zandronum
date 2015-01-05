@@ -75,5 +75,6 @@ const char	*ANNOUNCER_GetName( ULONG ulIdx );
 //  EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Int, cl_announcer )
+EXTERN_CVAR( Bool, cl_announcepickups )
 
 #endif	// __ANNOUNCER_H__

@@ -56,6 +56,7 @@
 -	- Fixed: If the packet with the end of a snapshot was dropped on a server with no active players, a client possibly waited forever for the snapshot to finish. [Torr Samaho]
 -	- Fixed: The client didn't let bouncing missiles spawned by A_SpawnItemEx pass through the player who spawned the missiles. [Torr Samaho]
 -	- Fixed: After a map change, items at player starts would be inadvertently removed. [Dusk]
+-	- Fixed: CVAR cl_announcepickups didn't work in certain cases. [Leonard]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]
