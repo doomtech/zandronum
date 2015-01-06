@@ -37,6 +37,7 @@
 #include <stdarg.h>
 #include "basictypes.h"
 #include "tarray.h" // [TP]
+#include "zstring.h" // [TP]
 
 struct event_t;
 
@@ -91,5 +92,10 @@ void C_ClearTabCommands();		// Removes all tab commands
 // [TP] For RCON clients
 class FString;
 TArray<FString> C_GetTabCompletes (const FString& part);
+
+// [TP]
+void C_StartCapture();
+FString C_EndCapture();
+bool C_IsCapturing();
 
 #endif

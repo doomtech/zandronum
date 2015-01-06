@@ -1056,11 +1056,10 @@ CCMD(linetarget)
 	P_AimLineAttack(players[consoleplayer].mo,players[consoleplayer].mo->angle,MISSILERANGE, &linetarget, 0);
 	if (linetarget)
 	{
-		// [Dusk] If we're the client, ask the server for information about the
-		// linetarget. The client doesn't know the health of the actor.
+		// [TP] If we're the client, ask the server for information about the linetarget.
 		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->lNetID != -1 )
 		{
-			CLIENTCOMMANDS_Linetarget( linetarget );
+			CLIENTCOMMANDS_InfoCheat( linetarget, false );
 			return;
 		}
 
@@ -1082,6 +1081,13 @@ CCMD(info)
 		&linetarget, 0,	ALF_CHECKNONSHOOTABLE|ALF_FORCENOSMART);
 	if (linetarget)
 	{
+		// [TP] If we're the client, ask the server for information about the linetarget.
+		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->lNetID != -1 )
+		{
+			CLIENTCOMMANDS_InfoCheat( linetarget, true );
+			return;
+		}
+
 		Printf("Target=%s, Health=%d, Spawnhealth=%d\n",
 			linetarget->GetClass()->TypeName.GetChars(),
 			linetarget->health,

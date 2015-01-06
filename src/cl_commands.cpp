@@ -594,11 +594,12 @@ void CLIENTCOMMANDS_FullUpdateReceived ( void )
 
 //*****************************************************************************
 // [Dusk]
-void CLIENTCOMMANDS_Linetarget( AActor* mobj )
+void CLIENTCOMMANDS_InfoCheat( AActor* mobj, bool extended )
 {
 	if ( mobj == NULL || mobj->lNetID == -1 )
 		return;
 
-	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_LINETARGET );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INFOCHEAT );
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, mobj->lNetID );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, extended );
 }

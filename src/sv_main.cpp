@@ -163,7 +163,7 @@ static	bool	server_MorphCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_CheckForClientMinorCommandFlood( ULONG ulClient );
 static	bool	server_ProcessMoveCommand( CLIENT_MOVE_COMMAND_s &ClientMoveCmd, const ULONG ulClient );
 static	bool	server_CheckJoinPassword( const FString& clientPassword );
-static	bool	server_Linetarget( BYTESTREAM_s* pByteStream );
+static	bool	server_InfoCheat( BYTESTREAM_s* pByteStream );
 static	bool	server_CheckLogin( const ULONG ulClient );
 
 // [RC]
@@ -4456,10 +4456,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// [BB] The client just confirmed receiving the full update.
 		SERVER_GetClient ( g_lCurrentClient )->bFullUpdateIncomplete = false;
 		return ( false );
-	case CLC_LINETARGET:
+	case CLC_INFOCHEAT:
 
-		// [Dusk]
-		return ( server_Linetarget( pByteStream ));
+		// [TP] Client wishes to use the linetarget or info cheat on an actor.
+		return ( server_InfoCheat( pByteStream ));
 
 	case CLC_SRP_USER_REQUEST_LOGIN:
 	case CLC_SRP_USER_START_AUTHENTICATION:
@@ -6307,16 +6307,17 @@ static bool server_CheckLogin ( const ULONG ulClient )
 
 //*****************************************************************************
 //
-// [Dusk] Client wishes to apply the linetarget cheat on a particularly
+// [TP] Client wishes to apply the linetarget or info cheat on a particularly
 // interesting actor but cannot because they don't know the health of it.
 // Let's help it out. :)
 //
-static bool server_Linetarget( BYTESTREAM_s *pByteStream )
+static bool server_InfoCheat( BYTESTREAM_s *pByteStream )
 {
 	LONG lID = NETWORK_ReadShort( pByteStream );
 	AActor* linetarget = CLIENT_FindThingByNetID( lID );
+	bool extended = !!NETWORK_ReadByte( pByteStream );
 
-	// [Dusk] Except not if we don't allow cheats.
+	// [TP] Except not if we don't allow cheats.
 	if ( sv_cheats == false )
 	{
 		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat with sv_cheats being false!" );
@@ -6334,6 +6335,17 @@ static bool server_Linetarget( BYTESTREAM_s *pByteStream )
 		linetarget->GetClass()->TypeName.GetChars(),
 		linetarget->health,
 		linetarget->GetDefault()->health);
+
+	// [TP] The info cheat is exactly the same as linetarget but also calls PrintMiscActorInfo on
+	// the actor. However, this prints the result to the console so to keep code changes to a minimum
+	// the result must be captured.
+	if ( extended )
+	{
+		C_StartCapture();
+		PrintMiscActorInfo( linetarget );
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "%s", C_EndCapture().GetChars() );
+	}
+
 	return false;
 }
 

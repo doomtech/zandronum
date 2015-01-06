@@ -109,6 +109,12 @@ int			ConBottom, ConScroll, RowAdjust;
 int			CursorTicker;
 constate_e	ConsoleState = c_up;
 
+// [TP] Some functions print result directly to console.. when we need it to a string
+// instead. To keep as much ZDoom code unchanged, here's a hack to capture the result
+// into a string instead.
+static bool g_IsCapturing = false;
+static FString g_CaptureBuffer;
+
 static char ConsoleBuffer[CONSOLESIZE];
 static char *Lines[CONSOLELINES];
 static bool LineJoins[CONSOLELINES];
@@ -932,6 +938,13 @@ int PrintString (int printlevel, const char *outline)
 {
 	if (printlevel < msglevel || *outline == '\0')
 	{
+		return 0;
+	}
+
+	// [TP] Possibly capture it instead
+	if ( C_IsCapturing() )
+	{
+		g_CaptureBuffer += outline;
 		return 0;
 	}
 
@@ -2425,4 +2438,30 @@ TArray<FString> C_GetTabCompletes (const FString& part)
 	}
 
 	return result;
+}
+
+//
+// [TP] Begins capture mode
+//
+void C_StartCapture()
+{
+	g_IsCapturing = true;
+	g_CaptureBuffer = "";
+}
+
+//
+// [TP] Ends capture mode and returns the result
+//
+FString C_EndCapture()
+{
+	g_IsCapturing = false;
+	return g_CaptureBuffer;
+}
+
+//
+// [TP] Are we currently capturing console output?
+//
+bool C_IsCapturing()
+{
+	return g_IsCapturing;
 }
