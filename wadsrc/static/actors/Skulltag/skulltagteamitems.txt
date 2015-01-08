@@ -30,7 +30,7 @@ ACTOR BlueFlag : Flag 5130
 {
 	SpawnID 177
 	Radius 20
-	Height 16
+	Height 48
 	+INTERHUBSTRIP
 	+NOTDMATCH
 	Inventory.PickupSound "misc/k_pkup"
@@ -58,7 +58,7 @@ ACTOR RedFlag : Flag 5131
 {
 	SpawnID 178
 	Radius 20
-	Height 16
+	Height 48
 	+INTERHUBSTRIP
 	+NOTDMATCH
 	Inventory.PickupSound "misc/k_pkup"
@@ -86,7 +86,7 @@ ACTOR WhiteFlag : Flag 5132 native
 {
 	SpawnID 179 
 	Radius 20
-	Height 16
+	Height 48
 	+NOTDMATCH
 	Inventory.PickupMessage "$PICKUP_WHITEFLAG"
 	Inventory.Icon "WFLAB0"
@@ -108,7 +108,7 @@ ACTOR WhiteFlag : Flag 5132 native
 ACTOR GreenFlag : Flag 5133
 {
 	Radius 20
-	Height 16
+	Height 48
 	+INTERHUBSTRIP
 	+NOTDMATCH
 	Inventory.PickupSound "misc/k_pkup"
@@ -135,7 +135,7 @@ ACTOR GreenFlag : Flag 5133
 ACTOR GoldFlag : Flag 5134
 {
 	Radius 20
-	Height 16
+	Height 48
 	+INTERHUBSTRIP
 	+NOTDMATCH
 	Inventory.PickupSound "misc/k_pkup"

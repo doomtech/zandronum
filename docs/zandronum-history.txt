@@ -61,6 +61,7 @@
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water]
 !	- Changed: Free spectators can now use the noclip cheat in demos. [Leonard]
+!	- Changed the CTF flag height from 16 to 48, which will prevent players from clipping through them without picking them up on stairwells or uneven terrain. [Striker]
 
 
 1.3
