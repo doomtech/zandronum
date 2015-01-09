@@ -66,12 +66,25 @@
 #include "d_netinf.h"
 
 // [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
-bool ActorUnblockPlayers ( const AActor *pActor1, const AActor *pActor2 )
+bool P_CheckUnblock ( AActor *pActor1, AActor *pActor2 )
 {
 	if ( ( pActor1 == NULL ) || ( pActor2 == NULL ) )
 		return false;
 
-	return ( ( zadmflags & ZADF_UNBLOCK_PLAYERS ) && ( pActor1->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) && ( pActor2->IsKindOf(RUNTIME_CLASS(APlayerPawn)) ) );
+	if (( pActor1->IsKindOf( RUNTIME_CLASS( APlayerPawn )) == false )
+		 || ( pActor2->IsKindOf( RUNTIME_CLASS( APlayerPawn )) == false ))
+	{
+		return false;
+	}
+
+	// [TP] Unblock if sv_unblockallies is true and these are teammates.
+	if (( zadmflags & ZADF_UNBLOCK_ALLIES ) && ( pActor1->IsTeammate( pActor2 )))
+		return true;
+
+	if ( zadmflags & ZADF_UNBLOCK_PLAYERS )
+		return true;
+
+	return false;
 }
 
 #define WATER_SINK_FACTOR		3
@@ -950,7 +963,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		return true;
 
 	// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-	if (ActorUnblockPlayers(tm.thing, thing) || ((tm.thing->flags6 & MF6_THRUSPECIES) && (tm.thing->GetSpecies() == thing->GetSpecies())))
+	if (P_CheckUnblock(tm.thing, thing) || ((tm.thing->flags6 & MF6_THRUSPECIES) && (tm.thing->GetSpecies() == thing->GetSpecies())))
 		return true;
 
 	tm.thing->BlockingMobj = thing;
@@ -1935,7 +1948,7 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 			continue;
 		}
 		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-		if (ActorUnblockPlayers(actor, thing) || ((actor->flags6 & MF6_THRUSPECIES) && (thing->GetSpecies() == actor->GetSpecies())))
+		if (P_CheckUnblock(actor, thing) || ((actor->flags6 & MF6_THRUSPECIES) && (thing->GetSpecies() == actor->GetSpecies())))
 		{
 			continue;
 		}
@@ -6215,7 +6228,7 @@ int P_PushUp (AActor *thing, FChangePosition *cpos)
 		// Or would that risk breaking established behavior? THRUGHOST, like MTHRUSPECIES,
 		// is normally for projectiles which would have exploded by now anyway...
 		// [BB] Adapted this for ZADF_UNBLOCK_PLAYERS.
-		if (ActorUnblockPlayers(thing, intersect) || (thing->flags6 & MF6_THRUSPECIES && thing->GetSpecies() == intersect->GetSpecies()))
+		if (P_CheckUnblock(thing, intersect) || (thing->flags6 & MF6_THRUSPECIES && thing->GetSpecies() == intersect->GetSpecies()))
 			continue;
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||
 			(!(intersect->flags3 & MF3_ISMONSTER) &&

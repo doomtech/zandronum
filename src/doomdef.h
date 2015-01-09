@@ -352,6 +352,9 @@ enum
 	// [CK] Force blood brightness to max scalar on clients to emulate vanilla screen damage
 	// [Dusk] Now a dmflag.
 	ZADF_MAX_BLOOD_SCALAR = 1 << 13,
+
+	// [TP] Like ZADF_UNBLOCK_PLAYERS except only for teammates.
+	ZADF_UNBLOCK_ALLIES = 1 << 14,
 };
 
 // [RH] Compatibility flags.

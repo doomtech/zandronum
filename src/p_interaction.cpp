@@ -1278,10 +1278,15 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		// [Dusk] Unblocked players don't telefrag each other, they
 		// just pass through each other.
 		// [BB] Voodoo dolls still telefrag.
-		if (( zadmflags & ZADF_UNBLOCK_PLAYERS ) &&
-			( source != NULL ) && ( source->player ) && ( source->player->mo == source ) && ( target->player ) && ( target->player->mo == target ) &&
-			( mod == NAME_Telefrag || mod == NAME_SpawnTelefrag ))
+		if ( P_CheckUnblock ( source, target )
+			&& ( source->player )
+			&& ( source->player->mo == source )
+			&& ( target->player )
+			&& ( target->player->mo == target )
+			&& ( mod == NAME_Telefrag || mod == NAME_SpawnTelefrag ))
+		{
 			return;
+		}
 
 		if (!(flags & DMG_NO_FACTOR))
 		{

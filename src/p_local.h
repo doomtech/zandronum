@@ -461,6 +461,9 @@ bool	Check_Sides(AActor *, int, int);					// phares
 // [RH] 
 const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymove);
 
+// [TP]
+bool P_CheckUnblock ( AActor *pActor1, AActor *pActor2 );
+
 //----------------------------------------------------------------------------------
 //
 // Added so that in the source there's a clear distinction between
