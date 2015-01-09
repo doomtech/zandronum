@@ -358,9 +358,9 @@ void CLIENTCOMMANDS_Spectate( void )
 //
 void CLIENTCOMMANDS_RequestJoin( const char *pszJoinPassword )
 {
-	if (( sv_limitcommands ) && ( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 10 ))))
+	if (( sv_limitcommands ) && ( g_ulLastJoinTime > 0 ) && ( (ULONG)gametic < ( g_ulLastJoinTime + ( TICRATE * 3 ))))
 	{
-		Printf( "You must wait at least 10 seconds before joining again.\n" );
+		Printf( "You must wait at least 3 seconds before joining again.\n" );
 		return;
 	}
 
@@ -406,9 +406,9 @@ void CLIENTCOMMANDS_Suicide( void )
 //
 void CLIENTCOMMANDS_ChangeTeam( const char *pszJoinPassword, LONG lDesiredTeam )
 {
-	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
+	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 3 ))))
 	{
-		Printf( "You must wait at least 10 seconds before changing teams again.\n" );
+		Printf( "You must wait at least 3 seconds before changing teams again.\n" );
 		return;
 	}
 

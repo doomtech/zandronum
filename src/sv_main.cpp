@@ -5458,7 +5458,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// If this player has tried to change teams recently, ignore the request.
 	// [BB] Don't check this when the player never tried to join yet, i.e. when g_aClients[g_lCurrentClient].ulLastChangeTeamTime == 0.
-	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )) && ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime > 0 ) )
+	if (( sv_limitcommands ) && !( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 3 )) && ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime > 0 ) )
 		return ( false );
 
 	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
