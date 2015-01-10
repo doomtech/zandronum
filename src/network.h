@@ -375,6 +375,7 @@ enum
 	ATTN_INT_NORM,
 	ATTN_INT_IDLE,
 	ATTN_INT_STATIC,
+	ATTN_INT_COUNT
 };
 
 int				NETWORK_AttenuationFloatToInt ( const float fAttenuation );

@@ -84,6 +84,7 @@
 #include "g_level.h"
 #include "p_lnspec.h"
 #include "cmdlib.h"
+#include "templates.h"
 
 #include "md5.h"
 #include "network/sv_auth.h"
@@ -1155,10 +1156,11 @@ int NETWORK_AttenuationFloatToInt ( const float fAttenuation )
 		return ATTN_INT_IDLE;
 	else if ( fAttenuation == ATTN_STATIC )
 		return ATTN_INT_STATIC;
-	else
-	{
-		Printf ( "NETWORK_AttenuationFloatToInt: Warning unknown attenuation value\n" );
-		return ATTN_INT_NORM;
+	else if ( fAttenuation > 0.f )
+		return ATTN_INT_COUNT + clamp<int>( fAttenuation * 25.f, 0, 255 - ATTN_INT_COUNT );
+	else {
+		Printf( "NETWORK_AttenuationFloatToInt: Negative attenuation value: %f\n", fAttenuation );
+		return 255; // Don't let the clients hear it, it could be dangerous.
 	}
 }
 
@@ -1180,9 +1182,9 @@ float NETWORK_AttenuationIntToFloat ( const int iAttenuation )
 	case ATTN_INT_STATIC:
 		return ATTN_STATIC;
 	default:
-		Printf ( "NETWORK_AttenuationIntToFloat: Warning unknown attenuation value\n" );
-		return ATTN_NORM;
+		break;
 	}
+	return float( iAttenuation - ATTN_INT_COUNT ) / 25.f;
 }
 
 //*****************************************************************************
