@@ -4510,6 +4510,11 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				}
 			}
 
+			// [BB] Whatever the client is supposed to predict, it may not handle the
+			// damage, which is done below.
+			if ( NETWORK_InClientMode( ) )
+				return NULL;
+
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
 			if (puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 			{
