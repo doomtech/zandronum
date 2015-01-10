@@ -26,7 +26,7 @@
 +	- Added a menu entry to for the GZDoom HUD, i.e. CVAR hud_althud. [Torr Samaho]
 +	- Added a CVAR (wi_autoscreenshot) to allow screenshots to automatically be taken upon entering the intermission screen. [Water, Torr Samaho]
 +	- Added CVAR cl_clientsidepuffs which allows clients to predict puffs, which makes bullet puffs from hitscan weapons appear instantly. [Water, Torr Samaho]
-+	- Added bloodsplatter effects to also be performed when cl_hitscandecalhack is set to true. [Water]
++	- Added bloodsplatter effects to also be performed when cl_hitscandecalhack is set to true. [Water, Torr Samaho]
 +	- The server now kicks its clients when it shuts down. [Dusk]
 +	- Added support for RCON client tab-completion. This bumps the protocol version to 4, but clients using protocol 3 are still supported. [Dusk]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]

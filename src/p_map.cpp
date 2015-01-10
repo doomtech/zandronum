@@ -4242,6 +4242,12 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 						trace.Actor, srcangle, srcpitch);
 				}
 			}
+
+			// [BB] Whatever the client is supposed to predict, it may not handle the
+			// damage, which is done below.
+			if ( NETWORK_InClientMode( ) )
+				return NULL;
+
 			if (damage) 
 			{
 				int dmgflags = DMG_INFLICTOR_IS_PUFF;
