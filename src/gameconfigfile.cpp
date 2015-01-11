@@ -345,6 +345,15 @@ void FGameConfigFile::DoGlobalSetup ()
 				}
 			}
 		}
+
+		// [TP] Same as above except for Zandronum-specific stuff
+		lastver = GetValueForKey( "Version-" GAMESIG );
+
+		if ( lastver != NULL )
+		{
+			// [TP] Insert migration here.
+			// double last = atof( lastver );
+		}
 	}
 }
 
@@ -600,6 +609,7 @@ void FGameConfigFile::ArchiveGlobalData ()
 	SetSection ("LastRun", true);
 	ClearCurrentSection ();
 	SetValueForKey ("Version", LASTRUNVERSION);
+	SetValueForKey( "Version-" GAMESIG, LASTZARUNVERSION ); // [TP]
 
 	SetSection ("GlobalSettings", true);
 	ClearCurrentSection ();

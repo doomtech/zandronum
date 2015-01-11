@@ -87,6 +87,9 @@
 // be able to migrate in FGameConfigFile::DoGlobalSetup().
 #define LASTRUNVERSION "210"
 
+// [TP] Same as above except for Zandronum-specific changes
+#define LASTZARUNVERSION "181"
+
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
