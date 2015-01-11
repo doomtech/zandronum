@@ -5427,7 +5427,6 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 {
 	LONG		lDesiredTeam;
 	bool		bOnTeam, bAutoSelectTeam = false;
-	UCVarValue	Val;
 	FString		clientJoinPassword;
 
 	// Read in the join password.
