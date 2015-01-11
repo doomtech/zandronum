@@ -657,7 +657,7 @@ void SERVER_Tick( void )
 			if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
 				continue;
 
-			if ( g_aClients[ulIdx].lLastMoveTick != gametic && g_aClients[ulIdx].lOverMovementLevel > 0 )
+			if ( g_aClients[ulIdx].lLastMoveTick != gametic && g_aClients[ulIdx].lOverMovementLevel > -MAX_OVERMOVEMENT_LEVEL )
 			{
 				g_aClients[ulIdx].lOverMovementLevel--;
 //					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
