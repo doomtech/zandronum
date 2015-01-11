@@ -590,10 +590,12 @@ void SERVER_Tick( void )
 			if ( SERVER_IsValidClient( ulIdx ) == false )
 				continue;
 
-			for ( unsigned int i = 0; i < MIN ( g_aClients[ulIdx].MoveCMDs.Size(), 2u ); ++i )
+			// [BB] Since the commands are in a priority queue, we process
+			// the commands based on their gametic, lowest first.
+			for ( unsigned int i = 0; i < MIN ( g_aClients[ulIdx].MoveCMDs.size(), 2u ); ++i )
 			{
-				server_ProcessMoveCommand( g_aClients[ulIdx].MoveCMDs[0], ulIdx );
-				g_aClients[ulIdx].MoveCMDs.Delete( 0 );
+				server_ProcessMoveCommand( g_aClients[ulIdx].MoveCMDs.top(), ulIdx );
+				g_aClients[ulIdx].MoveCMDs.pop();
 			}
 		}
 
@@ -657,7 +659,7 @@ void SERVER_Tick( void )
 			if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
 				continue;
 
-			if ( g_aClients[ulIdx].lLastMoveTick != gametic && g_aClients[ulIdx].lOverMovementLevel > 0 )
+			if ( g_aClients[ulIdx].lLastMoveTick != gametic && g_aClients[ulIdx].lOverMovementLevel > -MAX_OVERMOVEMENT_LEVEL )
 			{
 				g_aClients[ulIdx].lOverMovementLevel--;
 //					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
@@ -4901,7 +4903,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	// Don't timeout.
 	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
 
-	g_aClients[g_lCurrentClient].MoveCMDs.Push ( clientMoveCmd );
+	g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
 
 	return false;
 }
