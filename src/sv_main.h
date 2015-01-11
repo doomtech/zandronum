@@ -57,6 +57,7 @@
 #include "networkshared.h"
 #include "s_sndseq.h"
 #include <list>
+#include <queue>
 
 //*****************************************************************************
 //	DEFINES
@@ -174,14 +175,20 @@ typedef struct
 } STORED_QUERY_IP_s;
 
 //*****************************************************************************
-typedef struct
+struct CLIENT_MOVE_COMMAND_s
 {
 	ticcmd_t		cmd;
 	angle_t			angle;
 	angle_t			pitch;
 	USHORT			usWeaponNetworkIndex;
 	ULONG				ulGametic;
-} CLIENT_MOVE_COMMAND_s;
+
+	// [BB] We want to process the command from the lowest gametic first.
+	// This puts the lowest gametic on top of the queue. 
+	bool operator<(const CLIENT_MOVE_COMMAND_s& other) const {
+	  return ( ulGametic > other.ulGametic );
+	}
+};
 
 //*****************************************************************************
 typedef struct
@@ -301,7 +308,7 @@ typedef struct
 	LONG			lLastActionTic;
 
 	// [BB] Buffer storing all movement commands received from the client we haven't executed yet.
-	TArray<CLIENT_MOVE_COMMAND_s>	MoveCMDs;
+	std::priority_queue<CLIENT_MOVE_COMMAND_s>	MoveCMDs;
 
 	// [BB] Variables for the account system
 	FString username;
