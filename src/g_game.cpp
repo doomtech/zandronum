@@ -3307,11 +3307,18 @@ void GAME_ResetMap( bool bRunEnterScripts )
 					SERVERCOMMANDS_DestroyPolyDoor( pPolyAction->GetPolyObj() );
 			}
 			// [BB] We also have to destroy all other movers.
-			else
+			// [EP/TP] Ensure 'DestroyMovePoly' is called on the poly movers, not on the poly rotors.
+			else if ( pPolyAction->IsKindOf ( RUNTIME_CLASS( DMovePoly ) ) )
 			{
 				// [BB] Tell clients to destroy this mover.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_DestroyMovePoly( pPolyAction->GetPolyObj() );
+			}
+			// [EP/TP] Deal with the poly rotors, too.
+			else if ( pPolyAction->IsKindOf ( RUNTIME_CLASS( DRotatePoly ) ) )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyRotatePoly( pPolyAction->GetPolyObj() );
 			}
 
 			// [BB] Tell clients to destroy the door and stop its sound.
