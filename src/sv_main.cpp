@@ -117,6 +117,7 @@
 #include "po_man.h"
 #include "network/cl_auth.h"
 #include "network/sv_auth.h"
+#include "unlagged.h" // [CK]
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -1170,6 +1171,11 @@ void SERVER_RequestClientToAuthenticate( ULONG ulClient )
 	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
 	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, SVCC_AUTHENTICATE );
 	NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, level.mapname );
+	// [CK] This lets the client start off with a reasonable gametic. In case
+	// the client would like to do any kind of prediction from gametics in the
+	// future, we can use the current gametic as the base. This also prevents
+	// the client from relying on a gametic of 0 or some unset number.
+	NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, gametic );
 
 	// Send the packet off.
 	SERVER_SendClientPacket( ulClient, true );
@@ -2017,6 +2023,9 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].ulNumConsistencyWarnings = 0;
 	g_aClients[lClient].szSkin[0] = 0;
 	g_aClients[lClient].IgnoredAddresses.clear();
+	// [CK] Since the client is not up to date at all, the farthest the client
+	// should be able to go back is the gametic they connected with.
+	g_aClients[lClient].lLastServerGametic = gametic;
 
 	SERVER_InitClientSRPData ( lClient );
 
@@ -4834,6 +4843,12 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	// Read in the client's gametic.
 	clientMoveCmd.ulGametic = NETWORK_ReadLong( pByteStream );
 
+	// [CK] Read in the client's last and latest known server gametic.
+	// [BB] Since the packets possibly arrive in wrong order, we can't
+	// do reasonable sanity checks on the tic here. Instead this is done
+	// when processing the command.
+	clientMoveCmd.ulServerGametic = NETWORK_ReadLong( pByteStream );
+
 	// Read in the information the client is sending us.
 	const ULONG ulBits = NETWORK_ReadByte( pByteStream );
 
@@ -4915,6 +4930,13 @@ static bool server_ProcessMoveCommand( const CLIENT_MOVE_COMMAND_s &ClientMoveCm
 	memcpy( pCmd, &ClientMoveCmd.cmd, sizeof( ticcmd_t ));
 
 	g_aClients[ulClient].ulClientGameTic = ClientMoveCmd.ulGametic;
+	// Important: We should only accept their update if it's less than or equal
+	// to ours. The clients should never send a larger gametic unless they're
+	// hacking the data or something has become corrupt.
+	// We also will only accept newer gametics to prevent clients from going
+	// back in time and attempting to cheat with stale states.
+	if ( ( ClientMoveCmd.ulServerGametic <= gametic ) && ( g_aClients[ulClient].lLastServerGametic < ClientMoveCmd.ulServerGametic ) )
+		g_aClients[ulClient].lLastServerGametic = ClientMoveCmd.ulServerGametic; // [CK] Use the gametic from what we saw
 
 	// If the client is attacking, he always sends the name of the weapon he's using.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )

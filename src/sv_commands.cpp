@@ -1206,6 +1206,9 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 	command.setUnreliable( true );
 	command.addLong( SERVER_GetClient( ulPlayer )->ulClientGameTic );
 
+	// [CK] Also send them the current server gametic
+	command.addLong( gametic );
+
 	// Write position.
 	command.addLong( players[ulPlayer].mo->x );
 	command.addLong( players[ulPlayer].mo->y );

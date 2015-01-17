@@ -528,6 +528,9 @@ static	LONG				g_lMissingPacketTicks;
 // Debugging variables.
 static	LONG				g_lLastCmd;
 
+// [CK] The most up-to-date server gametic
+static	int				g_lLatestServerGametic = 0;
+
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -869,6 +872,21 @@ void CLIENT_SetAllowSendingOfUserInfo( bool bAllow )
 
 //*****************************************************************************
 //
+// [CK] Get the latest gametic the server sent us (this can be zero if none is
+// received).
+int CLIENT_GetLatestServerGametic( void )
+{
+	return ( g_lLatestServerGametic );
+}
+
+//*****************************************************************************
+// [CK] Set the latest gametic the server sent us. Negative numbers not allowed.
+void CLIENT_SetLatestServerGametic( int latestServerGametic )
+{
+	if ( latestServerGametic >= 0 )
+		g_lLatestServerGametic = latestServerGametic;
+}
+
 void CLIENT_SendServerPacket( void )
 {
 	// Add the size of the packet to the number of bytes sent.
@@ -914,6 +932,7 @@ void CLIENT_AttemptConnection( void )
 	g_lHighestReceivedSequence = -1;
 
 	g_lMissingPacketTicks = 0;
+	g_lLatestServerGametic = 0; // [CK] Reset this here since we plan on connecting to a new server
 
 	 // Send connection signal to the server.
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_ATTEMPTCONNECTION );
@@ -1371,6 +1390,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// Read in the map name we now need to authenticate.
 		strncpy( g_szMapName, NETWORK_ReadString( pByteStream ), 8 );
 		g_szMapName[8] = 0;
+
+		// [CK] Use the server's gametic to start at a reasonable number
+		CLIENT_SetLatestServerGametic( NETWORK_ReadLong( pByteStream ) );
 
 		// [BB] If we don't have the map, something went horribly wrong.
 		if ( P_CheckIfMapExists( g_szMapName ) == false )
@@ -5487,6 +5509,9 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	// Read in the last tick that we sent to the server.
 	ulClientTicOnServerEnd = NETWORK_ReadLong( pByteStream );
 
+	// [CK] This should be our latest server tick we will record.
+	const int latestServerGametic = NETWORK_ReadLong( pByteStream );
+
 	// Get XYZ.
 	X = NETWORK_ReadLong( pByteStream );
 	Y = NETWORK_ReadLong( pByteStream );
@@ -5500,6 +5525,15 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	// No player object to update.
 	if ( pPlayer->mo == NULL )
 		return;
+
+	// [BB] If the server already sent us our position for a later tic,
+	// the current update is outdated and we have to ignore it completely.
+	// This happens if packets from the unreliable buffer arrive in the wrong order.
+	if ( CLIENT_GetLatestServerGametic ( ) > latestServerGametic )
+		return;
+
+	// [BB] Update the latest server tic.
+	CLIENT_SetLatestServerGametic( latestServerGametic );
 
 	// "ulClientTicOnServerEnd" is the gametic of the last time we sent a movement command.
 	CLIENT_SetLastConsolePlayerUpdateTick( ulClientTicOnServerEnd );

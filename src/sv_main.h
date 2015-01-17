@@ -182,6 +182,7 @@ struct CLIENT_MOVE_COMMAND_s
 	angle_t			pitch;
 	USHORT			usWeaponNetworkIndex;
 	ULONG				ulGametic;
+	ULONG			ulServerGametic;
 
 	// [BB] We want to process the command from the lowest gametic first.
 	// This puts the lowest gametic on top of the queue. 
@@ -320,6 +321,9 @@ typedef struct
 	TArray<unsigned char> bytesM;
 	TArray<unsigned char> bytesHAMK;
 	TArray<unsigned char> salt;
+
+	// [CK] The client communicates back to us with the last gametic from the server it saw
+	LONG			lLastServerGametic;
 } CLIENT_s;
 
 //*****************************************************************************
