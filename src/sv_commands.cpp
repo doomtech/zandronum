@@ -1511,6 +1511,9 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SERVER_GetClient( ulPlayer )->ulClientGameTic );
 
+	// [CK] Also send them the current server gametic
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, gametic );
+
 	// Write position.
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x );
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->y );

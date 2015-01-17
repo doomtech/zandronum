@@ -1369,6 +1369,7 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 //-----------------------------------------------------------------------------
 EXTERN_CVAR( Flag, cl_unlagged )
 EXTERN_CVAR( Int, cl_ticsperupdate )
+EXTERN_CVAR( Flag, cl_ping_unlagged )
 
 static value_t TickUpdateRate[] = {
 	{ 1, "Fastest (every tick)" },
@@ -1376,9 +1377,14 @@ static value_t TickUpdateRate[] = {
 	{ 3, "Slow (every third tick)" }
 };
 
+static value_t UnlaggedType[] = {
+	{ 0, "Gametic" },
+	{ 1, "Ping" }
+};
+
 static menuitem_t NetworkItems[] = {
-	
 	{ discrete,		"Unlagged",				{&cl_unlagged},			{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete,		"Unlag type",			{&cl_ping_unlagged},	{2.0}, {0.0}, {0.0}, {UnlaggedType} },
 	{ redtext,		" ",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete,		"Update rate",			{&cl_ticsperupdate},	{3.0}, {0.0}, {0.0}, {TickUpdateRate} },
 	{ discrete, 	"Connection type",		{&cl_connectiontype},	{2.0}, {0.0}, {0.0}, {ConnectionTypeVals} },

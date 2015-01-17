@@ -136,6 +136,8 @@ NETADDRESS_s		CLIENT_GetServerAddress( void );
 void				CLIENT_SetServerAddress( NETADDRESS_s Address );
 bool				CLIENT_GetAllowSendingOfUserInfo( void );
 void				CLIENT_SetAllowSendingOfUserInfo( bool bAllow );
+int					CLIENT_GetLatestServerGametic( void );
+void				CLIENT_SetLatestServerGametic( LONG latestServerGametic );
 
 // Functions necessary to carry out client-side operations.
 void				CLIENT_SendServerPacket( void );

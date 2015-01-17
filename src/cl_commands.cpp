@@ -229,6 +229,8 @@ void CLIENTCOMMANDS_ClientMove( void )
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CLIENTMOVE );
 	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, gametic );
+	// [CK] Send the server the latest known server-gametic
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, CLIENT_GetLatestServerGametic( ) );
 
 	// Decide what additional information needs to be sent.
 	ulBits = 0;

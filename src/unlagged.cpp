@@ -95,7 +95,29 @@ int UNLAGGED_Gametic( player_t *player )
 	if ( player == NULL )
 		return gametic;
 
-	int unlaggedGametic = ( gametic - ( player->ulPing * TICRATE / 1000 ) );
+	const ULONG playerNum = static_cast<ULONG> ( player - players );
+
+	// Sanity check
+	if ( playerNum >= MAXPLAYERS )
+		return gametic;
+
+	// [CK] We do tick-based ping now.
+	const CLIENT_s *pClient = SERVER_GetClient(playerNum);
+	if ( pClient == NULL )
+		return gametic;
+
+	// The logic here with + 1 is that you will be behind the server by one
+	// gametic, since the loop is: 1) poll input 2) update world 3) render,
+	// which makes your client old by one gametic.
+	// [CK] If the client wants ping unlagged, use that.
+	int unlaggedGametic = ( players[playerNum].userinfo.clientFlags & CLIENTFLAGS_PING_UNLAGGED ) ?
+							gametic - ( player->ulPing * TICRATE / 1000 ) :
+							pClient->lLastServerGametic + 1;
+
+	// Do not let the client send us invalid gametics ahead of the server's
+	// gametic. This should be guarded against, but just in case...
+	if ( unlaggedGametic > gametic )
+		unlaggedGametic = gametic;
 
 	//don't look up tics that are too old
 	if ( (gametic - unlaggedGametic) >= UNLAGGEDTICS)

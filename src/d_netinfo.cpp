@@ -89,6 +89,8 @@ CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Flag,		cl_unlagged,				cl_clientflags, CLIENTFLAGS_UNLAGGED );
 // [BB] Let the user decide whether he wants to respawn when pressing fire. [CK] Now a bitfield.
 CVAR (Flag, 	cl_respawnonfire, 			cl_clientflags, CLIENTFLAGS_RESPAWNONFIRE );
+// [CK] Unlagged settings where we can choose ping unlagged.
+CVAR (Flag,		cl_ping_unlagged,			cl_clientflags, CLIENTFLAGS_PING_UNLAGGED );
 // [BB] Let the user control how often the server sends updated player positions to him.
 CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Let the user control specify his connection speed (higher is faster).

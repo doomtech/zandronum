@@ -30,6 +30,7 @@
 +	- The server now kicks its clients when it shuts down. [Dusk]
 +	- Added support for RCON client tab-completion. This bumps the protocol version to 4, but clients using protocol 3 are still supported. [Dusk]
 +	- The client movement buffer is now reordered based on the client's gametic information before the commands are processed. [Torr Samaho, Water] 
++	- Added gametic unlagged which should perform better under varying net conditions compared to ping-based unlagged. [Water, AlexMax, Torr Samaho]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
