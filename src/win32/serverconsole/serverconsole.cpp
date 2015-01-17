@@ -473,11 +473,12 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				if ( g_bServerLoaded )
 				{
 					// [BB] Load all wads the server loaded and connect to it.
-					FString arguments = NETWORK_GetPWADList( )->size() ? "-file " : "";
-					for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
+					FString arguments = NETWORK_GetPWADList().Size() ? "-file " : "";
+
+					for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
 					{
 						// [BB] Load the wads using their full path, they don't need to be in our search path.
-						const int wadnum = Wads.CheckIfWadLoaded ( i->first );
+						const int wadnum = Wads.CheckIfWadLoaded ( NETWORK_GetPWADList()[i].name );
 						const char *wadFullName = ( wadnum != -1 ) ? Wads.GetWadFullName ( wadnum ) : NULL;
 						if ( wadFullName )
 							arguments.AppendFormat( "\"%s\" ", wadFullName );

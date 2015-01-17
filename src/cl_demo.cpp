@@ -170,13 +170,12 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 
 	// [Dusk] Write the amount of WADs and their names, incl. IWAD
 	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOWADS );
-	std::list<std::pair<FString, FString> >* pwads = NETWORK_GetPWADList( );
-	std::list<std::pair<FString, FString> >::iterator it;
-	ULONG ulWADCount = 1 + pwads->size( ); // 1 for IWAD
+	ULONG ulWADCount = 1 + NETWORK_GetPWADList().Size( ); // 1 for IWAD
 	NETWORK_WriteShort( &g_ByteStream, ulWADCount );
 	NETWORK_WriteString( &g_ByteStream, NETWORK_GetIWAD ( ) );
-	for ( it = pwads->begin( ); it != pwads->end( ); ++it )
-		NETWORK_WriteString( &g_ByteStream, it->first.GetChars( ) );
+
+	for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+		NETWORK_WriteString( &g_ByteStream, NETWORK_GetPWADList()[i].name );
 
 	// [Dusk] Write the network authentication string, we need it to
 	// ensure we have the right WADs loaded.

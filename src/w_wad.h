@@ -146,7 +146,7 @@ public:
 	enum { IWAD_FILENUM = 1 };
 
 	void InitMultipleFiles (/*TArray<FString> &filenames*/); // [BB] Removed argument.
-	void AddFile (const char *filename, FileReader *wadinfo = NULL, bool bLoadedAutomatically = false);	// [BC]
+	void AddFile (const char *filename, FileReader *wadinfo = NULL, bool bLoadedAutomatically = false, bool isOptional = false);	// [BC], [TP]
 	int CheckIfWadLoaded (const char *name);
 
 	const char *GetWadName (int wadnum) const;
@@ -214,6 +214,11 @@ public:
 
 	// [BB] Returns the number of the wad with the given full name.
 	int GetWadnumFromWadFullName ( const char *FullName ) const;
+
+	// [TP]
+	int GetParentWad( int wadnum ) const;
+	bool IsWadOptional( int wadnum ) const;
+	void LumpIsMandatory( int lumpnum );
 
 protected:
 

@@ -343,7 +343,15 @@ bool			NETWORK_IsGeoIPAvailable( void );
 FString			NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address );
 USHORT			NETWORK_GetLocalPort( void );
 
-std::list<std::pair<FString, FString> >	*NETWORK_GetPWADList( void ); // [RC]
+// [TP] Now a struct
+struct NetworkPWAD
+{
+	FString name;
+	FString checksum;
+	int wadnum; // [TP] Added wadnum
+};
+
+const TArray<NetworkPWAD>&	NETWORK_GetPWADList( void ); // [RC]
 const char		*NETWORK_GetIWAD( void );
 void			NETWORK_AddLumpForAuthentication( const LONG LumpNumber );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );

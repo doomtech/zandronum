@@ -598,19 +598,20 @@ BOOL CALLBACK settings_ServerTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 			
 			int iNumChars = 0;
 			sprintf( szString, "PWADs:" );
-			for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
+			for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
 			{
-				iNumChars += i->first.Len( );
+				const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
+				iNumChars += pwad.name.Len( );
 				if ( iNumChars > 50 - 3 ) // Determined by width of label
 				{
 					sprintf( szString + strlen ( szString ), "..." );
 					break;
 				}
 				else
-					sprintf( szString + strlen ( szString ), " %s", i->first.GetChars( ));
+					sprintf( szString + strlen ( szString ), " %s", pwad.name.GetChars( ));
 			}
 
-			g_ulNumPWADs = NETWORK_GetPWADList( )->size( );
+			g_ulNumPWADs = NETWORK_GetPWADList().Size();
 			if ( g_ulNumPWADs == 0 )
 			{
 				ShowWindow( GetDlgItem( hDlg, IDC_WADURL ), SW_HIDE );

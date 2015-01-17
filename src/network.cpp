@@ -88,6 +88,7 @@
 
 #include "md5.h"
 #include "network/sv_auth.h"
+#include "doomerrors.h"
 
 enum LumpAuthenticationMode {
 	LAST_LUMP,
@@ -106,7 +107,7 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 //*****************************************************************************
 //	VARIABLES
 
-static	std::list<std::pair<FString, FString> >	g_PWADs;
+static	TArray<NetworkPWAD>	g_PWADs;
 static	FString		g_IWAD; // [RC/BB] Which IWAD are we using?
 
 FString g_lumpsAuthenticationChecksum;
@@ -338,6 +339,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( g_LumpNumsToAuthenticate[i], Wads.GetLumpFullName (g_LumpNumsToAuthenticate[i]), checksum ) )
 			noProtectedLumpsAutoloaded = false;
 		longChecksum += checksum;
+
+		// [TP] The wad that had this lump is no longer optional.
+		Wads.LumpIsMandatory( g_LumpNumsToAuthenticate[i] );
 	}
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
@@ -356,6 +360,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 				}
 				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( lump, lumpsToAuthenticate[i].c_str(), checksum ) )
 					noProtectedLumpsAutoloaded = false;
+
+				// [TP] The wad that had this lump is no longer optional.
+				Wads.LumpIsMandatory( lump );
 
 				// [BB] To make Doom and Freedoom network compatible, substitue the Freedoom PLAYPAL/COLORMAP hash
 				// by the corresponding Doom hash.
@@ -390,6 +397,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 							|| ( stricmp ( checksum.GetChars(), "9de9ddd0bc435cb8572db76a13d3140f" ) == 0 ) // Freedoom 0.8
 							|| ( stricmp ( checksum.GetChars(), "90e9007b1efc1e35eeacc99c5971a15b" ) == 0 ) ) ) // Freedoom 0.9
 						continue;
+
+					// [TP] The wad that had this lump is no longer optional.
+					Wads.LumpIsMandatory( workingLump );
 
 					longChecksum += checksum;
 				}
@@ -438,6 +448,31 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			Printf( "GeoIP initialized.\n" );
 		else
 			Printf( "GeoIP initialization failed.\n" );
+	}
+
+	// [TP] Wads containing maps cannot be optional wads so check that now.
+	for( unsigned int i = 0; i < wadlevelinfos.Size(); i++ )
+	{
+		level_info_t& info = wadlevelinfos[i];
+		MapData* mdata;
+
+		// [TP] P_OpenMapData can throw an error in some cases with the cryptic error message
+		// "'THINGS' not found in'. I don't think this is the case in recent ZDoom versions?
+		try
+		{
+			if (( P_CheckMapData( info.mapname ))
+				&& (( mdata = P_OpenMapData( info.mapname )) != NULL ))
+			{
+				// [TP] The wad that had this map is no longer optional.
+				Wads.LumpIsMandatory( mdata->lumpnum );
+			}
+		}
+		catch ( CRecoverableError& e )
+		{
+			// [TP] Might as well warn the user now that we're here.
+			Printf( "NETWORK_Construct: \\cGWARNING: Cannot open map %s: %s\n",
+				info.mapname, e.GetMessage() );
+		}
 	}
 
 	// Call NETWORK_Destruct() when Skulltag closes.
@@ -938,9 +973,9 @@ FString NETWORK_GetCountryCodeFromAddress( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-std::list<std::pair<FString, FString> > *NETWORK_GetPWADList( void )
+const TArray<NetworkPWAD>& NETWORK_GetPWADList( void )
 {
-	return &g_PWADs;
+	return g_PWADs;
 }
 
 //*****************************************************************************
@@ -998,23 +1033,9 @@ bool network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *
 {
 	NETWORK_GenerateLumpMD5Hash( LumpNum, MD5Hash );
 
-	int wadNum = Wads.GetWadnumFromLumpnum ( LumpNum );
+	int wadNum = Wads.GetParentWad( Wads.GetWadnumFromLumpnum ( LumpNum ));
 
-	// [BB] Check whether this wad is embedded in another file. In this case,
-	// we have to check whether the containing file was loaded automatically.
-	if ( wadNum >= 0 )
-	{
-		FString wadName = Wads.GetWadFullName( wadNum );
-		int index = wadName.LastIndexOf ( ":" );
-		if ( index > wadName.LastIndexOf ( ":/" ) )
-		{
-			wadName.Truncate (index);
-			int containerWadNum = Wads.GetWadnumFromWadFullName ( wadName );
-			if ( containerWadNum >= 0 )
-				wadNum = containerWadNum;
-		}
-	}
-
+	// [BB] Check whether the containing file was loaded automatically.
 	if ( ( wadNum >= 0 ) && Wads.GetLoadedAutomatically ( wadNum ) )
 	{
 		Printf ( PRINT_BOLD, "%s contains protected lump %s\n", Wads.GetWadFullName( wadNum ), LumpName );
@@ -1248,7 +1269,7 @@ void NETWORK_SetState( LONG lState )
 // [RC]
 static void network_InitPWADList( void )
 {
-	g_PWADs.clear( );
+	g_PWADs.Clear();
 
 	// Find the IWAD index.
 	ULONG ulNumPWADs = 0, ulRealIWADIdx = 0;
@@ -1281,7 +1302,12 @@ static void network_InitPWADList( void )
 		}
 		char MD5Sum[33];
 		MD5SumOfFile ( Wads.GetWadFullName( ulIdx ), MD5Sum );
-		g_PWADs.push_back( std::pair<FString, FString> ( Wads.GetWadName( ulIdx ), MD5Sum ) );
+
+		NetworkPWAD pwad;
+		pwad.name = Wads.GetWadName( ulIdx );
+		pwad.checksum = MD5Sum;
+		pwad.wadnum = ulIdx;
+		g_PWADs.Push( pwad );
 	}
 }
 

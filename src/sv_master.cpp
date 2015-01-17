@@ -88,6 +88,7 @@ static	STORED_QUERY_IP_s	g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
 
 static	LONG				g_lStoredQueryIPHead;
 static	LONG				g_lStoredQueryIPTail;
+static	TArray<int>			g_OptionalWadIndices;
 
 extern	NETADDRESS_s		g_LocalAddress;
 
@@ -135,6 +136,13 @@ void SERVER_MASTER_Construct( void )
 	else
 		g_VersionWithOS.Format ( "%s on %s %s", DOTVERSIONSTR_REV, u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
 #endif
+
+	// [TP] Which wads will we broadcast as optional to launchers?
+	for( unsigned i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+	{
+		if ( Wads.IsWadOptional( NETWORK_GetPWADList()[i].wadnum ))
+			g_OptionalWadIndices.Push( i );
+	}
 
 	// Call SERVER_MASTER_Destruct() when Skulltag closes.
 	atterm( SERVER_MASTER_Destruct );
@@ -380,6 +388,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( ulBits & SQF_PLAYERDATA )
 		ulBits |= SQF_NUMPLAYERS;
 
+	// [TP] Don't send optional wads if there isn't any.
+	if ( g_OptionalWadIndices.Size() == 0 )
+		ulBits &= ~SQF_OPTIONAL_WADS;
+
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulBits );
 
 	// Send the server name.
@@ -415,9 +427,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// Send out the PWAD information.
 	if ( ulBits & SQF_PWADS )
 	{
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, NETWORK_GetPWADList( )->size( ));
-		for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
-			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, i->first.GetChars( ));
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, NETWORK_GetPWADList().Size( ));
+
+		for ( unsigned i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, NETWORK_GetPWADList()[i].name );
 	}
 
 	if ( ulBits & SQF_GAMETYPE )
@@ -591,6 +604,15 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( ulBits & SQF_SECURITY_SETTINGS )
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_enforcemasterbanlist );
 
+	// [TP] Send optional wad indices.
+	if ( ulBits & SQF_OPTIONAL_WADS )
+	{
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, g_OptionalWadIndices.Size() );
+
+		for ( unsigned i = 0; i < g_OptionalWadIndices.Size(); ++i )
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, g_OptionalWadIndices[i] );
+	}
+
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
 	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 }
@@ -696,7 +718,12 @@ CVAR( String, masterhostname, "master.zandronum.com", CVAR_ARCHIVE|CVAR_GLOBALCO
 CCMD( wads )
 {
 	Printf( "IWAD: %s\n", NETWORK_GetIWAD( ) );
-	Printf( "Num PWADs: %d\n", static_cast<unsigned int> (NETWORK_GetPWADList( )->size( )));
-	for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end( ); ++i )
-		Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
+	Printf( "Num PWADs: %d\n", NETWORK_GetPWADList().Size() );
+
+	for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+	{
+		const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
+		Printf( "PWAD: %s - %s%s\n", pwad.name.GetChars(), pwad.checksum.GetChars(),
+			( Wads.IsWadOptional( pwad.wadnum ) ? " (optional)" : "" ));
+	}
 }

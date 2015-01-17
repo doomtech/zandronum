@@ -55,10 +55,16 @@
 #include "gi.h"
 #include "doomerrors.h"
 #include "resourcefiles/resourcefile.h"
+// [TP]
+#include "c_cvars.h"
 
 // [BB]
 extern TArray<FString> allwads;
 extern TArray<FString> autoloadedwads;
+extern TArray<FString> optionalwads; // [TP]
+
+// [TP] Should we try load all pwads as optional?
+CVAR ( Bool, preferoptionalwads, false, CVAR_ARCHIVE )
 
 // MACROS ------------------------------------------------------------------
 
@@ -177,6 +183,7 @@ void FWadCollection::InitMultipleFiles (/*TArray<FString> &filenames*/) // [BB] 
 		int baselump = NumLumps;
 		// [BB] Special handling for automatically loded wads.
 		bool bLoadedAutomatically = false;
+		bool isOptional = false;
 		for ( unsigned int j = 0; j < autoloadedwads.Size(); ++j )
 		{
 			if ( autoloadedwads[j] == allwads[i] )
@@ -185,7 +192,28 @@ void FWadCollection::InitMultipleFiles (/*TArray<FString> &filenames*/) // [BB] 
 				break;
 			}
 		}
-		AddFile (allwads[i], NULL, bLoadedAutomatically);
+
+		// [TP] Should we consider this wad optional?
+		if ( preferoptionalwads )
+		{
+			// If the cvar is set, try load everything as optional.
+			isOptional = true;
+		}
+		else
+		{
+			// If the cvar is not set, see if the wad was loaded through
+			// -optfile, in which case optionalwads will contain its name
+			for ( unsigned int j = 0; j < optionalwads.Size(); ++j )
+			{
+				if ( optionalwads[j].Compare( allwads[i] ) == 0 )
+				{
+					isOptional = true;
+					break;
+				}
+			}
+		}
+
+		AddFile (allwads[i], NULL, bLoadedAutomatically, isOptional);
 	}
 
 	NumLumps = LumpInfo.Size();
@@ -234,7 +262,8 @@ int FWadCollection::AddExternalFile(const char *filename)
 //==========================================================================
 
 // [BC] Edited a little.
-void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically)
+// [TP] Added isOptional
+void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bLoadedAutomatically, bool isOptional)
 {
 	int startlump;
 	bool isdir = false;
@@ -293,6 +322,9 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 			lump_p->wadnum = Files.Size();
 		}
 
+		// [TP] Handle isOptional
+		resfile->IsOptional = isOptional;
+
 		if (Files.Size() == IWAD_FILENUM && gameinfo.gametype == GAME_Strife && gameinfo.flags & GI_SHAREWARE)
 		{
 			resfile->FindStrifeTeaserVoices();
@@ -313,7 +345,7 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 				strcpy(wadstr, lump->FullName);
 
 				// [BB] We consider all embedded files as being loaded automatically.
-				AddFile(path, embedded, true);
+				AddFile(path, embedded, true, isOptional);
 			}
 		}
 		return;
@@ -1278,6 +1310,83 @@ bool FWadCollection::IsEncryptedFile(int lump) const
 	return !!(LumpInfo[lump].lump->Flags & LUMPF_BLOODCRYPT);
 }
 
+//==========================================================================
+//
+// [TP] GetParentWad
+//
+// Returns the wadnum of the wad embedding the given wad
+//
+//==========================================================================
+
+int FWadCollection::GetParentWad( int wadnum ) const
+{
+	// [BB] Check whether this wad is embedded in another file.
+	if ( wadnum >= 0 )
+	{
+		FString wadName = Wads.GetWadFullName( wadnum );
+		int index = wadName.LastIndexOf( ":" );
+
+		if ( index > wadName.LastIndexOf( ":/" ) )
+		{
+			wadName.Truncate( index );
+			int containerWadNum = Wads.GetWadnumFromWadFullName( wadName );
+
+			if ( containerWadNum >= 0 )
+				wadnum = containerWadNum;
+		}
+	}
+
+	return wadnum;
+}
+
+//==========================================================================
+//
+// [TP] IsWadOptional
+//
+// Returns whether the given wad is optionally loaded (clients can omit
+// loading it)
+//
+//==========================================================================
+
+bool FWadCollection::IsWadOptional( int wadnum ) const
+{
+	// A wad is mandatory if its top level parent is mandatory.
+	return Files[GetParentWad( wadnum )]->IsOptional;
+}
+
+//==========================================================================
+//
+// [TP] LumpIsMandatory
+//
+// Marks the wad of the given lump as no longer optional
+//
+//==========================================================================
+
+void FWadCollection::LumpIsMandatory( int lumpnum )
+{
+	int wadnum = GetWadnumFromLumpnum( lumpnum );
+
+	// [TP] Resolve to top-level parent so we mark the correct wad as mandatory.
+	wadnum = GetParentWad( wadnum );
+
+	// [TP] If the user tried to load this WAD with -optfile (i.e. it's in optionalwads), exit now
+	// as we're unable to fulfill what the user wanted.
+	if ( Files[wadnum]->IsOptional )
+	{
+		for ( unsigned int i = 0; i < optionalwads.Size(); ++i )
+		{
+			if ( optionalwads[i].Compare( Files[wadnum]->Filename ) == 0 )
+			{
+				I_FatalError( "Cannot load PWAD '%s' as optional because it contains %s\n",
+					Files[wadnum]->Filename, GetLumpFullName ( lumpnum ));
+			}
+		}
+	}
+
+	Files[wadnum]->IsOptional = false;
+	DPrintf( "%s is mandatory because of lump %d (%s)\n",
+		Files[wadnum]->Filename, lumpnum, GetLumpFullName( lumpnum ));
+}
 
 // FWadLump -----------------------------------------------------------------
 

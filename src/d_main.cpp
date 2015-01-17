@@ -213,6 +213,7 @@ bool DrawFSHUD;				// [RH] Draw fullscreen HUD?
 TArray<FString> allwads;
 // [BB]
 TArray<FString> autoloadedwads;
+TArray<FString> optionalwads; // [TP] Files loaded with -optfile
 bool devparm;				// started game with -devparm
 const char *D_DrawIcon;	// [RH] Patch name of icon to draw on next refresh
 int NoWipe;				// [RH] Allow wipe? (Needs to be set each time)
@@ -2140,12 +2141,13 @@ void D_MultiExec (DArgs *list, bool usePullin)
 	}
 }
 
-static void GetCmdLineFiles(TArray<FString> &wadfiles)
+// [TP] Added parameterName
+static void GetCmdLineFiles(TArray<FString> &wadfiles, const char* parameterName = "-file")
 {
 	FString *args;
 	int i, argc;
 
-	argc = Args->CheckParmList("-file", &args);
+	argc = Args->CheckParmList(parameterName, &args); // [TP] Added parameterName
 	if ((gameinfo.flags & GI_SHAREWARE) && argc > 0)
 	{
 		I_FatalError ("You cannot -file with the shareware version. Register!");
@@ -2383,6 +2385,7 @@ void D_DoomMain (void)
 	// the IWAD is known.
 
 	GetCmdLineFiles(pwads);
+	GetCmdLineFiles( optionalwads, "-optfile" ); // [TP] Note - this goes directly into the global variable
 	FString iwad = CheckGameInfo(pwads);
 
 	const IWADInfo *iwad_info = D_FindIWAD(allwads, iwad, basewad);
@@ -2443,6 +2446,7 @@ void D_DoomMain (void)
 	C_ExecCmdLineParams ();		// [RH] do all +set commands on the command line
 
 	CopyFiles(allwads, pwads);
+	CopyFiles( allwads, optionalwads ); // [TP]
 
 	// Since this function will never leave we must delete this array here manually.
 	pwads.Clear();

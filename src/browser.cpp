@@ -727,6 +727,15 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	if ( ulFlags & SQF_SECURITY_SETTINGS )
 		NETWORK_ReadByte( pByteStream );
 
+	// [TP] Optional wads
+	if ( ulFlags & SQF_OPTIONAL_WADS )
+	{
+		int numIndices = NETWORK_ReadByte( pByteStream );
+
+		while ( numIndices-- )
+			NETWORK_ReadByte( pByteStream );
+	}
+
 	// Now that this server has been read in, resort the servers in the menu.
 	if ( bResortList )
 		M_BuildServerList( );

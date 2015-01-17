@@ -2303,11 +2303,12 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 	case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
 
-		NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, NETWORK_GetPWADList( )->size( ));
-		for( std::list<std::pair<FString, FString> >::iterator i = NETWORK_GetPWADList( )->begin( ); i != NETWORK_GetPWADList( )->end(); ++i )
+		NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, NETWORK_GetPWADList().Size() );
+		for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
 		{
-			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, i->first.GetChars( ));
-			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, i->second.GetChars( ));
+			const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, pwad.name );
+			NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, pwad.checksum );
 		}
 
 		Printf( "%s authentication failed.\n", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );

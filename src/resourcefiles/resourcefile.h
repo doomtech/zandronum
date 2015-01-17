@@ -58,6 +58,7 @@ class FResourceFile
 public:
 	FileReader *Reader;
 	const char *Filename;
+	bool IsOptional; // [TP]
 protected:
 	DWORD NumLumps;
 
