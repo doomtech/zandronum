@@ -8454,24 +8454,23 @@ int DLevelScript::RunScript ()
 			sp--;
 			break;
 
-		case PCD_CHECKWEAPON:
-			// [BB] Workaround to let CheckWeaponn return something reasonable even before the client selected the starting weapon.
+        case PCD_CHECKWEAPON:
+			// [BB] Workaround to let CheckWeapon return something reasonable even before the client selected the starting weapon.
 			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && activator && activator->player && ( activator->player->bClientSelectedWeapon == false )
 				&& ( activator->player->ReadyWeapon == NULL ) && ( activator->player->PendingWeapon == WP_NOCHANGE ) )
 			{
-				STACK(1) = ( 0 == stricmp (FBehavior::StaticLookupString (STACK(1)), activator->player->StartingWeaponName.GetChars() ) );
+				STACK(1) = activator->player->StartingWeaponName == FName(FBehavior::StaticLookupString (STACK(1)), true);
 			}
 			else if (activator == NULL || activator->player == NULL || // Non-players do not have weapons
-				activator->player->ReadyWeapon == NULL)
-			{
-				STACK(1) = 0;
-			}
-			else
-			{
-				STACK(1) = 0 == stricmp (FBehavior::StaticLookupString (STACK(1)),
-					activator->player->ReadyWeapon->GetClass()->TypeName.GetChars());
-			}
-			break;
+                activator->player->ReadyWeapon == NULL)
+            {
+                STACK(1) = 0;
+            }
+            else
+            {
+				STACK(1) = activator->player->ReadyWeapon->GetClass()->TypeName == FName(FBehavior::StaticLookupString (STACK(1)), true);
+            }
+            break;
 
 		case PCD_SETWEAPON:
 			if (activator == NULL || activator->player == NULL)
