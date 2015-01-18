@@ -42,26 +42,27 @@
 // Date created:  11/10/07
 //
 //
-// Filename: protocol_skulltag.cpp
+// Filename: protocol_zandronum.h
 //
 // Description: 
 //
 //-----------------------------------------------------------------------------
 
-#ifndef	__PROTOCOL_SKULLTAG_H__
-#define	__PROTOCOL_SKULLTAG_H__
+#ifndef	__PROTOCOL_ZANDRONUM_H__
+#define	__PROTOCOL_ZANDRONUM_H__
 
 #include "main.h"
 
 //*****************************************************************************
 //	PROTOTYPES
 
-void			SKULLTAG_Construct( void );
-void			SKULLTAG_Destruct( void );
+void			ZANDRONUM_Construct( void );
+void			ZANDRONUM_Destruct( void );
 
-void			SKULLTAG_QueryMasterServer( void );
-bool			SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
-void			SKULLTAG_QueryServer( SERVER_s *pServer );
-bool			SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
+NETADDRESS_s *	ZANDRONUM_GetMasterServerAddress ( void );
+void			ZANDRONUM_QueryMasterServer( void );
+bool			ZANDRONUM_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
+void			ZANDRONUM_QueryServer( SERVER_s *pServer );
+bool			ZANDRONUM_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
 
-#endif	// __PROTOCOL_SKULLTAG_H__
+#endif	// __PROTOCOL_ZANDRONUM_H__

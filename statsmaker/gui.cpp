@@ -174,7 +174,7 @@ BOOL CALLBACK gui_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam,
 		for ( unsigned int i = 0; i < NUM_PORTS; i++ )
 		{
 			tcitem.pszText = g_PortInfo[i].szName;			
-			tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_SKULLTAG ), hDlg, tab_PortCallback, (LPARAM) i );
+			tcitem.lParam = (LPARAM) CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_ZANDRONUM ), hDlg, tab_PortCallback, (LPARAM) i );
 			TabCtrl_InsertItem( edit, i + 1, &tcitem );		
 			SetWindowPos( (HWND) tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0 );
@@ -326,7 +326,7 @@ BOOL CALLBACK tab_OverviewCallback( HWND hDlg, UINT Message, WPARAM wParam, LPAR
 			pEnableThemeDialogTexture ( hDlg, ETDT_ENABLETAB );
 
 		// Initialize the server console text.
-		sprintf( szString, "                    === S K U L L T A G | Statsmaker ===" );
+		sprintf( szString, "                    === Z A N D R O N U M | Statsmaker ===" );
 		SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
 		Printf( "\n\n" );
 		Printf( "Welcome!\n" );
@@ -505,10 +505,10 @@ void GUI_UpdateStatisticsDisplay( void )
 		//================================
 
 		
-		/* [RC] Tooltips can't be more than 128 characters long, so just show the Skulltag info.
+		/* [RC] Tooltips can't be more than 128 characters long, so just show the Zandronum info.
 		// if ( g_PortInfo[i].bEnabled )
 		*/
-		if ( i == PORT_SKULLTAG )
+		if ( i == PORT_ZANDRONUM )
 		{
 			if ( strlen( szTooltip ))
 				strcat( szTooltip, "\n" );
