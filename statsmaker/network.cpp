@@ -188,7 +188,7 @@ void NETWORK_Destruct( void )
 int NETWORK_GetPackets( void )
 {
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes;
+	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketFrom;
 	INT					iSocketFromLength;
 
@@ -258,7 +258,7 @@ int NETWORK_GetPackets( void )
 //
 void NETWORK_DecodePacket( void )
 {
-	INT		iDecodedNumBytes;
+	INT		iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
 
 	memcpy( g_ucHuffmanBuffer, g_NetworkMessage.pbData, g_NetworkMessage.ulCurrentSize );
 
@@ -274,7 +274,7 @@ void NETWORK_DecodePacket( void )
 int NETWORK_GetLANPackets( void )
 {
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes;
+	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketFrom;
 	INT					iSocketFromLength;
 
@@ -351,7 +351,7 @@ NETADDRESS_s NETWORK_GetFromAddress( void )
 void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEncode )
 {
 	LONG				lNumBytes;
-	INT					iNumBytesOut;
+	INT					iNumBytesOut = sizeof(g_ucHuffmanBuffer);
 	struct sockaddr_in	SocketAddress;
 
 	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );

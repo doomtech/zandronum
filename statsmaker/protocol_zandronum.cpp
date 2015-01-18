@@ -42,9 +42,9 @@
 // Date created:  11/10/07
 //
 //
-// Filename: protocol_skulltag.cpp
+// Filename: protocol_zandronum.cpp
 //
-// Description: Contains the protocol for communication with Skulltag servers.
+// Description: Contains the protocol for communication with Zandronum servers.
 //
 //-----------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@
 #include "../src/networkshared.h"
 #include <time.h>
 #include "main.h"
-#include "protocol_skulltag.h"
+#include "protocol_zandronum.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -67,22 +67,22 @@ static	NETBUFFER_s			g_MessageBuffer;
 //*****************************************************************************
 //	FUNCTIONS
 
-void SKULLTAG_Construct( void )
+void ZANDRONUM_Construct( void )
 {
 	// Setup our message buffer.
 	NETWORK_InitBuffer( &g_MessageBuffer, 8192, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 
-	NETWORK_StringToAddress( "skulltag.servegame.com", &g_AddressMasterServer );
-	g_AddressMasterServer.usPort = htons( 15300 );
+	NETWORK_StringToAddress( "master.zandronum.com", &g_AddressMasterServer );
+	g_AddressMasterServer.usPort = htons( DEFAULT_MASTER_PORT );
 
-	// Call SKULLTAG_Destruct when the program terminates.
-	atexit( SKULLTAG_Destruct );
+	// Call ZANDRONUM_Destruct when the program terminates.
+	atexit( ZANDRONUM_Destruct );
 }
 
 //*****************************************************************************
 //
-void SKULLTAG_Destruct( void )
+void ZANDRONUM_Destruct( void )
 {
 	// Free our local buffer.
 	NETWORK_FreeBuffer( &g_MessageBuffer );
@@ -90,11 +90,19 @@ void SKULLTAG_Destruct( void )
 
 //*****************************************************************************
 //
-void SKULLTAG_QueryMasterServer( void )
+NETADDRESS_s *ZANDRONUM_GetMasterServerAddress ( void )
+{
+	return &g_AddressMasterServer;
+}
+
+//*****************************************************************************
+//
+void ZANDRONUM_QueryMasterServer( void )
 {
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MessageBuffer );
-	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, LAUNCHER_MASTER_CHALLENGE );
+	NETWORK_WriteShort( &g_MessageBuffer.ByteStream, MASTER_SERVER_VERSION );
 
 	// Send the master server our packet.
 	NETWORK_LaunchPacket( &g_MessageBuffer, g_AddressMasterServer, true );
@@ -102,7 +110,7 @@ void SKULLTAG_QueryMasterServer( void )
 
 //*****************************************************************************
 //
-bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo )
+bool ZANDRONUM_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo )
 {
 	ULONG			i;
 	LONG			lCommand;
@@ -113,51 +121,98 @@ bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVE
 	lCommand = NETWORK_ReadLong( pByteStream );
 	switch ( lCommand )
 	{
-	case MSC_BEGINSERVERLIST:
+	case MSC_BEGINSERVERLISTPART:
+		const ULONG ulPacketNum = NETWORK_ReadByte( pByteStream );
 
-		// Add a new query.
-		QueryInfo.qTotal.lNumPlayers = 0;
-		QueryInfo.qTotal.lNumServers = 0;
-		QueryInfo.qTotal.lNumSpectators = 0;
+		if ( ulPacketNum == 0 )
+		{
+			// Add a new query.
+			QueryInfo.qTotal.lNumPlayers = 0;
+			QueryInfo.qTotal.lNumServers = 0;
+			QueryInfo.qTotal.lNumSpectators = 0;
 
-		for ( unsigned int g = 0; g < NUM_GAMETYPES; g++ )
-		{	
-			QueryInfo.qByGameMode[g].lNumPlayers = 0;
-			QueryInfo.qByGameMode[g].lNumServers = 0;
-			QueryInfo.qByGameMode[g].lNumSpectators = 0;
+			for ( unsigned int g = 0; g < NUM_GAMETYPES; g++ )
+			{	
+				QueryInfo.qByGameMode[g].lNumPlayers = 0;
+				QueryInfo.qByGameMode[g].lNumServers = 0;
+				QueryInfo.qByGameMode[g].lNumSpectators = 0;
+			}
+
+			time( &QueryInfo.tTime );
+			aQueryInfo.Push( QueryInfo );
+
+			// Clear out the server list.
+			aServerInfo.Clear( );
 		}
-
-		time( &QueryInfo.tTime );
-		aQueryInfo.Push( QueryInfo );
-
-		// Clear out the server list.
-		aServerInfo.Clear( );
 
 		time( &tNow );
 
-		// Get the list of servers.		
-		while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLIST )
+		while ( true )
 		{
-			ServerInfo.ulActiveState = AS_WAITINGFORREPLY;
+			const LONG lCommand = NETWORK_ReadByte( pByteStream );
 
-			// Read in address information.
-			ServerInfo.Address.abIP[0] = NETWORK_ReadByte( pByteStream );
-			ServerInfo.Address.abIP[1] = NETWORK_ReadByte( pByteStream );
-			ServerInfo.Address.abIP[2] = NETWORK_ReadByte( pByteStream );
-			ServerInfo.Address.abIP[3] = NETWORK_ReadByte( pByteStream );
-			ServerInfo.Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
+			switch ( lCommand )
+			{
+			case MSC_SERVER:
+				{
+					ServerInfo.ulActiveState = AS_WAITINGFORREPLY;
 
-			ServerInfo.tLastQuery = tNow;
+					// Read in address information.
+					ServerInfo.Address.abIP[0] = NETWORK_ReadByte( pByteStream );
+					ServerInfo.Address.abIP[1] = NETWORK_ReadByte( pByteStream );
+					ServerInfo.Address.abIP[2] = NETWORK_ReadByte( pByteStream );
+					ServerInfo.Address.abIP[3] = NETWORK_ReadByte( pByteStream );
+					ServerInfo.Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
 
-			// Add this server's info to our list, and query it.			
-			i = aServerInfo.Push( ServerInfo );
-			SKULLTAG_QueryServer( &aServerInfo[i] );
+					ServerInfo.tLastQuery = tNow;
+
+					// Add this server's info to our list, and query it.			
+					i = aServerInfo.Push( ServerInfo );
+					ZANDRONUM_QueryServer( &aServerInfo[i] );
+				}
+				break;
+
+			case MSC_SERVERBLOCK:
+				{
+					// Read in address information.
+					ULONG ulPorts = 0;
+					while (( ulPorts = NETWORK_ReadByte( pByteStream ) ))
+					{
+						ServerInfo.Address.abIP[0] = NETWORK_ReadByte( pByteStream );
+						ServerInfo.Address.abIP[1] = NETWORK_ReadByte( pByteStream );
+						ServerInfo.Address.abIP[2] = NETWORK_ReadByte( pByteStream );
+						ServerInfo.Address.abIP[3] = NETWORK_ReadByte( pByteStream );
+						for ( ULONG ulIdx = 0; ulIdx < ulPorts; ++ulIdx )
+						{
+							ServerInfo.ulActiveState = AS_WAITINGFORREPLY;
+							ServerInfo.Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
+
+							ServerInfo.tLastQuery = tNow;
+
+							// Add this server's info to our list, and query it.			
+							i = aServerInfo.Push( ServerInfo );
+							ZANDRONUM_QueryServer( &aServerInfo[i] );
+						}
+					}
+
+				}
+				break;
+
+			case MSC_ENDSERVERLISTPART:
+				return false;
+
+			case MSC_ENDSERVERLIST:
+				Printf( "Received %d Zandronum servers.\n", aServerInfo.Size( ));
+
+				// Since we got the server list, return true.
+				return true;
+
+			default:
+
+				Printf( "Unknown server list command from master server: %d\n", static_cast<int> (lCommand) );
+				return false;
+			}
 		}
-
-		Printf( "Received %d Skulltag servers.\n", aServerInfo.Size( ));
-
-		// Since we got the server list, return true.
-		return true;
 	}
 
 	return true;
@@ -165,7 +220,7 @@ bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVE
 
 //*****************************************************************************
 //
-void SKULLTAG_QueryServer( SERVER_s *pServer )
+void ZANDRONUM_QueryServer( SERVER_s *pServer )
 {
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MessageBuffer );
@@ -179,7 +234,7 @@ void SKULLTAG_QueryServer( SERVER_s *pServer )
 
 //*****************************************************************************
 //
-bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo )
+bool ZANDRONUM_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo )
 {
 	LONG		lCommand;
 	LONG		lGameType = GAMETYPE_COOPERATIVE;
@@ -205,6 +260,12 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 		return true;
 	}
 
+	if ( lCommand != SERVER_LAUNCHER_CHALLENGE )
+	{
+		Printf ( "Received unknown command %d from a server.\n", lCommand );
+		return true;
+	}
+
 	// Make sure this is a server we're actually waiting for a reply from.
 	if ( pServer->ulActiveState != AS_WAITINGFORREPLY )
 	{
@@ -220,14 +281,18 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer,
 	// Read in the time we sent to the server.
 	NETWORK_ReadLong( pByteStream );
 
-	// If this isn't a 98 series server, ignore it.
-	if ( strnicmp( NETWORK_ReadString( pByteStream ), "0.98", 4 ) != 0 )
+	std::string version = NETWORK_ReadString( pByteStream );
+
+	// [BB] If we want do ignore a server based on its version, do so here.
+	/*
+	if ( strnicmp( version.c_str(), "0.98", 4 ) != 0 )
 	{
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
 		return true;
 	}
+	*/
 
 	// Read in the bits.
 	ulBits = NETWORK_ReadLong( pByteStream );

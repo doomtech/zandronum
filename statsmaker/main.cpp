@@ -54,7 +54,7 @@
 #include "main.h"
 #include "gui.h"
 #include "collector.h"
-#include "protocol_skulltag.h"
+#include "protocol_zandronum.h"
 #include "protocol_zdaemon.h"
 #include "resource.h"
 
@@ -88,21 +88,21 @@ void main_SetupProtocols ( ) {
 	// Setup the protocols.
 	//=====================
 
-	// Skulltag (www.skulltag.com)
-	g_PortInfo[PORT_SKULLTAG].pvQueryMasterServer			= SKULLTAG_QueryMasterServer;
-	g_PortInfo[PORT_SKULLTAG].pvParseMasterServerResponse	= SKULLTAG_ParseMasterServerResponse;
-	g_PortInfo[PORT_SKULLTAG].pvQueryServer					= SKULLTAG_QueryServer;
-	g_PortInfo[PORT_SKULLTAG].pvParseServerResponse			= SKULLTAG_ParseServerResponse;
-	g_PortInfo[PORT_SKULLTAG].bHuffman = true;
-	g_PortInfo[PORT_SKULLTAG].bEnabled = true;
-	strcpy( g_PortInfo[PORT_SKULLTAG].szName, "Skulltag" );
-	g_PortInfo[PORT_SKULLTAG].iOverviewNowLabelID = IDC_OVERVIEW_STPLAYERS_NOW;
-	g_PortInfo[PORT_SKULLTAG].iOverviewTodayLabelID = IDC_OVERVIEW_STPLAYERS_TOD;
-	g_PortInfo[PORT_SKULLTAG].iOnTopNowIconID = IDC_ONTOPNOW_ST;
-	g_PortInfo[PORT_SKULLTAG].iOnTopTodayIconID = IDC_ONTOPTODAY_ST;
-	NETWORK_StringToAddress( "skulltag.servegame.com", &g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address );
-	g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address.usPort = htons( 15300 );	
-	SKULLTAG_Construct( );
+	// Zandronum (zandronum.com)
+	ZANDRONUM_Construct( );
+	g_PortInfo[PORT_ZANDRONUM].pvQueryMasterServer			= ZANDRONUM_QueryMasterServer;
+	g_PortInfo[PORT_ZANDRONUM].pvParseMasterServerResponse	= ZANDRONUM_ParseMasterServerResponse;
+	g_PortInfo[PORT_ZANDRONUM].pvQueryServer					= ZANDRONUM_QueryServer;
+	g_PortInfo[PORT_ZANDRONUM].pvParseServerResponse			= ZANDRONUM_ParseServerResponse;
+	g_PortInfo[PORT_ZANDRONUM].bHuffman = true;
+	g_PortInfo[PORT_ZANDRONUM].bEnabled = true;
+	strcpy( g_PortInfo[PORT_ZANDRONUM].szName, "Zandronum" );
+	g_PortInfo[PORT_ZANDRONUM].iOverviewNowLabelID = IDC_OVERVIEW_ZAPLAYERS_NOW;
+	g_PortInfo[PORT_ZANDRONUM].iOverviewTodayLabelID = IDC_OVERVIEW_ZAPLAYERS_TOD;
+	g_PortInfo[PORT_ZANDRONUM].iOnTopNowIconID = IDC_ONTOPNOW_ZA;
+	g_PortInfo[PORT_ZANDRONUM].iOnTopTodayIconID = IDC_ONTOPTODAY_ZA;
+	g_PortInfo[PORT_ZANDRONUM].MasterServerInfo.Address = *ZANDRONUM_GetMasterServerAddress();
+
 
 	// ZDaemon (www.zdaemon.org)
 	g_PortInfo[PORT_ZDAEMON].pvQueryMasterServer			= ZDAEMON_QueryMasterServer;

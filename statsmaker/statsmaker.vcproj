@@ -268,7 +268,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\protocol_skulltag.cpp"
+				RelativePath=".\protocol_zandronum.cpp"
 				>
 			</File>
 			<File
@@ -286,10 +286,6 @@
 			</File>
 			<File
 				RelativePath=".\gui.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\huffman.h"
 				>
 			</File>
 			<File
@@ -313,7 +309,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\protocol_skulltag.h"
+				RelativePath=".\protocol_zandronum.h"
 				>
 			</File>
 			<File

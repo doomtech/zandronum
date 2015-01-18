@@ -133,7 +133,7 @@ enum
 //*****************************************************************************
 enum
 {
-	PORT_SKULLTAG,
+	PORT_ZANDRONUM,
 	PORT_ZDAEMON,
 
 	NUM_PORTS
