@@ -11,7 +11,7 @@ INCLUDE_DIRECTORIES ( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 FILE ( GLOB HDRS *.h )
 FILE ( GLOB SRCS *.cpp )
-SET ( SRCS ${SRCS} ../src/huffman.cpp ../src/networkshared.cpp ../src/platform.cpp )
+SET ( SRCS ${SRCS} ../src/huffman/bitwriter.cpp ../src/huffman/huffcodec.cpp ../src/huffman/huffman.cpp ../src/networkshared.cpp ../src/platform.cpp )
 
 ADD_DEFINITIONS ( -DNO_GUI )
 

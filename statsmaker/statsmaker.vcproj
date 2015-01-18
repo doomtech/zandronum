@@ -289,10 +289,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\huffman.h"
-				>
-			</File>
-			<File
 				RelativePath=".\i_system.h"
 				>
 			</File>
