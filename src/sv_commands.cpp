@@ -1192,7 +1192,7 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 	command.setUnreliable( true );
 	command.addByte( ulPlayer );
 	command.addShort(( players[ulPlayer].ulTime / ( TICRATE * 60 )));
-	command.sendCommandToOneClient( ulPlayer );
+	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
