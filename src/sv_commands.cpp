@@ -480,7 +480,7 @@ void SERVERCOMMANDS_Nothing( ULONG ulPlayer, bool bReliable )
 		return;
 
 	NetCommand command( SVC_NOTHING );
-	command.setUnreliable( true );
+	command.setUnreliable( bReliable == false );
 	command.sendCommandToOneClient( ulPlayer );
 }
 
