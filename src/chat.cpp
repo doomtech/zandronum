@@ -468,11 +468,11 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	{
 		// [RC] User can choose the chat sound.
 		if ( chat_sound == 1 ) // Default
-			S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
+			S_Sound( CHAN_VOICE | CHAN_UI, gameinfo.chatSound, 1, ATTN_NONE );
 		else if ( chat_sound == 2 ) // Doom 1
-			S_Sound( CHAN_VOICE, "misc/chat2", 1, ATTN_NONE );
+			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat2", 1, ATTN_NONE );
 		else if ( chat_sound == 3 ) // Doom 2
-			S_Sound( CHAN_VOICE, "misc/chat", 1, ATTN_NONE );
+			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat", 1, ATTN_NONE );
 	}
 
 	BOTCMD_SetLastChatString( pszString );

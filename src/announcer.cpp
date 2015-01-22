@@ -237,7 +237,7 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 		// Play the sound.
 		g_lLastSoundID = S_FindSound( sound );
 		// [WS] Added snd_announcervolume.
-		S_Sound( CHAN_VOICE, sound, snd_announcervolume, ATTN_NONE );
+		S_Sound( CHAN_VOICE | CHAN_UI, sound, snd_announcervolume, ATTN_NONE );
 	}
 }
 
