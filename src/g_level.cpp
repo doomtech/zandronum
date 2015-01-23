@@ -596,7 +596,8 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		// [BC] Support for client-side demos.
 		if (!demoplayback && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
+			// [BB] Change the random seed also for multiplayer 'map' changes
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 			{ // [RH] Change the random seed for each new single player game
 				rngseed = rngseed + 1;
 			}
