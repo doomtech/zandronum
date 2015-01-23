@@ -24,7 +24,7 @@
 +	- Ported CVARINFO lump support and the ACS functions SetCVar, GetCVarString and SetCVarString from ZDoom. This includes support for CVars that are automatically synced between server and clients. User CVars are not support for now though. [Torr Samaho]
 +	- Added domination and customteamgame to SBarInfo gamemode detection. [Blzut3]
 +	- Added dmflag sv_unblockallies which is exactly like sv_unblockplayers except only unblocks ally players. [Dusk]
-+	- The server can now advertise certain WADs as optional so long as clients are able to join the game without needing said WADs. Note: this is only a launcher hint! Clients have always been able to join servers without loads WADs not necessarily for networked gameplay! [Dusk]
++	- The server can now advertise WADs as optional so long as said WADs are not necessary for clients to join. This is controlled with the new command-line option -optfile and the new preferoptionalwads CVar. Note: this is only a hint for server browsers! Authentication is and has always been lump-based and not WAD-based! [Dusk]
 -	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
 -	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
