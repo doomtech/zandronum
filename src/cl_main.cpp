@@ -4201,6 +4201,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		// Spawn the respawn fog.
 		unsigned an = pActor->angle >> ANGLETOFINESHIFT;
+		// [CK] Don't spawn fog for facing west spawners online, if compatflag is on.
 		if (!(pActor->angle == ANGLE_180 && (zacompatflags & ZACOMPATF_SILENT_WEST_SPAWNS)))
 			Spawn( "TeleportFog", pActor->x + 20 * finecosine[an],
 				pActor->y + 20 * finesine[an],
