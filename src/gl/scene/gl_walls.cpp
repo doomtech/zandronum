@@ -1504,9 +1504,20 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 	flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
 
 	int rel = 0;
-	// [BB] The "false" is an out of sequence backport from GZDoom 1337.
-	lightlevel = seg->sidedef->GetLightLevel(!!(flags&GLWF_FOGGY), frontsector->lightlevel, false, &rel);
-	rellight = rel;
+	int orglightlevel = gl_ClampLight(frontsector->lightlevel);
+	lightlevel = seg->sidedef->GetLightLevel(!!(flags&GLWF_FOGGY), orglightlevel, false, &rel);
+	if (orglightlevel >= 253)			// with the software renderer fake contrast won't be visible above this.
+	{
+		rellight = 0;					
+	}
+	else if (lightlevel - rel > 256)	// the brighter part of fake contrast will be clamped so also clamp the darker part by the same amount for better looks
+	{	
+		rellight = 256 - lightlevel + rel;
+	}
+	else
+	{
+		rellight = rel;
+	}
 
 	alpha=1.0f;
 	RenderStyle=STYLE_Normal;
