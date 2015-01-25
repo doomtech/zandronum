@@ -361,32 +361,16 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	if (( players[consoleplayer].bSpectating ) && r_drawspectatingstring && !CLIENTDEMO_IsInFreeSpectateMode())
 	{
 		g_BottomString += "\n";
-		lPosition = JOINQUEUE_GetPositionInLine( ULONG( ulDisplayPlayer ));
+		lPosition = JOINQUEUE_GetPositionInLine( ulDisplayPlayer );
 		if ( players[ulDisplayPlayer].bDeadSpectator )
 			g_BottomString += "\\cdSPECTATING - WAITING TO RESPAWN";
 		else if ( lPosition != -1 )
 		{
 			g_BottomString += "\\cdWAITING TO PLAY - ";
-			g_BottomString.AppendFormat( "%d", static_cast<int> (lPosition + 1) );
-			//[ES] This way all ordinals are correctly written.
-			if ( lPosition%100/10 != 1 )
-				switch ( lPosition%10 )
-				{
-				case 0:
-					g_BottomString += "ST IN LINE";
-					break;
-				case 1:
-					g_BottomString += "ND IN LINE";
-					break;
-				case 2:
-					g_BottomString += "RD IN LINE";
-					break;
-				default:
-					g_BottomString += "TH IN LINE";
-					break;
-				}
-			else
-				g_BottomString += "TH IN LINE";
+			FString ordinal = SCOREBOARD_SpellOrdinal( lPosition );
+			ordinal.ToUpper();
+			g_BottomString += ordinal;
+			g_BottomString += " IN LINE";
 		}
 		else
 			g_BottomString += "\\cdSPECTATING - SPACE TO JOIN";
@@ -1716,6 +1700,64 @@ void SCOREBOARD_BuildPointString( char *pszString, const char *pszPointName, boo
 
 //*****************************************************************************
 //
+// [TP] Now in a function
+//
+FString SCOREBOARD_SpellOrdinal( int ranknum )
+{
+	FString result;
+	result.AppendFormat( "%d", ranknum + 1 );
+
+	//[ES] This way all ordinals are correctly written.
+	if ( ranknum % 100 / 10 != 1 )
+	{
+		switch ( ranknum % 10 )
+		{
+		case 0:
+			result += "st";
+			break;
+
+		case 1:
+			result += "nd";
+			break;
+
+		case 2:
+			result += "rd";
+			break;
+
+		default:
+			result += "th";
+			break;
+		}
+	}
+	else
+		result += "th";
+
+	return result;
+}
+
+//*****************************************************************************
+//
+// [TP]
+//
+
+FString SCOREBOARD_SpellOrdinalColored( int ranknum )
+{
+	FString result;
+
+	// Determine  what color and number to print for their rank.
+	switch ( g_ulRank )
+	{
+	case 0: result = "\\cH"; break;
+	case 1: result = "\\cG"; break;
+	case 2: result = "\\cD"; break;
+	}
+
+	result += SCOREBOARD_SpellOrdinal( ranknum );
+	return result;
+}
+
+//*****************************************************************************
+//
 void SCOREBOARD_BuildPlaceString ( char* pszString )
 {
 	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNFRAGS ) )
@@ -1736,32 +1778,13 @@ void SCOREBOARD_BuildPlaceString ( char* pszString )
 		else
 			pszString[0] = 0;
 
-		// Determine  what color and number to print for their rank.
-		switch ( g_ulRank )
-		{
-		case 0:
-
-			sprintf( pszString + strlen ( pszString ), "\\cH1st " );
-			break;
-		case 1:
-
-			sprintf( pszString + strlen ( pszString ), "\\cG2nd " );
-			break;
-		case 2:
-
-			sprintf( pszString + strlen ( pszString ), "\\cD3rd " );
-			break;
-		default:
-
-			sprintf( pszString + strlen ( pszString ), "%dth ", static_cast<unsigned int> ( g_ulRank + 1 ));
-			break;
-		}
+		strcpy( pszString + strlen ( pszString ), SCOREBOARD_SpellOrdinalColored( g_ulRank ));
 
 		// Tack on the rest of the string.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
-			sprintf( pszString + strlen ( pszString ), "\\c-place with %d point%s", static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
+			sprintf( pszString + strlen ( pszString ), "\\c- place with %d point%s", static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
 		else
-			sprintf( pszString + strlen ( pszString ), "\\c-place with %d frag%s", players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
+			sprintf( pszString + strlen ( pszString ), "\\c- place with %d frag%s", players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
 	}
 }
 
@@ -2718,6 +2741,17 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 
 //*****************************************************************************
 //
+// [TP]
+//
+bool SCOREBOARD_ShouldDrawRank( ULONG player )
+{
+	return deathmatch
+		&& ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == 0
+		&& ( PLAYER_IsTrueSpectator( &players[player] ) == false );
+}
+
+//*****************************************************************************
+//
 static void scoreboard_DrawMyRank( ULONG ulPlayer )
 {
 	char	szString[128];
@@ -2735,33 +2769,15 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 			szString[0] = 0;
 
 		// Determine  what color and number to print for their rank.
-		switch ( g_ulRank )
-		{
-		case 0:
-
-			sprintf( szString + strlen ( szString ), "\\cH1st " );
-			break;
-		case 1:
-
-			sprintf( szString + strlen ( szString ), "\\cG2nd " );
-			break;
-		case 2:
-
-			sprintf( szString + strlen ( szString ), "\\cD3rd " );
-			break;
-		default:
-
-			sprintf( szString + strlen ( szString ), "%dth ", static_cast<unsigned int> ( g_ulRank + 1 ));
-			break;
-		}
+		strcpy( szString + strlen ( szString ), SCOREBOARD_SpellOrdinalColored( g_ulRank ));
 
 		// Tack on the rest of the string.
 		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
-			sprintf( szString + strlen ( szString ), "\\c-place with %d win%s",  static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c- place with %d win%s",  static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
 		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
-			sprintf( szString + strlen ( szString ), "\\c-place with %d point%s", static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c- place with %d point%s", static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
 		else
-			sprintf( szString + strlen ( szString ), "\\c-place with %d frag%s", players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
+			sprintf( szString + strlen ( szString ), "\\c- place with %d frag%s", players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
 		V_ColorizeString( szString );
 
 		if ( g_bScale )
