@@ -8,6 +8,11 @@
 bool gl_BrightmapsActive();
 bool gl_GlowActive();
 
+inline int gl_ClampLight(int lightlevel)
+{
+	return clamp(lightlevel, 0, 255);
+}
+
 void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending,
 					   int *tm, int *sb, int *db, int *be);
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
