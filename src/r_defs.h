@@ -915,7 +915,7 @@ struct side_t
 	FTextureID	SavedMidTexture;
 	FTextureID	SavedBottomTexture;
 
-	int GetLightLevel (bool foggy, int baselight, int *fake = NULL) const;
+	int GetLightLevel (bool foggy, int baselight, bool noabsolute=false, int *pfakecontrast_usedbygzdoom=NULL) const;
 
 	void SetLight(SWORD l)
 	{
