@@ -812,21 +812,23 @@ void A_GunFlash(AActor *self, FState *flash)
 
 angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 {
-	static const int angdiff[15] = { -1<<26, 1<<26, 0,
-		-AUTOAIM_MINANGLE, AUTOAIM_MINANGLE, -AUTOAIM_MINANGLE << 1, AUTOAIM_MINANGLE << 1,
-		-AUTOAIM_MINANGLE * 3, AUTOAIM_MINANGLE * 3, -AUTOAIM_MINANGLE << 2, AUTOAIM_MINANGLE << 2,
-		-AUTOAIM_MINANGLE * 5, AUTOAIM_MINANGLE * 5, -AUTOAIM_MINANGLE * 6, AUTOAIM_MINANGLE * 6 }; // [CK] New angles
+	static const int angdiff[15] = {
+		AUTOAIM_MINANGLE * -1, AUTOAIM_MINANGLE * 1, AUTOAIM_MINANGLE * -2, AUTOAIM_MINANGLE * 2,
+		AUTOAIM_MINANGLE * -3, AUTOAIM_MINANGLE * 3, AUTOAIM_MINANGLE * -4, AUTOAIM_MINANGLE * 4,
+		AUTOAIM_MINANGLE * -5, AUTOAIM_MINANGLE * 5, AUTOAIM_MINANGLE * -6, AUTOAIM_MINANGLE * 6,
+		-1<<26, 1<<26, 0 }; // [CK] New angles
 	int i;
 	angle_t an;
 	angle_t pitch;
 	AActor *linetarget;
+	int endIndex = zacompatflags & ZACOMPATF_AUTOAIM ? 12 : 0; // [CK/TP] Our ending index depends on compatflags.
 
 	// [Spleen]
 	UNLAGGED_Reconcile( mo );
 	UNLAGGED_AddReconciliationBlocker( );
 
 	// see which target is to be aimed at
-	i = zacompatflags & ZACOMPATF_AUTOAIM ? 2 : 14; // [CK] Our starting index depends on compatflags.
+	i = 14; // [TP/CK] Now 14
 	do
 	{
 		an = mo->angle + angdiff[i];
@@ -838,7 +840,7 @@ angle_t P_BulletSlope (AActor *mo, AActor **pLineTarget)
 		{
 			break;
 		}
-	} while (linetarget == NULL && --i >= 0);
+	} while (linetarget == NULL && --i >= endIndex); // [TP] 0 changed to endIndex
 	if (pLineTarget != NULL)
 	{
 		*pLineTarget = linetarget;
