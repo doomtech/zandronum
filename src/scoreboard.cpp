@@ -2279,9 +2279,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 
 				// Draw a chat icon if this player is chatting.
-				if ( players[ulPlayer].bChatting )
+				// [Cata] Also shows who's in the console.
+				if (( players[ulPlayer].bChatting ) || ( players[ulPlayer].bInConsole ))
 				{
-					sprintf( szPatchName, "TLKMINI");
+					if ( players[ulPlayer].bInConsole )
+						sprintf( szPatchName, "CONSMINI" );
+					else
+						sprintf( szPatchName, "TLKMINI" );
 
 					lXPosOffset -= TexMan[szPatchName]->GetWidth();
 					if ( g_bScale )
