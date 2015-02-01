@@ -75,6 +75,9 @@ struct FPolyObj
 	// [BC/BB] Has this polyobject rotated at all? If so, we need to tell connecting clients of its new position.
 	bool		bRotated;
 
+	// [BC/BB] Was the polyobject blocked the last time it tried to move?
+	bool		bBlocked;
+
 	FPolyObj();
 	DInterpolation *SetInterpolation();
 	void StopInterpolation();

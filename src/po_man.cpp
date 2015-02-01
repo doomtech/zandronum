@@ -1014,8 +1014,12 @@ void DPolyDoor::Tick ()
 		{
 
 			// [WS] Inform clients that the door is closing.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER && m_TotalDist == m_Dist && m_Close )
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ( ( m_TotalDist == m_Dist ) && m_Close ) || poly->bBlocked ) )
+			{
+				// [BB] The door is not blocked anymore.
+				poly->bBlocked = false;
 				SERVERCOMMANDS_SetPolyDoorSpeedRotation( m_PolyObj, m_Speed, poly->angle );
+			}
 
 			absSpeed = abs (m_Speed);
 			if (m_Dist == -1)
@@ -1060,6 +1064,12 @@ void DPolyDoor::Tick ()
 		{
 			if(poly->crush || !m_Close)
 			{ // continue moving if the poly is a crusher, or is opening
+				// [BB] Something just blocked the movement, inform the clients.
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( m_Dist > 0 ) && ( poly->bBlocked == false ) )
+				{
+					poly->bBlocked = true;
+					SERVERCOMMANDS_SetPolyDoorSpeedRotation( m_PolyObj, 0, poly->angle );
+				}
 				return;
 			}
 			else
@@ -1938,6 +1948,7 @@ static void SpawnPolyobj (int index, int tag, int type)
 			// [BB] Init Zandronum stuff.
 			polyobjs[index].bMoved = false;
 			polyobjs[index].bRotated = false;
+			polyobjs[index].bBlocked = false;
 			break;
 		}
 	}
@@ -2008,6 +2019,7 @@ static void SpawnPolyobj (int index, int tag, int type)
 			// [BB] Init Zandronum stuff
 			po->bMoved = false;
 			po->bRotated = false;
+			po->bBlocked = false;
 			// Next, change the polyobj's first line to point to a mirror
 			//		if it exists
 			po->Sidedefs[0]->linedef->args[1] =

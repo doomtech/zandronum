@@ -28,6 +28,7 @@
 +	- Added support for Zandronum-specific gamemodes for the alternative HUD. [Dusk]
 -	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
 -	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
+-	- Fixed: Blocked poly object doors were not handled properly online. [Torr Samaho]
 !	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
 !	- Renamed dmflags3 to zadmflags, moved all Zandronum/Skulltag exclusive dmflags2 from dmflags2 to zadmflags and changed the remaining dmflags2 values to match the ZDoom values to resolve compatibility problems with future ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
 !	- Since ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999, Zandronum now gracefully errors out when encountering a script with an invalid number instead of crashing randomly. [Torr Samaho] 
