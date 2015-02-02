@@ -20,6 +20,7 @@ void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, floa
 
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
 struct sector_t;
+bool gl_CheckFog(FColormap *cm, int lightlevel);
 bool gl_CheckFog(sector_t *frontsector, sector_t *backsector);
 
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cm, bool isadditive);
