@@ -441,7 +441,7 @@ void GLFlat::Draw(int pass)
 // plane in the appropriate render list.
 //
 //==========================================================================
-inline void GLFlat::PutFlat(bool fog)
+inline void GLFlat::PutFlat(sector_t *model, bool fog)
 {
 	int list;
 
@@ -471,7 +471,7 @@ inline void GLFlat::PutFlat(bool fog)
 
 		if (!gl_fixedcolormap)
 		{
-			foggy = gl_CheckFog(sector, NULL) || level.flags&LEVEL_HASFADETABLE;
+			foggy = gl_CheckFog(model, NULL) || level.flags&LEVEL_HASFADETABLE;
 
 			if (gl_lights && !gl_dynlight_shader && GLRenderer->mLightCount)	// Are lights touching this sector?
 			{
@@ -527,7 +527,7 @@ void GLFlat::Process(sector_t * model, int whichplane, bool fog)
 
 	z = plane.plane.ZatPoint(0.f, 0.f);
 	
-	PutFlat(fog);
+	PutFlat(model, fog);
 	rendered_flats++;
 }
 
