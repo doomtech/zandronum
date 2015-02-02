@@ -277,8 +277,8 @@ public:
 	void DrawSubsectorLights(subsector_t * sub, int pass);
 	void DrawSubsectors(int pass, bool istrans);
 
-	void PutFlat(sector_t *sec, bool fog = false);
-	void Process(sector_t * sector, int whichplane, bool notexture);
+	void PutFlat(bool fog = false);
+	void Process(sector_t * model, int whichplane, bool notexture);
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector, subsector_t * sub);
 	void Draw(int pass);
