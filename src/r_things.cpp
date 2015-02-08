@@ -888,7 +888,11 @@ void R_InitSkins (void)
 						break;
 					}
 
-					Wads.GetLumpName (temp.name, base+1);
+					// [BB] S_SKIN only, unless we don't have a proper intname.
+					if ( ( s_skin != 0 ) || ( intname == 0 ) )
+						Wads.GetLumpName (temp.name, base+1);
+					else
+						memcpy(temp.name, &intname, 4);
 					temp.name[4] = 0;
 					int sprno = (int)sprites.Push (temp);
 					if (spr==0)	skins[i].sprite = sprno;
