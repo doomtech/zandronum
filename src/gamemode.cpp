@@ -835,7 +835,7 @@ void GAMEMODE_ResetSpecalGamemodeStates ( void )
 //
 bool GAMEMODE_IsSpectatorAllowedSpecial ( const int Special )
 {
-	return ( ( Special == Teleport ) || ( Special == Teleport_NoFog ) || ( Special == Teleport_Line ) );
+	return ( ( Special == Teleport ) || ( Special == Teleport_NoFog ) || ( Special == Teleport_NoStop ) || ( Special == Teleport_Line ) );
 }
 
 //*****************************************************************************

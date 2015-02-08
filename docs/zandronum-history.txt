@@ -86,6 +86,8 @@
 -	- Fixed: Rotating polyobjects did not stop on map resets. [Dusk, Edward-san]
 -	- Fixed: Emulated multiplayer and multiplayer map changes broke random. [Torr Samaho, Edward-san]
 -	- Fixed: Since Skulltag 98a, chat and announcer stopped producing sounds in game during Time Freeze and in intermission after map exiting while Time Freeze was on. [Edward-san]
+-	- Fixed: Spectators could not use the 'Teleport_NoStop' action special. [Edward-san]
+-	- Fixed: Under certain circumstances, the SKININFO parser didn't properly handle the sprite entry. [Torr Samaho]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water, Torr Samaho]
