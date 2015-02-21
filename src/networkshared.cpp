@@ -918,15 +918,16 @@ void IPList::removeExpiredEntries( void )
 		// If this entry isn't infinite, and expires in the past (or now), remove it.
 		if (( _ipVector[ulIdx].tExpirationDate != 0 ) && ( _ipVector[ulIdx].tExpirationDate - tNow <= 0))
 		{
-			char		szMessage[256];
+			std::string	Message;
 
-			sprintf( szMessage, "Temporary ban for %s.%s.%s.%s", _ipVector[ulIdx].szIP[0], _ipVector[ulIdx].szIP[1], _ipVector[ulIdx].szIP[2], _ipVector[ulIdx].szIP[3] );
+			Message = "Temporary ban for ";
+			Message = Message + _ipVector[ulIdx].szIP[0] + "." + _ipVector[ulIdx].szIP[1] + "." + _ipVector[ulIdx].szIP[2] + "." + _ipVector[ulIdx].szIP[3];
 			
 			// Add the ban reason.
 			if ( strlen( _ipVector[ulIdx].szComment ) )
-				sprintf( szMessage, "%s (%s)", szMessage,  _ipVector[ulIdx].szComment );
+				Message = Message + " (" + _ipVector[ulIdx].szComment + ")";
 
-			sprintf( szMessage, "%s has expired", szMessage );
+			Message += " has expired";
 
 			// If the entry expired while the server was offline, say when it expired.
 			if ( _ipVector[ulIdx].tExpirationDate - tNow <= -3 )
@@ -936,10 +937,10 @@ void IPList::removeExpiredEntries( void )
 
 				pTimeInfo = localtime( &_ipVector[ulIdx].tExpirationDate );
 				strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
-				sprintf( szMessage, "%s (ended on %s)", szMessage, szDate );
+				Message = Message + " (ended on " + szDate + ")";
 			} 
 				
-			Printf( "%s.\n", szMessage );
+			Printf( "%s.\n", Message.c_str() );
 			removeEntry( ulIdx );
 		}
 		else
@@ -1103,58 +1104,48 @@ std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment, b
 //
 void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszCommentUncleaned, std::string &Message, time_t tExpiration )
 {
-	FILE		*pFile;
-	char		szOutString[512];
-	char		szDate[32];
-	ULONG		ulIdx;
-	std::stringstream messageStream;
+	FILE				*pFile;
+	std::string			OutString;
+	std::string			PlayerNameAndComment;
+	char				szDate[32];
+	ULONG				ulIdx;
+	std::stringstream 	messageStream;
 
 	// [BB] Before we can check whether the ban already exists, we need to build the full, cleaned comment string.
 
 	// [BB] The comment may not contain line breaks or feeds, so we create a cleaned copy of the comment argument here.
-	char *pszComment = NULL;
+	std::string Comment;
 	// [BB] If pszCommentUncleaned starts with 0, it's empty and we don't need to copy it. The copy code assumes
 	// that pszCommentUncleaned is not empty, so we may not call it in case pszCommentUncleaned is empty but not NULL.
 	if ( pszCommentUncleaned && (pszCommentUncleaned[0] != 0) )
 	{
-		pszComment = new char [ strlen( pszCommentUncleaned ) + 1 ];
-
-		const char *p = pszCommentUncleaned;
-		char *pCleaned = pszComment;
-
-		do
-		{
-			const char c = *p;
-			if ( c != '\n' && c != '\r' )
-			{
-				*pCleaned = c;
-				pCleaned++;
-			}
-			p++;
-		} while ( *p != 0 );
-		*pCleaned = 0;
+		Comment = pszCommentUncleaned;
+		const char CharsToRemove[] = "\n\r";
+		const char *p;
+		for ( p = CharsToRemove; *p != '\0'; ++p )
+			Comment.erase( std::remove( Comment.begin(), Comment.end(), *p ), Comment.end() );
 	}
 
-	szOutString[0] = 0;
+	// Combine the player name and the shortened comment inside the buffer.
 	if ( pszPlayerName && strlen( pszPlayerName ))
+		PlayerNameAndComment = pszPlayerName;
+	if ( Comment.empty() == false )
 	{
-		sprintf( szOutString, "%s", szOutString );
-		if ( pszComment && strlen( pszComment ))
-			sprintf( szOutString, "%s:", szOutString );
+		if ( PlayerNameAndComment.empty() == false )
+			PlayerNameAndComment += ":";
+		PlayerNameAndComment += Comment;
 	}
-	if ( pszComment )
-		sprintf( szOutString, "%s%s", szOutString, pszComment );
 
 	// Address is already in the list.
 	ulIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
 	if ( ulIdx != _ipVector.size() )
 	{
 		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list";
-		if ( ( getEntry ( ulIdx ).tExpirationDate != tExpiration ) || ( stricmp ( getEntry ( ulIdx ).szComment, szOutString ) ) )
+		if ( ( getEntry ( ulIdx ).tExpirationDate != tExpiration ) || ( strnicmp ( getEntry ( ulIdx ).szComment, PlayerNameAndComment.c_str(), 127 ) ) )
 		{
 			messageStream << ". Just updating the expiration date and reason.\n";
 			_ipVector[ulIdx].tExpirationDate = tExpiration;
-			strncpy( _ipVector[ulIdx].szComment, szOutString, 127 );
+			strncpy( _ipVector[ulIdx].szComment, PlayerNameAndComment.c_str(), 127 );
 			_ipVector[ulIdx].szComment[127] = 0;
 			rewriteListToFile();
 		}
@@ -1171,7 +1162,7 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	sprintf( newIPEntry.szIP[1], "%s", pszIP1 );
 	sprintf( newIPEntry.szIP[2], "%s", pszIP2 );
 	sprintf( newIPEntry.szIP[3], "%s", pszIP3 );
-	strncpy( newIPEntry.szComment, szOutString, 127 );
+	strncpy( newIPEntry.szComment, PlayerNameAndComment.c_str(), 127 );
 	newIPEntry.szComment[127] = 0;
 	newIPEntry.tExpirationDate = tExpiration;
 	_ipVector.push_back( newIPEntry );
@@ -1179,7 +1170,8 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	// Finally, append the IP to the file.
 	if ( (pFile = fopen( _filename.c_str(), "a" )) )
 	{
-		sprintf( szOutString, "\n%s.%s.%s.%s", pszIP0, pszIP1, pszIP2, pszIP3 );
+		OutString = "\n";
+		OutString = OutString + pszIP0 + "." + pszIP1 + "." + pszIP2 + "." + pszIP3;
 
 		// [RC] Write the expiration date of this ban.
 		if ( tExpiration )
@@ -1188,14 +1180,14 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 
 			pTimeInfo = localtime( &tExpiration );
 			strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
-			sprintf( szOutString, "%s<%s>", szOutString, szDate );
+			OutString = OutString + "<" + szDate + ">";
 		}
 
-		if ( pszPlayerName && strlen( pszPlayerName ))
-			sprintf( szOutString, "%s:%s", szOutString, pszPlayerName );
-		if ( pszComment && strlen( pszComment ))
-			sprintf( szOutString, "%s:%s", szOutString, pszComment );
-		fputs( szOutString, pFile );
+		if ( PlayerNameAndComment.empty() == false )
+			OutString = OutString + ":" + PlayerNameAndComment;
+		if ( OutString.length() > 511 )
+			OutString.resize(511);
+		fputs( OutString.c_str(), pFile );
 		fclose( pFile );
 
 		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " added to list.";
@@ -1210,9 +1202,6 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	{
 		Message = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
 	}
-
-	if ( pszComment )
-		delete pszComment;
 }
 
 //*****************************************************************************
