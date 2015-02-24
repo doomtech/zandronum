@@ -482,6 +482,12 @@ AGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg" )
 	endif( NOT NO_STRIP )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
+# MSVC Flags
+
+if( MSVC )
+	set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DELAYLOAD:\"fmodex${X64}.dll\"" )
+endif( MSVC )
+
 # Check for functions that may or may not exist.
 
 CHECK_FUNCTION_EXISTS( filelength FILELENGTH_EXISTS )
