@@ -340,18 +340,6 @@ CCMD (slot)
 		{
 			SendItemUse = players[consoleplayer].weapons.Slots[slot].PickWeapon (&players[consoleplayer], 
 				!(dmflags2 & DF2_DONTCHECKAMMO));
-
-			// [BC] This can be NULL if we're a spectator.
-			if ( SendItemUse == NULL )
-				return;
-
-			// [BC] If we're the client, switch to this weapon right now, since the whole
-			// DEM_, etc. network code isn't ever executed.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-				( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
-			{
-				players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
-			}
 		}
 	}
 }
@@ -412,98 +400,40 @@ CVAR( Bool, sv_useteamstartsindm, false, CVAR_SERVERINFO )
 // [BB] In cooperative game modes players are spawned at random player starts instead of the one designated for them.
 CVAR( Bool, sv_randomcoopstarts, false, CVAR_SERVERINFO )
 
-// [BC] New cvar that shows the name of the weapon we're cycling to.
-CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
-
-// [BB] Helper function that collects the duplicate code of weapnext and weapprev
-void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
-{
-	// [BB] No weapnext/weapprev while playing a demo.
-	if ( CLIENTDEMO_IsPlaying( ) == true )
-	{
-		Printf ( "You can't use weapnext or weapprev during demo playback.\n" );
-		return;
-	}
-
-	// [BC] This can be NULL if we're a spectator.
-	if ( pSelectedWeapon == NULL )
-		return;
-
-	// [BC] If we're the client, switch to this weapon right now, since the whole
-	// DEM_, etc. network code isn't ever executed.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( demorecording == false ))
-	{
-		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
-
-		// [BB] We didn't change our weapon, so there is nothing to do.
-		if ( ( players[consoleplayer].PendingWeapon == WP_NOCHANGE )
-			 || ( players[consoleplayer].PendingWeapon == NULL ) )
-		{
-			return;
-		}
-
-		// [BB] UseInventory may select the sister weapon, take this into account here.
-		if ( ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
-			 && ( players[consoleplayer].PendingWeapon->SisterWeaponType != pSelectedWeapon->GetClass() )
-			)
-		{
-			return;
-		}
-	}
-	else
-		SendItemUse = pSelectedWeapon;
-
-	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL )
-	     && ( players[consoleplayer].PendingWeapon != WP_NOCHANGE ) )
-	{
-		char				szString[64];
-		DHUDMessageFadeOut	*pMsg;
-		
-		// Build the string and text color;
-		sprintf( szString, "%s", players[consoleplayer].PendingWeapon->GetClass( )->TypeName.GetChars( ));
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			1.5f,
-			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
-			0,
-			0,
-			CR_GOLD,
-			2.f,
-			0.35f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
-	}
-}
-
 CCMD (weapnext)
 {
-	// [BB] Skulltag does this a little differently from ZDoom.
-	AWeapon	*pSelectedWeapon = players[consoleplayer].weapons.PickNextWeapon (&players[consoleplayer]);
-	SelectWeaponAndDisplayName ( pSelectedWeapon );
-/*
-	// [BC] Option to display the name of the weapon being cycled to.
-	if ((displaynametags & 2) && StatusBar && SmallFont && SendItemUse)
+	// [BB] No weapnext while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
 	{
-		StatusBar->AttachMessage(new DHUDMessageFadeOut(SmallFont, SendItemUse->GetTag(),
-			1.5f, 0.90f, 0, 0, CR_GOLD, 2.f, 0.35f), MAKE_ID( 'W', 'E', 'P', 'N' ));
+		Printf ( "You can't use weapnext during demo playback.\n" );
+		return;
 	}
-*/
+
+	SendItemUse = players[consoleplayer].weapons.PickNextWeapon (&players[consoleplayer]);
+ 	// [BC] Option to display the name of the weapon being cycled to.
+ 	if ((displaynametags & 2) && StatusBar && SmallFont && SendItemUse)
+ 	{
+ 		StatusBar->AttachMessage(new DHUDMessageFadeOut(SmallFont, SendItemUse->GetTag(),
+ 			1.5f, 0.90f, 0, 0, CR_GOLD, 2.f, 0.35f), MAKE_ID( 'W', 'E', 'P', 'N' ));
+ 	}
 }
 
 CCMD (weapprev)
 {
-	// [BB] Skulltag does this a little differently from ZDoom.
-	AWeapon	*pSelectedWeapon = players[consoleplayer].weapons.PickPrevWeapon (&players[consoleplayer]);
-	SelectWeaponAndDisplayName ( pSelectedWeapon );
-/*
-	// [BC] Option to display the name of the weapon being cycled to.
-	if ((displaynametags & 2) && StatusBar && SmallFont && SendItemUse)
+	// [BB] No weapprev while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
 	{
-		StatusBar->AttachMessage(new DHUDMessageFadeOut(SmallFont, SendItemUse->GetTag(),
-			1.5f, 0.90f, 0, 0, CR_GOLD, 2.f, 0.35f), MAKE_ID( 'W', 'E', 'P', 'N' ));
+		Printf ( "You can't use weapprev during demo playback.\n" );
+		return;
 	}
-*/
+
+	SendItemUse = players[consoleplayer].weapons.PickPrevWeapon (&players[consoleplayer]);
+ 	// [BC] Option to display the name of the weapon being cycled to.
+ 	if ((displaynametags & 2) && StatusBar && SmallFont && SendItemUse)
+ 	{
+ 		StatusBar->AttachMessage(new DHUDMessageFadeOut(SmallFont, SendItemUse->GetTag(),
+ 			1.5f, 0.90f, 0, 0, CR_GOLD, 2.f, 0.35f), MAKE_ID( 'W', 'E', 'P', 'N' ));
+ 	}
 }
 
 CCMD (invnext)
@@ -570,36 +500,16 @@ CCMD (invprev)
 
 CCMD (invuseall)
 {
-	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
-	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENTCOMMANDS_RequestInventoryUseAll();
-	else
-		SendItemUse = (const AInventory *)1;
+	SendItemUse = (const AInventory *)1;
 }
 
 CCMD (invuse)
 {
-	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
-	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife)
 	{
-		if ( players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife )
-		{
-			if (players[consoleplayer].mo)
-			{
-				AInventory *item = players[consoleplayer].mo->InvSel;
-				CLIENTCOMMANDS_RequestInventoryUse( item );
-			}
-		}
-		players[consoleplayer].inventorytics = 0;
+		if (players[consoleplayer].mo) SendItemUse = players[consoleplayer].mo->InvSel;
 	}
-	else
-	{
-		if (players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife)
-		{
-			if (players[consoleplayer].mo) SendItemUse = players[consoleplayer].mo->InvSel;
-		}
-		players[consoleplayer].inventorytics = 0;
-	}
+	players[consoleplayer].inventorytics = 0;
 }
 
 CCMD(invquery)
@@ -613,21 +523,9 @@ CCMD(invquery)
 
 CCMD (use)
 {
-	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
-	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (argv.argc() > 1 && who != NULL)
 	{
-		if (argv.argc() > 1)
-		{
-			AInventory *item = who->FindInventory (PClass::FindClass (argv[1]));
-			CLIENTCOMMANDS_RequestInventoryUse( item );
-		}
-	}
-	else
-	{
-		if (argv.argc() > 1 && who != NULL)
-		{
-			SendItemUse = who->FindInventory (PClass::FindClass (argv[1]));
-		}
+		SendItemUse = who->FindInventory (PClass::FindClass (argv[1]));
 	}
 }
 
@@ -693,10 +591,7 @@ CCMD (useflechette)
 		AInventory *item;
 		if ( (item = who->FindInventory (bagnames[(i+j)%3])) )
 		{
-			if( NETWORK_GetState( ) == NETSTATE_CLIENT )
-				CLIENTCOMMANDS_RequestInventoryUse( item );
-			else
-				SendItemUse = item;
+			SendItemUse = item;
 			break;
 		}
 	}
@@ -937,16 +832,20 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 		Net_WriteString (savedescription);
 		savegamefile = "";
 	}
-	if (SendItemUse == (const AInventory *)1)
+	// [TP] Don't do this in client mode
+	if ( NETWORK_InClientMode() == false )
 	{
-		Net_WriteByte (DEM_INVUSEALL);
-		SendItemUse = NULL;
-	}
-	else if (SendItemUse != NULL)
-	{
-		Net_WriteByte (DEM_INVUSE);
-		Net_WriteLong (SendItemUse->InventoryID);
-		SendItemUse = NULL;
+		if (SendItemUse == (const AInventory *)1)
+		{
+			Net_WriteByte (DEM_INVUSEALL);
+			SendItemUse = NULL;
+		}
+		else if (SendItemUse != NULL)
+		{
+			Net_WriteByte (DEM_INVUSE);
+			Net_WriteLong (SendItemUse->InventoryID);
+			SendItemUse = NULL;
+		}
 	}
 	if (SendItemDrop != NULL)
 	{

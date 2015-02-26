@@ -127,6 +127,7 @@ bool	ClassOwnsState( const PClass *pClass, const FState *pState );
 bool	ActorOwnsState( const AActor *pActor, const FState *pState );
 void	D_ErrorCleanup ();
 extern bool FriendlyFire;
+extern const AInventory *SendItemUse;
 DECLARE_ACTION(A_RestoreSpecialPosition)
 
 EXTERN_CVAR( Bool, telezoom )
@@ -706,6 +707,22 @@ void CLIENT_Tick( void )
 //
 void CLIENT_EndTick( void )
 {
+	// [TP] Do we want to change our weapon or use an item or something like that?
+	if ( SendItemUse )
+	{
+		// Why did ZDoom make SendItemUse const? That's just stupid.
+		AInventory* item = const_cast<AInventory*>( SendItemUse );
+
+		if ( item == (AInventory*)1 )
+			CLIENTCOMMANDS_RequestInventoryUseAll();
+		else if ( SendItemUse->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
+			item->Use( false );
+		else
+			CLIENTCOMMANDS_RequestInventoryUse( item );
+
+		SendItemUse = NULL;
+	}
+
 	// If there's any data in our packet, send it to the server.
 	if ( NETWORK_CalcBufferSize( &g_LocalBuffer ) > 0 )
 		CLIENT_SendServerPacket( );
