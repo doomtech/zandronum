@@ -4513,7 +4513,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// [BB] Whatever the client is supposed to predict, it may not handle the
 			// damage, which is done below.
 			if ( NETWORK_InClientMode( ) )
-				return NULL;
+				goto damagedone;
 
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
 			if (puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
@@ -4544,6 +4544,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				}
 				P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
 			}
+damagedone:	// [TP] The client returns here now that the damage has been dealt.
 			if (victim != NULL)
 			{
 				*victim = trace.Actor;
