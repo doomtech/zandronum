@@ -3517,20 +3517,23 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", szName, pszReason );
 	Printf( "%s", szKickString );
 
-	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
-	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
-
 	// Make this player a spectator.
 	PLAYER_SetSpectator( &players[ulPlayer], true, false );
 
 	// Send the message out to all clients.
-	SERVERCOMMANDS_PlayerIsSpectator( ulPlayer );
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
+		// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
+		sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
 
-		SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
+		SERVERCOMMANDS_PlayerIsSpectator( ulPlayer );
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( SERVER_IsValidClient( ulIdx ) == false )
+				continue;
+
+			SERVER_PrintfPlayer( PRINT_HIGH, ulIdx, "%s", szKickString );
+		}
 	}
 }
 

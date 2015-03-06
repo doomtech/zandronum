@@ -3806,7 +3806,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args)
 		case ACSF_KickFromGame:
 			{
 				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
-				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && PLAYER_IsValidPlayer ( ulPlayer ) && ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false ) )
+				if ( ( NETWORK_InClientMode( ) == false ) && PLAYER_IsValidPlayer ( ulPlayer ) && ( PLAYER_IsTrueSpectator ( &players[ulPlayer] ) == false ) )
 				{
 					SERVER_KickPlayerFromGame ( ulPlayer, FBehavior::StaticLookupString ( args[1] ) );
 					return 1;
