@@ -2407,7 +2407,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				}
 
 				pPlayer->health = deh.StartHealth;
-				if ( pPlayer->mo->health )
+				if ( pPlayer->mo )
 					pPlayer->mo->health = pPlayer->health;
 
 				if ( bBroadcast )
