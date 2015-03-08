@@ -50,7 +50,8 @@
 
 CUSTOM_CVAR(Int, gl_usevbo, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	if (self < -1 || self > 2 || !(gl.flags&RFL_VBO))
+	// [BB] Prevent infinite recursion in software.
+	if (self < -1 || self > 2 || ( !(gl.flags&RFL_VBO) && self != 0 ) )
 	{
 		self = 0;
 	}
