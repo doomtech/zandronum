@@ -2324,7 +2324,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 					JOINQUEUE_PlayerLeftGame( true );
 				}
 
-				pPlayer->health = pPlayer->mo->health = deh.StartHealth;
+				pPlayer->health = deh.StartHealth;
+				if ( pPlayer->mo->health )
+					pPlayer->mo->health = pPlayer->health;
 
 				if ( bBroadcast )
 				{
