@@ -89,6 +89,7 @@
 -	- Fixed: Spectators could not use the 'Teleport_NoStop' action special. [Edward-san]
 -	- Fixed: Under certain circumstances, the SKININFO parser didn't properly handle the sprite entry. [Torr Samaho]
 -	- Fixed: On some systems, adding bans and ban exemptions from the server console didn't work. [Konar6, Edward-san]
+-	- Fixed: The CCMD 'kickfromgame' and the ACS function 'KickFromGame' could not work offline. [Edward-san]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water, Torr Samaho]

@@ -5715,7 +5715,7 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 	PLAYER_SetSpectator( &players[ulPlayer], false, bDeadSpectator );
 
 	// If we were a spectator and looking through this player's eyes, revert them.
-	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ))
+	if ( players[ulPlayer].mo && players[ulPlayer].mo->CheckLocalView( consoleplayer ))
 	{
 		CLIENT_ResetConsolePlayerCamera();
 	}
