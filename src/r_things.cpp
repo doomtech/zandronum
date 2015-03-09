@@ -1220,31 +1220,53 @@ void R_InitSprites ()
 			classSkinIdx = 0;
 		}
 
+		// [TP] How big can the skin be?
+		const FMetaTable& meta = PlayerClasses[classSkinIdx].Type->Meta;
+		fixed_t maxwidthfactor = meta.GetMetaFixed( APMETA_MaxSkinWidthFactor );
+		fixed_t maxheightfactor = meta.GetMetaFixed( APMETA_MaxSkinHeightFactor );
+
+		// [TP] If either of the size factors are 0, we can just skip this.
+		if ( maxwidthfactor * maxheightfactor == 0 )
+			continue;
+
+		AActor* def = GetDefaultByType( PlayerClasses[classSkinIdx].Type );
+		fixed_t maxAllowedHeight = FixedMul( maxheightfactor, def->height );
+		// [BB] 2*radius is approximately the actor width.
+		fixed_t maxAllowedWidth = FixedMul( maxwidthfactor, 2 * def->radius );
+		FPlayerSkin& skin = skins[skinIdx];
+
 		// [BB] If a skin sprite violates the limits, just downsize it.
 		bool sizeLimitsExceeded = false;
 		// [BB] Compare the maximal sprite height/width to the height/radius of the player class this skin belongs to.
 		// Massmouth is very big, so we have to be pretty lenient here with the checks.
-		if ( maxheight*FIXED2FLOAT(skins[skinIdx].ScaleY) > 1.68*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
+		// [TP] Also, allow 1px lee-way so that we won't complain about scale being off by a
+		// fraction of a pixel (would cause messages such as "52px, max is 52px").
+		if ( maxheight * skin.ScaleY > maxAllowedHeight + FRACUNIT )
 		{
 			sizeLimitsExceeded = true;
-			Printf ( "\\cgEffective sprite height of skin %s too big! Downsizing.\n", skins[skinIdx].name );
-			Printf ( "\\cgOffending lump name %s.\n", maxheightSprite.GetChars() );
-			const fixed_t oldScaleY = skins[skinIdx].ScaleY;
-			skins[skinIdx].ScaleY = 1.68*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) / maxheight;
+			Printf ( "\\cgSprite %s of skin %s is too tall (%dpx, max is %dpx). Downsizing.\n",
+				maxheightSprite.GetChars(),
+				skin.name,
+				( maxheight * skin.ScaleY ) >> FRACBITS,
+				maxAllowedHeight >> FRACBITS );
+			const fixed_t oldScaleY = skin.ScaleY;
+			skin.ScaleY = maxAllowedHeight / maxheight;
 			// [BB] Preserve the aspect ration of the sprites.
-			skins[skinIdx].ScaleX *= FIXED2FLOAT( skins[skinIdx].ScaleY ) / FIXED2FLOAT( oldScaleY );
+			skin.ScaleX *= FIXED2FLOAT( skin.ScaleY ) / FIXED2FLOAT( oldScaleY );
 		}
 
-		// [BB] 2*radius is approximately the actor width.
-		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].ScaleX) > 3.44*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
+		if ( maxwidth * skin.ScaleX > maxAllowedWidth + FRACUNIT )
 		{
-			const fixed_t oldScaleX = skins[skinIdx].ScaleX;
-			skins[skinIdx].ScaleX = 3.44*2*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) / maxwidth;
-			// [BB] Preserve the aspect ration of the sprites.
-			skins[skinIdx].ScaleY *= FIXED2FLOAT( skins[skinIdx].ScaleX ) / FIXED2FLOAT( oldScaleX );
 			sizeLimitsExceeded = true;
-			Printf ( "\\cgEffective sprite width of skin %s too big! Downsizing.\n", skins[skinIdx].name );
-			Printf ( "\\cgOffending lump name %s.\n", maxwidthSprite.GetChars() );
+			Printf ( "\\cgSprite %s of skin %s is too wide (%dpx, max is %dpx). Downsizing.\n",
+				maxwidthSprite.GetChars(),
+				skin.name,
+				( maxwidth * skin.ScaleX ) >> FRACBITS,
+				( maxAllowedWidth ) >> FRACBITS );
+			const fixed_t oldScaleX = skin.ScaleX;
+			skin.ScaleX = maxAllowedWidth / maxwidth;
+			// [BB] Preserve the aspect ration of the sprites.
+			skin.ScaleY *= FIXED2FLOAT( skin.ScaleX ) / FIXED2FLOAT( oldScaleX );
 		}
 
 		// [BB] Don't allow the base skin sprites of the player classes to exceed the limits.

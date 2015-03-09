@@ -2114,4 +2114,19 @@ DEFINE_CLASS_PROPERTY(unmorphflash, S, PowerMorph)
 	defaults->UnMorphFlash = FName(str);
 }
 
+//==========================================================================
+// [TP]
+//==========================================================================
+DEFINE_CLASS_PROPERTY_PREFIX( player, maxskinsizefactor, F_F, PlayerPawn )
+{
+	PROP_FIXED_PARM( widthfactor, 0 );
+	PROP_FIXED_PARM( heightfactor, 1 );
+
+	if ( widthfactor < 0 || heightfactor < 0 )
+		I_Error( "Maximum skin size factors may not be negative.");
+
+	info->Class->Meta.SetMetaFixed( APMETA_MaxSkinWidthFactor, widthfactor );
+	info->Class->Meta.SetMetaFixed( APMETA_MaxSkinHeightFactor, heightfactor );
+}
+
 
