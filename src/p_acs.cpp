@@ -3436,6 +3436,10 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 
 					if ( actor->angle != 0 )
 						SERVERCOMMANDS_SetThingAngle( actor );
+
+					// [TP] If we're the server, sync the tid to clients (if this actor has one)
+					if ( actor->tid != 0 )
+						SERVERCOMMANDS_SetThingTID( actor );
 				}
 			}
 			else
