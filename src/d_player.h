@@ -71,6 +71,10 @@ enum
 	APMETA_Slot7,
 	APMETA_Slot8,
 	APMETA_Slot9,
+
+	// [TP] Zandronum additions follow
+	APMETA_MaxSkinWidthFactor,
+	APMETA_MaxSkinHeightFactor,
 };
 
 FPlayerColorSet *P_GetPlayerColorSet(FName classname, int setnum);
