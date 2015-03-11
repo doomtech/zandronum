@@ -1545,7 +1545,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					for( std::list<std::pair<FString, FString> >::iterator i = serverPWADs.begin( ); i != serverPWADs.end( ); ++i )
 						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
 					Printf ( "You have loaded %d pwad(s):\n", NETWORK_GetPWADList().Size() );
-					for ( int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+					for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
 					{
 						const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
 						Printf( "PWAD: %s - %s\n", pwad.name.GetChars(), pwad.checksum.GetChars() );

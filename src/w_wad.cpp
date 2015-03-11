@@ -186,7 +186,7 @@ void FWadCollection::InitMultipleFiles (/*TArray<FString> &filenames*/) // [BB] 
 		bool isOptional = false;
 		for ( unsigned int j = 0; j < autoloadedwads.Size(); ++j )
 		{
-			if ( autoloadedwads[j] == allwads[i] )
+			if ( autoloadedwads[j].Compare( allwads[i] ) == 0 )
 			{
 				bLoadedAutomatically = true;
 				break;

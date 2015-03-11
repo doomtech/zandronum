@@ -4939,7 +4939,7 @@ static bool server_ProcessMoveCommand( const CLIENT_MOVE_COMMAND_s &ClientMoveCm
 	// hacking the data or something has become corrupt.
 	// We also will only accept newer gametics to prevent clients from going
 	// back in time and attempting to cheat with stale states.
-	if ( ( ClientMoveCmd.ulServerGametic <= gametic ) && ( g_aClients[ulClient].lLastServerGametic < ClientMoveCmd.ulServerGametic ) )
+	if ( ( ClientMoveCmd.ulServerGametic <= unsigned ( gametic ) ) && ( unsigned ( g_aClients[ulClient].lLastServerGametic ) < ClientMoveCmd.ulServerGametic ) )
 		g_aClients[ulClient].lLastServerGametic = ClientMoveCmd.ulServerGametic; // [CK] Use the gametic from what we saw
 
 	// If the client is attacking, he always sends the name of the weapon he's using.
