@@ -1958,7 +1958,6 @@ BYTE *FDynamicBuffer::GetData (int *len)
 // [RH] Execute a special "ticcmd". The type byte should
 //		have already been read, and the stream is positioned
 //		at the beginning of the command's actual data.
-EXTERN_CVAR( Bool, cl_showweapnameoncycle )
 void Net_DoCommand (int type, BYTE **stream, int player)
 {
 	BYTE pos = 0;
