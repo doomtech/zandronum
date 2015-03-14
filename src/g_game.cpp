@@ -152,7 +152,8 @@ EXTERN_CVAR (Float, con_midtime);
 //
 //==========================================================================
 
-CUSTOM_CVAR (Int, displaynametags, 0, CVAR_ARCHIVE)
+// [BB] Changed default to 3 to be consistent with Zandronum's 1.x behavior.
+CUSTOM_CVAR (Int, displaynametags, 3, CVAR_ARCHIVE)
 {
 	if (self < 0 || self > 3)
 	{
