@@ -451,17 +451,16 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	}
 
 	// [TP] Wads containing maps cannot be optional wads so check that now.
-	for( unsigned int i = 0; i < wadlevelinfos.Size(); i++ )
+	for ( unsigned int i = 0; i < wadlevelinfos.Size(); i++ )
 	{
 		level_info_t& info = wadlevelinfos[i];
-		MapData* mdata;
+		MapData* mdata = NULL;
 
 		// [TP] P_OpenMapData can throw an error in some cases with the cryptic error message
 		// "'THINGS' not found in'. I don't think this is the case in recent ZDoom versions?
 		try
 		{
-			if (( P_CheckMapData( info.mapname ))
-				&& (( mdata = P_OpenMapData( info.mapname )) != NULL ))
+			if (( mdata = P_OpenMapData( info.mapname )) != NULL )
 			{
 				// [TP] The wad that had this map is no longer optional.
 				Wads.LumpIsMandatory( mdata->lumpnum );
@@ -473,6 +472,8 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 			Printf( "NETWORK_Construct: \\cGWARNING: Cannot open map %s: %s\n",
 				info.mapname, e.GetMessage() );
 		}
+
+		delete mdata;
 	}
 
 	// Call NETWORK_Destruct() when Skulltag closes.
@@ -1056,9 +1057,6 @@ FString NETWORK_MapCollectionChecksum( )
 		char* mname = wadlevelinfos[i].mapname;
 		FString sum;
 
-		if ( !P_CheckMapData( mname ) )
-			continue;
-
 		MapData* mdata = P_OpenMapData( mname );
 		if ( !mdata )
 			continue;
@@ -1069,6 +1067,7 @@ FString NETWORK_MapCollectionChecksum( )
 			sum.AppendFormat ("%02X", BSum[j]);
 
 		longSum += sum;
+		delete mdata;
 	}
 
 	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>( longSum.GetChars( ) ),
