@@ -262,7 +262,20 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 		gl.Rotatef(-180.0f+x_offset, 0.f, 1.f, 0.f);
 		yAdd = y_offset/texh;
 
-		if (texh < 200)
+		// [EP] Zandronum version of GZDoom fad3a5410
+		if (texh < 128)
+		{
+			// smaller sky textures must be tiled. We restrict it to 128 sky pixels, though
+			gl.Translatef(0.f, -1250.f, 0.f);
+			gl.Scalef(1.f, 128/230.f, 1.f);
+			gl.MatrixMode(GL_TEXTURE);
+			gl.PushMatrix();
+			gl.LoadIdentity();
+			gl.Scalef(1.f, /* [EP] yscale =*/ 128 / texh, 1.f);
+			gl.MatrixMode(GL_MODELVIEW);
+			texscale = true;
+		}
+		else if (texh < 200)
 		{
 			gl.Translatef(0.f, -1250.f, 0.f);
 			gl.Scalef(1.f, texh/230.f, 1.f);
