@@ -73,7 +73,7 @@ static int rows, columns;
 static fixed_t scale = 10000 << FRACBITS;
 static bool yflip;
 static int texw;
-static float yMult, yAdd;
+static float yAdd;
 static bool foglayer;
 static bool secondlayer;
 static float R,G,B;
@@ -114,13 +114,13 @@ static void SkyVertex(int r, int c)
 		// And the texture coordinates.
 		if(!yflip)	// Flipped Y is for the lower hemisphere.
 		{
-			u = (-timesRepeat * c / (float)columns) ;//* yMult;
-			v = (r / (float)rows) * 1.f * yMult + yAdd;
+			u = (-timesRepeat * c / (float)columns) ;
+			v = (r / (float)rows) + yAdd;
 		}
 		else
 		{
-			u = (-timesRepeat * c / (float)columns) ;//* yMult;
-			v = ((rows-r)/(float)rows) * 1.f * yMult + yAdd;
+			u = (-timesRepeat * c / (float)columns) ;
+			v = 1.0f + ((rows-r)/(float)rows) + yAdd;
 		}
 		
 		
@@ -246,7 +246,8 @@ CVAR(Float, skyoffset, 0, 0)	// for testing
 
 static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float y_offset, bool mirror, int CM_Index)
 {
-	int texh;
+	int texh = 0;
+	bool texscale = false;
 
 	// 57 worls units roughly represent one sky texel for the glTranslate call.
 	const float skyoffsetfactor = 57;
@@ -260,17 +261,27 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 
 		gl.Rotatef(-180.0f+x_offset, 0.f, 1.f, 0.f);
 		yAdd = y_offset/texh;
-		yMult=1.0f;
 
 		if (texh < 200)
 		{
 			gl.Translatef(0.f, -1250.f, 0.f);
 			gl.Scalef(1.f, texh/230.f, 1.f);
 		}
-		else
+		else if (texh <= 240)
 		{
 			gl.Translatef(0.f, (200 - texh + tex->tex->SkyOffset + skyoffset)*skyoffsetfactor, 0.f);
 			gl.Scalef(1.f, 1.f + ((texh-200.f)/200.f) * 1.17f, 1.f);
+		}
+		else
+		{
+			gl.Translatef(0.f, (-40 + tex->tex->SkyOffset + skyoffset)*skyoffsetfactor, 0.f);
+			gl.Scalef(1.f, 1.2f * 1.17f, 1.f);
+			gl.MatrixMode(GL_TEXTURE);
+			gl.PushMatrix();
+			gl.LoadIdentity();
+			gl.Scalef(1.f, 240.f / texh, 1.f);
+			gl.MatrixMode(GL_MODELVIEW);
+			texscale = true;
 		}
 	}
 
@@ -316,6 +327,12 @@ static void RenderDome(FTextureID texno, FMaterial * tex, float x_offset, float 
 	}
 
 	RenderSkyHemisphere(SKYHEMI_LOWER, mirror);
+	if (texscale)
+	{
+		gl.MatrixMode(GL_TEXTURE);
+		gl.PopMatrix();
+		gl.MatrixMode(GL_MODELVIEW);
+	}
 	if (tex) gl.PopMatrix();
 
 }
