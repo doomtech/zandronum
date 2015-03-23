@@ -20,6 +20,10 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	if( APPLE )
 		set( NO_STRIP ON )
 	endif( APPLE )
+	# [EP]
+	if( RELEASE_WITH_DEBUG_FILE )
+		set( NO_STRIP ON )
+	endif( RELEASE_WITH_DEBUG_FILE )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
 option( DYN_FLUIDSYNTH "Dynamically load fluidsynth" )
@@ -1226,6 +1230,16 @@ if( MSVC )
 		COMMENT "Adding manifest..."
 	)
 endif( MSVC )
+
+# [EP]
+if ( RELEASE_WITH_DEBUG_FILE )
+	add_custom_command(TARGET zdoom POST_BUILD
+		COMMAND ${CMAKE_OBJCOPY} --only-keep-debug ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME} ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME}.debug
+		COMMAND ${CMAKE_STRIP} --strip-debug --strip-unneeded ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME}
+		COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME}.debug ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME}
+		COMMENT "Creating '${ZDOOM_EXE_NAME}.debug' ..."
+	)
+endif ( RELEASE_WITH_DEBUG_FILE )
 
 source_group("Audio Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/sound/.+")
 source_group("Audio Files\\OPL Synth" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/oplsynth/.+")

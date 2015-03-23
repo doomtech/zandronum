@@ -14,6 +14,11 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set( PROFILE 0 CACHE BOOL "Enable profiling with gprof for Debug and RelWithDebInfo build types." )
 endif( CMAKE_COMPILER_IS_GNUCXX )
 
+# [EP]
+if( CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE )
+	option( RELEASE_WITH_DEBUG_FILE "Create the debug symbols file for the release build." ON )
+endif( CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE )
+
 find_package( BZip2 )
 find_package( JPEG )
 find_package( ZLIB )
@@ -105,6 +110,12 @@ else( BZIP2_FOUND )
 endif( BZIP2_FOUND)
 
 set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lzma/C" )
+
+# [EP]
+if( RELEASE_WITH_DEBUG_FILE )
+	set( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -g3" )
+	set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g3" )
+endif( RELEASE_WITH_DEBUG_FILE )
 
 # [BB] Library that allows to map IP addresses to country names.
 add_subdirectory( GeoIP )
