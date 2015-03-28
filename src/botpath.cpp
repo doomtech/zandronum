@@ -317,10 +317,10 @@ bool BOTPATH_IsPositionBlocked( AActor *pActor, fixed_t DestX, fixed_t DestY )
 	// because DActors are grouped into mapblocks
 	// based on their origin point, and can overlap
 	// into adjacent blocks by up to MAXRADIUS units.
-	xl = ( g_BoundingBox[BOXLEFT] - bmaporgx - MAXRADIUS ) >> MAPBLOCKSHIFT;
-	xh = ( g_BoundingBox[BOXRIGHT] - bmaporgx + MAXRADIUS ) >> MAPBLOCKSHIFT;
-	yl = ( g_BoundingBox[BOXBOTTOM] - bmaporgy - MAXRADIUS ) >> MAPBLOCKSHIFT;
-	yh = ( g_BoundingBox[BOXTOP] - bmaporgy + MAXRADIUS ) >> MAPBLOCKSHIFT;
+	xl = GetSafeBlockX( g_BoundingBox[BOXLEFT] - bmaporgx - MAXRADIUS );
+	xh = GetSafeBlockX( g_BoundingBox[BOXRIGHT] - bmaporgx + MAXRADIUS );
+	yl = GetSafeBlockY( g_BoundingBox[BOXBOTTOM] - bmaporgy - MAXRADIUS );
+	yh = GetSafeBlockY( g_BoundingBox[BOXTOP] - bmaporgy + MAXRADIUS );
 
 	g_pBlockingActor = NULL;
 	pThingBlocker = NULL;
@@ -398,10 +398,10 @@ bool BOTPATH_IsPositionBlocked( AActor *pActor, fixed_t DestX, fixed_t DestY )
 //	if (( g_PathSectorCeilingZ - g_PathSectorFloorZ ) < pActor->height )
 //		return false;
 
-	xl = ( g_BoundingBox[BOXLEFT] - bmaporgx ) >> MAPBLOCKSHIFT;
-	xh = ( g_BoundingBox[BOXRIGHT] - bmaporgx ) >> MAPBLOCKSHIFT;
-	yl = ( g_BoundingBox[BOXBOTTOM] - bmaporgy ) >> MAPBLOCKSHIFT;
-	yh = ( g_BoundingBox[BOXTOP] - bmaporgy ) >> MAPBLOCKSHIFT;
+	xl = GetSafeBlockX( g_BoundingBox[BOXLEFT] - bmaporgx );
+	xh = GetSafeBlockX( g_BoundingBox[BOXRIGHT] - bmaporgx );
+	yl = GetSafeBlockY( g_BoundingBox[BOXBOTTOM] - bmaporgy );
+	yh = GetSafeBlockY( g_BoundingBox[BOXTOP] - bmaporgy );
 
 	for ( bx = xl ; bx <= xh ; bx++ )
 		for ( by = yl ; by <= yh ; by++ )
