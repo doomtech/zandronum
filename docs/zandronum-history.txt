@@ -26,18 +26,6 @@
 +	- Added dmflag sv_unblockallies which is exactly like sv_unblockplayers except only unblocks ally players. [Dusk]
 +	- The server can now advertise WADs as optional so long as said WADs are not necessary for clients to join. This is controlled with the new command-line option -optfile and the new preferoptionalwads CVar. Note: this is only a hint for server browsers! Authentication is and has always been lump-based and not WAD-based! [Dusk]
 +	- Added support for Zandronum-specific gamemodes for the alternative HUD. [Dusk]
--	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
--	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
--	- Fixed: Blocked poly object doors were not handled properly online. [Torr Samaho]
-!	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
-!	- Renamed dmflags3 to zadmflags, moved all Zandronum/Skulltag exclusive dmflags2 from dmflags2 to zadmflags and changed the remaining dmflags2 values to match the ZDoom values to resolve compatibility problems with future ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
-!	- Since ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999, Zandronum now gracefully errors out when encountering a script with an invalid number instead of crashing randomly. [Torr Samaho] 
-!	- The Linux binaries can now be debugged with the zandronum.debug file, which is provided in a separated download. [Edward-san]
-
-
-1.4
----
-
 +	- Added CVAR sv_limitcommands which can be set to false to disable various flooding limits (allow constant suiciding, team changing, disable command flood auto-kick, etc). Should not be set to false in public servers. [Dusk]
 +	- Added a Network Options menu which will contain all new network options. [Water, Torr Samaho]
 +	- The authentication mechanism for non-map related lumps now allows Freedoom 0.9/Doom clients to join Doom/Freedoom 0.9 servers. [Torr Samaho] 
@@ -56,6 +44,9 @@
 +	- Added gametic unlagged which should perform better under varying net conditions compared to ping-based unlagged. [Water, AlexMax, Torr Samaho]
 +	- An icon will be displayed in the scoreboard if you're in the console, similarly to chat. [Cata]
 +	- Added new player pawn property Player.MaxSkinSizeFactor which allows customization of the limits used by skin size checking. Skins larger than hitbox size (radius * 2, height) times this factor are downsized to fit. Defaults to the original hardcoded values 3.44, 1.68. Setting either value to 0 disables the limit entirely. Made the warning message more descriptive and informative. [Dusk]
+-	- Fixed problems when boss monsters were replaced by Randomspawners in game modes that use map resets, e.g. survival. [Torr Samaho]
+-	- Fixed: Radius_Quake didn't work properly online if the duration was longer than 128 tics. [Torr Samaho]
+-	- Fixed: Blocked poly object doors were not handled properly online. [Torr Samaho]
 -	- Fixed: No longer can pick up team items in CTF or Skulltag after the round ends. [Water]
 -	- Fixed: Monsters near the bottom of a ledge on a raising sector sometimes appeared as teleporting up on clients online. [Torr Samaho]
 -	- Fixed: Light effects created by scripts weren't removed during a map reset. [Torr Samaho]
@@ -92,6 +83,10 @@
 -	- Fixed: Under certain circumstances, the SKININFO parser didn't properly handle the sprite entry. [Torr Samaho]
 -	- Fixed: The CCMD 'kickfromgame' and the ACS function 'KickFromGame' could not work offline. [Edward-san]
 -	- Fixed: Spawn() and friends did not sync the spawned actor(s)'s tid to clients. [Dusk]
+!	- Renamed compatflags2 to zacompatflags and moved all Zandronum/Skulltag exclusive compatflags from compatflags to zacompatflags to resolve compatibility problems with ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
+!	- Renamed dmflags3 to zadmflags, moved all Zandronum/Skulltag exclusive dmflags2 from dmflags2 to zadmflags and changed the remaining dmflags2 values to match the ZDoom values to resolve compatibility problems with future ZDoom updates. Launchers and config files need to be updated to account for this change. [Torr Samaho] 
+!	- Since ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999, Zandronum now gracefully errors out when encountering a script with an invalid number instead of crashing randomly. [Torr Samaho] 
+!	- The Linux binaries can now be debugged with the zandronum.debug file, which is provided in a separated download. [Edward-san]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
 !	- The login server selected with authhostname needs to support version 2 of the login protocol. [Torr Samaho]
 !	- Changed how a sentinel variable is handled which makes it much harder for clients to purposely drop packets, thus stopping a speed hack. [Water, Torr Samaho]
