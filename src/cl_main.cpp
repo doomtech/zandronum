@@ -10545,18 +10545,18 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	char			szClassName[64];
-	const char		*pszPickupMessage;
+	FString			szClassName;
+	FString			pszPickupMessage;
 	AInventory		*pInventory;
 
 	static LONG			s_lLastMessageTic = 0;
-	static char			s_szLastMessage[256];
+	static FString		s_szLastMessage;
 
 	// Read in the player ID.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the class name of the item.
-	sprintf( szClassName, "%s", NETWORK_ReadString( pByteStream ));
+	szClassName = NETWORK_ReadString( pByteStream );
 
 	// Read in the pickup message.
 	pszPickupMessage = NETWORK_ReadString( pByteStream );
@@ -10583,18 +10583,18 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 
 	// Print out the pickup message.
 	if (( players[ulPlayer].mo->CheckLocalView( consoleplayer )) &&
-		(( s_lLastMessageTic != gametic ) || ( stricmp( s_szLastMessage, pszPickupMessage ) != 0 )))
+		(( s_lLastMessageTic != gametic ) || ( s_szLastMessage.CompareNoCase( pszPickupMessage ) != 0 )))
 	{
 		s_lLastMessageTic = gametic;
-		strcpy( s_szLastMessage, pszPickupMessage );
+		s_szLastMessage = pszPickupMessage;
 
 		// This code is from PrintPickupMessage().
-		if ( pszPickupMessage != NULL )
+		if ( pszPickupMessage.IsNotEmpty( ) )
 		{
 			if ( pszPickupMessage[0] == '$' )
-				pszPickupMessage = GStrings( pszPickupMessage + 1 );
+				pszPickupMessage = GStrings( pszPickupMessage.GetChars( ) + 1 );
 
-			Printf( PRINT_LOW, "%s\n", pszPickupMessage );
+			Printf( PRINT_LOW, "%s\n", pszPickupMessage.GetChars( ) );
 		}
 
 		StatusBar->FlashCrosshair( );
