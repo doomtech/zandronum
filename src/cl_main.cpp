@@ -1473,7 +1473,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVCC_ERROR:
 		{
-			char	szErrorString[256];
+			FString	szErrorString;
 			ULONG	ulErrorCode;
 
 			// Read in the error code.
@@ -1484,30 +1484,25 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			{
 			case NETWORK_ERRORCODE_WRONGPASSWORD:
 
-				sprintf( szErrorString, "Incorrect password." );
+				szErrorString = "Incorrect password.";
 				break;
 			case NETWORK_ERRORCODE_WRONGVERSION:
 
-				sprintf( szErrorString, "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www." DOMAIN_NAME "/ for updates.", NETWORK_ReadString( pByteStream ));
+				szErrorString.Format( "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www." DOMAIN_NAME "/ for updates.", NETWORK_ReadString( pByteStream ) );
 				break;
 			case NETWORK_ERRORCODE_WRONGPROTOCOLVERSION:
 
-				sprintf( szErrorString, "Failed connect. Your version uses outdated network code.\nPlease check http://www." DOMAIN_NAME "/ for updates." );
+				szErrorString = "Failed connect. Your version uses outdated network code.\nPlease check http://www." DOMAIN_NAME "/ for updates.";
 				break;
 			case NETWORK_ERRORCODE_BANNED:
 
 				{
-					sprintf( szErrorString, "Couldn't connect. \\cgYou have been banned from this server!\\c-" );
+					szErrorString = "Couldn't connect. \\cgYou have been banned from this server!\\c-";
 
 					// [RC] Read the reason for this ban.
 					const char		*pszBanReason = NETWORK_ReadString( pByteStream );
-					char			szShortBanReason[128]; // Don't allow servers to overflow szErrorString.
 					if ( strlen( pszBanReason ))
-					{
-						strncpy( szShortBanReason, pszBanReason, 127 );
-						szShortBanReason[127] = 0;
-						sprintf( szErrorString, "%s\nReason for ban: %s", szErrorString, szShortBanReason );
-					}
+						szErrorString = szErrorString + "\nReason for ban: " + pszBanReason;
 
 					// [RC] Read the expiration date for this ban.
 					time_t			tExpiration = (time_t) NETWORK_ReadLong( pByteStream );
@@ -1518,13 +1513,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 						pTimeInfo = localtime( &tExpiration );
 						strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
-						sprintf( szErrorString, "%s\nYour ban expires on: %s (server time)", szErrorString, szDate );
+						szErrorString = szErrorString + "\nYour ban expires on: " + szDate + " (server time)";
 					}
 					break;
 				}
 			case NETWORK_ERRORCODE_SERVERISFULL:
 
-				sprintf( szErrorString, "Server is full." );
+				szErrorString = "Server is full.";
 				break;
 			case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 			case NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED:
@@ -1539,7 +1534,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						serverPWADs.push_back ( pwad );
 					}
 
-					sprintf( szErrorString, "%s authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
+					szErrorString.Format( "%s authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
 
 					Printf ( "The server reports %d pwad(s):\n", numServerPWADs );
 					for( std::list<std::pair<FString, FString> >::iterator i = serverPWADs.begin( ); i != serverPWADs.end( ); ++i )
@@ -1555,19 +1550,19 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				}
 			case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
 
-				sprintf( szErrorString, "Failed to send userinfo." );
+				szErrorString = "Failed to send userinfo.";
 				break;
 			case NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP:
 
-				sprintf( szErrorString, "Too many connections from your IP." );
+				szErrorString = "Too many connections from your IP.";
 				break;
 			case NETWORK_ERRORCODE_USERINFOREJECTED:
 
-				sprintf( szErrorString, "The server rejected the userinfo." );
+				szErrorString = "The server rejected the userinfo.";
 				break;
 			default:
 
-				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www." DOMAIN_NAME "/ for updates.", static_cast<unsigned int> (ulErrorCode) );
+				szErrorString.Format( "Unknown error code: %d!\n\nYour version may be different. Please check http://www." DOMAIN_NAME "/ for updates.", static_cast<unsigned int> (ulErrorCode) );
 				break;
 			}
 
@@ -10592,18 +10587,18 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	char			szClassName[64];
-	const char		*pszPickupMessage;
+	FString			szClassName;
+	FString			pszPickupMessage;
 	AInventory		*pInventory;
 
 	static LONG			s_lLastMessageTic = 0;
-	static char			s_szLastMessage[256];
+	static FString		s_szLastMessage;
 
 	// Read in the player ID.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the class name of the item.
-	sprintf( szClassName, "%s", NETWORK_ReadString( pByteStream ));
+	szClassName = NETWORK_ReadString( pByteStream );
 
 	// Read in the pickup message.
 	pszPickupMessage = NETWORK_ReadString( pByteStream );
@@ -10630,18 +10625,18 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 
 	// Print out the pickup message.
 	if (( players[ulPlayer].mo->CheckLocalView( consoleplayer )) &&
-		(( s_lLastMessageTic != gametic ) || ( stricmp( s_szLastMessage, pszPickupMessage ) != 0 )))
+		(( s_lLastMessageTic != gametic ) || ( s_szLastMessage.CompareNoCase( pszPickupMessage ) != 0 )))
 	{
 		s_lLastMessageTic = gametic;
-		strcpy( s_szLastMessage, pszPickupMessage );
+		s_szLastMessage = pszPickupMessage;
 
 		// This code is from PrintPickupMessage().
-		if ( pszPickupMessage != NULL )
+		if ( pszPickupMessage.IsNotEmpty( ) )
 		{
 			if ( pszPickupMessage[0] == '$' )
-				pszPickupMessage = GStrings( pszPickupMessage + 1 );
+				pszPickupMessage = GStrings( pszPickupMessage.GetChars( ) + 1 );
 
-			Printf( PRINT_LOW, "%s\n", pszPickupMessage );
+			Printf( PRINT_LOW, "%s\n", pszPickupMessage.GetChars( ) );
 		}
 
 		StatusBar->FlashCrosshair( );
