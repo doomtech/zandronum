@@ -67,7 +67,6 @@
 -	- Fixed: Since Skulltag 98a, chat and announcer stopped producing sounds in game during Time Freeze and in intermission after map exiting while Time Freeze was on. [Edward-san]
 -	- Fixed: Spectators could not use the 'Teleport_NoStop' action special. [Edward-san]
 -	- Fixed: Under certain circumstances, the SKININFO parser didn't properly handle the sprite entry. [Torr Samaho]
--	- Fixed: On some systems, adding bans and ban exemptions from the server console didn't work. [Konar6, Edward-san]
 -	- Fixed: The CCMD 'kickfromgame' and the ACS function 'KickFromGame' could not work offline. [Edward-san]
 -	- Fixed: Spawn() and friends did not sync the spawned actor(s)'s tid to clients. [Dusk]
 !	- Changed intermission proceeding to not rely on spectators if there is active players. [Water]
