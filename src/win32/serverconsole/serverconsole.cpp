@@ -1185,7 +1185,7 @@ BOOL CALLBACK serverconsole_BanPlayerAdvancedCallback( HWND hDlg, UINT Message, 
 		SendDlgItemMessage( hDlg, IDC_BANLENGTH, CB_INSERTSTRING, -1, (WPARAM)(LPSTR) "perm" );		
 
 		// Update the labels and text boxes.
-		sprintf( szString, "%s will be banned...", g_szScoreboard_SelectedUser, g_szBanLength );		
+		sprintf( szString, "%s will be banned...", g_szScoreboard_SelectedUser );		
 		SetDlgItemText( hDlg, IDC_BANDESCRIPTION, szString );
 		SetDlgItemText( hDlg, IDC_REASON, g_szScoreboard_Reason );
 		if ( strlen( g_szBanLength ))

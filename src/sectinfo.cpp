@@ -56,6 +56,7 @@
 #include "gstrings.h"
 #include "sectinfo.h"
 #include "sv_main.h"
+#include "templates.h"
 
 SectInfo::SectInfo()
 {
@@ -182,6 +183,8 @@ void SECTINFO_ParseNames(FScanner &sc, TArray<FString *> &SectorNames)
 				sc.MustGetToken(TK_IntConst);
 				range_end = sc.Number;
 			}
+			if (range_end < range_start)
+				swapvalues(range_start, range_end);
 			if(SectorNames.Size() < static_cast<unsigned> (range_end+1))
 			{
 				unsigned int oldSize = SectorNames.Size();
@@ -219,6 +222,8 @@ void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors)
 			sc.MustGetToken(TK_IntConst);
 			range_end = sc.Number;
 		}
+		if (range_end < range_start)
+			swapvalues(range_start, range_end);
 		if(Sectors.Size() < static_cast<unsigned> (range_end+1))
 		{
 			unsigned int oldSize = Sectors.Size();
@@ -262,6 +267,8 @@ void SECTINFO_ParsePoints(FScanner &sc, TArray< TArray<unsigned int> *> &Points,
 				sc.MustGetToken(TK_IntConst);
 				range_end = sc.Number;
 			}
+			if (range_end < range_start)
+				swapvalues(range_start, range_end);
 			int range = range_end - range_start + 1;
 			Point->Resize(Point->Size() + range);
 			for(int i = 0;i < range;i++)

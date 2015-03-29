@@ -5811,14 +5811,16 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 
 
 			if ( pActor )
+			{
 				SERVERCOMMANDS_SpawnThing( pActor );
 
-			if ( bSetAngle )
-			{
-				pActor->angle = pSource->angle - (ANGLE_1 * sAngle);
-				// [BB] If the angle is not zero, we have to inform the clients.
-				if ( pActor->angle != 0 )
-					SERVERCOMMANDS_SetThingAngle( pActor );
+				if ( bSetAngle )
+				{
+					pActor->angle = pSource->angle - (ANGLE_1 * sAngle);
+					// [BB] If the angle is not zero, we have to inform the clients.
+					if ( pActor->angle != 0 )
+						SERVERCOMMANDS_SetThingAngle( pActor );
+				}
 			}
 		}
 	}
