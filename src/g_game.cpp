@@ -3843,11 +3843,6 @@ void GAME_ResetMap( bool bRunEnterScripts )
 				pNewActor->LastLookPlayerNumber = pActor->LastLookPlayerNumber;
 				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
 				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
-
-				// [BB] Spawning pNewActor increased the monster count. Since ActorIterator will also catch
-				// the newly spawned actor, this will be counted again. Adjust for this here.
-				if ( !(pNewActor->flags & MF_FRIENDLY) )
-					level.total_monsters--;
 			}
 
 			pNewActor->flags &= ~MF_DROPPED;
