@@ -1,3 +1,4 @@
+project( Masterserver )
 cmake_minimum_required( VERSION 2.4 )
 set( ZAN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src )
 include_directories( ${ZAN_DIR} )
@@ -13,3 +14,7 @@ add_executable( master-97
 	${ZAN_DIR}/huffman/huffcodec.cpp 
 	${ZAN_DIR}/huffman/huffman.cpp
 )
+
+if( WIN32 )
+	target_link_libraries( master-97 ws2_32 winmm )
+endif( WIN32 )
