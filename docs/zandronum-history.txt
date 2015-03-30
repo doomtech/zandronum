@@ -12,6 +12,11 @@
 ===============================================================================================================
 
 
+2.1
+---
+
+-	- Fixed: Too high volume parameters to A_PlaySound and friends caused the volume to overflow online. [Dusk]
+
 2.0
 ---
 
