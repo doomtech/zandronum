@@ -227,8 +227,12 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 		MeansOfDeath = NAME_None;
 
 	// Must be in cooperative mode.
-	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && ( deathmatch == false ) && ( teamgame == false ))
+	// [TP] Changed to work in deathmatch modes too. Clients must set FriendlyFire
+	// to false here because they do not enter P_DamageMobj.
+	if ( attacker && attacker->IsTeammate( self ) )
 		FriendlyFire = true;
+	else if ( NETWORK_InClientMode() )
+		FriendlyFire = false;
 
 	friendly = FriendlyFire;
 	mod = MeansOfDeath;
