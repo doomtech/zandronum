@@ -17,6 +17,7 @@
 
 -	- Fixed: Too high volume parameters to A_PlaySound and friends caused the volume to overflow online. [Dusk]
 -	- Fixed: Friendly fire obituaries did not appear online in competitive gamemodes. [Dusk]
+-	- Hopefully fixed a potential weapon switch induced client-side crash. [Dusk]
 
 
 2.0

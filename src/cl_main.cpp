@@ -716,7 +716,7 @@ void CLIENT_EndTick( void )
 		if ( item == (AInventory*)1 )
 			CLIENTCOMMANDS_RequestInventoryUseAll();
 		else if ( SendItemUse->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
-			item->Use( false );
+			players[consoleplayer].mo->UseInventory( item );
 		else
 			CLIENTCOMMANDS_RequestInventoryUse( item );
 
