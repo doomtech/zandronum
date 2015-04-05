@@ -19,6 +19,7 @@
 -	- Fixed: Friendly fire obituaries did not appear online in competitive gamemodes. [Dusk]
 -	- Hopefully fixed a potential weapon switch induced client-side crash. [Dusk]
 -	- Fixed: Amount of total monsters went out of count upon map resets. [Dusk]
+-	- Fixed: When a player scored a point in CTF, Skulltag or Possession, the scoreboard in the Windows server console was not updated properly. [Torr Samaho]
 
 
 2.0

@@ -618,6 +618,7 @@ void	PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator );
 void	PLAYER_SetDefaultSpectatorValues( player_t *pPlayer );
 void	PLAYER_SpectatorJoinsGame ( player_t *pPlayer );
+void	PLAYER_SetPoints( player_t *pPlayer, ULONG ulPoints );
 void	PLAYER_SetWins( player_t *pPlayer, ULONG ulWins );
 void	PLAYER_GetName( player_t *pPlayer, char *pszOutBuf );
 // [BB] PLAYER_GetHealth and PLAYER_GetLivesLeft are helper functions for PLAYER_GetPlayerWithSingleHighestValue.

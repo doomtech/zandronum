@@ -594,11 +594,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
-	pPlayer->lPointCount += ulNumPoints;
-
-	// If we're the server, notify the clients of the pointcount change.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerPoints( ULONG( pPlayer - players ));
+	PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + ulNumPoints );
 
 	// Take the skull away.
 	for ( ULONG i = 0; i < teams.Size( ); i++ )

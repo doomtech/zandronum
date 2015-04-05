@@ -2030,16 +2030,7 @@ FUNC( LS_Team_Score )
 		return ( false );
 
 	TEAM_SetScore( it->player->ulTeam, TEAM_GetScore( it->player->ulTeam ) + arg0, true );
-
-	it->player->lPointCount += arg0;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVERCOMMANDS_SetPlayerPoints( ULONG( it->player - players ));
-
-		// Also, update the scoreboard.
-		SERVERCONSOLE_UpdatePlayerInfo( ULONG( it->player - players ), UDF_FRAGS );
-		SERVERCONSOLE_UpdateScoreboard( );
-	}
+	PLAYER_SetPoints ( it->player, it->player->lPointCount + arg0 );
 
 	return ( false );
 }
@@ -2064,16 +2055,7 @@ FUNC( LS_Team_GivePoints )
 
 	if ( it && it->player && it->player->bOnTeam )
 	{
-		it->player->lPointCount += arg1;
-
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			SERVERCOMMANDS_SetPlayerPoints( ULONG( it->player - players ));
-
-			// Also, update the scoreboard.
-			SERVERCONSOLE_UpdatePlayerInfo( ULONG( it->player - players ), UDF_FRAGS );
-			SERVERCONSOLE_UpdateScoreboard( );
-		}
+		PLAYER_SetPoints ( it->player, it->player->lPointCount + arg1 );
 	}
 
 	return ( false );

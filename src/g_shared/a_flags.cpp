@@ -437,7 +437,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 		{
 			// Give his team a point.
 			TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );
-			Owner->player->lPointCount++;
+			PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
 
 			// Award the scorer with a "Capture!" medal.
 			MEDAL_GiveMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
@@ -477,7 +477,6 @@ bool AFlag::HandlePickup( AInventory *pItem )
 			// If necessary, send it to clients.
 			else
 			{
-				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
 				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f, "BigFont", false, MAKE_ID( 'C','N','T','R' ));
 			}
 
@@ -880,7 +879,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 	{
 		// Give his team a point.
 		TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );
-		Owner->player->lPointCount++;
+		PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
 
 		// Award the scorer with a "Capture!" medal.
 		MEDAL_GiveMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
@@ -921,7 +920,6 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 		// If necessary, send it to clients.
 		else
 		{
-			SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
 			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID( 'C','N','T','R' ));
 		}
 

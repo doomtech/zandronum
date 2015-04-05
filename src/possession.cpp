@@ -510,9 +510,7 @@ void POSSESSION_ScorePossessionPoint( player_t *pPlayer )
 	POSSESSION_SetState( PSNS_HOLDERSCORED );
 
 	// Give the player holding the artifact a point.
-	pPlayer->lPointCount++;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerPoints( ULONG( pPlayer - players ));
+	PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + 1 );
 
 	// If the player's on a team in team possession mode, give the player's point a team.
 	if ( teampossession && pPlayer->bOnTeam )
@@ -688,9 +686,7 @@ void POSSESSION_TimeExpired( void )
 	POSSESSION_SetState( PSNS_HOLDERSCORED );
 
 	// Give the player holding the artifact a point.
-	g_pPossessionArtifactCarrier->lPointCount++;
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetPlayerPoints( ULONG( g_pPossessionArtifactCarrier - players ));
+	PLAYER_SetPoints ( g_pPossessionArtifactCarrier, g_pPossessionArtifactCarrier->lPointCount + 1 );
 
 	// Also, display the score info for the player.
 	possession_DisplayScoreInfo( ULONG( g_pPossessionArtifactCarrier - players ));

@@ -2066,14 +2066,8 @@ void PLAYER_ResetAllScoreCounters( player_t *pPlayer )
 	if ( pPlayer == NULL )
 		return;
 
-	// [BB] Do this first, PLAYER_SetFragcount / PLAYER_SetWins will update the scoreboard and the serverconsole.
 	if ( pPlayer->lPointCount > 0 )
-	{
-		pPlayer->lPointCount = 0;
-
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerPoints( pPlayer - players );
-	}
+		PLAYER_SetPoints ( pPlayer, 0 );
 
 	if ( pPlayer->fragcount > 0 )
 		PLAYER_SetFragcount( pPlayer, 0, false, false );
@@ -2144,27 +2138,16 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 	// state changed. If it did, announce it.
 	if ( possession )
 	{
-		pPlayer->lPointCount++;
-
-		// If we're the server, notify the clients of the pointcount change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerPoints( pPlayer - players );
+		PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + 1 );
 	}
 	// If this is team possession, also give the player's team a point.
 	else if ( teampossession && pPlayer->bOnTeam )
 	{
 		TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + 1, true );
-
-		pPlayer->lPointCount++;
-
-		// If we're the server, notify the clients of the pointcount change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerPoints( pPlayer - players );
+		PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + 1 );
 	}
 	else
 		return;
-
-	SCOREBOARD_RefreshHUD( );
 
 	// If a pointlimit has been set, determine if the game has been won.
 	if ( pointlimit )
@@ -2674,6 +2657,27 @@ void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
 
 //*****************************************************************************
 //
+void PLAYER_SetPoints( player_t *pPlayer, ULONG ulPoints )
+{
+	// Set the player's fragcount.
+	pPlayer->lPointCount = ulPoints;
+
+	// Refresh the HUD since a score has changed.
+	SCOREBOARD_RefreshHUD( );
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// If we're the server, notify the clients of the win count change.
+		SERVERCOMMANDS_SetPlayerPoints( static_cast<ULONG>( pPlayer - players ));
+
+		// Also, update the scoreboard.
+		SERVERCONSOLE_UpdatePlayerInfo( static_cast<ULONG>( pPlayer - players ), UDF_FRAGS );
+		SERVERCONSOLE_UpdateScoreboard( );
+	}
+}
+
+//*****************************************************************************
+//
 void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 {
 	// Set the player's fragcount.
@@ -2970,18 +2974,8 @@ void PLAYER_AwardDamagePointsForAllPlayers( void )
 			int points = p->ulUnrewardedDamageDealt / 100;
 			if ( points > 0 )
 			{
-				p->lPointCount += points;
+				PLAYER_SetPoints ( p, p->lPointCount + points );
 				p->ulUnrewardedDamageDealt -= 100 * points;
-
-				// Update the clients with this player's updated points.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				{
-					SERVERCOMMANDS_SetPlayerPoints( static_cast<ULONG>( p - players ) );
-
-					// Also, update the scoreboard.
-					SERVERCONSOLE_UpdatePlayerInfo( static_cast<ULONG>( p - players ), UDF_FRAGS );
-					SERVERCONSOLE_UpdateScoreboard( );
-				}
 			}
 		}
 	}
