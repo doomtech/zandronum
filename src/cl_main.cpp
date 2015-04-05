@@ -8679,7 +8679,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	usActorNetworkIndex = NETWORK_ReadShort( pByteStream );
 
 	// If the player doesn't exist, get out!
-	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
+	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
 
 	// If it's an invalid class, or not a weapon, don't switch.
