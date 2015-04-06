@@ -127,9 +127,9 @@ void SERVER_MASTER_Construct( void )
 #ifndef _WIN32
 	struct utsname u_name;
 	if ( uname(&u_name) < 0 )
-		g_VersionWithOS.Format ( "%s", DOTVERSIONSTR_REV ); //error, no data
+		g_VersionWithOS.Format ( "%s", GetVersionStringRev() ); //error, no data
 	else
-		g_VersionWithOS.Format ( "%s on %s %s", DOTVERSIONSTR_REV, u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
+		g_VersionWithOS.Format ( "%s on %s %s", GetVersionStringRev(), u_name.sysname, u_name.release ); // "Linux 2.6.32.5-amd64" or "FreeBSD 9.0-RELEASE" etc
 #endif
 
 	// [TP] Which wads will we broadcast as optional to launchers?
@@ -191,7 +191,7 @@ void SERVER_MASTER_Tick( void )
 	// [BB] Also tell the master whether we are enforcing its ban list.
 	NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_enforcemasterbanlist );
 	// [BB] And tell which code revision number the server was built with.
-	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SVN_REVISION_NUMBER );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, GetRevisionNumber() );
 
 	// Send the master server our packet.
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer, true );
@@ -578,7 +578,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 1 );
 		// [BB] Name of the testing binary archive found in http://zandronum.com/
 		FString testingBinary;
-		testingBinary.Format ( "downloads/testing/%s/ZandroDev%s-%swindows.zip", GAMEVER_STRING, GAMEVER_STRING, SVN_REVISION_STRING );
+		testingBinary.Format ( "downloads/testing/%s/ZandroDev%s-%swindows.zip", GAMEVER_STRING, GAMEVER_STRING, GetGitTime() );
 		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, testingBinary.GetChars() );
 #endif
 	}

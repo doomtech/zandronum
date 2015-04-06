@@ -627,7 +627,7 @@ CCMD (take)
 
 CCMD (gameversion)
 {
-	Printf ("%s : " __DATE__ "\n", DOTVERSIONSTR);
+	Printf ("%s @ %s\nCommit %s", GetVersionString(), GetGitTime(), GetGitHash());
 }
 
 CCMD (print)
@@ -1349,8 +1349,8 @@ CCMD( singleplayer )
 //-----------------------------------------------------------------------------
 CCMD(version_info)
 {
-	Printf ( "changeset: %s\n", HG_REVISION_HASH_STRING );
-	const time_t hgDate = SVN_REVISION_NUMBER;
+	Printf ( "changeset: %s\n", GetGitHash() );
+	const time_t hgDate = GetRevisionNumber();
 	Printf ( "date:      %s\n", asctime ( gmtime ( &hgDate ) ) );
 }
 

@@ -28,7 +28,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(OutDir)\updaterevision.exe src src/svnrevision.h"
+				Description="Checking gitinfo.h..."
+				CommandLine="&quot;$(OutDir)\updaterevision.exe&quot; src src/gitinfo.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -146,7 +147,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(OutDir)\updaterevision.exe src src/svnrevision.h"
+				Description="Checking gitinfo.h..."
+				CommandLine="&quot;$(OutDir)\updaterevision.exe&quot; src src/gitinfo.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -251,7 +253,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(OutDir)\updaterevision.exe src src/svnrevision.h"
+				Description="Checking gitinfo.h..."
+				CommandLine="&quot;$(OutDir)\updaterevision.exe&quot; src src/gitinfo.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -366,7 +369,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(OutDir)\updaterevision.exe src src/svnrevision.h"
+				Description="Checking gitinfo.h..."
+				CommandLine="&quot;$(OutDir)\updaterevision.exe&quot; src src/gitinfo.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -1659,6 +1663,10 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\gitinfo.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\src\i_net.cpp"

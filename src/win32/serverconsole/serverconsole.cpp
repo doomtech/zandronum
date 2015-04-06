@@ -204,7 +204,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 			// Initialize the server console text.
 			SetDlgItemText( hDlg, IDC_CONSOLEBOX, "=== "GAMENAME " server ===" );
-			Printf( "\nRunning version: %s\n", DOTVERSIONSTR_REV );
+			Printf( "\nRunning version: %s\n", GetVersionStringRev() );
 
 			// Append the time.
 			struct	tm		*pTimeInfo;
@@ -218,10 +218,14 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			Printf("\n");
 
 			// Initialize the title string.
-			if ( BUILD_ID == BUILD_RELEASE )
-				SendMessage( g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM) "v"DOTVERSIONSTR_NOREV );
-			else
-				SendMessage( g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM) "v"DOTVERSIONSTR_NOREV" (r"SVN_REVISION_STRING")" );
+			std::string versionString = GetVersionString();
+			if ( BUILD_ID != BUILD_RELEASE )
+			{
+				versionString += " (r";
+				versionString += GetGitTime();
+				versionString += ")";
+			}
+			SendMessage( g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM) versionString.c_str() );
 			SetDlgItemText( hDlg, IDC_MAPMODE, "Please wait..." );
 
 			// Set the text limits for the console and input boxes.

@@ -164,7 +164,7 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 	// Write version information helpful for this demo.
 	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOVERSION );
 	NETWORK_WriteShort( &g_ByteStream, DEMOGAMEVERSION );
-	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR_REV );
+	NETWORK_WriteString( &g_ByteStream, GetVersionStringRev() );
 	NETWORK_WriteByte( &g_ByteStream, BUILD_ID );
 	NETWORK_WriteLong( &g_ByteStream, rngseed );
 

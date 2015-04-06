@@ -160,7 +160,7 @@ static int DoomSpecificInfo (char *buffer, char *end)
 	int i, p;
 
 	p = 0;
-	p += snprintf (buffer+p, size-p, GAMENAME" version " DOTVERSIONSTR " (" __DATE__ ")\n");
+	p += snprintf (buffer+p, size-p, GAMENAME" version %s (%s)\n", GetVersionString(), GetGitHash());
 #ifdef __VERSION__
 	p += snprintf (buffer+p, size-p, "Compiler version: %s\n", __VERSION__);
 #endif
@@ -253,8 +253,8 @@ int main (int argc, char **argv)
 		cc_install_handlers(argc, argv, 4, s, GAMENAMELOWERCASE"-crash.log", DoomSpecificInfo);
  	}
  	
-	printf(GAMENAME" v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
-		DOTVERSIONSTR_NOREV,SVN_REVISION_STRING,__DATE__);
+	printf(GAMENAME" %s - %s - SDL version\nCompiled on %s\n",
+		GetVersionString(), GetGitTime(), __DATE__);
 
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
@@ -293,7 +293,9 @@ int main (int argc, char **argv)
 
 	atterm (SDL_Quit);
 
-	SDL_WM_SetCaption (GAMESIG " " DOTVERSIONSTR " (" __DATE__ ")", NULL);
+	char caption[100];
+	mysnprintf(caption, countof(caption), GAMESIG " %s (%s)", GetVersionString(), GetGitTime());
+	SDL_WM_SetCaption(caption);
 	
     try
     {

@@ -630,7 +630,7 @@ void I_DetectOS(void)
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber & 0xffff, info.szCSDVersion);
 		// [K6/BB]
-		g_VersionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", DOTVERSIONSTR_REV, osname,
+		g_VersionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", GetVersionStringRev(), osname,
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber & 0xffff);
 	}
@@ -641,7 +641,7 @@ void I_DetectOS(void)
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber, info.szCSDVersion);
 		// [K6/BB]
-		g_VersionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", DOTVERSIONSTR_REV, osname,
+		g_VersionWithOS.Format ( "%s on Windows %s (%lu.%lu.%lu)", GetVersionStringRev(), osname,
 				info.dwMajorVersion, info.dwMinorVersion,
 				info.dwBuildNumber);
 	}
@@ -1160,7 +1160,7 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		char	szString[256];
 
 		// Set up our version string.
-		sprintf(szString, "Version %s.", DOTVERSIONSTR_REV);
+		sprintf(szString, "Version %s.", GetVersionStringRev());
 		SetDlgItemText (hDlg, IDC_WELCOME_VERSION, szString);
 
 		// Check the current video settings.

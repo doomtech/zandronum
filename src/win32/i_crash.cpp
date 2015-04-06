@@ -87,7 +87,7 @@ CVAR(String, crashlog_dir, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 // If you are working on your own modified version of ZDoom, change
 // the last part of the UPLOAD_AGENT (between parentheses) to your
 // own program's name. e.g. (Skulltag) or (ZDaemon) or (ZDoomFu)
-#define UPLOAD_AGENT	"ZDoom/" DOTVERSIONSTR " (" GAMESIG ")"
+#define UPLOAD_AGENT	"ZDoom/" VERSIONSTR " (" GAMESIG ")"
 
 // Time, in milliseconds, to wait for a send() or recv() to complete.
 #define TIMEOUT			60000

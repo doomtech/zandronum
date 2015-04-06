@@ -34,9 +34,13 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-// The svnrevision.h is automatically updated to grab the revision of
-// of the current source tree so that it can be included with version numbers.
-#include "svnrevision.h"
+const char *GetGitDescription();
+const char *GetGitHash();
+const char *GetGitTime();
+const char *GetVersionString();
+// [BB]
+const char *GetVersionStringRev();
+unsigned int GetRevisionNumber();
 
 /** Lots of different version numbers **/
 
@@ -44,7 +48,7 @@
 #define GAME_MINOR_VERSION 2
 #define GAMEVER_STRING "2.1"
 #define DOTVERSIONSTR GAMEVER_STRING "-alpha"
-#define DOTVERSIONSTR_NOREV DOTVERSIONSTR
+#define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.5.0"
 #define ZD_SVN_REVISION_STRING "2560"
@@ -80,7 +84,7 @@
 // [BB] Use the revision number to automatically make builds from
 // different revisions incompatible. Skulltag only uses one byte
 // to transfer NETGAMEVERSION, so we need to limit its value to [0,255].
-#define NETGAMEVERSION (SVN_REVISION_NUMBER % 256)
+#define NETGAMEVERSION (GetRevisionNumber() % 256)
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to

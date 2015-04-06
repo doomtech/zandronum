@@ -517,7 +517,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	g_BrowserServerList[lServer].Version = NETWORK_ReadString( pByteStream );
 
 	// If the version doesn't match ours, remove it from the list.
-	if ( g_BrowserServerList[lServer].Version.CompareNoCase( DOTVERSIONSTR_REV ) != 0 )
+	if ( g_BrowserServerList[lServer].Version.CompareNoCase( GetVersionStringRev() ) != 0 )
 	{
 		g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
 		while ( 1 )
