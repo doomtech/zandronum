@@ -97,11 +97,6 @@ FString g_VersionWithOS;
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-#if (BUILD_ID != BUILD_RELEASE)
-// [BB] Name of the testing binary archive found in http://zandronum.com/
-CVAR( String, sv_testingbinary, "downloads/testing/" GAMEVER_STRING "/ZandroDev" GAMEVER_STRING "-" SVN_REVISION_STRING "windows.zip", CVAR_SERVERINFO )
-#endif
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -581,7 +576,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, "" );
 #else
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 1 );
-		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, sv_testingbinary.GetGenericRep( CVAR_String ).String );
+		// [BB] Name of the testing binary archive found in http://zandronum.com/
+		FString testingBinary;
+		testingBinary.Format ( "downloads/testing/%s/ZandroDev%s-%swindows.zip", GAMEVER_STRING, GAMEVER_STRING, SVN_REVISION_STRING );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, testingBinary.GetChars() );
 #endif
 	}
 
