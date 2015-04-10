@@ -295,7 +295,7 @@ int main (int argc, char **argv)
 
 	char caption[100];
 	mysnprintf(caption, countof(caption), GAMESIG " %s (%s)", GetVersionString(), GetGitTime());
-	SDL_WM_SetCaption(caption);
+	SDL_WM_SetCaption(caption, caption);
 	
     try
     {

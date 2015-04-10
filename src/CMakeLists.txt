@@ -896,6 +896,7 @@ add_executable( zdoom WIN32
 	gameconfigfile.cpp
 	gamemode.cpp #ST
 	gi.cpp
+	gitinfo.cpp
 	#hu_scores.cpp
 	i_net.cpp
 	info.cpp
