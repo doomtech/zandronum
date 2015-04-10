@@ -74,8 +74,8 @@ sqlite/*.c
 sqlite/*.h
 
 # /src/
+src/gitinfo.h
 src/sc_man_scanner.h
-src/svnrevision.h
 src/*.orig
 
 # /src/g_doom/
