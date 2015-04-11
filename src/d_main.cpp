@@ -2332,6 +2332,7 @@ void D_DoomMain (void)
 	Args->CollectFiles("-exec", ".cfg");
 	Args->CollectFiles("-playdemo", ".lmp");
 	Args->CollectFiles("-file", NULL);	// anything left goes after -file
+	Args->CollectFiles( "-optfile", NULL ); // [TP]
 
 	PClass::StaticInit ();
 	atterm (C_DeinitConsole);
