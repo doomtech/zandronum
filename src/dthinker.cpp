@@ -468,7 +468,7 @@ int DThinker::TickThinkers (FThinkerList *list, FThinkerList *dest)
 		{ // Only tick thinkers not scheduled for destruction
 			// [BC] Don't tick the consoleplayer's actor in client
 			// mode, because that's done in the main prediction function
-			if (((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))) ||
+			if (( NETWORK_InClientMode() == false ) ||
 				( node->IsKindOf( RUNTIME_CLASS( AActor )) == false ) ||
 				( static_cast<AActor *>( node ) != players[consoleplayer].mo ))
 			{

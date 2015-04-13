@@ -154,7 +154,7 @@ void DOMINATION_Tick(void)
 		return;
 
 	// [BB] Scoring is server-side.
-	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )) )
+	if ( NETWORK_InClientMode() )
 		return;
 
 	if(!(level.maptime % SCORERATE))
@@ -212,8 +212,7 @@ void DOMINATION_EnterSector(player_t *toucher)
 		return;
 
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

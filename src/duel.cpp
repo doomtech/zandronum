@@ -103,8 +103,7 @@ void DUEL_Tick( void )
 	{
 	case DS_WAITINGFORPLAYERS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -129,8 +128,7 @@ void DUEL_Tick( void )
 
 			// FIGHT!
 			if (( g_ulDuelCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				DUEL_DoFight( );
 			}
@@ -171,8 +169,7 @@ void DUEL_StartCountdown( ULONG ulTicks )
 {
 	ULONG	ulIdx;
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		// First, reset everyone's fragcount.
 		PLAYER_ResetAllPlayersFragcount( );
@@ -219,8 +216,7 @@ void DUEL_DoFight( void )
 	DHUDMessageFadeOut	*pMsg;
 
 	// No longer waiting to duel.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		DUEL_SetState( DS_INDUEL );
 	}
@@ -271,8 +267,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	ULONG	ulIdx;
 
 	// Put the duel state in the win sequence state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		DUEL_SetState( DS_WINSEQUENCE );
 	}
@@ -303,8 +298,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		LONG	lMedal;
 
@@ -505,8 +499,7 @@ void DUEL_SetState( DUELSTATE_e State )
 	case DS_WINSEQUENCE:
 
 		// If we've gotten to a win sequence, we've completed a duel.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			DUEL_SetNumDuels( g_ulNumDuels + 1 );
 		}

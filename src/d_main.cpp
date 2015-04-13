@@ -935,7 +935,7 @@ drawfullconsole:
 				break;
 
 			// [Leo] Don't do that while requesting/receiving a snapshot to prevent potential HOMs.
-			if ( ( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState( ) != CTS_ACTIVE ) )
+			if ( NETWORK_InClientMode() && ( CLIENT_GetConnectionState( ) != CTS_ACTIVE ) )
 			{
 				// [BB] Keep drawing the console.
 				goto drawfullconsole;
@@ -1079,8 +1079,7 @@ drawfullconsole:
 			break;
 		}
 	}
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// Draw a "Waiting for server..." message if the server is lagging.
 		if ( CLIENT_GetServerLagging( ) == true )

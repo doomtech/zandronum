@@ -987,8 +987,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 
 	// [BC] In client mode, we don't execute DEM_* commands, so we need to execute it
 	// here.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsRecording( )))
+	if ( NETWORK_InClientMode() )
 	{
 		BYTE	*pStream;
 
