@@ -83,8 +83,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CFlameAttack)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 		return;
@@ -138,8 +137,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CFlameMissile)
 	S_Sound (self, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
 
 	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

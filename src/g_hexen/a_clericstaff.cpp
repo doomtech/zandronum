@@ -77,7 +77,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 				&& (!(linetarget->flags2&(MF2_DORMANT+MF2_INVULNERABLE))))
 			{
 				// [CW] Clients should not set their own health.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
+				if ( NETWORK_InClientMode() == false )
 				{
 					newLife = player->health+(damage>>3);
 					newLife = newLife > max ? max : newLife;
@@ -108,7 +108,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffCheck)
 			if ((linetarget->player && (!linetarget->IsTeammate (pmo) || level.teamdamage != 0)) || linetarget->flags3&MF3_ISMONSTER)
 			{
 				// [CW] Clients should not set their own health.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
+				if ( NETWORK_InClientMode() == false )
 				{
 					newLife = player->health+(damage>>4);
 					newLife = newLife > max ? max : newLife;
@@ -151,8 +151,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 		return;

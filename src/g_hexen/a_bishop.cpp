@@ -25,8 +25,7 @@ static FRandom pr_pain ("BishopPainBlur");
 DEFINE_ACTION_FUNCTION(AActor, A_BishopAttack)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -63,8 +62,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopAttack2)
 	AActor *mo;
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -114,8 +112,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopMissileWeave)
 DEFINE_ACTION_FUNCTION(AActor, A_BishopDecide)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -143,8 +140,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopDecide)
 DEFINE_ACTION_FUNCTION(AActor, A_BishopDoBlur)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -181,8 +177,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopDoBlur)
 DEFINE_ACTION_FUNCTION(AActor, A_BishopSpawnBlur)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -239,8 +234,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopChase)
 {
 	// [BB] This is server-side. The z coordinate seems to go out of sync
 	// on client and server, if you make this client side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -282,8 +276,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopPainBlur)
 	AActor *mo;
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

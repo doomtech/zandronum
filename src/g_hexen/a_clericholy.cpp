@@ -222,8 +222,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CHolyAttack)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		weapon->CHolyCount = 3;
 		S_Sound (self, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
@@ -548,8 +547,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CHolyCheckScream)
 DEFINE_ACTION_FUNCTION(AActor, A_ClericAttack)
 {
 	// [BB] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
