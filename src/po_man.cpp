@@ -531,7 +531,7 @@ void DRotatePoly::Tick ()
 	if (poly == NULL) return;
 
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 	{
 		poly->RotatePolyobj( m_Speed );
 		return;
@@ -641,7 +641,7 @@ void DMovePoly::Tick ()
 	FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 	{
 		if ( poly )
 			poly->MovePolyobj( m_xSpeed, m_ySpeed );
@@ -831,7 +831,7 @@ void DPolyDoor::Tick ()
 	if (poly == NULL) return;
 
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 	{
 		switch ( m_Type )
 		{
@@ -1229,7 +1229,7 @@ void FPolyObj::ThrustMobj (AActor *actor, side_t *side)
 	thrustY = FixedMul (force, finesine[thrustAngle]);
 	actor->velx += thrustX;
 	actor->vely += thrustY;
-	if (crush && !NETWORK_InClientMode( ))
+	if (crush && ( NETWORK_InClientMode() == false ))
 	{
 		if (bHurtOnTouch || !P_CheckMove (actor, actor->x + thrustX, actor->y + thrustY))
 		{
@@ -1497,7 +1497,7 @@ bool FPolyObj::CheckMobjBlocking (side_t *sd)
 	bool performBlockingThrust;
 
 	// [WS] The client doesn't check if anything is blocking
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 		return false;
 
 	ld = sd->linedef;
