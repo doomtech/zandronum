@@ -41,8 +41,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_RemoveForceField)
 bool ADegninOre::Use (bool pickup)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( pickup == false );
 	}

@@ -56,7 +56,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpectralLightning)
 	fixed_t x, y;
 
 	// [CW] Clients may not do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return;
 
 	if (self->threshold != 0)
@@ -106,8 +106,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer2)
 	fixed_t slope;
 
 	// [BC] Server takes care of movement.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

@@ -55,8 +55,7 @@ bool ATeleporterBeacon::Use (bool pickup)
 	AInventory *drop;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( true );
 	}
@@ -89,8 +88,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Beacon)
 	AActor	*pFog;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

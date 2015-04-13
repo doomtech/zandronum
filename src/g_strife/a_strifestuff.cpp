@@ -453,8 +453,7 @@ static FRandom pr_gethurt ("HurtMe!");
 DEFINE_ACTION_FUNCTION(AActor, A_GetHurt)
 {
 	// [BB] The server handles this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;

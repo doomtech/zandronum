@@ -14,7 +14,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SentinelBob)
 	fixed_t minz, maxz;
 
 	// [CW] This is handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return;
 
 	if (self->flags & MF_INFLOAT)
@@ -62,7 +62,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SentinelAttack)
 	}
 
 	// [CW] If we aren't a client, spawn the missile.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() == false )
 	{
 		missile = P_SpawnMissileZAimed (self, self->z + 32*FRACUNIT, self->target, PClass::FindClass("SentinelFX2"));
 
@@ -97,7 +97,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SentinelRefire)
 	A_FaceTarget (self);
 
 	// [CW] Clients may not do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return;
 
 	if (pr_sentinelrefire() >= 30)

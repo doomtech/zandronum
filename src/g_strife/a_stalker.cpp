@@ -14,8 +14,7 @@ static FRandom pr_stalker ("Stalker");
 DEFINE_ACTION_FUNCTION(AActor, A_StalkerChaseDecide)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -43,8 +42,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_StalkerLookInit)
 	FState *state;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -81,8 +79,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_StalkerDrop)
 DEFINE_ACTION_FUNCTION(AActor, A_StalkerAttack)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
