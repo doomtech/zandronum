@@ -1333,7 +1333,7 @@ void P_SpawnSpecials (void)
 			// SYNC STROBE FAST
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if ( NETWORK_InClientMode() == false )
 				new DStrobe (sector, STROBEBRIGHT, FASTDARK, true);
 			sector->special &= 0xff00;
 			break;

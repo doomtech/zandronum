@@ -21,6 +21,7 @@
 -	- Fixed: Amount of total monsters went out of count upon map resets. [Dusk]
 -	- Fixed: When a player scored a point in CTF, Skulltag or Possession, the scoreboard in the Windows server console was not updated properly. [Torr Samaho]
 -	- Fixed: -optfile would eat CCMD calls (such as +exec) and treat them and their arguments as wads to include as optional. [Dusk]
+-	- Fixed: the 'light fast strobe in sync' sector special would visually desync while playing a demo. [Edward-san]
 
 
 2.0
