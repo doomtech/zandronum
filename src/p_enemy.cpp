@@ -573,8 +573,7 @@ bool P_Move (AActor *actor)
 	{
 		// [BC] Don't float in client mode.
 		if (((actor->flags6 & MF6_CANJUMP)||(actor->flags & MF_FLOAT)) && tm.floatok &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+			( NETWORK_InClientMode() == false ))
 		{ // must adjust height
 			fixed_t savedz = actor->z;
 
@@ -1330,7 +1329,7 @@ bool P_LookForMonsters (AActor *actor)
 	TThinkerIterator<AActor> iterator;
 
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return ( false );
 
 	if (!P_CheckSight (players[0].mo, actor, SF_SEEPASTBLOCKEVERYTHING))
@@ -1701,8 +1700,7 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params)
 	bool		bAllDone;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( false );
 	}
@@ -1918,8 +1916,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look)
 	AActor *targ;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// [RH] Andy Baker's stealth monsters
 		if (self->flags & MF_STEALTH)
@@ -2330,8 +2327,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Wander)
 
 	// [BC] In client mode, just keep walking until the server tells us to
 	// change directions.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		P_Move( self );
 		return;
@@ -2355,8 +2351,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look2)
 	AActor *targ;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -2471,8 +2466,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	}
 
 	// [BC] Clients do not know what the target is.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		actor->target = NULL;
 		actor->goal = NULL;
@@ -2609,8 +2603,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		actor->flags &= ~MF_JUSTATTACKED;
 		if ((!actor->isFast()) && !dontmove &&
 			// [BC] Don't decide a new chase dir in client mode.
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+			( NETWORK_InClientMode() == false ))
 		{
 			P_NewChaseDir (actor);
 		}
@@ -2685,8 +2678,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 
 	if (fastchase && !dontmove &&
 		// [BC] Don't fast chase in client mode.
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		if (actor->FastChaseStrafeCount > 0)
 		{
@@ -2788,8 +2780,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	// possibly choose another target
 	if ((( NETWORK_GetState( ) != NETSTATE_SINGLE ) || actor->TIDtoHate)
 		&& !actor->threshold
-		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		&& ( CLIENTDEMO_IsPlaying( ) == false )
+		&& ( NETWORK_InClientMode() == false )
 		// [BB] In invasion mode, player doesn't have to be visible to be chased by monsters.
 		// [BB] The flags argument of P_CheckSight has to be the same here as it is in P_LookForPlayers.
 		&& !P_CheckSight (actor, actor->target, SF_SEEPASTBLOCKEVERYTHING) && ( invasion == false ) )
@@ -2831,8 +2822,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 
 		// [BC] In client mode, just keep walking until the server tells us to
 		// change directions.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			P_Move( actor );
 		}
@@ -2848,8 +2838,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		{
 			// [BC] In client mode, just keep walking until the server tells us to
 			// change directions.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				P_TryMove( actor, oldX, oldY, false );
 			}
@@ -2892,8 +2881,7 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 	AActor *temp;
 		
 	// [BC] Movement is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// Return to normal attack.
 		//A_Chase (self);
@@ -3158,8 +3146,7 @@ void A_Chase(AActor *self)
 void A_Face (AActor *self, AActor *other, angle_t max_turn, angle_t max_pitch)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// [RH] Andy Baker's stealth monsters
 		if (self->flags & MF_STEALTH)
@@ -3319,8 +3306,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FaceTracer)
 DEFINE_ACTION_FUNCTION(AActor, A_MonsterRail)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// [RH] Andy Baker's stealth monsters
 		if (self->flags & MF_STEALTH)
@@ -3506,8 +3492,7 @@ CVAR(Int, sv_dropstyle, 0, CVAR_SERVERINFO | CVAR_ARCHIVE);
 AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int chance)
 {
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( NULL );
 	}
@@ -3650,8 +3635,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Die)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_NAME(damagetype, 0);
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -3668,8 +3652,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Die)
 DEFINE_ACTION_FUNCTION(AActor, A_Detonate)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -3730,8 +3713,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 	FName mytype = self->GetClass()->TypeName;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -3854,8 +3836,7 @@ int P_Massacre ()
 	TThinkerIterator<AActor> iterator;
 
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( 0 );
 	}
@@ -3914,8 +3895,7 @@ bool A_RaiseMobj (AActor *actor, fixed_t speed)
 DEFINE_ACTION_FUNCTION(AActor, A_ClassBossHealth)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
