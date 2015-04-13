@@ -136,7 +136,7 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 	case RETURN_FLAG:
 
 		// Execute the return scripts.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			if ( this->GetClass( ) == PClass::FindClass( "WhiteFlag" ))
 			{
@@ -151,8 +151,7 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 		// In non-simple CTF mode, scripts take care of the returning and displaying messages.
 		if ( TEAM_GetSimpleCTFSTMode( ))
 		{
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				// The player is touching his own dropped flag; return it now.
 				ReturnFlag( pToucher );
@@ -193,7 +192,7 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 	AnnounceFlagPickup( pToucher );
 
 	// Player is picking up the flag.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		FBehavior::StaticStartTypedScripts( SCRIPT_Pickup, pToucher, true );
 
@@ -283,7 +282,7 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 		return ( RETURN_FLAG );
 
 	// [BB] If a client gets here, the server already made all necessary checks. So just allow the pickup.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == true ))
+	if ( NETWORK_InClientMode() )
 		return ( ALLOW_PICKUP );
 
 	// [BB] If a player already carries an enemy team item, don't let him pick up another one.
@@ -433,7 +432,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 		if ( static_cast<AFlag *>( pItem )->AllowFlagPickup( Owner ) == RETURN_FLAG )
 			return ( Super::HandlePickup( pItem )); 
 
-		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
 		{
 			// Give his team a point.
 			TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );
@@ -875,7 +874,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 
 	// If we're trying to pick up the opponent's flag, award a point since we're
 	// carrying the white flag.
-	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
 	{
 		// Give his team a point.
 		TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );

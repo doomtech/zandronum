@@ -294,7 +294,7 @@ void APathFollower::PostBeginPlay ()
 	// on the client, so apply a workaround for this here. If Activate has been called before
 	// PostBeginPlay we have to call Actiate again here.
 	if (( bActivateCalledBeforePostBeginPlay ) && ( this->IsKindOf ( PClass::FindClass("ActorMover" ) ) == false ) &&
-		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		NETWORK_InClientMode() )
 	{
 		APathFollower::Activate (NULL);
 		bActivateCalledBeforePostBeginPlay = false;
@@ -619,7 +619,7 @@ void AActorMover::PostBeginPlay ()
 	// on the client, so apply a workaround for this here. If Activate has been called before
 	// PostBeginPlay we have to call Actiate again here.
 	if (( bActivateCalledBeforePostBeginPlay ) &&
-		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		NETWORK_InClientMode() )
 	{
 		bActivateCalledBeforePostBeginPlay = false;
 		Activate (NULL);

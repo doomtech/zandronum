@@ -73,8 +73,7 @@ void AParticleFountain::Deactivate (AActor *activator)
 
 	// [BC] In client mode, mark this as being dormant so that when PostBeginPlay() is
 	// called, it doesn't try to activate the fountain.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		SpawnFlags |= MTF_DORMANT;
 	}

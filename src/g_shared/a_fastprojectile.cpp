@@ -181,7 +181,7 @@ void AFastProjectile::Effect()
 
 					// [BB] Assume that the trail is just for decorative purposes and let the
 					// client spawn it on its own.
-					if ( NETWORK_InClientMode( ) )
+					if ( NETWORK_InClientMode() )
 						act->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 				}
 			}

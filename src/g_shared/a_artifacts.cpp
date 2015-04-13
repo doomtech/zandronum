@@ -2005,8 +2005,7 @@ void APowerPossessionArtifact::InitEffect( )
 
 	// Tell the possession module that the artifact has been picked up.
 	if (( possession || teampossession ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		POSSESSION_ArtifactPickedUp( Owner->player, sv_possessionholdtime * TICRATE );
 	}
@@ -2075,8 +2074,7 @@ void APowerTerminatorArtifact::InitEffect( )
 
 	// Also, give the player a megasphere as part of the bonus.
 	// [BB] The server handles giving the megasphere.
-	if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		 ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		AInventory *pGivenInventory = Owner->GiveInventoryType( PClass::FindClass( "Megasphere" ));
 		if ( pGivenInventory && (NETWORK_GetState( ) == NETSTATE_SERVER) )
