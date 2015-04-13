@@ -132,8 +132,7 @@ void ABaseMonsterInvasionSpot::Tick( void )
 		return;
 
 	// This isn't handled client-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -334,8 +333,7 @@ void ABasePickupInvasionSpot::Tick( void )
 	}
 
 	// This isn't handled client-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -509,8 +507,7 @@ void ABaseWeaponInvasionSpot::Tick( void )
 	}
 
 	// This isn't handled client-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -638,8 +635,7 @@ void INVASION_Tick( void )
 	{
 	case IS_WAITINGFORPLAYERS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -661,8 +657,7 @@ void INVASION_Tick( void )
 
 			// FIGHT!
 			if (( g_ulInvasionCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				INVASION_BeginWave( 1 );
 			}
@@ -682,8 +677,7 @@ void INVASION_Tick( void )
 			g_ulInvasionCountdownTicks--;
 
 			if (( g_ulInvasionCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				if ( (LONG)g_ulCurrentWave == wavelimit )
 					G_ExitLevel( 0, false );
@@ -706,8 +700,7 @@ void INVASION_Tick( void )
 
 			// FIGHT!
 			if (( g_ulInvasionCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				INVASION_BeginWave( g_ulCurrentWave + 1 );
 			}
@@ -722,8 +715,7 @@ void INVASION_Tick( void )
 		break;
 	case IS_INPROGRESS:
 	case IS_BOSSFIGHT:
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -748,8 +740,7 @@ void INVASION_Tick( void )
 void INVASION_StartFirstCountdown( ULONG ulTicks )
 {
 	// Put the invasion state into the first countdown.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		INVASION_SetState( IS_FIRSTCOUNTDOWN );
 	}
@@ -785,8 +776,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	TThinkerIterator<AActor>	ActorIterator;
 
 	// Put the invasion state into the first countdown.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		INVASION_SetState( IS_COUNTDOWN );
 	}
@@ -799,8 +789,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	{
 		// [BB] The monster corpses from two waves ago will be removed below anyway,
 		// so we can clear this vector.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			g_MonsterCorpsesFromPreviousWave.clear();
 		}
@@ -821,8 +810,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			if ( pActor->health > 0 )
 			{
 				// [BB] Let the server handle this buggy case.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 				{
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_DestroyThing( pActor );
@@ -835,8 +823,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			// Get rid of any bodies that didn't come from a spawner.
 			// [BB] Clients don't know by which monster spot something was spawned.
 			if (( pActor->pMonsterSpot == NULL ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				pActor->Destroy( );
 				continue;
@@ -854,8 +841,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 
 			// [BB] Build a vector containing all pointers to corpses from the wave one round ago.
 			if (( pActor->ulInvasionWave == g_ulCurrentWave ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				g_MonsterCorpsesFromPreviousWave.push_back( pActor );
 				continue;
@@ -890,8 +876,7 @@ void INVASION_BeginWave( ULONG ulWave )
 	TThinkerIterator<AActor>					ActorIterator;
 
 	// We're now in the middle of the invasion!
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		INVASION_SetState( IS_INPROGRESS );
 	}
@@ -930,8 +915,7 @@ void INVASION_BeginWave( ULONG ulWave )
 	g_ulNumBossMonsters = 0;
 
 	// Clients don't need to do any more.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1184,8 +1168,7 @@ void INVASION_BeginWave( ULONG ulWave )
 void INVASION_DoWaveComplete( void )
 {
 	// Put the invasion state in the win sequence state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		INVASION_SetState( IS_WAVECOMPLETE );
 	}
@@ -1218,8 +1201,7 @@ void INVASION_DoWaveComplete( void )
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 	}
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		INVASION_SetCountdownTicks( 5 * TICRATE );
 	}
@@ -1310,8 +1292,7 @@ void INVASION_SetNumMonstersLeft( ULONG ulLeft )
 {
 	g_ulNumMonstersLeft = ulLeft;
 	if (( g_ulNumMonstersLeft == 0 ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		INVASION_DoWaveComplete( );
 	}
@@ -1392,8 +1373,7 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 // [BB] Remove one monster corpse from the previous wave.
 void INVASION_RemoveMonsterCorpse( )
 {
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
+	if (( NETWORK_InClientMode() == false ) &&
 		( g_MonsterCorpsesFromPreviousWave.size() > 0 ))
 	{
 		AActor *pCorpse = g_MonsterCorpsesFromPreviousWave.back();
@@ -1441,8 +1421,7 @@ void INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster )
 {
 	if (( invasion ) &&
 		( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + (removeMonster ? -1 : 1) );
 
