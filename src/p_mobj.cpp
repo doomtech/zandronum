@@ -588,8 +588,7 @@ void AActor::HideOrDestroyIfSafe ()
 	// state.
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
 		( ulSTFlags & STFL_LEVELSPAWNED ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		// [BB] Do any actor specific things that are necessary to properly hide this thing.
 		PrepareForHiding();
@@ -890,8 +889,7 @@ AInventory *AActor::DropInventory (AInventory *item)
 	AInventory *drop = item->CreateTossable ();
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( NULL );
 	}
@@ -1394,7 +1392,7 @@ bool AActor::Grind(bool items)
 				// [BB] Apparently Skulltag always has let the clients spawn the gibs.
 				// Whether or not this is intentional, if the clients spawn the gibs on
 				// their own, they have to mark them as CLIENTSIDEONLY.
-				if( NETWORK_InClientMode( ) )
+				if( NETWORK_InClientMode() )
 					gib->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 
 				PalEntry bloodcolor = GetBloodColor();
@@ -1910,8 +1908,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax, bool preci
 	fixed_t speed;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( false );
 	}
@@ -2093,7 +2090,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 	if ((xmove | ymove) == 0)
 	{
 		if ( (mo->flags & MF_SKULLFLY)
-			 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
+			 && ( NETWORK_InClientMode() == false ) )
 		{
 			// the skull slammed into something
 			mo->flags &= ~MF_SKULLFLY;
@@ -2317,7 +2314,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 				if (BlockingMobj)
 				{
 					// [BB] The server handles this.
-					if ( (mo->BounceFlags & BOUNCE_Actors) && !NETWORK_InClientMode() )
+					if ( (mo->BounceFlags & BOUNCE_Actors) && ( NETWORK_InClientMode() == false ) )
 					{
 						// Bounce test and code moved to P_BounceActor
 						if (!P_BounceActor(mo, BlockingMobj, false))
@@ -2534,7 +2531,7 @@ explode:
 			// [BC] In client mode, we don't know if other players have any forwardmove or
 			// sidemove values, so the server will tell us when to put other players in
 			// idle mode.
-			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+			if (( NETWORK_InClientMode() == false ) ||
 				(( player - players ) == consoleplayer ))
 			{
 				player->mo->PlayIdle ();
@@ -2757,7 +2754,7 @@ fixed_t P_OldXYMovement( AActor *mo )
 			// [BC] In client mode, we don't know if other players have any forwardmove or
 			// sidemove values, so the server will tell us when to put other players in
 			// idle mode.
-			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+			if (( NETWORK_InClientMode() == false ) ||
 				(( player - players ) == consoleplayer ))
 			{
 				player->mo->PlayIdle ();
@@ -2954,8 +2951,7 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 //
 	// [BC] Don't float in client mode.
 	if ((mo->flags & MF_FLOAT) && !(mo->flags2 & MF2_DORMANT) && mo->target &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{	// float down towards target if too close
 		if (!(mo->flags & (MF_SKULLFLY | MF_INFLOAT)))
 		{
@@ -3699,8 +3695,7 @@ void AActor::HitFloor ()
 bool AActor::Slam (AActor *thing)
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return false;
 	}
@@ -4480,8 +4475,7 @@ void AActor::Tick ()
 	else
 	{
 		// [BC] The rest is server-side.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			return;
 		}
@@ -4973,8 +4967,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	}
 
 	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) && ( ( actor->ulNetworkFlags & NETFL_SERVERSIDEONLY ) == false ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		actor->lNetID = ACTOR_GetNewNetID( );
 		g_NetIDList[actor->lNetID].pActor = actor;
@@ -4989,8 +4982,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	// Check if the flag or skull has spawned in an instant return zone.
 	if (( TEAM_SpawningTemporaryFlag( ) == false ) &&
 		( actor->Sector->MoreFlags & SECF_RETURNZONE ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
@@ -5589,8 +5581,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	}
 
 	// [BC] Apply temporary invulnerability when respawned.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
+	if (( NETWORK_InClientMode() == false ) &&
 		// [BB] Added PST_REBORNNOINVENTORY, PST_ENTERNOINVENTORY.
 		(state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY) &&
 		(( dmflags2 & DF2_NO_RESPAWN_INVUL ) == false ) &&
@@ -6091,8 +6082,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	}
 */
 	// [BC] If we're a client, there's no need to spawn map things (unless specified).
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( ))) && 
+	if ( NETWORK_InClientMode() && 
 		(( info->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) == false ) &&
 		(( info->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ))
 	{
@@ -6194,12 +6184,12 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	// [CK] If we're a client in this function and we're supposed to be a server
 	// telling clients to spawn it, then we will get information later from the
 	// server.
-	if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
+	if ( NETWORK_InClientMode() && CLIENT_ShouldPredictPuffs( ) == false )
 		return NULL;
 
 	// [CK] The client also should not be doing this puff prediction if it's not
 	// for themselves.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 	{
 		// If these aren't valid or the player is not the console player, don't 
 		// predict anything.
@@ -6228,7 +6218,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 
 	// [CK] The puff has been made if we're a client, so any client prediction 
 	// of puffs is done, meaning we can exit now.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 		return NULL;
 
 	// [BB] If the puff came from a player, set the target of the puff to this player.
@@ -6646,8 +6636,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 	}
 
 	// [BC] Let the server handle splashes.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( false );
 	}

@@ -608,7 +608,7 @@ bool AInventory::Grind(bool items)
 				SERVERCOMMANDS_DestroyThing( this );
 
 			// [BC] Don't destroy items in client mode; the server will tell us to.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 				this->HideOrDestroyIfSafe ();
