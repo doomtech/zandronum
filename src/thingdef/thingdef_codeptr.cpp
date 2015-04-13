@@ -118,7 +118,7 @@ bool shouldActorNotBeSpawned ( const AActor *pSpawner, const PClass *pSpawnType,
 	                      );
 
 	// [BB] Clients don't spawn non-client side only things.
-	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) ) && !bSpawnOnClient )
+	if ( NETWORK_InClientMode() && !bSpawnOnClient )
 		return true;
 	// [BB] The server doesn't spawn client side only things.
 	else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bSpawnOnClient )
@@ -351,8 +351,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile,
 					  int MeleeDamage, FSoundID MeleeSound, const PClass *MissileType,fixed_t MissileHeight)
 {
 	// [BC] Let the server play these sounds.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -450,8 +449,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySound)
 	ACTION_PARAM_FLOAT(attenuation, 4);
 
 	// [BC] Let the server play these sounds.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -513,8 +511,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_PlaySoundEx)
 	ACTION_PARAM_INT(attenuation_raw, 3);
 
 	// [BB] Let the server play these sounds.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -719,8 +716,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Jump)
 	ACTION_PARAM_INT(maxchance, 1);
 
 	// [BC] Don't jump here in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -747,8 +743,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfHealthLower)
 	ACTION_PARAM_STATE(jump, 1);
 
 	// [BC] Don't jump here in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -821,8 +816,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfCloser)
 	AActor *target;
 
 	// [BC] Don't jump here in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -872,8 +866,7 @@ void DoJumpIfInventory(AActor * owner, DECLARE_PARAMINFO)
 	}
 	else
 	{
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			if ((( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) &&
 				(( self->player == NULL ) || (( self->player - players ) != consoleplayer )))
@@ -957,8 +950,7 @@ enum
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Explode)
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1025,8 +1017,7 @@ enum
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RadiusThrust)
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1074,8 +1065,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CallSpecial)
 	ACTION_PARAM_INT(arg5, 5);
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 		{
@@ -1238,7 +1228,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 
 				// [BB] The client did the spawning, so this has to be a client side only actor.
 				// Needs to be done regardless of whether the spawn was successful.
-				if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+				if ( NETWORK_InClientMode() )
 					missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 
 				// [BB] Save whether the spawn was successfull.
@@ -1348,7 +1338,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMeleeAttack)
 	ACTION_PARAM_BOOL(bleed, 4);
 
 	// [BB] This is handled by the server.
-	if ( NETWORK_InClientMode( ) && ( ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) )
+	if ( NETWORK_InClientMode() && ( ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) )
 		return;
 
 	if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
@@ -1406,8 +1396,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomComboAttack)
 	A_FaceTarget (self);
 
 	// [BB] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1602,7 +1591,7 @@ void A_CustomFireBullets( AActor *self,
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
 	// [CK] This also includes predicted puffs and blood decals.
-	if ( NETWORK_InClientMode( )
+	if ( NETWORK_InClientMode()
 		&& cl_hitscandecalhack == false
 		&& CLIENT_ShouldPredictPuffs( ) == false )
 	{
@@ -1618,8 +1607,7 @@ void A_CustomFireBullets( AActor *self,
 	}
 
 	// [BB] Even with the online hitscan decal hack (and clientside puffs), a client has to stop here.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1837,8 +1825,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	AActor *	linetarget;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -1939,7 +1926,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 
 	// [BC] Don't actually do the attack in client mode.
 	// [Spleen] Railgun is handled by the server unless unlagged
-	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+	if ( NETWORK_InClientMode()
 		&& !UNLAGGED_DrawRailClientside( self ) )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
@@ -2194,8 +2181,7 @@ void DoTakeInventory(AActor * receiver, DECLARE_PARAMINFO)
 	{
 		bNeedClientUpdate = true;
 		
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			return;
 		}
@@ -2476,7 +2462,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItem)
 				SERVERCOMMANDS_SetThingTranslation( mo );
 		}
 		// [BB] The client did the spawning, so this has to be a client side only actor.
-		else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+		else if ( NETWORK_InClientMode() )
 			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 	}
 	ACTION_SET_RESULT(res);	// for an inventory item's use state
@@ -2591,8 +2577,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 		}
 
 		// [BC] Flag this actor as being client-spawned.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 		}
@@ -2627,8 +2612,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ThrowGrenade)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -2692,8 +2676,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Recoil)
 
 	// [BB] For non-player non-clientsideonly actors, this is server side.
 	// Note: I'm not sure whether this should be server side also for players.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if ( (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) && ( self->player == NULL ) )
 			return;
@@ -3095,7 +3078,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckSight)
 
 	// [BB] If this is a CLIENTSIDEONLY actor, a client only checks whether the consoleplayer sees it.
 	// [Dusk] If the actor does NOT have CLIENTSIDEONLY, the client does nothing.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 	{
 		if ( !( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) ||
 			P_CheckSight( players[consoleplayer].camera, self, SF_IGNOREVISIBILITY ) )
@@ -3211,8 +3194,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_DropInventory)
 	ACTION_PARAM_CLASS(drop, 0);
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -3265,8 +3247,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIf)
 	ACTION_PARAM_STATE(jump, 1);
 
 	// [BC] Don't jump here in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -3328,8 +3309,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_KillSiblings)
 	AActor *mo;
 
 	// [BB] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
@@ -4374,7 +4354,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 		else
 		{
 			// [BB] The server handles the flag change.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				return;
 
 			DWORD *flagp = (DWORD*) (((char*)self) + fd->structoffset);
@@ -4942,7 +4922,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Teleport)
 	ACTION_PARAM_FIXED(MaxDist, 5);
 
 	// [BB] This is handled by the server.
-	if ( NETWORK_InClientMode( ) && ( ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) )
+	if ( NETWORK_InClientMode() && ( ( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) )
 		return;
 
 	// Randomly choose not to teleport like A_Srcr2Decide.
