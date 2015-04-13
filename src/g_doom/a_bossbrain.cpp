@@ -109,8 +109,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BrainSpit)
 	bool isdefault = false;
 
 	// [BC] Brain spitting is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -192,8 +191,7 @@ static void SpawnFly(AActor *self, const PClass *spawntype, FSoundID sound)
 	int r;
 		
 	// [BC] Brain spitting is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

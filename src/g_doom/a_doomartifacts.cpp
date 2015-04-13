@@ -88,8 +88,7 @@ bool ARandomPowerup::Use (bool pickup)
 	const PClass	*pType = NULL;
 	bool			bReturnValue = false;
 
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( false );
 	}
@@ -176,8 +175,7 @@ void ARandomPowerup::Serialize( FArchive &arc )
 
 const char *ARandomPowerup::PickupMessage( )
 {
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( NULL );
 	}

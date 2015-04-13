@@ -34,8 +34,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Punch)
 	AActor		*linetarget;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -206,8 +205,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	AActor *linetarget;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -721,8 +719,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMissile)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -797,8 +794,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireSTGrenade)
 	}
 		
 	// Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -846,8 +842,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePlasma)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -894,7 +889,7 @@ static void FireRailgun(AActor *self, int offset_xy, const PClass* puffType = NU
 
 	// Weapons are handled by the server.
 	// [Spleen] But railgun is an exception if it's unlagged, to make it look nicer
-	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+	if ( NETWORK_InClientMode()
 		&& !UNLAGGED_DrawRailClientside( self ) )
 	{
 		return;
@@ -979,8 +974,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBFG)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1011,8 +1005,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_BFGSpray)
 	AActor				*linetarget;
 
 	// [BC] This is not done on the client end.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
