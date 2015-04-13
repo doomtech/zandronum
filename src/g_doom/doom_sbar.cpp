@@ -256,7 +256,7 @@ private:
 		{
 			HealthRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
-			if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+			if ( NETWORK_InClientMode() &&
 				( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
 			{
 				DrawUnknownDashs(90, 3);
@@ -299,7 +299,7 @@ private:
 		{
 			ActiveAmmoRefresh--;
 			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
-			if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+			if ( NETWORK_InClientMode() &&
 				( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
 			{
 				DrawUnknownDashs(44, 3);
@@ -385,7 +385,7 @@ private:
 	void DrawAmmoStats ()
 	{
 		// [RC] If we're spying someone and aren't allowed to see his stats, don't draw this at all.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		if ( NETWORK_InClientMode() &&
 			( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
 		{
 			return;
@@ -445,7 +445,7 @@ private:
 			DrawPartialImage (&StatusBarTex, 276, 4*3);
 			for (i = 0; i < 4; i++)
 			{
-				if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+				if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 					DrSmallNumber (ammo[i], 276, 5 + 6*i);
 			}
 		}
@@ -455,7 +455,7 @@ private:
 			DrawPartialImage (&StatusBarTex, 302, 4*3);
 			for (i = 0; i < 4; i++)
 			{
-				if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+				if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 					DrSmallNumber (maxammo[i], 302, 5 + 6*i);
 			}
 		}
@@ -1052,7 +1052,7 @@ void DrawFullHUD_GameInformation()
 			DTA_HUDRules, HUD_Normal,
 			DTA_CenterBottomOffset, true,
 			TAG_DONE);
-		if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+		if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 			DrBNumberOuter (CPlayer->health, 40, -BigHeight-4);
 
 		// [BC] Draw rune.
@@ -1084,7 +1084,7 @@ void DrawFullHUD_GameInformation()
 				DTA_HUDRules, HUD_Normal,
 				DTA_CenterBottomOffset, true,
 				TAG_DONE);
-			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+			if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 				DrBNumberOuter (armor->Amount, 40, -39);
 		}
 
@@ -1112,7 +1112,7 @@ void DrawFullHUD_GameInformation()
 					DTA_HUDRules, HUD_Normal,
 					DTA_CenterBottomOffset, true,
 					TAG_DONE);
-				if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+				if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 					DrBNumberOuter (ammo2->Amount, -67, y - BigHeight);
 				ammotop = y - BigHeight;
 			}
@@ -1250,7 +1250,7 @@ void DrawFullHUD_GameInformation()
 		ulCurYPos = screenHeight - 4;
 
 		// [RC] If we're spying and can't see health/armor/ammo, draw a nice little display to show this.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		if ( NETWORK_InClientMode() &&
 			( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
 		{
 			DrawFullHUD_Unknown();

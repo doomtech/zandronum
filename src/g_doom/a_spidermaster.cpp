@@ -17,8 +17,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpidRefire)
 	A_FaceTarget (self);
 
 	// [BC] Client spider masterminds continue to fire until told by the server to stop.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
