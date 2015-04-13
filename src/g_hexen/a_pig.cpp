@@ -79,7 +79,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SnoutAttack)
 	S_Sound(player->mo, CHAN_VOICE, "PigActive", 1, ATTN_NORM);
 
 	// [Dusk] clients aren't properly aware of linetarget, thus they stop here.
-	if (NETWORK_InClientMode()) return;
+	if ( NETWORK_InClientMode() ) return;
 
 	if(linetarget)
 	{

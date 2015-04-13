@@ -88,8 +88,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_WraithMelee)
 	int amount;
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

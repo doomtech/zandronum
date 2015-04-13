@@ -103,8 +103,7 @@ void MStaffSpawn (AActor *pmo, angle_t angle)
 	AActor *linetarget;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -264,8 +263,7 @@ void MStaffSpawn2 (AActor *actor, angle_t angle)
 DEFINE_ACTION_FUNCTION(AActor, A_MageAttack)
 {
 	// [BB] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

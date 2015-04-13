@@ -32,8 +32,7 @@ IMPLEMENT_CLASS (AArtiDarkServant)
 bool AArtiDarkServant::Use (bool pickup)
 {
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( true );
 	}
@@ -63,8 +62,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Summon)
 	AMinotaurFriend *mo;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
