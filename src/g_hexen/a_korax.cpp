@@ -92,8 +92,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxChase)
 	AActor *spot;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (pr_koraxchase()<30)
 		{
@@ -169,8 +168,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxBonePop)
 	int i;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -201,8 +199,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxBonePop)
 void KSpiritInit (AActor *spirit, AActor *korax)
 {
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -227,8 +224,7 @@ void KSpiritInit (AActor *spirit, AActor *korax)
 DEFINE_ACTION_FUNCTION(AActor, A_KoraxDecide)
 {
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -276,8 +272,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxMissile)
 	S_Sound (self, CHAN_VOICE, "KoraxAttack", 1, ATTN_NORM);
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_WEAPON, choices[type].sound, 1, ATTN_NONE);
 		return;
@@ -316,8 +311,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KoraxCommand)
 	S_Sound (self, CHAN_VOICE, "KoraxCommand", 1, ATTN_NORM);
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -388,8 +382,7 @@ void KoraxFire (AActor *actor, const PClass *type, int arm)
 	fixed_t x,y,z;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -428,8 +421,7 @@ void A_KSpiritSeeker (AActor *actor, angle_t thresh, angle_t turnMax)
 	fixed_t deltaZ;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -502,8 +494,7 @@ void A_KSpiritSeeker (AActor *actor, angle_t thresh, angle_t turnMax)
 DEFINE_ACTION_FUNCTION(AActor, A_KSpiritRoam)
 {
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (pr_kspiritroam()<50)
 		{
@@ -549,8 +540,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KSpiritRoam)
 DEFINE_ACTION_FUNCTION(AActor, A_KBolt)
 {
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -578,8 +568,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_KBoltRaise)
 	fixed_t z;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -619,8 +608,7 @@ AActor *P_SpawnKoraxMissile (fixed_t x, fixed_t y, fixed_t z,
 	int dist;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( NULL );
 	}

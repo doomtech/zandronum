@@ -271,8 +271,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MLightningAttack)
 	AActor *fmo, *cmo;
 
 	// [BC/BB] The projectile spawning is handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		goto spawningdone;
 	}

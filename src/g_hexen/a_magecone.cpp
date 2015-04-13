@@ -74,8 +74,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireConePL1)
 	S_Sound (self, CHAN_WEAPON, "MageShardsFire", 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -154,8 +153,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_ShedShard)
 	int spermcount = self->special2;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
