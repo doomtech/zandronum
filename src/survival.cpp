@@ -108,8 +108,7 @@ void SURVIVAL_Tick( void )
 	{
 	case SURVS_WAITINGFORPLAYERS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -131,8 +130,7 @@ void SURVIVAL_Tick( void )
 
 			// FIGHT!
 			if (( g_ulSurvivalCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				SURVIVAL_DoFight( );
 			}
@@ -147,8 +145,7 @@ void SURVIVAL_Tick( void )
 		break;
 	case SURVS_INPROGRESS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -188,8 +185,7 @@ void SURVIVAL_StartCountdown( ULONG ulTicks )
 	}
 */
 	// Put the game in a countdown state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		SURVIVAL_SetState( SURVS_COUNTDOWN );
 	}
@@ -212,8 +208,7 @@ void SURVIVAL_DoFight( void )
 	DHUDMessageFadeOut	*pMsg;
 
 	// The battle is now in progress.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		SURVIVAL_SetState( SURVS_INPROGRESS );
 	}

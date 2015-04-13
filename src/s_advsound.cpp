@@ -2266,8 +2266,7 @@ void AAmbientSound::Activate (AActor *activator)
 	{
 		// [BC] In client mode, it's possible that the arguments haven't seen sent yet.
 		// Therefore, just break out without destroying the sound.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			bActive = true;
 			return;

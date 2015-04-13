@@ -2849,7 +2849,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 		g_aulColumnType[1] = COLUMN_FRAGS;
 		g_aulColumnType[2] = COLUMN_NAME;
 		g_aulColumnType[3] = COLUMN_DEATHS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[3] = COLUMN_PING;
 		g_aulColumnType[4] = COLUMN_TIME;
 
@@ -2864,7 +2864,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 		g_aulColumnType[1] = COLUMN_FRAGS;
 		g_aulColumnType[2] = COLUMN_NAME;
 		g_aulColumnType[3] = COLUMN_EMPTY;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[3] = COLUMN_PING;
 		g_aulColumnType[4] = COLUMN_TIME;
 
@@ -2914,7 +2914,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		scoreboard_SetColumnZeroToKillsAndSortPlayers();
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 	}
@@ -2925,7 +2925,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_FRAGS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -2942,7 +2942,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_POINTS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -2956,7 +2956,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_FRAGS;
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -2984,7 +2984,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	// All boards share these two columns. However, you can still deviant on these columns if you want.
 	g_aulColumnType[1] = COLUMN_NAME;
 	g_aulColumnType[2] = COLUMN_TIME;
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		g_aulColumnType[2] = COLUMN_PING;
 
 	// Build columns for modes in which players try to earn kills.

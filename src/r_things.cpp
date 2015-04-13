@@ -1981,7 +1981,7 @@ void R_DrawMaskedSingle (bool renew)
 		(( lmsspectatorsettings & LMS_SPF_VIEW ) == false ) &&
 		( players[consoleplayer].bSpectating ) &&
 		( players[consoleplayer].mo->CheckLocalView( consoleplayer )) &&
-		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		NETWORK_InClientMode() &&
 		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) == false )
 	{
 		for (i = vsprcount; i > 0; i--)
