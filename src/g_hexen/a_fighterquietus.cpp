@@ -94,8 +94,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FSwordAttack)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);
 		return;
@@ -158,7 +157,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FSwordFlames)
 DEFINE_ACTION_FUNCTION(AActor, A_FighterAttack)
 {
 	// [Dusk] Zedek's attack is handled by the server
-	if ( NETWORK_InClientMode( )) return;
+	if ( NETWORK_InClientMode() ) return;
 
 	if (!self->target) return;
 

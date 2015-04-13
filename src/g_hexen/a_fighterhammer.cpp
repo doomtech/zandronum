@@ -181,8 +181,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FHammerThrow)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

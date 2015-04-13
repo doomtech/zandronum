@@ -112,8 +112,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SmBounce)
 DEFINE_ACTION_FUNCTION(AActor, A_FiredAttack)
 {
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -148,8 +147,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FiredChase)
 	fixed_t dist;
 
 	// [BC] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// make active sound
 		if (pr_firedemonchase() < 3)

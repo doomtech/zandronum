@@ -33,7 +33,7 @@ bool AArtiHealingRadius::Use (bool pickup)
 	// Thus, it shall return true here as well. Furthermore, the client shouldn't
 	// actually execute anything here, since the effects include manipulating health/armor
 	// and stuff like that. Therefore, just return true.
-	if ( NETWORK_InClientMode( ) == true )
+	if ( NETWORK_InClientMode() )
 		return true;
 
 	bool effective = false;

@@ -35,8 +35,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 	AActor *mo;
 
 	// [BB] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -190,8 +189,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 DEFINE_ACTION_FUNCTION(AActor, A_DragonInitFlight)
 {
 	// [BB] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -225,8 +223,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DragonFlight)
 	angle_t angle;
 
 	// [BB] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -299,8 +296,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DragonFlap)
 DEFINE_ACTION_FUNCTION(AActor, A_DragonAttack)
 {
 	// [BB] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -351,8 +347,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DragonPain)
 	CALL_ACTION(A_Pain, self);
 
 	// [BB] Let the server do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

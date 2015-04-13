@@ -72,8 +72,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_PotteryExplode)
 	S_Sound (mo, CHAN_BODY, "PotteryExplode", 1, ATTN_NORM);
 
 	// [BC] Don't spawn the item in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -310,8 +309,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SoAExplode)
 		|| !(GetDefaultByType (type)->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				AActor	*pActor = Spawn (type, self->x, self->y, self->z, ALLOW_REPLACE);
 
