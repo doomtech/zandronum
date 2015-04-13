@@ -200,8 +200,7 @@ void ASorcBall::DoFireSpell ()
 	CastSorcererSpell ();
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -223,8 +222,7 @@ void ASorcBall::DoFireSpell ()
 void ASorcBall1::DoFireSpell ()
 {
 	// [BB] This is server-side (involves random numbers).
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -272,8 +270,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcSpinBalls)
 	z = self->z - self->floorclip + self->height;
 	
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -387,8 +384,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcBallOrbit)
 			 (abs(angle - (parent->angle>>ANGLETOFINESHIFT)) < (30<<5)))
 		{
 			// [BB] This is server-side (since StopBall involved random numbers).
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				break;
 			}
@@ -416,8 +412,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcBallOrbit)
 		if (parent->StopBall == RUNTIME_TYPE(actor))
 		{
 			// [BB] This is server-side (since StopBall involved random numbers).
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				break;
 			}
@@ -440,8 +435,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcBallOrbit)
 		if (parent->StopBall == RUNTIME_TYPE(actor))
 		{
 			// [BB] This is server-side (since StopBall involved random numbers).
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				break;
 			}
@@ -663,8 +657,7 @@ void ASorcBall2::CastSorcererSpell ()
 	Super::CastSorcererSpell ();
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -704,8 +697,7 @@ void ASorcBall3::CastSorcererSpell ()
 	Super::CastSorcererSpell ();
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -773,8 +765,7 @@ void ASorcBall1::CastSorcererSpell ()
 	Super::CastSorcererSpell ();
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -842,8 +833,7 @@ void A_SorcOffense2(AActor *actor)
 	}
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -961,8 +951,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcFX2Split)
 	AActor *mo;
 
 	// [BB] This is server-side. The client only destroy the actor.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		self->Destroy ();
 		return;
@@ -1033,8 +1022,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcFX2Orbit)
 	fixed_t dist = parent->radius;
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( !CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() == false )
 	{
 		if ((parent->health <= 0) ||		// Sorcerer is dead
 			(!parent->args[0]))				// Time expired
@@ -1115,8 +1103,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcFX2Orbit)
 DEFINE_ACTION_FUNCTION(AActor, A_SpawnBishop)
 {
 	// [BB] This is server-side. The client only destroy the actor.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		self->Destroy ();
 		return;
@@ -1167,8 +1154,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcererBishopEntry)
 DEFINE_ACTION_FUNCTION(AActor, A_SorcFX4Check)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
