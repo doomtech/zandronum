@@ -113,8 +113,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_JabDagger)
 	AActor *linetarget;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -173,8 +172,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_AlertMonsters)
 	ACTION_PARAM_FIXED(maxdist, 0);
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -272,8 +270,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireArrow)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM );
 		return;
@@ -308,8 +305,7 @@ void P_StrifeGunShot (AActor *mo, bool accurate, angle_t pitch)
 	int damage;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -366,8 +362,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireAssaultGun)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -399,8 +394,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMiniMissile)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -476,8 +470,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireFlamer)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -532,8 +525,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMauler1)
 	S_Sound (self, CHAN_WEAPON, "weapons/mauler1", 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -611,8 +603,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMauler2)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -639,8 +630,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaulerTorpedoWave)
 	self->angle += ANGLE_180;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -730,8 +720,7 @@ int APhosphorousFire::DoSpecialDamage (AActor *target, int damage, FName damaget
 DEFINE_ACTION_FUNCTION(AActor, A_BurnArea)
 {
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -742,7 +731,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BurnArea)
 DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 {
 	// [Dusk] The server manages the momentum
-	if ( NETWORK_InClientMode( ) == false )
+	if ( NETWORK_InClientMode() == false )
 	{
 		self->velz -= 8*FRACUNIT;
 		self->velx += (pr_phburn.Random2 (3)) << FRACBITS;
@@ -757,7 +746,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 
 	// Only the main fire spawns more.
 	// [Dusk] Client doesn't do any spawning either
-	if (!(self->flags & MF_DROPPED) && NETWORK_InClientMode( ) == false)
+	if (!(self->flags & MF_DROPPED) && ( NETWORK_InClientMode() == false ))
 	{
 		// Original x and y offsets seemed to be like this:
 		//		x + (((pr_phburn() + 12) & 31) << FRACBITS);
@@ -842,8 +831,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireGrenade)
 		return;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1096,8 +1084,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil1)
 		return;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
 		return;
@@ -1154,8 +1141,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil2)
 	player_t *player = self->player;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
 		return;
@@ -1190,8 +1176,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil3)
 		return;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
 		return;
@@ -1233,8 +1218,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil4)
 		return;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
 		return;
@@ -1281,8 +1265,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSigil5)
 		return;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
 		return;
