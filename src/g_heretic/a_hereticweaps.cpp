@@ -83,8 +83,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_StaffAttack)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -141,8 +140,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL1)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
@@ -213,8 +211,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL2)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
@@ -304,8 +301,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireCrossbowPL1)
 			return;
 	}
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -350,8 +346,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireCrossbowPL2)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{		
 		return;
 	}
@@ -540,8 +535,7 @@ void FireMacePL1B (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -644,8 +638,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL1)
 	player->psprites[ps_weapon].sy = WEAPONTOP+(pr_maceatk()&3)*FRACUNIT;
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -685,8 +678,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL1)
 DEFINE_ACTION_FUNCTION(AActor, A_MacePL1Check)
 {
 	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -737,8 +729,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MacePL1Check)
 DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact)
 {
 	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// We need to make sure the ball doesn't temporary go into it's death frame.
 		if ( self->flags & MF_INBOUNCE )
@@ -796,8 +787,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact2)
 	angle_t angle;
 
 	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// We need to make sure the ball doesn't temporary go into it's death frame.
 		if ( self->flags & MF_INBOUNCE )
@@ -923,8 +913,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMacePL2)
 	}
 
 	// [BC] If we're the client, play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/maceshoot", 1, ATTN_NORM );
 		return;
@@ -1004,8 +993,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DeathBallImpact)
 	AActor *linetarget;
 
 	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// We need to make sure the self doesn't temporary go into it's death frame.
 		if ( self->flags & MF_INBOUNCE )
@@ -1213,8 +1201,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBlasterPL1)
 			return;
 	}
 	// [BC] If we're the client, just play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
 		return;
@@ -1357,8 +1344,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSkullRodPL1)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1418,8 +1404,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireSkullRodPL2)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1779,8 +1764,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePhoenixPL1)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1887,8 +1871,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePhoenixPL2)
 		return;
 	}
 	// [BC] If we're the client, just play the sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (!player->refire || !S_IsActorPlayingSomething (player->mo, CHAN_WEAPON, -1))
 		{
