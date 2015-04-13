@@ -102,7 +102,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpotLightning)
 	AActor *spot;
 
 	// [CW] Clients may not do this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return;
 
 	if (self->target == NULL)

@@ -28,8 +28,7 @@
 DEFINE_ACTION_FUNCTION(AActor, A_HideDecepticon)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -55,8 +54,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_AcolyteDie)
 	self->RenderStyle = STYLE_Normal;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

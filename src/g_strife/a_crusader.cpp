@@ -24,8 +24,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderChoose)
 	AActor	*pMissile;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -83,8 +82,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderChoose)
 DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepLeft)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -104,8 +102,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepLeft)
 DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepRight)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -125,7 +122,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderSweepRight)
 DEFINE_ACTION_FUNCTION(AActor, A_CrusaderRefire)
 {
 	// [Dusk] The client should not execute this.
-	if( NETWORK_InClientMode( ))
+	if( NETWORK_InClientMode() )
 		return;
 
 	if (self->target == NULL ||
@@ -143,8 +140,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CrusaderRefire)
 DEFINE_ACTION_FUNCTION(AActor, A_CrusaderDeath)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

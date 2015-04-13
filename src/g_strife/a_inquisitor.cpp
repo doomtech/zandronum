@@ -28,8 +28,7 @@ bool InquisitorCheckDistance (AActor *self)
 DEFINE_ACTION_FUNCTION(AActor, A_InquisitorDecide)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -64,8 +63,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_InquisitorAttack)
 	AActor *proj;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -106,8 +104,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_InquisitorJump)
 	angle_t an;
 
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -145,8 +142,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_InquisitorJump)
 DEFINE_ACTION_FUNCTION(AActor, A_InquisitorCheckLand)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
