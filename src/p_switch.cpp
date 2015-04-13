@@ -244,8 +244,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	}
 
 	// [BC] Set the texture change flags.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		if ( side->linedef != NULL )
 		{

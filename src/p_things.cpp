@@ -621,7 +621,7 @@ bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 		level.total_monsters++;
 
 		// [BC] Update invasion's HUD.
-		if (( invasion ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if (( invasion ) && ( NETWORK_InClientMode() == false ))
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
 

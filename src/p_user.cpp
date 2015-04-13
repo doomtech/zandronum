@@ -1728,7 +1728,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor, int dmgflags)
 {
 	// [BB] Drop any important items the player may be carrying before handling
 	// any other part of the death logic.
-	if ( !NETWORK_InClientMode() )
+	if ( NETWORK_InClientMode() == false )
 		DropImportantItems ( false, source );
 
 	Super::Die (source, inflictor, dmgflags);
@@ -1736,8 +1736,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor, int dmgflags)
 	if (player != NULL && player->mo == this) player->bonuscount = 0;
 
 	// [BC] Nothing for the client to do here.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -2584,7 +2583,7 @@ CUSTOM_CVAR (Float, sv_aircontrol, 0.00390625f, CVAR_SERVERINFO|CVAR_NOSAVE)
 void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 {
 	// [BB] A client doesn't know enough about the other players to make their movement.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+	if ( NETWORK_InClientMode() &&
 		(( player - players ) != consoleplayer ) && !CLIENTDEMO_IsFreeSpectatorPlayer ( player ))
 	{
 		return;
@@ -2752,8 +2751,7 @@ void P_FallingDamage (AActor *actor)
 	fixed_t vel;
 
 	// [BB] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -2936,8 +2934,7 @@ void P_DeathThink (player_t *player)
 	}		
 
 	// [BC] Respawning is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -3162,7 +3159,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 			else
 			{
-				if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+				if ( NETWORK_InClientMode() &&
 					(( player - players ) != consoleplayer ))
 				{
 					//PLAYER_SetSpectator(player, true, false);
@@ -3358,7 +3355,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	player->original_cmd = cmd->ucmd;
 
 	if (player->mo->flags & MF_JUSTATTACKED &&
-		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		NETWORK_InClientMode() )
 	{ // Chainsaw/Gauntlets attack auto forward motion
 		cmd->ucmd.yaw = 0;
 		cmd->ucmd.forwardmove = 0xc800/2;
@@ -3414,7 +3411,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	}
 	// [BC] Don't do this for clients other than ourself in client mode.
 	// [BB] Also, don't do this while predicting.
-	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( (( player - players ) == consoleplayer ) && ( CLIENT_PREDICT_IsPredicting( ) == false ) ))
+	if (( NETWORK_InClientMode() == false ) || ( (( player - players ) == consoleplayer ) && ( CLIENT_PREDICT_IsPredicting( ) == false ) ))
 	{
 		if (player->CanCrouch() && player->health > 0 && level.IsCrouchingAllowed())
 		{
@@ -3659,7 +3656,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		{
 			player->hazardcount--;
 			// [BB] The clients only tick down, the server handles the damage.
-			if ( NETWORK_InClientMode( ) == false )
+			if ( NETWORK_InClientMode() == false )
 			{
 				if (!(level.time & 31) && player->hazardcount > 16*TICRATE)
 					P_DamageMobj (player->mo, NULL, NULL, 5, NAME_Slime);
@@ -3677,8 +3674,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 
 		// [BC] Don't do the following block in client mode.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			// Apply degeneration.
 			if ( dmflags2 & DF2_YES_DEGENERATION )
@@ -3719,8 +3715,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			else if (player->air_finished <= level.time && !(level.time & 31))
 			{
 				// [BB] The server handles damaging the players.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 				{
 					P_DamageMobj (player->mo, NULL, NULL, 2 + ((level.time-player->air_finished)/TICRATE), NAME_Drowning);
 				}

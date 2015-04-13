@@ -83,8 +83,7 @@ void P_Ticker (void)
 	ULONG	ulIdx;
 
 	// [BC] Don't run this if the server is lagging.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( CLIENT_GetServerLagging( ) == true ) ||
 			( players[consoleplayer].mo == NULL ))
@@ -159,7 +158,7 @@ void P_Ticker (void)
 	}
 
 	// Predict the console player's position.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		if (( CLIENT_GetServerLagging( ) == false ) && ( CLIENT_GetClientLagging( ) == false ))
 			CLIENT_PREDICT_PlayerPredict( );
@@ -305,8 +304,7 @@ void P_Ticker (void)
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Increment individual player time.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			if ( playeringame[ulIdx] )
 			{
@@ -338,7 +336,7 @@ void P_Ticker (void)
 
 		// Console player thinking is handled by player prediction.
 		if (( static_cast<signed> (ulIdx) == consoleplayer ) &&
-			(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+			NETWORK_InClientMode() )
 		{
 			continue;
 		}
@@ -395,8 +393,7 @@ void P_Ticker (void)
 	// Tick the team module. The handles returning dropped flags/skulls.
 	if ( teamgame )
 	{
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			TEAM_Tick( );
 		}
