@@ -39,8 +39,7 @@ bool AArtiTeleport::Use (bool pickup)
 	angle_t destAngle;
 
 	// [BC] Let the server decide where we go.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( true );
 	}
