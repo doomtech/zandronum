@@ -1114,7 +1114,7 @@ void C_AdjustBottom ()
 
 	// [Leo] Keep the fullconsole if we are requesting/receiving a snapshot.
 	if ( gamestate == GS_FULLCONSOLE || gamestate == GS_STARTUP || 
-		(( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState() != CTS_ACTIVE )) )
+		( NETWORK_InClientMode() && ( CLIENT_GetConnectionState() != CTS_ACTIVE )) )
 		ConBottom = SCREENHEIGHT;
 	else if (ConBottom > SCREENHEIGHT / 2 || ConsoleState == c_down)
 		ConBottom = SCREENHEIGHT / 2;
@@ -1533,7 +1533,7 @@ void C_ToggleConsole ()
 {
 	// [Leo] Don't let the console close while requesting/receiving a snapshot.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
-		(( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState() != CTS_ACTIVE )))
+		( NETWORK_InClientMode() && ( CLIENT_GetConnectionState() != CTS_ACTIVE )))
 		return;
 
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
@@ -1575,7 +1575,7 @@ void C_HideConsole ()
 {
 	// [Leo] Don't let the console close while requesting/receiving a snapshot.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
-		(( NETWORK_InClientMode( ) == true ) && ( CLIENT_GetConnectionState() != CTS_ACTIVE )))
+		( NETWORK_InClientMode() && ( CLIENT_GetConnectionState() != CTS_ACTIVE )))
 		return;
 
 	if (gamestate != GS_FULLCONSOLE)
@@ -1957,7 +1957,7 @@ static bool C_HandleKey (event_t *ev, BYTE *buffer, int len)
 				return false;
 			}
 			else if ((gamestate == GS_FULLCONSOLE) ||
-				((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+				( NETWORK_InClientMode() &&
 				( CLIENT_GetConnectionState( ) != CTS_ACTIVE )))
 			{
 				C_DoCommand ("menu_main");

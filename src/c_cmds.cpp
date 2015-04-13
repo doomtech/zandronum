@@ -107,8 +107,7 @@ CCMD (toggleconsole)
 bool CheckCheatmode (bool printmsg)
 {
 	if ((( G_SkillProperty( SKILLP_DisableCheats )) ||
-		( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )) ||
+		NETWORK_InClientMode() ||
 		( NETWORK_GetState( ) == NETSTATE_SERVER )) &&
 		( sv_cheats == false ))
 	{
@@ -712,9 +711,8 @@ CCMD (puke)
 			arg[i] = atoi (argv[2+i]);
 		}
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() ||
+			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
 			ULONG ulScript = (script < 0) ? -script : script;
 			// [BB] The check if the client is allowed to puke a CLIENTSIDE script

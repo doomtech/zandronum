@@ -182,8 +182,7 @@ bool CAMPAIGN_AllowCampaign( void )
 {
 	return (( g_bDisableCampaign == false ) &&
 		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ));
+		( NETWORK_InClientMode() == false ));
 }
 
 //*****************************************************************************

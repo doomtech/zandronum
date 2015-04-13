@@ -1988,8 +1988,7 @@ void CSkullBot::Tick( void )
 	g_BotCycles.Clock();
 
 	// Don't execute bot logic during demos, or if the console player is a client.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )) ||
+	if ( NETWORK_InClientMode() ||
 		( demoplayback ))
 	{
 		return;
@@ -3844,8 +3843,7 @@ CCMD( addbot )
 	}
 
 	// Don't allow bots in network mode, unless we're the host.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		Printf( "Only the host can add bots!\n" );
 		return;

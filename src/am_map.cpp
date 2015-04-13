@@ -352,7 +352,7 @@ EXTERN_CVAR (Bool, sv_cheats)
 CUSTOM_CVAR (Int, am_cheat, 0, 0)
 {
 	// No automap cheat in net games when cheats are disabled!
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !sv_cheats && self != 0)
+	if ( NETWORK_InClientMode() && !sv_cheats && self != 0)
 	{
 		self = 0;
 	}

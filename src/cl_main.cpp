@@ -3300,7 +3300,7 @@ void CLIENT_AdjustPredictionToServerSideConsolePlayerMove( fixed_t X, fixed_t Y,
 bool CLIENT_CanClipMovement( AActor *pActor )
 {
 	// [WS] If it's not a client, of course clip its movement.
-	if ( !NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() == false )
 		return true;
 
 	// [Dusk] Clients clip missiles the server has no control over.

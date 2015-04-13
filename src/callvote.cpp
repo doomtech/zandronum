@@ -125,8 +125,7 @@ void CALLVOTE_Tick( void )
 		if ( g_ulVoteCountdownTicks )
 		{
 			g_ulVoteCountdownTicks--;
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ) &&
+			if (( NETWORK_InClientMode() == false ) &&
 				( g_ulVoteCountdownTicks == 0 ))
 			{
 				ulNumYes = callvote_CountPlayersWhoVotedYes( );
@@ -151,8 +150,7 @@ void CALLVOTE_Tick( void )
 
 				// If the vote passed, execute the command string.
 				if (( g_bVotePassed ) && ( !g_bVoteCancelled ) &&
-					( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					( CLIENTDEMO_IsPlaying( ) == false ))
+					( NETWORK_InClientMode() == false ))
 				{
 					// [BB, RC] If the vote is a kick vote, we have to rewrite g_VoteCommand to both use the stored IP, and temporarily ban it.
 					// [Dusk] Write the kick reason into the ban reason, [BB] but only if it's not empty.
@@ -331,8 +329,7 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( true );
 	}
@@ -432,8 +429,7 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( true );
 	}
@@ -502,8 +498,7 @@ ULONG CALLVOTE_CountNumEligibleVoters( void )
 void CALLVOTE_EndVote( bool bPassed )
 {
 	// This is a client-only function.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		return;
 	}
