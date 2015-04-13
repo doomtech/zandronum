@@ -23,8 +23,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SkelMissile)
 	AActor *missile;
 		
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -83,8 +82,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 		smoke->tics = 1;
 	
 	// [BC] Server takes care of movement.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -154,8 +152,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Tracer)
 DEFINE_ACTION_FUNCTION(AActor, A_SkelWhoosh)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -173,8 +170,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SkelWhoosh)
 DEFINE_ACTION_FUNCTION(AActor, A_SkelFist)
 {
 	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

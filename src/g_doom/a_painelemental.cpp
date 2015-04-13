@@ -42,8 +42,7 @@ void A_PainShootSkull (AActor *self, angle_t angle, const PClass *spawntype, int
 	int prestep;
 
 	// [BC] Spawning of additional lost souls is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

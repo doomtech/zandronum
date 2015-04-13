@@ -25,8 +25,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_PosAttack)
 	int slope;
 		
 	// [BC] Server takes care of the rest of this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound( self, CHAN_WEAPON, "grunt/attack", 1, ATTN_NORM );
 		return;
@@ -66,8 +65,7 @@ static void A_SPosAttack2 (AActor *self)
 DEFINE_ACTION_FUNCTION(AActor, A_SPosAttackUseAtkSound)
 {
 	// [BC] Server takes care of the rest of this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
@@ -85,8 +83,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SPosAttackUseAtkSound)
 DEFINE_ACTION_FUNCTION(AActor, A_SPosAttack)
 {
 	// [BC] Server takes care of the rest of this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound ( self, CHAN_WEAPON, "shotguy/attack", 1, ATTN_NORM );
 		return;
@@ -107,8 +104,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CPosAttack)
 	int slope;
 		
 	// [BC] Server takes care of the rest of this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// [RH] Andy Baker's stealth monsters
 		if (self->flags & MF_STEALTH)
@@ -145,8 +141,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CPosRefire)
 	A_FaceTarget (self);
 
 	// [BC] Client chaingunners continue to fire until told by the server to stop.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
