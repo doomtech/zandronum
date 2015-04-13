@@ -427,7 +427,7 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 		if (StompAlwaysFrags && !(th->flags6 & MF6_NOTELEFRAG))
 		{
 			// [BC] Damage is never done client-side.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 				P_DamageMobj (th, thing, thing, TELEFRAG_DAMAGE, NAME_Telefrag, DMG_THRUSTLESS);
 			continue;
 		}
@@ -1224,7 +1224,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 					damage = tm.thing->GetMissileDamage (3, 2);
 					// [BB] The server handles the damage of RIPPER weapons.
 					int newdam = 0;
-					if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+					if ( NETWORK_InClientMode() == false ) 
 						newdam = P_DamageMobj (thing, tm.thing, tm.thing->target, damage, tm.thing->DamageType);
 					if (!(tm.thing->flags3 & MF3_BLOODLESSIMPACT))
 					{
@@ -1254,7 +1254,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 
 		// Do damage
 		damage = tm.thing->GetMissileDamage ((tm.thing->flags4 & MF4_STRIFEDAMAGE) ? 3 : 7, 1);
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			if ((damage > 0) || (tm.thing->flags6 & MF6_FORCEPAIN)) 
 			{
@@ -1293,8 +1293,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	}
 	// [BC] Don't push things in client mode.
 	if (thing->flags2 & MF2_PUSHABLE && !(tm.thing->flags2 & MF2_CANNOTPUSH) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))// &&
+		( NETWORK_InClientMode() == false ))// &&
 		//(tm.thing->player == NULL || !(tm.thing->player->cheats & CF_PREDICTING)))
 	{ // Push thing
 		if (thing->lastpush != tm.PushTime)
@@ -1321,16 +1320,14 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		&& thing->z < tm.thing->z + tm.thing->height - tm.thing->MaxStepHeight)
 	{ // Can be picked up by tmthing
 		// Server decides what items are touched.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			P_TouchSpecialThing (thing, tm.thing);	// can remove thing
 		}
 	}
 
 	// If this object has the bumpspecial flag, try to activate the item's special.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
+	if (( NETWORK_InClientMode() == false ) &&
 		( solid ) &&
 		( thing->flags6 & MF6_BUMPSPECIAL ))
 	{
@@ -1810,7 +1807,7 @@ static void CheckForPushSpecial (line_t *line, int side, AActor *mobj, bool wind
 		}
 isblocking:
 		// [BC] In a netgame, since mobj->target is never valid, we must go this route to avoid a crash.
-		if ((mobj->flags2 & MF2_PUSHWALL) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ((mobj->flags2 & MF2_PUSHWALL) || NETWORK_InClientMode() )
 		{
 			P_ActivateLine (line, mobj, side, SPAC_Push);
 		}
@@ -2041,7 +2038,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			// region, the client sometimes thinks the actor is outside the region.
 			// Therefore, doing the following on the client would completely mess up the
 			// client side monster movement prediction.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				thing->z = oldz;
 				thing->flags6 &= ~MF6_INTRYMOVE;
@@ -4111,7 +4108,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
 	// [CK] And also predicted puffs and blood decals.
-	if ( NETWORK_InClientMode( )
+	if ( NETWORK_InClientMode()
 		&& cl_hitscandecalhack == false
 		&& CLIENT_ShouldPredictPuffs( ) == false )
 	{
@@ -4192,7 +4189,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	{ // hit nothing
 		// [BB] No decal will be spawned, so the client stops here.
 		// [CK] But continue on if we want clientside puffs since it may occur.
-		if ( NETWORK_InClientMode( ) && CLIENT_ShouldPredictPuffs( ) == false )
+		if ( NETWORK_InClientMode() && CLIENT_ShouldPredictPuffs( ) == false )
 			return NULL;
 
 		if (puffDefaults == NULL)
@@ -4212,7 +4209,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 			// [CK] We don't want this function returning an actor if it's a
 			// client predicting. The client would be done regardless.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				return NULL;
 		}
 		else
@@ -4228,7 +4225,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		{
 			// [BB] The client only spawns decals, no puffs.
 			// [CK] Now there is an option for clientside puffs.
-			if ( ( NETWORK_InClientMode( ) == false ) || CLIENT_ShouldPredictPuffs( ) )
+			if ( ( NETWORK_InClientMode() == false ) || CLIENT_ShouldPredictPuffs( ) )
 			{
 				// position a bit closer for puffs
 				if (trace.HitType != TRACE_HitWall || trace.Line->special != Line_Horizon)
@@ -4241,7 +4238,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			}
 
 			// [CK] If we don't want decals, stop before entering.
-			if ( NETWORK_InClientMode( ) && cl_hitscandecalhack == false ) 
+			if ( NETWORK_InClientMode() && cl_hitscandecalhack == false ) 
 				return NULL;
 
 			// [RH] Spawn a decal
@@ -4261,7 +4258,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				}				
 				
 				// [BB] Clients dont' spawn the puff, so we have to look if the default puff has a decal defined.
-				else if( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+				else if( NETWORK_InClientMode()
 							&& pufftype && (GetDefaultByType (pufftype) != NULL) && GetDefaultByType (pufftype)->DecalGenerator)
 				{
 					SpawnShootDecal (GetDefaultByType (pufftype), trace);
@@ -4278,7 +4275,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				trace.HitType == TRACE_HitFloor)
 			{
 				// [CK] We are not predicting water splashes.
-				if ( NETWORK_InClientMode( ) )
+				if ( NETWORK_InClientMode() )
 					return NULL;
 
 				// Using the puff's position is not accurate enough.
@@ -4289,8 +4286,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				P_HitWater (puff, P_PointInSector(hitx, hity), hitx, hity, hitz);
 			}
 			// [BB] Decal has been spawned, so the client stops here. 
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				return NULL;
 			}
@@ -4299,7 +4295,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		{
 			// [BB] No decal will be spawned, so the client stops here.
 			// [CK] Also exit if we don't want puffs, or blood decals.
-			if ( NETWORK_InClientMode( )
+			if ( NETWORK_InClientMode()
 					&& CLIENT_ShouldPredictPuffs( ) == false
 					&& cl_hitscandecalhack == false )
 				return NULL;
@@ -4330,7 +4326,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			if (((puffDefaults != NULL && puffDefaults->flags3 & MF3_PUFFONACTORS) ||
 				(trace.Actor->flags & MF_NOBLOOD) ||
 				(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)))
-				&& ( NETWORK_InClientMode( ) == false || CLIENT_ShouldPredictPuffs( ) ) )
+				&& ( NETWORK_InClientMode() == false || CLIENT_ShouldPredictPuffs( ) ) )
 			{
 				if (!(trace.Actor->flags & MF_NOBLOOD))
 					puffFlags |= PF_HITTHINGBLEED;
@@ -4342,7 +4338,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// [CK] The client by this point has predicted their desired
 			// puff and should only be here if they want puff prediction,
 			// so we can exit. We will only continue on if we want blood decals.
-			if ( NETWORK_InClientMode( ) && cl_hitscandecalhack == false )
+			if ( NETWORK_InClientMode() && cl_hitscandecalhack == false )
 				return NULL;
 
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
@@ -4383,7 +4379,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				if (!bloodsplatter && !axeBlood &&
 					!(trace.Actor->flags & MF_NOBLOOD) &&
 					!(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)) &&
-					NETWORK_InClientMode( ) == false )
+					NETWORK_InClientMode() == false )
 				{
 					P_SpawnBlood (hitx, hity, hitz, angle - ANG180, newdam > 0 ? newdam : damage, trace.Actor);
 				}
@@ -4392,7 +4388,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				{
 					// [CK] Do not do any blood splatters, that is not the function
 					// we intend to predict with blood decals.
-					if ((bloodsplatter || axeBlood) && NETWORK_InClientMode( ) == false )
+					if ((bloodsplatter || axeBlood) && NETWORK_InClientMode() == false )
 					{
 						if (!(trace.Actor->flags&MF_NOBLOOD) &&
 							!(trace.Actor->flags2&(MF2_INVULNERABLE|MF2_DORMANT)))
@@ -4427,7 +4423,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// [CK] We do not want to predict splashes right now. This puff is
 			// destroyed further down, so we can assume it would be bad to do
 			// any prediction here.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				return NULL;
 
 			if (puff == NULL)
@@ -4440,7 +4436,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 
 	// [CK] In case the client ever gets this far, it should end now.
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 		return NULL;
 
 	if (killPuff && puff != NULL)
@@ -4745,7 +4741,7 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 	// [Spleen] Don't do damage, don't award medals, don't spawn puffs,
 	// and don't spawn blood in clients on a network.
 	// [BB] Actually client spawn the puffs to draw decals / splashes.
-	if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
+	if ( NETWORK_InClientMode() == false )
 	{
 		for (i = 0; i < rail_data.RailHits.Size (); i++)
 		{
@@ -4780,8 +4776,7 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 				P_SpawnPuff(source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags);
 			}
 			// [BC] Damage is server side.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				if (puffDefaults && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 				{
@@ -4811,7 +4806,7 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 						// If the player gets 4+ straight hits with the railgun, award a "Most Impressive" medal.
 						if ( source->player->ulConsecutiveRailgunHits >= 4 )
 						{
-							if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+							if ( NETWORK_InClientMode() == false )
 								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
 
 							// Tell clients about the medal that been given.
@@ -4821,7 +4816,7 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 						// Otherwise, award an "Impressive" medal.
 						else
 						{
-							if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+							if ( NETWORK_InClientMode() == false )
 								MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
 
 							// Tell clients about the medal that been given.
@@ -5084,7 +5079,7 @@ bool P_UseTraverse(AActor *usething, fixed_t endx, fixed_t endy, bool &foundline
 
 				// [BC] Just skip right over this in client mode so we don't try to trigger any
 				// actions.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && sec->SecActTarget && sec->SecActTarget->TriggerAction (usething, SECSPAC_Use))
+				if (( NETWORK_InClientMode() == false ) && sec->SecActTarget && sec->SecActTarget->TriggerAction (usething, SECSPAC_Use))
 				{
 					return true;
 				}
@@ -5225,8 +5220,7 @@ void P_UseLines (player_t *player)
 		int spac = SECSPAC_Use;
 		if (foundline) spac |= SECSPAC_UseWall;
 		// [BC] Don't try to trigger sector actions in client mode.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )) ||
+		if (( NETWORK_InClientMode() ||
 			!sec->SecActTarget || !sec->SecActTarget->TriggerAction (player->mo, spac)) &&
 			P_NoWayTraverse (player->mo, x1, y1))
 		{
@@ -5277,8 +5271,7 @@ void P_UseItems( player_t *pPlayer )
 	if ( linetarget )
 	{
 		// Don't try to trigger sector actions in client mode.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ) &&
+		if (( NETWORK_InClientMode() == false ) &&
 			( linetarget->special ) &&
 			( linetarget->ulSTFlags & STFL_USESPECIAL ))
 		{
@@ -5569,7 +5562,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 				int newdam = damage;
 
 				// [BC] Damage is server side.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 				{
 					if (!(flags & RADF_NODAMAGE))
 						newdam = P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
@@ -5902,7 +5895,7 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 	ULONG	ulIdx;
 
 	// [BC] Don't handle the respawning of crunched items on the client end.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		// [BC] If this item is a flag belonging to a team, return it, and/or don't do shit!
 		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
@@ -5947,7 +5940,7 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 	{
 		// [BC] Damage is done server-side.
 		int newdam = 0;
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			newdam = P_DamageMobj (thing, NULL, NULL, cpos->crushchange, NAME_Crush);
 
 		// spray blood in a random direction
