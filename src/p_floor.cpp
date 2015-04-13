@@ -165,8 +165,7 @@ void DFloor::Tick ()
 {
 	EResult res;
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		// [RH] Handle resetting stairs
 		if (m_Type == buildStair || m_Type == waitStair)
@@ -216,8 +215,7 @@ void DFloor::Tick ()
 
 	// [BC] If we're in client mode, just move the floor and get out. The server will
 	// tell us when it stops.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -542,7 +540,7 @@ manual_floor:
 		floor->m_OrgDist = sec->floorplane.d;	// [RH]
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
 
 		floor->StartFloorSound ();
@@ -943,7 +941,7 @@ manual_stair:
 		osecnum = secnum;				//jff 3/4/98 preserve loop index
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
 
 		// [BC] If we're the server, tell clients to create the floor.
@@ -1058,7 +1056,7 @@ manual_stair:
 				floor->m_OrgDist = sec->floorplane.d;	// [RH] Height to reset to
 
 				// [BC] Assign the floor's network ID. However, don't do this on the client end.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 					floor->m_lFloorID = P_GetFirstFreeFloorID( );
 
 				// [BC] If we're the server, tell clients to create the floor.
@@ -1151,7 +1149,7 @@ manual_donut:
 			floor->StartFloorSound ();
 			
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
 
 			// [BC] If we're the server, tell clients to create the floor.
@@ -1174,7 +1172,7 @@ manual_donut:
 			floor->StartFloorSound ();
 
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
 
 			// [BC] If we're the server, tell clients to create the floor.
@@ -1309,8 +1307,7 @@ void DElevator::Tick ()
 	}
 
 	// [BC] This is all we need to do in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -1408,7 +1405,7 @@ manual_elevator:
 		elevator->StartFloorSound ();
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			elevator->m_lElevatorID = P_GetFirstFreeElevatorID( );
 
 		floorheight = sec->CenterFloor ();
@@ -1879,7 +1876,7 @@ manual_waggle:
 		waggle->m_State = WGLSTATE_EXPAND;
 
 		// [BC] Assign the waggle's network ID. However, don't do this on the client end.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			waggle->m_lWaggleID = P_GetFirstFreeWaggleID( );
 
 		// [BC] If we're the server, tell clients to do the waggle.

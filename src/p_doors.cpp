@@ -104,7 +104,7 @@ void DDoor::Tick ()
 		// de-sync the game. Instead, wait for the server to tell us to change
 		// the door's direction.
 		// [EP] Don't let the clients read the undefined m_TopCountdown variable
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		// WAITING
@@ -143,7 +143,7 @@ void DDoor::Tick ()
 		// de-sync the game. Instead, wait for the server to tell us to change
 		// the door's direction.
 		// [EP] Don't let the clients read the undefined m_TopCountdown variable
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		//	INITIAL WAIT
@@ -181,7 +181,7 @@ void DDoor::Tick ()
 
 		// [BC] If we're the client, don't do any of the following. Wait for the server
 		// to tell us what to do.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		if (res == pastdest)
@@ -260,7 +260,7 @@ void DDoor::Tick ()
 
 		// [BC] If we're the client, don't do any of the following. Wait for the server
 		// to tell us what to do.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		if (res == pastdest)
@@ -525,7 +525,7 @@ DDoor::DDoor (sector_t *sec, EVlDoor type, fixed_t speed, int delay, int lightTa
 	// [BB] We need to initialize the ID, because P_GetFirstFreeDoorID relies on this.
 	m_lDoorID = -1;
 	// [BC] Assign the door's network ID.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 		m_lDoorID = P_GetFirstFreeDoorID( );
 }
 

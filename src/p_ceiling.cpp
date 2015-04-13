@@ -135,7 +135,7 @@ void DCeiling::Tick ()
 		res = MoveCeiling (m_Speed, m_TopHeight, m_Direction);
 		
 		// [BC] Don't need to do anything more here if we're a client.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		if (res == pastdest)
@@ -203,7 +203,7 @@ void DCeiling::Tick ()
 		res = MoveCeiling (m_Speed, m_BottomHeight, m_Crush, m_Direction, m_Hexencrush);
 		
 		// [BC] Don't need to do anything more here if we're a client.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			break;
 
 		if (res == pastdest)
@@ -428,7 +428,7 @@ DCeiling *DCeiling::Create(sector_t *sec, DCeiling::ECeiling type, line_t *line,
 	vertex_t *spot = sec->lines[0]->v1;
 
 	// [BC] If we're not a client, assign a network ID to the ceiling.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && !( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() == false ) 
 		ceiling->m_lCeilingID = P_GetFirstFreeCeilingID( );
 
 	switch (type)
