@@ -943,7 +943,7 @@ static bool ShouldDrawHealth( player_t* CPlayer )
 	if ( CPlayer->bSpectating )
 		return false;
 
-	if (( NETWORK_InClientMode() )
+	if ( NETWORK_InClientMode()
 		&& ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, CPlayer - players )) == false )
 	{
 		return false;

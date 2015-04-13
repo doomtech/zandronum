@@ -237,7 +237,7 @@ bool AWeapon::HandlePickup (AInventory *item)
 bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 {
 	// [BB] The server tells the client how much ammo he gets from the weapon,
-	if ( NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() )
 		return false;
 
 	bool gotstuff = false;
@@ -354,7 +354,7 @@ void AWeapon::AttachToOwner (AActor *other)
 
 	// [BB] The server tells the client how much ammo he gets from the weapon,
 	// the client just initializes Ammo1 and Ammo2.
-	if ( !NETWORK_InClientMode( ) )
+	if ( NETWORK_InClientMode() == false )
 	{
 		Ammo1 = AddAmmo (Owner, AmmoType1, AmmoGive1);
 		Ammo2 = AddAmmo (Owner, AmmoType2, AmmoGive2);
@@ -641,7 +641,7 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo, int am
 	// [BB] Clients should only handle out of ammo weapon switches for themself, since
 	// they sometimes don't know the exact ammount of ammo the other players have. They
 	// are informed by the server of the weapon change anyway.
-	if ( (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && ( Owner->player - players != consoleplayer ))
+	if ( NETWORK_InClientMode() && ( Owner->player - players != consoleplayer ))
 		return false;
 
 	// out of ammo, pick a weapon to change to

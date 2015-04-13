@@ -38,8 +38,7 @@ class ARandomSpawner : public AActor
 
 		Super::BeginPlay();
 		// [BB] This is server-side.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			if (( this->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 				return;
@@ -204,7 +203,7 @@ class ARandomSpawner : public AActor
 				SERVER_SetThingNonZeroAngleAndMomentum( newmobj );
 			}
 			// [BB] The client did the spawning, so this has to be a client side only actor.
-			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+			else if ( NETWORK_InClientMode() )
 				newmobj->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 		}
 		if (boss)

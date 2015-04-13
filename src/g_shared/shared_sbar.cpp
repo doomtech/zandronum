@@ -1202,7 +1202,7 @@ void DBaseStatusBar::DrawCrosshair ()
 		}
 
 		// [RC] If we're following somebody and we shouldn't know their health, use a neutral color.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+		if ( NETWORK_InClientMode() && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
 			color = 0xcccccc;
 	}
 	else

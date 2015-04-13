@@ -327,8 +327,7 @@ bool P_GiveBody (AActor *actor, int num, int max)
 DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialThing1)
 {
 	// [BC] Clients have their own version of this function.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// Just go back into hiding until the server tells this item to respawn.
 		static_cast<AInventory *>( self )->Hide( );
@@ -372,8 +371,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialThing2)
 DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialDoomThing)
 {
 	// [BC] Clients have their own version of this function.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// Just go back into hiding until the server tells this item to respawn.
 		static_cast<AInventory *>( self )->Hide( );
@@ -814,7 +812,7 @@ AInventory *AInventory::CreateTossable ()
 	{
 		// [BB] Don't convert the item to a pickup in client mode, the server tells us to spawn the item.
 		// Just remove it from the owner's inventory.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			if (Owner != NULL) Owner->RemoveInventory (this);
 			return ( NULL );
@@ -828,8 +826,7 @@ AInventory *AInventory::CreateTossable ()
 
 	// [BB] Don't spawn the item in client mode, the server tells us to spawn the item.
 	// Just reduce the remaining amount of this item type here.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		Amount--;
 		return ( NULL );
