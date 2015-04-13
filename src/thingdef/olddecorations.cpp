@@ -82,8 +82,7 @@ public:
 	bool TryPickup (AActor *&toucher)
 	{
 		// [BC] The server told us we picked up the item; thus make it so!
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			GoAwayAndDie( );
 			return ( true );
