@@ -525,8 +525,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 	int special = sector->special & ~SECRET_MASK;
 
 	// [BC] Sector specials are server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// Just do secret triggers, and get out.
 		if ( sector->special & SECRET_MASK )
@@ -614,7 +613,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 
 		case sDamage_Hellslime:
 			// [Dusk] Don't touch the hazard count as the client
-			if (ironfeet == NULL && ( NETWORK_InClientMode( ) == false ))
+			if (ironfeet == NULL && ( NETWORK_InClientMode() == false ))
 			{
 				player->hazardcount += 2;
 
@@ -626,7 +625,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 
 		case sDamage_SuperHellslime:
 			// [Dusk] Don't touch the hazard count as the client
-			if (ironfeet == NULL && ( NETWORK_InClientMode( ) == false ))
+			if (ironfeet == NULL && ( NETWORK_InClientMode() == false ))
 			{
 				player->hazardcount += 4;
 
@@ -891,7 +890,7 @@ void P_UpdateSpecials ()
 			ANNOUNCER_PlayEntry( cl_announcer, "OneMinuteWarning" );
 		}
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
@@ -1406,8 +1405,7 @@ void P_SpawnSpecials (void)
 			// FLICKERING LIGHTS
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DLightFlash (sector);
 			}
@@ -1418,8 +1416,7 @@ void P_SpawnSpecials (void)
 			// STROBE FAST
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DStrobe (sector, STROBEBRIGHT, FASTDARK, false);
 			}
@@ -1430,8 +1427,7 @@ void P_SpawnSpecials (void)
 			// STROBE SLOW
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DStrobe (sector, STROBEBRIGHT, SLOWDARK, false);
 			}
@@ -1443,8 +1439,7 @@ void P_SpawnSpecials (void)
 			// STROBE FAST/DEATH SLIME
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DStrobe (sector, STROBEBRIGHT, FASTDARK, false);
 			}
@@ -1454,8 +1449,7 @@ void P_SpawnSpecials (void)
 			// GLOWING LIGHT
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DGlow (sector);
 			}
@@ -1471,8 +1465,7 @@ void P_SpawnSpecials (void)
 			// SYNC STROBE SLOW
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DStrobe (sector, STROBEBRIGHT, SLOWDARK, true);
 			}
@@ -1497,8 +1490,7 @@ void P_SpawnSpecials (void)
 			// fire flickering
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DFireFlicker (sector);
 			}
@@ -1507,16 +1499,14 @@ void P_SpawnSpecials (void)
 
 		case dFriction_Low:
 			// [BC] In client mode, let the server tell us about sectors' friction level.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				sector->friction = FRICTION_LOW;
 				sector->movefactor = 0x269;
 			}
 			sector->special &= 0xff00;
 			// [BC] In client mode, let the server tell us about sectors' friction level.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				sector->special |= FRICTION_MASK;
 			}
@@ -1527,8 +1517,7 @@ void P_SpawnSpecials (void)
 
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DPhased (sector);
 			}
@@ -1538,8 +1527,7 @@ void P_SpawnSpecials (void)
 
 			// [BC] In client mode, light specials may have been shut off by the server.
 			// Therefore, we can't spawn them on our end.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if ( NETWORK_InClientMode() == false )
 			{
 				new DPhased (sector, 48, 63 - (sector->lightlevel & 63));
 			}
@@ -1552,8 +1540,7 @@ void P_SpawnSpecials (void)
 		case dScroll_EastLavaDamage:
 
 			// [BC] Damage is server-side.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				break;
 			}
@@ -1571,8 +1558,7 @@ void P_SpawnSpecials (void)
 		default:
 
 			// [BC] Don't run any other specials in client mode.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
+			if ( NETWORK_InClientMode() )
 			{
 				break;
 			}
@@ -1710,8 +1696,7 @@ void P_SpawnSpecials (void)
 			case Init_Gravity:
 
 				// [BC] The server will give us gravity updates.
-				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-					( CLIENTDEMO_IsPlaying( )))
+				if ( NETWORK_InClientMode() )
 				{
 					break;
 				}
@@ -1729,8 +1714,7 @@ void P_SpawnSpecials (void)
 			case Init_Damage:
 
 				// [BC] Damage is server-side.
-				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-					( CLIENTDEMO_IsPlaying( )))
+				if ( NETWORK_InClientMode() )
 				{
 					break;
 				}
@@ -1806,8 +1790,7 @@ void P_SpawnSpecials (void)
 	// [RH] Start running any open scripts on this map
 	// [BC] Clients don't run scripts.
 	// [BB] Clients only run the client side open scripts.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false);
 	}
@@ -2164,7 +2147,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Ceiling:
 
 			// [BC] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			for (s=-1; (s = P_FindSectorFromTag (l->args[0],s)) >= 0;)
@@ -2185,7 +2168,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Floor:
 
 			// [BC] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			if (l->args[2] != 1)
@@ -2228,7 +2211,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Model:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			for (s=-1; (s = P_FindLineFromID (l->args[0],s)) >= 0;)
@@ -2239,7 +2222,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Offsets:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			// killough 3/2/98: scroll according to sidedef offsets
@@ -2251,7 +2234,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Left:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			l->special = special;	// Restore the special, for compat_useblocking's benefit.
@@ -2263,7 +2246,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Right:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			l->special = special;
@@ -2275,7 +2258,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Up:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			l->special = special;
@@ -2287,7 +2270,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Down:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			l->special = special;
@@ -2299,7 +2282,7 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Both:
 
 			// [WS] The server will update these for us.
-			if ( NETWORK_InClientMode( ) )
+			if ( NETWORK_InClientMode() )
 				break;
 
 			s = int(lines[i].sidedef[0] - sides);
@@ -2380,8 +2363,7 @@ static void P_SpawnFriction(void)
 
 	// [BC] Don't do this in client mode, because the friction for the sector could
 	// have changed at some point on the server end.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
