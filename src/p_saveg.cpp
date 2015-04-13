@@ -313,8 +313,7 @@ void P_SerializeWorld (FArchive &arc)
 	zone_t *zn;
 
 	// [BC] In client mode, just archive whether or not the line's been seen.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// do lines
 		for (i = 0, li = lines; i < numlines; i++, li++)

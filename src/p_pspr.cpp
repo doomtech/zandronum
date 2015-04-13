@@ -271,7 +271,7 @@ void P_FireWeapon (player_t *player, FState *state)
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	// [BB] Except for the consoleplayer, the server handles this.
-	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+	if (( NETWORK_InClientMode() == false ) ||
 		(( player - players ) == consoleplayer ))
 	{
 		player->mo->PlayAttacking ();
@@ -319,7 +319,7 @@ void P_FireWeaponAlt (player_t *player, FState *state)
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK_ALTFIRE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	// [BB] Except for the consoleplayer, the server handles this.
-	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
+	if (( NETWORK_InClientMode() == false ) ||
 		(( player - players ) == consoleplayer ))
 	{
 		player->mo->PlayAttacking ();
@@ -963,8 +963,7 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 	// [BC] If this player has respawn invulnerability, disable it if they're done raising
 	// a weapon that isn't the pistol or their fist.
 	if (( player->mo ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		APowerInvulnerable	*pInvulnerability;
 

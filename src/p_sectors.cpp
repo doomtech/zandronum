@@ -698,7 +698,7 @@ void sector_t::SetColor(int r, int g, int b, int desat, bool bInformClients, boo
 {
 	// [CW] Clients should not do this.
 	// [BB] Except if explicitly instructed to do so.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !bExecuteOnClient)
+	if ( NETWORK_InClientMode() && !bExecuteOnClient)
 		return;
 
 	PalEntry color = PalEntry (r,g,b);
@@ -716,7 +716,7 @@ void sector_t::SetFade(int r, int g, int b, bool bInformClients, bool bExecuteOn
 {
 	// [CW] Clients should not do this.
 	// [BB] Except if explicitly instructed to do so.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !bExecuteOnClient)
+	if ( NETWORK_InClientMode() && !bExecuteOnClient)
 		return;
 
 	PalEntry fade = PalEntry (r,g,b);

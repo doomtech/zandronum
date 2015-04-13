@@ -2069,7 +2069,7 @@ FUNC( LS_Player_SetTeam )
 // Player_SetTeam( team id )
 {
 	// Don't set teams on the client end.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return ( false );
 
 	// Break if we don't have a player.
@@ -2091,7 +2091,7 @@ FUNC( LS_Team_Score )
 // Team_Score (int howmuch, bool nogrin)
 {
 	// Scoring is not client side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return ( false );
 
 	// Nothing to do if we're not in teamgame mode.
@@ -2112,7 +2112,7 @@ FUNC( LS_Team_GivePoints )
 // Team_GivePoints( int iTeam, int iHowMuch, bool bAnnounce )
 {
 	// Scoring is not client side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return ( false );
 
 	// Nothing to do if we're not in teamgame mode.

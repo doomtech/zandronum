@@ -3139,8 +3139,7 @@ void P_LoadBlockMap (MapData * map)
 	blockmap = blockmaplump+4;
 
 	// [BC] Also, build the node list for the bot pathing module.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
+	if (( NETWORK_InClientMode() == false ) &&
 		(( level.flagsZA & LEVEL_ZA_NOBOTNODES ) == false ) &&
 		(( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( sv_disallowbots == false )))
 	{
@@ -4462,7 +4461,7 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 
 		// Clients don't do anything else.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 			continue;
 
 		// If the player should spawn as a spectator, set that flag now.
@@ -4633,8 +4632,7 @@ void P_SetupLevel (char *lumpname, int position)
 			SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 	}
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		if ( duel && ( DUEL_GetStartNextDuelOnLevelLoad( ) == true ) && ( CAMPAIGN_InCampaign( ) == false ))
 		{
@@ -4652,8 +4650,7 @@ void P_SetupLevel (char *lumpname, int position)
 	if ( lastmanstanding || teamlms )
 	{
 		// Reset the flag.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			LASTMANSTANDING_SetStartNextMatchOnLevelLoad( false );
 		}
