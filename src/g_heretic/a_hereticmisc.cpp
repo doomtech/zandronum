@@ -79,8 +79,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_RemovePod)
 	AActor *mo;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -113,8 +112,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MakePod)
 	fixed_t z;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

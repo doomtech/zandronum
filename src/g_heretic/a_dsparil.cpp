@@ -63,8 +63,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Srcr1Attack)
 	angle_t angle;
 
 	// [BC] In client mode, just play the attack sound and get out.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NORM);
 		return;
@@ -149,8 +148,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcererRise)
 	self->flags &= ~MF_SOLID;
 
 	// [BC] Let the server spawn this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -184,8 +182,7 @@ void P_DSparilTeleport (AActor *actor)
 	AActor *spot;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -243,8 +240,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Srcr2Decide)
 	};
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -274,8 +270,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Srcr2Attack)
 	int chance;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		S_Sound (self, CHAN_BODY, self->AttackSound, 1, ATTN_NONE);
 		return;
@@ -336,8 +331,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BlueSpark)
 	AActor *mo;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -366,8 +360,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_GenWizard)
 	AActor *mo;
 
 	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

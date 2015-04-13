@@ -70,8 +70,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichAttack)
 	int dist;
 
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -236,8 +235,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichIceImpact)
 DEFINE_ACTION_FUNCTION(AActor, A_LichFireGrow)
 {
 	// [BB] This is server-side. The client can't do it, cause it doesn't know the health of the fire.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

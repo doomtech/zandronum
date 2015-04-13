@@ -41,8 +41,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_DripBlood)
 DEFINE_ACTION_FUNCTION(AActor, A_KnightAttack)
 {
 	// [BB] This is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

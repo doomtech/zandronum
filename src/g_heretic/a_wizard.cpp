@@ -63,8 +63,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_WizAtk3)
 	CALL_ACTION(A_GhostOff, self);
 
 	// [BB] This is server-side, the client only needs to run A_GhostOff.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
