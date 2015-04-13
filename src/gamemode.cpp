@@ -539,8 +539,7 @@ void GAMEMODE_GetTimeLeftString( FString &TimeLeftString )
 void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -609,8 +608,7 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate )
 void GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent, playerstate_t PlayerState )
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		// Respawn the players.
 		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -782,7 +780,7 @@ void GAMEMODE_AdjustActorSpawnFlags ( AActor *pActor )
 void GAMEMODE_SpawnSpecialGamemodeThings ( void )
 {
 	// [BB] The server will let the clients know of any necessary spawns.
-	if ( NETWORK_InClientMode( ) == false )
+	if ( NETWORK_InClientMode() == false )
 	{
 		// Spawn the terminator artifact in terminator mode.
 		if ( terminator )

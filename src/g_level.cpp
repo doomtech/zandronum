@@ -381,8 +381,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	// [BC] Clients need to keep their snapshots around for hub purposes, and since
 	// they always use G_InitNew (which they probably shouldn't).
 	if ((!savegamerestore) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		G_ClearSnapshots ();
 		P_RemoveDefereds ();
@@ -392,15 +391,13 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			wadlevelinfos[i].flags = wadlevelinfos[i].flags & ~LEVEL_VISITED;
 	}
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		UnlatchCVars ();
 	}
 	
 	G_VerifySkill();
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		UnlatchCVars ();
 	}
@@ -1061,7 +1058,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		players[i].bUnarmed = false;
 
 	// [BB] Clients shouldn't mess with the team settings on their own.
-	if ( NETWORK_InClientMode ( ) == false )
+	if ( NETWORK_InClientMode() == false )
 	{
 		// [BB] We clear the teams if either ZADF_YES_KEEP_TEAMS is not on or if the new level is a lobby.
 		const bool bClearTeams = ( !(zadmflags & ZADF_YES_KEEP_TEAMS) || GAMEMODE_IsLobbyMap( level.mapname ) );
@@ -1600,8 +1597,7 @@ void G_WorldDone (void)
 	cluster_info_t *thiscluster;
 
 	// [BC] Clients don't need to do this, otherwise they'll try to load the map on their end.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		gameaction = ga_worlddone; 
 	}
@@ -1888,7 +1884,7 @@ void G_FinishTravel ()
 
 bool G_AllowTravel( void )
 {
-	if ( deathmatch || teamgame || invasion || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( deathmatch || teamgame || invasion || NETWORK_InClientMode() )
 		return ( false );
 
 	return ( true );
@@ -2088,8 +2084,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	int i = level.totaltime;
 	
 	// [BC] In client mode, we just want to save the lines we've seen.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		P_SerializeWorld( arc );
 		return;

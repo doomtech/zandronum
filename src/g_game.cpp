@@ -1317,8 +1317,7 @@ void G_Ticker ()
 	LONG		lSize;
 
 	// Client's don't spawn players until instructed by the server.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		// do player reborns if needed
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -1489,9 +1488,8 @@ void G_Ticker ()
 			CLIENTDEMO_WriteTiccmd( &players[consoleplayer].cmd );
 	}
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_InClientMode() == false ) &&
+		( NETWORK_GetState( ) != NETSTATE_SERVER ))
 	{
 		// [RH] Include some random seeds and player stuff in the consistancy
 		// check, not just the player's x position like BOOM.
@@ -1670,8 +1668,7 @@ void G_Ticker ()
 
 		// Apply end level delay.
 		if (( g_ulEndLevelDelay ) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+			( NETWORK_InClientMode() == false ))
 		{
 			if ( --g_ulEndLevelDelay == 0 )
 			{
@@ -2639,8 +2636,7 @@ FPlayerStart *G_PickPlayerStart(int playernum, int flags)
 void G_DoReborn (int playernum, bool freshbot)
 {
 	// All of this is done remotely.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -2779,8 +2775,7 @@ void GAME_CheckMode( void )
 	TThinkerIterator<AActor>	iterator;
 
 	// Clients can't change flags/modes!
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
@@ -3193,7 +3188,7 @@ void GAME_ResetScripts ( )
 
 	// Restart running any open scripts on this map, since we just destroyed them all!
 	// [BB] The server instructs the clients to start the CLIENTSIDE open scripts.
-	if ( NETWORK_InClientMode( ) == false )
+	if ( NETWORK_InClientMode() == false )
 		FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
 
 	delete ( pMap );
@@ -3265,8 +3260,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	}
 
 	// This is all we do in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		// [BB] Clients still need to reset the automap.
 		for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
