@@ -2479,8 +2479,7 @@ void WI_checkForAccelerate(void)
 	player_t *player;
 
 	// [BC] Clients can't check for accelerate.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}

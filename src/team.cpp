@@ -280,7 +280,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 		return;
 
 	// Execute the return scripts.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		if ( ulTeamIdx == teams.Size( ) )
 			FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, NULL, true );
@@ -305,7 +305,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	// In non-simple CTF mode, scripts take care of the returning and displaying messages.
 	if ( TEAM_GetSimpleCTFSTMode( ))
 	{
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			static_cast<ATeamItem *>( pTeamItem )->ReturnFlag( pReturner );
 		static_cast<ATeamItem *>( pTeamItem )->DisplayFlagReturn( );
 	}
@@ -319,7 +319,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 
 	// Destroy any sitting flags that being returned from the return ticks running out,
 	// or whatever reason.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		while (( pTeamItem = Iterator.Next( )))
 		{
@@ -1050,7 +1050,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	}
 
 	// Implement the pointlimit.
-	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( pointlimit <= 0 || NETWORK_InClientMode() )
 		return;
 
 	if ( TEAM_GetScore( ulTeamIdx ) >= (LONG)pointlimit )
@@ -1832,8 +1832,7 @@ ULONG TEAM_FindValidClassForPlayer( player_t *pPlayer )
 void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 {
 	// [BB] This is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return;
 	}
