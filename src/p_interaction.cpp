@@ -445,8 +445,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 
 	// [BC] Check to see if any medals need to be awarded.
 	if (( player ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		if (( source ) &&
 			( source->player ))
@@ -534,8 +533,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	{
 		// [BC] Don't do this in client mode.
 		if ((CountsAsKill()) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+			( NETWORK_InClientMode() == false ))
 		{ // count for intermission
 			source->player->killcount++;
 			
@@ -565,7 +563,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 			if (player == source->player)	// [RH] Cumulative frag count
 			{
 				// [BC] Frags are server side.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 					PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
 			}
 			else
@@ -575,7 +573,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 
 				// [BC] Frags are server side.
 				// [BC] Player receives 10 frags for killing the terminator!
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 				{
 					if ((dmflags2 & DF2_YES_LOSEFRAG) && deathmatch)
 						PLAYER_SetFragcount( player, player->fragcount - 1, true, true );
@@ -603,7 +601,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 				// [BC] Betterized!
 				// [BB] Clients may not do this.
 				if ( fraglimit <= D_GetFragCount( source->player )
-					 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
+					 && ( NETWORK_InClientMode() == false ) )
 				{
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
@@ -707,7 +705,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		if (( player ) && ( GAMEMODE_AreLivesLimited ( ) ) && ( MeansOfDeath == NAME_SpawnTelefrag ))
 			player->bSpawnTelefragged = true;
 	}
-	else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && (CountsAsKill()))
+	else if (( NETWORK_InClientMode() == false ) && (CountsAsKill()))
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
@@ -728,8 +726,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	
 	// [BC] Don't do this block in client mode.
 	if (player &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		// [BC] If this is a bot, tell it it died.
 		if ( player->pSkullBot )
@@ -895,8 +892,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 
 	if (( (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE) == false ) &&
 		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
+		( NETWORK_InClientMode() == false ) &&
 		( GAMEMODE_IsGameInProgress() ))
 	{
 		if (( player ) && ( source ) && ( source->player ) && ( player != source->player ) && ( MeansOfDeath != NAME_SpawnTelefrag ))
@@ -929,7 +925,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	}
 
 	// [RH] Death messages
-	if (( player ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( player ) && ( NETWORK_InClientMode() == false )) 
 		ClientObituary (this, inflictor, source, dmgflags, MeansOfDeath);
 
 }
@@ -1232,7 +1228,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 	}
 	// [BB] The clients may not do this.
 	if ( (target->flags & MF_SKULLFLY)
-	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
+	     && ( NETWORK_InClientMode() == false ) )
 	{
 		target->velx = target->vely = target->velz = 0;
 
@@ -1348,8 +1344,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 		( target->player->cheats & CF_REFLECTION ) &&
 		( source ) &&
 		( mod != NAME_Reflection ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		if ( target != source )
 		{
@@ -1368,8 +1363,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 		&& !(inflictor->flags2 & MF2_NODMGTHRUST)
 		&& !(flags & DMG_THRUSTLESS)
 		&& (source == NULL || source->player == NULL || !(source->flags2 & MF2_NODMGTHRUST))
-		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		&& ( CLIENTDEMO_IsPlaying( ) == false ) )
+		&& ( NETWORK_InClientMode() == false ) )
 	{
 		int kickback;
 
@@ -1619,8 +1613,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 	// If the damaging player has the power of drain, give the player 50% of the damage
 	// done in health.
 	if ( source && source->player && source->player->cheats & CF_DRAIN &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		if (( target->player == false ) || ( target->player != source->player ))
 		{
@@ -1697,8 +1690,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 		// kgKILL end
 
 		// Deaths are server side.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			target->Die (source, inflictor, flags);
 		}
@@ -1707,7 +1699,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 
 	woundstate = target->FindState(NAME_Wound, mod);
 	// [BB] The server takes care of this.
-	if ( (woundstate != NULL) && ( NETWORK_InClientMode( ) == false ) )
+	if ( (woundstate != NULL) && ( NETWORK_InClientMode() == false ) )
 	{
 		int woundhealth = RUNTIME_TYPE(target)->Meta.GetMetaInt (AMETA_WoundHealth, 6);
 
@@ -1739,7 +1731,7 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 
 		if (((damage >= target->PainThreshold && pr_damagemobj() < painchance) ||
 			(inflictor != NULL && (inflictor->flags6 & MF6_FORCEPAIN))) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			( NETWORK_InClientMode() == false ))
 		{
 dopain:	
 			if (mod == NAME_Electric)
@@ -1790,7 +1782,7 @@ dopain:
 	}
 
 	// Nothing more to do!
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return -1;
 
 	target->reactiontime = 0;			// we're awake now...	
@@ -1956,7 +1948,7 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 bool P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison)
 {
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return false;
 
 	if((player->cheats&CF_GODMODE) || (player->mo->flags2 & MF2_INVULNERABLE))
@@ -2002,7 +1994,7 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	bool playPainSound)
 {
 	// [Dusk] clients shouldn't execute any of this
-	if (NETWORK_InClientMode())
+	if ( NETWORK_InClientMode() )
 		return;
 
 	AActor *target;
@@ -2490,8 +2482,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				// Run the disconnect scripts now that the player is leaving.
 				PLAYER_LeavesGame ( pPlayer - players );
 
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-					( CLIENTDEMO_IsPlaying( ) == false ))
+				if ( NETWORK_InClientMode() == false )
 				{
 					// Tell the join queue module that a player is leaving the game.
 					JOINQUEUE_PlayerLeftGame( true );
@@ -2516,7 +2507,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		}
 
 		// [BB] Make sure the player loses his frags, wins and points.
-		if ( NETWORK_InClientMode( ) == false )
+		if ( NETWORK_InClientMode() == false )
 			PLAYER_ResetAllScoreCounters ( pPlayer );
 
 		return;
@@ -2525,8 +2516,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// [BB] Morphed players need to be unmorphed before being changed to spectators.
 	// [WS] This needs to be done before we turn our player into a spectator.
 	if (( pPlayer->morphTics ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		P_UndoPlayerMorph ( pPlayer, pPlayer );
 	}
@@ -2544,7 +2534,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	}
 
 	// If this player was eligible to get an assist, cancel that.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 		TEAM_CancelAssistsOfPlayer ( static_cast<unsigned>( pPlayer - players ) );
 
 	if ( pPlayer->mo )
@@ -2554,7 +2544,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			FBehavior::StaticStopMyScripts ( pPlayer->mo );
 		// Before we start fucking with the player's body, drop important items
 		// like flags, etc.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 			pPlayer->mo->DropImportantItems( false );
 
 		// Take away all of the player's inventory.
@@ -2631,11 +2621,11 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	if ( bDeadSpectator == false )
 	{
 		// [BB] Make sure the player loses his frags, wins and points.
-		if ( NETWORK_InClientMode( ) == false )
+		if ( NETWORK_InClientMode() == false )
 			PLAYER_ResetAllScoreCounters ( pPlayer );
 
 		// Also, tell the joinqueue module that a player has left the game.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ( NETWORK_InClientMode() == false )
 		{
 			// Tell the join queue module that a player is leaving the game.
 			JOINQUEUE_PlayerLeftGame( true );
@@ -2907,7 +2897,7 @@ void PLAYER_CheckStruckPlayer( AActor *pActor )
 //
 void PLAYER_StruckPlayer( player_t *pPlayer )
 {
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 		return;
 
 	pPlayer->ulConsecutiveHits++;
@@ -3208,8 +3198,7 @@ void PLAYER_LeavesGame( const ULONG ulPlayer )
 		P_DisconnectEffect( players[ulPlayer].mo );
 
 	// Run the disconnect scripts now that the player is leaving.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulPlayer );
 		PLAYER_RemoveFriends ( ulPlayer );
