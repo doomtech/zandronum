@@ -1176,7 +1176,7 @@ bool NETWORK_IsActorClientHandled( const AActor *pActor )
 //
 bool NETWORK_InClientModeAndActorNotClientHandled( const AActor *pActor )
 {
-	return ( NETWORK_InClientMode( ) && ( NETWORK_IsActorClientHandled ( pActor ) == false ) );
+	return ( NETWORK_InClientMode() && ( NETWORK_IsActorClientHandled ( pActor ) == false ) );
 }
 
 //*****************************************************************************

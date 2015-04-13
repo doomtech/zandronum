@@ -105,8 +105,7 @@ void LASTMANSTANDING_Tick( void )
 	{
 	case LMSS_WAITINGFORPLAYERS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -142,8 +141,7 @@ void LASTMANSTANDING_Tick( void )
 
 			// FIGHT!
 			if (( g_ulLMSCountdownTicks == 0 ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+				( NETWORK_InClientMode() == false ))
 			{
 				LASTMANSTANDING_DoFight( );
 			}
@@ -158,8 +156,7 @@ void LASTMANSTANDING_Tick( void )
 		break;
 	case LMSS_INPROGRESS:
 
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-			( CLIENTDEMO_IsPlaying( )))
+		if ( NETWORK_InClientMode() )
 		{
 			break;
 		}
@@ -387,8 +384,7 @@ void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 		TEAM_SetFragCount( i, 0, false );
 */
 	// Put the game in a countdown state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		LASTMANSTANDING_SetState( LMSS_COUNTDOWN );
 	}
@@ -411,8 +407,7 @@ void LASTMANSTANDING_DoFight( void )
 	DHUDMessageFadeOut	*pMsg;
 
 	// The match is now in progress.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		LASTMANSTANDING_SetState( LMSS_INPROGRESS );
 	}
@@ -463,8 +458,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	ULONG	ulIdx;
 
 	// Put the game state in the win sequence state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( NETWORK_InClientMode() == false )
 	{
 		LASTMANSTANDING_SetState( LMSS_WINSEQUENCE );
 	}
@@ -529,8 +523,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 
 	// Award a victory or perfect medal to the winner.
 	if (( lastmanstanding ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+		( NETWORK_InClientMode() == false ))
 	{
 		LONG	lMedal;
 

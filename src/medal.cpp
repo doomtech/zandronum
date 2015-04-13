@@ -1207,8 +1207,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		// Lag icon. Delete it if the player is no longer lagging.
 		case S_LAG:
 
-			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false )) ||
+			if (( NETWORK_InClientMode() == false ) ||
 				( pPlayer->bLagging == false ))
 			{
 				pPlayer->pIcon->Destroy( );

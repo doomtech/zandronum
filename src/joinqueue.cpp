@@ -371,8 +371,7 @@ LONG JOINQUEUE_GetPositionInLine( ULONG ulPlayer )
 {
 	ULONG	ulIdx;
 
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( NETWORK_InClientMode() )
 	{
 		return ( g_lClientQueuePosition );
 	}
