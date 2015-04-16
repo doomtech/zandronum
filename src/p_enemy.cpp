@@ -2042,6 +2042,18 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
 	fixed_t dist;
 	FLookExParams params = {fov, minseedist, maxseedist, maxheardist, flags, seestate };
 
+	// [TP] The client does not execute this
+	if ( NETWORK_InClientMode() )
+	{
+		// [RH] Andy Baker's stealth monsters
+		if (self->flags & MF_STEALTH)
+		{
+			self->visdir = -1;
+		}
+
+		return;
+	}
+
 	if (self->flags5 & MF5_INCONVERSATION)
 		return;
 
@@ -2120,12 +2132,20 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
                 {
                     if (seestate)
                     {
+						// [TP] Tell clients to set the thing's state.
+						if ( NETWORK_GetState() == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetThingFrame( self, seestate );
+
                         self->SetState (seestate);
                     }
                     else
                     {
                         if (self->SeeState != NULL)
                         {
+							// [TP] Tell clients to set the thing's state.
+							if ( NETWORK_GetState() == NETSTATE_SERVER )
+								SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
                             self->SetState (self->SeeState);
                         }
                         else
@@ -2191,16 +2211,31 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
 		{
 			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NORM);
 		}
+
+		// [TP] If we're the server, play the sound
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, self->SeeSound, 1,
+				(flags & LOF_FULLVOLSEESOUND) ? ATTN_NONE : ATTN_NORM );
+		}
 	}
 
 	if (self->target && !(self->flags & MF_INCHASE))
 	{
 		if (seestate)
 		{
+			// [TP] Tell clients to set the thing's state.
+			if ( NETWORK_GetState() == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( self, seestate );
+
 			self->SetState (seestate);
 		}
 		else
 		{
+			// [TP] Tell clients to set the thing's state.
+			if ( NETWORK_GetState() == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 			self->SetState (self->SeeState);
 		}
 	}
