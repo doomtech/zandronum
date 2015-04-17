@@ -6662,8 +6662,8 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 	{
 	case FLAGSET_FLAGS:
 		{
-			// [BB] Before adding MF_NOBLOCKMAP, we have to unlink the actor from all blocks.
-			const bool relinkActor = ( ( ulFlags & MF_NOBLOCKMAP ) && ( ( pActor->flags & MF_NOBLOCKMAP ) == false ) );
+			// [BB/EP] Before changing MF_NOBLOCKMAP and MF_NOSECTOR, we have to unlink the actor from all blocks.
+			const bool relinkActor = ( ( ulFlags & ( MF_NOBLOCKMAP | MF_NOSECTOR ) ) ^ ( pActor->flags & ( MF_NOBLOCKMAP | MF_NOSECTOR ) ) ) != 0;
 			// [BB] Unlink based on the old flags.
 			if ( relinkActor )
 				pActor->UnlinkFromWorld ();
