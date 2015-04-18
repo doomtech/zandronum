@@ -24,6 +24,7 @@
 -	- Fixed: the 'light fast strobe in sync' sector special would visually desync while playing a demo. [Edward-san]
 -	- Fixed: A_LookEx desynced completely online. [Dusk, Edward-san]
 -	- Fixed possible health desync issues in some situations. [Edward-san]
+-	- Fixed: Trying to open a corrupt zip archive crashed the game (backported from ZDoom). [Torr Samaho]
 
 
 2.0
