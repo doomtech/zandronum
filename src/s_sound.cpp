@@ -484,22 +484,20 @@ void S_Start ()
 	MusicPaused = false;
 
 	// [BC] In client mode, let the server tell us what music to play.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || 
-		( CLIENTDEMO_IsPlaying( )) ||
-		( level.Music.IsEmpty() ))
-	{
-		// [RH] This is a lot simpler now.
-		if (!savegamerestore)
-		{
-			if (level.cdtrack == 0 || !S_ChangeCDMusic (level.cdtrack, level.cdid))
-			{
-				S_ChangeMusic (level.Music, level.musicorder);
+	if ( NETWORK_InClientMode() && level.Music.IsNotEmpty() )
+		return;
 
-				// [BC] If we're the server, save this music selection so we can tell clients
-				// what music to play when they connect.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_SetMapMusic( level.Music.GetChars() );
-			}
+	// [RH] This is a lot simpler now.
+	if (!savegamerestore)
+	{
+		if (level.cdtrack == 0 || !S_ChangeCDMusic (level.cdtrack, level.cdid))
+		{
+			S_ChangeMusic (level.Music, level.musicorder);
+
+			// [BC] If we're the server, save this music selection so we can tell clients
+			// what music to play when they connect.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVER_SetMapMusic( level.Music );
 		}
 	}
 }
