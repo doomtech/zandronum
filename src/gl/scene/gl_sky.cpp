@@ -43,6 +43,7 @@
 #include "g_level.h"
 #include "r_sky.h"
 #include "r_main.h"
+#include "doomdata.h"
 #include "gl/gl_functions.h"
 
 #include "gl/data/gl_data.h"
@@ -224,18 +225,34 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 					return;
 
 			// one more check for some ugly transparent door hacks
-			if (bs->floorplane.a==0 && bs->floorplane.b==0 && fs->floorplane.a==0 && fs->floorplane.b==0 &&
-				bs->GetPlaneTexZ(sector_t::floor)==fs->GetPlaneTexZ(sector_t::floor)+FRACUNIT)
+			if (bs->floorplane.a==0 && bs->floorplane.b==0 && fs->floorplane.a==0 && fs->floorplane.b==0)
 			{
-				FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
-				if (!tex || tex->UseType==FTexture::TEX_Null) return;
+				if (bs->GetPlaneTexZ(sector_t::floor)==fs->GetPlaneTexZ(sector_t::floor)+FRACUNIT)
+				{
+					FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
+					if (!tex || tex->UseType==FTexture::TEX_Null) return;
+
+					// very, very, very ugly special case (See Icarus MAP14)
+					// It is VERY important that this is only done for a floor height difference of 1
+					// or it will cause glitches elsewhere.
+					tex = TexMan(seg->sidedef->GetTexture(side_t::mid));
+					if (tex != NULL && !(seg->linedef->flags & ML_DONTPEGTOP) &&
+						seg->sidedef->GetTextureYOffset(side_t::mid) > 0)
+					{
+						ztop[0]=ztop[1]=32768.0f;
+						zbottom[0]=zbottom[1]= 
+							FIXED2FLOAT(bs->ceilingplane.ZatPoint(v2) + seg->sidedef->GetTextureYOffset(side_t::mid));
+						SkyTexture(fs->sky,fs->CeilingSkyBox, true);
+						return;
+					}
+				}
 			}
 		}
 
 		ztop[0]=ztop[1]=32768.0f;
 
 		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
-		if (/*tex && tex->UseType!=FTexture::TEX_Null &&*/ bs->GetTexture(sector_t::ceiling) != skyflatnum)
+		if (bs->GetTexture(sector_t::ceiling) != skyflatnum)
 
 		{
 			zbottom[0]=zceil[0];

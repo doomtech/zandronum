@@ -1670,52 +1670,46 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 			DoFFloorBlocks(seg,frontsector,backsector, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}
 		
-		if (1)//!((frontsector->GetTexture(sector_t::floor)==skyflatnum) && (backsector->GetTexture(sector_t::floor)==skyflatnum)))
+		/* bottom texture */
+		// the back sector's ceiling obstructs part of this wall (specially important for sky sectors)
+		if (fch1<bfh1 && fch2<bfh2)
 		{
-			/* bottom texture */
-			if (frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || backsector->GetTexture(sector_t::ceiling)!=skyflatnum)
-			{
-				// the back sector's ceiling obstructs part of this wall				
-				if (fch1<bfh1 && fch2<bfh2)
-				{
-					bfh1=fch1;
-					bfh2=fch2;
-				}
-			}
+			bfh1=fch1;
+			bfh2=fch2;
+		}
 
-			if (bfh1>ffh1 || bfh2>ffh2)
+		if (bfh1>ffh1 || bfh2>ffh2)
+		{
+			gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
+			if (gltexture) 
 			{
-				gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
-				if (gltexture) 
+				DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
+					realback->GetPlaneTexZ(sector_t::floor),realfront->GetPlaneTexZ(sector_t::floor),
+					bfh1,bfh2,ffh1,ffh2,
+					frontsector->GetTexture(sector_t::ceiling)==skyflatnum && backsector->GetTexture(sector_t::ceiling)==skyflatnum ?
+						realfront->GetPlaneTexZ(sector_t::floor)-realback->GetPlaneTexZ(sector_t::ceiling) : 
+						realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
+			}
+			else if ((frontsector->floorplane.a | frontsector->floorplane.b | 
+					backsector->floorplane.a | backsector->floorplane.b) && 
+					frontsector->GetTexture(sector_t::floor)!=skyflatnum &&
+					backsector->GetTexture(sector_t::floor)!=skyflatnum)
+			{
+				// render it anyway with the sector's floor texture. With a background sky
+				// there are ugly holes otherwise and slopes are simply not precise enough
+				// to mach in any case.
+				gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
+				if (gltexture)
 				{
 					DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
 						realback->GetPlaneTexZ(sector_t::floor),realfront->GetPlaneTexZ(sector_t::floor),
-						bfh1,bfh2,ffh1,ffh2,
-						frontsector->GetTexture(sector_t::ceiling)==skyflatnum && backsector->GetTexture(sector_t::ceiling)==skyflatnum ?
-							realfront->GetPlaneTexZ(sector_t::floor)-realback->GetPlaneTexZ(sector_t::ceiling) : 
-							realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
+						bfh1,bfh2,ffh1,ffh2, realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
 				}
-				else if ((frontsector->floorplane.a | frontsector->floorplane.b | 
-						backsector->floorplane.a | backsector->floorplane.b) && 
-						frontsector->GetTexture(sector_t::floor)!=skyflatnum &&
-						backsector->GetTexture(sector_t::floor)!=skyflatnum)
-				{
-					// render it anyway with the sector's floor texture. With a background sky
-					// there are ugly holes otherwise and slopes are simply not precise enough
-					// to mach in any case.
-					gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
-					if (gltexture)
-					{
-						DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
-							realback->GetPlaneTexZ(sector_t::floor),realfront->GetPlaneTexZ(sector_t::floor),
-							bfh1,bfh2,ffh1,ffh2, realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
-					}
-				}
-				else if (backsector->GetTexture(sector_t::floor)!=skyflatnum && 
-					!(seg->sidedef->Flags & WALLF_POLYOBJ))
-				{
-					gl_drawinfo->AddLowerMissingTexture(seg, bfh1);
-				}
+			}
+			else if (backsector->GetTexture(sector_t::floor)!=skyflatnum && 
+				!(seg->sidedef->Flags & WALLF_POLYOBJ))
+			{
+				gl_drawinfo->AddLowerMissingTexture(seg, bfh1);
 			}
 		}
 	}
