@@ -15,6 +15,7 @@
 2.1
 ---
 
++	- The Zandronum server is now compatible with the Raspberry Pi (based on selected ZDoom backports), so far only tested with a Raspberry Pi 2 Model B. [Torr Samaho]
 -	- Fixed: Too high volume parameters to A_PlaySound and friends caused the volume to overflow online. [Dusk]
 -	- Fixed: Friendly fire obituaries did not appear online in competitive gamemodes. [Dusk]
 -	- Hopefully fixed a potential weapon switch induced client-side crash. [Dusk]
