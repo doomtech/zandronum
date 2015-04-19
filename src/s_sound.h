@@ -388,6 +388,7 @@ enum EMidiDevice
 	MDEV_OPL = 1,
 	MDEV_FMOD = 2,
 	MDEV_TIMIDITY = 3,
+	MDEV_FLUIDSYNTH = 4,
 };
 
 typedef TMap<FName, int> MidiDeviceMap;
