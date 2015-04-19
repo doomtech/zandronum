@@ -207,7 +207,10 @@ void P_LoadStrifeConversations (MapData *map, const char *mapname)
 
 		if (!LoadScriptFile(scriptname_t, false, 2))
 		{
-			LoadScriptFile (scriptname_b, false, 1);
+			if (!LoadScriptFile (scriptname_b, false, 1))
+			{
+				LoadScriptFile ("SCRIPT00", false, 1);
+			}
 		}
 	}
 }
@@ -815,8 +818,20 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 			toSay = GStrings[dlgtext];
 			if (toSay == NULL)
 			{
-				toSay = "Go away!";	// Ok, it's lame - but it doesn't look like an error to the player. ;)
+				toSay = GStrings("TXT_GOAWAY");	// Ok, it's lame - but it doesn't look like an error to the player. ;)
 			}
+		}
+		else
+		{
+			// handle string table replacement
+			if (toSay[0] == '$')
+			{
+				toSay = GStrings(toSay + 1);
+			}
+		}
+		if (toSay == NULL)
+		{
+			toSay = ".";
 		}
 		DialogueLines = V_BreakLines (SmallFont, screen->GetWidth()/CleanXfac - 24*2, toSay);
 
@@ -835,6 +850,12 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 			for (j = 0; reply->ReplyLines[j].Width >= 0; ++j)
 			{
 				item.label = reply->ReplyLines[j].Text.LockBuffer();
+				// handle string table replacement
+				if (item.label[0] == '$')
+				{
+					item.label = GStrings(item.label + 1);
+				}
+
 				item.b.position = j == 0 ? i : 0;
 				item.c.extra = reply;
 				ConversationItems.Push (item);
@@ -1213,13 +1234,19 @@ static void HandleReply(player_t *player, bool isconsole, int nodenum, int reply
 	}
 	else
 	{
-		replyText = "You seem to have enough!";
+		replyText = "$txt_haveenough";
 	}
 
 	// Update the quest log, if needed.
 	if (reply->LogString != NULL)
 	{
-		player->SetLogText(reply->LogString);
+		const char *log = reply->LogString;
+		if (log[0] == '$')
+		{
+			log = GStrings(log + 1);
+		}
+
+		player->SetLogText(log);
 	}
 	else if (reply->LogNumber != 0) 
 	{
@@ -1372,6 +1399,12 @@ static void TerminalResponse (const char *str)
 {
 	if (str != NULL)
 	{
+		// handle string table replacement
+		if (str[0] == '$')
+		{
+			str = GStrings(str + 1);
+		}
+
 		if (StatusBar != NULL)
 		{
 			AddToConsole(-1, str);
