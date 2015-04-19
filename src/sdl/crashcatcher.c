@@ -145,6 +145,7 @@ static void gdb_info(pid_t pid)
 		           "shell echo \"\"\n"
 		           "shell echo \"* Backtrace\"\n"
 		           "thread apply all backtrace full\n"
+		           "gcore\n" // [EP] try to create a core dump ...
 		           "detach\n"
 		           "quit\n", pid);
 		fclose(f);
