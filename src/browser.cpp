@@ -859,6 +859,20 @@ static void browser_QueryServer( ULONG ulServer )
 
 //*****************************************************************************
 //
+
+CCMD( querymaster )
+{
+	// Don't do anything if we're still waiting for a response from the master server.
+	if ( BROWSER_WaitingForMasterResponse( ))
+		return;
+
+	// First, clear the existing server list.
+	BROWSER_ClearServerList( );
+
+	// Then, query the master server.
+	BROWSER_QueryMasterServer( );
+}
+
 CCMD( dumpserverlist )
 {
 	ULONG	ulIdx;
