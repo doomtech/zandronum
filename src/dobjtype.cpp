@@ -486,6 +486,11 @@ const PClass *PClass::NativeClass() const
 	return cls;
 }
 
+PClass *PClass::GetReplacement() const
+{
+	return ActorInfo->GetReplacement()->Class;
+}
+
 // [Dusk] Returns the actor's most human-readable name.
 FString PClass::GetPrettyName() const
 {

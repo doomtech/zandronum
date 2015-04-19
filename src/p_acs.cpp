@@ -3227,7 +3227,7 @@ do_count:
 	{
 		// Again, with decorate replacements
 		replacemented = true;
-		PClass *newkind = kind->ActorInfo->GetReplacement()->Class;
+		PClass *newkind = kind->GetReplacement();
 		if (newkind != kind)
 		{
 			kind = newkind;
