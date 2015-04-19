@@ -67,6 +67,10 @@ public:
 	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin=false);
 	void DrawRemainingPlayerSprites();
 
+	void FillSimplePoly(FTexture *tex, FVector2 *points, int npoints,
+		double originx, double originy, double scalex, double scaley,
+		angle_t rotation, FDynamicColormap *colormap, int lightlevel);
+
 	void PrecacheTexture(FTexture *tex, int cache);
 
 	void StateChanged(AActor *actor);

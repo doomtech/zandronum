@@ -37,6 +37,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#if 0
 
 #include "gl/system/gl_system.h"
 #include "i_system.h"
@@ -842,3 +843,5 @@ void gl_CreateSections()
 }
 
 
+
+#endif

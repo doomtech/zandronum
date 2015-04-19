@@ -1130,8 +1130,9 @@ struct seg_t
 
 	seg_t*			PartnerSeg;
 
-	subsector_t*	Subsector;
 	float			sidefrac;		// relative position of seg's ending vertex on owning sidedef
+
+	subsector_t *	Subsector() const;
 };
 
 struct glsegextra_t
@@ -1139,6 +1140,14 @@ struct glsegextra_t
 	DWORD		 PartnerSeg;
 	subsector_t *Subsector;
 };
+
+extern seg_t *segs;
+extern glsegextra_t *glsegextras;
+__forceinline subsector_t *	seg_t::Subsector() const
+{
+	return glsegextras[this-segs].Subsector;
+}
+
 
 //
 // A SubSector.

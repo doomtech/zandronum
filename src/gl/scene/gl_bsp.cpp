@@ -70,7 +70,11 @@ CVAR(Bool, gl_render_flats, true, 0)
 //
 //==========================================================================
 
-static void AddLine (seg_t *seg,sector_t * sector)
+// making these 2 variables global instead of passing them as function parameters is faster.
+static subsector_t *currentsubsector;
+static sector_t *currentsector;
+
+static void AddLine (seg_t *seg)
 {
 	angle_t startAngle, endAngle;
 	sector_t * backsector = NULL;
@@ -86,8 +90,20 @@ static void AddLine (seg_t *seg,sector_t * sector)
 	endAngle = seg->v1->GetClipAngle();
 
 	// Back side, i.e. backface culling	- read: endAngle >= startAngle!
-	if (startAngle-endAngle<ANGLE_180 || !seg->linedef)  
+	if (startAngle-endAngle<ANGLE_180)  
 	{
+		return;
+	}
+
+	if (seg->sidedef == NULL)
+	{
+		if (!(currentsubsector->flags & SSECF_DRAWN))
+		{
+			if (clipper.SafeCheckRange(startAngle, endAngle)) 
+			{
+				currentsubsector->flags |= SSECF_DRAWN;
+			}
+		}
 		return;
 	}
 
@@ -95,6 +111,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 	{
 		return;
 	}
+	currentsubsector->flags |= SSECF_DRAWN;
 
 	if (!seg->backsector)
 	{
@@ -102,7 +119,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 	}
 	else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))	// Two-sided polyobjects never obstruct the view
 	{
-		if (sector->sectornum == seg->backsector->sectornum)
+		if (currentsector->sectornum == seg->backsector->sectornum)
 		{
 			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::mid));
 			if (!tex || tex->UseType==FTexture::TEX_Null) 
@@ -111,7 +128,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 				seg->linedef->validcount=validcount;
 				return;
 			}
-			backsector=sector;
+			backsector=currentsector;
 		}
 		else
 		{
@@ -120,7 +137,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 
 			backsector = gl_FakeFlat(seg->backsector, &bs, true);
 
-			if (gl_CheckClip(seg->sidedef, sector, backsector))
+			if (gl_CheckClip(seg->sidedef, currentsector, backsector))
 			{
 				clipper.SafeAddClipRange(startAngle, endAngle);
 			}
@@ -129,7 +146,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 	else 
 	{
 		// Backsector for polyobj segs is always the containing sector itself
-		backsector = sector;
+		backsector = currentsector;
 	}
 
 	seg->linedef->flags |= ML_MAPPED;
@@ -143,7 +160,8 @@ static void AddLine (seg_t *seg,sector_t * sector)
 			SetupWall.Clock();
 
 			GLWall wall;
-			wall.Process(seg, sector, backsector);
+			wall.sub = currentsubsector;
+			wall.Process(seg, currentsector, backsector);
 			rendered_lines++;
 
 			SetupWall.Unclock();
@@ -160,9 +178,6 @@ static void AddLine (seg_t *seg,sector_t * sector)
 //
 //==========================================================================
 
-// Make this variable static for the polyobj stuff to avoid passing them through all recursions.
-static sector_t *fakesector;
-
 static void PolySubsector(subsector_t * sub)
 {
 	int count = sub->numlines;
@@ -172,7 +187,7 @@ static void PolySubsector(subsector_t * sub)
 	{
 		if (line->linedef)
 		{
-			AddLine (line, fakesector);
+			AddLine (line);
 		}
 		line++;
 	}
@@ -220,18 +235,12 @@ static void RenderPolyBSPNode (void *node)
 //
 //==========================================================================
 
-static void AddPolyobjs(subsector_t *sub, sector_t *sector)
+static void AddPolyobjs(subsector_t *sub)
 {
 	if (sub->BSP == NULL || sub->BSP->bDirty)
 	{
 		R_BuildPolyBSP(sub);
-		// We need to fill in the subsector here so that the renderer works properly.
-		for(unsigned i=0; i < sub->BSP->Segs.Size(); i++)
-		{
-			sub->BSP->Segs[i].Subsector = sub;
-		}
 	}
-	fakesector = sector;
 	if (sub->BSP->Nodes.Size() == 0)
 	{
 		PolySubsector(&sub->BSP->Subsectors[0]);
@@ -251,23 +260,30 @@ static void AddPolyobjs(subsector_t *sub, sector_t *sector)
 
 static inline void AddLines(subsector_t * sub, sector_t * sector)
 {
+	currentsector = sector;
+	currentsubsector = sub;
+
 	ClipWall.Clock();
 	if (sub->polys != NULL)
 	{
-		AddPolyobjs(sub, sector);
+		AddPolyobjs(sub);
 	}
 	else
 	{
 		int count = sub->numlines;
-		seg_t * line = sub->firstline;
+		seg_t * seg = sub->firstline;
 
 		while (count--)
 		{
-			if (line->linedef)
+			if (seg->linedef == NULL)
 			{
-				if (!(line->sidedef->Flags & WALLF_POLYOBJ)) AddLine (line, sector);
+				if (!(sub->flags & SSECF_DRAWN)) AddLine (seg);
 			}
-			line++;
+			else if (!(seg->sidedef->Flags & WALLF_POLYOBJ)) 
+			{
+				AddLine (seg);
+			}
+			seg++;
 		}
 	}
 	ClipWall.Unclock();
@@ -332,7 +348,6 @@ static void DoSubsector(subsector_t * sub)
 
 	sector->MoreFlags |= SECF_DRAWN;
 	fakesector=gl_FakeFlat(sector, &fake, false);
-
 
 	if (sector->validcount != validcount)
 	{

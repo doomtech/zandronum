@@ -491,7 +491,8 @@ void FGLRenderer::FlatFill (int left, int top, int right, int bottom, FTexture *
 		fV2=wti->GetV(bottom);
 	}
 	else
-	{		fU1=wti->GetU(0);
+	{		
+		fU1=wti->GetU(0);
 		fV1=wti->GetV(0);
 		fU2=wti->GetU(right-left);
 		fV2=wti->GetV(bottom-top);
@@ -541,3 +542,67 @@ void FGLRenderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 	
 	gl.Disable(GL_SCISSOR_TEST);
 }
+
+//==========================================================================
+//
+// D3DFB :: FillSimplePoly
+//
+// Here, "simple" means that a simple triangle fan can draw it.
+//
+//==========================================================================
+
+void FGLRenderer::FillSimplePoly(FTexture *texture, FVector2 *points, int npoints,
+	double originx, double originy, double scalex, double scaley,
+	angle_t rotation, FDynamicColormap *colormap, int lightlevel)
+{
+	if (npoints < 3)
+	{ // This is no polygon.
+		return;
+	}
+
+	FMaterial *gltexture = FMaterial::ValidateTexture(texture);
+
+	if (gltexture == NULL)
+	{
+		return;
+	}
+
+	FColormap cm;
+	cm = colormap;
+	gl_SetColor(lightlevel, 0, &cm,1.0f);
+	if (!gltexture->Bind(cm.colormap))
+	{
+		return;
+	}
+
+	int i;
+	float rot = float(rotation * M_PI / float(1u << 31));
+	bool dorotate = rot != 0;
+
+	float cosrot = cos(rot);
+	float sinrot = sin(rot);
+
+	//float yoffs = GatheringWipeScreen ? 0 : LBOffset;
+	float uscale = float(1.f / (texture->GetScaledWidth() * scalex));
+	float vscale = float(1.f / (texture->GetScaledHeight() * scaley));
+	float ox = float(originx);
+	float oy = float(originy);
+
+	gl_RenderState.Apply();
+	gl.Begin(GL_TRIANGLE_FAN);
+	for (i = 0; i < npoints; ++i)
+	{
+		float u = points[i].X - 0.5f - ox;
+		float v = points[i].Y - 0.5f - oy;
+		if (dorotate)
+		{
+			float t = u;
+			u = t * cosrot - v * sinrot;
+			v = v * cosrot + t * sinrot;
+		}
+		gl.TexCoord2f(u * uscale, v * vscale);
+		gl.Vertex3f(points[i].X, points[i].Y /* + yoffs */, 0);
+	}
+	gl.End();
+}
+

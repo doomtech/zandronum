@@ -76,10 +76,11 @@ void GLWall::SplitUpperEdge(texcoord * tcs, bool glow)
 	for (int i=0; i < sidedef->numsegs - 1; i++)
 	{
 		seg_t *cseg = sidedef->segs[i];
-		if (cseg->sidefrac <= glseg.fracleft) continue;
-		if (cseg->sidefrac >= glseg.fracright) return;
+		float sidefrac = cseg->sidefrac;
+		if (sidefrac <= glseg.fracleft) continue;
+		if (sidefrac >= glseg.fracright) return;
 
-		float fracfac = cseg->sidefrac - glseg.fracleft;
+		float fracfac = sidefrac - glseg.fracleft;
 
 		if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - ztop[0] + (facc - fact) * fracfac, 
 									 ztop[0] - zfloor[0] + (fact - facf) * fracfac);
@@ -111,10 +112,11 @@ void GLWall::SplitLowerEdge(texcoord * tcs, bool glow)
 	for (int i = sidedef->numsegs-2; i >= 0; i--)
 	{
 		seg_t *cseg = sidedef->segs[i];
-		if (cseg->sidefrac >= glseg.fracright) continue;
-		if (cseg->sidefrac <= glseg.fracleft) return;
+		float sidefrac = cseg->sidefrac;
+		if (sidefrac >= glseg.fracright) continue;
+		if (sidefrac <= glseg.fracleft) return;
 
-		float fracfac = cseg->sidefrac - glseg.fracleft;
+		float fracfac = sidefrac - glseg.fracleft;
 
 		if (glow) gl.VertexAttrib2f(VATTR_GLOWDISTANCE, zceil[0] - zbottom[0] + (facc - facb) * fracfac, 
 									 zbottom[0] - zfloor[0] + (facb - facf) * fracfac);

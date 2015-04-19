@@ -1446,7 +1446,6 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 	// note: we always have a valid sidedef and linedef reference when getting here.
 
 	this->seg = seg;
-	this->sub =seg->Subsector;
 
 	if ((seg->sidedef->Flags & WALLF_POLYOBJ) && seg->backsector)
 	{

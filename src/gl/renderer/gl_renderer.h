@@ -136,6 +136,11 @@ public:
 
 	bool StartOffscreen();
 	void EndOffscreen();
+
+	void FillSimplePoly(FTexture *texture, FVector2 *points, int npoints,
+		double originx, double originy, double scalex, double scaley,
+		angle_t rotation, FDynamicColormap *colormap, int lightlevel);
+
 };
 
 // Global functions. Make them members of GLRenderer later?

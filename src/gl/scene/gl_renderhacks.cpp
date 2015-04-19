@@ -150,15 +150,7 @@ void FDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 	MissingTextureInfo mti = {};
 	MissingSegInfo msi;
 
-	if (!seg->Subsector) 
-	{
-		msi.MTI_Index = -1;
-		msi.seg=seg;
-		MissingLowerSegs.Push(msi);
-		return;
-	}
-
-	subsector_t * sub = seg->Subsector;
+	subsector_t * sub = seg->Subsector();
 
 	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 	{
@@ -211,15 +203,7 @@ void FDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 	MissingTextureInfo mti = {};
 	MissingSegInfo msi;
 
-	if (!seg->Subsector) 
-	{
-		msi.MTI_Index = -1;
-		msi.seg=seg;
-		MissingLowerSegs.Push(msi);
-		return;
-	}
-
-	subsector_t * sub = seg->Subsector;
+	subsector_t * sub = seg->Subsector();
 
 	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 	{
@@ -281,7 +265,7 @@ bool FDrawInfo::DoOneSectorUpper(subsector_t * subsec, fixed_t planez)
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
 		seg_t * seg = subsec->firstline +i;
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// already checked?
 		if (backsub->validcount == validcount) continue;	
@@ -339,7 +323,7 @@ bool FDrawInfo::DoOneSectorLower(subsector_t * subsec, fixed_t planez)
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
 		seg_t * seg = subsec->firstline + i;
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// already checked?
 		if (backsub->validcount == validcount) continue;	
@@ -398,7 +382,7 @@ bool FDrawInfo::DoFakeBridge(subsector_t * subsec, fixed_t planez)
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
 		seg_t * seg = subsec->firstline + i;
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// already checked?
 		if (backsub->validcount == validcount) continue;	
@@ -451,7 +435,7 @@ bool FDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 	for(DWORD i=0; i< subsec->numlines; i++)
 	{
 		seg_t * seg = subsec->firstline + i;
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// already checked?
 		if (backsub->validcount == validcount) continue;	
@@ -544,7 +528,8 @@ void FDrawInfo::HandleMissingTextures()
 		}
 
 		if (!MissingUpperTextures[i].seg->PartnerSeg) continue;
-		if (!MissingUpperTextures[i].seg->PartnerSeg->Subsector) continue;
+		subsector_t *backsub = MissingUpperTextures[i].seg->PartnerSeg->Subsector();
+		if (!backsub) continue;
 		validcount++;
 		HandledSubsectors.Clear();
 
@@ -553,8 +538,8 @@ void FDrawInfo::HandleMissingTextures()
 			sector_t * fakesector = gl_FakeFlat(MissingUpperTextures[i].seg->frontsector, &fake, false);
 			fixed_t planez = fakesector->GetPlaneTexZ(sector_t::ceiling);
 
-			MissingUpperTextures[i].seg->PartnerSeg->Subsector->validcount=validcount;
-			if (DoFakeCeilingBridge(MissingUpperTextures[i].seg->PartnerSeg->Subsector, planez))
+			backsub->validcount=validcount;
+			if (DoFakeCeilingBridge(backsub, planez))
 			{
 				// The mere fact that this seg has been added to the list means that the back sector
 				// will be rendered so we can safely assume that it is already in the render list
@@ -614,7 +599,8 @@ void FDrawInfo::HandleMissingTextures()
 		}
 
 		if (!MissingLowerTextures[i].seg->PartnerSeg) continue;
-		if (!MissingLowerTextures[i].seg->PartnerSeg->Subsector) continue;
+		subsector_t *backsub = MissingLowerTextures[i].seg->PartnerSeg->Subsector();
+		if (!backsub) continue;
 		validcount++;
 		HandledSubsectors.Clear();
 
@@ -623,8 +609,8 @@ void FDrawInfo::HandleMissingTextures()
 			sector_t * fakesector = gl_FakeFlat(MissingLowerTextures[i].seg->frontsector, &fake, false);
 			fixed_t planez = fakesector->GetPlaneTexZ(sector_t::floor);
 
-			MissingLowerTextures[i].seg->PartnerSeg->Subsector->validcount=validcount;
-			if (DoFakeBridge(MissingLowerTextures[i].seg->PartnerSeg->Subsector, planez))
+			backsub->validcount=validcount;
+			if (DoFakeBridge(backsub, planez))
 			{
 				// The mere fact that this seg has been added to the list means that the back sector
 				// will be rendered so we can safely assume that it is already in the render list
@@ -669,7 +655,7 @@ void FDrawInfo::DrawUnhandledMissingTextures()
 		//if (seg->frontsector->ceilingpic==skyflatnum) continue;
 
 		// FIXME: The check for degenerate subsectors should be more precise
-		if (seg->PartnerSeg && (seg->PartnerSeg->Subsector->flags & SSECF_DEGENERATE)) continue;
+		if (seg->PartnerSeg && (seg->PartnerSeg->Subsector()->flags & SSECF_DEGENERATE)) continue;
 		if (seg->backsector->transdoor) continue;
 		if (seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum) continue;
 		if (seg->backsector->CeilingSkyBox && seg->backsector->CeilingSkyBox->bAlways) continue;
@@ -749,7 +735,7 @@ bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 		seg_t * seg = sub->firstline + j;
 		if (!seg->PartnerSeg) return true;
 
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// Find a linedef with a different visplane on the other side.
 		if (!(backsub->flags & SSECF_DEGENERATE) && seg->linedef && 
@@ -811,7 +797,7 @@ bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
-			subsector_t * backsub = seg->PartnerSeg->Subsector;
+			subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 			// could be an anchor itself.
 			if (!CheckAnchorFloor (backsub)) // must not be an anchor itself!
@@ -855,7 +841,7 @@ bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 		seg_t * seg = sub->firstline + j;
 		if (!seg->PartnerSeg) return true;
 
-		subsector_t * backsub = seg->PartnerSeg->Subsector;
+		subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 		// Find a linedef with a different visplane on the other side.
 		if (!(backsub->flags & SSECF_DEGENERATE) && seg->linedef && 
@@ -912,7 +898,7 @@ bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
-			subsector_t * backsub = seg->PartnerSeg->Subsector;
+			subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 			// could be an anchor itself.
 			if (!CheckAnchorCeiling (backsub)) // must not be an anchor itself!
@@ -974,7 +960,7 @@ void FDrawInfo::HandleHackedSubsectors()
 				if (inview) for(unsigned int j=0;j<lowersegs.Size();j++)
 				{
 					seg_t * seg=lowersegs[j];
-					GLRenderer->ProcessLowerMiniseg (seg, seg->Subsector->render_sector, seg->PartnerSeg->Subsector->render_sector);
+					GLRenderer->ProcessLowerMiniseg (seg, seg->Subsector()->render_sector, seg->PartnerSeg->Subsector()->render_sector);
 				}
 				lowershcount+=HandledSubsectors.Size();
 			}
@@ -1076,7 +1062,7 @@ void FDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
 		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
-			subsector_t * backsub = seg->PartnerSeg->Subsector;
+			subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 			if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, anchor);
 		}
@@ -1124,7 +1110,7 @@ void FDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 		seg_t * seg = sub->firstline + j;
 		if (seg->PartnerSeg)
 		{
-			subsector_t * backsub = seg->PartnerSeg->Subsector;
+			subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 			if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, anchor);
 		}
@@ -1152,7 +1138,7 @@ void FDrawInfo::ProcessSectorStacks()
 			seg_t * seg = sub->firstline + j;
 			if (seg->PartnerSeg)
 			{
-				subsector_t * backsub = seg->PartnerSeg->Subsector;
+				subsector_t * backsub = seg->PartnerSeg->Subsector();
 
 				if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, sub->render_sector);
 			}
@@ -1182,7 +1168,7 @@ void FDrawInfo::ProcessSectorStacks()
 			seg_t * seg = sub->firstline + j;
 			if (seg->PartnerSeg)
 			{
-				subsector_t	* backsub = seg->PartnerSeg->Subsector;
+				subsector_t	* backsub = seg->PartnerSeg->Subsector();
 
 				if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, sub->render_sector);
 			}

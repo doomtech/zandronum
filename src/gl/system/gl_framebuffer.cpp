@@ -560,6 +560,26 @@ void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int palc
 		GLRenderer->Clear(left, top, right, bottom, palcolor, color);
 }
 
+//==========================================================================
+//
+// D3DFB :: FillSimplePoly
+//
+// Here, "simple" means that a simple triangle fan can draw it.
+//
+//==========================================================================
+
+void OpenGLFrameBuffer::FillSimplePoly(FTexture *texture, FVector2 *points, int npoints,
+	double originx, double originy, double scalex, double scaley,
+	angle_t rotation, FDynamicColormap *colormap, int lightlevel)
+{
+	if (GLRenderer != NULL)
+	{
+		GLRenderer->FillSimplePoly(texture, points, npoints, originx, originy, scalex, scaley,
+			rotation, colormap, lightlevel);
+	}
+}
+
+
 //===========================================================================
 // 
 //	Takes a screenshot

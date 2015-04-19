@@ -4585,11 +4585,13 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 	MapThingsConverted.Clear();
 
+	/* still needed by the GL renderer
 	if (glsegextras != NULL)
 	{
 		delete[] glsegextras;
 		glsegextras = NULL;
 	}
+	*/
 
 	// Set these modules' state to "waiting for players", which may or may not begin the next match.
 	// [BB] The clients also need to reset the gamemode state. Otherwise, for instance, when making

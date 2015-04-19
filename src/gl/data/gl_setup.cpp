@@ -97,7 +97,7 @@ static void SpreadHackedFlag(subsector_t * sub)
 
 		if (seg->PartnerSeg)
 		{
-			subsector_t * sub2 = seg->PartnerSeg->Subsector;
+			subsector_t * sub2 = seg->PartnerSeg->Subsector();
 
 			if (!(sub2->hacked&1) && sub2->render_sector == sub->render_sector)
 			{
@@ -122,7 +122,6 @@ static void PrepareSectorData()
 		unsigned int partner= glsegextras[i].PartnerSeg;
 		if (partner < numsegs)  segs[i].PartnerSeg = &segs[partner];
 		else segs[i].PartnerSeg = NULL;
-		segs[i].Subsector = glsegextras[i].Subsector;
 	}
 
 	// look up sector number for each subsector
@@ -135,7 +134,6 @@ static void PrepareSectorData()
 		for(jj=0; jj<ss->numlines; jj++)
 		{
 			M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
-			seg->Subsector = ss;
 			seg++;
 		}
 	}
@@ -170,7 +168,7 @@ static void PrepareSectorData()
 			{
 				if (!(subsectors[i].hacked&1) && seg[j].linedef==0 && 
 						seg[j].PartnerSeg!=NULL && 
-						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector->render_sector)
+						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector()->render_sector)
 				{
 					DPrintf("Found hack: (%d,%d) (%d,%d)\n", seg[j].v1->x>>16, seg[j].v1->y>>16, seg[j].v2->x>>16, seg[j].v2->y>>16);
 					subsectors[i].hacked|=1;

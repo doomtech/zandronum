@@ -192,7 +192,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 			float result[3];
 			fixed_t x, y;
 			actor->GetXY(seg->sidedef, x, y);
-			gl_GetSpriteLight(NULL, x, y, zpos, seg->Subsector, Colormap.colormap-CM_DESAT0, result);
+			gl_GetSpriteLight(NULL, x, y, zpos, seg->Subsector(), Colormap.colormap-CM_DESAT0, result);
 			red = clamp<float>(result[0]+red, 0, 1.0f);
 			green = clamp<float>(result[1]+green, 0, 1.0f);
 			blue = clamp<float>(result[2]+blue, 0, 1.0f);
