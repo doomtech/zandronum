@@ -149,8 +149,8 @@ void R_InitPicAnims (void)
 	if (Wads.CheckNumForName ("ANIMATED") != -1)
 	{
 		FMemLump animatedlump = Wads.ReadLump ("ANIMATED");
-		const char *animdefs = (const char *)animatedlump.GetMem();
-		const char *anim_p;
+		const BYTE *animdefs = (const BYTE *)animatedlump.GetMem();
+		const BYTE *anim_p;
 		FTextureID pic1, pic2;
 		int animtype;
 		DWORD animspeed;
@@ -158,13 +158,13 @@ void R_InitPicAnims (void)
 		// Init animation
 		animtype = FAnimDef::ANIM_Forward;
 
-		for (anim_p = animdefs; *anim_p != -1; anim_p += 23)
+		for (anim_p = animdefs; *anim_p != 0xFF; anim_p += 23)
 		{
 			if (*anim_p /* .istexture */ & 1)
 			{
 				// different episode ?
-				if (!(pic1 = TexMan.CheckForTexture (anim_p + 10 /* .startname */, FTexture::TEX_Wall, texflags)).Exists() ||
-					!(pic2 = TexMan.CheckForTexture (anim_p + 1 /* .endname */, FTexture::TEX_Wall, texflags)).Exists())
+				if (!(pic1 = TexMan.CheckForTexture ((const char*)(anim_p + 10) /* .startname */, FTexture::TEX_Wall, texflags)).Exists() ||
+					!(pic2 = TexMan.CheckForTexture ((const char*)(anim_p + 1) /* .endname */, FTexture::TEX_Wall, texflags)).Exists())
 					continue;		
 
 				// [RH] Bit 1 set means allow decals on walls with this texture
@@ -172,14 +172,14 @@ void R_InitPicAnims (void)
 			}
 			else
 			{
-				if (!(pic1 = TexMan.CheckForTexture (anim_p + 10 /* .startname */, FTexture::TEX_Flat, texflags)).Exists() ||
-					!(pic2 = TexMan.CheckForTexture (anim_p + 1 /* .startname */, FTexture::TEX_Flat, texflags)).Exists())
+				if (!(pic1 = TexMan.CheckForTexture ((const char*)(anim_p + 10) /* .startname */, FTexture::TEX_Flat, texflags)).Exists() ||
+					!(pic2 = TexMan.CheckForTexture ((const char*)(anim_p + 1) /* .startname */, FTexture::TEX_Flat, texflags)).Exists())
 					continue;
 			}
 			if (pic1 == pic2)
 			{
 				// This animation only has one frame. Skip it. (Doom aborted instead.)
-				Printf ("Animation %s in ANIMATED has only one frame\n", anim_p + 10);
+				Printf ("Animation %s in ANIMATED has only one frame\n", (const char*)(anim_p + 10));
 				continue;
 			}
 
@@ -208,10 +208,10 @@ void R_InitPicAnims (void)
 
 			// Speed is stored as tics, but we want ms so scale accordingly.
 			animspeed = /* .speed */
-				Scale ((BYTE(anim_p[19]) << 0) |
-					   (BYTE(anim_p[20]) << 8) |
-					   (BYTE(anim_p[21]) << 16) |
-					   (BYTE(anim_p[22]) << 24), 1000, 35);
+				Scale ((anim_p[19] << 0) |
+					   (anim_p[20] << 8) |
+					   (anim_p[21] << 16) |
+					   (anim_p[22] << 24), 1000, 35);
 
 			R_AddSimpleAnim (pic1, pic2 - pic1 + 1, animtype, animspeed);
 		}
