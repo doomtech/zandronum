@@ -55,8 +55,6 @@ ACTOR KeyYellow : HereticKey 80
 }
 
  
-// [BB] Before the DECORATE conversion, AKeyGizmo and AKeyGizmoFloat hat +ALLOWCLIENTSPAWN,
-// is this still necessary?
 // --- Blue Key gizmo -----------------------------------------------------------
 
 ACTOR KeyGizmoBlue 94
