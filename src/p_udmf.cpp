@@ -495,6 +495,11 @@ public:
 				th->type = (short)CheckInt(key);
 				break;
 
+			case NAME_Conversation:
+				CHECK_N(Zd | Zdt)
+				th->Conversation = CheckInt(key);
+				break;
+
 			case NAME_Special:
 				CHECK_N(Hx | Zd | Zdt | Va)
 				th->special = CheckInt(key);
