@@ -268,6 +268,8 @@ AMSTR_FOLLOWON = "Follow Mode ON";
 AMSTR_FOLLOWOFF = "Follow Mode OFF";
 AMSTR_GRIDON = "Grid ON";
 AMSTR_GRIDOFF = "Grid OFF";
+AMSTR_TEXON = "Texture Mode ON";
+AMSTR_TEXOFF = "Texture Mode OFF";
 AMSTR_MARKEDSPOT = "Marked Spot";
 AMSTR_MARKSCLEARED = "All Marks Cleared";
 STSTR_MUS = "Music Change";
@@ -1563,7 +1565,6 @@ TXT_RANDOMGOODBYE_1 = "Bye!";
 TXT_RANDOMGOODBYE_2 = "Thanks, bye!";
 TXT_RANDOMGOODBYE_3 = "See you later!";
 TXT_HAVEENOUGH = "You seem to have enough!";
-TXT_GOAWAY = "Go away!";
 
 // Skills:
 

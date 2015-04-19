@@ -908,6 +908,7 @@ public:
 	fixed_t			pitch, roll;
 	FBlockNode		*BlockNode;			// links in blocks (if needed)
 	struct sector_t	*Sector;
+	subsector_t *		subsector;
 	fixed_t			floorz, ceilingz;	// closest together of contacted secs
 	fixed_t			dropoffz;		// killough 11/98: the lowest floor over all contacted Sectors.
 
@@ -1156,14 +1157,12 @@ public:
 		return GetClass()->ActorInfo->FindState(2, names, exact);
 	}
 
-
 	bool HasSpecialDeathStates () const;
 
 	// [GZDoom]
 	TArray<TObjPtr<AActor> >		dynamiclights;
 	void *				lightassociations;
 	bool				hasmodel;
-	subsector_t *		subsector;
 
 	size_t PropagateMark();
 };

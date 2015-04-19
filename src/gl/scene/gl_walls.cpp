@@ -157,9 +157,13 @@ void GLWall::PutWall(bool translucent)
 		{
 			if (gl_lights && !gl_dynlight_shader)
 			{
-				if (!seg->bPolySeg)
+				if (seg->sidedef == NULL)
 				{
-					light = (seg->sidedef != NULL && seg->sidedef->lighthead[0] != NULL);
+					light = false;
+				}
+				else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
+				{
+					light = seg->sidedef->lighthead[0] != NULL;
 				}
 				else if (sub)
 				{
@@ -1438,11 +1442,13 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 		__asm nop
 #endif
 #endif
+		
+	// note: we always have a valid sidedef and linedef reference when getting here.
 
 	this->seg = seg;
 	this->sub =seg->Subsector;
 
-	if (seg->bPolySeg && seg->backsector)
+	if ((seg->sidedef->Flags & WALLF_POLYOBJ) && seg->backsector)
 	{
 		// Textures on 2-sided polyobjects are aligned to the actual seg's sectors
 		realfront = seg->frontsector;
@@ -1466,7 +1472,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 		v2=seg->linedef->v1;
 	}
 
-	if (!seg->bPolySeg)
+	if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
 	{
 		glseg.fracleft=0;
 		glseg.fracright=1;
@@ -1643,7 +1649,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 							fch1,fch2,bch1a,bch2a,0);
 					}
 				}
-				else if (!seg->bPolySeg)
+				else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
 				{
 					gl_drawinfo->AddUpperMissingTexture(seg, bch1a);
 				}
@@ -1706,7 +1712,8 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 							bfh1,bfh2,ffh1,ffh2, realfront->GetPlaneTexZ(sector_t::floor)-realfront->GetPlaneTexZ(sector_t::ceiling));
 					}
 				}
-				else if (backsector->GetTexture(sector_t::floor)!=skyflatnum && !seg->bPolySeg)
+				else if (backsector->GetTexture(sector_t::floor)!=skyflatnum && 
+					!(seg->sidedef->Flags & WALLF_POLYOBJ))
 				{
 					gl_drawinfo->AddLowerMissingTexture(seg, bfh1);
 				}

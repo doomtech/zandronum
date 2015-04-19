@@ -40,7 +40,6 @@
 #include "r_state.h"
 #include "templates.h"
 #include "po_man.h"
-#include "gl/gl_functions.h"
 
 static AActor *RoughBlockCheck (AActor *mo, int index, void *);
 
@@ -348,7 +347,7 @@ void AActor::LinkToWorld (bool buggy)
 	// link into subsector
 	sector_t *sec;
 
-	if (!buggy || numnodes == 0)
+	if (!buggy || numgamenodes == 0)
 	{
 		sec = P_PointInSector (x, y);
 	}

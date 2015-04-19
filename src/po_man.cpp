@@ -2204,12 +2204,6 @@ void PO_Init (void)
 	// [RH] Don't need the seg lists anymore
 	KillSideLists ();
 
-	// We still need to flag the segs of the polyobj's sidedefs so that they are excluded from rendering.
-	for(int i=0;i<numsegs;i++)
-	{
-		segs[i].bPolySeg = (segs[i].sidedef != NULL && segs[i].sidedef->Flags & WALLF_POLYOBJ);
-	}
-
 	for(int i=0;i<numnodes;i++)
 	{
 		node_t *no = &nodes[i];

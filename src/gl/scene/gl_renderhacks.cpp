@@ -669,7 +669,7 @@ void FDrawInfo::DrawUnhandledMissingTextures()
 		//if (seg->frontsector->ceilingpic==skyflatnum) continue;
 
 		// FIXME: The check for degenerate subsectors should be more precise
-		if (seg->PartnerSeg && seg->PartnerSeg->Subsector->degenerate) continue;
+		if (seg->PartnerSeg && (seg->PartnerSeg->Subsector->flags & SSECF_DEGENERATE)) continue;
 		if (seg->backsector->transdoor) continue;
 		if (seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum) continue;
 		if (seg->backsector->CeilingSkyBox && seg->backsector->CeilingSkyBox->bAlways) continue;
@@ -742,7 +742,7 @@ bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
-	if (sub->degenerate) return false;
+	if (sub->flags & SSECF_DEGENERATE) return false;
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
@@ -752,7 +752,7 @@ bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// Find a linedef with a different visplane on the other side.
-		if (!backsub->degenerate && seg->linedef && 
+		if (!(backsub->flags & SSECF_DEGENERATE) && seg->linedef && 
 			(sub->render_sector != backsub->render_sector && sub->sector != backsub->sector))
 		{
 			// I'm ignoring slopes, scaling and rotation here. The likelihood of ZDoom maps
@@ -790,7 +790,7 @@ bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 	// We must collect any subsector that either is connected to this one with a miniseg
 	// or has the same visplane.
 	// We must not collect any subsector that  has the anchor's visplane!
-	if (!sub->degenerate) 
+	if (!(sub->flags & SSECF_DEGENERATE)) 
 	{
 		// Is not being rendered so don't bother.
 		if (!(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return true;
@@ -848,7 +848,7 @@ bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 {
 	// This subsector has a one sided wall and can be used.
 	if (sub->hacked==3) return true;
-	if (sub->degenerate) return false;
+	if (sub->flags & SSECF_DEGENERATE) return false;
 
 	for(DWORD j=0;j<sub->numlines;j++)
 	{
@@ -858,7 +858,7 @@ bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 		subsector_t * backsub = seg->PartnerSeg->Subsector;
 
 		// Find a linedef with a different visplane on the other side.
-		if (!backsub->degenerate && seg->linedef && 
+		if (!(backsub->flags & SSECF_DEGENERATE) && seg->linedef && 
 			(sub->render_sector != backsub->render_sector && sub->sector != backsub->sector))
 		{
 			// I'm ignoring slopes, scaling and rotation here. The likelihood of ZDoom maps
@@ -892,7 +892,7 @@ bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 	// We must collect any subsector that either is connected to this one with a miniseg
 	// or has the same visplane.
 	// We must not collect any subsector that  has the anchor's visplane!
-	if (!sub->degenerate) 
+	if (!(sub->flags & SSECF_DEGENERATE)) 
 	{
 		// Is not being rendererd so don't bother.
 		if (!(ss_renderflags[DWORD(sub-subsectors)]&SSRF_PROCESSED)) return true;

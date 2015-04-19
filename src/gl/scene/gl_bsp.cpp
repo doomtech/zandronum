@@ -100,7 +100,7 @@ static void AddLine (seg_t *seg,sector_t * sector)
 	{
 		clipper.SafeAddClipRange(startAngle, endAngle);
 	}
-	else if (!seg->bPolySeg)	// Two-sided polyobjects never obstruct the view
+	else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))	// Two-sided polyobjects never obstruct the view
 	{
 		if (sector->sectornum == seg->backsector->sectornum)
 		{
@@ -134,9 +134,9 @@ static void AddLine (seg_t *seg,sector_t * sector)
 
 	seg->linedef->flags |= ML_MAPPED;
 
-	if (seg->linedef->validcount!=validcount || seg->bPolySeg) 
+	if ((seg->sidedef->Flags & WALLF_POLYOBJ) || seg->linedef->validcount!=validcount) 
 	{
-		if (!seg->bPolySeg) seg->linedef->validcount=validcount;
+		if (!(seg->sidedef->Flags & WALLF_POLYOBJ)) seg->linedef->validcount=validcount;
 
 		if (gl_render_walls)
 		{
@@ -229,8 +229,6 @@ static void AddPolyobjs(subsector_t *sub, sector_t *sector)
 		for(unsigned i=0; i < sub->BSP->Segs.Size(); i++)
 		{
 			sub->BSP->Segs[i].Subsector = sub;
-			if (sub->BSP->Segs[i].sidedef && sub->BSP->Segs[i].sidedef->Flags & WALLF_POLYOBJ)
-				sub->BSP->Segs[i].bPolySeg = true;	// The GL renderer needs this.
 		}
 	}
 	fakesector = sector;
@@ -267,7 +265,7 @@ static inline void AddLines(subsector_t * sub, sector_t * sector)
 		{
 			if (line->linedef)
 			{
-				if (!line->bPolySeg) AddLine (line, sector);
+				if (!(line->sidedef->Flags & WALLF_POLYOBJ)) AddLine (line, sector);
 			}
 			line++;
 		}

@@ -133,22 +133,22 @@ void GLWall::SetupLights()
 	for(int i=0;i<2;i++)
 	{
 		FLightNode *node;
-		if (!seg->bPolySeg)
+		if (seg->sidedef == NULL)
 		{
-			// Iterate through all dynamic lights which touch this wall and render them
-			if (seg->sidedef)
-			{
-				node = seg->sidedef->lighthead[i];
-			}
-			else node = NULL;
+			node = NULL;
+		}
+		else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
+		{
+			node = seg->sidedef->lighthead[i];
 		}
 		else if (sub)
 		{
-			// To avoid constant rechecking for polyobjects use the subsector's lightlist instead
+			// Polobject segs cannot be checked per sidedef so use the subsector instead.
 			node = sub->lighthead[i];
 		}
 		else node = NULL;
 
+		// Iterate through all dynamic lights which touch this wall and render them
 		while (node)
 		{
 			if (!(node->lightsource->flags2&MF2_DORMANT))
@@ -224,7 +224,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 {
 	texcoord tcs[4];
 	bool glowing;
-	bool split = (gl_seamless && !(textured&4) && !seg->bPolySeg);
+	bool split = (gl_seamless && !(textured&4) && seg->sidedef != NULL && !(seg->sidedef->Flags & WALLF_POLYOBJ));
 
 	if (!light)
 	{
@@ -529,14 +529,14 @@ void GLWall::Draw(int pass)
 		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, NULL, false);
 		else gl_SetFog(lightlevel, 0, &Colormap, true);	
 
-		if (!seg->bPolySeg)
+		if (seg->sidedef == NULL)
+		{
+			node = NULL;
+		}
+		else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
 		{
 			// Iterate through all dynamic lights which touch this wall and render them
-			if (seg->sidedef)
-			{
-				node = seg->sidedef->lighthead[pass==GLPASS_LIGHT_ADDITIVE];
-			}
-			else node = NULL;
+			node = seg->sidedef->lighthead[pass==GLPASS_LIGHT_ADDITIVE];
 		}
 		else if (sub)
 		{

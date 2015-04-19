@@ -115,5 +115,4 @@ bool R_PlaneInitData (void);
 extern visplane_t*		floorplane;
 extern visplane_t*		ceilingplane;
 
-
 #endif // __R_PLANE_H__

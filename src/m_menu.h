@@ -132,6 +132,7 @@ typedef enum {
 	joy_slider,
 	joy_map,
 	joy_inverter,
+	mapcontrol,
 	string,
 	pwstring,
 	skintype,

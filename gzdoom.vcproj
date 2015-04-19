@@ -889,6 +889,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\p_glnodes.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_interaction.cpp"
 				>
 			</File>
@@ -6004,6 +6008,10 @@
 		<Filter
 			Name="GZDoom Renderer"
 			>
+			<File
+				RelativePath=".\src\gl\gl_functions.h"
+				>
+			</File>
 			<Filter
 				Name="GZDoom Source"
 				>
@@ -6269,10 +6277,6 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\data\gl_data.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\gl\data\gl_nodes.cpp"
 					>
 				</File>
 				<File

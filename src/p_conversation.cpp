@@ -818,7 +818,7 @@ void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveang
 			toSay = GStrings[dlgtext];
 			if (toSay == NULL)
 			{
-				toSay = GStrings("TXT_GOAWAY");	// Ok, it's lame - but it doesn't look like an error to the player. ;)
+				toSay = "Go away!";	// Ok, it's lame - but it doesn't look like an error to the player. ;)
 			}
 		}
 		else

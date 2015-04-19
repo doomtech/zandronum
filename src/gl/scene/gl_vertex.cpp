@@ -63,7 +63,7 @@ extern int vertexcount;
 
 void GLWall::SplitUpperEdge(texcoord * tcs, bool glow)
 {
-	if (seg == NULL || seg->bPolySeg || seg->sidedef == NULL || seg->sidedef->numsegs == 1) return;
+	if (seg == NULL || seg->sidedef == NULL || (seg->sidedef->Flags & WALLF_POLYOBJ) || seg->sidedef->numsegs == 1) return;
 
 	side_t *sidedef = seg->sidedef;
 	float polyw = glseg.fracright - glseg.fracleft;
@@ -98,7 +98,7 @@ void GLWall::SplitUpperEdge(texcoord * tcs, bool glow)
 
 void GLWall::SplitLowerEdge(texcoord * tcs, bool glow)
 {
-	if (seg == NULL || seg->bPolySeg || seg->sidedef == NULL || seg->sidedef->numsegs == 1) return;
+	if (seg == NULL || seg->sidedef == NULL || (seg->sidedef->Flags & WALLF_POLYOBJ) || seg->sidedef->numsegs == 1) return;
 
 	side_t *sidedef = seg->sidedef;
 	float polyw = glseg.fracright - glseg.fracleft;

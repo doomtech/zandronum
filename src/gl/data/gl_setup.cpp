@@ -51,6 +51,7 @@
 #include "sc_man.h"
 #include "w_wad.h"
 #include "gi.h"
+#include "p_setup.h"
 #include "g_level.h"
 
 #include "gl/renderer/gl_renderer.h"
@@ -108,150 +109,34 @@ static void SpreadHackedFlag(subsector_t * sub)
 }
 
 
-static bool PointOnLine (int x, int y, int x1, int y1, int dx, int dy)
-{
-	const double SIDE_EPSILON = 6.5536;
-
-	// For most cases, a simple dot product is enough.
-	double d_dx = double(dx);
-	double d_dy = double(dy);
-	double d_x = double(x);
-	double d_y = double(y);
-	double d_x1 = double(x1);
-	double d_y1 = double(y1);
-
-	double s_num = (d_y1-d_y)*d_dx - (d_x1-d_x)*d_dy;
-
-	if (fabs(s_num) < 17179869184.0)	// 4<<32
-	{
-		// Either the point is very near the line, or the segment defining
-		// the line is very short: Do a more expensive test to determine
-		// just how far from the line the point is.
-		double l = sqrt(d_dx*d_dx+d_dy*d_dy);
-		double dist = fabs(s_num)/l;
-		if (dist < SIDE_EPSILON)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 static void PrepareSectorData()
 {
 	int 				i;
-	DWORD 				j;
 	size_t				/*ii,*/ jj;
 	TArray<subsector_t *> undetermined;
 	subsector_t *		ss;
 
-	// The GL node builder produces screwed output when two-sided walls overlap with one-sides ones!
+	// Account for ZDoom space optimizations that cannot be done for GL
 	for(i=0;i<numsegs;i++)
 	{
-		int partner= int(segs[i].PartnerSeg-segs);
-
-		if (partner<0 || partner>=numsegs || &segs[partner]!=segs[i].PartnerSeg)
-		{
-			segs[i].PartnerSeg=NULL;
-		}
-
-		// glbsp creates such incorrect references for Strife.
-		if (segs[i].linedef && segs[i].PartnerSeg && !segs[i].PartnerSeg->linedef)
-		{
-			segs[i].PartnerSeg = segs[i].PartnerSeg->PartnerSeg = NULL;
-		}
-	}
-
-	for(i=0;i<numsegs;i++)
-	{
-		if (segs[i].PartnerSeg && segs[i].PartnerSeg->PartnerSeg!=&segs[i])
-		{
-			//Printf("Warning: seg %d (sector %d)'s partner seg is incorrect!\n", i, segs[i].frontsector-sectors);
-			segs[i].PartnerSeg=NULL;
-		}
+		unsigned int partner= glsegextras[i].PartnerSeg;
+		if (partner < numsegs)  segs[i].PartnerSeg = &segs[partner];
+		else segs[i].PartnerSeg = NULL;
+		segs[i].Subsector = glsegextras[i].Subsector;
 	}
 
 	// look up sector number for each subsector
 	for (i = 0; i < numsubsectors; i++)
 	{
-		// For rendering pick the sector from the first seg that is a sector boundary
-		// this takes care of self-referencing sectors
 		ss = &subsectors[i];
 		seg_t *seg = ss->firstline;
 
-		// Check for one-dimensional subsectors. These aren't rendered and should not be
-		// subject to filling areas with bleeding flats
-		ss->degenerate=true;
-		for(jj=2; jj<ss->numlines; jj++)
-		{
-			if (!PointOnLine(seg[jj].v1->x, seg[jj].v1->y, seg->v1->x, seg->v1->y, seg->v2->x-seg->v1->x, seg->v2->y-seg->v1->y))
-			{
-				// Not on the same line
-				ss->degenerate=false;
-				break;
-			}
-		}
-
-		seg = ss->firstline;
 		M_ClearBox(ss->bbox);
 		for(jj=0; jj<ss->numlines; jj++)
 		{
 			M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
 			seg->Subsector = ss;
 			seg++;
-		}
-
-		seg = ss->firstline;
-		for(j=0; j<ss->numlines; j++)
-		{
-			if(seg->sidedef && (!seg->PartnerSeg || seg->sidedef->sector!=seg->PartnerSeg->sidedef->sector))
-			{
-				ss->render_sector = seg->sidedef->sector;
-				break;
-			}
-			seg++;
-		}
-		if(ss->render_sector == NULL) 
-		{
-			undetermined.Push(ss);
-		}
-	}
-
-	// assign a vaild render sector to all subsectors which haven't been processed yet.
-	while (undetermined.Size())
-	{
-		bool deleted=false;
-		for(i=undetermined.Size()-1;i>=0;i--)
-		{
-			ss=undetermined[i];
-			seg_t * seg = ss->firstline;
-			
-			for(j=0; j<ss->numlines; j++)
-			{
-				if (seg->PartnerSeg && seg->PartnerSeg->Subsector)
-				{
-					sector_t * backsec = seg->PartnerSeg->Subsector->render_sector;
-					if (backsec)
-					{
-						ss->render_sector=backsec;
-						undetermined.Delete(i);
-						deleted=1;
-						break;
-					}
-				}
-				seg++;
-			}
-		}
-		if (!deleted && undetermined.Size()) 
-		{
-			// This only happens when a subsector is off the map.
-			// Don't bother and just assign the real sector for rendering
-			for(i=undetermined.Size()-1;i>=0;i--)
-			{
-				ss=undetermined[i];
-				ss->render_sector=ss->sector;
-			}
-			break;
 		}
 	}
 
@@ -708,28 +593,6 @@ void gl_PreprocessLevel()
 		gl_InitData();
 	}
 
-
-	// Nasty: I can't rely upon the sidedef assignments because older ZDBSPs liked to screw them up
-	// if the sidedefs are compressed and both sides are the same.
-	for(i=0;i<numsegs;i++)
-	{
-		seg_t * seg=&segs[i];
-		if (seg->backsector == seg->frontsector && seg->linedef)
-		{
-			fixed_t d1=P_AproxDistance(seg->v1->x-seg->linedef->v1->x,seg->v1->y-seg->linedef->v1->y);
-			fixed_t d2=P_AproxDistance(seg->v2->x-seg->linedef->v1->x,seg->v2->y-seg->linedef->v1->y);
-
-			if (d2<d1)	// backside
-			{
-				seg->sidedef = seg->linedef->sidedef[1];
-			}
-			else	// front side
-			{
-				seg->sidedef = seg->linedef->sidedef[0];
-			}
-		}
-	}
-	
 	PrepareSegs();
 	PrepareSectorData();
 	InitVertexData();

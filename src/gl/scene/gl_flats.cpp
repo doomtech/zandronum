@@ -590,7 +590,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 
 	gl_drawinfo->ss_renderflags[sub-subsectors]|=SSRF_PROCESSED;
 	if (sub->hacked&1) gl_drawinfo->AddHackedSubsector(sub);
-	if (sub->degenerate) return;
+	if (sub->flags & SSECF_DEGENERATE) return;
 
 	byte * srf = &gl_drawinfo->sectorrenderflags[sector->sectornum];
 

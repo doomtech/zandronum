@@ -36,6 +36,7 @@
 
 #include "i_system.h"
 #include "p_lnspec.h"
+#include "p_setup.h"
 
 #include "r_main.h"
 #include "r_plane.h"
@@ -113,6 +114,8 @@ TArray<size_t> WallMirrors;
 static FNodeBuilder::FLevel PolyNodeLevel;
 static FNodeBuilder PolyNodeBuilder(PolyNodeLevel);
 
+static subsector_t *InSubsector;
+
 CVAR (Bool, r_drawflat, false, 0)		// [RH] Don't texture segs?
 
 
@@ -168,10 +171,11 @@ static cliprange_t		solidsegs[MAXWIDTH/2+2];
 //
 //==========================================================================
 
-void R_ClipWallSegment (int first, int last, bool solid)
+bool R_ClipWallSegment (int first, int last, bool solid)
 {
 	cliprange_t *next, *start;
 	int i, j;
+	bool res = false;
 
 	// Find the first range that touches the range
 	// (adjacent pixels are touching).
@@ -181,13 +185,14 @@ void R_ClipWallSegment (int first, int last, bool solid)
 
 	if (first < start->first)
 	{
+		res = true;
 		if (last <= start->first)
 		{
 			// Post is entirely visible (above start).
 			R_StoreWallRange (first, last);
 			if (fake3D & FAKE3D_FAKEMASK)
 			{
-				return;
+				return true;
 			}
 
 			// Insert a new clippost for solid walls.
@@ -210,7 +215,7 @@ void R_ClipWallSegment (int first, int last, bool solid)
 					next->last = last;
 				}
 			}
-			return;
+			return true;
 		}
 
 		// There is a fragment above *start.
@@ -225,7 +230,7 @@ void R_ClipWallSegment (int first, int last, bool solid)
 
 	// Bottom contained in start?
 	if (last <= start->last)
-		return;
+		return res;
 
 	next = start;
 	while (last >= (next+1)->first)
@@ -248,7 +253,7 @@ void R_ClipWallSegment (int first, int last, bool solid)
 crunch:
 	if (fake3D & FAKE3D_FAKEMASK)
 	{
-		return;
+		return true;
 	}
 	if (solid)
 	{
@@ -266,6 +271,31 @@ crunch:
 			newend = start+i;
 		}
 	}
+	return true;
+}
+
+bool R_CheckClipWallSegment (int first, int last)
+{
+	cliprange_t *start;
+
+	// Find the first range that touches the range
+	// (adjacent pixels are touching).
+	start = solidsegs;
+	while (start->last < first)
+		start++;
+
+	if (first < start->first)
+	{
+		return true;
+	}
+
+	// Bottom contained in start?
+	if (last > start->last)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -635,6 +665,10 @@ void R_AddLine (seg_t *line)
 
 	if (line->linedef == NULL)
 	{
+		if (R_CheckClipWallSegment (WallSX1, WallSX2))
+		{
+			InSubsector->flags |= SSECF_DRAWN;
+		}
 		return;
 	}
 
@@ -810,6 +844,16 @@ void R_AddLine (seg_t *line)
 			// Reject empty lines used for triggers and special events.
 			// Identical floor and ceiling on both sides, identical light levels
 			// on both sides, and no middle texture.
+
+			// When using GL nodes, do a clipping test for these lines so we can
+			// mark their subsectors as visible for automap texturing.
+			if (hasglnodes && !(InSubsector->flags & SSECF_DRAWN))
+			{
+				if (R_CheckClipWallSegment(WallSX1, WallSX2))
+				{
+					InSubsector->flags |= SSECF_DRAWN;
+				}
+			}
 			return;
 		}
 	}
@@ -845,7 +889,10 @@ void R_AddLine (seg_t *line)
 #endif
 	}
 
-	R_ClipWallSegment (WallSX1, WallSX2, solid);
+	if (R_ClipWallSegment (WallSX1, WallSX2, solid))
+	{
+		InSubsector->flags |= SSECF_DRAWN;
+	}
 }
 
 
@@ -1132,6 +1179,18 @@ void R_Subsector (subsector_t *sub)
 	sector_t     tempsec;				// killough 3/7/98: deep water hack
 	int          floorlightlevel;		// killough 3/16/98: set floor lightlevel
 	int          ceilinglightlevel;		// killough 4/11/98
+	bool		 outersubsector;
+
+	if (InSubsector != NULL)
+	{ // InSubsector is not NULL. This means we are rendering from a mini-BSP.
+		outersubsector = false;
+	}
+	else
+	{
+		outersubsector = true;
+		InSubsector = sub;
+	}
+
 	int	fll, cll, position;
 
 	// kg3D - fake floor stuff
@@ -1140,11 +1199,9 @@ void R_Subsector (subsector_t *sub)
 	//secplane_t templane;
 	lightlist_t *light;
 
-#if 0
 #ifdef RANGECHECK
-	if (sub - subsectors >= (ptrdiff_t)numsubsectors)
+	if (outersubsector && sub - subsectors >= (ptrdiff_t)numsubsectors)
 		I_Error ("R_Subsector: ss %ti with numss = %i", sub - subsectors, numsubsectors);
-#endif
 #endif
 
 	assert(sub->sector != NULL);
@@ -1152,6 +1209,10 @@ void R_Subsector (subsector_t *sub)
 	if (sub->polys)
 	{ // Render the polyobjs in the subsector first
 		R_AddPolyobjs(sub);
+		if (outersubsector)
+		{
+			InSubsector = NULL;
+		}
 		return;
 	}
 
@@ -1390,7 +1451,7 @@ void R_Subsector (subsector_t *sub)
 
 	while (count--)
 	{
-		if (!line->bPolySeg)
+		if (!outersubsector || line->sidedef == NULL || !(line->sidedef->Flags & WALLF_POLYOBJ))
 		{
 			// kg3D - fake planes bounding calculation
 			if (line->backsector && frontsector->e && line->backsector->e->XFloor.ffloors.Size())
@@ -1433,6 +1494,10 @@ void R_Subsector (subsector_t *sub)
 			R_AddLine (line); // now real
 		}
 		line++;
+	}
+	if (outersubsector)
+	{
+		InSubsector = NULL;
 	}
 }
 
