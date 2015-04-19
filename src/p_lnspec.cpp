@@ -3399,6 +3399,36 @@ FUNC(LS_StartConversation)
 	return false;
 }
 
+FUNC(LS_Thing_SetConversation)
+// Thing_SetConversation (tid, dlg_id)
+{
+	int dlg_index = -1;
+	FStrifeDialogueNode *node = NULL;
+
+	if (arg1 != 0)
+	{
+		dlg_index = GetConversation(arg1);	
+		if (dlg_index == -1) return false;
+		node = StrifeDialogues[dlg_index];
+	}
+
+	if (arg0 != 0)
+	{
+		FActorIterator iterator (arg0);
+		while ((it = iterator.Next()) != NULL)
+		{
+			it->ConversationRoot = dlg_index;
+			it->Conversation = node;
+		}
+	}
+	else if (it)
+	{
+		it->ConversationRoot = dlg_index;
+		it->Conversation = node;
+	}
+	return true;
+}
+
 // [BC] From GZDoom. Now in p_lnspec.cpp where it belongs.
 // Normally this would be better placed in p_lnspec.cpp.
 // But I have accidentally overwritten that file several times
@@ -3421,6 +3451,7 @@ FUNC(LS_Sector_SetPlaneReflection)
 
 	return true;
 }
+
 
 lnSpecFunc LineSpecials[256] =
 {
@@ -3503,7 +3534,7 @@ lnSpecFunc LineSpecials[256] =
 	/*  76 */ LS_TeleportOther,
 	/*  77 */ LS_TeleportGroup,
 	/*  78 */ LS_TeleportInSector,
-	/*  79 */ LS_NOP,
+	/*  79 */ LS_Thing_SetConversation,
 	/*  80 */ LS_ACS_Execute,
 	/*  81 */ LS_ACS_Suspend,
 	/*  82 */ LS_ACS_Terminate,
