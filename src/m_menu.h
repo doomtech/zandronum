@@ -153,7 +153,7 @@ void UpdateJoystickMenu(IJoystickConfig *selected);
 struct menuitem_t
 {
 	itemtype		  type;
-	const char			 *label;
+	const char		 *label;
 	union {
 		FBaseCVar		 *cvar;
 		FIntCVar		 *intcvar;
@@ -205,7 +205,7 @@ struct menuitem_t
 };
 
 struct menu_t {
-	const char		   *texttitle;
+	const char	   *texttitle;
 	int				lastOn;
 	int				numitems;
 	int				indent;
@@ -245,7 +245,7 @@ struct oldmenuitem_t
 	// hotkey in menu
 	char		alphaKey;						
 	
-	const char	*name;
+	const char *name;
 	
 	// Use botskill settings for this episode?
 	bool		bBotSkill;
