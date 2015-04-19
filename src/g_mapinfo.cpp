@@ -38,7 +38,6 @@
 #include "g_level.h"
 #include "sc_man.h"
 #include "w_wad.h"
-#include "m_menu.h"
 #include "cmdlib.h"
 #include "v_video.h"
 #include "p_lnspec.h"
@@ -62,6 +61,8 @@ TArray<level_info_t> wadlevelinfos;
 
 level_info_t TheDefaultLevelInfo;
 static cluster_info_t TheDefaultClusterInfo;
+
+TArray<FEpisode> AllEpisodes;
 
 //==========================================================================
 //
@@ -1699,10 +1700,10 @@ level_info_t *FMapInfoParser::ParseMapHeader(level_info_t &defaultinfo)
 
 void FMapInfoParser::ParseEpisodeInfo ()
 {
-	int i;
+	unsigned int i;
 	char map[9];
-	char *pic = NULL;
-	bool picisgfx = false;	// Shut up, GCC!!!!
+	FString pic;
+	FString name;
 	bool remove = false;
 	char key = 0;
 	bool noskill = false;
@@ -1745,15 +1746,13 @@ void FMapInfoParser::ParseEpisodeInfo ()
 		{
 			ParseAssign();
 			sc.MustGetString ();
-			ReplaceString (&pic, sc.String);
-			picisgfx = false;
+			name = sc.String;
 		}
 		else if (sc.Compare ("picname"))
 		{
 			ParseAssign();
 			sc.MustGetString ();
-			ReplaceString (&pic, sc.String);
-			picisgfx = true;
+			pic = sc.String;
 		}
 		else if (sc.Compare ("remove"))
 		{
@@ -1815,9 +1814,9 @@ void FMapInfoParser::ParseEpisodeInfo ()
 	}
 
 
-	for (i = 0; i < EpiDef.numitems; ++i)
+	for (i = 0; i < AllEpisodes.Size(); i++)
 	{
-		if (strncmp (EpisodeMaps[i], map, 8) == 0)
+		if (AllEpisodes[i].mEpisodeMap.CompareNoCase(map) == 0)
 		{
 			break;
 		}
@@ -1826,54 +1825,23 @@ void FMapInfoParser::ParseEpisodeInfo ()
 	if (remove)
 	{
 		// If the remove property is given for an episode, remove it.
-		if (i < EpiDef.numitems)
-		{
-			if (i+1 < EpiDef.numitems)
-			{
-				memmove (&EpisodeMaps[i], &EpisodeMaps[i+1],
-					sizeof(EpisodeMaps[0])*(EpiDef.numitems - i - 1));
-				memmove (&EpisodeMenu[i], &EpisodeMenu[i+1],
-					sizeof(EpisodeMenu[0])*(EpiDef.numitems - i - 1));
-				memmove (&EpisodeNoSkill[i], &EpisodeNoSkill[i+1], 
-					sizeof(EpisodeNoSkill[0])*(EpiDef.numitems - i - 1));
-			}
-			EpiDef.numitems--;
-		}
+		AllEpisodes.Delete(i);
 	}
 	else
 	{
-		if (pic == NULL)
-		{
-			pic = copystring (map);
-			picisgfx = false;
-		}
+		FEpisode *epi = &AllEpisodes[AllEpisodes.Reserve(1)];
 
-		if (i == EpiDef.numitems)
-		{
-			if (EpiDef.numitems == MAX_EPISODES)
-			{
-				i = EpiDef.numitems - 1;
-			}
-			else
-			{
-				i = EpiDef.numitems++;
-			}
-		}
-		else
-		{
-			delete[] const_cast<char *>(EpisodeMenu[i].name);
-		}
-
-		EpisodeMenu[i].name = pic;
-		EpisodeMenu[i].alphaKey = tolower(key);
-		EpisodeMenu[i].fulltext = !picisgfx;
-		EpisodeNoSkill[i] = noskill;
+		epi->mEpisodeMap = map;
+		epi->mEpisodeName = name;
+		epi->mPicName = pic;
+		epi->mShortcut = tolower(key);
+		epi->mNoSkill = noskill;
+		/* [BB] FIXME
 		EpisodeMenu[i].bBotSkill = bBotEpisode;
 		EpisodeMenu[i].bBotSkillFullText = !bBotSkillPicIsGFX;
-		strncpy (EpisodeMaps[i], map, 8);
-		EpisodeMaps[i][8] = 0;
 		if ( bBotEpisode )
 			sprintf( EpisodeSkillHeaders[i], "%s", szBotSkillTitle );
+		*/
 
 		/* [BB] We can't do this here.
 		if ( bBotSkillPicIsGFX )
@@ -1894,12 +1862,7 @@ void FMapInfoParser::ParseEpisodeInfo ()
 
 void ClearEpisodes()
 {
-	for (int i = 0; i < EpiDef.numitems; ++i)
-	{
-		delete[] const_cast<char *>(EpisodeMenu[i].name);
-		EpisodeMenu[i].name = NULL;
-	}
-	EpiDef.numitems = 0;
+	AllEpisodes.Clear();
 }
 
 //==========================================================================
@@ -2080,7 +2043,7 @@ void G_ParseMapInfo (const char *basemapinfo)
 	}
 	EndSequences.ShrinkToFit ();
 
-	if (EpiDef.numitems == 0)
+	if (AllEpisodes.Size() == 0)
 	{
 		I_FatalError ("You cannot use clearepisodes in a MAPINFO if you do not define any new episodes after it.");
 	}

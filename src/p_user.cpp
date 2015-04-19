@@ -61,7 +61,6 @@
 #include "team.h"
 #include "network.h"
 #include "joinqueue.h"
-#include "m_menu.h"
 #include "d_gui.h"
 #include "lastmanstanding.h"
 #include "cooperative.h"

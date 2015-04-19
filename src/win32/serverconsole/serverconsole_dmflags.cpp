@@ -56,7 +56,6 @@
 #include "network.h"
 #include "callvote.h"
 #include "v_text.h"
-#include "m_menu.h"
 #include "c_dispatch.h"
 #include "cmdlib.h"
 #include "cooperative.h"
@@ -86,8 +85,17 @@
 extern	HINSTANCE		g_hInst;
 
 // References to the names defined in m_options.cpp (to reduce code duplication).
-extern	value_t			DF_Crouch[3];
-extern	value_t			DF_Jump[3];
+// [BB] FIXME
+value_t DF_Crouch[3] = {
+	{ 0, "Default" },
+	{ DF_NO_CROUCH, "Off" },
+	{ DF_YES_CROUCH, "On" }
+};
+value_t DF_Jump[3] = {
+	{ 0, "Default" },
+	{ DF_NO_JUMP, "Off" },
+	{ DF_YES_JUMP, "On" }
+};
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------

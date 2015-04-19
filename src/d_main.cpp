@@ -68,7 +68,7 @@
 #include "f_wipe.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "m_menu.h"
+#include "menu/menu.h"
 #include "c_console.h"
 #include "c_dispatch.h"
 #include "i_system.h"
@@ -442,6 +442,10 @@ CVAR (Flag, sv_coop_losearmor,		dmflags, DF_COOP_LOSE_ARMOR);
 CVAR (Flag, sv_coop_losepowerups,	dmflags, DF_COOP_LOSE_POWERUPS);
 CVAR (Flag, sv_coop_loseammo,		dmflags, DF_COOP_LOSE_AMMO);
 CVAR (Flag, sv_coop_halveammo,		dmflags, DF_COOP_HALVE_AMMO);
+// Some (hopefully cleaner) interface to these settings.
+CVAR (Mask, sv_crouch,			dmflags, DF_NO_CROUCH|DF_YES_CROUCH);
+CVAR (Mask, sv_jump,			dmflags, DF_NO_JUMP|DF_YES_JUMP);
+CVAR (Mask, sv_fallingdamage,	dmflags, DF_FORCE_FALLINGHX|DF_FORCE_FALLINGZD);
 
 //==========================================================================
 //
@@ -535,7 +539,6 @@ CVAR (Flag, sv_disallowsuicide,		dmflags2, DF2_NOSUICIDE);
 CVAR (Flag, sv_noautoaim,			dmflags2, DF2_NOAUTOAIM);
 CVAR (Flag, sv_dontcheckammo,		dmflags2, DF2_DONTCHECKAMMO);
 CVAR (Flag, sv_killbossmonst,		dmflags2, DF2_KILLBOSSMONST);
-
 CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);
 CVAR (Flag, sv_noteamselect,		dmflags2, DF2_NO_TEAM_SELECT);
@@ -1197,6 +1200,8 @@ void D_DoomLoop ()
 
 	// Clamp the timer to TICRATE until the playloop has been entered.
 	r_NoInterpolate = true;
+
+	I_SetCursor(TexMan["cursor"]);
 
 	for (;;)
 	{
@@ -2764,6 +2769,7 @@ void D_DoomMain (void)
 	// [GRB] Initialize player class list
 	SetupPlayerClasses ();
 
+
 	// [RH] Load custom key and weapon settings from WADs
 	D_LoadWadSettings ();
 
@@ -2827,7 +2833,7 @@ void D_DoomMain (void)
 		}
 	}
 
-	Printf ("M_Init: Init miscellaneous info.\n");
+	Printf ("M_Init: Init menus.\n");
 	M_Init ();
 
 	Printf ("P_Init: Init Playloop state.\n");

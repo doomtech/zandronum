@@ -90,7 +90,6 @@
 #include "possession.h"
 #include "s_sndseq.h"
 #include "version.h"
-#include "m_menu.h"
 #include "v_text.h"
 #include "w_wad.h"
 #include "p_acs.h"

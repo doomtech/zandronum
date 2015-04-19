@@ -105,7 +105,8 @@ CVAR( String, chatmacro0, "No", CVAR_ARCHIVE )
 CVAR( Bool, chat_substitution, false, CVAR_ARCHIVE )
 
 EXTERN_CVAR( Int, con_colorinmessages );
-EXTERN_CVAR( Int, chat_sound );
+// [RC] Played when a chat message arrives. Values: off, default, Doom 1 (dstink), Doom 2 (dsradio).
+CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
 
 //*****************************************************************************
 FStringCVar	*g_ChatMacros[10] =

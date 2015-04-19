@@ -67,7 +67,6 @@
 #include "m_png.h"
 #include "m_random.h"
 #include "version.h"
-#include "m_menu.h"
 #include "statnums.h"
 #include "sbarinfo.h"
 #include "r_translate.h"
@@ -77,6 +76,7 @@
 #include "d_net.h"
 #include "d_netinf.h"
 #include "v_palette.h"
+#include "menu/menu.h"
 // [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -121,6 +121,7 @@ void STAT_WRITE(FILE *f);
 EXTERN_CVAR (Float, sv_gravity)
 EXTERN_CVAR (Float, sv_aircontrol)
 EXTERN_CVAR (Int, disableautosave)
+EXTERN_CVAR (String, playerclass)
 
 #define SNAP_ID			MAKE_ID('s','n','A','p')
 #define DSNP_ID			MAKE_ID('d','s','N','p')
@@ -253,6 +254,15 @@ void G_DeferedInitNew (const char *mapname, int newskill)
 {
 	d_mapname = mapname;
 	d_skill = newskill;
+	CheckWarpTransMap (d_mapname, true);
+	gameaction = ga_newgame2;
+}
+
+void G_DeferedInitNew (FGameStartup *gs)
+{
+	playerclass = gs->PlayerClass;
+	d_mapname = AllEpisodes[gs->Episode].mEpisodeMap;
+	d_skill = gs->Skill;
 	CheckWarpTransMap (d_mapname, true);
 	gameaction = ga_newgame2;
 }

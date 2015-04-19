@@ -771,7 +771,6 @@ if( NOT NO_GL )
 		gl/shaders/gl_texshader.cpp
 		gl/system/gl_interface.cpp
 		gl/system/gl_framebuffer.cpp
-		gl/system/gl_menu.cpp
 		gl/system/gl_wipe.cpp
 		gl/models/gl_models_md3.cpp
 		gl/models/gl_models_md2.cpp
@@ -901,6 +900,7 @@ add_executable( zdoom WIN32
 	info.cpp
 	invasion.cpp #ST
 	joinqueue.cpp #ST
+	keysections.cpp
 	lastmanstanding.cpp #ST
 	lumpconfigfile.cpp
 	m_alloc.cpp
@@ -908,10 +908,8 @@ add_executable( zdoom WIN32
 	m_bbox.cpp
 	m_cheat.cpp
 	m_joy.cpp
-	m_menu.cpp
 	m_misc.cpp
 	m_oldrandom.cpp #ST
-	m_options.cpp
 	m_png.cpp
 	m_random.cpp
 	maprotation.cpp #ST
@@ -1079,7 +1077,21 @@ add_executable( zdoom WIN32
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
 	g_shared/st_hud.cpp #ST
+	menu/colorpickermenu.cpp
+	menu/joystickmenu.cpp
+	menu/listmenu.cpp
+	menu/loadsavemenu.cpp
+	menu/menu.cpp
+	menu/menudef.cpp
+	menu/menuinput.cpp
+	menu/messagebox.cpp
+	menu/optionmenu.cpp
+	menu/playerdisplay.cpp
+	menu/playermenu.cpp
+	menu/readthis.cpp
+	menu/videomenu.cpp
 	${GL_SOURCES}
+
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp

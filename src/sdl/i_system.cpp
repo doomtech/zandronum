@@ -802,3 +802,8 @@ unsigned int I_MakeRNGSeed()
 	}
 	return seed;
 }
+
+bool I_SetCursor(FTexture *cursorpic)
+{
+	return false;
+}

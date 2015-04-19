@@ -5,6 +5,8 @@
 #include "../c_cvars.h"
 #include "../tarray.h"
 #include "a_pickups.h"
+
+/* [BB] FIXME
 #include "../m_menu.h"
 
 struct PWODef
@@ -45,13 +47,16 @@ extern unsigned int PWODefsByOrderSz;
 void PWO_SortDefs();
 int PWO_GetNumForName(const char* classname, float weight); // get definition number with specified weight
 
+*/
 void PWO_LoadDefs();
 
 bool PWO_WeightByClass(AWeapon* weap, float& weight);
 bool PWO_CheckWeapons(AWeapon* first, AWeapon* pending);
 
+/* [BB] FIXME
 extern menuitem_t* PWO_MenuOptions;
 extern unsigned int PWO_MenuOptionsSz;
 void PWO_GenerateMenu();
+*/
 
 #endif

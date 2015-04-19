@@ -42,7 +42,6 @@
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "m_swap.h"
-#include "m_menu.h"
 
 #include "i_video.h"
 #include "v_video.h"
@@ -63,6 +62,7 @@
 #include "colormatcher.h"
 #include "v_palette.h"
 #include "r_sky.h"
+#include "menu/menu.h"
 
 // [BB] Use ZDoom's freelook limit for the sotfware renderer.
 // Note: ZDoom's limit is chosen such that the sky is rendered properly.

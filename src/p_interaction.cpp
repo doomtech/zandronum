@@ -92,7 +92,8 @@ static FRandom pr_poison ("PoisonDamage");
 static FRandom pr_switcher ("SwitchTarget");
 
 EXTERN_CVAR (Bool, show_obituaries)
-EXTERN_CVAR( Int, menu_teamidxjointeammenu )
+// [BB] FIXME
+//EXTERN_CVAR( Int, menu_teamidxjointeammenu )
 
 
 FName MeansOfDeath;
@@ -2349,6 +2350,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	// deal with manually in for instance private CTF when the wrong team is accidentally chosen,
 	// fixed with "changeteam" and then causing you to wind up in the wrong team on map restart
 	// again...
+	/* [BB] FIXME
 	if (( NETWORK_GetState() != NETSTATE_SERVER )
 		&& ( pPlayer == &players[consoleplayer] )
 		&& ( pPlayer->bOnTeam )
@@ -2357,6 +2359,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	{
 		menu_teamidxjointeammenu = ulTeam;
 	}
+	*/
 }
 
 //*****************************************************************************
