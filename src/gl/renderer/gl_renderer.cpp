@@ -569,7 +569,11 @@ void FGLRenderer::FillSimplePoly(FTexture *texture, FVector2 *points, int npoint
 
 	FColormap cm;
 	cm = colormap;
-	gl_SetColor(lightlevel, 0, &cm,1.0f);
+
+	lightlevel = gl_CalcLightLevel(lightlevel, 0, true);
+	PalEntry pe = gl_CalcLightColor(lightlevel, cm.LightColor, cm.blendfactor);
+	gl.Color3ub(pe.r, pe.g, pe.b);
+
 	if (!gltexture->Bind(cm.colormap))
 	{
 		return;

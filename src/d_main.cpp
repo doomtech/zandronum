@@ -229,6 +229,7 @@ gamestate_t wipegamestate = GS_DEMOSCREEN;	// can be -1 to force a wipe
 bool PageBlank;
 FTexture *Page;
 FTexture *Advisory;
+bool nospriterename;
 
 cycle_t FrameCycles;
 
@@ -2211,6 +2212,10 @@ static FString ParseGameInfo(TArray<FString> &pwads, const char *fn, const char 
 				}
 			}
 			while (sc.CheckToken(','));
+		}
+		else if (!nextKey.CompareNoCase("NOSPRITERENAME"))
+		{
+			nospriterename = true;
 		}
 		else
 		{
