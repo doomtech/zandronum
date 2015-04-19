@@ -2531,7 +2531,6 @@ menu_t AccountSetupMenu = {
 	0,
 	0,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 void M_AccountSetup( void )
@@ -2563,7 +2562,6 @@ menu_t NewAccountMenu = {
 	0,
 	0,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 void M_NewAccount( void )
@@ -2704,7 +2702,6 @@ menu_t SkirmishMenu = {
 	NULL,
 	false,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 void M_Skirmish( void )
@@ -2986,7 +2983,6 @@ menu_t BotSetupMenu = {
 	NULL,
 	false,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 /*=======================================
@@ -3045,7 +3041,6 @@ menu_t TeamBotSetupMenu = {
 	NULL,
 	false,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 void M_BotSetup( void )
@@ -3157,7 +3152,6 @@ menu_t PlayerClassSelectionMenu =
 	NULL,
 	false,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 static void InitAvailablePlayerClassList( ULONG ulTeam )
@@ -3266,7 +3260,6 @@ menu_t JoinTeamMenu =
 	NULL,
 	false,
 	NULL,
-	MNF_ALIGNLEFT,
 };
 
 static void InitAvailableTeamsList( )
@@ -3347,7 +3340,6 @@ menu_t JoinMenu =
 	NULL,
 	false,
 	NULL,
-	MNF_CENTERED,
 };
 
 static value_t FilterModes[] =
@@ -3947,13 +3939,7 @@ void M_OptDrawer ()
 			{
 			case more:
 			case safemore:
-				// Align this menu to the left-hand side.
-				if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
-					x = 32 * CleanXfac_1;
-				else if ( CurrentMenu->iFlags & MNF_CENTERED )
-					x = ( SCREENWIDTH - SmallFont->StringWidth( item->label ) * CleanXfac_1 ) / 2;
-				else
-					x = indent - width;
+				x = indent - width;
 				color = MoreColor;
 				break;
 
@@ -3997,25 +3983,12 @@ void M_OptDrawer ()
 				// Intentional fall-through
 
 			default:
-
-				// Align this menu to the left-hand side.
-				if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
-					x = 32 * CleanXfac_1;
-				else if ( CurrentMenu->iFlags & MNF_CENTERED )
-					x = ( SCREENWIDTH - SmallFont->StringWidth( item->label ) * CleanXfac_1 ) / 2;
-				else
-					x = indent - width;
+				x = indent - width;
 				color = ((item->type == control || item->type == mapcontrol) && menuactive == MENU_WaitKey && i == CurrentItem)
 					? CR_YELLOW : LabelColor;
 				break;
 			}
 			screen->DrawText (SmallFont, color, x, y, label, DTA_CleanNoMove_1, true, DTA_ColorOverlay, overlay, TAG_DONE);
-
-			// [BC/BB] Skulltag's alignment handling.
-			if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
-				x = ( 32 + 6 ) * CleanXfac_1 + width;
-			else
-				x = indent + cursorspace;
 
 			switch (item->type)
 			{
@@ -4097,16 +4070,15 @@ void M_OptDrawer ()
 					}
 				}
 
-				// [BB] To handle MNF_ALIGNLEFT, "x" is used instead of "indent + cursorspace"
 				if (v == vals)
 				{
-					screen->DrawText (SmallFont, ValueColor, x, y, "Unknown",
+					screen->DrawText (SmallFont, ValueColor, indent + cursorspace, y, "Unknown",
 						DTA_CleanNoMove_1, true, DTA_ColorOverlay, overlay, TAG_DONE);
 				}
 				else
 				{
 					screen->DrawText (SmallFont, item->type == cdiscrete ? v : ValueColor,
-						x, y,
+						indent + cursorspace, y,
 						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
 						DTA_CleanNoMove_1, true, DTA_ColorOverlay, overlay, TAG_DONE);
 				}
@@ -4125,7 +4097,7 @@ void M_OptDrawer ()
 			break;
 
 			case nochoice:
-				screen->DrawText (SmallFont, CR_GOLD, x, y,
+				screen->DrawText (SmallFont, CR_GOLD, indent + cursorspace, y,
 					(item->e.values[(int)item->b.min]).name, DTA_CleanNoMove_1, true, TAG_DONE);
 				break;
 
@@ -4160,33 +4132,21 @@ void M_OptDrawer ()
 				// [BC] Hack for player color.
 				if ( strcmp( item->label, "Red" ) == 0 )
 				{
-					USHORT	usX;
-
-					usX = ( SmallFont->StringWidth( "Green" ) + 8 + 32 ) * CleanXfac_1;
-
-					M_DrawSlider( usX, y, 0.0f, 255.0f, RPART( g_ulPlayerSetupColor ), -1 );
+					M_DrawSlider( indent + cursorspace, y, 0.0f, 255.0f, RPART( g_ulPlayerSetupColor ), -1 );
 				}
 				else if ( strcmp( item->label, "Green" ) == 0 )
 				{
-					USHORT	usX;
-
-					usX = ( SmallFont->StringWidth( "Green" ) + 8 + 32 ) * CleanXfac_1;
-
-					M_DrawSlider( usX, y, 0.0f, 255.0f, GPART( g_ulPlayerSetupColor ), -1 );
+					M_DrawSlider( indent + cursorspace, y, 0.0f, 255.0f, GPART( g_ulPlayerSetupColor ), -1 );
 				}
 				else if ( strcmp( item->label, "Blue" ) == 0 )
 				{
-					USHORT	usX;
-
-					usX = ( SmallFont->StringWidth( "Green" ) + 8 + 32 ) * CleanXfac_1;
-
-					M_DrawSlider( usX, y, 0.0f, 255.0f, BPART( g_ulPlayerSetupColor ), -1 );
+					M_DrawSlider( indent + cursorspace, y, 0.0f, 255.0f, BPART( g_ulPlayerSetupColor ), -1 );
 				}
 				// Default.
 				else
 				{
 					value = item->a.cvar->GetGenericRep (CVAR_Float);
-					M_DrawSlider (x, y + labelofs, item->b.min, item->c.max, value.Float, 1);
+					M_DrawSlider (indent + cursorspace, y + labelofs, item->b.min, item->c.max, value.Float, 1);
 				}
 				break;
 
@@ -4291,7 +4251,7 @@ void M_OptDrawer ()
 				}
 
 				screen->DrawText (SmallFont, ValueColor,
-					x, y, str, DTA_CleanNoMove_1, true, TAG_DONE);
+					indent + cursorspace, y, str, DTA_CleanNoMove_1, true, TAG_DONE);
 			}
 			break;
 
@@ -4301,16 +4261,16 @@ void M_OptDrawer ()
 				// draw the temporary string and the cursor.
 				if ( g_bStringInput && i == CurrentItem )
 				{
-					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, g_szStringInputBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
 
 					// Draw the cursor.
 					screen->DrawText( SmallFont, CR_GREY,
-						x + SmallFont->StringWidth( g_szStringInputBuffer ) * CleanXfac_1,
+						indent + cursorspace + SmallFont->StringWidth( g_szStringInputBuffer ) * CleanXfac_1,
 						y,
 						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_CleanNoMove_1, true, TAG_DONE );
 				}
 				else
-					screen->DrawText( SmallFont, CR_GREY, x, y, *item->a.stringcvar, DTA_CleanNoMove_1, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, *item->a.stringcvar, DTA_CleanNoMove_1, true, TAG_DONE );
 				break;
 			case pwstring:
 
@@ -4326,11 +4286,11 @@ void M_OptDrawer ()
 						for ( ulIdx = 0; ulIdx < strlen( szPWString ); ulIdx++ )
 							szPWString[ulIdx] = '*';
 
-						screen->DrawText( SmallFont, CR_GREY, x, y, szPWString, DTA_CleanNoMove_1, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, szPWString, DTA_CleanNoMove_1, true, TAG_DONE );
 
 						// Draw the cursor.
 						screen->DrawText( SmallFont, CR_GREY,
-							x + SmallFont->StringWidth( szPWString ) * CleanXfac_1,
+							indent + cursorspace + SmallFont->StringWidth( szPWString ) * CleanXfac_1,
 							y,
 							gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_CleanNoMove_1, true, TAG_DONE );
 					}
@@ -4343,7 +4303,7 @@ void M_OptDrawer ()
 						for ( ulIdx = 0; ulIdx < strlen( szPWString ); ulIdx++ )
 							szPWString[ulIdx] = '*';
 
-						screen->DrawText( SmallFont, CR_GREY, x, y, szPWString, DTA_CleanNoMove_1, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, szPWString, DTA_CleanNoMove_1, true, TAG_DONE );
 					}
 				}
 				break;
@@ -4352,16 +4312,16 @@ void M_OptDrawer ()
 					char	szString[16];
 				
 					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
-					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 				}
 				break;
 			case skintype:
 
-				screen->DrawText( SmallFont, CR_GREY, x, y, skins[g_ulPlayerSetupSkin].name, DTA_CleanNoMove_1, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, skins[g_ulPlayerSetupSkin].name, DTA_CleanNoMove_1, true, TAG_DONE );
 				break;
 			case classtype:
 
-				screen->DrawText( SmallFont, CR_GREY, x, y, ( g_lPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_lPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_CleanNoMove_1, true, TAG_DONE );
+				screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, ( g_lPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_lPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_CleanNoMove_1, true, TAG_DONE );
 				break;
 			case botslot:
 
@@ -4419,12 +4379,12 @@ void M_OptDrawer ()
 
 					Val = pVar->GetGenericRep( CVAR_Int );
 					if ( BOTINFO_GetName( Val.Int ) == NULL )
-						screen->DrawText( SmallFont, CR_GREY, x, y, "-", DTA_CleanNoMove_1, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, "-", DTA_CleanNoMove_1, true, TAG_DONE );
 					else
 					{
 						sprintf( szBuffer, "%s", BOTINFO_GetName( Val.Int ));
 						V_ColorizeString( szBuffer );
-						screen->DrawText( SmallFont, CR_GREY, x, y, szBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
+						screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, szBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
 					}
 				}
 				break;
@@ -4432,7 +4392,7 @@ void M_OptDrawer ()
 			case txslider:
 
 				value = item->a.cvar->GetGenericRep (CVAR_Float);
-				M_DrawSlider (x, y + labelofs, item->b.min, item->c.max, value.Float, 1);
+				M_DrawSlider (indent + cursorspace, y + labelofs, item->b.min, item->c.max, value.Float, 1);
 				break;
 			case mnnumber:
 
@@ -4440,11 +4400,11 @@ void M_OptDrawer ()
 				// draw the temporary string and the cursor.
 				if ( g_bStringInput && i == CurrentItem )
 				{
-					screen->DrawText( SmallFont, CR_GREY, x, y, g_szStringInputBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, g_szStringInputBuffer, DTA_CleanNoMove_1, true, TAG_DONE );
 
 					// Draw the cursor.
 					screen->DrawText( SmallFont, CR_GREY,
-						x + SmallFont->StringWidth( g_szStringInputBuffer ) * CleanXfac_1,
+						indent + cursorspace + SmallFont->StringWidth( g_szStringInputBuffer ) * CleanXfac_1,
 						y,
 						gameinfo.gametype == GAME_Doom ? "_" : "[", DTA_CleanNoMove_1, true, TAG_DONE );
 				}
@@ -4453,7 +4413,7 @@ void M_OptDrawer ()
 					char	szString[16];
 				
 					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
-					screen->DrawText( SmallFont, CR_GREY, x, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
+					screen->DrawText( SmallFont, CR_GREY, indent + cursorspace, y, szString, DTA_CleanNoMove_1, true, TAG_DONE );
 				}
 				break;
 			default:
@@ -4464,12 +4424,7 @@ void M_OptDrawer ()
 				i == CurrentItem &&
 				(skullAnimCounter < 6 || menuactive == MENU_WaitKey))
 			{
-				if ( CurrentMenu->iFlags & MNF_CENTERED )
-					M_DrawConText(CR_RED, ( SCREENWIDTH - ( SmallFont->StringWidth( item->label ) + 22 ) * CleanXfac_1 ) / 2, y-CleanYfac_1+labelofs, "\xd" );
-				else if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
-					M_DrawConText(CR_RED, ( 32 - /*p->width*/8 - 3 ) * CleanXfac_1, y-CleanYfac_1+labelofs, "\xd" );
-				else
-					M_DrawConText(CR_RED, indent + 3 * CleanXfac_1, y-CleanYfac_1+labelofs, "\xd");
+				M_DrawConText(CR_RED, indent + 3 * CleanXfac_1, y-CleanYfac_1+labelofs, "\xd");
 			}
 		}
 		else if ( item->type == screenres )

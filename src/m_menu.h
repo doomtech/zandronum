@@ -96,10 +96,6 @@ void M_DeactivateMenuInput ();
 
 void M_NotifyNewSave (const char *file, const char *title, bool okForQuicksave);
 
-// Menu flag definitions.
-#define MNF_ALIGNLEFT			1	// Align menu to the left
-#define MNF_CENTERED			2	// Menu text is centered
-
 //
 // MENU TYPEDEFS
 //
@@ -208,9 +204,6 @@ struct menu_t {
 	bool		  (*PreDraw)(void);
 	bool			DontDim;
 	void		  (*EscapeHandler)(void);
-
-	// Special flags for this menu.
-	int				iFlags;
 };
 
 struct value_t {

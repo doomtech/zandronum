@@ -722,7 +722,6 @@ menu_t PlayerSetupMenu = {
 	M_PlayerSetupDrawer,
 	false,
 	M_AcceptPlayerSetupChanges,
-	MNF_ALIGNLEFT,
 };
 
 //
