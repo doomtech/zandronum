@@ -900,7 +900,9 @@ public:
 	void Serialize (FArchive &arc);
 	void Tick ();
 
-	DLevelScript *RunningScripts[1000];	// Array of all synchronous scripts
+	// [BB]
+	static const int MaxScripNum = 65536; 
+	DLevelScript *RunningScripts[MaxScripNum];	// Array of all synchronous scripts
 	static TObjPtr<DACSThinker> ActiveThinker;
 
 	void DumpScriptStatus();

@@ -2443,9 +2443,12 @@ void FBehavior::LoadScriptsDirectory ()
 		Scripts[i].Flags = 0;
 		Scripts[i].VarCount = LOCAL_SIZE;
 
-		// [BB] ZDoom 2.5.0 (and thus Zandronum) doesn't support script numbers higher than 999.
-		if ( Scripts[i].Number > 999 )
-			I_FatalError ( "Error: Script number %d exceeds 999!\n", Scripts[i].Number );
+		// [BB] ZDoom 2.5.0 doesn't support script numbers higher than 999.
+		// Zandronum raises this to 65535, so this check is always false
+		// as long "Number" is WORD. Once we backport named script support
+		// from ZDoom this will be removed.
+		if ( Scripts[i].Number >= DACSThinker::MaxScripNum )
+			I_FatalError ( "Error: Script number %d exceeds %d!\n", Scripts[i].Number, DACSThinker::MaxScripNum );
 	}
 
 	// Sort scripts, so we can use a binary search to find them
@@ -2886,7 +2889,7 @@ DACSThinker::DACSThinker ()
 		ActiveThinker = this;
 		Scripts = NULL;
 		LastScript = NULL;
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < MaxScripNum; i++) // [BB] MaxScripNum
 			RunningScripts[i] = NULL;
 	}
 }
@@ -2903,8 +2906,9 @@ void DACSThinker::Serialize (FArchive &arc)
 	arc << Scripts << LastScript;
 	if (arc.IsStoring ())
 	{
-		WORD i;
-		for (i = 0; i < 1000; i++)
+		// [BB] i needs to be an int for Zandronum.
+		//WORD i;
+		for (int i = 0; i < MaxScripNum; i++) // [BB] MaxScripNum
 		{
 			if (RunningScripts[i])
 				arc << RunningScripts[i] << i;
@@ -2965,7 +2969,7 @@ void DACSThinker::StopScriptsFor (AActor *actor)
 void DACSThinker::StopAndDestroyAllScripts ()
 {
 	// [BB] Unlink and destroy all running scripts.
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < MaxScripNum; i++)
 	{
 		DLevelScript *script = RunningScripts[i];
 		if ( script != NULL )
