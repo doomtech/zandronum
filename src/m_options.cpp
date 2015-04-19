@@ -2233,7 +2233,6 @@ menu_t CallVoteMenu = {
 
 void SendNewColor (int red, int green, int blue);
 void M_PlayerSetup (void);
-void M_AccountSetup( void );
 void M_SetupPlayerSetupMenu( void );
 void M_Spectate( void );
 void M_CallVote( void );
@@ -2256,7 +2255,6 @@ static menuitem_t MultiplayerItems[] =
 	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
 #endif
 	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
-//	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Spectate",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Spectate} },
 	{ more,		"Switch teams",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_ChangeTeam} },
@@ -2500,78 +2498,6 @@ void M_AcceptPlayerSetupChangesFromPrompt( int iChar )
 	M_AcceptPlayerSetupChanges( );
 }
 
-/*=======================================
- *
- * Account setup Menu
- *
- *=======================================*/
-/*
-void M_NewAccount( void );
-
-menuitem_t AccountSetupItems[] = {
-//	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-//	{ redtext,	"Please enter your account information below",						NULL,					0.0, 0.0, 0.0, NULL  },
-//	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ string,	"Username",					&cl_accountname,		0.0, 0.0, 0.0, NULL  },
-	{ pwstring,	"Password",					&cl_accountpassword,	0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete, "Auto-login",				&cl_autologin,			2.0, 0.0, 0.0, YesNo },
-	{ discrete, "Auto-ghost",				&cl_autoghost,			2.0, 0.0, 0.0, YesNo },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Log in",					NULL,					0.0, 0.0, 0.0, {(value_t *)M_NewAccount} },
-	{ more,		"New account",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_NewAccount} },
-};
-
-menu_t AccountSetupMenu = {
-	"ACCOUNT SETUP",
-	0,
-	countof(AccountSetupItems),
-	0,
-	AccountSetupItems,
-	0,
-	0,
-	NULL,
-};
-
-void M_AccountSetup( void )
-{
-	M_SwitchMenu( &AccountSetupMenu );
-}
-*/
-/*=======================================
- *
- * New account Menu
- *
- *=======================================*/
-/*
-menuitem_t NewAccountItems[] = {
-	{ redtext,	"Please choose a username and password.",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ string,	"Username",					&cl_accountname,		0.0, 0.0, 0.0, NULL  },
-	{ pwstring,	"Password",					&cl_accountpassword,	0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Create account!",			NULL,					0.0, 0.0, 0.0, {(value_t *)M_NewAccount} },
-};
-
-menu_t NewAccountMenu = {
-	"NEW ACCOUNT",
-	0,
-	countof(NewAccountItems),
-	0,
-	NewAccountItems,
-	0,
-	0,
-	NULL,
-};
-
-void M_NewAccount( void )
-{
-	if ( NewAccountMenu.lastOn == 0 )
-		NewAccountMenu.lastOn = 2;
-
-	M_SwitchMenu( &NewAccountMenu );
-}
-*/
 /*=======================================
  *
  * Weapon setup Menu
