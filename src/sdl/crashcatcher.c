@@ -9,6 +9,9 @@
 #include <string.h>
 #include <errno.h>
 
+// [EP] Header for the timestamp appending to crash log filename.
+#include <time.h>
+
 // Solaris doesn't have SA_ONESHOT
 // According to the Linux header this is the same.
 #ifndef SA_ONESHOT
@@ -351,6 +354,24 @@ static void crash_handler(const char *logfile)
 
 	if(logfile)
 	{
+		// [EP/TP] Needed for the timestamp appending to crash log filename.
+		char newLogfile[64];
+		time_t timestamp;
+
+		time( &timestamp );
+		char *bufferEnd = newLogfile + sizeof( newLogfile );
+		snprintf( newLogfile, sizeof( newLogfile ), "%s", logfile );
+
+		char *appendPoint = strchr( newLogfile, '.' );
+		if ( appendPoint == NULL )
+			appendPoint = newLogfile + strlen( newLogfile );
+
+		appendPoint += strftime( appendPoint, bufferEnd - appendPoint, "-%m_%d_%Y-%H_%M_%S", localtime( &timestamp ) );
+
+		snprintf( appendPoint, bufferEnd - appendPoint, ".%d.log", (int)crash_info.pid );
+
+		logfile = (const char *)newLogfile;
+
 		/* Create crash log file and redirect shell output to it */
 		if(freopen(logfile, "wa", stdout) != stdout)
 		{
