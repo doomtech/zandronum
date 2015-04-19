@@ -3751,17 +3751,13 @@ void P_FreeLevelData ()
 		sectors = NULL;
 		numsectors = 0;	// needed for the pointer cleanup code
 	}
-	if (gamenodes && gamenodes!=nodes)
+	if (gamenodes != NULL && gamenodes != nodes)
 	{
-		delete [] gamenodes;
-		gamenodes = NULL;
-		numgamenodes = 0;
+		delete[] gamenodes;
 	}
-	if (gamesubsectors && gamesubsectors!=subsectors)
+	if (gamesubsectors != NULL && gamesubsectors != subsectors)
 	{
-		delete [] gamesubsectors;
-		gamesubsectors = NULL;
-		numgamesubsectors = 0;
+		delete[] gamesubsectors;
 	}
 	if (subsectors != NULL)
 	{
@@ -3780,7 +3776,6 @@ void P_FreeLevelData ()
 			}
 		}
 		delete[] subsectors;
-		subsectors = NULL;
 	}
 	if (nodes != NULL)
 	{
@@ -3791,8 +3786,11 @@ void P_FreeLevelData ()
 			numgamenodes = 0;
 		}
 		delete[] nodes;
-		nodes = NULL;
 	}
+	subsectors = gamesubsectors = NULL;
+	numsubsectors = numgamesubsectors = 0;
+	nodes = gamenodes = NULL;
+	numnodes = numgamenodes = 0;
 	if (lines != NULL)
 	{
 		delete[] lines;

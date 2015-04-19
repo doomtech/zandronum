@@ -785,10 +785,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\mus2midi.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\name.cpp"
 				>
 			</File>
@@ -5313,11 +5309,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\sound\music_midi_base.cpp"
+				RelativePath=".\src\sound\music_hmi_midiout.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\sound\music_midi_midiout.cpp"
+				RelativePath=".\src\sound\music_midi_base.cpp"
 				>
 			</File>
 			<File
@@ -5334,6 +5330,10 @@
 			</File>
 			<File
 				RelativePath=".\src\sound\music_mus_opl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sound\music_smf_midiout.cpp"
 				>
 			</File>
 			<File

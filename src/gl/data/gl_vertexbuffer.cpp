@@ -325,7 +325,7 @@ void FVertexBuffer::CreateVBO()
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
 		gl.BufferData(GL_ARRAY_BUFFER, vbo_shadowdata.Size() * sizeof(FVBOVertex), &vbo_shadowdata[0], GL_DYNAMIC_DRAW);
 	}
-	else 
+	else if (sectors)
 	{
 		// set all VBO info to invalid values so that we can save some checks in the rendering code
 		for(int i=0;i<numsectors;i++)
