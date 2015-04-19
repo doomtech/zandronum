@@ -410,7 +410,8 @@ void AActor::Serialize (FArchive &arc)
 		for (int i = 0; i < 10; ++i)
 			arc << foo;
 	}
-	if (SaveVersion > 2560)	// adjust after merging into trunk!
+
+	if (SaveVersion > 2560)
 	{
 		arc << ConversationRoot << Conversation;
 	}
@@ -6162,7 +6163,7 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 	if (bloodcls!=NULL && (( bloodtype <= 1 ) || ( NETWORK_GetState( ) == NETSTATE_SERVER )))
 	{
 		z += pr_spawnblood.Random2 () << 10;
-		th = Spawn (bloodcls, x, y, z, ALLOW_REPLACE);
+		th = Spawn (bloodcls, x, y, z, NO_REPLACE); // GetBloodType already performed the replacement
 		th->velz = FRACUNIT*2;
 		th->angle = dir;
 		if (gameinfo.gametype & GAME_DoomChex)
@@ -6243,7 +6244,7 @@ void P_BloodSplatter (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 	{
 		AActor *mo;
 
-		mo = Spawn(bloodcls, x, y, z, ALLOW_REPLACE);
+		mo = Spawn(bloodcls, x, y, z, NO_REPLACE); // GetBloodType already performed the replacement
 		mo->target = originator;
 		mo->velx = pr_splatter.Random2 () << 10;
 		mo->vely = pr_splatter.Random2 () << 10;
@@ -6288,7 +6289,7 @@ void P_BloodSplatter2 (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 		x += ((pr_splat()-128)<<11);
 		y += ((pr_splat()-128)<<11);
 
-		mo = Spawn (bloodcls, x, y, z, ALLOW_REPLACE);
+		mo = Spawn (bloodcls, x, y, z, NO_REPLACE); // GetBloodType already performed the replacement
 		mo->target = originator;
 
 		// colorize the blood!
@@ -6331,7 +6332,7 @@ void P_RipperBlood (AActor *mo, AActor *bleeder)
 	if (bloodcls!=NULL && bloodtype <= 1)
 	{
 		AActor *th;
-		th = Spawn (bloodcls, x, y, z, ALLOW_REPLACE);
+		th = Spawn (bloodcls, x, y, z, NO_REPLACE); // GetBloodType already performed the replacement
 		if (gameinfo.gametype == GAME_Heretic)
 			th->flags |= MF_NOGRAVITY;
 		th->velx = mo->velx >> 1;
