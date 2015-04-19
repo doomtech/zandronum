@@ -391,7 +391,7 @@ void GLWall::RenderMirrorSurface()
 		gl.Enable(GL_POLYGON_OFFSET_FILL);
 		gl.PolygonOffset(-1.0f, -128.0f);
 		gl.DepthMask(false);
-		DoDrawDecals(seg->sidedef->AttachedDecals, seg);
+		DoDrawDecals();
 		gl.DepthMask(true);
 		gl.PolygonOffset(0.0f, 0.0f);
 		gl.Disable(GL_POLYGON_OFFSET_FILL);
@@ -563,7 +563,7 @@ void GLWall::Draw(int pass)
 			{
 				gl_SetFog(lightlevel, rellight + extralight*gl_weaponlight, &Colormap, false);
 			}
-			DoDrawDecals(seg->sidedef->AttachedDecals, seg);
+			DoDrawDecals();
 		}
 		break;
 

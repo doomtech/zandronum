@@ -454,52 +454,6 @@ void gl_RecalcVertexHeights(vertex_t * v)
 }
 
 
-//==========================================================================
-//
-// Mark sectors dirty
-//
-//==========================================================================
-int DirtyCount;
-
-void sector_t::SetDirty(bool dolines, bool dovertices)
-{
-	Dirty.Clock();
-	if (currentrenderer == 1 && this == &sectors[sectornum])
-	{
-		dirty = true;
-
-		if (dirtyframe[0] != gl_frameCount)
-		{
-			DirtyCount++;
-			dirtyframe[0] = gl_frameCount;
-			for(unsigned i = 0; i < e->SectorDependencies.Size(); i++)
-				e->SectorDependencies[i]->dirty = true;
-		}
-
-		if (dolines)
-		{
-			if (dirtyframe[1] != gl_frameCount)
-			{
-				dirtyframe[1] = gl_frameCount;
-
-				for(unsigned i = 0; i < e->SideDependencies.Size(); i++)
-					e->SideDependencies[i]->dirty = true;
-			}
-		}
-
-		if (dovertices)
-		{
-			if (dirtyframe[2] != gl_frameCount)
-			{
-				dirtyframe[2] = gl_frameCount;
-
-				for(unsigned i = 0; i < e->VertexDependencies.Size(); i++)
-					e->VertexDependencies[i]->dirty = true;
-			}
-		}
-	}
-	Dirty.Unclock();
-}
 
 
 void gl_InitData()
@@ -523,55 +477,39 @@ CCMD(dumpgeometry)
 	{
 		sector_t * sector = &sectors[i];
 
-		Printf("Sector %d\n",i);
+		Printf(PRINT_LOG, "Sector %d\n",i);
 		for(int j=0;j<sector->subsectorcount;j++)
 		{
 			subsector_t * sub = sector->subsectors[j];
 
-			Printf("    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
+			Printf(PRINT_LOG, "    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
 			for(DWORD k=0;k<sub->numlines;k++)
 			{
 				seg_t * seg = sub->firstline + k;
 				if (seg->linedef)
 				{
-				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
+				Printf(PRINT_LOG, "      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
 					FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
 					seg-segs, seg->linedef-lines, seg->sidedef != seg->linedef->sidedef[0]);
 				}
 				else
 				{
-					Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
+					Printf(PRINT_LOG, "      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
 						FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
 						seg-segs);
 				}
 				if (seg->PartnerSeg) 
 				{
 					subsector_t * sub2 = seg->PartnerSeg->Subsector();
-					Printf(", back sector = %d, real back sector = %d", sub2->render_sector->sectornum, seg->PartnerSeg->frontsector->sectornum);
+					Printf(PRINT_LOG, ", back sector = %d, real back sector = %d", sub2->render_sector->sectornum, seg->PartnerSeg->frontsector->sectornum);
 				}
-				Printf("\n");
+				else if (seg->backsector)
+				{
+					Printf(PRINT_LOG, ", back sector = %d (no partnerseg)", seg->backsector->sectornum);
+				}
+
+				Printf(PRINT_LOG, "\n");
 			}
 		}
 	}
 }
-
-CCMD(dumpdependencies)
-{
-	for(int i=0;i<numsectors;i++)
-	{
-		Printf(PRINT_LOG, "Dependencies of sector %d\n", i);
-		for(unsigned j = 0; j < sectors[i].e->VertexDependencies.Size(); j++)
-		{
-			Printf(PRINT_LOG,"\tVertex %d\n", int(sectors[i].e->VertexDependencies[j] - vertexes));
-		}
-		for(unsigned j = 0; j < sectors[i].e->SideDependencies.Size(); j++)
-		{
-			Printf(PRINT_LOG,"\tSide %d (Line %d)\n", int(sectors[i].e->SideDependencies[j] - sides), (sectors[i].e->SideDependencies[j]->linedef-lines));
-		}
-		for(unsigned j = 0; j < sectors[i].e->SectorDependencies.Size(); j++)
-		{
-			Printf(PRINT_LOG,"\tSector %d\n", int(sectors[i].e->SectorDependencies[j] - sectors));
-		}
-	}
-}
-

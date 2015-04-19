@@ -163,23 +163,6 @@ ADD_STAT(lightstats)
 	return out;
 }
 
-extern int DirtyCount;
-
-ADD_STAT(dirty)
-{
-	static FString buff;
-	static int lasttime=0;
-	int t=I_FPSTime();
-	if (t-lasttime>1000) 
-	{
-		buff.Format("Dirty=%2.8f (%d)\n", Dirty.TimeMS(), DirtyCount);
-		lasttime=t;
-	}
-	Dirty.Reset();
-	DirtyCount = 0;
-	return buff;
-}
-
 void AppendMissingTextureStats(FString &out);
 extern int viewpitch;
 

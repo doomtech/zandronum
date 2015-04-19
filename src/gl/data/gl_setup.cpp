@@ -116,14 +116,6 @@ static void PrepareSectorData()
 	TArray<subsector_t *> undetermined;
 	subsector_t *		ss;
 
-	// Account for ZDoom space optimizations that cannot be done for GL
-	for(i=0;i<numsegs;i++)
-	{
-		unsigned int partner= glsegextras[i].PartnerSeg;
-		if (partner < numsegs)  segs[i].PartnerSeg = &segs[partner];
-		else segs[i].PartnerSeg = NULL;
-	}
-
 	// look up sector number for each subsector
 	for (i = 0; i < numsubsectors; i++)
 	{
@@ -271,130 +263,6 @@ static void PrepareTransparentDoors(sector_t * sector)
 }
 
 
-//===========================================================================
-// 
-// collect other objects depending on sector changes
-//
-//===========================================================================
-
-static void AddDependency(sector_t *mysec, sector_t *addsec, int *checkmap)
-{
-	int mysecnum = int(mysec - sectors);
-	int addsecnum = int(addsec - sectors);
-	if (addsec != mysec) 
-	{
-		if (checkmap[addsecnum] < mysecnum)
-		{
-			checkmap[addsecnum] = mysecnum;
-			mysec->e->SectorDependencies.Push(addsec);
-		}
-	}
-
-	// This ignores vertices only used for seg splitting because those aren't needed here
-	for(int i=0; i < addsec->linecount; i++)
-	{
-		line_t *l = addsec->lines[i];
-		int vtnum1 = int(l->v1 - vertexes);
-		int vtnum2 = int(l->v2 - vertexes);
-
-		if (checkmap[numsectors + vtnum1] < mysecnum)
-		{
-			checkmap[numsectors + vtnum1] = mysecnum;
-			mysec->e->VertexDependencies.Push(&vertexes[vtnum1]);
-		}
-
-		if (checkmap[numsectors + vtnum2] < mysecnum)
-		{
-			checkmap[numsectors + vtnum2] = mysecnum;
-			mysec->e->VertexDependencies.Push(&vertexes[vtnum2]);
-		}
-	}
-}
-
-//===========================================================================
-// 
-// Sets up dependency lists for invalidating precalculated data
-//
-//===========================================================================
-
-static void SetupDependencies()
-{
-	int *checkmap = new int[numvertexes + numlines + numsectors];
-	TArray<int> *vt_linelists = new TArray<int>[numvertexes];
-
-	for(int i=0;i<numlines;i++)
-	{
-		line_t * line = &lines[i];
-		int v1i = int(line->v1 - vertexes);
-		int v2i = int(line->v2 - vertexes);
-
-		vt_linelists[v1i].Push(i);
-		vt_linelists[v2i].Push(i);
-	}
-	memset(checkmap, -1, sizeof(int) * (numvertexes + numlines + numsectors));
-
-
-	for(int i=0;i<numsectors;i++)
-	{
-		sector_t *mSector = &sectors[i];
-
-		AddDependency(mSector, mSector, checkmap);
-
-		for(unsigned j = 0; j < mSector->e->FakeFloor.Sectors.Size(); j++)
-		{
-			sector_t *sec = mSector->e->FakeFloor.Sectors[j];
-			// no need to make sectors dependent that don't make visual use of the heightsec
-			if (sec->GetHeightSec() == mSector)
-			{
-				AddDependency(mSector, sec, checkmap);
-			}
-		}
-		for(unsigned j = 0; j < mSector->e->XFloor.attached.Size(); j++)
-		{
-			sector_t *sec = mSector->e->XFloor.attached[j];
-			extsector_t::xfloor &x = sec->e->XFloor;
-
-			for(unsigned l = 0;l < x.ffloors.Size(); l++)
-			{
-				// Check if we really need to bother with this 3D floor
-				F3DFloor * rover = x.ffloors[l];
-				if (rover->model != mSector) continue;
-				if (!(rover->flags & FF_EXISTS)) continue;
-				if (rover->flags&FF_NOSHADE) continue; // FF_NOSHADE doesn't create any wall splits 
-
-				AddDependency(mSector, sec, checkmap);
-				break;
-			}
-		}
-
-		for(unsigned j = 0; j < mSector->e->VertexDependencies.Size(); j++)
-		{
-			int vtindex = int(mSector->e->VertexDependencies[j] - vertexes);
-			for(unsigned k = 0; k < vt_linelists[vtindex].Size(); k++)
-			{
-				int ln = vt_linelists[vtindex][k];
-
-				if (checkmap[numvertexes + numsectors + ln] < i)
-				{
-					checkmap[numvertexes + numsectors + ln] = i;
-					side_t *sd1 = lines[ln].sidedef[0];
-					side_t *sd2 = lines[ln].sidedef[1];
-					if (sd1 != NULL) mSector->e->SideDependencies.Push(sd1);
-					if (sd2 != NULL) mSector->e->SideDependencies.Push(sd2);
-				}
-
-			}
-		}
-		mSector->e->SectorDependencies.ShrinkToFit();
-		mSector->e->SideDependencies.ShrinkToFit();
-		mSector->e->VertexDependencies.ShrinkToFit();
-	}
-
-	delete [] checkmap;
-	delete [] vt_linelists;
-}
-
-
 //==========================================================================
 //
 // 
@@ -533,6 +401,12 @@ static void PrepareSegs()
 	for(int i=0;i<numsegs;i++)
 	{
 		seg_t *seg = &segs[i];
+
+		// Account for ZDoom space optimizations that cannot be done for GL
+		unsigned int partner= glsegextras[i].PartnerSeg;
+		if (partner < numsegs)  seg->PartnerSeg = &segs[partner];
+		else seg->PartnerSeg = NULL;
+
 		if (seg->sidedef == NULL) continue;	// miniseg
 		int sidenum = int(seg->sidedef - sides);
 
@@ -594,7 +468,6 @@ void gl_PreprocessLevel()
 	PrepareSegs();
 	PrepareSectorData();
 	InitVertexData();
-	SetupDependencies();
 	for(i=0;i<numsectors;i++) 
 	{
 		sectors[i].dirty = true;
@@ -603,11 +476,6 @@ void gl_PreprocessLevel()
 	}
 
 	gl_InitPortals();
-
-	for(i=0;i<numsides;i++) 
-	{
-		sides[i].dirty = true;
-	}
 
 	if (GLRenderer != NULL) 
 	{
