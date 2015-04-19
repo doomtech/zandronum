@@ -27,6 +27,7 @@
 -	- Fixed: A_LookEx desynced completely online. [Dusk, Edward-san]
 -	- Fixed possible health desync issues in some situations. [Edward-san]
 -	- Fixed: Trying to open a corrupt zip archive crashed the game (backported from ZDoom). [Torr Samaho]
+-	- Fixed: Players were kicked for excessive movement commands instead of simply ignoring the excessive commands. [Torr Samaho]
 
 
 2.0

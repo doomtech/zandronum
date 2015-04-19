@@ -5002,9 +5002,9 @@ static bool server_ProcessMoveCommand( const CLIENT_MOVE_COMMAND_s &ClientMoveCm
 
 	// [BB] Instead of kicking players that send too many movement commands, we just ignroe the excessive commands.
 	// Note: The kick code is still there, but isn't triggered anymore since we are reducing lOverMovementLevel here.
-	if ( g_aClients[ulClient].lOverMovementLevel >= ( MAX_OVERMOVEMENT_LEVEL - 1 ) )
+	if ( g_aClients[ulClient].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
 	{
-		g_aClients[ulClient].lOverMovementLevel--;
+		g_aClients[ulClient].lOverMovementLevel = MAX_OVERMOVEMENT_LEVEL - 1;
 		return false;
 	}
 
