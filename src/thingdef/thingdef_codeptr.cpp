@@ -1397,6 +1397,7 @@ enum FB_Flags
 	FBF_NORANDOM = 2,
 	FBF_EXPLICITANGLE = 4,
 	FBF_NOPITCH = 8,
+	FBF_NOFLASH = 16,
 };
 
 // [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
@@ -1486,7 +1487,7 @@ void A_CustomFireBullets( AActor *self,
 
 		// [BB] Clients only do this for "their" player.
 		if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
-			static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
+			if (!(Flags & FBF_NOFLASH)) static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
 	}
 
 	if (!(Flags & FBF_NOPITCH)) bslope = P_BulletSlope(self);

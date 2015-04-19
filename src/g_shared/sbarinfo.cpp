@@ -1358,7 +1358,10 @@ public:
 		{
 			if(*str == ' ')
 			{
-				ax += font->GetSpaceWidth();
+				if(script->spacingCharacter == '\0')
+					ax += font->GetSpaceWidth();
+				else
+					ax += font->GetCharWidth((int) script->spacingCharacter);
 				str++;
 				continue;
 			}
