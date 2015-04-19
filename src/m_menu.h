@@ -139,8 +139,6 @@ typedef enum {
 	classtype,
 	number,
 	botslot,
-	browserheader,
-	browserslot,
 	txslider,
 	mnnumber,
 
@@ -196,12 +194,6 @@ struct menuitem_t
 		int				  flagmask;
 		int				  joyslidernum;
 	} e;
-	union {
-
-		// Server in the server browser list this slot indexes.
-		LONG			lServer;
-
-	} f;
 };
 
 struct menu_t {

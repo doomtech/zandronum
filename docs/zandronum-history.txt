@@ -16,6 +16,7 @@
 ---
 
 *+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 2739 / GZDoom SVN revision 947. [Torr Samaho]
+!	- Removed the internal server browser. It was only useful for debugging purposes anyway and the CCMDs querymaster and dumpserverlist are sufficient for this. [Torr Samaho]
 
 
 2.1

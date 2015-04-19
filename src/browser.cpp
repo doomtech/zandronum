@@ -460,10 +460,6 @@ bool BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-
-// geh
-void M_BuildServerList( void );
-
 void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 {
 	GAMEMODE_e	GameMode = GAMEMODE_COOPERATIVE;
@@ -735,10 +731,6 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		while ( numIndices-- )
 			NETWORK_ReadByte( pByteStream );
 	}
-
-	// Now that this server has been read in, resort the servers in the menu.
-	if ( bResortList )
-		M_BuildServerList( );
 }
 
 //*****************************************************************************

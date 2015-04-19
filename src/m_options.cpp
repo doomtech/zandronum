@@ -96,7 +96,6 @@
 #include "network.h"
 #include "scoreboard.h"
 #include "version.h"
-#include "browser.h"
 #include "m_random.h"
 #include "lastmanstanding.h"
 #include "campaign.h"
@@ -2236,16 +2235,26 @@ void SendNewColor (int red, int green, int blue);
 void M_PlayerSetup (void);
 void M_AccountSetup( void );
 void M_SetupPlayerSetupMenu( void );
-void M_StartBrowserMenu( void );
 void M_Spectate( void );
 void M_CallVote( void );
 void M_ChangeTeam( void );
 void M_Skirmish( void );
 
+#ifdef WIN32
+// [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
+void M_StartIdeSe( void )
+{
+	I_RunProgram( "idese.exe" );
+	exit( 0 );
+}
+#endif
+
 static menuitem_t MultiplayerItems[] =
 {
 	{ more,		"Offline skirmish",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Skirmish} }, // [RC] Clarification that Skirmish is not hosting
-	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartBrowserMenu} },
+#ifdef WIN32
+	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
+#endif
 	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
 //	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -2326,674 +2335,6 @@ bool M_SkulltagVersionDrawer( void )
 	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	return false;
-}
-
-/*=======================================
- *
- * Browser Menu
- *
- *=======================================*/
-
-static	LONG	g_lSelectedServer = -1;
-static	int		g_iSortedServers[MAX_BROWSER_SERVERS];
-
-void M_RefreshServers( void );
-void M_GetServerInfo( void );
-void M_CheckConnectToServer( void );
-void M_VerifyJoinWithoutWad( int iChar );
-void M_ConnectToServer( void );
-void M_BuildServerList( void );
-bool M_ScrollServerList( bool bUp );
-LONG M_CalcLastSortedIndex( void );
-bool M_ShouldShowServer( LONG lServer );
-bool M_BrowserMenuDrawer( void );
-void M_StartInternalBrowse( void );
-
-static	void			browsermenu_SortServers( ULONG ulSortType );
-static	int	STACK_ARGS	browsermenu_PingCompareFunc( const void *arg1, const void *arg2 );
-static	int	STACK_ARGS	browsermenu_ServerNameCompareFunc( const void *arg1, const void *arg2 );
-static	int	STACK_ARGS	browsermenu_MapNameCompareFunc( const void *arg1, const void *arg2 );
-static	int	STACK_ARGS	browsermenu_PlayersCompareFunc( const void *arg1, const void *arg2 );
-
-#define	NUM_SERVER_SLOTS	8
-#define	SERVER_SLOT_START	8
-
-CVAR( Int, menu_browser_servers, 0, CVAR_ARCHIVE )
-CVAR( Int, menu_browser_gametype, 0, CVAR_ARCHIVE )
-CVAR( Int, menu_browser_sortby, 0, CVAR_ARCHIVE );
-CVAR( Bool, menu_browser_showempty, true, CVAR_ARCHIVE );
-CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
-
-// [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
-#ifdef WIN32
-
-	void M_StartIdeSe( void )
-	{
-		I_RunProgram( "idese.exe" );
-		exit( 0 );
-	}
-
-	static menuitem_t BrowserTypeItems[] = 
-	{
-		{ more,		"IDEse",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
-		{ more,		"Internal browser",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartInternalBrowse} },
-	};
-
-	menu_t BrowserTypeMenu = {
-		"SELECT BROWSER",
-		0,
-		countof(BrowserTypeItems),
-		0,
-		BrowserTypeItems,
-		0,
-		0,
-		0,
-		0,
-		false,
-		NULL,
-	};	
-
-#endif
-
-static menuitem_t BrowserItems[] =
-{
-	{ discrete, "Servers",				{&menu_browser_servers},		{2.0}, {0.0},	{0.0}, {ServerTypeVals} },
-	{ discrete, "Gametype",				{&menu_browser_gametype},		{17.0}, {0.0},	{0.0}, {ServerGameModeVals} },
-	{ discrete, "Sort by",				{&menu_browser_sortby},			{4.0}, {0.0},	{0.0}, {ServerSortTypeVals} },
-	{ discrete, "Show empty",			{&menu_browser_showempty},		{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete,	"Show full",			{&menu_browser_showfull},		{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserheader," ",				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ browserslot, NULL,				{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Refresh",				{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)M_RefreshServers} },
-	{ more,		"Get server info",		{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)M_GetServerInfo} },
-	{ more,		"Join game!",			{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)M_CheckConnectToServer} },
-};
-
-menu_t BrowserMenu = {
-	"SERVER BROWSER",
-	0,
-	countof(BrowserItems),
-	0,
-	BrowserItems,
-	0,
-	0,
-	0,
-	M_BrowserMenuDrawer,
-	false,
-	NULL,
-};
-
-void M_StartBrowserMenu( void )
-{
-	// Switch the menu.
-	#ifdef WIN32
-		M_SwitchMenu( &BrowserTypeMenu );
-	#else
-		M_StartInternalBrowse( );
-	#endif
-}
-
-void M_StartInternalBrowse( void )
-{
-	g_lSelectedServer = -1;
-
-	// First, clear the existing server list.
-	BROWSER_ClearServerList( );
-
-	// Then, query the master server.
-	BROWSER_QueryMasterServer( );
-
-	// Build the server list.
-//	M_BuildServerList( );
-
-	// Switch the menu.
-	M_SwitchMenu( &BrowserMenu );
-}
-
-//*****************************************************************************
-//
-bool M_BrowserMenuDrawer( void )
-{
-	LONG	lNumServers;
-	char	szString[256];
-
-	lNumServers = M_CalcLastSortedIndex( );
-	sprintf( szString, "Currently showing %d servers", static_cast<int> (lNumServers) );
-	screen->DrawText( SmallFont, CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
-
-	return false;
-}
-
-//*****************************************************************************
-//
-void M_RefreshServers( void )
-{
-	// Don't do anything if we're still waiting for a response from the master server.
-	if ( BROWSER_WaitingForMasterResponse( ))
-		return;
-
-	g_lSelectedServer = -1;
-
-	// First, clear the existing server list.
-	BROWSER_ClearServerList( );
-
-	// Then, query the master server.
-	BROWSER_QueryMasterServer( );
-}
-
-//*****************************************************************************
-//
-char	g_szVerifyJoinString[128];
-void M_CheckConnectToServer( void )
-{
-	if ( g_lSelectedServer != -1 && BROWSER_IsActive( g_lSelectedServer ))
-	{
-		ULONG	ulIdx;
-		bool	bNeedToLoadWads = false;
-		FString	WadList;
-		FString	MissingWadList;
-
-		// If the server uses a PWAD, make sure we have it loaded. If not, ask the user
-		// if he'd like to join the server anyway.
-		for ( ulIdx = 0; ulIdx < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )); ulIdx++ )
-		{
-			WadList += BROWSER_GetPWADName( g_lSelectedServer, ulIdx );
-
-			if ( ulIdx + 1 < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )))
-				WadList += " ";
-
-			if ( Wads.CheckIfWadLoaded( BROWSER_GetPWADName( g_lSelectedServer, ulIdx )) == -1 )
-			{
-				// A needed wad hasn't bee loaded! Signify that we'll need to load wads.
-				bNeedToLoadWads = true;
-				// [BB] Save the wads we are missing so that we can print a meaningful error message.
-				MissingWadList += BROWSER_GetPWADName( g_lSelectedServer, ulIdx );
-				MissingWadList += "\n";
-			}
-		}
-
-		// Clear away the menus.
-		M_ClearMenus( );
-
-		// Check if we need to load up PWADs before we join the server.
-		if ( bNeedToLoadWads )
-		{
-			I_Error ( "Can't connect to \"%s\". You don't have the following wads loaded:\n%s\nNote: It is recommended to use Doomseeker or IDE to join servers.", BROWSER_GetHostName ( g_lSelectedServer ), MissingWadList.GetChars() );
-
-			gamestate = GS_FULLCONSOLE;
-			if ( 0 )//D_LoadWads( szWadList ))
-			{
-				// Everything checked out! Join the server.
-				M_ConnectToServer( );
-			}
-		}
-		else
-		{
-			// Everything checked out! Join the server.
-			M_ConnectToServer( );
-		}
-	}
-}
-
-//*****************************************************************************
-//
-void M_VerifyJoinWithoutWad( int iChar )
-{
-	if ( iChar != 'y' )
-		return;
-
-	// User wants to join the server.
-	M_ConnectToServer( );
-}
-
-//*****************************************************************************
-//
-void M_ConnectToServer( void )
-{
-	if ( g_lSelectedServer != -1 && BROWSER_IsActive( g_lSelectedServer ))
-	{
-		char	szString[128];
-
-		// Build our command string.
-		sprintf( szString, "connect %s", NETWORK_AddressToString( BROWSER_GetAddress( g_lSelectedServer )));
-
-		// Do the equavilent of typing "connect <IP>" in the console.
-		AddCommandString( szString );
-
-		// Clear out the menus.
-		M_ClearMenus( );
-	}
-}
-
-//*****************************************************************************
-//
-void M_BuildServerList( void )
-{
-	ULONG	ulIdx;
-
-	// First, sort the menus.
-	browsermenu_SortServers( menu_browser_sortby );
-
-	for ( ulIdx = SERVER_SLOT_START; ulIdx < ( SERVER_SLOT_START + NUM_SERVER_SLOTS ); ulIdx++ )
-		BrowserItems[ulIdx].f.lServer = g_iSortedServers[ulIdx - SERVER_SLOT_START];
-}
-
-//*****************************************************************************
-//
-bool M_ScrollServerList( bool bUp )
-{
-	ULONG	ulIdx;
-
-	if ( bUp )
-	{
-		if ( BrowserItems[SERVER_SLOT_START].f.lServer != g_iSortedServers[0] )
-		{
-			for ( ulIdx = SERVER_SLOT_START; ulIdx < ( SERVER_SLOT_START + NUM_SERVER_SLOTS ); ulIdx++ )
-			{
-				ULONG	ulSortedIdx;
-
-				// Go through the sorted server list and attempt to match it with the
-				// server in this menu slot. If it matches, change the menu server slot
-				// to the previous sorted server slot.
-				for ( ulSortedIdx = 1; ulSortedIdx < MAX_BROWSER_SERVERS; ulSortedIdx++ )
-				{
-					if ( BrowserItems[ulIdx].f.lServer == g_iSortedServers[ulSortedIdx] )
-					{
-						BrowserItems[ulIdx].f.lServer = g_iSortedServers[ulSortedIdx - 1];
-						break;
-					}
-				}
-			}
-
-			// Scrolling took place.
-			return ( true );
-		}
-		// No scrolling took place.
-		else
-			return ( false );
-	}
-	else
-	{
-		// No servers in the list.
-		if ( M_CalcLastSortedIndex( ) == 0 )
-			return ( false );
-
-		if ( BrowserItems[SERVER_SLOT_START + NUM_SERVER_SLOTS].f.lServer != g_iSortedServers[M_CalcLastSortedIndex( ) - 1] )
-		{
-			for ( ulIdx = SERVER_SLOT_START; ulIdx < ( SERVER_SLOT_START + NUM_SERVER_SLOTS ); ulIdx++ )
-			{
-				ULONG	ulSortedIdx;
-
-				// Go through the sorted server list and attempt to match it with the
-				// server in this menu slot. If it matches, change the menu server slot
-				// to the next sorted server slot.
-				for ( ulSortedIdx = 0; ulSortedIdx < MAX_BROWSER_SERVERS - 1; ulSortedIdx++ )
-				{
-					if ( BrowserItems[ulIdx].f.lServer == g_iSortedServers[ulSortedIdx] )
-					{
-						BrowserItems[ulIdx].f.lServer = g_iSortedServers[ulSortedIdx + 1];
-						break;
-					}
-				}
-			}
-
-			// Scrolling took place.
-			return ( true );
-		}
-		// No scrolling took place.
-		else
-			return ( false );
-	}
-}
-
-//*****************************************************************************
-//
-LONG M_CalcLastSortedIndex( void )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_BROWSER_SERVERS; ulIdx++ )
-	{
-		if ( M_ShouldShowServer( g_iSortedServers[ulIdx] ) == false )
-			return ( ulIdx );
-	}
-
-	return ( ulIdx );
-}
-
-//*****************************************************************************
-//
-bool M_ShouldShowServer( LONG lServer )
-{
-	// Don't show inactive servers.
-	if ( BROWSER_IsActive( lServer ) == false )
-		return ( false );
-/*
-	// Don't show servers that don't have the same IWAD we do.
-	if ( stricmp( SERVER_MASTER_GetIWADName( ), BROWSER_GetIWADName( lServer )) != 0 )
-		return ( false );
-*/
-	// Don't show Internet servers if we are only showing LAN servers.
-	if ( menu_browser_servers == 1 )
-	{
-		if ( BROWSER_IsLAN( lServer ) == false )
-			return ( false );
-	}
-
-	// Don't show LAN servers if we are only showing Internet servers.
-	if ( menu_browser_servers == 0 )
-	{
-		if ( BROWSER_IsLAN( lServer ) == true )
-			return ( false );
-	}
-
-	// Don't show empty servers.
-	if ( menu_browser_showempty == false )
-	{
-		if ( BROWSER_GetNumPlayers( lServer ) == 0 )
-			return ( false );
-	}
-
-	// Don't show full servers.
-	if ( menu_browser_showfull == false )
-	{
-		if ( BROWSER_GetNumPlayers( lServer ) ==  BROWSER_GetMaxClients( lServer ))
-			return ( false );
-	}
-
-	// Don't show servers that have the gameplay mode we want.
-	if ( menu_browser_gametype != 0 )
-	{
-		if ( BROWSER_GetGameMode( lServer ) != ( menu_browser_gametype - 1 ))
-			return ( false );
-	}
-
-	return ( true );
-}
-
-//*****************************************************************************
-//
-static void browsermenu_SortServers( ULONG ulSortType )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_BROWSER_SERVERS; ulIdx++ )
-		g_iSortedServers[ulIdx] = ulIdx;
-
-	switch ( ulSortType )
-	{
-	// Ping.
-	case 0:
-
-		qsort( g_iSortedServers, MAX_BROWSER_SERVERS, sizeof( int ), browsermenu_PingCompareFunc );
-		break;
-	// Server name.
-	case 1:
-
-		qsort( g_iSortedServers, MAX_BROWSER_SERVERS, sizeof( int ), browsermenu_ServerNameCompareFunc );
-		break;
-	// Map name.
-	case 2:
-
-		qsort( g_iSortedServers, MAX_BROWSER_SERVERS, sizeof( int ), browsermenu_MapNameCompareFunc );
-		break;
-	// Players.
-	case 3:
-
-		qsort( g_iSortedServers, MAX_BROWSER_SERVERS, sizeof( int ), browsermenu_PlayersCompareFunc );
-		break;
-	}
-}
-
-//*****************************************************************************
-//
-static int STACK_ARGS browsermenu_PingCompareFunc( const void *arg1, const void *arg2 )
-{
-	if (( M_ShouldShowServer( *(int *)arg1 ) == false ) && ( M_ShouldShowServer( *(int *)arg2 ) == false ))
-		return ( 0 );
-
-	if ( M_ShouldShowServer( *(int *)arg1 ) == false )
-		return ( 1 );
-
-	if ( M_ShouldShowServer( *(int *)arg2 ) == false )
-		return ( -1 );
-
-	return ( BROWSER_GetPing( *(int *)arg1 ) - BROWSER_GetPing( *(int *)arg2 ));
-}
-
-//*****************************************************************************
-//
-static int STACK_ARGS browsermenu_ServerNameCompareFunc( const void *arg1, const void *arg2 )
-{
-	if (( M_ShouldShowServer( *(int *)arg1 ) == false ) && ( M_ShouldShowServer( *(int *)arg2 ) == false ))
-		return ( 0 );
-
-	if ( M_ShouldShowServer( *(int *)arg1 ) == false )
-		return ( 1 );
-
-	if ( M_ShouldShowServer( *(int *)arg2 ) == false )
-		return ( -1 );
-
-	return ( stricmp( BROWSER_GetHostName( *(int *)arg1 ), BROWSER_GetHostName( *(int *)arg2 )));
-}
-
-//*****************************************************************************
-//
-static int STACK_ARGS browsermenu_MapNameCompareFunc( const void *arg1, const void *arg2 )
-{
-	if (( M_ShouldShowServer( *(int *)arg1 ) == false ) && ( M_ShouldShowServer( *(int *)arg2 ) == false ))
-		return ( 0 );
-
-	if ( M_ShouldShowServer( *(int *)arg1 ) == false )
-		return ( 1 );
-
-	if ( M_ShouldShowServer( *(int *)arg2 ) == false )
-		return ( -1 );
-
-	return ( stricmp( BROWSER_GetMapname( *(int *)arg1 ), BROWSER_GetMapname( *(int *)arg2 )));
-}
-
-//*****************************************************************************
-//
-static int STACK_ARGS browsermenu_PlayersCompareFunc( const void *arg1, const void *arg2 )
-{
-	if (( M_ShouldShowServer( *(int *)arg1 ) == false ) && ( M_ShouldShowServer( *(int *)arg2 ) == false ))
-		return ( 0 );
-
-	if ( M_ShouldShowServer( *(int *)arg1 ) == false )
-		return ( 1 );
-
-	if ( M_ShouldShowServer( *(int *)arg2 ) == false )
-		return ( -1 );
-
-	return ( BROWSER_GetNumPlayers( *(int *)arg2 ) - BROWSER_GetNumPlayers( *(int *)arg1 ));
-}
-
-/*=======================================
- *
- * Server Info Menu
- *
- *=======================================*/
-
-void M_ReturnToBrowserMenu( void );
-bool M_DrawServerInfo( void );
-
-static menuitem_t ServerInfoItems[] =
-{
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},							{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Return to browser",	{NULL},							{0.0}, {0.0},	{0.0}, {(value_t *)M_ReturnToBrowserMenu} },
-};
-
-menu_t ServerInfoMenu = {
-	"SERVER INFORMATION",
-	20,
-	countof(ServerInfoItems),
-	0,
-	ServerInfoItems,
-	0,
-	0,
-	0,
-	M_DrawServerInfo,
-	false,
-	NULL,
-	MNF_ALIGNLEFT,
-};
-
-//*****************************************************************************
-//
-void M_ReturnToBrowserMenu( void )
-{
-	CurrentMenu->lastOn = CurrentItem;
-	M_PopMenuStack( );
-}
-
-//*****************************************************************************
-//
-bool M_DrawServerInfo( void )
-{
-	ULONG	ulIdx;
-	ULONG	ulCurYPos;
-	ULONG	ulTextHeight;
-	char	szString[256];
-
-	if ( g_lSelectedServer == -1 )
-		return false;
-
-	ulCurYPos = 32;
-	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
-
-	sprintf( szString, "Name: \\cc%s", BROWSER_GetHostName( g_lSelectedServer ));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "IP: \\cc%s", NETWORK_AddressToString( BROWSER_GetAddress( g_lSelectedServer )));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "Map: \\cc%s", BROWSER_GetMapname( g_lSelectedServer ));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "Gametype: \\cc%s", GameModeVals[BROWSER_GetGameMode( g_lSelectedServer )].name );
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "IWAD: \\cc%s", BROWSER_GetIWADName( g_lSelectedServer ));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "PWADs: \\cc%d", static_cast<int> (BROWSER_GetNumPWADs( g_lSelectedServer )));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	for ( ulIdx = 0; ulIdx < static_cast<unsigned> (MIN( (int)BROWSER_GetNumPWADs( g_lSelectedServer ), 4 )); ulIdx++ )
-	{
-		sprintf( szString, "\\cc%s", BROWSER_GetPWADName( g_lSelectedServer, ulIdx ));
-		V_ColorizeString( szString );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-		ulCurYPos += ulTextHeight;
-	}
-
-	sprintf( szString, "WAD URL: \\cc%s", BROWSER_GetWadURL( g_lSelectedServer ));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "Host e-mail: \\cc%s", BROWSER_GetEmailAddress( g_lSelectedServer ));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	sprintf( szString, "Players: \\cc%d/%d", static_cast<int> (BROWSER_GetNumPlayers( g_lSelectedServer )), static_cast<int> (BROWSER_GetMaxClients( g_lSelectedServer )));
-	V_ColorizeString( szString );
-	screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-	ulCurYPos += ulTextHeight;
-
-	if ( BROWSER_GetNumPlayers( g_lSelectedServer ))
-	{
-		ulCurYPos += ulTextHeight;
-
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 32, ulCurYPos, "NAME", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 192, ulCurYPos, "FRAGS", DTA_Clean, true, TAG_DONE );
-		screen->DrawText( SmallFont, CR_UNTRANSLATED, 256, ulCurYPos, "PING", DTA_Clean, true, TAG_DONE );
-
-		ulCurYPos += ( ulTextHeight * 2 );
-
-		for ( ulIdx = 0; static_cast<signed> (ulIdx) < MIN( (int)BROWSER_GetNumPlayers( g_lSelectedServer ), 4 ); ulIdx++ )
-		{
-			sprintf( szString, "%s", BROWSER_GetPlayerName( g_lSelectedServer, ulIdx ));
-			V_ColorizeString( szString );
-			screen->DrawText( SmallFont, CR_GRAY, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerFragcount( g_lSelectedServer, ulIdx )));
-			V_ColorizeString( szString );
-			screen->DrawText( SmallFont, CR_GRAY, 192, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerPing( g_lSelectedServer, ulIdx )));
-			V_ColorizeString( szString );
-			screen->DrawText( SmallFont, CR_GRAY, 256, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
-
-			ulCurYPos += ulTextHeight;
-		}
-	}
-
-	return false;
-}
-
-//*****************************************************************************
-//
-void M_GetServerInfo( void )
-{
-	if ( g_lSelectedServer != -1 )
-	{
-		// Switch the menu.
-		M_SwitchMenu( &ServerInfoMenu );
-	}
 }
 
 /*=======================================
@@ -4321,7 +3662,7 @@ static void CalcIndent (menu_t *menu)
 	for (i = 0; i < menu->numitems; i++)
 	{
 		item = menu->items + i;
-		if (item->type != whitetext && item->type != redtext && item->type != browserheader && item->type != browserslot && item->type != screenres &&
+		if (item->type != whitetext && item->type != redtext && item->type != screenres &&
 			item->type != joymore && (item->type != discrete || item->c.discretecenter != 1))
 		{
 			thiswidth = SmallFont->StringWidth (item->label);
@@ -4581,7 +3922,7 @@ void M_OptDrawer ()
 			}
 		}
 
-		if (item->type != screenres && item->type != browserslot)
+		if (item->type != screenres)
 		{
 			FString somestring;
 			const char *label;
@@ -4646,16 +3987,6 @@ void M_OptDrawer ()
 			case colorpicker:
 				x = indent + cursorspace;
 				color = MoreColor;
-				break;
-
-			case browserheader:
-
-				screen->DrawText( SmallFont, CR_UNTRANSLATED, 16, y, "PING", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( SmallFont, CR_UNTRANSLATED, 48, y, "NAME", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( SmallFont, CR_UNTRANSLATED, /*128*/160, y, "MAP", DTA_Clean, true, TAG_DONE );
-//				screen->DrawText( SmallFont, CR_UNTRANSLATED, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( SmallFont, CR_UNTRANSLATED, 224, y, "TYPE", DTA_Clean, true, TAG_DONE );
-				screen->DrawText( SmallFont, CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
 				break;
 
 			case discrete:
@@ -5170,64 +4501,6 @@ void M_OptDrawer ()
 				M_DrawConText(CR_RED, item->a.selmode * colwidth + 8 * CleanXfac_1, y - CleanYfac_1 + labelofs, "\xd");
 			}
 		}
-		else if ( item->type == browserslot )
-		{
-			LONG	lServer;
-			char	szString[32];
-			LONG	lColor;
-
-			lServer = item->f.lServer;
-
-			if ( M_ShouldShowServer( lServer ))
-			{
-				if ( lServer == g_lSelectedServer )
-					lColor = CR_ORANGE;
-				else
-					lColor = CR_GRAY;
-
-				// Draw ping.
-				sprintf( szString, "%d", static_cast<int> (BROWSER_GetPing( lServer )));
-				screen->DrawText( SmallFont, lColor, 16, y, szString, DTA_Clean, true, TAG_DONE );
-
-				// Draw name.
-				strncpy( szString, BROWSER_GetHostName( lServer ), 12 );
-				szString[12] = 0;
-				if ( strlen( BROWSER_GetHostName( lServer )) > 12 )
-					sprintf( szString + strlen ( szString ), "..." );
-				screen->DrawText( SmallFont, lColor, 48, y, szString, DTA_Clean, true, TAG_DONE );
-
-				// Draw map.
-				strncpy( szString, BROWSER_GetMapname( lServer ), 8 );
-				screen->DrawText( SmallFont, lColor, /*128*/160, y, szString, DTA_Clean, true, TAG_DONE );
-/*
-				// Draw wad.
-				if ( BROWSER_Get
-				sprintf( szString, "%d", BROWSER_GetPing( lServer ));
-				screen->DrawText( SmallFont, CR_GRAY, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
-*/
-				// Draw gametype.
-				strncpy( szString, GAMEMODE_GetShortName( BROWSER_GetGameMode( lServer )), 8 );
-				screen->DrawText( SmallFont, lColor, 224, y, szString, DTA_Clean, true, TAG_DONE );
-
-				// Draw players.
-				sprintf( szString, "%d/%d", static_cast<int> (BROWSER_GetNumPlayers( lServer )), static_cast<int> (BROWSER_GetMaxClients( lServer )));
-				screen->DrawText( SmallFont, lColor, 272, y, szString, DTA_Clean, true, TAG_DONE );
-
-				// Draw the cursor.
-				if (( i == CurrentItem ) && ( skullAnimCounter < 6 ))
-					screen->DrawText( ConFont, CR_RED, 6, y-1 + labelofs, "\xd", DTA_Clean, true, TAG_DONE );
-
-				// If the server in the highest browser slot is not the first server in the sorted server list, draw
-				// an up scroll arrow. (If this happens, we must have scrolled down.)
-				if (( i == SERVER_SLOT_START ) && ( lServer != g_iSortedServers[0] ) && ( BROWSER_CalcNumServers( )))
-					screen->DrawText( ConFont, CR_ORANGE, 300, y-1 + labelofs - 4, "\x1a", DTA_Clean, true, TAG_DONE );
-
-				// If the server in the highest browser slot is not the last server in the sorted server list, draw
-				// a down scroll arrow.
-				if (( i == ( SERVER_SLOT_START + NUM_SERVER_SLOTS - 1 )) && ( lServer != g_iSortedServers[M_CalcLastSortedIndex( ) - 1] ) && ( BROWSER_CalcNumServers( )))
-					screen->DrawText( ConFont, CR_ORANGE, 300, y-1 + labelofs + 4, "\x1b", DTA_Clean, true, TAG_DONE );
-			}
-		}
 	}
 
 	CanScrollUp = (CurrentMenu->scrollpos > 0);
@@ -5377,7 +4650,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 		if (CurrentMenu->numitems > 1)
 		{
 			int modecol;
-			bool	bMoveCursor = true;
 
 			if (item->type == screenres)
 			{
@@ -5389,39 +4661,25 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				modecol = 0;
 			}
 
-			if (( CurrentMenu->items[CurrentItem].type == browserslot ) &&
-				( CurrentItem == SERVER_SLOT_START + NUM_SERVER_SLOTS - 1 ) &&
-				( CurrentMenu->items[CurrentItem].f.lServer != g_iSortedServers[M_CalcLastSortedIndex( ) - 1] ))
+			do
 			{
-				M_ScrollServerList( false );
-				bMoveCursor = false;
-			}
-
-			if ( bMoveCursor )
-			{
-				do
+				CurrentItem++;
+				if (CanScrollDown && CurrentItem == VisBottom)
 				{
-					CurrentItem++;
-					if (CanScrollDown && CurrentItem == VisBottom)
-					{
-						CurrentMenu->scrollpos++;
-						VisBottom++;
-					}
-					if (CurrentItem == CurrentMenu->numitems)
-					{
-						CurrentMenu->scrollpos = 0;
-						CurrentItem = 0;
-					}
-				} while (CurrentMenu->items[CurrentItem].type == redtext ||
-						 CurrentMenu->items[CurrentItem].type == whitetext ||
-						 CurrentMenu->items[CurrentItem].type == browserheader ||
-						 (CurrentMenu->items[CurrentItem].type == browserslot &&
-						  M_ShouldShowServer( CurrentMenu->items[CurrentItem].f.lServer ) == false) ||
-						 (CurrentMenu->items[CurrentItem].type == screenres &&
-						  !CurrentMenu->items[CurrentItem].b.res1) ||
-						 (CurrentMenu->items[CurrentItem].type == numberedmore &&
-						  !CurrentMenu->items[CurrentItem].b.position));
-			}
+					CurrentMenu->scrollpos++;
+					VisBottom++;
+				}
+				if (CurrentItem == CurrentMenu->numitems)
+				{
+					CurrentMenu->scrollpos = 0;
+					CurrentItem = 0;
+				}
+			} while (CurrentMenu->items[CurrentItem].type == redtext ||
+					 CurrentMenu->items[CurrentItem].type == whitetext ||
+					 (CurrentMenu->items[CurrentItem].type == screenres &&
+					  !CurrentMenu->items[CurrentItem].b.res1) ||
+					 (CurrentMenu->items[CurrentItem].type == numberedmore &&
+					  !CurrentMenu->items[CurrentItem].b.position));
 
 			if (CurrentMenu->items[CurrentItem].type == screenres)
 			{
@@ -5441,7 +4699,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 		if (CurrentMenu->numitems > 1)
 		{
 			int modecol;
-			bool	bMoveCursor = true;
 
 			if (item->type == screenres)
 			{
@@ -5453,67 +4710,53 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 				modecol = 0;
 			}
 
-			if (( CurrentMenu->items[CurrentItem].type == browserslot ) &&
-				( CurrentItem == SERVER_SLOT_START ) &&
-				( CurrentMenu->items[CurrentItem].f.lServer != g_iSortedServers[0] ))
+			do
 			{
-				M_ScrollServerList( true );
-				bMoveCursor = false;
-			}
-
-			if ( bMoveCursor )
-			{
-				do
+				CurrentItem--;
+				if (CurrentMenu->scrollpos > 0 &&
+					CurrentItem == CurrentMenu->scrolltop + CurrentMenu->scrollpos)
 				{
-					CurrentItem--;
-					if (CurrentMenu->scrollpos > 0 &&
-						CurrentItem == CurrentMenu->scrolltop + CurrentMenu->scrollpos)
-					{
-						CurrentMenu->scrollpos--;
-					}
-					if (CurrentItem < 0)
-					{
-						int ytop, maxitems, rowheight;
+					CurrentMenu->scrollpos--;
+				}
+				if (CurrentItem < 0)
+				{
+					int ytop, maxitems, rowheight;
 
-						// Figure out how many lines of text fit on the menu
-						if (CurrentMenu->y != 0)
-						{
-							ytop = CurrentMenu->y;
-						}
-						else if (BigFont && CurrentMenu->texttitle)
-						{
-							ytop = 15 + BigFont->GetHeight ();
-						}
-						else
-						{
-							ytop = 15;
-						}
-						if (!(gameinfo.gametype & GAME_DoomChex))
-						{
-							ytop -= 2;
-							rowheight = 9;
-						}
-						else
-						{
-							rowheight = 8;
-						}
-						ytop *= CleanYfac_1;
-						rowheight *= CleanYfac_1;
-						maxitems = (screen->GetHeight() - rowheight - ytop) / rowheight + 1;
-
-						CurrentMenu->scrollpos = MAX (0,CurrentMenu->numitems - maxitems + CurrentMenu->scrolltop);
-						CurrentItem = CurrentMenu->numitems - 1;
+					// Figure out how many lines of text fit on the menu
+					if (CurrentMenu->y != 0)
+					{
+						ytop = CurrentMenu->y;
 					}
-				} while (CurrentMenu->items[CurrentItem].type == redtext ||
-						 CurrentMenu->items[CurrentItem].type == whitetext ||
-						 CurrentMenu->items[CurrentItem].type == browserheader ||
-						 (CurrentMenu->items[CurrentItem].type == browserslot &&
-						  M_ShouldShowServer( CurrentMenu->items[CurrentItem].f.lServer ) == false) ||
-						 (CurrentMenu->items[CurrentItem].type == screenres &&
-						  !CurrentMenu->items[CurrentItem].b.res1) ||
-						 (CurrentMenu->items[CurrentItem].type == numberedmore &&
-						  !CurrentMenu->items[CurrentItem].b.position));
-			}
+					else if (BigFont && CurrentMenu->texttitle)
+					{
+						ytop = 15 + BigFont->GetHeight ();
+					}
+					else
+					{
+						ytop = 15;
+					}
+					if (!(gameinfo.gametype & GAME_DoomChex))
+					{
+						ytop -= 2;
+						rowheight = 9;
+					}
+					else
+					{
+						rowheight = 8;
+					}
+					ytop *= CleanYfac_1;
+					rowheight *= CleanYfac_1;
+					maxitems = (screen->GetHeight() - rowheight - ytop) / rowheight + 1;
+
+					CurrentMenu->scrollpos = MAX (0,CurrentMenu->numitems - maxitems + CurrentMenu->scrolltop);
+					CurrentItem = CurrentMenu->numitems - 1;
+				}
+			} while (CurrentMenu->items[CurrentItem].type == redtext ||
+					 CurrentMenu->items[CurrentItem].type == whitetext ||
+					 (CurrentMenu->items[CurrentItem].type == screenres &&
+					  !CurrentMenu->items[CurrentItem].b.res1) ||
+					 (CurrentMenu->items[CurrentItem].type == numberedmore &&
+					  !CurrentMenu->items[CurrentItem].b.position));
 
 			if (CurrentMenu->items[CurrentItem].type == screenres)
 				CurrentMenu->items[CurrentItem].a.selmode = modecol;
@@ -5533,7 +4776,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			CurrentItem = CurrentMenu->scrolltop + CurrentMenu->scrollpos + 1;
 			while (CurrentMenu->items[CurrentItem].type == redtext ||
 				   CurrentMenu->items[CurrentItem].type == whitetext ||
-				   CurrentMenu->items[CurrentItem].type == browserheader ||
 				   (CurrentMenu->items[CurrentItem].type == screenres &&
 					!CurrentMenu->items[CurrentItem].b.res1) ||
 				   (CurrentMenu->items[CurrentItem].type == numberedmore &&
@@ -5557,7 +4799,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 			CurrentItem = CurrentMenu->scrolltop + CurrentMenu->scrollpos + 1;
 			while (CurrentMenu->items[CurrentItem].type == redtext ||
 				   CurrentMenu->items[CurrentItem].type == whitetext ||
-				   CurrentMenu->items[CurrentItem].type == browserheader ||
 				   (CurrentMenu->items[CurrentItem].type == screenres &&
 					!CurrentMenu->items[CurrentItem].b.res1) ||
 				   (CurrentMenu->items[CurrentItem].type == numberedmore &&
@@ -5733,10 +4974,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 					// Hack hack. Rebuild list of resolutions
 					if (item->e.values == Depths)
 						BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
-
-					// [BC] Hack for the browser menu. If we changed a setting, rebuild the list.
-					if ( CurrentMenu == &BrowserMenu )
-						M_BuildServerList( );
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE);
 				break;
@@ -6162,10 +5399,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 					// Hack hack. Rebuild list of resolutions
 					if (item->e.values == Depths)
 						BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
-
-					// [BC] Hack for the browser menu. If we changed a setting, rebuild the list.
-					if ( CurrentMenu == &BrowserMenu )
-						M_BuildServerList( );
 				}
 				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE);
 				break;
@@ -6572,14 +5805,6 @@ void M_OptButtonHandler(EMenuKey key, bool repeat)
 
 			// Enter string input mode.
 			g_bStringInput = true;
-		}
-		else if ( item->type == browserslot )
-		{
-			if ( M_ShouldShowServer( item->f.lServer ))
-			{
-				g_lSelectedServer = item->f.lServer;
-				S_Sound (CHAN_VOICE | CHAN_UI, "menu/choose", 1, ATTN_NONE);
-			}
 		}
 
 		break;

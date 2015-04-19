@@ -444,7 +444,6 @@ void PWO_GenerateMenu()
 	onoff.c.max = 0.0;
 	onoff.d.graycheck = NULL;
 	onoff.e.values = SwitchOnPickupVals;
-	onoff.f.lServer = 0;
 	Items2.Push(onoff);
 	onoff.label = "Allow switch with no ammo";
 	onoff.b.numvalues = 2.0;
@@ -477,7 +476,6 @@ void PWO_GenerateMenu()
 			classdef.c.max = 0.0;
 			classdef.d.step = 0.0;
 			classdef.e.values = NULL;
-			classdef.f.lServer = 0;
 			Items2.Push(classdef);
 			for(unsigned int j = 0; j < PWODefs[i].ClassChildren.Size(); j++)
 			{
@@ -501,7 +499,6 @@ void PWO_GenerateMenu()
 				itemdef.c.max = 1.0;
 				itemdef.d.step = 0.05;
 				itemdef.e.values = NULL;
-				itemdef.f.lServer = 0;
 				Items2.Push(itemdef);
 			}
 		}
@@ -527,7 +524,6 @@ void PWO_GenerateMenu()
 			itemdef.c.max = 1.0;
 			itemdef.d.step = 0.05;
 			itemdef.e.values = NULL;
-			itemdef.f.lServer = 0;
 			Items2.Push(itemdef);
 		}
 	}
