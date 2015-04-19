@@ -4364,6 +4364,8 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 	}
 
+	gl_InitSegs();
+
 	if (!buildmap)
 	{
 		// [RH] Spawn slope creating things first.

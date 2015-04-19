@@ -1412,6 +1412,11 @@ void P_SpawnSpecials (void)
 				0, -1, int(sector-sectors), 0);
 			break;
 
+		case Sector_Hidden:
+			sector->MoreFlags |= SECF_HIDDEN;
+			sector->special &= 0xff00;
+			break;
+
 		default:
 
 			// [BC] Don't run any other specials in client mode.

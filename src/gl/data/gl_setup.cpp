@@ -67,6 +67,44 @@ void gl_InitData();
 
 //==========================================================================
 //
+// This must be available before spawning the actors so
+// gl_PreprocessLevel is too late.
+//
+//==========================================================================
+
+void gl_InitSegs()
+{
+	// set up the extra data in case the map was loaded with regular node that might pass as GL nodes.
+	if (glsegextras == NULL)
+	{
+		glsegextras = new glsegextra_t[numsegs];
+		for(int i=0;i<numsegs;i++)
+		{
+			glsegextras[i].PartnerSeg = DWORD_MAX;
+		}
+		for (int i=0; i<numsubsectors; i++)
+		{
+			int seg = int(subsectors[i].firstline-segs);
+			for(DWORD j=0;j<subsectors[i].numlines;j++)
+			{
+				glsegextras[j+seg].Subsector = &subsectors[i];
+			}
+		}
+	}
+	
+	for(int i=0;i<numsegs;i++)
+	{
+		seg_t *seg = &segs[i];
+
+		// Account for ZDoom space optimizations that cannot be done for GL
+		unsigned int partner= glsegextras[i].PartnerSeg;
+		if (partner < numsegs)  seg->PartnerSeg = &segs[partner];
+		else seg->PartnerSeg = NULL;
+	}
+}
+
+//==========================================================================
+//
 // prepare subsectors for GL rendering
 // - analyze rendering hacks using open sectors
 // - assign a render sector (for self referencing sectors)
@@ -420,11 +458,6 @@ static void PrepareSegs()
 	for(int i=0;i<numsegs;i++)
 	{
 		seg_t *seg = &segs[i];
-
-		// Account for ZDoom space optimizations that cannot be done for GL
-		unsigned int partner= glsegextras[i].PartnerSeg;
-		if (partner < numsegs)  seg->PartnerSeg = &segs[partner];
-		else seg->PartnerSeg = NULL;
 
 		if (seg->sidedef == NULL) continue;	// miniseg
 		int sidenum = int(seg->sidedef - sides);

@@ -569,6 +569,15 @@ void APlayerPawn::PostBeginPlay()
 {
 	Super::PostBeginPlay();
 	SetupWeaponSlots();
+
+	// Voodoo dolls: restore original floorz/ceilingz logic
+	if (player->mo != this)
+	{
+		dropoffz = floorz = Sector->floorplane.ZatPoint(x, y);
+		ceilingz = Sector->ceilingplane.ZatPoint(x, y);
+		P_FindFloorCeiling(this, true);
+		z = floorz;
+	}
 }
 
 //===========================================================================

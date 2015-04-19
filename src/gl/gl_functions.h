@@ -6,6 +6,7 @@
 class AActor;
 
 // External entry points for the GL renderer
+void gl_InitSegs();
 void gl_PreprocessLevel();
 void gl_CleanLevelData();
 // [BB] Get value of gl_lightmode, respecting ZADF_FORCE_GL_DEFAULTS.
