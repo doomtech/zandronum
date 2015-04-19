@@ -2222,22 +2222,25 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_LookEx)
 
 	if (self->target && !(self->flags & MF_INCHASE))
 	{
-		if (seestate)
-		{
+        if (!(flags & LOF_NOJUMP))
+        {
+            if (seestate)
+            {
 			// [TP] Tell clients to set the thing's state.
 			if ( NETWORK_GetState() == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingFrame( self, seestate );
 
-			self->SetState (seestate);
-		}
-		else
-		{
+                self->SetState (seestate);
+            }
+            else
+            {
 			// [TP] Tell clients to set the thing's state.
 			if ( NETWORK_GetState() == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingState( self, STATE_SEE );
 
-			self->SetState (self->SeeState);
-		}
+                self->SetState (self->SeeState);
+            }
+        }
 	}
 }
 
