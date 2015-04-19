@@ -44,9 +44,9 @@ unsigned int GetRevisionNumber();
 
 /** Lots of different version numbers **/
 
-#define GAME_MAJOR_VERSION 2
-#define GAME_MINOR_VERSION 1
-#define GAMEVER_STRING "2.1"
+#define GAME_MAJOR_VERSION 3
+#define GAME_MINOR_VERSION 0
+#define GAMEVER_STRING "3.0"
 #define DOTVERSIONSTR GAMEVER_STRING "-alpha"
 #define VERSIONSTR DOTVERSIONSTR
 
