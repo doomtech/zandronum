@@ -144,12 +144,17 @@ typedef enum
 #define	NETMSG_HIGH		2
 
 // Which actor flags are being updated?
-#define	FLAGSET_FLAGS		1
-#define	FLAGSET_FLAGS2		2
-#define	FLAGSET_FLAGS3		3
-#define	FLAGSET_FLAGS4		4
-#define	FLAGSET_FLAGS5		5
-#define	FLAGSET_FLAGSST		6
+enum FlagSet
+{
+	FLAGSET_UNKNOWN,
+	FLAGSET_FLAGS,
+	FLAGSET_FLAGS2,
+	FLAGSET_FLAGS3,
+	FLAGSET_FLAGS4,
+	FLAGSET_FLAGS5,
+	FLAGSET_FLAGS6,
+	FLAGSET_FLAGSST
+};
 
 // Which actor sound is being updated?
 #define	ACTORSOUND_SEESOUND			1

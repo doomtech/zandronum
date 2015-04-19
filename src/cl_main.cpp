@@ -6636,14 +6636,14 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 {
 	LONG	lID;
 	AActor	*pActor;
-	ULONG	ulFlagSet;
+	FlagSet flagset;
 	ULONG	ulFlags;
 
 	// Get the ID of the actor whose flags are being updated.
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the which flags are being updated.
-	ulFlagSet = NETWORK_ReadByte( pByteStream );
+	flagset = static_cast<FlagSet>( NETWORK_ReadByte( pByteStream ) );
 
 	// Read in the flags.
 	ulFlags = NETWORK_ReadLong( pByteStream );
@@ -6658,7 +6658,7 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	switch ( ulFlagSet )
+	switch ( flagset )
 	{
 	case FLAGSET_FLAGS:
 		{
@@ -6691,9 +6691,18 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 
 		pActor->flags5 = ulFlags;
 		break;
+	case FLAGSET_FLAGS6:
+
+		pActor->flags6 = ulFlags;
+		break;
 	case FLAGSET_FLAGSST:
 
 		pActor->ulSTFlags = ulFlags;
+		break;
+	default:
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingFlags: Received an unknown flagset value: %d\n", static_cast<int>( flagset ) );
+#endif
 		break;
 	}
 }

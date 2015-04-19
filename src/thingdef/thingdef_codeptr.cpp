@@ -3870,19 +3870,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 
 			// [BB] Let the clients know about the flag change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER ) {
-				ULONG ulFlagSet = 0;
+				FlagSet flagset = FLAGSET_UNKNOWN;
 				if ( flagp == &self->flags )
-					ulFlagSet = FLAGSET_FLAGS;
+					flagset = FLAGSET_FLAGS;
 				else if ( flagp == &self->flags2 )
-					ulFlagSet = FLAGSET_FLAGS2;
+					flagset = FLAGSET_FLAGS2;
 				else if ( flagp == &self->flags3 )
-					ulFlagSet = FLAGSET_FLAGS3;
+					flagset = FLAGSET_FLAGS3;
 				else if ( flagp == &self->flags4 )
-					ulFlagSet = FLAGSET_FLAGS4;
+					flagset = FLAGSET_FLAGS4;
 				else if ( flagp == &self->flags5 )
-					ulFlagSet = FLAGSET_FLAGS5;
+					flagset = FLAGSET_FLAGS5;
+				else if ( flagp == &self->flags6 )
+					flagset = FLAGSET_FLAGS6;
 
-				SERVERCOMMANDS_SetThingFlags( self, ulFlagSet );
+				SERVERCOMMANDS_SetThingFlags( self, flagset );
 			}
 		}
 		kill_after = self->CountsAsKill();

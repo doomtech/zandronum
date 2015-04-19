@@ -1767,27 +1767,28 @@ void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULO
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingFlags( AActor *pActor, FlagSet flagset, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulActorFlags;
 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	switch ( ulFlagSet )
+	switch ( flagset )
 	{
 		case FLAGSET_FLAGS:		ulActorFlags = pActor->flags; break;
 		case FLAGSET_FLAGS2:	ulActorFlags = pActor->flags2; break;
 		case FLAGSET_FLAGS3:	ulActorFlags = pActor->flags3; break;
 		case FLAGSET_FLAGS4:	ulActorFlags = pActor->flags4; break;
 		case FLAGSET_FLAGS5:	ulActorFlags = pActor->flags5; break;
+		case FLAGSET_FLAGS6:	ulActorFlags = pActor->flags6; break;
 		case FLAGSET_FLAGSST:	ulActorFlags = pActor->ulSTFlags; break;
 		default: return;
 	}
 
 	NetCommand command( SVC_SETTHINGFLAGS );
 	command.addShort( pActor->lNetID );
-	command.addByte( ulFlagSet );
+	command.addByte( flagset );
 	command.addLong( ulActorFlags );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }

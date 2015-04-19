@@ -28,6 +28,7 @@
 -	- Fixed possible health desync issues in some situations. [Edward-san]
 -	- Fixed: Trying to open a corrupt zip archive crashed the game (backported from ZDoom). [Torr Samaho]
 -	- Fixed: Players were kicked for excessive movement commands instead of simply ignoring the excessive commands. [Torr Samaho]
+-	- Fixed: clients were not informed of some actor flag modifications with A_ChangeFlag. [Edward-san]
 
 
 2.0
