@@ -1233,7 +1233,7 @@ void R_InitSprites ()
 		fixed_t maxheightfactor = meta.GetMetaFixed( APMETA_MaxSkinHeightFactor );
 
 		// [TP] If either of the size factors are 0, we can just skip this.
-		if ( maxwidthfactor * maxheightfactor == 0 )
+		if (( maxwidthfactor == 0 ) || ( maxheightfactor == 0 ))
 			continue;
 
 		AActor* def = GetDefaultByType( PlayerClasses[classSkinIdx].Type );
