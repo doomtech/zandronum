@@ -365,6 +365,7 @@ xx(Invisible)
 xx(Friend)
 xx(Strifeally)
 xx(Standing)
+xx(Countsecret)
 
 xx(Blocking)
 xx(Blockmonsters)

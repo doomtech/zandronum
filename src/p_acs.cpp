@@ -1091,11 +1091,7 @@ static void ClearInventory (AActor *activator)
 	AInventory *item = static_cast<AInventory *>(Spawn (info, 0,0,0, NO_REPLACE));
 
 	// This shouldn't count for the item statistics!
-	if (item->flags & MF_COUNTITEM)
-	{
-		level.total_items--;
-		item->flags &= ~MF_COUNTITEM;
-	}
+	item->ClearCounters();
 	if (info->IsDescendantOf (RUNTIME_CLASS(ABasicArmorPickup)))
 	{
 		if (static_cast<ABasicArmorPickup*>(item)->SaveAmount != 0)
@@ -3450,18 +3446,12 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 			{
 				// If this is a monster, subtract it from the total monster
 				// count, because it already added to it during spawning.
-				if (actor->CountsAsKill())
-				{
-					level.total_monsters--;
+				actor->ClearCounters();
 
-					// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
+				// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
+				if (actor->CountsAsKill())
 					INVASION_UpdateMonsterCount( actor, true );
-				}
-				// Same, for items
-				if (actor->flags & MF_COUNTITEM)
-				{
-					level.total_items--;
-				}
+
 				actor->Destroy ();
 				actor = NULL;
 			}

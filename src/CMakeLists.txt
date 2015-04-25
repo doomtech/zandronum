@@ -995,8 +995,10 @@ add_executable( zdoom WIN32
 	scoreboard.cpp #ST
 	sectinfo.cpp #ST
 	st_stuff.cpp
+	statistics.cpp
 	stats.cpp
 	stringtable.cpp
+	strnatcmp.c
 	survival.cpp #ST
 	sv_ban.cpp #ST
 	sv_commands.cpp #ST

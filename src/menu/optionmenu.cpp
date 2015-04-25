@@ -138,18 +138,24 @@ bool DOptionMenu::Responder (event_t *ev)
 	{
 		if (ev->subtype == EV_GUI_WheelUp)
 		{
-			if (mDesc->mScrollPos > 0)
-			{
-				mDesc->mScrollPos--;
-			}
+			int scrollamt = MIN(2, mDesc->mScrollPos);
+			mDesc->mScrollPos -= scrollamt;
 			return true;
 		}
 		else if (ev->subtype == EV_GUI_WheelDown)
 		{
 			if (CanScrollDown)
 			{
-				mDesc->mScrollPos++;
-				VisBottom++;
+				if (VisBottom < (int)(mDesc->mItems.Size()-2))
+				{
+					mDesc->mScrollPos += 2;
+					VisBottom += 2;
+				}
+				else
+				{
+					mDesc->mScrollPos++;
+					VisBottom++;
+				}
 			}
 			return true;
 		}

@@ -158,6 +158,7 @@ extern player_t *Player;
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
+extern void ReadStatistics();
 extern void M_RestoreMode ();
 extern void M_SetDefaultMode ();
 extern void R_ExecuteSetViewSize ();
@@ -2747,6 +2748,7 @@ void D_DoomMain (void)
 	// [RH] Parse through all loaded mapinfo lumps
 	Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo (iwad_info->MapInfo);
+	ReadStatistics();
 
 	// [BL] Load SectInfo
 	SECTINFO_Load();

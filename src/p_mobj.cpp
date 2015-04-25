@@ -298,9 +298,18 @@ void AActor::Serialize (FArchive &arc)
 		<< args[0] << args[1] << args[2] << args[3] << args[4]
 		<< goal
 		<< waterlevel
-		<< MinMissileChance
-		<< SpawnFlags
-		<< Inventory
+		<< MinMissileChance;
+		if (SaveVersion >= 2826)
+		{
+			arc	<< SpawnFlags;
+		}
+		else
+		{
+			WORD w;
+			arc << w;
+			SpawnFlags = w;
+		}
+	arc	<< Inventory
 		<< InventoryID
 		<< id
 		<< FloatBobPhase
@@ -982,6 +991,7 @@ AInventory *AActor::DropInventory (AInventory *item)
 	drop->vely = vely + 5 * finesine[an];
 	drop->velz = velz + FRACUNIT;
 	drop->flags &= ~MF_NOGRAVITY;	// Don't float
+	drop->ClearCounters();	// do not count for statistics again
 
 	// [BC] Create the drop for clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3302,7 +3312,7 @@ void P_NightmareRespawn (AActor *mobj)
 	if (!P_TestMobjLocation (mo))
 	{
 		//[GrafZahl] MF_COUNTKILL still needs to be checked here.
-		if (mo->CountsAsKill()) level.total_monsters--;
+		mo->ClearCounters();
 
 		mo->Destroy ();
 		return;		// no respawn
@@ -4799,6 +4809,11 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	{
 		level.total_items++;
 	}
+	// And for secrets
+	if (actor->flags5 & MF5_COUNTSECRET)
+	{
+		level.total_secrets++;
+	}
 
 	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) && ( ( actor->ulNetworkFlags & NETFL_SERVERSIDEONLY ) == false ) &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -4904,6 +4919,11 @@ void AActor::HandleSpawnFlags ()
 	else if (SpawnFlags & MTF_ALTSHADOW)
 	{
 		RenderStyle = STYLE_None;
+	}
+	if (SpawnFlags & MTF_SECRET)
+	{
+		//Printf("Secret %s in sector %i!\n", GetTag(), Sector->sectornum);
+		flags5 |= MF5_COUNTSECRET;
 	}
 
 	// [BC]
@@ -6697,11 +6717,7 @@ bool P_CheckMissileSpawn (AActor* th, bool bExplode)
 			if (th->BlockingMobj == NULL || !(th->flags2 & MF2_RIP) || (th->BlockingMobj->flags5 & MF5_DONTRIP))
 			{
 				// If this is a monster spawned by A_CustomMissile subtract it from the counter.
-				if (th->CountsAsKill())
-				{
-					th->flags&=~MF_COUNTKILL;
-					level.total_monsters--;
-				}
+				th->ClearCounters();
 				// [RH] Don't explode missiles that spawn on top of horizon lines
 				if (th->BlockingLine != NULL && th->BlockingLine->special == Line_Horizon)
 				{
@@ -7398,6 +7414,28 @@ const char *AActor::GetTag(const char *def) const
 	else
 	{
 		return GetClass()->TypeName.GetChars();
+	}
+}
+
+
+void AActor::ClearCounters()
+{
+	if (CountsAsKill())
+	{
+		level.total_monsters--;
+		flags &= ~MF_COUNTKILL;
+	}
+	// Same, for items
+	if (flags & MF_COUNTITEM)
+	{
+		level.total_items--;
+		flags &= ~MF_COUNTITEM;
+	}
+	// And finally for secrets
+	if (flags5 & MF5_COUNTSECRET)
+	{
+		level.total_secrets--;
+		flags5 &= ~MF5_COUNTSECRET;
 	}
 }
 

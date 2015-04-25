@@ -394,7 +394,7 @@ void FGameConfigFile::DoGameSetup (const char *gamename)
 		ReadCVars (0);
 	}
 
-	if (game != Doom && game != Strife && game != Chex)
+	if (game == Heretic || game == Hexen)
 	{
 		SetRavenDefaults (game == Hexen);
 	}

@@ -105,18 +105,9 @@
 
 #include "g_hub.h"
 
+void STAT_StartNewGame(const char *lev);
+void STAT_ChangeLevel(const char *newl);
 
-#ifndef STAT
-#define STAT_NEW(map)
-#define STAT_END(newl)
-#define STAT_READ(png)
-#define STAT_WRITE(f)
-#else
-void STAT_NEW(const char *lev);
-void STAT_END(const char *newl);
-void STAT_READ(PNGHandle *png);
-void STAT_WRITE(FILE *f);
-#endif
 
 EXTERN_CVAR (Float, sv_gravity)
 EXTERN_CVAR (Float, sv_aircontrol)
@@ -613,7 +604,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		for (i = 0; i < MAXPLAYERS; i++)
 			players[i].playerstate = PST_ENTER;	// [BC]
 
-		STAT_NEW(mapname);
+		STAT_StartNewGame(mapname);
 	}
 
 	usergame = !bTitleLevel;				// will be set false if a demo
@@ -746,7 +737,7 @@ void G_ChangeLevel(const char *levelname, int position, int flags, int nextSkill
 			MAPROTATION_AdvanceMap();
 	}
 
-	STAT_END(nextlevel);
+	STAT_ChangeLevel(nextlevel);
 
 	if (thiscluster && (thiscluster->flags & CLUSTER_HUB))
 	{
@@ -2387,7 +2378,6 @@ void G_WriteSnapshots (FILE *file)
 {
 	unsigned int i;
 
-	STAT_WRITE(file);
 	for (i = 0; i < wadlevelinfos.Size(); i++)
 	{
 		if (wadlevelinfos[i].snapshot)
@@ -2538,7 +2528,6 @@ void G_ReadSnapshots (PNGHandle *png)
 			arc << pnum;
 		}
 	}
-	STAT_READ(png);
 	png->File->ResetFilePtr();
 }
 

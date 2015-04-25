@@ -1134,6 +1134,11 @@ void AInventory::Touch (AActor *toucher)
 			SERVERCOMMANDS_SetMapNumFoundItems( );
 	}
 
+	if (flags5 & MF5_COUNTSECRET)
+	{
+		P_GiveSecret(toucher, true, true);
+	}
+
 	// [BC] If the item has an announcer sound, play it.
 	if ( toucher->CheckLocalView( consoleplayer ) && cl_announcepickups )
 		ANNOUNCER_PlayEntry( cl_announcer, this->PickupAnnouncerEntry( ));

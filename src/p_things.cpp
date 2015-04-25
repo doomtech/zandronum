@@ -149,15 +149,7 @@ bool P_Thing_Spawn (int tid, AActor *source, int type, angle_t angle, bool fog, 
 			{
 				// If this is a monster, subtract it from the total monster
 				// count, because it already added to it during spawning.
-				if (mobj->CountsAsKill())
-				{
-					level.total_monsters--;
-				}
-				// Same, for items
-				if (mobj->flags & MF_COUNTITEM)
-				{
-					level.total_items--;
-				}
+				mobj->ClearCounters();
 				mobj->Destroy ();
 			}
 		}
@@ -425,15 +417,7 @@ nolead:						mobj->angle = R_PointToAngle2 (mobj->x, mobj->y, targ->x, targ->y);
 					{
 						// If this is a monster, subtract it from the total monster
 						// count, because it already added to it during spawning.
-						if (mobj->CountsAsKill())
-						{
-							level.total_monsters--;
-						}
-						// Same, for items
-						if (mobj->flags & MF_COUNTITEM)
-						{
-							level.total_items--;
-						}
+						mobj->ClearCounters();
 						mobj->Destroy ();
 					}
 					else
@@ -525,11 +509,10 @@ void P_RemoveThing(AActor * actor)
 			SERVERCOMMANDS_DestroyThing( actor );
 
 		// be friendly to the level statistics. ;)
+		actor->ClearCounters();
 		// [BB] Added client update.
 		if (actor->CountsAsKill() && actor->health > 0)
 		{
-			level.total_monsters--;
-
 			// [BB] Since a monster was removed, we also need to correct the number of monsters in invasion mode.
 			INVASION_UpdateMonsterCount( actor, true );
 
@@ -540,8 +523,6 @@ void P_RemoveThing(AActor * actor)
 		// [BB] Added client update.
 		if (actor->flags&MF_COUNTITEM)
 		{
-			level.total_items--;
-
 			// [BB] Inform the clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetMapNumTotalItems( );

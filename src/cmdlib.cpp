@@ -1027,7 +1027,8 @@ void ScanDirectory(TArray<FFileList> &list, const char *dirpath)
 
 void ScanDirectory(TArray<FFileList> &list, const char *dirpath)
 {
-	const char **argv[] = {dirpath, NULL };
+	char * const argv[] = {new char[strlen(dirpath)+1], NULL };
+	memcpy(argv[0], dirpath, strlen(dirpath)+1);
 	FTS *fts;
 	FTSENT *ent;
 
@@ -1035,6 +1036,7 @@ void ScanDirectory(TArray<FFileList> &list, const char *dirpath)
 	if (fts == NULL)
 	{
 		I_Error("Failed to start directory traversal: %s\n", strerror(errno));
+		delete[] argv[0];
 		return;
 	}
 	while ((ent = fts_read(fts)) != NULL)
@@ -1060,5 +1062,6 @@ void ScanDirectory(TArray<FFileList> &list, const char *dirpath)
 		}
 	}
 	fts_close(fts);
+	delete[] argv[0];
 }
 #endif

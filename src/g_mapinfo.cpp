@@ -1416,6 +1416,8 @@ MapFlagHandlers[] =
 	{ "no_grinding_polyobj",			MITYPE_CLRFLAG2,	LEVEL2_POLYGRIND, 0 },
 	{ "resetinventory",					MITYPE_SETFLAG2,	LEVEL2_RESETINVENTORY, 0 },
 	{ "resethealth",					MITYPE_SETFLAG2,	LEVEL2_RESETHEALTH, 0 },
+	{ "endofgame",						MITYPE_SETFLAG2,	LEVEL2_ENDGAME, 0 },
+	{ "nostatistics",					MITYPE_SETFLAG2,	LEVEL2_NOSTATISTICS, 0 },
 	{ "unfreezesingleplayerconversations",MITYPE_SETFLAG2,	LEVEL2_CONV_SINGLE_UNFREEZE, 0 },
 	{ "nobotnodes",						MITYPE_SETFLAG2,	LEVEL2_NOBOTNODES, 0 },// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	{ "lobby",							MITYPE_SETFLAG2,	LEVEL2_ISLOBBY, 0 },	// [AM] Prefer this.
