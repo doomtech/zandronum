@@ -163,6 +163,7 @@ LPDIRECTINPUT			g_pdi3;
 
 BOOL AppActive = TRUE;
 int SessionState = 0;
+int BlockMouseMove; 
 
 // [BB] Allows to keep the sound turned on, when the client is not the active app.
 CVAR (Bool, cl_soundwhennotactive, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -326,6 +327,7 @@ bool GUIWndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESU
 		else if (message == WM_MOUSEMOVE)
 		{
 			ev.subtype = EV_GUI_MouseMove;
+			if (BlockMouseMove > 0) return true;
 		}
 
 		{
@@ -821,6 +823,7 @@ void I_GetEvent ()
 //
 void I_StartTic ()
 {
+	BlockMouseMove--;
 	ResetButtonTriggers ();
 	I_CheckGUICapture ();
 	I_CheckNativeMouse (false);
