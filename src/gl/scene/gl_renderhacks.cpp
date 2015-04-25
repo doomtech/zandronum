@@ -1187,9 +1187,9 @@ void FDrawInfo::ProcessSectorStacks()
 	}
 
 	validcount++;
-	for (i=0;i<CeilingStacks.Size (); i++)
+	for (i=0;i<FloorStacks.Size (); i++)
 	{
-		sector_t *sec = CeilingStacks[i];
+		sector_t *sec = FloorStacks[i];
 		for(int k=0;k<sec->subsectorcount;k++)
 		{
 			subsector_t * sub = sec->subsectors[k];

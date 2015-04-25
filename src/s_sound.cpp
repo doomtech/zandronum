@@ -888,7 +888,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	if ( CLIENTDEMO_IsSkipping() == true )
 		return NULL;
 
-	if (sound_id <= 0 || volume <= 0 || nosfx)
+	if (sound_id <= 0 || volume <= 0 || nosfx || nosound )
 		return NULL;
 
 	int type;
@@ -1370,10 +1370,15 @@ sfxinfo_t *S_LoadSound(sfxinfo_t *sfx)
 			wlump.Read(sfxdata, size);
 			SDWORD len = LittleLong(((SDWORD *)sfxdata)[1]);
 
+			// If the sound is voc, use the custom loader.
+			if (strncmp ((const char *)sfxstart, "Creative Voice File", 19) == 0)
+			{
+				sfx->data = GSnd->LoadSoundVoc(sfxstart, len);
+			}
 			// If the sound is raw, just load it as such.
 			// Otherwise, try the sound as DMX format.
 			// If that fails, let FMOD try and figure it out.
-			if (sfx->bLoadRAW ||
+			else if (sfx->bLoadRAW ||
 				(((BYTE *)sfxdata)[0] == 3 && ((BYTE *)sfxdata)[1] == 0 && len <= size - 8))
 			{
 				int frequency;
@@ -2725,37 +2730,40 @@ CCMD (idmus)
 	FString map;
 	int l;
 
-	if (argv.argc() > 1)
+	if (!nomusic)
 	{
-		if (gameinfo.flags & GI_MAPxx)
+		if (argv.argc() > 1)
 		{
-			l = atoi (argv[1]);
-			if (l <= 99)
+			if (gameinfo.flags & GI_MAPxx)
 			{
-				map = CalcMapName (0, l);
+				l = atoi (argv[1]);
+			if (l <= 99)
+				{
+					map = CalcMapName (0, l);
+				}
+				else
+				{
+					Printf ("%s\n", GStrings("STSTR_NOMUS"));
+					return;
+				}
+			}
+			else
+			{
+				map = CalcMapName (argv[1][0] - '0', argv[1][1] - '0');
+			}
+
+			if ( (info = FindLevelInfo (map)) )
+			{
+				if (info->Music.IsNotEmpty())
+				{
+					S_ChangeMusic (info->Music, info->musicorder);
+					Printf ("%s\n", GStrings("STSTR_MUS"));
+				}
 			}
 			else
 			{
 				Printf ("%s\n", GStrings("STSTR_NOMUS"));
-				return;
 			}
-		}
-		else
-		{
-			map = CalcMapName (argv[1][0] - '0', argv[1][1] - '0');
-		}
-
-		if ( (info = FindLevelInfo (map)) )
-		{
-			if (info->Music.IsNotEmpty())
-			{
-				S_ChangeMusic (info->Music, info->musicorder);
-				Printf ("%s\n", GStrings("STSTR_MUS"));
-			}
-		}
-		else
-		{
-			Printf ("%s\n", GStrings("STSTR_NOMUS"));
 		}
 	}
 }
@@ -2768,14 +2776,16 @@ CCMD (idmus)
 
 CCMD (changemus)
 {
-   if (argv.argc() > 1)
-   {
-      if (PlayList)
-      {
-         delete PlayList;
-         PlayList = NULL;
-      }
-      S_ChangeMusic (argv[1], argv.argc() > 2 ? atoi (argv[2]) : 0);
+	if (!nomusic)
+	{
+		if (argv.argc() > 1)
+		{
+			if (PlayList)
+			{
+				delete PlayList;
+				PlayList = NULL;
+			}
+		S_ChangeMusic (argv[1], argv.argc() > 2 ? atoi (argv[2]) : 0);
 
 		// [BB] If we're the server, tell clients to change the music, and
 		// save the current music setting for when new clients connect.
@@ -2784,19 +2794,20 @@ CCMD (changemus)
 			SERVERCOMMANDS_SetMapMusic( argv[1] );
 			SERVER_SetMapMusic( argv[1] );
 		}
-   }
-   else
-   {
-      const char *currentmus = mus_playing.name.GetChars();
-      if(currentmus != NULL && *currentmus != 0)
-      {
-         Printf ("currently playing %s\n", currentmus);
-      }
-      else
-      {
-         Printf ("no music playing\n");
-      }
-   }
+		}
+		else
+		{
+			const char *currentmus = mus_playing.name.GetChars();
+			if(currentmus != NULL && *currentmus != 0)
+			{
+				Printf ("currently playing %s\n", currentmus);
+			}
+			else
+			{
+				Printf ("no music playing\n");
+			}
+		}
+	}
 }
 
 //==========================================================================

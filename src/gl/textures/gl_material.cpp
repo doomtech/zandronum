@@ -973,7 +973,11 @@ void FMaterial::GetTexCoordInfo(FTexCoordInfo *tci, fixed_t x, fixed_t y) const
 		tci->mScaleY = scale_y;
 		tci->mTempScaleY = y;
 	}
-	if (tex->bHasCanvas) tci->mScaleY = -tci->mScaleY;
+	if (tex->bHasCanvas) 
+	{
+		tci->mScaleY = -tci->mScaleY;
+		tci->mRenderHeight = -tci->mRenderHeight;
+	}
 	tci->mWorldPanning = tex->bWorldPanning;
 	tci->mWidth = Width[GLUSE_TEXTURE];
 }
