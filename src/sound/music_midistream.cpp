@@ -57,6 +57,7 @@ static void WriteVarLen (TArray<BYTE> &file, DWORD value);
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
 EXTERN_CVAR(Float, snd_musicvolume)
+EXTERN_CVAR(Int, snd_mididevice)
 
 #ifdef _WIN32
 extern UINT mididevice;
@@ -87,7 +88,7 @@ static const BYTE StaticMIDIhead[] =
 //
 //==========================================================================
 
-MIDIStreamer::MIDIStreamer(EMIDIDevice type)
+MIDIStreamer::MIDIStreamer(EMidiDevice type)
 :
 #ifdef _WIN32
   PlayerThread(0), ExitEvent(0), BufferDoneEvent(0),
@@ -115,7 +116,7 @@ MIDIStreamer::MIDIStreamer(EMIDIDevice type)
 //
 //==========================================================================
 
-MIDIStreamer::MIDIStreamer(const char *dumpname, EMIDIDevice type)
+MIDIStreamer::MIDIStreamer(const char *dumpname, EMidiDevice type)
 :
 #ifdef _WIN32
   PlayerThread(0), ExitEvent(0), BufferDoneEvent(0),
@@ -196,6 +197,98 @@ void MIDIStreamer::CheckCaps(int tech)
 
 //==========================================================================
 //
+// MIDIStreamer :: SelectMIDIDevice									static
+//
+// Select the MIDI device to play on
+//
+//==========================================================================
+
+EMidiDevice MIDIStreamer::SelectMIDIDevice(EMidiDevice device)
+{
+	/* MIDI are played as:
+		- OPL: 
+			- if explicitly selected by $mididevice 
+			- when snd_mididevice  is -3 and no midi device is set for the song
+
+		- Timidity: 
+			- if explicitly selected by $mididevice 
+			- when snd_mididevice  is -2 and no midi device is set for the song
+
+		- FMod:
+			- if explicitly selected by $mididevice 
+			- when snd_mididevice  is -1 and no midi device is set for the song
+			- as fallback when both OPL and Timidity failed unless snd_mididevice is >= 0
+
+		- MMAPI (Win32 only):
+			- if explicitly selected by $mididevice (non-Win32 redirects this to FMOD)
+			- when snd_mididevice  is >= 0 and no midi device is set for the song
+			- as fallback when both OPL and Timidity failed and snd_mididevice is >= 0
+	*/
+
+	// Choose the type of MIDI device we want.
+	if (device != MDEV_DEFAULT)
+	{
+		return device;
+	}
+	switch (snd_mididevice)
+	{
+	case -1:		return MDEV_FMOD;
+	case -2:		return MDEV_TIMIDITY;
+	case -3:		return MDEV_OPL;
+	case -4:		return MDEV_GUS;
+#ifdef HAVE_FLUIDSYNTH
+	case -5:		return MDEV_FLUIDSYNTH;
+#endif
+	default:
+		#ifdef _WIN32
+					return MDEV_MMAPI;
+		#else
+					return MDEV_FMOD;
+		#endif
+	}
+}
+
+//==========================================================================
+//
+// MIDIStreamer :: CreateMIDIDevice
+//
+//==========================================================================
+
+MIDIDevice *MIDIStreamer::CreateMIDIDevice(EMidiDevice devtype) const
+{
+	switch (devtype)
+	{
+	case MDEV_MMAPI:
+#ifdef _WIN32
+		return new WinMIDIDevice(mididevice);
+#endif
+		assert(0);
+		// Intentional fall-through for non-Windows systems.
+
+#ifdef HAVE_FLUIDSYNTH
+	case MDEV_FLUIDSYNTH:
+		return new FluidSynthMIDIDevice;
+#endif
+
+	case MDEV_FMOD:
+		return new FMODMIDIDevice;
+
+	case MDEV_GUS:
+		return new TimidityMIDIDevice;
+
+	case MDEV_OPL:
+		return new OPLMIDIDevice;
+
+	case MDEV_TIMIDITY:
+		return new TimidityPPMIDIDevice;
+
+	default:
+		return NULL;
+	}
+}
+
+//==========================================================================
+//
 // MIDIStreamer :: Play
 //
 //==========================================================================
@@ -203,6 +296,7 @@ void MIDIStreamer::CheckCaps(int tech)
 void MIDIStreamer::Play(bool looping, int subsong)
 {
 	DWORD tid;
+	EMidiDevice devtype;
 
 	m_Status = STATE_Stopped;
 	m_Looping = looping;
@@ -212,46 +306,23 @@ void MIDIStreamer::Play(bool looping, int subsong)
 	InitialPlayback = true;
 
 	assert(MIDI == NULL);
+	devtype = SelectMIDIDevice(DeviceType);
 	if (DumpFilename.IsNotEmpty())
 	{
-		if (DeviceType == MIDI_OPL)
+		if (devtype == MDEV_OPL)
 		{
 			MIDI = new OPLDumperMIDIDevice(DumpFilename);
 		}
-		else if (DeviceType == MIDI_GUS)
+		else if (devtype == MDEV_GUS)
 		{
 #ifdef USE_TIMIDITY
 			MIDI = new TimidityWaveWriterMIDIDevice(DumpFilename, 0);
 #endif
 		}
 	}
-	else switch(DeviceType)
+	else
 	{
-	case MIDI_Win:
-#ifdef _WIN32
-		MIDI = new WinMIDIDevice(mididevice);
-		break;
-#endif
-		assert(0);
-		// Intentional fall-through for non-Windows systems.
-
-#ifdef HAVE_FLUIDSYNTH
-	case MIDI_Fluid:
-		MIDI = new FluidSynthMIDIDevice;
-		break;
-#endif
-
-	case MIDI_GUS:
-		MIDI = new TimidityMIDIDevice;
-		break;
-
-	case MIDI_OPL:
-		MIDI = new OPLMIDIDevice;
-		break;
-
-	default:
-		MIDI = NULL;
-		break;
+		MIDI = CreateMIDIDevice(devtype);
 	}
 	
 #ifndef _WIN32
@@ -266,6 +337,49 @@ void MIDIStreamer::Play(bool looping, int subsong)
 
 	SetMIDISubsong(subsong);
 	CheckCaps(MIDI->GetTechnology());
+
+	if (MIDI->Preprocess(this, looping))
+	{
+		StartPlayback();
+	}
+
+	if (0 != MIDI->Resume())
+	{
+		Printf ("Starting MIDI playback failed\n");
+		Stop();
+	}
+	else
+	{
+#ifdef _WIN32
+		if (MIDI->NeedThreadedCallback())
+		{
+			PlayerThread = CreateThread(NULL, 0, PlayerProc, this, 0, &tid);
+			if (PlayerThread == NULL)
+			{
+				Printf ("Creating MIDI thread failed\n");
+				Stop();
+			}
+			else
+			{
+				m_Status = STATE_Playing;
+			}
+		}
+		else
+#endif
+		{
+			m_Status = STATE_Playing;
+		}
+	}
+}
+
+//==========================================================================
+//
+// MIDIStreamer :: StartPlayback
+//
+//==========================================================================
+
+void MIDIStreamer::StartPlayback()
+{
 	Precache();
 	LoopLimit = 0;
 
@@ -314,34 +428,6 @@ void MIDIStreamer::Play(bool looping, int subsong)
 		}
 	}
 	while (BufferNum != 0);
-
-	if (0 != MIDI->Resume())
-	{
-		Printf ("Starting MIDI playback failed\n");
-		Stop();
-	}
-	else
-	{
-#ifdef _WIN32
-		if (MIDI->NeedThreadedCallback())
-		{
-			PlayerThread = CreateThread(NULL, 0, PlayerProc, this, 0, &tid);
-			if (PlayerThread == NULL)
-			{
-				Printf ("Creating MIDI thread failed\n");
-				Stop();
-			}
-			else
-			{
-				m_Status = STATE_Playing;
-			}
-		}
-		else
-#endif
-		{
-			m_Status = STATE_Playing;
-		}
-	}
 }
 
 //==========================================================================
@@ -458,6 +544,12 @@ void MIDIStreamer::MusicVolumeChanged()
 		OutputVolume(Volume);
 	}
 }
+
+//==========================================================================
+//
+// MIDIStreamer :: TimidityVolumeChanged
+//
+//==========================================================================
 
 void MIDIStreamer::TimidityVolumeChanged()
 {
@@ -1104,11 +1196,8 @@ static void WriteVarLen (TArray<BYTE> &file, DWORD value)
 
 void MIDIStreamer::SetTempo(int new_tempo)
 {
-	if (NULL == MIDI)
-	{
-		InitialTempo = new_tempo;
-	}
-	else if (0 == MIDI->SetTempo(new_tempo))
+	InitialTempo = new_tempo;
+	if (NULL != MIDI && 0 == MIDI->SetTempo(new_tempo))
 	{
 		Tempo = new_tempo;
 	}
@@ -1227,6 +1316,75 @@ MIDIDevice::~MIDIDevice()
 
 void MIDIDevice::PrecacheInstruments(const WORD *instruments, int count)
 {
+}
+
+//==========================================================================
+//
+// MIDIDevice :: Preprocess
+//
+// Gives the MIDI device a chance to do some processing with the song before
+// it starts playing it. Returns true if MIDIStreamer should perform its
+// standard playback startup sequence.
+//
+//==========================================================================
+
+bool MIDIDevice::Preprocess(MIDIStreamer *song, bool looping)
+{
+	return true;
+}
+
+//==========================================================================
+//
+// MIDIDevice :: PrepareHeader
+//
+// Wrapper for MCI's midiOutPrepareHeader.
+//
+//==========================================================================
+
+int MIDIDevice::PrepareHeader(MIDIHDR *header)
+{
+	return 0;
+}
+
+//==========================================================================
+//
+// MIDIDevice :: UnprepareHeader
+//
+// Wrapper for MCI's midiOutUnprepareHeader.
+//
+//==========================================================================
+
+int MIDIDevice::UnprepareHeader(MIDIHDR *header)
+{
+	return 0;
+}
+
+//==========================================================================
+//
+// MIDIDevice :: FakeVolume
+//
+// Since most implementations render as a normal stream, their volume is
+// controlled through the GSnd interface, not here.
+//
+//==========================================================================
+
+bool MIDIDevice::FakeVolume()
+{
+	return false;
+}
+
+//==========================================================================
+//
+// MIDIDevice :: NeedThreadedCallabck
+//
+// Most implementations can service the callback directly rather than using
+// a separate thread.
+//
+//==========================================================================
+
+bool MIDIDevice::NeedThreadedCallback()
+{
+	return false;
 }
 
 //==========================================================================

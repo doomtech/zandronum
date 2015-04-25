@@ -39,13 +39,28 @@ static void AddDefaultMidiDevices(FOptionValues *opt)
 
 }
 
+static void MIDIDeviceChanged(int newdev)
+{
+	static int oldmididev = INT_MIN;
+
+	// If a song is playing, move it to the new device.
+	if (oldmididev != newdev && currSong != NULL && currSong->IsMIDI())
+	{
+		MusInfo *song = currSong;
+		if (song->m_Status == MusInfo::STATE_Playing)
+		{
+			song->Stop();
+			song->Start(song->m_Looping);
+		}
+	}
+	oldmididev = newdev;
+}
+
 #ifdef _WIN32
-	   UINT		mididevice;
+UINT mididevice;
 
 CUSTOM_CVAR (Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
-	UINT oldmididev = mididevice;
-
 	if (!nummididevicesset)
 		return;
 
@@ -55,26 +70,8 @@ CUSTOM_CVAR (Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		self = 0;
 		return;
 	}
-	else if (self < 0)
-	{
-		mididevice = 0;
-	}
-	else
-	{
-		mididevice = self;
-	}
-
-	// If a song is playing, move it to the new device.
-	if (oldmididev != mididevice && currSong != NULL && currSong->IsMIDI())
-	{
-		// Does this even work, except for Windows system devices?
-		MusInfo *song = currSong;
-		if (song->m_Status == MusInfo::STATE_Playing)
-		{
-			song->Stop();
-			song->Start(song->m_Looping);
-		}
-	}
+	mididevice = MAX<UINT>(0, self);
+	MIDIDeviceChanged(self);
 }
 
 void I_InitMusicWin32 ()
@@ -166,10 +163,10 @@ CCMD (snd_listmididevices)
 #ifdef HAVE_FLUIDSYNTH
 	PrintMidiDevice (-5, "FluidSynth", MOD_SWSYNTH, 0);
 #endif
-	PrintMidiDevice (-4, "GUS", 0, MOD_SWSYNTH);
+	PrintMidiDevice (-4, "Gravis Ultrasound Emulation", MOD_SWSYNTH, 0);
 	PrintMidiDevice (-3, "Emulated OPL FM Synth", MOD_FMSYNTH, 0);
-	PrintMidiDevice (-2, "TiMidity++", 0, MOD_SWSYNTH);
-	PrintMidiDevice (-1, "FMOD", 0, MOD_SWSYNTH);
+	PrintMidiDevice (-2, "TiMidity++", MOD_SWSYNTH, 0);
+	PrintMidiDevice (-1, "FMOD", MOD_SWSYNTH, 0);
 	if (nummididevices != 0)
 	{
 		for (id = 0; id < nummididevices; ++id)
@@ -197,6 +194,8 @@ CUSTOM_CVAR(Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		self = -5;
 	else if (self > -1)
 		self = -1;
+	else
+		MIDIDeviceChanged(self);
 }
 
 void I_BuildMIDIMenuList (FOptionValues *opt)
@@ -209,7 +208,7 @@ CCMD (snd_listmididevices)
 #ifdef HAVE_FLUIDSYNTH
 	Printf("%s-5. FluidSynth\n", -5 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 #endif
-	Printf("%s-4. GUS\n", -4 == snd_mididevice ? TEXTCOLOR_BOLD : "");
+	Printf("%s-4. Gravis Ultrasound Emulation\n", -4 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-3. Emulated OPL FM Synth\n", -3 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-2. TiMidity++\n", -2 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-1. FMOD\n", -1 == snd_mididevice ? TEXTCOLOR_BOLD : "");
