@@ -2035,7 +2035,7 @@ void AAmbientSound::Serialize (FArchive &arc)
 		NextCheck += gametic;
 		if (NextCheck < 0) NextCheck = INT_MAX;
 	}
-	else
+	else if (SaveVersion < 2798)
 	{
 		if (arc.IsStoring())
 		{
@@ -2058,6 +2058,10 @@ void AAmbientSound::Serialize (FArchive &arc)
 			}
 		}
 	}
+	else
+	{
+		arc << NextCheck;
+	}
 }
 
 //==========================================================================
@@ -2070,7 +2074,7 @@ void AAmbientSound::Tick ()
 {
 	Super::Tick ();
 
-	if (!bActive || gametic < NextCheck)
+	if (!bActive || level.maptime < NextCheck)
 		return;
 
 	FAmbientSound *ambient;
@@ -2207,7 +2211,7 @@ void AAmbientSound::Activate (AActor *activator)
 			amb->periodmin = Scale(S_GetMSLength(sndnum), TICRATE, 1000);
 		}
 
-		NextCheck = gametic;
+		NextCheck = level.maptime;
 		if (amb->type & (RANDOM|PERIODIC))
 			SetTicker (amb);
 

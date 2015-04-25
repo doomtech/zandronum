@@ -1495,6 +1495,12 @@ bool V_DoModeSetup (int width, int height, int bits)
 			// [BB] Rounding down is necessary here.
 			CleanXfac_1 = MAX(int(floor(CleanXfac)) - 1, 1);
 			CleanYfac_1 = MAX(int(floor(CleanYfac)) - 1, 1);
+			// On larger screens this is not enough so make sure it's at most 3/4 of the screen's width
+			while (CleanXfac_1 * 320 > screen->GetWidth()*3/4 && CleanXfac_1 > 2)
+			{
+				CleanXfac_1--;
+				CleanYfac_1--;
+			}
 		}
 		CleanWidth_1 = width / CleanXfac_1;
 		CleanHeight_1 = height / CleanYfac_1;
