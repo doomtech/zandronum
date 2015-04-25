@@ -103,6 +103,9 @@ static TArray<int> OrgHeights;
 // state rather than a code pointer.)
 static TArray<int> CodePConv;
 
+// [TP] Which external patches are currently applied?
+static TArray<FString> g_LoadedDehFiles;
+
 // Sprite names in the order Doom originally had them.
 struct DEHSprName
 {
@@ -2297,6 +2300,12 @@ bool D_LoadDehLump(int lumpnum)
 	return DoDehPatch();
 }
 
+// [TP]
+const TArray<FString>& D_GetDehFileNames()
+{
+	return g_LoadedDehFiles;
+}
+
 bool D_LoadDehFile(const char *patchfile)
 {
 	FILE *deh;
@@ -2311,7 +2320,15 @@ bool D_LoadDehFile(const char *patchfile)
 		fread(PatchFile, 1, PatchSize, deh);
 		fclose(deh);
 		PatchFile[PatchSize] = '\0';		// terminate with a '\0' character
-		return DoDehPatch();
+		// return DoDehPatch();
+		bool result = DoDehPatch();
+
+		// [TP] If the patching succeeded, write this patch down so we can broadcast it to the
+		// launcher.
+		if ( result )
+			g_LoadedDehFiles.Push( ExtractFileBase( patchfile, true ) );
+
+		return result;
 	}
 	else
 	{

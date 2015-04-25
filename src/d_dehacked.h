@@ -61,4 +61,7 @@ bool D_LoadDehLump(int lumpnum);
 bool D_LoadDehFile(const char *filename);
 void FinishDehPatch ();
 
+// [TP]
+const TArray<FString>& D_GetDehFileNames();
+
 #endif //__D_DEHACK_H__

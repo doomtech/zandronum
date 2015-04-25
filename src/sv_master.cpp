@@ -69,6 +69,7 @@
 #include "sv_main.h"
 #include "sv_ban.h"
 #include "version.h"
+#include "d_dehacked.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------
@@ -387,6 +388,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( g_OptionalWadIndices.Size() == 0 )
 		ulBits &= ~SQF_OPTIONAL_WADS;
 
+	// [TP] Don't send deh files if there aren't any.
+	if ( D_GetDehFileNames().Size() == 0 )
+		ulBits &= ~SQF_DEH;
+
 	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulBits );
 
 	// Send the server name.
@@ -609,6 +614,16 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 		for ( unsigned i = 0; i < g_OptionalWadIndices.Size(); ++i )
 			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, g_OptionalWadIndices[i] );
+	}
+
+	// [TP] Send deh patches
+	if ( ulBits & SQF_DEH )
+	{
+		const TArray<FString>& names = D_GetDehFileNames();
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, names.Size() );
+
+		for ( unsigned i = 0; i < names.Size(); ++i )
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, names[i] );
 	}
 
 //	NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
