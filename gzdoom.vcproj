@@ -1117,11 +1117,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\survival.cpp"
+				RelativePath=".\src\strnatcmp.c"
 				>
 			</File>
 			<File
-				RelativePath=".\src\strnatcmp.c"
+				RelativePath=".\src\survival.cpp"
 				>
 			</File>
 			<File
@@ -6341,6 +6341,14 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\system\gl_system.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_threads.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\system\gl_threads.h"
 					>
 				</File>
 				<File

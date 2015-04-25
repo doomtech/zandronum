@@ -1,7 +1,10 @@
 #ifndef __GL_THREADS_H
 #define __GL_THREADS_H
 
+#ifdef WIN32
 #include <process.h>
+#endif
+
 #include "critsec.h"
 
 // system specific Base classes - should be externalized to a separate header later.
