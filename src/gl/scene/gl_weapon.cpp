@@ -88,11 +88,10 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	FTextureID lump = gl_GetSpriteFrame(psp->sprite, psp->frame, 0, 0, &mirror);
 	if (!lump.isValid()) return;
 
-	FMaterial * tex=FMaterial::ValidateTexture(lump, false);
+	FMaterial * tex = FMaterial::ValidateTexture(lump, false);
 	if (!tex) return;
 
-	const PatchTextureInfo * pti = tex->BindPatch(cm_index, 0);
-	if (!pti) return;
+	tex->BindPatch(cm_index, 0);
 
 	int vw = viewwidth;
 	int vh = viewheight;
@@ -132,17 +131,17 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 
 	if (!mirror)
 	{
-		fU1=pti->GetUL();
-		fV1=pti->GetVT();
-		fU2=pti->GetUR();
-		fV2=pti->GetVB();
+		fU1=tex->GetUL();
+		fV1=tex->GetVT();
+		fU2=tex->GetUR();
+		fV2=tex->GetVB();
 	}
 	else
 	{
-		fU2=pti->GetUL();
-		fV1=pti->GetVT();
-		fU1=pti->GetUR();
-		fV2=pti->GetVB();
+		fU2=tex->GetUL();
+		fV1=tex->GetVT();
+		fU1=tex->GetUR();
+		fV2=tex->GetVB();
 	}
 
 	if (tex->tex->gl_info.mIsTransparent) gl_RenderState.EnableAlphaTest(false);

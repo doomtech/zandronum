@@ -284,15 +284,15 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 		
 	zpos+= FRACUNIT*(flipy? decalheight-decaltopo : decaltopo);
 
-	const PatchTextureInfo * pti=tex->BindPatch(p.colormap, decal->Translation);
+	tex->BindPatch(p.colormap, decal->Translation);
 
 	dv[1].z=dv[2].z = FIXED2FLOAT(zpos);
 	dv[0].z=dv[3].z = dv[1].z - decalheight;
-	dv[1].v=dv[2].v=pti->GetVT();
+	dv[1].v=dv[2].v = tex->GetVT();
 
-	dv[1].u=dv[0].u=pti->GetU(lefttex / FIXED2FLOAT(decal->ScaleX));
-	dv[3].u=dv[2].u=pti->GetU(righttex / FIXED2FLOAT(decal->ScaleX));
-	dv[0].v=dv[3].v=pti->GetVB();
+	dv[1].u=dv[0].u = tex->GetU(lefttex / FIXED2FLOAT(decal->ScaleX));
+	dv[3].u=dv[2].u = tex->GetU(righttex / FIXED2FLOAT(decal->ScaleX));
+	dv[0].v=dv[3].v = tex->GetVB();
 
 
 	// now clip to the top plane
@@ -336,12 +336,12 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 
 	if (flipx)
 	{
-		float ur=pti->GetUR();
+		float ur = tex->GetUR();
 		for(i=0;i<4;i++) dv[i].u=ur-dv[i].u;
 	}
 	if (flipy)
 	{
-		float vb=pti->GetVB();
+		float vb = tex->GetVB();
 		for(i=0;i<4;i++) dv[i].v=vb-dv[i].v;
 	}
 	// fog is set once per wall in the calling function and not per decal!

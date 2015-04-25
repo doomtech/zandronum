@@ -852,6 +852,7 @@ void GLDrawList::Sort()
 //==========================================================================
 void GLDrawList::AddWall(GLWall * wall)
 {
+	//@sync-drawinfo
 	drawitems.Push(GLDrawItem(GLDIT_WALL,walls.Push(*wall)));
 }
 
@@ -862,6 +863,7 @@ void GLDrawList::AddWall(GLWall * wall)
 //==========================================================================
 void GLDrawList::AddFlat(GLFlat * flat)
 {
+	//@sync-drawinfo
 	drawitems.Push(GLDrawItem(GLDIT_FLAT,flats.Push(*flat)));
 }
 
@@ -872,6 +874,7 @@ void GLDrawList::AddFlat(GLFlat * flat)
 //==========================================================================
 void GLDrawList::AddSprite(GLSprite * sprite)
 {	
+	//@sync-drawinfo
 	drawitems.Push(GLDrawItem(GLDIT_SPRITE,sprites.Push(*sprite)));
 }
 

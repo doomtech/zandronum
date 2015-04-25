@@ -517,6 +517,65 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 	return NULL;
 }
 
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FTexCoordInfo::RowOffset(fixed_t rowoffset) const
+{
+	if (mTempScaleY == FRACUNIT)
+	{
+		if (mScaleY==FRACUNIT || mWorldPanning) return rowoffset;
+		else return FixedDiv(rowoffset, mScaleY);
+	}
+	else
+	{
+		if (mWorldPanning) return FixedDiv(rowoffset, mTempScaleY);
+		else return FixedDiv(rowoffset, mScaleY);
+	}
+}
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+fixed_t FTexCoordInfo::TextureOffset(fixed_t textureoffset) const
+{
+	if (mTempScaleX == FRACUNIT)
+	{
+		if (mScaleX==FRACUNIT || mWorldPanning) return textureoffset;
+		else return FixedDiv(textureoffset, mScaleX);
+	}
+	else
+	{
+		if (mWorldPanning) return FixedDiv(textureoffset, mTempScaleX);
+		else return FixedDiv(textureoffset, mScaleX);
+	}
+}
+
+//===========================================================================
+//
+// Returns the size for which texture offset coordinates are used.
+//
+//===========================================================================
+
+fixed_t FTexCoordInfo::TextureAdjustWidth() const
+{
+	if (mWorldPanning) 
+	{
+		if (mTempScaleX == FRACUNIT) return mRenderWidth;
+		else return FixedDiv(mWidth, mTempScaleX);
+	}
+	else return mWidth;
+}
+
+
+
 //===========================================================================
 //
 //
@@ -606,14 +665,11 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 	Height[GLUSE_SPRITE] = Height[GLUSE_PATCH];
 	LeftOffset[GLUSE_SPRITE] = LeftOffset[GLUSE_PATCH];
 	TopOffset[GLUSE_SPRITE] = TopOffset[GLUSE_PATCH];
-	pti.SpriteU[0] = pti.SpriteV[0] = 0;
-	pti.SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
-	pti.SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
-
-	tempScaleX = tempScaleY = FRACUNIT;
-	wti.scalex = tx->xScale/(float)FRACUNIT;
-	wti.scaley = tx->yScale/(float)FRACUNIT;
-	if (tx->bHasCanvas) wti.scaley=-wti.scaley;
+	SpriteU[0] = SpriteV[0] = 0;
+	spriteright = SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
+	spritebottom = SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
+	
+	
 
 	mTextureLayers.ShrinkToFit();
 	mMaxBound = -1;
@@ -663,10 +719,10 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 				LeftOffset[GLUSE_SPRITE] -= trim[0];
 				TopOffset[GLUSE_SPRITE] -= trim[1];
 
-				pti.SpriteU[0] = pti.SpriteU[1] * (trim[0] / (float)Width[GLUSE_PATCH]);
-				pti.SpriteV[0] = pti.SpriteV[1] * (trim[1] / (float)Height[GLUSE_PATCH]);
-				pti.SpriteU[1] *= (trim[0]+trim[2]+2) / (float)Width[GLUSE_PATCH]; 
-				pti.SpriteV[1] *= (trim[1]+trim[3]+2) / (float)Height[GLUSE_PATCH]; 
+				SpriteU[0] = SpriteU[1] * (trim[0] / (float)Width[GLUSE_PATCH]);
+				SpriteV[0] = SpriteV[1] * (trim[1] / (float)Height[GLUSE_PATCH]);
+				SpriteU[1] *= (trim[0]+trim[2]+2) / (float)Width[GLUSE_PATCH]; 
+				SpriteV[1] *= (trim[1]+trim[3]+2) / (float)Height[GLUSE_PATCH]; 
 			}
 		}
 	}
@@ -784,12 +840,12 @@ outl:
 //
 //===========================================================================
 
-const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
+void FMaterial::Bind(int cm, int clampmode, int translation)
 {
 	int usebright = false;
 	int shaderindex = mShaderIndex;
 	int maxbound = 0;
-	bool allowhires = wti.scaley==1.0 && wti.scaley==1.0;
+	bool allowhires = tex->xScale == FRACUNIT && tex->yScale == FRACUNIT;
 
 	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->gl_info.shaderspeed);
 
@@ -797,8 +853,8 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 	else if (clampmode != -1) clampmode &= 3;
 	else clampmode = 4;
 
-	wti.gltexture = mBaseLayer->Bind(0, cm, clampmode, translation, allowhires? tex:NULL, softwarewarp);
-	if (wti.gltexture != NULL && shaderindex > 0)
+	const FHardwareTexture *gltexture = mBaseLayer->Bind(0, cm, clampmode, translation, allowhires? tex:NULL, softwarewarp);
+	if (gltexture != NULL && shaderindex > 0)
 	{
 		for(unsigned i=0;i<mTextureLayers.Size();i++)
 		{
@@ -823,7 +879,6 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 		FHardwareTexture::Unbind(i);
 		mMaxBound = maxbound;
 	}
-	return &wti;
 }
 
 
@@ -833,7 +888,7 @@ const WorldTextureInfo *FMaterial::Bind(int cm, int clampmode, int translation)
 //
 //===========================================================================
 
-const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
+void FMaterial::BindPatch(int cm, int translation)
 {
 	int usebright = false;
 	int shaderindex = mShaderIndex;
@@ -841,9 +896,9 @@ const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
 
 	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->gl_info.shaderspeed);
 
-	pti.glpatch = mBaseLayer->BindPatch(0, cm, translation, softwarewarp);
+	const FHardwareTexture *glpatch = mBaseLayer->BindPatch(0, cm, translation, softwarewarp);
 	// The only multitexture effect usable on sprites is the brightmap.
-	if (pti.glpatch != NULL && shaderindex == 3)
+	if (glpatch != NULL && shaderindex == 3)
 	{
 		mTextureLayers[0].texture->gl_info.SystemTexture->BindPatch(1, CM_DEFAULT, 0, 0);
 		maxbound = 1;
@@ -854,7 +909,6 @@ const PatchTextureInfo * FMaterial::BindPatch(int cm, int translation)
 		FHardwareTexture::Unbind(i);
 		mMaxBound = maxbound;
 	}
-	return &pti;
 }
 
 
@@ -885,46 +939,6 @@ void FMaterial::Precache()
 }
 
 //===========================================================================
-// 
-//
-//
-//===========================================================================
-
-const WorldTextureInfo *FMaterial::GetWorldTextureInfo()
-{
-	for(int i=0;i<5;i++)
-	{
-		if (mBaseLayer->gltexture[i])
-		{
-			wti.gltexture = mBaseLayer->gltexture[i];
-			return &wti;
-		}
-	}
-	if (mBaseLayer->CreateTexture(4))
-	{
-		wti.gltexture = mBaseLayer->gltexture[4];
-		return &wti;
-	}
-	return NULL;
-}
-
-//===========================================================================
-// 
-//
-//
-//===========================================================================
-
-const PatchTextureInfo *FMaterial::GetPatchTextureInfo()
-{
-	if (mBaseLayer->CreatePatch())
-	{
-		pti.glpatch = mBaseLayer->glpatch;
-		return &pti;
-	}
-	return NULL;
-}
-
-//===========================================================================
 //
 // This function is needed here to temporarily manipulate the texture
 // for per-wall scaling so that the coordinate functions return proper
@@ -933,122 +947,40 @@ const PatchTextureInfo *FMaterial::GetPatchTextureInfo()
 //
 //===========================================================================
 
-void FMaterial::SetWallScaling(fixed_t x, fixed_t y)
+void FMaterial::GetTexCoordInfo(FTexCoordInfo *tci, fixed_t x, fixed_t y) const
 {
-	if (x != tempScaleX)
+	if (x == FRACUNIT)
+	{
+		tci->mRenderWidth = RenderWidth[GLUSE_TEXTURE];
+		tci->mScaleX = tex->xScale;
+		tci->mTempScaleX = FRACUNIT;
+	}
+	else
 	{
 		fixed_t scale_x = FixedMul(x, tex->xScale);
 		int foo = (Width[GLUSE_TEXTURE] << 17) / scale_x; 
-		RenderWidth[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
-		wti.scalex = scale_x/(float)FRACUNIT;
-		tempScaleX = x;
+		tci->mRenderWidth = (foo >> 1) + (foo & 1); 
+		tci->mScaleX = scale_x;
+		tci->mTempScaleX = x;
 	}
-	if (y != tempScaleY)
+
+	if (y == FRACUNIT)
+	{
+		tci->mRenderHeight = RenderHeight[GLUSE_TEXTURE];
+		tci->mScaleY = tex->yScale;
+		tci->mTempScaleY = FRACUNIT;
+	}
+	else
 	{
 		fixed_t scale_y = FixedMul(y, tex->yScale);
 		int foo = (Height[GLUSE_TEXTURE] << 17) / scale_y; 
-		RenderHeight[GLUSE_TEXTURE] = (foo >> 1) + (foo & 1); 
-		wti.scaley = scale_y/(float)FRACUNIT;
-		tempScaleY = y;
+		tci->mRenderHeight = (foo >> 1) + (foo & 1); 
+		tci->mScaleY = scale_y;
+		tci->mTempScaleY = y;
 	}
-}
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-fixed_t FMaterial::RowOffset(fixed_t rowoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (wti.scaley==1.f || tex->bWorldPanning) return rowoffset;
-		else return xs_RoundToInt(rowoffset/wti.scaley);
-	}
-	else
-	{
-		if (tex->bWorldPanning) return FixedDiv(rowoffset, tempScaleY);
-		else return xs_RoundToInt(rowoffset/wti.scaley);
-	}
-}
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-float FMaterial::RowOffset(float rowoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (wti.scaley==1.f || tex->bWorldPanning) return rowoffset;
-		else return rowoffset / wti.scaley;
-	}
-	else
-	{
-		if (tex->bWorldPanning) return rowoffset / FIXED2FLOAT(tempScaleY);
-		else return rowoffset / wti.scaley;
-	}
-}
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-fixed_t FMaterial::TextureOffset(fixed_t textureoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (wti.scalex==1.f || tex->bWorldPanning) return textureoffset;
-		else return xs_RoundToInt(textureoffset/wti.scalex);
-	}
-	else
-	{
-		if (tex->bWorldPanning) return FixedDiv(textureoffset, tempScaleX);
-		else return xs_RoundToInt(textureoffset/wti.scalex);
-	}
-}
-
-
-//===========================================================================
-//
-//
-//
-//===========================================================================
-
-float FMaterial::TextureOffset(float textureoffset) const
-{
-	if (tempScaleX == FRACUNIT)
-	{
-		if (wti.scalex==1.f || tex->bWorldPanning) return textureoffset;
-		else return textureoffset/wti.scalex;
-	}
-	else
-	{
-		if (tex->bWorldPanning) return textureoffset / FIXED2FLOAT(tempScaleX);
-		else return textureoffset/wti.scalex;
-	}
-}
-
-
-//===========================================================================
-//
-// Returns the size for which texture offset coordinates are used.
-//
-//===========================================================================
-
-fixed_t FMaterial::TextureAdjustWidth(ETexUse i) const
-{
-	if (tex->bWorldPanning) 
-	{
-		if (i == GLUSE_PATCH || tempScaleX == FRACUNIT) return RenderWidth[i];
-		else return FixedDiv(Width[i], tempScaleX);
-	}
-	else return Width[i];
+	if (tex->bHasCanvas) tci->mScaleY = -tci->mScaleY;
+	tci->mWorldPanning = tex->bWorldPanning;
+	tci->mWidth = Width[GLUSE_TEXTURE];
 }
 
 //===========================================================================
@@ -1117,6 +1049,7 @@ FMaterial * FMaterial::ValidateTexture(FTexture * tex)
 		FMaterial *gltex = tex->gl_info.Material;
 		if (gltex == NULL) 
 		{
+			//@sync-tex
 			gltex = new FMaterial(tex, false);
 		}
 		return gltex;
@@ -1189,3 +1122,4 @@ CCMD(textureinfo)
 	}
 	Printf(PRINT_LOG, "%d system textures, %d hardware textures, %d pixels\n", cntt, cnth, pix);
 }
+

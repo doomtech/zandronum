@@ -19,6 +19,7 @@ class FMaterial;
 struct GLDrawList;
 struct GLSkyInfo;
 struct GLSectorStackInfo;
+struct FTexCoordInfo;
 
 
 enum WallTypes
@@ -174,7 +175,7 @@ private:
 	void SetHorizon(vertex_t * ul, vertex_t * ur, vertex_t * ll, vertex_t * lr);
 	bool DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2);
 
-	bool SetWallCoordinates(seg_t * seg, float ceilingrefheight,
+	bool SetWallCoordinates(seg_t * seg, FTexCoordInfo *tci, float ceilingrefheight,
 							int topleft,int topright, int bottomleft,int bottomright, int texoffset);
 
 	void DoTexture(int type,seg_t * seg,int peg,

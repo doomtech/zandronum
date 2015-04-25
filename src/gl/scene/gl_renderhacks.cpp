@@ -158,6 +158,7 @@ void FDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 		return;
 	}
 
+	//@sync-hack
 	for(unsigned int i=0;i<MissingUpperTextures.Size();i++)
 	{
 		if (MissingUpperTextures[i].sub == sub)
@@ -218,6 +219,7 @@ void FDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 		return;
 	}
 
+	//@sync-hack
 	for(unsigned int i=0;i<MissingLowerTextures.Size();i++)
 	{
 		if (MissingLowerTextures[i].sub == sub)
@@ -713,6 +715,7 @@ void FDrawInfo::AddHackedSubsector(subsector_t * sub)
 {
 	if (!(level.flags & LEVEL_HEXENFORMAT))
 	{
+		//@sync-hack
 		SubsectorHackInfo sh={sub, 0};
 		SubsectorHacks.Push (sh);
 	}
@@ -1012,11 +1015,13 @@ ADD_STAT(sectorhacks)
 
 void FDrawInfo::AddFloorStack(subsector_t * sub)
 {
+	//@sync-hack
 	FloorStacks.Push(sub);
 }
 
 void FDrawInfo::AddCeilingStack(subsector_t * sub)
 {
+	//@sync-hack
 	CeilingStacks.Push(sub);
 }
 

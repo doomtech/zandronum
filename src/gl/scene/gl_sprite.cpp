@@ -510,40 +510,38 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		gltexture=FMaterial::ValidateTexture(patch, false);
 		if (!gltexture) return;
 
-		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
-
 		if (gl.flags & RFL_NPOT_TEXTURE)	// trimming only works if non-power-of-2 textures are supported
 		{
-			vt=pti->GetSpriteVT();
-			vb=pti->GetSpriteVB();
+			vt = gltexture->GetSpriteVT();
+			vb = gltexture->GetSpriteVB();
 			gltexture->GetRect(&r, GLUSE_SPRITE);
 			if (mirror)
 			{
 				r.left=-r.width-r.left;	// mirror the sprite's x-offset
-				ul=pti->GetSpriteUL();
-				ur=pti->GetSpriteUR();
+				ul = gltexture->GetSpriteUL();
+				ur = gltexture->GetSpriteUR();
 			}
 			else
 			{
-				ul=pti->GetSpriteUR();
-				ur=pti->GetSpriteUL();
+				ul = gltexture->GetSpriteUR();
+				ur = gltexture->GetSpriteUL();
 			}
 		}
 		else
 		{
-			vt=pti->GetVT();
-			vb=pti->GetVB();
+			vt = gltexture->GetVT();
+			vb = gltexture->GetVB();
 			gltexture->GetRect(&r, GLUSE_PATCH);
 			if (mirror)
 			{
 				r.left=-r.width-r.left;	// mirror the sprite's x-offset
-				ul=pti->GetUL();
-				ur=pti->GetUR();
+				ul = gltexture->GetUL();
+				ur = gltexture->GetUR();
 			}
 			else
 			{
-				ul=pti->GetUR();
-				ur=pti->GetUL();
+				ul = gltexture->GetUR();
+				ur = gltexture->GetUL();
 			}
 		}
 
@@ -555,7 +553,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		z1=z-r.top;
 		z2=z1-r.height;
 
-		float spriteheight = FIXED2FLOAT(thing->scaleY) * pti->GetHeight();
+		float spriteheight = FIXED2FLOAT(thing->scaleY) * gltexture->GetScaledHeightFloat(GLUSE_SPRITE);
 		
 		// Tests show that this doesn't look good for many decorations and corpses
 		if (spriteheight>0 && gl_spriteclip>0)
@@ -923,14 +921,13 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 		{
 			gltexture=FMaterial::ValidateTexture(lump);
 			translation = 0;
-			const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 
-			vt=0.0f;
-			vb=pti->GetVB();
+			ul = gltexture->GetUL();
+			ur = gltexture->GetUR();
+			vt = gltexture->GetVT();
+			vb = gltexture->GetVB();
 			FloatRect r;
 			gltexture->GetRect(&r, GLUSE_PATCH);
-			ul=pti->GetUR();
-			ur=0.0f;
 		}
 	}
 

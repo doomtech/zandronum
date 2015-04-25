@@ -127,7 +127,6 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 
 		if (rw == w && rh == h)
 		{
-			scalexfac=scaleyfac=1.f;
 		}
 		else if (wrapparam==GL_REPEAT || rw < w || rh < h)
 		{
@@ -139,7 +138,6 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 				deletebuffer=true;
 				buffer=scaledbuffer;
 			}
-			scalexfac=scaleyfac=1.f;
 		}
 		else
 		{
@@ -160,8 +158,6 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 				
 				deletebuffer=true;
 				buffer=scaledbuffer;
-				scalexfac = (float)w / rw;
-				scaleyfac = (float)h / rh;
 			}
 		}
 	}
@@ -203,16 +199,6 @@ FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool w
 	mipmap=_mipmap;
 	texwidth=_width;
 	texheight=_height;
-
-	if (wrap || (gl.flags&RFL_NPOT_TEXTURE))
-	{
-		scaleyfac=scalexfac=1.f;
-	}
-	else
-	{
-		scalexfac=MIN<float>(1.f,(float)texwidth/FHardwareTexture::GetTexDimension(texwidth));
-		scaleyfac=MIN<float>(1.f,(float)texheight/FHardwareTexture::GetTexDimension(texheight));
-	}
 
 	int cm_arraysize = CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size();
 	glTexID = new unsigned[cm_arraysize];

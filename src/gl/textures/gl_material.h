@@ -13,55 +13,24 @@ struct FRemapTable;
 class FTextureShader;
 
 
-// Two intermediate classes which wrap the low level textures.
-// These ones are returned by the Bind* functions to ensure
-// that the coordinate functions aren't used without the texture
-// being initialized.
-// Unfortunately it is necessary to maintain 2 of these.
-// On older graphics cards which don't support non-power of 2 textures
-// these are not interchangable so if a texture happens to be used
-// both as sprite and texture there need to be different versions.
 
-class WorldTextureInfo
+struct FTexCoordInfo
 {
-	friend class FMaterial;
-protected:
-	const FHardwareTexture * gltexture;
-	float scalex;
-	float scaley;
+	int mRenderWidth;
+	int mRenderHeight;
+	int mWidth;
+	fixed_t mScaleX;
+	fixed_t mScaleY;
+	fixed_t mTempScaleX;
+	fixed_t mTempScaleY;
+	bool mWorldPanning;
 
-public:
-
-	float GetU(float upix) const { return gltexture->GetU(upix*scalex); }
-	float GetV(float vpix) const { return gltexture->GetV(vpix*scaley); }
-		  
-	float FloatToTexU(float v) const { return gltexture->FloatToTexU(v*scalex); }
-	float FloatToTexV(float v) const { return gltexture->FloatToTexV(v*scaley); }
+	float FloatToTexU(float v) const { return v / mRenderWidth; }
+	float FloatToTexV(float v) const { return v / mRenderHeight; }
+	fixed_t RowOffset(fixed_t ofs) const;
+	fixed_t TextureOffset(fixed_t ofs) const;
+	fixed_t TextureAdjustWidth() const;
 };
-
-class PatchTextureInfo
-{
-	friend class FMaterial;
-protected:
-	const FHardwareTexture * glpatch;
-	float SpriteU[2], SpriteV[2];
-
-public:
-	float GetUL() const { return glpatch->GetUL(); }
-	float GetVT() const { return glpatch->GetVT(); }
-	float GetUR() const { return glpatch->GetUR(); }
-	float GetVB() const { return glpatch->GetVB(); }
-	float GetU(float upix) const { return glpatch->GetU(upix); }
-	float GetV(float vpix) const { return glpatch->GetV(vpix); }
-	float GetWidth () const { return glpatch->GetWidth (); }
-	float GetHeight() const { return glpatch->GetHeight(); }
-
-	float GetSpriteUL() const { return SpriteU[0]; }
-	float GetSpriteVT() const { return SpriteV[0]; }
-	float GetSpriteUR() const { return SpriteU[1]; }
-	float GetSpriteVB() const { return SpriteV[1]; }
-};
-
 
 //===========================================================================
 // 
@@ -140,17 +109,15 @@ class FMaterial
 	TArray<FTextureLayer> mTextureLayers;
 	int mShaderIndex;
 
-	WorldTextureInfo wti;
-	PatchTextureInfo pti;
 	short LeftOffset[3];
 	short TopOffset[3];
 	short Width[3];
 	short Height[3];
 	short RenderWidth[2];
 	short RenderHeight[2];
-	fixed_t tempScaleX, tempScaleY;
 
-
+	float SpriteU[2], SpriteV[2];
+	float spriteright, spritebottom;
 
 	void SetupShader(int shaderindex, int &cm);
 	FGLTexture * ValidateSysTexture(FTexture * tex, bool expand);
@@ -167,13 +134,10 @@ public:
 		return !!mBaseLayer->tex->bMasked;
 	}
 
-	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
-	const PatchTextureInfo * BindPatch(int cm, int translation=0);
+	void Bind(int cm, int clamp=0, int translation=0);
+	void BindPatch(int cm, int translation=0);
 
-	const WorldTextureInfo * GetWorldTextureInfo();// { return mBaseLayer->GetWorldTextureInfo(); }
-	const PatchTextureInfo * GetPatchTextureInfo();// { return mBaseLayer->GetPatchTextureInfo(); }
-
-	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool expand = false, bool allowhires=true)
+	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool expand = false, bool allowhires=true) const
 	{
 		return mBaseLayer->CreateTexBuffer(cm, translation, w, h, expand, allowhires? tex:NULL, 0);
 	}
@@ -187,23 +151,13 @@ public:
 	// Patch drawing utilities
 
 	void GetRect(FloatRect *r, ETexUse i) const;
-
-	void SetWallScaling(fixed_t x, fixed_t y);
+	void GetTexCoordInfo(FTexCoordInfo *tci, fixed_t x, fixed_t y) const;
 
 	// This is scaled size in integer units as needed by walls and flats
 	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
 	int TextureWidth(ETexUse i) const { return RenderWidth[i]; }
 
 	int GetAreas(FloatRect **pAreas) const;
-
-	fixed_t TextureOffset(fixed_t textureoffset) const;
-	float TextureOffset(float textureoffset) const;
-
-	fixed_t RowOffset(fixed_t rowoffset) const;
-	float RowOffset(float rowoffset) const;
-
-	// Returns the size for which texture offset coordinates are used.
-	fixed_t TextureAdjustWidth(ETexUse i) const;
 
 	int GetWidth(ETexUse i) const
 	{
@@ -256,12 +210,28 @@ public:
 		return Height[i] / FIXED2FLOAT(tex->yScale);
 	}
 
-	bool GetTransparent()
+	// Get right/bottom UV coordinates for patch drawing
+	float GetUL() const { return 0; }
+	float GetVT() const { return 0; }
+	float GetUR() const { return spriteright; }
+	float GetVB() const { return spritebottom; }
+	float GetU(float upix) const { return upix/(float)Width[GLUSE_PATCH] * spriteright; }
+	float GetV(float vpix) const { return vpix/(float)Height[GLUSE_PATCH] * spritebottom; }
+
+	float GetSpriteUL() const { return SpriteU[0]; }
+	float GetSpriteVT() const { return SpriteV[0]; }
+	float GetSpriteUR() const { return SpriteU[1]; }
+	float GetSpriteVB() const { return SpriteV[1]; }
+
+
+
+	bool GetTransparent() const
 	{
 		if (mBaseLayer->bIsTransparent == -1) 
 		{
-			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT, 0);
-			else Bind (CM_DEFAULT, 0, 0);
+			int w, h;
+			unsigned char *buffer = CreateTexBuffer(CM_DEFAULT, 0, w, h);
+			delete [] buffer;
 		}
 		return !!mBaseLayer->bIsTransparent;
 	}

@@ -86,6 +86,8 @@ void GLWall::MirrorPlane(secplane_t * plane, bool ceiling)
 //==========================================================================
 void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 {
+	GLSkyInfo skyinfo;
+
 	// JUSTHIT is used as an indicator that a skybox is in use.
 	// This is to avoid recursion
 	if (!gl_noskyboxes && !(gl.flags&RFL_NOSTENCIL) && skyboxx && GLRenderer->mViewActor!=skyboxx && !(skyboxx->flags&MF_JUSTHIT))
@@ -109,9 +111,6 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 	else
 	{
 		if (skyboxx && skyboxx->Mate) return;
-
-		// VC's optimizer totally screws up if this is made local...
-		static GLSkyInfo skyinfo;
 
 		memset(&skyinfo, 0, sizeof(skyinfo));
 		if ((sky1 & PL_SKYFLAT) && (sky1 & (PL_SKYFLAT-1)) && !(gl.flags&RFL_NOSTENCIL))
