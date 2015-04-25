@@ -55,26 +55,56 @@ CUSTOM_CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 }
 
 
-
+// Do some tinkering with the menus so that certain options only appear
+// when they are actually valid.
 void gl_SetupMenu()
 {
+#ifndef _MSC_VER
+	FOptionValues **opt = OptionValues.CheckKey("HqResizeModes");
+	if (opt != NULL) 
+	{
+		for(int i = (*opt)->mValues.Size()-1; i>=0; i--)
+		{
+			// Delete HQnX resize modes for non MSVC targets
+			if ((*opt)->mValues[i].Value >= 4.0)
+			{
+				(*opt)->mValues.Delete(i);
+			}
+		}
+	}
+#endif
+
 	if (gl.shadermodel == 2)
 	{
 		// Radial fog and Doom lighting are not available in SM 2 cards
 		// The way they are implemented does not work well on older hardware.
 		// For SM 3 this is implemented through shader recompilation.
 
-		/* should we really bother for those 5 people who still got such an old piece of junk?
-		menuitem_t *lightmodeitem = &GLPrefItems[0];
-		menuitem_t *fogmodeitem = &GLPrefItems[1];
+		FOptionValues **opt = OptionValues.CheckKey("LightingModes");
+		if (opt != NULL) 
+		{
+			for(int i = (*opt)->mValues.Size()-1; i>=0; i--)
+			{
+				// Delete 'Doom' lighting mode
+				if ((*opt)->mValues[i].Value == 2.0)
+				{
+					(*opt)->mValues.Delete(i);
+				}
+			}
+		}
 
-		// disable 'Doom' lighting mode
-		lightmodeitem->e.values = LightingModes2;
-		lightmodeitem->b.numvalues = 4;
-
-		// disable radial fog
-		fogmodeitem->b.numvalues = 2;
-		*/
+		opt = OptionValues.CheckKey("FogMode");
+		if (opt != NULL) 
+		{
+			for(int i = (*opt)->mValues.Size()-1; i>=0; i--)
+			{
+				// Delete 'Radial' fog mode
+				if ((*opt)->mValues[i].Value == 2.0)
+				{
+					(*opt)->mValues.Delete(i);
+				}
+			}
+		}
 
 		// disable features that don't work without shaders.
 		if (gl_lightmode == 2) gl_lightmode = 3;
@@ -85,7 +115,7 @@ void gl_SetupMenu()
 	{
 		// The shader menu will only be visible on SM3. 
 		// SM2 won't use shaders unless unavoidable (and then it's automatic) and SM4 will always use shaders.
-		// Find the GLPrefOptions menu and remove the item named GLShaderOptions.
+		// Find the OpenGLOptions menu and remove the item named GLShaderOptions.
 		
 		FMenuDescriptor **desc = MenuDescriptors.CheckKey("OpenGLOptions");
 		if (desc != NULL && (*desc)->mType == MDESC_OptionsMenu)

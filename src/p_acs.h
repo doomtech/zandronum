@@ -233,6 +233,8 @@ enum
 	APROP_Notrigger		= 23,
 	APROP_DamageFactor	= 24,
 	APROP_MasterTID     = 25,
+	APROP_TargetTID		= 26,
+	APROP_TracerTID		= 27,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

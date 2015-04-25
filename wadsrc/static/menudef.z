@@ -59,14 +59,6 @@ OptionValue "Colormaps"
 	1, "Blend"
 }
 
-OptionValue "LightingModes2"
-{
-	0, "Standard"
-	1, "Bright"
-	3, "Doom"
-	4, "Legacy"
-}
-
 OptionValue "LightingModes"
 {
 	0, "Standard"
@@ -114,18 +106,9 @@ OptionValue "HqResizeModes"
    1, "Scale2x"
    2, "Scale3x"
    3, "Scale4x"
-// [BB] hqnx scaling is only supported with the MS compiler.
    4, "hq2x"
    5, "hq3x"
    6, "hq4x"
-}
-
-OptionValue "HqResizeModes2"
-{
-   0, "Off"
-   1, "Scale2x"
-   2, "Scale3x"
-   3, "Scale4x"
 }
 
 OptionValue "HqResizeTargets"
@@ -141,12 +124,6 @@ OptionValue "FogMode"
 	2, "Radial"
 }
 
-OptionValue "FogMode2"
-{
-	0, "Off"
-	1, "Standard"
-}
-
 OptionMenu "GLTextureGLOptions"
 {
 	Title "TEXTURE OPTIONS"
@@ -155,14 +132,7 @@ OptionMenu "GLTextureGLOptions"
 	Option "Anisotropic filter",		gl_texture_filter_anisotropic,	"Anisotropy"
 	Option "Texture Format",			gl_texture_format,				"TextureFormats"
 	Option "Enable hires textures",		gl_texture_usehires,			"YesNo"
-	IfOption(Windows)	// should be MSVC
-	{
-		Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes"
-	}
-	IfOption(Unix, Mac) // should be GCC
-	{
-		Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes2"
-	}
+	Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes"
 	Option "Resize textures",			gl_texture_hqresize_textures,	"OnOff"
 	Option "Resize sprites",			gl_texture_hqresize_sprites,	"OnOff"
 	Option "Resize fonts",				gl_texture_hqresize_fonts,		"OnOff"
@@ -250,8 +220,6 @@ OptionMenu "VideoOptions"
 	IfOption(Windows)
 	{
 		Option	"Show ENDOOM screen",	"showendoom",					"Endoom"
-		//Option "DirectDraw palette hack", "vid_palettehack",			"OnOff"
-		//Option "Use attached surfaces", "vid_attachedsurfaces",		"OnOff"
 	}
 	
 	StaticText " "
