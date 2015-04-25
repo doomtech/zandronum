@@ -1817,6 +1817,10 @@ void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlaye
 	{
 		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS5, ulPlayerExtra, ulFlags );
 	}
+	if ( pActor->flags6 != pActor->GetDefault( )->flags6 )
+	{
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS6, ulPlayerExtra, ulFlags );
+	}
 	// [BB] ulSTFlags is intentionally left out here.
 }
 
