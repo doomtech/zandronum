@@ -610,7 +610,6 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 
 	mShaderIndex = 0;
 
-
 	// TODO: apply custom shader object here
 	/* if (tx->CustomShaderDefinition)
 	{
@@ -664,8 +663,6 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 	SpriteU[0] = SpriteV[0] = 0;
 	spriteright = SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
 	spritebottom = SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
-	
-	
 
 	mTextureLayers.ShrinkToFit();
 	mMaxBound = -1;
@@ -701,6 +698,8 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		Height[GLUSE_SPRITE] += 2;
 		LeftOffset[GLUSE_SPRITE] += 1;
 		TopOffset[GLUSE_SPRITE] += 1;
+		spriteright = SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
+		spritebottom = SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
 
 		mBaseLayer = ValidateSysTexture(basetex, expanded);
 
