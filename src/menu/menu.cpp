@@ -66,13 +66,7 @@ CVAR (Bool, show_obituaries, true, CVAR_ARCHIVE)
 
 
 CVAR (Float, snd_menuvolume, 0.6f, CVAR_ARCHIVE)
-EXTERN_CVAR (Int, vid_renderer) // Only for FIXME below
-CUSTOM_CVAR(Int, m_use_mouse, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	// FIXME: The mouse does not work right in OpenGL mode,
-	// so it's temporarily disabled with this ugly kludge...
-	if (vid_renderer && m_use_mouse) m_use_mouse = 0;
-}
+CVAR(Int, m_use_mouse, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Int, m_show_backbutton, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 DMenu *DMenu::CurrentMenu;
@@ -958,48 +952,3 @@ CCMD(reset2saved)
 	GameConfig->DoGameSetup (GameNames[gameinfo.gametype]);
 	R_SetViewSize (screenblocks);
 }
-
-
-// OpenGL stuff moved here
-// GL related CVARs
-CVAR(Bool, gl_portals, true, 0)
-CVAR(Bool, gl_noquery, false, 0)
-CVAR(Bool,gl_mirrors,true,0)	// This is for debugging only!
-CVAR(Bool,gl_mirror_envmap, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
-CVAR(Bool, gl_render_segs, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_seamless, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-
-CUSTOM_CVAR(Int, r_mirror_recursions,4,CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
-{
-	if (self<0) self=0;
-	if (self>10) self=10;
-}
-bool gl_plane_reflection_i;	// This is needed in a header that cannot include the CVAR stuff...
-CUSTOM_CVAR(Bool, gl_plane_reflection, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
-{
-	gl_plane_reflection_i = self;
-}
-
-CUSTOM_CVAR(Bool, gl_render_precise, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	//gl_render_segs=self;
-	gl_seamless=self;
-}
-
-CUSTOM_CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	if (screen != NULL)
-	{
-		screen->SetGamma(Gamma); //Brightness (self);
-	}
-}
-
-CUSTOM_CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	if (screen != NULL)
-	{
-		screen->SetGamma(Gamma); //SetContrast (self);
-	}
-}
-

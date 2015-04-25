@@ -771,6 +771,7 @@ if( NOT NO_GL )
 		gl/shaders/gl_texshader.cpp
 		gl/system/gl_interface.cpp
 		gl/system/gl_framebuffer.cpp
+		gl/system/gl_menu.cpp
 		gl/system/gl_wipe.cpp
 		gl/models/gl_models_md3.cpp
 		gl/models/gl_models_md2.cpp

@@ -120,6 +120,14 @@ OptionValue "HqResizeModes"
    6, "hq4x"
 }
 
+OptionValue "HqResizeModes2"
+{
+   0, "Off"
+   1, "Scale2x"
+   2, "Scale3x"
+   3, "Scale4x"
+}
+
 OptionValue "HqResizeTargets"
 {
    0, "Everything"
@@ -133,14 +141,28 @@ OptionValue "FogMode"
 	2, "Radial"
 }
 
+OptionValue "FogMode2"
+{
+	0, "Off"
+	1, "Standard"
+}
+
 OptionMenu "GLTextureGLOptions"
 {
+	Title "TEXTURE OPTIONS"
 	Option "Textures enabled",			gl_texture,						"YesNo"
 	Option "Texture Filter mode",		gl_texture_filter,				"FilterModes"
 	Option "Anisotropic filter",		gl_texture_filter_anisotropic,	"Anisotropy"
 	Option "Texture Format",			gl_texture_format,				"TextureFormats"
 	Option "Enable hires textures",		gl_texture_usehires,			"YesNo"
-	Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes"
+	IfOption(Windows)	// should be MSVC
+	{
+		Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes"
+	}
+	IfOption(Unix, Mac) // should be GCC
+	{
+		Option "High Quality Resize mode",	gl_texture_hqresize,			"HqResizeModes2"
+	}
 	Option "Resize textures",			gl_texture_hqresize_textures,	"OnOff"
 	Option "Resize sprites",			gl_texture_hqresize_sprites,	"OnOff"
 	Option "Resize fonts",				gl_texture_hqresize_fonts,		"OnOff"
@@ -151,6 +173,7 @@ OptionMenu "GLTextureGLOptions"
 
 OptionMenu "GLLightOptions"
 {
+	Title "DYNAMIC LIGHTS"
 	Option "Dynamic Lights enabled",	gl_lights,						"YesNo"
 	Option "Enable light definitions",	gl_attachedlights,				"YesNo"
 	Option "Clip lights",				gl_lights_checkside,			"YesNo"
@@ -164,6 +187,7 @@ OptionMenu "GLLightOptions"
 
 OptionMenu "GLPrefOptions"
 {
+	Title "OPENGL PREFERENCES"
 	Option "Sector light mode",			gl_lightmode,					"LightingModes"
 	Option "Fog mode",					gl_fogmode,						"FogMode"
 	Option "Environment map on mirrors",gl_mirror_envmap,				"OnOff"
@@ -206,9 +230,12 @@ OptionMenu "VideoOptions"
 	Submenu "Scoreboard Options", 		"ScoreboardOptions"
 	StaticText " "
 	Slider "Screen size",				"screenblocks", 				3.0, 12.0, 1.0
-	Slider "Brightness",				"Gamma", 1.0, 					3.0, 0.1
+
+	Slider "Gamma correction",			"Gamma", 						1.0, 3.0, 0.1
+	Slider "Brightness",				"vid_brightness",				-0.8,0.8, 0.05
+	Slider "Contrast",					"vid_contrast",	   				0.1, 3.0, 0.1
+
 	Option "Vertical Sync",				"vid_vsync", 					"OnOff"
-	Option "Column render mode",		"r_columnmethod", 				"ColumnMethods"
 
 	StaticText " "
 	Option "Crosshair",					"crosshair",					"Crosshairs"

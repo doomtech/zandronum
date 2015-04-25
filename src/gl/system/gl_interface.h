@@ -98,6 +98,7 @@ struct RenderContext
 	void (APIENTRY * Color4fv) (const GLfloat *v);
 	void (APIENTRY * Color3f) (GLfloat red, GLfloat green, GLfloat blue);
 	void (APIENTRY * Color3ub) (GLubyte red, GLubyte green, GLubyte blue);
+	void (APIENTRY * Color4ub) (GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha);
 
 	void (APIENTRY * BlendEquation) (GLenum);
 	void (APIENTRY * ColorMask) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);

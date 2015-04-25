@@ -327,10 +327,12 @@ bool GUIWndProcHook(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESU
 		{
 			ev.subtype = EV_GUI_MouseMove;
 		}
-		// FIXME: Apparently not very adapted to OpenGL mode: 
-		// I get crashes on exit here because screen is null. Hence, band-aid fix.
-		ev.data1 = LOWORD(lParam) >> (screen?screen->GetPixelDoubling():0); 
-		ev.data2 = HIWORD(lParam) >> (screen?screen->GetPixelDoubling():0); 
+
+		{
+			int shift = screen? screen->GetPixelDoubling() : 0;
+			ev.data1 = LOWORD(lParam) >> shift; 
+			ev.data2 = HIWORD(lParam) >> shift; 
+		}
 
 		if (wParam & MK_SHIFT)				ev.data3 |= GKM_SHIFT;
 		if (wParam & MK_CONTROL)			ev.data3 |= GKM_CTRL;

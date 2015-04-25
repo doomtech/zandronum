@@ -997,6 +997,7 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.Color4fv = glColor4fv;
 	gl.Color3f = glColor3f;
 	gl.Color3ub = glColor3ub;
+	gl.Color4ub = glColor4ub;
 
 	gl.ColorMask = glColorMask;
 
