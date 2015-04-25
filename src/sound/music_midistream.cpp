@@ -261,6 +261,7 @@ void MIDIStreamer::Play(bool looping, int subsong)
 		return;
 	}
 
+	SetMIDISubsong(subsong);
 	CheckCaps(MIDI->GetTechnology());
 	Precache();
 	IgnoreLoops = false;
@@ -1100,6 +1101,38 @@ FString MIDIStreamer::GetStats()
 		return "No MIDI device in use.";
 	}
 	return MIDI->GetStats();
+}
+
+//==========================================================================
+//
+// MIDIStreamer :: SetSubsong
+//
+// Selects which subsong to play in an already-playing file. This is public.
+//
+//==========================================================================
+
+bool MIDIStreamer::SetSubsong(int subsong)
+{
+	if (SetMIDISubsong(subsong))
+	{
+		Stop();
+		Play(m_Looping, subsong);
+		return true;
+	}
+	return false;
+}
+
+//==========================================================================
+//
+// MIDIStreamer :: SetMIDISubsong
+//
+// Selects which subsong to play. This is private.
+//
+//==========================================================================
+
+bool MIDIStreamer::SetMIDISubsong(int subsong)
+{
+	return subsong == 0;
 }
 
 //==========================================================================

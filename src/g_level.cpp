@@ -1465,6 +1465,8 @@ void G_DoLoadLevel (int position, bool autosave)
 		level.flags2 &= ~LEVEL2_NOMONSTERS;
 	}
 
+	level.maptime = 0;
+
 	// Refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
 
@@ -1530,7 +1532,6 @@ void G_DoLoadLevel (int position, bool autosave)
 	}
 
 	level.starttime = gametic;
-	level.maptime = 0;
 	G_UnSnapshotLevel (!savegamerestore);	// [RH] Restore the state of the level.
 
 	// [BB] If the snapshot was taken with less players than we have now (possible due to ingame joining),

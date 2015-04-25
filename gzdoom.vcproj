@@ -5356,6 +5356,10 @@
 				RelativePath=".\src\sound\music_win_mididevice.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\src\sound\music_xmi_midiout.cpp"
+				>
+			</File>
 			<Filter
 				Name="OPL Synth"
 				>
