@@ -452,9 +452,11 @@ static void DoSubsector(subsector_t * sub)
 					*/
 					SetupFlat.Unclock();
 				}
+				// mark subsector as processed - but mark for rendering only if it has an actual area.
+				gl_drawinfo->ss_renderflags[sub-subsectors] = 
+					(sub->numlines > 2) ? SSRF_PROCESSED|SSRF_RENDERALL : SSRF_PROCESSED;
+				if (sub->hacked & 1) gl_drawinfo->AddHackedSubsector(sub);
 			}
-			gl_drawinfo->ss_renderflags[sub-subsectors] |= SSRF_PROCESSED|SSRF_RENDERALL;
-			if (sub->hacked&1) gl_drawinfo->AddHackedSubsector(sub);
 		}
 	}
 }

@@ -100,14 +100,12 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 
 	if (gl.shadermodel == 4)
 	{
-		usecmshader = cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
-			mTextureMode != TM_MASK;
+		usecmshader = cm > CM_DEFAULT && cm < CM_MAXCOLORMAP && mTextureMode != TM_MASK;
 	}
 	else if (gl.shadermodel == 3)
 	{
 		usecmshader = (cameratexture || gl_colormap_shader) && 
-			cm > CM_DEFAULT && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size() && 
-			mTextureMode != TM_MASK;
+			cm > CM_DEFAULT && cm < CM_MAXCOLORMAP && mTextureMode != TM_MASK;
 
 		if (!gl_brightmap_shader && shaderindex == 3) 
 		{

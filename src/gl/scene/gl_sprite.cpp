@@ -736,30 +736,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	translation=thing->Translation;
 
-	// Since it is easy to get the blood color's RGB value
-	// there is no need to create multiple textures for this.
-	if (GetTranslationType(translation) == TRANSLATION_Blood)
-	{
-		if (Colormap.colormap < CM_FIRSTSPECIALCOLORMAP || 
-			Colormap.colormap >= CM_FIRSTSPECIALCOLORMAP+SpecialColormaps.Size())
-		{
-
-
-			ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
-			ThingColor.a=0;
-			// This is to apply desaturation to the color
-			gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.colormap);
-			translation = TRANSLATION(TRANSLATION_Standard, 8);
-		}
-		else 
-		{
-			// Blood color must be disabled when using any monochrome colormap
-			ThingColor = 0xffffff;
-			translation = 0;
-		}
-	}
-	else ThingColor=0xffffff;
-
+	ThingColor=0xffffff;
 	RenderStyle = thing->RenderStyle;
 	RenderStyle.CheckFuzz();
 	trans = FIXED2FLOAT(thing->alpha);

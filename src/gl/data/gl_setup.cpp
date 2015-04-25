@@ -98,7 +98,7 @@ void gl_InitSegs()
 
 		// Account for ZDoom space optimizations that cannot be done for GL
 		unsigned int partner= glsegextras[i].PartnerSeg;
-		if (partner < numsegs)  seg->PartnerSeg = &segs[partner];
+		if (partner < unsigned(numsegs))  seg->PartnerSeg = &segs[partner];
 		else seg->PartnerSeg = NULL;
 	}
 }

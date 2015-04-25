@@ -1334,6 +1334,8 @@ void gl_ParseDefs()
 	case GAME_Chex:
 		defsLump = "CHEXDEFS";
 		break;
+	default: // silence GCC
+		break;
 	}
 	gl_ParseVavoomSkybox();
 	if (defsLump != NULL) gl_LoadGLDefs(defsLump);

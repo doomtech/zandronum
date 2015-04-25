@@ -227,8 +227,8 @@ struct FDrawInfo
 	void CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor);
 	void CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor);
 
-	void AddUpperMissingTexture(seg_t * seg, fixed_t backheight);
-	void AddLowerMissingTexture(seg_t * seg, fixed_t backheight);
+	void AddUpperMissingTexture(side_t * side, subsector_t *sub, fixed_t backheight);
+	void AddLowerMissingTexture(side_t * side, subsector_t *sub, fixed_t backheight);
 	void HandleMissingTextures();
 	void DrawUnhandledMissingTextures();
 	void AddHackedSubsector(subsector_t * sub);

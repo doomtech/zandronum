@@ -615,7 +615,7 @@ void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isaddit
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
 {
 	int gray = (red*77 + green*143 + blue*36)>>8;
-	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
+	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_MAXCOLORMAP)
 	{
 		PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
 		red = pe.r;

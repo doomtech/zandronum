@@ -266,8 +266,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 	catch(CRecoverableError &err)
 	{
 		shader_cm = NULL;
-		Printf("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
-		I_Error("");
+		I_Error("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
 	}
 
 	if (gl.shadermodel > 2)
@@ -298,8 +297,7 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 			catch(CRecoverableError &err)
 			{
 				shader[i] = NULL;
-				Printf("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
-				I_Error("");
+				I_Error("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
 			}
 			if (i==3 && gl.maxuniforms < 1024)
 			{
@@ -339,7 +337,7 @@ FShader *FShaderContainer::Bind(int cm, bool glowing, float Speed, bool lights)
 {
 	FShader *sh=NULL;
 
-	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size())
+	if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_MAXCOLORMAP)
 	{
 		// these are never used with any kind of lighting or fog
 		sh = shader_cm;

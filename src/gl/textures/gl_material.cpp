@@ -393,8 +393,6 @@ const FHardwareTexture *FGLTexture::Bind(int texunit, int cm, int clampmode, int
 	int usebright = false;
 
 	if (translation <= 0) translation = -translation;
-	else if (translation == TRANSLATION(TRANSLATION_Standard, 8)) translation = CM_GRAY;
-	else if (translation == TRANSLATION(TRANSLATION_Standard, 7)) translation = CM_ICE;
 	else translation = GLTranslationPalette::GetInternalTranslation(translation);
 
 	FHardwareTexture *hwtex;
@@ -473,8 +471,6 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 	int transparm = translation;
 
 	if (translation <= 0) translation = -translation;
-	else if (translation == TRANSLATION(TRANSLATION_Standard, 8)) translation = CM_GRAY;
-	else if (translation == TRANSLATION(TRANSLATION_Standard, 7)) translation = CM_ICE;
 	else translation = GLTranslationPalette::GetInternalTranslation(translation);
 
 	if (CreatePatch())

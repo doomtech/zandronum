@@ -142,48 +142,55 @@ void FDrawInfo::AddOtherCeilingPlane(int sector, gl_subsectorrendernode * node)
 // Collects all sectors that might need a fake ceiling
 //
 //==========================================================================
-void FDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
+void FDrawInfo::AddUpperMissingTexture(side_t * side, subsector_t *sub, fixed_t backheight)
 {
-	if (!seg->backsector) return;
+	if (!side->segs[0]->backsector) return;
 
 	totalms.Clock();
-	MissingTextureInfo mti = {};
-	MissingSegInfo msi;
-
-	subsector_t * sub = seg->Subsector();
-
-	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
+	for(int i=0; i<side->numsegs; i++)
 	{
-		totalms.Unclock();
-		return;
-	}
+		seg_t *seg = side->segs[i];
 
-	//@sync-hack
-	for(unsigned int i=0;i<MissingUpperTextures.Size();i++)
-	{
-		if (MissingUpperTextures[i].sub == sub)
+		// we need find the seg belonging to the passed subsector
+		if (seg->Subsector() == sub)
 		{
-			// Use the lowest adjoining height to draw a fake ceiling if necessary
-			if (backheight < MissingUpperTextures[i].planez) 
+			MissingTextureInfo mti = {};
+			MissingSegInfo msi;
+
+
+			if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 			{
-				MissingUpperTextures[i].planez = backheight;
-				MissingUpperTextures[i].seg = seg;
+				totalms.Unclock();
+				return;
 			}
 
-			msi.MTI_Index = i;
+			//@sync-hack
+			for(unsigned int i=0;i<MissingUpperTextures.Size();i++)
+			{
+				if (MissingUpperTextures[i].sub == sub)
+				{
+					// Use the lowest adjoining height to draw a fake ceiling if necessary
+					if (backheight < MissingUpperTextures[i].planez) 
+					{
+						MissingUpperTextures[i].planez = backheight;
+						MissingUpperTextures[i].seg = seg;
+					}
+
+					msi.MTI_Index = i;
+					msi.seg=seg;
+					MissingUpperSegs.Push(msi);
+					totalms.Unclock();
+					return;
+				}
+			}
+			mti.seg=seg;
+			mti.sub=sub;
+			mti.planez=backheight;
+			msi.MTI_Index = MissingUpperTextures.Push(mti);
 			msi.seg=seg;
 			MissingUpperSegs.Push(msi);
-
-			totalms.Unclock();
-			return;
 		}
 	}
-	mti.seg=seg;
-	mti.sub=sub;
-	mti.planez=backheight;
-	msi.MTI_Index = MissingUpperTextures.Push(mti);
-	msi.seg=seg;
-	MissingUpperSegs.Push(msi);
 	totalms.Unclock();
 }
 
@@ -192,59 +199,71 @@ void FDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 // Collects all sectors that might need a fake floor
 //
 //==========================================================================
-void FDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
+void FDrawInfo::AddLowerMissingTexture(side_t * side, subsector_t *sub, fixed_t backheight)
 {
-	if (!seg->backsector) return;
-	if (seg->backsector->transdoor)
+	sector_t *backsec = side->segs[0]->backsector;
+	if (!backsec) return;
+	if (backsec->transdoor)
 	{
-		if (seg->backsector->transdoorheight == seg->backsector->GetPlaneTexZ(sector_t::floor)) return;
+		// Transparent door hacks alter the backsector's floor height so we should not
+		// process the missing texture for them.
+		if (backsec->transdoorheight == backsec->GetPlaneTexZ(sector_t::floor)) return;
 	}
 
 	totalms.Clock();
-	MissingTextureInfo mti = {};
-	MissingSegInfo msi;
-
-	subsector_t * sub = seg->Subsector();
-
-	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
+	// we need to check all segs of this sidedef
+	for(int i=0; i<side->numsegs; i++)
 	{
-		totalms.Unclock();
-		return;
-	}
+		seg_t *seg = side->segs[i];
 
-	// Ignore FF_FIX's because they are designed to abuse missing textures
-	if (seg->backsector->e->XFloor.ffloors.Size() && seg->backsector->e->XFloor.ffloors[0]->flags&FF_FIX)
-	{
-		totalms.Unclock();
-		return;
-	}
-
-	//@sync-hack
-	for(unsigned int i=0;i<MissingLowerTextures.Size();i++)
-	{
-		if (MissingLowerTextures[i].sub == sub)
+		// we need find the seg belonging to the passed subsector
+		if (seg->Subsector() == sub)
 		{
-			// Use the highest adjoining height to draw a fake floor if necessary
-			if (backheight > MissingLowerTextures[i].planez) 
+			MissingTextureInfo mti = {};
+			MissingSegInfo msi;
+
+			subsector_t * sub = seg->Subsector();
+
+			if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 			{
-				MissingLowerTextures[i].planez = backheight;
-				MissingLowerTextures[i].seg = seg;
+				totalms.Unclock();
+				return;
 			}
 
-			msi.MTI_Index = i;
+			// Ignore FF_FIX's because they are designed to abuse missing textures
+			if (seg->backsector->e->XFloor.ffloors.Size() && seg->backsector->e->XFloor.ffloors[0]->flags&FF_FIX)
+			{
+				totalms.Unclock();
+				return;
+			}
+
+			//@sync-hack
+			for(unsigned int i=0;i<MissingLowerTextures.Size();i++)
+			{
+				if (MissingLowerTextures[i].sub == sub)
+				{
+					// Use the highest adjoining height to draw a fake floor if necessary
+					if (backheight > MissingLowerTextures[i].planez) 
+					{
+						MissingLowerTextures[i].planez = backheight;
+						MissingLowerTextures[i].seg = seg;
+					}
+
+					msi.MTI_Index = i;
+					msi.seg=seg;
+					MissingLowerSegs.Push(msi);
+					totalms.Unclock();
+					return;
+				}
+			}
+			mti.seg=seg;
+			mti.sub = sub;
+			mti.planez=backheight;
+			msi.MTI_Index = MissingLowerTextures.Push(mti);
 			msi.seg=seg;
 			MissingLowerSegs.Push(msi);
-
-			totalms.Unclock();
-			return;
 		}
 	}
-	mti.seg=seg;
-	mti.sub = sub;
-	mti.planez=backheight;
-	msi.MTI_Index = MissingLowerTextures.Push(mti);
-	msi.seg=seg;
-	MissingLowerSegs.Push(msi);
 	totalms.Unclock();
 }
 

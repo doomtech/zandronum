@@ -483,7 +483,7 @@ CCMD(dumpgeometry)
 		{
 			subsector_t * sub = sector->subsectors[j];
 
-			Printf(PRINT_LOG, "    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
+			Printf(PRINT_LOG, "    Subsector %d - real sector = %d - %s\n", int(sub-subsectors), sub->sector->sectornum, sub->hacked&1? "hacked":"");
 			for(DWORD k=0;k<sub->numlines;k++)
 			{
 				seg_t * seg = sub->firstline + k;
@@ -491,13 +491,13 @@ CCMD(dumpgeometry)
 				{
 				Printf(PRINT_LOG, "      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
 					FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
-					seg-segs, seg->linedef-lines, seg->sidedef != seg->linedef->sidedef[0]);
+					int(seg-segs), int(seg->linedef-lines), seg->sidedef != seg->linedef->sidedef[0]);
 				}
 				else
 				{
 					Printf(PRINT_LOG, "      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
 						FIXED2FLOAT(seg->v1->x), FIXED2FLOAT(seg->v1->y), FIXED2FLOAT(seg->v2->x), FIXED2FLOAT(seg->v2->y),
-						seg-segs);
+						int(seg-segs));
 				}
 				if (seg->PartnerSeg) 
 				{

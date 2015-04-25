@@ -1648,7 +1648,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 				}
 				else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
 				{
-					gl_drawinfo->AddUpperMissingTexture(seg, bch1a);
+					gl_drawinfo->AddUpperMissingTexture(seg->sidedef, sub, bch1a);
 				}
 			}
 		}
@@ -1707,7 +1707,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 			else if (backsector->GetTexture(sector_t::floor)!=skyflatnum && 
 				!(seg->sidedef->Flags & WALLF_POLYOBJ))
 			{
-				gl_drawinfo->AddLowerMissingTexture(seg, bfh1);
+				gl_drawinfo->AddLowerMissingTexture(seg->sidedef, sub, bfh1);
 			}
 		}
 	}

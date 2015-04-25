@@ -283,7 +283,7 @@ FHardwareTexture::~FHardwareTexture()
 
 unsigned * FHardwareTexture::GetTexID(int cm, int translation)
 {
-	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
+	if (cm < 0 || cm >= CM_MAXCOLORMAP) cm=CM_DEFAULT;
 
 	if (translation==0)
 	{
@@ -397,7 +397,7 @@ void FHardwareTexture::BindToFrameBuffer()
 unsigned int FHardwareTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
 									  int cm, int translation)
 {
-	if (cm < 0 || cm >= CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()) cm=CM_DEFAULT;
+	if (cm < 0 || cm >= CM_MAXCOLORMAP) cm=CM_DEFAULT;
 
 	unsigned int * pTexID=GetTexID(cm, translation);
 

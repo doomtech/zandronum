@@ -56,9 +56,8 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 	int i;
 	int fac;
 
-	switch(cm)
+	if (cm == CM_DEFAULT)
 	{
-	case CM_DEFAULT:
 		for(i=0;i<count;i++)
 		{
 			if (T::A(pin) != 0)
@@ -71,44 +70,9 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 			pout+=4;
 			pin+=step;
 		}
-		break;
-
-	case CM_GRAY:
-		// this is used for colorization of blood.
-		// To get the best results the brightness is taken from 
-		// the most intense component and not averaged because that would be too dark.
-		for(i=0;i<count;i++) 
-		{
-			if (T::A(pin) != 0)
-			{
-				pout[0] = pout[1] = pout[2] = MAX(MAX(T::R(pin), T::G(pin)), T::B(pin));
-				pout[3] = T::A(pin);
-			}
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_ICE:
-		// Create the ice translation table, based on Hexen's.
-		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
-		for(i=0;i<count;i++)
-		{
-			if (T::A(pin) != 0)
-			{
-				int gray = T::Gray(pin)>>4;
-
-				pout[0] = IcePalette[gray][0];
-				pout[1] = IcePalette[gray][1];
-				pout[2] = IcePalette[gray][2];
-				pout[3] = 255;
-			}
-			pout+=4;
-			pin+=step;
-		}
-		break;
-
-	case CM_SHADE:
+	}
+	else if (cm == CM_SHADE)
+	{
 		// Alpha shade uses the red channel for true color pics
 		for(i=0;i<count;i++)
 		{
@@ -120,42 +84,37 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 			pout+=4;
 			pin+=step;
 		}
-		break;
-	
-	default:
-
-		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + int(SpecialColormaps.Size()))
+	}
+	else if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + int(SpecialColormaps.Size()))
+	{
+		for(i=0;i<count;i++) 
 		{
-			for(i=0;i<count;i++) 
+			if (T::A(pin) != 0)
 			{
-				if (T::A(pin) != 0)
-				{
-					PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
-					pout[0] = pe.r;
-					pout[1] = pe.g;
-					pout[2] = pe.b;
-					pout[3] = T::A(pin);
-				}
-				pout+=4;
-				pin+=step;
+				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[T::Gray(pin)];
+				pout[0] = pe.r;
+				pout[1] = pe.g;
+				pout[2] = pe.b;
+				pout[3] = T::A(pin);
 			}
+			pout+=4;
+			pin+=step;
 		}
-		else if (cm<=CM_DESAT31)
+	}
+	else if (cm<=CM_DESAT31)
+	{
+		// Desaturated light settings.
+		fac=cm-CM_DESAT0;
+		for(i=0;i<count;i++)
 		{
-			// Desaturated light settings.
-			fac=cm-CM_DESAT0;
-			for(i=0;i<count;i++)
+			if (T::A(pin) != 0)
 			{
-				if (T::A(pin) != 0)
-				{
-					gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
-					pout[3] = T::A(pin);
-				}
-				pout+=4;
-				pin+=step;
+				gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
+				pout[3] = T::A(pin);
 			}
+			pout+=4;
+			pin+=step;
 		}
-		break;
 	}
 }
 
@@ -204,68 +163,38 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 	int i;
 	int fac;
 
-	switch(cm)
+	if (cm == CM_DEFAULT)
 	{
-	case CM_DEFAULT:
 		if (pin != pout)
 			memcpy(pout, pin, count * sizeof(PalEntry));
-		break;
-
-	case CM_GRAY:
-		// this is used for colorization of blood.
-		// To get the best results the brightness is taken from 
-		// the most intense component and not averaged because that would be too dark.
+	}
+	else if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + int(SpecialColormaps.Size()))
+	{
 		for(i=0;i<count;i++)
 		{
-			pout[i].r = pout[i].g = pout[i].b = MAX(MAX(pin[i].r, pin[i].g), pin[i].b);
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			// This can be done in place so we cannot copy the color directly.
+			PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
+			pout[i].r = pe.r;
+			pout[i].g = pe.g;
+			pout[i].b = pe.b;
 			pout[i].a = pin[i].a;
 		}
-		break;
-
-	case CM_ICE:
-		// Create the ice translation table, based on Hexen's.
-		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
+	}
+	else if (cm<=CM_DESAT31)
+	{
+		// Desaturated light settings.
+		fac=cm-CM_DESAT0;
 		for(i=0;i<count;i++)
 		{
-			int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>12;
-
-			pout[i].r = IcePalette[gray][0];
-			pout[i].g = IcePalette[gray][1];
-			pout[i].b = IcePalette[gray][2];
+			int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*36)>>8;
+			gl_Desaturate(gray, pin[i].r, pin[i].g, pin[i].b, pout[i].r, pout[i].g, pout[i].b, fac);
 			pout[i].a = pin[i].a;
 		}
-		break;
-	
-	default:
-		if (cm >= CM_FIRSTSPECIALCOLORMAP && cm < CM_FIRSTSPECIALCOLORMAP + int(SpecialColormaps.Size()))
-		{
-			for(i=0;i<count;i++)
-			{
-				int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
-				// This can be done in place so we cannot copy the color directly.
-				PalEntry pe = SpecialColormaps[cm - CM_FIRSTSPECIALCOLORMAP].GrayscaleToColor[gray];
-				pout[i].r = pe.r;
-				pout[i].g = pe.g;
-				pout[i].b = pe.b;
-				pout[i].a = pin[i].a;
-			}
-		}
-		else if (cm<=CM_DESAT31)
-		{
-			// Desaturated light settings.
-			fac=cm-CM_DESAT0;
-			for(i=0;i<count;i++)
-			{
-				int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*36)>>8;
-				gl_Desaturate(gray, pin[i].r, pin[i].g, pin[i].b, pout[i].r, pout[i].g, pout[i].b, fac);
-				pout[i].a = pin[i].a;
-			}
-		}
-		else if (pin!=pout)
-		{
-			memcpy(pout, pin, count * sizeof(PalEntry));
-		}
-		break;
+	}
+	else if (pin!=pout)
+	{
+		memcpy(pout, pin, count * sizeof(PalEntry));
 	}
 }
 
@@ -304,14 +233,6 @@ void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int 
 			// because that yields better results.
 			switch(translation)
 			{
-			case CM_GRAY:
-				ModifyPalette(penew, palette, CM_GRAY, 256);
-				break;
-
-			case CM_ICE:
-				ModifyPalette(penew, palette, CM_ICE, 256);
-				break;
-
 			default:
 			{
 				PalEntry *ptrans = GLTranslationPalette::GetPalette(translation);
