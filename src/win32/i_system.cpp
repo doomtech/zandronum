@@ -158,8 +158,6 @@ UINT MillisecondsPerTic;
 HANDLE NewTicArrived;
 uint32 LanguageIDs[4];
 
-const IWADInfo *DoomStartupInfo;
-
 // [K6/BB]
 extern FString g_VersionWithOS;
 
@@ -909,20 +907,6 @@ void STACK_ARGS I_Error(const char *error, ...)
 		CLIENT_QuitNetworkGame( NULL );
 
 	throw CRecoverableError(errortext);
-}
-
-//==========================================================================
-//
-// I_SetIWADInfo
-//
-//==========================================================================
-
-void I_SetIWADInfo(const IWADInfo *info)
-{
-	DoomStartupInfo = info;
-
-	// Make the startup banner show itself
-	LayoutMainWindow(Window, NULL);
 }
 
 //==========================================================================
