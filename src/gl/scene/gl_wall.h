@@ -279,7 +279,7 @@ public:
 	void PutFlat(bool fog = false);
 	void Process(sector_t * model, int whichplane, bool notexture);
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
-	void ProcessSector(sector_t * frontsector, subsector_t * sub);
+	void ProcessSector(sector_t * frontsector);
 	void Draw(int pass);
 };
 

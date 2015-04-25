@@ -52,6 +52,7 @@
 #include "vectors.h"
 
 #include "gl/system/gl_framebuffer.h"
+#include "gl/system/gl_threads.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/renderer/gl_renderstate.h"
@@ -91,12 +92,14 @@ void FGLRenderer::Initialize()
 	mFBID = 0;
 	SetupLevel();
 	mShaderManager = new FShaderManager;
+	mThreadManager = new FGLThreadManager;
 }
 
 FGLRenderer::~FGLRenderer() 
 {
 	gl_DeleteAllAttachedLights();
 	FMaterial::FlushAll();
+	if (mThreadManager != NULL) delete mThreadManager;
 	if (mShaderManager != NULL) delete mShaderManager;
 	if (mVBO != NULL) delete mVBO;
 	if (glpart2) delete glpart2;
@@ -166,10 +169,10 @@ void FGLRenderer::ProcessParticle(particle_t *part, sector_t *sector)
 //
 //===========================================================================
 
-void FGLRenderer::ProcessSector(sector_t *fakesector, subsector_t *sub)
+void FGLRenderer::ProcessSector(sector_t *fakesector)
 {
 	GLFlat glflat;
-	glflat.ProcessSector(fakesector, sub);
+	glflat.ProcessSector(fakesector);
 }
 
 //===========================================================================

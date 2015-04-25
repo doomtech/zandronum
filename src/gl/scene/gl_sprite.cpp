@@ -614,22 +614,25 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 						float ratio = clamp<float>((abs(diffb) * (float)gl_sclipfactor/(spriteheight+1)), 0.5, 1.0);
 						diffb*=ratio;
 					}
-					if (difft <= 0) difft = 0;
-					if (difft >= (float)gl_sclipthreshold) 
+					if (!diffb)
 					{
-						// dumb copy of the above.
-						if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || difft > (float)gl_sclipthreshold)
+						if (difft <= 0) difft = 0;
+						if (difft >= (float)gl_sclipthreshold) 
 						{
-							difft=0;
+							// dumb copy of the above.
+							if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || difft > (float)gl_sclipthreshold)
+							{
+								difft=0;
+							}
 						}
+						if (spriteheight > abs(difft))
+						{
+							float ratio = clamp<float>((abs(difft) * (float)gl_sclipfactor/(spriteheight+1)), 0.5, 1.0);
+							difft*=ratio;
+						}
+						z2-=difft;
+						z1-=difft;
 					}
-					if (spriteheight > abs(difft))
-					{
-						float ratio = clamp<float>((abs(difft) * (float)gl_sclipfactor/(spriteheight+1)), 0.5, 1.0);
-						difft*=ratio;
-					}
-					z2-=difft;
-					z1-=difft;
 				}
 				if (diffb <= (0 - (float)gl_sclipthreshold))	// such a large displacement can't be correct! 
 				{

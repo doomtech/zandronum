@@ -203,8 +203,8 @@ struct FDrawInfo
 	TArray<gl_subsectorrendernode*> otherfloorplanes;
 	TArray<gl_subsectorrendernode*> otherceilingplanes;
 
-	TArray<subsector_t *> CeilingStacks;
-	TArray<subsector_t *> FloorStacks;
+	TArray<sector_t *> CeilingStacks;
+	TArray<sector_t *> FloorStacks;
 
 	TArray<subsector_t *> HandledSubsectors;
 
@@ -233,8 +233,8 @@ struct FDrawInfo
 	void DrawUnhandledMissingTextures();
 	void AddHackedSubsector(subsector_t * sub);
 	void HandleHackedSubsectors();
-	void AddFloorStack(subsector_t * sub);
-	void AddCeilingStack(subsector_t * sub);
+	void AddFloorStack(sector_t * sec);
+	void AddCeilingStack(sector_t * sec);
 	void ProcessSectorStacks();
 
 	void AddOtherFloorPlane(int sector, gl_subsectorrendernode * node);

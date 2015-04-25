@@ -715,7 +715,7 @@ void FDrawInfo::AddHackedSubsector(subsector_t * sub)
 {
 	if (!(level.flags & LEVEL_HEXENFORMAT))
 	{
-		//@sync-hack
+		//@sync-hack (probably not, this is only called from the main thread)
 		SubsectorHackInfo sh={sub, 0};
 		SubsectorHacks.Push (sh);
 	}
@@ -1013,16 +1013,16 @@ ADD_STAT(sectorhacks)
 //
 //==========================================================================
 
-void FDrawInfo::AddFloorStack(subsector_t * sub)
+void FDrawInfo::AddFloorStack(sector_t * sec)
 {
 	//@sync-hack
-	FloorStacks.Push(sub);
+	FloorStacks.Push(sec);
 }
 
-void FDrawInfo::AddCeilingStack(subsector_t * sub)
+void FDrawInfo::AddCeilingStack(sector_t * sec)
 {
 	//@sync-hack
-	CeilingStacks.Push(sub);
+	CeilingStacks.Push(sec);
 }
 
 //==========================================================================
@@ -1135,60 +1135,71 @@ void FDrawInfo::ProcessSectorStacks()
 	validcount++;
 	for (i=0;i<CeilingStacks.Size (); i++)
 	{
-		subsector_t * sub = CeilingStacks[i];
-
-		HandledSubsectors.Clear();
-		for(DWORD j=0;j<sub->numlines;j++)
+		sector_t *sec = CeilingStacks[i];
+		for(int k=0;k<sec->subsectorcount;k++)
 		{
-			seg_t * seg = sub->firstline + j;
-			if (seg->PartnerSeg)
+			subsector_t * sub = sec->subsectors[k];
+			if (ss_renderflags[sub-subsectors] & SSRF_PROCESSED)
 			{
-				subsector_t * backsub = seg->PartnerSeg->Subsector();
+				HandledSubsectors.Clear();
+				for(DWORD j=0;j<sub->numlines;j++)
+				{
+					seg_t * seg = sub->firstline + j;
+					if (seg->PartnerSeg)
+					{
+						subsector_t * backsub = seg->PartnerSeg->Subsector();
 
-				if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, sub->render_sector);
-			}
-		}
+						if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, sub->render_sector);
+					}
+				}
+				for(unsigned int j=0;j<HandledSubsectors.Size();j++)
+				{				
+					ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERCEILING;
 
-		for(unsigned int j=0;j<HandledSubsectors.Size();j++)
-		{				
-			ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERCEILING;
-
-			if (sub->render_sector->CeilingSkyBox->PlaneAlpha!=0)
-			{
-				gl_subsectorrendernode * node = SSR_List.GetNew();
-				node->sub = HandledSubsectors[j];
-				AddOtherCeilingPlane(sub->render_sector->sectornum, node);
+					if (sub->render_sector->CeilingSkyBox->PlaneAlpha!=0)
+					{
+						gl_subsectorrendernode * node = SSR_List.GetNew();
+						node->sub = HandledSubsectors[j];
+						AddOtherCeilingPlane(sub->render_sector->sectornum, node);
+					}
+				}
 			}
 		}
 	}
 
 	validcount++;
-	for (i=0;i<FloorStacks.Size (); i++)
+	for (i=0;i<CeilingStacks.Size (); i++)
 	{
-		subsector_t * sub = FloorStacks[i];
-
-		HandledSubsectors.Clear();
-		for(DWORD j=0;j<sub->numlines;j++)
+		sector_t *sec = CeilingStacks[i];
+		for(int k=0;k<sec->subsectorcount;k++)
 		{
-			seg_t * seg = sub->firstline + j;
-			if (seg->PartnerSeg)
+			subsector_t * sub = sec->subsectors[k];
+			if (ss_renderflags[sub-subsectors] & SSRF_PROCESSED)
 			{
-				subsector_t	* backsub = seg->PartnerSeg->Subsector();
+				HandledSubsectors.Clear();
+				for(DWORD j=0;j<sub->numlines;j++)
+				{
+					seg_t * seg = sub->firstline + j;
+					if (seg->PartnerSeg)
+					{
+						subsector_t	* backsub = seg->PartnerSeg->Subsector();
 
-				if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, sub->render_sector);
-			}
-		}
+						if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, sub->render_sector);
+					}
+				}
 
-		for(unsigned int j=0;j<HandledSubsectors.Size();j++)
-		{				
-			//Printf("%d: ss %d, sec %d\n", j, HandledSubsectors[j]-subsectors, HandledSubsectors[j]->render_sector->sectornum);
-			ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERFLOOR;
+				for(unsigned int j=0;j<HandledSubsectors.Size();j++)
+				{				
+					//Printf("%d: ss %d, sec %d\n", j, HandledSubsectors[j]-subsectors, HandledSubsectors[j]->render_sector->sectornum);
+					ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERFLOOR;
 
-			if (sub->render_sector->FloorSkyBox->PlaneAlpha!=0)
-			{
-				gl_subsectorrendernode * node = SSR_List.GetNew();
-				node->sub = HandledSubsectors[j];
-				AddOtherFloorPlane(sub->render_sector->sectornum, node);
+					if (sub->render_sector->FloorSkyBox->PlaneAlpha!=0)
+					{
+						gl_subsectorrendernode * node = SSR_List.GetNew();
+						node->sub = HandledSubsectors[j];
+						AddOtherFloorPlane(sub->render_sector->sectornum, node);
+					}
+				}
 			}
 		}
 	}

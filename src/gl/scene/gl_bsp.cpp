@@ -159,9 +159,20 @@ static void AddLine (seg_t *seg)
 		{
 			SetupWall.Clock();
 
-			GLWall wall;
-			wall.sub = currentsubsector;
-			wall.Process(seg, currentsector, backsector);
+			//if (!gl_multithreading)
+			{
+				GLWall wall;
+				wall.sub = currentsubsector;
+				wall.Process(seg, currentsector, backsector);
+			}
+			/*
+			else
+			{
+				FJob *job = new FGLJobProcessWall(currentsubsector, seg, 
+					currentsector->sectornum, backsector != NULL? backsector->sectornum : -1);
+				GLRenderer->mThreadManager->AddJob(job);
+			}
+			*/
 			rendered_lines++;
 
 			SetupWall.Unclock();
@@ -303,11 +314,21 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 	sector_t * sec=sub->sector;
 	if (sec->thinglist != NULL)
 	{
-		// Handle all things in sector.
-		for (AActor * thing = sec->thinglist; thing; thing = thing->snext)
+		//if (!gl_multithreading)
 		{
-			GLRenderer->ProcessSprite(thing, sector);
+			// Handle all things in sector.
+			for (AActor * thing = sec->thinglist; thing; thing = thing->snext)
+			{
+				GLRenderer->ProcessSprite(thing, sector);
+			}
 		}
+		/*
+		else if (sec->thinglist != NULL)
+		{
+			FJob *job = new FGLJobProcessSprites(sector);
+			GLRenderer->mThreadManager->AddJob(job);
+		}
+		*/
 	}
 	SetupSprite.Unclock();
 }
@@ -346,7 +367,6 @@ static void DoSubsector(subsector_t * sub)
 	sector=sub->sector;
 	if (!sector) return;
 
-	sector->MoreFlags |= SECF_DRAWN;
 	fakesector=gl_FakeFlat(sector, &fake, false);
 
 	if (sector->validcount != validcount)
@@ -359,10 +379,21 @@ static void DoSubsector(subsector_t * sub)
 	if (gl_render_things)
 	{
 		SetupSprite.Clock();
-		for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
+
+		//if (!gl_multithreading)
 		{
-			GLRenderer->ProcessParticle(&Particles[i], fakesector);
+			for (i = ParticlesInSubsec[DWORD(sub-subsectors)]; i != NO_PARTICLE; i = Particles[i].snext)
+			{
+				GLRenderer->ProcessParticle(&Particles[i], fakesector);
+			}
 		}
+		/*
+		else if (ParticlesInSubsec[DWORD(sub-subsectors)] != NO_PARTICLE)
+		{
+			FJob job = new FGLJobProcessParticles(sub);
+			GLRenderer->mThreadManager->AddJob(job);
+		}
+		*/
 		SetupSprite.Unclock();
 	}
 
@@ -381,6 +412,7 @@ static void DoSubsector(subsector_t * sub)
 		{
 			RenderThings(sub, fakesector);
 		}
+		sector->MoreFlags |= SECF_DRAWN;
 	}
 
 	if (gl_render_flats)
@@ -394,17 +426,35 @@ static void DoSubsector(subsector_t * sub)
 			// Due to the way a BSP works such a subsector can never be visible
 			if (!sector->heightsec || sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || in_area!=area_default)
 			{
-				SetupFlat.Clock();
-				if (sector != sub->render_sector)
+				BYTE &srf = gl_drawinfo->sectorrenderflags[sub->render_sector->sectornum];
+				if (!(srf & SSRF_PROCESSED))
 				{
-					sector = sub->render_sector;
-					// the planes of this subsector are faked to belong to another sector
-					// This means we need the heightsec parts and light info of the render sector, not the actual one!
-					fakesector = gl_FakeFlat(sector, &fake, false);
+					srf |= SSRF_PROCESSED;
+
+					SetupFlat.Clock();
+					//if (!gl_multithreading)
+					{
+						if (sector != sub->render_sector)
+						{
+							sector = sub->render_sector;
+							// the planes of this subsector are faked to belong to another sector
+							// This means we need the heightsec parts and light info of the render sector, not the actual one!
+							fakesector = gl_FakeFlat(sector, &fake, false);
+						}
+						GLRenderer->ProcessSector(fakesector);
+					}
+					/*
+					else
+					{
+						FJob *job = new FGLJobProcessFlats(sub);
+						GLRenderer->mThreadManager->AddJob(job);
+					}
+					*/
+					SetupFlat.Unclock();
 				}
-				GLRenderer->ProcessSector(fakesector, sub);
-				SetupFlat.Unclock();
 			}
+			gl_drawinfo->ss_renderflags[sub-subsectors] |= SSRF_PROCESSED|SSRF_RENDERALL;
+			if (sub->hacked&1) gl_drawinfo->AddHackedSubsector(sub);
 		}
 	}
 }

@@ -13,6 +13,7 @@ struct FDrawInfo;
 struct pspdef_t;
 class FShaderManager;
 class GLPortal;
+class FGLThreadManager;
 
 extern int extralight;
 
@@ -52,6 +53,7 @@ public:
 	float mCurrentFoV;
 	AActor *mViewActor;
 	FShaderManager *mShaderManager;
+	FGLThreadManager *mThreadManager;
 	int gl_spriteindex;
 	unsigned int mFBID;
 
@@ -119,7 +121,7 @@ public:
 	void ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * backsector);
 	void ProcessSprite(AActor *thing, sector_t *sector);
 	void ProcessParticle(particle_t *part, sector_t *sector);
-	void ProcessSector(sector_t *fakesector, subsector_t *sub);
+	void ProcessSector(sector_t *fakesector);
 	void FlushTextures();
 	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
 	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
