@@ -57,6 +57,7 @@ static void APIENTRY glBlendEquationDummy (GLenum mode);
 
 #if !defined unix && !defined __APPLE__  // [AL] OpenGL on OS X
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 #endif
 
 static TArray<FString>  m_Extensions;
@@ -200,7 +201,7 @@ static bool ReadInitExtensions()
 	wglMakeCurrent(hDC, hRC);
 
 	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 	// any extra stuff here?
 
 	wglMakeCurrent(NULL, NULL);
@@ -754,6 +755,8 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //==========================================================================
 
 #if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+CVAR(Bool, gl_debug, false, 0)
+
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample)
 {
 	m_Window=Window;
@@ -765,7 +768,23 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 		return false;
 	}
 
-	m_hRC = wglCreateContext(m_hDC);
+	m_hRC = 0;
+	if (wglCreateContextAttribsARB != NULL)
+	{
+		int ctxAttribs[] = {
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+			WGL_CONTEXT_FLAGS_ARB, gl_debug? WGL_CONTEXT_DEBUG_BIT_ARB : 0,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			0
+		};
+
+		m_hRC = wglCreateContextAttribsARB(m_hDC, 0, ctxAttribs);
+	}
+	if (m_hRC == 0)
+	{
+		m_hRC = wglCreateContext(m_hDC);
+	}
 
 	if (m_hRC == NULL)
 	{
