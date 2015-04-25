@@ -141,6 +141,9 @@ if( WIN32 )
 		ws2_32
 		setupapi
 		oleaut32 )
+
+	# [TP] We need DelayImp too. ZDoom added this later on but the fix cannot be easily backported.
+	set( ZDOOM_LIBS ${ZDOOM_LIBS} DelayImp )
 else( WIN32 )
 	if( APPLE )
 		set( FMOD_SEARCH_PATHS "/Developer/FMOD Programmers API Mac/api" )
@@ -1226,8 +1229,9 @@ endif( CMAKE_COMPILER_IS_GNUCXX )
 
 if( MSVC )
 	set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+	# [TP] Use generator expressions
 	add_custom_command(TARGET zdoom POST_BUILD
-		COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$(TargetDir)$(TargetFileName)\"\;\#2
+		COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$<TARGET_FILE:zdoom>\"\;\#1
 		COMMENT "Adding manifest..."
 	)
 endif( MSVC )
