@@ -201,6 +201,8 @@ OptionMenu "GLPrefOptions"
 	Slider "Ambient light level",		gl_light_ambient,				1.0, 255.0, 5.0
 	Option "Rendering quality",			gl_render_precise,				"Precision"
 	Option "Use vertex buffer",			gl_usevbo,						"VBOModes"
+	// [BB]
+	Option "Use models",				gl_use_models,					"OnOff"
 }
 
 OptionMenu "GLShaderOptions"
