@@ -80,7 +80,7 @@ ACTOR RailGun : DoomWeapon 5012
 		RLGG A 1 A_Raise
 		loop
 	Fire:
-		RLGG E 12 A_FireRailgun
+		RLGG E 12 A_FireRailgun ("RailgunPuff")
 		RLGG F 6 A_CheckRailReload
 		RLGG G 6
 		RLGG H 6
@@ -98,6 +98,24 @@ ACTOR RailGun : DoomWeapon 5012
 		Goto LightDone
 	Spawn:
 		RAIL A -1
+		stop
+	}
+}
+
+//=================================================================================================
+//
+// [TP] This allows the railgun to pierce armor
+//
+//=================================================================================================
+ACTOR RailgunPuff : BulletPuff
+{
+	DamageType Railgun
+	+PIERCEARMOR
+	States
+	{
+	Spawn:
+	Melee:
+		TNT1 A 1
 		stop
 	}
 }

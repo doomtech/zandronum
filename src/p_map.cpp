@@ -4928,9 +4928,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 				// Support for instagib.
 				if ( instagib )
-					P_DamageMobj (RailHits[i].HitActor, thepuff? thepuff:source, source, 999, damagetype, DMG_NO_ARMOR|DMG_INFLICTOR_IS_PUFF);
-				else
-					P_DamageMobj (RailHits[i].HitActor, thepuff? thepuff:source, source, damage, damagetype, DMG_NO_ARMOR|DMG_INFLICTOR_IS_PUFF);
+					damage = 999;
+
+				P_DamageMobj (RailHits[i].HitActor, thepuff? thepuff:source, source, damage, damagetype, DMG_INFLICTOR_IS_PUFF);
 			}
 
 			if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
