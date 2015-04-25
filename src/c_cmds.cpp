@@ -778,6 +778,27 @@ CCMD (error_fatal)
 	}
 }
 
+//==========================================================================
+//
+// CCMD crashout
+//
+// Debugging routine for testing the crash logger.
+// Useless in a win32 debug build, because that doesn't enable the crash logger.
+//
+//==========================================================================
+
+#if !defined(_WIN32) || !defined(_DEBUG)
+CCMD (crashout)
+{
+	// [BB] This function may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
+	*(volatile int *)0 = 0;
+}
+#endif
+
+
 CCMD (dir)
 {
 	FString dir, path;

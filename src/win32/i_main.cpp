@@ -1396,24 +1396,3 @@ DWORD WINAPI MainDoomThread( LPVOID )
 
 	return ( 0 );
 }
-
-//==========================================================================
-//
-// CCMD crashout
-//
-// Debugging routine for testing the crash logger.
-// Useless in a debug build, because that doesn't enable the crash logger.
-//
-//==========================================================================
-
-#ifndef _DEBUG
-#include "c_dispatch.h"
-CCMD (crashout)
-{
-	// [BB] This function may not be used by ConsoleCommand.
-	if ( ACS_IsCalledFromConsoleCommand( ))
-		return;
-
-	*(int *)0 = 0;
-}
-#endif
