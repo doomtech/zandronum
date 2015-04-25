@@ -74,6 +74,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	float			scale;
 	fixed_t			scalex;
 	fixed_t			texturemid;
+	static fixed_t xratio[] = {FRACUNIT, FRACUNIT*3/4, FRACUNIT * 5/6, FRACUNIT*3/4, FRACUNIT};
 	
 	// [BB] In the HUD model step we just render the model and break out. 
 	if ( hudModelStep )
@@ -97,7 +98,7 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	int vh = viewheight;
 
 	// calculate edges of the shape
-	scalex=FRACUNIT * vw / 320 * BaseRatioSizes[WidescreenRatio][3] / 48;
+	scalex = xratio[WidescreenRatio] * vw / 320;
 
 	tx = sx - ((160 + tex->GetScaledLeftOffset(GLUSE_PATCH))<<FRACBITS);
 	x1 = (FixedMul(tx, scalex)>>FRACBITS) + (vw>>1);
@@ -126,8 +127,8 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	}
 
 	scale = ((SCREENHEIGHT*vw)/SCREENWIDTH) / 200.0f;    
-	y1=viewwindowy+(vh>>1)-(int)(((float)texturemid/(float)FRACUNIT)*scale);
-	y2=y1+(int)((float)tex->TextureHeight(GLUSE_PATCH)*scale)+1;
+	y1 = viewwindowy + (vh >> 1) - (int)(((float)texturemid / (float)FRACUNIT) * scale);
+	y2 = y1 + (int)((float)tex->TextureHeight(GLUSE_PATCH) * scale) + 1;
 
 	if (!mirror)
 	{

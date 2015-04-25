@@ -2463,10 +2463,13 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 
 	if (nightmarefast && G_SkillProperty(SKILLP_FastMonsters))
 	{ // Monsters move faster in nightmare mode
-		actor->tics -= actor->tics / 2;
-		if (actor->tics < 3)
+		if (actor->tics > 3)
 		{
-			actor->tics = 3;
+			actor->tics -= actor->tics / 2;
+			if (actor->tics < 3)
+			{
+				actor->tics = 3;
+			}
 		}
 	}
 
@@ -3061,7 +3064,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Chase)
 	}
 	else // this is the old default A_Chase
 	{
-		A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
+		A_DoChase (self, false, self->MeleeState, self->MissileState, true, gameinfo.nightmarefast, false);
 	}
 }
 
@@ -3073,7 +3076,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FastChase)
 DEFINE_ACTION_FUNCTION(AActor, A_VileChase)
 {
 	if (!P_CheckForResurrection(self, true))
-		A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
+		A_DoChase (self, false, self->MeleeState, self->MissileState, true, gameinfo.nightmarefast, false);
 }
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ExtChase)
@@ -3093,7 +3096,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ExtChase)
 // for internal use
 void A_Chase(AActor *self)
 {
-	A_DoChase (self, false, self->MeleeState, self->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
+	A_DoChase (self, false, self->MeleeState, self->MissileState, true, gameinfo.nightmarefast, false);
 }
 
 //=============================================================================

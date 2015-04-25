@@ -831,6 +831,7 @@ public:
 
 	// Return starting health adjusted by skill level
 	int SpawnHealth();
+	int GibHealth();
 
 	inline bool isMissile(bool precise=true)
 	{

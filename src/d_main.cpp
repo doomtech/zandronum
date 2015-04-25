@@ -1058,7 +1058,7 @@ drawfullconsole:
 		FTexture *tex;
 		int x;
 
-		tex = TexMan[gameinfo.gametype & (GAME_DoomStrifeChex) ? "M_PAUSE" : "PAUSED"];
+		tex = TexMan[gameinfo.PauseSign];
 		x = (SCREENWIDTH - tex->GetScaledWidth() * CleanXfac)/2 +
 			tex->GetScaledLeftOffset() * CleanXfac;
 		screen->DrawTexture (tex, x, 4, DTA_CleanNoMove, true, TAG_DONE);
