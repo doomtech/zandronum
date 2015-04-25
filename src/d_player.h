@@ -80,6 +80,7 @@ enum
 
 FPlayerColorSet *P_GetPlayerColorSet(FName classname, int setnum);
 void P_EnumPlayerColorSets(FName classname, TArray<int> *out);
+const char *GetPrintableDisplayName(const PClass *cls);
 
 class player_t;
 class	CSkullBot;

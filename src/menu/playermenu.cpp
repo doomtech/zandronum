@@ -598,7 +598,7 @@ void DPlayerMenu::Init(DMenu *parent, FListMenuDescriptor *desc)
 	{
 		if (PlayerClasses.Size() == 1)
 		{
-			li->SetString(0, PlayerClasses[0].Type->Meta.GetMetaString (APMETA_DisplayName));
+			li->SetString(0, GetPrintableDisplayName(PlayerClasses[0].Type));
 			li->SetValue(0, 0);
 		}
 		else
@@ -606,7 +606,7 @@ void DPlayerMenu::Init(DMenu *parent, FListMenuDescriptor *desc)
 			li->SetString(0, "Random");
 			for(unsigned i=0; i< PlayerClasses.Size(); i++)
 			{
-				const char *cls = PlayerClasses[i].Type->Meta.GetMetaString (APMETA_DisplayName);
+				const char *cls = GetPrintableDisplayName(PlayerClasses[i].Type);
 				li->SetString(i+1, cls);
 			}
 			li->SetValue(0, players[consoleplayer].userinfo.PlayerClass + 1);
@@ -804,7 +804,7 @@ void DPlayerMenu::UpdateSkins()
 		{
 			PlayerSkins.Clear();
 			// [BB] numskins -> skins.Size()
-			for(unsigned i=0;i<(unsigned)skins.Size(); i++)
+			for(int i=0;i<(int)skins.Size(); i++)
 			{
 				if (PlayerClass->CheckSkin(i))
 				{
@@ -909,8 +909,7 @@ void DPlayerMenu::ClassChanged (FListMenuItem *li)
 		players[consoleplayer].userinfo.PlayerClass = sel-1;
 		PickPlayerClass();
 
-		cvar_set ("playerclass", 
-			sel == 0 ? "Random" : PlayerClass->Type->Meta.GetMetaString (APMETA_DisplayName));
+		cvar_set ("playerclass", sel == 0 ? "Random" : PlayerClass->Type->TypeName);
 
 		UpdateSkins();
 		UpdateColorsets();

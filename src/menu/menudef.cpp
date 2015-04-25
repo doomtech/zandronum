@@ -238,6 +238,10 @@ static void ParseListMenuBody(FScanner &sc, FListMenuDescriptor *desc)
 			sc.MustGetNumber();
 			desc->mYpos = sc.Number;
 		}
+		else if (sc.Compare("Centermenu"))
+		{
+			desc->mCenter = true;
+		}
 		else if (sc.Compare("MouseWindow"))
 		{
 			sc.MustGetNumber();
@@ -463,6 +467,7 @@ static void ParseListMenu(FScanner &sc)
 	desc->mRedirect = NULL;
 	desc->mWLeft = 0;
 	desc->mWRight = 0;
+	desc->mCenter = false;
 
 	FMenuDescriptor **pOld = MenuDescriptors.CheckKey(desc->mMenuName);
 	if (pOld != NULL && *pOld != NULL) delete *pOld;
@@ -995,7 +1000,7 @@ static void BuildPlayerclassMenu()
 			{
 				if (!(PlayerClasses[i].Flags & PCF_NOMENU))
 				{
-					const char *pname = PlayerClasses[i].Type->Meta.GetMetaString (APMETA_DisplayName);
+					const char *pname = GetPrintableDisplayName(PlayerClasses[i].Type);
 					if (pname != NULL)
 					{
 						numclassitems++;
@@ -1032,7 +1037,7 @@ static void BuildPlayerclassMenu()
 				{
 					if (!(PlayerClasses[i].Flags & PCF_NOMENU))
 					{
-						const char *pname = PlayerClasses[i].Type->Meta.GetMetaString (APMETA_DisplayName);
+						const char *pname = GetPrintableDisplayName(PlayerClasses[i].Type);
 						if (pname != NULL)
 						{
 							FListMenuItemText *it = new FListMenuItemText(ld->mXpos, ld->mYpos, ld->mLinespacing, *pname,
@@ -1051,7 +1056,7 @@ static void BuildPlayerclassMenu()
 				}
 				if (n == 0)
 				{
-					const char *pname = PlayerClasses[0].Type->Meta.GetMetaString (APMETA_DisplayName);
+					const char *pname = GetPrintableDisplayName(PlayerClasses[0].Type);
 					if (pname != NULL)
 					{
 						FListMenuItemText *it = new FListMenuItemText(ld->mXpos, ld->mYpos, ld->mLinespacing, *pname,
@@ -1086,7 +1091,7 @@ static void BuildPlayerclassMenu()
 		{
 			if (!(PlayerClasses[i].Flags & PCF_NOMENU))
 			{
-				const char *pname = PlayerClasses[i].Type->Meta.GetMetaString (APMETA_DisplayName);
+				const char *pname = GetPrintableDisplayName(PlayerClasses[i].Type);
 				if (pname != NULL)
 				{
 					FOptionMenuItemSubmenu *it = new FOptionMenuItemSubmenu(pname, "Episodemenu", i);
@@ -1228,16 +1233,6 @@ void M_StartupSkillMenu(FGameStartup *gs)
 			FListMenuDescriptor *ld = static_cast<FListMenuDescriptor*>(*desc);
 			int x = ld->mXpos;
 			int y = ld->mYpos;
-			if (gameinfo.gametype == GAME_Hexen)
-			{
-				// THere really needs to be a better way to do this... :(
-				if (gs->PlayerClass != NULL)
-				{
-					if (!stricmp(gs->PlayerClass, "fighter")) x = 120;
-					else if (!stricmp(gs->PlayerClass, "cleric")) x = 116;
-					else if (!stricmp(gs->PlayerClass, "mage")) x = 112;
-				}
-			}
 
 			// Delete previous contents
 			for(unsigned i=0; i<ld->mItems.Size(); i++)

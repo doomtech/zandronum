@@ -354,7 +354,7 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 // end of changed code
 	if (developer && buttonSuccess)
 	{
-		Printf ("Line special %d activated on line %i\n", special, line - lines);
+		Printf ("Line special %d activated on line %i\n", special, int(line - lines));
 	}
 	return true;
 }

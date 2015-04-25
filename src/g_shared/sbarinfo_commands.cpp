@@ -379,7 +379,7 @@ class CommandDrawSwitchableImage : public CommandDrawImage
 				}
 			}
 			// [BL] I have word that MSVC++ wants this static_cast ;)  Shut up MSVC!
-			for(unsigned int i = 0;i < static_cast<unsigned int> (conditionAnd ? 3 : 1);i++)
+			for(unsigned int i = 0;i < (conditionAnd ? 3u : 1u);i++)
 			{
 				sc.MustGetToken(',');
 				sc.MustGetToken(TK_StringConst);
@@ -702,7 +702,7 @@ class CommandDrawString : public SBarInfoCommand
 					if(statusBar->CPlayer->userinfo.PlayerClass != cache)
 					{
 						cache = statusBar->CPlayer->userinfo.PlayerClass;
-						str = statusBar->CPlayer->cls->Meta.GetMetaString(APMETA_DisplayName);
+						str = GetPrintableDisplayName(statusBar->CPlayer->cls);
 						RealignString();
 					}
 					break;
@@ -763,13 +763,13 @@ class CommandDrawString : public SBarInfoCommand
 				if(script->spacingCharacter == '\0')
 					x -= static_cast<int> (font->StringWidth(str)+(spacing * str.Len()));
 				else //monospaced, so just multiplay the character size
-					x -= static_cast<int> ((font->GetCharWidth((int) script->spacingCharacter) + spacing) * str.Len());
+					x -= static_cast<int> ((font->GetCharWidth((unsigned char) script->spacingCharacter) + spacing) * str.Len());
 				break;
 			case ALIGN_CENTER:
 				if(script->spacingCharacter == '\0')
 					x -= static_cast<int> (font->StringWidth(str)+(spacing * str.Len()) / 2);
 				else
-					x -= static_cast<int> ((font->GetCharWidth((int) script->spacingCharacter) + spacing) * str.Len() / 2);
+					x -= static_cast<int> ((font->GetCharWidth((unsigned char) script->spacingCharacter) + spacing) * str.Len() / 2);
 				break;
 			}
 		}
