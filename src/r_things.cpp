@@ -1267,6 +1267,7 @@ void R_InitSkins (void)
 					for (k = 0; k < MAX_SPRITE_FRAMES; ++k)
 					{
 						sprtemp[k].Flip = 0;
+					sprtemp[k].Voxel = NULL;
 					}
 					maxframe = -1;
 

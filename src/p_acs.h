@@ -239,6 +239,7 @@ enum
 	APROP_ScaleX        = 29,
 	APROP_ScaleY        = 30,
 	APROP_Dormant		= 31,
+	APROP_Mass			= 32,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

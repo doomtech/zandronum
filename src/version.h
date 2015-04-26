@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.5.0"
-#define ZD_SVN_REVISION_STRING "3096"
-#define ZD_SVN_REVISION_NUMBER 3096
+#define ZD_SVN_REVISION_STRING "3105"
+#define ZD_SVN_REVISION_NUMBER 3105
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -108,7 +108,7 @@ unsigned int GetRevisionNumber();
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 3085
+#define MINSAVEVER 3100
 
 #if ZD_SVN_REVISION_NUMBER < MINSAVEVER
 // If we don't know the current revision write something very high to ensure that

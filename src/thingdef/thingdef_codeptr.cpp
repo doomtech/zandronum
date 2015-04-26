@@ -2865,6 +2865,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetScale)
 
 //===========================================================================
 //
+// A_SetMass(int mass)
+//
+// Sets the actor's mass.
+//
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetMass)
+{
+	ACTION_PARAM_START(2);
+	ACTION_PARAM_INT(mass, 0);
+
+	self->Mass = mass;
+}
+
+//===========================================================================
+//
 // A_SpawnDebris
 //
 //===========================================================================

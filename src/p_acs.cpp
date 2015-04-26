@@ -3729,6 +3729,7 @@ enum
 	APROP_ScaleX        = 29,
 	APROP_ScaleY        = 30,
 	APROP_Dormant		= 31,
+	APROP_Mass			= 32,
 };
 */
 
@@ -3972,7 +3973,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_NameTag:
-		actor->Tag = FBehavior::StaticLookupString(value);
+		actor->SetTag(FBehavior::StaticLookupString(value));
 		break;
 
 	case APROP_DamageFactor:
@@ -3991,6 +3992,10 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_ScaleY:
 		actor->scaleY = value;
+		break;
+
+	case APROP_Mass:
+		actor->Mass = value;
 		break;
 
 	default:
@@ -4058,6 +4063,7 @@ int DLevelScript::GetActorProperty (int tid, int property, const SDWORD *stack, 
 	case APROP_WaterLevel:	return actor->waterlevel;
 	case APROP_ScaleX: 		return actor->scaleX;
 	case APROP_ScaleY: 		return actor->scaleY;
+	case APROP_Mass: 		return actor->Mass;
 
 	case APROP_SeeSound:	return GlobalACSStrings.AddString(actor->SeeSound, stack, stackdepth);
 	case APROP_AttackSound:	return GlobalACSStrings.AddString(actor->AttackSound, stack, stackdepth);
@@ -4103,6 +4109,7 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_WaterLevel:
 		case APROP_ScaleX:
 		case APROP_ScaleY:
+		case APROP_Mass:
 			return (GetActorProperty(tid, property, NULL, 0) == value);
 
 		// Boolean values need to compare to a binary version of value
