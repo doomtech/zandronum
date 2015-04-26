@@ -412,7 +412,7 @@ void LayoutMainWindow (HWND hWnd, HWND pane)
 //
 //==========================================================================
 
-void I_SetIWADInfo(const IWADInfo *info)
+void I_SetIWADInfo()
 {
 	// Make the startup banner show itself
 	LayoutMainWindow(Window, NULL);

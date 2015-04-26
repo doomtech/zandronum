@@ -133,8 +133,7 @@ int I_GetWelcomeScreenKeyCode( void );
 void I_GetWelcomeScreenKeyString( char *pszString );
 
 // Set the title string of the startup window
-struct IWADInfo;
-void I_SetIWADInfo (const IWADInfo *title);
+void I_SetIWADInfo ();
 
 // [RC] Show a helpful dialog when no IWADs were found.
 void I_ShowNoIWADsScreen( void );

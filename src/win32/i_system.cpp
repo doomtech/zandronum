@@ -1180,7 +1180,7 @@ BOOL CALLBACK IWADBoxCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 				filepart = WadList[i].Path;
 			else
 				filepart++;
-			work.Format("%s (%s)", IWADInfos[WadList[i].Type].Name, filepart);
+			work.Format("%s (%s)", WadList[i].Name, filepart);
 			SendMessage(ctrl, LB_ADDSTRING, 0, (LPARAM)work.GetChars());
 			SendMessage(ctrl, LB_SETITEMDATA, i, (LPARAM)i);
 		}
@@ -1335,7 +1335,10 @@ BOOL CALLBACK NoIWADBox_Welcome_Callback (HWND hDlg, UINT message, WPARAM wParam
 			return FALSE;
 
 		// See if this directory contains any IWADs.
-		if ( D_DoesDirectoryHaveIWADs( szPathName ))
+		FIWadManager *iwad_man = new FIWadManager;
+		const bool haveIWADs = iwad_man->DoesDirectoryHaveIWADs( szPathName );
+		delete iwad_man;
+		if ( haveIWADs )
 		{
 			// Add this directory to the user's profile, restart, and play!
 			if ( GameConfig->SetSection ("IWADSearch.Directories"))

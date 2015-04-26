@@ -55,11 +55,26 @@
 #include "sc_man.h"
 #include "doomstat.h"
 #include "d_main.h"
+#include "zstring.h"
 
 #ifdef __GNUC__
 #include "Linux/platform.h" /* Without this it would fail on _access on line 374 (378 now) */
 #endif
 
+static int Doom2Wad = -1;
+
+// quick'n dirty hack. Should be enough here...
+static void SetDoom2Wad()
+{
+	if (Doom2Wad == -1)
+	{
+		FString iwad = Wads.GetWadFullName(1);
+		iwad.ToLower();
+		if (iwad.IndexOf("plutonia") >= 0) Doom2Wad = 1;
+		else if (iwad.IndexOf("tnt") >= 0) Doom2Wad = 2;
+		else Doom2Wad = 0;
+	}
+}
 //==========================================================================
 //
 // Checks for the presence of a hires texture replacement in a Doomsday style PK3
@@ -121,56 +136,41 @@ int CheckDDPK3(FTexture *tex)
 	// for patches this doesn't work yet
 	if (ispatch) return -3;
 
-	switch (gameiwad)
+	if (!gameinfo.ConfigName.CompareNoCase("Doom"))
 	{
-	case IWAD_DoomShareware:
-	case IWAD_UltimateDoom:
-	case IWAD_DoomRegistered:
-	case IWAD_FreeDoom1:
-	case IWAD_FreeDoomU:
-		checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
-		break;
-
-	case IWAD_Doom2:
-	case IWAD_FreeDoom:
-	case IWAD_FreeDM:
-		checklist = useType==FTexture::TEX_Flat? doomflatpath : doom2texpath;
-		break;
-
-	case IWAD_Doom2TNT:
-		checklist = useType==FTexture::TEX_Flat? doomflatpath : tnttexpath;
-		break;
-
-	case IWAD_Doom2Plutonia:
-		checklist = useType==FTexture::TEX_Flat? doomflatpath : pluttexpath;
-		break;
-
-	case IWAD_HereticShareware:
-	case IWAD_HereticExtended:
-	case IWAD_Heretic:
-		checklist = useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
-		break;
-
-	case IWAD_Hexen:
-	case IWAD_HexenDK:
-	case IWAD_HexenDemo:
-		checklist = useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
-		break;
-
-	case IWAD_Strife:
-	case IWAD_StrifeTeaser:
-	case IWAD_StrifeTeaser2:
-		checklist = useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
-		break;
-
-	case IWAD_ChexQuest:
-	case IWAD_ChexQuest3:	// check this!
-		checklist = useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
-		break;
-
-	default:
-		return -3;
+		if (!(gameinfo.flags & GI_MAPxx))
+		{
+			checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
+		}
+		else
+		{
+			SetDoom2Wad();
+			if (Doom2Wad == 1)
+				checklist = useType==FTexture::TEX_Flat? doomflatpath : pluttexpath;
+			else if (Doom2Wad == 2)
+				checklist = useType==FTexture::TEX_Flat? doomflatpath : tnttexpath;
+			else
+				checklist = useType==FTexture::TEX_Flat? doomflatpath : doom2texpath;
+		}
 	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Heretic"))
+	{
+		checklist = useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Hexen"))
+	{
+		checklist = useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Strife"))
+	{
+		checklist = useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Chex"))
+	{
+		checklist = useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
+	}
+	else
+		return -3;
 
 	while (*checklist)
 	{
@@ -317,56 +317,41 @@ int CheckExternalFile(FTexture *tex, bool & hascolorkey)
 	// for patches this doesn't work yet
 	if (ispatch) return -3;
 
-	switch (gameiwad)
+	if (!gameinfo.ConfigName.CompareNoCase("Doom"))
 	{
-	case IWAD_DoomShareware:
-	case IWAD_UltimateDoom:
-	case IWAD_DoomRegistered:
-	case IWAD_FreeDoom1:
-	case IWAD_FreeDoomU:
-		checklist = ispatch ? doom1patchpath : useType==FTexture::TEX_Flat? doom1flatpath : doom1texpath;
-		break;
-
-	case IWAD_Doom2:
-	case IWAD_FreeDoom:
-	case IWAD_FreeDM:
-		checklist = ispatch ? doom2patchpath : useType==FTexture::TEX_Flat? doom2flatpath : doom2texpath;
-		break;
-
-	case IWAD_Doom2TNT:
-		checklist = ispatch ? tntpatchpath : useType==FTexture::TEX_Flat? tntflatpath : tnttexpath;
-		break;
-
-	case IWAD_Doom2Plutonia:
-		checklist = ispatch ? plutpatchpath : useType==FTexture::TEX_Flat? plutflatpath : pluttexpath;
-		break;
-
-	case IWAD_HereticShareware:
-	case IWAD_HereticExtended:
-	case IWAD_Heretic:
-		checklist = ispatch ? hereticpatchpath : useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
-		break;
-
-	case IWAD_Hexen:
-	case IWAD_HexenDK:
-	case IWAD_HexenDemo:
-		checklist = ispatch ? hexenpatchpath : useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
-		break;
-
-	case IWAD_Strife:
-	case IWAD_StrifeTeaser:
-	case IWAD_StrifeTeaser2:
-		checklist = ispatch ?strifepatchpath : useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
-		break;
-
-	case IWAD_ChexQuest:
-	case IWAD_ChexQuest3:	// check this!
-		checklist = ispatch ?chexpatchpath : useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
-		break;
-
-	default:
-		return -3;
+		if (!(gameinfo.flags & GI_MAPxx))
+		{
+			checklist = ispatch ? doom1patchpath : useType==FTexture::TEX_Flat? doom1flatpath : doom1texpath;
+		}
+		else
+		{
+			SetDoom2Wad();
+			if (Doom2Wad == 1)
+				checklist = ispatch ? plutpatchpath : useType==FTexture::TEX_Flat? plutflatpath : pluttexpath;
+			else if (Doom2Wad == 2)
+				checklist = ispatch ? tntpatchpath : useType==FTexture::TEX_Flat? tntflatpath : tnttexpath;
+			else
+				checklist = ispatch ? doom2patchpath : useType==FTexture::TEX_Flat? doom2flatpath : doom2texpath;
+		}
 	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Heretic"))
+	{
+		checklist = ispatch ? hereticpatchpath : useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Hexen"))
+	{
+		checklist = ispatch ? hexenpatchpath : useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Strife"))
+	{
+		checklist = ispatch ?strifepatchpath : useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
+	}
+	else if (!gameinfo.ConfigName.CompareNoCase("Chex"))
+	{
+		checklist = ispatch ?chexpatchpath : useType==FTexture::TEX_Flat? chexflatpath : chextexpath;
+	}
+	else
+		return -3;
 
 	while (*checklist)
 	{
