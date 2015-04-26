@@ -971,7 +971,6 @@ add_executable( zdoom WIN32
 	platform.cpp #ST
 	po_man.cpp
 	possession.cpp #ST
-	r_anim.cpp
 	r_bsp.cpp
 	r_data.cpp
 	r_draw.cpp
@@ -1133,6 +1132,8 @@ add_executable( zdoom WIN32
 	sound/music_timidity_mididevice.cpp
 	sound/music_win_mididevice.cpp
 	sound/music_pseudo_mididevice.cpp
+	textures/animations.cpp
+	textures/anim_switches.cpp
 	textures/automaptexture.cpp
 	textures/bitmap.cpp
 	textures/buildtexture.cpp

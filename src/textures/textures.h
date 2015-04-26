@@ -105,6 +105,30 @@ struct FAnimDef
 	void SetSwitchTime (DWORD mstime);
 };
 
+struct FSwitchDef
+{
+	FTextureID PreTexture;		// texture to switch from
+	WORD PairIndex;		// switch def to use to return to PreTexture
+	WORD NumFrames;		// # of animation frames
+	int Sound;			// sound to play at start of animation. Changed to int to avoiud having to include s_sound here.
+	bool QuestPanel;	// Special texture for Strife mission
+	struct frame		// Array of times followed by array of textures
+	{					//   actual length of each array is <NumFrames>
+		DWORD Time;
+		FTextureID Texture;
+	} u[1];
+};
+
+struct FDoorAnimation
+{
+	FTextureID BaseTexture;
+	FTextureID *TextureFrames;
+	int NumTextureFrames;
+	FName OpenSound;
+	FName CloseSound;
+};
+
+
 
 // Patches.
 // A patch holds one or more columns.
@@ -440,6 +464,14 @@ public:
 	void UpdateAnimations (DWORD mstime);
 	int GuesstimateNumTextures ();
 
+	int FindSwitch (FTextureID texture);
+	FSwitchDef *GetSwitch (unsigned int index)
+	{
+		if (index < mSwitchDefs.Size()) return mSwitchDefs[index];
+		else return NULL;
+	}
+	FDoorAnimation *FindAnimatedDoor (FTextureID picnum);
+
 private:
 
 	// texture counting
@@ -468,6 +500,14 @@ private:
 	void ParseTime (FScanner &sc, DWORD &min, DWORD &max);
 	FTexture *Texture(FTextureID id) { return Textures[id.GetIndex()].Texture; }
 	void SetTranslation (FTextureID fromtexnum, FTextureID totexnum);
+	void ParseAnimatedDoor(FScanner &sc);
+
+	// Switches
+
+	void InitSwitchList ();
+	void ProcessSwitchDef (FScanner &sc);
+	FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad);
+	WORD AddSwitchDef (FSwitchDef *def);
 
 	struct TextureHash
 	{
@@ -482,6 +522,8 @@ private:
 	TArray<int> FirstTextureForFile;
 
 	TArray<FAnimDef *> mAnimations;
+	TArray<FSwitchDef *> mSwitchDefs;
+	TArray<FDoorAnimation> mAnimatedDoors;
 	TArray<BYTE *> BuildTileFiles;
 };
 
