@@ -1238,7 +1238,7 @@ void R_Subsector (subsector_t *sub)
 					) : NULL;
 
 	// kg3D - fake planes rendering
-	if (frontsector->e && frontsector->e->XFloor.ffloors.Size())
+	if (r_3dfloors && frontsector->e && frontsector->e->XFloor.ffloors.Size())
 	{
 		backupfp = floorplane;
 		backupcp = ceilingplane;
@@ -1404,7 +1404,7 @@ void R_Subsector (subsector_t *sub)
 		if (!outersubsector || line->sidedef == NULL || !(line->sidedef->Flags & WALLF_POLYOBJ))
 		{
 			// kg3D - fake planes bounding calculation
-			if (line->backsector && frontsector->e && line->backsector->e->XFloor.ffloors.Size())
+			if (r_3dfloors && line->backsector && frontsector->e && line->backsector->e->XFloor.ffloors.Size())
 			{
 				backupfp = floorplane;
 				backupcp = ceilingplane;
