@@ -721,10 +721,9 @@ void GLSectorStackPortal::SetupCoverage()
 void GLSectorStackPortal::DrawContents()
 {
 	FPortal *portal = origin;
-	portal->UpdateClipAngles();
 
-	viewx += origin->origin->x - origin->origin->Mate->x;
-	viewy += origin->origin->y - origin->origin->Mate->y;
+	viewx += origin->xDisplacement;
+	viewy += origin->yDisplacement;
 	GLRenderer->mViewActor = NULL;
 	GLRenderer->mCurrentPortal = this;
 
@@ -742,139 +741,6 @@ void GLSectorStackPortal::DrawContents()
 	RestoreMapSection();
 
 	if (origin->plane != -1) instack[origin->plane]--;
-}
-
-//-----------------------------------------------------------------------------
-//
-// GLSectorStackPortal::ClipSeg
-//
-//-----------------------------------------------------------------------------
-int GLSectorStackPortal::ClipSeg(seg_t *seg) 
-{ 
-	FPortal *portal = origin;
-	angle_t *angles = &portal->ClipAngles[0];
-	unsigned numpoints = portal->ClipAngles.Size()-1;
-	angle_t clipangle = seg->v1->GetClipAngle();
-	unsigned i, j;
-	int relation;
-
-	// Check the front side of the portal. Anything in front of the shape must be discarded by the clipper.
-	for(i=0;i<numpoints; i++)
-	{
-		if (angles[i+1] - clipangle <= ANGLE_180 && angles[i] - clipangle > ANGLE_180 && angles[i+1] - angles[i] < ANGLE_180)
-		{
-			relation = DMulScale32(seg->v1->y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
-				portal->Shape[i]->x - seg->v1->x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
-			if (relation > 0) 
-			{
-				return PClip_InFront;
-			}
-			else if (relation == 0)
-			{
-				// If this vertex is on the boundary we need to check the second one, too. The line may be partially inside the shape
-				// but outside the portal. We can use the same boundary line for this
-				relation = DMulScale32(seg->v2->y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
-					portal->Shape[i]->x - seg->v2->x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
-				if (relation >= 0) return PClip_InFront;
-			}
-			return PClip_Inside;
-		}
-	}
-	
-	// The first vertex did not yield any useful result. Check the second one.
-	clipangle = seg->v2->GetClipAngle();
-	for(j=0;j<numpoints; j++)
-	{
-		if (angles[j+1] - clipangle <= ANGLE_180 && angles[j] - clipangle > ANGLE_180 && angles[j+1] - angles[j] < ANGLE_180)
-		{
-			relation = DMulScale32(seg->v2->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
-				portal->Shape[j]->x - seg->v2->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
-			if (relation > 0) 
-			{
-				return PClip_InFront;
-			}
-			else if (relation == 0)
-			{
-				// If this vertex is on the boundary we need to check the other one, too. The line may be partially inside the shape
-				// but outside the portal. We can use the same boundary line for this
-				relation = DMulScale32(seg->v1->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
-					portal->Shape[j]->x - seg->v1->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
-				if (relation >= 0) return PClip_InFront;
-			}
-			return PClip_Inside;
-		}
-	}
-	return PClip_Inside;	// The viewpoint is inside the portal
-
-#if 0
-	// Check backside of portal
-	for(i=0;i<numpoints; i++)
-	{
-		if (angles[i+1] - clipangle > ANGLE_180 && angles[i] - clipangle <= ANGLE_180)
-		{
-			relation1 = DMulScale32(seg->v1->y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
-				portal->Shape[i]->x - seg->v1->x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
-			if (relation1 < 0) return PClip_Inside;
-			// If this vertex is inside we need to check the second one, too. The line may be partially inside the shape
-			// but outside the portal.
-			break;
-		}
-	}
-
-	clipangle = seg->v2->GetClipAngle();
-	for(j=0;j<numpoints; j++)
-	{
-		if (angles[j+1] - clipangle > ANGLE_180 && angles[j] - clipangle <= ANGLE_180)
-		{
-			relation2 = DMulScale32(seg->v2->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
-				portal->Shape[j]->x - seg->v2->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
-			if (relation2 < 0) return PClip_Inside;
-			break;
-		}
-	}
-	return PClip_Behind;
-#endif
-}
-
-
-//-----------------------------------------------------------------------------
-//
-// GLSectorStackPortal::ClipPoint
-//
-//-----------------------------------------------------------------------------
-int GLSectorStackPortal::ClipPoint(fixed_t x, fixed_t y) 
-{ 
-	FPortal *portal = origin;
-	angle_t *angles = &portal->ClipAngles[0];
-	unsigned numpoints = portal->ClipAngles.Size()-1;
-	angle_t clipangle = R_PointToPseudoAngle(viewx, viewy, x, y);
-	unsigned i;
-
-	for(i=0;i<numpoints; i++)
-	{
-		if (angles[i+1] - clipangle <= ANGLE_180 && angles[i] - clipangle > ANGLE_180 && angles[i+1] - angles[i] < ANGLE_180)
-		{
-			int relation = DMulScale32(y - portal->Shape[i]->y - portal->yDisplacement, portal->Shape[i+1]->x - portal->Shape[i]->x,
-				portal->Shape[i]->x - x + portal->xDisplacement, portal->Shape[i+1]->y - portal->Shape[i]->y);
-			if (relation > 0) return PClip_InFront;
-			return PClip_Inside;
-		}
-	}
-	return PClip_Inside;
-
-	/*
-	for(i=0;i<numpoints; i++)
-	{
-		if (clipangle >= angles[i] && clipangle < angles[i+1])
-		{
-			int relation = DMulScale32(y - portal->Shape[i]->y, portal->Shape[i+1]->x - portal->Shape[i]->x,
-				portal->Shape[i]->x - x, portal->Shape[i+1]->y - portal->Shape[i]->y);
-			if (relation > 0) return PClip_InFront;
-			return PClip_Inside;
-		}
-	}
-	*/
-	return PClip_Inside;
 }
 
 //-----------------------------------------------------------------------------

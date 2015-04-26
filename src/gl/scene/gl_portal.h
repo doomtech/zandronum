@@ -250,8 +250,6 @@ public:
 	{
 		origin=pt;
 	}
-	int ClipSeg(seg_t *seg);
-	int ClipPoint(fixed_t x, fixed_t y);
 	void SetupCoverage();
 	void AddSubsector(subsector_t *sub)
 	{

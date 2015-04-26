@@ -448,6 +448,9 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			return; 
 	}
 
+	// If this thing is in a map section that's not in view it can't possible be visible
+	if (!(currentmapsection[thing->subsector->mapsection>>3] & (1 << (thing->subsector->mapsection & 7)))) return;
+
 	// [BB] If the actor is supposed to be invisible to the player, skip it here.
 	if ( GAMEMODE_IsActorVisibleToConsoleplayersCamera( thing ) == false )
 		return;

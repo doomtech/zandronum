@@ -33,18 +33,11 @@ struct GLSectorStackPortal;
 
 struct FPortal
 {
-	TArray<vertex_t *> Shape;	// forms the smallest convex outline around the portal area
-	TArray<angle_t> ClipAngles;
 	fixed_t xDisplacement;
 	fixed_t yDisplacement;
 	int plane;
-	AStackPoint *origin;
 	GLSectorStackPortal *glportal;	// for quick access to the render data. This is only valid during BSP traversal!
 
-	int PointOnShapeLineSide(fixed_t x, fixed_t y, int shapeindex);
-	void AddVertexToShape(vertex_t *vertex);
-	void AddSectorToPortal(sector_t *sector);
-	void UpdateClipAngles();
 	GLSectorStackPortal *GetGLPortal();
 };
 

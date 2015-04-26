@@ -551,7 +551,7 @@ void gl_RenderBSPNode (void *node)
 		// It is not necessary to use the slower precise version here
 		if (!clipper.CheckBox(bsp->bbox[side]))
 		{
-			//if (!(gl_drawinfo->no_renderflags[bsp-nodes] & SSRF_SEEN))
+			if (!(gl_drawinfo->no_renderflags[bsp-nodes] & SSRF_SEEN))
 				return;
 		}
 

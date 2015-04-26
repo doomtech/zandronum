@@ -156,7 +156,9 @@ static void SetMapSections()
 	}
 	while (set);
 	currentmapsection.Resize(1 + num/8);
+#ifdef DEBUG
 	Printf("%d map sections found\n", num);
+#endif
 }
 
 //==========================================================================
