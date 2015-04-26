@@ -105,12 +105,6 @@ xx(ArtiPoisonBag3)
 // Strife quests
 xx(QuestItem)
 
-// Auto-usable health items
-xx(ArtiHealth)
-xx(ArtiSuperHealth)
-xx(MedicalKit)
-xx(MedPatch)
-
 // Armor
 xx(BasicArmor)
 
@@ -251,6 +245,7 @@ xx(PoisonCloud)	// makes monsters howl.
 // a damage type if you wanted to force an extreme death.
 xx(Extreme)
 xx(MDK)
+xx(Cast) // 'damage type' for the cast call
 
 // [BB] Skulltag Damage types
 xx(Grenade)

@@ -435,7 +435,9 @@ int DIntermissionScreenCast::Responder (event_t *ev)
 		return 1;					// already in dying frames
 
 	castdeath = true;
-	caststate = mClass->ActorInfo->FindState(NAME_Death);
+
+	FName label[] = {NAME_Death, NAME_Cast};
+	caststate = mClass->ActorInfo->FindState(2, label);
 	if (caststate == NULL) return -1;
 
 	casttics = caststate->GetTics();
@@ -480,7 +482,8 @@ int DIntermissionScreenCast::Ticker ()
 	if (--casttics > 0 && caststate != NULL)
 		return 0; 				// not time to change state yet
 				
-	if (caststate == NULL || caststate->GetTics() == -1 || caststate->GetNextState() == NULL)
+	if (caststate == NULL || caststate->GetTics() == -1 || caststate->GetNextState() == NULL ||
+		(caststate->GetNextState() == caststate && castdeath))
 	{
 		return -1;
 	}
@@ -496,7 +499,7 @@ int DIntermissionScreenCast::Ticker ()
 		castframes++;
 	}
 		
-	if (castframes == 12)
+	if (castframes == 12 && !castdeath)
 	{
 		// go into attack frame
 		castattacking = true;
