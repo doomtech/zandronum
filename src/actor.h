@@ -325,6 +325,7 @@ enum
 	MF6_ADDITIVEPOISONDAMAGE	= 0x00100000,
 	MF6_ADDITIVEPOISONDURATION	= 0x00200000,
 	MF6_NOMENU			= 0x00400000,	// Player class should not appear in the class selection menu.
+	MF6_BOSSCUBE		= 0x00800000,	// Actor spawned by A_BrainSpit, flagged for timefreeze reasons.
 
 	MF6_INTRYMOVE		= 0x10000000,	// Executing P_TryMove
 
@@ -1011,11 +1012,11 @@ public:
 	int 			FastChaseStrafeCount;
 	fixed_t			pushfactor;
 	int				lastpush;
-	int				DesignatedTeam;	// Allow for friendly fire cacluations to be done on non-players.
 	int				activationtype;	// How the thing behaves when activated with USESPECIAL or BUMPSPECIAL
 	int				lastbump;		// Last time the actor was bumped, used to control BUMPSPECIAL
 	int				Score;			// manipulated by score items, ACS or DECORATE. The engine doesn't use this itself for anything.
 	FString *		Tag;			// Strife's tag name.
+	int				DesignatedTeam;	// Allow for friendly fire cacluations to be done on non-players.
 
 	AActor			*BlockingMobj;	// Actor that blocked the last move
 	line_t			*BlockingLine;	// Line that blocked the last move

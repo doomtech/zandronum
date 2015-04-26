@@ -339,15 +339,18 @@ void AActor::Serialize (FArchive &arc)
 		<< BlockingLine
 		<< pushfactor
 		<< Species
-		<< Score
-		<< lastpush << lastbump
+		<< Score;
+	if (SaveVersion >= 3113)
+	{
+		arc << DesignatedTeam;
+	}
+	arc << lastpush << lastbump
 		<< PainThreshold
 		<< DamageFactor
 		<< WeaveIndexXY << WeaveIndexZ
 		<< PoisonDamageReceived << PoisonDurationReceived << PoisonPeriodReceived << Poisoner
 		<< PoisonDamage << PoisonDuration << PoisonPeriod
 		<< ConversationRoot << Conversation
-		<< DesignatedTeam
 		<< ulLimitedToTeam // [BB]
 		<< ulVisibleToTeam // [BB]
 		<< lFixedColormap // [BB]
@@ -3752,6 +3755,11 @@ void AActor::Tick ()
 			//Added by MC: Freeze mode.
 			if (/*bglobal.freeze ||*/ level.flags2 & LEVEL2_FROZEN)
 			{
+				// Boss cubes shouldn't be accelerated by timefreeze
+				if (flags6 & MF6_BOSSCUBE)
+				{
+					special2++;
+				}
 				return;
 			}
 		}
@@ -3782,6 +3790,11 @@ void AActor::Tick ()
 
 		if (!(flags5 & MF5_NOTIMEFREEZE))
 		{
+			// Boss cubes shouldn't be accelerated by timefreeze
+			if (flags6 & MF6_BOSSCUBE)
+			{
+				special2++;
+			}
 			// Apply freeze mode.
 			// [WS] Added Skulltag specific code for checking to see if the player is a spectator, if the player is then don't apply freeze mode.
 			if (( level.flags2 & LEVEL2_FROZEN ) &&

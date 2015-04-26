@@ -44,6 +44,7 @@
 #include "thingdef/thingdef.h"
 #include "d_dehacked.h"
 #include "g_level.h"
+#include "teaminfo.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -315,7 +316,7 @@ bool P_CheckMissileRange (AActor *actor)
 {
 	fixed_t dist;
 		
-	if (!P_CheckSight (actor, actor->target, SF_SEEPASTBLOCKEVERYTHING|SF_SEEPASTSHOOTABLELINES))
+	if (!P_CheckSight (actor, actor->target, SF_SEEPASTBLOCKEVERYTHING))
 		return false;
 		
 	if (actor->flags & MF_JUSTHIT)
@@ -1300,7 +1301,7 @@ bool P_IsVisible(AActor *lookee, AActor *other, INTBOOL allaround, FLookExParams
 	}
 
 	// P_CheckSight is by far the most expensive operation in here so let's do it last.
-	return P_CheckSight(lookee, other, SF_SEEPASTBLOCKEVERYTHING);
+	return P_CheckSight(lookee, other, SF_SEEPASTSHOOTABLELINES);
 }
 
 //---------------------------------------------------------------------------
@@ -1752,7 +1753,8 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params)
 		}
 #endif
 		// [SP] If you don't see any enemies in deathmatch, look for players (but only when friend to a specific player.)
-		if (actor->FriendPlayer == 0) return result;
+		// [BB] TEAM_NONE -> TEAM_None
+		if (actor->FriendPlayer == 0 && (!teamplay || actor->DesignatedTeam == TEAM_None)) return result;
 		// [BB] Adapted to take into account teamgame.
 		if (result || (!deathmatch && !teamgame)) return true;
 

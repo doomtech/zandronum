@@ -272,6 +272,10 @@ void FIWadManager::ParseIWadInfos(const char *fn)
 		}
 		delete resfile;
 	}
+	if (mIWadNames.Size() == 0 || mIWads.Size() == 0)
+	{
+		I_FatalError("No IWAD definitions found");
+	}
 }
 
 

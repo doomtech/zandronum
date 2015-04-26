@@ -184,10 +184,12 @@ static bool PIT_FindFloorCeiling (line_t *ld, const FBoundingBox &box, FCheckPos
 		tmf.floorz = open.bottom;
 		tmf.floorsector = open.bottomsec;
 		tmf.touchmidtex = open.touchmidtex;
+		tmf.abovemidtex = open.abovemidtex;
 	}
 	else if (open.bottom == tmf.floorz)
 	{
 		tmf.touchmidtex |= open.touchmidtex;
+		tmf.abovemidtex |= open.abovemidtex;
 	}
 
 	if (open.lowfloor < tmf.dropoffz)
@@ -286,6 +288,7 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 	FBoundingBox box(tmf.x, tmf.y, actor->radius);
 
 	tmf.touchmidtex = false;
+	tmf.abovemidtex = false;
 	validcount++;
 
 	FBlockLinesIterator it(box);
@@ -298,7 +301,7 @@ void P_FindFloorCeiling (AActor *actor, bool onlyspawnpos)
 
 	if (tmf.touchmidtex) tmf.dropoffz = tmf.floorz;
 
-	if (!onlyspawnpos || (tmf.touchmidtex && (tmf.floorz <= actor->z)))
+	if (!onlyspawnpos || (tmf.abovemidtex && (tmf.floorz <= actor->z)))
 	{
 		actor->floorz = tmf.floorz;
 		actor->dropoffz = tmf.dropoffz;
@@ -351,6 +354,8 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 	tmf.x = x;
 	tmf.y = y;
 	tmf.z = z;
+	tmf.touchmidtex = false;
+	tmf.abovemidtex = false;
 	P_GetFloorCeilingZ(tmf, true);
 					
 	spechit.Clear ();
@@ -362,10 +367,14 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 	FBlockLinesIterator it(box);
 	line_t *ld;
 
+	// P_LineOpening requires the thing's z to be the destination ín order to work.
+	fixed_t savedz = thing->z;
+	thing->z = z;
 	while ((ld = it.Next()))
 	{
 		PIT_FindFloorCeiling(ld, box, tmf);
 	}
+	thing->z = savedz;
 
 	if (tmf.touchmidtex) tmf.dropoffz = tmf.floorz;
 
@@ -803,7 +812,8 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		// so don't mess around with the z-position
 		if (ld->frontsector->floorplane==ld->backsector->floorplane &&
 			ld->frontsector->floorplane==tm.thing->Sector->floorplane &&
-			!ld->frontsector->e->XFloor.ffloors.Size() && !ld->backsector->e->XFloor.ffloors.Size())
+			!ld->frontsector->e->XFloor.ffloors.Size() && !ld->backsector->e->XFloor.ffloors.Size() &&
+			!open.abovemidtex)
 		{
 			open.bottom=INT_MIN;
 		}
@@ -840,11 +850,13 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		tm.floorsector = open.bottomsec;
 		tm.floorpic = open.floorpic;
 		tm.touchmidtex = open.touchmidtex;
+		tm.abovemidtex = open.abovemidtex;
 		tm.thing->BlockingLine = ld;
 	}
 	else if (open.bottom == tm.floorz)
 	{
 		tm.touchmidtex |= open.touchmidtex;
+		tm.abovemidtex |= open.abovemidtex;
 	}
 
 	if (open.lowfloor < tm.dropoffz)
@@ -1697,6 +1709,7 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	tm.ceilingpic = newsec->GetTexture(sector_t::ceiling);
 	tm.ceilingsector = newsec;
 	tm.touchmidtex = false;
+	tm.abovemidtex = false;
 
 	//Added by MC: Fill the tmsector.
 	tm.sector = newsec;
@@ -3769,10 +3782,9 @@ bool aim_t::AimTraverse3DFloors(const divline_t &trace, intercept_t * in)
 	nextsector=NULL;
 	nexttopplane=nextbottomplane=NULL;
 
-	// [BB] In j-ecinvbug.wad I experienced li->backsector == NULL, which obviously leads to a crash.
-	if( li->frontsector && li->backsector &&
-		(li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size()) )
-	{
+	if (li->backsector == NULL) return true;	// shouldn't really happen but crashed once for me...
+    if (li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size())
+    {
 		int  frontflag;
 		F3DFloor* rover;
 		int    highpitch, lowpitch;

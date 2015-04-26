@@ -1192,7 +1192,7 @@ DEFINE_PROPERTY(activation, N, Actor)
 DEFINE_PROPERTY(designatedteam, I, Actor)
 {
 	PROP_INT_PARM(val, 0);
-	// [BL] We need to use the actual number of teams not the sv_maxteams limit.
+	// [BB] Zandronum handles teams differently.
 	if(val < 0 || (val >= (signed) teams.Size() && val != TEAM_None))
 		I_Error("Invalid team designation.\n");
 	defaults->DesignatedTeam = val;
