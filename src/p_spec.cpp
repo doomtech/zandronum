@@ -1101,7 +1101,8 @@ static void SetupFloorPortal (AStackPoint *point)
 	if (Sector->FloorSkyBox != NULL)
 	{
 		Sector->FloorSkyBox->Mate = point;
-		Sector->SetAlpha(sector_t::floor, Scale (point->args[0], OPAQUE, 255));
+		if (Sector->GetAlpha(sector_t::floor) == OPAQUE)
+			Sector->SetAlpha(sector_t::floor, Scale (point->args[0], OPAQUE, 255));
 	}
 }
 
@@ -1113,7 +1114,8 @@ static void SetupCeilingPortal (AStackPoint *point)
 	if (Sector->CeilingSkyBox != NULL)
 	{
 		Sector->CeilingSkyBox->Mate = point;
-		Sector->SetAlpha(sector_t::ceiling, Scale (point->args[0], OPAQUE, 255));
+		if (Sector->GetAlpha(sector_t::ceiling) == OPAQUE)
+			Sector->SetAlpha(sector_t::ceiling, Scale (point->args[0], OPAQUE, 255));
 	}
 }
 
@@ -1167,16 +1169,23 @@ void P_SetupPortals()
 	}
 }
 
-inline void SetPortal(sector_t *sector, int plane, AStackPoint *portal)
+inline void SetPortal(sector_t *sector, int plane, AStackPoint *portal, fixed_t alpha)
 {
 	// plane: 0=floor, 1=ceiling, 2=both
 	if (plane > 0)
 	{
-		if (sector->CeilingSkyBox == NULL) sector->CeilingSkyBox = portal;
+		if (sector->CeilingSkyBox == NULL) 
+		{
+			sector->CeilingSkyBox = portal;
+			if (sector->GetAlpha(sector_t::ceiling) == OPAQUE)
+				sector->SetAlpha(sector_t::ceiling, alpha);
+		}
 	}
 	if (plane == 2 || plane == 0)
 	{
 		if (sector->FloorSkyBox == NULL) sector->FloorSkyBox = portal;
+		if (sector->GetAlpha(sector_t::floor) == OPAQUE)
+			sector->SetAlpha(sector_t::floor, alpha);
 	}
 }
 
@@ -1196,6 +1205,7 @@ void P_SpawnPortal(line_t *line, int sectortag, int plane, int alpha)
 			fixed_t y1 = (line->v1->y + line->v2->y) >> 1;
 			fixed_t x2 = (lines[i].v1->x + lines[i].v2->x) >> 1;
 			fixed_t y2 = (lines[i].v1->y + lines[i].v2->y) >> 1;
+			fixed_t alpha = Scale (lines[i].args[4], OPAQUE, 255);
 
 			AStackPoint *anchor = Spawn<AStackPoint>(x1, y1, 0, NO_REPLACE);
 			AStackPoint *reference = Spawn<AStackPoint>(x2, y2, 0, NO_REPLACE);
@@ -1210,7 +1220,7 @@ void P_SpawnPortal(line_t *line, int sectortag, int plane, int alpha)
 
 		    for (int s=-1; (s = P_FindSectorFromTag(sectortag,s)) >= 0;)
 			{
-				SetPortal(&sectors[s], plane, reference);
+				SetPortal(&sectors[s], plane, reference, alpha);
 			}
 
 			for (int j=0;j<numlines;j++)
@@ -1224,13 +1234,13 @@ void P_SpawnPortal(line_t *line, int sectortag, int plane, int alpha)
 				{
 					if (lines[i].args[0] == 0)
 					{
-						SetPortal(lines[i].frontsector, plane, reference);
+						SetPortal(lines[i].frontsector, plane, reference, alpha);
 					}
 					else
 					{
 						for (int s=-1; (s = P_FindSectorFromTag(lines[i].args[0],s)) >= 0;)
 						{
-							SetPortal(&sectors[s], plane, reference);
+							SetPortal(&sectors[s], plane, reference, alpha);
 						}
 					}
 				}

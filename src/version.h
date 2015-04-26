@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.5.0"
-#define ZD_SVN_REVISION_STRING "2993"
-#define ZD_SVN_REVISION_NUMBER 2993
+#define ZD_SVN_REVISION_STRING "3001"
+#define ZD_SVN_REVISION_NUMBER 3001
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -111,8 +111,9 @@ unsigned int GetRevisionNumber();
 #define MINSAVEVER 1848
 
 #if ZD_SVN_REVISION_NUMBER < MINSAVEVER
-// Never write a savegame with a version lower than what we need
-#define SAVEVER			MINSAVEVER
+// If we don't know the current revision write something very high to ensure that
+// the reesulting executable can read its own savegames but no regular engine can.
+#define SAVEVER			999999
 #define SAVESIG			MakeSaveSig()
 static inline const char *MakeSaveSig()
 {

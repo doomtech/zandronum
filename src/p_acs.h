@@ -236,6 +236,8 @@ enum
 	APROP_TargetTID		= 26,
 	APROP_TracerTID		= 27,
 	APROP_WaterLevel	= 28,
+	APROP_ScaleX        = 29,
+	APROP_ScaleY        = 30,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

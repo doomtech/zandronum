@@ -1138,6 +1138,12 @@ enum
 	SSECF_POLYORG = 4,
 };
 
+struct FPortalCoverage
+{
+	DWORD *		subsectors;
+	int			sscount;
+};
+
 struct subsector_t
 {
 	sector_t	*sector;
@@ -1154,6 +1160,7 @@ struct subsector_t
 	int				validcount;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
+	FPortalCoverage	portalcoverage[2];
 
 	// [BL] Constructor to init GZDoom data
 	subsector_t() : render_sector(NULL), hacked(0)

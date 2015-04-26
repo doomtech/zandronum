@@ -692,17 +692,17 @@ int GLSectorStackPortal::ClipSeg(seg_t *seg)
 		if (angles[j+1] - clipangle <= ANGLE_180 && angles[j] - clipangle > ANGLE_180 && angles[j+1] - angles[j] < ANGLE_180)
 		{
 			relation = DMulScale32(seg->v2->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
-				portal->Shape[j]->x - seg->v1->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
+				portal->Shape[j]->x - seg->v2->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
 			if (relation > 0) 
 			{
 				return PClip_InFront;
 			}
 			else if (relation == 0)
 			{
-				// If this vertex is on the boundary we need to check the second one, too. The line may be partially inside the shape
+				// If this vertex is on the boundary we need to check the other one, too. The line may be partially inside the shape
 				// but outside the portal. We can use the same boundary line for this
-				relation = DMulScale32(seg->v2->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
-					portal->Shape[j]->x - seg->v2->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
+				relation = DMulScale32(seg->v1->y - portal->Shape[j]->y - portal->yDisplacement, portal->Shape[j+1]->x - portal->Shape[j]->x,
+					portal->Shape[j]->x - seg->v1->x + portal->xDisplacement, portal->Shape[j+1]->y - portal->Shape[j]->y);
 				if (relation >= 0) return PClip_InFront;
 			}
 			return PClip_Inside;

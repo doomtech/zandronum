@@ -392,8 +392,10 @@ enum EMidiDevice
 	MDEV_GUS = 5,
 };
 
+typedef TMap<FName, FName> MusicAliasMap;
 typedef TMap<FName, int> MidiDeviceMap;
 
+extern MusicAliasMap MusicAliases;
 extern MidiDeviceMap MidiDevices;
 
 #endif

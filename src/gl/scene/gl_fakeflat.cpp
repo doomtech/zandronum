@@ -206,7 +206,23 @@ bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *source, const secplan
 //==========================================================================
 sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool back)
 {
-	if (!sec->heightsec || sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || sec->heightsec==sec) return sec;
+	if (!sec->heightsec || sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || sec->heightsec==sec) 
+	{
+		// check for backsectors with the ceiling lower than the floor. These will create
+		// visual glitches because upper amd lower textures overlap.
+		if (back && sec->planes[sector_t::floor].TexZ > sec->planes[sector_t::ceiling].TexZ)
+		{
+			if (!(sec->floorplane.a | sec->floorplane.b | sec->ceilingplane.a | sec->ceilingplane.b))
+			{
+				*dest = *sec;
+				dest->ceilingplane=sec->floorplane;
+				dest->ceilingplane.FlipVert();
+				dest->planes[sector_t::ceiling].TexZ = dest->planes[sector_t::floor].TexZ;
+				return dest;
+			}
+		}
+		return sec;
+	}
 
 #ifdef _MSC_VER
 #ifdef _DEBUG

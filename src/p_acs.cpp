@@ -951,6 +951,7 @@ static void ReadArrayVars (PNGHandle *png, FWorldGlobalArray *vars, size_t count
 			{
 				SDWORD key, val;
 				key = arc.ReadCount();
+
 				val = arc.ReadCount();
 				vars[i].Insert (key, val);
 			}
@@ -3724,8 +3725,10 @@ enum
 	APROP_MasterTID     = 25,
 	APROP_TargetTID		= 26,
 	APROP_TracerTID		= 27,
-	APROP_WaterLevel	= 28
-};	
+	APROP_WaterLevel	= 28,
+	APROP_ScaleX        = 29,
+	APROP_ScaleY        = 30,
+};
 */
 
 // These are needed for ACS's APROP_RenderStyle
@@ -3981,6 +3984,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		DoSetMaster (actor, other);
 		break;
 
+	case APROP_ScaleX:
+		actor->scaleX = value;
+		break;
+
+	case APROP_ScaleY:
+		actor->scaleY = value;
+		break;
+
 	default:
 		// do nothing.
 		break;
@@ -4043,6 +4054,8 @@ int DLevelScript::GetActorProperty (int tid, int property, const SDWORD *stack, 
 	case APROP_TargetTID:	return (actor->target != NULL)? actor->target->tid : 0;
 	case APROP_TracerTID:	return (actor->tracer != NULL)? actor->tracer->tid : 0;
 	case APROP_WaterLevel:	return actor->waterlevel;
+	case APROP_ScaleX: 		return actor->scaleX;
+	case APROP_ScaleY: 		return actor->scaleY;
 
 	case APROP_SeeSound:	return GlobalACSStrings.AddString(actor->SeeSound, stack, stackdepth);
 	case APROP_AttackSound:	return GlobalACSStrings.AddString(actor->AttackSound, stack, stackdepth);
@@ -4085,6 +4098,9 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_MasterTID:
 		case APROP_TargetTID:
 		case APROP_TracerTID:
+		case APROP_WaterLevel:
+		case APROP_ScaleX:
+		case APROP_ScaleY:
 			return (GetActorProperty(tid, property, NULL, 0) == value);
 
 		// Boolean values need to compare to a binary version of value

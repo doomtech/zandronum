@@ -837,9 +837,18 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 		if (!tex || tex->UseType==FTexture::TEX_Null)
 		{
-			// texture is missing - use the higher plane
-			topleft = MAX(bch1,fch1);
-			topright = MAX(bch2,fch2);
+			if (seg->frontsector->GetTexture(sector_t::ceiling) == skyflatnum &&
+				seg->backsector->GetTexture(sector_t::ceiling) == skyflatnum)
+			{
+				// intra-sky lines do not clip the texture at all if there's no upper texture
+				topleft = topright = texturetop;
+			}
+			else
+			{
+				// texture is missing - use the higher plane
+				topleft = MAX(bch1,fch1);
+				topright = MAX(bch2,fch2);
+			}
 		}
 		else if ((bch1>fch1 || bch2>fch2) && 
 				 (seg->frontsector->GetTexture(sector_t::ceiling)!=skyflatnum || seg->backsector->GetTexture(sector_t::ceiling)==skyflatnum)) 

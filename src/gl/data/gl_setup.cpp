@@ -587,17 +587,16 @@ void gl_CleanLevelData()
 		delete [] sectors[0].subsectors;
 		sectors[0].subsectors = NULL;
 	}
-	if (gamenodes && gamenodes!=nodes)
+	for (int i=0;i<numsubsectors;i++)
 	{
-		delete [] gamenodes;
-		gamenodes = NULL;
-		numgamenodes = 0;
-	}
-	if (gamesubsectors && gamesubsectors!=subsectors)
-	{
-		delete [] gamesubsectors;
-		gamesubsectors = NULL;
-		numgamesubsectors = 0;
+		for(int j=0;j<2;j++)
+		{
+			if (subsectors[i].portalcoverage[j].subsectors != NULL)
+			{
+				delete [] subsectors[i].portalcoverage[j].subsectors;
+				subsectors[i].portalcoverage[j].subsectors = NULL;
+			}
+		}
 	}
 }
 
