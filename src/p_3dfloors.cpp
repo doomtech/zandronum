@@ -605,6 +605,11 @@ void P_Recalculate3DFloors(sector_t * sector)
 	}
 }
 
+//==========================================================================
+//
+// recalculates 3D floors for all attached sectors
+//
+//==========================================================================
 
 void P_RecalculateAttached3DFloors(sector_t * sec)
 {
@@ -665,6 +670,7 @@ void P_RecalculateAttachedLights(sector_t *sector)
 //
 //
 //==========================================================================
+
 lightlist_t * P_GetPlaneLight(sector_t * sector, secplane_t * plane, bool underside)
 {
 	unsigned   i;
@@ -787,14 +793,20 @@ void P_Spawn3DFloors (void)
 			break;
 
 		case Sector_Set3DFloor:
-			if (line->args[1]&8)
+			// The flag high-byte/line id is only needed in Hexen format.
+			// UDMF can set both of these parameters without any restriction of the usable values.
+			// In Doom format the translators can take full integers for the tag and the line ID always is the same as the tag.
+			if (level.maptype == MAPTYPE_HEXEN)	
 			{
-				line->id = line->args[4];
-			}
-			else
-			{
-				line->args[0]+=256*line->args[4];
-				line->args[4]=0;
+				if (line->args[1]&8)
+				{
+					line->id = line->args[4];
+				}
+				else
+				{
+					line->args[0]+=256*line->args[4];
+					line->args[4]=0;
+				}
 			}
 			P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
 			break;

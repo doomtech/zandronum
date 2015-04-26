@@ -90,6 +90,8 @@ void R_3D_AddHeight(secplane_t *add, sector_t *sec)
 void R_3D_NewClip()
 {
 	ClipStack *curr;
+//	extern short floorclip[MAXWIDTH];
+//	extern short ceilingclip[MAXWIDTH];
 
 	curr = (ClipStack*)M_Malloc(sizeof(ClipStack));
 	curr->next = 0;

@@ -180,6 +180,7 @@ void R_InitPlanes ()
 
 void R_DeinitPlanes ()
 {
+	fakeActive = 0;
 	R_ClearPlanes(false);
 	for (visplane_t *pl = freetail; pl != NULL; )
 	{
@@ -1030,6 +1031,7 @@ void R_DrawHeightPlanes(fixed_t height)
 	}
 }
 
+
 //==========================================================================
 //
 // R_DrawSinglePlane
@@ -1306,6 +1308,7 @@ void R_DrawSkyBoxes ()
 
 	for (*freehead = visplanes[MAXVISPLANES], visplanes[MAXVISPLANES] = NULL; *freehead; )
 		freehead = &(*freehead)->next;
+
 }
 
 ADD_STAT(skyboxes)

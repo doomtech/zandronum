@@ -728,7 +728,6 @@ void R_AddLine (seg_t *line)
 	{
 		backsector = line->backsector;
 	}
-
 	rw_frontcz1 = frontsector->ceilingplane.ZatPoint (line->v1->x, line->v1->y);
 	rw_frontfz1 = frontsector->floorplane.ZatPoint (line->v1->x, line->v1->y);
 	rw_frontcz2 = frontsector->ceilingplane.ZatPoint (line->v2->x, line->v2->y);
@@ -746,9 +745,9 @@ void R_AddLine (seg_t *line)
 	{
 		// kg3D - its fake, no transfer_heights
 		if (!(fake3D & FAKE3D_FAKEBACK))
-		// killough 3/8/98, 4/4/98: hack for invisible ceilings / deep water
-		backsector = R_FakeFlat (backsector, &tempsec, NULL, NULL, true);
-
+		{ // killough 3/8/98, 4/4/98: hack for invisible ceilings / deep water
+			backsector = R_FakeFlat (backsector, &tempsec, NULL, NULL, true);
+		}
 		doorclosed = 0;		// killough 4/16/98
 
 		rw_backcz1 = backsector->ceilingplane.ZatPoint (line->v1->x, line->v1->y);
@@ -1021,65 +1020,6 @@ static bool R_CheckBBox (fixed_t *bspcoord)	// killough 1/28/98: static
 	return true;
 }
 
-void R_GetExtraLight (int *light, const secplane_t &plane, FExtraLight *el)
-{
-	FDynamicColormap *floodcolormap;
-	int floodlight;
-	bool flooding;
-	vertex_t **triangle;
-	int i, j;
-	fixed_t diff;
-
-	if (el == NULL)
-	{
-		return;
-	}
-
-	triangle = frontsector->Triangle;
-	flooding = false;
-	floodcolormap = basecolormap;
-	floodlight = *light;
-
-	for (i = 0; i < el->NumUsedLights; ++i)
-	{
-		for (j = 0; j < 3; ++j)
-		{
-			diff = plane.ZatPoint (triangle[j]) - el->Lights[i].Plane.ZatPoint (triangle[j]);
-			if (diff != 0)
-			{
-				break;
-			}
-		}
-		if (diff >= 0)
-		{
-			break;
-		}
-
-		if (!flooding || el->Lights[i].bFlooder)
-		{
-			if (el->Lights[i].Master == NULL)
-			{
-				basecolormap = floodcolormap;
-				*light = floodlight;
-			}
-			else
-			{
-				basecolormap = el->Lights[i].Master->ColorMap;
-				*light = el->Lights[i].Master->lightlevel;
-				if (el->Lights[i].bFlooder)
-				{
-					flooding = true;
-					floodcolormap = basecolormap;
-					floodlight = *light;
-				}
-			}
-		}
-	}
-}
-
-
-
-
 //==========================================================================
 //
 // FMiniBSP Constructor
@@ -1147,7 +1087,6 @@ static void R_AddPolyobjs(subsector_t *sub)
 	}
 }
 
-
 // kg3D - add fake segs, never rendered
 void R_FakeDrawLoop(subsector_t *sub)
 {
@@ -1166,6 +1105,7 @@ void R_FakeDrawLoop(subsector_t *sub)
 		line++;
 	}
 }
+
 //
 // R_Subsector
 // Determine floor/ceiling planes.
@@ -1180,6 +1120,13 @@ void R_Subsector (subsector_t *sub)
 	int          floorlightlevel;		// killough 3/16/98: set floor lightlevel
 	int          ceilinglightlevel;		// killough 4/11/98
 	bool		 outersubsector;
+	int	fll, cll, position;
+
+	// kg3D - fake floor stuff
+	visplane_t *backupfp;
+	visplane_t *backupcp;
+	//secplane_t templane;
+	lightlist_t *light;
 
 	if (InSubsector != NULL)
 	{ // InSubsector is not NULL. This means we are rendering from a mini-BSP.
@@ -1190,14 +1137,6 @@ void R_Subsector (subsector_t *sub)
 		outersubsector = true;
 		InSubsector = sub;
 	}
-
-	int	fll, cll, position;
-
-	// kg3D - fake floor stuff
-	visplane_t *backupfp;
-	visplane_t *backupcp;
-	//secplane_t templane;
-	lightlist_t *light;
 
 #ifdef RANGECHECK
 	if (outersubsector && sub - subsectors >= (ptrdiff_t)numsubsectors)
@@ -1242,6 +1181,7 @@ void R_Subsector (subsector_t *sub)
 	else
 	{
 		basecolormap = frontsector->ColorMap;
+		ceilinglightlevel = frontsector->lightlevel;
 	}
 
 	ceilingplane = frontsector->ceilingplane.ZatPoint (viewx, viewy) > viewz ||
@@ -1272,6 +1212,7 @@ void R_Subsector (subsector_t *sub)
 	else
 	{
 		basecolormap = frontsector->ColorMap;
+		floorlightlevel = frontsector->lightlevel;
 	}
 
 	// killough 3/7/98: Add (x,y) offsets to flats, add deep water check
@@ -1452,6 +1393,9 @@ void R_Subsector (subsector_t *sub)
 			R_ProjectParticle (Particles + i, subsectors[sub-subsectors].sector, shade, FakeSide);
 		}
 	}
+
+	count = sub->numlines;
+	line = sub->firstline;
 
 	while (count--)
 	{

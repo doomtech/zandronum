@@ -47,8 +47,8 @@ struct drawseg_t
 	ptrdiff_t	sprbottomclip;		// type short
 	ptrdiff_t	maskedtexturecol;	// type short
 	ptrdiff_t	swall;				// type fixed_t
-	int fake;	// ident fake drawseg, don't draw or clip sprites
-// kg3D - backups
+	int fake;	// ident fake drawseg, don't draw and clip sprites
+// backups
 	ptrdiff_t	bkup;	// sprtopclip backup, for mid and fake textures
 	float WallUoverZorg, WallUoverZstep, WallInvZorg, WallInvZstep, WallDepthScale, WallDepthOrg;
 };

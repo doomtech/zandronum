@@ -733,7 +733,7 @@ ADD_STAT(missingtextures)
 
 void FDrawInfo::AddHackedSubsector(subsector_t * sub)
 {
-	if (!(level.flags & LEVEL_HEXENFORMAT))
+	if (!(level.maptype == MAPTYPE_HEXEN))
 	{
 		//@sync-hack (probably not, this is only called from the main thread)
 		SubsectorHackInfo sh={sub, 0};

@@ -1013,10 +1013,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\r_3dfloors.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\s_advsound.cpp"
 				>
 			</File>
@@ -1590,11 +1586,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\memarena.h"
+				RelativePath=".\src\medal.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\medal.h"
+				RelativePath=".\src\memarena.h"
 				>
 			</File>
 			<File
@@ -1707,10 +1703,6 @@
 			</File>
 			<File
 				RelativePath=".\src\possession.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\r_3dfloors.h"
 				>
 			</File>
 			<File
@@ -2560,6 +2552,10 @@
 				Name="Render Sources"
 				>
 				<File
+					RelativePath=".\src\r_3dfloors.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\r_bsp.cpp"
 					>
 				</File>
@@ -2611,6 +2607,10 @@
 			<Filter
 				Name="Render Headers"
 				>
+				<File
+					RelativePath=".\src\r_3dfloors.h"
+					>
+				</File>
 				<File
 					RelativePath=".\src\r_blend.h"
 					>

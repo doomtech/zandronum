@@ -1,6 +1,3 @@
-
-
-
 ACTOR DynamicLight native
 {
 	Height 0

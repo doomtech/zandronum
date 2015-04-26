@@ -1189,7 +1189,7 @@ void R_SetupFrame (AActor *actor)
 
 				// If no alpha is set, use 50%
 				if (blendv.a==0 && blendv!=0) blendv.a=128;
-				newblend = blendv;
+				newblend = blendv.d;
 				break;
 			}
 		}
@@ -1460,7 +1460,7 @@ void R_EnterMirror (drawseg_t *ds, int depth)
 	MirrorFlags = (depth + 1) & 1;
 
 	R_RenderBSPNode (nodes + numnodes - 1);
-	R_3D_ResetClip();
+	R_3D_ResetClip(); // reset clips (floor/ceiling)
 
 	R_DrawPlanes ();
 	R_DrawSkyBoxes ();
@@ -1591,7 +1591,7 @@ void R_RenderActorView (AActor *actor, bool dontmaplines)
 	if (r_polymost < 2)
 	{
 		R_RenderBSPNode (nodes + numnodes - 1);	// The head node is the last node output.
-		R_3D_ResetClip();
+		R_3D_ResetClip(); // reset clips (floor/ceiling)
 	}
 	camera->renderflags = savedflags;
 	WallCycles.Unclock();

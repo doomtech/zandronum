@@ -201,19 +201,22 @@ static void BlastMaskedColumn (void (*blastfunc)(const BYTE *pixels, const FText
 		const FTexture::Span *spans;
 		const BYTE *pixels = tex->GetColumn (maskedtexturecol[dc_x] >> FRACBITS, &spans);
 		blastfunc (pixels, spans);
-//		maskedtexturecol[dc_x] = FIXED_MAX;
+//		maskedtexturecol[dc_x] = FIXED_MAX; // kg3D - seems to be useless
 	}
 	rw_light += rw_lightstep;
 	spryscale += rw_scalestep;
 }
 
-void R_RenderFakeWallRange (drawseg_t *ds, int x1, int x2);
+void R_RenderFakeWallRange(drawseg_t *ds, int x1, int x2);
+
 void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 {
 	FTexture	*tex;
 	int			i;
 	sector_t	tempsec;		// killough 4/13/98
 	fixed_t		texheight, textop, texheightscale;
+
+	const sector_t *sec;
 
 	sprflipvert = false;
 
@@ -239,7 +242,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 	tex = TexMan(curline->sidedef->GetTexture(side_t::mid));
 
 	// killough 4/13/98: get correct lightlevel for 2s normal textures
-	const sector_t *sec = R_FakeFlat (frontsector, &tempsec, NULL, NULL, false);
+	sec = R_FakeFlat (frontsector, &tempsec, NULL, NULL, false);
 
 	basecolormap = sec->ColorMap;	// [RH] Set basecolormap
 
@@ -267,6 +270,23 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 	rw_lightstep = ds->lightstep;
 	rw_light = ds->light + (x1 - ds->x1) * rw_lightstep;
 
+	if (fixedlightlev < 0)
+	{
+		for (i = frontsector->e->XFloor.lightlist.Size() - 1; i >= 0; i--)
+		{
+			if (!(fake3D & FAKE3D_CLIPTOP))
+			{
+				sclipTop = sec->ceilingplane.ZatPoint(viewx, viewy);
+			}
+			if (sclipTop <= frontsector->e->XFloor.lightlist[i].plane.ZatPoint(viewx, viewy))
+			{
+				basecolormap = frontsector->e->XFloor.lightlist[i].extra_colormap;
+				wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(foggy, *frontsector->e->XFloor.lightlist[i].p_lightlevel) + r_actualextralight);
+				break;
+			}
+		}
+	}
+
 	mfloorclip = openings + ds->sprbottomclip - ds->x1;
 	mceilingclip = openings + ds->sprtopclip - ds->x1;
 
@@ -279,10 +299,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 			goto clearfog;
 		}
 	}
-	if ((ds->bFakeBoundary && !(ds->bFakeBoundary & 4)) || drawmode == DontDraw)
-	{
-		goto clearfog;
-	}
+	if(ds->bFakeBoundary && !(ds->bFakeBoundary & 4) || drawmode == DontDraw) goto clearfog;
 
 	MaskedSWall = (fixed_t *)(openings + ds->swall) - ds->x1;
 	MaskedScaleY = ds->yrepeat;
@@ -517,8 +534,8 @@ void R_RenderFakeWall(drawseg_t *ds, int x1, int x2, F3DFloor *rover)
 	MaskedSWall = (fixed_t *)(openings + ds->swall) - ds->x1;
 
 	// find positioning
-	xscale = rw_pic->xScale;
-	yscale = rw_pic->yScale;
+	xscale = FixedMul(rw_pic->xScale, sidedef->GetTextureXScale(side_t::mid));
+	yscale = FixedMul(rw_pic->yScale, sidedef->GetTextureYScale(side_t::mid));
 	// encapsulate the lifetime of rowoffset
 	fixed_t rowoffset = curline->sidedef->GetTextureYOffset(side_t::mid) + rover->master->sidedef[0]->GetTextureYOffset(side_t::mid);
 	dc_texturemid = rover->model->GetPlaneTexZ(sector_t::ceiling);
@@ -1196,12 +1213,12 @@ void wallscan_striped (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, 
 			up = down;
 			down = (down == most1) ? most2 : most1;
 		}
-
 		lightlist_t *lit = &frontsector->e->XFloor.lightlist[i];
 		basecolormap = lit->extra_colormap;
 		wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(fogginess,
 			*lit->p_lightlevel, lit->lightsource != NULL) + r_actualextralight);
  	}
+
 	wallscan (x1, x2, up, dwal, swal, lwal, yrepeat);
 	basecolormap = startcolormap;
 	wallshade = startshade;
@@ -2144,6 +2161,7 @@ ptrdiff_t R_NewOpening (ptrdiff_t len)
 	return res;
 }
 
+
 //
 // R_StoreWallRange
 // A wall segment will be drawn between start and stop pixels (inclusive).
@@ -2151,6 +2169,7 @@ ptrdiff_t R_NewOpening (ptrdiff_t len)
 
 void R_StoreWallRange (int start, int stop)
 {
+	int i;
 	bool maskedtexture = false;
 
 #ifdef RANGECHECK
@@ -2381,11 +2400,19 @@ void R_StoreWallRange (int start, int stop)
 		return;
 	}
 
+	if(fake3D & 7) {
+		ds_p++;
+		return;
+	}
+
 	// save sprite clipping info
 	if ( ((ds_p->silhouette & SIL_TOP) || maskedtexture) && ds_p->sprtopclip == -1)
 	{
 		ds_p->sprtopclip = R_NewOpening (stop - start);
 		memcpy (openings + ds_p->sprtopclip, &ceilingclip[start], sizeof(short)*(stop-start));
+		// kg3D - backup for mid and fake walls
+		ds_p->bkup = R_NewOpening (stop - start);
+		memcpy (openings + ds_p->bkup, &ceilingclip[start], sizeof(short)*(stop-start));
 	}
 
 	if ( ((ds_p->silhouette & SIL_BOTTOM) || maskedtexture) && ds_p->sprbottomclip == -1)

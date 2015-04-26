@@ -973,6 +973,7 @@ add_executable( zdoom WIN32
 	platform.cpp #ST
 	po_man.cpp
 	possession.cpp #ST
+	r_3dfloors.cpp
 	r_bsp.cpp
 	r_data.cpp
 	r_draw.cpp
@@ -985,7 +986,6 @@ add_executable( zdoom WIN32
 	r_sky.cpp
 	r_things.cpp
 	r_translate.cpp
-	r_3dfloors.cpp
 	s_advsound.cpp
 	s_environment.cpp
 	s_playlist.cpp

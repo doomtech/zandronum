@@ -2352,6 +2352,7 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 	vis->gzb = gzb;		// [RH] use gzb, not thing->z
 	vis->gzt = gzt;		// killough 3/27/98
 	vis->renderflags = thing->renderflags;
+	if(thing->flags5 & MF5_BRIGHT) vis->renderflags |= RF_FULLBRIGHT; // kg3D
 	vis->RenderStyle = thing->RenderStyle;
 	vis->FillColor = thing->fillcolor;
 	vis->Translation = thing->Translation;		// [RH] thing translation table
@@ -2709,12 +2710,12 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 //
 //==========================================================================
 
-void R_DrawPlayerSprites (void)
+void R_DrawPlayerSprites ()
 {
 	int 		i;
 	int 		lightnum;
 	pspdef_t*	psp;
-	sector_t*	sec;
+	sector_t*	sec = NULL;
 	static sector_t tempsec;
 	int			floorlight, ceilinglight;
 	F3DFloor *rover;
@@ -3277,38 +3278,46 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 
 	if (fake3D & FAKE3D_CLIPBOTTOM)
 	{
-		fixed_t h = sclipBottom;
-		if (spr->fakefloor)
+		if (!spr->bIsVoxel)
 		{
-			fixed_t floorz = spr->fakefloor->top.plane->Zat0();
-			if (viewz > floorz && floorz == sclipBottom )
+			fixed_t h = sclipBottom;
+			if (spr->fakefloor)
 			{
-				h = spr->fakefloor->bottom.plane->Zat0();
+				fixed_t floorz = spr->fakefloor->top.plane->Zat0();
+				if (viewz > floorz && floorz == sclipBottom )
+				{
+					h = spr->fakefloor->bottom.plane->Zat0();
+				}
+			}
+			h = (centeryfrac - FixedMul(h-viewz, scale)) >> FRACBITS;
+			if (h < botclip)
+			{
+				botclip = MAX<short>(0, h);
 			}
 		}
-		h = (centeryfrac - FixedMul(h-viewz, scale)) >> FRACBITS;
-		if (h < botclip)
-		{
-			botclip = MAX<short>(0, h);
-		}
+		hzb = MAX(hzb, sclipBottom);
 	}
 	if (fake3D & FAKE3D_CLIPTOP)
 	{
-		fixed_t h = sclipTop;
-
-		if (spr->fakeceiling != NULL)
+		if (!spr->bIsVoxel)
 		{
-			fixed_t ceilingz = spr->fakeceiling->bottom.plane->Zat0();
-			if (viewz < ceilingz && ceilingz == sclipTop)
+			fixed_t h = sclipTop;
+
+			if (spr->fakeceiling != NULL)
 			{
-				h = spr->fakeceiling->top.plane->Zat0();
+				fixed_t ceilingz = spr->fakeceiling->bottom.plane->Zat0();
+				if (viewz < ceilingz && ceilingz == sclipTop)
+				{
+					h = spr->fakeceiling->top.plane->Zat0();
+				}
+			}
+			h = (centeryfrac - FixedMul (h-viewz, scale)) >> FRACBITS;
+			if (h > topclip)
+			{
+				topclip = MIN<short>(h, viewheight);
 			}
 		}
-		h = (centeryfrac - FixedMul (h-viewz, scale)) >> FRACBITS;
-		if (h > topclip)
-		{
-			topclip = MIN<short>(h, viewheight);
-		}
+		hzt = MIN(hzt, sclipTop);
 	}
 
 #if 0
@@ -3335,6 +3344,7 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 
 	if (topclip >= botclip)
 	{
+		spr->colormap = colormap;
 		return;
 	}
 
@@ -3358,7 +3368,8 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 
 	for (ds = ds_p; ds-- > firstdrawseg; )  // new -- killough
 	{
-		if(ds->fake) continue; // kg3D - no fake lines
+		// kg3D - no clipping on fake segs
+		if(ds->fake) continue;
 		// determine if the drawseg obscures the sprite
 		if (ds->x1 > x2 || ds->x2 < x1 ||
 			(!(ds->silhouette & SIL_BOTH) && ds->maskedtexturecol == -1 &&
@@ -3448,6 +3459,7 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 			}
 			if (i == x2)
 			{
+				spr->colormap = colormap;
 				return;
 			}
 		}
@@ -3455,15 +3467,21 @@ void R_DrawSprite (vissprite_t * /*dummyArg*/, vissprite_t *spr)
 		int maxvoxely = spr->gzb > hzb ? INT_MAX : (spr->gzt - hzb) / spr->yscale;
 		R_DrawVisVoxel(spr, minvoxely, maxvoxely, cliptop, clipbot);
 	}
+	spr->colormap = colormap;
 }
 
-//
-// R_DrawMasked
-//
+// kg3D:
+// R_DrawMasked contains sorting
+// original renamed to R_DrawMaskedSingle
+
 void R_DrawMaskedSingle (bool renew)
 {
 	drawseg_t *ds;
 	int i;
+
+#if 0
+	R_SplitVisSprites ();
+#endif
 
 	// [BC] Potentially prevent spectators from viewing active players during LMS games.
 	if ((( teamlms || lastmanstanding ) &&
@@ -3495,7 +3513,8 @@ void R_DrawMaskedSingle (bool renew)
 
 	for (ds = ds_p; ds-- > firstdrawseg; )	// new -- killough
 	{
-		if(ds->fake) continue; // kg3D - no fake lines
+		// kg3D - no fake segs
+		if (ds->fake) continue;
 		if (ds->maskedtexturecol != -1 || ds->bFogBoundary)
 		{
 			R_RenderMaskedSegRange (ds, ds->x1, ds->x2);
@@ -3777,7 +3796,7 @@ void R_ProjectParticle (particle_t *particle, const sector_t *sector, int shade,
 	vis->cx = tx;
 	vis->gx = particle->x;
 	vis->gy = particle->y;
-	vis->texturemid = particle->z;
+	vis->texturemid = particle->z; // kg3D
 	vis->gzb = y1;
 	vis->gzt = y2;
 	vis->x1 = x1;
@@ -3789,7 +3808,6 @@ void R_ProjectParticle (particle_t *particle, const sector_t *sector, int shade,
 	vis->renderflags = particle->trans;
 	vis->FakeFlatStat = fakeside;
 	vis->floorclip = 0;
-	vis->heightsec = heightsec;
 
 	if (fixedlightlev >= 0)
 	{
@@ -3818,7 +3836,8 @@ static void R_DrawMaskedSegsBehindParticle (const vissprite_t *vis)
 	for (unsigned int p = InterestingDrawsegs.Size(); p-- > FirstInterestingDrawseg; )
 	{
 		drawseg_t *ds = &drawsegs[InterestingDrawsegs[p]];
-		if(ds->fake) continue; // kg3D - no fake lines
+		// kg3D - no fake segs
+		if(ds->fake) continue;
 		if (ds->x1 >= x2 || ds->x2 < x1)
 		{
 			continue;
