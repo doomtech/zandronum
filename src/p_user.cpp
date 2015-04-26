@@ -492,7 +492,8 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< InvSel
 		<< MorphWeapon
 		<< DamageFade
-		<< PlayerFlags;
+		<< PlayerFlags
+		<< FlechetteType;
 }
 
 //===========================================================================

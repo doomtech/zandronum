@@ -913,6 +913,7 @@ add_executable( zdoom WIN32
 	m_png.cpp
 	m_random.cpp
 	maprotation.cpp #ST
+	memarena.cpp
 	md5.cpp
 	medal.cpp #ST
 	name.cpp

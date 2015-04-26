@@ -158,6 +158,7 @@ public:
 	int			SpawnMask;
 	FNameNoInit	MorphWeapon;
 	fixed_t		AttackZOffset;			// attack height, relative to player center
+	const PClass *FlechetteType;
 
 	// [CW] Fades for when you are being damaged.
 	PalEntry DamageFade;

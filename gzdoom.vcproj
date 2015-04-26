@@ -777,6 +777,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\memarena.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\name.cpp"
 				>
 			</File>
@@ -1583,6 +1587,10 @@
 			</File>
 			<File
 				RelativePath=".\src\md5.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\memarena.h"
 				>
 			</File>
 			<File
