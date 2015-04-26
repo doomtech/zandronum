@@ -711,7 +711,7 @@ AInventory *AInventory::CreateTossable ()
 	{
 		return NULL;
 	}
-	if ((ItemFlags & IF_UNDROPPABLE) || Owner == NULL || Amount <= 0)
+	if ((ItemFlags & (IF_UNDROPPABLE|IF_UNTOSSABLE)) || Owner == NULL || Amount <= 0)
 	{
 		return NULL;
 	}

@@ -249,6 +249,14 @@ void gl_InitModels()
 
 	lastLump = 0;
 
+	for(unsigned i=0;i<Models.Size();i++)
+	{
+		delete Models[i];
+	}
+	Models.Clear();
+	SpriteModelFrames.Clear();
+	DeleteModelHash();
+
 	memset(&smf, 0, sizeof(smf));
 	while ((Lump = Wads.FindLump("MODELDEF", &lastLump)) != -1)
 	{

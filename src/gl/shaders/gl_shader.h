@@ -131,7 +131,7 @@ class FShaderManager
 
 	void Clean();
 	void CompileShaders();
-
+	
 public:
 	FShaderManager();
 	~FShaderManager();

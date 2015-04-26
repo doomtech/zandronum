@@ -132,6 +132,7 @@ FRemapTable GlobalBrightmap;
 
 void gl_GenerateGlobalBrightmapFromColormap()
 {
+	HasGlobalBrightmap = false;
 	int lump = Wads.CheckNumForName("COLORMAP");
 	if (lump == -1) lump = Wads.CheckNumForName("COLORMAP", ns_colormaps);
 	if (lump == -1) return;

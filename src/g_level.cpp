@@ -1890,6 +1890,8 @@ void G_InitLevelLocals ()
 	level.teamdamage = teamdamage;
 	level.flags = 0;
 	level.flags2 = 0;
+	// [BB]
+	level.flagsZA = 0;
 
 	info = FindLevelInfo (level.mapname);
 
@@ -1942,6 +1944,8 @@ void G_InitLevelLocals ()
 	level.clusterflags = clus ? clus->flags : 0;
 	level.flags |= info->flags;
 	level.flags2 |= info->flags2;
+	// [BB]
+	level.flagsZA |= info->flagsZA;
 	level.levelnum = info->levelnum;
 	level.Music = info->Music;
 	level.musicorder = info->musicorder;

@@ -545,17 +545,18 @@ static void PrepareSegs()
 // Initialize the level data for the GL renderer
 //
 //==========================================================================
+extern int restart;
 
 void gl_PreprocessLevel()
 {
 	int i;
 
-	static bool datadone=false;
+	static int datadone=-1;
 
 
-	if (!datadone)
+	if (datadone != restart)
 	{
-		datadone=true;
+		datadone = restart;
 		gl_InitData();
 	}
 

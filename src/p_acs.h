@@ -238,6 +238,7 @@ enum
 	APROP_WaterLevel	= 28,
 	APROP_ScaleX        = 29,
 	APROP_ScaleY        = 30,
+	APROP_Dormant		= 31,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

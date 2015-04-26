@@ -630,3 +630,12 @@ void OpenGLFrameBuffer::DrawRemainingPlayerSprites()
 {
 	// not used by hardware renderer
 }
+
+void OpenGLFrameBuffer::GameRestart()
+{
+	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
+	UpdatePalette ();
+	ScreenshotBuffer = NULL;
+	LastCamera = NULL;
+	gl_GenerateGlobalBrightmapFromColormap();
+}

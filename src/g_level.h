@@ -214,10 +214,13 @@ enum ELevelFlags
 
 	LEVEL2_NOSTATISTICS			= 0x10000000,	// This level should not have statistics collected
 	LEVEL2_ENDGAME				= 0x20000000,	// This is an epilogue level that cannot be quit.
-	LEVEL2_NOBOTNODES			= 0x40000000,	// [BC] Level does not use bot nodes.
+	LEVEL2_NOAUTOSAVEHINT		= 0x40000000,	// tell the game that an autosave for this level does not need to be kept
+
+	// [BB] Zandronum flags
+	LEVEL_ZA_NOBOTNODES			= 0x00000001,	// [BC] Level does not use bot nodes.
 	// [BB] Ceartain game modes are supposed to behave differently on
 	// the map. For example in duel mode the countdown and the map reset are skipped.
-	LEVEL2_ISLOBBY				= 0x80000000,
+	LEVEL_ZA_ISLOBBY				= 0x00000002,
 };
 
 
@@ -278,6 +281,9 @@ struct level_info_t
 	int			sucktime;
 	DWORD		flags;
 	DWORD		flags2;
+	// [BB]
+	DWORD		flagsZA;
+
 	FString		Music;
 	FString		LevelName;
 	SBYTE		WallVertLight, WallHorizLight;
@@ -391,6 +397,8 @@ struct FLevelLocals
 
 	DWORD		flags;
 	DWORD		flags2;
+	// [BB]
+	DWORD		flagsZA;
 
 	DWORD		fadeto;					// The color the palette fades to (usually black)
 	DWORD		outsidefog;				// The fog for sectors with sky ceilings

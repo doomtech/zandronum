@@ -538,7 +538,7 @@ void FGLRenderer::Clear(int left, int top, int right, int bottom, int palcolor, 
 {
 	int rt;
 	int offY = 0;
-	PalEntry p = palcolor==-1? (PalEntry)color : GPalette.BaseColors[palcolor];
+	PalEntry p = palcolor==-1 || color != 0? (PalEntry)color : GPalette.BaseColors[palcolor];
 	int width = right-left;
 	int height= bottom-top;
 	

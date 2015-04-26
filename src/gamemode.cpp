@@ -463,7 +463,7 @@ bool GAMEMODE_IsGameInProgressOrResultSequence( void )
 //
 bool GAMEMODE_IsLobbyMap( void )
 {
-	return level.flags2 & LEVEL2_ISLOBBY || stricmp(level.mapname, lobby) == 0;
+	return level.flagsZA & LEVEL_ZA_ISLOBBY || stricmp(level.mapname, lobby) == 0;
 }
 
 //*****************************************************************************
@@ -478,7 +478,7 @@ bool GAMEMODE_IsLobbyMap( const char* mapname )
 		return false;
 	}
 
-	return levelinfo->flags2 & LEVEL2_ISLOBBY || stricmp( levelinfo->mapname, lobby ) == 0;
+	return levelinfo->flagsZA & LEVEL_ZA_ISLOBBY || stricmp( levelinfo->mapname, lobby ) == 0;
 }
 
 //*****************************************************************************

@@ -250,6 +250,8 @@ void level_info_t::Reset()
 	sucktime = 0;
 	flags = 0;
 	flags2 = gameinfo.gametype == GAME_Hexen? 0 : LEVEL2_LAXMONSTERACTIVATION;
+	// [BB]
+	flagsZA = 0;
 	Music = "";
 	LevelName = "";
 	strcpy (fadetable, "COLORMAP");
@@ -1199,6 +1201,7 @@ enum EMIType
 	MITYPE_CLRFLAG2,
 	MITYPE_SCFLAGS2,
 	MITYPE_COMPATFLAG,
+	MITYPE_SETFLAGZA, // [BB]
 };
 
 struct MapInfoFlagHandler
@@ -1276,10 +1279,11 @@ MapFlagHandlers[] =
 	{ "resethealth",					MITYPE_SETFLAG2,	LEVEL2_RESETHEALTH, 0 },
 	{ "endofgame",						MITYPE_SETFLAG2,	LEVEL2_ENDGAME, 0 },
 	{ "nostatistics",					MITYPE_SETFLAG2,	LEVEL2_NOSTATISTICS, 0 },
+	{ "noautosavehint",					MITYPE_SETFLAG2,	LEVEL2_NOAUTOSAVEHINT, 0 },
 	{ "unfreezesingleplayerconversations",MITYPE_SETFLAG2,	LEVEL2_CONV_SINGLE_UNFREEZE, 0 },
-	{ "nobotnodes",						MITYPE_SETFLAG2,	LEVEL2_NOBOTNODES, 0 },// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
-	{ "lobby",							MITYPE_SETFLAG2,	LEVEL2_ISLOBBY, 0 },	// [AM] Prefer this.
-	{ "islobby",						MITYPE_SETFLAG2,	LEVEL2_ISLOBBY, 0 },	// [BB]
+	{ "nobotnodes",						MITYPE_SETFLAGZA,	LEVEL_ZA_NOBOTNODES, 0 },// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
+	{ "lobby",							MITYPE_SETFLAGZA,	LEVEL_ZA_ISLOBBY, 0 },	// [AM] Prefer this.
+	{ "islobby",						MITYPE_SETFLAGZA,	LEVEL_ZA_ISLOBBY, 0 },	// [BB]
 	{ "compat_shorttex",				MITYPE_COMPATFLAG, COMPATF_SHORTTEX},
 	{ "compat_stairs",					MITYPE_COMPATFLAG, COMPATF_STAIRINDEX},
 	{ "compat_limitpain",				MITYPE_COMPATFLAG, COMPATF_LIMITPAIN},
@@ -1393,6 +1397,12 @@ void FMapInfoParser::ParseMapDefinition(level_info_t &info)
 				info.compatmask |= handler->data1;
 			}
 			break;
+
+			// [BB]
+			case MITYPE_SETFLAGZA:
+				info.flagsZA |= handler->data1;
+				info.flagsZA |= handler->data2;
+				break;
 
 			default:
 				// should never happen
