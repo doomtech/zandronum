@@ -683,7 +683,7 @@ CCMD (quickload)
 	// [BB] netgame -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	{
-		M_StartMessage (GStrings("QLOADNET"), NULL);
+		M_StartMessage (GStrings("QLOADNET"), 1);
 		return;
 	}
 		

@@ -2628,7 +2628,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		{
 			player->mo->velz = 3*FRACUNIT;
 		}
-		else if (level.IsJumpingAllowed() && onground && !player->jumpTics )
+		else if (level.IsJumpingAllowed() && onground && player->jumpTics == 0)
 		{
 			fixed_t	JumpMomz;
 			ULONG	ulJumpTicks;
@@ -2637,6 +2637,8 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			// [Dusk] Exported this into a function as I need it elsewhere as well.
 			JumpMomz = player->mo->CalcJumpMomz( );
 
+			// [BB] In ZDoom revision 2970 changed the jumping behavior.
+			// We'll keep the old behavior for now.
 			// Set base jump ticks.
 			ulJumpTicks = 18 * TICRATE / 35;
 
@@ -3358,10 +3360,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->oldbuttons = player->cmd.ucmd.buttons;
 		return;
 	}
-
-	if (player->jumpTics)
+	if (player->jumpTics != 0)
 	{
 		player->jumpTics--;
+		if (onground && player->jumpTics < -18)
+		{
+			player->jumpTics = 0;
+		}
 	}
 	if (player->morphTics)// && !(player->cheats & CF_PREDICTING))
 	{

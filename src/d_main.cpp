@@ -2249,7 +2249,8 @@ static FString ParseGameInfo(TArray<FString> &pwads, const char *fn, const char 
 		}
 		else if (!nextKey.CompareNoCase("NOSPRITERENAME"))
 		{
-			nospriterename = true;
+			sc.MustGetString();
+			nospriterename = sc.Compare("true");
 		}
 		else if (!nextKey.CompareNoCase("STARTUPTITLE"))
 		{

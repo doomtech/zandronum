@@ -841,6 +841,13 @@ OptionValue OverlayTypes
 	2, "Overlay Only"
 }
 
+OptionValue MaplabelTypes
+{
+	0, "Never"
+	1, "Always"
+	2, "Not for hubs"
+}
+
 OptionMenu AutomapOptions
 {
 	Title "AUTOMAP OPTIONS"
@@ -851,6 +858,7 @@ OptionMenu AutomapOptions
 	Option "Rotate automap",			"am_rotate", "RotateTypes"
 	Option "Overlay automap",			"am_overlay", "OverlayTypes"
 	Option "Enable textured display",	"am_textured", "OnOff"
+	Option "Follow player",				"am_followplayer", "OnOff"
 	StaticText " "
 	Option "Show item counts",			"am_showitems", "OnOff"
 	Option "Show monster counts",		"am_showmonsters", "OnOff"
@@ -858,6 +866,7 @@ OptionMenu AutomapOptions
 	Option "Show time elapsed",			"am_showtime", "OnOff"
 	Option "Show total time elapsed",	"am_showtotaltime", "OnOff"
 	Option "Show secrets on map",		"am_map_secrets", "SecretTypes"
+	Option "Show map label",			"am_showmaplabel", "MaplabelTypes"
 	Option "Draw map background",		"am_drawmapback", "OnOff"
 	Option "Show keys (cheat)",			"am_showkeys", "OnOff"
 }
@@ -1094,12 +1103,12 @@ OptionMenu GameplayOptions
 	StaticText "Deathmatch Settings",1
 	Option "Weapons stay",			"sv_weaponstay", "YesNo"
 	Option "Allow powerups",		"sv_noitems", "NoYes"
-	Option "Allow health",			"sv_nohealth", "YesNo"
-	Option "Allow armor",			"sv_noarmor", "YesNo"
+	Option "Allow health",			"sv_nohealth", "NoYes"
+	Option "Allow armor",			"sv_noarmor", "NoYes"
 	Option "Spawn farthest",		"sv_spawnfarthest", "YesNo"
 	Option "Same map",				"sv_samelevel", "YesNo"
 	Option "Force respawn",			"sv_forcerespawn", "YesNo"
-	Option "Allow exit",			"sv_noexit", "YesNo"
+	Option "Allow exit",			"sv_noexit", "NoYes"
 	Option "Barrels respawn",		"sv_barrelrespawn", "YesNo"
 	Option "Respawn protection",	"sv_respawnprotect", "YesNo"
 	Option "Lose frag if fragged",	"sv_losefrag", "YesNo"
