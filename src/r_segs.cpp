@@ -299,7 +299,10 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 			goto clearfog;
 		}
 	}
-	if(ds->bFakeBoundary && !(ds->bFakeBoundary & 4) || drawmode == DontDraw) goto clearfog;
+	if ((ds->bFakeBoundary && !(ds->bFakeBoundary & 4)) || drawmode == DontDraw)
+	{
+		goto clearfog;
+	}
 
 	MaskedSWall = (fixed_t *)(openings + ds->swall) - ds->x1;
 	MaskedScaleY = ds->yrepeat;
@@ -498,6 +501,7 @@ clearfog:
 	}
 	if (fake3D & FAKE3D_REFRESHCLIP && ds->bkup >= 0)
 	{
+		assert(ds->bkup >= 0);
 		memcpy(openings + ds->sprtopclip, openings + ds->bkup, (ds->x2-ds->x1+1) * 2);
 	}
 	else

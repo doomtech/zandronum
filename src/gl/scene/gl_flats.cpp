@@ -711,7 +711,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 		{
 			rover=x.ffloors[k];
 			
-			if ((rover->flags&(FF_EXISTS|FF_RENDERPLANES))==(FF_EXISTS|FF_RENDERPLANES))
+			if ((rover->flags&(FF_EXISTS|FF_RENDERPLANES|FF_THISINSIDE))==(FF_EXISTS|FF_RENDERPLANES))
 			{
 				if (rover->flags&FF_FOG && gl_fixedcolormap) continue;
 				if (rover->flags&(FF_INVERTPLANES|FF_BOTHPLANES))
@@ -751,7 +751,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 		{
 			rover=x.ffloors[k];
 			
-			if ((rover->flags&(FF_EXISTS|FF_RENDERPLANES))==(FF_EXISTS|FF_RENDERPLANES))
+			if ((rover->flags&(FF_EXISTS|FF_RENDERPLANES|FF_THISINSIDE))==(FF_EXISTS|FF_RENDERPLANES))
 			{
 				if (rover->flags&FF_FOG && gl_fixedcolormap) continue;
 				if (rover->flags&(FF_INVERTPLANES|FF_BOTHPLANES))

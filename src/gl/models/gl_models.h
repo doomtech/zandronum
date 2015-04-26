@@ -247,7 +247,13 @@ struct FVoxelVertex
 struct FVoxelVertexHash
 {
 	// Returns the hash value for a key.
-	hash_t Hash(const FVoxelVertex &key) { return (hash_t)FLOAT2FIXED(key.x+256*key.y+65536*key.z); }
+	hash_t Hash(const FVoxelVertex &key) 
+	{ 
+		int ix = xs_RoundToInt(key.x);		
+		int iy = xs_RoundToInt(key.y);		
+		int iz = xs_RoundToInt(key.z);		
+		return (hash_t)(ix + (iy<<9) + (iz<<18));
+	}
 
 	// Compares two keys, returning zero if they are the same.
 	int Compare(const FVoxelVertex &left, const FVoxelVertex &right) 
