@@ -776,6 +776,7 @@ if( NOT NO_GL )
 		gl/models/gl_models_md3.cpp
 		gl/models/gl_models_md2.cpp
 		gl/models/gl_models.cpp
+		gl/models/gl_voxels.cpp
 	)
         # [BB] Maxim Stepin's hq2x/3x/4x pixel upsampling algorithm as library. Currently only used with VC++.
         if( MSVC )

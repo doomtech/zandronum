@@ -75,8 +75,7 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 		secplane->xscale != FRACUNIT || secplane->yscale != FRACUNIT ||
 		secplane->angle != 0 || 
 		gltexture->TextureWidth(GLUSE_TEXTURE) != 64 ||
-		gltexture->TextureHeight(GLUSE_TEXTURE) != 64 ||
-		(gl.flags & RFL_ATI))	// for some reason skipping this does not work on ATI...
+		gltexture->TextureHeight(GLUSE_TEXTURE) != 64)
 	{
 		float uoffs=FIXED2FLOAT(secplane->xoffs)/gltexture->TextureWidth(GLUSE_TEXTURE);
 		float voffs=FIXED2FLOAT(secplane->yoffs)/gltexture->TextureHeight(GLUSE_TEXTURE);
@@ -441,7 +440,7 @@ void GLFlat::Draw(int pass)
 // plane in the appropriate render list.
 //
 //==========================================================================
-inline void GLFlat::PutFlat(bool fog)
+inline void GLFlat::PutFlat(sector_t *model, bool fog)
 {
 	int list;
 
@@ -522,7 +521,7 @@ void GLFlat::Process(sector_t * model, int whichplane, bool fog)
 
 	z = plane.plane.ZatPoint(0.f, 0.f);
 	
-	PutFlat(fog);
+	PutFlat(model, fog);
 	rendered_flats++;
 }
 

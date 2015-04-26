@@ -291,6 +291,13 @@ void FGLRenderer::SetProjection(float fov, float ratio, float fovratio, float ey
 
 void FGLRenderer::SetViewMatrix(bool mirror, bool planemirror)
 {
+	gl.ActiveTexture(GL_TEXTURE7);
+	gl.MatrixMode(GL_TEXTURE);
+	gl.LoadIdentity();
+	gl.ActiveTexture(GL_TEXTURE0);
+	gl.MatrixMode(GL_TEXTURE);
+	gl.LoadIdentity();
+
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.LoadIdentity();
 

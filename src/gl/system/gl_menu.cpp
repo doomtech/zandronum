@@ -109,6 +109,7 @@ void gl_SetupMenu()
 		// disable features that don't work without shaders.
 		if (gl_lightmode == 2) gl_lightmode = 3;
 		if (gl_fogmode == 2) gl_fogmode = 1;
+		if (gl_dynlight_shader) gl_dynlight_shader = false;
 	}
 
 	if (gl.shadermodel != 3)

@@ -68,6 +68,7 @@ CVAR(Bool, gl_light_models, true, CVAR_ARCHIVE)
 // [BB] Allow the user disable the use of any kind of models.
 CVAR(Bool, gl_use_models, true, CVAR_ARCHIVE)
 EXTERN_CVAR(Int, gl_fogmode)
+EXTERN_CVAR(Bool, gl_dynlight_shader)
 
 extern TDeletingArray<FVoxel *> Voxels;
 extern TDeletingArray<FVoxelDef *> VoxelDefs;
@@ -728,7 +729,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		rotateOffset = float((time - xs_FloorToInt(time)) *360.f );
 	}
 
-	bool modifymat = gl_fogmode != 2 && (GLRenderer->mLightCount == 0 || !gl_light_models);
+	bool modifymat = gl_fogmode != 2 && (GLRenderer->mLightCount == 0 || !gl_light_models || !gl_dynlight_shader);
 	if (modifymat)
 	{
 		gl.MatrixMode(GL_MODELVIEW);
