@@ -63,7 +63,7 @@
 #include "gl/utility/gl_clock.h"
 #include "gl/gl_functions.h"
 
-TArray<FPortal> portals;
+TArray<FPortal *> portals;
 
 //==========================================================================
 //
@@ -498,12 +498,13 @@ void gl_InitPortals()
 				// we only process portals that actually are in use.
 				if (portalp[plane] == NULL) 
 				{
-					portalp[plane] = &portals[portals.Reserve(1)];
+					portalp[plane] = new FPortal;
 					portalp[plane]->origin = pt;
 					portalp[plane]->glportal = NULL;
 					portalp[plane]->plane = plane;
 					portalp[plane]->xDisplacement = pt->x - pt->Mate->x;
 					portalp[plane]->yDisplacement = pt->y - pt->Mate->y;
+					portals.Push(portalp[plane]);
 				}
 				portalp[plane]->AddSectorToPortal(&sectors[i]);
 				sectors[i].portals[plane] = portalp[plane];
@@ -522,10 +523,10 @@ void gl_InitPortals()
 		// if the first vertex is duplicated at the end it'll save time in a time critical function
 		// because that code does not need to check for wraparounds anymore.
 		// Note: We cannot push an element of the array onto the array itself. This must be done in 2 steps
-		portals[i].Shape.Reserve(1);
-		portals[i].Shape.Last() = portals[i].Shape[0];
-		portals[i].Shape.ShrinkToFit();
-		portals[i].ClipAngles.Resize(portals[i].Shape.Size());
+		portals[i]->Shape.Reserve(1);
+		portals[i]->Shape.Last() = portals[i]->Shape[0];
+		portals[i]->Shape.ShrinkToFit();
+		portals[i]->ClipAngles.Resize(portals[i]->Shape.Size());
 	}
 }
 
@@ -534,20 +535,20 @@ CCMD(dumpportals)
 {
 	for(unsigned i=0;i<portals.Size(); i++)
 	{
-		double xdisp = portals[i].xDisplacement/65536.;
-		double ydisp = portals[i].yDisplacement/65536.;
-		Printf(PRINT_LOG, "Portal #%d, %s, stackpoint at (%f,%f), displacement = (%f,%f)\nShape:\n", i, portals[i].plane==0? "floor":"ceiling", portals[i].origin->x/65536., portals[i].origin->y/65536.,
+		double xdisp = portals[i]->xDisplacement/65536.;
+		double ydisp = portals[i]->yDisplacement/65536.;
+		Printf(PRINT_LOG, "Portal #%d, %s, stackpoint at (%f,%f), displacement = (%f,%f)\nShape:\n", i, portals[i]->plane==0? "floor":"ceiling", portals[i]->origin->x/65536., portals[i]->origin->y/65536.,
 			xdisp, ydisp);
-		for (unsigned j=0;j<portals[i].Shape.Size(); j++)
+		for (unsigned j=0;j<portals[i]->Shape.Size(); j++)
 		{
-			Printf(PRINT_LOG, "\t(%f,%f)\n", portals[i].Shape[j]->x/65536. + xdisp, portals[i].Shape[j]->y/65536. + ydisp);
+			Printf(PRINT_LOG, "\t(%f,%f)\n", portals[i]->Shape[j]->x/65536. + xdisp, portals[i]->Shape[j]->y/65536. + ydisp);
 		}
 		Printf(PRINT_LOG, "Coverage:\n");
 		for(int j=0;j<numsubsectors;j++)
 		{
 			subsector_t *sub = &subsectors[j];
-			ASkyViewpoint *pt = portals[i].plane == 0? sub->render_sector->FloorSkyBox : sub->render_sector->CeilingSkyBox;
-			if (pt == portals[i].origin)
+			ASkyViewpoint *pt = portals[i]->plane == 0? sub->render_sector->FloorSkyBox : sub->render_sector->CeilingSkyBox;
+			if (pt == portals[i]->origin)
 			{
 				Printf(PRINT_LOG, "\tSubsector %d (%d):\n\t\t", j, sub->render_sector->sectornum);
 				for(unsigned k = 0;k< sub->numlines; k++)
@@ -555,7 +556,7 @@ CCMD(dumpportals)
 					Printf(PRINT_LOG, "(%.3f,%.3f), ",	sub->firstline[k].v1->x/65536. + xdisp, sub->firstline[k].v1->y/65536. + ydisp);
 				}
 				Printf(PRINT_LOG, "\n\t\tCovered by subsectors:\n");
-				FPortalCoverage *cov = &sub->portalcoverage[portals[i].plane];
+				FPortalCoverage *cov = &sub->portalcoverage[portals[i]->plane];
 				for(int l = 0;l< cov->sscount; l++)
 				{
 					subsector_t *csub = &subsectors[cov->subsectors[l]];

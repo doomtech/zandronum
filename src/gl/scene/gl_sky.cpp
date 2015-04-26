@@ -72,8 +72,8 @@ void GLWall::SkyPlane(sector_t *sector, int plane, bool allowreflect)
 	FPortal *portal = sector->portals[plane];
 	if (portal != NULL)
 	{
-		type=RENDERWALL_SECTORSTACK;
 		if (GLPortal::instack[1-plane]) return;
+		type=RENDERWALL_SECTORSTACK;
 		this->portal = portal;
 	}
 	else if (sector->GetTexture(plane)==skyflatnum)

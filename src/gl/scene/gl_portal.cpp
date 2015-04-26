@@ -496,8 +496,10 @@ void GLPortal::EndFrame()
 		{
 			Printf("%sProcessing %s, depth = %d, query = %d\n", indent.GetChars(), p->GetName(), renderdepth, usequery);
 		}
-
-		p->RenderPortal(true, usequery);
+		if (p->lines.Size() > 0)
+		{
+			p->RenderPortal(true, usequery);
+		}
 		delete p;
 	}
 	renderdepth--;
@@ -530,7 +532,7 @@ bool GLPortal::RenderFirstSkyPortal(int recursion)
 	for(unsigned i=portals.Size()-1;i>=0 && portals[i]!=NULL;i--)
 	{
 		p=portals[i];
-		if (p->IsSky())
+		if (p->lines.Size() > 0 && p->IsSky())
 		{
 			// Cannot clear the depth buffer inside a portal recursion
 			if (recursion && p->NeedDepthBuffer()) continue;
@@ -545,9 +547,8 @@ bool GLPortal::RenderFirstSkyPortal(int recursion)
 
 	if (best)
 	{
-		best->RenderPortal(false, false);
 		portals.Delete(bestindex);
-
+		best->RenderPortal(false, false);
 		delete best;
 		return true;
 	}

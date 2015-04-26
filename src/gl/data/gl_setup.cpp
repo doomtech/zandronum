@@ -641,6 +641,11 @@ void gl_CleanLevelData()
 			}
 		}
 	}
+	for(unsigned i=0;i<portals.Size(); i++)
+	{
+		delete portals[i];
+	}
+	portals.Clear();
 }
 
 

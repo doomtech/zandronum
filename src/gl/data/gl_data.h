@@ -48,7 +48,7 @@ struct FPortal
 	GLSectorStackPortal *GetGLPortal();
 };
 
-extern TArray<FPortal> portals;
+extern TArray<FPortal *> portals;
 extern TArray<BYTE> currentmapsection;
 
 void gl_InitPortals();
