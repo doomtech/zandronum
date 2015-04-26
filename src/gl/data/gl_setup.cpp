@@ -143,7 +143,7 @@ struct cvertex_t
 {
 	fixed_t x, y;
 
-	operator int () const { return x ^ y; }
+	operator int () const { return ((x>>16)&0xffff) | y; }
 	bool operator!= (const cvertex_t &other) const { return x != other.x || y != other.y; }
 	cvertex_t& operator =(const vertex_t *v) { x = v->x; y = v->y; return *this; }
 };
