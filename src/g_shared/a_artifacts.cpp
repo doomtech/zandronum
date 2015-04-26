@@ -47,8 +47,6 @@ static FRandom pr_torch ("Torch");
 // [BC] New Skulltag power duration defines.
 #define	TRANSLUCENCY_TICS		( 45 * TICRATE )
 
-EXTERN_CVAR (Bool, r_drawfuzz);
-
 IMPLEMENT_CLASS (APowerup)
 // [BC]
 IMPLEMENT_CLASS (ARune)

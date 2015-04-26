@@ -112,6 +112,11 @@ struct vertex_t
 		return x == other.x && y == other.y;
 	}
 
+	bool operator!= (const vertex_t &other)
+	{
+		return x != other.x || y != other.y;
+	}
+
 	void clear()
 	{
 		x = y = 0;

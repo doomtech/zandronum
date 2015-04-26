@@ -160,11 +160,12 @@ void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 					   int *tm, int *sb, int *db, int *be)
 {
 	static int blendstyles[] = { GL_ZERO, GL_ONE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA };
-	static int renderops[] = { 0, GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, -1, -1, -1, -1};
+	static int renderops[] = { 0, GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, -1, -1, -1, -1, 
+		-1, -1, -1, -1, -1, -1, -1, -1 };
 
 	int srcblend = blendstyles[style.SrcAlpha&3];
 	int dstblend = blendstyles[style.DestAlpha&3];
-	int blendequation = renderops[style.BlendOp&7];
+	int blendequation = renderops[style.BlendOp&15];
 	int texturemode = drawopaque? TM_OPAQUE : TM_MODULATE;
 
 	if (style.Flags & STYLEF_ColorIsFixed)

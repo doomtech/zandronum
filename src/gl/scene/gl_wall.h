@@ -305,6 +305,7 @@ public:
 	FColormap Colormap;
 	FSpriteModelFrame * modelframe;
 	FRenderStyle RenderStyle;
+	int OverrideShader;
 
 	int translation;
 	int index;

@@ -124,6 +124,18 @@ OptionValue "FogMode"
 	2, "Radial"
 }
 
+OptionValue "FuzzStyle"
+{
+	0, "Shadow"
+	1, "Pixel fuzz"
+	2, "Smooth fuzz"
+	3, "Swirly fuzz"
+	4, "Translucent fuzz"
+	6, "Noise"
+	7, "Smooth Noise"
+	//5, "Jagged fuzz" I can't see any difference between this and 4 so it's disabled for now.
+}
+
 OptionMenu "GLTextureGLOptions"
 {
 	Title "TEXTURE OPTIONS"
@@ -166,6 +178,7 @@ OptionMenu "GLPrefOptions"
 	Option "Force brightness in fog",	gl_spritebrightfog,				"OnOff"
 	Option "Adjust sprite clipping",	gl_spriteclip,					"SpriteclipModes"
 	Option "Smooth sprite edges",		gl_sprite_blend,				"OnOff"
+	Option "Fuzz Style",				gl_fuzztype,					"FuzzStyle"
 	Option "Sprite billboard",			gl_billboard_mode,				"BillboardModes"
 	Option "Particle style",			gl_particles_style,				"Particles"
 	Slider "Ambient light level",		gl_light_ambient,				1.0, 255.0, 5.0
@@ -218,7 +231,7 @@ OptionMenu "VideoOptions"
 	}
 	
 	Option "Stretch short skies",		"r_stretchsky", "OnOff"
-	Option "Use fuzz effect",			"r_drawfuzz", "YesNo"
+	Option "Use fuzz effect",			"r_drawfuzz", "Fuzziness"
 	Slider "Lost Soul translucency",	"transsouls", 0.25, 1.0, 0.05, 2
 	Option "Use fake contrast",			"r_fakecontrast", "Contrast"
 	Option "Rocket Trails",				"cl_rockettrails", "RocketTrailTypes"

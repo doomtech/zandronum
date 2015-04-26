@@ -134,8 +134,8 @@ public:
 		return !!mBaseLayer->tex->bMasked;
 	}
 
-	void Bind(int cm, int clamp=0, int translation=0);
-	void BindPatch(int cm, int translation=0);
+	void Bind(int cm, int clamp = 0, int translation = 0, int overrideshader = 0);
+	void BindPatch(int cm, int translation = 0, int overrideshader = 0);
 
 	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool expand = false, bool allowhires=true) const
 	{

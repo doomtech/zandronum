@@ -263,7 +263,7 @@ int gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int 
 		cm->LightColor.r = cm->LightColor.g = cm->LightColor.b = gray;
 	}
 
-	if (style.BlendOp == STYLEOP_Fuzz)
+	if (style.BlendOp == STYLEOP_Shadow)
 	{
 		gl.Color4f(0.2f * ThingColor.r / 255.f, 0.2f * ThingColor.g / 255.f, 
 					0.2f * ThingColor.b / 255.f, (alpha = 0.33f));

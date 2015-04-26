@@ -69,7 +69,7 @@ extern fixed_t globaluclip, globaldclip;
 #define BASEYCENTER 	(100)
 
 EXTERN_CVAR (Bool, st_scale)
-CVAR (Bool, r_drawfuzz, true, CVAR_ARCHIVE)
+CVAR (Int, r_drawfuzz, 1, CVAR_ARCHIVE)
 
 // [BC] Allow clients to decide whether or not they want skins enabled.
 CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )

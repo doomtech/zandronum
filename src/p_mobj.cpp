@@ -101,7 +101,6 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
-EXTERN_CVAR (Bool, r_drawfuzz);
 EXTERN_CVAR (Int,  cl_rockettrails)
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------

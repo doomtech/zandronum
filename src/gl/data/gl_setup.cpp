@@ -132,6 +132,94 @@ static void DoSetMapSection(subsector_t *sub, int num)
 
 //==========================================================================
 //
+// Merge sections. This is needed in case the map contains errors
+// like overlapping lines resulting in abnormal subsectors.
+//
+// This function ensures that any vertex position can only be in one section.
+//
+//==========================================================================
+
+struct cvertex_t
+{
+	fixed_t x, y;
+
+	operator int () const { return x ^ y; }
+	bool operator!= (const cvertex_t &other) const { return x != other.x || y != other.y; }
+	cvertex_t& operator =(const vertex_t *v) { x = v->x; y = v->y; return *this; }
+};
+
+typedef TMap<cvertex_t, int> FSectionVertexMap;
+
+static int MergeMapSections(int num)
+{
+	FSectionVertexMap vmap;
+	FSectionVertexMap::Pair *pair;
+	TArray<int> sectmap;
+	TArray<bool> sectvalid;
+	sectmap.Resize(num);
+	sectvalid.Resize(num);
+	for(int i=0;i<num;i++) 
+	{
+		sectmap[i] = -1;
+		sectvalid[i] = true;
+	}
+	int mergecount = 1;
+
+
+	cvertex_t vt;
+
+	// first step: Set mapsection for all vertex positions.
+	for(DWORD i=0;i<numsegs;i++)
+	{
+		seg_t * seg = &segs[i];
+		int section = seg->Subsector()->mapsection;
+		for(int j=0;j<2;j++)
+		{
+			vt = j==0? seg->v1:seg->v2;
+			vmap[vt] = section;
+		}
+	}
+
+	// second step: Check if any seg references more than one mapsection, either by subsector or by vertex
+	for(DWORD i=0;i<numsegs;i++)
+	{
+		seg_t * seg = &segs[i];
+		int section = seg->Subsector()->mapsection;
+		for(int j=0;j<2;j++)
+		{
+			vt = j==0? seg->v1:seg->v2;
+			int vsection = vmap[vt];
+
+			if (vsection != section)
+			{
+				// These 2 sections should be merged
+				for(int k=0;k<numsubsectors;k++)
+				{
+					if (subsectors[k].mapsection == vsection) subsectors[k].mapsection = section;
+				}
+				FSectionVertexMap::Iterator it(vmap);
+				while (it.NextPair(pair))
+				{
+					if (pair->Value == vsection) pair->Value = section;
+				}
+				sectvalid[vsection-1] = false;
+			}
+		}
+	}
+	for(int i=0;i<num;i++)
+	{
+		if (sectvalid[i]) sectmap[i] = mergecount++;
+	}
+	for(int i=0;i<numsubsectors;i++)
+	{
+		subsectors[i].mapsection = sectmap[subsectors[i].mapsection-1];
+		assert(subsectors[i].mapsection!=-1);
+	}
+	return mergecount-1;
+}
+
+//==========================================================================
+//
 // 
 //
 //==========================================================================
@@ -155,6 +243,7 @@ static void SetMapSections()
 		}
 	}
 	while (set);
+	num = MergeMapSections(num);
 	currentmapsection.Resize(1 + num/8);
 #ifdef DEBUG
 	Printf("%d map sections found\n", num);

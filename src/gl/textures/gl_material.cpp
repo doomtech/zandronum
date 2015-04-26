@@ -835,10 +835,10 @@ outl:
 //
 //===========================================================================
 
-void FMaterial::Bind(int cm, int clampmode, int translation)
+void FMaterial::Bind(int cm, int clampmode, int translation, int overrideshader)
 {
 	int usebright = false;
-	int shaderindex = mShaderIndex;
+	int shaderindex = overrideshader > 0? overrideshader : mShaderIndex;
 	int maxbound = 0;
 	bool allowhires = tex->xScale == FRACUNIT && tex->yScale == FRACUNIT;
 
@@ -849,7 +849,7 @@ void FMaterial::Bind(int cm, int clampmode, int translation)
 	else clampmode = 4;
 
 	const FHardwareTexture *gltexture = mBaseLayer->Bind(0, cm, clampmode, translation, allowhires? tex:NULL, softwarewarp);
-	if (gltexture != NULL && shaderindex > 0)
+	if (gltexture != NULL && shaderindex > 0 && overrideshader == 0)
 	{
 		for(unsigned i=0;i<mTextureLayers.Size();i++)
 		{
@@ -883,10 +883,10 @@ void FMaterial::Bind(int cm, int clampmode, int translation)
 //
 //===========================================================================
 
-void FMaterial::BindPatch(int cm, int translation)
+void FMaterial::BindPatch(int cm, int translation, int overrideshader)
 {
 	int usebright = false;
-	int shaderindex = mShaderIndex;
+	int shaderindex = overrideshader > 0? overrideshader : mShaderIndex;
 	int maxbound = 0;
 
 	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->gl_info.shaderspeed);
