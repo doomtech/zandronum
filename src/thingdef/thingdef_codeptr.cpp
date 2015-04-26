@@ -3846,6 +3846,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 
 			DWORD *flagp = (DWORD*) (((char*)self) + fd->structoffset);
 
+			// [EP] Store the old value in order to save bandwidth
+			DWORD oldflag = *flagp;
+
 			// If these 2 flags get changed we need to update the blockmap and sector links.
 			bool linkchange = flagp == &self->flags && (fd->flagbit == MF_NOBLOCKMAP || fd->flagbit == MF_NOSECTOR);
 
@@ -3861,7 +3864,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 			if (linkchange) self->LinkToWorld();
 
 			// [BB] Let the clients know about the flag change.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER ) {
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( *flagp != oldflag ) ) {
 				FlagSet flagset = FLAGSET_UNKNOWN;
 				if ( flagp == &self->flags )
 					flagset = FLAGSET_FLAGS;
