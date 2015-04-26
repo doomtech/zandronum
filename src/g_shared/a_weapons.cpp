@@ -917,10 +917,10 @@ AWeapon *FWeaponSlot::PickWeapon(player_t *player, bool checkammo)
 {
 	int i, j;
 
-	// [BB] Under some rare circumstances, it seems to be possible that this
-	// function is called for a player that doesn't have a body.
-	if ( player->mo == NULL )
+	if (player->mo == NULL)
+	{
 		return NULL;
+	}
 
 	// Does this slot even have any weapons?
 	if (Weapons.Size() == 0)

@@ -727,7 +727,8 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 				P_DamageMobj (tm.thing, NULL, NULL, tm.thing->Mass >> 5, NAME_Melee);
 			}
 			tm.thing->BlockingLine = ld;
-			CheckForPushSpecial (ld, 0, tm.thing);
+			// Calculate line side based on the actor's original position, not the new one.
+			CheckForPushSpecial (ld, P_PointOnLineSide(tm.thing->x, tm.thing->y, ld), tm.thing);
 			return false;
 		}
 	}

@@ -1857,6 +1857,8 @@ void FBehavior::SerializeVarSet (FArchive &arc, SDWORD *vars, int max)
 	{
 		SDWORD truelast;
 
+		memset (vars, 0, max*sizeof(*vars));
+
 		arc << last;
 		if (last == 0)
 		{
@@ -1870,8 +1872,6 @@ void FBehavior::SerializeVarSet (FArchive &arc, SDWORD *vars, int max)
 		{
 			last = max;
 		}
-
-		memset (vars, 0, max*sizeof(*vars));
 
 		while (first < last)
 		{

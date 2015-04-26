@@ -3013,7 +3013,7 @@ void D_DoomMain (void)
 				StartScreen = NULL;
 			}
 
-			if (gameaction != ga_loadgame)
+			if (gameaction != ga_loadgame && gameaction != ga_loadgamehidecon)
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{

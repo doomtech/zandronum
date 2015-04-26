@@ -767,7 +767,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 							if (rover->flags&FF_FIX)
 							{
 								lightlevel = rover->model->lightlevel;
-								Colormap = rover->model->ColorMap;
+								Colormap = rover->GetColormap();
 							}
 
 							Process(rover->bottom.model, rover->bottom.isceiling, !!(rover->flags&FF_FOG));
