@@ -103,6 +103,7 @@ private:
 	area_t savedviewarea;
 	unsigned char clipsave;
 	GLPortal *NextPortal;
+	TArray<BYTE> savedmapsection;
 
 protected:
 	TArray<GLWall> lines;
@@ -121,6 +122,8 @@ protected:
 	virtual bool NeedDepthBuffer() { return true; }
 	void ClearScreen();
 	virtual const char *GetName() = 0;
+	void SaveMapSection();
+	void RestoreMapSection();
 
 public:
 

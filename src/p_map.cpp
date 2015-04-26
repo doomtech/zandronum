@@ -6233,9 +6233,11 @@ int P_PushUp (AActor *thing, FChangePosition *cpos)
 		if (P_CheckUnblock(thing, intersect) || (thing->flags6 & MF6_THRUSPECIES && thing->GetSpecies() == intersect->GetSpecies()))
 			continue;
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||
-			(!(intersect->flags3 & MF3_ISMONSTER) &&
-			 intersect->Mass > mymass))
-		{ // Can't push things more massive than ourself
+			(!(intersect->flags3 & MF3_ISMONSTER) && intersect->Mass > mymass) ||
+			(intersect->flags4 & MF4_ACTLIKEBRIDGE)
+		   )
+		{ 
+			// Can't push bridges or things more massive than ourself
 			return 2;
 		}
 		fixed_t oldz = intersect->z;
@@ -6275,9 +6277,11 @@ int P_PushDown (AActor *thing, FChangePosition *cpos)
 	{
 		AActor *intersect = intersectors[firstintersect];
 		if (!(intersect->flags2 & MF2_PASSMOBJ) ||
-			(!(intersect->flags3 & MF3_ISMONSTER) &&
-			 intersect->Mass > mymass))
-		{ // Can't push things more massive than ourself
+			(!(intersect->flags3 & MF3_ISMONSTER) && intersect->Mass > mymass) ||
+			(intersect->flags4 & MF4_ACTLIKEBRIDGE)
+		   )
+		{ 
+			// Can't push bridges or things more massive than ourself
 			return 2;
 		}
 		fixed_t oldz = intersect->z;
@@ -6309,6 +6313,7 @@ void PIT_FloorDrop (AActor *thing, FChangePosition *cpos)
 	P_AdjustFloorCeil (thing, cpos);
 
 	if (oldfloorz == thing->floorz) return;
+	if (thing->flags4 & MF4_ACTLIKEBRIDGE) return; // do not move bridge things
 
 	if (thing->velz == 0 &&
 		(!(thing->flags & MF_NOGRAVITY) ||
@@ -6361,6 +6366,11 @@ void PIT_FloorRaise (AActor *thing, FChangePosition *cpos)
 	if (thing->z <= thing->floorz ||
 		(!(thing->flags & MF_NOGRAVITY) && (thing->flags2 & MF2_FLOATBOB)))
 	{
+		if (thing->flags4 & MF4_ACTLIKEBRIDGE) 
+		{
+			cpos->nofit = true;
+			return; // do not move bridge things
+		}
 		intersectors.Clear ();
 		fixed_t oldz = thing->z;
 		if (!(thing->flags2 & MF2_FLOATBOB))
@@ -6407,6 +6417,11 @@ void PIT_CeilingLower (AActor *thing, FChangePosition *cpos)
 
 	if (thing->z + thing->height > thing->ceilingz)
 	{
+		if (thing->flags4 & MF4_ACTLIKEBRIDGE) 
+		{
+			cpos->nofit = true;
+			return; // do not move bridge things
+		}
 		intersectors.Clear ();
 		fixed_t oldz = thing->z;
 		if (thing->ceilingz - thing->height >= thing->floorz)
@@ -6447,6 +6462,8 @@ void PIT_CeilingLower (AActor *thing, FChangePosition *cpos)
 void PIT_CeilingRaise (AActor *thing, FChangePosition *cpos)
 {
 	bool isgood = P_AdjustFloorCeil (thing, cpos);
+
+	if (thing->flags4 & MF4_ACTLIKEBRIDGE) return; // do not move bridge things
 
 	// For DOOM compatibility, only move things that are inside the floor.
 	// (or something else?) Things marked as hanging from the ceiling will

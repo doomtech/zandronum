@@ -561,6 +561,7 @@ bool GLPortal::RenderFirstSkyPortal(int recursion)
 // FindPortal
 //
 //-----------------------------------------------------------------------------
+
 GLPortal * GLPortal::FindPortal(const void * src)
 {
 	int i=portals.Size()-1;
@@ -570,6 +571,23 @@ GLPortal * GLPortal::FindPortal(const void * src)
 }
 
 
+//-----------------------------------------------------------------------------
+//
+// 
+//
+//-----------------------------------------------------------------------------
+
+void GLPortal::SaveMapSection()
+{
+	savedmapsection.Resize(currentmapsection.Size());
+	memcpy(&savedmapsection[0], &currentmapsection[0], currentmapsection.Size());
+	memset(&currentmapsection[0], 0, currentmapsection.Size());
+}
+
+void GLPortal::RestoreMapSection()
+{
+	memcpy(&currentmapsection[0], &savedmapsection[0], currentmapsection.Size());
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -627,7 +645,8 @@ void GLSkyboxPortal::DrawContents()
 	ClearClipper();
 
 	int mapsection = R_PointInSubsector(viewx, viewy)->mapsection;
-	memset(&currentmapsection[0], 0, currentmapsection.Size());
+
+	SaveMapSection();
 	currentmapsection[mapsection>>3] |= 1 << (mapsection & 7);
 
 	GLRenderer->DrawScene();
@@ -638,6 +657,8 @@ void GLSkyboxPortal::DrawContents()
 
 	PlaneMirrorMode=old_pm;
 	extralight = saved_extralight;
+
+	RestoreMapSection();
 }
 
 //-----------------------------------------------------------------------------
@@ -678,7 +699,6 @@ static BYTE SetCoverage(void *node)
 
 void GLSectorStackPortal::SetupCoverage()
 {
-	memset(&currentmapsection[0], 0, currentmapsection.Size());
 	for(unsigned i=0; i<subsectors.Size(); i++)
 	{
 		subsector_t *sub = subsectors[i];
@@ -715,9 +735,11 @@ void GLSectorStackPortal::DrawContents()
 	if (origin->plane != -1) instack[origin->plane]++;
 
 	GLRenderer->SetupView(viewx, viewy, viewz, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1));
+	SaveMapSection();
 	SetupCoverage();
 	ClearClipper();
 	GLRenderer->DrawScene();
+	RestoreMapSection();
 
 	if (origin->plane != -1) instack[origin->plane]--;
 }
