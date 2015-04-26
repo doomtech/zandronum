@@ -63,6 +63,7 @@
 extern "C" {
 FDynamicColormap NormalLight;
 }
+bool NormalLightHasFixedLights;
 FPalette GPalette;
 TArray<FSpecialColormap> SpecialColormaps;
 BYTE DesaturateColormap[31][256];
@@ -872,11 +873,7 @@ void FDynamicColormap::ChangeColor (PalEntry lightcolor, int desaturate)
 	{
 		Color = lightcolor;
 		// [BB] desaturate must be in [0,255]
-		if( desaturate > 255 )
-			desaturate = 255;
-		else if ( desaturate < 0 )
-			desaturate = 0;
-		Desaturate = desaturate;
+		Desaturate = clamp(desaturate, 0, 255);
 		if (Maps) BuildLights ();
 	}
 }
