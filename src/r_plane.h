@@ -54,6 +54,7 @@ struct visplane_s
 	float		visibility;
 	fixed_t		viewx, viewy, viewz;
 	angle_t		viewangle;
+	fixed_t		alpha;
 
 	// kg3D - keep track of mirror and skybox owner
 	int CurrentSkybox;
@@ -97,6 +98,7 @@ visplane_t *R_FindPlane
 ( const secplane_t &height,
   FTextureID	picnum,
   int			lightlevel,
+  fixed_t		alpha,
   fixed_t		xoffs,		// killough 2/28/98: add x-y offsets
   fixed_t		yoffs,
   fixed_t		xscale,

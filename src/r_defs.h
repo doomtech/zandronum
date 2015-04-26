@@ -500,6 +500,7 @@ struct sector_t
 		FTransform xform;
 		int Flags;
 		int Light;
+		fixed_t alpha;
 		FTextureID Texture;
 		fixed_t TexZ;
 	};
@@ -585,6 +586,16 @@ struct sector_t
 	{
 		planes[pos].xform.base_yoffs = y;
 		planes[pos].xform.base_angle = o;
+	}
+
+	void SetAlpha(int pos, fixed_t o)
+	{
+		planes[pos].alpha = o;
+	}
+
+	fixed_t GetAlpha(int pos) const
+	{
+		return planes[pos].alpha;
 	}
 
 	int GetFlags(int pos) const 

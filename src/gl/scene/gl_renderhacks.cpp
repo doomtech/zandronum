@@ -1175,7 +1175,7 @@ void FDrawInfo::ProcessSectorStacks()
 				{				
 					ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERCEILING;
 
-					if (sub->render_sector->CeilingSkyBox->PlaneAlpha!=0)
+					if (sub->render_sector->GetAlpha(sector_t::ceiling)!=0)
 					{
 						gl_subsectorrendernode * node = SSR_List.GetNew();
 						node->sub = HandledSubsectors[j];
@@ -1212,7 +1212,7 @@ void FDrawInfo::ProcessSectorStacks()
 					//Printf("%d: ss %d, sec %d\n", j, HandledSubsectors[j]-subsectors, HandledSubsectors[j]->render_sector->sectornum);
 					ss_renderflags[DWORD(HandledSubsectors[j]-subsectors)] &= ~SSRF_RENDERFLOOR;
 
-					if (sub->render_sector->FloorSkyBox->PlaneAlpha!=0)
+					if (sub->render_sector->GetAlpha(sector_t::floor)!=0)
 					{
 						gl_subsectorrendernode * node = SSR_List.GetNew();
 						node->sub = HandledSubsectors[j];

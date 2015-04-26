@@ -98,7 +98,6 @@ public:
 	bool bInSkybox;
 	bool bAlways;
 	TObjPtr<ASkyViewpoint> Mate;
-	fixed_t PlaneAlpha;
 };
 
 class AStackPoint : public ASkyViewpoint
