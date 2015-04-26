@@ -291,9 +291,12 @@ void FGLRenderer::SetProjection(float fov, float ratio, float fovratio, float ey
 
 void FGLRenderer::SetViewMatrix(bool mirror, bool planemirror)
 {
-	gl.ActiveTexture(GL_TEXTURE7);
-	gl.MatrixMode(GL_TEXTURE);
-	gl.LoadIdentity();
+	if (gl.shadermodel >= 4)
+	{
+		gl.ActiveTexture(GL_TEXTURE7);
+		gl.MatrixMode(GL_TEXTURE);
+		gl.LoadIdentity();
+	}
 	gl.ActiveTexture(GL_TEXTURE0);
 	gl.MatrixMode(GL_TEXTURE);
 	gl.LoadIdentity();
@@ -443,7 +446,7 @@ void FGLRenderer::RenderScene(int recursion)
 		// remove any remaining texture bindings and shaders whick may get in the way.
 		gl_RenderState.EnableTexture(false);
 		gl_RenderState.EnableBrightmap(false);
-		gl_RenderState.Apply(true);
+		gl_RenderState.Apply();
 		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_BASE);
 		gl_RenderState.EnableTexture(true);
 

@@ -115,7 +115,7 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 	seg_t *v;
 
 	FLightNode * node = sub->lighthead[pass==GLPASS_LIGHT_ADDITIVE];
-	gl_RenderState.Apply(true);
+	gl_RenderState.Apply();
 	while (node)
 	{
 		ADynamicLight * light = node->lightsource;

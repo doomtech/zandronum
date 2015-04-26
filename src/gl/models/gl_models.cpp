@@ -54,6 +54,7 @@
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_geometric.h"
 #include "gl/utility/gl_convert.h"
+#include "gl/renderer/gl_renderstate.h"
 
 // [BB] New #includes. 
 #include "r_main.h"
@@ -690,6 +691,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 	// Setup transformation.
 	gl.DepthFunc(GL_LEQUAL);
+	gl_RenderState.SetTextureMode(TM_MODULATE);
+	gl_RenderState.EnableTexture(true);
 	// [BB] In case the model should be rendered translucent, do back face culling.
 	// This solves a few of the problems caused by the lack of depth sorting.
 	// TO-DO: Implement proper depth sorting.
@@ -729,8 +732,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		rotateOffset = float((time - xs_FloorToInt(time)) *360.f );
 	}
 
-	bool modifymat = gl_fogmode != 2 && (GLRenderer->mLightCount == 0 || !gl_light_models || !gl_dynlight_shader);
-	if (modifymat)
+	if (gl.shadermodel < 4)
 	{
 		gl.MatrixMode(GL_MODELVIEW);
 		gl.PushMatrix();
@@ -783,7 +785,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
 	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
-	if (!modifymat) gl.ActiveTexture(GL_TEXTURE0);
+	if (gl.shadermodel >= 4) gl.ActiveTexture(GL_TEXTURE0);
 
 #if 0
 	if (gl_light_models)
@@ -802,7 +804,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, NULL, translation );
 
-	if (modifymat)
+	if (gl.shadermodel < 4)
 	{
 		gl.MatrixMode(GL_MODELVIEW);
 		gl.PopMatrix();

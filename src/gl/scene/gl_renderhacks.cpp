@@ -1151,11 +1151,12 @@ void FDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 void FDrawInfo::ProcessSectorStacks()
 {
 	unsigned int i;
+	sector_t fake;
 
 	validcount++;
 	for (i=0;i<CeilingStacks.Size (); i++)
 	{
-		sector_t *sec = CeilingStacks[i];
+		sector_t *sec = gl_FakeFlat(CeilingStacks[i], &fake, false);
 		FPortal *portal = sec->portals[sector_t::ceiling];
 		if (portal != NULL) for(int k=0;k<sec->subsectorcount;k++)
 		{
@@ -1170,7 +1171,7 @@ void FDrawInfo::ProcessSectorStacks()
 					{
 						subsector_t * backsub = seg->PartnerSeg->Subsector();
 
-						if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, sub->render_sector);
+						if (backsub->validcount!=validcount) CollectSectorStacksCeiling (backsub, sec);
 					}
 				}
 				for(unsigned int j=0;j<HandledSubsectors.Size();j++)
@@ -1185,11 +1186,11 @@ void FDrawInfo::ProcessSectorStacks()
 
 					portal->GetGLPortal()->AddSubsector(sub);
 
-					if (sec->GetAlpha(sector_t::ceiling) != 0)
+					if (sec->GetAlpha(sector_t::ceiling) != 0 && sec->GetTexture(sector_t::ceiling) != skyflatnum)
 					{
 						gl_subsectorrendernode * node = SSR_List.GetNew();
 						node->sub = sub;
-						AddOtherCeilingPlane(sub->render_sector->sectornum, node);
+						AddOtherCeilingPlane(sec->sectornum, node);
 					}
 				}
 			}
@@ -1199,7 +1200,7 @@ void FDrawInfo::ProcessSectorStacks()
 	validcount++;
 	for (i=0;i<FloorStacks.Size (); i++)
 	{
-		sector_t *sec = FloorStacks[i];
+		sector_t *sec = gl_FakeFlat(FloorStacks[i], &fake, false);
 		FPortal *portal = sec->portals[sector_t::floor];
 		if (portal != NULL) for(int k=0;k<sec->subsectorcount;k++)
 		{
@@ -1214,7 +1215,7 @@ void FDrawInfo::ProcessSectorStacks()
 					{
 						subsector_t	* backsub = seg->PartnerSeg->Subsector();
 
-						if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, sub->render_sector);
+						if (backsub->validcount!=validcount) CollectSectorStacksFloor (backsub, sec);
 					}
 				}
 
@@ -1231,11 +1232,11 @@ void FDrawInfo::ProcessSectorStacks()
 					GLSectorStackPortal *glportal = portal->GetGLPortal();
 					glportal->AddSubsector(sub);
 
-					if (sec->GetAlpha(sector_t::floor)!=0)
+					if (sec->GetAlpha(sector_t::floor) != 0 && sec->GetTexture(sector_t::floor) != skyflatnum)
 					{
 						gl_subsectorrendernode * node = SSR_List.GetNew();
 						node->sub = sub;
-						AddOtherFloorPlane(sub->render_sector->sectornum, node);
+						AddOtherFloorPlane(sec->sectornum, node);
 					}
 				}
 			}

@@ -987,7 +987,7 @@ void FDrawInfo::SetupFloodStencil(wallseg * ws)
 	gl.Enable(GL_DEPTH_TEST);
 	gl.DepthMask(true);
 
-	gl_RenderState.Apply(true);
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
 	gl.Vertex3f(ws->x1, ws->z2, ws->y1);
@@ -1013,7 +1013,7 @@ void FDrawInfo::ClearFloodStencil(wallseg * ws)
 	gl.ColorMask(0,0,0,0);						// don't write to the graphics buffer
 	gl.Color3f(1,1,1);
 
-	gl_RenderState.Apply(true);
+	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLE_FAN);
 	gl.Vertex3f(ws->x1, ws->z1, ws->y1);
 	gl.Vertex3f(ws->x1, ws->z2, ws->y1);

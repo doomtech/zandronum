@@ -188,7 +188,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 		gl_RenderState.EnableTexture(false);
 		gl.Color3f(1,1,1);
 		gl.DepthFunc(GL_LESS);
-		gl_RenderState.Apply(true);
+		gl_RenderState.Apply();
 
 		if (NeedDepthBuffer())
 		{
@@ -358,7 +358,7 @@ void GLPortal::End(bool usestencil)
 		gl.ColorMask(0,0,0,0);						// no graphics
 		gl.Color3f(1,1,1);
 		gl_RenderState.EnableTexture(false);
-		gl_RenderState.Apply(true);
+		gl_RenderState.Apply();
 
 		if (needdepth) 
 		{
@@ -670,6 +670,13 @@ void GLSkyboxPortal::DrawContents()
 //
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+GLSectorStackPortal::~GLSectorStackPortal()
+{
+	if (origin != NULL && origin->glportal == this)
+	{
+		origin->glportal = NULL;
+	}
+}
 
 //-----------------------------------------------------------------------------
 //

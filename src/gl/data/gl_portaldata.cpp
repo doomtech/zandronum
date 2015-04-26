@@ -415,6 +415,7 @@ void gl_InitPortals()
 				portal->xDisplacement = pair->Key.mXDisplacement;
 				portal->yDisplacement = pair->Key.mYDisplacement;
 				portal->plane = (i==1? sector_t::floor : sector_t::ceiling);	/**/
+				portal->glportal = NULL;
 				portals.Push(portal);
 				for(unsigned j=0;j<pair->Value.Size(); j++)
 				{

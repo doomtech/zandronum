@@ -56,6 +56,7 @@
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_geometric.h"
 #include "gl/utility/gl_convert.h"
+#include "gl/renderer/gl_renderstate.h"
 
 
 //===========================================================================
@@ -100,6 +101,7 @@ FVoxelTexture::FVoxelTexture(FVoxel *vox)
 	HeightBits = 4;
 	WidthMask = 15;
 	gl_info.bNoFilter = true;
+	gl_info.bNoCompress = true;
 }
 
 //===========================================================================
@@ -307,24 +309,24 @@ void FVoxelModel::AddFace(int x1, int y1, int z1, int x2, int y2, int z2, int x3
 	vert.u = (((col & 15) * 255 / 16) + 7) / 255.f;
 	vert.v = (((col / 16) * 255 / 16) + 7) / 255.f;
 
-	vert.x = -x1 + PivotX;
-	vert.z = y1 - PivotY;
-	vert.y = - z1 + PivotZ;
+	vert.x =  x1 - PivotX;
+	vert.z = -y1 + PivotY;
+	vert.y = -z1 + PivotZ;
 	AddVertex(vert, check);
 
-	vert.x = -x2 + PivotX;
-	vert.z = y2 - PivotY;
-	vert.y = - z2 + PivotZ;
+	vert.x =  x2 - PivotX;
+	vert.z = -y2 + PivotY;
+	vert.y = -z2 + PivotZ;
 	AddVertex(vert, check);
 
-	vert.x = -x4 + PivotX;
-	vert.z = y4 - PivotY;
-	vert.y = - z4 + PivotZ;
+	vert.x =  x4 - PivotX;
+	vert.z = -y4 + PivotY;
+	vert.y = -z4 + PivotZ;
 	AddVertex(vert, check);
 
-	vert.x = -x3 + PivotX;
-	vert.z = y3 - PivotY;
-	vert.y = - z3 + PivotZ;
+	vert.x =  x3 - PivotX;
+	vert.z = -y3 + PivotY;
+	vert.y = -z3 + PivotZ;
 	AddVertex(vert, check);
 
 }
@@ -374,7 +376,7 @@ void FVoxelModel::MakeSlabPolys(int x, int y, kvxslab_t *voxptr, FVoxelMap &chec
 	if (cull & 32)
 	{
 		int z = ztop+zleng-1;
-		AddFace(x+1, y, z+1, x, y, z+1, x+1, y+1, z+1, x, y+1, z+1, *col, check);
+		AddFace(x+1, y, z+1, x, y, z+1, x+1, y+1, z+1, x, y+1, z+1, voxptr->col[zleng-1], check);
 	}
 }
 
@@ -465,6 +467,7 @@ void FVoxelModel::RenderFrame(FTexture * skin, int frame, int cm, int translatio
 {
 	FMaterial * tex = FMaterial::ValidateTexture(skin);
 	tex->Bind(cm, 0, translation);
+	gl_RenderState.Apply();
 
 	if (gl.flags&RFL_VBO)
 	{

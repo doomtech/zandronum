@@ -238,6 +238,7 @@ struct GLSectorStackPortal : public GLPortal
 {
 	TArray<subsector_t *> subsectors;
 protected:
+	virtual ~GLSectorStackPortal();
 	virtual void DrawContents();
 	virtual void * GetSource() const { return origin; }
 	virtual bool IsSky() { return true; }	// although this isn't a real sky it can be handled as one.

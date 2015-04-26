@@ -74,11 +74,10 @@ void gl_SetupMenu()
 	}
 #endif
 
-	if (gl.shadermodel == 2)
+	if (gl.shadermodel < 4)
 	{
-		// Radial fog and Doom lighting are not available in SM 2 cards
+		// Radial fog and Doom lighting are not available in SM < 4 cards
 		// The way they are implemented does not work well on older hardware.
-		// For SM 3 this is implemented through shader recompilation.
 
 		FOptionValues **opt = OptionValues.CheckKey("LightingModes");
 		if (opt != NULL) 

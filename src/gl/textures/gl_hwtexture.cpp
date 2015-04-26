@@ -96,6 +96,7 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 	bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
 
 	if (alphatexture) texformat=GL_ALPHA8;
+	else if (forcenocompression) texformat = GL_RGBA8;
 	if (glTexID==0) gl.GenTextures(1,&glTexID);
 	gl.BindTexture(GL_TEXTURE_2D, glTexID);
 	lastbound[texunit]=glTexID;
@@ -202,8 +203,9 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 //	Creates a texture
 //
 //===========================================================================
-FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool wrap, bool nofilter) 
+FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool wrap, bool nofilter, bool nocompression) 
 {
+	forcenocompression = nocompression;
 	mipmap=_mipmap;
 	texwidth=_width;
 	texheight=_height;

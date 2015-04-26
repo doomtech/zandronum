@@ -50,6 +50,7 @@ private:
 	bool mipmap;
 	BYTE clampmode;
 	bool forcenofiltering;
+	bool forcenocompression;
 
 	unsigned int * glTexID;
 	TArray<TranslatedTexture> glTexID_Translated;
@@ -62,7 +63,7 @@ private:
 	void DeleteTexture(unsigned int texid);
 
 public:
-	FHardwareTexture(int w, int h, bool mip, bool wrap, bool nofilter);
+	FHardwareTexture(int w, int h, bool mip, bool wrap, bool nofilter, bool nocompress);
 	~FHardwareTexture();
 
 	static void Unbind(int texunit);

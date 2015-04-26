@@ -92,8 +92,6 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		if (gl.shadermodel < 4) 
 		{
 			vp_comb << "#define NO_SM4\n";
-			if (gl_fogmode == 2) vp_comb << "#define FOG_RADIAL\n";
-			if (gl_lightmode == 2) vp_comb << "#define DOOMLIGHT\n";
 		}
 
 		fp_comb = vp_comb;

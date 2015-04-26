@@ -359,7 +359,7 @@ FHardwareTexture *FGLTexture::CreateTexture(int clampmode)
 	if (tex->UseType==FTexture::TEX_Null) return NULL;		// Cannot register a NULL texture
 	if (!gltexture[clampmode]) 
 	{
-		gltexture[clampmode] = new FHardwareTexture(tex->GetWidth(), tex->GetHeight(), true, true, false);
+		gltexture[clampmode] = new FHardwareTexture(tex->GetWidth(), tex->GetHeight(), true, true, false, tex->gl_info.bNoCompress);
 	}
 	return gltexture[clampmode]; 
 }
@@ -375,7 +375,7 @@ bool FGLTexture::CreatePatch()
 	if (tex->UseType==FTexture::TEX_Null) return false;		// Cannot register a NULL texture
 	if (!glpatch) 
 	{
-		glpatch=new FHardwareTexture(tex->GetWidth() + bExpand, tex->GetHeight() + bExpand, false, false, tex->gl_info.bNoFilter);
+		glpatch=new FHardwareTexture(tex->GetWidth() + bExpand, tex->GetHeight() + bExpand, false, false, tex->gl_info.bNoFilter, tex->gl_info.bNoCompress);
 	}
 	if (glpatch) return true; 	
 	return false;
