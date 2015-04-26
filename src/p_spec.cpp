@@ -1677,8 +1677,8 @@ void P_SpawnSpecials (void)
 		sectors[i].SavedSpecial = sectors[i].special;
 		sectors[i].SavedDamage = sectors[i].damage;
 		sectors[i].SavedMOD = sectors[i].mod;
-		sectors[i].SavedCeilingReflect = sectors[i].ceiling_reflect;
-		sectors[i].SavedFloorReflect = sectors[i].floor_reflect;
+		sectors[i].SavedCeilingReflect = sectors[i].reflect[sector_t::ceiling];
+		sectors[i].SavedFloorReflect = sectors[i].reflect[sector_t::floor];
 	}
 
 	// [RH] Start running any open scripts on this map

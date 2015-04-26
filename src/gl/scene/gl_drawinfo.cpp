@@ -940,9 +940,11 @@ void FDrawInfo::StartScene()
 
 	sectorrenderflags.Resize(numsectors);
 	ss_renderflags.Resize(numsubsectors);
+	no_renderflags.Resize(numsubsectors);
 
 	memset(&sectorrenderflags[0], 0, numsectors*sizeof(sectorrenderflags[0]));
 	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
+	memset(&no_renderflags[0], 0, numnodes*sizeof(no_renderflags[0]));
 
 	next=gl_drawinfo;
 	gl_drawinfo=this;

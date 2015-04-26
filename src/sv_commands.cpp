@@ -3113,8 +3113,8 @@ void SERVERCOMMANDS_SetSectorReflection( ULONG ulSector, ULONG ulPlayerExtra, UL
 
 	NetCommand command( SVC_SETSECTORREFLECTION );
 	command.addShort( ulSector );
-	command.addFloat( sectors[ulSector].ceiling_reflect );
-	command.addFloat( sectors[ulSector].floor_reflect );
+	command.addFloat( sectors[ulSector].reflect[sector_t::ceiling] );
+	command.addFloat( sectors[ulSector].reflect[sector_t::floor] );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 

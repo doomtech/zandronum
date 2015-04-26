@@ -3176,8 +3176,8 @@ void SERVER_UpdateSectors( ULONG ulClient )
 			SERVERCOMMANDS_SetSectorLightLevel( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Update the sector's reflection.
-		if (( pSector->ceiling_reflect != 0.0f ) ||
-			( pSector->floor_reflect != 0.0f ))
+		if (( pSector->reflect[sector_t::ceiling] != 0.0f ) ||
+			( pSector->reflect[sector_t::floor] != 0.0f ))
 		{
 			SERVERCOMMANDS_SetSectorReflection( ulIdx );
 		}

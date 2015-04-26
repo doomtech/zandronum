@@ -163,12 +163,11 @@ private:
 
 	void FloodPlane(int pass);
 
-	void MirrorPlane(secplane_t * plane, bool ceiling);
-	void SkyTexture(sector_t *sector, int plane);
-
+	void SkyPlane(sector_t *sector, int plane, bool allowmirror);
 	void SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2);
 	void SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2);
 	void SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2);
+
 	void Put3DWall(lightlist_t * lightlist, bool translucent);
 	void SplitWall(sector_t * frontsector, bool translucent);
 	void LightPass();

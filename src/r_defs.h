@@ -763,7 +763,7 @@ struct sector_t
 	extsector_t	*				e;		// This stores data that requires construction/destruction. Such data must not be copied by R_FakeFlat.
 
 	// GL only stuff starts here
-	float						ceiling_reflect, floor_reflect;
+	float						reflect[2];
 
 	int							dirtyframe[3];		// last frame this sector was marked dirty
 	bool						dirty;				// marked for recalculation
@@ -787,8 +787,7 @@ struct sector_t
 	int				ibocount;
 #endif
 
-	float GetFloorReflect() { return gl_plane_reflection_i? floor_reflect : 0; }
-	float GetCeilingReflect() { return gl_plane_reflection_i? ceiling_reflect : 0; }
+	float GetReflect(int pos) { return gl_plane_reflection_i? reflect[pos] : 0; }
 	bool VBOHeightcheck(int pos) const { return vboheight[pos] == GetPlaneTexZ(pos); }
 
 	enum

@@ -3553,11 +3553,11 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			// No client update necessary here.
 		}
 
-		if (( sectors[ulIdx].SavedCeilingReflect != sectors[ulIdx].ceiling_reflect ) ||
-			( sectors[ulIdx].SavedFloorReflect != sectors[ulIdx].floor_reflect ))
+		if (( sectors[ulIdx].SavedCeilingReflect != sectors[ulIdx].reflect[sector_t::ceiling] ) ||
+			( sectors[ulIdx].SavedFloorReflect != sectors[ulIdx].reflect[sector_t::floor] ))
 		{
-			sectors[ulIdx].ceiling_reflect = sectors[ulIdx].SavedCeilingReflect;
-			sectors[ulIdx].floor_reflect = sectors[ulIdx].SavedFloorReflect;
+			sectors[ulIdx].reflect[sector_t::ceiling] = sectors[ulIdx].SavedCeilingReflect;
+			sectors[ulIdx].reflect[sector_t::floor] = sectors[ulIdx].SavedFloorReflect;
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorReflection( ulIdx );

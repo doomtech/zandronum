@@ -609,7 +609,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 		}
 		else
 		{
-			alpha = 1.0f-frontsector->GetFloorReflect();
+			alpha = 1.0f-frontsector->GetReflect(sector_t::floor);
 		}
 		if (frontsector->VBOHeightcheck(sector_t::floor))
 		{
@@ -657,7 +657,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 		}
 		else
 		{
-			alpha = 1.0f-frontsector->GetCeilingReflect();
+			alpha = 1.0f-frontsector->GetReflect(sector_t::ceiling);
 		}
 
 		if (frontsector->VBOHeightcheck(sector_t::ceiling))

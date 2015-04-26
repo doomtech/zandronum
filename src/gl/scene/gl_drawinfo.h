@@ -191,6 +191,7 @@ struct FDrawInfo
 
 	TArray<BYTE> sectorrenderflags;
 	TArray<BYTE> ss_renderflags;
+	TArray<BYTE> no_renderflags;
 
 	TArray<MissingTextureInfo> MissingUpperTextures;
 	TArray<MissingTextureInfo> MissingLowerTextures;

@@ -374,7 +374,7 @@ void P_SerializeWorld (FArchive &arc)
 				<< desaturate;
 			sec->ColorMap = GetSpecialLights (color, fade, desaturate);
 		}
-		arc << sec->ceiling_reflect << sec->floor_reflect;
+		arc << sec->reflect[sector_t::ceiling] << sec->reflect[sector_t::floor];
 
 		// [BC]
 		arc << sec->floorOrCeiling

@@ -9350,8 +9350,8 @@ static void client_SetSectorReflection( BYTESTREAM_s *pByteStream )
 	}
 
 	// Set the sector's reflection.
-	pSector->ceiling_reflect = fCeilingReflect;
-	pSector->floor_reflect = fFloorReflect;
+	pSector->reflect[sector_t::ceiling] = fCeilingReflect;
+	pSector->reflect[sector_t::floor] = fFloorReflect;
 }
 
 //*****************************************************************************
