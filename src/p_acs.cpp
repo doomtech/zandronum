@@ -5092,8 +5092,6 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			{
 				TActorIterator<AActor> srciter (args[0]);
 
-				if (args[1] == 0) dest = (AActor *) activator;
-	                
 				while ( (source = srciter.Next ()) )
 				{
 					if (args[1] != 0)
@@ -5106,7 +5104,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 					}
 					else
 					{
-						if (P_CheckSight(source, dest, flags)) return 1;
+						if (P_CheckSight(source, activator, flags)) return 1;
 					}
 				}
 			}

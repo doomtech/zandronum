@@ -1264,6 +1264,10 @@ void AM_changeWindowScale ()
 	{
 		mtof_zoommul = int(M_ZOOMOUT);
 	}
+	else
+	{
+		mtof_zoommul = MAPUNIT;
+	}
 	am_zoomdir = 0;
 
 	// Change the scaling multipliers

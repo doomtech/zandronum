@@ -1201,7 +1201,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 
 	int i;
 	int bangle;
-	int bslope;
+	int bslope = 0;
 
 	if (self->target || (Flags & CBAF_AIMFACING))
 	{
@@ -1469,7 +1469,7 @@ void A_CustomFireBullets( AActor *self,
 
 	//int i;
 	int bangle;
-	int bslope;
+	int bslope = 0;
 
 	if ((Flags & FBF_USEAMMO) && weapon)
 	{
