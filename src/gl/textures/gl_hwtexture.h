@@ -49,6 +49,7 @@ private:
 	//float scalexfac, scaleyfac;
 	bool mipmap;
 	BYTE clampmode;
+	bool forcenofiltering;
 
 	unsigned int * glTexID;
 	TArray<TranslatedTexture> glTexID_Translated;
@@ -61,7 +62,7 @@ private:
 	void DeleteTexture(unsigned int texid);
 
 public:
-	FHardwareTexture(int w, int h, bool mip, bool wrap);
+	FHardwareTexture(int w, int h, bool mip, bool wrap, bool nofilter);
 	~FHardwareTexture();
 
 	static void Unbind(int texunit);

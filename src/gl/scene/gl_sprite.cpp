@@ -470,7 +470,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		// exclude vertically moving objects from this check.
 		if (!(thing->velx==0 && thing->vely==0 && thing->velz!=0))
 		{
-			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/))
+			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame, false))
 			{
 				return;
 			}
@@ -506,7 +506,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	z = FIXED2FLOAT(thingz-thing->floorclip);
 	y = FIXED2FLOAT(thingy);
 	
-	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/);
+	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame, !!(thing->flags & MF_DROPPED));
 	if (!modelframe)
 	{
 		angle_t ang = R_PointToAngle(thingx, thingy);

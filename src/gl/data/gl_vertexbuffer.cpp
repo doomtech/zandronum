@@ -74,26 +74,16 @@ CUSTOM_CVAR(Int, gl_usevbo, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCA
 
 FVertexBuffer::FVertexBuffer()
 {
-	if (!(gl.flags&RFL_VBO)) 
-	{
-		vbo_arg = 0;
-		vbo_id = 0;
-		map = NULL;
-	}
-	else
+	vbo_id = 0;
+	if (gl.flags&RFL_VBO)
 	{
 		if (gl_usevbo == -1) gl_usevbo.Callback();
-		vbo_arg = gl_usevbo;
-
-		vbo_id = 0;
-		map = NULL;
 		gl.GenBuffers(1, &vbo_id);
 	}
 }
 	
 FVertexBuffer::~FVertexBuffer()
 {
-	UnmapVBO();
 	if (vbo_id != 0)
 	{
 		gl.DeleteBuffers(1, &vbo_id);
@@ -102,11 +92,36 @@ FVertexBuffer::~FVertexBuffer()
 
 //==========================================================================
 //
+//
+//
+//==========================================================================
+
+FFlatVertexBuffer::FFlatVertexBuffer()
+: FVertexBuffer()
+{
+	if (!(gl.flags&RFL_VBO)) 
+	{
+		vbo_arg = 0;
+	}
+	else
+	{
+		vbo_arg = gl_usevbo;
+	}
+	map = NULL;
+}
+
+FFlatVertexBuffer::~FFlatVertexBuffer()
+{
+	UnmapVBO();
+}
+
+//==========================================================================
+//
 // Initialize a single vertex
 //
 //==========================================================================
 
-void FVBOVertex::SetFlatVertex(vertex_t *vt, const secplane_t & plane)
+void FFlatVertex::SetFlatVertex(vertex_t *vt, const secplane_t & plane)
 {
 	x = vt->fx;
 	y = vt->fy;
@@ -138,7 +153,7 @@ static F3DFloor *Find3DFloor(sector_t *target, sector_t *model)
 //
 //==========================================================================
 
-int FVertexBuffer::CreateSubsectorVertices(subsector_t *sub, const secplane_t &plane, int floor)
+int FFlatVertexBuffer::CreateSubsectorVertices(subsector_t *sub, const secplane_t &plane, int floor)
 {
 	int idx = vbo_shadowdata.Reserve(sub->numlines);
 	for(unsigned int k=0; k<sub->numlines; k++, idx++)
@@ -155,7 +170,7 @@ int FVertexBuffer::CreateSubsectorVertices(subsector_t *sub, const secplane_t &p
 //
 //==========================================================================
 
-int FVertexBuffer::CreateSectorVertices(sector_t *sec, const secplane_t &plane, int floor)
+int FFlatVertexBuffer::CreateSectorVertices(sector_t *sec, const secplane_t &plane, int floor)
 {
 	int rt = vbo_shadowdata.Size();
 	// First calculate the vertices for the sector itself
@@ -173,7 +188,7 @@ int FVertexBuffer::CreateSectorVertices(sector_t *sec, const secplane_t &plane, 
 //
 //==========================================================================
 
-int FVertexBuffer::CreateVertices(int h, sector_t *sec, const secplane_t &plane, int floor)
+int FFlatVertexBuffer::CreateVertices(int h, sector_t *sec, const secplane_t &plane, int floor)
 {
 	// First calculate the vertices for the sector itself
 	sec->vboheight[h] = sec->GetPlaneTexZ(h);
@@ -219,7 +234,7 @@ int FVertexBuffer::CreateVertices(int h, sector_t *sec, const secplane_t &plane,
 //
 //==========================================================================
 
-void FVertexBuffer::CreateFlatVBO()
+void FFlatVertexBuffer::CreateFlatVBO()
 {
 	for (int h = sector_t::floor; h <= sector_t::ceiling; h++)
 	{
@@ -255,12 +270,12 @@ void FVertexBuffer::CreateFlatVBO()
 //
 //==========================================================================
 
-void FVertexBuffer::MapVBO()
+void FFlatVertexBuffer::MapVBO()
 {
 	if (map == NULL)
 	{
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
-		map = (FVBOVertex*)gl.MapBufferRange(GL_ARRAY_BUFFER, 0, vbo_shadowdata.Size() * sizeof(FVBOVertex), 
+		map = (FFlatVertex*)gl.MapBufferRange(GL_ARRAY_BUFFER, 0, vbo_shadowdata.Size() * sizeof(FFlatVertex), 
 			GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|GL_MAP_UNSYNCHRONIZED_BIT);
 	}
 }
@@ -271,7 +286,7 @@ void FVertexBuffer::MapVBO()
 //
 //==========================================================================
 
-void FVertexBuffer::UnmapVBO()
+void FFlatVertexBuffer::UnmapVBO()
 {
 	if (map != NULL)
 	{
@@ -286,12 +301,12 @@ void FVertexBuffer::UnmapVBO()
 //
 //==========================================================================
 
-void FVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
+void FFlatVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
 {
 	int startvt = sec->vboindex[plane];
 	int countvt = sec->vbocount[plane];
 	secplane_t &splane = sec->GetSecPlane(plane);
-	FVBOVertex *vt = &vbo_shadowdata[startvt];
+	FFlatVertex *vt = &vbo_shadowdata[startvt];
 	for(int i=0; i<countvt; i++, vt++)
 	{
 		vt->z = splane.ZatPoint(vt->x, vt->y);
@@ -301,12 +316,12 @@ void FVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
 	{
 		MapVBO();
 		if (map == NULL) return;	// Error
-		memcpy(&map[startvt], &vbo_shadowdata[startvt], countvt * sizeof(FVBOVertex));
-		gl.FlushMappedBufferRange(GL_ARRAY_BUFFER, startvt * sizeof(FVBOVertex), countvt * sizeof(FVBOVertex));
+		memcpy(&map[startvt], &vbo_shadowdata[startvt], countvt * sizeof(FFlatVertex));
+		gl.FlushMappedBufferRange(GL_ARRAY_BUFFER, startvt * sizeof(FFlatVertex), countvt * sizeof(FFlatVertex));
 	}
 	else
 	{
-		gl.BufferSubData(GL_ARRAY_BUFFER, startvt * sizeof(FVBOVertex), countvt * sizeof(FVBOVertex), &vbo_shadowdata[startvt]);
+		gl.BufferSubData(GL_ARRAY_BUFFER, startvt * sizeof(FFlatVertex), countvt * sizeof(FFlatVertex), &vbo_shadowdata[startvt]);
 	}
 }
 
@@ -316,14 +331,14 @@ void FVertexBuffer::UpdatePlaneVertices(sector_t *sec, int plane)
 //
 //==========================================================================
 
-void FVertexBuffer::CreateVBO()
+void FFlatVertexBuffer::CreateVBO()
 {
 	vbo_shadowdata.Clear();
 	if (vbo_arg > 0)
 	{
 		CreateFlatVBO();
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
-		gl.BufferData(GL_ARRAY_BUFFER, vbo_shadowdata.Size() * sizeof(FVBOVertex), &vbo_shadowdata[0], GL_DYNAMIC_DRAW);
+		gl.BufferData(GL_ARRAY_BUFFER, vbo_shadowdata.Size() * sizeof(FFlatVertex), &vbo_shadowdata[0], GL_DYNAMIC_DRAW);
 	}
 	else if (sectors)
 	{
@@ -343,16 +358,18 @@ void FVertexBuffer::CreateVBO()
 //
 //==========================================================================
 
-void FVertexBuffer::BindVBO()
+void FFlatVertexBuffer::BindVBO()
 {
 	if (vbo_arg > 0)
 	{
 		UnmapVBO();
 		gl.BindBuffer(GL_ARRAY_BUFFER, vbo_id);
-		glVertexPointer(3,GL_FLOAT, sizeof(FVBOVertex), &VTO->x);
-		glTexCoordPointer(2,GL_FLOAT, sizeof(FVBOVertex), &VTO->u);
+		gl.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glVertexPointer(3,GL_FLOAT, sizeof(FFlatVertex), &VTO->x);
+		glTexCoordPointer(2,GL_FLOAT, sizeof(FFlatVertex), &VTO->u);
 		gl.EnableClientState(GL_VERTEX_ARRAY);
 		gl.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.DisableClientState(GL_INDEX_ARRAY);
 	}
 }
 
@@ -362,7 +379,7 @@ void FVertexBuffer::BindVBO()
 //
 //==========================================================================
 
-void FVertexBuffer::CheckPlanes(sector_t *sector)
+void FFlatVertexBuffer::CheckPlanes(sector_t *sector)
 {
 	if (sector->GetPlaneTexZ(sector_t::ceiling) != sector->vboheight[sector_t::ceiling])
 	{
@@ -391,7 +408,7 @@ void FVertexBuffer::CheckPlanes(sector_t *sector)
 //
 //==========================================================================
 
-void FVertexBuffer::CheckUpdate(sector_t *sector)
+void FFlatVertexBuffer::CheckUpdate(sector_t *sector)
 {
 	if (vbo_arg == 2)
 	{

@@ -625,6 +625,11 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 	GLRenderer->RenderView(player);
 }
 
+void OpenGLFrameBuffer::RemapVoxels()
+{
+	// no-op
+}
+
 
 void OpenGLFrameBuffer::DrawRemainingPlayerSprites()
 {

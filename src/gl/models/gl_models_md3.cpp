@@ -215,7 +215,7 @@ int FMD3Model::FindFrame(const char * name)
 	return -1;
 }
 
-void FMD3Model::RenderTriangles(MD3Surface * surf, MD3Vertex * vert, Matrix3x4 *modeltoworld)
+void FMD3Model::RenderTriangles(MD3Surface * surf, MD3Vertex * vert)
 {
 	gl_RenderState.Apply();
 	gl.Begin(GL_TRIANGLES);
@@ -226,21 +226,13 @@ void FMD3Model::RenderTriangles(MD3Surface * surf, MD3Vertex * vert, Matrix3x4 *
 			int x = surf->tris[i].VertIndex[j];
 
 			gl.TexCoord2fv(&surf->texcoords[x].s);
-			if (modeltoworld == NULL)
-			{
-				gl.Vertex3f(vert[x].x, vert[x].z, vert[x].y);
-			}
-			else
-			{
-				Vector v = *modeltoworld * Vector(vert[x].x, vert[x].z, vert[x].y);
-				gl.Vertex3fv(&v[0]);
-			}
+			gl.Vertex3f(vert[x].x, vert[x].z, vert[x].y);
 		}
 	}
 	gl.End();
 }
 
-void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm, Matrix3x4 *modeltoworld, int translation)
+void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm, int translation)
 {
 	if (frameno>=numFrames) return;
 
@@ -267,11 +259,11 @@ void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm, Matrix3x4 *mod
 		FMaterial * tex = FMaterial::ValidateTexture(surfaceSkin);
 
 		tex->Bind(cm, 0, translation);
-		RenderTriangles(surf, surf->vertices + frameno * surf->numVertices, modeltoworld);
+		RenderTriangles(surf, surf->vertices + frameno * surf->numVertices);
 	}
 }
 
-void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm, Matrix3x4 *modeltoworld, int translation)
+void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm, int translation)
 {
 	if (frameno>=numFrames || frameno2>=numFrames) return;
 
@@ -306,7 +298,7 @@ void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 			// [BB] Apparently RenderTriangles doesn't use nx, ny, nz, so don't interpolate them.
 		}
 
-		RenderTriangles(surf, verticesInterpolated, modeltoworld);
+		RenderTriangles(surf, verticesInterpolated);
 
 		delete[] verticesInterpolated;
 	}

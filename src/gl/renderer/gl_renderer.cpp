@@ -89,7 +89,7 @@ void FGLRenderer::Initialize()
 	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
 	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
 
-	mVBO = new FVertexBuffer;
+	mVBO = new FFlatVertexBuffer;
 	mFBID = 0;
 	SetupLevel();
 	mShaderManager = new FShaderManager;

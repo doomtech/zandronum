@@ -351,6 +351,7 @@ public:
 		char bBrightmapChecked:1;				// Set to 1 if brightmap has been checked
 		bool bBrightmap:1;						// This is a brightmap
 		bool bBrightmapDisablesFullbright:1;	// This disables fullbright display
+		bool bNoFilter:1;
 
 		MiscGLInfo() throw ();
 		~MiscGLInfo();

@@ -8,7 +8,19 @@ struct secplane_t;
 struct subsector_t;
 struct sector_t;
 
-struct FVBOVertex	// exactly 32 bytes large
+
+class FVertexBuffer
+{
+protected:
+	unsigned int vbo_id;
+
+public:
+	FVertexBuffer();
+	virtual ~FVertexBuffer();
+	virtual void BindVBO() = 0;
+};
+
+struct FFlatVertex	// exactly 32 bytes large
 {
 	float x,z,y,w;	// w only for padding to make one vertex 32 bytes - maybe it will find some use later
 	float u,v;		// texture coordinates
@@ -17,24 +29,23 @@ struct FVBOVertex	// exactly 32 bytes large
 	void SetFlatVertex(vertex_t *vt, const secplane_t &plane);
 };
 
-#define VTO ((FVBOVertex*)NULL)
+#define VTO ((FFlatVertex*)NULL)
 
 
-class FVertexBuffer
+class FFlatVertexBuffer : public FVertexBuffer
 {
-	unsigned int vbo_id;
-	FVBOVertex *map;
+	FFlatVertex *map;
 
 	void MapVBO();
 	void CheckPlanes(sector_t *sector);
 
 public:
 	int vbo_arg;
-	TArray<FVBOVertex> vbo_shadowdata;	// this is kept around for non-VBO rendering
+	TArray<FFlatVertex> vbo_shadowdata;	// this is kept around for non-VBO rendering
 
 public:
-	FVertexBuffer();
-	~FVertexBuffer();
+	FFlatVertexBuffer();
+	~FFlatVertexBuffer();
 
 	int CreateSubsectorVertices(subsector_t *sub, const secplane_t &plane, int floor);
 	int CreateSectorVertices(sector_t *sec, const secplane_t &plane, int floor);

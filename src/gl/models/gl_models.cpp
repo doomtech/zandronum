@@ -69,6 +69,9 @@ CVAR(Bool, gl_light_models, true, CVAR_ARCHIVE)
 CVAR(Bool, gl_use_models, true, CVAR_ARCHIVE)
 EXTERN_CVAR(Int, gl_fogmode)
 
+extern TDeletingArray<FVoxel *> Voxels;
+extern TDeletingArray<FVoxelDef *> VoxelDefs;
+
 
 class DeletingModelArray : public TArray<FModel *>
 {
@@ -181,7 +184,7 @@ static int ModelFrameHash(FSpriteModelFrame * smf)
 
 static FModel * FindModel(const char * path, const char * modelfile)
 {
-	FModel * model;
+	FModel * model = NULL;
 	FString fullname;
 
 	fullname.Format("%s%s", path, modelfile);
@@ -195,7 +198,7 @@ static FModel * FindModel(const char * path, const char * modelfile)
 
 	for(int i = 0; i< (int)Models.Size(); i++)
 	{
-		if (!stricmp(fullname, Models[i]->filename)) return Models[i];
+		if (!Models[i]->mFileName.CompareNoCase(fullname)) return Models[i];
 	}
 
 	int len = Wads.LumpLength(lump);
@@ -214,20 +217,31 @@ static FModel * FindModel(const char * path, const char * modelfile)
 	{
 		model = new FMD3Model;
 	}
+
+	if (model != NULL)
+	{
+		if (!model->Load(path, lump, buffer, len))
+		{
+			delete model;
+			return NULL;
+		}
+	}
 	else
 	{
-		Printf("LoadModel: Unknown model format in '%s'\n", fullname.GetChars());
-		delete buffer;
-		return NULL;
+		// try loading as a voxel
+		FVoxel *voxel = R_LoadKVX(lump);
+		if (voxel != NULL)
+		{
+			model = new FVoxelModel(voxel, true);
+		}
+		else
+		{
+			Printf("LoadModel: Unknown model format in '%s'\n", fullname.GetChars());
+			return NULL;
+		}
 	}
 
-	if (!model->Load(path, lump, buffer, len))
-	{
-		delete model;
-		delete buffer;
-		return NULL;
-	}
-	model->filename = copystring(fullname);
+	model->mFileName = fullname;
 	Models.Push(model);
 	return model;
 }
@@ -256,6 +270,46 @@ void gl_InitModels()
 	Models.Clear();
 	SpriteModelFrames.Clear();
 	DeleteModelHash();
+
+	// First, create models for each voxel
+	for (unsigned i = 0; i < Voxels.Size(); i++)
+	{
+		FVoxelModel *md = new FVoxelModel(Voxels[i], false);
+		Voxels[i]->VoxelIndex = Models.Push(md);
+	}
+	// now create GL model frames for the voxeldefs
+	for (unsigned i = 0; i < VoxelDefs.Size(); i++)
+	{
+		FVoxelModel *md = (FVoxelModel*)Models[VoxelDefs[i]->Voxel->VoxelIndex];
+		memset(&smf, 0, sizeof(smf));
+		smf.models[0] = md;
+		smf.skins[0] = md->GetPaletteTexture();
+		smf.xscale = smf.yscale = smf.zscale = FIXED2FLOAT(VoxelDefs[i]->Scale);
+		smf.angleoffset = VoxelDefs[i]->AngleOffset;
+		if (VoxelDefs[i]->PlacedSpin != 0)
+		{
+			smf.yrotate = 1.f;
+			smf.rotationSpeed = VoxelDefs[i]->PlacedSpin / 55.55f;
+			smf.flags |= MDL_ROTATING;
+		}
+		VoxelDefs[i]->VoxeldefIndex = SpriteModelFrames.Push(smf);
+		if (VoxelDefs[i]->PlacedSpin != VoxelDefs[i]->DroppedSpin)
+		{
+			if (VoxelDefs[i]->DroppedSpin != 0)
+			{
+				smf.yrotate = 1.f;
+				smf.rotationSpeed = VoxelDefs[i]->DroppedSpin / 55.55f;
+				smf.flags |= MDL_ROTATING;
+			}
+			else
+			{
+				smf.yrotate = 0;
+				smf.rotationSpeed = 0;
+				smf.flags &= ~MDL_ROTATING;
+			}
+			SpriteModelFrames.Push(smf);
+		}
+	}
 
 	memset(&smf, 0, sizeof(smf));
 	while ((Lump = Wads.FindLump("MODELDEF", &lastLump)) != -1)
@@ -492,8 +546,9 @@ void gl_InitModels()
 // gl_FindModelFrame
 //
 //===========================================================================
+EXTERN_CVAR (Bool, r_drawvoxels)
 
-FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
+FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame, bool dropped)
 {
 	// [BB] The user doesn't want to use models, so just pretend that there is no model for this frame.
 	if ( gl_use_models == false )
@@ -517,6 +572,22 @@ FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
 			hash=smff->hashnext;
 		}
 	}
+
+	// Check for voxel replacements
+	if (r_drawvoxels)
+	{
+		spritedef_t *sprdef = &sprites[sprite];
+		if (frame < sprdef->numframes)
+		{
+			spriteframe_t *sprframe = &SpriteFrames[sprdef->spriteframes + frame];
+			if (sprframe->Voxel != NULL)
+			{
+				int index = sprframe->Voxel->VoxeldefIndex;
+				if (dropped && sprframe->Voxel->DroppedSpin !=sprframe->Voxel->PlacedSpin) index++;
+				return &SpriteModelFrames[index];
+			}
+		}
+	}
 	return NULL;
 }
 
@@ -532,7 +603,6 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 						   const int curTics,
 						   const PClass *ti,
 						   int cm,
-						   Matrix3x4 *modeltoworld,
 						   Matrix3x4 *normaltransform,
 						   int translation)
 {
@@ -578,7 +648,7 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 					}
 				}
 				if ( inter != 0.0 )
-					smfNext = gl_FindModelFrame(ti, nextState->sprite, nextState->GetFrame() );
+					smfNext = gl_FindModelFrame(ti, nextState->sprite, nextState->GetFrame(), false);
 			}
 		}
 	}
@@ -590,9 +660,9 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 		if (mdl!=NULL)
 		{
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, modeltoworld, translation);
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
 			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, modeltoworld, translation);
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
 		}
 	}
 }
@@ -618,8 +688,6 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 
 	// Setup transformation.
-	gl.MatrixMode(GL_MODELVIEW);
-	gl.PushMatrix();
 	gl.DepthFunc(GL_LEQUAL);
 	// [BB] In case the model should be rendered translucent, do back face culling.
 	// This solves a few of the problems caused by the lack of depth sorting.
@@ -641,7 +709,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	float scaleFactorZ = FIXED2FLOAT(spr->actor->scaleY) * smf->zscale;
 	float pitch = 0;
 	float rotateOffset = 0;
-	float angle = ANGLE_TO_FLOAT(spr->actor->angle);
+	float angle = ANGLE_TO_FLOAT(spr->actor->angle + smf->angleoffset);
 
 	// [BB] Workaround for the missing pitch information.
 	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
@@ -660,122 +728,93 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		rotateOffset = float((time - xs_FloorToInt(time)) *360.f );
 	}
 
-	if (gl_fogmode != 2 && (GLRenderer->mLightCount == 0 || !gl_light_models))
+	bool modifymat = gl_fogmode != 2 && (GLRenderer->mLightCount == 0 || !gl_light_models);
+	if (modifymat)
 	{
-		// Model space => World space
-		gl.Translatef(spr->x, spr->z, spr->y );
-
-		if ( !(smf->flags & MDL_ALIGNANGLE) )
-			gl.Rotatef(-angle, 0, 1, 0);
-		// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
-		else
-			gl.Rotatef( -ANGLE_TO_FLOAT ( R_PointToAngle ( spr->actor->x, spr->actor->y ) ), 0, 1, 0);
-
-		// [BB] Change the pitch so that the object is vertically facing the camera (only makes sense combined with MDL_ALIGNANGLE).
-		if ( (smf->flags & MDL_ALIGNPITCH) )
-		{
-			const fixed_t distance = R_PointToDist2( spr->actor->x - viewx, spr->actor->y - viewy );
-			const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
-			gl.Rotatef(pitch, 0, 0, 1);
-		}
-
-		// [BB] Workaround for the missing pitch information.
-		if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
-
-		// [BB] Special flag for flat, beam like models.
-		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
-			gl.Rotatef( gl_RollAgainstAngleHelper ( spr->actor ), 1, 0, 0);
-
-		// Model rotation.
-		// [BB] Added Doomsday like rotation of the weapon pickup models.
-		// The rotation angle is based on the elapsed time.
-
-		if( smf->flags & MDL_ROTATING )
-		{
-			gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
-			gl.Rotatef(rotateOffset, smf->xrotate, smf->yrotate, smf->zrotate);
-			gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-		} 		
-
-		// Scaling and model space offset.
-		gl.Scalef(scaleFactorX, scaleFactorZ, scaleFactorY);
-
-		// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
-		gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
-
-		gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, NULL, NULL, translation );
+		gl.MatrixMode(GL_MODELVIEW);
+		gl.PushMatrix();
 	}
 	else
 	{
-		Matrix3x4 ModelToWorld;
-		Matrix3x4 NormalTransform;
-
-		// For radial fog we need to pass coordinates in world space in order to calculate distances.
-		// That means that the local transformations cannot be part of the modelview matrix
-
-		ModelToWorld.MakeIdentity();
-
-		// Model space => World space
-		ModelToWorld.Translate(spr->x, spr->z, spr->y);
-
-		if ( !(smf->flags & MDL_ALIGNANGLE) )
-			ModelToWorld.Rotate(0,1,0, -angle);
-		// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
-		else
-			ModelToWorld.Rotate(0,1,0, -ANGLE_TO_FLOAT ( R_PointToAngle ( spr->actor->x, spr->actor->y ) ) );
-
-		// [BB] Change the pitch so that the object is vertically facing the camera (only makes sense combined with MDL_ALIGNANGLE).
-		if ( (smf->flags & MDL_ALIGNPITCH) )
-		{
-			const fixed_t distance = R_PointToDist2( spr->actor->x - viewx, spr->actor->y - viewy );
-			const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
-			ModelToWorld.Rotate(0,0,1,pitch);
-		}
-
-		// [BB] Workaround for the missing pitch information.
-		if (pitch != 0) ModelToWorld.Rotate(0,0,1,pitch);
-
-		// [BB] Special flag for flat, beam like models.
-		if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
-			ModelToWorld.Rotate(1, 0, 0, gl_RollAgainstAngleHelper ( spr->actor ));
-
-		// Model rotation.
-		// [BB] Added Doomsday like rotation of the weapon pickup models.
-		// The rotation angle is based on the elapsed time.
-
-		if( smf->flags & MDL_ROTATING )
-		{
-			ModelToWorld.Translate(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-			ModelToWorld.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, rotateOffset);
-			ModelToWorld.Translate(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
-		}
-
-		ModelToWorld.Scale(scaleFactorX, scaleFactorZ, scaleFactorY);
-
-		// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
-		ModelToWorld.Translate(0., smf->zoffset / smf->zscale, 0.);
-
-		if (!gl_light_models)
-		{
-			gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, &ModelToWorld, NULL, translation );
-		}
-		else
-		{
-			// The normal transform matrix only contains the inverse rotations and scalings but not the translations
-			NormalTransform.MakeIdentity();
-
-			NormalTransform.Scale(1.f/scaleFactorX, 1.f/scaleFactorZ, 1.f/scaleFactorY);
-			if( smf->flags & MDL_ROTATING ) NormalTransform.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, -rotateOffset);
-			if (pitch != 0) NormalTransform.Rotate(0,0,1,-pitch);
-			if (angle != 0) NormalTransform.Rotate(0,1,0, angle);
-
-			gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, &ModelToWorld, &NormalTransform, translation );
-		}
-
+		gl.ActiveTexture(GL_TEXTURE7);	// Hijack the otherwise unused seventh texture matrix for the model to world transformation.
+		gl.MatrixMode(GL_TEXTURE);
+		gl.LoadIdentity();
 	}
 
-	gl.MatrixMode(GL_MODELVIEW);
-	gl.PopMatrix();
+	// Model space => World space
+	gl.Translatef(spr->x, spr->z, spr->y );
+
+	if ( !(smf->flags & MDL_ALIGNANGLE) )
+		gl.Rotatef(-angle, 0, 1, 0);
+	// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
+	else
+		gl.Rotatef( -ANGLE_TO_FLOAT ( R_PointToAngle ( spr->actor->x, spr->actor->y ) ), 0, 1, 0);
+
+	// [BB] Change the pitch so that the object is vertically facing the camera (only makes sense combined with MDL_ALIGNANGLE).
+	if ( (smf->flags & MDL_ALIGNPITCH) )
+	{
+		const fixed_t distance = R_PointToDist2( spr->actor->x - viewx, spr->actor->y - viewy );
+		const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
+		gl.Rotatef(pitch, 0, 0, 1);
+	}
+
+	// [BB] Workaround for the missing pitch information.
+	if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
+
+	// [BB] Special flag for flat, beam like models.
+	if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
+		gl.Rotatef( gl_RollAgainstAngleHelper ( spr->actor ), 1, 0, 0);
+
+	// Model rotation.
+	// [BB] Added Doomsday like rotation of the weapon pickup models.
+	// The rotation angle is based on the elapsed time.
+
+	if( smf->flags & MDL_ROTATING )
+	{
+		gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
+		gl.Rotatef(rotateOffset, smf->xrotate, smf->yrotate, smf->zrotate);
+		gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
+	} 		
+
+	// Scaling and model space offset.
+	gl.Scalef(scaleFactorX, scaleFactorZ, scaleFactorY);
+
+	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
+
+	if (!modifymat) gl.ActiveTexture(GL_TEXTURE0);
+
+#if 0
+	if (gl_light_models)
+	{
+		// The normal transform matrix only contains the inverse rotations and scalings but not the translations
+		NormalTransform.MakeIdentity();
+
+		NormalTransform.Scale(1.f/scaleFactorX, 1.f/scaleFactorZ, 1.f/scaleFactorY);
+		if( smf->flags & MDL_ROTATING ) NormalTransform.Rotate(smf->xrotate, smf->yrotate, smf->zrotate, -rotateOffset);
+		if (pitch != 0) NormalTransform.Rotate(0,0,1,-pitch);
+		if (angle != 0) NormalTransform.Rotate(0,1,0, angle);
+
+		gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, &ModelToWorld, &NormalTransform, translation );
+	}
+#endif
+
+	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, NULL, translation );
+
+	if (modifymat)
+	{
+		gl.MatrixMode(GL_MODELVIEW);
+		gl.PopMatrix();
+	}
+	else
+	{
+		gl.ActiveTexture(GL_TEXTURE7);
+		gl.MatrixMode(GL_TEXTURE);
+		gl.LoadIdentity();
+		gl.ActiveTexture(GL_TEXTURE0);
+		gl.MatrixMode(GL_MODELVIEW);
+	}
+
 	gl.DepthFunc(GL_LESS);
 	if (!( spr->actor->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
 		gl.Disable(GL_CULL_FACE);
@@ -791,7 +830,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 {
 	AActor * playermo=players[consoleplayer].camera;
-	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite, psp->state->GetFrame());
+	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite, psp->state->GetFrame(), false);
 
 	// [BB] No model found for this sprite, so we can't render anything.
 	if ( smf == NULL )
@@ -829,7 +868,7 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 	// [BB] For some reason the jDoom models need to be rotated.
 	gl.Rotatef(90., 0, 1, 0);
 
-	gl_RenderFrameModels( smf, psp->state, psp->tics, playermo->player->ReadyWeapon->GetClass(), cm, NULL, NULL, 0 );
+	gl_RenderFrameModels( smf, psp->state, psp->tics, playermo->player->ReadyWeapon->GetClass(), cm, NULL, 0 );
 
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
@@ -850,7 +889,7 @@ bool gl_IsHUDModelForPlayerAvailable (player_t * player)
 		return false;
 
 	FState* state = player->psprites[0].state;
-	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite, state->GetFrame());
+	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite, state->GetFrame(), false);
 	return ( smf != NULL );
 }
 

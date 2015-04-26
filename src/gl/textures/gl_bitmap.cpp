@@ -259,9 +259,6 @@ void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int 
 		// Now penew contains the actual palette that is to be used for creating the image.
 
 		// convert the image according to the translated palette.
-		// Please note that the alpha of the passed palette is inverted. This is
-		// so that the base palette can be used without constantly changing it.
-		// This can also handle full PNG translucency.
 		for (y=0;y<srcheight;y++)
 		{
 			pos=(y*Pitch);

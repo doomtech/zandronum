@@ -123,7 +123,7 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 		{
 			mipmap=false;
 		}
-		gl.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, (mipmap && use_mipmapping));
+		gl.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, (mipmap && use_mipmapping && !forcenofiltering));
 
 		if (rw == w && rh == h)
 		{
@@ -168,24 +168,32 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 	// When using separate samplers the stuff below is not needed.
 	// if (gl.flags & RFL_SAMPLER_OBJECTS) return;
 
-	if (mipmap && use_mipmapping)
-	{
-		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].minfilter);
-		if (gl_texture_filter_anisotropic)
-		{
-			gl.TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_filter_anisotropic);
-		}
-	}
-	else
-	{
-		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
-	}
-
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	clampmode = wrapparam==GL_CLAMP? GLT_CLAMPX|GLT_CLAMPY : 0;
 
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
+	if (forcenofiltering)
+	{
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		gl.TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.f);
+	}
+	else
+	{
+		if (mipmap && use_mipmapping)
+		{
+			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].minfilter);
+			if (gl_texture_filter_anisotropic)
+			{
+				gl.TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_filter_anisotropic);
+			}
+		}
+		else
+		{
+			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
+		}
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
+	}
 }
 
 
@@ -194,7 +202,7 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 //	Creates a texture
 //
 //===========================================================================
-FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool wrap) 
+FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool wrap, bool nofilter) 
 {
 	mipmap=_mipmap;
 	texwidth=_width;
@@ -205,6 +213,7 @@ FHardwareTexture::FHardwareTexture(int _width, int _height, bool _mipmap, bool w
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
 	clampmode=0;
 	glDepthID = 0;
+	forcenofiltering = nofilter;
 }
 
 

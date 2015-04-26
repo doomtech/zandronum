@@ -1399,6 +1399,7 @@ struct FVoxel
 {
 	int LumpNum;
 	int NumMips;
+	int VoxelIndex;
 	BYTE *Palette;
 	FVoxelMipLevel Mips[MAXVOXMIPS];
 
@@ -1412,6 +1413,7 @@ struct FVoxelDef
 	FVoxel *Voxel;
 	int PlacedSpin;			// degrees/sec to spin actors without MF_DROPPED set
 	int DroppedSpin;		// degrees/sec to spin actors with MF_DROPPED set
+	int VoxeldefIndex;
 	fixed_t Scale;
 	angle_t AngleOffset;	// added to actor's angle to compensate for wrong-facing voxels
 };

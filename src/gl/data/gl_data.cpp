@@ -384,11 +384,9 @@ CCMD(gl_resetmap)
 //  Gets the texture index for a sprite frame
 //
 //===========================================================================
-const BYTE SF_FRAMEMASK  = 0x1f;
 
 FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang, bool *mirror)
 {
-	frame&=SF_FRAMEMASK;
 	spritedef_t *sprdef = &sprites[sprite];
 	if (frame >= sprdef->numframes)
 	{
