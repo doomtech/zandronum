@@ -180,7 +180,7 @@ void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 	ztop[0]=zfloor[0];
 	ztop[1]=zfloor[1];
 	zbottom[0]=zbottom[1]=-32768.0f;
-	SkyPlane(fs, sector_t::floor, false);
+	SkyPlane(fs, sector_t::floor, true);
 }
 
 //==========================================================================
@@ -246,7 +246,17 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 	{
 		FPortal *pfront = fs->portals[sector_t::ceiling];
 		FPortal *pback = bs->portals[sector_t::ceiling];
-		if (fs->GetReflect(sector_t::floor) == 0 && (pfront == NULL || pfront == pback)) 
+		float frontreflect = fs->GetReflect(sector_t::ceiling);
+		if (frontreflect > 0)
+		{
+			float backreflect = bs->GetReflect(sector_t::ceiling);
+			if (backreflect > 0 && bs->ceilingplane.d == fs->ceilingplane.d)
+			{
+				// Don't add intra-portal line to the portal.
+				return;
+			}
+		}
+		else if (pfront == NULL || pfront == pback)
 		{
 			return;
 		}
@@ -312,7 +322,17 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 	{
 		FPortal *pfront = fs->portals[sector_t::floor];
 		FPortal *pback = bs->portals[sector_t::floor];
-		if (fs->GetReflect(sector_t::floor) == 0 && (pfront == NULL || pfront == pback)) 
+		float frontreflect = fs->GetReflect(sector_t::floor);
+		if (frontreflect > 0)
+		{
+			float backreflect = bs->GetReflect(sector_t::floor);
+			if (backreflect > 0 && bs->floorplane.d == fs->floorplane.d)
+			{
+				// Don't add intra-portal line to the portal.
+				return;
+			}
+		}
+		else if (pfront == NULL || pfront == pback)
 		{
 			return;
 		}
@@ -328,3 +348,4 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 
 	SkyPlane(fs, sector_t::floor, true);
 }
+
