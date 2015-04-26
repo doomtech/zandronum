@@ -2404,11 +2404,6 @@ void R_StoreWallRange (int start, int stop)
 		return;
 	}
 
-	if(fake3D & 7) {
-		ds_p++;
-		return;
-	}
-
 	// save sprite clipping info
 	if ( ((ds_p->silhouette & SIL_TOP) || maskedtexture) && ds_p->sprtopclip == -1)
 	{
