@@ -659,6 +659,7 @@ else( WIN32 )
 		sdl/hardware.cpp
 		sdl/i_cd.cpp
 		sdl/i_input.cpp
+		sdl/i_joystick.cpp
 		sdl/i_main.cpp
 		sdl/i_movie.cpp
 		sdl/i_system.cpp
