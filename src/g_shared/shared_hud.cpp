@@ -900,7 +900,6 @@ static bool ShouldDrawHealth( player_t* CPlayer )
 // draw the overlay
 //
 //---------------------------------------------------------------------------
-void HUD_InitHud();
 
 void DrawHUD()
 {
@@ -909,8 +908,6 @@ void DrawHUD()
 	// [BB] The player may not have a body while connecting.
 	if ( CPlayer->mo == NULL )
 		return;
-
-	if (HudFont==NULL) HUD_InitHud();
 
 	players[consoleplayer].inventorytics = 0;
 	if (hud_althudscale && SCREENWIDTH>640) 

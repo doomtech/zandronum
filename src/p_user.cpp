@@ -164,6 +164,7 @@ void SetupPlayerClasses ()
 {
 	FPlayerClass newclass;
 
+	PlayerClasses.Clear();
 	for (unsigned i=0; i<gameinfo.PlayerClasses.Size(); i++)
 	{
 		newclass.Flags = 0;

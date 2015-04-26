@@ -450,6 +450,7 @@ void InitPalette ()
 	int lump;
 
 	atterm (FreeSpecialLights);
+	FreeSpecialLights();
 
 	if ((lump = Wads.CheckNumForFullName ("palette.dat")) >= 0 && Wads.LumpLength (lump) >= 768)
 	{
@@ -792,6 +793,7 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 		delete[] colormap->Maps;
 		delete colormap;
 	}
+	NormalLight.Next = NULL;
 }
 
 // Builds NUMCOLORMAPS colormaps lit with the specified color

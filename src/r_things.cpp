@@ -1084,8 +1084,10 @@ void R_InitSprites ()
 
 	lastlump = 0;
 
+	SpriteFrames.Clear();
+
 	// [RH] Do some preliminary setup
-	skins.Clear();
+	skins.Clear(); // [BB] Adapted to Zandronum's skin handling
 	for (i = 0; i < PlayerClasses.Size (); i++)
 	{
 		R_CreateSkin();

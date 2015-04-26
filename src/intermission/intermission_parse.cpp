@@ -60,6 +60,7 @@ void DeinitIntermissions()
 		delete pair->Value;
 		pair->Value = NULL;
 	}
+	IntermissionDescriptors.Clear();
 }
 
 //==========================================================================
@@ -839,7 +840,15 @@ void F_StartFinale (const char *music, int musicorder, int cdtrack, unsigned int
 			textscreen->mText << '$' << text;
 		}
 		textscreen->mTextDelay = 10;
-		textscreen->mBackground = flat;
+		if (flat != NULL && *flat != 0)
+		{
+			textscreen->mBackground = flat;
+		}
+		else
+		{
+			// force a black screen if no texture is set.
+			textscreen->mBackground = "-";
+		}
 		textscreen->mFlatfill = !finalePic;
 
 		if (music != NULL && *music != 0) 

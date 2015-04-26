@@ -52,6 +52,8 @@
 
 #include "optionmenuitems.h"
 
+void ClearSaveGames();
+
 MenuDescriptorList MenuDescriptors;
 static FListMenuDescriptor DefaultListMenuSettings;	// contains common settings for all list menus
 static FOptionMenuDescriptor DefaultOptionMenuSettings;	// contains common settings for all Option menus
@@ -83,7 +85,11 @@ static void DeinitMenus()
 			pair->Value = NULL;
 		}
 	}
+	MenuDescriptors.Clear();
+	OptionValues.Clear();
 	DMenu::CurrentMenu = NULL;
+	DefaultListMenuSettings.mItems.Clear();
+	ClearSaveGames();
 }
 
 //=============================================================================
@@ -825,8 +831,11 @@ void M_ParseMenuDefs()
 	OptionSettings.mFontColorHeader = V_FindFontColor(gameinfo.mFontColorHeader);
 	OptionSettings.mFontColorHighlight = V_FindFontColor(gameinfo.mFontColorHighlight);
 	OptionSettings.mFontColorSelection = V_FindFontColor(gameinfo.mFontColorSelection);
+	DefaultListMenuSettings.Reset();
+	DefaultOptionMenuSettings.Reset();
 
 	atterm(	DeinitMenus);
+	DeinitMenus();
 	while ((lump = Wads.FindLump ("MENUDEF", &lastlump)) != -1)
 	{
 		FScanner sc(lump);
@@ -841,6 +850,10 @@ void M_ParseMenuDefs()
 			else if (sc.Compare("DEFAULTLISTMENU"))
 			{
 				ParseListMenuBody(sc, &DefaultListMenuSettings);
+				if (DefaultListMenuSettings.mItems.Size() > 0)
+				{
+					I_FatalError("You cannot add menu items to the menu default settings.");
+				}
 			}
 			else if (sc.Compare("OPTIONVALUE"))
 			{
@@ -861,6 +874,10 @@ void M_ParseMenuDefs()
 			else if (sc.Compare("DEFAULTOPTIONMENU"))
 			{
 				ParseOptionMenuBody(sc, &DefaultOptionMenuSettings);
+				if (DefaultOptionMenuSettings.mItems.Size() > 0)
+				{
+					I_FatalError("You cannot add menu items to the menu default settings.");
+				}
 			}
 			else
 			{
@@ -1221,10 +1238,11 @@ void M_CreateMenus()
 // THe skill menu must be refeshed each time it starts up
 //
 //=============================================================================
+extern int restart;
 
 void M_StartupSkillMenu(FGameStartup *gs)
 {
-	static bool done = false;
+	static int done = -1;
 	bool success = false;
 	FMenuDescriptor **desc = MenuDescriptors.CheckKey(NAME_Skillmenu);
 	if (desc != NULL)
@@ -1250,9 +1268,9 @@ void M_StartupSkillMenu(FGameStartup *gs)
 				}
 			}
 
-			if (!done)
+			if (done != restart)
 			{
-				done = true;
+				done = restart;
 				int defskill = DefaultSkill;
 				if ((unsigned int)defskill >= AllSkills.Size())
 				{

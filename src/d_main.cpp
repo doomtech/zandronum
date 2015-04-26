@@ -164,6 +164,7 @@ extern void M_SetDefaultMode ();
 extern void R_ExecuteSetViewSize ();
 extern void G_NewInit ();
 extern void SetupPlayerClasses ();
+extern void HUD_InitHud();
 const FIWADInfo *D_FindIWAD(TArray<FString> &wadfiles, const char *iwad, const char *basewad);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -250,6 +251,8 @@ FTexture *Page;
 FTexture *Advisory;
 bool nospriterename;
 FStartupInfo DoomStartupInfo;
+FString lastIWAD;
+int restart = 0;
 
 cycle_t FrameCycles;
 
@@ -1162,7 +1165,7 @@ drawfullconsole:
 //
 // D_ErrorCleanup ()
 //
-// Cleanup after a recoverable error.
+// Cleanup after a recoverable error or a restart
 //==========================================================================
 
 void D_ErrorCleanup ()
@@ -2644,410 +2647,519 @@ void D_DoomMain (void)
 	}
 	FString basewad = wad;
 
-	// Load zdoom.pk3 alone so that we can get access to the internal gameinfos before 
-	// the IWAD is known.
 
-	GetCmdLineFiles(pwads);
-	GetCmdLineFiles( optionalwads, "-optfile" ); // [TP] Note - this goes directly into the global variable
-	FString iwad = CheckGameInfo(pwads);
+	// reinit from here
 
-	FIWadManager *iwad_man = new FIWadManager;
-	const FIWADInfo *iwad_info = iwad_man->FindIWAD(allwads, iwad, basewad);
-	gameinfo.gametype = iwad_info->gametype;
-	gameinfo.flags = iwad_info->flags;
-	gameinfo.ConfigName = iwad_info->Configname;
-
-	GameConfig->DoGameSetup (gameinfo.ConfigName);
-
-	AddAutoloadFiles(iwad_info->Autoname);
-
-	// Run automatically executed files
-	execFiles = new DArgs;
-	GameConfig->AddAutoexec (execFiles, gameinfo.ConfigName);
-	D_MultiExec (execFiles, true);
-
-	// Run .cfg files at the start of the command line.
-	execFiles = Args->GatherFiles ("-exec");
-	D_MultiExec (execFiles, true);
-
-	C_ExecCmdLineParams ();		// [RH] do all +set commands on the command line
-
-	CopyFiles(allwads, pwads);
-	CopyFiles( allwads, optionalwads ); // [TP]
-
-	// Since this function will never leave we must delete this array here manually.
-	pwads.Clear();
-	pwads.ShrinkToFit();
-
-	Printf ("W_Init: Init WADfiles.\n");
-	Wads.InitMultipleFiles (/*allwads*/); // [BB] Removed argument.
-	allwads.Clear();
-	allwads.ShrinkToFit();
-	SetMapxxFlag();
-	
-	// Now that wads are loaded, define mod-specific cvars.
-	ParseCVarInfo();
-
-	// Initialize the chat module.
-	CHAT_Construct( );
-
-	// Initialize the team info.
-	TEAM_Construct( );
-
-	// Initialize the duel module.
-	DUEL_Construct( );
-
-	// Initialize the LMS module.
-	LASTMANSTANDING_Construct( );
-
-	// Initialize the possession module.
-	POSSESSION_Construct( );
-
-	// Initialize the survival module.
-	SURVIVAL_Construct( );
-
-	// Initialize the invasion module.
-	INVASION_Construct( );
-
-	// Initialize the join queue module.
-	JOINQUEUE_Construct( );
-
-	// Initialize the medal info.
-	MEDAL_Construct( );
-
-	// Initialize the announcer info.
-	ANNOUNCER_Construct( );
-	ANNOUNCER_ParseAnnouncerInfo( );
-
-	// Initialize the campaign module.
-	CAMPAIGN_Construct( );
-	CAMPAIGN_ParseCampaignInfo( );
-
-	// [BB] Parse the GAMEMODE lump.
-	GAMEMODE_ParseGamemodeInfo( );
-
-	// [RH] Initialize localizable strings.
-	GStrings.LoadStrings (false);
-
-	V_InitFontColors ();
-
-	// [RH] Moved these up here so that we can do most of our
-	//		startup output in a fullscreen console.
-
-	// [BB] Zandronum handles chat differently.
-	//CT_Init ();
-
-	Printf ("I_Init: Setting up machine state.\n");
-	I_Init ();
-
-	// Server doesn't need video.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	do
 	{
-		Printf ("V_Init: allocate screen.\n");
-		V_Init ();
-	}
-	// [BB] We still need to initialize the palette for the ACS
-	// function CreateTranslation.
-	else
-		InitPalette ();
-
-	// Base systems have been inited; enable cvar callbacks
-	FBaseCVar::EnableCallbacks ();
-
-	// [RC] Start the G15 LCD module here.
-	G15_Construct ();
-
-	Printf ("S_Init: Setting up sound.\n");
-	S_Init ();
-
-	Printf ("ST_Init: Init startup screen.\n");
-	StartScreen = FStartupScreen::CreateInstance (TexMan.GuesstimateNumTextures() + 5);
-
-	ParseCompatibility();
-
-	CheckCmdLine();
-
-	// [RH] Load sound environments
-	S_ParseReverbDef ();
-
-	// [RH] Parse through all loaded mapinfo lumps
-	Printf ("G_ParseMapInfo: Load map definitions.\n");
-	G_ParseMapInfo (iwad_info->MapInfo);
-	ReadStatistics();
-
-	// [BL] Load SectInfo
-	SECTINFO_Load();
-
-	// [RH] Parse any SNDINFO lumps
-	Printf ("S_InitData: Load sound definitions.\n");
-	S_InitData ();
-
-	Printf ("Texman.Init: Init texture manager.\n");
-	TexMan.Init();
-	C_InitConback();
-
-	// [CW] Parse any TEAMINFO lumps.
-	Printf ("ParseTeamInfo: Load team definitions.\n");
-	//TeamLibrary.ParseTeamInfo ();
-	// [BB] At the moment Skulltag still doesn't use the new ZDoom TeamLibrary class.
-	TEAMINFO_Init ();
-
-	FActorInfo::StaticInit ();
-
-	// [GRB] Initialize player class list
-	SetupPlayerClasses ();
-
-
-	// [RH] Load custom key and weapon settings from WADs
-	D_LoadWadSettings ();
-
-	// [GRB] Check if someone used clearplayerclasses but not addplayerclass
-	if (PlayerClasses.Size () == 0)
-	{
-		I_FatalError ("No player classes defined");
-	}
-
-	StartScreen->Progress ();
-
-	Printf ("R_Init: Init %s refresh subsystem.\n", gameinfo.ConfigName.GetChars());
-	StartScreen->LoadingStatus ("Loading graphics", 0x3f);
-	R_Init ();
-
-	Printf ("DecalLibrary: Load decals.\n");
-	DecalLibrary.Clear ();
-	DecalLibrary.ReadAllDecals ();
-
-	// [RH] Add any .deh and .bex files on the command line.
-	// If there are none, try adding any in the config file.
-	// Note that the command line overrides defaults from the config.
-
-	if ((ConsiderPatches("-deh") | ConsiderPatches("-bex")) == 0 &&
-		gameinfo.gametype == GAME_Doom && GameConfig->SetSection ("Doom.DefaultDehacked"))
-	{
-		const char *key;
-		const char *value;
-
-		while (GameConfig->NextInSection (key, value))
+		if (restart)
 		{
-			if (stricmp (key, "Path") == 0 && FileExists (value))
-			{
-				Printf ("Applying patch %s\n", value);
-				D_LoadDehFile(value);
-			}
+			C_InitConsole(SCREENWIDTH, SCREENHEIGHT, false);
 		}
-	}
+		nospriterename = false;
 
-	// Load embedded Dehacked patches
-	D_LoadDehLumps();
+		// Load zdoom.pk3 alone so that we can get access to the internal gameinfos before 
+		// the IWAD is known.
 
-	// Create replacements for dehacked pickups
-	FinishDehPatch();
+		GetCmdLineFiles(pwads);
+		GetCmdLineFiles( optionalwads, "-optfile" ); // [TP] Note - this goes directly into the global variable
+		FString iwad = CheckGameInfo(pwads);
 
-	FActorInfo::StaticSetActorNums ();
+		// The IWAD selection dialogue dpes not show in fullscreen so if the
+		// restart is initiated without a defined IWAD assume for now that it's not going to change.
+		if (iwad.Len() == 0) iwad = lastIWAD;
 
-	// [ZZ] Added PWO lump loading here
-	PWO_LoadDefs();
+		FIWadManager *iwad_man = new FIWadManager;
+		const FIWADInfo *iwad_info = iwad_man->FindIWAD(allwads, iwad, basewad);
+		gameinfo.gametype = iwad_info->gametype;
+		gameinfo.flags = iwad_info->flags;
+		gameinfo.ConfigName = iwad_info->Configname;
+		lastIWAD = iwad;
 
-	// [BB] Zandronum uses different bot code.
-	//bglobal.getspawned.Clear();
-	Printf ("M_Init: Init menus.\n");
-	M_Init ();
+		FBaseCVar::DisableCallbacks();
+		GameConfig->DoGameSetup (gameinfo.ConfigName);
 
-	Printf ("P_Init: Init Playloop state.\n");
-	StartScreen->LoadingStatus ("Init game engine", 0x3f);
-	AM_StaticInit();
-	P_Init ();
+		AddAutoloadFiles(iwad_info->Autoname);
 
-	P_SetupWeapons_ntohton();
+		// Run automatically executed files
+		execFiles = new DArgs;
+		GameConfig->AddAutoexec (execFiles, gameinfo.ConfigName);
+		D_MultiExec (execFiles, true);
 
-	//SBarInfo support.
-	SBarInfo::Load();
+		// Run .cfg files at the start of the command line.
+		execFiles = Args->GatherFiles ("-exec");
+		D_MultiExec (execFiles, true);
 
-	// [RH] User-configurable startup strings. Because BOOM does.
-	static const char *startupString[5] = {
-		"STARTUP1", "STARTUP2", "STARTUP3", "STARTUP4", "STARTUP5"
-	};
-	for (p = 0; p < 5; ++p)
-	{
-		const char *str = GStrings[startupString[p]];
-		if (str != NULL && str[0] != '\0')
+		C_ExecCmdLineParams ();		// [RH] do all +set commands on the command line
+
+		CopyFiles(allwads, pwads);
+		CopyFiles( allwads, optionalwads ); // [TP]
+
+		// Since this function will never leave we must delete this array here manually.
+		pwads.Clear();
+		pwads.ShrinkToFit();
+
+		Printf ("W_Init: Init WADfiles.\n");
+		Wads.InitMultipleFiles (/*allwads*/); // [BB] Removed argument.
+		allwads.Clear();
+		allwads.ShrinkToFit();
+		SetMapxxFlag();
+		
+		// Now that wads are loaded, define mod-specific cvars.
+		ParseCVarInfo();
+
+		// Initialize the chat module.
+		CHAT_Construct( );
+
+		// Initialize the team info.
+		TEAM_Construct( );
+
+		// Initialize the duel module.
+		DUEL_Construct( );
+
+		// Initialize the LMS module.
+		LASTMANSTANDING_Construct( );
+
+		// Initialize the possession module.
+		POSSESSION_Construct( );
+
+		// Initialize the survival module.
+		SURVIVAL_Construct( );
+
+		// Initialize the invasion module.
+		INVASION_Construct( );
+
+		// Initialize the join queue module.
+		JOINQUEUE_Construct( );
+
+		// Initialize the medal info.
+		MEDAL_Construct( );
+
+		// Initialize the announcer info.
+		ANNOUNCER_Construct( );
+		ANNOUNCER_ParseAnnouncerInfo( );
+
+		// Initialize the campaign module.
+		CAMPAIGN_Construct( );
+		CAMPAIGN_ParseCampaignInfo( );
+
+		// [BB] Parse the GAMEMODE lump.
+		GAMEMODE_ParseGamemodeInfo( );
+
+		// [RH] Initialize localizable strings.
+		GStrings.LoadStrings (false);
+
+		V_InitFontColors ();
+
+		// [RH] Moved these up here so that we can do most of our
+		//		startup output in a fullscreen console.
+
+		// [BB] Zandronum handles chat differently.
+		//CT_Init ();
+
+		if (!restart)
 		{
-			Printf ("%s\n", str);
+			Printf ("I_Init: Setting up machine state.\n");
+			I_Init ();
 		}
-	}
 
-	Printf ("D_CheckNetGame: Checking network game status.\n");
-	StartScreen->LoadingStatus ("Checking network game status.", 0x3f);
-	D_CheckNetGame ();
-
-	// [BC] 
-	Printf( "Initializing network subsystem.\n" );
-	if ( Args->CheckParm( "-host" ))
-		SERVER_Construct( );
-	else
-	{
-		CLIENT_Construct( );
-		CLIENT_PREDICT_Construct( );
-		CLIENTSTATISTICS_Construct( );
-	}
-
-	// [BB]
-	DATABASE_Construct( );
-
-	// [BC] Initialize the browser module.
-	BROWSER_Construct( );
-
-	// [BC] Server doesn't use any status bar stuff.
-	// [BC] Now that all the skins have been loaded, parse the bot info.
-	BOTS_Construct( );
-	BOTS_ParseBotInfo( );
-	GameConfig->ReadRevealedBotsAndSkins( );
-
-	// [RH] Lock any cvars that should be locked now that we're
-	// about to begin the game.
-	FBaseCVar::EnableNoSet ();
-
-	delete iwad_man;	// now we won't need this anymore
-
-	// [RH] Run any saved commands from the command line or autoexec.cfg now.
-	gamestate = GS_FULLCONSOLE;
-	Net_NewMakeTic ();
-	DThinker::RunThinkers ();
-	gamestate = GS_STARTUP;
-
-	// Server doesn't record/play demos, etc.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		// Make sure that if we're using the -record parameter to record a client demo, we
-		// also don't record a regular demo.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		// Server doesn't need video.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			// start the apropriate game based on parms
-		v = Args->CheckValue ("-record");
+			Printf ("V_Init: allocate screen.\n");
+			V_Init (!!restart);
+		}
+		// [BB] We still need to initialize the palette for the ACS
+		// function CreateTranslation.
+		else
+			InitPalette ();
 
-			if (v)
+		// Base systems have been inited; enable cvar callbacks
+		FBaseCVar::EnableCallbacks ();
+
+		// [RC] Start the G15 LCD module here.
+		G15_Construct ();
+
+		Printf ("S_Init: Setting up sound.\n");
+		S_Init ();
+
+		Printf ("ST_Init: Init startup screen.\n");
+		if (!restart) StartScreen = FStartupScreen::CreateInstance (TexMan.GuesstimateNumTextures() + 5);
+		else StartScreen = new FStartupScreen(0);
+
+		ParseCompatibility();
+
+		CheckCmdLine();
+
+		// [RH] Load sound environments
+		S_ParseReverbDef ();
+
+		// [RH] Parse through all loaded mapinfo lumps
+		Printf ("G_ParseMapInfo: Load map definitions.\n");
+		G_ParseMapInfo (iwad_info->MapInfo);
+		ReadStatistics();
+
+		// [BL] Load SectInfo
+		SECTINFO_Load();
+
+		// [RH] Parse any SNDINFO lumps
+		Printf ("S_InitData: Load sound definitions.\n");
+		S_InitData ();
+
+		Printf ("Texman.Init: Init texture manager.\n");
+		TexMan.Init();
+		C_InitConback();
+
+		// [CW] Parse any TEAMINFO lumps.
+		Printf ("ParseTeamInfo: Load team definitions.\n");
+		//TeamLibrary.ParseTeamInfo ();
+		// [BB] At the moment Skulltag still doesn't use the new ZDoom TeamLibrary class.
+		TEAMINFO_Init ();
+
+		FActorInfo::StaticInit ();
+
+		// [GRB] Initialize player class list
+		SetupPlayerClasses ();
+
+
+		// [RH] Load custom key and weapon settings from WADs
+		D_LoadWadSettings ();
+
+		// [GRB] Check if someone used clearplayerclasses but not addplayerclass
+		if (PlayerClasses.Size () == 0)
+		{
+			I_FatalError ("No player classes defined");
+		}
+
+		StartScreen->Progress ();
+
+		Printf ("R_Init: Init %s refresh subsystem.\n", gameinfo.ConfigName.GetChars());
+		StartScreen->LoadingStatus ("Loading graphics", 0x3f);
+		R_Init ();
+
+		Printf ("DecalLibrary: Load decals.\n");
+		DecalLibrary.ReadAllDecals ();
+
+		// [RH] Add any .deh and .bex files on the command line.
+		// If there are none, try adding any in the config file.
+		// Note that the command line overrides defaults from the config.
+
+		if ((ConsiderPatches("-deh") | ConsiderPatches("-bex")) == 0 &&
+			gameinfo.gametype == GAME_Doom && GameConfig->SetSection ("Doom.DefaultDehacked"))
+		{
+			const char *key;
+			const char *value;
+
+			while (GameConfig->NextInSection (key, value))
 			{
-				G_RecordDemo (v);
-				autostart = true;
+				if (stricmp (key, "Path") == 0 && FileExists (value))
+				{
+					Printf ("Applying patch %s\n", value);
+					D_LoadDehFile(value);
+				}
 			}
 		}
 
-		delete StartScreen;
-		StartScreen = NULL;
+		// Load embedded Dehacked patches
+		D_LoadDehLumps();
 
-	if (Args->CheckParm("-norun"))
-	{
-		throw CNoRunExit();
-	}
+		// Create replacements for dehacked pickups
+		FinishDehPatch();
 
-		V_Init2();
+		FActorInfo::StaticSetActorNums ();
 
-		v = Args->CheckValue("-playdemo");
-		if (v != NULL)
+		// [ZZ] Added PWO lump loading here
+		PWO_LoadDefs();
+
+		/* [BB] Zandronum uses different bot code.
+		//Added by MC:
+		bglobal.getspawned.Clear();
+		argcount = Args->CheckParmList("-bots", &args);
+		for (p = 0; p < argcount; ++p)
 		{
-			singledemo = true;				// quit after one demo
-			G_DeferedPlayDemo (v);
-			D_DoomLoop ();	// never returns
+			bglobal.getspawned.Push(args[p]);
 		}
+		bglobal.spawn_tries = 0;
+		bglobal.wanted_botnum = bglobal.getspawned.Size();
+		*/
 
-		v = Args->CheckValue ("-timedemo");
-		if (v)
-		{
-			G_TimeDemo (v);
-			D_DoomLoop ();	// never returns
-		}
-			
-		v = Args->CheckValue ("-loadgame");
-		if (v)
-		{
-			FString file(v);
-			FixPathSeperator (file);
-			DefaultExtension (file, ".zds");
-			G_LoadGame (file);
-		}
-	}
-	// [BC] The server still needs to delete the start screen.
-	else
-	{
-		delete ( StartScreen );
-		StartScreen = NULL;
-	}
+		Printf ("M_Init: Init menus.\n");
+		M_Init ();
 
-	if (gameaction != ga_loadgame)
-	{
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			G_NewInit( );
+		Printf ("P_Init: Init Playloop state.\n");
+		StartScreen->LoadingStatus ("Init game engine", 0x3f);
+		AM_StaticInit();
+		P_Init ();
 
-			// Check if we have map rotation setup. If we do, use the first map there.
-			if (( sv_maprotation ) && ( MAPROTATION_GetNumEntries( ) > 0 ))
+		P_SetupWeapons_ntohton();
+
+		//SBarInfo support.
+		SBarInfo::Load();
+		HUD_InitHud();
+
+		// [RH] User-configurable startup strings. Because BOOM does.
+		static const char *startupString[5] = {
+			"STARTUP1", "STARTUP2", "STARTUP3", "STARTUP4", "STARTUP5"
+		};
+		for (p = 0; p < 5; ++p)
+		{
+			const char *str = GStrings[startupString[p]];
+			if (str != NULL && str[0] != '\0')
 			{
-				// [BB] G_InitNew seems to alter the contents of the first argument, which it shouldn't.
-				// This causes the "Frags" bug. The following is just a workaround, the behavior of
-				// G_InitNew should be fixed.
-				char levelname[10];
-				sprintf( levelname, "%s", MAPROTATION_GetMap( 0 )->mapname );
-				G_InitNew( levelname, false );
-				//G_InitNew( MAPROTATION_GetMapName( 0 ), false );
+				Printf ("%s\n", str);
 			}
+		}
+
+		if (!restart)
+		{
+			Printf ("D_CheckNetGame: Checking network game status.\n");
+			StartScreen->LoadingStatus ("Checking network game status.", 0x3f);
+			D_CheckNetGame ();
+		}
+
+		// [BC] 
+		Printf( "Initializing network subsystem.\n" );
+		if ( Args->CheckParm( "-host" ))
+			SERVER_Construct( );
+		else
+		{
+			CLIENT_Construct( );
+			CLIENT_PREDICT_Construct( );
+			CLIENTSTATISTICS_Construct( );
+		}
+
+		// [BB]
+		DATABASE_Construct( );
+
+		// [BC] Initialize the browser module.
+		BROWSER_Construct( );
+
+		// [BC] Server doesn't use any status bar stuff.
+		// [BC] Now that all the skins have been loaded, parse the bot info.
+		BOTS_Construct( );
+		BOTS_ParseBotInfo( );
+		GameConfig->ReadRevealedBotsAndSkins( );
+
+		// [RH] Lock any cvars that should be locked now that we're
+		// about to begin the game.
+		FBaseCVar::EnableNoSet ();
+
+		delete iwad_man;	// now we won't need this anymore
+
+		// [RH] Run any saved commands from the command line or autoexec.cfg now.
+		gamestate = GS_FULLCONSOLE;
+		Net_NewMakeTic ();
+		DThinker::RunThinkers ();
+		gamestate = GS_STARTUP;
+
+		if (!restart)
+		{
+			// Server doesn't record/play demos, etc.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				// Make sure that if we're using the -record parameter to record a client demo, we
+				// also don't record a regular demo.
+				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				{
+					// start the apropriate game based on parms
+					v = Args->CheckValue ("-record");
+
+					if (v)
+					{
+						G_RecordDemo (v);
+						autostart = true;
+					}
+				}
+
+				delete StartScreen;
+				StartScreen = NULL;
+
+				if (Args->CheckParm("-norun"))
+				{
+					throw CNoRunExit();
+				}
+
+				V_Init2();
+
+				v = Args->CheckValue("-playdemo");
+				if (v != NULL)
+				{
+					singledemo = true;				// quit after one demo
+					G_DeferedPlayDemo (v);
+					D_DoomLoop ();	// never returns
+				}
+
+				v = Args->CheckValue ("-timedemo");
+				if (v)
+				{
+					G_TimeDemo (v);
+					D_DoomLoop ();	// never returns
+				}
+				
+				v = Args->CheckValue ("-loadgame");
+				if (v)
+				{
+					FString file(v);
+					FixPathSeperator (file);
+					DefaultExtension (file, ".zds");
+					G_LoadGame (file);
+				}
+			}
+			// [BC] The server still needs to delete the start screen.
 			else
-				G_InitNew( startmap, false );
+			{
+				delete ( StartScreen );
+				StartScreen = NULL;
+			}
+
+			if (gameaction != ga_loadgame)
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					G_NewInit( );
+
+					// Check if we have map rotation setup. If we do, use the first map there.
+					if (( sv_maprotation ) && ( MAPROTATION_GetNumEntries( ) > 0 ))
+					{
+						// [BB] G_InitNew seems to alter the contents of the first argument, which it shouldn't.
+						// This causes the "Frags" bug. The following is just a workaround, the behavior of
+						// G_InitNew should be fixed.
+						char levelname[10];
+						sprintf( levelname, "%s", MAPROTATION_GetMap( 0 )->mapname );
+						G_InitNew( levelname, false );
+						//G_InitNew( MAPROTATION_GetMapName( 0 ), false );
+					}
+					else
+						G_InitNew( startmap, false );
+				}
+				else
+				{
+					if (autostart)// || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
+					{
+						// Do not do any screenwipes when autostarting a game.
+						if (!Args->CheckParm("-warpwipe"))
+						{
+							NoWipe = TICRATE;
+						}
+						CheckWarpTransMap (startmap, true);
+						if (demorecording)
+							G_BeginRecording (startmap);
+						G_InitNew (startmap, false);
+					}
+					else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+					{
+						D_StartTitle ();				// start up intro loop
+					}
+				}
+			}
+			else if (demorecording)
+			{
+				G_BeginRecording (NULL);
+			}
+						
+			atterm (D_QuitNetGame);		// killough
 		}
 		else
 		{
-			if (autostart)// || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
-			{
-				// Do not do any screenwipes when autostarting a game.
-				if (!Args->CheckParm("-warpwipe"))
-				{
-					NoWipe = TICRATE;
-				}
-				CheckWarpTransMap (startmap, true);
-				if (demorecording)
-					G_BeginRecording (startmap);
-				G_InitNew (startmap, false);
-			}
-			else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-			{
-				D_StartTitle ();				// start up intro loop
-			}
+			// These calls from inside V_Init2 are still necessary
+			C_NewModeAdjust();
+			M_InitVideoModesMenu();
+			D_StartTitle ();				// start up intro loop
+			setmodeneeded = false;			// This may be set to true here, but isn't needed for a restart
 		}
-	}
-	else if (demorecording)
-	{
-		G_BeginRecording (NULL);
-	}
-				
-	atterm (D_QuitNetGame);		// killough
 
-	// Client mode starts off in the full console!
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		gameaction = ga_fullconsole;
+		// Client mode starts off in the full console!
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			gameaction = ga_fullconsole;
 
-	// [BC] If we specified -private, make sv_updatemaster false.
-	if ( Args->CheckParm( "-private" ))
-		sv_updatemaster = false;
+		// [BC] If we specified -private, make sv_updatemaster false.
+		if ( Args->CheckParm( "-private" ))
+			sv_updatemaster = false;
 
-	// [BC] Potentially send an update to the master server.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVER_MASTER_Tick( );
-		SERVER_MASTER_Broadcast( );
-	}
-
-	// [BC] Little hack for +addbot.
-	for ( LONG lIdx = 0; lIdx < ( Args->NumArgs( ) - 1 ); lIdx++ )
-	{
-		if ( stricmp( Args->GetArg( lIdx ), "+addbot" ) == 0 )
+		// [BC] Potentially send an update to the master server.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			char	szString[128];
+			SERVER_MASTER_Tick( );
+			SERVER_MASTER_Broadcast( );
+		}
 
-			sprintf( szString, "addbot %s", Args->GetArg( lIdx + 1 ));
-			AddCommandString( szString );
+		// [BC] Little hack for +addbot.
+		for ( LONG lIdx = 0; lIdx < ( Args->NumArgs( ) - 1 ); lIdx++ )
+		{
+			if ( stricmp( Args->GetArg( lIdx ), "+addbot" ) == 0 )
+			{
+				char	szString[128];
+
+				sprintf( szString, "addbot %s", Args->GetArg( lIdx + 1 ));
+				AddCommandString( szString );
+			}
+		}
+
+		try
+		{
+			D_DoomLoop ();		// never returns
+		}
+		catch (CRestartException &ex)
+		{
+			// Music and sound should be stopped first
+			S_StopMusic(true);
+			S_StopAllChannels ();
+
+			// clean up game state
+			ST_Clear();
+			D_ErrorCleanup ();
+			P_FreeLevelData();
+			P_FreeExtraLevelData();
+
+			M_SaveDefaults(NULL);			// save config before the restart
+
+			// delete all data that cannot be left until reinitialization
+			V_ClearFonts();					// must clear global font pointers
+			R_DeinitTranslationTables();	// some tables are initialized from outside the translation code.
+			gameinfo.~gameinfo_t();
+			new (&gameinfo) gameinfo_t;		// Reset gameinfo
+			S_Shutdown();					// free all channels and delete playlist
+			C_ClearAliases();				// CCMDs won't be reinitialized so these need to be deleted here
+
+			GC::FullGC();					// perform one final garbage collection before deleting the class data
+			PClass::ClearRuntimeData();		// clear all runtime generated class data
+			restart++;
+		}
+	}
+	while (1);
+}
+
+//==========================================================================
+//
+// restart the game
+//
+//==========================================================================
+
+CCMD(restart)
+{
+	// remove command line args that would get in the way during restart
+	Args->RemoveArgs("-iwad");
+	Args->RemoveArgs("-deh");
+	Args->RemoveArgs("-bex");
+	Args->RemoveArgs("-playdemo");
+	Args->RemoveArgs("-file");
+	Args->RemoveArgs("-altdeath");
+	Args->RemoveArgs("-deathmatch");
+	Args->RemoveArgs("-skill");
+	Args->RemoveArgs("-savedir");
+	Args->RemoveArgs("-xlat");
+	Args->RemoveArgs("-oldsprites");
+
+	if (argv.argc() > 1)
+	{
+		for(int i=1;i<argv.argc(); i++)
+		{
+			Args->AppendArg(argv[i]);
 		}
 	}
 
-	D_DoomLoop ();		// never returns
+	// initiate the restart
+	throw CRestartException();
 }
 
 //==========================================================================
@@ -3096,6 +3208,14 @@ void FStartupScreen::LoadingStatus(const char *message, int colors)
 void FStartupScreen::AppendStatusLine(const char *status)
 {
 }
+
+
+void FStartupScreen::Progress(void) {}
+void FStartupScreen::NetInit(char const *,int) {}
+void FStartupScreen::NetProgress(int) {}
+void FStartupScreen::NetMessage(char const *,...) {}
+void FStartupScreen::NetDone(void) {}
+bool FStartupScreen::NetLoop(bool (*)(void *),void *) { return false; }
 
 //==========================================================================
 //

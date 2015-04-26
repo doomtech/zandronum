@@ -303,6 +303,7 @@ void S_Init ()
 	if (S_SoundCurve != NULL)
 	{
 		delete[] S_SoundCurve;
+		S_SoundCurve = NULL;
 	}
 
 	if ( g_aOriginalSoundCurve )
