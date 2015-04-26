@@ -85,7 +85,7 @@ static const char* const tableHeaders[NUM_COLUMNS] = { "IWAD", "Game" };
 		else
 			filename++;
 		[record setObject:[NSString stringWithUTF8String:filename] forKey:[NSString stringWithUTF8String:tableHeaders[COLUMN_IWAD]]];
-		[record setObject:[NSString stringWithUTF8String:IWADInfos[wads[i].Type].Name] forKey:[NSString stringWithUTF8String:tableHeaders[COLUMN_GAME]]];
+		[record setObject:[NSString stringWithUTF8String:wads[i].Name] forKey:[NSString stringWithUTF8String:tableHeaders[COLUMN_GAME]]];
 		[data addObject:record];
 		[record release];
 	}

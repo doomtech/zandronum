@@ -99,9 +99,40 @@ void Clipper::Clear()
 		node = node->next;
 		temp->Free();
 	}
+	node = silhouette;
+
+	while (node != NULL)
+	{
+		temp = node;
+		node = node->next;
+		temp->Free();
+	}
 	
 	cliphead = NULL;
+	silhouette = NULL;
 	anglecache++;
+}
+
+//-----------------------------------------------------------------------------
+//
+// SetSilhouette
+//
+//-----------------------------------------------------------------------------
+
+void Clipper::SetSilhouette()
+{
+	ClipNode *node = cliphead;
+	ClipNode *last = NULL;
+
+	while (node != NULL)
+	{
+		ClipNode *snode = ClipNode::NewRange(node->start, node->end);
+		if (silhouette == NULL) silhouette = snode;
+		snode->prev = last;
+		if (last != NULL) last->next = snode;
+		last = snode;
+		node = node->next;
+	}
 }
 
 
@@ -243,8 +274,42 @@ void Clipper::AddClipRange(angle_t start, angle_t end)
 
 void Clipper::RemoveClipRange(angle_t start, angle_t end)
 {
-	ClipNode *node, *temp;
+	ClipNode *node;
+
+	if (silhouette)
+	{
+		node = silhouette;
+		while (node != NULL && node->end <= start)
+		{
+			node = node->next;
+		}
+		if (node != NULL && node->start <= start)
+		{
+			if (node->end >= end) return;
+			start = node->end;
+			node = node->next;
+		}
+		while (node != NULL && node->start < end)
+		{
+			DoRemoveClipRange(start, node->start);
+			start = node->end;
+			node = node->next;
+		}
+		if (start >= end) return;
+	}
+	DoRemoveClipRange(start, end);
+}
 	
+//-----------------------------------------------------------------------------
+//
+// RemoveClipRange worker function
+//
+//-----------------------------------------------------------------------------
+
+void Clipper::DoRemoveClipRange(angle_t start, angle_t end)
+{
+	ClipNode *node, *temp;
+
 	if (cliphead)
 	{
 		//check to see if range contains any old ranges

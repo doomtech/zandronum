@@ -64,56 +64,27 @@ enum
 
 //==========================================================================
 //
-//  Calculate mirrorplane
-//
-//==========================================================================
-void GLWall::MirrorPlane(secplane_t * plane, bool ceiling)
-{
-	if (!(gl.flags&RFL_NOSTENCIL))
-	{
-		if (ceiling && FIXED2FLOAT(viewz) >= plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy))) return;
-		if (!ceiling && FIXED2FLOAT(viewz) <= plane->ZatPoint(FIXED2FLOAT(viewx), FIXED2FLOAT(viewy))) return;
-		type=RENDERWALL_PLANEMIRROR;
-		planemirror=plane;
-		PutWall(0);
-	}
-}
-
-//==========================================================================
-//
 //  Calculate sky texture
 //
 //==========================================================================
-void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
+void GLWall::SkyTexture(sector_t *sector, int plane)
 {
 	GLSkyInfo skyinfo;
+	ASkyViewpoint * skyboxx = plane == sector_t::floor? sector->FloorSkyBox : sector->CeilingSkyBox;
 
 	// JUSTHIT is used as an indicator that a skybox is in use.
 	// This is to avoid recursion
-	if (!gl_noskyboxes && !(gl.flags&RFL_NOSTENCIL) && skyboxx && GLRenderer->mViewActor!=skyboxx && !(skyboxx->flags&MF_JUSTHIT))
+
+	if (!gl_noskyboxes && skyboxx && GLRenderer->mViewActor!=skyboxx && !(skyboxx->flags&MF_JUSTHIT))
 	{
-		if (!skyboxx->Mate) 
-		{
-			type=RENDERWALL_SKYBOX;
-			skybox=skyboxx;
-		}
-		else 
-		{
-			static GLSectorStackInfo stackinfo;
-			if (ceiling && GLPortal::inlowerstack) return;
-			if (!ceiling && GLPortal::inupperstack) return;
-			type=RENDERWALL_SECTORSTACK;
-			stackinfo.origin = skyboxx;
-			stackinfo.isupper= ceiling;
-			stack=&stackinfo;
-		}
+		type=RENDERWALL_SKYBOX;
+		skybox=skyboxx;
 	}
 	else
 	{
-		if (skyboxx && skyboxx->Mate) return;
-
+		int sky1 = sector->sky;
 		memset(&skyinfo, 0, sizeof(skyinfo));
-		if ((sky1 & PL_SKYFLAT) && (sky1 & (PL_SKYFLAT-1)) && !(gl.flags&RFL_NOSTENCIL))
+		if ((sky1 & PL_SKYFLAT) && (sky1 & (PL_SKYFLAT-1)))
 		{
 			const line_t *l = &lines[(sky1&(PL_SKYFLAT-1))-1];
 			const side_t *s = l->sidedef[0];
@@ -142,12 +113,11 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			if (level.flags&LEVEL_DOUBLESKY)
 			{
 				skyinfo.texture[1]=FMaterial::ValidateTexture(sky1texture, true);
-				if (!skyinfo.texture[1]) return;
 				skyinfo.x_offset[1] = GLRenderer->mSky1Pos;
 				skyinfo.doublesky = true;
 			}
 			
-			if ((level.flags&LEVEL_SWAPSKIES || (sky1==PL_SKYFLAT && !(gl.flags&RFL_NOSTENCIL)) || (level.flags&LEVEL_DOUBLESKY)) &&
+			if ((level.flags&LEVEL_SWAPSKIES || (sky1==PL_SKYFLAT) || (level.flags&LEVEL_DOUBLESKY)) &&
 				sky2texture!=sky1texture)	// If both skies are equal use the scroll offset of the first!
 			{
 				skyinfo.texture[0]=FMaterial::ValidateTexture(sky2texture, true);
@@ -161,8 +131,6 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 				skyinfo.skytexno1=sky1texture;
 				skyinfo.x_offset[0] = GLRenderer->mSky1Pos;
 			}
-			if (!skyinfo.texture[0]) return;
-
 		}
 		if (skyfog>0) 
 		{
@@ -172,9 +140,8 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 		else skyinfo.fadecolor=0;
 
 		type=RENDERWALL_SKY;
-		sky = &skyinfo;
+		sky=UniqueSkies.Get(&skyinfo);
 	}
-	PutWall(0);
 }
 
 
@@ -183,34 +150,68 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 //  Skies on one sided walls
 //
 //==========================================================================
+
 void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 {
-	bool ceilingsky = fs->GetTexture(sector_t::ceiling)==skyflatnum || (fs->CeilingSkyBox && fs->CeilingSkyBox->bAlways);
-	if (ceilingsky || fs->ceiling_reflect)
-	{
-		ztop[0]=ztop[1]=32768.0f;
-		zbottom[0]=zceil[0];
-		zbottom[1]=zceil[1];
-		if (ceilingsky)	SkyTexture(fs->sky,fs->CeilingSkyBox, true);
-		else MirrorPlane(&fs->ceilingplane, true);
-	}
-	bool floorsky = fs->GetTexture(sector_t::floor)==skyflatnum || (fs->FloorSkyBox && fs->FloorSkyBox->bAlways);
-	if (floorsky || fs->floor_reflect)
-	{
-		ztop[0]=zfloor[0];
-		ztop[1]=zfloor[1];
-		zbottom[0]=zbottom[1]=-32768.0f;
-		if (floorsky) SkyTexture(fs->sky,fs->FloorSkyBox, false);
-		else MirrorPlane(&fs->floorplane, false);
-	}
-}
+	FPortal *portal;
 
+	portal = fs->portals[sector_t::ceiling];
+	if (portal != NULL)
+	{
+		type=RENDERWALL_SECTORSTACK;
+		if (GLPortal::inlowerstack) goto floor;
+		this->portal = portal;
+	}
+	else if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
+	{
+		SkyTexture(fs, sector_t::ceiling);
+	}
+	else if (fs->GetCeilingReflect() > 0)
+	{
+		// This must be done in floats to avoid overflows
+		if (FIXED2DBL(viewz) >= fs->ceilingplane.ZatPoint(FIXED2DBL(viewx), FIXED2DBL(viewy))) goto floor;
+		type=RENDERWALL_PLANEMIRROR;
+		planemirror = &fs->ceilingplane;
+	}
+	else goto floor;
+
+	ztop[0]=ztop[1]=32768.0f;
+	zbottom[0]=zceil[0];
+	zbottom[1]=zceil[1];
+	PutWall(0);
+
+floor:
+	portal = fs->portals[sector_t::floor];
+	if (portal != NULL)
+	{
+		type=RENDERWALL_SECTORSTACK;
+		if (GLPortal::inupperstack) return;
+		this->portal = portal;
+	}
+	else if (fs->GetTexture(sector_t::floor)==skyflatnum)
+	{
+		SkyTexture(fs, sector_t::floor);
+	}
+	else if (fs->GetFloorReflect() > 0)
+	{
+		if (FIXED2DBL(viewz) <= fs->floorplane.ZatPoint(FIXED2DBL(viewx), FIXED2DBL(viewy))) return;
+		type=RENDERWALL_PLANEMIRROR;
+		planemirror = &fs->floorplane;
+	}
+	else return;
+
+	ztop[0]=zfloor[0];
+	ztop[1]=zfloor[1];
+	zbottom[0]=zbottom[1]=-32768.0f;
+	PutWall(0);
+}
 
 //==========================================================================
 //
 //  Upper Skies on two sided walls
 //
 //==========================================================================
+
 void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2)
 {
 	if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
@@ -241,7 +242,7 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 						ztop[0]=ztop[1]=32768.0f;
 						zbottom[0]=zbottom[1]= 
 							FIXED2FLOAT(bs->ceilingplane.ZatPoint(v2) + seg->sidedef->GetTextureYOffset(side_t::mid));
-						SkyTexture(fs->sky,fs->CeilingSkyBox, true);
+						SkyTexture(fs, sector_t::ceiling);
 						return;
 					}
 				}
@@ -263,25 +264,40 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 			zbottom[1]=FIXED2FLOAT(bs->ceilingplane.ZatPoint(v2));
 			flags|=GLWF_SKYHACK;	// mid textures on such lines need special treatment!
 		}
-
-		SkyTexture(fs->sky,fs->CeilingSkyBox, true);
 	}
 	else 
 	{
-		bool ceilingsky = (fs->CeilingSkyBox && fs->CeilingSkyBox->bAlways && fs->CeilingSkyBox!=bs->CeilingSkyBox); 
-		if (ceilingsky || fs->ceiling_reflect)
-		{
-			// stacked sectors
-			fixed_t fsc1=fs->ceilingplane.ZatPoint(v1);
-			fixed_t fsc2=fs->ceilingplane.ZatPoint(v2);
+		FPortal *pfront = fs->portals[sector_t::ceiling];
+		FPortal *pback = bs->portals[sector_t::ceiling];
+		if (pfront == NULL && (fs->GetCeilingReflect() == 0 || pfront == pback)) return;
 
-			ztop[0]=ztop[1]=32768.0f;
-			zbottom[0]=FIXED2FLOAT(fsc1);
-			zbottom[1]=FIXED2FLOAT(fsc2);
-			if (ceilingsky)	SkyTexture(fs->sky,fs->CeilingSkyBox, true);
-			else MirrorPlane(&fs->ceilingplane, true);
-		}
+		// stacked sectors
+		fixed_t fsc1=fs->ceilingplane.ZatPoint(v1);
+		fixed_t fsc2=fs->ceilingplane.ZatPoint(v2);
+
+		ztop[0]=ztop[1]=32768.0f;
+		zbottom[0]=FIXED2FLOAT(fsc1);
+		zbottom[1]=FIXED2FLOAT(fsc2);
 	}
+
+	FPortal *portal = fs->portals[sector_t::ceiling];
+	if (portal != NULL)
+	{
+		type=RENDERWALL_SECTORSTACK;
+		if (GLPortal::inlowerstack) return;
+		this->portal = portal;
+	}
+	else if (fs->GetTexture(sector_t::ceiling)==skyflatnum)
+	{
+		SkyTexture(fs, sector_t::ceiling);
+	}
+	else // if (fs->ceiling_reflect != 0)
+	{
+		if (FIXED2DBL(viewz) >= fs->ceilingplane.ZatPoint(FIXED2DBL(viewx), FIXED2DBL(viewy))) return;
+		type=RENDERWALL_PLANEMIRROR;
+		planemirror = &fs->ceilingplane;
+	}
+	PutWall(0);
 }
 
 
@@ -290,6 +306,7 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 //  Lower Skies on two sided walls
 //
 //==========================================================================
+
 void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2)
 {
 	if (fs->GetTexture(sector_t::floor)==skyflatnum)
@@ -328,23 +345,39 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 			flags|=GLWF_SKYHACK;	// mid textures on such lines need special treatment!
 		}
 
-		SkyTexture(fs->sky,fs->FloorSkyBox, false);
+		SkyTexture(fs, sector_t::floor);
 	}
 	else 
 	{
-		bool floorsky = (fs->FloorSkyBox && fs->FloorSkyBox->bAlways && fs->FloorSkyBox!=bs->FloorSkyBox);
-		if (floorsky || fs->floor_reflect)
-		{
-			// stacked sectors
-			fixed_t fsc1=fs->floorplane.ZatPoint(v1);
-			fixed_t fsc2=fs->floorplane.ZatPoint(v2);
+		FPortal *pfront = fs->portals[sector_t::floor];
+		FPortal *pback = bs->portals[sector_t::floor];
+		if (pfront == NULL && (fs->GetFloorReflect() == 0 || pfront == pback)) return;
 
-			zbottom[0]=zbottom[1]=-32768.0f;
-			ztop[0]=FIXED2FLOAT(fsc1);
-			ztop[1]=FIXED2FLOAT(fsc2);
+		// stacked sectors
+		fixed_t fsc1=fs->floorplane.ZatPoint(v1);
+		fixed_t fsc2=fs->floorplane.ZatPoint(v2);
 
-			if (floorsky) SkyTexture(fs->sky,fs->FloorSkyBox, false);
-			else MirrorPlane(&fs->floorplane, false);
-		}
+		zbottom[0]=zbottom[1]=-32768.0f;
+		ztop[0]=FIXED2FLOAT(fsc1);
+		ztop[1]=FIXED2FLOAT(fsc2);
 	}
+
+	FPortal *portal = fs->portals[sector_t::floor];
+	if (portal != NULL)
+	{
+		type=RENDERWALL_SECTORSTACK;
+		if (GLPortal::inupperstack) return;
+		this->portal = portal;
+	}
+	else if (fs->GetTexture(sector_t::floor)==skyflatnum)
+	{
+		SkyTexture(fs, sector_t::floor);
+	}
+	else // if (fs->floor_reflect != 0)
+	{
+		if (FIXED2DBL(viewz) <= fs->floorplane.ZatPoint(FIXED2DBL(viewx), FIXED2DBL(viewy))) return;
+		type=RENDERWALL_PLANEMIRROR;
+		planemirror = &fs->floorplane;
+	}
+	PutWall(0);
 }

@@ -72,17 +72,8 @@ struct GLSkyInfo
 	}
 };
 
-struct GLSectorStackInfo
-{
-	ASkyViewpoint *origin;
-	bool isupper;	
-};
-
-
-
 extern UniqueList<GLSkyInfo> UniqueSkies;
 extern UniqueList<GLHorizonInfo> UniqueHorizons;
-extern UniqueList<GLSectorStackInfo> UniqueStacks;
 extern UniqueList<secplane_t> UniquePlaneMirrors;
 
 class GLPortal
@@ -97,8 +88,8 @@ protected:
 
 public:
 	static int PlaneMirrorMode;
-	static 	bool inupperstack;
-	static bool	inlowerstack;
+	static int inupperstack;
+	static int	inlowerstack;
 	static bool	inskybox;
 
 private:
@@ -111,6 +102,7 @@ private:
 	AActor * savedviewactor;
 	area_t savedviewarea;
 	unsigned char clipsave;
+	GLPortal *NextPortal;
 
 protected:
 	TArray<GLWall> lines;
@@ -241,21 +233,27 @@ public:
 
 struct GLSectorStackPortal : public GLPortal
 {
+	TArray<subsector_t *> subsectors;
 protected:
 	virtual void DrawContents();
 	virtual void * GetSource() const { return origin; }
 	virtual bool IsSky() { return true; }	// although this isn't a real sky it can be handled as one.
 	virtual const char *GetName();
-	GLSectorStackInfo * origin;
+	FPortal *origin;
 
 public:
 	
-	GLSectorStackPortal(GLSectorStackInfo * pt) 
+	GLSectorStackPortal(FPortal *pt) 
 	{
 		origin=pt;
 	}
 	int ClipSeg(seg_t *seg);
 	int ClipPoint(fixed_t x, fixed_t y);
+	void SetupCoverage();
+	void AddSubsector(subsector_t *sub)
+	{
+		subsectors.Push(sub);
+	}
 
 };
 

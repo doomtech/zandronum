@@ -51,12 +51,14 @@ class Clipper
 {
 	ClipNode * clipnodes;
 	ClipNode * cliphead;
+	ClipNode * silhouette;	// will be preserved even when RemoveClipRange is called
 
 	static angle_t AngleToPseudo(angle_t ang);
 	bool IsRangeVisible(angle_t startangle, angle_t endangle);
 	void RemoveRange(ClipNode * cn);
 	void AddClipRange(angle_t startangle, angle_t endangle);
 	void RemoveClipRange(angle_t startangle, angle_t endangle);
+	void DoRemoveClipRange(angle_t start, angle_t end);
 
 public:
 
@@ -72,6 +74,7 @@ public:
 	void Clear();
 
 
+	void SetSilhouette();
 
 	bool SafeCheckRange(angle_t startAngle, angle_t endAngle)
 	{

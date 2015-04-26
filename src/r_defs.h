@@ -336,6 +336,7 @@ struct subsector_t;
 struct sector_t;
 struct side_t;
 extern bool gl_plane_reflection_i;
+struct FPortal;
 
 // Ceiling/floor flags
 enum
@@ -770,6 +771,7 @@ struct sector_t
 	fixed_t						transdoorheight;	// for transparent door hacks
 	int							subsectorcount;		// list of subsectors
 	subsector_t **				subsectors;
+	FPortal *					portals[2];			// floor and ceiling portals
 
 	enum
 	{
@@ -1156,8 +1158,8 @@ struct subsector_t
 
 	// subsector related GL data
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
-	fixed_t			bbox[4];		// Bounding box
 	int				validcount;
+	short			mapsection;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
 	FPortalCoverage	portalcoverage[2];
@@ -1165,7 +1167,6 @@ struct subsector_t
 	// [BL] Constructor to init GZDoom data
 	subsector_t() : render_sector(NULL), hacked(0)
 	{
-		bbox[0] = bbox[1] = bbox[2] = bbox[3] = 0;
 		lighthead[0] = lighthead[1] = NULL;
 	}
 };

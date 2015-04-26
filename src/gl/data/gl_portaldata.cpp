@@ -57,6 +57,7 @@
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_clipper.h"
+#include "gl/scene/gl_portal.h"
 #include "gl/dynlights/gl_dynlight.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/utility/gl_clock.h"
@@ -203,7 +204,17 @@ void FPortal::UpdateClipAngles()
 	}
 }
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
 
+GLSectorStackPortal *FPortal::GetGLPortal()
+{
+	if (glportal == NULL) glportal = new GLSectorStackPortal(this);
+	return glportal;
+}
 
 //==========================================================================
 //
@@ -472,53 +483,49 @@ void gl_InitPortals()
 	portals.Clear();
 	while ((pt = it.Next()))
 	{
-		FPortal *portal = NULL;
-		int plane;
-		pt->special1 = -1;
+		FPortal *portalp[2] = {NULL, NULL};
 		for(int i=0;i<numsectors;i++)
 		{
 			if (sectors[i].linecount == 0)
 			{
 				continue;
 			}
-			else if (sectors[i].FloorSkyBox == pt)
+			for(int plane=0;plane<2;plane++)
 			{
-				plane = 1;
-			}
-			else if (sectors[i].CeilingSkyBox == pt)
-			{
-				plane = 2;
-			}
-			else continue;
+				TObjPtr<ASkyViewpoint> &p = plane==1? sectors[i].CeilingSkyBox : sectors[i].FloorSkyBox;
+				if (p != pt) continue;
 
-			// we only process portals that actually are in use.
-			if (portal == NULL) 
-			{
-				pt->special1 = portals.Size();	// Link portal thing to render data
-				portal = &portals[portals.Reserve(1)];
-				portal->origin = pt;
-				portal->plane = 0;
-				portal->xDisplacement = pt->x - pt->Mate->x;
-				portal->yDisplacement = pt->y - pt->Mate->y;
-			}
-			portal->AddSectorToPortal(&sectors[i]);
-			portal->plane|=plane;
+				// we only process portals that actually are in use.
+				if (portalp[plane] == NULL) 
+				{
+					portalp[plane] = &portals[portals.Reserve(1)];
+					portalp[plane]->origin = pt;
+					portalp[plane]->glportal = NULL;
+					portalp[plane]->plane = plane;
+					portalp[plane]->xDisplacement = pt->x - pt->Mate->x;
+					portalp[plane]->yDisplacement = pt->y - pt->Mate->y;
+				}
+				portalp[plane]->AddSectorToPortal(&sectors[i]);
+				sectors[i].portals[plane] = portalp[plane];
 
-			for (int j=0;j < sectors[i].subsectorcount; j++)
-			{
-				subsector_t *sub = sectors[i].subsectors[j];
-				gl_BuildPortalCoverage(&sub->portalcoverage[plane-1], sub, portal);
+				for (int j=0;j < sectors[i].subsectorcount; j++)
+				{
+					subsector_t *sub = sectors[i].subsectors[j];
+					gl_BuildPortalCoverage(&sub->portalcoverage[plane], sub, portalp[plane]);
+				}
 			}
 		}
-		if (portal != NULL)
-		{
-			// if the first vertex is duplicated at the end it'll save time in a time critical function
-			// because that code does not need to check for wraparounds anymore.
-			portal->Shape.Resize(portal->Shape.Size()+1);
-			portal->Shape[portal->Shape.Size()-1] = portal->Shape[0];
-			portal->Shape.ShrinkToFit();
-			portal->ClipAngles.Resize(portal->Shape.Size());
-		}
+	}
+
+	for(unsigned i=0;i<portals.Size(); i++)
+	{
+		// if the first vertex is duplicated at the end it'll save time in a time critical function
+		// because that code does not need to check for wraparounds anymore.
+		// Note: We cannot push an element of the array onto the array itself. This must be done in 2 steps
+		portals[i].Shape.Reserve(1);
+		portals[i].Shape.Last() = portals[i].Shape[0];
+		portals[i].Shape.ShrinkToFit();
+		portals[i].ClipAngles.Resize(portals[i].Shape.Size());
 	}
 }
 
@@ -529,7 +536,7 @@ CCMD(dumpportals)
 	{
 		double xdisp = portals[i].xDisplacement/65536.;
 		double ydisp = portals[i].yDisplacement/65536.;
-		Printf(PRINT_LOG, "Portal #%d, plane %d, stackpoint at (%f,%f), displacement = (%f,%f)\nShape:\n", i, portals[i].plane, portals[i].origin->x/65536., portals[i].origin->y/65536.,
+		Printf(PRINT_LOG, "Portal #%d, %s, stackpoint at (%f,%f), displacement = (%f,%f)\nShape:\n", i, portals[i].plane==0? "floor":"ceiling", portals[i].origin->x/65536., portals[i].origin->y/65536.,
 			xdisp, ydisp);
 		for (unsigned j=0;j<portals[i].Shape.Size(); j++)
 		{
@@ -539,8 +546,8 @@ CCMD(dumpportals)
 		for(int j=0;j<numsubsectors;j++)
 		{
 			subsector_t *sub = &subsectors[j];
-			ASkyViewpoint *pt = portals[i].plane == 1? sub->render_sector->FloorSkyBox : sub->render_sector->CeilingSkyBox;
-			if (pt != NULL && pt->bAlways && pt->special1 == i)
+			ASkyViewpoint *pt = portals[i].plane == 0? sub->render_sector->FloorSkyBox : sub->render_sector->CeilingSkyBox;
+			if (pt == portals[i].origin)
 			{
 				Printf(PRINT_LOG, "\tSubsector %d (%d):\n\t\t", j, sub->render_sector->sectornum);
 				for(unsigned k = 0;k< sub->numlines; k++)
@@ -548,7 +555,7 @@ CCMD(dumpportals)
 					Printf(PRINT_LOG, "(%.3f,%.3f), ",	sub->firstline[k].v1->x/65536. + xdisp, sub->firstline[k].v1->y/65536. + ydisp);
 				}
 				Printf(PRINT_LOG, "\n\t\tCovered by subsectors:\n");
-				FPortalCoverage *cov = &sub->portalcoverage[portals[i].plane-1];
+				FPortalCoverage *cov = &sub->portalcoverage[portals[i].plane];
 				for(int l = 0;l< cov->sscount; l++)
 				{
 					subsector_t *csub = &subsectors[cov->subsectors[l]];

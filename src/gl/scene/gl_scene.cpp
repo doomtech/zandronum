@@ -93,6 +93,7 @@ extern int viewpitch;
  
 DWORD			gl_fixedcolormap;
 area_t			in_area;
+TArray<BYTE> currentmapsection;
 
 
 void R_SetupFrame (AActor * camera);
@@ -876,6 +877,10 @@ void FGLRenderer::ProcessScene(bool toscreen)
 	iter_dlightf = iter_dlight = draw_dlight = draw_dlightf = 0;
 	GLPortal::BeginScene();
 
+	int mapsection = R_PointInSubsector(viewx, viewy)->mapsection;
+	memset(&currentmapsection[0], 0, currentmapsection.Size());
+	currentmapsection[mapsection>>3] |= 1 << (mapsection & 7);
+	for(unsigned i=0;i<portals.Size(); i++) portals[i].glportal = NULL;
 	DrawScene(toscreen);
 	FDrawInfo::EndDrawInfo();
 

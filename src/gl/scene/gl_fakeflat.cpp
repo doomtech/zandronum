@@ -44,6 +44,7 @@
 #include "r_sky.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/scene/gl_clipper.h"
+#include "gl/data/gl_data.h"
 
 
 //==========================================================================
@@ -70,10 +71,11 @@ bool gl_CheckClip(side_t * sidedef, sector_t * frontsector, sector_t * backsecto
 
 	// Lines with stacked sectors must never block!
 
-	if (backsector->CeilingSkyBox && backsector->CeilingSkyBox->bAlways) return false;
-	if (backsector->FloorSkyBox && backsector->FloorSkyBox->bAlways) return false;
-	if (frontsector->CeilingSkyBox && frontsector->CeilingSkyBox->bAlways) return false;
-	if (frontsector->FloorSkyBox && frontsector->FloorSkyBox->bAlways) return false;
+	if (backsector->portals[sector_t::ceiling] != NULL || backsector->portals[sector_t::floor] != NULL ||
+		frontsector->portals[sector_t::ceiling] != NULL || frontsector->portals[sector_t::floor] != NULL)
+	{
+		return false;
+	}
 
 	// on large levels this distinction can save some time
 	// That's a lot of avoided multiplications if there's a lot to see!

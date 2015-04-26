@@ -18,8 +18,8 @@ class ADynamicLight;
 class FMaterial;
 struct GLDrawList;
 struct GLSkyInfo;
-struct GLSectorStackInfo;
 struct FTexCoordInfo;
+struct FPortal;
 
 
 enum WallTypes
@@ -135,7 +135,7 @@ public:
 		AActor * skybox;			// for skyboxes
 		GLSkyInfo * sky;			// for normal sky
 		GLHorizonInfo * horizon;	// for horizon information
-		GLSectorStackInfo * stack;	// for sector stacks
+		FPortal * portal;			// stacked sector portals
 		secplane_t * planemirror;	// for plane mirrors
 	};
 
@@ -164,7 +164,7 @@ private:
 	void FloodPlane(int pass);
 
 	void MirrorPlane(secplane_t * plane, bool ceiling);
-	void SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling);
+	void SkyTexture(sector_t *sector, int plane);
 
 	void SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2);
 	void SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2);
@@ -185,6 +185,7 @@ private:
 						   int v_offset);
 
 	void DoMidTexture(seg_t * seg, bool drawfogboundary,
+					  sector_t * front, sector_t * back,
 					  sector_t * realfront, sector_t * realback,
 					  fixed_t fch1, fixed_t fch2, fixed_t ffh1, fixed_t ffh2,
 					  fixed_t bch1, fixed_t bch2, fixed_t bfh1, fixed_t bfh2);
