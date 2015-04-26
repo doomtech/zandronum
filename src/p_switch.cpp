@@ -61,18 +61,19 @@ class DActiveButton : public DThinker
 	DECLARE_CLASS (DActiveButton, DThinker)
 public:
 	DActiveButton ();
-	DActiveButton (side_t *, int, WORD switchnum, fixed_t x, fixed_t y, bool flippable);
+	DActiveButton (side_t *, int, FSwitchDef *, fixed_t x, fixed_t y, bool flippable);
 
 	void Serialize (FArchive &arc);
 	void Tick ();
 
-	side_t	*m_Side;
-	SBYTE	m_Part;
-	WORD	m_SwitchDef;
-	WORD	m_Frame;
-	WORD	m_Timer;
-	bool	bFlippable;
-	fixed_t	m_X, m_Y;	// Location of timer sound
+	side_t			*m_Side;
+	SBYTE			m_Part;
+	bool			bFlippable;
+	bool			bReturning;
+	FSwitchDef		*m_SwitchDef;
+	SDWORD			m_Frame;
+	DWORD			m_Timer;
+	fixed_t			m_X, m_Y;	// Location of timer sound
 
 protected:
 	bool AdvanceFrame ();
@@ -86,8 +87,7 @@ protected:
 //
 //==========================================================================
 
-static bool P_StartButton (side_t *side, int Where, int switchnum,
-						   fixed_t x, fixed_t y, bool useagain)
+static bool P_StartButton (side_t *side, int Where, FSwitchDef *Switch, fixed_t x, fixed_t y, bool useagain)
 {
 	DActiveButton *button;
 	TThinkerIterator<DActiveButton> iterator;
@@ -102,7 +102,7 @@ static bool P_StartButton (side_t *side, int Where, int switchnum,
 		}
 	}
 
-	new DActiveButton (side, Where, switchnum, x, y, useagain);
+	new DActiveButton (side, Where, Switch, x, y, useagain);
 	return true;
 }
 
@@ -173,15 +173,15 @@ bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
 	if (open.range <= 0)
 		goto onesided;
 
-	if ((TexMan.FindSwitch (side->GetTexture(side_t::top))) != -1)
+	if ((TexMan.FindSwitch (side->GetTexture(side_t::top))) != NULL)
 	{
 		return (user->z + user->height >= open.top);
 	}
-	else if ((TexMan.FindSwitch (side->GetTexture(side_t::bottom))) != -1)
+	else if ((TexMan.FindSwitch (side->GetTexture(side_t::bottom))) != NULL)
 	{
 		return (user->z <= open.bottom);
 	}
-	else if ((line->flags & (ML_3DMIDTEX)) || (TexMan.FindSwitch (side->GetTexture(side_t::mid))) != -1)
+	else if ((line->flags & (ML_3DMIDTEX)) || (TexMan.FindSwitch (side->GetTexture(side_t::mid))) != NULL)
 	{
 		// 3DMIDTEX lines will force a mid texture check if no switch is found on this line
 		// to keep compatibility with Eternity's implementation.
@@ -207,23 +207,22 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 {
 	int texture;
 	int sound;
-	int i;
 	FSwitchDef *Switch;
 	// [BC]
 	ULONG	ulShift;
 	// [BB] Check the ulShift handling.
 
-	if ((i = TexMan.FindSwitch (side->GetTexture(side_t::top))) != -1)
+	if ((Switch = TexMan.FindSwitch (side->GetTexture(side_t::top))) != NULL)
 	{
 		texture = side_t::top;
 		ulShift = 0;
 	}
-	else if ((i = TexMan.FindSwitch (side->GetTexture(side_t::bottom))) != -1)
+	else if ((Switch = TexMan.FindSwitch (side->GetTexture(side_t::bottom))) != NULL)
 	{
 		texture = side_t::bottom;
 		ulShift = 2;
 	}
-	else if ((i = TexMan.FindSwitch (side->GetTexture(side_t::mid))) != -1)
+	else if ((Switch = TexMan.FindSwitch (side->GetTexture(side_t::mid))) != NULL)
 	{
 		texture = side_t::mid;
 		ulShift = 1;
@@ -236,7 +235,6 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 		}
 		return false;
 	}
-	Switch = TexMan.GetSwitch(i);
 
 	// [BC] Set the texture change flags.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -275,7 +273,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 
 	pt[0] = line->v1->x + (line->dx >> 1);
 	pt[1] = line->v1->y + (line->dy >> 1);
-	side->SetTexture(texture, Switch->u[0].Texture);
+	side->SetTexture(texture, Switch->frames[0].Texture);
 
 	// [BC] If we're the server, tell clients to set the line texture.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -283,7 +281,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 
 	if (useAgain || Switch->NumFrames > 1)
 	{
-		playsound = P_StartButton (side, texture, i, pt[0], pt[1], !!useAgain);
+		playsound = P_StartButton (side, texture, Switch, pt[0], pt[1], !!useAgain);
 	}
 	else 
 	{
@@ -321,9 +319,11 @@ DActiveButton::DActiveButton ()
 	m_X = 0;
 	m_Y = 0;
 	bFlippable = false;
+	bReturning = false;
+	m_Frame = 0;
 }
 
-DActiveButton::DActiveButton (side_t *side, int Where, WORD switchnum,
+DActiveButton::DActiveButton (side_t *side, int Where, FSwitchDef *Switch,
 							  fixed_t x, fixed_t y, bool useagain)
 {
 	m_Side = side;
@@ -331,9 +331,10 @@ DActiveButton::DActiveButton (side_t *side, int Where, WORD switchnum,
 	m_X = x;
 	m_Y = y;
 	bFlippable = useagain;
+	bReturning = false;
 
-	m_SwitchDef = switchnum;
-	m_Frame = 65535;
+	m_SwitchDef = Switch;
+	m_Frame = -1;
 	AdvanceFrame ();
 }
 
@@ -345,18 +346,8 @@ DActiveButton::DActiveButton (side_t *side, int Where, WORD switchnum,
 
 void DActiveButton::Serialize (FArchive &arc)
 {
-	SDWORD sidenum;
-
 	Super::Serialize (arc);
-	if (arc.IsStoring ())
-	{
-		sidenum = m_Side ? SDWORD(m_Side - sides) : -1;
-	}
-	arc << sidenum << m_Part << m_SwitchDef << m_Frame << m_Timer << bFlippable << m_X << m_Y;
-	if (arc.IsLoading ())
-	{
-		m_Side = sidenum >= 0 ? sides + sidenum : NULL;
-	}
+	arc << m_Side << m_Part << m_SwitchDef << m_Frame << m_Timer << bFlippable << m_X << m_Y << bReturning;
 }
 
 //==========================================================================
@@ -367,16 +358,23 @@ void DActiveButton::Serialize (FArchive &arc)
 
 void DActiveButton::Tick ()
 {
+	if (m_SwitchDef == NULL)
+	{
+		// We lost our definition due to a bad savegame.
+		Destroy();
+		return;
+	}
+
+	FSwitchDef *def = bReturning? m_SwitchDef->PairDef : m_SwitchDef;
 	if (--m_Timer == 0)
 	{
-		FSwitchDef *def = TexMan.GetSwitch(m_SwitchDef);
 		if (m_Frame == def->NumFrames - 1)
 		{
-			m_SwitchDef = def->PairIndex;
-			if (m_SwitchDef != 65535)
+			bReturning = true;
+			def = m_SwitchDef->PairDef;
+			if (def != NULL)
 			{
-				def = TexMan.GetSwitch(def->PairIndex);
-				m_Frame = 65535;
+				m_Frame = -1;
 				S_Sound (m_X, m_Y, 0, CHAN_VOICE|CHAN_LISTENERZ,
 					def->Sound != 0 ? FSoundID(def->Sound) : FSoundID("switches/normbutn"),
 					1, ATTN_STATIC);
@@ -395,7 +393,7 @@ void DActiveButton::Tick ()
 		}
 		bool killme = AdvanceFrame ();
 
-		m_Side->SetTexture(m_Part, def->u[m_Frame].Texture);
+		m_Side->SetTexture(m_Part, def->frames[m_Frame].Texture);
 
 		// [BC] If we're the server, tell clients to update the switch texture.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -417,7 +415,7 @@ void DActiveButton::Tick ()
 bool DActiveButton::AdvanceFrame ()
 {
 	bool ret = false;
-	FSwitchDef *def = TexMan.GetSwitch(m_SwitchDef);
+	FSwitchDef *def = bReturning? m_SwitchDef->PairDef : m_SwitchDef;
 
 	if (++m_Frame == def->NumFrames - 1)
 	{
@@ -432,17 +430,10 @@ bool DActiveButton::AdvanceFrame ()
 	}
 	else
 	{
-		if (def->u[m_Frame].Time & 0xffff0000)
+		m_Timer = def->frames[m_Frame].TimeMin;
+		if (def->frames[m_Frame].TimeRnd != 0)
 		{
-			int t = pr_switchanim();
-
-			m_Timer = (WORD)((((t | (pr_switchanim() << 8))
-				% def->u[m_Frame].Time) >> 16)
-				+ (def->u[m_Frame].Time & 0xffff));
-		}
-		else
-		{
-			m_Timer = (WORD)def->u[m_Frame].Time;
+			m_Timer += pr_switchanim(def->frames[m_Frame].TimeRnd);
 		}
 	}
 	return ret;

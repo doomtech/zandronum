@@ -392,6 +392,7 @@ class UDMFParser : public UDMFParserBase
 	TArray<mapsidedef_t> ParsedSideTextures;
 	TArray<sector_t> ParsedSectors;
 	TArray<vertex_t> ParsedVertices;
+	TArray<vertexdata_t> ParsedVertexDatas;
 
 	FDynamicColormap	*fogMap, *normMap;
 
@@ -1305,9 +1306,10 @@ public:
 	//
 	//===========================================================================
 
-	void ParseVertex(vertex_t *vt)
+	void ParseVertex(vertex_t *vt, vertexdata_t *vd)
 	{
 		vt->x = vt->y = 0;
+		vd->zCeiling = vd->zFloor = vd->flags = 0;
 		sc.MustGetStringName("{");
 		while (!sc.CheckString("}"))
 		{
@@ -1322,9 +1324,21 @@ public:
 			case NAME_X:
 				vt->x = FLOAT2FIXED(strtod(value, NULL));
 				break;
+
 			case NAME_Y:
 				vt->y = FLOAT2FIXED(strtod(value, NULL));
 				break;
+
+			case NAME_ZCeiling:
+				vd->zCeiling = FLOAT2FIXED(strtod(value, NULL));
+				vd->flags |= VERTEXFLAG_ZCeilingEnabled;
+				break;
+
+			case NAME_ZFloor:
+				vd->zFloor = FLOAT2FIXED(strtod(value, NULL));
+				vd->flags |= VERTEXFLAG_ZFloorEnabled;
+				break;
+
 			default:
 				break;
 			}
@@ -1529,8 +1543,10 @@ public:
 			else if (sc.Compare("vertex"))
 			{
 				vertex_t vt;
-				ParseVertex(&vt);
+				vertexdata_t vd;
+				ParseVertex(&vt, &vd);
 				ParsedVertices.Push(vt);
+				ParsedVertexDatas.Push(vd);
 			}
 			else
 			{
@@ -1548,6 +1564,11 @@ public:
 		numvertexes = ParsedVertices.Size();
 		vertexes = new vertex_t[numvertexes];
 		memcpy(vertexes, &ParsedVertices[0], numvertexes * sizeof(*vertexes));
+
+		// Create the real vertex datas
+		numvertexdatas = ParsedVertexDatas.Size();
+		vertexdatas = new vertexdata_t[numvertexdatas];
+		memcpy(vertexdatas, &ParsedVertexDatas[0], numvertexdatas * sizeof(*vertexdatas));
 
 		// Create the real sectors
 		numsectors = ParsedSectors.Size();

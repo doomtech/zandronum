@@ -142,7 +142,6 @@ bool savegamerestore;
 
 extern int mousex, mousey;
 extern bool sendpause, sendsave, sendturn180, SendLand;
-extern const AInventory *SendItemUse, *SendItemDrop;
 
 void *statcopy;					// for statistics driver
 
@@ -372,6 +371,8 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	EGameSpeed oldSpeed;
 	bool wantFast;
 	int i;
+
+	G_ClearHubInfo();
 
 	// [BB] If there is a free spectator player from the last map, be sure to get rid of it.
 	if ( CLIENTDEMO_IsPlaying() )

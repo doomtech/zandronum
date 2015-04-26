@@ -1351,11 +1351,9 @@ FArchive &operator<< (FArchive &arc, userinfo_t &info)
 	{
 		arc.Read (&info.netname, sizeof(info.netname));
 	}
-	arc << /*info.team <<*/ info.aimdist << info.color << info.skin << info.gender << info.switchonpickup;
-	if (SaveVersion >= 2193)
-	{
-		arc << info.colorset;
-	}
+	arc << /*info.team <<*/ info.aimdist << info.color 
+		<< info.skin << info.gender << info.switchonpickup
+		<< info.colorset;
 	return arc;
 }
 

@@ -71,6 +71,12 @@
 #include "deathmatch.h"
 #include "network.h"
 #include "scoreboard.h"
+//=============================================================================
+//
+// Automap colors
+//
+//=============================================================================
+
 struct AMColor
 {
 	int Index;
@@ -125,6 +131,12 @@ static BYTE RavenPaletteVals[11*3] =
 	 103,  59,  31,  236, 236, 236,    0,   0,   0,
 	   0,   0,   0,    0,   0,   0,
 };
+
+//=============================================================================
+//
+// globals
+//
+//=============================================================================
 
 #define MAPBITS 12
 #define MapDiv SafeDivScale12
@@ -294,28 +306,28 @@ struct islope_t
 //  A line drawing of the player pointing right,
 //   starting from the middle.
 //
-TArray<mline_t> MapArrow;
-TArray<mline_t> CheatMapArrow;
-TArray<mline_t> CheatKey;
+static TArray<mline_t> MapArrow;
+static TArray<mline_t> CheatMapArrow;
+static TArray<mline_t> CheatKey;
 
 #define R (MAPUNIT)
 // [RH] Avoid lots of warnings without compiler-specific #pragmas
 #define L(a,b,c,d) { {(fixed_t)((a)*R),(fixed_t)((b)*R)}, {(fixed_t)((c)*R),(fixed_t)((d)*R)} }
-mline_t triangle_guy[] = {
+static mline_t triangle_guy[] = {
 	L (-.867,-.5, .867,-.5),
 	L (.867,-.5, 0,1),
 	L (0,1, -.867,-.5)
 };
 #define NUMTRIANGLEGUYLINES (sizeof(triangle_guy)/sizeof(mline_t))
 
-mline_t thintriangle_guy[] = {
+static mline_t thintriangle_guy[] = {
 	L (-.5,-.7, 1,0),
 	L (1,0, -.5,.7),
 	L (-.5,.7, -.5,-.7)
 };
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
 
-mline_t square_guy[] = {
+static mline_t square_guy[] = {
 	L (0,1,1,0),
 	L (1,0,0,-1),
 	L (0,-1,-1,0),
@@ -338,8 +350,6 @@ CUSTOM_CVAR (Int, am_cheat, 0, 0)
 }
 
 static int 	grid = 0;
-
-static int 	leveljuststarted = 1; 	// kluge until AM_LevelInit() is called
 
 bool		automapactive = false;
 
@@ -522,16 +532,41 @@ void AM_ParseArrow(TArray<mline_t> &Arrow, const char *lumpname)
 	}
 }
 
-void AM_InitArrows()
+void AM_StaticInit()
 {
-
 	MapArrow.Clear();
 	CheatMapArrow.Clear();
+	CheatKey.Clear();
 
 	if (gameinfo.mMapArrow.IsNotEmpty()) AM_ParseArrow(MapArrow, gameinfo.mMapArrow);
 	if (gameinfo.mCheatMapArrow.IsNotEmpty()) AM_ParseArrow(CheatMapArrow, gameinfo.mCheatMapArrow);
 	AM_ParseArrow(CheatKey, "maparrows/key.txt");
 	if (MapArrow.Size() == 0) I_FatalError("No automap arrow defined");
+
+	char namebuf[9];
+
+	for (int i = 0; i < 10; i++)
+	{
+		mysnprintf (namebuf, countof(namebuf), "AMMNUM%d", i);
+		marknums[i] = TexMan.CheckForTexture (namebuf, FTexture::TEX_MiscPatch);
+	}
+	markpointnum = 0;
+	mapback.SetInvalid();
+
+	static DWORD *lastpal = NULL;
+	//static int lastback = -1;
+	DWORD *palette;
+	
+	palette = (DWORD *)GPalette.BaseColors;
+
+	int i, j;
+
+	for (i = j = 0; i < 11; i++, j += 3)
+	{
+		DoomColors[i].FromRGB(DoomPaletteVals[j], DoomPaletteVals[j+1], DoomPaletteVals[j+2]);
+		StrifeColors[i].FromRGB(StrifePaletteVals[j], StrifePaletteVals[j+1], StrifePaletteVals[j+2]);
+		RavenColors[i].FromRGB(RavenPaletteVals[j], RavenPaletteVals[j+1], RavenPaletteVals[j+2]);
+	}
 }
 
 //=============================================================================
@@ -866,24 +901,6 @@ void AM_initVariables ()
 
 static void AM_initColors (bool overlayed)
 {
-	static DWORD *lastpal = NULL;
-	//static int lastback = -1;
-	DWORD *palette;
-	
-	palette = (DWORD *)GPalette.BaseColors;
-
-	if (lastpal != palette)
-	{
-		int i, j;
-
-		for (i = j = 0; i < 11; i++, j += 3)
-		{
-			DoomColors[i].FromRGB(DoomPaletteVals[j], DoomPaletteVals[j+1], DoomPaletteVals[j+2]);
-			StrifeColors[i].FromRGB(StrifePaletteVals[j], StrifePaletteVals[j+1], StrifePaletteVals[j+2]);
-			RavenColors[i].FromRGB(RavenPaletteVals[j], RavenPaletteVals[j+1], RavenPaletteVals[j+2]);
-		}
-	}
-
 	if (overlayed)
 	{
 		YourColor.FromCVar (am_ovyourcolor);
@@ -1008,30 +1025,6 @@ static void AM_initColors (bool overlayed)
 			break;
 
 	}
-
-	lastpal = palette;
-}
-
-//=============================================================================
-//
-// 
-//
-//=============================================================================
-
-void AM_loadPics ()
-{
-	int i;
-	char namebuf[9];
-
-	for (i = 0; i < 10; i++)
-	{
-		mysnprintf (namebuf, countof(namebuf), "AMMNUM%d", i);
-		marknums[i] = TexMan.CheckForTexture (namebuf, FTexture::TEX_MiscPatch);
-	}
-
-	const char *autopage = level.info->mapbg[0] == 0? "AUTOPAGE" : (const char*)&level.info->mapbg[0];
-
-	mapback = TexMan.CheckForTexture(autopage, FTexture::TEX_MiscPatch);
 }
 
 //=============================================================================
@@ -1056,9 +1049,8 @@ bool AM_clearMarks ()
 
 void AM_LevelInit ()
 {
-	if (MapArrow.Size() == 0) AM_InitArrows();
-
-	leveljuststarted = 0;
+	const char *autopage = level.info->mapbg[0] == 0? "AUTOPAGE" : (const char*)&level.info->mapbg[0];
+	mapback = TexMan.CheckForTexture(autopage, FTexture::TEX_MiscPatch);
 
 	AM_clearMarks();
 
@@ -1096,7 +1088,6 @@ void AM_Start ()
 	if (!stopped) AM_Stop();
 	stopped = false;
 	AM_initVariables();
-	AM_loadPics();
 }
 
 

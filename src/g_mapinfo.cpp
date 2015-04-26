@@ -1880,8 +1880,13 @@ void DeinitIntermissions();
 
 static void ClearMapinfo()
 {
+	wadclusterinfos.Clear();
+	wadlevelinfos.Clear();
 	ClearEpisodes();
+	AllSkills.Clear();
+	DefaultSkill = -1;
 	DeinitIntermissions();
+	level.info = NULL;
 }
 
 //==========================================================================
@@ -1897,6 +1902,7 @@ void G_ParseMapInfo (const char *basemapinfo)
 	int lump, lastlump = 0;
 	level_info_t gamedefaults;
 
+	ClearMapinfo();
 	atterm(ClearMapinfo);
 
 	// Parse the default MAPINFO for the current game. This lump *MUST* come from zdoom.pk3.

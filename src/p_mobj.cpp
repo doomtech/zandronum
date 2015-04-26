@@ -298,18 +298,9 @@ void AActor::Serialize (FArchive &arc)
 		<< args[0] << args[1] << args[2] << args[3] << args[4]
 		<< goal
 		<< waterlevel
-		<< MinMissileChance;
-		if (SaveVersion >= 2826)
-		{
-			arc	<< SpawnFlags;
-		}
-		else
-		{
-			WORD w;
-			arc << w;
-			SpawnFlags = w;
-		}
-	arc	<< Inventory
+		<< MinMissileChance
+		<< SpawnFlags
+		<< Inventory
 		<< InventoryID
 		<< id
 		<< FloatBobPhase
@@ -321,12 +312,9 @@ void AActor::Serialize (FArchive &arc)
 		<< ActiveSound
 		<< UseSound
 		<< BounceSound
-		<< WallBounceSound;
-	if (SaveVersion >= 2234)
-	{
-		arc << CrushPainSound;
-	}
-	arc	<< Speed
+		<< WallBounceSound
+		<< CrushPainSound
+		<< Speed
 		<< FloatSpeed
 		<< Mass
 		<< PainChance
@@ -354,6 +342,13 @@ void AActor::Serialize (FArchive &arc)
 		<< Species
 		<< Score
 		<< Tag
+		<< lastpush << lastbump
+		<< PainThreshold
+		<< DamageFactor
+		<< WeaveIndexXY << WeaveIndexZ
+		<< PoisonDamageReceived << PoisonDurationReceived << PoisonPeriodReceived << Poisoner
+		<< PoisonDamage << PoisonDuration << PoisonPeriod
+		<< ConversationRoot << Conversation
 		<< DesignatedTeam
 		<< ulLimitedToTeam // [BB]
 		<< ulVisibleToTeam // [BB]
@@ -364,82 +359,6 @@ void AActor::Serialize (FArchive &arc)
 		<< ulInvasionWave
 		<< pMonsterSpot
 		<< pPickupSpot;
-	if (SaveVersion >= 1904)
-	{
-		arc << lastpush << lastbump;
-	}
-
-	if (SaveVersion >= 1900)
-	{
-		arc << PainThreshold;
-	}
-	if (SaveVersion >= 1914)
-	{
-		arc << DamageFactor;
-	}
-	if (SaveVersion > 2036)
-	{
-		arc << WeaveIndexXY << WeaveIndexZ;
-	}
-	else
-	{
-		int index;
-
-		if (SaveVersion < 2036)
-		{
-			index = special2;
-		}
-		else
-		{
-			arc << index;
-		}
-		// A_BishopMissileWeave and A_CStaffMissileSlither stored the weaveXY
-		// value in different parts of the index.
-		if (this->IsKindOf(PClass::FindClass("BishopFX")))
-		{
-			WeaveIndexXY = index >> 16;
-			WeaveIndexZ = index;
-		}
-		else
-		{
-			WeaveIndexXY = index;
-			WeaveIndexZ = 0;
-		}
-	}
-	if (SaveVersion >= 2450)
-	{
-		arc << PoisonDamageReceived << PoisonDurationReceived << PoisonPeriodReceived << Poisoner;
-		arc << PoisonDamage << PoisonDuration << PoisonPeriod;
-	}
-
-	// Skip past uservar array in old savegames
-	if (SaveVersion < 1933)
-	{
-		int foo;
-		for (int i = 0; i < 10; ++i)
-			arc << foo;
-	}
-
-	if (SaveVersion > 2560)
-	{
-		arc << ConversationRoot << Conversation;
-	}
-	else	// old code which uses relative indexing.
-	{
-		int convnum;
-
-		convnum = arc.ReadCount();
-		if (GetConversation(GetClass()->TypeName) == -1)
-		{
-			Conversation = NULL;
-			ConversationRoot = -1;
-		}
-		else
-		{
-			// This cannot be restored anymore.
-			I_Error("Cannot load old savegames with active dialogues");
-		}
-	}
 
 	if (arc.IsLoading ())
 	{
@@ -7463,12 +7382,13 @@ void FreeDropItemChain(FDropItem *chain)
 	}
 }
 
-FDropItemPtrArray::~FDropItemPtrArray()
+void FDropItemPtrArray::Clear()
 {
 	for (unsigned int i = 0; i < Size(); ++i)
 	{
 		FreeDropItemChain ((*this)[i]);
 	}
+	TArray<FDropItem *>::Clear();
 }
 
 int StoreDropItemChain(FDropItem *chain)
