@@ -653,10 +653,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\f_finale.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\f_wipe.cpp"
 				>
 			</File>
@@ -1491,10 +1487,6 @@
 			</File>
 			<File
 				RelativePath=".\src\EnumToString.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\f_finale.h"
 				>
 			</File>
 			<File
@@ -6874,6 +6866,22 @@
 			</File>
 			<File
 				RelativePath=".\src\menu\videomenu.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Intermission"
+			>
+			<File
+				RelativePath=".\src\intermission\intermission.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\intermission\intermission.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\intermission\intermission_parse.cpp"
 				>
 			</File>
 		</Filter>
