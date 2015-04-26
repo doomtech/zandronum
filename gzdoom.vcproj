@@ -2552,10 +2552,6 @@
 				Name="Render Sources"
 				>
 				<File
-					RelativePath=".\src\r_anim.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\r_bsp.cpp"
 					>
 				</File>
@@ -2675,6 +2671,10 @@
 			<Filter
 				Name="Textures"
 				>
+				<File
+					RelativePath=".\src\textures\animations.cpp"
+					>
+				</File>
 				<File
 					RelativePath=".\src\textures\automaptexture.cpp"
 					>

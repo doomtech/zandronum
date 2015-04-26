@@ -242,8 +242,13 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 
 	int diffTex = (sec->heightsec->MoreFlags & SECF_CLIPFAKEPLANES);
 	sector_t * s = sec->heightsec;
-		  
-	*dest=*sec;
+	
+#if 0
+	*dest=*sec;	// This will invoke the copy operator which isn't really needed here. Memcpy is faster.
+#else
+	memcpy(dest, sec, sizeof(sector_t));
+#endif
+
 	// Replace floor and ceiling height with control sector's heights.
 	if (diffTex)
 	{
@@ -316,6 +321,10 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 
 		dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::vbo_fakefloor];
 		dest->vboheight[sector_t::ceiling] = s->vboheight[sector_t::floor];
+		if (!(s->MoreFlags & SECF_NOFAKELIGHT))
+		{
+			dest->lightlevel  = s->lightlevel;
+		}
 
 		if (!back)
 		{
@@ -341,7 +350,6 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 			
 			if (!(s->MoreFlags & SECF_NOFAKELIGHT))
 			{
-				dest->lightlevel  = s->lightlevel;
 				dest->SetPlaneLight(sector_t::floor, s->GetPlaneLight(sector_t::floor));
 				dest->SetPlaneLight(sector_t::ceiling, s->GetPlaneLight(sector_t::ceiling));
 				dest->ChangeFlags(sector_t::floor, -1, s->GetFlags(sector_t::floor));
@@ -363,6 +371,11 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 
 		dest->vboindex[sector_t::ceiling] = sec->vboindex[sector_t::ceiling];
 		dest->vboheight[sector_t::ceiling] = sec->vboheight[sector_t::ceiling];
+
+		if (!(s->MoreFlags & SECF_NOFAKELIGHT))
+		{
+			dest->lightlevel  = s->lightlevel;
+		}
 
 		if (!back)
 		{

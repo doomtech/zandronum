@@ -870,12 +870,14 @@ void D_Display ()
 	}
 	else
 	{
+		unsigned int nowtime = I_FPSTime();
+		TexMan.UpdateAnimations(nowtime);
+		R_UpdateSky(nowtime);
 		switch (gamestate)
 		{
 		case GS_FULLCONSOLE:
 // [BB] Added label
 drawfullconsole:
-			R_UpdateAnimations(I_FPSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			C_DrawConsole (false);
@@ -985,7 +987,6 @@ drawfullconsole:
 			break;
 
 		case GS_INTERMISSION:
-			R_UpdateAnimations(I_FPSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			WI_Drawer ();
@@ -1014,14 +1015,12 @@ drawfullconsole:
 			break;
 
 		case GS_FINALE:
-			R_UpdateAnimations(I_FPSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			F_Drawer ();
 			break;
 
 		case GS_DEMOSCREEN:
-			R_UpdateAnimations(I_FPSTime());
 			screen->SetBlendingRect(0,0,0,0);
 			hw2d = screen->Begin2D(false);
 			D_PageDrawer ();
@@ -2602,7 +2601,7 @@ void D_DoomMain (void)
 	S_Init ();
 
 	Printf ("ST_Init: Init startup screen.\n");
-	StartScreen = FStartupScreen::CreateInstance (R_GuesstimateNumTextures() + 5);
+	StartScreen = FStartupScreen::CreateInstance (TexMan.GuesstimateNumTextures() + 5);
 
 	ParseCompatibility();
 
