@@ -883,7 +883,6 @@ add_executable( zdoom WIN32
 	dsectoreffect.cpp
 	dthinker.cpp
 	duel.cpp #ST
-	f_finale.cpp
 	f_wipe.cpp
 	farchive.cpp
 	files.cpp
@@ -1080,6 +1079,8 @@ add_executable( zdoom WIN32
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
 	g_shared/st_hud.cpp #ST
+	intermission/intermission.cpp
+	intermission/intermission_parse.cpp
 	menu/colorpickermenu.cpp
 	menu/joystickmenu.cpp
 	menu/listmenu.cpp

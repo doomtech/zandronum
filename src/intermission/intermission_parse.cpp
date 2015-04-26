@@ -620,6 +620,7 @@ FName FMapInfoParser::ParseEndGame()
 		else if (sc.Compare("cast"))
 		{
 			newSeq.EndType = END_Cast;
+			if (newSeq.PicName.IsEmpty()) newSeq.PicName = "$bgcastcall";
 		}
 		else if (sc.Compare("music"))
 		{
@@ -689,6 +690,7 @@ FName FMapInfoParser::ParseEndGame()
 	action->mBackground = newSeq.PicName;
 	action->mMusic = newSeq.Music;
 	action->mMusicLooping = newSeq.MusicLooping;
+	desc->mActions.Push(action);
 
 	FString seq;
 	seq.Format("@EndSequence_%d_", generated++);
@@ -774,6 +776,12 @@ FName FMapInfoParser::CheckEndSequence()
 	else if (sc.Compare("endtitle"))
 	{
 		seqname = "Inter_Titlescreen";
+	}
+	else if (sc.Compare("endsequence"))
+	{
+		ParseComma();
+		sc.MustGetString();
+		seqname = sc.String;
 	}
 
 	if (seqname != NULL)
