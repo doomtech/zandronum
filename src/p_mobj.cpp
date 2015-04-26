@@ -7318,7 +7318,7 @@ FDropItem *AActor::GetDropItems()
 {
 	unsigned int index = GetClass()->Meta.GetMetaInt (ACMETA_DropItems) - 1;
 
-	if (index >= 0 && index < DropItemList.Size())
+	if (index < DropItemList.Size())
 	{
 		return DropItemList[index];
 	}

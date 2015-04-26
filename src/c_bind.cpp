@@ -132,7 +132,7 @@ static const FBinding DefBindings[] =
 	{ "pad_start", "pause" },
 	{ "pad_back", "menu_main" },
 	{ "lthumb", "crouch" },
-	{ NULL }
+	{ NULL, NULL }
 };
 
 static const FBinding DefRavenBindings[] =
@@ -143,13 +143,13 @@ static const FBinding DefRavenBindings[] =
 	{ "pgdn", "+lookup" },
 	{ "del", "+lookdown" },
 	{ "end", "centerview" },
-	{ NULL }
+	{ NULL, NULL }
 };
 
 static const FBinding DefHereticBindings[] =
 {
 	{ "backspace", "use ArtiTomeOfPower" },
-	{ NULL }
+	{ NULL, NULL }
 };
 
 static const FBinding DefHexenBindings[] =
@@ -164,7 +164,7 @@ static const FBinding DefHexenBindings[] =
 	{ "6", "use ArtiPork" },
 	{ "5", "use ArtiInvulnerability2" },
 	{ "scroll", "+showscores" },
-	{ NULL }
+	{ NULL, NULL }
 };
 
 static const FBinding DefStrifeBindings[] =
@@ -175,7 +175,7 @@ static const FBinding DefStrifeBindings[] =
 	{ "z", "showpop 3" },
 	{ "k", "showpop 2" },
 	{ "q", "invquery" },
-	{ NULL }
+	{ NULL, NULL }
 	// not done
 	// h - use health
 };
@@ -198,7 +198,7 @@ static const FBinding DefAutomapBindings[] =
 	{ "kp+", "+am_zoomin" },
 	{ "mwheelup", "am_zoom 1.2" },
 	{ "mwheeldown", "am_zoom -1.2" },
-	{ NULL }
+	{ NULL, NULL }
 };
 
 // [BB] WASD control layout (clashes with Strife's default controls).

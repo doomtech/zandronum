@@ -121,7 +121,7 @@ static const struct ColorList {
 	{&gold2,	186, 139, 44 },
 	{&cyan1,	0,   255, 255},
 	{&cyan2,	81,  255, 255},	
-	{NULL}
+	{NULL, 0, 0, 0 }
 };
 
 // [Dusk] Lookup table based on the old rainbow trail code

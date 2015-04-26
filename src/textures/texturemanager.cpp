@@ -1138,7 +1138,7 @@ int FTextureManager::CountLumpTextures (int lumpnum)
 		DWORD numtex;
 
 		file >> numtex;
-		return numtex >= 0 ? numtex : 0;
+		return int(numtex) >= 0 ? numtex : 0;
 	}
 	return 0;
 }

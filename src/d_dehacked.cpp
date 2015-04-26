@@ -313,7 +313,7 @@ static const struct {
 	{ "[PARS]",		PatchPars },
 	{ "[CODEPTR]",	PatchCodePtrs },
 	{ "[MUSIC]",	PatchMusic },
-	{ NULL, },
+	{ NULL, NULL },
 };
 
 static int HandleMode (const char *mode, int num);
@@ -1716,7 +1716,7 @@ static int PatchMisc (int dummy)
 		{ "IDKFA Armor",			myoffsetof(struct DehInfo,KFAArmor) },
 		{ "IDKFA Armor Class",		myoffsetof(struct DehInfo,KFAAC) },
 		{ "No Autofreeze",			myoffsetof(struct DehInfo,NoAutofreeze) },
-		{ NULL, }
+		{ NULL, NULL }
 	};
 	int result;
 
@@ -1870,8 +1870,8 @@ static int PatchMisc (int dummy)
 		player->health = deh.StartHealth;
 
 		// Hm... I'm not sure that this is the right way to change this info...
-		unsigned int index = PClass::FindClass(NAME_DoomPlayer)->Meta.GetMetaInt (ACMETA_DropItems) - 1;
-		if (index >= 0 && index < DropItemList.Size())
+		int index = PClass::FindClass(NAME_DoomPlayer)->Meta.GetMetaInt (ACMETA_DropItems) - 1;
+		if (index >= 0 && index < (signed)DropItemList.Size())
 		{
 			FDropItem * di = DropItemList[index];
 			while (di != NULL)

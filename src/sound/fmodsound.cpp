@@ -346,7 +346,7 @@ public:
 		Channel->setSpeakerMix(1, 1, 1, 1, 1, 1, 1, 1);
 		Channel->setVolume(volume);
 		// Ensure reverb is disabled.
-		FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
+		FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		if (FMOD_OK == Channel->getReverbProperties(&reverb))
 		{
 			reverb.Room = -10000;
@@ -1678,7 +1678,7 @@ FISoundChannel *FMODSoundRenderer::StartSound(SoundHandle sfx, float vol, int pi
 		}
 		if (flags & SNDF_NOREVERB)
 		{
-			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
+			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 			if (FMOD_OK == chan->getReverbProperties(&reverb))
 			{
 				reverb.Room = -10000;
@@ -1798,7 +1798,7 @@ FISoundChannel *FMODSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener *
 		}
 		if (flags & SNDF_NOREVERB)
 		{
-			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
+			FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 			if (FMOD_OK == chan->getReverbProperties(&reverb))
 			{
 				reverb.Room = -10000;
