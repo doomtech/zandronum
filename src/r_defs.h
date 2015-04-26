@@ -369,8 +369,9 @@ struct FPortal;
 enum
 {
 	PLANEF_ABSLIGHTING	= 1,	// floor/ceiling light is absolute, not relative
-	PLANEF_BLOCKED		= 2,		// can not be moved anymore.
-	PLANEF_SPRINGPAD		= 4,	// [BC] Floor bounces actors up at the same velocity they landed on it with.	
+	PLANEF_BLOCKED		= 2,	// can not be moved anymore.
+	PLANEF_ADDITIVE		= 4,	// rendered additive
+	PLANEF_SPRINGPAD		= 8,	// [BC] Floor bounces actors up at the same velocity they landed on it with.	
 };
 
 // Internal sector flags
