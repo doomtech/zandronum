@@ -351,6 +351,7 @@ FFont::FFont (const char *name, const char *nametemplate, int first, int count, 
 	Name = copystring (name);
 	Next = FirstFont;
 	FirstFont = this;
+	Cursor = '_';
 
 	maxyoffs = 0;
 
@@ -1903,6 +1904,7 @@ void V_InitCustomFonts()
 	int start;
 	int first;
 	int count;
+	char cursor = '_';
 
 	while ((llump = Wads.FindLump ("FONTDEFS", &lastlump)) != -1)
 	{
@@ -1949,6 +1951,11 @@ void V_InitCustomFonts()
 					count = sc.Number;
 					format = 1;
 				}
+				else if (sc.Compare ("CURSOR"))
+				{
+					sc.MustGetString();
+					cursor = sc.String[0];
+				}
 				else if (sc.Compare ("NOTRANSLATION"))
 				{
 					if (format == 1) goto wrong;
@@ -1992,7 +1999,8 @@ void V_InitCustomFonts()
 			}
 			if (format == 1)
 			{
-				new FFont (namebuffer, templatebuf, first, count, start);
+				FFont *fnt = new FFont (namebuffer, templatebuf, first, count, start);
+				fnt->SetCursor(cursor);
 			}
 			else if (format == 2)
 			{
@@ -2014,7 +2022,8 @@ void V_InitCustomFonts()
 				}
 				if (count > 0)
 				{
-					new FSpecialFont (namebuffer, first, count, &lumplist[first], notranslate);
+					FFont *fnt = new FSpecialFont (namebuffer, first, count, &lumplist[first], notranslate);
+					fnt->SetCursor(cursor);
 				}
 			}
 			else goto wrong;
@@ -2388,6 +2397,7 @@ void V_InitFonts()
 		else if (Wads.CheckNumForName ("FONTA_S") >= 0)
 		{
 			SmallFont = new FFont ("SmallFont", "FONTA%02u", HU_FONTSTART, HU_FONTSIZE, 1);
+			SmallFont->SetCursor('[');
 		}
 		else
 		{

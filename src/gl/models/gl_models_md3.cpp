@@ -64,7 +64,7 @@ static void UnpackVector(unsigned short packed, float & nx, float & ny, float & 
 
 
 
-bool FMD3Model::Load(const char * path, const char * buffer, int length)
+bool FMD3Model::Load(const char * path, int, const char * buffer, int length)
 {
 	#pragma pack(4)
 	struct md3_header_t

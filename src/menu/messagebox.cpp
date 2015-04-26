@@ -473,17 +473,11 @@ DEndGameMenu::DEndGameMenu(bool playsound)
 	// [BB] netgame -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	{
-		if(gameinfo.gametype == GAME_Chex)
-			EndString = GStrings("CNETEND");
-		else
-			EndString = GStrings("NETEND");
+		EndString = GStrings("NETEND");
 		return;
 	}
 
-	if(gameinfo.gametype == GAME_Chex)
-		EndString = GStrings("CENDGAME");
-	else
-		EndString = GStrings("ENDGAME");
+	EndString = GStrings("ENDGAME");
 
 
 	Init(NULL, EndString, 0, playsound);
@@ -563,11 +557,7 @@ DQuickSaveMenu::DQuickSaveMenu(bool playsound)
 {
 	FString tempstring;
 
-	if(gameinfo.gametype == GAME_Chex)
-		tempstring.Format(GStrings("CQSPROMPT"), quickSaveSlot->Title);
-	else
-		tempstring.Format(GStrings("QSPROMPT"), quickSaveSlot->Title);
-
+	tempstring.Format(GStrings("QSPROMPT"), quickSaveSlot->Title);
 	Init(NULL, tempstring, 0, playsound);
 }
 
@@ -655,11 +645,7 @@ DQuickLoadMenu::DQuickLoadMenu(bool playsound)
 {
 	FString tempstring;
 
-	if(gameinfo.gametype == GAME_Chex)
-		tempstring.Format(GStrings("CQLPROMPT"), quickSaveSlot->Title);
-	else
-		tempstring.Format(GStrings("QLPROMPT"), quickSaveSlot->Title);
-
+	tempstring.Format(GStrings("QLPROMPT"), quickSaveSlot->Title);
 	Init(NULL, tempstring, 0, playsound);
 }
 
@@ -697,10 +683,7 @@ CCMD (quickload)
 	// [BB] netgame -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	{
-		if(gameinfo.gametype == GAME_Chex)
-			M_StartMessage (GStrings("CQLOADNET"), NULL);
-		else
-			M_StartMessage (GStrings("QLOADNET"), NULL);
+		M_StartMessage (GStrings("QLOADNET"), NULL);
 		return;
 	}
 		

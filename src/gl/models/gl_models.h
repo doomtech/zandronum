@@ -24,11 +24,15 @@ public:
 	FModel() { filename = NULL; }
 	virtual ~FModel() { if (filename!=NULL) delete [] filename; }
 
-	virtual bool Load(const char * fn, const char * buffer, int length) = 0;
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length) = 0;
 	virtual int FindFrame(const char * name) = 0;
 	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0) = 0;
 	// [BB] Added RenderFrameInterpolated
 	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0) = 0;
+	virtual void MakeGLData() {}
+	virtual void CleanGLData() {}
+
+
 
 	char * filename;
 };
@@ -135,7 +139,7 @@ public:
 	FDMDModel() { loaded = false; }
 	virtual ~FDMDModel();
 
-	virtual bool Load(const char * fn, const char * buffer, int length);
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
 	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0);
 	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0);
@@ -149,7 +153,7 @@ public:
 	FMD2Model() {}
 	virtual ~FMD2Model();
 
-	virtual bool Load(const char * fn, const char * buffer, int length);
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 
 };
 
@@ -226,11 +230,47 @@ public:
 	FMD3Model() { }
 	virtual ~FMD3Model();
 
-	virtual bool Load(const char * fn, const char * buffer, int length);
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
 	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0);
 	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0);
 };
+
+class FVoxelVertexBuffer;
+
+class FVoxelModel : public FModel
+{
+protected:
+	int mLumpnum;
+	FVoxelVertexBuffer *mVBO;
+	
+	FVoxelModel();
+	~FVoxelModel();
+
+public:
+	void MakeGLData();
+	void CleanGLData();
+	virtual const char *CreateBuffer() = 0;
+	virtual int FindFrame(const char * name);
+	virtual void RenderFrame(FTexture * skin, int frame, int cm, Matrix3x4 *m2v, int translation=0);
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, Matrix3x4 *m2v, int translation=0);
+};
+
+class FVoxModel : public FVoxelModel
+{
+public:
+	FVoxModel();
+	const char *CreateBuffer() { return NULL; }
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
+};
+
+class FKVXModel : public FVoxelModel
+{
+	FKVXModel();
+	const char *CreateBuffer() { return NULL; }
+	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
+};
+
 
 
 
@@ -281,5 +321,6 @@ void gl_RenderModel(GLSprite * spr, int cm);
 // [BB] HUD weapon model rendering functions.
 void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm);
 bool gl_IsHUDModelForPlayerAvailable (player_t * player);
+void gl_CleanModelData();
 
 #endif

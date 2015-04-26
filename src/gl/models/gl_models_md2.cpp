@@ -78,7 +78,7 @@ static void UnpackVector(unsigned short packed, float vec[3])
 //
 //===========================================================================
 
-bool FDMDModel::Load(const char * path, const char * buffer, int length)
+bool FDMDModel::Load(const char * path, int, const char * buffer, int length)
 {
 	struct dmd_chunk_t
 	{
@@ -387,7 +387,7 @@ void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 //
 //===========================================================================
 
-bool FMD2Model::Load(const char * path, const char * buffer, int length)
+bool FMD2Model::Load(const char * path, int, const char * buffer, int length)
 {
 	// Internal data structures of MD2 files - only used during loading!
 	struct md2_header_t

@@ -137,7 +137,6 @@ void TEAMINFO_Init ()
 void TEAMINFO_ParseTeam (FScanner &sc)
 {
 	TEAMINFO team;
-
 	// [BB] Initialize some values.
 	team.bCustomPlayerColorAllowed = false;
 

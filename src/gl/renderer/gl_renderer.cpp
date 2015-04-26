@@ -66,6 +66,7 @@
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_templates.h"
+#include "gl/models/gl_models.h"
 
 //===========================================================================
 // 
@@ -97,6 +98,7 @@ void FGLRenderer::Initialize()
 
 FGLRenderer::~FGLRenderer() 
 {
+	gl_CleanModelData();
 	gl_DeleteAllAttachedLights();
 	FMaterial::FlushAll();
 	if (mThreadManager != NULL) delete mThreadManager;

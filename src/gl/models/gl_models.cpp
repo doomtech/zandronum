@@ -221,7 +221,7 @@ static FModel * FindModel(const char * path, const char * modelfile)
 		return NULL;
 	}
 
-	if (!model->Load(path, buffer, len))
+	if (!model->Load(path, lump, buffer, len))
 	{
 		delete model;
 		delete buffer;
@@ -844,4 +844,18 @@ bool gl_IsHUDModelForPlayerAvailable (player_t * player)
 	FState* state = player->psprites[0].state;
 	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite, state->GetFrame());
 	return ( smf != NULL );
+}
+
+//===========================================================================
+//
+// gl_CleanModelData
+//
+//===========================================================================
+
+void gl_CleanModelData()
+{
+	for (unsigned i=0;i<Models.Size(); i++)
+	{
+		Models[i]->CleanGLData();
+	}
 }

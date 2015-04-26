@@ -454,7 +454,7 @@ bool gl_CheckFog(sector_t *frontsector, sector_t *backsector)
 	{
 		frontfog = true;
 	}
-	else  if (fogdensity!=0)
+	else  if (fogdensity!=0 || (glset.lightmode & 4))
 	{
 		// case 3: level has fog density set
 		frontfog = true;
@@ -477,7 +477,7 @@ bool gl_CheckFog(sector_t *frontsector, sector_t *backsector)
 	{
 		backfog = true;
 	}
-	else  if (fogdensity!=0)
+	else  if (fogdensity!=0 || (glset.lightmode & 4))
 	{
 		// case 3: level has fog density set
 		backfog = true;
