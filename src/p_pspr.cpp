@@ -758,16 +758,22 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 //
 // A_GunFlash
 //
+enum GF_Flags
+{
+	GFF_NOEXTCHANGE = 1,
+};
+
 DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_GunFlash)
 {
-	ACTION_PARAM_START(1)
+	ACTION_PARAM_START(2)
 	ACTION_PARAM_STATE(flash, 0);
+	ACTION_PARAM_INT(Flags, 1);
 
 	// [BB] Zandronum needs A_GunFlash in a_doomweaps, so I moved the code into a function.
-	A_GunFlash(self, flash);
+	A_GunFlash(self, flash, Flags);
 }
 
-void A_GunFlash(AActor *self, FState *flash)
+void A_GunFlash(AActor *self, FState *flash, const int Flags)
 {
 	player_t *player = self->player;
 
@@ -775,19 +781,21 @@ void A_GunFlash(AActor *self, FState *flash)
 	{
 		return;
 	}
-
-	// [BC] Since the player can be dead at this point as a result of shooting a player with
-	// the reflection rune, we need to make sure the player is alive before playing the
-	// attacking animation.
-	if ( player->mo->health > 0 )
+	if(!(Flags & GFF_NOEXTCHANGE))
 	{
-		// [BB] If we're the server, tell clients to update this player's state.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		// [BC] Since the player can be dead at this point as a result of shooting a player with
+		// the reflection rune, we need to make sure the player is alive before playing the
+		// attacking animation.
+		if ( player->mo->health > 0 )
+		{
+			// [BB] If we're the server, tell clients to update this player's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-		// [BB] Clients only do this for "their" player.
-		if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
-			player->mo->PlayAttacking2 ();
+			// [BB] Clients only do this for "their" player.
+			if ( NETWORK_IsConsolePlayerOrNotInClientMode( player ) )
+				player->mo->PlayAttacking2 ();
+		}
 	}
 
 	if (flash == NULL)

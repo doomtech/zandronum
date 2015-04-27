@@ -681,9 +681,9 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		(thing->renderflags & RF_FULLBRIGHT) &&
 		(!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright);
 
-	lightlevel=fullbright? 255 : rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
-			GetCeilingLight(rendersector) : GetFloorLight(rendersector); //rendersector->lightlevel;
-	foglevel = rendersector->lightlevel;
+	lightlevel=fullbright? 255 : 
+		gl_ClampLight(rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? GetCeilingLight(rendersector) : GetFloorLight(rendersector));
+	foglevel = (BYTE)clamp<short>(rendersector->lightlevel, 0, 255);
 
 	lightlevel = (byte)gl_CheckSpriteGlow(rendersector->GetTexture(sector_t::floor), lightlevel, thingz-thing->floorz);
 
@@ -874,8 +874,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	
 	if (particle->trans==0) return;
 
-	lightlevel = sector->GetTexture(sector_t::ceiling) == skyflatnum ? 
-					GetCeilingLight(sector) : GetFloorLight(sector);
+	lightlevel = gl_ClampLight(sector->GetTexture(sector_t::ceiling) == skyflatnum ? GetCeilingLight(sector) : GetFloorLight(sector));
 	foglevel = sector->lightlevel;
 
 	if (gl_fixedcolormap) 

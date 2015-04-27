@@ -97,6 +97,6 @@ void DoReadyWeaponToSwitch(AActor * self);
 DECLARE_ACTION(A_Raise)
 void A_ReFire(AActor *self, FState *state = NULL);
 // [BB] ST also needs A_GunFlash.
-void A_GunFlash(AActor *self, FState *flash = NULL);
+void A_GunFlash(AActor *self, FState *flash = NULL, const int Flags = 0);
 
 #endif	// __P_PSPR_H__

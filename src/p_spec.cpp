@@ -926,12 +926,12 @@ public:
 	void Tick ();
 
 protected:
-	static void DoTransfer (BYTE level, int target, bool floor);
+	static void DoTransfer (int level, int target, bool floor);
 
-	BYTE LastLight;
 	sector_t *Source;
 	int TargetTag;
 	bool CopyFloor;
+	short LastLight;
 };
 
 IMPLEMENT_CLASS (DLightTransfer)
@@ -939,7 +939,17 @@ IMPLEMENT_CLASS (DLightTransfer)
 void DLightTransfer::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << LastLight << Source << TargetTag << CopyFloor;
+	if (SaveVersion < 3223)
+	{
+		BYTE bytelight;
+		arc << bytelight;
+		LastLight = bytelight;
+	}
+	else
+	{
+		arc << LastLight;
+	}
+	arc << Source << TargetTag << CopyFloor;
 }
 
 DLightTransfer::DLightTransfer (sector_t *srcSec, int target, bool copyFloor)
@@ -966,7 +976,7 @@ DLightTransfer::DLightTransfer (sector_t *srcSec, int target, bool copyFloor)
 
 void DLightTransfer::Tick ()
 {
-	BYTE light = Source->lightlevel;
+	int light = Source->lightlevel;
 
 	if (light != LastLight)
 	{
@@ -975,7 +985,7 @@ void DLightTransfer::Tick ()
 	}
 }
 
-void DLightTransfer::DoTransfer (BYTE level, int target, bool floor)
+void DLightTransfer::DoTransfer (int level, int target, bool floor)
 {
 	int secnum;
 
@@ -1009,12 +1019,12 @@ public:
 	void Tick ();
 
 protected:
-	static void DoTransfer (BYTE level, int target, BYTE flags);
+	static void DoTransfer (short level, int target, BYTE flags);
 
-	BYTE LastLight;
-	BYTE Flags;
 	sector_t *Source;
 	int TargetID;
+	short LastLight;
+	BYTE Flags;
 };
 
 IMPLEMENT_CLASS (DWallLightTransfer)
@@ -1022,7 +1032,17 @@ IMPLEMENT_CLASS (DWallLightTransfer)
 void DWallLightTransfer::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << LastLight << Source << TargetID << Flags;
+	if (SaveVersion < 3223)
+	{
+		BYTE bytelight;
+		arc << bytelight;
+		LastLight = bytelight;
+	}
+	else
+	{
+		arc << LastLight;
+	}
+	arc << Source << TargetID << Flags;
 }
 
 DWallLightTransfer::DWallLightTransfer (sector_t *srcSec, int target, BYTE flags)
@@ -1033,10 +1053,16 @@ DWallLightTransfer::DWallLightTransfer (sector_t *srcSec, int target, BYTE flags
 	Source = srcSec;
 	TargetID = target;
 	Flags = flags;
-	DoTransfer (LastLight = srcSec->lightlevel, target, Flags);
+	DoTransfer (LastLight = srcSec->GetLightLevel(), target, Flags);
 
-	if (!(flags&WLF_NOFAKECONTRAST)) wallflags = WALLF_ABSLIGHTING;
-	else wallflags = WALLF_NOFAKECONTRAST|WALLF_ABSLIGHTING;
+	if (!(flags & WLF_NOFAKECONTRAST))
+	{
+		wallflags = WALLF_ABSLIGHTING;
+	}
+	else
+	{
+		wallflags = WALLF_ABSLIGHTING | WALLF_NOFAKECONTRAST;
+	}
 
 	for (linenum = -1; (linenum = P_FindLineFromID (target, linenum)) >= 0; )
 	{
@@ -1055,7 +1081,7 @@ DWallLightTransfer::DWallLightTransfer (sector_t *srcSec, int target, BYTE flags
 
 void DWallLightTransfer::Tick ()
 {
-	BYTE light = Source->lightlevel;
+	short light = sector_t::ClampLight(Source->lightlevel);
 
 	if (light != LastLight)
 	{
@@ -1064,13 +1090,13 @@ void DWallLightTransfer::Tick ()
 	}
 }
 
-void DWallLightTransfer::DoTransfer (BYTE lightlevel, int target, BYTE flags)
+void DWallLightTransfer::DoTransfer (short lightlevel, int target, BYTE flags)
 {
 	int linenum;
 
 	for (linenum = -1; (linenum = P_FindLineFromID (target, linenum)) >= 0; )
 	{
-		line_t * line = &lines[linenum];
+		line_t *line = &lines[linenum];
 
 		if (flags & WLF_SIDE1 && line->sidedef[0] != NULL)
 		{

@@ -1,4 +1,9 @@
 
+// Flags for A_PainAttack
+const int PAF_NOSKULLATTACK = 1;
+const int PAF_AIMFACING = 2;
+const int PAF_NOTARGET = 4;
+
 // Flags for A_Saw
 const int SF_NORANDOM = 1;
 const int SF_RANDOMLIGHTMISS = 2;
@@ -18,6 +23,9 @@ const int CBAF_AIMFACING = 1;
 const int CBAF_NORANDOM = 2;
 const int CBAF_EXPLICITANGLE = 4;
 const int CBAF_NOPITCH = 8;
+
+// Flags for A_GunFlash
+const int GFF_NOEXTCHANGE = 1;
 
 // Flags for A_FireBullets
 const int FBF_USEAMMO = 1;

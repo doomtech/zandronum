@@ -2085,7 +2085,7 @@ int side_t::GetLightLevel (bool foggy, int baselight, bool noabsolute, int *pfak
 {
 	if (!noabsolute && (Flags & WALLF_ABSLIGHTING))
 	{
-		baselight = (BYTE)Light;
+		baselight = Light;
 	}
 
 	if (pfakecontrast != NULL)
@@ -2127,7 +2127,7 @@ int side_t::GetLightLevel (bool foggy, int baselight, bool noabsolute, int *pfak
 			baselight += this->Light;
 		}
 	}
-	return clamp(baselight, 0, 255);
+	return baselight;
 }
 
 

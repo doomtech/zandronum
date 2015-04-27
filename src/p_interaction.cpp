@@ -470,7 +470,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	{	// [RH] Only monsters get to be corpses.
 		// Objects with a raise state should get the flag as well so they can
 		// be revived by an Arch-Vile. Batman Doom needs this.
-		flags |= MF_CORPSE;
+		// [RC] And disable this if DONTCORPSE is set, of course.
+		if(!(flags6 & MF6_DONTCORPSE)) flags |= MF_CORPSE;
 		// [BB] Potentially get rid of one corpse in invasion from the previous wave.
 		if ( invasion )
 			INVASION_RemoveMonsterCorpse();
@@ -1225,7 +1226,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			return;
 		}
 		player = target->player;
-		if (player && damage > 1)
+		if (player && damage > 1 && damage < TELEFRAG_DAMAGE)
 		{
 			// Take half damage in trainer mode
 			damage = FixedMul(damage, G_SkillProperty(SKILLP_DamageFactor));
@@ -1567,6 +1568,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	//
 	// the damage has been dealt; now deal with the consequences
 	//
+	target->DamageTypeReceived = mod;
 
 	// If the damaging player has the power of drain, give the player 50% of the damage
 	// done in health.

@@ -511,8 +511,8 @@ void GLFlat::Process(sector_t * model, int whichplane, bool fog)
 	}
 	else 
 	{
-		gltexture=NULL;
-		lightlevel=abs(lightlevel);
+		gltexture = NULL;
+		lightlevel = abs(lightlevel);
 	}
 
 	// get height from vplane
@@ -599,7 +599,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 
 		srf |= SSRF_RENDERFLOOR;
 
-		lightlevel = GetFloorLight(frontsector);
+		lightlevel = gl_ClampLight(GetFloorLight(frontsector));
 		Colormap=frontsector->ColorMap;
 		if ((stack = (frontsector->portals[sector_t::floor] != NULL)))
 		{
@@ -647,7 +647,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 
 		srf |= SSRF_RENDERCEILING;
 
-		lightlevel = GetCeilingLight(frontsector);
+		lightlevel = gl_ClampLight(GetCeilingLight(frontsector));
 		Colormap=frontsector->ColorMap;
 		if ((stack = (frontsector->portals[sector_t::ceiling] != NULL))) 
 		{
@@ -766,7 +766,7 @@ void GLFlat::ProcessSector(sector_t * frontsector)
 
 							if (rover->flags&FF_FIX)
 							{
-								lightlevel = rover->model->lightlevel;
+								lightlevel = gl_ClampLight(rover->model->lightlevel);
 								Colormap = rover->GetColormap();
 							}
 

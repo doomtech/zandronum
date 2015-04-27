@@ -216,7 +216,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		fakesec    = gl_FakeFlat(viewsector, &fs, false);
 
 		// calculate light level for weapon sprites
-		lightlevel = fakesec->lightlevel;
+		lightlevel = gl_ClampLight(fakesec->lightlevel);
 
 		lightlevel = gl_CheckSpriteGlow(viewsector->GetTexture(sector_t::floor), lightlevel, playermo->z-playermo->floorz);
 

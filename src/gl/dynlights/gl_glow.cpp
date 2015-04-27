@@ -125,7 +125,7 @@ int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff)
 	{
 		if (floordiff < tex->gl_info.GlowHeight*FRACUNIT && tex->gl_info.GlowHeight != 0)
 		{
-			int maxlight=(255+lightlevel)>>1;
+			int maxlight = (255+lightlevel)>>1;
 			fixed_t lightfrac = floordiff / tex->gl_info.GlowHeight;
 			if (lightfrac<0) lightfrac=0;
 			lightlevel= (lightfrac*lightlevel + maxlight*(FRACUNIT-lightfrac))>>FRACBITS;

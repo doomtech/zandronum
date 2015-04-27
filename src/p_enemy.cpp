@@ -1832,19 +1832,24 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround, FLookExParams *params)
 				continue;
 		}
 
-		if ((player->mo->flags & MF_SHADOW && !(i_compatflags & COMPATF_INVISIBILITY)) ||
-			player->mo->flags3 & MF3_GHOST)
+		// [RC] Well, let's let special monsters with this flag active be able to see
+		// the player then, eh?
+		if(!(actor->flags & MF6_SEEINVISIBLE)) 
 		{
-			if ((P_AproxDistance (player->mo->x - actor->x,
-					player->mo->y - actor->y) > 2*MELEERANGE)
-				&& P_AproxDistance (player->mo->velx, player->mo->vely)
-				< 5*FRACUNIT)
-			{ // Player is sneaking - can't detect
-				return false;
-			}
-			if (pr_lookforplayers() < 225)
-			{ // Player isn't sneaking, but still didn't detect
-				return false;
+			if ((player->mo->flags & MF_SHADOW && !(i_compatflags & COMPATF_INVISIBILITY)) ||
+				player->mo->flags3 & MF3_GHOST)
+			{
+				if ((P_AproxDistance (player->mo->x - actor->x,
+						player->mo->y - actor->y) > 2*MELEERANGE)
+					&& P_AproxDistance (player->mo->velx, player->mo->vely)
+					< 5*FRACUNIT)
+				{ // Player is sneaking - can't detect
+					return false;
+				}
+				if (pr_lookforplayers() < 225)
+				{ // Player isn't sneaking, but still didn't detect
+					return false;
+				}
 			}
 		}
 		
@@ -3188,7 +3193,7 @@ void A_Face (AActor *self, AActor *other, angle_t max_turn)
 	}
 
 	// This will never work well if the turn angle is limited.
-	if (max_turn == 0 && (self->angle == other_angle) && other->flags & MF_SHADOW)
+	if (max_turn == 0 && (self->angle == other_angle) && other->flags & MF_SHADOW && !(self->flags6 & MF6_SEEINVISIBLE) )
     {
 		self->angle += pr_facetarget.Random2() << 21;
     }
@@ -3294,10 +3299,10 @@ DEFINE_ACTION_FUNCTION(AActor, A_MonsterRail)
 									self->target->x - self->target->velx * 3,
 									self->target->y - self->target->vely * 3);
 
-	if (self->target->flags & MF_SHADOW)
-    {
+	if (self->target->flags & MF_SHADOW && !(self->flags6 & MF6_SEEINVISIBLE))
+	{
 		self->angle += pr_railface.Random2() << 21;
-    }
+	}
 
 	// [BC] Set the thing's angle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

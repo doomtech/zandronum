@@ -6803,7 +6803,8 @@ AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
 	th->velz = (fixed_t)(velocity.Z);
 
 	// invisible target: rotate velocity vector in 2D
-	if (dest->flags & MF_SHADOW)
+	// [RC] Now monsters can aim at invisible player as if they were fully visible.
+	if (dest->flags & MF_SHADOW && !(source->flags6 & MF6_SEEINVISIBLE))
 	{
 		angle_t an = pr_spawnmissile.Random2 () << 20;
 		an >>= ANGLETOFINESHIFT;
@@ -7262,6 +7263,9 @@ int AActor::GibHealth()
 
 void AActor::Crash()
 {
+	// [RC] Weird that this forces the Crash state regardless of flag.
+	if(!(flags6 & MF6_DONTCORPSE))
+	{
 	if (((flags & MF_CORPSE) || (flags6 & MF6_KILLED)) &&
 		!(flags3 & MF3_CRASHED) &&
 		!(flags & MF_ICECORPSE))
@@ -7287,6 +7291,7 @@ void AActor::Crash()
 		// Set MF3_CRASHED regardless of the presence of a crash state
 		// so this code doesn't have to be executed repeatedly.
 		flags3 |= MF3_CRASHED;
+	}
 	}
 }
 

@@ -326,6 +326,8 @@ enum
 	MF6_ADDITIVEPOISONDURATION	= 0x00200000,
 	MF6_NOMENU			= 0x00400000,	// Player class should not appear in the class selection menu.
 	MF6_BOSSCUBE		= 0x00800000,	// Actor spawned by A_BrainSpit, flagged for timefreeze reasons.
+	MF6_SEEINVISIBLE	= 0x01000000,	// Monsters can see invisible player.
+	MF6_DONTCORPSE		= 0x02000000,	// [RC] Don't autoset MF_CORPSE upon death and don't force Crash state change.
 
 	MF6_INTRYMOVE		= 0x10000000,	// Executing P_TryMove
 
@@ -1062,6 +1064,7 @@ public:
 	SWORD PainChance;
 	int PainThreshold;
 	FNameNoInit DamageType;
+	FNameNoInit DamageTypeReceived;
 	fixed_t DamageFactor;
 
 	FState *SpawnState;

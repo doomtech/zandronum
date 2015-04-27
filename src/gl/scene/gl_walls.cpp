@@ -508,7 +508,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 		{
 			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, true);
-			hi.lightlevel = GetCeilingLight(fs);
+			hi.lightlevel = gl_ClampLight(GetCeilingLight(fs));
 			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())
@@ -537,7 +537,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 		{
 			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, false);
-			hi.lightlevel = GetFloorLight(fs);
+			hi.lightlevel = gl_ClampLight(GetFloorLight(fs));
 			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())
@@ -1760,7 +1760,7 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
 
 		// can't do fake contrast without a sidedef
-		lightlevel = frontsector->lightlevel;
+		lightlevel = gl_ClampLight(frontsector->lightlevel);
 		rellight = 0;
 
 		alpha = 1.0f;
