@@ -91,6 +91,8 @@
 #include "gl/dynlights/gl_dynlight.h"
 
 
+#define MISSING_TEXTURE_WARN_LIMIT		20
+
 void P_SpawnSlopeMakers (FMapThing *firstmt, FMapThing *lastmt);
 void P_SetSlopes ();
 void P_CopySlopes();
@@ -102,7 +104,7 @@ extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, FMapThing **things, int *
 
 extern void P_TranslateTeleportThings (void);
 
-void P_ParseTextMap(MapData *map);
+void P_ParseTextMap(MapData *map, FMissingTextureTracker &);
 
 extern int numinterpolations;
 extern unsigned int R_OldBlend;
@@ -600,7 +602,7 @@ void MapData::GetChecksum(BYTE cksum[16])
 //
 //===========================================================================
 
-static void SetTexture (side_t *side, int position, const char *name8)
+static void SetTexture (side_t *side, int position, const char *name8, FMissingTextureTracker &track)
 {
 	static const char *positionnames[] = { "top", "middle", "bottom" };
 	static const char *sidenames[] = { "first", "second" };
@@ -612,16 +614,21 @@ static void SetTexture (side_t *side, int position, const char *name8)
 
 	if (!texture.Exists())
 	{
-		// Print an error that lists all references to this sidedef.
-		// We must scan the linedefs manually for all references to this sidedef.
-		for(int i = 0; i < numlines; i++)
+		if (++track[name].Count <= MISSING_TEXTURE_WARN_LIMIT)
 		{
-			for(int j = 0; j < 2; j++)
+			// Print an error that lists all references to this sidedef.
+			// We must scan the linedefs manually for all references to this sidedef.
+			for(int i = 0; i < numlines; i++)
 			{
-				if (lines[i].sidedef[j] == side)
+				for(int j = 0; j < 2; j++)
 				{
-					Printf("Unknown %s texture '%s' on %s side of linedef %d\n",
-						positionnames[position], name, sidenames[j], i);
+					if (lines[i].sidedef[j] == side)
+					{
+						Printf(TEXTCOLOR_RED"Unknown %s texture '"
+							TEXTCOLOR_ORANGE "%s" TEXTCOLOR_RED
+							"' on %s side of linedef %d\n",
+							positionnames[position], name, sidenames[j], i);
+					}
 				}
 			}
 		}
@@ -637,7 +644,7 @@ static void SetTexture (side_t *side, int position, const char *name8)
 //
 //===========================================================================
 
-void SetTexture (sector_t *sector, int index, int position, const char *name8)
+void SetTexture (sector_t *sector, int index, int position, const char *name8, FMissingTextureTracker &track)
 {
 	static const char *positionnames[] = { "floor", "ceiling" };
 	char name[9];
@@ -648,8 +655,13 @@ void SetTexture (sector_t *sector, int index, int position, const char *name8)
 
 	if (!texture.Exists())
 	{
-		Printf("Unknown %s texture '%s' in sector %d\n",
-			positionnames[position], name, index);
+		if (++track[name].Count <= MISSING_TEXTURE_WARN_LIMIT)
+		{
+			Printf(TEXTCOLOR_RED"Unknown %s texture '"
+				TEXTCOLOR_ORANGE "%s" TEXTCOLOR_RED
+				"' in sector %d\n",
+				positionnames[position], name, index);
+		}
 		texture = TexMan.GetDefaultTexture();
 	}
 	sector->SetTexture(position, texture);
@@ -684,6 +696,31 @@ bool P_CheckIfMapExists(const char * mapname){
 	}
 }
 
+//===========================================================================
+//
+// SummarizeMissingTextures
+//
+// Lists textures that were missing more than MISSING_TEXTURE_WARN_LIMIT
+// times.
+//
+//===========================================================================
+
+static void SummarizeMissingTextures(const FMissingTextureTracker &missing)
+{
+	FMissingTextureTracker::ConstIterator it(missing);
+	FMissingTextureTracker::ConstPair *pair;
+
+	while (it.NextPair(pair))
+	{
+		if (pair->Value.Count > MISSING_TEXTURE_WARN_LIMIT)
+		{
+			Printf(TEXTCOLOR_RED "Missing texture '"
+				TEXTCOLOR_ORANGE "%s" TEXTCOLOR_RED
+				"' is used %d more times\n",
+				pair->Key.GetChars(), pair->Value.Count - MISSING_TEXTURE_WARN_LIMIT);
+		}
+	}
+}
 
 //===========================================================================
 //
@@ -1470,7 +1507,7 @@ void P_LoadSubsectors (MapData * map)
 //
 //===========================================================================
 
-void P_LoadSectors (MapData * map)
+void P_LoadSectors (MapData *map, FMissingTextureTracker &missingtex)
 {
 	char				fname[9];
 	int 				i;
@@ -1520,8 +1557,8 @@ void P_LoadSectors (MapData * map)
 		ss->ceilingplane.d = ss->GetPlaneTexZ(sector_t::ceiling);
 		ss->ceilingplane.c = -FRACUNIT;
 		ss->ceilingplane.ic = -FRACUNIT;
-		SetTexture(ss, i, sector_t::floor, ms->floorpic);
-		SetTexture(ss, i, sector_t::ceiling, ms->ceilingpic);
+		SetTexture(ss, i, sector_t::floor, ms->floorpic, missingtex);
+		SetTexture(ss, i, sector_t::ceiling, ms->ceilingpic, missingtex);
 		ss->lightlevel = (BYTE)clamp (LittleShort(ms->lightlevel), (short)0, (short)255);
 		if (map->HasBehavior)
 			ss->special = LittleShort(ms->special);
@@ -2462,7 +2499,7 @@ int P_DetermineTranslucency (int lumpnum)
 	return newcolor.r;
 }
 
-void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapsidedef_t *msd, int special, int tag, short *alpha)
+void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapsidedef_t *msd, int special, int tag, short *alpha, FMissingTextureTracker &missingtex)
 {
 	char name[9];
 	name[8] = 0;
@@ -2493,7 +2530,7 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 			SetTextureNoErr (sd, side_t::bottom, &fog, msd->bottomtexture, &foggood, true);
 			SetTextureNoErr (sd, side_t::top, &color, msd->toptexture, &colorgood, false);
 			strncpy (name, msd->midtexture, 8);
-			SetTexture(sd, side_t::mid, msd->midtexture);
+			SetTexture(sd, side_t::mid, msd->midtexture, missingtex);
 
 			if (colorgood | foggood)
 			{
@@ -2529,11 +2566,11 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 		}
 		else
 		{
-			SetTexture(sd, side_t::top, msd->toptexture);
+			SetTexture(sd, side_t::top, msd->toptexture, missingtex);
 		}
 
-		SetTexture(sd, side_t::mid, msd->midtexture);
-		SetTexture(sd, side_t::bottom, msd->bottomtexture);
+		SetTexture(sd, side_t::mid, msd->midtexture, missingtex);
+		SetTexture(sd, side_t::bottom, msd->bottomtexture, missingtex);
 		break;
 #endif
 
@@ -2555,20 +2592,20 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 			}
 			else
 			{
-				SetTexture(sd, side_t::mid, msd->midtexture);
+				SetTexture(sd, side_t::mid, msd->midtexture, missingtex);
 			}
 
-			SetTexture(sd, side_t::top, msd->toptexture);
-			SetTexture(sd, side_t::bottom, msd->bottomtexture);
+			SetTexture(sd, side_t::top, msd->toptexture, missingtex);
+			SetTexture(sd, side_t::bottom, msd->bottomtexture, missingtex);
 			break;
 		}
 		// Fallthrough for Hexen maps is intentional
 
 	default:			// normal cases
 
-		SetTexture(sd, side_t::mid, msd->midtexture);
-		SetTexture(sd, side_t::top, msd->toptexture);
-		SetTexture(sd, side_t::bottom, msd->bottomtexture);
+		SetTexture(sd, side_t::mid, msd->midtexture, missingtex);
+		SetTexture(sd, side_t::top, msd->toptexture, missingtex);
+		SetTexture(sd, side_t::bottom, msd->bottomtexture, missingtex);
 		break;
 	}
 
@@ -2581,7 +2618,7 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 // after linedefs are loaded, to allow overloading.
 // killough 5/3/98: reformatted, cleaned up
 
-void P_LoadSideDefs2 (MapData * map)
+void P_LoadSideDefs2 (MapData *map, FMissingTextureTracker &missingtex)
 {
 	int  i;
 	char * msdf = new char[map->Size(ML_SIDEDEFS)];
@@ -2623,7 +2660,7 @@ void P_LoadSideDefs2 (MapData * map)
 			sd->sector = sec = &sectors[LittleShort(msd->sector)];
 		}
 		P_ProcessSideTextures(!map->HasBehavior, sd, sec, msd, 
-							  sidetemp[i].a.special, sidetemp[i].a.tag, &sidetemp[i].a.alpha);
+							  sidetemp[i].a.special, sidetemp[i].a.tag, &sidetemp[i].a.alpha, missingtex);
 	}
 	delete[] msdf;
 }
@@ -3917,6 +3954,8 @@ void P_SetupLevel (char *lumpname, int position)
 
 		P_LoadStrifeConversations (map, lumpname);
 
+		FMissingTextureTracker missingtex;
+
 		if (!map->isText)
 		{
 			times[0].Clock();
@@ -3925,7 +3964,7 @@ void P_SetupLevel (char *lumpname, int position)
 			
 			// Check for maps without any BSP data at all (e.g. SLIGE)
 			times[1].Clock();
-			P_LoadSectors (map);
+			P_LoadSectors (map, missingtex);
 			times[1].Unclock();
 
 			times[2].Clock();
@@ -3940,7 +3979,7 @@ void P_SetupLevel (char *lumpname, int position)
 			times[3].Unclock();
 
 			times[4].Clock();
-			P_LoadSideDefs2 (map);
+			P_LoadSideDefs2 (map, missingtex);
 			times[4].Unclock();
 
 			times[5].Clock();
@@ -3956,7 +3995,7 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 		else
 		{
-			P_ParseTextMap(map);
+			P_ParseTextMap(map, missingtex);
 		}
 
 		times[6].Clock();
@@ -3965,6 +4004,8 @@ void P_SetupLevel (char *lumpname, int position)
 
 		linemap.Clear();
 		linemap.ShrinkToFit();
+
+		SummarizeMissingTextures(missingtex);
 	}
 	else
 	{
