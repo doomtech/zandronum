@@ -1662,8 +1662,17 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 		/* mid texture */
 		bool drawfogboundary = gl_CheckFog(frontsector, backsector);
+		FTexture *tex = TexMan(seg->sidedef->GetTexture(side_t::mid));
+		if (tex != NULL)
+		{
+			if (i_compatflags & COMPATF_MASKEDMIDTEX)
+			{
+				tex = tex->GetRawTexture();
+			}
+			gltexture=FMaterial::ValidateTexture(tex);
+		}
+		else gltexture = NULL;
 
-		gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
 		if (gltexture || drawfogboundary)
 		{
 			DoMidTexture(seg, drawfogboundary, frontsector, backsector, realfront, realback, 
