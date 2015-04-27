@@ -78,6 +78,7 @@
 #include "v_palette.h"
 #include "menu/menu.h"
 #include "a_strifeglobal.h"
+#include "resources/colormaps.h"
 // [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"

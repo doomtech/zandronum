@@ -78,6 +78,7 @@
 #include "win32/g15/g15.h"
 #include "r_translate.h"
 #include "p_enemy.h"
+#include "resources/colormaps.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );

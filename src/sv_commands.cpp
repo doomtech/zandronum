@@ -77,6 +77,7 @@
 #include "a_movingcamera.h"
 #include "po_man.h"
 #include "i_system.h"
+#include "resources/colormaps.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 

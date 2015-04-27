@@ -117,6 +117,7 @@
 #include "network/cl_auth.h"
 #include "network/sv_auth.h"
 #include "unlagged.h" // [CK]
+#include "resources/colormaps.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

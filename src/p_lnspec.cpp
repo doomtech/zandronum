@@ -56,6 +56,7 @@
 #include "p_3dmidtex.h"
 #include "d_net.h"
 #include "d_event.h"
+#include "resources/colormaps.h"
 // [BC] New #includes.
 #include "cooperative.h"
 #include "deathmatch.h"

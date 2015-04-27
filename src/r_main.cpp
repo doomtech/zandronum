@@ -56,6 +56,7 @@
 #include "r_3dfloors.h"
 #include "v_palette.h"
 #include "po_man.h"
+#include "resources/colormaps.h"
 //#include "gl/data/gl_data.h"
 #include "gl/gl_functions.h"
 

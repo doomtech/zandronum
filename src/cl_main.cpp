@@ -112,6 +112,7 @@
 #include "d_netinf.h"
 #include "po_man.h"
 #include "network/cl_auth.h"
+#include "resources/colormaps.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

@@ -70,6 +70,7 @@
 #include "md5.h"
 #include "compatibility.h"
 #include "po_man.h"
+#include "resources/colormaps.h"
 // [BB] New #includes.
 #include "cooperative.h"
 #include "deathmatch.h"

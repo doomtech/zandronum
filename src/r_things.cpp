@@ -59,6 +59,7 @@
 #include "r_3dfloors.h"
 #include "v_palette.h"
 #include "r_translate.h"
+#include "resources/colormaps.h"
 // [BB] New #includes.
 #include "w_wad.h"
 #include "cl_demo.h"

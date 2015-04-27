@@ -52,6 +52,7 @@
 #include "templates.h"
 #include "d_net.h"
 #include "colormatcher.h"
+#include "resources/colormaps.h"
 // [BB] New #includes.
 #include "chat.h"
 #include "v_font.h"

@@ -48,6 +48,7 @@
 #include "g_level.h"
 #include "po_man.h"
 #include "p_setup.h"
+#include "resources/colormaps.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"
