@@ -4404,7 +4404,7 @@ enum EACSFunctions
 	ACSF_GetPolyobjY,
     ACSF_CheckSight,
 	ACSF_SpawnForced,
-	ACSF_AnnouncerSound=37, // [BL] Skulltag Function
+	ACSF_AnnouncerSound,	// Skulltag
 	ACSF_SetPointer,
 
 	ACSF_UniqueTID = 46, // [BB] Backported from ZDoom
