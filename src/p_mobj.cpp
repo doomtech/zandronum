@@ -267,8 +267,12 @@ void AActor::Serialize (FArchive &arc)
 		<< velz
 		<< tics
 		<< state
-		<< Damage
-		<< flags
+		<< Damage;
+	if (SaveVersion >= 3227)
+	{
+		arc << projectileKickback;
+	}
+	arc	<< flags
 		<< flags2
 		<< flags3
 		<< flags4
@@ -330,8 +334,14 @@ void AActor::Serialize (FArchive &arc)
 		<< maxtargetrange
 		<< meleethreshold
 		<< meleerange
-		<< DamageType
-		<< gravity
+		<< DamageType;
+	if (SaveVersion >= 3237) 
+	{
+		arc
+		<< PainType
+		<< DeathType;
+	}
+	arc	<< gravity
 		<< FastChaseStrafeCount
 		<< master
 		<< smokecounter
@@ -349,8 +359,12 @@ void AActor::Serialize (FArchive &arc)
 		<< DamageFactor
 		<< WeaveIndexXY << WeaveIndexZ
 		<< PoisonDamageReceived << PoisonDurationReceived << PoisonPeriodReceived << Poisoner
-		<< PoisonDamage << PoisonDuration << PoisonPeriod
-		<< ConversationRoot << Conversation
+		<< PoisonDamage << PoisonDuration << PoisonPeriod;
+	if (SaveVersion >= 3235)
+	{
+		arc << PoisonDamageType << PoisonDamageTypeReceived;
+	}
+	arc << ConversationRoot << Conversation
 		<< ulLimitedToTeam // [BB]
 		<< ulVisibleToTeam // [BB]
 		<< lFixedColormap // [BB]
@@ -4213,7 +4227,7 @@ void AActor::Tick ()
 		// Check for poison damage, but only once per PoisonPeriod tics (or once per second if none).
 		if (PoisonDurationReceived && (level.time % (PoisonPeriodReceived ? PoisonPeriodReceived : TICRATE) == 0))
 		{
-			P_DamageMobj(this, NULL, Poisoner, PoisonDamageReceived, NAME_Poison, 0);
+			P_DamageMobj(this, NULL, Poisoner, PoisonDamageReceived, PoisonDamageTypeReceived ? PoisonDamageTypeReceived : (FName)NAME_Poison, 0);
 
 			--PoisonDurationReceived;
 
@@ -6010,6 +6024,10 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 
 		puff->SetState (crashstate);
 	}
+	else if ((flags & PF_HITTHINGBLEED) && (crashstate = puff->FindState(NAME_Death, NAME_Extreme, true)) != NULL)
+	{
+		puff->SetState (crashstate);
+	}
 	else if ((flags & PF_MELEERANGE) && puff->MeleeState != NULL)
 	{
 		// [BB] The server needs to tell the state to the clients later.
@@ -7240,6 +7258,10 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 	{
 		return damage;
 	}
+	
+	if (inflictor && inflictor->DeathType != NAME_None)
+		damagetype = inflictor->DeathType;
+
 	if (damagetype == NAME_Ice)
 	{
 		death = FindState (NAME_Death, NAME_Ice, true);

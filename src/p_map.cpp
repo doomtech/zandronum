@@ -1231,7 +1231,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 						// [RH] Don't hurt monsters that hate the same thing as you do
 						return false;
 					}
-					if (thing->GetSpecies() == tm.thing->target->GetSpecies())
+					if (thing->GetSpecies() == tm.thing->target->GetSpecies() && !(thing->flags6 & MF6_DOHARMSPECIES))
 					{
 						// Don't hurt same species or any relative -
 						// but only if the target isn't one's hostile.
@@ -1275,7 +1275,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 					// Do poisoning (if using new style poison)
 					if (tm.thing->PoisonDamage > 0 && tm.thing->PoisonDuration != INT_MIN)
 					{
-						P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod);
+						P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod, tm.thing->PoisonDamageType);
 					}
 
 					damage = tm.thing->GetMissileDamage (3, 2);
@@ -1305,7 +1305,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		// Do poisoning (if using new style poison)
 		if (tm.thing->PoisonDamage > 0 && tm.thing->PoisonDuration != INT_MIN)
 		{
-			P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod);
+			P_PoisonMobj(thing, tm.thing, tm.thing->target, tm.thing->PoisonDamage, tm.thing->PoisonDuration, tm.thing->PoisonPeriod, tm.thing->PoisonDamageType);
 		}
 
 		// Do damage
@@ -4303,12 +4303,13 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		shootz += 8*FRACUNIT;
 	}
 
-	hitGhosts = (t1->player != NULL &&
-		t1->player->ReadyWeapon != NULL &&
-		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST));
-
 	// We need to check the defaults of the replacement here
 	AActor *puffDefaults = GetDefaultByType(pufftype->GetReplacement());
+
+	hitGhosts = (t1->player != NULL &&
+		t1->player->ReadyWeapon != NULL &&
+		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST)) ||
+		(puffDefaults && (puffDefaults->flags2 & MF2_THRUGHOST));
 
 	// if the puff uses a non-standard damage type this will override default and melee damage type.
 	// All other explicitly passed damage types (currenty only MDK) will be preserved.
@@ -4473,6 +4474,9 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				(trace.Actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)))
 				&& ( NETWORK_InClientMode( ) == false || CLIENT_ShouldPredictPuffs( ) ) )
 			{
+				if (!(trace.Actor->flags & MF_NOBLOOD))
+					flags |= PF_HITTHINGBLEED;
+
 				// We must pass the unreplaced puff type here 
 				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING);
 			}
@@ -4532,7 +4536,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
 			if (puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 			{
-				P_PoisonMobj(trace.Actor, puff ? puff : t1, t1, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod);
+				P_PoisonMobj(trace.Actor, puff ? puff : t1, t1, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod, puffDefaults->PoisonDamageType);
 			}
 
 			// [GZ] If MF6_FORCEPAIN is set, we need to call P_DamageMobj even if damage is 0!
@@ -4942,7 +4946,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			{
 
 			if (puffDefaults && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
-					P_PoisonMobj(RailHits[i].HitActor, thepuff ? thepuff : source, source, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod);
+				P_PoisonMobj(RailHits[i].HitActor, thepuff ? thepuff : source, source, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod, puffDefaults->PoisonDamageType);
 
 				// Support for instagib.
 				if ( instagib )

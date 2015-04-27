@@ -450,6 +450,16 @@ DEFINE_PROPERTY(damage, X, Actor)
 //==========================================================================
 //
 //==========================================================================
+DEFINE_PROPERTY(projectilekickback, I, Actor)
+{
+	PROP_INT_PARM(id, 0);
+
+	defaults->projectileKickback = id;
+}
+
+//==========================================================================
+//
+//==========================================================================
 DEFINE_PROPERTY(speed, F, Actor)
 {
 	PROP_FIXED_PARM(id, 0);
@@ -1007,6 +1017,26 @@ DEFINE_PROPERTY(damagetype, S, Actor)
 }
 
 //==========================================================================
+
+//==========================================================================
+DEFINE_PROPERTY(paintype, S, Actor)
+{
+	PROP_STRING_PARM(str, 0);
+	if (!stricmp(str, "Normal")) defaults->PainType = NAME_None;
+	else defaults->PainType=str;
+}
+
+//==========================================================================
+
+//==========================================================================
+DEFINE_PROPERTY(deathtype, S, Actor)
+{
+	PROP_STRING_PARM(str, 0);
+	if (!stricmp(str, "Normal")) defaults->DeathType = NAME_None;
+	else defaults->DeathType=str;
+}
+
+//==========================================================================
 //
 //==========================================================================
 DEFINE_PROPERTY(damagefactor, ZF, Actor)
@@ -1078,6 +1108,16 @@ DEFINE_PROPERTY(poisondamage, Iii, Actor)
 		else
 			defaults->PoisonPeriod = 0;
 	}
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_PROPERTY(poisondamagetype, S, Actor)
+{
+	PROP_STRING_PARM(poisondamagetype, 0);
+
+	defaults->PoisonDamageType = poisondamagetype;
 }
 
 //==========================================================================

@@ -328,6 +328,8 @@ enum
 	MF6_BOSSCUBE		= 0x00800000,	// Actor spawned by A_BrainSpit, flagged for timefreeze reasons.
 	MF6_SEEINVISIBLE	= 0x01000000,	// Monsters can see invisible player.
 	MF6_DONTCORPSE		= 0x02000000,	// [RC] Don't autoset MF_CORPSE upon death and don't force Crash state change.
+	MF6_POISONALWAYS	= 0x04000000,	// Always apply poison, even when target can't take the damage.
+	MF6_DOHARMSPECIES	= 0x08000000,	// Do hurt one's own species with projectiles.
 
 	MF6_INTRYMOVE		= 0x10000000,	// Executing P_TryMove
 
@@ -934,6 +936,7 @@ public:
 	SDWORD			tics;				// state tic counter
 	FState			*state;
 	SDWORD			Damage;			// For missiles and monster railgun
+	int				projectileKickback;
 	DWORD			flags;
 	DWORD			flags2;			// Heretic flags
 	DWORD			flags3;			// [RH] Hexen/Heretic actor-dependant behavior made flaggable
@@ -1024,10 +1027,12 @@ public:
 	line_t			*BlockingLine;	// Line that blocked the last move
 
 	int PoisonDamage; // Damage received per tic from poison.
+	FNameNoInit PoisonDamageType; // Damage type dealt by poison.
 	int PoisonDuration; // Duration left for receiving poison damage.
 	int PoisonPeriod; // How often poison damage is applied. (Every X tics.)
 
 	int PoisonDamageReceived; // Damage received per tic from poison.
+	FNameNoInit PoisonDamageTypeReceived; // Damage type received by poison.
 	int PoisonDurationReceived; // Duration left for receiving poison damage.
 	int PoisonPeriodReceived; // How often poison damage is applied. (Every X tics.)
 	TObjPtr<AActor> Poisoner; // Last source of received poison damage.
@@ -1066,6 +1071,9 @@ public:
 	FNameNoInit DamageType;
 	FNameNoInit DamageTypeReceived;
 	fixed_t DamageFactor;
+
+	FNameNoInit PainType;
+	FNameNoInit DeathType;
 
 	FState *SpawnState;
 	FState *SeeState;

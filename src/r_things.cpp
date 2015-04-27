@@ -235,7 +235,7 @@ CVAR (Bool, r_particles, true, 0);
 // [RH] Removed checks for coexistance of rotation 0 with other
 //		rotations and made it look more like BOOM's version.
 //
-static void R_InstallSpriteLump (FTextureID lump, unsigned frame, char rot, bool flipped)
+static bool R_InstallSpriteLump (FTextureID lump, unsigned frame, char rot, bool flipped)
 {
 	unsigned rotation;
 
@@ -253,7 +253,10 @@ static void R_InstallSpriteLump (FTextureID lump, unsigned frame, char rot, bool
 	}
 
 	if (frame >= MAX_SPRITE_FRAMES || rotation > 16)
-		I_FatalError ("R_InstallSpriteLump: Bad frame characters in lump %s", TexMan[lump]->Name);
+	{
+		Printf (TEXTCOLOR_RED"R_InstallSpriteLump: Bad frame characters in lump %s\n", TexMan[lump]->Name);
+		return false;
+	}
 
 	if ((int)frame > maxframe)
 		maxframe = frame;
@@ -300,6 +303,7 @@ static void R_InstallSpriteLump (FTextureID lump, unsigned frame, char rot, bool
 			sprtemp[frame].rotate = true;
 		}
 	}
+	return true;
 }
 
 
@@ -541,9 +545,9 @@ void R_InitSpriteDefs ()
 			FTexture *tex = TexMan[hash];
 			if (tex->dwName == intname)
 			{
-				R_InstallSpriteLump (FTextureID(hash), tex->Name[4] - 'A', tex->Name[5], false);
+				bool res = R_InstallSpriteLump (FTextureID(hash), tex->Name[4] - 'A', tex->Name[5], false);
 
-				if (tex->Name[6])
+				if (tex->Name[6] && res)
 					R_InstallSpriteLump (FTextureID(hash), tex->Name[6] - 'A', tex->Name[7], true);
 			}
 			hash = hashes[hash].Next;
@@ -1306,9 +1310,9 @@ void R_InitSkins (void)
 							if (!picnum.isValid())
 								continue;
 
-							R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
+							bool res = R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
 
-							if (lname[6])
+							if (lname[6] && res)
 								R_InstallSpriteLump (picnum, lname[6] - 'A', lname[7], true);
 						}
 					}

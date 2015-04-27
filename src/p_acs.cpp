@@ -9211,6 +9211,7 @@ int DLevelScript::RunScript ()
 			}
 			break;
 
+
 		// [CW] Begin team additions.
 		case PCD_GETTEAMPLAYERCOUNT:
 			STACK( 1 ) = TEAM_CountPlayers( STACK( 1 ));

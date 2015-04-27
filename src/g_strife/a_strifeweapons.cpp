@@ -167,8 +167,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_JabDagger)
 //
 //============================================================================
 
-DEFINE_ACTION_FUNCTION(AActor, A_AlertMonsters)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_AlertMonsters)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_FIXED(maxdist, 0);
+
 	// [BC] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -178,11 +181,11 @@ DEFINE_ACTION_FUNCTION(AActor, A_AlertMonsters)
 
 	if (self->player != NULL)
 	{
-		P_NoiseAlert(self, self);
+		P_NoiseAlert(self, self, false, maxdist);
 	}
 	else if (self->target != NULL && self->target->player != NULL)
 	{
-		P_NoiseAlert (self->target, self);
+		P_NoiseAlert (self->target, self, false, maxdist);
 	}
 }
 
@@ -811,6 +814,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Burnination)
 			}
 		}
 	}
+
 }
 
 //============================================================================

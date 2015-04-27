@@ -816,13 +816,14 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 
 	FState *diestate = NULL;
+	FName damagetype = (inflictor && inflictor->DeathType != NAME_None) ? inflictor->DeathType : DamageType;
 
-	if (DamageType != NAME_None)
+	if (damagetype != NAME_None)
 	{
-		diestate = FindState (NAME_Death, DamageType, true);
+		diestate = FindState (NAME_Death, damagetype, true);
 		if (diestate == NULL)
 		{
-			if (DamageType == NAME_Ice)
+			if (damagetype == NAME_Ice)
 			{ // If an actor doesn't have an ice death, we can still give them a generic one.
 
 				if (!deh.NoAutofreeze && !(flags4 & MF4_NOICEDEATH) && (player || (flags3 & MF3_ISMONSTER)))
@@ -841,9 +842,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		// Don't pass on a damage type this actor cannot handle.
 		// (most importantly, prevent barrels from passing on ice damage.)
 		// Massacre must be preserved though.
-		if (DamageType != NAME_Massacre)
+		if (damagetype != NAME_Massacre)
 		{
-			DamageType = NAME_None;	
+			damagetype = NAME_None;	
 		}
 
 		if ((health < gibhealth || flags4 & MF4_EXTREMEDEATH) && !(flags4 & MF4_NOEXTREMEDEATH))
@@ -1341,7 +1342,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	{
 		int kickback;
 
-		if (!source || !source->player || !source->player->ReadyWeapon)
+		if (inflictor && inflictor->projectileKickback)
+			kickback = inflictor->projectileKickback;
+		else if (!source || !source->player || !source->player->ReadyWeapon)
 			kickback = gameinfo.defKickback;
 		else
 			kickback = source->player->ReadyWeapon->Kickback;
@@ -1721,7 +1724,7 @@ dopain:
 			else
 			{
 				justhit = true;
-				FState *painstate = target->FindState(NAME_Pain, mod);
+				FState *painstate = target->FindState(NAME_Pain, ((inflictor && inflictor->PainType != NAME_None) ? inflictor->PainType : mod));
 				if (painstate != NULL)
 				{
 					// If we are the server, tell clients about the state change.
@@ -1792,12 +1795,30 @@ dopain:
 		target->flags |= MF_JUSTHIT;    // fight back!
 }
 
-void P_PoisonMobj (AActor *target, AActor *inflictor, AActor *source, int damage, int duration, int period)
+void P_PoisonMobj (AActor *target, AActor *inflictor, AActor *source, int damage, int duration, int period, FName type)
 {
-	int olddamage = target->PoisonDamageReceived;
-	int oldduration = target->PoisonDurationReceived;
+	// Check for invulnerability.
+	if (!(inflictor->flags6 & MF6_POISONALWAYS))
+	{
+		if (target->flags2 & MF2_INVULNERABLE)
+		{ // actor is invulnerable
+			if (target->player == NULL)
+			{
+				if (!(inflictor->flags3 & MF3_FOILINVUL))
+				{
+					return;
+				}
+			}
+			else
+			{
+				return;
+			}
+		}
+	}
 
 	target->Poisoner = source;
+	target->PoisonDamageTypeReceived = type;
+	target->PoisonPeriodReceived = period;
 
 	if (inflictor->flags6 & MF6_ADDITIVEPOISONDAMAGE)
 	{
@@ -1817,7 +1838,6 @@ void P_PoisonMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		target->PoisonDurationReceived = duration;
 	}
 
-	target->PoisonPeriodReceived = period;
 }
 
 bool AActor::OkayToSwitchTarget (AActor *other)
@@ -2004,8 +2024,8 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
 
-		FState * painstate = target->FindState(NAME_Pain, target->DamageType);
-		if (painstate != NULL) target->SetState (painstate);
+		FState * painstate = target->FindState(NAME_Pain,((inflictor && inflictor->PainType != NAME_None) ? inflictor->PainType : target->DamageType));
+			if (painstate != NULL) target->SetState (painstate);
 	}
 /*
 	if((P_Random() < target->info->painchance)
