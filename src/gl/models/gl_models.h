@@ -1,8 +1,9 @@
 #ifndef __GL_MODELS_H_
 #define __GL_MODELS_H_
 
-#include "r_data.h"
 #include "gl/utility/gl_geometric.h"
+#include "p_pspr.h"
+#include "resources/voxels.h"
 
 #define MAX_LODS			4
 

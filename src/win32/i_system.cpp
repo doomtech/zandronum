@@ -86,8 +86,8 @@
 #include "doomstat.h"
 #include "v_palette.h"
 #include "stats.h"
-#include "r_data.h"
 #include "textures/bitmap.h"
+#include "textures/textures.h"
 // [BC] New #includes.
 #include "announcer.h"
 #include "network.h"

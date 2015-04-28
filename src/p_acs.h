@@ -38,6 +38,9 @@
 #include "dobject.h"
 #include "dthinker.h"
 #include "doomtype.h"
+#include "farchive.h"
+// [BB] New #includes.
+#include "r_translate.h"
 
 #define LOCAL_SIZE				20
 #define NUM_MAPVARS				128

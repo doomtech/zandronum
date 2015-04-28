@@ -988,7 +988,6 @@ add_executable( zdoom WIN32
 	possession.cpp #ST
 	r_3dfloors.cpp
 	r_bsp.cpp
-	r_data.cpp
 	r_draw.cpp
 	r_drawt.cpp
 	r_interpolate.cpp
@@ -1200,6 +1199,7 @@ add_executable( zdoom WIN32
 	#fragglescript/t_variable.cpp
 	#fragglescript/t_cmd.cpp
 	resources/colormaps.cpp
+	resources/voxels.cpp
 	autozend.cpp
 )
 

@@ -41,6 +41,8 @@
 #include "sbar.h"
 #include "sbarinfo.h"
 #include "templates.h"
+// [BB] New #includes.
+#include "sv_main.h"
 
 #define ST_RAMPAGEDELAY 		(2*TICRATE)
 #define ST_MUCHPAIN 			20

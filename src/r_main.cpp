@@ -56,6 +56,8 @@
 #include "r_3dfloors.h"
 #include "v_palette.h"
 #include "po_man.h"
+#include "st_start.h"
+#include "v_font.h"
 #include "resources/colormaps.h"
 //#include "gl/data/gl_data.h"
 #include "gl/gl_functions.h"
@@ -821,7 +823,33 @@ void R_Init ()
 {
 	atterm (R_Shutdown);
 
-	R_InitData ();
+	// [BC] In server mode, the only data we need to load are sprites and textures.
+	// This is because the server needs to know if objects have valid frames so it can
+	// decide whether or not it's okay to spawn them, and so servers have valid texture
+	// references to send out to clients if textures change during the course of the map.
+	/* [BB] Not compatible with the ZDoom updates.
+	// [BB] 2.0 didn't have this and it didn't seem to cause problems.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		TexMan.AddGroup( "S_START", "S_END", ns_sprites, FTexture::TEX_Sprite );
+		R_InitPatches ();	// Initializes "special" textures that have no external references
+		R_InitTextures ();
+		TexMan.AddGroup("F_START", "F_END", ns_flats, FTexture::TEX_Flat);
+		R_InitBuildTiles ();
+		TexMan.AddGroup("TX_START", "TX_END", ns_newtextures, FTexture::TEX_Override);
+		TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
+		// [BB] The server currently needs the fonts at least for DLevelScript::DoSetFont.
+		V_InitFonts();
+		return;
+	}
+	*/
+
+	StartScreen->Progress();
+	V_InitFonts();
+	StartScreen->Progress();
+	R_InitColormaps ();
+	StartScreen->Progress();
+
 	gl_ParseDefs();
 	R_InitPointToAngle ();
 	R_InitTables ();
@@ -857,7 +885,22 @@ static void R_Shutdown ()
 	R_DeinitParticles();
 	R_DeinitTranslationTables();
 	R_DeinitPlanes();
-	R_DeinitData();
+	R_DeinitColormaps ();
+	FCanvasTextureInfo::EmptyList();
+
+	// Free openings
+	if (openings != NULL)
+	{
+		M_Free (openings);
+		openings = NULL;
+	}
+
+	// Free drawsegs
+	if (drawsegs != NULL)
+	{
+		M_Free (drawsegs);
+		drawsegs = NULL;
+	}
 }
 
 //==========================================================================

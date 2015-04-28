@@ -64,6 +64,7 @@
 #include "team.h"
 #include "sbar.h"
 #include "scoreboard.h"
+#include "v_video.h"
 
 //*****************************************************************************
 //	PROTOTYPES

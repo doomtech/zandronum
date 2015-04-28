@@ -587,6 +587,8 @@ FPolyObj *PO_GetPolyobj(int polyNum);
 //
 #include "p_spec.h"
 
+bool P_AlignFlat (int linenum, int side, int fc);
+
 // [BB] Moved here from po_man.cpp
 class DPolyAction : public DThinker
 {

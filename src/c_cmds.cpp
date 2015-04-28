@@ -70,6 +70,7 @@
 #include "d_net.h"
 #include "v_text.h"
 #include "p_lnspec.h"
+#include "v_video.h"
 // [BC] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"

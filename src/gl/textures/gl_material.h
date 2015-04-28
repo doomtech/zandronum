@@ -2,9 +2,10 @@
 #ifndef __GL_TEXTURE_H
 #define __GL_TEXTURE_H
 
+#include "m_fixed.h"
+#include "textures/textures.h"
 #include "gl/textures/gl_hwtexture.h"
 #include "gl/renderer/gl_colormap.h"
-#include "r_data.h"
 #include "i_system.h"
 
 EXTERN_CVAR(Bool, gl_precache)

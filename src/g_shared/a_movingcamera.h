@@ -2,6 +2,8 @@
 #define __A_MOVINGCAMERA__
 
 #include "actor.h"
+// [BB] New #includes.
+#include "network.h"
 
 class AInterpolationPoint : public AActor
 {

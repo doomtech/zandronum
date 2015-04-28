@@ -38,7 +38,6 @@
 #include "gl/system/gl_system.h"
 #include "c_cvars.h"
 #include "w_wad.h"
-#include "r_data.h"
 #include "templates.h"
 #include "colormatcher.h"
 #include "r_translate.h"
@@ -47,6 +46,7 @@
 #include "win32gliface.h"
 #endif
 #include "v_palette.h"
+#include "sc_man.h"
 
 #include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_texture.h"

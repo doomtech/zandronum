@@ -71,7 +71,6 @@
 #include "p_acs.h"
 #include "p_lnspec.h"
 #include "p_local.h"
-#include "r_data.h"
 #include "r_main.h"
 #include "r_sky.h"
 #include "s_sound.h"

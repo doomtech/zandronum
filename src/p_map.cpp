@@ -64,6 +64,7 @@
 #include "gamemode.h"
 #include "unlagged.h"
 #include "d_netinf.h"
+#include "v_video.h"
 
 // [BB] Helper function to handle ZADF_UNBLOCK_PLAYERS.
 bool P_CheckUnblock ( AActor *pActor1, AActor *pActor2 )

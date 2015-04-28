@@ -40,6 +40,7 @@
 #include "g_level.h"
 #include "sc_man.h"
 #include "w_wad.h"
+#include "r_state.h"
 //#include "gl/gl_intern.h"
 
 #include "gl/data/gl_data.h"

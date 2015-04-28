@@ -1,8 +1,8 @@
 /*
-** r_data.cpp
+** voxels.cpp
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2008 Randy Heit
+** Copyright 2010-2011 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -32,138 +32,56 @@
 **
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+
+#include "templates.h"
+#include "doomdef.h"
+#include "m_swap.h"
+#include "m_argv.h"
 #include "i_system.h"
 #include "w_wad.h"
-#include "doomdef.h"
 #include "r_local.h"
-#include "r_sky.h"
+#include "c_console.h"
+#include "c_cvars.h"
 #include "c_dispatch.h"
-#include "r_data.h"
-#include "sc_man.h"
-#include "v_text.h"
-#include "network.h"
-#include "cl_demo.h"
-
-#include "st_start.h"
 #include "doomstat.h"
+#include "v_video.h"
+#include "sc_man.h"
+#include "s_sound.h"
+#include "sbar.h"
+#include "gi.h"
+#include "r_sky.h"
+#include "cmdlib.h"
+#include "g_level.h"
+#include "d_net.h"
+#include "colormatcher.h"
+#include "d_netinf.h"
 #include "r_bsp.h"
+#include "r_plane.h"
 #include "r_segs.h"
 #include "v_palette.h"
+#include "r_translate.h"
 #include "resources/colormaps.h"
+#include "voxels.h"
 
+void VOX_AddVoxel(int sprnum, int frame, FVoxelDef *def);
 
-//==========================================================================
-//
-// R_InitData
-// Locates all the lumps that will be used by all views
-// Must be called after W_Init.
-//
-//==========================================================================
+TDeletingArray<FVoxel *> Voxels;	// used only to auto-delete voxels on exit.
+TDeletingArray<FVoxelDef *> VoxelDefs;
 
-void R_InitData ()
+struct VoxelOptions
 {
-	// [BC] In server mode, the only data we need to load are sprites and textures.
-	// This is because the server needs to know if objects have valid frames so it can
-	// decide whether or not it's okay to spawn them, and so servers have valid texture
-	// references to send out to clients if textures change during the course of the map.
-	/* [BB] Not compatible with the ZDoom updates.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		TexMan.AddGroup( "S_START", "S_END", ns_sprites, FTexture::TEX_Sprite );
-		R_InitPatches ();	// Initializes "special" textures that have no external references
-		R_InitTextures ();
-		TexMan.AddGroup("F_START", "F_END", ns_flats, FTexture::TEX_Flat);
-		R_InitBuildTiles ();
-		TexMan.AddGroup("TX_START", "TX_END", ns_newtextures, FTexture::TEX_Override);
-		TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
-		// [BB] The server currently needs the fonts at least for DLevelScript::DoSetFont.
-		V_InitFonts();
-		return;
-	}
-	*/
+	VoxelOptions()
+	: DroppedSpin(0), PlacedSpin(0), Scale(FRACUNIT), AngleOffset(0)
+	{}
 
-	StartScreen->Progress();
-
-	V_InitFonts();
-	StartScreen->Progress();
-	R_InitColormaps ();
-	StartScreen->Progress();
-	// [BC] Server has no need for the console.
-	//if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	//	C_InitConsole (SCREENWIDTH, SCREENHEIGHT, true);
-}
-
-//===========================================================================
-//
-// R_DeinitData
-//
-//===========================================================================
-
-void R_DeinitData ()
-{
-	R_DeinitColormaps ();
-	FCanvasTextureInfo::EmptyList();
-
-	// Free openings
-	if (openings != NULL)
-	{
-		M_Free (openings);
-		openings = NULL;
-	}
-
-	// Free drawsegs
-	if (drawsegs != NULL)
-	{
-		M_Free (drawsegs);
-		drawsegs = NULL;
-	}
-}
-
-//===========================================================================
-//
-// R_PrecacheLevel
-//
-// Preloads all relevant graphics for the level.
-//
-//===========================================================================
-
-void R_PrecacheLevel (void)
-{
-	BYTE *hitlist;
-
-	// [BC] The server doesn't need to precache the level.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
-
-	// [BC] Support for client-side demos.
-	if (demoplayback || CLIENTDEMO_IsPlaying( ))
-		return;
-
-	hitlist = new BYTE[TexMan.NumTextures()];
-	memset (hitlist, 0, TexMan.NumTextures());
-
-	screen->GetHitlist(hitlist);
-	for (int i = TexMan.NumTextures() - 1; i >= 0; i--)
-	{
-		screen->PrecacheTexture(TexMan.ByIndex(i), hitlist[i]);
-
-	}
-
-	delete[] hitlist;
-}
-
-
-
-//==========================================================================
-//
-// R_GetColumn
-//
-//==========================================================================
-
-const BYTE *R_GetColumn (FTexture *tex, int col)
-{
-	return tex->GetColumn (col, NULL);
-}
+	int			DroppedSpin;
+	int			PlacedSpin;
+	fixed_t		Scale;
+	angle_t		AngleOffset;
+};
 
 //==========================================================================
 //
@@ -308,62 +226,60 @@ FVoxel *R_LoadKVX(int lumpnum)
 		{ // Clearly, not enough.
 			break;
 		}
-		if (voxdatasize == 0)
-		{ // This mip level is empty.
-			goto nextmip;
-		}
+		if (voxdatasize != 0)
+		{	// This mip level is not empty.
+			// Allocate slab data space.
+			mipl->OffsetX = new int[(numbytes - 24 + 3) / 4];
+			mipl->OffsetXY = (short *)(mipl->OffsetX + mipl->SizeX + 1);
+			mipl->SlabData = (BYTE *)(mipl->OffsetXY + mipl->SizeX * (mipl->SizeY + 1));
 
-		// Allocate slab data space.
-		mipl->OffsetX = new int[(numbytes - 24 + 3) / 4];
-		mipl->OffsetXY = (short *)(mipl->OffsetX + mipl->SizeX + 1);
-		mipl->SlabData = (BYTE *)(mipl->OffsetXY + mipl->SizeX * (mipl->SizeY + 1));
-
-		// Load x offsets.
-		for (i = 0, n = mipl->SizeX; i <= n; ++i)
-		{
-			// The X offsets stored in the KVX file are relative to the start of the
-			// X offsets array. Make them relative to voxdata instead.
-			mipl->OffsetX[i] = GetInt(rawmip + 24 + i * 4) - offsetsize;
-		}
-
-		// The first X offset must be 0 (since we subtracted offsetsize), according to the spec:
-		//		NOTE: xoffset[0] = (xsiz+1)*4 + xsiz*(ysiz+1)*2 (ALWAYS)
-		if (mipl->OffsetX[0] != 0)
-		{
-			break;
-		}
-		// And the final X offset must point just past the end of the voxdata.
-		if (mipl->OffsetX[mipl->SizeX] != voxdatasize)
-		{
-			break;
-		}
-
-		// Load xy offsets.
-		i = 24 + i * 4;
-		for (j = 0, n *= mipl->SizeY + 1; j < n; ++j)
-		{
-			mipl->OffsetXY[j] = GetShort(rawmip + i + j * 2);
-		}
-
-		// Ensure all offsets are within bounds.
-		for (i = 0; i < mipl->SizeX; ++i)
-		{
-			int xoff = mipl->OffsetX[i];
-			for (j = 0; j < mipl->SizeY; ++j)
+			// Load x offsets.
+			for (i = 0, n = mipl->SizeX; i <= n; ++i)
 			{
-				int yoff = mipl->OffsetXY[(mipl->SizeY + 1) * i + j];
-				if (unsigned(xoff + yoff) > unsigned(voxdatasize))
+				// The X offsets stored in the KVX file are relative to the start of the
+				// X offsets array. Make them relative to voxdata instead.
+				mipl->OffsetX[i] = GetInt(rawmip + 24 + i * 4) - offsetsize;
+			}
+
+			// The first X offset must be 0 (since we subtracted offsetsize), according to the spec:
+			//		NOTE: xoffset[0] = (xsiz+1)*4 + xsiz*(ysiz+1)*2 (ALWAYS)
+			if (mipl->OffsetX[0] != 0)
+			{
+				break;
+			}
+			// And the final X offset must point just past the end of the voxdata.
+			if (mipl->OffsetX[mipl->SizeX] != voxdatasize)
+			{
+				break;
+			}
+
+			// Load xy offsets.
+			i = 24 + i * 4;
+			for (j = 0, n *= mipl->SizeY + 1; j < n; ++j)
+			{
+				mipl->OffsetXY[j] = GetShort(rawmip + i + j * 2);
+			}
+
+			// Ensure all offsets are within bounds.
+			for (i = 0; i < mipl->SizeX; ++i)
+			{
+				int xoff = mipl->OffsetX[i];
+				for (j = 0; j < mipl->SizeY; ++j)
 				{
-					goto bad;
+					int yoff = mipl->OffsetXY[(mipl->SizeY + 1) * i + j];
+					if (unsigned(xoff + yoff) > unsigned(voxdatasize))
+					{
+						delete voxel;
+						return NULL;
+					}
 				}
 			}
+
+			// Record slab location for the end.
+			slabs[mip] = (kvxslab_t *)(rawmip + 24 + offsetsize);
 		}
 
-		// Record slab location for the end.
-		slabs[mip] = (kvxslab_t *)(rawmip + 24 + offsetsize);
-
 		// Time for the next mip Level.
-nextmip:
 		rawmip += numbytes;
 		maxmipsize -= numbytes + 4;
 	}
@@ -371,7 +287,7 @@ nextmip:
 	// enough room for the palette after it?
 	if (mip == 0 || rawmip != rawvoxel + voxelsize - 768)
 	{
-bad:	delete voxel;
+		delete voxel;
 		return NULL;
 	}
 
@@ -397,6 +313,34 @@ bad:	delete voxel;
 	memcpy(voxel->Palette, rawvoxel + voxelsize - 768, 768);
 
 	return voxel;
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FVoxelDef *R_LoadVoxelDef(int lumpnum, int spin)
+{
+	FVoxel *vox = R_LoadKVX(lumpnum);
+	if (vox == NULL)
+	{
+		Printf("%s is not a valid voxel file\n", Wads.GetLumpFullName(lumpnum));
+		return NULL;
+	}
+	else
+	{
+		FVoxelDef *voxdef = new FVoxelDef;
+		voxdef->Voxel = vox;
+		voxdef->Scale = FRACUNIT;
+		voxdef->DroppedSpin = voxdef->PlacedSpin = spin;
+		voxdef->AngleOffset = 0;
+
+		Voxels.Push(vox);
+		VoxelDefs.Push(voxdef);
+		return voxdef;
+	}
 }
 
 //==========================================================================
@@ -464,36 +408,226 @@ void FVoxel::Remap()
 	}
 }
 
-//==========================================================================
-//
-// Debug stuff
-//
-//==========================================================================
-#ifdef _DEBUG
-// Prints the spans generated for a texture. Only needed for debugging.
-CCMD (printspans)
-{
-	if (argv.argc() != 2)
-		return;
 
-	FTextureID picnum = TexMan.CheckForTexture (argv[1], FTexture::TEX_Any);
-	if (!picnum.Exists())
+
+//==========================================================================
+//
+// VOX_ReadSpriteNames
+//
+// Reads a list of sprite names from a VOXELDEF lump.
+//
+//==========================================================================
+
+static bool VOX_ReadSpriteNames(FScanner &sc, TArray<DWORD> &vsprites)
+{
+	unsigned int i;
+
+	vsprites.Clear();
+	while (sc.GetString())
 	{
-		Printf ("Unknown texture %s\n", argv[1]);
-		return;
-	}
-	FTexture *tex = TexMan[picnum];
-	for (int x = 0; x < tex->GetWidth(); ++x)
-	{
-		const FTexture::Span *spans;
-		Printf ("%4d:", x);
-		tex->GetColumn (x, &spans);
-		while (spans->Length != 0)
+		// A sprite name list is terminated by an '=' character.
+		if (sc.String[0] == '=')
 		{
-			Printf (" (%4d,%4d)", spans->TopOffset, spans->TopOffset+spans->Length-1);
-			spans++;
+			if (vsprites.Size() == 0)
+			{
+				sc.ScriptMessage("No sprites specified for voxel.\n");
+			}
+			return true;
 		}
-		Printf ("\n");
+		if (sc.StringLen != 4 && sc.StringLen != 5)
+		{
+			sc.ScriptMessage("Sprite name \"%s\" is wrong size.\n", sc.String);
+		}
+		else if (sc.StringLen == 5 && (sc.String[4] = toupper(sc.String[4]), sc.String[4] < 'A' || sc.String[4] >= 'A' + MAX_SPRITE_FRAMES))
+		{
+			sc.ScriptMessage("Sprite frame %s is invalid.\n", sc.String[4]);
+		}
+		else
+		{
+			int frame = (sc.StringLen == 4) ? 255 : sc.String[4] - 'A';
+
+			i = GetSpriteIndex(sc.String, false);
+			if (i != -1)
+			{
+				vsprites.Push((frame << 24) | i);
+			}
+		}
+	}
+	if (vsprites.Size() != 0)
+	{
+		sc.ScriptMessage("Unexpected end of file\n");
+	}
+	return false;
+}
+
+//==========================================================================
+//
+// VOX_ReadOptions
+//
+// Reads a list of options from a VOXELDEF lump, terminated with a '}'
+// character. The leading '{' must already be consumed
+//
+//==========================================================================
+
+static void VOX_ReadOptions(FScanner &sc, VoxelOptions &opts)
+{
+	while (sc.GetToken())
+	{
+		if (sc.TokenType == '}')
+		{
+			return;
+		}
+		sc.TokenMustBe(TK_Identifier);
+		if (sc.Compare("scale"))
+		{
+			sc.MustGetToken('=');
+			sc.MustGetToken(TK_FloatConst);
+			opts.Scale = FLOAT2FIXED(sc.Float);
+		}
+		else if (sc.Compare("spin"))
+		{
+			sc.MustGetToken('=');
+			sc.MustGetToken(TK_IntConst);
+			opts.DroppedSpin = opts.PlacedSpin = sc.Number;
+		}
+		else if (sc.Compare("placedspin"))
+		{
+			sc.MustGetToken('=');
+			sc.MustGetToken(TK_IntConst);
+			opts.PlacedSpin = sc.Number;
+		}
+		else if (sc.Compare("droppedspin"))
+		{
+			sc.MustGetToken('=');
+			sc.MustGetToken(TK_IntConst);
+			opts.DroppedSpin = sc.Number;
+		}
+		else if (sc.Compare("angleoffset"))
+		{
+			sc.MustGetToken('=');
+			sc.MustGetAnyToken();
+			if (sc.TokenType == TK_IntConst)
+			{
+				sc.Float = sc.Number;
+			}
+			else
+			{
+				sc.TokenMustBe(TK_FloatConst);
+			}
+			opts.AngleOffset = angle_t(sc.Float * ANGLE_180 / 180.0);
+		}
+		else
+		{
+			sc.ScriptMessage("Unknown voxel option '%s'\n", sc.String);
+			if (sc.CheckToken('='))
+			{
+				sc.MustGetAnyToken();
+			}
+		}
+	}
+	sc.ScriptMessage("Unterminated voxel option block\n");
+}
+
+//==========================================================================
+//
+// VOX_GetVoxel
+//
+// Returns a voxel object for the given lump or NULL if it is not a valid
+// voxel. If the voxel has already been loaded, it will be reused.
+//
+//==========================================================================
+
+static FVoxel *VOX_GetVoxel(int lumpnum)
+{
+	// Is this voxel already loaded? If so, return it.
+	for (unsigned i = 0; i < Voxels.Size(); ++i)
+	{
+		if (Voxels[i]->LumpNum == lumpnum)
+		{
+			return Voxels[i];
+		}
+	}
+	FVoxel *vox = R_LoadKVX(lumpnum);
+	if (vox != NULL)
+	{
+		Voxels.Push(vox);
+	}
+	return vox;
+}
+
+//==========================================================================
+//
+// R_InitVoxels
+//
+// Process VOXELDEF lumps for defining voxel options that cannot be
+// condensed neatly into a sprite name format.
+//
+//==========================================================================
+
+void R_InitVoxels()
+{
+	int lump, lastlump = 0;
+	
+	while ((lump = Wads.FindLump("VOXELDEF", &lastlump)) != -1)
+	{
+		FScanner sc(lump);
+		TArray<DWORD> vsprites;
+
+		while (VOX_ReadSpriteNames(sc, vsprites))
+		{
+			FVoxel *voxeldata = NULL;
+			int voxelfile;
+			VoxelOptions opts;
+
+			sc.SetCMode(true);
+			sc.MustGetToken(TK_StringConst);
+			voxelfile = Wads.CheckNumForFullName(sc.String, true, ns_voxels);
+			if (voxelfile < 0)
+			{
+				sc.ScriptMessage("Voxel \"%s\" not found.\n", sc.String);
+			}
+			else
+			{
+				voxeldata = VOX_GetVoxel(voxelfile);
+				if (voxeldata == NULL)
+				{
+					sc.ScriptMessage("\"%s\" is not a valid voxel file.\n", sc.String);
+				}
+			}
+			if (sc.CheckToken('{'))
+			{
+				VOX_ReadOptions(sc, opts);
+			}
+			sc.SetCMode(false);
+			if (voxeldata != NULL && vsprites.Size() != 0)
+			{
+				FVoxelDef *def = new FVoxelDef;
+
+				def->Voxel = voxeldata;
+				def->Scale = opts.Scale;
+				def->DroppedSpin = opts.DroppedSpin;
+				def->PlacedSpin = opts.PlacedSpin;
+				def->AngleOffset = opts.AngleOffset;
+				VoxelDefs.Push(def);
+
+				for (unsigned i = 0; i < vsprites.Size(); ++i)
+				{
+					int sprnum = int(vsprites[i] & 0xFFFFFF);
+					int frame = int(vsprites[i] >> 24);
+					if (frame == 255)
+					{ // Apply voxel to all frames.
+						for (int j = MAX_SPRITE_FRAMES - 1; j >= 0; --j)
+						{
+							VOX_AddVoxel(sprnum, j, def);
+						}
+					}
+					else
+					{ // Apply voxel to only one frame.
+						VOX_AddVoxel(sprnum, frame, def);
+					}
+				}
+			}
+		}
 	}
 }
-#endif
+

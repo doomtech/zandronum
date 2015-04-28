@@ -60,6 +60,8 @@
 #include "gl/textures/gl_skyboxtexture.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
+// [BB] New #includes.
+#include "network.h"
 
 EXTERN_CVAR (Float, gl_lights_intensity);
 EXTERN_CVAR (Float, gl_lights_size);

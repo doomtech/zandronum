@@ -58,6 +58,7 @@
 #include "d_event.h"
 #include "m_argv.h"
 #include "p_lnspec.h"
+#include "v_video.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"

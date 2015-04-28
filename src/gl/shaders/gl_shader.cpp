@@ -46,6 +46,8 @@
 #include "i_system.h"
 #include "doomerrors.h"
 #include "v_palette.h"
+#include "sc_man.h"
+#include "cmdlib.h"
 
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_renderstate.h"

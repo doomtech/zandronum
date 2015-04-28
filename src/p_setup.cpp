@@ -4445,7 +4445,7 @@ void P_SetupLevel (char *lumpname, int position)
 	// preload graphics and sounds
 	if (precache)
 	{
-		R_PrecacheLevel ();
+		TexMan.PrecacheLevel ();
 		S_PrecacheLevel ();
 	}
 	times[17].Unclock();

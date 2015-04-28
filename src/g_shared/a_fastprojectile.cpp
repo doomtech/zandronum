@@ -4,6 +4,8 @@
 #include "g_level.h"
 #include "r_sky.h"
 #include "p_lnspec.h"
+// [BB] New #includes.
+#include "network.h"
 
 
 IMPLEMENT_CLASS(AFastProjectile)

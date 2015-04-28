@@ -79,6 +79,7 @@
 #include "r_translate.h"
 #include "p_enemy.h"
 #include "resources/colormaps.h"
+#include "v_video.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );

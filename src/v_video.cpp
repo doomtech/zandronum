@@ -63,6 +63,7 @@
 #include "v_palette.h"
 #include "r_sky.h"
 #include "menu/menu.h"
+#include "resources/voxels.h"
 
 // [BB] Use ZDoom's freelook limit for the sotfware renderer.
 // Note: ZDoom's limit is chosen such that the sky is rendered properly.
@@ -1321,7 +1322,6 @@ void DFrameBuffer::RenderView(player_t *player)
 //
 //
 //==========================================================================
-extern TDeletingArray<FVoxel *> Voxels;
 
 void DFrameBuffer::RemapVoxels()
 {

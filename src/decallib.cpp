@@ -48,6 +48,8 @@
 #include "gi.h"
 #include "g_level.h"
 #include "colormatcher.h"
+// [BB]
+//#include "b_bot.h"
 // [BC] New #includes.
 #include "g_game.h"
 
