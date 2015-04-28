@@ -3,7 +3,7 @@
 
 #include "gl/utility/gl_geometric.h"
 #include "p_pspr.h"
-#include "resources/voxels.h"
+#include "r_data/voxels.h"
 
 #define MAX_LODS			4
 

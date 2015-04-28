@@ -25,6 +25,7 @@
 
 // Need data structure definitions.
 #include "d_player.h"
+#include "r_data/sprites.h"
 
 //
 // Refresh internal data structures,
@@ -33,18 +34,6 @@
 
 extern "C" int			viewwidth;
 extern "C" int			viewheight;
-
-// Sprite....
-extern int				firstspritelump;
-extern int				lastspritelump;
-extern int				numspritelumps;
-
-// [BL] Use a TArray instead of trying to manage this manually
-extern TArray<FPlayerSkin> skins;		// [RH]
-
-extern BYTE				OtherGameSkinRemap[256];
-extern PalEntry			OtherGameSkinPalette[256];
-
 
 //
 // Lookup tables for map data.

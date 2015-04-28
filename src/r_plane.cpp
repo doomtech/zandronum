@@ -61,7 +61,7 @@
 #include "r_segs.h"
 #include "r_3dfloors.h"
 #include "v_palette.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 // [BC] New #includes.
 #include "sv_commands.h"
 

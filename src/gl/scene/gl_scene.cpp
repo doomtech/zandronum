@@ -46,7 +46,7 @@
 #include "dobject.h"
 #include "doomstat.h"
 #include "g_level.h"
-#include "r_interpolate.h"
+#include "r_data/r_interpolate.h"
 #include "r_main.h"
 #include "r_things.h"
 #include "sbar.h"

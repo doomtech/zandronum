@@ -40,6 +40,7 @@
 
 #include "a_sharedglobal.h"
 #include "r_main.h"
+#include "r_defs.h"
 #include "r_sky.h"
 #include "g_level.h"
 
@@ -52,9 +53,6 @@
 #include "gl/scene/gl_portal.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_templates.h"
-
-int GetFloorLight (const sector_t *sec);
-int GetCeilingLight (const sector_t *sec);
 
 
 // This is for debugging maps.
@@ -768,7 +766,7 @@ bool FDrawInfo::CheckAnchorFloor(subsector_t * sub)
 			// using such crap hacks is simply too small
 			if (sub->render_sector->GetTexture(sector_t::floor)==backsub->render_sector->GetTexture(sector_t::floor) &&
 				sub->render_sector->GetPlaneTexZ(sector_t::floor)==backsub->render_sector->GetPlaneTexZ(sector_t::floor) &&
-				GetFloorLight(sub->render_sector)==GetFloorLight(backsub->render_sector))
+				sub->render_sector->GetFloorLight() == backsub->render_sector->GetFloorLight())
 			{
 				continue;
 			}
@@ -806,7 +804,7 @@ bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 
 		if (sub->render_sector->GetTexture(sector_t::floor) != anchor->GetTexture(sector_t::floor) ||
 			sub->render_sector->GetPlaneTexZ(sector_t::floor)!=anchor->GetPlaneTexZ(sector_t::floor) ||
-			GetFloorLight(sub->render_sector)!=GetFloorLight(anchor)) 
+			sub->render_sector->GetFloorLight() != anchor->GetFloorLight()) 
 		{
 			if (sub==viewsubsector && viewz<anchor->GetPlaneTexZ(sector_t::floor)) inview=true;
 			HandledSubsectors.Push (sub);
@@ -835,7 +833,7 @@ bool FDrawInfo::CollectSubsectorsFloor(subsector_t * sub, sector_t * anchor)
 				// Any anchor not within the original anchor's visplane terminates the processing.
 				if (sub->render_sector->GetTexture(sector_t::floor)!=anchor->GetTexture(sector_t::floor) ||
 					sub->render_sector->GetPlaneTexZ(sector_t::floor)!=anchor->GetPlaneTexZ(sector_t::floor) ||
-					GetFloorLight(sub->render_sector)!=GetFloorLight(anchor)) 
+					sub->render_sector->GetFloorLight() != anchor->GetFloorLight()) 
 				{
 					return false;
 				}
@@ -874,7 +872,7 @@ bool FDrawInfo::CheckAnchorCeiling(subsector_t * sub)
 			// using such crap hacks is simply too small
 			if (sub->render_sector->GetTexture(sector_t::ceiling)==backsub->render_sector->GetTexture(sector_t::ceiling) &&
 				sub->render_sector->GetPlaneTexZ(sector_t::ceiling)==backsub->render_sector->GetPlaneTexZ(sector_t::ceiling) &&
-				GetCeilingLight(sub->render_sector)==GetCeilingLight(backsub->render_sector))
+				sub->render_sector->GetCeilingLight() == backsub->render_sector->GetCeilingLight())
 			{
 				continue;
 			}
@@ -908,7 +906,7 @@ bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 
 		if (sub->render_sector->GetTexture(sector_t::ceiling)!=anchor->GetTexture(sector_t::ceiling) ||
 			sub->render_sector->GetPlaneTexZ(sector_t::ceiling)!=anchor->GetPlaneTexZ(sector_t::ceiling) ||
-			GetCeilingLight(sub->render_sector)!=GetCeilingLight(anchor)) 
+			sub->render_sector->GetCeilingLight() != anchor->GetCeilingLight()) 
 		{
 			HandledSubsectors.Push (sub);
 		}
@@ -936,7 +934,7 @@ bool FDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 				// Any anchor not within the original anchor's visplane terminates the processing.
 				if (sub->render_sector->GetTexture(sector_t::ceiling)!=anchor->GetTexture(sector_t::ceiling) ||
 					sub->render_sector->GetPlaneTexZ(sector_t::ceiling)!=anchor->GetPlaneTexZ(sector_t::ceiling) ||
-					GetCeilingLight(sub->render_sector)!=GetCeilingLight(anchor)) 
+					sub->render_sector->GetCeilingLight() != anchor->GetCeilingLight()) 
 				{
 					return false;
 				}
@@ -1068,7 +1066,7 @@ void FDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor)
 	sector_t * me = gl_FakeFlat(sub->render_sector, &fake, false);
 	if (me->GetTexture(sector_t::ceiling) != anchor->GetTexture(sector_t::ceiling) ||
 		me->ceilingplane != anchor->ceilingplane ||
-		GetCeilingLight(me) != GetCeilingLight(anchor) ||
+		me->GetCeilingLight() != anchor->GetCeilingLight() ||
 		me->ColorMap != anchor->ColorMap ||
 		me->GetXOffset(sector_t::ceiling) != anchor->GetXOffset(sector_t::ceiling) || 
 		me->GetYOffset(sector_t::ceiling) != anchor->GetYOffset(sector_t::ceiling) || 
@@ -1116,7 +1114,7 @@ void FDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 	sector_t * me = gl_FakeFlat(sub->render_sector, &fake, false);
 	if (me->GetTexture(sector_t::floor) != anchor->GetTexture(sector_t::floor) ||
 		me->floorplane != anchor->floorplane ||
-		GetFloorLight(me) != GetFloorLight(anchor) ||
+		me->GetFloorLight() != anchor->GetFloorLight() ||
 		me->ColorMap != anchor->ColorMap ||
 		me->GetXOffset(sector_t::floor) != anchor->GetXOffset(sector_t::floor) || 
 		me->GetYOffset(sector_t::floor) != anchor->GetYOffset(sector_t::floor) || 

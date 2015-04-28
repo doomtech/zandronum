@@ -29,7 +29,6 @@
 #include "x86.h"
 #include "i_video.h"
 #include "r_local.h"
-#include "r_draw.h"
 #include "r_state.h"
 
 #include "doomdef.h"
@@ -56,14 +55,14 @@
 #include "templates.h"
 #include "sbar.h"
 #include "hardware.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "f_wipe.h"
 #include "m_png.h"
 #include "colormatcher.h"
 #include "v_palette.h"
 #include "r_sky.h"
 #include "menu/menu.h"
-#include "resources/voxels.h"
+#include "r_data/voxels.h"
 
 // [BB] Use ZDoom's freelook limit for the sotfware renderer.
 // Note: ZDoom's limit is chosen such that the sky is rendered properly.

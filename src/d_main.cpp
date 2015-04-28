@@ -943,7 +943,7 @@ drawfullconsole:
 			}
 			if (!automapactive || viewactive)
 			{
-				R_RefreshViewBorder ();
+				V_RefreshViewBorder ();
 			}
 
 			if (hud_althud && viewheight == SCREENHEIGHT && screenblocks > 10)

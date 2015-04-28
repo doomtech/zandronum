@@ -13,7 +13,7 @@
 #include "a_keys.h"
 #include "templates.h"
 #include "i_system.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "sbarinfo.h"
 #include "g_level.h"
 #include "v_palette.h"

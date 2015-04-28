@@ -39,10 +39,11 @@
 */
 #include "gl/system/gl_system.h"
 #include "p_local.h"
-#include "r_translate.h"
+//#include "r_data/r_translate.h"
 #include "g_level.h"
 #include "doomstat.h"
 #include "gl/gl_functions.h"
+#include "r_defs.h"
 #include "r_sky.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -682,7 +683,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		(!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright);
 
 	lightlevel=fullbright? 255 : 
-		gl_ClampLight(rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? GetCeilingLight(rendersector) : GetFloorLight(rendersector));
+		gl_ClampLight(rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
+			rendersector->GetCeilingLight() : rendersector->GetFloorLight());
 	foglevel = (BYTE)clamp<short>(rendersector->lightlevel, 0, 255);
 
 	lightlevel = (byte)gl_CheckSpriteGlow(rendersector->GetTexture(sector_t::floor), lightlevel, thingz-thing->floorz);
@@ -874,7 +876,8 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	
 	if (particle->trans==0) return;
 
-	lightlevel = gl_ClampLight(sector->GetTexture(sector_t::ceiling) == skyflatnum ? GetCeilingLight(sector) : GetFloorLight(sector));
+	lightlevel = gl_ClampLight(sector->GetTexture(sector_t::ceiling) == skyflatnum ? 
+		sector->GetCeilingLight() : sector->GetFloorLight());
 	foglevel = sector->lightlevel;
 
 	if (gl_fixedcolormap) 

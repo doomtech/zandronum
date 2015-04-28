@@ -52,11 +52,11 @@
 #include "m_random.h"
 #include "p_conversation.h"
 #include "a_strifeglobal.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "p_3dmidtex.h"
 #include "d_net.h"
 #include "d_event.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 // [BC] New #includes.
 #include "cooperative.h"
 #include "deathmatch.h"

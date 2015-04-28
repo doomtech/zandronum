@@ -1,9 +1,9 @@
 /*
-** gl_renderutil.cpp
-** Utility functions for the renderer
+** gl_fakeflat.cpp
+** Fake flat functions to render stacked sectors
 **
 **---------------------------------------------------------------------------
-** Copyright 2001-2008 Christoph Oelckers
+** Copyright 2001-2011 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -194,14 +194,6 @@ void gl_CheckViewArea(vertex_t *v1, vertex_t *v2, sector_t *frontsector, sector_
 
 //==========================================================================
 //
-//
-//
-//==========================================================================
-
-bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *source, const secplane_t *opp);
-
-//==========================================================================
-//
 // This is mostly like R_FakeFlat but with a few alterations necessitated
 // by hardware rendering
 //
@@ -252,7 +244,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 	// Replace floor and ceiling height with control sector's heights.
 	if (diffTex)
 	{
-		if (CopyPlaneIfValid (&dest->floorplane, &s->floorplane, &sec->ceilingplane))
+		if (s->floorplane.CopyPlaneIfValid (&dest->floorplane, &sec->ceilingplane))
 		{
 			dest->SetTexture(sector_t::floor, s->GetTexture(sector_t::floor), false);
 			dest->SetPlaneTexZ(sector_t::floor, s->GetPlaneTexZ(sector_t::floor));
@@ -290,7 +282,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, area_t in_area, bool bac
 	{
 		if (diffTex)
 		{
-			if (CopyPlaneIfValid (&dest->ceilingplane, &s->ceilingplane, &sec->floorplane))
+			if (s->ceilingplane.CopyPlaneIfValid (&dest->ceilingplane, &sec->floorplane))
 			{
 				dest->SetTexture(sector_t::ceiling, s->GetTexture(sector_t::ceiling), false);
 				dest->SetPlaneTexZ(sector_t::ceiling, s->GetPlaneTexZ(sector_t::ceiling));

@@ -48,9 +48,9 @@
 #include "i_video.h"
 #include "i_system.h"
 #include "a_sharedglobal.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "p_3dmidtex.h"
-#include "r_interpolate.h"
+#include "r_data/r_interpolate.h"
 #include "r_bsp.h"
 #include "r_plane.h"
 #include "r_3dfloors.h"
@@ -58,7 +58,7 @@
 #include "po_man.h"
 #include "st_start.h"
 #include "v_font.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 //#include "gl/data/gl_data.h"
 #include "gl/gl_functions.h"
 
@@ -823,6 +823,8 @@ void R_Init ()
 {
 	atterm (R_Shutdown);
 
+	clearbufshort (zeroarray, MAXWIDTH, 0);
+
 	// [BC] In server mode, the only data we need to load are sprites and textures.
 	// This is because the server needs to know if objects have valid frames so it can
 	// decide whether or not it's okay to spawn them, and so servers have valid texture
@@ -858,6 +860,7 @@ void R_Init ()
 	R_SetViewSize (screenblocks);
 	R_InitPlanes ();
 	R_InitTranslationTables ();
+	R_InitShadeMaps();
 	R_InitParticles ();	// [RH] Setup particle engine
 	R_InitColumnDrawers ();
 
@@ -1439,35 +1442,6 @@ void R_SetupFrame (AActor *actor)
 			color = pr_hom();
 		}
 		memset(RenderTarget->GetBuffer(), color, RenderTarget->GetPitch() * RenderTarget->GetHeight());
-	}
-}
-
-//==========================================================================
-//
-// R_RefreshViewBorder
-//
-// Draws the border around the player view, if needed.
-//
-//==========================================================================
-
-void R_RefreshViewBorder ()
-{
-	if (setblocks < 10)
-	{
-		if (BorderNeedRefresh)
-		{
-			BorderNeedRefresh--;
-			if (BorderTopRefresh)
-			{
-				BorderTopRefresh--;
-			}
-			R_DrawViewBorder();
-		}
-		else if (BorderTopRefresh)
-		{
-			BorderTopRefresh--;
-			R_DrawTopBorder();
-		}
 	}
 }
 

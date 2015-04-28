@@ -45,7 +45,6 @@
 #include "w_wad.h"
 #include "templates.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "a_pickups.h"
 #include "s_sound.h"
 #include "cmdlib.h"
@@ -64,12 +63,12 @@
 #include "v_text.h"
 #include "thingdef.h"
 #include "a_sharedglobal.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "a_morph.h"
 #include "colormatcher.h"
 #include "teaminfo.h"
 #include "v_video.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 
 
 //==========================================================================

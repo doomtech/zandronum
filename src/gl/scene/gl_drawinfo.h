@@ -3,10 +3,6 @@
 
 #include "gl/scene/gl_wall.h"
 
-
-int GetFloorLight (const sector_t *sec);
-int GetCeilingLight (const sector_t *sec);
-
 enum GLDrawItemType
 {
 	GLDIT_WALL,

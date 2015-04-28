@@ -37,7 +37,7 @@
 #include "p_spec.h"
 #include "g_level.h"
 #include "s_sndseq.h"
-#include "r_interpolate.h"
+#include "r_data/r_interpolate.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"

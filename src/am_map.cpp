@@ -33,7 +33,7 @@
 #include "w_wad.h"
 #include "a_sharedglobal.h"
 #include "statnums.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "d_event.h"
 #include "gi.h"
 #include "r_bsp.h"
@@ -63,7 +63,7 @@
 #include "a_artifacts.h"
 #include "po_man.h"
 #include "a_keys.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 
 #include "gl/gl_functions.h"
 // [BC] New #includes.

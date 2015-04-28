@@ -39,6 +39,7 @@
 */
 
 #include "doomtype.h"
+#include "r_data/r_translate.h"
 #include "gl/textures/gl_translate.h"
 #include "m_crc32.h"
 

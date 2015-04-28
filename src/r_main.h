@@ -30,7 +30,7 @@
 #include "d_player.h"
 #include "r_state.h"
 #include "v_palette.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 
 
 //
@@ -187,7 +187,6 @@ void R_SetViewAngle ();
 
 // Called by G_Drawer.
 void R_RenderActorView (AActor *actor, bool dontmaplines = false);
-void R_RefreshViewBorder ();
 void R_SetupBuffer ();
 
 void R_RenderViewToCanvas (AActor *actor, DCanvas *canvas, int x, int y, int width, int height, bool dontmaplines = false);

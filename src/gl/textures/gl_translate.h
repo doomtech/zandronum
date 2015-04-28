@@ -2,7 +2,7 @@
 #define __GL_TRANSLATE__
 
 #include "doomtype.h"
-#include "r_translate.h"
+//#include "r_data/r_translate.h"
 #include "v_video.h"
 
 enum

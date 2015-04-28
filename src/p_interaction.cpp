@@ -76,9 +76,9 @@
 #include "cl_commands.h"
 #include "cl_demo.h"
 #include "win32/g15/g15.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "p_enemy.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 #include "v_video.h"
 
 // [BC] Ugh.

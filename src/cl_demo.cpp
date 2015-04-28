@@ -70,7 +70,7 @@
 #include "sbar.h"
 #include "version.h"
 #include "templates.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "m_cheat.h"
 
 //*****************************************************************************

@@ -2,7 +2,7 @@
 #define __GL_LIGHTDATA
 
 #include "v_palette.h"
-#include "r_blend.h"
+#include "r_data/renderstyle.h"
 #include "gl/renderer/gl_colormap.h"
 
 bool gl_BrightmapsActive();

@@ -70,14 +70,14 @@
 #include "survival.h"
 #include "vectors.h"
 #include "v_palette.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "domination.h"
 #include "p_acs.h"
 #include "templates.h"
 #include "a_movingcamera.h"
 #include "po_man.h"
 #include "i_system.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 

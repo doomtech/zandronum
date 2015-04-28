@@ -44,6 +44,7 @@
 #include "r_draw.h"
 #include "v_video.h"
 #include "r_main.h"
+#include "r_data/r_translate.h"
 #include "m_png.h"
 #include "m_crc32.h"
 #include "w_wad.h"

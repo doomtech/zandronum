@@ -345,6 +345,9 @@ struct secplane_t
 	{
 		return -TMulScale16 (a, v->x, b, v->y, z, c);
 	}
+
+	bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *opp) const;
+
 };
 
 inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
@@ -494,6 +497,8 @@ struct sector_t
 	// [BB] Added bInformClients and bExecuteOnClient.
 	void SetFade(int r, int g, int b, bool bInformClients = true, bool bExecuteOnClient = false);
 	void ClosestPoint(fixed_t x, fixed_t y, fixed_t &ox, fixed_t &oy) const;
+	int GetFloorLight () const;
+	int GetCeilingLight () const;
 	// [BB] Backported from ZDoom revision 3600.
 	sector_t *GetHeightSec() const;
 
@@ -1167,6 +1172,7 @@ struct subsector_t
 	DWORD		numlines;
 	int			flags;
 
+	void BuildPolyBSP();
 	// subsector related GL data
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
 	int				validcount;
@@ -1209,8 +1215,6 @@ struct node_t
 
 struct FMiniBSP
 {
-	FMiniBSP();
-
 	bool bDirty;
 
 	TArray<node_t> Nodes;
@@ -1271,74 +1275,6 @@ enum
 	FAKED_Center,
 	FAKED_BelowFloor,
 	FAKED_AboveCeiling
-};
-
-//
-// Sprites are patches with a special naming convention so they can be
-// recognized by R_InitSprites. The base name is NNNNFx or NNNNFxFx, with
-// x indicating the rotation, x = 0, 1-7. The sprite and frame specified
-// by a thing_t is range checked at run time.
-// A sprite is a patch_t that is assumed to represent a three dimensional
-// object and may have multiple rotations pre drawn. Horizontal flipping
-// is used to save space, thus NNNNF2F5 defines a mirrored patch.
-// Some sprites will only have one picture used for all views: NNNNF0
-//
-struct spriteframe_t
-{
-	struct FVoxelDef *Voxel;// voxel to use for this frame
-	FTextureID Texture[16];	// texture to use for view angles 0-15
-	WORD Flip;				// flip (1 = flip) to use for view angles 0-15.
-};
-
-//
-// A sprite definition:
-//	a number of animation frames.
-//
-
-struct spritedef_t
-{
-	union
-	{
-		char name[5];
-		DWORD dwName;
-	};
-	BYTE numframes;
-	WORD spriteframes;
-};
-
-extern TArray<spriteframe_t> SpriteFrames;
-
-//
-// [RH] Internal "skin" definition.
-//
-class FPlayerSkin
-{
-public:
-	// [BC] Changed to MAX_SKIN_NAME.
-	char		name[MAX_SKIN_NAME+1];	// MAX_SKIN_NAME chars + NULL
-	char		face[4];	// 3 chars ([MH] + NULL so can use as a C string)
-	BYTE		gender;		// This skin's gender (not really used)
-	BYTE		range0start;
-	BYTE		range0end;
-	bool		othergame;	// [GRB]
-	fixed_t		ScaleX;
-	fixed_t		ScaleY;
-	int			sprite;
-	int			crouchsprite;
-	int			namespc;	// namespace for this skin
-
-	// [BC] New skin properties for Skulltag.
-	// Default color used for this skin.
-	char		szColor[16];
-	// Can this skin be selected from the menu?
-	bool		bRevealed;
-
-	// Is this skin hidden by default?
-	bool		bRevealedByDefault;
-
-	// Is this skin a cheat skin?
-	bool		bCheat;
-	// [BC] End of new skin properties.
 };
 
 

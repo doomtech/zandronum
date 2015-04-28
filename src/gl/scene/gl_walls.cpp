@@ -45,6 +45,7 @@
 #include "g_level.h"
 #include "templates.h"
 #include "vectors.h"
+#include "r_defs.h"
 #include "r_sky.h"
 
 #include "gl/system/gl_cvars.h"
@@ -508,7 +509,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 		{
 			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, true);
-			hi.lightlevel = gl_ClampLight(GetCeilingLight(fs));
+			hi.lightlevel = gl_ClampLight(fs->GetCeilingLight());
 			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())
@@ -537,7 +538,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 		{
 			type = RENDERWALL_HORIZON;
 			hi.plane.GetFromSector(fs, false);
-			hi.lightlevel = gl_ClampLight(GetFloorLight(fs));
+			hi.lightlevel = gl_ClampLight(fs->GetFloorLight());
 			hi.colormap = fs->ColorMap;
 
 			if (fs->e->XFloor.ffloors.Size())

@@ -47,7 +47,7 @@
 #include "r_main.h"
 #include "templates.h"
 #include "sc_man.h"
-#include "r_translate.h"
+//#include "r_data/r_translate.h"
 #include "colormatcher.h"
 
 //#include "gl/gl_intern.h"

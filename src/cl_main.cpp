@@ -104,7 +104,7 @@
 #include "callvote.h"
 #include "invasion.h"
 #include "r_sky.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "domination.h"
 #include "p_3dmidtex.h"
 #include "a_lightning.h"
@@ -112,7 +112,7 @@
 #include "d_netinf.h"
 #include "po_man.h"
 #include "network/cl_auth.h"
-#include "resources/colormaps.h"
+#include "r_data/colormaps.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

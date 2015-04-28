@@ -14,7 +14,7 @@
 #include "g_level.h"
 #include "a_sharedglobal.h"
 #include "templates.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "doomstat.h"
 #include "sv_commands.h"
 

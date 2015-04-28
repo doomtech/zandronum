@@ -40,7 +40,7 @@
 #include "w_wad.h"
 #include "templates.h"
 #include "colormatcher.h"
-#include "r_translate.h"
+#include "r_data/r_translate.h"
 #include "c_dispatch.h"
 #ifdef _WIN32
 #include "win32gliface.h"
