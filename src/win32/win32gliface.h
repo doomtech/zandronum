@@ -32,6 +32,8 @@ extern HINSTANCE g_hInst;
 extern HWND Window;
 extern IVideo *Video;
 
+struct FRenderer;
+FRenderer *gl_CreateInterface();
 
 
 class Win32GLVideo : public IVideo

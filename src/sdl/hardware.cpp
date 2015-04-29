@@ -121,7 +121,7 @@ void I_InitGraphics ()
 	ticker.SetGenericRepDefault (val, CVAR_Bool);
 
 #ifndef NO_GL
-	currentrenderer = vid_renderer;
+	//currentrenderer = vid_renderer;
 	if (currentrenderer==1) Video = new SDLGLVideo(0);
 	else Video = new SDLVideo (0);
 #else
@@ -134,6 +134,23 @@ void I_InitGraphics ()
 
 	Video->SetWindowedScale (vid_winscale);
 }
+
+static void I_DeleteRenderer()
+{
+	if (Renderer != NULL) delete Renderer;
+}
+
+void I_CreateRenderer()
+{
+	currentrenderer = vid_renderer;
+	if (Renderer == NULL)
+	{
+		if (currentrenderer==1) Renderer = gl_CreateInterface();
+		else Renderer = new FSoftwareRenderer;
+		atterm(I_DeleteRenderer);
+	}
+}
+
 
 /** Remaining code is common to Win32 and Linux **/
 

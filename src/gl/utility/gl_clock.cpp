@@ -165,7 +165,6 @@ ADD_STAT(lightstats)
 }
 
 void AppendMissingTextureStats(FString &out);
-extern int viewpitch;
 
 
 static int printstats;

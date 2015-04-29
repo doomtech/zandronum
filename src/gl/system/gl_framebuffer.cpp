@@ -42,7 +42,6 @@
 #include "gl/system/gl_system.h"
 #include "files.h"
 #include "m_swap.h"
-#include "r_draw.h"
 #include "v_video.h"
 #include "doomstat.h"
 #include "m_png.h"
@@ -63,9 +62,6 @@
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_templates.h"
 #include "gl/gl_functions.h"
-
-// [BB]
-CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
 
 IMPLEMENT_CLASS(OpenGLFrameBuffer)
 EXTERN_CVAR (Float, vid_brightness)
@@ -289,13 +285,6 @@ bool OpenGLFrameBuffer::SetContrast(float contrast)
 	return true;
 }
 
-bool OpenGLFrameBuffer::UsesColormap() const
-{
-	// The GL renderer has no use for colormaps so let's
-	// not create them and save us some time.
-	return false;
-}
-
 //===========================================================================
 //
 //
@@ -373,72 +362,6 @@ void OpenGLFrameBuffer::GetHitlist(BYTE *hitlist)
 
 
 	// check model skins
-}
-
-//==========================================================================
-//
-// DFrameBuffer :: PrecacheTexture
-//
-//==========================================================================
-
-void OpenGLFrameBuffer::PrecacheTexture(FTexture *tex, int cache)
-{
-	if (tex != NULL)
-	{
-		if (cache)
-		{
-			tex->PrecacheGL();
-		}
-		else
-		{
-			tex->UncacheGL();
-		}
-	}
-}
-
-
-//==========================================================================
-//
-// DFrameBuffer :: StateChanged
-//
-//==========================================================================
-
-void OpenGLFrameBuffer::StateChanged(AActor *actor)
-{
-	gl_SetActorLights(actor);
-}
-
-//===========================================================================
-//
-// notify the renderer that serialization of the curent level is about to start/end
-//
-//===========================================================================
-
-void OpenGLFrameBuffer::StartSerialize(FArchive &arc)
-{
-	gl_DeleteAllAttachedLights();
-	arc << fogdensity << outsidefogdensity << skyfog;
-}
-
-void OpenGLFrameBuffer::EndSerialize(FArchive &arc)
-{
-	gl_RecreateAllAttachedLights();
-	if (arc.IsLoading()) gl_InitPortals();
-}
-
-//===========================================================================
-//
-// Get max. view angle (renderer specific information so it goes here now)
-//
-//===========================================================================
-
-EXTERN_CVAR(Float, maxviewpitch)
-
-int OpenGLFrameBuffer::GetMaxViewPitch(bool down)
-{
-	// [BB]
-	if (cl_disallowfullpitch) return Super::GetMaxViewPitch(down);
-	else return (down? maxviewpitch : -maxviewpitch) * ANGLE_1;
 }
 
 //==========================================================================
@@ -612,27 +535,6 @@ void OpenGLFrameBuffer::ReleaseScreenshotBuffer()
 	ScreenshotBuffer = NULL;
 }
 
-
-void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, int height)
-{
-	GLRenderer->WriteSavePic(player, file, width, height);
-}
-
-void OpenGLFrameBuffer::RenderView (player_t* player)
-{
-	GLRenderer->RenderView(player);
-}
-
-void OpenGLFrameBuffer::RemapVoxels()
-{
-	// no-op
-}
-
-
-void OpenGLFrameBuffer::DrawRemainingPlayerSprites()
-{
-	// not used by hardware renderer
-}
 
 void OpenGLFrameBuffer::GameRestart()
 {

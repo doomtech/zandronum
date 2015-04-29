@@ -10,8 +10,6 @@
 class FCanvasTexture;
 class AActor;
 
-void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
-
 enum
 {
 	GLT_CLAMPX=1,
@@ -20,8 +18,6 @@ enum
 
 class FHardwareTexture
 {
-	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
-
 	enum
 	{
 		MAX_TEXTURES = 16

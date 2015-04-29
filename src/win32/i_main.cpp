@@ -269,6 +269,7 @@ static void FinalGC()
 {
 	Args = NULL;
 	GC::FullGC();
+	GC::DelSoftRootHead();	// the soft root head will not be collected by a GC so we have to do it explicitly
 }
 
 //==========================================================================
@@ -1361,7 +1362,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE nothing, LPSTR cmdline, int n
 	_CrtSetDbgFlag (_CrtSetDbgFlag(0) | _CRTDBG_LEAK_CHECK_DF);
 
 	// Use this to break at a specific allocation number.
-	//_crtBreakAlloc = 30055;
+	//_crtBreakAlloc = 77624;
 #endif
 
 	DoMain (hInstance);

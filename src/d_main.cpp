@@ -80,7 +80,7 @@
 #include "st_stuff.h"
 #include "am_map.h"
 #include "p_setup.h"
-#include "r_local.h"
+#include "r_utility.h"
 #include "r_sky.h"
 #include "d_main.h"
 #include "d_dehacked.h"
@@ -93,7 +93,6 @@
 #include "gameconfigfile.h"
 #include "sbar.h"
 #include "decallib.h"
-#include "r_polymost.h"
 #include "version.h"
 #include "v_text.h"
 // [BC] New #includes.
@@ -140,7 +139,11 @@
 #include "sc_man.h"
 #include "po_man.h"
 #include "resourcefiles/resourcefile.h"
-#include "r_3dfloors.h"
+#include "r_renderer.h"
+
+#ifdef USE_POLYMOST
+#include "r_polymost.h"
+#endif
 
 
 // [ZZ] PWO header file
@@ -209,6 +212,9 @@ extern cycle_t WallCycles, PlaneCycles, MaskedCycles, WallScanCycles;
 
 // [BC] fraglimit/timelimit have been moved to a more appropriate location.
 
+#ifdef USE_POLYMOST
+CVAR(Bool, testpolymost, false, 0)
+#endif
 CVAR (Int, wipetype, 1, CVAR_ARCHIVE);
 CVAR (Int, snd_drawoutput, 0, 0);
 CUSTOM_CVAR (String, vid_cursor, "None", CVAR_ARCHIVE | CVAR_NOINITCALL)
@@ -303,8 +309,10 @@ void D_ProcessEvents (void)
 			continue;				// console ate the event
 		if (M_Responder (ev))
 			continue;				// menu ate the event
-		if (testpolymost)
-			Polymost_Responder (ev);
+		#ifdef USE_POLYMOST
+			if (testpolymost)
+				Polymost_Responder (ev);
+		#endif
 		G_Responder (ev);
 	}
 }
@@ -325,8 +333,11 @@ void D_PostEvent (const event_t *ev)
 		return;
 	}
 	events[eventhead] = *ev;
-	if (ev->type == EV_Mouse && !testpolymost && !paused && menuactive == MENU_Off &&
-		ConsoleState != c_down && ConsoleState != c_falling)
+	if (ev->type == EV_Mouse && !paused && menuactive == MENU_Off && ConsoleState != c_down && ConsoleState != c_falling
+#ifdef USE_POLYMOST
+		&& !testpolymost		
+#endif
+		)
 	{
 		if (Button_Mlook.bDown || freelook)
 		{
@@ -867,6 +878,7 @@ void D_Display ()
 
 	hw2d = false;
 
+#ifdef USE_POLYMOST
 	if (testpolymost)
 	{
 		drawpolymosttest();
@@ -874,6 +886,7 @@ void D_Display ()
 		M_Drawer();
 	}
 	else
+#endif
 	{
 		unsigned int nowtime = I_FPSTime();
 		TexMan.UpdateAnimations(nowtime);
@@ -917,10 +930,7 @@ drawfullconsole:
 				// [BB] This check shouldn't be necessary, but should completely prevent
 				// the "tried to render NULL actor" errors.
 				if ( (players[consoleplayer].mo != NULL) && (players[consoleplayer].camera != NULL) )
-					screen->RenderView(&players[consoleplayer]);
-
-
-
+					Renderer->RenderView(&players[consoleplayer]);
 			}
 
 			if ((hw2d = screen->Begin2D(viewactive)))
@@ -929,7 +939,7 @@ drawfullconsole:
 				SB_state = screen->GetPageCount();
 				BorderNeedRefresh = screen->GetPageCount();
 			}
-			screen->DrawRemainingPlayerSprites();
+			Renderer->DrawRemainingPlayerSprites();
 			screen->DrawBlendingRect();
 			if (automapactive)
 			{
@@ -1202,15 +1212,7 @@ void D_ErrorCleanup ()
 		menuactive = MENU_Off;
 	}
 	insave = false;
-	fakeActive = 0;
-	fake3D = 0;
-	while (CurrentSkybox)
-	{
-		R_3D_DeleteHeights();
-		R_3D_LeaveSkybox();
-	}
-	R_3D_ResetClip();
-	R_3D_DeleteHeights();
+	Renderer->ErrorCleanup();
 
 	// [BB] We are not in a level anymore.
 	level.info = NULL;
@@ -2763,6 +2765,7 @@ void D_DoomMain (void)
 		{
 			Printf ("I_Init: Setting up machine state.\n");
 			I_Init ();
+			I_CreateRenderer();
 		}
 
 		// Server doesn't need video.

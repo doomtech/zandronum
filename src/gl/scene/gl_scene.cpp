@@ -52,6 +52,7 @@
 #include "p_effect.h"
 #include "sbar.h"
 #include "po_man.h"
+#include "r_utility.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -87,6 +88,9 @@ EXTERN_CVAR (Int, screenblocks)
 EXTERN_CVAR (Bool, cl_capfps)
 EXTERN_CVAR (Bool, r_deathcamera)
 
+// [BB]
+CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
+EXTERN_CVAR (Bool, cl_oldfreelooklimit)
 
 // [BC] Blah. Not a great place to include this.
 EXTERN_CVAR (Float,  blood_fade_scalar)
@@ -95,11 +99,6 @@ extern int viewpitch;
 DWORD			gl_fixedcolormap;
 area_t			in_area;
 TArray<BYTE> currentmapsection;
-
-
-void R_SetupFrame (AActor * camera);
-
-
 
 
 //-----------------------------------------------------------------------------
@@ -1033,8 +1032,6 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 // renders the view
 //
 //-----------------------------------------------------------------------------
-static FRandom pr_glhom;
-EXTERN_CVAR(Int, r_clearbuffer)
 
 #ifdef _WIN32 // [BB] Detect some kinds of glBegin hooking.
 extern char myGlBeginCharArray[4];
@@ -1082,35 +1079,6 @@ void FGLRenderer::RenderView (player_t* player)
 #endif
 
 	OpenGLFrameBuffer* GLTarget = static_cast<OpenGLFrameBuffer*>(screen);
-
-	if (r_clearbuffer != 0)
-	{
-		int color;
-		int hom = r_clearbuffer;
-
-		if (hom == 3)
-		{
-			hom = ((I_FPSTime() / 128) & 1) + 1;
-		}
-		if (hom == 1)
-		{
-			color = GPalette.BlackIndex;
-		}
-		else if (hom == 2)
-		{
-			color = GPalette.WhiteIndex;
-		}
-		else if (hom == 4)
-		{
-			color = (I_FPSTime() / 32) & 255;
-		}
-		else
-		{
-			color = pr_glhom();
-		}
-		GLTarget->Clear(0, 0, screen->GetWidth(), screen->GetHeight(), color, 0);
-	}
-
 	AActor *&LastCamera = GLTarget->LastCamera;
 
 	if (player->camera != LastCamera)
@@ -1204,4 +1172,258 @@ void FGLRenderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	// a canvas.
 	FGLRenderer::EndDrawScene( viewsector );
 }
+
+
+//===========================================================================
+//
+//
+//
+//===========================================================================
+
+struct FGLInterface : public FRenderer
+{
+	bool UsesColormap() const;
+	void PrecacheTexture(FTexture *tex, int cache);
+	void RenderView(player_t *player);
+	void WriteSavePic (player_t *player, FILE *file, int width, int height);
+	void StateChanged(AActor *actor);
+	void StartSerialize(FArchive &arc);
+	void EndSerialize(FArchive &arc);
+	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
+	sector_t *FakeFlat(sector_t *sec, sector_t *tempsec, int *floorlightlevel, int *ceilinglightlevel, bool back);
+
+	int GetMaxViewPitch(bool down);
+	void ClearBuffer(int color);
+	void Init();
+};
+
+//===========================================================================
+//
+// The GL renderer has no use for colormaps so let's
+// not create them and save us some time.
+//
+//===========================================================================
+
+bool FGLInterface::UsesColormap() const
+{
+	return false;
+}
+
+//==========================================================================
+//
+// DFrameBuffer :: PrecacheTexture
+//
+//==========================================================================
+
+void FGLInterface::PrecacheTexture(FTexture *tex, int cache)
+{
+	if (tex != NULL)
+	{
+		if (cache)
+		{
+			tex->PrecacheGL();
+		}
+		else
+		{
+			tex->UncacheGL();
+		}
+	}
+}
+
+//==========================================================================
+//
+// DFrameBuffer :: StateChanged
+//
+//==========================================================================
+
+void FGLInterface::StateChanged(AActor *actor)
+{
+	gl_SetActorLights(actor);
+}
+
+//===========================================================================
+//
+// notify the renderer that serialization of the curent level is about to start/end
+//
+//===========================================================================
+
+void FGLInterface::StartSerialize(FArchive &arc)
+{
+	gl_DeleteAllAttachedLights();
+	arc << fogdensity << outsidefogdensity << skyfog;
+}
+
+void FGLInterface::EndSerialize(FArchive &arc)
+{
+	gl_RecreateAllAttachedLights();
+	if (arc.IsLoading()) gl_InitPortals();
+}
+
+//===========================================================================
+//
+// Get max. view angle (renderer specific information so it goes here now)
+//
+//===========================================================================
+
+EXTERN_CVAR(Float, maxviewpitch)
+
+#define MAX_DN_ANGLE	56		// Max looking down angle
+#define MAX_UP_ANGLE	32		// Max looking up angle
+
+int FGLInterface::GetMaxViewPitch(bool down)
+{
+	// [BB]
+	if (cl_disallowfullpitch) return down? MAX_DN_ANGLE*ANGLE_1 : -( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 )*ANGLE_1;
+	else return (down? maxviewpitch : -maxviewpitch) * ANGLE_1;
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
+void FGLInterface::ClearBuffer(int color)
+{
+	PalEntry pe = GPalette.BaseColors[color];
+	gl.ClearColor(pe.r/255.f, pe.g/255.f, pe.b/255.f, 1.f);
+	gl.Clear(GL_COLOR_BUFFER_BIT);
+}
+
+//===========================================================================
+//
+// Render the view to a savegame picture
+//
+//===========================================================================
+
+void FGLInterface::WriteSavePic (player_t *player, FILE *file, int width, int height)
+{
+	GLRenderer->WriteSavePic(player, file, width, height);
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
+void FGLInterface::RenderView(player_t *player)
+{
+	GLRenderer->RenderView(player);
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
+void FGLInterface::Init()
+{
+	gl_ParseDefs();
+}
+
+//===========================================================================
+//
+// Camera texture rendering
+//
+//===========================================================================
+CVAR(Bool, gl_usefb, false , CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+extern TexFilter_s TexFilter[];
+
+void FGLInterface::RenderTextureView (FCanvasTexture *tex, AActor *Viewpoint, int FOV)
+{
+	FMaterial * gltex = FMaterial::ValidateTexture(tex);
+
+	int width = gltex->TextureWidth(GLUSE_TEXTURE);
+	int height = gltex->TextureHeight(GLUSE_TEXTURE);
+
+	gl_fixedcolormap=CM_DEFAULT;
+
+	bool usefb;
+
+	if (gl.flags & RFL_FRAMEBUFFER)
+	{
+		usefb = gl_usefb || width > screen->GetWidth() || height > screen->GetHeight();
+	}
+	else usefb = false;
+
+
+	if (!usefb)
+	{
+		gl.Flush();
+	}
+	else
+	{
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
+		__try
+#endif
+		{
+			GLRenderer->StartOffscreen();
+			gltex->BindToFrameBuffer();
+		}
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__INTEL_COMPILER))
+		__except(1)
+		{
+			usefb = false;
+			gl_usefb = false;
+			GLRenderer->EndOffscreen();
+			gl.Flush();
+		}
+#endif
+	}
+
+	GL_IRECT bounds;
+	bounds.left=bounds.top=0;
+	bounds.width=FHardwareTexture::GetTexDimension(gltex->GetWidth(GLUSE_TEXTURE));
+	bounds.height=FHardwareTexture::GetTexDimension(gltex->GetHeight(GLUSE_TEXTURE));
+
+	GLRenderer->RenderViewpoint(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false, false);
+
+	if (!usefb)
+	{
+		gl.Flush();
+		gltex->Bind(CM_DEFAULT, 0, 0);
+		gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
+	}
+	else
+	{
+		GLRenderer->EndOffscreen();
+	}
+
+	gltex->Bind(CM_DEFAULT, 0, 0);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
+	tex->SetUpdated();
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+sector_t *FGLInterface::FakeFlat(sector_t *sec, sector_t *tempsec, int *floorlightlevel, int *ceilinglightlevel, bool back)
+{
+	if (floorlightlevel != NULL)
+	{
+		*floorlightlevel = sec->GetFloorLight ();
+	}
+	if (ceilinglightlevel != NULL)
+	{
+		*ceilinglightlevel = sec->GetCeilingLight ();
+	}
+	return gl_FakeFlat(sec, tempsec, back);
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
+FRenderer *gl_CreateInterface()
+{
+	return new FGLInterface;
+}
+
 

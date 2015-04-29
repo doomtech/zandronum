@@ -230,9 +230,16 @@ public:
 	{
 		if (mBaseLayer->bIsTransparent == -1) 
 		{
-			int w, h;
-			unsigned char *buffer = CreateTexBuffer(CM_DEFAULT, 0, w, h);
-			delete [] buffer;
+			if (!mBaseLayer->tex->bHasCanvas)
+			{
+				int w, h;
+				unsigned char *buffer = CreateTexBuffer(CM_DEFAULT, 0, w, h);
+				delete [] buffer;
+			}
+			else
+			{
+				mBaseLayer->bIsTransparent = 0;
+			}
 		}
 		return !!mBaseLayer->bIsTransparent;
 	}

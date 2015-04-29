@@ -52,6 +52,7 @@
 #include "v_video.h"
 #include "templates.h"
 #include "r_utility.h"
+#include "r_renderer.h"
 
 static bool R_CheckForFixedLights(const BYTE *colormaps);
 
@@ -206,8 +207,8 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 	colormap->Desaturate = desaturate;
 	NormalLight.Next = colormap;
 
-	// [BB] The server doesn't have a screen.
-	if ( (NETWORK_GetState( ) != NETSTATE_SERVER) && screen->UsesColormap())
+	// [BB] The server doesn't have a Renderer.
+	if ( (NETWORK_GetState( ) != NETSTATE_SERVER) && Renderer->UsesColormap())
 	{
 		colormap->Maps = new BYTE[NUMCOLORMAPS*256];
 		colormap->BuildLights ();
@@ -368,7 +369,7 @@ void FDynamicColormap::ChangeColorFade (PalEntry lightcolor, PalEntry fadecolor)
 
 void FDynamicColormap::RebuildAllLights()
 {
-	if (screen->UsesColormap())
+	if (Renderer->UsesColormap())
 	{
 		FDynamicColormap *cm;
 

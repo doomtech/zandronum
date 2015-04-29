@@ -32,6 +32,8 @@
 **
 */
 
+// #define NO_SWRENDER 	// set this if you want to exclude the software renderer. Without software renderer the base implementations of DrawTextureV and FillSimplePoly need to be disabled because they depend on it.
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -39,9 +41,11 @@
 #include "v_video.h"
 #include "m_swap.h"
 #include "r_defs.h"
+#ifndef NO_SWRENDER
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_things.h"
+#endif
 #include "r_data/r_translate.h"
 #include "doomstat.h"
 #include "v_palette.h"
@@ -71,7 +75,6 @@ int CleanXfac_1, CleanYfac_1, CleanWidth_1, CleanHeight_1;
 
 // FillSimplePoly uses this
 extern "C" short spanend[MAXHEIGHT];
-extern int setblocks;
 
 CVAR (Bool, hud_scale, false, CVAR_ARCHIVE);
 
@@ -116,6 +119,7 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, double x, double y, int tag
 
 void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, double x, double y, uint32 tag, va_list tags)
 {
+#ifndef NO_SWRENDER
 	FTexture::Span unmaskedSpan[2];
 	const FTexture::Span **spanptr, *spans;
 	static short bottomclipper[MAXWIDTH], topclipper[MAXWIDTH];
@@ -324,6 +328,7 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, double x, double y, uint32 
 	{
 		NetUpdate();
 	}
+#endif
 }
 
 bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag, va_list tags, DrawParms *parms, bool hw) const
@@ -1156,6 +1161,7 @@ void DCanvas::FillSimplePoly(FTexture *tex, FVector2 *points, int npoints,
 	double originx, double originy, double scalex, double scaley, angle_t rotation,
 	FDynamicColormap *colormap, int lightlevel)
 {
+#ifndef NO_SWRENDER
 	// Use an equation similar to player sprites to determine shade
 	fixed_t shade = LIGHT2SHADE(lightlevel) - 12*FRACUNIT;
 	float topy, boty, leftx, rightx;
@@ -1300,6 +1306,7 @@ void DCanvas::FillSimplePoly(FTexture *tex, FVector2 *points, int npoints,
 		pt1 = pt2;
 		pt2--;			if (pt2 < 0) pt2 = npoints;
 	} while (pt1 != botpt);
+#endif
 }
 
 

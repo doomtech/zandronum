@@ -79,6 +79,7 @@
 #include "a_strifeglobal.h"
 #include "r_data/colormaps.h"
 #include "farchive.h"
+#include "r_renderer.h"
 // [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -2070,9 +2071,9 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 		return;
 	}
 
-	// [BB] The server doesn't have a screen.
+	// [BB] The server doesn't have a Renderer.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		screen->StartSerialize(arc);
+		Renderer->StartSerialize(arc);
 
 	arc << level.flags
 		<< level.flags2
@@ -2198,9 +2199,9 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 			}
 		}
 	}
-	// [BB] The server doesn't have a screen.
+	// [BB] The server doesn't have a Renderer.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		screen->EndSerialize(arc);
+		Renderer->EndSerialize(arc);
 }
 
 //==========================================================================

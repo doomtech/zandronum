@@ -41,6 +41,7 @@
 #include "doomdata.h"
 #include "gl/system/gl_system.h"
 #include "a_sharedglobal.h"
+#include "r_utility.h"
 
 #include "gl/system/gl_cvars.h"
 #include "gl/data/gl_data.h"

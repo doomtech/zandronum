@@ -986,6 +986,8 @@ add_executable( zdoom WIN32
 	platform.cpp #ST
 	po_man.cpp
 	possession.cpp #ST
+	r_swrenderer.cpp
+	r_utility.cpp
 	r_3dfloors.cpp
 	r_bsp.cpp
 	r_draw.cpp
@@ -1222,9 +1224,7 @@ include_directories( .
 	g_raven
 	g_strife
 	g_shared
-	fragglescript
 	huffman #ZAN
-	Linux
 	oplsynth
 	sound
 	textures

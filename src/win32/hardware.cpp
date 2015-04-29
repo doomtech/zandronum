@@ -47,6 +47,7 @@
 #include "doomstat.h"
 #include "m_argv.h"
 #include "version.h"
+#include "r_swrenderer.h"
 
 EXTERN_CVAR (Bool, ticker)
 EXTERN_CVAR (Bool, fullscreen)
@@ -60,13 +61,10 @@ CVAR(Int, win_y, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 bool ForceWindowed;
 
 IVideo *Video;
-//static IKeyboard *Keyboard;
-//static IMouse *Mouse;
-//static IJoystick *Joystick;
 
 
 void I_RestartRenderer();
-int currentrenderer=1;
+int currentrenderer = -1;
 bool changerenderer;
 
 // [ZDoomGL]
@@ -98,18 +96,6 @@ CUSTOM_CVAR (Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINI
 CCMD (vid_restart)
 {
 }
-
-/*
-void I_CheckRestartRenderer()
-{
-	while (changerenderer)
-	{
-		currentrenderer = vid_renderer;
-		I_RestartRenderer();
-		if (currentrenderer == vid_renderer) changerenderer = false;
-	}
-}
-*/
 
 #ifndef NO_GL
 #else
@@ -151,7 +137,7 @@ void I_InitGraphics ()
 	val.Bool = !!Args->CheckParm ("-devparm");
 	ticker.SetGenericRepDefault (val, CVAR_Bool);
 
-	currentrenderer = vid_renderer;
+	//currentrenderer = vid_renderer;
 #ifndef NO_GL
 	if (currentrenderer==1) Video = new Win32GLVideo(0);
 	else Video = new Win32Video (0);
@@ -165,6 +151,22 @@ void I_InitGraphics ()
 	atterm (I_ShutdownGraphics);
 	
 	Video->SetWindowedScale (vid_winscale);
+}
+
+static void I_DeleteRenderer()
+{
+	if (Renderer != NULL) delete Renderer;
+}
+
+void I_CreateRenderer()
+{
+	currentrenderer = vid_renderer;
+	if (Renderer == NULL)
+	{
+		if (currentrenderer==1) Renderer = gl_CreateInterface();
+		else Renderer = new FSoftwareRenderer;
+		atterm(I_DeleteRenderer);
+	}
 }
 
 /** Remaining code is common to Win32 and Linux **/

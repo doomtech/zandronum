@@ -126,7 +126,11 @@ void gl_SetupMenu()
 			for(unsigned i=0;i<opt->mItems.Size();i++)
 			{
 				FName nm = opt->mItems[i]->GetAction(NULL);
-				if (nm == shader) opt->mItems.Delete(i);
+				if (nm == shader) 
+				{
+					delete opt->mItems[i];
+					opt->mItems.Delete(i);
+				}
 			}
 		}
 	}

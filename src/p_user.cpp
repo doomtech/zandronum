@@ -53,6 +53,7 @@
 #include "d_net.h"
 #include "gstrings.h"
 #include "farchive.h"
+#include "r_renderer.h"
 // [BB] New #includes.
 #include "sv_commands.h"
 #include "a_doomglobal.h"
@@ -3181,13 +3182,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				player->mo->pitch -= look;
 				if (look > 0)
 				{ // look up
-					// [BB] The server doesn't have a screen.
-					player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetMaxViewPitch(false) : (32*ANGLE_1) );
+					// [BB] The server doesn't have a Renderer.
+					player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : (32*ANGLE_1) );
 				}
 				else
 				{ // look down
-					// [BB] The server doesn't have a screen.
-					player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  screen->GetMaxViewPitch(true) : (56*ANGLE_1) );
+					// [BB] The server doesn't have a Renderer.
+					player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  Renderer->GetMaxViewPitch(true) : (56*ANGLE_1) );
 				}
 			}
 		}
@@ -3403,13 +3404,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					player->mo->pitch -= look;
 					if (look > 0)
 					{ // look up
-						// [BB] The server doesn't have a screen.
-						player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetMaxViewPitch(false) : (32*ANGLE_1) );
+						// [BB] The server doesn't have a Renderer.
+						player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : (32*ANGLE_1) );
 					}
 					else
 					{ // look down
-						// [BB] The server doesn't have a screen.
-						player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  screen->GetMaxViewPitch(true) : (56*ANGLE_1) );
+						// [BB] The server doesn't have a Renderer.
+						player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  Renderer->GetMaxViewPitch(true) : (56*ANGLE_1) );
 					}
 				}
 			}

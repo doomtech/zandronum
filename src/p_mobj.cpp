@@ -67,6 +67,7 @@
 #include "gstrings.h"
 #include "farchive.h"
 #include "r_data/colormaps.h"
+#include "r_renderer.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "duel.h"
@@ -602,7 +603,7 @@ bool AActor::SetState (FState *newstate, bool nofunction)
 
 	if (screen != NULL)
 	{
-		screen->StateChanged(this);
+		Renderer->StateChanged(this);
 	}
 	return true;
 }
@@ -4806,7 +4807,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	// [BB] Moved to backport GZDoom revision 1302. Needs to be adapted when our GZDoom base is updated.
 	//if (screen != NULL)
 	//{
-	//	screen->StateChanged(actor);
+	//			Renderer->StateChanged(actor);
 	//}
 
 	g_SpawnCycles.Unclock();
@@ -4901,10 +4902,9 @@ void AActor::BeginPlay ()
 
 void AActor::PostBeginPlay ()
 {
-	// [BB] Backported from GZDoom revision 1302. Needs to be adapted when our GZDoom base is updated.
-	if (screen != NULL)
+	if (Renderer != NULL)
 	{
-		screen->StateChanged(this);
+		Renderer->StateChanged(this);
 	}
 	PrevAngle = angle;
 }

@@ -26,8 +26,4 @@ void gl_RecreateAllAttachedLights();
 void gl_ParseDefs();
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
 
-
-
-extern int currentrenderer;
-
 #endif

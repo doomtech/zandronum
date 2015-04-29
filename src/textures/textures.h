@@ -321,6 +321,7 @@ protected:
 		gl_info.areas = NULL;
 	}
 
+public:
 	static void FlipSquareBlock (BYTE *block, int x, int y);
 	static void FlipSquareBlockRemap (BYTE *block, int x, int y, const BYTE *remap);
 	static void FlipNonSquareBlock (BYTE *blockto, const BYTE *blockfrom, int x, int y, int srcpitch);
@@ -591,19 +592,21 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 	bool CheckModified ();
-	void RenderView (AActor *viewpoint, int fov);
-	void RenderGLView(AActor *viewpoint, int fov);	// Needed by GZDoom
 	void NeedUpdate() { bNeedsUpdate=true; }
+	void SetUpdated() { bNeedsUpdate = false; bDidUpdate = true; bFirstUpdate = false; }
+	DSimpleCanvas *GetCanvas() { return Canvas; }
+	void MakeTexture ();
 
 protected:
 	DSimpleCanvas *Canvas;
 	BYTE *Pixels;
 	Span DummySpans[2];
-	BYTE bNeedsUpdate:1;
-	BYTE bDidUpdate:1;
-	BYTE bFirstUpdate:1;
+	bool bNeedsUpdate;
+	bool bDidUpdate;
+	bool bPixelsAllocated;
+public:
+	bool bFirstUpdate;
 
-	void MakeTexture ();
 
 	friend struct FCanvasTextureInfo;
 };

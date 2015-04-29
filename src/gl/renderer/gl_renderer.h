@@ -4,6 +4,7 @@
 #include "r_defs.h"
 #include "v_video.h"
 #include "vectors.h"
+#include "r_renderer.h"
 
 struct particle_t;
 class FCanvasTexture;
@@ -14,8 +15,6 @@ struct pspdef_t;
 class FShaderManager;
 class GLPortal;
 class FGLThreadManager;
-
-extern int extralight;
 
 enum SectorRenderFlags
 {
@@ -124,7 +123,6 @@ public:
 	void ProcessParticle(particle_t *part, sector_t *sector);
 	void ProcessSector(sector_t *fakesector);
 	void FlushTextures();
-	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
 	unsigned char *GetTextureBuffer(FTexture *tex, int &w, int &h);
 	void SetupLevel();
 
@@ -143,7 +141,6 @@ public:
 	void FillSimplePoly(FTexture *texture, FVector2 *points, int npoints,
 		double originx, double originy, double scalex, double scaley,
 		angle_t rotation, FDynamicColormap *colormap, int lightlevel);
-
 };
 
 // Global functions. Make them members of GLRenderer later?
