@@ -41,7 +41,6 @@
 
 #include "gl/system/gl_system.h"
 #include "templates.h"
-//#include "r_draw.h"
 #include "m_crc32.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"

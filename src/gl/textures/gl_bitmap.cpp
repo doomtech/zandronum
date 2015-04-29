@@ -37,7 +37,6 @@
 */
 
 
-//#include "r_data/r_translate.h"
 #include "v_palette.h"
 #include "templates.h"
 #include "gl/renderer/gl_lightdata.h"

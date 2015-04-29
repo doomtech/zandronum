@@ -45,7 +45,7 @@
 #include "gl/gl_functions.h"
 #include "r_defs.h"
 #include "r_sky.h"
-#include "r_main.h"
+#include "r_utility.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"

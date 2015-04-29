@@ -42,7 +42,6 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"
-//#include "r_data/r_blend.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_cvars.h"
