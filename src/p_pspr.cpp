@@ -27,6 +27,7 @@
 #include "templates.h"
 #include "thingdef/thingdef.h"
 #include "g_level.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
@@ -34,6 +35,7 @@
 #include "p_effect.h"
 #include "sv_commands.h"
 #include "unlagged.h"
+
 
 // MACROS ------------------------------------------------------------------
 

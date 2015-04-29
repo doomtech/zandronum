@@ -39,12 +39,13 @@
 */
 #include "gl/system/gl_system.h"
 #include "p_local.h"
-//#include "r_data/r_translate.h"
+#include "p_effect.h"
 #include "g_level.h"
 #include "doomstat.h"
 #include "gl/gl_functions.h"
 #include "r_defs.h"
 #include "r_sky.h"
+#include "r_main.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"

@@ -40,16 +40,12 @@ struct FGLSection;
 struct seg_t;
 
 #include "dthinker.h"
-#include "farchive.h"
 
 #define MAXWIDTH 2560
 #define MAXHEIGHT 1600
 
 const WORD NO_INDEX = 0xffffu;
 const DWORD NO_SIDE = 0xffffffffu;
-
-// [BC] This is the maximum length a skin name can be.
-#define	MAX_SKIN_NAME					24
 
 // Silhouette, needed for clipping Segs (mainly)
 // and sprites representing things.
@@ -134,6 +130,7 @@ class FScanner;
 class FBitmap;
 struct FCopyInfo;
 class DInterpolation;
+class FArchive;
 
 enum
 {
@@ -350,16 +347,8 @@ struct secplane_t
 
 };
 
-inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
-{
-	arc << plane.a << plane.b << plane.c << plane.d;
-	//if (plane.c != 0)
-	{	// plane.c should always be non-0. Otherwise, the plane
-		// would be perfectly vertical.
-		plane.ic = DivScale32 (1, plane.c);
-	}
-	return arc;
-}
+FArchive &operator<< (FArchive &arc, secplane_t &plane);
+
 
 #include "p_3dfloors.h"
 struct subsector_t;
@@ -1231,74 +1220,15 @@ struct FMiniBSP
 
 typedef BYTE lighttable_t;	// This could be wider for >8 bit display.
 
-// A vissprite_t is a thing
-//	that will be drawn during a refresh.
-// I.e. a sprite object that is partly visible.
-struct vissprite_t
+// This encapsulates the fields of vissprite_t that can be altered by AlterWeaponSprite
+struct visstyle_t
 {
 	// [BB] Dummy variable to stop wallhacks.
 	BYTE			dummy;
-	short			x1, x2;
-	fixed_t			cx;				// for line side calculation
-	fixed_t			gx, gy, gz;		// origin in world coordinates
-	angle_t			angle;
-	fixed_t			gzb, gzt;		// global bottom / top for silhouette clipping
-	fixed_t			startfrac;		// horizontal position of x1
-	fixed_t			xscale, yscale;
-	fixed_t			xiscale;		// negative if flipped
-	fixed_t			depth;
-	fixed_t			idepth;			// 1/z
-	fixed_t			texturemid;
-	DWORD			FillColor;
 	lighttable_t	*colormap;
-	sector_t		*heightsec;		// killough 3/27/98: height sector for underwater/fake ceiling
-	sector_t		*sector;		// [RH] sector this sprite is in
-	F3DFloor	*fakefloor;
-	F3DFloor	*fakeceiling;
 	fixed_t			alpha;
-	fixed_t			floorclip;
-	union
-	{
-		FTexture	  *pic;
-		struct FVoxel *voxel;
-	};
-	BYTE			bIsVoxel:1;		// [RH] Use voxel instead of pic
-	BYTE			bSplitSprite:1;	// [RH] Sprite was split by a drawseg
-	BYTE			FakeFlatStat;	// [RH] which side of fake/floor ceiling sprite is on
-	short 			renderflags;
-	DWORD			Translation;	// [RH] for color translation
 	FRenderStyle	RenderStyle;
 };
 
-enum
-{
-	FAKED_Center,
-	FAKED_BelowFloor,
-	FAKED_AboveCeiling
-};
-
-
-// [RH] A c-buffer. Used for keeping track of offscreen voxel spans.
-
-struct FCoverageBuffer
-{
-	struct Span
-	{
-		Span *NextSpan;
-		short Start, Stop;
-	};
-
-	FCoverageBuffer(int size);
-	~FCoverageBuffer();
-
-	void Clear();
-	void InsertSpan(int listnum, int start, int stop);
-	Span *AllocSpan();
-
-	FMemArena SpanArena;
-	Span **Spans;	// [0..NumLists-1] span lists
-	Span *FreeSpans;
-	unsigned int NumLists;
-};
 
 #endif

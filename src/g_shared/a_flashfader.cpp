@@ -1,6 +1,7 @@
 #include "a_sharedglobal.h"
 #include "g_level.h"
 #include "d_player.h"
+#include "farchive.h"
 // [CW] New include.
 #include "sv_commands.h"
 

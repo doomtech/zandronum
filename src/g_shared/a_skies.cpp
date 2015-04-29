@@ -36,6 +36,7 @@
 #include "a_sharedglobal.h"
 #include "p_local.h"
 #include "p_lnspec.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "network.h"
 

@@ -38,7 +38,6 @@
 #include "dobject.h"
 #include "dthinker.h"
 #include "doomtype.h"
-#include "farchive.h"
 // [BB] New #includes.
 #include "r_data/r_translate.h"
 
@@ -890,14 +889,6 @@ private:
 	// [BB] The clients need to call some of the static functions from DLevelScript.
 	friend class STClient;
 };
-
-inline FArchive &operator<< (FArchive &arc, DLevelScript::EScriptState &state)
-{
-	BYTE val = (BYTE)state;
-	arc << val;
-	state = (DLevelScript::EScriptState)val;
-	return arc;
-}
 
 class DACSThinker : public DThinker
 {

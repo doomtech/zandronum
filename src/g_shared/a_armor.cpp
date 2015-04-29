@@ -6,6 +6,7 @@
 #include "templates.h"
 #include "g_level.h"
 #include "d_player.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "doomstat.h"
 #include "sv_commands.h"

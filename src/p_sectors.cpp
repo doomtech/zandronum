@@ -25,9 +25,10 @@
 #include "c_cvars.h"
 #include "doomstat.h"
 #include "g_level.h"
-#include "r_main.h"
 #include "nodebuild.h"
 #include "po_man.h"
+#include "farchive.h"
+#include "r_utility.h"
 #include "r_data/colormaps.h"
 // [CW] New includes.
 #include "cl_demo.h"
@@ -856,6 +857,16 @@ bool secplane_t::CopyPlaneIfValid (secplane_t *dest, const secplane_t *opp) cons
 	return copy;
 }
 
+FArchive &operator<< (FArchive &arc, secplane_t &plane)
+{
+	arc << plane.a << plane.b << plane.c << plane.d;
+	//if (plane.c != 0)
+	{	// plane.c should always be non-0. Otherwise, the plane
+		// would be perfectly vertical.
+		plane.ic = DivScale32 (1, plane.c);
+	}
+	return arc;
+}
 
 //==========================================================================
 //

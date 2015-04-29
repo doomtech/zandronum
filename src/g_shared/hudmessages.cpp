@@ -39,6 +39,7 @@
 #include "v_video.h"
 #include "cmdlib.h"
 #include "doomstat.h"
+#include "farchive.h"
 // [BC] New #includes.
 #include "deathmatch.h"
 #include "chat.h"

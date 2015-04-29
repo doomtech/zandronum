@@ -11,6 +11,7 @@
 #include "thingdef/thingdef.h"
 #include "g_level.h"
 #include "doomstat.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"

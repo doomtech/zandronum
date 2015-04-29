@@ -17,6 +17,7 @@
 #include "p_terrain.h"
 #include "m_bbox.h"
 #include "ravenshared.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"

@@ -8,6 +8,8 @@
 #include "s_sound.h"
 #include "a_sharedglobal.h"
 #include "statnums.h"
+#include "farchive.h"
+// [BB] New #includes.
 #include "network.h"
 #include "sv_commands.h"
 

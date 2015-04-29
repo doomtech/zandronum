@@ -2,6 +2,7 @@
 #include "actor.h"
 #include "info.h"
 #include "d_player.h"
+#include "farchive.h"
 
 IMPLEMENT_CLASS( AFloatyIcon )
 

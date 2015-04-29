@@ -1,4 +1,5 @@
 #include "a_lightning.h"
+#include "doomstat.h"
 #include "p_lnspec.h"
 #include "statnums.h"
 #include "m_random.h"
@@ -8,6 +9,7 @@
 #include "r_sky.h"
 #include "g_level.h"
 #include "r_state.h"
+#include "farchive.h"
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"

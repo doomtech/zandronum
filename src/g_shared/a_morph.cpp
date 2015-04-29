@@ -11,6 +11,7 @@
 #include "a_morph.h"
 #include "doomstat.h"
 #include "g_level.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "sv_commands.h"
 

@@ -44,12 +44,13 @@
 #include "m_swap.h"
 #include "r_draw.h"
 #include "v_video.h"
-#include "r_main.h"
+#include "doomstat.h"
 #include "m_png.h"
 #include "m_crc32.h"
 #include "vectors.h"
 #include "v_palette.h"
 #include "templates.h"
+#include "farchive.h"
 
 #include "gl/system/gl_framebuffer.h"
 #include "gl/renderer/gl_renderer.h"
@@ -416,10 +417,7 @@ void OpenGLFrameBuffer::StateChanged(AActor *actor)
 void OpenGLFrameBuffer::StartSerialize(FArchive &arc)
 {
 	gl_DeleteAllAttachedLights();
-	if (SaveVersion >= 2058)
-	{
-		arc << fogdensity << outsidefogdensity << skyfog;
-	}
+	arc << fogdensity << outsidefogdensity << skyfog;
 }
 
 void OpenGLFrameBuffer::EndSerialize(FArchive &arc)

@@ -39,7 +39,7 @@
 */
 
 #include "a_sharedglobal.h"
-#include "r_main.h"
+#include "r_utility.h"
 #include "r_defs.h"
 #include "r_sky.h"
 #include "g_level.h"

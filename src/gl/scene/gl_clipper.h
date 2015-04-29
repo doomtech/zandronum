@@ -1,7 +1,10 @@
 #ifndef __GL_CLIPPER
 #define __GL_CLIPPER
 
+#include "doomtype.h"
 #include "tables.h"
+#include "xs_Float.h"
+#include "r_utility.h"
 
 class ClipNode
 {

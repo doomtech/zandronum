@@ -113,6 +113,7 @@
 #include "po_man.h"
 #include "network/cl_auth.h"
 #include "r_data/colormaps.h"
+#include "r_main.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING

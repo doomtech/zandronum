@@ -50,6 +50,7 @@
 #include "timidity/timidity.h"
 #include "g_level.h"
 #include "po_man.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"

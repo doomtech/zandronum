@@ -48,7 +48,7 @@
 
 #include "w_wad.h"
 #include "m_png.h"
-#include "r_draw.h"
+//#include "r_draw.h"
 #include "sbar.h"
 #include "gi.h"
 #include "cmdlib.h"

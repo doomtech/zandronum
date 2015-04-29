@@ -37,6 +37,7 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "doomstat.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "a_movingcamera.h"
 #include "cl_demo.h"

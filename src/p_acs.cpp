@@ -72,6 +72,7 @@
 #include "p_setup.h"
 #include "po_man.h"
 #include "actorptrselect.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "announcer.h"
 #include "deathmatch.h"
@@ -2994,6 +2995,14 @@ IMPLEMENT_POINTY_CLASS (DLevelScript)
  DECLARE_POINTER(prev)
  DECLARE_POINTER(activator)
 END_POINTERS
+
+inline FArchive &operator<< (FArchive &arc, DLevelScript::EScriptState &state)
+{
+	BYTE val = (BYTE)state;
+	arc << val;
+	state = (DLevelScript::EScriptState)val;
+	return arc;
+}
 
 void DLevelScript::Serialize (FArchive &arc)
 {

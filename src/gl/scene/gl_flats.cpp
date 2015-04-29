@@ -42,9 +42,10 @@
 #include "a_sharedglobal.h"
 #include "r_defs.h"
 #include "r_sky.h"
-#include "r_main.h"
+#include "r_utility.h"
 #include "g_level.h"
 #include "doomstat.h"
+#include "d_player.h"
 
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_renderer.h"

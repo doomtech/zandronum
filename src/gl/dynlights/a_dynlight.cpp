@@ -37,7 +37,7 @@
 
 #include "templates.h"
 #include "m_random.h"
-#include "r_main.h"
+//#include "r_main.h"
 #include "p_local.h"
 #include "c_dispatch.h"
 #include "g_level.h"

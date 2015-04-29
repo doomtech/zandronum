@@ -39,6 +39,7 @@
 #include "i_system.h"
 #include "thingdef/thingdef.h"
 #include "doomstat.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "gamemode.h"

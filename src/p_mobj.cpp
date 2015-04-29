@@ -65,6 +65,7 @@
 #include "v_palette.h"
 #include "p_enemy.h"
 #include "gstrings.h"
+#include "farchive.h"
 #include "r_data/colormaps.h"
 // [BB] New #includes.
 #include "deathmatch.h"

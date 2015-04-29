@@ -39,9 +39,10 @@
 */
 #include "gl/system/gl_system.h"
 #include "sbar.h"
-#include "r_main.h"
+#include "r_utility.h"
 #include "v_video.h"
 #include "doomstat.h"
+#include "d_player.h"
 
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_renderer.h"
@@ -253,7 +254,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	}
 
 	PalEntry ThingColor = playermo->fillcolor;
-	vissprite_t vis;
+	visstyle_t vis;
 
 	vis.RenderStyle=playermo->RenderStyle;
 	vis.alpha=playermo->alpha;

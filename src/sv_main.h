@@ -56,6 +56,7 @@
 #include "i_net.h"
 #include "networkshared.h"
 #include "s_sndseq.h"
+#include "r_data/sprites.h"
 #include <list>
 #include <queue>
 

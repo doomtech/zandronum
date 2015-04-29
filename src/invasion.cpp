@@ -76,6 +76,7 @@
 #include "v_video.h"
 #include "survival.h"
 #include "gamemode.h"
+#include "farchive.h"
 
 void	SERVERCONSOLE_UpdateScoreboard( );
 

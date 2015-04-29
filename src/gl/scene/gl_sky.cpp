@@ -42,7 +42,8 @@
 #include "a_sharedglobal.h"
 #include "g_level.h"
 #include "r_sky.h"
-#include "r_main.h"
+#include "r_state.h"
+#include "r_utility.h"
 #include "doomdata.h"
 #include "gl/gl_functions.h"
 

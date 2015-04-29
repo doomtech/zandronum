@@ -10,6 +10,7 @@
 class player_t;
 class FConfigFile;
 class AWeapon;
+struct visstyle_t;
 
 class FWeaponSlot
 {
@@ -133,7 +134,6 @@ enum
 	IF_FORCERESPAWNINSURVIVAL = 1<<19,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
 };
 
-struct vissprite_t;
 
 class AInventory : public AActor
 {
@@ -198,7 +198,7 @@ public:
 	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 	virtual void ModifyDamage (int damage, FName damageType, int &newdamage, bool passive);
 	virtual fixed_t GetSpeedFactor();
-	virtual int AlterWeaponSprite (vissprite_t *vis);
+	virtual int AlterWeaponSprite (visstyle_t *vis);
 
 	virtual PalEntry GetBlend ();
 

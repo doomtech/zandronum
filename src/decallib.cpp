@@ -49,6 +49,7 @@
 #include "colormatcher.h"
 // [BB]
 //#include "b_bot.h"
+#include "farchive.h"
 // [BC] New #includes.
 #include "g_game.h"
 

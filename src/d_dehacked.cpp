@@ -71,6 +71,7 @@
 #include "i_system.h"
 #include "doomerrors.h"
 #include "p_effect.h"
+#include "farchive.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"

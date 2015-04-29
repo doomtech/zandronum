@@ -44,7 +44,6 @@
 #include "m_bbox.h"
 #include "w_wad.h"
 
-#include "r_local.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "p_terrain.h"
@@ -60,6 +59,7 @@
 #include "g_level.h"
 #include "v_font.h"
 #include "a_sharedglobal.h"
+#include "farchive.h"
 
 // State.
 #include "r_state.h"
@@ -109,6 +109,14 @@ void DPusher::UpdateToClient( ULONG ulClient )
 	SERVERCOMMANDS_DoPusher( m_Type, m_pLine, m_Magnitude, m_Angle, m_Source, m_Affectee, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
+inline FArchive &operator<< (FArchive &arc, DScroller::EScrollType &type)
+{
+	BYTE val = (BYTE)type;
+	arc << val;
+	type = (DScroller::EScrollType)val;
+	return arc;
+}
+
 DScroller::DScroller ()
 {
 }
@@ -131,6 +139,14 @@ void DScroller::Serialize (FArchive &arc)
 
 DPusher::DPusher ()
 {
+}
+
+inline FArchive &operator<< (FArchive &arc, DPusher::EPusher &type)
+{
+	BYTE val = (BYTE)type;
+	arc << val;
+	type = (DPusher::EPusher)val;
+	return arc;
 }
 
 void DPusher::Serialize (FArchive &arc)

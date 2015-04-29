@@ -1,6 +1,9 @@
 #ifndef __RES_SPRITES_H
 #define __RES_SPRITES_H
 
+// [BC] This is the maximum length a skin name can be.
+#define	MAX_SKIN_NAME					24
+
 #define MAX_SPRITE_FRAMES	29		// [RH] Macro-ized as in BOOM.
 
 //
@@ -78,6 +81,7 @@ extern TArray<FPlayerSkin> skins;		// [RH]
 extern BYTE				OtherGameSkinRemap[256];
 extern PalEntry			OtherGameSkinPalette[256];
 
-
+void R_InitSprites ();
+void R_DeinitSprites ();
 
 #endif

@@ -4,6 +4,7 @@
 #include "actor.h"
 // [BB] New #includes.
 #include "network.h"
+#include "farchive.h"
 
 class AInterpolationPoint : public AActor
 {

@@ -15,6 +15,7 @@
 #include "cl_demo.h"
 #include "a_doomglobal.h"
 #include "announcer.h"
+#include "farchive.h"
 
 // [BC] Random Powerup ------------------------------------------------------
 

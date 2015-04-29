@@ -35,6 +35,7 @@
 #include "i_system.h"
 #include "sc_man.h"
 #include "cmdlib.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
@@ -47,6 +48,14 @@
 //============================================================================
 
 IMPLEMENT_CLASS (DDoor)
+
+inline FArchive &operator<< (FArchive &arc, DDoor::EVlDoor &type)
+{
+	BYTE val = (BYTE)type;
+	arc << val;
+	type = (DDoor::EVlDoor)val;
+	return arc;
+}
 
 DDoor::DDoor ()
 {

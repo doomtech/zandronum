@@ -2568,10 +2568,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\r_interpolate.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\r_main.cpp"
 					>
 				</File>
@@ -2595,20 +2591,12 @@
 					RelativePath=".\src\r_things.cpp"
 					>
 				</File>
-				<File
-					RelativePath=".\src\r_translate.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Render Headers"
 				>
 				<File
 					RelativePath=".\src\r_3dfloors.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\r_blend.h"
 					>
 				</File>
 				<File
@@ -2621,14 +2609,6 @@
 				</File>
 				<File
 					RelativePath=".\src\r_draw.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\r_interpolate.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\r_jpeg.h"
 					>
 				</File>
 				<File
@@ -2664,7 +2644,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\r_translate.h"
+					RelativePath=".\src\r_utility.h"
 					>
 				</File>
 			</Filter>
@@ -6842,32 +6822,8 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Resources"
+			Name="Render Data"
 			>
-			<Filter
-				Name="Resource Headers"
-				>
-				<File
-					RelativePath=".\src\resources\colormaps.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\resources\voxels.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Resource Sources"
-				>
-				<File
-					RelativePath=".\src\resources\colormaps.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\resources\voxels.cpp"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="Textures"
 				>
@@ -6957,6 +6913,62 @@
 				</File>
 				<File
 					RelativePath=".\src\textures\warptexture.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Resource Headers"
+				>
+				<File
+					RelativePath=".\src\r_data\colormaps.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\r_interpolate.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\r_translate.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\renderstyle.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\sprites.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\voxels.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Resource Sources"
+				>
+				<File
+					RelativePath=".\src\r_data\colormaps.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\r_interpolate.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\r_translate.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\renderstyle.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\sprites.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_data\voxels.cpp"
 					>
 				</File>
 			</Filter>

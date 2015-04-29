@@ -18,6 +18,7 @@
 #include "templates.h"
 #include "d_event.h"
 #include "v_font.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -181,7 +182,7 @@
 	117 Blood
 	118 TeleportFog
 	119 ItemFog
-	120 --- Doomednum is 14, which makes it a teleport destination. Don't know why it's in the mobjinfo table.
+	120 teleport destination
 	121 KlaxonWarningLight
 	122 CeilingTurret
 	123 Piston

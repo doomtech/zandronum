@@ -70,6 +70,7 @@
 #include "r_sky.h"
 #include "p_lnspec.h"
 #include "m_crc32.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 

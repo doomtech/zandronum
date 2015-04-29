@@ -29,9 +29,25 @@
 #include "doomstat.h"
 #include "r_state.h"
 #include "gi.h"
+#include "farchive.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
+
+//============================================================================
+//
+// 
+//
+//============================================================================
+
+inline FArchive &operator<< (FArchive &arc, DCeiling::ECeiling &type)
+{
+	BYTE val = (BYTE)type;
+	arc << val;
+	type = (DCeiling::ECeiling)val;
+	return arc;
+}
 
 //============================================================================
 //

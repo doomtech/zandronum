@@ -42,7 +42,6 @@
 
 #include "doomtype.h"
 #include "colormatcher.h"
-//#include "r_data/r_translate.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "p_lnspec.h"

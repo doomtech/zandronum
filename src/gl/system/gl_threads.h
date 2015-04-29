@@ -1,4 +1,4 @@
-#ifndef __GL_THREADS_H
+#if 0 //ndef __GL_THREADS_H
 #define __GL_THREADS_H
 
 #ifdef WIN32

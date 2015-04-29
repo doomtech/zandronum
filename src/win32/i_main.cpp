@@ -79,7 +79,7 @@
 #include "cmdlib.h"
 #include "g_level.h"
 #include "doomstat.h"
-#include "r_main.h"
+#include "r_utility.h"
 // [BB] New #includes.
 #include "serverconsole/serverconsole.h"
 #include "network.h"

@@ -35,7 +35,6 @@
 #include <stddef.h>
 
 #include "templates.h"
-#include "r_main.h"
 #include "r_data/r_translate.h"
 #include "v_video.h"
 #include "g_game.h"
@@ -47,6 +46,8 @@
 #include "i_system.h"
 #include "w_wad.h"
 #include "r_data/colormaps.h"
+#include "farchive.h"
+#include "d_player.h"
 
 #include "gi.h"
 #include "stats.h"

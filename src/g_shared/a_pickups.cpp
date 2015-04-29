@@ -18,6 +18,7 @@
 #include "g_level.h"
 #include "g_game.h"
 #include "doomstat.h"
+#include "farchive.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
@@ -875,7 +876,7 @@ fixed_t AInventory::GetSpeedFactor ()
 //
 //===========================================================================
 
-int AInventory::AlterWeaponSprite (vissprite_t *vis)
+int AInventory::AlterWeaponSprite (visstyle_t *vis)
 {
 	if (Inventory != NULL)
 	{

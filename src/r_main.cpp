@@ -43,6 +43,7 @@
 #include "r_sky.h"
 #include "st_stuff.h"
 #include "c_cvars.h"
+#include "c_dispatch.h"
 #include "v_video.h"
 #include "stats.h"
 #include "i_video.h"
@@ -56,10 +57,11 @@
 #include "r_3dfloors.h"
 #include "v_palette.h"
 #include "po_man.h"
+#include "p_effect.h"
 #include "st_start.h"
 #include "v_font.h"
 #include "r_data/colormaps.h"
-//#include "gl/data/gl_data.h"
+#include "farchive.h"
 #include "gl/gl_functions.h"
 
 // [BC] New #includes.
@@ -106,7 +108,6 @@ extern bool DrawFSHUD;		// [RH] Defined in d_main.cpp
 extern short *openings;
 extern bool r_fakingunderwater;
 extern "C" int fuzzviewheight;
-EXTERN_CVAR (Bool, r_particles)
 EXTERN_CVAR (Bool, cl_capfps)
 
 // PRIVATE DATA DECLARATIONS -----------------------------------------------
@@ -637,6 +638,33 @@ float R_GetVisibility ()
 
 //==========================================================================
 //
+// CCMD r_visibility
+//
+// Controls how quickly light ramps across a 1/z range. Set this, and it
+// sets all the r_*Visibility variables (except r_SkyVisibilily, which is
+// currently unused).
+//
+//==========================================================================
+
+CCMD (r_visibility)
+{
+	if (argv.argc() < 2)
+	{
+		Printf ("Visibility is %g\n", R_GetVisibility());
+	}
+	// [BB] !netgame -> ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	{
+		R_SetVisibility ((float)atof (argv[1]));
+	}
+	else
+	{
+		Printf ("Visibility cannot be changed in net games.\n");
+	}
+}
+
+//==========================================================================
+//
 // R_SetViewSize
 //
 // Do not really change anything here, because it might be in the middle
@@ -861,7 +889,6 @@ void R_Init ()
 	R_InitPlanes ();
 	R_InitTranslationTables ();
 	R_InitShadeMaps();
-	R_InitParticles ();	// [RH] Setup particle engine
 	R_InitColumnDrawers ();
 
 	colfunc = basecolfunc = R_DrawColumn;
@@ -885,7 +912,6 @@ void R_Init ()
 
 static void R_Shutdown ()
 {
-	R_DeinitParticles();
 	R_DeinitTranslationTables();
 	R_DeinitPlanes();
 	R_DeinitColormaps ();
@@ -1633,7 +1659,7 @@ void R_RenderActorView (AActor *actor, bool dontmaplines)
 	r_fakingunderwater = false;
 
 	// [RH] Setup particles for this frame
-	R_FindParticleSubsectors ();
+	P_FindParticleSubsectors ();
 
 	WallCycles.Clock();
 	DWORD savedflags = camera->renderflags;

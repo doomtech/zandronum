@@ -42,7 +42,7 @@
 #include "p_local.h"
 #include "a_sharedglobal.h"
 #include "r_sky.h"
-#include "r_bsp.h"
+#include "p_effect.h"
 #include "po_man.h"
 
 #include "gl/renderer/gl_renderer.h"

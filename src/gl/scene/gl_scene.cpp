@@ -48,7 +48,7 @@
 #include "g_level.h"
 #include "r_data/r_interpolate.h"
 #include "r_main.h"
-#include "r_things.h"
+#include "p_effect.h"
 #include "sbar.h"
 #include "po_man.h"
 #include "gl/gl_functions.h"
@@ -1130,7 +1130,7 @@ void FGLRenderer::RenderView (player_t* player)
 	else r_TicFrac = I_GetTimeFrac (&r_FrameTime);
 	gl_frameMS = I_MSTime();
 
-	R_FindParticleSubsectors ();
+	P_FindParticleSubsectors ();
 
 	// prepare all camera textures that have been used in the last frame
 	FCanvasTextureInfo::UpdateAll();
