@@ -1,6 +1,6 @@
 
-#ifndef __GL_SHADERS_H__
-#define __GL_SHADERS_H__
+#ifndef __GL_TEXSHADERS_H__
+#define __GL_TEXSHADERS_H__
 
 
 #include "tarray.h"
@@ -93,4 +93,4 @@ bool GL_ParseShader();
 */
 
 
-#endif // __GL_SHADERS_H__
+#endif // __GL_TEXSHADERS_H__

@@ -526,13 +526,6 @@ if( NOT STRNICMP_EXISTS )
 	add_definitions( -Dstrnicmp=strncasecmp )
 endif( NOT STRNICMP_EXISTS )
 
-if( NOT WIN32 )
-	CHECK_FUNCTION_EXISTS( sigtimedwait SIGTIMEDWAIT_EXISTS )
-	if( SIGTIMEDWAIT_EXISTS )
-		add_definitions( -DHAVE_SIGTIMEDWAIT )
-	endif( SIGTIMEDWAIT_EXISTS )
-endif( NOT WIN32)
-
 if( NOT MSVC )
 	add_definitions( -D__forceinline=inline )
 endif( NOT MSVC )
@@ -1225,6 +1218,7 @@ include_directories( .
 	g_strife
 	g_shared
 	huffman #ZAN
+	Linux
 	oplsynth
 	sound
 	textures

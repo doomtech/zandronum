@@ -4410,9 +4410,8 @@ void P_SetupLevel (char *lumpname, int position)
 	// set up world state
 	//P_SpawnSpecials ();
 
-	// Don't count monsters in end-of-level sectors
-	// In 99.9% of all occurences they are part of a trap
-	// and not supposed to be killed.
+	// Don't count monsters in end-of-level sectors if option is on
+	if (dmflags2 & DF2_NOCOUNTENDMONST)
 	{
 		TThinkerIterator<AActor> it;
 		AActor * mo;

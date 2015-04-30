@@ -279,38 +279,40 @@ void AActor::UnlinkFromWorld ()
 		// pointers, allows head node pointers to be treated like everything else
 		AActor **prev = sprev;
 		AActor  *next = snext;
-		// [BB] If this condition is not fulfilled, UnlinkFromWorld erroneously has
-		// been called twice. Definitely this has to be caused by a bug in the code,
-		// nevertheless I don't want this to crash Skulltag. A warning should be
-		// sufficient to track down this bug.
-		if ( prev != (AActor **)(size_t)0xBeefCafe )
+
+		if (prev != NULL)	// prev will be NULL if this actor gets deleted due to cleaning up from a broken savegame
 		{
-			// [BB] The additional check for (prev != NULL) fixes the client crash when
-			// switching from map02 to map03 in terdelux_final.wad online in survival.
-			// But should this check be necessary at all?
-			if (prev && (*prev = next))  // unlink from sector list
-				next->sprev = prev;
+			// [BB] If this condition is not fulfilled, UnlinkFromWorld erroneously has
+			// been called twice. Definitely this has to be caused by a bug in the code,
+			// nevertheless I don't want this to crash Skulltag. A warning should be
+			// sufficient to track down this bug.
+			if ( prev != (AActor **)(size_t)0xBeefCafe )
+			{
+				if ((*prev = next))  // unlink from sector list
+					next->sprev = prev;
+			}
+			else
+				Printf ( "\\cgWarning: 0xBeefCafe encountered!\n" );
+
+			snext = NULL;
+			sprev = (AActor **)(size_t)0xBeefCafe;	// Woo! Bug-catching value!
+
+			// phares 3/14/98
+			//
+			// Save the sector list pointed to by touching_sectorlist.
+			// In P_SetThingPosition, we'll keep any nodes that represent
+			// sectors the Thing still touches. We'll add new ones then, and
+			// delete any nodes for sectors the Thing has vacated. Then we'll
+			// put it back into touching_sectorlist. It's done this way to
+			// avoid a lot of deleting/creating for nodes, when most of the
+			// time you just get back what you deleted anyway.
+			//
+			// If this Thing is being removed entirely, then the calling
+			// routine will clear out the nodes in sector_list.
+
+			sector_list = touching_sectorlist;
+			touching_sectorlist = NULL; //to be restored by P_SetThingPosition
 		}
-		else
-			Printf ( "\\cgWarning: 0xBeefCafe encountered!\n" );
-		snext = NULL;
-		sprev = (AActor **)(size_t)0xBeefCafe;	// Woo! Bug-catching value!
-
-		// phares 3/14/98
-		//
-		// Save the sector list pointed to by touching_sectorlist.
-		// In P_SetThingPosition, we'll keep any nodes that represent
-		// sectors the Thing still touches. We'll add new ones then, and
-		// delete any nodes for sectors the Thing has vacated. Then we'll
-		// put it back into touching_sectorlist. It's done this way to
-		// avoid a lot of deleting/creating for nodes, when most of the
-		// time you just get back what you deleted anyway.
-		//
-		// If this Thing is being removed entirely, then the calling
-		// routine will clear out the nodes in sector_list.
-
-		sector_list = touching_sectorlist;
-		touching_sectorlist = NULL; //to be restored by P_SetThingPosition
 	}
 		
 	if (!(flags & MF_NOBLOCKMAP))
