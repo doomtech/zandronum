@@ -100,6 +100,7 @@ DWORD			gl_fixedcolormap;
 area_t			in_area;
 TArray<BYTE> currentmapsection;
 
+void gl_ParseDefs();
 
 //-----------------------------------------------------------------------------
 //
@@ -1185,6 +1186,10 @@ struct FGLInterface : public FRenderer
 	void EndSerialize(FArchive &arc);
 	void RenderTextureView (FCanvasTexture *self, AActor *viewpoint, int fov);
 	sector_t *FakeFlat(sector_t *sec, sector_t *tempsec, int *floorlightlevel, int *ceilinglightlevel, bool back);
+	void SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
+	void PreprocessLevel();
+	void CleanLevelData();
+	bool RequireGLNodes();
 
 	int GetMaxViewPitch(bool down);
 	void ClearBuffer(int color);
@@ -1407,6 +1412,32 @@ sector_t *FGLInterface::FakeFlat(sector_t *sec, sector_t *tempsec, int *floorlig
 		*ceilinglightlevel = sec->GetCeilingLight ();
 	}
 	return gl_FakeFlat(sec, tempsec, back);
+}
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
+void FGLInterface::SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog)
+{
+	gl_SetFogParams(_fogdensity, _outsidefogcolor, _outsidefogdensity, _skyfog);
+}
+
+void FGLInterface::PreprocessLevel() 
+{
+	gl_PreprocessLevel();
+}
+
+void FGLInterface::CleanLevelData() 
+{
+	gl_CleanLevelData();
+}
+
+bool FGLInterface::RequireGLNodes() 
+{ 
+	return true; 
 }
 
 //===========================================================================

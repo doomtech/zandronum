@@ -1111,10 +1111,9 @@ struct seg_t
 	sector_t*		backsector;		// NULL for one-sided lines
 
 	seg_t*			PartnerSeg;
+	subsector_t*	Subsector;
 
 	float			sidefrac;		// relative position of seg's ending vertex on owning sidedef
-
-	subsector_t *	Subsector() const;
 };
 
 struct glsegextra_t
@@ -1124,11 +1123,6 @@ struct glsegextra_t
 };
 
 extern seg_t *segs;
-extern glsegextra_t *glsegextras;
-__forceinline subsector_t *	seg_t::Subsector() const
-{
-	return glsegextras[this-segs].Subsector;
-}
 
 
 //

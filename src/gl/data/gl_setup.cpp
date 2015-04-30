@@ -66,44 +66,6 @@ void gl_InitData();
 
 //==========================================================================
 //
-// This must be available before spawning the actors so
-// gl_PreprocessLevel is too late.
-//
-//==========================================================================
-
-void gl_InitSegs()
-{
-	// set up the extra data in case the map was loaded with regular node that might pass as GL nodes.
-	if (glsegextras == NULL)
-	{
-		glsegextras = new glsegextra_t[numsegs];
-		for(int i=0;i<numsegs;i++)
-		{
-			glsegextras[i].PartnerSeg = DWORD_MAX;
-		}
-		for (int i=0; i<numsubsectors; i++)
-		{
-			int seg = int(subsectors[i].firstline-segs);
-			for(DWORD j=0;j<subsectors[i].numlines;j++)
-			{
-				glsegextras[j+seg].Subsector = &subsectors[i];
-			}
-		}
-	}
-	
-	for(int i=0;i<numsegs;i++)
-	{
-		seg_t *seg = &segs[i];
-
-		// Account for ZDoom space optimizations that cannot be done for GL
-		unsigned int partner= glsegextras[i].PartnerSeg;
-		if (partner < unsigned(numsegs))  seg->PartnerSeg = &segs[partner];
-		else seg->PartnerSeg = NULL;
-	}
-}
-
-//==========================================================================
-//
 // 
 //
 //==========================================================================
@@ -118,7 +80,7 @@ static void DoSetMapSection(subsector_t *sub, int num)
 
 		if (seg->PartnerSeg)
 		{
-			subsector_t * sub2 = seg->PartnerSeg->Subsector();
+			subsector_t * sub2 = seg->PartnerSeg->Subsector;
 
 			if (sub2->mapsection != num)
 			{
@@ -171,7 +133,7 @@ static int MergeMapSections(int num)
 	for(DWORD i=0;i<numsegs;i++)
 	{
 		seg_t * seg = &segs[i];
-		int section = seg->Subsector()->mapsection;
+		int section = seg->Subsector->mapsection;
 		for(int j=0;j<2;j++)
 		{
 			vt = j==0? seg->v1:seg->v2;
@@ -183,7 +145,7 @@ static int MergeMapSections(int num)
 	for(DWORD i=0;i<numsegs;i++)
 	{
 		seg_t * seg = &segs[i];
-		int section = seg->Subsector()->mapsection;
+		int section = seg->Subsector->mapsection;
 		for(int j=0;j<2;j++)
 		{
 			vt = j==0? seg->v1:seg->v2;
@@ -267,7 +229,7 @@ static void SpreadHackedFlag(subsector_t * sub)
 
 		if (seg->PartnerSeg)
 		{
-			subsector_t * sub2 = seg->PartnerSeg->Subsector();
+			subsector_t * sub2 = seg->PartnerSeg->Subsector;
 
 			if (!(sub2->hacked&1) && sub2->render_sector == sub->render_sector)
 			{
@@ -321,7 +283,7 @@ static void PrepareSectorData()
 			{
 				if (!(subsectors[i].hacked&1) && seg[j].linedef==0 && 
 						seg[j].PartnerSeg!=NULL && 
-						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector()->render_sector)
+						subsectors[i].render_sector != seg[j].PartnerSeg->Subsector->render_sector)
 				{
 					DPrintf("Found hack: (%d,%d) (%d,%d)\n", seg[j].v1->x>>16, seg[j].v1->y>>16, seg[j].v2->x>>16, seg[j].v2->y>>16);
 					subsectors[i].hacked|=1;
@@ -569,24 +531,36 @@ static void PrepareSegs()
 	// count the segs
 	memset(segcount, 0, numsides * sizeof(int));
 	
-	// set up the extra data in case the map was loaded with regular node that might pass as GL nodes.
+	// set up the extra data in case the map was loaded with regular nodes that might pass as GL nodes.
 	if (glsegextras == NULL)
 	{
-		glsegextras = new glsegextra_t[numsegs];
 		for(int i=0;i<numsegs;i++)
 		{
-			glsegextras[i].PartnerSeg = DWORD_MAX;
+			segs[i].PartnerSeg = NULL;
 		}
 		for (int i=0; i<numsubsectors; i++)
 		{
 			int seg = int(subsectors[i].firstline-segs);
 			for(DWORD j=0;j<subsectors[i].numlines;j++)
 			{
-				glsegextras[j+seg].Subsector = &subsectors[i];
+				segs[j+seg].Subsector = &subsectors[i];
 			}
 		}
 	}
-	
+	else
+	{
+		for(int i=0;i<numsegs;i++)
+		{
+			seg_t *seg = &segs[i];
+
+			// Account for ZDoom space optimizations that cannot be done for GL
+			unsigned int partner= glsegextras[i].PartnerSeg;
+			if (partner < unsigned(numsegs))  seg->PartnerSeg = &segs[partner];
+			else seg->PartnerSeg = NULL;
+			seg->Subsector = glsegextras[i].Subsector;
+		}
+	}
+
 	for(int i=0;i<numsegs;i++)
 	{
 		seg_t *seg = &segs[i];

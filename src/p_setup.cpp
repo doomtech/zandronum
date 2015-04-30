@@ -70,6 +70,7 @@
 #include "md5.h"
 #include "compatibility.h"
 #include "po_man.h"
+#include "r_renderer.h"
 #include "r_data/colormaps.h"
 // [BB] New #includes.
 #include "cooperative.h"
@@ -87,10 +88,8 @@
 #include "cl_demo.h"
 #include "domination.h"
 
-#include "gl/gl_functions.h"
 // [BB] New #includes..
 #include "gl/dynlights/gl_dynlight.h"
-
 
 #define MISSING_TEXTURE_WARN_LIMIT		20
 
@@ -3610,7 +3609,7 @@ extern polyblock_t **PolyBlockMap;
 
 void P_FreeLevelData ()
 {
-	gl_CleanLevelData();
+	Renderer->CleanLevelData();
 	FPolyObj::ClearAllSubsectorLinks(); // can't be done as part of the polyobj deletion process.
 	SN_StopAllSequences ();
 	DThinker::DestroyAllThinkers ();
@@ -3801,7 +3800,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// This is motivated as follows:
 
-	bool RequireGLNodes = true;	// The GL renderer requires GL nodes
+	bool RequireGLNodes = Renderer->RequireGLNodes() || am_textured;
 
 	for (i = 0; i < (int)countof(times); ++i)
 	{
@@ -4122,7 +4121,8 @@ void P_SetupLevel (char *lumpname, int position)
 	bool BuildGLNodes;
 	if (ForceNodeBuild)
 	{
-		BuildGLNodes = true; //am_textured || multiplayer || demoplayback || demorecording || genglnodes;
+		// [BB] multiplayer -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
+		BuildGLNodes = Renderer->RequireGLNodes() || am_textured || ( NETWORK_GetState( ) != NETSTATE_SINGLE ) || demoplayback || demorecording || genglnodes;
 
 		startTime = I_FPSTime ();
 		TArray<FNodeBuilder::FPolyStart> polyspots, anchors;
@@ -4260,8 +4260,6 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 	}
 
-	gl_InitSegs();
-
 	if (!buildmap)
 	{
 		// [RH] Spawn slope creating things first.
@@ -4302,7 +4300,7 @@ void P_SetupLevel (char *lumpname, int position)
 	// This must be done BEFORE the PolyObj Spawn!!!
 	// [BB] The server may not execute this
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		gl_PreprocessLevel();
+		Renderer->PreprocessLevel();
 	// [BB] but still needs to initialize some stuff.
 	else
 	{
@@ -4490,13 +4488,11 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 	MapThingsConverted.Clear();
 
-	/* still needed by the GL renderer
 	if (glsegextras != NULL)
 	{
 		delete[] glsegextras;
 		glsegextras = NULL;
 	}
-	*/
 
 	// Set these modules' state to "waiting for players", which may or may not begin the next match.
 	// [BB] The clients also need to reset the gamemode state. Otherwise, for instance, when making
