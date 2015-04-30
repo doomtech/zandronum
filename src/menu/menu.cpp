@@ -399,7 +399,7 @@ void M_SetMenu(FName menu, int param)
 
 	case NAME_Savegamemenu:
 		// [BB] !multiplayer -> ( NETWORK_GetState( ) == NETSTATE_SINGLE )
-		if (!usergame || (players[consoleplayer].health <= 0 && ( NETWORK_GetState( ) == NETSTATE_SINGLE )))
+		if (!usergame || (players[consoleplayer].health <= 0 && ( NETWORK_GetState( ) == NETSTATE_SINGLE ))|| gamestate != GS_LEVEL)
 		{
 			// cannot save outside the game.
 			M_StartMessage (GStrings("SAVEDEAD"), 1);

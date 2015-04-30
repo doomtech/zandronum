@@ -404,7 +404,9 @@ public:
 		bool is;
 		FMOD_OPENSTATE openstate = FMOD_OPENSTATE_MAX;
 		bool starving;
+#if FMOD_VERSION >= 0x43400
 		bool diskbusy;
+#endif
 
 		if (Stream == NULL)
 		{
@@ -501,7 +503,9 @@ public:
 		unsigned int percentbuffered;
 		unsigned int position;
 		bool starving;
+#if FMOD_VERSION >= 0x43400
 		bool diskbusy;
+#endif
 		float volume;
 		float frequency;
 		bool paused;
