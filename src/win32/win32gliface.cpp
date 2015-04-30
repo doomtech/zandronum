@@ -155,6 +155,7 @@ void Win32GLVideo::MakeModesList()
 
 void Win32GLVideo::StartModeIterator(int bits, bool fs)
 {
+	Printf("Win32GLVideo::StartModeIterator(%x, %u)\n", bits, fs);
 	m_IteratorMode = m_Modes;
 	// I think it's better to ignore the game-side settings of bit depth.
 	// The GL renderer will always default to 32 bits, except in compatibility mode

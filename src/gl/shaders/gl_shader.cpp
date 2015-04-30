@@ -382,6 +382,8 @@ struct FDefaultShader
 	const char * gettexelfunc;
 };
 
+// Note: the FIRST_USER_SHADER constant in gl_shader.h needs 
+// to be updated whenever the size of this array is modified.
 static const FDefaultShader defaultshaders[]=
 {	
 	{"Default",	"shaders/glsl/func_normal.fp"},

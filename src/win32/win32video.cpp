@@ -582,6 +582,7 @@ void Win32Video::ScaleModes (int doubling)
 
 void Win32Video::StartModeIterator (int bits, bool fs)
 {
+	Printf("Win32Video::StartModeIterator(%x, %u)\n", bits, fs);
 	m_IteratorMode = m_Modes;
 	m_IteratorBits = bits;
 	m_IteratorFS = fs;

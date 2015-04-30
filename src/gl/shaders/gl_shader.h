@@ -152,7 +152,7 @@ public:
 	void Recompile();
 };
 
-#define FIRST_USER_SHADER 5
+#define FIRST_USER_SHADER 12
 
 
 #endif

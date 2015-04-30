@@ -257,13 +257,15 @@ void P_InitEffects ()
 	P_InitParticles();
 	while (color->color)
 	{
-		*(color->color) = ColorMatcher.Pick (color->r, color->g, color->b);
+		*(color->color) = (MAKERGB(color->r, color->g, color->b)
+			| (ColorMatcher.Pick (color->r, color->g, color->b) << 24));
 		color++;
 	}
 
 	int kind = gameinfo.defaultbloodparticlecolor;
-	blood1 = ColorMatcher.Pick(RPART(kind), GPART(kind), BPART(kind));
-	blood2 = ColorMatcher.Pick(RPART(kind)/3, GPART(kind)/3, BPART(kind)/3);
+	int kind3 = MAKERGB(RPART(kind)/3, GPART(kind)/3, BPART(kind)/3);
+	blood1 = kind  | (ColorMatcher.Pick(RPART(kind), GPART(kind), BPART(kind)) << 24);
+	blood2 = kind3 | (ColorMatcher.Pick(RPART(kind3), GPART(kind3), BPART(kind3)) << 24);
 }
 
 
@@ -628,8 +630,9 @@ void P_DrawSplash2 (int count, fixed_t x, fixed_t y, fixed_t z, angle_t angle, i
 		color2 = grey1;
 		break;
 	default:	// colorized blood
-		color1 = ColorMatcher.Pick(RPART(kind), GPART(kind), BPART(kind));
-		color2 = ColorMatcher.Pick(RPART(kind)>>1, GPART(kind)>>1, BPART(kind)>>1);
+		color1 = kind | (ColorMatcher.Pick(RPART(kind), GPART(kind), BPART(kind)) << 24);
+		color2 = MAKERGB((kind)>>1, GPART(kind)>>1, BPART(kind)>>1)
+			| (ColorMatcher.Pick(RPART(kind)>>1, GPART(kind)>>1, BPART(kind)>>1) << 24);
 		break;
 	}
 
@@ -717,7 +720,7 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 			{
 
 				// Only consider sound in 2D (for now, anyway)
-				// [BB] You have to devide by lengthsquared here, not multiply with it.
+				// [BB] You have to divide by lengthsquared here, not multiply with it.
 
 				r = ((start.Y - FIXED2FLOAT(mo->y)) * (-dir.Y) - (start.X - FIXED2FLOAT(mo->x)) * (dir.X)) / lengthsquared;
 				r = clamp<double>(r, 0., 1.);
@@ -767,7 +770,7 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 		
 		// [BC] If color1 is -2, then we want a rainbow trail.
 		if ( color1 != -2 )
-			color1 = color1 == 0 ? -1 : ColorMatcher.Pick(RPART(color1), GPART(color1), BPART(color1));
+			color1 = color1 == 0 ? -1 : color1 | (ColorMatcher.Pick(RPART(color1), GPART(color1), BPART(color1)) <<24);
 
 		pos = start;
 		deg = FAngle(270);
@@ -832,7 +835,7 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 
 		// [BC] If color1 is -2, then we want a rainbow trail.
 		if ( color2 != -2 )
-			color2 = color2 == 0 ? -1 : ColorMatcher.Pick(RPART(color2), GPART(color2), BPART(color2));
+			color2 = color2 == 0 ? -1 : color2 | (ColorMatcher.Pick(RPART(color2), GPART(color2), BPART(color2)) <<24);
 		FVector3 diff(0, 0, 0);
 
 		pos = start;

@@ -48,6 +48,8 @@
 #ifndef NO_GL
 #include "sdlglvideo.h"
 #endif
+#include "r_renderer.h"
+#include "r_swrenderer.h"
 
 EXTERN_CVAR (Bool, ticker)
 EXTERN_CVAR (Bool, fullscreen)
