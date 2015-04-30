@@ -48,21 +48,21 @@
 char myGlBeginCharArray[4] = {0,0,0,0};
 #endif
 
-#if defined unix || defined __APPLE__ // [AL] OpenGL on OS X
+#if defined (unix) || defined (__APPLE__)
 #include <SDL.h>
 #define wglGetProcAddress(x) (*SDL_GL_GetProcAddress)(x)
 #endif
 static void APIENTRY glBlendEquationDummy (GLenum mode);
 
 
-#if !defined unix && !defined __APPLE__  // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 #endif
 
 static TArray<FString>  m_Extensions;
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 HWND m_Window;
 HDC m_hDC;
 HGLRC m_hRC;
@@ -81,7 +81,7 @@ int occlusion_type=0;
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 static HWND InitDummy()
 {
 	HMODULE g_hInst = GetModuleHandle(NULL);
@@ -302,7 +302,7 @@ static void APIENTRY LoadExtensions()
 	if (strcmp(version, "3.0") >= 0) gl->flags|=RFL_GL_30;
 
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	PFNWGLSWAPINTERVALEXTPROC vs = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	if (vs) gl->SetVSync = vs;
 #endif
@@ -514,7 +514,7 @@ static void APIENTRY PrintStartupLog()
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 static bool SetupPixelFormat(HDC hDC, bool allowsoftware, bool nostencil, int multisample)
 {
 	int colorDepth;
@@ -754,7 +754,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 CVAR(Bool, gl_debug, false, 0)
 
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample)
@@ -815,7 +815,7 @@ static bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multi
 //
 //==========================================================================
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 static void APIENTRY Shutdown()
 {
 	if (m_hRC)
@@ -862,17 +862,21 @@ static bool APIENTRY SetFullscreen(const char *devicename, int w, int h, int bit
 
 static void APIENTRY iSwapBuffers()
 {
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	SwapBuffers(m_hDC);
 #else
 	SDL_GL_SwapBuffers ();
 #endif
 }
 
-static BOOL APIENTRY SetVSync(int)
+static BOOL APIENTRY SetVSync( int vsync )
 {
+#if defined (__APPLE__)
+	return kCGLNoError == CGLSetParameter( CGLGetCurrentContext(), kCGLCPSwapInterval, &vsync );
+#else // !__APPLE__
 	// empty placeholder
 	return false;
+#endif // __APPLE__
 }
 
 //==========================================================================
@@ -991,11 +995,11 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.SetTextureMode = SetTextureMode;
 	gl.PrintStartupLog = PrintStartupLog;
 	gl.InitHardware = InitHardware;
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	gl.Shutdown = Shutdown;
 #endif
 	gl.SwapBuffers = iSwapBuffers;
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	gl.SetFullscreen = SetFullscreen;
 #endif
 
@@ -1082,7 +1086,7 @@ void APIENTRY GetContext(RenderContext & gl)
 		myGlBeginCharArray[i] = reinterpret_cast<char *>(gl.Begin)[i];
 #endif
 
-#if !defined unix && !defined __APPLE__ // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	ReadInitExtensions();
 	//GL is not yet inited in UNIX version, read them later in LoadExtensions
 #endif

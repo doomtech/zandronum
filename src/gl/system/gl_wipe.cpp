@@ -191,6 +191,8 @@ bool OpenGLFrameBuffer::WipeDo(int ticks)
 		return true;
 	}
 
+	Lock(true);
+	
 	gl_RenderState.EnableTexture(true);
 	gl_RenderState.EnableFog(false);
 	gl.Disable(GL_DEPTH_TEST);

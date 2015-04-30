@@ -49,6 +49,8 @@ public:
 	bool IsValid ();
 	bool IsFullscreen ();
 
+	virtual void SetVSync( bool vsync );
+	
 	void NewRefreshRate ();
 
 	friend class SDLGLVideo;

@@ -1,12 +1,9 @@
 #ifndef R_RENDER
 #define R_RENDER
 
-// [AL] OpenGL on OS X
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #define APIENTRY
-#define APIENTRYP *
 #endif // __APPLE__
-// [AL]
 
 #ifndef PFNGLMULTITEXCOORD2FPROC
 typedef void (APIENTRYP PFNGLMULTITEXCOORD2FPROC) (GLenum target, GLfloat s, GLfloat t);
@@ -68,7 +65,7 @@ struct RenderContext
 	void (APIENTRY * SetTextureMode) (int type);
 	void (APIENTRY * PrintStartupLog) ();
 	BOOL (APIENTRY * SetVSync) (int on);
-#if !defined (unix) && !defined (__APPLE__) // [AL] OpenGL on OS X
+#if !defined (unix) && !defined (__APPLE__)
 	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample);
 	void (APIENTRY * Shutdown) ();
 #else

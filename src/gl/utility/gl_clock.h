@@ -50,6 +50,12 @@ inline long long GetClockCycle ()
 }
 #endif
 
+#if defined (__APPLE__)
+
+typedef cycle_t glcycle_t;
+
+#else // !__APPLE__
+
 class glcycle_t
 {
 public:
@@ -93,6 +99,7 @@ private:
 	long long Counter;
 };
 
+#endif // __APPLE__
 
 extern glcycle_t RenderWall,SetupWall,ClipWall,SplitWall;
 extern glcycle_t RenderFlat,SetupFlat;

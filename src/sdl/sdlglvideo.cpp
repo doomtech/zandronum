@@ -96,6 +96,7 @@ static MiniModeInfo WinModes[] =
 	{ 1280, 720 },	// 16:9
 	{ 1280, 800 },	// 16:10
 	{ 1280, 960 },
+	{ 1344, 756 },  // 16:9
 	{ 1360, 768 },	// 16:9
 	{ 1400, 787 },	// 16:9
 	{ 1400, 875 },	// 16:10
@@ -104,10 +105,11 @@ static MiniModeInfo WinModes[] =
 	{ 1600, 900 },	// 16:9
 	{ 1600, 1000 },	// 16:10
 	{ 1600, 1200 },
-	{ 1680, 1050 },
-	{ 1920, 1080 },
-	{ 1920, 1200 },
-	{ 2054, 1536 }
+	{ 1680, 1050 }, // 16:10
+	{ 1920, 1080 }, // 16:9
+	{ 1920, 1200 }, // 16:10
+	{ 2054, 1536 },
+	{ 2560, 1440 }  // 16:9
 };
 
 // CODE --------------------------------------------------------------------
@@ -298,14 +300,29 @@ SDLGLFB::SDLGLFB (void *, int width, int height, int, int, bool fullscreen)
 		return;
 	}
 
-	Screen = SDL_SetVideoMode (width, height, vid_displaybits,
+	// Mac OS X version will crash when entering fullscreen mode with BPP <= 8
+	// Also it may crash with BPP == 16 on some configurations
+	// It seems 24 and 32 bits are safe values
+	// So value of vid_displaybits is ignored and hardcoded constant is used instead
+		
+	Screen = SDL_SetVideoMode (width, height,
+#if defined(__APPLE__)
+		32,
+#else // ! __APPLE__
+		vid_displaybits,
+#endif // __APPLE__
 		SDL_HWSURFACE|SDL_HWPALETTE|SDL_OPENGL | SDL_GL_DOUBLEBUFFER|SDL_ANYFORMAT|
 		(fullscreen ? SDL_FULLSCREEN : 0));
 
 	if (Screen == NULL)
 		return;
 
-	m_supportsGamma = !!SDL_GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
+	m_supportsGamma = -1 != SDL_GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
+	
+#if defined(__APPLE__)
+	// Need to set title here because a window is not created yet when calling the same function from main()
+	SDL_WM_SetCaption( GAMESIG " " DOTVERSIONSTR " (" __DATE__ ")", NULL );
+#endif // __APPLE__
 }
 
 SDLGLFB::~SDLGLFB ()
@@ -384,6 +401,14 @@ bool SDLGLFB::IsFullscreen ()
 bool SDLGLFB::IsValid ()
 {
 	return DFrameBuffer::IsValid() && Screen != NULL;
+}
+
+void SDLGLFB::SetVSync( bool vsync )
+{
+#if defined (__APPLE__)
+	const GLint value = vsync ? 1 : 0;
+	CGLSetParameter( CGLGetCurrentContext(), kCGLCPSwapInterval, &value );
+#endif
 }
 
 void SDLGLFB::NewRefreshRate ()

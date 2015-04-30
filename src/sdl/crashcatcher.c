@@ -20,7 +20,7 @@
 #ifndef PR_SET_PTRACER
 #define PR_SET_PTRACER 0x59616d61
 #endif
-#elif defined (__APPLE__)
+#else if defined (__APPLE__)
 #include <signal.h>
 #endif
 

@@ -47,9 +47,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <signal.h>
-#ifndef __APPLE__ // [AL] OpenGL on OS X
+#if !defined(__APPLE__)
 #include <malloc.h>
-#endif // !__APPLE__ [AL]
+#endif
 #include <time.h>
 
 #ifdef _MSC_VER
@@ -64,14 +64,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#ifdef __APPLE__ // [AL] OpenGL on OS X
+#if defined(__APPLE__)
 #include <GL/glew.h>
 #include <OpenGL/OpenGL.h>
-#else // !__APPLE__ [AL]
+#else // !__APPLE__
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
-#endif // __APPLE__ [AL]
+#endif // __APPLE__
+
 #ifdef _WIN32
 #define DWORD WINDOWS_DWORD	// I don't want to depend on this throughout the GL code!
 #include <GL/wglext.h>
