@@ -781,10 +781,7 @@ void R_SetupFrame (AActor *actor)
 
 	// [BB] consoleplayer should be able to toggle the chase cam.
 	if (player != NULL && gamestate != GS_TITLELEVEL &&
-		((/*player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) &&
-		(camera->RenderStyle.BlendOp != STYLEOP_None) &&
-		!(camera->renderflags & RF_INVISIBLE) &&
-		camera->sprite != SPR_TNT1)
+		((/*player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)))
 	{
 		// [RH] Use chasecam view
 		P_AimCamera (camera, iview->nviewx, iview->nviewy, iview->nviewz, viewsector);

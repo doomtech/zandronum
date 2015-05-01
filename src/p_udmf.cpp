@@ -754,7 +754,7 @@ public:
 				Flag(ld->flags, ML_BLOCK_FLOATERS, key); 
 				continue;
 
-			case NAME_Transparent:	
+			case NAME_Translucent:
 				CHECK_N(St | Zd | Zdt | Va)
 				strifetrans = CheckBool(key); 
 				continue;
