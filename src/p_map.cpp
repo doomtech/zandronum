@@ -2095,7 +2095,8 @@ static void CheckForPushSpecial (line_t *line, int side, AActor *mobj)
 bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				int dropoff, // killough 3/15/98: allow dropoff as option
 				const secplane_t *onfloor, // [RH] Let P_TryMove keep the thing on the floor
-				FCheckPosition &tm)
+				FCheckPosition &tm,
+				bool missileCheck)	// [GZ] Fired missiles ignore the drop-off test
 {
 	fixed_t 	oldx;
 	fixed_t 	oldy;
@@ -2230,7 +2231,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 		if (dropoff==2 &&  // large jump down (e.g. dogs)
 			(tm.floorz-tm.dropoffz > 128*FRACUNIT || thing->target == NULL || thing->target->z >tm.dropoffz))
 		{
-				dropoff = false;
+			dropoff = false;
 		}
 
 
@@ -2248,8 +2249,9 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				}
 
 				if (floorz - tm.dropoffz > thing->MaxDropOffHeight &&
-					!(thing->flags2 & MF2_BLASTED))
+					!(thing->flags2 & MF2_BLASTED)  && !missileCheck)
 				{ // Can't move over a dropoff unless it's been blasted
+				  // [GZ] Or missile-spawned
 					thing->z = oldz;
 					thing->flags6 &= ~MF6_INTRYMOVE;
 					return false;

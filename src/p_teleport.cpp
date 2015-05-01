@@ -103,7 +103,7 @@ void P_SpawnTeleportFog(fixed_t x, fixed_t y, fixed_t z, int spawnid)
 
 // [BC] Added the bHaltMomentum argument.
 bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
-				 bool useFog, bool sourceFog, bool keepOrientation, bool bHaltVelocity)
+				 bool useFog, bool sourceFog, bool keepOrientation, bool bHaltVelocity, bool keepHeight)
 {
 	fixed_t oldx;
 	fixed_t oldy;
@@ -126,7 +126,11 @@ bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 		player = NULL;
 	floorheight = destsect->floorplane.ZatPoint (x, y);
 	ceilingheight = destsect->ceilingplane.ZatPoint (x, y);
-	if (z == ONFLOORZ)
+	if (keepHeight)
+	{
+		z = floorheight + aboveFloor;
+	}
+	else if (z == ONFLOORZ)
 	{
 		if (player)
 		{
@@ -338,7 +342,7 @@ static AActor *SelectTeleDest (int tid, int tag)
 }
 
 bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool fog,
-				  bool sourceFog, bool keepOrientation, bool haltVelocity)
+				  bool sourceFog, bool keepOrientation, bool haltVelocity, bool keepHeight)
 {
 	AActor *searcher;
 	fixed_t z;
@@ -400,7 +404,7 @@ bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool 
 	{
 		badangle = 1 << ANGLETOFINESHIFT;
 	}
-	if (P_Teleport (thing, searcher->x, searcher->y, z, searcher->angle + badangle, fog, sourceFog, keepOrientation, haltVelocity))
+	if (P_Teleport (thing, searcher->x, searcher->y, z, searcher->angle + badangle, fog, sourceFog, keepOrientation, haltVelocity, keepHeight))
 	{
 		// [RH] Lee Killough's changes for silent teleporters from BOOM
 		if (!fog && line && keepOrientation)
