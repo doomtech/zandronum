@@ -206,39 +206,48 @@ AInventory *AAmmo::CreateTossable()
 //
 //---------------------------------------------------------------------------
 
-bool P_GiveBody (AActor *actor, int num)
+bool P_GiveBody (AActor *actor, int num, int max)
 {
-	int max;
+	if (actor->health <= 0 || (actor->player != NULL && actor->player->playerstate == PST_DEAD))
+	{ // Do not heal dead things.
+		return false;
+	}
+
 	player_t *player = actor->player;
 
 	num = clamp(num, -65536, 65536);	// prevent overflows for bad values
 	if (player != NULL)
 	{
-		// [BC] Apply the prosperity power.
-		if ( player->cheats & CF_PROSPERITY )
-			max = deh.MaxSoulsphere + 50;
-		// [BC] Add the player's max. health bonus to his max.
-		else
-			max = static_cast<APlayerPawn*>(actor)->GetMaxHealth() + player->mo->stamina + player->lMaxHealthBonus;
-		// [MH] First step in predictable generic morph effects
- 		if (player->morphTics)
- 		{
-			if (player->MorphStyle & MORPH_FULLHEALTH)
-			{
-				if (!(player->MorphStyle & MORPH_ADDSTAMINA))
+		// Max is 0 by default, preserving default behavior for P_GiveBody()
+		// calls while supporting AHealth.
+		if (max <= 0)
+		{
+			// [BC] Apply the prosperity power.
+			if ( player->cheats & CF_PROSPERITY )
+				max = deh.MaxSoulsphere + 50;
+			// [BC] Add the player's max. health bonus to his max.
+			else
+				max = static_cast<APlayerPawn*>(actor)->GetMaxHealth() + player->mo->stamina + player->lMaxHealthBonus;
+			// [MH] First step in predictable generic morph effects
+ 			if (player->morphTics)
+ 			{
+				if (player->MorphStyle & MORPH_FULLHEALTH)
 				{
-					max -= player->mo->stamina;
+					if (!(player->MorphStyle & MORPH_ADDSTAMINA))
+					{
+						max -= player->mo->stamina;
+					}
 				}
-			}
-			else // old health behaviour
-			{
-				max = MAXMORPHHEALTH;
-				if (player->MorphStyle & MORPH_ADDSTAMINA)
+				else // old health behaviour
 				{
-					max += player->mo->stamina;
+					max = MAXMORPHHEALTH;
+					if (player->MorphStyle & MORPH_ADDSTAMINA)
+					{
+						max += player->mo->stamina;
+					}
 				}
-			}
- 		}
+ 			}
+		}
 		// [RH] For Strife: A negative body sets you up with a percentage
 		// of your full health.
 		if (num < 0)
@@ -275,6 +284,8 @@ bool P_GiveBody (AActor *actor, int num)
 	}
 	else
 	{
+		// Parameter value for max is ignored on monsters, preserving original
+		// behaviour on AHealth as well as on existing calls to P_GiveBody().
 		max = actor->SpawnHealth();
 		if (num < 0)
 		{
@@ -1772,73 +1783,16 @@ const char *AHealth::PickupMessage ()
 
 bool AHealth::TryPickup (AActor *&other)
 {
-	player_t *player = other->player;
-	int max = MaxAmount;
-	
-	if (player != NULL)
-	{
-		PrevHealth = other->player->health;
-		// [BC] Apply the prosperity power.
-		if ( player->cheats & CF_PROSPERITY )
-			max = deh.MaxSoulsphere + 50;
-		else if (max == 0)
-		{
-			// [BC] Add the player's max. health bonus to his max.
-			max = static_cast<APlayerPawn*>(other)->GetMaxHealth() + player->mo->stamina + player->lMaxHealthBonus;
-			// [MH] First step in predictable generic morph effects
- 			if (player->morphTics)
- 			{
-				if (player->MorphStyle & MORPH_FULLHEALTH)
-				{
-					if (!(player->MorphStyle & MORPH_ADDSTAMINA))
-					{
-						max -= player->mo->stamina;
-					}
-				}
-				else // old health behaviour
-				{
-					max = MAXMORPHHEALTH;
-					if (player->MorphStyle & MORPH_ADDSTAMINA)
-					{
-						max += player->mo->stamina;
-					}
-				}
-			}
-		}
-		// [BC] Apply max. health bonus to the max. allowable health.
-		else
-			max = max + player->lMaxHealthBonus;
+	PrevHealth = other->player != NULL ? other->player->health : other->health;
 
-		if (player->health >= max)
-		{
-			return false;
-		}
-		player->health += Amount;
-		if (player->health > max)
-		{
-			player->health = max;
-		}
-		player->mo->health = player->health;
-
-		// [EP] Update the new health value to the clients.
-#if ZD_SVN_REVISION_NUMBER >= 3438
-#error Recheck this code when zdoom r3438 will be backported!
-#endif
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerHealth( player - players );
-	}
-	else
+	// P_GiveBody adds one new feature, applied only if it is possible to pick up negative health:
+	// Negative values are treated as positive percentages, ie Amount -100 means 100% health, ignoring max amount.
+	if (P_GiveBody(other, Amount, MaxAmount))
 	{
-		PrevHealth = INT_MAX;
-		if (P_GiveBody(other, Amount))
-		{
-			GoAwayAndDie ();
-			return true;
-		}
-		return false;
+		GoAwayAndDie();
+		return true;
 	}
-	GoAwayAndDie ();
-	return true;
+	return false;
 }
 
 IMPLEMENT_CLASS (AHealthPickup)
