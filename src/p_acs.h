@@ -3,7 +3,7 @@
 ** ACS script stuff
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2008 Randy Heit
+** Copyright 1998-2012 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -345,6 +345,7 @@ private:
 
 	static int STACK_ARGS SortScripts (const void *a, const void *b);
 	void UnencryptStrings ();
+	void UnescapeStringTable(BYTE *chunkstart, bool haspadding);
 	int FindStringInChunk (DWORD *chunk, const char *varname) const;
 
 	void SerializeVars (FArchive &arc);

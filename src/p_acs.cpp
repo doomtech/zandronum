@@ -716,6 +716,31 @@ void ACSStringPool::Dump() const
 
 //============================================================================
 //
+// ScriptPresentation
+//
+// Returns a presentable version of the script number.
+//
+//============================================================================
+
+static FString ScriptPresentation(int script)
+{
+	FString out = "script ";
+
+	if (script < 0)
+	{
+		FName scrname = FName(ENamedName(-script));
+		if (scrname.IsValidName())
+		{
+			out << '"' << scrname.GetChars() << '"';
+			return out;
+		}
+	}
+	out.AppendFormat("%d", script);
+	return out;
+}
+
+//============================================================================
+//
 // P_MarkWorldVarStrings
 //
 //============================================================================
@@ -1006,18 +1031,38 @@ void P_WriteACSVars(FILE *stdfile)
 // [BL] We're exporting this now
 void DoClearInv (AActor *actor)
 {
-	AInventory *inv = actor->Inventory;
+	// In case destroying an inventory item causes another to be destroyed
+	// (e.g. Weapons destroy their sisters), keep track of the pointer to
+	// the next inventory item rather than the next inventory item itself.
+	// For example, if a weapon is immediately followed by its sister, the
+	// next weapon we had tracked would be to the sister, so it is now
+	// invalid and we won't be able to find the complete inventory by
+	// following it.
+	//
+	// When we destroy an item, we leave invp alone, since the destruction
+	// process will leave it pointing to the next item we want to check. If
+	// we don't destroy an item, then we move invp to point to its Inventory
+	// pointer.
+	//
+	// It should be safe to assume that an item being destroyed will only
+	// destroy items further down in the chain, because if it was going to
+	// destroy something we already processed, we've already destroyed it,
+	// so it won't have anything to destroy.
 
-	while (inv != NULL)
+	AInventory **invp = &actor->Inventory;
+
+	while (*invp != NULL)
 	{
-		AInventory *next = inv->Inventory;
+		AInventory *inv = *invp;
 		if (!(inv->ItemFlags & IF_UNDROPPABLE))
 		{
-			// Fix for undroppable weapons. Is this ok?
+			// For the sake of undroppable weapons, never remove ammo once
+			// it has been acquired; just set its amount to 0.
 			if (inv->IsKindOf(RUNTIME_CLASS(AAmmo)))
 			{
 				AAmmo *ammo = static_cast<AAmmo*>(inv);
 				ammo->Amount = 0;
+				invp = &inv->Inventory;
 			}
 			// [BB] Don't delete BasicArmor, just clear it. Probably ZDoom should do it like this
 			// as well, but to be on the safe side only do this on the client for now.
@@ -1028,14 +1073,20 @@ void DoClearInv (AActor *actor)
 				barmor->Amount = 0;
 			}
 			else
+			{
 				inv->Destroy ();
+			}
 		}
 		else if (inv->GetClass() == RUNTIME_CLASS(AHexenArmor))
 		{
 			AHexenArmor *harmor = static_cast<AHexenArmor *> (inv);
 			harmor->Slots[3] = harmor->Slots[2] = harmor->Slots[1] = harmor->Slots[0] = 0;
+			invp = &inv->Inventory;
 		}
-		inv = next;
+		else
+		{
+			invp = &inv->Inventory;
+		}
 	}
 	if (actor->player != NULL)
 	{
@@ -1295,7 +1346,22 @@ static bool DoUseInv (AActor *actor, const PClass *info)
 	AInventory *item = actor->FindInventory (info);
 	if (item != NULL)
 	{
-		return actor->UseInventory(item);
+		if (actor->player == NULL)
+		{
+			return actor->UseInventory(item);
+		}
+		else
+		{
+			int cheats;
+			bool res;
+
+			// Bypass CF_TOTALLYFROZEN
+			cheats = actor->player->cheats;
+			actor->player->cheats &= ~CF_TOTALLYFROZEN;
+			res = actor->UseInventory(item);
+			actor->player->cheats |= (cheats & CF_TOTALLYFROZEN);
+			return res;
+		}
 	}
 	return false;
 }
@@ -2005,6 +2071,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	{
 		StringTable = LittleLong(((DWORD *)Data)[1]);
 		StringTable += LittleLong(((DWORD *)(Data + StringTable))[0]) * 12 + 4;
+		UnescapeStringTable(Data + StringTable, false);
 	}
 	else
 	{
@@ -2013,6 +2080,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 		if (strings != NULL)
 		{
 			StringTable = DWORD(strings - Data + 8);
+			UnescapeStringTable(strings, true);
 		}
 		else
 		{
@@ -2196,6 +2264,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 			}
 		}
 
+		// Load required libraries.
 		if (NULL != (chunk = (DWORD *)FindChunk (MAKE_ID('L','O','A','D'))))
 		{
 			const char *const parse = (char *)&chunk[2];
@@ -2255,7 +2324,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 										ModuleName, func->ArgCount);
 									Format = ACS_Unknown;
 								}
-								// The next two properties do not effect code compatibility, so it is
+								// The next two properties do not affect code compatibility, so it is
 								// okay for them to be different in the imported module than they are
 								// in this one, as long as we make sure to use the real values.
 								func->LocalCount = realfunc->LocalCount;
@@ -2459,7 +2528,8 @@ void FBehavior::LoadScriptsDirectory ()
 			{
 				if (Scripts[i].Number == Scripts[i+1].Number)
 				{
-					Printf("Script %d appears more than once.\n", Scripts[i].Number);
+					Printf("%s appears more than once.\n",
+						ScriptPresentation(Scripts[i].Number).GetChars());
 					// Make the closed version the first one.
 					if (Scripts[i+1].Type == SCRIPT_Closed)
 					{
@@ -2509,6 +2579,7 @@ void FBehavior::LoadScriptsDirectory ()
 	scripts.b = FindChunk(MAKE_ID('S','N','A','M'));
 	if (scripts.dw != NULL)
 	{
+		UnescapeStringTable(scripts.b, false);
 		for (i = 0; i < NumScripts; ++i)
 		{
 			// ACC stores script names as an index into the SNAM chunk, with the first index as
@@ -2534,15 +2605,23 @@ int STACK_ARGS FBehavior::SortScripts (const void *a, const void *b)
 	return ptr1->Number - ptr2->Number;
 }
 
+//============================================================================
+//
+// FBehavior :: UnencryptStrings
+//
+// Descrambles strings in a STRE chunk to transform it into a STRL chunk.
+//
+//============================================================================
+
 void FBehavior::UnencryptStrings ()
 {
 	DWORD *prevchunk = NULL;
 	DWORD *chunk = (DWORD *)FindChunk(MAKE_ID('S','T','R','E'));
 	while (chunk != NULL)
 	{
-		for (DWORD strnum = 0; strnum < chunk[3]; ++strnum)
+		for (DWORD strnum = 0; strnum < LittleLong(chunk[3]); ++strnum)
 		{
-			int ofs = chunk[5+strnum];
+			int ofs = LittleLong(chunk[5+strnum]);
 			BYTE *data = (BYTE *)chunk + ofs + 8, last;
 			int p = (BYTE)(ofs*157135);
 			int i = 0;
@@ -2561,6 +2640,49 @@ void FBehavior::UnencryptStrings ()
 		*prevchunk = MAKE_ID('S','T','R','L');
 	}
 }
+
+//============================================================================
+//
+// FBehavior :: UnescapeStringTable
+//
+// Processes escape sequences for every string in a string table.
+//
+//============================================================================
+
+void FBehavior::UnescapeStringTable(BYTE *chunkstart, bool has_padding)
+{
+	assert(chunkstart != NULL);
+
+	DWORD *chunk = (DWORD *)chunkstart;
+	chunk += 2;
+
+	if (!has_padding)
+	{
+		chunk[0] = LittleLong(chunk[0]);
+		for (DWORD strnum = 0; strnum < chunk[0]; ++strnum)
+		{
+			int ofs = LittleLong(chunk[1 + strnum]);	// Byte swap offset, if needed.
+			chunk[1 + strnum] = ofs;
+			strbin((char *)chunk + ofs);
+		}
+	}
+	else
+	{
+		chunk[1] = LittleLong(chunk[1]);
+		for (DWORD strnum = 0; strnum < chunk[1]; ++strnum)
+		{
+			int ofs = LittleLong(chunk[3 + strnum]);	// Byte swap offset, if needed.
+			chunk[3 + strnum] = ofs;
+			strbin((char *)chunk + ofs);
+		}
+	}
+}
+
+//============================================================================
+//
+// FBehavior :: IsGood
+//
+//============================================================================
 
 bool FBehavior::IsGood ()
 {
@@ -2673,9 +2795,9 @@ int FBehavior::FindStringInChunk (DWORD *names, const char *varname) const
 	{
 		DWORD i;
 
-		for (i = 0; i < names[2]; ++i)
+		for (i = 0; i < LittleLong(names[2]); ++i)
 		{
-			if (stricmp (varname, (char *)(names + 2) + names[3+i]) == 0)
+			if (stricmp (varname, (char *)(names + 2) + LittleLong(names[3+i])) == 0)
 			{
 				return (int)i;
 			}
@@ -2780,7 +2902,7 @@ const char *FBehavior::LookupString (DWORD index) const
 
 		if (index >= list[0])
 			return NULL;	// Out of range for this list;
-		return (const char *)(Data + LittleLong(list[1+index]));
+		return (const char *)(Data + list[1+index]);
 	}
 	else
 	{
@@ -2794,7 +2916,25 @@ const char *FBehavior::LookupString (DWORD index) const
 
 void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyClientSideScripts, int arg2, int arg3) // [BB] Added arg2+arg3
 {
-	DPrintf("Starting all scripts of type %d\n", type);
+	static const char *const TypeNames[] =
+	{
+		"Closed",
+		"Open",
+		"Respawn",
+		"Death",
+		"Enter",
+		"Pickup",
+		"BlueReturn",
+		"RedReturn",
+		"WhiteReturn",
+		"Unknown", "Unknown", "Unknown",
+		"Lightning",
+		"Unloading",
+		"Disconnect",
+		"Return"
+	};
+	DPrintf("Starting all scripts of type %d (%s)\n", type,
+		type < countof(TypeNames) ? TypeNames[type] : TypeNames[SCRIPT_Lightning - 1]);
 	for (unsigned int i = 0; i < StaticModules.Size(); ++i)
 	{
 		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyClientSideScripts, arg2, arg3); // [BB] Added arg2+arg3
@@ -5815,7 +5955,7 @@ int DLevelScript::RunScript ()
 	{
 		if (++runaway > 500000)
 		{
-			Printf ("Runaway script %d terminated\n", script);
+			Printf ("Runaway %s terminated\n", ScriptPresentation(script).GetChars());
 			state = SCRIPT_PleaseRemove;
 			break;
 		}
@@ -5836,10 +5976,10 @@ int DLevelScript::RunScript ()
 		switch (pcd)
 		{
 		default:
-			Printf ("Unknown P-Code %d in script %d\n", pcd, script);
+			Printf ("Unknown P-Code %d in %s\n", pcd, ScriptPresentation(script).GetChars());
 			// fall through
 		case PCD_TERMINATE:
-			DPrintf ("Script %d finished\n", script);
+			DPrintf ("%s finished\n", ScriptPresentation(script).GetChars());
 			state = SCRIPT_PleaseRemove;
 			break;
 
@@ -6069,13 +6209,13 @@ int DLevelScript::RunScript ()
 				func = activeBehavior->GetFunction (funcnum, module);
 				if (func == NULL)
 				{
-					Printf ("Function %d in script %d out of range\n", funcnum, script);
+					Printf ("Function %d in %s out of range\n", funcnum, ScriptPresentation(script).GetChars());
 					state = SCRIPT_PleaseRemove;
 					break;
 				}
 				if (sp + func->LocalCount + 64 > STACK_SIZE)
 				{ // 64 is the margin for the function's working space
-					Printf ("Out of stack space in script %d\n", script);
+					Printf ("Out of stack space in %s\n", ScriptPresentation(script).GetChars());
 					state = SCRIPT_PleaseRemove;
 					break;
 				}
@@ -7385,7 +7525,6 @@ int DLevelScript::RunScript ()
 		case PCD_ENDPRINTBOLD:
 		case PCD_MOREHUDMESSAGE:
 		case PCD_ENDLOG:
-			work = strbin1 (work);
 			if (pcd == PCD_ENDLOG)
 			{
 				Printf ("%s\n", work.GetChars());
@@ -9279,7 +9418,7 @@ int DLevelScript::RunScript ()
 		case PCD_SAVESTRING:
 			// Saves the string
 			{
-				PushToStack(GlobalACSStrings.AddString(strbin1(work), Stack, sp));
+				PushToStack(GlobalACSStrings.AddString(work, Stack, sp));
 				STRINGBUILDER_FINISH(work);
 			}		
 			break;
@@ -9374,12 +9513,12 @@ int DLevelScript::RunScript ()
 
 	if (state == SCRIPT_DivideBy0)
 	{
-		Printf ("Divide by zero in script %d\n", script);
+		Printf ("Divide by zero in %s\n", ScriptPresentation(script).GetChars());
 		state = SCRIPT_PleaseRemove;
 	}
 	else if (state == SCRIPT_ModulusBy0)
 	{
-		Printf ("Modulus by zero in script %d\n", script);
+		Printf ("Modulus by zero in %s\n", ScriptPresentation(script).GetChars());
 		state = SCRIPT_PleaseRemove;
 	}
 	if (state == SCRIPT_PleaseRemove)
@@ -9475,7 +9614,7 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 		PutLast();
 	}
 
-	DPrintf("Script %d started.\n", num);
+	DPrintf("%s started.\n", ScriptPresentation(num).GetChars());
 }
 
 static void SetScriptState (int script, DLevelScript::EScriptState state)
@@ -9516,18 +9655,18 @@ void P_DoDeferedScripts ()
 			}
 			else
 			{
-				Printf ("P_DoDeferredScripts: Unknown script %d\n", def->script);
+				Printf ("P_DoDeferredScripts: Unknown %s\n", ScriptPresentation(def->script).GetChars());
 			}
 			break;
 
 		case acsdefered_t::defsuspend:
 			SetScriptState (def->script, DLevelScript::SCRIPT_Suspended);
-			DPrintf ("Deferred suspend of script %d\n", def->script);
+			DPrintf ("Deferred suspend of %s\n", ScriptPresentation(def->script).GetChars());
 			break;
 
 		case acsdefered_t::defterminate:
 			SetScriptState (def->script, DLevelScript::SCRIPT_PleaseRemove);
-			DPrintf ("Deferred terminate of script %d\n", def->script);
+			DPrintf ("Deferred terminate of %s\n", ScriptPresentation(def->script).GetChars());
 			break;
 		}
 		delete def;
@@ -9563,7 +9702,7 @@ static void addDefered (level_info_t *i, acsdefered_t::EType type, int script, c
 			def->playernum = -1;
 		}
 		i->defered = def;
-		DPrintf ("Script %d on map %s deferred\n", script, i->mapname);
+		DPrintf ("%s on map %s deferred\n", ScriptPresentation(script).GetChars(), i->mapname);
 	}
 }
 
@@ -9584,8 +9723,8 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, cons
 				// make sure only net scripts are run.
 				if (!(scriptdata->Flags & SCRIPTF_Net))
 				{
-					Printf(PRINT_BOLD, "%s tried to puke script %d (\n",
-						who->player->userinfo.netname, script);
+					Printf(PRINT_BOLD, "%s tried to puke %s (\n",
+						who->player->userinfo.netname, ScriptPresentation(script).GetChars());
 					for (int i = 0; i < argcount; ++i)
 					{
 						Printf(PRINT_BOLD, "%d%s", args[i], i == argcount-1 ? "" : ", ");
@@ -9611,7 +9750,7 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, cons
 		{
 			if (!(flags & ACS_NET) || (who && who->player == &players[consoleplayer]))
 			{
-				Printf("P_StartScript: Unknown script %d\n", script);
+				Printf("P_StartScript: Unknown %s\n", ScriptPresentation(script).GetChars());
 			}
 		}
 	}
@@ -9711,14 +9850,7 @@ void DACSThinker::DumpScriptStatus ()
 
 	while (script != NULL)
 	{
-		if (script->script < 0)
-		{
-			Printf("\"%s\": %s\n", FName(ENamedName(-script->script)).GetChars(), stateNames[script->state]);
-		}
-		else
-		{
-			Printf("%d: %s\n", script->script, stateNames[script->state]);
-		}
+		Printf("%s: %s\n", ScriptPresentation(script->script).GetChars(), stateNames[script->state]);
 		script = script->next;
 	}
 }

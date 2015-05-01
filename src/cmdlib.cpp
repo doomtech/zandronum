@@ -573,7 +573,7 @@ exists:	if (p != NULL)
 
 //==========================================================================
 //
-// strbin1	-- In-place version
+// strbin	-- In-place version
 //
 // [RH] Replaces the escape sequences in a string with actual escaped characters.
 // This operation is done in-place. The result is the new length of the string.
@@ -673,7 +673,7 @@ int strbin (char *str)
 // strbin1	-- String-creating version
 //
 // [RH] Replaces the escape sequences in a string with actual escaped characters.
-// This operation is done in-place.
+// The result is a new string.
 //
 //==========================================================================
 

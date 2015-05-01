@@ -218,27 +218,6 @@ void P_LoadStrifeConversations (MapData *map, const char *mapname)
 
 //============================================================================
 //
-// P_FreeStrifeConversations
-//
-//============================================================================
-
-void P_FreeStrifeConversations ()
-{
-	FStrifeDialogueNode *node;
-
-	while (StrifeDialogues.Pop (node))
-	{
-		delete node;
-	}
-
-	DialogueRoots.Clear();
-	ClassRoots.Clear();
-
-	PrevNode = NULL;
-}
-
-//============================================================================
-//
 // LoadScriptFile
 //
 // Loads a SCRIPTxx file and converts it into a more useful internal format.
@@ -830,6 +809,15 @@ public:
 
 	bool MenuEvent(int mkey, bool fromcontroller)
 	{
+		if (demoplayback)
+		{ // During demo playback, don't let the user do anything besides close this menu.
+			if (mkey == MKEY_Back)
+			{
+				Close();
+				return true;
+			}
+			return false;
+		}
 		if (mkey == MKEY_Up)
 		{
 			if (--mSelection < 0) mSelection = mResponses.Size() - 1;
@@ -915,6 +903,10 @@ public:
 
 	bool Responder(event_t *ev)
 	{
+		if (demoplayback)
+		{ // No interaction during demo playback
+			return false;
+		}
 		if (ev->type == EV_GUI_Event && ev->subtype == EV_GUI_Char && ev->data1 >= '0' && ev->data1 <= '9')
 		{ // Activate an item of type numberedmore (dialogue only)
 			mSelection = ev->data1 == '0' ? 9 : ev->data1 - '1';
@@ -1065,6 +1057,31 @@ public:
 IMPLEMENT_ABSTRACT_CLASS(DConversationMenu)
 int DConversationMenu::mSelection;	// needs to be preserved if the same dialogue is restarted
 
+
+//============================================================================
+//
+// P_FreeStrifeConversations
+//
+//============================================================================
+
+void P_FreeStrifeConversations ()
+{
+	FStrifeDialogueNode *node;
+
+	while (StrifeDialogues.Pop (node))
+	{
+		delete node;
+	}
+
+	DialogueRoots.Clear();
+	ClassRoots.Clear();
+
+	PrevNode = NULL;
+	if (DMenu::CurrentMenu != NULL && DMenu::CurrentMenu->IsKindOf(RUNTIME_CLASS(DConversationMenu)))
+	{
+		DMenu::CurrentMenu->Close();
+	}
+}
 
 //============================================================================
 //
@@ -1403,6 +1420,13 @@ void P_ConversationCommand (int netcode, int pnum, BYTE **stream)
 {
 	player_t *player = &players[pnum];
 
+	// The conversation menus are normally closed by the menu code, but that
+	// doesn't happen during demo playback, so we need to do it here.
+	if (demoplayback && DMenu::CurrentMenu != NULL &&
+		DMenu::CurrentMenu->IsKindOf(RUNTIME_CLASS(DConversationMenu)))
+	{
+		DMenu::CurrentMenu->Close();
+	}
 	if (netcode == DEM_CONVREPLY)
 	{
 		int nodenum = ReadWord(stream);
