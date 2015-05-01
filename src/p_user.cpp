@@ -3293,9 +3293,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->mo->flags &= ~MF_JUSTATTACKED;
 	}
 
-	bool totallyfrozen = (player->cheats & CF_TOTALLYFROZEN || gamestate == GS_TITLELEVEL ||
-		(( level.flags2 & LEVEL2_FROZEN ) && ( player == NULL || !( player->cheats & CF_TIMEFREEZE )))
-		);
+	bool totallyfrozen = P_IsPlayerTotallyFrozen(player);
 
 	// [BB] Why should a predicting client ignore CF_TOTALLYFROZEN and CF_FROZEN?
 	//if ( CLIENT_PREDICT_IsPredicting( ) == false )
@@ -3902,4 +3900,12 @@ void P_EnumPlayerColorSets(FName classname, TArray<int> *out)
 		}
 		qsort(&(*out)[0], out->Size(), sizeof(int), intcmp);
 	}
+}
+
+bool P_IsPlayerTotallyFrozen(const player_t *player)
+{
+	return
+		gamestate == GS_TITLELEVEL ||
+		player->cheats & CF_TOTALLYFROZEN ||
+		((level.flags2 & LEVEL2_FROZEN) && !(player->cheats & CF_TIMEFREEZE));
 }

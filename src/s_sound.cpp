@@ -2739,7 +2739,45 @@ CCMD (playsound)
 
 	if (argv.argc() > 1)
 	{
-		S_Sound (CHAN_AUTO | CHAN_UI, argv[1], 1.f, ATTN_NONE);
+		FSoundID id = argv[1];
+		if (id == 0)
+		{
+			Printf("'%s' is not a sound\n", argv[1]);
+		}
+		else
+		{
+			S_Sound (CHAN_AUTO | CHAN_UI, id, 1.f, ATTN_NONE);
+		}
+	}
+}
+
+//==========================================================================
+//
+// CCMD loopsound
+//
+//==========================================================================
+
+CCMD (loopsound)
+{
+	// [BB] !netgame -> ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (players[consoleplayer].mo != NULL && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && argv.argc() > 1)
+	{
+		FSoundID id = argv[1];
+		if (id == 0)
+		{
+			Printf("'%s' is not a sound\n", argv[1]);
+		}
+		else
+		{
+			AActor *icon = Spawn("SpeakerIcon", players[consoleplayer].mo->x,
+				players[consoleplayer].mo->y,
+				players[consoleplayer].mo->z + 32*FRACUNIT,
+				ALLOW_REPLACE);
+			if (icon != NULL)
+			{
+				S_Sound(icon, CHAN_BODY | CHAN_LOOP, id, 1.f, ATTN_IDLE);
+			}
+		}
 	}
 }
 
