@@ -388,6 +388,7 @@ xx(Transparent)
 xx(Passuse)
 xx(Repeatspecial)
 xx(Conversation)
+xx(Locknumber)
 
 xx(Playercross)
 xx(Playeruse)

@@ -3191,7 +3191,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				if (look > 0)
 				{ // look up
 					// [BB] Zandronum handles pitch differently.
-					player->mo->pitch = MAX(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
+					player->mo->pitch = MAX(player->mo->pitch, - ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
 				}
 				else
 				{ // look down
@@ -3413,7 +3413,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					if (look > 0)
 					{ // look up
 						// [BB] Zandronum handles pitch differently.
-						player->mo->pitch = MAX(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
+						player->mo->pitch = MAX(player->mo->pitch, - ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
 					}
 					else
 					{ // look down

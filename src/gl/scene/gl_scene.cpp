@@ -1272,8 +1272,8 @@ EXTERN_CVAR(Float, maxviewpitch)
 int FGLInterface::GetMaxViewPitch(bool down)
 {
 	// [BB]
-	if (cl_disallowfullpitch) return down? MAX_DN_ANGLE : -( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 );
-	else return down? maxviewpitch : -maxviewpitch;
+	if (cl_disallowfullpitch) return down? MAX_DN_ANGLE : ( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 );
+	else return maxviewpitch;
 }
 
 //===========================================================================

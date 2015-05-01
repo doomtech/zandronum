@@ -92,12 +92,12 @@ Note: All <bool> fields default to false unless mentioned otherwise.
 
    linedef
    {
-      alpha = <float>;          // Translucency of this line, default is 1.0
+      alpha = <float>;          // Translucency of this line, default is 1.0.
       renderstyle = <string>;   // Render style, can be "translucent" or "add",
                                 // default is "translucent".
       playeruseback = <bool>;   // New SPAC flag, true = player can use from back side.
       anycross = <bool>;        // New SPAC flag, true = any non-projectile 
-                                // crossing will trigger this line
+                                // crossing will trigger this line.
       monsteractivate = <bool>; // Monsters can trigger this line.
                                 // For compatibility only because this flag's 
                                 // semantics can not be fully reproduced with
@@ -110,9 +110,10 @@ Note: All <bool> fields default to false unless mentioned otherwise.
       wrapmidtex = <bool>;      // Line's mid textures are wrapped.
       midtex3d = <bool>;        // Actors can walk on mid texture.
       checkswitchrange = <bool>;// Switches can only be activated when vertically reachable.
-      blockprojectiles = <bool>;// Line blocks all projectiles
-      blockuse = <bool>;		// Line blocks all use actions
-      blocksight = <bool>;		// Line blocks monster line of sight
+      blockprojectiles = <bool>;// Line blocks all projectiles.
+      blockuse = <bool>;		// Line blocks all use actions.
+      blocksight = <bool>;		// Line blocks monster line of sight.
+      locknumber = <int>;		// Line special is locked.
                     
    }
    
@@ -302,6 +303,9 @@ Removed remarks of 8 being the maximum number of player classes/skill levels the
 1.17 12.02.2011
 Added renderstyleceiling and renderstylefloor sector properties
 Added Sector_Set3DFloor to list of specials that need to be handled for line ID remapping
+
+1.18 14.12.2011
+Added locknumber linedef property
 
 ===============================================================================
 EOF
