@@ -93,7 +93,7 @@
 
 #define MISSING_TEXTURE_WARN_LIMIT		20
 
-void P_SpawnSlopeMakers (FMapThing *firstmt, FMapThing *lastmt);
+void P_SpawnSlopeMakers (FMapThing *firstmt, FMapThing *lastmt, const int *oldvertextable);
 void P_SetSlopes ();
 void P_CopySlopes();
 void BloodCrypt (void *data, int key, int len);
@@ -3796,6 +3796,7 @@ void P_SetupLevel (char *lumpname, int position)
 	int numbuildthings;
 	int i;
 	bool buildmap;
+	const int *oldvertextable = NULL;
 
 	// This is motivated as follows:
 
@@ -4121,7 +4122,7 @@ void P_SetupLevel (char *lumpname, int position)
 	if (ForceNodeBuild)
 	{
 		// [BB] multiplayer -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
-		BuildGLNodes = Renderer->RequireGLNodes() || am_textured || ( NETWORK_GetState( ) != NETSTATE_SINGLE ) || demoplayback || demorecording || genglnodes;
+		BuildGLNodes = RequireGLNodes || ( NETWORK_GetState( ) != NETSTATE_SINGLE ) || demoplayback || demorecording || genglnodes;
 
 		startTime = I_FPSTime ();
 		TArray<FNodeBuilder::FPolyStart> polyspots, anchors;
@@ -4145,6 +4146,7 @@ void P_SetupLevel (char *lumpname, int position)
 			vertexes, numvertexes);
 		endTime = I_FPSTime ();
 		DPrintf ("BSP generation took %.3f sec (%d segs)\n", (endTime - startTime) * 0.001, numsegs);
+		oldvertextable = builder.GetOldVertexTable();
 		reloop = true;
 	}
 	else
@@ -4262,7 +4264,7 @@ void P_SetupLevel (char *lumpname, int position)
 	if (!buildmap)
 	{
 		// [RH] Spawn slope creating things first.
-		P_SpawnSlopeMakers (&MapThingsConverted[0], &MapThingsConverted[MapThingsConverted.Size()]);
+		P_SpawnSlopeMakers (&MapThingsConverted[0], &MapThingsConverted[MapThingsConverted.Size()], oldvertextable);
 		P_CopySlopes();
 
 		// Spawn 3d floors - must be done before spawning things so it can't be done in P_SpawnSpecials
@@ -4292,6 +4294,10 @@ void P_SetupLevel (char *lumpname, int position)
 		delete[] buildthings;
 	}
 	delete map;
+	if (oldvertextable != NULL)
+	{
+		delete[] oldvertextable;
+	}
 
 	// set up world state
 	P_SpawnSpecials ();

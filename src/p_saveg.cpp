@@ -50,6 +50,8 @@
 #include "p_setup.h"
 #include "r_data/colormaps.h"
 #include "farchive.h"
+#include "p_lnspec.h"
+#include "p_acs.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "cl_demo.h"
@@ -445,8 +447,16 @@ void P_SerializeWorld (FArchive &arc)
 			<< li->activation
 			<< li->special
 			<< li->Alpha
-			<< li->id
-			<< li->args[0] << li->args[1] << li->args[2] << li->args[3] << li->args[4];
+			<< li->id;
+		if (P_IsACSSpecial(li->special))
+		{
+			P_SerializeACSScriptNumber(arc, li->args[0], false);
+		}
+		else
+		{
+			arc << li->args[0];
+		}
+		arc << li->args[1] << li->args[2] << li->args[3] << li->args[4];
 		// [BC]
 		arc << li->ulTexChangeFlags
 			<< li->SavedSpecial

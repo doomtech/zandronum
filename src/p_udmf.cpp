@@ -348,7 +348,7 @@ int GetUDMFInt(int type, int index, const char *key)
 			FUDMFKey *pKey = pKeys->Find(key);
 			if (pKey != NULL)
 			{
-				return FLOAT2FIXED(pKey->IntVal);
+				return pKey->IntVal;
 			}
 		}
 	}
@@ -416,14 +416,14 @@ public:
 			{
 				switch (sc.TokenType)
 				{
-				case TK_Int:
+				case TK_IntConst:
 					keyarray[i] = sc.Number;
 					break;
-				case TK_Float:
+				case TK_FloatConst:
 					keyarray[i] = sc.Float;
 					break;
 				default:
-				case TK_String:
+				case TK_StringConst:
 					keyarray[i] = parsedString;
 					break;
 				case TK_True:
@@ -440,14 +440,14 @@ public:
 		ukey.Key = key;
 		switch (sc.TokenType)
 		{
-		case TK_Int:
+		case TK_IntConst:
 			ukey = sc.Number;
 			break;
-		case TK_Float:
+		case TK_FloatConst:
 			ukey = sc.Float;
 			break;
 		default:
-		case TK_String:
+		case TK_StringConst:
 			ukey = parsedString;
 			break;
 		case TK_True:
@@ -653,6 +653,7 @@ public:
 	{
 		bool passuse = false;
 		bool strifetrans = false;
+		FString arg0str;
 
 		memset(ld, 0, sizeof(*ld));
 		ld->Alpha = FRACUNIT;
@@ -706,6 +707,11 @@ public:
 			case NAME_Arg3:
 			case NAME_Arg4:
 				ld->args[int(key)-int(NAME_Arg0)] = CheckInt(key);
+				continue;
+
+			case NAME_Arg0Str:
+				CHECK_N(Zd);
+				arg0str = CheckString(key);
 				continue;
 
 			case NAME_Blocking:
@@ -921,6 +927,10 @@ public:
 		{
 			ld->sidedef[0] = (side_t*)(intptr_t)(1);
 			Printf("Line %d has no first side.\n", index);
+		}
+		if (arg0str.IsNotEmpty() && P_IsACSSpecial(ld->special))
+		{
+			ld->args[0] = -FName(arg0str);
 		}
 	}
 
