@@ -4415,8 +4415,9 @@ bool DLevelScript::DoCheckActorTexture(int tid, AActor *activator, int string, b
 		for (i = 0; i < numff; ++i)
 		{
 			F3DFloor *ff = sec->e->XFloor.ffloors[i];
-			
-			if (actor->z >= ff->top.plane->ZatPoint(actor->x, actor->y))
+
+			if ((ff->flags & (FF_EXISTS | FF_SOLID)) == (FF_EXISTS | FF_SOLID) &&
+				actor->z >= ff->top.plane->ZatPoint(actor->x, actor->y))
 			{ // This floor is beneath our feet.
 				secpic = *ff->top.texture;
 				break;
@@ -4435,7 +4436,8 @@ bool DLevelScript::DoCheckActorTexture(int tid, AActor *activator, int string, b
 		{
 			F3DFloor *ff = sec->e->XFloor.ffloors[i];
 
-			if (z <= ff->bottom.plane->ZatPoint(actor->x, actor->y))
+			if ((ff->flags & (FF_EXISTS | FF_SOLID)) == (FF_EXISTS | FF_SOLID) &&
+				z <= ff->bottom.plane->ZatPoint(actor->x, actor->y))
 			{ // This floor is above our eyes.
 				secpic = *ff->bottom.texture;
 				break;
