@@ -370,11 +370,38 @@ void gl_InitModels()
 						sc.MustGetFloat();
 						smf.zscale=sc.Float;
 					}
-					// [BB] Added zoffset reading.
+					// [BB] Added zoffset reading. 
+					// Now it must be considered deprecated.
 					else if (sc.Compare("zoffset"))
 					{
 						sc.MustGetFloat();
 						smf.zoffset=sc.Float;
+					}
+					// Offset reading.
+					else if (sc.Compare("offset"))
+					{
+						sc.MustGetFloat();
+						smf.xoffset = sc.Float;
+						sc.MustGetFloat();
+						smf.yoffset = sc.Float;
+						sc.MustGetFloat();
+						smf.zoffset = sc.Float;
+					}
+					// angleoffset, pitchoffset and rolloffset reading.
+					else if (sc.Compare("angleoffset"))
+					{
+						sc.MustGetFloat();
+						smf.angleoffset = FLOAT_TO_ANGLE(sc.Float);
+					}
+					else if (sc.Compare("pitchoffset"))
+					{
+						sc.MustGetFloat();
+						smf.pitchoffset = sc.Float;
+					}
+					else if (sc.Compare("rolloffset"))
+					{
+						sc.MustGetFloat();
+						smf.rolloffset = sc.Float;
 					}
 					// [BB] Added model flags reading.
 					else if (sc.Compare("ignoretranslation"))
@@ -384,6 +411,14 @@ void gl_InitModels()
 					else if (sc.Compare("pitchfrommomentum"))
 					{
 						smf.flags |= MDL_PITCHFROMMOMENTUM;
+					}
+					else if (sc.Compare("inheritactorpitch"))
+					{
+						smf.flags |= MDL_INHERITACTORPITCH;
+					}
+					else if (sc.Compare("inheritactorroll"))
+					{
+						smf.flags |= MDL_INHERITACTORROLL;
 					}
 					else if (sc.Compare("rotating"))
 					{
@@ -715,8 +750,9 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	float scaleFactorY = FIXED2FLOAT(spr->actor->scaleX) * smf->yscale;
 	float scaleFactorZ = FIXED2FLOAT(spr->actor->scaleY) * smf->zscale;
 	float pitch = 0;
+	float roll = 0;
 	float rotateOffset = 0;
-	float angle = ANGLE_TO_FLOAT(spr->actor->angle + smf->angleoffset);
+	float angle = ANGLE_TO_FLOAT(spr->actor->angle);
 
 	// [BB] Workaround for the missing pitch information.
 	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
@@ -724,9 +760,16 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		const double x = static_cast<double>(spr->actor->velx);
 		const double y = static_cast<double>(spr->actor->vely);
 		const double z = static_cast<double>(spr->actor->velz);
-		// [BB] Calculate the pitch using spherical coordinates.
 		
-		pitch = float(atan( z/sqrt(x*x+y*y) ) / M_PI * 180);
+		// [BB] Calculate the pitch using spherical coordinates.
+		if(z || x || y) pitch = float(atan( z/sqrt(x*x+y*y) ) / M_PI * 180);
+				
+        // Correcting pitch if model is moving backwards
+        if(x || y) 
+		{
+			if((x * cos(angle * M_PI / 180) + y * sin(angle * M_PI / 180)) / sqrt(x * x + y * y) < 0) pitch *= -1;
+		}
+		else pitch = abs(pitch);
 	}
 
 	if( smf->flags & MDL_ROTATING )
@@ -735,6 +778,12 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		rotateOffset = float((time - xs_FloorToInt(time)) *360.f );
 	}
 
+	// Added MDL_INHERITACTORPITCH and MDL_INHERITACTORROLL flags processing.
+	// If both flags MDL_INHERITACTORPITCH and MDL_PITCHFROMMOMENTUM are set, the pitch sums up the actor pitch and the momentum vector pitch.
+	// This is rather crappy way to transfer fixet_t type into angle in degrees, but its works!
+	if(smf->flags & MDL_INHERITACTORPITCH) pitch += float(static_cast<double>(spr->actor->pitch >> 16) / (1 << 13) * 45 + static_cast<double>(spr->actor->pitch & 0x0000FFFF) / (1 << 29) * 45);
+	if(smf->flags & MDL_INHERITACTORROLL) roll += float(static_cast<double>(spr->actor->roll >> 16) / (1 << 13) * 45 + static_cast<double>(spr->actor->roll & 0x0000FFFF) / (1 << 29) * 45);
+		
 	if (gl.shadermodel < 4)
 	{
 		gl.MatrixMode(GL_MODELVIEW);
@@ -748,8 +797,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	}
 
 	// Model space => World space
-	gl.Translatef(spr->x, spr->z, spr->y );
-
+	gl.Translatef(spr->x, spr->z, spr->y );	
+	
+	// Applying model transformations:
+	// 1) Applying actor angle, pitch and roll to the model
 	if ( !(smf->flags & MDL_ALIGNANGLE) )
 		gl.Rotatef(-angle, 0, 1, 0);
 	// [BB] Change the angle so that the object is exactly facing the camera in the x/y plane.
@@ -763,31 +814,36 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		const float pitch = RAD2DEG ( atan2( FIXED2FLOAT ( spr->actor->z - viewz ), FIXED2FLOAT ( distance ) ) );
 		gl.Rotatef(pitch, 0, 0, 1);
 	}
-
-	// [BB] Workaround for the missing pitch information.
-	if (pitch != 0)	gl.Rotatef(pitch, 0, 0, 1);
+	else
+		gl.Rotatef(pitch, 0, 0, 1);
 
 	// [BB] Special flag for flat, beam like models.
 	if ( (smf->flags & MDL_ROLLAGAINSTANGLE) )
 		gl.Rotatef( gl_RollAgainstAngleHelper ( spr->actor ), 1, 0, 0);
-
-	// Model rotation.
-	// [BB] Added Doomsday like rotation of the weapon pickup models.
+	else
+		gl.Rotatef(-roll, 1, 0, 0);
+	
+	// 2) Applying Doomsday like rotation of the weapon pickup models
 	// The rotation angle is based on the elapsed time.
-
+	
 	if( smf->flags & MDL_ROTATING )
 	{
 		gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
 		gl.Rotatef(rotateOffset, smf->xrotate, smf->yrotate, smf->zrotate);
 		gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
-	} 		
+	}
 
-	// Scaling and model space offset.
+	// 3) Scaling model.
 	gl.Scalef(scaleFactorX, scaleFactorZ, scaleFactorY);
 
-	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
-	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
-
+	// 4) Aplying model offsets (model offsets do not depend on model scalings).
+	gl.Translatef(smf->xoffset / smf->xscale, smf->zoffset / smf->zscale, smf->yoffset / smf->yscale);
+	
+	// 5) Applying model rotations.
+	gl.Rotatef(-ANGLE_TO_FLOAT(smf->angleoffset), 0, 1, 0);
+	gl.Rotatef(smf->pitchoffset, 0, 0, 1);
+	gl.Rotatef(-smf->rolloffset, 1, 0, 0);
+		
 	if (gl.shadermodel >= 4) gl.ActiveTexture(GL_TEXTURE0);
 
 #if 0
@@ -858,14 +914,11 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 		glFrontFace(GL_CCW);
 	}
 
-	// Scaling and model space offset.
-	gl.Scalef(	
-		smf->xscale,
-		smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
-		smf->yscale);
-
-	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
-	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
+	// Scaling model (y scale for a sprite means height, i.e. z in the world!).
+	gl.Scalef(smf->xscale, smf->zscale, smf->yscale);
+	
+	// Aplying model offsets (model offsets do not depend on model scalings).
+	gl.Translatef(smf->xoffset / smf->xscale, smf->zoffset / smf->zscale, smf->yoffset / smf->yscale);
 
 	// [BB] Weapon bob, very similar to the normal Doom weapon bob.
 	gl.Rotatef(FIXED2FLOAT(ofsx)/4, 0, 1, 0);
@@ -873,6 +926,11 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 
 	// [BB] For some reason the jDoom models need to be rotated.
 	gl.Rotatef(90., 0, 1, 0);
+
+	// Applying angleoffset, pitchoffset, rolloffset.
+	gl.Rotatef(-ANGLE_TO_FLOAT(smf->angleoffset), 0, 1, 0);
+	gl.Rotatef(smf->pitchoffset, 0, 0, 1);
+	gl.Rotatef(-smf->rolloffset, 1, 0, 0);
 
 	gl_RenderFrameModels( smf, psp->state, psp->tics, playermo->player->ReadyWeapon->GetClass(), cm, NULL, 0 );
 
