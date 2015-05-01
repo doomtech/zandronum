@@ -59,6 +59,7 @@
 #include "m_argv.h"
 #include "p_lnspec.h"
 #include "v_video.h"
+#include "intermission/intermission.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -760,6 +761,7 @@ void GetPackets (void)
 		}
 
 		if (netbuffer[0] & NCMD_QUITTERS)
+
 		{
 			numplayers = netbuffer[k++];
 			for (int i = 0; i < numplayers; ++i)
@@ -2480,6 +2482,15 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 		}
 		break;
 
+	case DEM_SETPITCHLIMIT:
+		players[player].MinPitch = ReadByte(stream) * -ANGLE_1;		// up
+		players[player].MaxPitch = ReadByte(stream) *  ANGLE_1;		// down
+		break;
+
+	case DEM_ADVANCEINTER:
+		F_AdvanceIntermission();
+		break;
+
 	default:
 		I_Error ("Unknown net command: %d", type);
 		break;
@@ -2600,6 +2611,9 @@ void Net_SkipCommand (int type, BYTE **stream)
 			skip = 2 + ((*stream)[1] >> 7);
 			break;
 
+		case DEM_SETPITCHLIMIT:
+			skip = 2;
+			break;
 
 		default:
 			return;

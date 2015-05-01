@@ -587,6 +587,14 @@ void APlayerPawn::PostBeginPlay()
 		P_FindFloorCeiling(this, true);
 		z = floorz;
 	}
+	else if (player - players == consoleplayer)
+	{
+		// Ask the local player's renderer what pitch restrictions
+		// should be imposed and let everybody know.
+		Net_WriteByte(DEM_SETPITCHLIMIT);
+		Net_WriteByte(Renderer->GetMaxViewPitch(false));	// up
+		Net_WriteByte(Renderer->GetMaxViewPitch(true));		// down
+	}
 }
 
 //===========================================================================
@@ -3182,13 +3190,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				player->mo->pitch -= look;
 				if (look > 0)
 				{ // look up
-					// [BB] The server doesn't have a Renderer.
-					player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : (32*ANGLE_1) );
+					// [BB] Zandronum handles pitch differently.
+					player->mo->pitch = MAX(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
 				}
 				else
 				{ // look down
-					// [BB] The server doesn't have a Renderer.
-					player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  Renderer->GetMaxViewPitch(true) : (56*ANGLE_1) );
+					// [BB] Zandronum handles pitch differently.
+					player->mo->pitch = MIN(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(true) : 56 ) * ANGLE_1 );
 				}
 			}
 		}
@@ -3404,13 +3412,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					player->mo->pitch -= look;
 					if (look > 0)
 					{ // look up
-						// [BB] The server doesn't have a Renderer.
-						player->mo->pitch = MAX(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : (32*ANGLE_1) );
+						// [BB] Zandronum handles pitch differently.
+						player->mo->pitch = MAX(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1 );
 					}
 					else
 					{ // look down
-						// [BB] The server doesn't have a Renderer.
-						player->mo->pitch = MIN(player->mo->pitch, ( NETWORK_GetState( ) != NETSTATE_SERVER ) ?  Renderer->GetMaxViewPitch(true) : (56*ANGLE_1) );
+						// [BB] Zandronum handles pitch differently.
+						player->mo->pitch = MIN(player->mo->pitch, ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(true) : 56 ) * ANGLE_1 );
 					}
 				}
 			}

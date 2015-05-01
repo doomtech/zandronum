@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.5.0"
-#define ZD_SVN_REVISION_STRING "3319"
-#define ZD_SVN_REVISION_NUMBER 3319
+#define ZD_SVN_REVISION_STRING "3330"
+#define ZD_SVN_REVISION_NUMBER 3330
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -97,11 +97,11 @@ unsigned int GetRevisionNumber();
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x214
+#define DEMOGAMEVERSION 0x216
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
-#define MINDEMOVERSION 0x213
+#define MINDEMOVERSION 0x215
 
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.

@@ -178,7 +178,7 @@ void FSoftwareRenderer::DrawRemainingPlayerSprites()
 int FSoftwareRenderer::GetMaxViewPitch(bool down)
 {
 	// [BB] The user can restore ZDoom's freelook limit.
-	return down? MAX_DN_ANGLE*ANGLE_1 : -( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 )*ANGLE_1;
+	return down ? MAX_DN_ANGLE : -( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 );
 }
 
 //==========================================================================

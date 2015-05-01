@@ -50,6 +50,7 @@
 #include "g_level.h"
 #include "p_conversation.h"
 #include "menu/menu.h"
+#include "d_net.h"
 
 FIntermissionDescriptorList IntermissionDescriptors;
 
@@ -771,7 +772,11 @@ bool DIntermissionController::Responder (event_t *ev)
 
 		if (mScreen->mTicker < 2) return false;	// prevent some leftover events from auto-advancing
 		int res = mScreen->Responder(ev);
-		mAdvance = (res == -1);
+		if (res == -1 && !mSentAdvance)
+		{
+			Net_WriteByte(DEM_ADVANCEINTER);
+			mSentAdvance = true;
+		}
 		return !!res;
 	}
 	return false;
@@ -779,6 +784,10 @@ bool DIntermissionController::Responder (event_t *ev)
 
 void DIntermissionController::Ticker ()
 {
+	if (mAdvance)
+	{
+		mSentAdvance = false;
+	}
 	if (mScreen != NULL)
 	{
 		mAdvance |= (mScreen->Ticker() == -1);
@@ -928,3 +937,18 @@ void F_EndFinale ()
 		DIntermissionController::CurrentIntermission = NULL;
 	}
 }
+
+//==========================================================================
+//
+// Called by net loop.
+//
+//==========================================================================
+
+void F_AdvanceIntermission()
+{
+	if (DIntermissionController::CurrentIntermission != NULL)
+	{
+		DIntermissionController::CurrentIntermission->mAdvance = true;
+	}
+}
+
