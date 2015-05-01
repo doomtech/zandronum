@@ -104,6 +104,10 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
+/* [BB] Zandronum uses different bot code.
+extern cycle_t BotSupportCycles;
+extern int BotWTG;
+*/
 EXTERN_CVAR (Int,  cl_rockettrails)
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------

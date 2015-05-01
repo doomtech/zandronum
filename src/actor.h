@@ -330,7 +330,6 @@ enum
 	MF6_DONTCORPSE		= 0x02000000,	// [RC] Don't autoset MF_CORPSE upon death and don't force Crash state change.
 	MF6_POISONALWAYS	= 0x04000000,	// Always apply poison, even when target can't take the damage.
 	MF6_DOHARMSPECIES	= 0x08000000,	// Do hurt one's own species with projectiles.
-
 	MF6_INTRYMOVE		= 0x10000000,	// Executing P_TryMove
 
 	// [BC] More object flags for Skulltag.
