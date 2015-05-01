@@ -619,8 +619,8 @@ CVAR (Flag, sv_unblockallies,		zadmflags, ZADF_UNBLOCK_ALLIES);
 //
 //==========================================================================
 
-int i_compatflags;	// internal compatflags composed from the compatflags CVAR and MAPINFO settings
-int ii_compatflags, ib_compatflags;
+int i_compatflags, i_compatflags2;	// internal compatflags composed from the compatflags CVAR and MAPINFO settings
+int ii_compatflags, ii_compatflags2, ib_compatflags;
 
 EXTERN_CVAR(Int, compatmode)
 
@@ -630,17 +630,36 @@ static int GetCompatibility(int mask)
 	else return (mask & ~level.info->compatmask) | (level.info->compatflags & level.info->compatmask);
 }
 
+static int GetCompatibility2(int mask)
+{
+	return (level.info == NULL) ? mask
+		: (mask & ~level.info->compatmask2) | (level.info->compatflags2 & level.info->compatmask2);
+}
+
 // [BB] Removed the CVAR_ARCHIVE flag.
 CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 {
 	int old = i_compatflags;
 	i_compatflags = GetCompatibility(self) | ii_compatflags;
-	if ((old ^i_compatflags) & COMPATF_POLYOBJ)
+	if ((old ^ i_compatflags) & COMPATF_POLYOBJ)
 	{
 		FPolyObj::ClearAllSubsectorLinks();
 	}
 
 	// [BC] If we're the server, tell clients that the dmflags changed.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (int)self );
+		SERVERCOMMANDS_SetGameDMFlags( );
+	}
+}
+
+// [BB] Removed the CVAR_ARCHIVE flag.
+CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO)
+{
+	i_compatflags2 = GetCompatibility2(self) | ii_compatflags2;
+
+	// [BB] If we're the server, tell clients that compatflags2 changed.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (int)self );
@@ -666,7 +685,7 @@ CUSTOM_CVAR (Int, zacompatflags, 0, CVAR_SERVERINFO)
 
 CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 {
-	int v;
+	int v, w = 0;
 
 	switch (self)
 	{
@@ -686,6 +705,7 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 			COMPATF_TRACE|COMPATF_MISSILECLIP|COMPATF_SOUNDTARGET|COMPATF_NO_PASSMOBJ|COMPATF_LIMITPAIN|
 			COMPATF_DEHHEALTH|COMPATF_INVISIBILITY|COMPATF_CROSSDROPOFF|COMPATF_CORPSEGIBS|COMPATF_HITSCAN|
 			COMPATF_WALLRUN|COMPATF_NOTOSSDROPS|COMPATF_LIGHT|COMPATF_MASKEDMIDTEX;
+		w = COMPATF2_BADANGLES;
 		break;
 
 	case 3: // Boom compat mode
@@ -708,40 +728,42 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL)
 
 	}
 	compatflags = v;
+	compatflags2 = w;
 }
 
-CVAR (Flag, compat_shortTex,	compatflags, COMPATF_SHORTTEX);
-CVAR (Flag, compat_stairs,		compatflags, COMPATF_STAIRINDEX);
-CVAR (Flag, compat_limitpain,	compatflags, COMPATF_LIMITPAIN);
-CVAR (Flag, compat_silentpickup,compatflags, COMPATF_SILENTPICKUP);
-CVAR (Flag, compat_nopassover,	compatflags, COMPATF_NO_PASSMOBJ);
-CVAR (Flag, compat_soundslots,	compatflags, COMPATF_MAGICSILENCE);
-CVAR (Flag, compat_wallrun,		compatflags, COMPATF_WALLRUN);
-CVAR (Flag, compat_notossdrops,	compatflags, COMPATF_NOTOSSDROPS);
-CVAR (Flag, compat_useblocking,	compatflags, COMPATF_USEBLOCKING);
-CVAR (Flag, compat_nodoorlight,	compatflags, COMPATF_NODOORLIGHT);
-CVAR (Flag, compat_ravenscroll,	compatflags, COMPATF_RAVENSCROLL);
-CVAR (Flag, compat_soundtarget,	compatflags, COMPATF_SOUNDTARGET);
-CVAR (Flag, compat_dehhealth,	compatflags, COMPATF_DEHHEALTH);
-CVAR (Flag, compat_trace,		compatflags, COMPATF_TRACE);
-CVAR (Flag, compat_dropoff,		compatflags, COMPATF_DROPOFF);
-CVAR (Flag, compat_boomscroll,	compatflags, COMPATF_BOOMSCROLL);
-CVAR (Flag, compat_invisibility,compatflags, COMPATF_INVISIBILITY);
-CVAR (Flag, compat_silentinstantfloors,compatflags, COMPATF_SILENT_INSTANT_FLOORS);
-CVAR (Flag, compat_sectorsounds,compatflags, COMPATF_SECTORSOUNDS);
-CVAR (Flag, compat_missileclip,	compatflags, COMPATF_MISSILECLIP);
-CVAR (Flag, compat_crossdropoff,compatflags, COMPATF_CROSSDROPOFF);
-CVAR (Flag, compat_anybossdeath,compatflags, COMPATF_ANYBOSSDEATH);
-CVAR (Flag, compat_minotaur,	compatflags, COMPATF_MINOTAUR);
-CVAR (Flag, compat_mushroom,	compatflags, COMPATF_MUSHROOM);
-CVAR (Flag, compat_mbfmonstermove,compatflags, COMPATF_MBFMONSTERMOVE);
-CVAR (Flag, compat_corpsegibs,	compatflags, COMPATF_CORPSEGIBS);
-CVAR (Flag, compat_noblockfriends,compatflags,COMPATF_NOBLOCKFRIENDS);
-CVAR (Flag, compat_spritesort,	compatflags,COMPATF_SPRITESORT);
-CVAR (Flag, compat_hitscan,		compatflags,COMPATF_HITSCAN);
-CVAR (Flag, compat_light,		compatflags,COMPATF_LIGHT);
-CVAR (Flag, compat_polyobj,		compatflags,COMPATF_POLYOBJ);
-CVAR (Flag, compat_maskedmidtex,compatflags,COMPATF_MASKEDMIDTEX);
+CVAR (Flag, compat_shortTex,			compatflags,  COMPATF_SHORTTEX);
+CVAR (Flag, compat_stairs,				compatflags,  COMPATF_STAIRINDEX);
+CVAR (Flag, compat_limitpain,			compatflags,  COMPATF_LIMITPAIN);
+CVAR (Flag, compat_silentpickup,		compatflags,  COMPATF_SILENTPICKUP);
+CVAR (Flag, compat_nopassover,			compatflags,  COMPATF_NO_PASSMOBJ);
+CVAR (Flag, compat_soundslots,			compatflags,  COMPATF_MAGICSILENCE);
+CVAR (Flag, compat_wallrun,				compatflags,  COMPATF_WALLRUN);
+CVAR (Flag, compat_notossdrops,			compatflags,  COMPATF_NOTOSSDROPS);
+CVAR (Flag, compat_useblocking,			compatflags,  COMPATF_USEBLOCKING);
+CVAR (Flag, compat_nodoorlight,			compatflags,  COMPATF_NODOORLIGHT);
+CVAR (Flag, compat_ravenscroll,			compatflags,  COMPATF_RAVENSCROLL);
+CVAR (Flag, compat_soundtarget,			compatflags,  COMPATF_SOUNDTARGET);
+CVAR (Flag, compat_dehhealth,			compatflags,  COMPATF_DEHHEALTH);
+CVAR (Flag, compat_trace,				compatflags,  COMPATF_TRACE);
+CVAR (Flag, compat_dropoff,				compatflags,  COMPATF_DROPOFF);
+CVAR (Flag, compat_boomscroll,			compatflags,  COMPATF_BOOMSCROLL);
+CVAR (Flag, compat_invisibility,		compatflags,  COMPATF_INVISIBILITY);
+CVAR (Flag, compat_silentinstantfloors,	compatflags,  COMPATF_SILENT_INSTANT_FLOORS);
+CVAR (Flag, compat_sectorsounds,		compatflags,  COMPATF_SECTORSOUNDS);
+CVAR (Flag, compat_missileclip,			compatflags,  COMPATF_MISSILECLIP);
+CVAR (Flag, compat_crossdropoff,		compatflags,  COMPATF_CROSSDROPOFF);
+CVAR (Flag, compat_anybossdeath,		compatflags,  COMPATF_ANYBOSSDEATH);
+CVAR (Flag, compat_minotaur,			compatflags,  COMPATF_MINOTAUR);
+CVAR (Flag, compat_mushroom,			compatflags,  COMPATF_MUSHROOM);
+CVAR (Flag, compat_mbfmonstermove,		compatflags,  COMPATF_MBFMONSTERMOVE);
+CVAR (Flag, compat_corpsegibs,			compatflags,  COMPATF_CORPSEGIBS);
+CVAR (Flag, compat_noblockfriends,		compatflags,  COMPATF_NOBLOCKFRIENDS);
+CVAR (Flag, compat_spritesort,			compatflags,  COMPATF_SPRITESORT);
+CVAR (Flag, compat_hitscan,				compatflags,  COMPATF_HITSCAN);
+CVAR (Flag, compat_light,				compatflags,  COMPATF_LIGHT);
+CVAR (Flag, compat_polyobj,				compatflags,  COMPATF_POLYOBJ);
+CVAR (Flag, compat_maskedmidtex,		compatflags,  COMPATF_MASKEDMIDTEX);
+CVAR (Flag, compat_badangles,			compatflags2, COMPATF2_BADANGLES);
 // [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, zacompatflags, ZACOMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	zacompatflags, ZACOMPATF_PLASMA_BUMP_BUG);

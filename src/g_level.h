@@ -310,8 +310,8 @@ struct level_info_t
 	float		aircontrol;
 	int			WarpTrans;
 	int			airsupply;
-	DWORD		compatflags;
-	DWORD		compatmask;
+	DWORD		compatflags, compatflags2;
+	DWORD		compatmask, compatmask2;
 	FString		Translator;	// for converting Doom-format linedef and sector types.
 	int			DefaultEnvironment;	// Default sound environment for the map.
 	FName		Intermission;
@@ -583,6 +583,7 @@ struct FSkillInfo
 	bool FastMonsters;
 	bool DisableCheats;
 	bool AutoUseHealth;
+
 	bool EasyBossBrain;
 	int RespawnCounter;
 	int RespawnLimit;

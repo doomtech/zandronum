@@ -8050,6 +8050,10 @@ static void client_SetGameDMFlags( BYTESTREAM_s *pByteStream )
 	Value.Int = NETWORK_ReadLong( pByteStream );
 	compatflags.ForceSet( Value, CVAR_Int );
 
+	// ... and compatflags.
+	Value.Int = NETWORK_ReadLong( pByteStream );
+	compatflags2.ForceSet( Value, CVAR_Int );
+
 	// [BB] ... and zacompatflags.
 	Value.Int = NETWORK_ReadLong( pByteStream );
 	zacompatflags.ForceSet( Value, CVAR_Int );

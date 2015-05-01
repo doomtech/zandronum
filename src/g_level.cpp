@@ -862,6 +862,7 @@ void G_DoCompleted (void)
 		}
 		else
 		{
+
 			level_info_t *nextinfo = FindLevelInfo (nextlevel);
 			wminfo.next = nextinfo->mapname;
 			wminfo.LName1 = TexMan[TexMan.CheckForTexture(nextinfo->pname, FTexture::TEX_MiscPatch)];
@@ -1966,6 +1967,7 @@ void G_InitLevelLocals ()
 	// [BC] Why do we need to do this? For now, just don't do it in server mode.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		compatflags.Callback();
+	compatflags2.Callback();
 
 	NormalLight.ChangeFade (level.fadeto);
 

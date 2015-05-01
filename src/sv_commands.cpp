@@ -2450,6 +2450,7 @@ void SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra, ULONG ulFlags )
 	command.addLong ( dmflags );
 	command.addLong ( dmflags2 );
 	command.addLong ( compatflags );
+	command.addLong ( compatflags2 );
 	command.addLong ( zacompatflags );
 	command.addLong ( zadmflags );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
