@@ -5345,9 +5345,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		if (players[consoleplayer].camera == oldactor)
+		for (int ii = 0; ii < MAXPLAYERS; ++ii)
 		{
-			players[consoleplayer].camera = mobj;
+			if (playeringame[ii] && players[ii].camera == oldactor)
+			{
+				players[ii].camera = mobj;
+			}
 		}
 	}
 

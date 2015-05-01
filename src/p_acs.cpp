@@ -7230,6 +7230,9 @@ int DLevelScript::RunScript ()
 			STACK(1) = !STACK(1);
 			break;
 
+
+
+
 		case PCD_NEGATEBINARY:
 			STACK(1) = ~STACK(1);
 			break;
@@ -9721,11 +9724,11 @@ static void addDefered (level_info_t *i, acsdefered_t::EType type, int script, c
 		def->next = i->defered;
 		def->type = type;
 		def->script = script;
-		for (j = 0; j < countof(def->args) && j < argcount; ++j)
+		for (j = 0; (size_t)j < countof(def->args) && j < argcount; ++j)
 		{
 			def->args[j] = args[j];
 		}
-		while (j < countof(def->args))
+		while ((size_t)j < countof(def->args))
 		{
 			def->args[j++] = 0;
 		}
