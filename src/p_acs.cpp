@@ -2358,6 +2358,7 @@ void FBehavior::LoadScriptsDirectory ()
 		BYTE *b;
 		DWORD *dw;
 		WORD *w;
+		SWORD *sw;
 		ScriptPtr2 *po;		// Old
 		ScriptPtr1 *pi;		// Intermediate
 		ScriptPtr3 *pe;		// LittleEnhanced
@@ -2480,7 +2481,7 @@ void FBehavior::LoadScriptsDirectory ()
 		scripts.dw += 2;
 		for (i = max; i > 0; --i, scripts.w += 2)
 		{
-			ScriptPtr *ptr = const_cast<ScriptPtr *>(FindScript (LittleShort(scripts.w[0])));
+			ScriptPtr *ptr = const_cast<ScriptPtr *>(FindScript (LittleShort(scripts.sw[0])));
 			if (ptr != NULL)
 			{
 				ptr->Flags = LittleShort(scripts.w[1]);
@@ -2496,7 +2497,7 @@ void FBehavior::LoadScriptsDirectory ()
 		scripts.dw += 2;
 		for (i = max; i > 0; --i, scripts.w += 2)
 		{
-			ScriptPtr *ptr = const_cast<ScriptPtr *>(FindScript (LittleShort(scripts.w[0])));
+			ScriptPtr *ptr = const_cast<ScriptPtr *>(FindScript (LittleShort(scripts.sw[0])));
 			if (ptr != NULL)
 			{
 				ptr->VarCount = LittleShort(scripts.w[1]);
