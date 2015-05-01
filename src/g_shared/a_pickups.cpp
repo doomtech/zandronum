@@ -219,7 +219,7 @@ bool P_GiveBody (AActor *actor, int num)
 			max = deh.MaxSoulsphere + 50;
 		// [BC] Add the player's max. health bonus to his max.
 		else
-			max = static_cast<APlayerPawn*>(actor)->GetMaxHealth() + player->stamina + player->lMaxHealthBonus;
+			max = static_cast<APlayerPawn*>(actor)->GetMaxHealth() + player->mo->stamina + player->lMaxHealthBonus;
 		// [MH] First step in predictable generic morph effects
  		if (player->morphTics)
  		{
@@ -227,7 +227,7 @@ bool P_GiveBody (AActor *actor, int num)
 			{
 				if (!(player->MorphStyle & MORPH_ADDSTAMINA))
 				{
-					max -= player->stamina;
+					max -= player->mo->stamina;
 				}
 			}
 			else // old health behaviour
@@ -235,7 +235,7 @@ bool P_GiveBody (AActor *actor, int num)
 				max = MAXMORPHHEALTH;
 				if (player->MorphStyle & MORPH_ADDSTAMINA)
 				{
-					max += player->stamina;
+					max += player->mo->stamina;
 				}
 			}
  		}
@@ -1784,7 +1784,7 @@ bool AHealth::TryPickup (AActor *&other)
 		else if (max == 0)
 		{
 			// [BC] Add the player's max. health bonus to his max.
-			max = static_cast<APlayerPawn*>(other)->GetMaxHealth() + player->stamina + player->lMaxHealthBonus;
+			max = static_cast<APlayerPawn*>(other)->GetMaxHealth() + player->mo->stamina + player->lMaxHealthBonus;
 			// [MH] First step in predictable generic morph effects
  			if (player->morphTics)
  			{
@@ -1792,7 +1792,7 @@ bool AHealth::TryPickup (AActor *&other)
 				{
 					if (!(player->MorphStyle & MORPH_ADDSTAMINA))
 					{
-						max -= player->stamina;
+						max -= player->mo->stamina;
 					}
 				}
 				else // old health behaviour
@@ -1800,7 +1800,7 @@ bool AHealth::TryPickup (AActor *&other)
 					max = MAXMORPHHEALTH;
 					if (player->MorphStyle & MORPH_ADDSTAMINA)
 					{
-						max += player->stamina;
+						max += player->mo->stamina;
 					}
 				}
 			}
@@ -1960,7 +1960,7 @@ bool AMaxHealth::TryPickup( AActor *&pOther )
 		else if ( lMax == 0 )
 		{
 			// [BC] Add the player's max. health bonus to his max.
-			lMax = static_cast<APlayerPawn *>( pOther )->GetMaxHealth( ) + pPlayer->stamina + pPlayer->lMaxHealthBonus;
+			lMax = static_cast<APlayerPawn *>( pOther )->GetMaxHealth( ) + pPlayer->mo->stamina + pPlayer->lMaxHealthBonus;
 			if ( pPlayer->morphTics )
 				lMax = MAXMORPHHEALTH;
 		}

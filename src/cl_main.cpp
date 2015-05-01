@@ -3564,8 +3564,6 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	pPlayer->respawn_time = 0;
 	pPlayer->camera = 0;
 	pPlayer->air_finished = 0;
-	pPlayer->accuracy = 0;
-	pPlayer->stamina = 0;
 	pPlayer->BlendR = 0;
 	pPlayer->BlendG = 0;
 	pPlayer->BlendB = 0;

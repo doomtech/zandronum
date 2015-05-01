@@ -297,8 +297,6 @@ player_t::player_t()
   respawn_time(0),
   camera(0),
   air_finished(0),
-  accuracy(0),
-  stamina(0),
   BlendR(0),
   BlendG(0),
   BlendB(0),
@@ -3811,7 +3809,6 @@ void player_t::Serialize (FArchive &arc)
 		<< BlendG
 		<< BlendB
 		<< BlendA
-		<< accuracy << stamina
 		// [BB] Skulltag additions - start
 		<< bOnTeam
 		<< ulTeam
