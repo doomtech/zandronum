@@ -129,18 +129,18 @@ void P_ClearACSVars(bool);
 // The in-memory version
 struct ScriptPtr
 {
-	WORD Number;
+	int Number;
+	DWORD Address;
 	BYTE Type;
 	BYTE ArgCount;
 	WORD VarCount;
 	WORD Flags;
-	DWORD Address;
 };
 
 // The present ZDoom version
 struct ScriptPtr3
 {
-	WORD Number;
+	SWORD Number;
 	BYTE Type;
 	BYTE ArgCount;
 	DWORD Address;
@@ -901,9 +901,8 @@ public:
 	void Serialize (FArchive &arc);
 	void Tick ();
 
-	// [BB]
-	static const int MaxScripNum = 65536; 
-	DLevelScript *RunningScripts[MaxScripNum];	// Array of all synchronous scripts
+	typedef TMap<int, DLevelScript *> ScriptMap;
+	ScriptMap RunningScripts;	// Array of all synchronous scripts
 	static TObjPtr<DACSThinker> ActiveThinker;
 
 	void DumpScriptStatus();
