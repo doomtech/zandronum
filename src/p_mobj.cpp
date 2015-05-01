@@ -609,7 +609,7 @@ bool AActor::SetState (FState *newstate, bool nofunction)
 		}
 	} while (tics == 0);
 
-	if (screen != NULL)
+	if (Renderer != NULL)
 	{
 		Renderer->StateChanged(this);
 	}
@@ -4859,12 +4859,6 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		if (( oneflagctf ) && ( actor->GetClass( ) == PClass::FindClass( "WhiteFlag" )))
 			TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 	}
-
-	// [BB] Moved to backport GZDoom revision 1302. Needs to be adapted when our GZDoom base is updated.
-	//if (screen != NULL)
-	//{
-	//			Renderer->StateChanged(actor);
-	//}
 
 	g_SpawnCycles.Unclock();
 	return actor;

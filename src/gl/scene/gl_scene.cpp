@@ -1266,13 +1266,10 @@ void FGLInterface::EndSerialize(FArchive &arc)
 
 EXTERN_CVAR(Float, maxviewpitch)
 
-#define MAX_DN_ANGLE	56		// Max looking down angle
-#define MAX_UP_ANGLE	32		// Max looking up angle
-
 int FGLInterface::GetMaxViewPitch(bool down)
 {
-	// [BB]
-	if (cl_disallowfullpitch) return down? MAX_DN_ANGLE : ( cl_oldfreelooklimit ? MAX_UP_ANGLE : 56 );
+	// [BB] Zandronum clamps the pitch differently
+	if (cl_disallowfullpitch) return down? 56 : ( cl_oldfreelooklimit ? 32 : 56 );
 	else return maxviewpitch;
 }
 
