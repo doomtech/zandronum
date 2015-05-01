@@ -322,6 +322,7 @@ public:
 
 	void SetLogNumber (int num);
 	void SetLogText (const char *text);
+	void SendPitchLimits() const;
 
 	APlayerPawn	*mo;
 	BYTE		playerstate;
@@ -348,6 +349,7 @@ public:
 
 	bool		centering;
 	BYTE		turnticks;
+
 
 	bool		attackdown;
 	bool		usedown;

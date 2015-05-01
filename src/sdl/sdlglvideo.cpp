@@ -132,7 +132,6 @@ SDLGLVideo::SDLGLVideo (int parm)
 SDLGLVideo::~SDLGLVideo ()
 {
 	if (GLRenderer != NULL) GLRenderer->FlushTextures();
-	SDL_Quit( );
 }
 
 void SDLGLVideo::StartModeIterator (int bits, bool fs)
