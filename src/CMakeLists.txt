@@ -436,7 +436,7 @@ endif( APPLE )
 set( SSE_MATTERS NO )
 
 # SSE only matters on 32-bit targets. We check compiler flags to know if we can do it.
-if( CMAKE_SIZEOF_VOID_P MATCHES "4" )
+if( CMAKE_SIZEOF_VOID_P MATCHES "4" AND NOT CMAKE_OSX_ARCHITECTURES MATCHES ppc )
 	CHECK_CXX_COMPILER_FLAG( "-msse2 -mfpmath=sse" CAN_DO_MFPMATH )
 	CHECK_CXX_COMPILER_FLAG( -arch:SSE2 CAN_DO_ARCHSSE2 )
 	if( CAN_DO_MFPMATH )
@@ -449,7 +449,7 @@ if( CMAKE_SIZEOF_VOID_P MATCHES "4" )
 		set( SSE2_ENABLE -arch:SSE2 )
 		set( SSE_MATTERS YES )
 	endif( CAN_DO_MFPMATH )
-endif( CMAKE_SIZEOF_VOID_P MATCHES "4" )
+endif( CMAKE_SIZEOF_VOID_P MATCHES "4" AND NOT CMAKE_OSX_ARCHITECTURES MATCHES ppc )
 
 if( SSE_MATTERS )
 	if( WIN32 )
@@ -674,7 +674,7 @@ else( WIN32 )
 		sdl/sdlvideo.cpp
 		sdl/st_start.cpp )
 	if( APPLE )
-		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} sdl/SDLMain.m sdl/iwadpicker_cocoa.mm )
+		set( SYSTEM_SOURCES ${SYSTEM_SOURCES} sdl/SDLMain.m sdl/iwadpicker_cocoa.mm sdl/i_system_cocoa.mm )
 	endif( APPLE )
 endif( WIN32 )
 
