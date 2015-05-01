@@ -3817,7 +3817,18 @@ void player_t::Serialize (FArchive &arc)
 		<< ulRailgunShots
 		<< lMaxHealthBonus
 		// [BB] Skulltag additions - end
-		<< LogText
+		;
+	if (SaveVersion < 3427)
+	{
+		WORD oldaccuracy, oldstamina;
+		arc << oldaccuracy << oldstamina;
+		if (mo != NULL)
+		{
+			mo->accuracy = oldaccuracy;
+			mo->stamina = oldstamina;
+		}
+	}
+	arc << LogText
 		<< ConversationNPC
 		<< ConversationPC
 		<< ConversationNPCAngle
