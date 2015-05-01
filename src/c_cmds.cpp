@@ -683,9 +683,9 @@ CCMD (puke)
 {
 	int argc = argv.argc();
 
-	if (argc < 2 || argc > 5)
+	if (argc < 2 || argc > 6)
 	{
-		Printf ("Usage: puke <script> [arg1] [arg2] [arg3]\n");
+		Printf ("Usage: puke <script> [arg1] [arg2] [arg3] [arg4]\n");
 	}
 	else
 	{
@@ -695,8 +695,8 @@ CCMD (puke)
 		{ // Script 0 is reserved for Strife support. It is not pukable.
 			return;
 		}
-		int arg[3] = { 0, 0, 0 };
-		int argn = MIN (argc - 2, 3), i;
+		int arg[4] = { 0, 0, 0, 0 };
+		int argn = MIN<int>(argc - 2, countof(arg)), i;
 
 		for (i = 0; i < argn; ++i)
 		{
@@ -713,8 +713,8 @@ CCMD (puke)
 			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				|| ACS_IsScriptClientSide ( ulScript ) )
 			{
-				P_StartScript (players[consoleplayer].mo, NULL, ulScript, level.mapname, false,
-					arg[0], arg[1], arg[2], (script < 0), false, true);
+				P_StartScript (players[consoleplayer].mo, NULL, ulScript, level.mapname,
+					arg, argn, ( (script < 0 ) ? ACS_ALWAYS : 0 ) | ACS_NET );
 
 				// [BB] If the server (and not any ACS script via ConsoleCommand) calls puke, let the clients know.
 				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ACS_IsCalledFromConsoleCommand( ) == false ) )
@@ -750,15 +750,15 @@ CCMD (pukename)
 {
 	int argc = argv.argc();
 
-	if (argc < 2 || argc > 6)
+	if (argc < 2 || argc > 7)
 	{
-		Printf ("Usage: pukename \"<script>\" [\"always\"] [arg1] [arg2] [arg3]\n");
+		Printf ("Usage: pukename \"<script>\" [\"always\"] [arg1] [arg2] [arg3] [arg4]\n");
 	}
 	else
 	{
 		bool always = false;
 		int argstart = 2;
-		int arg[3] = { 0, 0, 0 };
+		int arg[4] = { 0, 0, 0, 0 };
 		int argn = 0, i;
 		
 		if (argc > 2)
@@ -768,7 +768,7 @@ CCMD (pukename)
 				always = true;
 				argstart = 3;
 			}
-			argn = MIN(argc - argstart, 3);
+			argn = MIN<int>(argc - argstart, countof(arg));
 			for (i = 0; i < argn; ++i)
 			{
 				arg[i] = atoi(argv[argstart + i]);

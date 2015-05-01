@@ -9929,7 +9929,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	else
 		pLine = &lines[lLineIdx];
 
-	P_StartScript( pActor, pLine, ulScript, mapname, bBackSide, args[0], args[1], args[2], bAlways, false );
+	P_StartScript( pActor, pLine, ulScript, mapname, args, 3, ( bBackSide ? ACS_BACKSIDE : 0 ) | ( bAlways ? ACS_ALWAYS : 0 ) );
 }
 
 //*****************************************************************************

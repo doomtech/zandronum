@@ -59,6 +59,7 @@
 #include "m_argv.h"
 #include "p_lnspec.h"
 #include "v_video.h"
+#include "p_spec.h"
 #include "intermission/intermission.h"
 // [BC] New #includes.
 #include "cl_demo.h"
@@ -69,9 +70,6 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "chat.h"
-
-int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool backSide,
-					int arg0, int arg1, int arg2, int always, bool wantResultCode, bool net);
 
 EXTERN_CVAR (Int, disableautosave)
 EXTERN_CVAR (Int, autosavecount)
@@ -131,7 +129,7 @@ void G_BuildTiccmd (ticcmd_t *cmd);
 void D_DoAdvanceDemo (void);
 
 static void SendSetup (DWORD playersdetected[MAXNETNODES], BYTE gotsetup[MAXNETNODES], int len);
-static void RunScript(BYTE **stream, APlayerPawn *pawn, int snum, int argn, bool always);
+static void RunScript(BYTE **stream, APlayerPawn *pawn, int snum, int argn, int always);
 
 int		reboundpacket;
 BYTE	reboundstore[MAX_MSGLEN];
@@ -2347,7 +2345,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 			int snum = ReadWord (stream);
 			int argn = ReadByte (stream);
 
-			RunScript(stream, players[player].mo, snum, argn, type == DEM_RUNSCRIPT2);
+			RunScript(stream, players[player].mo, snum, argn, (type == DEM_RUNSCRIPT2) ? ACS_ALWAYS : 0);
 		}
 		break;
 
@@ -2356,7 +2354,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 			char *sname = ReadString(stream);
 			int argn = ReadByte(stream);
 
-			RunScript(stream, players[player].mo, -FName(sname), argn & 127, !!(argn & 128));
+			RunScript(stream, players[player].mo, -FName(sname), argn & 127, (argn & 128) ? ACS_ALWAYS : 0);
 		}
 		break;
 
@@ -2502,9 +2500,9 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 }
 
 // Used by DEM_RUNSCRIPT, DEM_RUNSCRIPT2, and DEM_RUNNAMEDSCRIPT
-static void RunScript(BYTE **stream, APlayerPawn *pawn, int snum, int argn, bool always)
+static void RunScript(BYTE **stream, APlayerPawn *pawn, int snum, int argn, int always)
 {
-	int arg[3] = { 0, 0, 0 };
+	int arg[4] = { 0, 0, 0, 0 };
 	int i;
 	
 	for (i = 0; i < argn; ++i)
@@ -2515,8 +2513,7 @@ static void RunScript(BYTE **stream, APlayerPawn *pawn, int snum, int argn, bool
 			arg[i] = argval;
 		}
 	}
-	P_StartScript (pawn, NULL, snum, level.mapname, false,
-		arg[0], arg[1], arg[2], always, false, true);
+	P_StartScript(pawn, NULL, snum, level.mapname, arg, MIN<int>(countof(arg), argn), ACS_NET);
 }
 
 void Net_SkipCommand (int type, BYTE **stream)

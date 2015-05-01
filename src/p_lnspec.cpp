@@ -1731,6 +1731,9 @@ FUNC(LS_ACS_Execute)
 // ACS_Execute (script, map, s_arg1, s_arg2, s_arg3)
 {
 	level_info_t *info;
+	const char *mapname = NULL;
+	int args[3] = { arg2, arg3, arg4 };
+	int flags = (backSide ? ACS_BACKSIDE : 0);
 
 	// [BC] If this script is client side, just let clients execute it themselves.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
@@ -1742,19 +1745,26 @@ FUNC(LS_ACS_Execute)
 
 	if (arg1 == 0)
 	{
-		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, false, false);
+		mapname = level.mapname;
 	}
-	else if ((info = FindLevelByNum (arg1)) )
+	else if ((info = FindLevelByNum(arg1)) != NULL)
 	{
-		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, false, false);
+		mapname = info->mapname;
 	}
-	else return false;
+	else
+	{
+		return false;
+	}
+	return P_StartScript(it, ln, arg0, mapname, args, 3, flags);
 }
 
 FUNC(LS_ACS_ExecuteAlways)
 // ACS_ExecuteAlways (script, map, s_arg1, s_arg2, s_arg3)
 {
 	level_info_t *info;
+	const char *mapname = NULL;
+	int args[3] = { arg2, arg3, arg4 };
+	int flags = (backSide ? ACS_BACKSIDE : 0) | ACS_ALWAYS;
 
 	// [BC] If this script is client side, just let clients execute it themselves.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
@@ -1766,13 +1776,17 @@ FUNC(LS_ACS_ExecuteAlways)
 
 	if (arg1 == 0)
 	{
-		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, true, false);
+		mapname = level.mapname;
 	}
-	else if ((info = FindLevelByNum (arg1)) )
+	else if ((info = FindLevelByNum(arg1)) != NULL)
 	{
-		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, true, false);
+		mapname = info->mapname;
 	}
-	else return false;
+	else
+	{
+		return false;
+	}
+	return P_StartScript(it, ln, arg0, mapname, args, 3, flags);
 }
 
 FUNC(LS_ACS_LockedExecute)
@@ -1794,11 +1808,14 @@ FUNC(LS_ACS_LockedExecuteDoor)
 }
 
 FUNC(LS_ACS_ExecuteWithResult)
-// ACS_ExecuteWithResult (script, s_arg1, s_arg2, s_arg3)
+// ACS_ExecuteWithResult (script, s_arg1, s_arg2, s_arg3, s_arg4)
 {
 	// This is like ACS_ExecuteAlways, except the script is always run on
 	// the current map, and the return value is whatever the script sets
 	// with SetResultValue.
+	int args[4] = { arg1, arg2, arg3, arg4 };
+	int flags = (backSide ? ACS_BACKSIDE : 0) | ACS_ALWAYS | ACS_WANTRESULT;
+
 	// [BC] If this script is client side, just let clients execute it themselves.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsScriptClientSide( arg0 )))
@@ -1807,7 +1824,7 @@ FUNC(LS_ACS_ExecuteWithResult)
 		return ( false );
 	}
 
-	return P_StartScript (it, ln, arg0, level.mapname, backSide, arg1, arg2, arg3, true, true);
+	return P_StartScript (it, ln, arg0, level.mapname, args, 4, flags);
 }
 
 FUNC(LS_ACS_Suspend)

@@ -150,7 +150,7 @@ struct ScriptPtr3
 // The intermediate ZDoom version
 struct ScriptPtr1
 {
-	WORD Number;
+	SWORD Number;
 	WORD Type;
 	DWORD Address;
 	DWORD ArgCount;
@@ -812,7 +812,7 @@ public:
 	};
 
 	DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
-		bool backSide, int arg0, int arg1, int arg2, int always);
+		const int *args, int argcount, int flags);
 	~DLevelScript ();
 
 	void Serialize (FArchive &arc);
@@ -932,7 +932,7 @@ struct acsdefered_t
 		defterminate
 	} type;
 	int script;
-	int arg0, arg1, arg2;
+	int args[3];
 	int playernum;
 };
 

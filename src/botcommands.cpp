@@ -2600,10 +2600,11 @@ static void botcmd_ACS_Execute( CSkullBot *pBot )
 	lScript = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
+	int arg[3] = { lArg1, lArg2, lArg3 };
 	if (( lMap == 0 ) || (( pLevelInfo = FindLevelByNum( lMap )) == false ))
-		P_StartScript( pBot->GetPlayer( )->mo, NULL, lScript, level.mapname, 0, lArg1, lArg2, lArg3, 0, false );
+		P_StartScript( pBot->GetPlayer( )->mo, NULL, lScript, level.mapname, arg, 3, 0 );
 	else
-		P_StartScript( pBot->GetPlayer( )->mo, NULL, lScript, pLevelInfo->mapname, 0, lArg1, lArg2, lArg3, 0, false );
+		P_StartScript( pBot->GetPlayer( )->mo, NULL, lScript, pLevelInfo->mapname, arg, 3, 0 );
 }
 
 //*****************************************************************************

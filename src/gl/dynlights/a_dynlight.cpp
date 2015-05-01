@@ -548,7 +548,7 @@ void ADynamicLight::CollectWithinRadius(subsector_t *subSec, float radius)
 		}
 
 		seg_t *partner = seg->PartnerSeg;
-		if (partner)
+		if (partner && level.maptime)
 		{
 			subsector_t *sub = partner->Subsector;
 			if (sub != NULL && sub->validcount!=::validcount)

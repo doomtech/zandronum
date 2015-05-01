@@ -300,8 +300,16 @@ void AActor::Serialize (FArchive &arc)
 		<< tracer
 		<< floorclip
 		<< tid
-		<< special
-		<< args[0] << args[1] << args[2] << args[3] << args[4]
+		<< special;
+	if (P_IsACSSpecial(special))
+	{
+		P_SerializeACSScriptNumber(arc, args[0], false);
+	}
+	else
+	{
+		arc << args[0];
+	}
+	arc << args[1] << args[2] << args[3] << args[4]
 		<< goal
 		<< waterlevel
 		<< MinMissileChance
@@ -4885,8 +4893,15 @@ AActor *Spawn (FName classname, fixed_t x, fixed_t y, fixed_t z, replace_t allow
 void AActor::LevelSpawned ()
 {
 	if (tics > 0 && !(flags4 & MF4_SYNCHRONIZED))
+	{
 		tics = 1 + (pr_spawnmapthing() % tics);
-	flags &= ~MF_DROPPED;		// [RH] clear MF_DROPPED flag
+	}
+	// [RH] Clear MF_DROPPED flag if the default version doesn't have it set.
+	// (AInventory::BeginPlay() makes all inventory items spawn with it set.)
+	if (!(GetDefault()->flags & MF_DROPPED))
+	{
+		flags &= ~MF_DROPPED;
+	}
 	HandleSpawnFlags ();
 
 	// [BC] Mark this item as having been spawned on the map.

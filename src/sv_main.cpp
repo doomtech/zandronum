@@ -6275,8 +6275,8 @@ static bool server_Puke( BYTESTREAM_s *pByteStream )
 	}
 
 	// [BB] Execute the script as if it was invoked by the puke command.
-	P_StartScript (players[g_lCurrentClient].mo, NULL, ulScript, level.mapname, false,
-		arg[0], arg[1], arg[2], bAlways, false, true);
+	P_StartScript (players[g_lCurrentClient].mo, NULL, ulScript, level.mapname,
+		arg, 3, ( bAlways ? ACS_ALWAYS : 0 ) | ACS_NET );
 
 	return ( false );
 }
