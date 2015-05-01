@@ -458,7 +458,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	if (!(currentmapsection[thing->subsector->mapsection>>3] & (1 << (thing->subsector->mapsection & 7)))) return;
 
 	// [BB] If the actor is supposed to be invisible to the player, skip it here.
-	if ( GAMEMODE_IsActorVisibleToConsoleplayersCamera( thing ) == false )
+	if ( !thing->IsVisibleToPlayer() )
 		return;
 
 	// [RH] Interpolate the sprite's position to make it look smooth

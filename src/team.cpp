@@ -1902,7 +1902,7 @@ bool TEAM_IsActorVisibleToPlayer( const AActor *pActor, player_t *pPlayer )
 		return true;
 
 	// [BB] Finally check the team restricion.
-	return TEAM_CheckTeamRestriction( pPlayer->ulTeam, pActor->ulVisibleToTeam );
+	return TEAM_CheckTeamRestriction( pPlayer->ulTeam, pActor->VisibleToTeam );
 }
 
 //*****************************************************************************

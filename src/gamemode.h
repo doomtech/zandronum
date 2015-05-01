@@ -153,7 +153,6 @@ void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( BYTE Playerstate = PST_REBORNNO
 void		GAMEMODE_RespawnAllPlayers( BOTEVENT_e BotEvent = NUM_BOTEVENTS, playerstate_t PlayerState = PST_ENTER );
 void		GAMEMODE_SpawnPlayer( const ULONG ulPlayer, bool bClientUpdate = true );
 void		GAMEMODE_ResetPlayersKillCount( const bool bInformClients );
-bool		GAMEMODE_IsActorVisibleToConsoleplayersCamera( const AActor* pActor );
 bool		GAMEMODE_AreSpectatorsFordiddenToChatToPlayers( void );
 bool		GAMEMODE_IsClientFordiddenToChatToPlayers( const ULONG ulClient );
 bool		GAMEMODE_PreventPlayersFromJoining( ULONG ulExcludePlayer = MAXPLAYERS );

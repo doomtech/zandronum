@@ -748,10 +748,10 @@ AInventory *AInventory::CreateTossable ()
 	{
 		copy->MaxAmount = MaxAmount;
 		copy->Amount = 1;
+		copy->DropTime = 30;
+		copy->flags &= ~(MF_SPECIAL|MF_SOLID);
 		Amount--;
 	}
-	copy->DropTime = 30;
-	copy->flags &= ~(MF_SPECIAL|MF_SOLID);
 	return copy;
 }
 

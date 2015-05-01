@@ -890,6 +890,8 @@ public:
 		return bloodcls;
 	}
 
+	bool IsVisibleToPlayer() const;
+
 	// Calculate amount of missile damage
 	virtual int GetMissileDamage(int mask, int add);
 
@@ -944,16 +946,12 @@ public:
 	DWORD			flags5;			// OMG! We need another one.
 	DWORD			flags6;			// Shit! Where did all the flags go?
 
+	// [BB] If 0, everybody can see the actor, if > 0, only members of team (VisibleToTeam-1) can see it.
+	DWORD			VisibleToTeam;
+
 	// [BB] If 0, not limited to any team, if > 0, limited to the team with number (ulLimitedToTeam-1).
 	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
 	unsigned int	ulLimitedToTeam;
-
-	// [BB] If 0, everybody can see the actor, if > 0, only members of team (ulVisibleToTeam-1) can see it.
-	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
-	unsigned int	ulVisibleToTeam;
-
-	// [BB] If NAME_None, all players can see the actor, else only players whose playerclass name is VisibleToPlayerClass can see it.
-	FNameNoInit		VisibleToPlayerClass;
 
 	// [BC] A new set of flags that ST uses.
 	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore

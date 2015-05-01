@@ -1254,16 +1254,19 @@ DEFINE_PROPERTY(limitedtoteam, I, Actor)
 DEFINE_PROPERTY(visibletoteam, I, Actor)
 {
 	PROP_INT_PARM(i, 0);
-	defaults->ulVisibleToTeam=i+1;
+	defaults->VisibleToTeam=i+1;
 }
 
 //==========================================================================
 // [BB]
 //==========================================================================
-DEFINE_PROPERTY(visibletoplayerclass, S, Actor)
+DEFINE_PROPERTY(visibletoplayerclass, S_s, Actor)
 {
-	PROP_STRING_PARM(n, 0);
-	defaults->VisibleToPlayerClass = n;
+	for(int i = 0;i < PROP_PARM_COUNT;++i)
+	{
+		PROP_STRING_PARM(n, i);
+		info->VisibleToPlayerClass.Push(FindClassTentative(n, "PlayerPawn"));
+	}
 }
 
 //==========================================================================

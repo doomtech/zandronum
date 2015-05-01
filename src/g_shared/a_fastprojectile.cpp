@@ -30,6 +30,7 @@ void AFastProjectile::Tick ()
 	PrevX = x;
 	PrevY = y;
 	PrevZ = z;
+	fixed_t oldz = z;
 	PrevAngle = angle;
 
 	if (!(flags5 & MF5_NOTIMEFREEZE))
@@ -101,6 +102,8 @@ void AFastProjectile::Tick ()
 				}
 			}
 			z += zfrac;
+			UpdateWaterLevel (oldz);
+			oldz = z;
 			if (z <= floorz)
 			{ // Hit the floor
 
