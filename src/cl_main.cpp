@@ -4165,6 +4165,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	const bool bPlayerWasMorphed = ( pPlayer->morphTics != 0 );
 	pPlayer->morphTics = 0;
 	pPlayer->extralight = 0;
+	pPlayer->MorphedPlayerClass = NULL;
 	pPlayer->fixedcolormap = NOFIXEDCOLORMAP;
 	pPlayer->fixedlightlevel = -1;
 	pPlayer->viewheight = pPlayer->mo->ViewHeight;
@@ -4244,6 +4245,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		// [BB] This marks the player as morphed. The client doesn't need to know the real
 		// morph time since the server handles the timing of the unmorphing.
 		pPlayer->morphTics = -1;
+		// [EP] Still, assign the current class pointer, because it's used by the status bar
+		pPlayer->MorphedPlayerClass = pType;
 	}
 	else
 	{
