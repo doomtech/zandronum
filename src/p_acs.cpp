@@ -2918,7 +2918,7 @@ void DACSThinker::Serialize (FArchive &arc)
 	}
 	else
 	{
-		WORD scriptnum;
+		/*WORD*/ int scriptnum; // [TP] Changed from WORD to int because the code above did the same
 		DLevelScript *script = NULL;
 		arc << script;
 		while (script)
