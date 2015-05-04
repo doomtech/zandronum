@@ -31,7 +31,7 @@
 -	- Fixed: Players were kicked for excessive movement commands instead of simply ignoring the excessive commands. [Torr Samaho]
 -	- Fixed: clients were not informed of some actor flag modifications with A_ChangeFlag. [Edward-san]
 -	- Fixed: Trying to record client demos on some mods, e.g. duel32c_st.pk3, caused the client to error out. [Torr Samaho]
--	- Fixed: A_FadeOut did not work for actors which don't have a network id. [Dusk, Edward-san] 
+-	- Fixed: A_FadeIn and A_FadeOut did not work for actors which don't have a network id. [Dusk, Edward-san]
 !	- Make the crash log unique for SDL platforms by appending the timestamp to the file name. [Edward-san, Dusk]
 !	- The Linux executables now will be able to generate a core dump in case a crash happens. [Edward-san]
 !	- Railgun attacks no longer always pierce armor. The Skulltag railgun in skulltag_actors.pk3 continues to do so, however, through use of +PIERCEARMOR. [Dusk]
