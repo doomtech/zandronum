@@ -630,17 +630,29 @@ void APlayerPawn::SetupWeaponSlots()
 	if (player != NULL && player->mo == this)
 	{
 		player->weapons.StandardSetup(GetClass());
+		// If we're the local player, then there's a bit more work to do.
+		// This also applies if we're a bot and this is the net arbitrator.
 		// [BB] Since ST doesn't use the DEM_* stuff let clients do this
 		// for all players. Otherwise the KEYCONF lump would be completely ignored
 		// on clients for all players other than the consoleplayer.
 		if ( (player - players == consoleplayer) || NETWORK_InClientMode() )
-		{ // If we're the local player, then there's a bit more work to do.
+			// (player->isbot && consoleplayer == Net_Arbitrator)) // [BB] Zandronum treats bots differently.
+		{
 			FWeaponSlots local_slots(player->weapons);
-			local_slots.LocalSetup(GetClass());
+			/*  [BB] Zandronum treats bots differently.
+			if (player->isbot)
+			{ // Bots only need weapons from KEYCONF, not INI modifications.
+				P_PlaybackKeyConfWeapons(&local_slots);
+			}
+			else
+			*/
+			{
+				local_slots.LocalSetup(GetClass());
+			}
 			// [BB] SendDifferences uses DEM_* stuff, that ST never uses in
 			// multiplayer games, so we have to handle this differently.
 			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-				local_slots.SendDifferences(player->weapons);
+				local_slots.SendDifferences(int(player - players), player->weapons);
 			else
 				player->weapons = local_slots;
 		}

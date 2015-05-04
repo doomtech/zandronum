@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.5.0"
-#define ZD_SVN_REVISION_STRING "3461"
-#define ZD_SVN_REVISION_NUMBER 3461
+#define ZD_SVN_REVISION_STRING "3468"
+#define ZD_SVN_REVISION_NUMBER 3468
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -97,7 +97,7 @@ unsigned int GetRevisionNumber();
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x218
+#define DEMOGAMEVERSION 0x219
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
