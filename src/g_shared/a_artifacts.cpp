@@ -1579,8 +1579,7 @@ void APowerDamage::ModifyDamage(int damage, FName damageType, int &newdamage, bo
 		DmgFactors * df = GetClass()->ActorInfo->DamageFactors;
 		if (df != NULL && df->CountUsed() != 0)
 		{
-			pdf = df->CheckKey(damageType);
-			if (pdf== NULL && damageType != NAME_None) pdf = df->CheckKey(NAME_None);
+			pdf = df->CheckFactor(damageType);
 		}
 		else
 		{
@@ -1660,8 +1659,7 @@ void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage
 		DmgFactors *df = GetClass()->ActorInfo->DamageFactors;
 		if (df != NULL && df->CountUsed() != 0)
 		{
-			pdf = df->CheckKey(damageType);
-			if (pdf == NULL && damageType != NAME_None) pdf = df->CheckKey(NAME_None);
+			pdf = df->CheckFactor(damageType);
 		}
 		else pdf = &def;
 
