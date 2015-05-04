@@ -627,9 +627,6 @@ public:
 	// [BC] Create this object for this new client entering the game.
 	void UpdateToClient( ULONG ulClient );
 
-	// [BC] Make this public so clients can call it.
-	void DoorSound (bool raise) const;
-
 	// [BC] Access function(s).
 	int		GetDirection( void );
 	void	SetDirection( LONG lDirection );
@@ -663,6 +660,11 @@ protected:
 	int 		m_TopCountdown;
 
 	int			m_LightTag;
+
+	// [BC] Make this public so clients can call it.
+public:
+	void DoorSound (bool raise, class DSeqNode *curseq=NULL) const;
+protected:
 
 	// [BC] This is the door's unique network ID.
 	// [EP] TODO: remove the 'l' prefix from this variable, it isn't LONG anymore

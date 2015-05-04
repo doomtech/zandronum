@@ -3890,6 +3890,16 @@ void player_t::Serialize (FArchive &arc)
 	// [BL] is the player unarmed?
 	arc << bUnarmed;
 
+	if (SaveVersion >= 3475)
+	{
+		arc << poisontype << poisonpaintype;
+	}
+	else if (poisoner != NULL)
+	{
+		poisontype = poisoner->DamageType;
+		poisonpaintype = poisoner->PainType != NAME_None ? poisoner->PainType : poisoner->DamageType;
+	}
+
 	if (arc.IsLoading ())
 	{
 		// If the player reloaded because they pressed +use after dying, we

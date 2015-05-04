@@ -1925,6 +1925,15 @@ bool P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poi
 	{
 		player->poisoncount += poison;
 		player->poisoner = source;
+		if (poisoner == NULL)
+		{
+			player->poisontype = player->poisonpaintype = NAME_None;
+		}
+		else
+		{ // We need to record these in case the poisoner disappears before poisoncount reaches 0.
+			player->poisontype = poisoner->DamageType;
+			player->poisonpaintype = poisoner->PainType != NAME_None ? poisoner->PainType : poisoner->DamageType;
+		}
 		if(player->poisoncount > 100)
 		{
 			player->poisoncount = 100;
@@ -1976,12 +1985,12 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 		&& (G_SkillProperty(SKILLP_AutoUseHealth) || deathmatch)
 		&& !player->morphTics)
 	{ // Try to use some inventory health
-		P_AutoUseHealth (player, damage - player->health+1);
+		P_AutoUseHealth(player, damage - player->health+1);
 	}
 	player->health -= damage; // mirror mobj health here for Dave
 	if (player->health < 50 && !deathmatch)
 	{
-		P_AutoUseStrifeHealth (player);
+		P_AutoUseStrifeHealth(player);
 	}
 	if (player->health < 0)
 	{
@@ -1999,34 +2008,39 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	target->health -= damage;
 	if (target->health <= 0)
 	{ // Death
-		if ( player->cheats & CF_BUDDHA )
+		if (player->cheats & CF_BUDDHA)
 		{ // [SP] Save the player... 
 			player->health = target->health = 1;
 		}
 		else
 		{
 			target->special1 = damage;
-			if (player && inflictor && !player->morphTics)
+			if (player && !player->morphTics)
 			{ // Check for flame death
-				if ((inflictor->DamageType == NAME_Fire)
-					&& (target->health > -50) && (damage > 25))
+				if ((player->poisontype == NAME_Fire) && (target->health > -50) && (damage > 25))
 				{
 					target->DamageType = NAME_Fire;
 				}
-				else target->DamageType = inflictor->DamageType;
+				else
+				{
+					target->DamageType = player->poisontype;
+				}
 			}
-			target->Die (source, source);
+			target->Die(source, source);
 			return;
 		}
 	}
 	if (!(level.time&63) && playPainSound)
 	{
-		// If we are the server, tell clients about the state change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
+		FState *painstate = target->FindState(NAME_Pain, player->poisonpaintype);
+		if (painstate != NULL)
+		{
+			// [BB] If we are the server, tell clients about the state change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( target, painstate );
 
-		FState * painstate = target->FindState(NAME_Pain,((inflictor && inflictor->PainType != NAME_None) ? inflictor->PainType : target->DamageType));
-			if (painstate != NULL) target->SetState (painstate);
+			target->SetState(painstate);
+		}
 	}
 /*
 	if((P_Random() < target->info->painchance)
