@@ -3213,9 +3213,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		{
 			if (look == -32768 << 16)
 			{ // center view
-				player->mo->pitch = 0;
+				player->centering = true;
 			}
-			else
+			else if (!player->centering)
 			{
 				fixed_t oldpitch = player->mo->pitch;
 				player->mo->pitch -= look;
@@ -3471,6 +3471,22 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 						}
 					}
 				}
+			}
+		}
+	}
+	if (player->centering)
+	{
+		if (abs(player->mo->pitch) > 2*ANGLE_1)
+		{
+			player->mo->pitch = FixedMul(player->mo->pitch, FRACUNIT*2/3);
+		}
+		else
+		{
+			player->mo->pitch = 0;
+			player->centering = false;
+			if (player - players == consoleplayer)
+			{
+				LocalViewPitch = 0;
 			}
 		}
 	}

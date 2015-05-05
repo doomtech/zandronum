@@ -3316,9 +3316,9 @@ void P_NightmareRespawn (AActor *mobj)
 	mo = AActor::StaticSpawn(RUNTIME_TYPE(mobj), x, y, z, NO_REPLACE, true);
 
 	if (z == ONFLOORZ)
-		mo->z += mo->SpawnPoint[2];
+		mo->z += mobj->SpawnPoint[2];
 	else if (z == ONCEILINGZ)
-		mo->z -= mo->SpawnPoint[2];
+		mo->z -= mobj->SpawnPoint[2];
 
 	// something is occupying its position?
 	if (!P_TestMobjLocation (mo))
@@ -3330,8 +3330,10 @@ void P_NightmareRespawn (AActor *mobj)
 		return;		// no respawn
 	}
 
-	z = mo->z;
+	// If there are 3D floors, we need to find floor/ceiling again.
+	P_FindFloorCeiling(mo);
 
+	z = mo->z;
 
 	// inherit attributes from deceased one
 	mo->SpawnPoint[0] = mobj->SpawnPoint[0];

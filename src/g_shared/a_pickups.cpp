@@ -103,7 +103,14 @@ bool AAmmo::HandlePickup (AInventory *item)
 			}
 			int oldamount = Amount;
 
-			Amount += receiving;
+			if (Amount > 0 && Amount + receiving < 0)
+			{
+				Amount = 0x7fffffff;
+			}
+			else
+			{
+				Amount += receiving;
+			}
 			if (Amount > MaxAmount && !sv_unlimited_pickup)
 			{
 				Amount = MaxAmount;
@@ -442,6 +449,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialPosition)
 			self->z += FloatBobOffsets[(self->FloatBobPhase + level.maptime) & 63];
 		}
 	}
+	// Redo floor/ceiling check, now with 3D floors
+	P_FindFloorCeiling(self);
 }
 
 
@@ -605,7 +614,15 @@ bool AInventory::HandlePickup (AInventory *item)
 	{
 		if (Amount < MaxAmount || sv_unlimited_pickup)
 		{
-			Amount += item->Amount;
+			if (Amount > 0 && Amount + item->Amount < 0)
+			{
+				Amount = 0x7fffffff;
+			}
+			else
+			{
+				Amount += item->Amount;
+			}
+		
 			if (Amount > MaxAmount && !sv_unlimited_pickup)
 			{
 				Amount = MaxAmount;

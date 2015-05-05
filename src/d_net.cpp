@@ -2073,10 +2073,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 		break;
 
 	case DEM_CENTERVIEW:
-		if (players[player].mo != NULL)
-		{
-			players[player].mo->pitch = 0;
-		}
+		players[player].centering = true;
 		break;
 
 	case DEM_INVUSEALL:
