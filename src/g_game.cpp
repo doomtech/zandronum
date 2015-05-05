@@ -1377,6 +1377,9 @@ void G_Ticker ()
 			G_DoAutoSave ();
 			gameaction = ga_nothing;
 			break;
+		case ga_loadgameplaydemo:
+			G_DoLoadGame ();
+			// fallthrough
 		case ga_playdemo:
 			G_DoPlayDemo ();
 			break;
@@ -4908,7 +4911,7 @@ FString defdemoname;
 void G_DeferedPlayDemo (const char *name)
 {
 	defdemoname = name;
-	gameaction = ga_playdemo;
+	gameaction = (gameaction == ga_loadgame) ? ga_loadgameplaydemo : ga_playdemo;
 }
 
 extern bool advancedemo;
@@ -5011,7 +5014,11 @@ bool G_ProcessIFFDemo (char *mapname)
 			mapname[8] = 0;
 			demo_p += 8;
 			rngseed = ReadLong (&demo_p);
-			FRandom::StaticClearRandom ();
+			// Only reset the RNG if this demo is not in conjunction with a savegame.
+			if (mapname[0] != 0)
+			{
+				FRandom::StaticClearRandom ();
+			}
 			consoleplayer = *demo_p++;
 			break;
 
@@ -5156,7 +5163,10 @@ void G_DoPlayDemo (void)
 		// don't spend a lot of time in loadlevel 
 		precache = false;
 		demonew = true;
-		G_InitNew (mapname, false);
+		if (mapname[0] != 0)
+		{
+			G_InitNew (mapname, false);
+		}
 		C_HideConsole ();
 		demonew = false;
 		precache = true;
@@ -5177,7 +5187,7 @@ void G_TimeDemo (const char* name)
 	singletics = true;
 
 	defdemoname = name;
-	gameaction = ga_playdemo;
+	gameaction = (gameaction == ga_loadgame) ? ga_loadgameplaydemo : ga_playdemo;
 }
 
 
