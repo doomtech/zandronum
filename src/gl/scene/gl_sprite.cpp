@@ -885,7 +885,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	{
 		Colormap.GetFixedColormap();
 	}
-	else
+	else if (!particle->bright)
 	{
 		TArray<lightlist_t> & lightlist=sector->e->XFloor.lightlist;
 		int lightbottom;
@@ -903,6 +903,12 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 				break;
 			}
 		}
+	}
+	else
+	{
+		lightlevel = 255;
+		Colormap = sector->ColorMap;
+		Colormap.ClearColor();
 	}
 
 	trans=particle->trans/255.0f;

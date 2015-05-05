@@ -1907,7 +1907,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 		slope = pr_crailgun.Random2() * (Spread_Z / 255);
 	}
 
-	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, (Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)), angle, slope, Range, (Flags & RAF_FULLBRIGHT), Duration, Sparsity, DriftSpeed, SpawnClass);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, !!(Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)), angle, slope, Range, !!(Flags & RAF_FULLBRIGHT), Duration, Sparsity, DriftSpeed, SpawnClass);
 }
 
 //==========================================================================
@@ -2025,7 +2025,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomRailgun)
 		slopeoffset = pr_crailgun.Random2() * (Spread_Z / 255);
 	}
 
-	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, (Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)), angleoffset, slopeoffset, Range, (Flags & RAF_FULLBRIGHT), Duration, Sparsity, DriftSpeed, SpawnClass);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, !!(Flags & RAF_SILENT), PuffType, (!(Flags & RAF_NOPIERCE)), angleoffset, slopeoffset, Range, !!(Flags & RAF_FULLBRIGHT), Duration, Sparsity, DriftSpeed, SpawnClass);
 
 	self->x = saved_x;
 	self->y = saved_y;
