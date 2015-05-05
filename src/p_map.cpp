@@ -1688,7 +1688,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 //
 //==========================================================================
 
-bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
+bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bool actorsonly)
 {
 	sector_t *newsec;
 	AActor *thingblocker;
@@ -1831,7 +1831,7 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 
 	thing->BlockingMobj = NULL;
 	thing->height = realheight;
-	if (thing->flags & MF_NOCLIP)
+	if (actorsonly || (thing->flags & MF_NOCLIP))
 		return (thing->BlockingMobj = thingblocker) == NULL;
 
 	FBlockLinesIterator it(box);
@@ -1867,10 +1867,10 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	return (thing->BlockingMobj = thingblocker) == NULL;
 }
 
-bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y)
+bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, bool actorsonly)
 {
 	FCheckPosition tm;
-	return P_CheckPosition(thing, x, y, tm);
+	return P_CheckPosition(thing, x, y, tm, actorsonly);
 }
 
 //----------------------------------------------------------------------------

@@ -1395,11 +1395,6 @@ void DBaseStatusBar::Draw (EHudState state)
 			}
 		}
 	}
-
-	if (noisedebug)
-	{
-		S_NoiseDebug ();
-	}
 }
 
 
@@ -1575,6 +1570,11 @@ void DBaseStatusBar::DrawTopStuff (EHudState state)
 
 	// [BB] Possibly draw info of the other players (health, armor, ...)
 	DrawHUD_CoopInfo();
+
+	if (noisedebug)
+	{
+		S_NoiseDebug ();
+	}
 }
 
 //---------------------------------------------------------------------------

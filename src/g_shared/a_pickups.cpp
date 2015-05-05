@@ -449,8 +449,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialPosition)
 			self->z += FloatBobOffsets[(self->FloatBobPhase + level.maptime) & 63];
 		}
 	}
-	// Redo floor/ceiling check, now with 3D floors
-	P_FindFloorCeiling(self);
+	// Redo floor/ceiling check, in case of 3D floors
+	P_FindFloorCeiling(self, true);
+	if (self->z < self->floorz)
+	{ // Do not reappear under the floor, even if that's where we were for the
+	  // initial spawn.
+		self->z = self->floorz;
+	}
 }
 
 
@@ -1614,6 +1619,9 @@ bool AInventory::TryPickupRestricted (AActor *&toucher)
 
 bool AInventory::CallTryPickup (AActor *toucher, AActor **toucher_return)
 {
+	// unmorphed versions of a currently morphed actor cannot pick up anything. 
+	if (toucher->flags & MF_UNMORPHED) return false;
+
 	bool res;
 	if (CanPickup(toucher))
 		res = TryPickup(toucher);

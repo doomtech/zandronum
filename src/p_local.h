@@ -411,8 +411,8 @@ extern TArray<line_t *> spechit;
 
 bool	P_TestMobjLocation (AActor *mobj);
 bool	P_TestMobjZ (AActor *mobj, bool quick=true, AActor **pOnmobj = NULL);
-bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm);
-bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y);
+bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bool actorsonly=false);
+bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, bool actorsonly=false);
 //bool	P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y);
 AActor	*P_CheckOnmobj (AActor *thing);
 void	P_FakeZMovement (AActor *mo);
@@ -443,7 +443,7 @@ bool	P_TalkFacing (AActor *player);
 void	P_UseLines (player_t* player);
 //void	P_UseItems (player_t* player);
 bool	P_UsePuzzleItem (AActor *actor, int itemType);
-void	P_FindFloorCeiling (AActor *actor, bool onlymidtex = false);
+void	P_FindFloorCeiling (AActor *actor, bool onlyspawnpos = false);
 
 bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 
