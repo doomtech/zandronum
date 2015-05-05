@@ -355,6 +355,7 @@ public:
 		bool bBrightmapDisablesFullbright:1;	// This disables fullbright display
 		bool bNoFilter:1;
 		bool bNoCompress:1;
+		bool mExpanded:1;
 
 		MiscGLInfo() throw ();
 		~MiscGLInfo();

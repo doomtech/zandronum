@@ -204,7 +204,7 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 			float result[3];
 			fixed_t x, y;
 			decal->GetXY(seg->sidedef, x, y);
-			gl_GetSpriteLight(NULL, x, y, zpos, sub, Colormap.colormap-CM_DESAT0, result);
+			gl_GetSpriteLight(NULL, x, y, zpos, sub, Colormap.colormap-CM_DESAT0, result, line, side == line->sidedef[0]? 0:1);
 			red = clamp<float>(result[0]+red, 0, 1.0f);
 			green = clamp<float>(result[1]+green, 0, 1.0f);
 			blue = clamp<float>(result[2]+blue, 0, 1.0f);

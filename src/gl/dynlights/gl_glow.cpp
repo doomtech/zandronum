@@ -41,6 +41,7 @@
 #include "w_wad.h"
 #include "sc_man.h"
 #include "v_video.h"
+#include "r_defs.h"
 #include "textures/textures.h"
 
 #include "gl/dynlights/gl_glow.h"
@@ -118,11 +119,13 @@ void gl_InitGlow(FScanner &sc)
 // Checks whether a sprite should be affected by a glow
 //
 //==========================================================================
-int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff)
+int gl_CheckSpriteGlow(sector_t *sec, int lightlevel, int x, int y, int z)
 {
+	FTextureID floorpic = sec->GetTexture(sector_t::floor);
 	FTexture *tex = TexMan[floorpic];
 	if (tex != NULL && tex->isGlowing())
 	{
+		fixed_t floordiff = z - sec->floorplane.ZatPoint(x, y);
 		if (floordiff < tex->gl_info.GlowHeight*FRACUNIT && tex->gl_info.GlowHeight != 0)
 		{
 			int maxlight = (255+lightlevel)>>1;

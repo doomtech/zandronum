@@ -63,7 +63,7 @@
 //
 //==========================================================================
 
-bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
+bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out, line_t *line, int side)
 {
 	ADynamicLight *light;
 	float frac, lr, lg, lb;
@@ -91,6 +91,10 @@ bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 					
 					if (frac > 0)
 					{
+						if (line != NULL)
+						{
+							if (P_PointOnLineSide(x, y, line) != side) continue;
+						}
 						lr = light->GetRed() / 255.0f * gl_lights_intensity;
 						lg = light->GetGreen() / 255.0f * gl_lights_intensity;
 						lb = light->GetBlue() / 255.0f * gl_lights_intensity;

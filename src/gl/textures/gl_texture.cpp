@@ -235,6 +235,7 @@ FTexture::MiscGLInfo::MiscGLInfo() throw()
 	bBrightmapDisablesFullbright = false;
 	bNoFilter = false;
 	bNoCompress = false;
+	mExpanded = false;
 	areas = NULL;
 	areacount = 0;
 	mIsTransparent = -1;

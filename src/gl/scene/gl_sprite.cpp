@@ -688,7 +688,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			rendersector->GetCeilingLight() : rendersector->GetFloorLight());
 	foglevel = (BYTE)clamp<short>(rendersector->lightlevel, 0, 255);
 
-	lightlevel = (byte)gl_CheckSpriteGlow(rendersector->GetTexture(sector_t::floor), lightlevel, thingz-thing->floorz);
+	lightlevel = (byte)gl_CheckSpriteGlow(rendersector, lightlevel, thingx, thingy, thingz);
 
 	// colormap stuff is a little more complicated here...
 	if (gl_fixedcolormap) 

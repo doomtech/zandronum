@@ -263,7 +263,11 @@ void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 	bool fadewall = (!translucent && lightlist->caster && (lightlist->caster->flags&FF_FADEWALLS) && 
 		!gl_isBlack((lightlist->extra_colormap)->Fade)) && gl_isBlack(Colormap.FadeColor);
 
-	lightlevel=*lightlist->p_lightlevel;
+	// only modify the light level if it doesn't originate from the seg's frontsector. This is to account for light transferring effects
+	if (lightlist->p_lightlevel != &seg->sidedef->sector->lightlevel)
+	{
+		lightlevel = gl_ClampLight(*lightlist->p_lightlevel);
+	}
 	// relative light won't get changed here. It is constant across the entire wall.
 
 	Colormap.CopyLightColor(lightlist->extra_colormap);
@@ -298,6 +302,7 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	float maplightbottomleft;
 	float maplightbottomright;
 	unsigned int i;
+	int origlight = lightlevel;
 	TArray<lightlist_t> & lightlist=frontsector->e->XFloor.lightlist;
 
 	if (glseg.x1==glseg.x2 && glseg.y1==glseg.y2)
@@ -516,7 +521,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->ceilingplane, true);
 
-				if(!(fs->GetFlags(sector_t::ceiling)&PLANEF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::ceiling)&PLANEF_ABSLIGHTING)) hi.lightlevel = gl_ClampLight(*light->p_lightlevel);
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
@@ -545,7 +550,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			{
 				light = P_GetPlaneLight(fs, &fs->floorplane, false);
 
-				if(!(fs->GetFlags(sector_t::floor)&PLANEF_ABSLIGHTING)) hi.lightlevel = *light->p_lightlevel;
+				if(!(fs->GetFlags(sector_t::floor)&PLANEF_ABSLIGHTING)) hi.lightlevel = gl_ClampLight(*light->p_lightlevel);
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 

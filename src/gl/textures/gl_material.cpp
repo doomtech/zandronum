@@ -669,23 +669,25 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 	if (tx->bHasCanvas) tx->gl_info.mIsTransparent = 0;
 	tex = tx;
 
-	FTexture *basetex;
-	if (!expanded)
+	tx->gl_info.mExpanded = expanded;
+	FTexture *basetex = tx->GetRedirect(gl.shadermodel < 4);
+	if (expanded == basetex->gl_info.mExpanded)
 	{
 		// check if the texture is just a simple redirect to a patch
 		// If so we should use the patch for texture creation to
-		// avoid eventual redundancies. For textures that need to
-		// be expanded at the edges this may not be done though.
-		// Warping can be ignored with SM4 because it's always done
-		// by shader
-		basetex = tx->GetRedirect(gl.shadermodel < 4);
+		// avoid eventual redundancies. 
+		// This may only be done if both textures use the same expansion mode
 		mBaseLayer = ValidateSysTexture(basetex, expanded);
+	}
+	else if (!expanded)
+	{
+		// if we got a non-expanded texture that redirects to an expanded one
+		mBaseLayer = ValidateSysTexture(tx, false);
 	}
 	else
 	{
 		// a little adjustment to make sprites look better with texture filtering:
 		// create a 1 pixel wide empty frame around them.
-		basetex = tx;
 		RenderWidth[GLUSE_PATCH]+=2;
 		RenderHeight[GLUSE_PATCH]+=2;
 		Width[GLUSE_PATCH]+=2;
@@ -699,7 +701,7 @@ FMaterial::FMaterial(FTexture * tx, bool forceexpand)
 		spriteright = SpriteU[1] = Width[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Width[GLUSE_PATCH]);
 		spritebottom = SpriteV[1] = Height[GLUSE_PATCH] / (float)FHardwareTexture::GetTexDimension(Height[GLUSE_PATCH]);
 
-		mBaseLayer = ValidateSysTexture(basetex, expanded);
+		mBaseLayer = ValidateSysTexture(tx, true);
 
 		if (gl.flags & RFL_NPOT_TEXTURE)	// trimming only works if non-power-of-2 textures are supported
 		{
