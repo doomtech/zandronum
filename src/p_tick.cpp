@@ -109,7 +109,13 @@ void P_Ticker (void)
 		// run the tic
 		if (paused || P_CheckTickerPaused())
 			return;
+	}
 
+	P_NewPspriteTick();
+
+	// [BC] Server doesn't need any of this.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
 /*		// [BB] ST doesn't do this.
 		// [RH] Frozen mode is only changed every 4 tics, to make it work with A_Tracer().
 		if ((level.time & 3) == 0)

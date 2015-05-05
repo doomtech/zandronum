@@ -285,8 +285,9 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 			}
 			if (sclipTop <= frontsector->e->XFloor.lightlist[i].plane.ZatPoint(viewx, viewy))
 			{
-				basecolormap = frontsector->e->XFloor.lightlist[i].extra_colormap;
-				wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(foggy, *frontsector->e->XFloor.lightlist[i].p_lightlevel) + r_actualextralight);
+				lightlist_t *lit = &frontsector->e->XFloor.lightlist[i];
+				basecolormap = lit->extra_colormap;
+				wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(foggy, *lit->p_lightlevel, lit->lightsource == NULL) + r_actualextralight);
 				break;
 			}
 		}
@@ -1222,6 +1223,7 @@ void wallscan_striped (int x1, int x2, short *uwal, short *dwal, fixed_t *swal, 
 			up = down;
 			down = (down == most1) ? most2 : most1;
 		}
+
 		lightlist_t *lit = &frontsector->e->XFloor.lightlist[i];
 		basecolormap = lit->extra_colormap;
 		wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(fogginess,

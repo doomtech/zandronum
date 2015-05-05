@@ -983,7 +983,6 @@ CUSTOM_CVAR(Int, r_fakecontrast, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 //
 //==========================================================================
 
-// [BB] This contains changes backported from ZDoom revision 3499.
 int side_t::GetLightLevel (bool foggy, int baselight, bool noabsolute, int *pfakecontrast) const
 {
 	if (!noabsolute && (Flags & WALLF_ABSLIGHTING))

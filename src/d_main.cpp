@@ -3039,6 +3039,7 @@ void D_DoomMain (void)
 				}
 
 				V_Init2();
+				UpdateJoystickMenu(NULL);
 
 				v = Args->CheckValue ("-loadgame");
 				if (v)
