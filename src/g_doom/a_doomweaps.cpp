@@ -43,7 +43,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Punch)
 	if (self->player != NULL)
 	{
 		AWeapon *weapon = self->player->ReadyWeapon;
-		if (weapon != NULL)
+		if (weapon != NULL && !(weapon->WeaponFlags & WIF_DEHAMMO))
 		{
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
@@ -125,7 +125,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 		AWeapon *weapon = self->player->ReadyWeapon;
 		if (weapon != NULL)
 		{
-			if (!weapon->DepleteAmmo (weapon->bAltFire))
+			if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 				return;
 
 			P_SetPsprite (self->player, ps_flash, weapon->FindState(NAME_Flash));
@@ -242,9 +242,15 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	angle = self->angle + (pr_saw.Random2() * (Spread_XY / 255));
 	slope = P_AimLineAttack (self, angle, Range, &linetarget) + (pr_saw.Random2() * (Spread_Z / 255));
 
-	P_LineAttack (self, angle, Range,
-				  slope, damage,
-				  NAME_None, pufftype);
+
+	AWeapon *weapon = self->player->ReadyWeapon;
+	if ((weapon != NULL) && !(Flags & SF_NOUSEAMMO) && !(!linetarget && (Flags & SF_NOUSEAMMOMISS)) && !(weapon->WeaponFlags & WIF_DEHAMMO))
+	{
+		if (!weapon->DepleteAmmo (weapon->bAltFire))
+			return;
+	}
+
+	P_LineAttack (self, angle, Range, slope, damage, NAME_None, pufftype);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
@@ -263,13 +269,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 		PLAYER_StruckPlayer( self->player );
 	else
 		self->player->ulConsecutiveHits = 0;
-
-	AWeapon *weapon = self->player->ReadyWeapon;
-	if ((weapon != NULL) && !(Flags & SF_NOUSEAMMO) && !(!linetarget && (Flags & SF_NOUSEAMMOMISS)))
-	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
-			return;
-	}
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 //	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -366,7 +365,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 		P_SetPsprite (player, ps_flash, weapon->FindState(NAME_Flash));
 	}
@@ -442,7 +441,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 2))
 			return;
 		P_SetPsprite (player, ps_flash, weapon->FindState(NAME_Flash));
 	}
@@ -634,7 +633,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireCGun)
 	AWeapon *weapon = player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 		
 		S_Sound (self, CHAN_WEAPON, "weapons/chngun", 1, ATTN_NORM);
@@ -713,7 +712,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMissile)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 	}
 
@@ -832,7 +831,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePlasma)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 
 		FState *flash = weapon->FindState(NAME_Flash);
@@ -878,7 +877,7 @@ static void FireRailgun(AActor *self, int RailOffset)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 
 		FState *flash = weapon->FindState(NAME_Flash);
@@ -966,7 +965,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBFG)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, deh.BFGCells))
 			return;
 	}
 
@@ -1102,7 +1101,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireOldBFG)
 	AWeapon *weapon = self->player->ReadyWeapon;
 	if (weapon != NULL)
 	{
-		if (!weapon->DepleteAmmo (weapon->bAltFire))
+		if (!weapon->DepleteAmmo (weapon->bAltFire, true, 1))
 			return;
 	}
 	self->player->extralight = 2;

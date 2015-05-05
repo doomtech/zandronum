@@ -123,7 +123,7 @@ void ABasicArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 {
 	int saved;
 
-	if (damageType != NAME_Drowning)
+	if (!DamageTypeDefinition::IgnoreArmor(damageType))
 	{
 		int full = MAX(0, MaxFullAbsorb - AbsorbCount);
 		if (damage < full)
@@ -549,7 +549,7 @@ void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 {
 	bool bAbsorbed = false; // [Dusk]
 
-	if (damageType != NAME_Drowning)
+	if (!DamageTypeDefinition::IgnoreArmor(damageType))
 	{
 		fixed_t savedPercent = Slots[0] + Slots[1] + Slots[2] + Slots[3] + Slots[4];
 

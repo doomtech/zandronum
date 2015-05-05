@@ -156,6 +156,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SorcererRise)
 	}
 
 	mo = Spawn("Sorcerer2", self->x, self->y, self->z, ALLOW_REPLACE);
+	mo->Translation = self->Translation;
 	mo->SetState (mo->FindState("Rise"));
 	mo->angle = self->angle;
 	mo->CopyFriendliness (self, true);
@@ -201,6 +202,7 @@ void P_DSparilTeleport (AActor *actor)
 	if (P_TeleportMove (actor, spot->x, spot->y, spot->z, false))
 	{
 		mo = Spawn("Sorcerer2Telefade", prevX, prevY, prevZ, ALLOW_REPLACE);
+		if (mo) mo->Translation = actor->Translation;
 		S_Sound (mo, CHAN_BODY, "misc/teleport", 1, ATTN_NORM);
 
 		// [BC] Spawn the actor to clients and play the sound.

@@ -559,11 +559,12 @@ bool AWeapon::ShouldStay ()
 //
 //===========================================================================
 
-bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
+bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo, int ammocount)
 {
 	int altFire;
 	int count1, count2;
 	int enough, enoughmask;
+	int lAmmoUse1;
 
 	if ((dmflags & DF_INFINITE_AMMO) || (Owner->player->cheats & CF_INFINITEAMMO))
 	{
@@ -586,7 +587,16 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 	count1 = (Ammo1 != NULL) ? Ammo1->Amount : 0;
 	count2 = (Ammo2 != NULL) ? Ammo2->Amount : 0;
 
-	enough = (count1 >= AmmoUse1) | ((count2 >= AmmoUse2) << 1);
+	if (ammocount >= 0 && (WeaponFlags & WIF_DEHAMMO))
+	{
+		lAmmoUse1 = ammocount;
+	}
+	else
+	{
+		lAmmoUse1 = AmmoUse1;
+	}
+
+	enough = (count1 >= lAmmoUse1) | ((count2 >= AmmoUse2) << 1);
 	if (WeaponFlags & (WIF_PRIMARY_USES_BOTH << altFire))
 	{
 		enoughmask = 3;
@@ -628,11 +638,11 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 //
 //===========================================================================
 
-bool AWeapon::DepleteAmmo (bool altFire, bool checkEnough)
+bool AWeapon::DepleteAmmo (bool altFire, bool checkEnough, int ammouse)
 {
 	if (!((dmflags & DF_INFINITE_AMMO) || (Owner->player->cheats & CF_INFINITEAMMO)))
 	{
-		if (checkEnough && !CheckAmmo (altFire ? AltFire : PrimaryFire, false))
+		if (checkEnough && !CheckAmmo (altFire ? AltFire : PrimaryFire, false, false, ammouse))
 		{
 			return false;
 		}
@@ -640,7 +650,14 @@ bool AWeapon::DepleteAmmo (bool altFire, bool checkEnough)
 		{
 			if (Ammo1 != NULL)
 			{
-				Ammo1->Amount -= AmmoUse1;
+				if (ammouse >= 0 && (WeaponFlags & WIF_DEHAMMO))
+				{
+					Ammo1->Amount -= ammouse;
+				}
+				else
+				{
+					Ammo1->Amount -= AmmoUse1;
+				}
 			}
 			if ((WeaponFlags & WIF_PRIMARY_USES_BOTH) && Ammo2 != NULL)
 			{
@@ -794,6 +811,28 @@ FState *AWeapon::GetAltAtkState (bool hold)
 	if (hold) state = FindState(NAME_AltHold);
 	if (state == NULL) state = FindState(NAME_AltFire);
 	return state;
+}
+
+//===========================================================================
+//
+// AWeapon :: GetRelState
+//
+//===========================================================================
+
+FState *AWeapon::GetRelState ()
+{
+	return FindState(NAME_Reload);
+}
+
+//===========================================================================
+//
+// AWeapon :: GetZoomState
+//
+//===========================================================================
+
+FState *AWeapon::GetZoomState ()
+{
+	return FindState(NAME_Zoom);
 }
 
 /* Weapon giver ***********************************************************/
