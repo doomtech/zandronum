@@ -93,7 +93,11 @@ bool gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_
 					{
 						if (line != NULL)
 						{
-							if (P_PointOnLineSide(x, y, line) != side) continue;
+							if (P_PointOnLineSide(light->x, light->y, line) != side) 
+							{
+								node = node->nextLight;
+								continue;
+							}
 						}
 						lr = light->GetRed() / 255.0f * gl_lights_intensity;
 						lg = light->GetGreen() / 255.0f * gl_lights_intensity;
