@@ -5911,8 +5911,8 @@ int DLevelScript::RunScript ()
 	FRemapTable *translation = 0;
 	int resultValue = 1;
 
-	// Hexen truncates all special arguments to bytes.
-	const int specialargmask = (level.flags2 & LEVEL2_HEXENHACK) ? 255 : ~0;
+	// Hexen truncates all special arguments to bytes (only when using an old MAPINFO and old ACS format
+	const int specialargmask = ((level.flags2 & LEVEL2_HEXENHACK) && activeBehavior->GetFormat() == ACS_Old) ? 255 : ~0;
 
 	// [BB] Start to measure how much outbound net traffic this call of DLevelScript::RunScript() needs.
 	NETWORK_StartTrafficMeasurement ( );
