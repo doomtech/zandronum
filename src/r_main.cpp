@@ -302,7 +302,9 @@ void R_SetVisibility (float vis)
 	else
 		r_FloorVisibility = r_BaseVisibility;
 
-	r_FloorVisibility = Scale (160*FRACUNIT, r_FloorVisibility, FocalLengthY);
+	// [BB] During a reconnect, the client calls this with FocalLengthY == 0.
+	if ( FocalLengthY != 0 )
+		r_FloorVisibility = Scale (160*FRACUNIT, r_FloorVisibility, FocalLengthY);
 
 	r_TiltVisibility = vis * (float)FocalTangent * (16.f * 320.f) / (float)viewwidth;
 	r_SpriteVisibility = r_WallVisibility;
