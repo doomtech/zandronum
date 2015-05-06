@@ -394,4 +394,6 @@ void ST_LoadCrosshair(bool alwaysload=false);
 void ST_Clear();
 extern FTexture *CrosshairImage;
 
+FTextureID GetWeaponIcon(AWeapon *weapon);
+
 #endif /* __SBAR_H__ */

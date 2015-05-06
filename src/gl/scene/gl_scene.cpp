@@ -53,6 +53,7 @@
 #include "sbar.h"
 #include "po_man.h"
 #include "r_utility.h"
+#include "a_hexenglobal.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -787,16 +788,30 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 		if (player->poisoncount)
 		{
 			cnt = MIN (player->poisoncount, 64);
-			DBaseStatusBar::AddBlend (0.04f, 0.2571f, 0.f, cnt/93.2571428571f, blend);
+			if (paletteflash & PF_SPECIALDAMAGE)
+			{
+				DBaseStatusBar::AddBlend(44/255.f, 92/255.f, 36/255.f, ((cnt + 7) >> 3) * 0.1f, blend);
+			}
+			else
+			{
+				DBaseStatusBar::AddBlend (0.04f, 0.2571f, 0.f, cnt/93.2571428571f, blend);
+			}
 		}
 		else if (player->hazardcount)
 		{
 			cnt= MIN(player->hazardcount/8, 64);
 			DBaseStatusBar::AddBlend (0.04f, 0.2571f, 0.f, cnt/93.2571428571f, blend);
 		}
-		if (player->mo->flags&MF_ICECORPSE)
+		if (player->mo->DamageType == NAME_Ice)
 		{
-			DBaseStatusBar::AddBlend (0.25f, 0.25f, 0.853f, 0.4f, blend);
+			if (paletteflash & PF_SPECIALDAMAGE)
+			{
+				DBaseStatusBar::AddBlend(0.f, 0.f, 224/255.f, 0.5f, blend);
+			}
+			else
+			{
+				DBaseStatusBar::AddBlend (0.25f, 0.25f, 0.853f, 0.4f, blend);
+			}		
 		}
 
 		// translucency may not go below 50%

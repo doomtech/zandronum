@@ -6288,6 +6288,7 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 		// Moved out of the blood actor so that replacing blood is easier
 		if (gameinfo.gametype & GAME_DoomStrifeChex)
 		{
+			FState *state = th->FindState(NAME_Spray);
 			if (gameinfo.gametype == GAME_Strife)
 			{
 				if (damage > 13)
@@ -6295,15 +6296,36 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 					FState *state = th->FindState(NAME_Spray);
 					if (state != NULL) th->SetState (state);
 				}
-				else damage+=2;
+				else damage += 2;
 			}
+			int advance = 0;
 			if (damage <= 12 && damage >= 9)
 			{
-				th->SetState (th->SpawnState + 1);
+				advance = 1;
 			}
 			else if (damage < 9)
 			{
-				th->SetState (th->SpawnState + 2);
+				advance = 2;
+			}
+
+			PClass *cls = th->GetClass();
+
+			while (cls != RUNTIME_CLASS(AActor))
+			{
+				FActorInfo *ai = cls->ActorInfo;
+				if (ai->OwnsState(th->SpawnState))
+				{
+					for (; advance > 0; --advance)
+					{
+						// [RH] Do not set to a state we do not own.
+						if (!ai->OwnsState(th->SpawnState + advance))
+						{
+							th->SetState(th->SpawnState + advance);
+							goto statedone;
+						}
+					}
+				}
+				cls = cls->ParentClass;
 			}
 		}
 
@@ -6325,6 +6347,8 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 				SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator );
 		}
 	}
+
+statedone:
 
 	if (bloodtype >= 1)
 		P_DrawSplash2 (40, x, y, z, dir, 2, bloodcolor);
