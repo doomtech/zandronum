@@ -1098,6 +1098,7 @@ const char *APlayerPawn::GetSoundClass ()
 		( skins[player->userinfo.skin].bCheat == false )))
 	{
 		if (player != NULL &&
+		(player->mo == NULL || !(player->mo->flags4 &MF4_NOSKIN)) &&
 			(unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
 			(size_t)player->userinfo.skin < skins.Size())
 		{

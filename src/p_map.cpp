@@ -240,13 +240,13 @@ void P_GetFloorCeilingZ(FCheckPosition &tmf, int flags)
 
 		if (ff_top > tmf.floorz)
 		{
-			if (ff_top < tmf.z || (tmf.thing != NULL && ff_bottom < tmf.z && ff_top < tmf.z + tmf.thing->MaxStepHeight))  
+			if (ff_top <= tmf.z || (!(flags && FFCF_3DRESTRICT) && (tmf.thing != NULL && ff_bottom < tmf.z && ff_top < tmf.z + tmf.thing->MaxStepHeight)))
 			{
 				tmf.dropoffz = tmf.floorz = ff_top;
 				tmf.floorpic = *rover->top.texture;
 			}
 		}
-		if (ff_bottom < tmf.ceilingz && ff_bottom > tmf.z + tmf.thing->height) 
+		if (ff_bottom <= tmf.ceilingz && ff_bottom > tmf.z + tmf.thing->height) 
 		{
 			tmf.ceilingz = ff_bottom;
 			tmf.ceilingpic = *rover->bottom.texture;
@@ -272,7 +272,7 @@ void P_FindFloorCeiling (AActor *actor, int flags)
 
 	if (flags & FFCF_ONLYSPAWNPOS)
 	{
-		flags |= FFCF_3DMIDTEXRESTRICT;
+		flags |= FFCF_3DRESTRICT;
 	}
 	if (!(flags & FFCF_ONLYSPAWNPOS))
 	{
@@ -4988,8 +4988,11 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			{
 				spawnpuff = (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF);
 			puffflags |= PF_HITTHINGBLEED; // [XA] Allow for puffs to jump to XDeath state.
+			if(!(puffDefaults->flags3 & MF3_BLOODLESSIMPACT)) 
+			{
 				P_SpawnBlood (x, y, z, (source->angle + angleoffset) - ANG180, damage, RailHits[i].HitActor);
 				P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
+			}
 			}
 			if (spawnpuff)
 				P_SpawnPuff (source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags);

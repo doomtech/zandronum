@@ -3336,7 +3336,7 @@ void P_NightmareRespawn (AActor *mobj)
 	}
 
 	// If there are 3D floors, we need to find floor/ceiling again.
-	P_FindFloorCeiling(mo, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DMIDTEXRESTRICT);
+	P_FindFloorCeiling(mo, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT);
 
 	if (z == ONFLOORZ)
 	{
@@ -5354,9 +5354,12 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= skins.Size() ))
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 
-	mobj->sprite = skins[lSkin].sprite;
-	mobj->scaleX = skins[lSkin].ScaleX;
-	mobj->scaleY = skins[lSkin].ScaleY;
+	if (!(mobj->flags4 & MF4_NOSKIN))
+	{
+		mobj->sprite = skins[lSkin].sprite;
+		mobj->scaleX = skins[lSkin].ScaleX;
+		mobj->scaleY = skins[lSkin].ScaleY;
+	}
 
 	p->DesiredFOV = p->FOV = 90.f;
 	p->camera = p->mo;
@@ -6007,7 +6010,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	mobj->SpawnPoint[2] = mthing->z;
 	mobj->SpawnAngle = mthing->angle;
 	mobj->SpawnFlags = mthing->flags;
-	P_FindFloorCeiling(mobj, FFCF_ONLYSPAWNPOS);
+	P_FindFloorCeiling(mobj, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT);
 
 	if (!(mobj->flags2 & MF2_ARGSDEFINED))
 	{

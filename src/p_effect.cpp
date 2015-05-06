@@ -856,7 +856,7 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 	if (color2 != -1 && r_rail_trailsparsity > 0 && spawnclass == NULL)
 	{
 		FVector3 trail_step = step * r_rail_trailsparsity * sparsity;
-		int trail_steps = steps * r_rail_trailsparsity / sparsity;
+		int trail_steps = xs_FloorToInt(steps * r_rail_trailsparsity / sparsity);
 
 		// [BC] 
 		static LONG	s_lParticleColor = 0;
