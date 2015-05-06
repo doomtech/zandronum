@@ -699,9 +699,15 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 	}
 
 	if (Button_LookUp.bDown)
+	{
 		G_AddViewPitch (lookspeed[speed]);
+		LocalKeyboardTurner = true;
+	}
 	if (Button_LookDown.bDown)
+	{
 		G_AddViewPitch (-lookspeed[speed]);
+		LocalKeyboardTurner = true;
+	}
 
 	if (Button_MoveUp.bDown)
 		fly += flyspeed[speed];
