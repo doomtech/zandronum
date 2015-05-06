@@ -70,6 +70,8 @@ CVAR (Int, r_rail_spiralsparsity, 1, CVAR_ARCHIVE);
 CVAR (Int, r_rail_trailsparsity, 1, CVAR_ARCHIVE);
 CVAR (Bool, r_particles, true, 0);
 
+FRandom pr_railtrail("RailTrail");
+
 #define FADEFROMTTL(a)	(255/(a))
 
 // [RH] particle globals
@@ -805,9 +807,11 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 			if (!p)
 				return;
 
+			int spiralduration = (duration == 0) ? 35 : duration;
+
 			p->trans = 255;
 			p->ttl = duration;
-			p->fade = FADEFROMTTL(duration);
+			p->fade = FADEFROMTTL(spiralduration);
 			p->size = 3;
 			p->bright = fullbright;
 
@@ -849,10 +853,10 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 	}
 
 	// Create the inner trail.
-	if (color2 != -1 && r_rail_trailsparsity > 0)
+	if (color2 != -1 && r_rail_trailsparsity > 0 && spawnclass == NULL)
 	{
-		FVector3 trail_step = step * r_rail_trailsparsity;
-		int trail_steps = steps * r_rail_trailsparsity;
+		FVector3 trail_step = step * r_rail_trailsparsity * sparsity;
+		int trail_steps = steps * r_rail_trailsparsity / sparsity;
 
 		// [BC] 
 		static LONG	s_lParticleColor = 0;
@@ -866,7 +870,9 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 		pos = start;
 		for (i = trail_steps; i; i--)
 		{
-			particle_t *p = JitterParticle (33);
+			// [XA] inner trail uses a different default duration (33).
+			int innerduration = (duration == 0) ? 33 : duration;
+			particle_t *p = JitterParticle (innerduration, drift);
 
 			if (!p)
 				return;
@@ -918,17 +924,33 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 		}
 	}
 	// create actors
-	if(spawnclass != NULL) {
-		if(sparsity < 1) sparsity = 32;
+	if (spawnclass != NULL)
+	{
+		if (sparsity < 1)
+			sparsity = 32;
 
 		FVector3 trail_step = (step / 3) * sparsity;
 		int trail_steps = (int)((steps * 3) / sparsity);
+		FVector3 diff(0, 0, 0);
 
 		pos = start;
 		for (i = trail_steps; i; i--)
 		{
-			AActor *thing = Spawn (spawnclass, FLOAT2FIXED(pos.X), FLOAT2FIXED(pos.Y), FLOAT2FIXED(pos.Z), ALLOW_REPLACE);
-			if(thing) thing->angle = angle;
+			if (maxdiff > 0)
+			{
+				int rnd = pr_railtrail();
+				if (rnd & 1)
+					diff.X = clamp<float> (diff.X + ((rnd & 8) ? 1 : -1), -maxdiff, maxdiff);
+				if (rnd & 2)
+					diff.Y = clamp<float> (diff.Y + ((rnd & 16) ? 1 : -1), -maxdiff, maxdiff);
+				if (rnd & 4)
+					diff.Z = clamp<float> (diff.Z + ((rnd & 32) ? 1 : -1), -maxdiff, maxdiff);
+			}			
+			FVector3 postmp = pos + diff;
+
+			AActor *thing = Spawn (spawnclass, FLOAT2FIXED(postmp.X), FLOAT2FIXED(postmp.Y), FLOAT2FIXED(postmp.Z), ALLOW_REPLACE);
+			if (thing)
+				thing->angle = angle;
 			pos += trail_step;
 		}
 	}

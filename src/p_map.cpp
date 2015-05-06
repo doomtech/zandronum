@@ -214,7 +214,7 @@ void P_GetFloorCeilingZ(FCheckPosition &tmf, int flags)
 	sector_t *sec;
 	if (!(flags & FFCF_ONLYSPAWNPOS))
 	{
-		sec = !(flags & FFCF_SAMESECTOR) ? P_PointInSector (tmf.x, tmf.y) : sec = tmf.thing->Sector;
+		sec = !(flags & FFCF_SAMESECTOR) ? P_PointInSector (tmf.x, tmf.y) : tmf.thing->Sector;
 		tmf.floorsector = sec;
 		tmf.ceilingsector = sec;
 
@@ -4686,6 +4686,7 @@ void P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *actor, a
 	int count;
 	int noise;
 
+
 	if ((actor->flags & MF_NOBLOOD) ||
 		(actor->flags5 & MF5_NOBLOODDECALS) ||
 		(actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)) ||
@@ -4972,6 +4973,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		{
 			fixed_t x, y, z;
 			bool spawnpuff;
+		int puffflags = PF_HITTHING;
 
 			x = x1 + FixedMul (RailHits[i].Distance, vx);
 			y = y1 + FixedMul (RailHits[i].Distance, vy);
@@ -4985,15 +4987,16 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			else
 			{
 				spawnpuff = (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF);
+			puffflags |= PF_HITTHINGBLEED; // [XA] Allow for puffs to jump to XDeath state.
 				P_SpawnBlood (x, y, z, (source->angle + angleoffset) - ANG180, damage, RailHits[i].HitActor);
 				P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, source->angle, pitch);
 			}
-			if (spawnpuff) P_SpawnPuff (source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, PF_HITTHING);
+			if (spawnpuff)
+				P_SpawnPuff (source, puffclass, x, y, z, (source->angle + angleoffset) - ANG90, 1, puffflags);
 			// [BC] Damage is server side.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
-
 				if (puffDefaults && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 					P_PoisonMobj(RailHits[i].HitActor, thepuff ? thepuff : source, source, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod, puffDefaults->PoisonDamageType);
 
