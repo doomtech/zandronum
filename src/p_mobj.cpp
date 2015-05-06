@@ -3325,10 +3325,32 @@ void P_NightmareRespawn (AActor *mobj)
 		  // can use P_CheckPosition() properly.
 			mo->z = mo->floorz;
 		}
+		if (mo->z + mo->height > mo->ceilingz)
+		{
+			mo->z = mo->ceilingz - mo->height;
+		}
 	}
 	else if (z == ONCEILINGZ)
 	{
 		mo->z -= mobj->SpawnPoint[2];
+	}
+
+	// If there are 3D floors, we need to find floor/ceiling again.
+	P_FindFloorCeiling(mo, FFCF_SAMESECTOR);
+
+	if (z == ONFLOORZ)
+	{
+		if (mo->z < mo->floorz)
+		{ // Do not respawn monsters in the floor, even if that's where they
+		  // started. The initial P_ZMovement() call would have put them on
+		  // the floor right away, but we need them on the floor now so we
+		  // can use P_CheckPosition() properly.
+			mo->z = mo->floorz;
+		}
+		if (mo->z + mo->height > mo->ceilingz)
+		{ // Do the same for the ceiling.
+			mo->z = mo->ceilingz - mo->height;
+		}
 	}
 
 	// something is occupying its position?
@@ -3340,9 +3362,6 @@ void P_NightmareRespawn (AActor *mobj)
 		mo->Destroy ();
 		return;		// no respawn
 	}
-
-	// If there are 3D floors, we need to find floor/ceiling again.
-	P_FindFloorCeiling(mo, true);
 
 	z = mo->z;
 
@@ -4755,7 +4774,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		// z-coordinate.
 		if (!SpawningMapThing) 
 		{
-			P_FindFloorCeiling(actor, true);
+			P_FindFloorCeiling(actor, FFCF_ONLYSPAWNPOS);
 		}
 		else
 		{
@@ -5986,7 +6005,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	mobj->SpawnPoint[2] = mthing->z;
 	mobj->SpawnAngle = mthing->angle;
 	mobj->SpawnFlags = mthing->flags;
-	P_FindFloorCeiling(mobj, true);
+	P_FindFloorCeiling(mobj, FFCF_ONLYSPAWNPOS);
 
 	if (!(mobj->flags2 & MF2_ARGSDEFINED))
 	{

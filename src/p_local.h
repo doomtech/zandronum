@@ -443,7 +443,13 @@ bool	P_TalkFacing (AActor *player);
 void	P_UseLines (player_t* player);
 //void	P_UseItems (player_t* player);
 bool	P_UsePuzzleItem (AActor *actor, int itemType);
-void	P_FindFloorCeiling (AActor *actor, bool onlyspawnpos = false);
+
+enum
+{
+	FFCF_ONLYSPAWNPOS = 1,
+	FFCF_SAMESECTOR = 2
+};
+void	P_FindFloorCeiling (AActor *actor, int flags=0);
 
 bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 
