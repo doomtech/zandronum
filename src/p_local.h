@@ -264,7 +264,7 @@ struct FLineOpening
 	bool			abovemidtex;
 };
 
-void	P_LineOpening (FLineOpening &open, AActor *thing, const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0);
+void	P_LineOpening (FLineOpening &open, AActor *thing, const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0, bool only3d=false);
 //void	P_OldLineOpening (const line_t *linedef, fixed_t x, fixed_t y);
 
 class FBoundingBox;
@@ -447,7 +447,8 @@ bool	P_UsePuzzleItem (AActor *actor, int itemType);
 enum
 {
 	FFCF_ONLYSPAWNPOS = 1,
-	FFCF_SAMESECTOR = 2
+	FFCF_SAMESECTOR = 2,
+	FFCF_ONLY3DFLOORS = 4,	// includes 3D midtexes
 };
 void	P_FindFloorCeiling (AActor *actor, int flags=0);
 
