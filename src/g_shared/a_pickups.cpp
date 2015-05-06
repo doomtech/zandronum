@@ -450,13 +450,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_RestoreSpecialPosition)
 		}
 	}
 	// Redo floor/ceiling check, in case of 3D floors
-	P_FindFloorCeiling(self, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS);
+	P_FindFloorCeiling(self, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DMIDTEXRESTRICT);
 	if (self->z < self->floorz)
 	{ // Do not reappear under the floor, even if that's where we were for the
 	  // initial spawn.
 		self->z = self->floorz;
 	}
-	if (self->z + self->height > self->ceilingz)
+	if ((self->flags & MF_SOLID) && (self->z + self->height > self->ceilingz))
 	{ // Do the same for the ceiling.
 		self->z = self->ceilingz - self->height;
 	}
