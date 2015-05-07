@@ -93,8 +93,6 @@ EXTERN_CVAR (Bool, r_deathcamera)
 CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
 EXTERN_CVAR (Bool, cl_oldfreelooklimit)
 
-// [BC] Blah. Not a great place to include this.
-EXTERN_CVAR (Float,  blood_fade_scalar)
 extern int viewpitch;
  
 DWORD			gl_fixedcolormap;
@@ -629,7 +627,6 @@ void FGLRenderer::DrawScene(bool toscreen)
 void FGLRenderer::DrawBlend(sector_t * viewsector)
 {
 	float blend[4]={0,0,0,0};
-	int cnt;
 	PalEntry blendv=0;
 	float extra_red;
 	float extra_green;
@@ -735,11 +732,6 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 	if (player)
 	{
 		V_AddPlayerBlend(player, blend, 0.5, 175);
-			// [BC] Allow users to tone down the intensity of the blood on the screen.
-			// [CK] If the server wants us to force max blood on the screen, do not multiply it by our scalar
-			if (( zadmflags & ZADF_MAX_BLOOD_SCALAR ) == 0 )
-				cnt = (int)( cnt * blood_fade_scalar );
-
 	}
 	
 	if (players[consoleplayer].camera != NULL)
