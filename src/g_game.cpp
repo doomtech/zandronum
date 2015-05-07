@@ -1905,6 +1905,11 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, int flags)
 
 	p = &players[player];
 
+	if (p->morphTics != 0)
+	{ // Undo morph
+		P_UndoPlayerMorph (p, p, 0, true);
+	}
+
 	// [BB] Under some circumstances a client may come here with p->mo == NULL.
 	if ( (NETWORK_GetState() == NETSTATE_CLIENT) && (p->mo == NULL) )
 		return;
@@ -1975,11 +1980,6 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, int flags)
 				item->Amount = item->InterHubAmount;
 			}
 		}
-	}
-
-	if (p->morphTics)
-	{ // Undo morph
-		P_UndoPlayerMorph (p, p, 0, true);
 	}
 
 	// Resets player health to default if not dead.
