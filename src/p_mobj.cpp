@@ -3912,8 +3912,7 @@ void AActor::Tick ()
 			}
 			// Apply freeze mode.
 			// [WS] Added Skulltag specific code for checking to see if the player is a spectator, if the player is then don't apply freeze mode.
-			if (( level.flags2 & LEVEL2_FROZEN ) &&
-				(( player && (( player->cheats & CF_TIMEFREEZE ) || player->bSpectating )) == false ))
+			if ((level.flags2 & LEVEL2_FROZEN) && (player == NULL || ( player->timefreezer == 0 && !player->bSpectating )))
 			{
 				return;
 			}

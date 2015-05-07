@@ -488,7 +488,6 @@ struct sector_t
 	void ClosestPoint(fixed_t x, fixed_t y, fixed_t &ox, fixed_t &oy) const;
 	int GetFloorLight () const;
 	int GetCeilingLight () const;
-	// [BB] Backported from ZDoom revision 3600.
 	sector_t *GetHeightSec() const;
 
 	DInterpolation *SetInterpolation(int position, bool attach);

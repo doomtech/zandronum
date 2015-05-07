@@ -2061,7 +2061,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	ULONG		ulPingAverages;
 	ULONG		ulWins;
 	ULONG		ulTime;
-	LONG		lCheats;
+	int			timefreezer;
 	FName		StartingWeaponName;
 
 	p = &players[player];
@@ -2098,7 +2098,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	ulPingAverages = p->ulPingAverages;
 	ulWins = p->ulWins;
 	ulTime = p->ulTime;
-	lCheats = p->cheats;
+	timefreezer = p->timefreezer;
 	StartingWeaponName = p->StartingWeaponName;
 	const bool bLagging = p->bLagging;
 
@@ -2143,8 +2143,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	p->ulTime = ulTime;
 	// [BB] Players who were able to move while a APowerTimeFreezer is active,
 	// should also be able to do so after being reborn.
-	if ( lCheats & CF_TIMEFREEZE )
-		p->cheats |= CF_TIMEFREEZE;
+	p->timefreezer = timefreezer;
 	p->StartingWeaponName = StartingWeaponName;
 	p->bLagging = bLagging;
 	p->bIsBot = p->pSkullBot ? true : false;
@@ -5342,9 +5341,10 @@ CCMD( freeze )
 
 		Printf( "Freeze mode %s\n", ( level.flags2 & LEVEL2_FROZEN ) ? "ON" : "OFF" );
 
+		const int freezemask = 1 << consoleplayer;
 		if ( level.flags2 & LEVEL2_FROZEN )
-			players[consoleplayer].cheats |= CF_TIMEFREEZE;
+			players[consoleplayer].timefreezer = freezemask;
 		else
-			players[consoleplayer].cheats &= ~CF_TIMEFREEZE;
+			players[consoleplayer].timefreezer &= ~freezemask;
 	}
 }
