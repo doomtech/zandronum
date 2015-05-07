@@ -343,6 +343,9 @@ Actor Weapon : Inventory native
 {
 	Inventory.PickupSound "misc/w_pkup"
 	Weapon.DefaultKickback
+	Weapon.BobSpeed 1.0
+	Weapon.BobRangeX 1.0
+	Weapon.BobRangeY 1.0
 	States
 	{
 	LightDone:
