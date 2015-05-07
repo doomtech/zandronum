@@ -373,8 +373,6 @@ private:
 	void DrawMessages (int bottom);
 	void DrawTargetName( );
 
-	static BYTE DamageToAlpha[114];
-
 	TObjPtr<DHUDMessage> Messages;
 	bool ShowLog;
 };
