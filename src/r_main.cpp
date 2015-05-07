@@ -892,6 +892,8 @@ void R_RenderActorView (AActor *actor, bool dontmaplines)
 	}
 	WallMirrors.Clear ();
 	interpolator.RestoreInterpolations ();
+	// [BB] Zandronum handles prediction differently .
+	//P_UnPredictPlayer();
 	R_SetupBuffer ();
 
 	// If we don't want shadered colormaps, NULL it now so that the

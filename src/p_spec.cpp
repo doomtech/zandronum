@@ -1561,6 +1561,7 @@ void P_SpawnSpecials (void)
 				break;
 			}
 
+			new DStrobe (sector, STROBEBRIGHT, FASTDARK, false);
 			new DScroller (DScroller::sc_floor, (-FRACUNIT/2)<<3,
 				0, -1, int(sector-sectors), 0);
 			break;
