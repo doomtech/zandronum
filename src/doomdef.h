@@ -398,6 +398,7 @@ enum
 	COMPATF_MASKEDMIDTEX	= 1 << 31,	// Ignore compositing when drawing masked midtextures
 
 	COMPATF2_BADANGLES		= 1 << 0,	// It is impossible to face directly NSEW.
+	COMPATF2_FLOORMOVE		= 1 << 1,	// Use the same floor motion behavior as Doom.
 };
 
 // [BB] Zandronum compatibility flags.

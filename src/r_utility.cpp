@@ -823,7 +823,6 @@ void R_SetupFrame (AActor *actor)
 	viewangle = TEST_ANGLE;
 #endif
 
-	Renderer->CopyStackedViewParameters();
 	R_SetViewAngle ();
 
 	interpolator.DoInterpolations (r_TicFrac);
@@ -919,6 +918,7 @@ void R_SetupFrame (AActor *actor)
 		}
 	}
 
+	Renderer->CopyStackedViewParameters();
 	Renderer->SetupFrame(player);
 
 	validcount++;
