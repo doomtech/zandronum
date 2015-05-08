@@ -1709,35 +1709,26 @@ IMPLEMENT_CLASS(APowerRegeneration)
 
 //===========================================================================
 //
-// ARuneRegeneration :: InitEffect
+// APowerRegeneration :: DoEffect
 //
 //===========================================================================
 
-void APowerRegeneration::InitEffect( )
+void APowerRegeneration::DoEffect()
 {
-	Super::InitEffect();
-
-	if (Owner== NULL || Owner->player == NULL)
+	// [BB] This is server side.
+	if ( NETWORK_InClientMode() )
 		return;
 
-	// Give the player the power to regnerate lost life.
-	Owner->player->cheats |= CF_REGENERATION;
-}
-
-//===========================================================================
-//
-// ARuneRegeneration :: EndEffect
-//
-//===========================================================================
-
-void APowerRegeneration::EndEffect( )
-{
-	Super::EndEffect();
-	// Nothing to do if there's no owner.
-	if (Owner != NULL && Owner->player != NULL)
+	if (Owner != NULL && Owner->health > 0 && (level.time & 31) == 0)
 	{
-		// Take away the regeneration power.
-		Owner->player->cheats &= ~CF_REGENERATION;
+		if (P_GiveBody(Owner, 5))
+		{
+			S_Sound(Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+
+			// [BC] If we're the server, play the health sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+		}
 	}
 }
 
@@ -2552,32 +2543,28 @@ IMPLEMENT_CLASS( ARuneRegeneration )
 
 //===========================================================================
 //
-// ARuneRegeneration :: InitEffect
+// ARuneRegeneration :: DoEffect
 //
 //===========================================================================
 
-void ARuneRegeneration::InitEffect( )
+void ARuneRegeneration::DoEffect( )
 {
-	if (Owner== NULL || Owner->player == NULL)
+	Super::DoEffect();
+
+	// [BB] This is server side.
+	if ( NETWORK_InClientMode() )
 		return;
 
-	// Give the player the power to regnerate lost life.
-	Owner->player->cheats |= CF_REGENERATION;
-}
-
-//===========================================================================
-//
-// ARuneRegeneration :: EndEffect
-//
-//===========================================================================
-
-void ARuneRegeneration::EndEffect( )
-{
-	// Nothing to do if there's no owner.
-	if (Owner != NULL && Owner->player != NULL)
+	if (Owner != NULL && Owner->health > 0 && (level.time & 31) == 0)
 	{
-		// Take away the regeneration power.
-		Owner->player->cheats &= ~CF_REGENERATION;
+		if (P_GiveBody(Owner, 5))
+		{
+			S_Sound(Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+
+			// [BC] If we're the server, play the health sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+		}
 	}
 }
 

@@ -3634,19 +3634,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			// [BC] Apply regeneration.
-			if (( level.time & 31 ) == 0 && ( player->cheats & CF_REGENERATION ) && ( player->health ))
-			{
-				if ( P_GiveBody( player->mo, 5 ))
-				{
-					S_Sound( player->mo, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
-
-					// [BC] If we're the server, play the health sound.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SoundActor( player->mo, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
-				}
-			}
-
 			// Apply degeneration.
 			if ( dmflags2 & DF2_YES_DEGENERATION )
 			{
@@ -3924,6 +3911,10 @@ void player_t::Serialize (FArchive &arc)
 	else
 	{
 		cheats &= ~(1 << 15);	// make sure old CF_TIMEFREEZE bit is cleared
+	}
+	if (SaveVersion < 3640)
+	{
+		cheats &= ~(1 << 17);	// make sure old CF_REGENERATION bit is cleared
 	}
 
 	if (arc.IsLoading ())

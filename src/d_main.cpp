@@ -140,6 +140,7 @@
 #include "po_man.h"
 #include "resourcefiles/resourcefile.h"
 #include "r_renderer.h"
+#include "p_local.h"
 
 #ifdef USE_POLYMOST
 #include "r_polymost.h"
@@ -951,10 +952,14 @@ drawfullconsole:
 				screen->SetBlendingRect(viewwindowx, viewwindowy,
 					viewwindowx + viewwidth, viewwindowy + viewheight);
 				P_CheckPlayerSprites();
+				// [BB] Zandronum handles prediction differently.
+				//P_PredictPlayer(&players[consoleplayer]);
 				// [BB] This check shouldn't be necessary, but should completely prevent
 				// the "tried to render NULL actor" errors.
 				if ( (players[consoleplayer].mo != NULL) && (players[consoleplayer].camera != NULL) )
 					Renderer->RenderView(&players[consoleplayer]);
+				// [BB] Zandronum handles prediction differently.
+				//P_UnPredictPlayer();
 			}
 
 			if ((hw2d = screen->Begin2D(viewactive)))

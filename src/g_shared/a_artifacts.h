@@ -214,8 +214,7 @@ class APowerRegeneration : public APowerup
 {
 	DECLARE_CLASS( APowerRegeneration, APowerup )
 protected:
-	void InitEffect( );
-	void EndEffect( );
+	void DoEffect();
 };
 
 class APowerHighJump : public APowerup
@@ -367,8 +366,7 @@ class ARuneRegeneration : public ARune
 {
 	DECLARE_CLASS( ARuneRegeneration, ARune )
 protected:
-	void InitEffect( );
-	void EndEffect( );
+	void DoEffect( );
 };
 
 class ARuneProsperity : public ARune
