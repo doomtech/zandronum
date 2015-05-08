@@ -54,6 +54,7 @@
 #include "po_man.h"
 #include "r_utility.h"
 #include "a_hexenglobal.h"
+#include "p_local.h"
 #include "gl/gl_functions.h"
 
 #include "gl/system/gl_framebuffer.h"
@@ -949,6 +950,8 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 
 	gl_frameCount++;	// This counter must be increased right before the interpolations are restored.
 	interpolator.RestoreInterpolations ();
+	// [BB] Zandronum handles prediction differently .
+	//P_UnPredictPlayer();
 	return retval;
 }
 
