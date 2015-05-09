@@ -154,6 +154,8 @@ class SBarInfoCommand
 		virtual void	Reset() {}
 		virtual void	Tick(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, bool hudChanged) {}
 
+		SBarInfo *GetScript() { return script; }
+
 	protected:
 		void		GetCoordinates(FScanner &sc, bool fullScreenOffsets, SBarInfoCoordinate &x, SBarInfoCoordinate &y)
 		{
@@ -803,6 +805,8 @@ void SBarInfo::Init()
 	spacingAlignment = ALIGN_CENTER;
 	resW = 320;
 	resH = 200;
+	cleanX = -1;
+	cleanY = -1;
 
 	for(unsigned int i = 0;i < NUMHUDS;i++)
 		huds[i] = new SBarInfoMainBlock(this);
@@ -992,6 +996,15 @@ public:
 		Images.Uninit();
 	}
 
+	void ScreenSizeChanged()
+	{
+		// [BB] Adjusted to Zandronum's cleanX/Y handling.
+		float cleanX, cleanY;
+		V_CalcCleanFacs(script->resW, script->resH, SCREENWIDTH, SCREENHEIGHT, &cleanX, &cleanY);
+		script->cleanX = static_cast<int>(cleanX);
+		script->cleanY = static_cast<int>(cleanY);
+	}
+
 	void Draw (EHudState state)
 	{
 		// [BB] When joining a server in ST CPlayer->mo is NULL.
@@ -999,6 +1012,10 @@ public:
 			return;
 
 		DBaseStatusBar::Draw(state);
+		if (script->cleanX <= 0)
+		{ // Calculate cleanX and cleanY
+			ScreenSizeChanged();
+		}
 		int hud = STBAR_NORMAL;
 		if(state == HUD_StatusBar)
 		{
@@ -1254,8 +1271,8 @@ public:
 		{
 			double rx, ry, rcx=0, rcy=0, rcr=INT_MAX, rcb=INT_MAX;
 
-			double xScale = !hud_scale ? 1.0 : (double) CleanXfac*320.0/(double) script->resW;//(double) SCREENWIDTH/(double) script->resW;
-			double yScale = !hud_scale ? 1.0 : (double) CleanYfac*200.0/(double) script->resH;//(double) SCREENHEIGHT/(double) script->resH;
+			double xScale = !hud_scale ? 1 : script->cleanX;
+			double yScale = !hud_scale ? 1 : script->cleanY;
 
 			adjustRelCenter(x.RelCenter(), y.RelCenter(), dx, dy, rx, ry, xScale, yScale);
 
@@ -1287,34 +1304,6 @@ public:
 				rcy = cy == 0 ? 0 : ry+(((double) cy/FRACUNIT)*yScale);
 				rcr = cr == 0 ? INT_MAX : rx+w-(((double) cr/FRACUNIT)*xScale);
 				rcb = cb == 0 ? INT_MAX : ry+h-(((double) cb/FRACUNIT)*yScale);
-
-				// Fix the clipping for fullscreenoffsets.
-				/*if(ry < 0)
-				{
-					if(rcy != 0)
-						rcy = hud_scale ? SCREENHEIGHT + (int) (rcy*CleanYfac*200.0/script->resH) : SCREENHEIGHT + rcy;
-					if(rcb != INT_MAX)
-						rcb = hud_scale ? SCREENHEIGHT + (int) (rcb*CleanYfac*200.0/script->resH) : SCREENHEIGHT + rcb;
-				}
-				else if(hud_scale)
-				{
-					rcy *= (int) (CleanYfac*200.0/script->resH);
-					if(rcb != INT_MAX)
-						rcb *= (int) (CleanYfac*200.0/script->resH);
-				}
-				if(rx < 0)
-				{
-					if(rcx != 0)
-						rcx = hud_scale ? SCREENWIDTH + (int) (rcx*CleanXfac*320.0/script->resW) : SCREENWIDTH + rcx;
-					if(rcr != INT_MAX)
-						rcr = hud_scale ? SCREENWIDTH + (int) (rcr*CleanXfac*320.0/script->resW) : SCREENWIDTH + rcr;
-				}
-				else if(hud_scale)
-				{
-					rcx *= (int) (CleanXfac*320.0/script->resW);
-					if(rcr != INT_MAX)
-						rcr *= (int) (CleanXfac*320.0/script->resW);
-				}*/
 			}
 
 			if(clearDontDraw)
@@ -1374,8 +1363,8 @@ public:
 		{
 			if(hud_scale)
 			{
-				xScale = (double) CleanXfac*320.0/(double) script->resW;//(double) SCREENWIDTH/(double) script->resW;
-				yScale = (double) CleanYfac*200.0/(double) script->resH;//(double) SCREENWIDTH/(double) script->resW;
+				xScale = script->cleanX;
+				yScale = script->cleanY;
 			}
 			adjustRelCenter(x.RelCenter(), y.RelCenter(), *x, *y, ax, ay, xScale, yScale);
 		}

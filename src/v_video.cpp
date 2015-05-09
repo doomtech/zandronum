@@ -1323,11 +1323,9 @@ CCMD(clean)
 bool V_DoModeSetup (int width, int height, int bits)
 {
 	DFrameBuffer *buff = I_SetMode (width, height, screen);
-	int ratio;
-	int cwidth;
-	int cheight;
+
 	// [BB] Changed to float.
-	float cx1, cy1, cx2, cy2;
+	float cx1, cx2;
 
 	if (buff == NULL)
 	{
@@ -1342,43 +1340,8 @@ bool V_DoModeSetup (int width, int height, int bits)
 	// if D3DFB is being used for the display.
 	FFont::StaticPreloadFonts();
 
-	ratio = CheckRatio (width, height);
-	if (ratio & 4)
-	{
-		cwidth = width;
-		cheight = height * BaseRatioSizes[ratio][3] / 48;
-	}
-	else
-	{
-		cwidth = width * BaseRatioSizes[ratio][3] / 48;
-		cheight = height;
-	}
-	// [BB] ST uses float accuracy for CleanXfac and CleanYfac. This is necessary at least for the proper display of medals under 1024x768.
-	// Use whichever pair of cwidth/cheight or width/height that produces less difference
-	// between CleanXfac and CleanYfac.
-	cx1 = MAX(cwidth / 320.f, 1.f);
-	cy1 = MAX(cheight / 200.f, 1.f);
-	cx2 = MAX(width / 320.f, 1.f);
-	cy2 = MAX(height / 200.f, 1.f);
-	if (abs(cx1 - cy1) <= abs(cx2 - cy2))
-	{ // e.g. 640x360 looks better with this.
-		CleanXfac = cx1;
-		CleanYfac = cy1;
-	}
-	else
-	{ // e.g. 720x480 looks better with this.
-		CleanXfac = cx2;
-		CleanYfac = cy2;
-	}
-/* [BB] This causes the ugly vertical menu scaling.
-	if (CleanXfac > 1 && CleanYfac > 1 && CleanXfac != CleanYfac)
-	{
-		if (CleanXfac < CleanYfac)
-			CleanYfac = CleanXfac;
-		else
-			CleanXfac = CleanYfac;
-	}
-*/
+	V_CalcCleanFacs(320, 200, width, height, &CleanXfac, &CleanYfac, &cx1, &cx2);
+
 	CleanWidth = width / CleanXfac;
 	CleanHeight = height / CleanYfac;
 
@@ -1429,6 +1392,56 @@ bool V_DoModeSetup (int width, int height, int bits)
 	M_RefreshModesList ();
 
 	return true;
+}
+
+// [BB] Changed arguments to float.
+void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, float *cleanx, float *cleany, float *_cx1, float *_cx2)
+{
+	int ratio;
+	int cwidth;
+	int cheight;
+ 	// [BB] Changed to float.
+	float cx1, cy1, cx2, cy2;
+
+	ratio = CheckRatio(realwidth, realheight);
+	if (ratio & 4)
+	{
+		cwidth = realwidth;
+		cheight = realheight * BaseRatioSizes[ratio][3] / 48;
+	}
+	else
+	{
+		cwidth = realwidth * BaseRatioSizes[ratio][3] / 48;
+		cheight = realheight;
+	}
+	// Use whichever pair of cwidth/cheight or width/height that produces less difference
+	// between CleanXfac and CleanYfac.
+	cx1 = MAX(cwidth / static_cast<float>(designwidth), 1.f);
+	cy1 = MAX(cheight / static_cast<float>(designheight), 1.f);
+	cx2 = MAX(realwidth / static_cast<float>(designwidth), 1.f);
+	cy2 = MAX(realheight / static_cast<float>(designheight), 1.f);
+	if (abs(cx1 - cy1) <= abs(cx2 - cy2))
+	{ // e.g. 640x360 looks better with this.
+		*cleanx = cx1;
+		*cleany = cy1;
+	}
+	else
+	{ // e.g. 720x480 looks better with this.
+		*cleanx = cx2;
+		*cleany = cy2;
+	}
+
+/* [BB] This causes the ugly vertical menu scaling.
+	if (*cleanx > 1 && *cleany > 1 && *cleanx != *cleany)
+	{
+		if (*cleanx < *cleany)
+			*cleany = *cleanx;
+		else
+			*cleanx = *cleany;
+	}
+*/
+	if (_cx1 != NULL)	*_cx1 = cx1;
+	if (_cx2 != NULL)	*_cx2 = cx2;
 }
 
 bool IVideo::SetResolution (int width, int height, int bits)

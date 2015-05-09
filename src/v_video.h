@@ -51,6 +51,8 @@ extern int CleanWidth, CleanHeight;
 extern int DisplayWidth, DisplayHeight, DisplayBits;
 
 bool V_DoModeSetup (int width, int height, int bits);
+// [BB] Changed arguments to float.
+void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, float *cleanx, float *cleany, float *cx1=NULL, float *cx2=NULL);
 
 class FTexture;
 
