@@ -36,8 +36,8 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-//#include "autosegs.h"
 #include "sc_man.h"
+#include "s_sound.h"
 //[BL] New Includes
 #include "sectinfo.h"
 
@@ -337,6 +337,8 @@ struct level_info_t
 	FMusicMap	MusicMap;
 
 	TArray<FSpecialAction> specialactions;
+
+	TArray<FSoundID> PrecacheSounds;
 
 	//[BL] Link a sectinfo to a map
 	SectInfo	SectorInfo;
