@@ -117,8 +117,6 @@ void	P_UnPredictPlayer ();
 #define ONCEILINGZ		FIXED_MAX
 #define FLOATRANDZ		(FIXED_MAX-1)
 
-extern fixed_t FloatBobOffsets[64];
-
 APlayerPawn *P_SpawnPlayer (struct FPlayerStart *mthing, bool bClientUpdate, int playernum, bool tempplayer=false);
 
 

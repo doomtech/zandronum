@@ -245,9 +245,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_BishopChase)
 		return;
 	}
 
-	self->z -= FloatBobOffsets[self->special2] >> 1;
+	self->z -= finesine[self->special2 << BOBTOFINESHIFT] * 4;
 	self->special2 = (self->special2 + 4) & 63;
-	self->z += FloatBobOffsets[self->special2] >> 1;
+	self->z += finesine[self->special2 << BOBTOFINESHIFT] * 4;
 
 	// [BB] If we're the server, update the thing's z coordinate.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

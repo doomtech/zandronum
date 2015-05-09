@@ -728,8 +728,9 @@ public:
 		PCD_STRCPYTOMAPCHRANGE,	// [FDARI] input range (copy string to all/part of array)
 		PCD_STRCPYTOWORLDCHRANGE,
 		PCD_STRCPYTOGLOBALCHRANGE,
-		PCD_PUSHFUNCTION,
-/*360*/	PCD_CALLSTACK,
+		PCD_PUSHFUNCTION,		// from Eternity
+/*360*/	PCD_CALLSTACK,			// from Eternity
+		PCD_SCRIPTWAITNAMED,
 
 		PCD_GOTOSTACK,
 		// [BB] We need to fix the number for the new commands!
