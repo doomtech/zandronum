@@ -7003,7 +7003,7 @@ static fixed_t GetDefaultSpeed(const PClass *type)
 
 AActor *P_SpawnMissile (AActor *source, AActor *dest, const PClass *type, AActor *owner)
 {
-	return P_SpawnMissileXYZ (source->x, source->y, source->z + 32*FRACUNIT,
+	return P_SpawnMissileXYZ (source->x, source->y, source->z + 32*FRACUNIT + source->GetBobOffset(),
 		source, dest, type, true, owner);
 }
 
@@ -7125,7 +7125,7 @@ AActor * P_OldSpawnMissile(AActor * source, AActor * owner, AActor * dest, const
 AActor *P_SpawnMissileAngle (AActor *source, const PClass *type,
 	angle_t angle, fixed_t velz)
 {
-	return P_SpawnMissileAngleZSpeed (source, source->z + 32*FRACUNIT,
+	return P_SpawnMissileAngleZSpeed (source, source->z + 32*FRACUNIT + source->GetBobOffset(),
 		type, angle, velz, GetDefaultSpeed (type));
 }
 
@@ -7168,7 +7168,7 @@ AActor *P_SpawnMissileZAimed (AActor *source, fixed_t z, AActor *dest, const PCl
 AActor *P_SpawnMissileAngleSpeed (AActor *source, const PClass *type,
 	angle_t angle, fixed_t velz, fixed_t speed)
 {
-	return P_SpawnMissileAngleZSpeed (source, source->z + 32*FRACUNIT,
+	return P_SpawnMissileAngleZSpeed (source, source->z + 32*FRACUNIT + source->GetBobOffset(),
 		type, angle, velz, speed);
 }
 
