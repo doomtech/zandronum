@@ -1071,8 +1071,11 @@ void DBaseStatusBar::RefreshBackground () const
 
 	if(!CompleteBorder)
 	{
-		V_DrawBorder (x+1, y, SCREENWIDTH, y+1);
-		V_DrawBorder (x+1, SCREENHEIGHT-1, SCREENWIDTH, SCREENHEIGHT);
+		if(y < SCREENHEIGHT)
+		{
+			V_DrawBorder (x+1, y, SCREENWIDTH, y+1);
+			V_DrawBorder (x+1, SCREENHEIGHT-1, SCREENWIDTH, SCREENHEIGHT);
+		}
 	}
 	else
 	{

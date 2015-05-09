@@ -1610,6 +1610,7 @@ SoundStream *FMODSoundRenderer::OpenStream(const char *filename_or_data, int fla
 	FMOD::Sound *stream;
 	FMOD_RESULT result;
 	bool url;
+	FString patches;
 
 	InitCreateSoundExInfo(&exinfo);
 	mode = FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM;
@@ -1626,7 +1627,20 @@ SoundStream *FMODSoundRenderer::OpenStream(const char *filename_or_data, int fla
 	exinfo.fileoffset = offset;
 	if ((*snd_midipatchset)[0] != '\0')
 	{
-		exinfo.dlsname = snd_midipatchset;
+#ifdef _WIN32
+		// If the path does not contain any path separators, automatically
+		// prepend $PROGDIR to the path.
+		if (strcspn(snd_midipatchset, ":/\\") == strlen(snd_midipatchset))
+		{
+			patches << "$PROGDIR/" << snd_midipatchset;
+			patches = NicePath(patches);
+		}
+		else
+#endif
+		{
+			patches = NicePath(snd_midipatchset);
+		}
+		exinfo.dlsname = patches;
 	}
 
 	url = (offset == 0 && length == 0 && strstr(filename_or_data, "://") > filename_or_data);

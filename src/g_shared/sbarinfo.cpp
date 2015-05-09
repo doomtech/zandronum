@@ -998,6 +998,7 @@ public:
 
 	void ScreenSizeChanged()
 	{
+		Super::ScreenSizeChanged();
 		// [BB] Adjusted to Zandronum's cleanX/Y handling.
 		float cleanX, cleanY;
 		V_CalcCleanFacs(script->resW, script->resH, SCREENWIDTH, SCREENHEIGHT, &cleanX, &cleanY);
