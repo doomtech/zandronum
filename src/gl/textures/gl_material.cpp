@@ -494,7 +494,7 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 			int w, h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h, bExpand, false, warp);
+			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h, bExpand, NULL, warp);
 			tex->ProcessData(buffer, w, h, true);
 			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{
@@ -1013,7 +1013,7 @@ void FMaterial::BindToFrameBuffer()
 	if (mBaseLayer->gltexture == NULL)
 	{
 		// must create the hardware texture first
-		mBaseLayer->Bind(0, CM_DEFAULT, 0, 0, false, false);
+		mBaseLayer->Bind(0, CM_DEFAULT, 0, 0, NULL, 0);
 		FHardwareTexture::Unbind(0);
 	}
 	mBaseLayer->gltexture[0]->BindToFrameBuffer();

@@ -488,7 +488,7 @@ void GLPortal::EndFrame()
 	// Only use occlusion query if there are more than 2 portals. 
 	// Otherwise there's too much overhead.
 	// (And don't forget to consider the separating NULL pointers!)
-	bool usequery = portals.Size() > 2 + renderdepth;
+	bool usequery = portals.Size() > 2 + (unsigned)renderdepth;
 
 	while (portals.Pop(p) && p)
 	{
@@ -529,7 +529,7 @@ bool GLPortal::RenderFirstSkyPortal(int recursion)
 	// Find the one with the highest amount of lines.
 	// Normally this is also the one that saves the largest amount
 	// of time by drawing it before the scene itself.
-	for(unsigned i=portals.Size()-1;i>=0 && portals[i]!=NULL;i--)
+	for(int i = portals.Size()-1; i >= 0 && portals[i] != NULL; --i)
 	{
 		p=portals[i];
 		if (p->lines.Size() > 0 && p->IsSky())
