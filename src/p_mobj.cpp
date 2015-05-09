@@ -42,6 +42,8 @@
 #include "v_video.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
+// [BB] Zandronum uses different bot code.
+//#include "b_bot.h"	//Added by MC:
 #include "stats.h"
 #include "a_hexenglobal.h"
 #include "a_sharedglobal.h"

@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.6.1"
-#define ZD_SVN_REVISION_STRING "3796"
-#define ZD_SVN_REVISION_NUMBER 3796
+#define ZD_SVN_REVISION_STRING "3798"
+#define ZD_SVN_REVISION_NUMBER 3798
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -157,8 +157,7 @@ static inline const char *MakeSaveSig()
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
 #ifdef unix
-#define HOME_DIR "~/." GAMENAMELOWERCASE
-#define GAME_DIR "." GAMENAMELOWERCASE
+#define GAME_DIR ".config/" GAMENAMELOWERCASE
 #elif defined(__APPLE__)
 #define GAME_DIR GAMENAME
 #else
