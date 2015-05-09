@@ -54,6 +54,7 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "d_player.h"
+#include "m_misc.h"
 #include "dobject.h"
 
 // These are special tokens found in the data stream of an archive.
@@ -401,11 +402,14 @@ void FCompressedFile::Explode ()
 			uLong newlen;
 
 			newlen = expandsize;
+			_heapchk();
 			r = uncompress (expand, &newlen, m_Buffer + 8, cprlen);
 			if (r != Z_OK || newlen != expandsize)
 			{
+				_heapchk();
 				M_Free (expand);
-				I_Error ("Could not decompress cfile");
+				_heapchk();
+				I_Error ("Could not decompress buffer: %s", M_ZLibError(r));
 			}
 		}
 		else
@@ -497,7 +501,18 @@ bool FCompressedMemFile::Reopen ()
 		m_Mode = EReading;
 		m_Buffer = m_ImplodedBuffer;
 		m_SourceFromMem = true;
-		Explode ();
+		try
+		{
+			Explode ();
+		}
+		catch(...)
+		{
+			// If we just leave things as they are, m_Buffer and m_ImplodedBuffer
+			// both point to the same memory block and both will try to free it.
+			m_Buffer = NULL;
+			m_SourceFromMem = false;
+			throw;
+		}
 		m_SourceFromMem = false;
 		return true;
 	}
@@ -558,6 +573,20 @@ void FCompressedMemFile::Serialize (FArchive &arc)
 bool FCompressedMemFile::IsOpen () const
 {
 	return !!m_Buffer;
+}
+
+void FCompressedMemFile::GetSizes(unsigned int &compressed, unsigned int &uncompressed) const
+{
+	if (m_ImplodedBuffer != NULL)
+	{
+		compressed = BigLong(*(unsigned int *)m_ImplodedBuffer);
+		uncompressed = BigLong(*(unsigned int *)(m_ImplodedBuffer + 4));
+	}
+	else
+	{
+		compressed = 0;
+		uncompressed = m_BufferSize;
+	}
 }
 
 FPNGChunkFile::FPNGChunkFile (FILE *file, DWORD id)
