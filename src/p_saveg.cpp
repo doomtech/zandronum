@@ -297,7 +297,7 @@ static void SpawnExtraPlayers ()
 		if (playeringame[i] && players[i].mo == NULL)
 		{
 			players[i].playerstate = PST_ENTER;
-			P_SpawnPlayer (&playerstarts[i], false, &players[i]);
+			P_SpawnPlayer(&playerstarts[i], false, i);
 		}
 	}
 }

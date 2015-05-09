@@ -131,7 +131,8 @@ enum
 	IF_INITEFFECTFAILED	= 1<<16,	// CreateCopy tried to activate a powerup and activation failed (can happen with PowerMorph)
 	IF_NOATTENPICKUPSOUND = 1<<17,	// Play pickup sound with ATTN_NONE
 	IF_PERSISTENTPOWER	= 1<<18,	// Powerup is kept when travelling between levels
-	IF_FORCERESPAWNINSURVIVAL = 1<<19,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
+	IF_RESTRICTABSOLUTELY = 1<<19,	// RestrictedTo and ForbiddenTo do not allow pickup in any form by other classes
+	IF_FORCERESPAWNINSURVIVAL = 1<<20,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
 };
 
 
@@ -353,7 +354,6 @@ enum
 	WIF_MELEEWEAPON =		0x00008000,	// melee weapon. Used by bots and monster AI.
 	WIF_DEHAMMO	=			0x00010000,	// Uses Doom's original amount of ammo for the respective attack functions so that old DEHACKED patches work as intended.
 										// AmmoUse1 will be set to the first attack's ammo use so that checking for empty weapons still works
-
 	// [BC] New weapon info definitions.
 	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00008000,	// The player can continue to wield this weapon even with respawn invulnerability active.
 	WIF_NOLMS						= 0x00010000,	// Don't give this weapon in LMS games.

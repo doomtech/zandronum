@@ -119,9 +119,7 @@ void	P_UnPredictPlayer ();
 
 extern fixed_t FloatBobOffsets[64];
 
-struct FMapThing;
-
-APlayerPawn *P_SpawnPlayer (FMapThing* mthing, bool bClientUpdate, player_t *p, bool tempplayer=false);
+APlayerPawn *P_SpawnPlayer (struct FPlayerStart *mthing, bool bClientUpdate, int playernum, bool tempplayer=false);
 
 
 void P_ThrustMobj (AActor *mo, angle_t angle, fixed_t move);

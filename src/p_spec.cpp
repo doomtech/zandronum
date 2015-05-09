@@ -177,7 +177,7 @@ CUSTOM_CVAR ( Int, sv_killallmonsters_percentage, 100, CVAR_SERVERINFO )
 		self = 0;
 }
 
-FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer );
+FPlayerStart *SelectRandomCooperativeSpot( ULONG ulPlayer );
 
 // [RH] Check dmflags for noexit and respond accordingly
 bool CheckIfExitIsGood (AActor *self, level_info_t *info)
@@ -204,7 +204,7 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 
 				// [BB] SelectRandomCooperativeSpot calls G_CheckSpot which removes the MF_SOLID flag, we need to work around this.
 				bool bSolidFlag = !!( players[ulPlayer].mo->flags & MF_SOLID );
-				FMapThing *pSpot = SelectRandomCooperativeSpot( ulPlayer );
+				FPlayerStart *pSpot = SelectRandomCooperativeSpot( ulPlayer );
 				if ( bSolidFlag )
 					players[ulPlayer].mo->flags |=  MF_SOLID;
 				P_Teleport (self, pSpot->x, pSpot->y, ONFLOORZ, ANG45 * (pSpot->angle/45), true, true, false);

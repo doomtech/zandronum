@@ -400,26 +400,40 @@ enum EMapThingFlags
 	STF_ALTSHADOW		= 0x0200,
 };
 
+// A simplified mapthing for player starts
+struct FPlayerStart
+{
+	fixed_t x, y, z;
+	short angle, type;
+
+	FPlayerStart() { }
+	FPlayerStart(const FMapThing *mthing)
+	: x(mthing->x), y(mthing->y), z(mthing->z),
+	  angle(mthing->angle),
+	  type(mthing->type)
+	{ }
+};
 // Player spawn spots for deathmatch.
-extern TArray<FMapThing> deathmatchstarts;
+extern TArray<FPlayerStart> deathmatchstarts;
 
 // [BC] Temporary team spawn spots.
-extern	TArray<FMapThing>	TemporaryTeamStarts;
+extern	TArray<FPlayerStart>	TemporaryTeamStarts;
 
 // [RC] Possession starts
-extern	TArray<FMapThing>	PossessionStarts;
+extern	TArray<FPlayerStart>	PossessionStarts;
 
 // [RC] Terminator starts
-extern	TArray<FMapThing>	TerminatorStarts;
+extern	TArray<FPlayerStart>	TerminatorStarts;
 
 // [BC] Generic invasion spawn spots.
-extern	TArray<FMapThing>	GenericInvasionStarts;
+extern	TArray<FPlayerStart>	GenericInvasionStarts;
 
 // [BB] All player starts, including those for voodoo dolls.
-extern	TArray<FMapThing>	AllPlayerStarts[MAXPLAYERS];
+extern	TArray<FPlayerStart>	AllStartsOfPlayer[MAXPLAYERS];
 
 // Player spawn spots.
-extern	FMapThing		playerstarts[MAXPLAYERS];
+extern FPlayerStart playerstarts[MAXPLAYERS];
+extern TArray<FPlayerStart> AllPlayerStarts;
 
 
 #endif					// __DOOMDATA__

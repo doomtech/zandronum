@@ -119,6 +119,7 @@
 #include "g_hub.h"
 
 static FRandom pr_dmspawn ("DMSpawn");
+static FRandom pr_pspawn ("PlayerSpawn");
 
 const int SAVEPICWIDTH = 216;
 const int SAVEPICHEIGHT = 162;
@@ -2152,7 +2153,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 // because something is occupying it 
 //
 
-bool G_CheckSpot (int playernum, FMapThing *mthing)
+bool G_CheckSpot (int playernum, FPlayerStart *mthing)
 {
 	fixed_t x;
 	fixed_t y;
@@ -2206,7 +2207,7 @@ bool G_CheckSpot (int playernum, FMapThing *mthing)
 //
 
 // [RH] Returns the distance of the closest player to the given mapthing
-static fixed_t PlayersRangeFromSpot (FMapThing *spot)
+static fixed_t PlayersRangeFromSpot (FPlayerStart *spot)
 {
 	fixed_t closest = INT_MAX;
 	fixed_t distance;
@@ -2228,7 +2229,7 @@ static fixed_t PlayersRangeFromSpot (FMapThing *spot)
 }
 
 // Returns the average distance this spot is from all the enemies of ulPlayer.
-static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FMapThing *spot )
+static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FPlayerStart *spot )
 {
 	ULONG	ulNumSpots;
 	fixed_t	distance = INT_MAX;
@@ -2256,10 +2257,10 @@ static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FMapThing *spot )
 }
 
 // [RH] Select the deathmatch spawn spot farthest from everyone.
-static FMapThing *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selections )
+static FPlayerStart *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selections )
 {
 	fixed_t bestdistance = 0;
-	FMapThing *bestspot = NULL;
+	FPlayerStart *bestspot = NULL;
 	unsigned int i;
 
 	for (i = 0; i < selections; i++)
@@ -2285,12 +2286,12 @@ static FMapThing *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selection
 
 
 // Try to find a deathmatch spawn spot farthest from our enemies.
-static FMapThing *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
+static FPlayerStart *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
 {
 	ULONG		ulIdx;
 	fixed_t		Distance;
 	fixed_t		BestDistance;
-	FMapThing	*pBestSpot;
+	FPlayerStart	*pBestSpot;
 
 	pBestSpot = NULL;
 	BestDistance = 0;
@@ -2316,7 +2317,7 @@ static FMapThing *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
 }
 
 // [RH] Select a deathmatch spawn spot at random (original mechanism)
-static FMapThing *SelectRandomDeathmatchSpot (int playernum, unsigned int selections)
+static FPlayerStart *SelectRandomDeathmatchSpot (int playernum, unsigned int selections)
 {
 	unsigned int i, j;
 
@@ -2334,7 +2335,7 @@ static FMapThing *SelectRandomDeathmatchSpot (int playernum, unsigned int select
 }
 
 // Select a temporary team spawn spot at random.
-static FMapThing *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
+static FPlayerStart *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2352,7 +2353,7 @@ static FMapThing *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelection
 }
 
 // Select a team spawn spot at random.
-static FMapThing *SelectRandomTeamSpot( USHORT usPlayer, ULONG ulTeam, ULONG ulNumSelections )
+static FPlayerStart *SelectRandomTeamSpot( USHORT usPlayer, ULONG ulTeam, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2370,7 +2371,7 @@ static FMapThing *SelectRandomTeamSpot( USHORT usPlayer, ULONG ulTeam, ULONG ulN
 }
 
 // Select a cooperative spawn spot at random.
-FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer )
+FPlayerStart *SelectRandomCooperativeSpot( ULONG ulPlayer )
 {
 	ULONG		ulNumAttempts;
 	ULONG		ulSelection;
@@ -2419,7 +2420,7 @@ FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer )
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 {
 	unsigned int selections;
-	FMapThing *spot;
+	FPlayerStart *spot;
 
 	// [BB] If sv_useteamstartsindm is true, we want to use team starts in deathmatch
 	// game modes with teams, e.g. TDM, TLMS.
@@ -2456,14 +2457,14 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 	if ( spot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( spot, bClientUpdate, &players[playernum] );
+	AActor *mo = P_SpawnPlayer( spot, bClientUpdate, playernum );
 	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 {
 	ULONG		ulNumSelections;
-	FMapThing	*pSpot;
+	FPlayerStart	*pSpot;
 
 	ulNumSelections = TemporaryTeamStarts.Size( );
 
@@ -2519,7 +2520,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer );
 	if (mo != NULL)
 	{
 		P_PlayerStartStomp(mo);
@@ -2536,7 +2537,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 {
 	ULONG		ulNumSelections;
-	FMapThing	*pSpot;
+	FPlayerStart	*pSpot;
 
 	ulNumSelections = teams[ulTeam].TeamStarts.Size( );
 	if ( ulNumSelections < 1 )
@@ -2549,7 +2550,7 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer );
 	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
@@ -2559,20 +2560,50 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	// [BB] Don't do this, if we want to randomize starts.
 	if (( sv_randomcoopstarts == false ) && ( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
-		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL, bTempPlayer );
+		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, ulPlayer, bTempPlayer );
 		if (mo != NULL) P_PlayerStartStomp(mo);
 		return;
 	}
 
 	// Now, try to find a valid cooperative start.
-	FMapThing *pSpot = SelectRandomCooperativeSpot( ulPlayer );
+	FPlayerStart *pSpot = SelectRandomCooperativeSpot( ulPlayer );
 
 	// ANAMOLOUS HAPPENING!!!
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer], bTempPlayer );
-	if (mo != NULL) P_PlayerStartStomp(mo);
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer, bTempPlayer );
+}
+
+//
+// G_PickPlayerStart
+//
+FPlayerStart *G_PickPlayerStart(int playernum, int flags)
+{
+	if ((level.flags2 & LEVEL2_RANDOMPLAYERSTARTS) || (flags & PPS_FORCERANDOM))
+	{
+		if (!(flags & PPS_NOBLOCKINGCHECK))
+		{
+			TArray<FPlayerStart *> good_starts;
+			unsigned int i;
+
+			// Find all unblocked player starts.
+			for (i = 0; i < AllPlayerStarts.Size(); ++i)
+			{
+				if (G_CheckSpot(playernum, &AllPlayerStarts[i]))
+				{
+					good_starts.Push(&AllPlayerStarts[i]);
+				}
+			}
+			if (good_starts.Size() > 0)
+			{ // Pick an open spot at random.
+				return good_starts[pr_pspawn(good_starts.Size())];
+			}
+	}
+		// Pick a spot at random, whether it's open or not.
+		return &AllPlayerStarts[pr_pspawn(AllPlayerStarts.Size())];
+	}
+	return &playerstarts[playernum];
 }
 
 //
@@ -2633,9 +2664,6 @@ void G_DoReborn (int playernum, bool freshbot)
 	else
 	{
 		// respawn at the start
-		// [BB] ST doesn't need this variable.
-		// int i;
-
 		// first disassociate the corpse
 		AActor *pOldBody = players[playernum].mo; // [BB] ST still needs the old body pointer.
 		if (players[playernum].mo)
@@ -2657,46 +2685,23 @@ void G_DoReborn (int playernum, bool freshbot)
 		}
 
 		/* [BB] ST has its own way of doing this.
-		// spawn at random spot if in death match
+		// spawn at random spot if in deathmatch
 		if (deathmatch)
 		{
 			G_DeathMatchSpawnPlayer (playernum);
 			return;
 		}
 
-		if (G_CheckSpot (playernum, &playerstarts[playernum]) )
+		if (!(level.flags2 & LEVEL2_RANDOMPLAYERSTARTS) &&
+			G_CheckSpot (playernum, &playerstarts[playernum]))
 		{
-			AActor *mo = P_SpawnPlayer (&playerstarts[playernum]);
+			AActor *mo = P_SpawnPlayer(&playerstarts[playernum], playernum);
 			if (mo != NULL) P_PlayerStartStomp(mo);
 		}
 		else
-		{
-			// try to spawn at one of the other players' spots
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (G_CheckSpot (playernum, &playerstarts[i]) )
-				{
-					int oldtype = playerstarts[i].type;
-
-					// fake as other player
-					// [RH] These numbers should be common across all games. Or better yet, not
-					// used at all outside P_SpawnMapThing().
-					if (playernum < 4)
-					{
-						playerstarts[i].type = playernum + 1;
-					}
-					else
-					{
-						playerstarts[i].type = playernum + gameinfo.player5start - 4;
-					}
-					AActor *mo = P_SpawnPlayer (&playerstarts[i]);
-					if (mo != NULL) P_PlayerStartStomp(mo);
-					playerstarts[i].type = oldtype; 			// restore 
-					return;
-				}
-				// he's going to be inside something.  Too bad.
-			}
-			AActor *mo = P_SpawnPlayer (&playerstarts[playernum]);
+		{ // try to spawn at any random player's spot
+			FPlayerStart *start = G_PickPlayerStart(playernum, PPS_FORCERANDOM);
+			AActor *mo = P_SpawnPlayer(start, playernum);
 			if (mo != NULL) P_PlayerStartStomp(mo);
 		}
 		*/
@@ -3989,7 +3994,7 @@ bool GAME_IsMapRestRequested( void )
 
 //*****************************************************************************
 //
-AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TArray<FMapThing> &Spots )
+AActor* GAME_SelectRandomSpotForArtifact ( const PClass *pArtifactType, const TArray<FPlayerStart> &Spots )
 {
 	if ( Spots.Size() == 0 )
 		return NULL;
@@ -4139,8 +4144,6 @@ void G_ScreenShot (char *filename)
 	shotfile = filename;
 	gameaction = ga_screenshot;
 }
-
-
 
 
 
@@ -4630,7 +4633,7 @@ void G_DoSaveGame (bool okForQuicksave, FString filename, const char *descriptio
 
 	if (level.time != 0 || level.maptime != 0)
 	{
-		DWORD time[2] = { BigLong(TICRATE), BigLong(level.time) };
+		DWORD time[2] = { DWORD(BigLong(TICRATE)), DWORD(BigLong(level.time)) };
 		M_AppendPNGChunk (stdfile, MAKE_ID('p','t','I','c'), (BYTE *)&time, 8);
 	}
 

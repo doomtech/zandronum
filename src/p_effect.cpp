@@ -327,7 +327,7 @@ void P_ThinkParticles ()
 }
 
 // [CK] Refactored code to generate a fountain.
-static void GenerateShowSpawnFountain ( FMapThing &ts, const int color, const int pnum )
+static void GenerateShowSpawnFountain ( FPlayerStart &ts, const int color, const int pnum )
 {
 	fixed_t floorZ;
 	sector_t *pSector;

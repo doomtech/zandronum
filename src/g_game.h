@@ -27,6 +27,7 @@ struct event_t;
 struct PNGHandle;
 
 struct FMapThing;
+struct FPlayerStart;
 struct line_t;
 //
 // GAME
@@ -34,7 +35,7 @@ struct line_t;
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate );
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate );
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate );
-FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer );
+FPlayerStart *SelectRandomCooperativeSpot( ULONG ulPlayer );
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer = false );
 
 // [BB] Added bGiveInventory and moved the declaration to g_game.h.
@@ -72,6 +73,13 @@ ULONG	GAME_CountLivingAndRespawnablePlayers( void );
 ULONG	GAME_CountActivePlayers( void );
 
 // [BC] End changes.
+
+struct FPlayerStart *G_PickPlayerStart (int playernum, int flags = 0);
+enum
+{
+	PPS_FORCERANDOM			= 1,
+	PPS_NOBLOCKINGCHECK		= 2,
+};
 
 void G_DeferedPlayDemo (const char* demo);
 

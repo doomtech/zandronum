@@ -77,6 +77,7 @@ public:
 	bool WipeDo(int ticks);
 	void WipeCleanup();
 	void Swap();
+	bool Is8BitMode() { return false; }
 
 
 private:

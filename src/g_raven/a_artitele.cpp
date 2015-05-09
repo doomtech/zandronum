@@ -7,6 +7,7 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "doomstat.h"
+#include "g_game.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
@@ -67,7 +68,7 @@ bool AArtiTeleport::Use (bool pickup)
 	}
 	else
 	{
-		FMapThing *pSpot = NULL;
+		FPlayerStart *pSpot = NULL;
 		// [BB] If there is a designated start for this player use it.
 		if ( playerstarts[Owner->player - players].type != 0 )
 			pSpot = &playerstarts[Owner->player - players];

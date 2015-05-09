@@ -121,7 +121,7 @@ struct TEAMINFO
 	bool		bAnnouncedLeadState;
 
 	// This team's player starts.
-	TArray<FMapThing> TeamStarts;
+	TArray<FPlayerStart> TeamStarts;
 
 	// The DoomEdNum of the team's player starts.
 	ULONG		ulPlayerStartThingNumber;

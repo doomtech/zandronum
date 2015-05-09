@@ -202,24 +202,25 @@ BYTE*			rejectmatrix;
 bool		ForceNodeBuild;
 
 // Maintain single and multi player starting spots.
-TArray<FMapThing> deathmatchstarts (16);
+TArray<FPlayerStart> deathmatchstarts (16);
+FPlayerStart		playerstarts[MAXPLAYERS];
+TArray<FPlayerStart> AllPlayerStarts;
 
 // [BC] Temporary team spawn spots.
-TArray<FMapThing>	TemporaryTeamStarts( 16 );
+TArray<FPlayerStart>	TemporaryTeamStarts( 16 );
 
 // [BC] Generic invasion spawn spots.
-TArray<FMapThing>	GenericInvasionStarts( 16 );
+TArray<FPlayerStart>	GenericInvasionStarts( 16 );
 
 // [RC] Possession starts
-TArray<FMapThing> PossessionStarts(16);
+TArray<FPlayerStart> PossessionStarts(16);
 
 // [RC] Terminator starts
-TArray<FMapThing> TerminatorStarts(16);
+TArray<FPlayerStart> TerminatorStarts(16);
 
 // [BB] All player starts, including those for voodoo dolls.
-TArray<FMapThing> AllPlayerStarts[MAXPLAYERS];
+TArray<FPlayerStart> AllStartsOfPlayer[MAXPLAYERS];
 
-FMapThing		playerstarts[MAXPLAYERS];
 
 static void P_AllocateSideDefs (int count);
 
@@ -4266,13 +4267,15 @@ void P_SetupLevel (char *lumpname, int position)
 	for (i = 0; i < BODYQUESIZE; i++)
 		bodyque[i] = NULL;
 
-	deathmatchstarts.Clear ();
+	deathmatchstarts.Clear();
+	AllPlayerStarts.Clear();
+	memset(playerstarts, 0, sizeof(playerstarts));
 	TemporaryTeamStarts.Clear( );
 	GenericInvasionStarts.Clear( );
 	PossessionStarts.Clear();
 	TerminatorStarts.Clear();
 	for (i = 0; i < MAXPLAYERS; ++i)
-		AllPlayerStarts[i].Clear();
+		AllStartsOfPlayer[i].Clear();
 
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 		teams[i].TeamStarts.Clear( );
@@ -4369,8 +4372,33 @@ void P_SetupLevel (char *lumpname, int position)
 	delete[] sidetemp;
 	sidetemp = NULL;
 
-	// [BC] Changed the following block a bunch.
-	// Spawn active players.
+	/* [BC/BB] Zandronum handles spawning differently.
+	// if deathmatch, randomly spawn the active players
+	if (deathmatch)
+	{
+		for (i=0 ; i<MAXPLAYERS ; i++)
+		{
+			if (playeringame[i])
+			{
+				players[i].mo = NULL;
+				G_DeathMatchSpawnPlayer (i);
+			}
+		}
+	}
+	// the same, but for random single/coop player starts
+	else if (level.flags2 & LEVEL2_RANDOMPLAYERSTARTS)
+	{
+		for (i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i])
+			{
+				players[i].mo = NULL;
+				FPlayerStart *mthing = G_PickPlayerStart(i);
+				P_SpawnPlayer(mthing, i);
+			}
+		}
+	}
+	*/
 	for ( i = 0; i < MAXPLAYERS; i++ )
 	{
 		if ( playeringame[i] == false )

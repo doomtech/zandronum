@@ -81,6 +81,7 @@ protected:
 	static const char *GenerateEndTag(const char *value);
 
 	bool OkayToWrite;
+	bool FileExisted;
 
 private:
 	struct FConfigEntry

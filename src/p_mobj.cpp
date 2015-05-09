@@ -2899,10 +2899,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	}
 
 	// [W] Added old ZDoom physics compatibility
-	if (!(zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT) && !(mo->flags2 & MF2_FLOATBOB))
-	{
+	if (!(zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT))
 		mo->z += mo->velz;
-	}
 
 //
 // apply gravity
@@ -2986,10 +2984,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 	}
 
 	// [W/BB] Apply the old ZDoom gravity here instead
-	if ((zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT) || (mo->flags2 & MF2_FLOATBOB))
-	{
+	if ((zacompatflags & ZACOMPATF_OLD_ZDOOM_ZMOVEMENT))
 		mo->z += mo->velz;
-	}
 
 	// [BC] Mark this item as having moved.
 	if ( mo->z != oldz )
@@ -4372,14 +4368,7 @@ void AActor::Tick ()
 			}
 
 		}
-		if (flags2 & MF2_FLOATBOB)
-		{ // Floating item bobbing motion
-			z += FloatBobDiffs[(FloatBobPhase + level.maptime) & 63];
-		}
-		if (velz || BlockingMobj ||
-			(z != floorz && (!(flags2 & MF2_FLOATBOB) ||
-			(z - FloatBobOffsets[(FloatBobPhase + level.maptime) & 63] != floorz)
-			)))
+		if (velz || BlockingMobj || z != floorz)
 		{	// Handle Z velocity and gravity
 			if (((flags2 & MF2_PASSMOBJ) || (flags & MF_SPECIAL)) && !(i_compatflags & COMPATF_NO_PASSMOBJ))
 			{
@@ -4414,6 +4403,20 @@ void AActor::Tick ()
 							} 
 						}
 						z = onmo->z + onmo->height;
+					}
+					// Check for MF6_BUMPSPECIAL
+					// By default, only players can activate things by bumping into them
+					// We trigger specials as long as we are on top of it and not just when
+					// we land on it. This could be considered as gravity making us continually
+					// bump into it, but it also avoids having to worry about walking on to
+					// something without dropping and not triggering anything.
+					if ((onmo->flags6 & MF6_BUMPSPECIAL) && ((player != NULL)
+						|| ((onmo->activationtype & THINGSPEC_MonsterTrigger) && (flags3 & MF3_ISMONSTER))
+						|| ((onmo->activationtype & THINGSPEC_MissileTrigger) && (flags & MF_MISSILE))
+						) && (level.maptime > onmo->lastbump)) // Leave the bumper enough time to go away
+					{
+						if (P_ActivateThingSpecial(onmo, this))
+							onmo->lastbump = level.maptime + TICRATE;
 					}
 					if (velz != 0 && (BounceFlags & BOUNCE_Actors))
 					{
@@ -4951,11 +4954,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		actor->SpawnPoint[2] = (actor->z - actor->floorz);
 	}
 
-	if (actor->flags2 & MF2_FLOATBOB)
-	{ // Prime the bobber
-		actor->FloatBobPhase = rng();
-		actor->z += FloatBobOffsets[(actor->FloatBobPhase + level.maptime - 1) & 63];
-	}
+	actor->FloatBobPhase = rng();	// Don't make everything bob in sync
 	if (actor->flags2 & MF2_FLOORCLIP)
 	{
 		actor->AdjustFloorClip ();
@@ -5298,40 +5297,23 @@ void AActor::AdjustFloorClip ()
 EXTERN_CVAR (Bool, chasedemo)
 extern bool demonew;
 
-APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, bool tempplayer)
+APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int playernum, bool tempplayer)
 {
-	int		  playernum;
+	player_t *p;
 	APlayerPawn *mobj, *oldactor;
 	// [BB] I want this to be const, so we need declare it later.
 	//BYTE	  state;
-	fixed_t spawn_x, spawn_y;
+	fixed_t spawn_x, spawn_y, spawn_z;
 	angle_t spawn_angle;
 	// [BC]
 	LONG		lSkin;
 	AInventory	*pInventory;
 
-	if ( p == NULL )
-	{
-		// [RH] Things 4001-? are also multiplayer starts. Just like 1-4.
-		//		To make things simpler, figure out which player is being
-		//		spawned here.
-		if (mthing->type <= 4)
-		{
-			playernum = mthing->type - 1;
-		}
-		else
-		{
-			playernum = mthing->type - gameinfo.player5start + 4;
-		}
+	// not playing?
+	if ((unsigned)playernum >= (unsigned)MAXPLAYERS || !playeringame[playernum])
+		return NULL;
 
-		// not playing?
-		if (playernum >= MAXPLAYERS || !playeringame[playernum])
-			return NULL;
-
-		p = &players[playernum];
-	}
-	else
-		playernum = p - players;
+	p = &players[playernum];
 
 	// [BB] Make sure that the player only uses a class available to his team.
 	if ( tempplayer == false )
@@ -5411,8 +5393,24 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		}
 	}
 
+	if (GetDefaultByType(p->cls)->flags & MF_SPAWNCEILING)
+		spawn_z = ONCEILINGZ;
+	else if (GetDefaultByType(p->cls)->flags2 & MF2_SPAWNFLOAT)
+		spawn_z = FLOATRANDZ;
+	else
+		spawn_z = ONFLOORZ;
+
 	mobj = static_cast<APlayerPawn *>
-		(Spawn (p->cls, spawn_x, spawn_y, ONFLOORZ, NO_REPLACE));
+		(Spawn (p->cls, spawn_x, spawn_y, spawn_z, NO_REPLACE));
+
+	if (level.flags & LEVEL_USEPLAYERSTARTZ)
+	{
+		if (spawn_z == ONFLOORZ)
+			mobj->z += mthing->z;
+		else if (spawn_z == ONCEILINGZ)
+			mobj->z -= mthing->z;
+		P_FindFloorCeiling(mobj, FFCF_SAMESECTOR | FFCF_ONLY3DFLOORS | FFCF_3DRESTRICT);
+	}
 
 	mobj->FriendPlayer = playernum + 1;	// [RH] players are their own friends
 	oldactor = p->mo;
@@ -5800,14 +5798,16 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	// count deathmatch start positions
 	if (mthing->type == 11)
 	{
-		deathmatchstarts.Push (*mthing);
+		FPlayerStart start(mthing);
+		deathmatchstarts.Push(start);
 		return NULL;
 	}
 
 	// [BC] Count temporary team starts.
 	if ( mthing->type == 5082 )
 	{
-		TemporaryTeamStarts.Push( *mthing );
+		FPlayerStart start( mthing );
+		TemporaryTeamStarts.Push( start );
 		return NULL;
 	}
 
@@ -5816,7 +5816,8 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	{
 		if ( mthing->type == static_cast<int> (teams[i].ulPlayerStartThingNumber) )
 		{
-			teams[i].TeamStarts.Push( *mthing );
+			FPlayerStart start( mthing );
+			teams[i].TeamStarts.Push( start );
 			return NULL;
 		}
 	}
@@ -5824,20 +5825,25 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	// [RC] Catalog possession starts
 	if ( mthing->type == 6000 )
 	{
-		PossessionStarts.Push( *mthing );
+		FPlayerStart start( mthing );
+		PossessionStarts.Push( start );
 		return NULL;
 	}
 
 	// [RC] Catalog terminator starts
 	if ( mthing->type == 6001 )
 	{
-		TerminatorStarts.Push( *mthing );
+		FPlayerStart start( mthing );
+		TerminatorStarts.Push( start );
 		return NULL;
 	}
 
 	// [BC/BB] Count invasion starts.
 	if ( INVASION_IsMapThingInvasionSpot( mthing ) )
-		GenericInvasionStarts.Push( *mthing );
+	{
+		FPlayerStart start( mthing );
+		GenericInvasionStarts.Push( start );
+	}
 
 	// Convert Strife starts to Hexen-style starts
 	if (gameinfo.gametype == GAME_Strife && mthing->type >= 118 && mthing->type <= 127)
@@ -5968,15 +5974,18 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 			return NULL;
 
 		// save spots for respawning in network games
-		playerstarts[pnum] = *mthing;
+		FPlayerStart start(mthing);
+		playerstarts[pnum] = start;
+		AllPlayerStarts.Push(start);
 
 		// [BB] To spawn voodoo dolls in multiplayer games, we need to keep track of all starts for every player.
-		AllPlayerStarts[pnum].Push( *mthing );
+		AllStartsOfPlayer[pnum].Push( start );
 
+		// [BB] Zandronum handles spawning differently.
+		// if (!deathmatch && !(level.flags2 & LEVEL2_RANDOMPLAYERSTARTS))
 		// [BC] Need to maintain this method so that we get voodoo dolls, which some doomers are used to.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE && ( deathmatch == false ) && ( teamgame == false ))
-			return P_SpawnPlayer (mthing, false, NULL);
-
+			return P_SpawnPlayer(&start, false, pnum);
 		return NULL;
 	}
 
@@ -6637,7 +6646,7 @@ int P_GetThingFloorType (AActor *thing)
 
 bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z, bool checkabove, bool alert)
 {
-	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
+	if (thing->flags3 & MF3_DONTSPLASH)
 		return false;
 
 	// [BC] Spectators can't cause splashes.
@@ -6823,7 +6832,7 @@ bool P_HitFloor (AActor *thing)
 		return false;
 	}
 
-	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
+	if (thing->flags3 & MF3_DONTSPLASH)
 		return false;
 
 	// don't splash if landing on the edge above water/lava/etc....
