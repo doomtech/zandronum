@@ -701,7 +701,7 @@ static int P_RainbowParticleColor( )
 	return *( g_rainbowParticleColors[index] );
 }
 
-void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end, int color1, int color2, float maxdiff, bool silent, const PClass *spawnclass, angle_t angle, bool fullbright, int duration, float sparsity, float drift)
+void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end, int color1, int color2, float maxdiff, int flags, const PClass *spawnclass, angle_t angle, int duration, float sparsity, float drift)
 {
 	// [BC] The server has no need to draw a railgun trail.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -711,15 +711,17 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 	int steps, i;
 	FAngle deg;
 	FVector3 step, dir, pos, extend;
+	bool fullbright;
 
 	dir = end - start;
 	lengthsquared = dir | dir;
 	length = sqrt(lengthsquared);
-	steps = int(length / 3);
+	steps = xs_FloorToInt(length / 3);
+	fullbright = !!(flags & RAF_FULLBRIGHT);
 
 	if (steps)
 	{
-		if (!silent)
+		if (!(flags & RAF_SILENT))
 		{
 			FSoundID sound;
 			

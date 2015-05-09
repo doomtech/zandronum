@@ -5504,6 +5504,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	p->mo->ResetAirSupply(false);
 	p->Uncrouch();
 	p->MinPitch = p->MaxPitch = 0;	// will be filled in by PostBeginPlay()/netcode
+	p->cheats &= ~CF_FLY;
 
 	p->velx = p->vely = 0;		// killough 10/98: initialize bobbing to 0.
 

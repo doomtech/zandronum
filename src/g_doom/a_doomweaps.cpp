@@ -250,18 +250,18 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 			return;
 	}
 
-	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype);
+	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype, false, &linetarget);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), Range,
 					  P_AimLineAttack( self, angle + ( ANGLE_45 / 3 ), Range, &linetarget ), damage,
-					  NAME_None, pufftype );
+					  NAME_Melee, pufftype, false );
 
 		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), Range,
 					  P_AimLineAttack( self, angle - ( ANGLE_45 / 3 ), Range, &linetarget ), damage,
-					  NAME_None, pufftype );
+					  NAME_Melee, pufftype, false );
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
