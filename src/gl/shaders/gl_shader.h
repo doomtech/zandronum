@@ -54,7 +54,7 @@ class FShader
 public:
 	FShader()
 	{
-		hShader = hVertProg = hFragProg = NULL;
+		hShader = hVertProg = hFragProg = 0;
 		currentfogenabled = currenttexturemode = 0;
 		currentlightfactor = currentlightdist = 0.0f;
 		currentfogdensity = -1;

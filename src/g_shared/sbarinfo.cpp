@@ -304,6 +304,8 @@ class SBarInfoMainBlock : public SBarInfoCommandFlowControl
 		}
 
 		int		Alpha() const { return currentAlpha; }
+		// Same as Draw but takes into account ForceScaled and temporarily sets the scaling if needed.
+		void	DrawAux(const SBarInfoMainBlock *block, DSBarInfo *statusBar, int xOffset, int yOffset, int alpha);
 		void	Draw(const SBarInfoMainBlock *block, const DSBarInfo *statusBar, int xOffset, int yOffset, int alpha)
 		{
 			this->xOffset = xOffset;
@@ -958,7 +960,7 @@ public:
 	DSBarInfo (SBarInfo *script=NULL) : DBaseStatusBar(script->height, script->resW, script->resH),
 		ammo1(NULL), ammo2(NULL), ammocount1(0), ammocount2(0), armor(NULL),
 		pendingPopup(POP_None), currentPopup(POP_None), lastHud(-1),
-		lastInventoryBar(NULL), lastPopup(NULL)
+		scalingWasForced(false), lastInventoryBar(NULL), lastPopup(NULL)
 	{
 		this->script = script;
 
@@ -1025,17 +1027,31 @@ public:
 		bool oldhud_scale = hud_scale;
 		if(script->huds[hud]->ForceScaled()) //scale the statusbar
 		{
-			SetScaled(true, true);
-			setsizeneeded = true;
 			if(script->huds[hud]->FullScreenOffsets())
 				hud_scale = true;
+			else if(!Scaled)
+			{
+				scalingWasForced = true;
+				SetScaled(true, true);
+				setsizeneeded = true;
+			}
 		}
 
 		//prepare ammo counts
 		GetCurrentAmmo(ammo1, ammo2, ammocount1, ammocount2);
 		armor = CPlayer->mo->FindInventory<ABasicArmor>();
 		if(hud != lastHud)
+		{
 			script->huds[hud]->Tick(NULL, this, true);
+
+			// Restore scaling if need be.
+			if(scalingWasForced)
+			{
+				scalingWasForced = false;
+				SetScaled(false);
+				setsizeneeded = true;
+			}
+		}
 
 		if(currentPopup != POP_None && !script->huds[hud]->FullScreenOffsets())
 			script->huds[hud]->Draw(NULL, this, script->popups[currentPopup-1].getXDisplacement(), script->popups[currentPopup-1].getYDisplacement(), FRACUNIT);
@@ -1043,6 +1059,7 @@ public:
 			script->huds[hud]->Draw(NULL, this, 0, 0, FRACUNIT);
 		lastHud = hud;
 
+		// Handle inventory bar drawing
 		if(CPlayer->inventorytics > 0 && !(level.flags & LEVEL_NOINVENTORYBAR) && (state == HUD_StatusBar || state == HUD_Fullscreen))
 		{
 			SBarInfoMainBlock *inventoryBar = state == HUD_StatusBar ? script->huds[STBAR_INVENTORY] : script->huds[STBAR_INVENTORYFULLSCREEN];
@@ -1053,8 +1070,10 @@ public:
 			if(inventoryBar->NumCommands() == 0)
 				CPlayer->inventorytics = 0;
 			else
-				inventoryBar->Draw(NULL, this, 0, 0, FRACUNIT);
+				inventoryBar->DrawAux(NULL, this, 0, 0, FRACUNIT);
 		}
+
+		// Handle popups
 		if(currentPopup != POP_None)
 		{
 			int popbar = 0;
@@ -1070,12 +1089,13 @@ public:
 				lastPopup->Tick(NULL, this, true);
 			}
 
-			script->huds[popbar]->Draw(NULL, this, script->popups[currentPopup-1].getXOffset(), script->popups[currentPopup-1].getYOffset(), script->popups[currentPopup-1].getAlpha());
+			script->huds[popbar]->DrawAux(NULL, this, script->popups[currentPopup-1].getXOffset(), script->popups[currentPopup-1].getYOffset(), script->popups[currentPopup-1].getAlpha());
 		}
 		else
 			lastPopup = NULL;
-		if(script->huds[hud]->ForceScaled() && script->huds[hud]->FullScreenOffsets())
-			hud_scale = oldhud_scale;
+
+		// Reset hud_scale
+		hud_scale = oldhud_scale;
 	}
 
 	void NewGame ()
@@ -1494,6 +1514,7 @@ private:
 	int pendingPopup;
 	int currentPopup;
 	int lastHud;
+	bool scalingWasForced;
 	SBarInfoMainBlock *lastInventoryBar;
 	SBarInfoMainBlock *lastPopup;
 };
@@ -1509,6 +1530,38 @@ DBaseStatusBar *CreateCustomStatusBar (int script)
 	if(SBarInfoScript[script] == NULL)
 		I_FatalError("Tried to create a status bar with no script!");
 	return new DSBarInfo(SBarInfoScript[script]);
+}
+
+void SBarInfoMainBlock::DrawAux(const SBarInfoMainBlock *block, DSBarInfo *statusBar, int xOffset, int yOffset, int alpha)
+{
+	// Popups can also be forced to scale
+	bool rescale = false;
+	if(ForceScaled())
+	{
+		if(FullScreenOffsets())
+		{
+			if(!hud_scale)
+			{
+				rescale = true;
+				hud_scale = true;
+			}
+		}
+		else if(!statusBar->Scaled)
+		{
+			rescale = true;
+			statusBar->SetScaled(true, true);
+		}
+	}
+
+	Draw(block, statusBar, xOffset, yOffset, alpha);
+
+	if(rescale)
+	{
+		if(FullScreenOffsets())
+			hud_scale = false;
+		else
+			statusBar->SetScaled(false);
+	}
 }
 
 // [BB] For the time being, Skulltag still needs CreateDoomStatusBar from doom_sbar.cpp.
