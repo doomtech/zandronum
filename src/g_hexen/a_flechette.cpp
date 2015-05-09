@@ -14,6 +14,8 @@
 #include "g_level.h"
 */
 
+EXTERN_CVAR(Bool, sv_unlimited_pickup)
+
 static FRandom pr_poisonbag ("PoisonBag");
 static FRandom pr_poisoncloud ("PoisonCloud");
 static FRandom pr_poisoncloudd ("PoisonCloudDamage");
@@ -239,10 +241,10 @@ bool AArtiPoisonBag::HandlePickup (AInventory *item)
 
 	if (GetClass() == GetFlechetteType(Owner))
 	{
-		if (Amount < MaxAmount)
+		if (Amount < MaxAmount || sv_unlimited_pickup)
 		{
 			Amount += item->Amount;
-			if (Amount > MaxAmount)
+			if (Amount > MaxAmount && !sv_unlimited_pickup)
 			{
 				Amount = MaxAmount;
 			}
@@ -307,7 +309,7 @@ class APoisonCloud : public AActor
 {
 	DECLARE_CLASS (APoisonCloud, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 	void BeginPlay ();
 };
 
@@ -320,7 +322,7 @@ void APoisonCloud::BeginPlay ()
 	special2 = 0;
 }
 
-int APoisonCloud::DoSpecialDamage (AActor *victim, int damage)
+int APoisonCloud::DoSpecialDamage (AActor *victim, int damage, FName damagetype)
 {
 	if (victim->player)
 	{
@@ -343,12 +345,23 @@ int APoisonCloud::DoSpecialDamage (AActor *victim, int damage)
 			{
 				damage = (int)((float)damage * level.teamdamage);
 			}
+			// Handle passive damage modifiers (e.g. PowerProtection)
+			if (victim->Inventory != NULL)
+			{
+				victim->Inventory->ModifyDamage(damage, damagetype, damage, true);
+			}
+			// Modify with damage factors
+			damage = FixedMul(damage, victim->DamageFactor);
+			if (damage > 0)
+			{
+				damage = DamageTypeDefinition::ApplyMobjDamageFactor(damage, damagetype, victim->GetClass()->ActorInfo->DamageFactors);
+			}
 			if (damage > 0)
 			{
 				P_PoisonDamage (victim->player, this,
 					15+(pr_poisoncloudd()&15), false); // Don't play painsound
 
-				// If successful, play the posion sound.
+				// If successful, play the poison sound.
 				if (P_PoisonPlayer (victim->player, this, this->target, 50))
 					S_Sound (victim, CHAN_VOICE, "*poison", 1, ATTN_NORM);
 

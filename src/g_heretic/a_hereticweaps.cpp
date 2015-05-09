@@ -490,12 +490,12 @@ class AMaceFX4 : public AActor
 {
 	DECLARE_CLASS (AMaceFX4, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 IMPLEMENT_CLASS (AMaceFX4)
 
-int AMaceFX4::DoSpecialDamage (AActor *target, int damage)
+int AMaceFX4::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if ((target->flags2 & MF2_BOSS) || (target->flags3 & MF3_DONTSQUASH) || target->IsTeammate (this->target))
 	{ // Don't allow cheap boss kills and don't instagib teammates
@@ -1138,10 +1138,10 @@ class ABlasterFX1 : public AFastProjectile
 	DECLARE_CLASS(ABlasterFX1, AFastProjectile)
 public:
 	void Effect ();
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
-int ABlasterFX1::DoSpecialDamage (AActor *target, int damage)
+int ABlasterFX1::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->IsKindOf (PClass::FindClass ("Ironlich")))
 	{ // Less damage to Ironlich bosses
@@ -1171,12 +1171,12 @@ class ARipper : public AActor
 {
 	DECLARE_CLASS (ARipper, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 IMPLEMENT_CLASS(ARipper)
 
-int ARipper::DoSpecialDamage (AActor *target, int damage)
+int ARipper::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->IsKindOf (PClass::FindClass ("Ironlich")))
 	{ // Less damage to Ironlich bosses
@@ -1280,12 +1280,12 @@ class AHornRodFX2 : public AActor
 {
 	DECLARE_CLASS (AHornRodFX2, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 IMPLEMENT_CLASS (AHornRodFX2)
 
-int AHornRodFX2::DoSpecialDamage (AActor *target, int damage)
+int AHornRodFX2::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->IsKindOf (PClass::FindClass("Sorcerer2")) && pr_hrfx2() < 96)
 	{ // D'Sparil teleports away
@@ -1301,12 +1301,12 @@ class ARainPillar : public AActor
 {
 	DECLARE_CLASS (ARainPillar, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 IMPLEMENT_CLASS (ARainPillar)
 
-int ARainPillar::DoSpecialDamage (AActor *target, int damage)
+int ARainPillar::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->flags2 & MF2_BOSS)
 	{ // Decrease damage for bosses
@@ -1719,13 +1719,13 @@ class APhoenixFX1 : public AActor
 {
 	DECLARE_CLASS (APhoenixFX1, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 
 IMPLEMENT_CLASS (APhoenixFX1)
 
-int APhoenixFX1::DoSpecialDamage (AActor *target, int damage)
+int APhoenixFX1::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->IsKindOf (PClass::FindClass("Sorcerer2")) && pr_hrfx2() < 96)
 	{ // D'Sparil teleports away
@@ -1741,12 +1741,12 @@ class APhoenixFX2 : public AActor
 {
 	DECLARE_CLASS (APhoenixFX2, AActor)
 public:
-	int DoSpecialDamage (AActor *target, int damage);
+	int DoSpecialDamage (AActor *target, int damage, FName damagetype);
 };
 
 IMPLEMENT_CLASS (APhoenixFX2)
 
-int APhoenixFX2::DoSpecialDamage (AActor *target, int damage)
+int APhoenixFX2::DoSpecialDamage (AActor *target, int damage, FName damagetype)
 {
 	if (target->player && pr_pfx2 () < 128)
 	{ // Freeze player for a bit
