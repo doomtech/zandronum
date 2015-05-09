@@ -2136,8 +2136,8 @@ void WI_drawNetgameStats ()
 {
 	// [BC] We're not using these.
 	/*
-	int i, x, y, height;
-	int maxnamewidth, maxscorewidth;
+	int i, x, y, ypadding, height, lineheight;
+	int maxnamewidth, maxscorewidth, maxiconheight;
 	int pwidth = IntermissionFont->GetCharWidth('%');
 	int icon_x, name_x, kills_x, bonus_x, secret_x;
 	int bonus_len, secret_len;
@@ -2154,8 +2154,10 @@ void WI_drawNetgameStats ()
 	// [BC] In cooperative mode, just draw the scoreboard.
 	SCOREBOARD_RenderBoard( me );
 /*
-	HU_GetPlayerWidths(maxnamewidth, maxscorewidth);
+	HU_GetPlayerWidths(maxnamewidth, maxscorewidth, maxiconheight);
 	height = SmallFont->GetHeight() * CleanYfac;
+	lineheight = MAX(height, maxiconheight * CleanYfac);
+	ypadding = (lineheight - height + 1) / 2;
 	y += 16*CleanYfac;
 
 	bonus_label = (gameinfo.gametype & GAME_Raven) ? "BONUS" : "ITEMS";
@@ -2194,27 +2196,27 @@ void WI_drawNetgameStats ()
 			continue;
 
 		player = &players[i];
-		HU_DrawColorBar(x, y, height, i);
+		HU_DrawColorBar(x, y, lineheight, i);
 		color = (EColorRange)HU_GetRowColor(player, i == consoleplayer);
 		if (player->mo->ScoreIcon.isValid())
 		{
 			FTexture *pic = TexMan[player->mo->ScoreIcon];
 			screen->DrawTexture(pic, icon_x, y, DTA_CleanNoMove, true, TAG_DONE);
 		}
-		screen->DrawText(SmallFont, color, name_x, y, player->userinfo.netname, DTA_CleanNoMove, true, TAG_DONE);
-		WI_drawPercent(SmallFont, kills_x, y, cnt_kills[i], wbs->maxkills, false, color);
+		screen->DrawText(SmallFont, color, name_x, y + ypadding, player->userinfo.netname, DTA_CleanNoMove, true, TAG_DONE);
+		WI_drawPercent(SmallFont, kills_x, y + ypadding, cnt_kills[i], wbs->maxkills, false, color);
 		missed_kills -= cnt_kills[i];
 		if (ng_state >= 4)
 		{
-			WI_drawPercent(SmallFont, bonus_x, y, cnt_items[i], wbs->maxitems, false, color);
+			WI_drawPercent(SmallFont, bonus_x, y + ypadding, cnt_items[i], wbs->maxitems, false, color);
 			missed_items -= cnt_items[i];
 			if (ng_state >= 6)
 			{
-				WI_drawPercent(SmallFont, secret_x, y, cnt_secret[i], wbs->maxsecret, false, color);
+				WI_drawPercent(SmallFont, secret_x, y + ypadding, cnt_secret[i], wbs->maxsecret, false, color);
 				missed_secrets -= cnt_secret[i];
 			}
 		}
-		y += height + CleanYfac;
+		y += lineheight + CleanYfac;
 	}
 
 	// Draw "MISSED" line
