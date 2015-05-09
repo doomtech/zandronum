@@ -270,7 +270,7 @@ void R_SetVisibility (float vis)
 
 	CurrentVisibility = vis;
 
-	if (FocalTangent == 0)
+	if (FocalTangent == 0 || FocalLengthY == 0)
 	{ // If r_visibility is called before the renderer is all set up, don't
 	  // divide by zero. This will be called again later, and the proper
 	  // values can be initialized then.
@@ -301,9 +301,7 @@ void R_SetVisibility (float vis)
 	else
 		r_FloorVisibility = r_BaseVisibility;
 
-	// [BB] During a reconnect, the client calls this with FocalLengthY == 0.
-	if ( FocalLengthY != 0 )
-		r_FloorVisibility = Scale (160*FRACUNIT, r_FloorVisibility, FocalLengthY);
+	r_FloorVisibility = Scale (160*FRACUNIT, r_FloorVisibility, FocalLengthY);
 
 	r_TiltVisibility = vis * (float)FocalTangent * (16.f * 320.f) / (float)viewwidth;
 	r_SpriteVisibility = r_WallVisibility;
