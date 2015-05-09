@@ -951,8 +951,6 @@ bool	ACS_IsScriptPukeable( ULONG ulScript );
 int		ACS_GetTranslationIndex( FRemapTable *pTranslation );
 int		ACS_PushAndReturnDynamicString ( const FString &Work, const SDWORD *stack, int stackdepth );
 
-// [BL] Export DoClearInv
-void	DoClearInv(AActor *actor);
 // [BB] Export DoGiveInv
 bool	DoGiveInv(AActor *actor, const PClass *info, int amount);
 

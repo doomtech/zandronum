@@ -10674,7 +10674,7 @@ static void client_DestroyAllInventory( BYTESTREAM_s *pByteStream )
 	// Finally, destroy the player's inventory.
 	// [BB] Be careful here, we may not use mo->DestroyAllInventory( ), otherwise
 	// AHexenArmor messes up.
-	DoClearInv ( players[ulPlayer].mo );
+	players[ulPlayer].mo->ClearInventory();
 }
 
 //*****************************************************************************

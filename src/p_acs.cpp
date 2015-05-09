@@ -1015,87 +1015,6 @@ void P_WriteACSVars(FILE *stdfile)
 
 //============================================================================
 //
-// DoClearInv
-//
-// Clears the inventory of a single actor.
-//
-//============================================================================
-
-// [BL] We're exporting this now
-void DoClearInv (AActor *actor)
-{
-	// In case destroying an inventory item causes another to be destroyed
-	// (e.g. Weapons destroy their sisters), keep track of the pointer to
-	// the next inventory item rather than the next inventory item itself.
-	// For example, if a weapon is immediately followed by its sister, the
-	// next weapon we had tracked would be to the sister, so it is now
-	// invalid and we won't be able to find the complete inventory by
-	// following it.
-	//
-	// When we destroy an item, we leave invp alone, since the destruction
-	// process will leave it pointing to the next item we want to check. If
-	// we don't destroy an item, then we move invp to point to its Inventory
-	// pointer.
-	//
-	// It should be safe to assume that an item being destroyed will only
-	// destroy items further down in the chain, because if it was going to
-	// destroy something we already processed, we've already destroyed it,
-	// so it won't have anything to destroy.
-
-	AInventory **invp = &actor->Inventory;
-
-	while (*invp != NULL)
-	{
-		AInventory *inv = *invp;
-		if (!(inv->ItemFlags & IF_UNDROPPABLE))
-		{
-			// For the sake of undroppable weapons, never remove ammo once
-			// it has been acquired; just set its amount to 0.
-			if (inv->IsKindOf(RUNTIME_CLASS(AAmmo)))
-			{
-				AAmmo *ammo = static_cast<AAmmo*>(inv);
-				ammo->Amount = 0;
-				invp = &inv->Inventory;
-			}
-			// [BB] Don't delete BasicArmor, just clear it. Probably ZDoom should do it like this
-			// as well, but to be on the safe side only do this on the client for now.
-			else if ( NETWORK_InClientMode() && ( inv->GetClass() == RUNTIME_CLASS(ABasicArmor) ) )
-			{
-				ABasicArmor *barmor = static_cast<ABasicArmor *> (inv);
-				barmor->SavePercent = 0;
-				barmor->Amount = 0;
-				invp = &inv->Inventory;
-			}
-			else
-			{
-				inv->Destroy ();
-			}
-		}
-		else if (inv->GetClass() == RUNTIME_CLASS(AHexenArmor))
-		{
-			AHexenArmor *harmor = static_cast<AHexenArmor *> (inv);
-			harmor->Slots[3] = harmor->Slots[2] = harmor->Slots[1] = harmor->Slots[0] = 0;
-			invp = &inv->Inventory;
-		}
-		else
-		{
-			invp = &inv->Inventory;
-		}
-	}
-	if (actor->player != NULL)
-	{
-		actor->player->ReadyWeapon = NULL;
-		actor->player->PendingWeapon = WP_NOCHANGE;
-		actor->player->psprites[ps_weapon].state = NULL;
-		actor->player->psprites[ps_flash].state = NULL;
-		// [BB] If we're the server, tell the client he lost his inventory.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ))
-			SERVERCOMMANDS_DestroyAllInventory( actor->player - players );
-	}
-}
-
-//============================================================================
-//
 // ClearInventory
 //
 // Clears the inventory for one or more actors.
@@ -1109,12 +1028,12 @@ static void ClearInventory (AActor *activator)
 		for (int i = 0; i < MAXPLAYERS; ++i)
 		{
 			if (playeringame[i])
-				DoClearInv (players[i].mo);
+				players[i].mo->ClearInventory();
 		}
 	}
 	else
 	{
-		DoClearInv (activator);
+		activator->ClearInventory();
 	}
 }
 
