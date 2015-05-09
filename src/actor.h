@@ -893,6 +893,8 @@ public:
 		return bloodcls;
 	}
 
+	inline void SetFriendPlayer(player_t *player);
+
 	bool IsVisibleToPlayer() const;
 
 	// Calculate amount of missile damage

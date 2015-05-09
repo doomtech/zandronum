@@ -450,6 +450,37 @@ static void ParseListMenuBody(FScanner &sc, FListMenuDescriptor *desc)
 //
 //=============================================================================
 
+static bool CheckCompatible(FMenuDescriptor *newd, FMenuDescriptor *oldd)
+{
+	if (oldd->mClass == NULL) return true;
+	return oldd->mClass == newd->mClass;
+}
+
+static bool ReplaceMenu(FScanner &sc, FMenuDescriptor *desc)
+{
+	FMenuDescriptor **pOld = MenuDescriptors.CheckKey(desc->mMenuName);
+	if (pOld != NULL && *pOld != NULL) 
+	{
+		if (CheckCompatible(desc, *pOld))
+		{
+			delete *pOld;
+		}
+		else
+		{
+			sc.ScriptMessage("Tried to replace menu '%s' with a menu of different type", desc->mMenuName.GetChars());
+			return true;
+		}
+	}
+	MenuDescriptors[desc->mMenuName] = desc;
+	return false;
+}
+
+//=============================================================================
+//
+//
+//
+//=============================================================================
+
 static void ParseListMenu(FScanner &sc)
 {
 	sc.MustGetString();
@@ -476,11 +507,9 @@ static void ParseListMenu(FScanner &sc)
 	desc->mWRight = 0;
 	desc->mCenter = false;
 
-	FMenuDescriptor **pOld = MenuDescriptors.CheckKey(desc->mMenuName);
-	if (pOld != NULL && *pOld != NULL) delete *pOld;
-	MenuDescriptors[desc->mMenuName] = desc;
-
 	ParseListMenuBody(sc, desc);
+	bool scratch = ReplaceMenu(sc, desc);
+	if (scratch) delete desc;
 }
 
 //=============================================================================
@@ -509,7 +538,7 @@ static void ParseOptionValue(FScanner &sc)
 	FOptionValues **pOld = OptionValues.CheckKey(optname);
 	if (pOld != NULL && *pOld != NULL) 
 	{
-		sc.ScriptError("Redefinition of option value set '%s'", optname.GetChars());
+		delete *pOld;
 	}
 	OptionValues[optname] = val;
 }
@@ -542,7 +571,7 @@ static void ParseOptionString(FScanner &sc)
 	FOptionValues **pOld = OptionValues.CheckKey(optname);
 	if (pOld != NULL && *pOld != NULL) 
 	{
-		sc.ScriptError("Redefinition of option value set '%s'", optname.GetChars());
+		delete *pOld;
 	}
 	OptionValues[optname] = val;
 }
@@ -810,13 +839,10 @@ static void ParseOptionMenu(FScanner &sc)
 	desc->mIndent =  DefaultOptionMenuSettings.mIndent;
 	desc->mDontDim =  DefaultOptionMenuSettings.mDontDim;
 
-	FMenuDescriptor **pOld = MenuDescriptors.CheckKey(desc->mMenuName);
-	if (pOld != NULL && *pOld != NULL) delete *pOld;
-	MenuDescriptors[desc->mMenuName] = desc;
-
 	ParseOptionMenuBody(sc, desc);
-
+	bool scratch = ReplaceMenu(sc, desc);
 	if (desc->mIndent == 0) desc->CalcIndent();
+	if (scratch) delete desc;
 }
 
 
