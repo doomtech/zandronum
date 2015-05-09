@@ -453,7 +453,7 @@ CCMD (chase)
 	else
 	{
 		// Check if we're allowed to use chasecam.
-		// [BC] Disallow chasecam by default in teamgame as well.
+		// [BB] Unlike ZDoom we disallow chasecam by default in all game modes.
 		// [BB] Always allow chasecam for spectators. CheckCheatmode has to be checked last
 		// because it prints a message if cheats are not allowed.
 		if (gamestate != GS_LEVEL || (!(dmflags2 & DF2_CHASECAM)
