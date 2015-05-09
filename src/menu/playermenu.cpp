@@ -59,8 +59,6 @@ EXTERN_CVAR (Float, autoaim)
 EXTERN_CVAR(Int, switchonpickup)
 EXTERN_CVAR (Bool, cl_run)
 
-void R_GetPlayerTranslation (int color, const FPlayerColorSet *colorset, FPlayerSkin *skin, FRemapTable *table);
-
 //=============================================================================
 //
 // Player's name
