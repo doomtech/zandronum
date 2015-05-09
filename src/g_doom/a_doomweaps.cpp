@@ -474,7 +474,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 					  angle,
 					  PLAYERMISSILERANGE,
 					  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
-					  NAME_None, NAME_BulletPuff);
+					  NAME_Hitscan, NAME_BulletPuff);
 
 		// [BC] Apply spread.
 		if ( player->cheats & CF_SPREAD )
@@ -483,13 +483,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 						  angle + ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  NAME_None, NAME_BulletPuff);
+						  NAME_Hitscan, NAME_BulletPuff);
 
 			P_LineAttack (actor,
 						  angle - ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  NAME_None, NAME_BulletPuff);
+						  NAME_Hitscan, NAME_BulletPuff);
 		}
 	}
 

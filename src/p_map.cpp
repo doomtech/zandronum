@@ -5813,7 +5813,7 @@ CUSTOM_CVAR (Float, splashfactor, 1.f, CVAR_SERVERINFO)
 //==========================================================================
 
 void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int bombdistance, FName bombmod,
-	bool DamageSource, bool bombdodamage, int fulldamagedistance)
+	bool DamageSource, bool bombdodamage, int fulldamagedistance, bool noimpactdamage)
 {
 	if (bombdistance <= 0)
 		return;
@@ -5926,7 +5926,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					if (bombdodamage) P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
-					else if (thing->player == NULL)
+					else if (thing->player == NULL && !noimpactdamage)
 					{
 						thing->flags2 |= MF2_BLASTED;
 

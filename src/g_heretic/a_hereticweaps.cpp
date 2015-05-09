@@ -155,7 +155,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL1)
 	{
 		angle += pr_fgw.Random2() << 18;
 	}
-	P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_None, "GoldWandPuff1");
+	P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "GoldWandPuff1");
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
@@ -165,14 +165,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL1)
 		{
 			angle += pr_fgw.Random2() << 18;
 		}
-		P_LineAttack(self, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "GoldWandPuff1");
+		P_LineAttack(self, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "GoldWandPuff1");
 
 		angle = self->angle;
 		if (player->refire)
 		{
 			angle += pr_fgw.Random2() << 18;
 		}
-		P_LineAttack(self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "GoldWandPuff1");
+		P_LineAttack(self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "GoldWandPuff1");
 	}
 
 	// [BB] If the player hit a player with his attack, potentially give him a medal.
@@ -270,7 +270,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireGoldWandPL2)
 		for ( i = 0; i < 5; i++ )
 		{
 			damage = 1+(pr_fgw2()&7);
-			P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_None, "GoldWandPuff2");
+			P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "GoldWandPuff2");
 			angle += ((ANG45/8)*2)/4;
 		}
 	}
@@ -1227,13 +1227,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBlasterPL1)
 	{
 		angle += pr_fb1.Random2() << 18;
 	}
-	P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
+	P_LineAttack (self, angle, PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "BlasterPuff");
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
-		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_None, "BlasterPuff");
+		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "BlasterPuff");
+		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, pitch, damage, NAME_Hitscan, "BlasterPuff");
 	}
 
 	// [BB] If the player hit a player with his attack, potentially give him a medal.
