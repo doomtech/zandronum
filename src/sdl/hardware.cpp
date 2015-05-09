@@ -234,6 +234,10 @@ void I_ClosestResolution (int *width, int *height, int bits)
 	}
 }	
 
+void I_SetFPSLimit(int limit)
+{
+}
+
 #ifndef NO_GL
 CUSTOM_CVAR (Bool, fullscreen, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 #else

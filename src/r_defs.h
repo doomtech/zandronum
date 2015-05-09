@@ -41,8 +41,8 @@ struct seg_t;
 
 #include "dthinker.h"
 
-#define MAXWIDTH 2880
-#define MAXHEIGHT 1800
+#define MAXWIDTH 5760
+#define MAXHEIGHT 3600
 
 const WORD NO_INDEX = 0xffffu;
 const DWORD NO_SIDE = 0xffffffffu;
