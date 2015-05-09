@@ -4633,6 +4633,7 @@ enum EACSFunctions
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,
+	ACSF_SetTeamScore,
 };
 
 int DLevelScript::SideFromID(int id, int side)

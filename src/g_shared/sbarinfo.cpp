@@ -983,6 +983,8 @@ public:
 		}
 		invBarOffset = script->Images.Size();
 		Images.Init(&patchnames[0], patchnames.Size());
+
+		CompleteBorder = script->completeBorder;
 	}
 
 	~DSBarInfo ()
@@ -1000,13 +1002,6 @@ public:
 		int hud = STBAR_NORMAL;
 		if(state == HUD_StatusBar)
 		{
-			if(script->completeBorder) //Fill the statusbar with the border before we draw.
-			{
-				FTexture *b = TexMan[gameinfo.border->b];
-				V_DrawBorder(viewwindowx, viewwindowy + viewheight + b->GetHeight(), viewwindowx + viewwidth, SCREENHEIGHT);
-				if(screenblocks == 10)
-					screen->FlatFill(viewwindowx, viewwindowy + viewheight, viewwindowx + viewwidth, viewwindowy + viewheight + b->GetHeight(), b, true);
-			}
 			if(script->automapbar && automapactive)
 			{
 				hud = STBAR_AUTOMAP;

@@ -1170,7 +1170,10 @@ CCMD (togglemap)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	gameaction = ga_togglemap;
+	if (gameaction == ga_nothing)
+	{
+		gameaction = ga_togglemap;
+	}
 }
 
 //=============================================================================
