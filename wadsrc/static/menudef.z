@@ -216,7 +216,7 @@ OptionMenu "VideoOptions"
 	StaticText " "
 	Slider "Screen size",				"screenblocks", 3.0, 12.0, 1.0, 0
 
-	Slider "Gamma correction",			"Gamma", 						1.0, 3.0, 0.1
+	Slider "Gamma correction",			"Gamma",						0.75, 3.0, 0.05, 2
 	Slider "Brightness",				"vid_brightness",				-0.8,0.8, 0.05
 	Slider "Contrast",					"vid_contrast",	   				0.1, 3.0, 0.1
 

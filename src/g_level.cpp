@@ -933,10 +933,17 @@ void G_DoCompleted (void)
 
 	if (mode == FINISH_SameHub)
 	{ // Remember the level's state for re-entry.
-		G_SnapshotLevel ();
+		if (!(level.flags2 & LEVEL2_FORGETSTATE))
+		{
+			G_SnapshotLevel ();
 			// Do not free any global strings this level might reference
 			// while it's not loaded.
 			FBehavior::StaticLockLevelVarStrings();
+		}
+		else
+		{ // Make sure we don't have a snapshot lying around from before.
+			level.info->ClearSnapshot();
+		}
 	}
 	else
 	{ // Forget the states of all existing levels.
