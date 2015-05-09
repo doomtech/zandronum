@@ -736,7 +736,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_BurnArea)
 		return;
 	}
 
-	P_RadiusAttack (self, self->target, 128, 128, self->DamageType, true);
+	P_RadiusAttack (self, self->target, 128, 128, self->DamageType, RADF_HURTSOURCE);
 }
 
 DEFINE_ACTION_FUNCTION(AActor, A_Burnination)

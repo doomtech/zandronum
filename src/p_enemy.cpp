@@ -3649,7 +3649,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Detonate)
 	}
 
 	int damage = self->GetMissileDamage (0, 1);
-	P_RadiusAttack (self, self->target, damage, damage, self->DamageType, true);
+	P_RadiusAttack (self, self->target, damage, damage, self->DamageType, RADF_HURTSOURCE);
 	P_CheckSplash(self, damage<<FRACBITS);
 
 	// [BC] If this explosion originated from a player, and it hit something, give the player

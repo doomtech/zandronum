@@ -2890,6 +2890,9 @@ void D_DoomMain (void)
 		G_ParseMapInfo (iwad_info->MapInfo);
 		ReadStatistics();
 
+		// MUSINFO must be parsed after MAPINFO
+		S_ParseMusInfo();
+
 		// [BL] Load SectInfo
 		SECTINFO_Load();
 
