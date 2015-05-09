@@ -86,7 +86,7 @@ static bool TryPunch(APlayerPawn *pmo, angle_t angle, int damage, fixed_t power)
 			}
 
 			// [BC] Apply spread.
-			if ( pmo->player->cheats & CF_SPREAD )
+			if ( pmo->player->cheats2 & CF2_SPREAD )
 			{
 				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, pufftype, true);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
@@ -151,7 +151,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FPunchAttack)
 	P_LineAttack (pmo, pmo->angle, MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass("PunchPuff"), true);
 	
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_LineAttack (pmo, pmo->angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass("PunchPuff"), true);
 		P_LineAttack (pmo, pmo->angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass("PunchPuff"), true);

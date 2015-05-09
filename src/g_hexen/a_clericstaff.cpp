@@ -174,7 +174,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CStaffAttack)
 	}
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile( self, RUNTIME_CLASS( ACStaffMissile ), self->angle-(ANG45/15) + ( ANGLE_45 / 3 ));
 		if (mo)

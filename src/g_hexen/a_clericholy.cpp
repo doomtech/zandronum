@@ -234,7 +234,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CHolyAttack)
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		missile = P_SpawnPlayerMissile (self, 0,0,0, PClass::FindClass ("HolyMissile"), self->angle + ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )

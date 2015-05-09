@@ -294,7 +294,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_MLightningAttack)
 
 	// [BC] Apply spread.
 	if (( self->player ) &&
-		( self->player->cheats & CF_SPREAD ))
+		( self->player->cheats2 & CF2_SPREAD ))
 	{
 		fmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningFloor"), self->angle + ( ANGLE_45 / 3 ));
 		cmo = P_SpawnPlayerMissile (self, PClass::FindClass ("LightningCeiling"), self->angle + ( ANGLE_45 / 3 ));

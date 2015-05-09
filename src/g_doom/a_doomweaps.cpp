@@ -63,7 +63,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Punch)
 	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true, &linetarget);
 
 	// [BC] Apply spread.
-	if (( self->player ) && ( self->player->cheats & CF_SPREAD ))
+	if (( self->player ) && ( self->player->cheats2 & CF2_SPREAD ))
 	{
 		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true);
 		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true);
@@ -157,7 +157,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 	P_GunShot (self, accurate, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (self));
 
 	// [BC] Apply spread.
-	if (( actor->player ) && ( actor->player->cheats & CF_SPREAD ))
+	if (( actor->player ) && ( actor->player->cheats2 & CF2_SPREAD ))
 	{
 		fixed_t		SavedActorAngle;
 
@@ -253,7 +253,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 	P_LineAttack (self, angle, Range, slope, damage, NAME_Melee, pufftype, false, &linetarget);
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), Range,
 					  P_AimLineAttack( self, angle + ( ANGLE_45 / 3 ), Range, &linetarget ), damage,
@@ -386,7 +386,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 		P_GunShot (self, false, PClass::FindClass(NAME_BulletPuff), pitch);
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -477,7 +477,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 					  NAME_Hitscan, NAME_BulletPuff);
 
 		// [BC] Apply spread.
-		if ( player->cheats & CF_SPREAD )
+		if ( player->cheats2 & CF2_SPREAD )
 		{
 			P_LineAttack (actor,
 						  angle + ( ANGLE_45 / 3 ),
@@ -672,7 +672,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireCGun)
 	P_GunShot (self, !player->refire, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (self));
 
 	// [BC] Apply apread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -726,7 +726,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireMissile)
 	P_SpawnPlayerMissile (self, PClass::FindClass("Rocket"));
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_SpawnPlayerMissile( self, PClass::FindClass("Rocket"), self->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( self, PClass::FindClass("Rocket"), self->angle - ( ANGLE_45 / 3 ), false );
@@ -805,7 +805,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireSTGrenade)
 	P_SpawnPlayerMissile(self, grenade);
 
 	// Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_SpawnPlayerMissile( self, grenade, self->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( self, grenade, self->angle - ( ANGLE_45 / 3 ), false );
@@ -851,7 +851,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePlasma)
 	P_SpawnPlayerMissile (self, PClass::FindClass("PlasmaBall"));
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_SpawnPlayerMissile( self, PClass::FindClass("PlasmaBall"), self->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( self, PClass::FindClass("PlasmaBall"), self->angle - ( ANGLE_45 / 3 ), false );
@@ -980,7 +980,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireBFG)
 	P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle, NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG));
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle + ( ANGLE_45 / 3 ), NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG), false );
 		P_SpawnPlayerMissile (self,  0, 0, 0, PClass::FindClass("BFGBall"), self->angle - ( ANGLE_45 / 3 ), NULL, NULL, !(dmflags2 & DF2_YES_FREEAIMBFG), false );

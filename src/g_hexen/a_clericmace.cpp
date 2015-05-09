@@ -42,7 +42,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CMaceAttack)
 				AdjustPlayerAngle (player->mo, linetarget);
 
 				// [BC] Apply spread.
-				if ( player->cheats & CF_SPREAD )
+				if ( player->cheats2 & CF2_SPREAD )
 				{
 					P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 					AdjustPlayerAngle (player->mo, linetarget);
@@ -64,7 +64,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CMaceAttack)
 				AdjustPlayerAngle (player->mo, linetarget);
 
 				// [BC] Apply spread.
-				if ( player->cheats & CF_SPREAD )
+				if ( player->cheats2 & CF2_SPREAD )
 				{
 					P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 					AdjustPlayerAngle (player->mo, linetarget);
@@ -85,7 +85,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_CMaceAttack)
 	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));
 		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));

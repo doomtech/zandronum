@@ -158,7 +158,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MStaffAttack)
 	MStaffSpawn (self, angle+ANGLE_1*5);
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		MStaffSpawn (self, angle + ( ANGLE_45 / 3 ));
 		MStaffSpawn (self, angle-ANGLE_1*5 + ( ANGLE_45 / 3 ));

@@ -2491,7 +2491,7 @@ void ARuneSpread::InitEffect( )
 	}
 
 	// Give the player the power to shoot 3x the number of missiles he normally would.
-	Owner->player->cheats |= CF_SPREAD;
+	Owner->player->cheats2 |= CF2_SPREAD;
 }
 
 //===========================================================================
@@ -2509,7 +2509,7 @@ void ARuneSpread::EndEffect( )
 	}
 
 	// Take away the spread power.
-	Owner->player->cheats &= ~CF_SPREAD;
+	Owner->player->cheats2 &= ~CF2_SPREAD;
 }
 
 // Half damage rune -------------------------------------------------------

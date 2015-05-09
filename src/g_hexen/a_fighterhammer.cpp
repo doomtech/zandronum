@@ -59,7 +59,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FHammerAttack)
 				}
 
 				// [BC] Apply spread.
-				if ( player->cheats & CF_SPREAD )
+				if ( player->cheats2 & CF2_SPREAD )
 				{
 					P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 					AdjustPlayerAngle(pmo, linetarget);
@@ -94,7 +94,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FHammerAttack)
 				}
 
 				// [BC] Apply spread.
-				if ( player->cheats & CF_SPREAD )
+				if ( player->cheats2 & CF2_SPREAD )
 				{
 					P_LineAttack(pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 					AdjustPlayerAngle(pmo, linetarget);
@@ -129,7 +129,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FHammerAttack)
 	}
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		if (P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true) != NULL)
 			pmo->special1 = false;
@@ -194,7 +194,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FHammerThrow)
 	}	
 
 	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
+	if ( player->cheats2 & CF2_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile( player->mo, PClass::FindClass ("HammerMissile"), self->angle + ( ANGLE_45 / 3 )); 
 		if ( mo )

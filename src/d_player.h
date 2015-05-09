@@ -243,9 +243,9 @@ typedef enum
 	CF_BUDDHA			= 1 << 27,		// [SP] Buddha mode - take damage, but don't die
 	CF_WEAPONRELOADOK   = 1 << 28,      // [XA] Okay to reload this weapon.
 	CF_WEAPONZOOMOK     = 1 << 29,      // [XA] Okay to use weapon zoom function.
+	CF_NOCLIP2			= 1 << 30,		// [RH] More Quake-like noclip
 
 	// [BC] Rune effects.
-	CF_SPREAD			= 1 << 30,
 	CF_SPEED25			= 1 << 31,
 
 } cheat_t;
@@ -258,6 +258,7 @@ typedef enum
 	// [BC] Powerups added by Skulltag.
 	CF2_POSSESSIONARTIFACT	= 1 << 0,
 	CF2_TERMINATORARTIFACT	= 1 << 1,
+	CF2_SPREAD			= 1 << 2,
 } cheat2_t;
 
 #define WPIECE1		1
@@ -666,6 +667,14 @@ inline void AActor::SetFriendPlayer(player_t *player)
 	}
 }
 
+inline bool AActor::IsNoClip2() const
+{
+	if (player != NULL && player->mo == this)
+	{
+		return (player->cheats & CF_NOCLIP2) != 0;
+	}
+	return false;
+}
 
 #define CROUCHSPEED (FRACUNIT/12)
 

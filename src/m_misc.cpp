@@ -760,7 +760,6 @@ void M_ScreenShot (const char *filename)
 			}
 			else if (dirlen > 0)
 			{
-				autoname = screenshot_dir;
 				if (autoname[dirlen-1] != '/' && autoname[dirlen-1] != '\\')
 				{
 					autoname += '/';

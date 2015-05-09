@@ -1566,7 +1566,7 @@ void A_CustomFireBullets( AActor *self,
 
 	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
 
-	if ( self->player->cheats & CF_SPREAD )
+	if ( self->player->cheats2 & CF2_SPREAD )
 	{
 		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
 		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
@@ -1720,7 +1720,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 
 		if (NULL != self->player )
 		{
-			if ( self->player->cheats & CF_SPREAD )
+			if ( self->player->cheats2 & CF2_SPREAD )
 			{
 				A_FireCustomMissileHelper( self, x, y, z, shootangle + ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle, linetarget );
 				A_FireCustomMissileHelper( self, x, y, z, shootangle - ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle, linetarget );
