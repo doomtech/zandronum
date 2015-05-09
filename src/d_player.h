@@ -98,6 +98,7 @@ public:
 	virtual void AddInventory (AInventory *item);
 	virtual void RemoveInventory (AInventory *item);
 	virtual bool UseInventory (AInventory *item);
+	virtual void MarkPrecacheSounds () const;
 
 	virtual void PlayIdle ();
 	virtual void PlayRunning ();
@@ -124,7 +125,7 @@ public:
 	void GiveDefaultInventory ();
 	void PlayAttacking ();
 	void PlayAttacking2 ();
-	const char *GetSoundClass ();
+	const char *GetSoundClass () const;
 
 	// [Dusk]
 	fixed_t CalcJumpMomz( );

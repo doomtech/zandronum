@@ -537,6 +537,18 @@ void APlayerPawn::Serialize (FArchive &arc)
 
 //===========================================================================
 //
+// APlayerPawn :: MarkPrecacheSounds
+//
+//===========================================================================
+
+void APlayerPawn::MarkPrecacheSounds() const
+{
+	Super::MarkPrecacheSounds();
+	S_MarkPlayerSounds(GetSoundClass());
+}
+
+//===========================================================================
+//
 // APlayerPawn :: BeginPlay
 //
 //===========================================================================
@@ -1100,7 +1112,7 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 //
 //===========================================================================
 
-const char *APlayerPawn::GetSoundClass ()
+const char *APlayerPawn::GetSoundClass() const
 {
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	if (( cl_skins == 1 ) || (( cl_skins >= 2 ) &&

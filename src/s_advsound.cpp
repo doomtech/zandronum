@@ -103,6 +103,7 @@ public:
 	void AddSound (int player_sound_id, int sfx_id);
 	int LookupSound (int player_sound_id);
 	FPlayerSoundHashTable &operator= (const FPlayerSoundHashTable &other);
+	void MarkUsed();
 
 protected:
 	struct Entry
@@ -125,7 +126,7 @@ struct FAmbientSound
 	int			periodmax;	// max # of tics for random ambients
 	float		volume;		// relative volume of sound
 	float		attenuation;
-	FString		sound;		// Logical name of sound to play
+	FSoundID	sound;		// Sound to play
 };
 TMap<int, FAmbientSound> Ambients;
 
@@ -835,6 +836,25 @@ int FPlayerSoundHashTable::LookupSound (int player_sound_id)
 
 //==========================================================================
 //
+// FPlayerSoundHashTable :: Mark
+//
+// Marks all sounds defined for this class/gender as used.
+//
+//==========================================================================
+
+void FPlayerSoundHashTable::MarkUsed()
+{
+	for (size_t i = 0; i < NUM_BUCKETS; ++i)
+	{
+		for (Entry *probe = Buckets[i]; probe != NULL; probe = probe->Next)
+		{
+			S_sfx[probe->SfxID].bUsed = true;
+		}
+	}
+}
+
+//==========================================================================
+//
 // S_ClearSoundData
 //
 // clears all sound tables
@@ -987,10 +1007,10 @@ static void S_AddSNDINFO (int lump)
 				ambient->periodmax = 0;
 				ambient->volume = 0;
 				ambient->attenuation = 0;
-				ambient->sound = "";
+				ambient->sound = 0;
 
 				sc.MustGetString ();
-				ambient->sound = sc.String;
+				ambient->sound = FSoundID(S_FindSoundTentative(sc.String));
 				ambient->attenuation = 0;
 
 				sc.MustGetString ();
@@ -1933,6 +1953,31 @@ void sfxinfo_t::MarkUsed()
 
 //==========================================================================
 //
+// S_MarkPlayerSounds
+//
+// Marks all sounds from a particular player class for precaching.
+//
+//==========================================================================
+
+void S_MarkPlayerSounds (const char *playerclass)
+{
+	int classidx = S_FindPlayerClass(playerclass);
+	if (classidx < 0)
+	{
+		classidx = DefPlayerClass;
+	}
+	for (int g = 0; g < 3; ++g)
+	{
+		int listidx = PlayerClassLookups[classidx].ListIndex[0];
+		if (listidx != 0xffff)
+		{
+			PlayerSounds[listidx].MarkUsed();
+		}
+	}
+}
+
+//==========================================================================
+//
 // CCMD soundlist
 //
 //==========================================================================
@@ -2046,6 +2091,7 @@ class AAmbientSound : public AActor
 public:
 	void Serialize (FArchive &arc);
 
+	void MarkPrecacheSounds () const;
 	void BeginPlay ();
 	void Tick ();
 	void Activate (AActor *activator);
@@ -2076,6 +2122,22 @@ void AAmbientSound::Serialize (FArchive &arc)
 
 //==========================================================================
 //
+// AmbientSound :: MarkPrecacheSounds
+//
+//==========================================================================
+
+void AAmbientSound::MarkPrecacheSounds() const
+{
+	Super::MarkPrecacheSounds();
+	FAmbientSound *ambient = Ambients.CheckKey(args[0]);
+	if (ambient != NULL)
+	{
+		ambient->sound.MarkUsed();
+	}
+}
+
+//==========================================================================
+//
 // AmbientSound :: Tick
 //
 //==========================================================================
@@ -2101,7 +2163,7 @@ void AAmbientSound::Tick ()
 		loop = CHAN_LOOP;
 	}
 
-	if (ambient->sound.IsNotEmpty())
+	if (ambient->sound != 0)
 	{
 		// The second argument scales the ambient sound's volume.
 		// 0 and 100 are normal volume. The maximum volume level
