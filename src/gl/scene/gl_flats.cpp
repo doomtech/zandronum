@@ -442,7 +442,7 @@ void GLFlat::Draw(int pass)
 // plane in the appropriate render list.
 //
 //==========================================================================
-inline void GLFlat::PutFlat(sector_t *model, bool fog)
+inline void GLFlat::PutFlat(bool fog)
 {
 	int list;
 
@@ -523,7 +523,7 @@ void GLFlat::Process(sector_t * model, int whichplane, bool fog)
 
 	z = plane.plane.ZatPoint(0.f, 0.f);
 	
-	PutFlat(model, fog);
+	PutFlat(fog);
 	rendered_flats++;
 }
 
