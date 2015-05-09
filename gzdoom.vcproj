@@ -2240,10 +2240,6 @@
 				RelativePath=".\src\win32\win32video.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\src\win32\wrappers.asm"
-				>
-			</File>
 			<Filter
 				Name="Server Console"
 				>
