@@ -84,7 +84,10 @@ bool gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FMaterial * glte
 
 		float xscale1=FIXED2FLOAT(secplane->xscale);
 		float yscale1=FIXED2FLOAT(secplane->yscale);
-
+		if (gltexture->tex->bHasCanvas)
+		{
+			yscale1 = 0 - yscale1;
+		}
 		float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
 		float xscale2=64.f/gltexture->TextureWidth(GLUSE_TEXTURE);

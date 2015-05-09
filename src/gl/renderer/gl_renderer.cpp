@@ -607,6 +607,10 @@ void FGLRenderer::FillSimplePoly(FTexture *texture, FVector2 *points, int npoint
 	//float yoffs = GatheringWipeScreen ? 0 : LBOffset;
 	float uscale = float(1.f / (texture->GetScaledWidth() * scalex));
 	float vscale = float(1.f / (texture->GetScaledHeight() * scaley));
+	if (gltexture->tex->bHasCanvas)
+	{
+		vscale = 0 - vscale;
+	}
 	float ox = float(originx);
 	float oy = float(originy);
 
