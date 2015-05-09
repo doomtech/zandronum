@@ -666,7 +666,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		// [RH] Make floatbobbing a renderer-only effect.
 		if (thing->flags2 & MF2_FLOATBOB)
 		{
-			float fz = FIXED2FLOAT(finesine[(Scale(thing->FloatBobPhase + level.maptime, FINEANGLES, 64) + r_TicFrac * ((FINEANGLES/64) / 1000)) & FINEMASK] * 8);
+			float fz = FIXED2FLOAT(thing->GetBobOffset(r_TicFrac));
 			z1 += fz;
 			z2 += fz;
 		}

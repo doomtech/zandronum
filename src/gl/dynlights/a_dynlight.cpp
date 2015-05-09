@@ -350,7 +350,7 @@ void ADynamicLight::UpdateLocation()
 			angle_t angle = target->angle>>ANGLETOFINESHIFT;
 			PrevX = x = target->x + FixedMul(m_offX, finecosine[angle]) + FixedMul(m_offZ, finesine[angle]);
 			PrevY = y = target->y + FixedMul(m_offX, finesine[angle]) - FixedMul(m_offZ, finecosine[angle]);
-			PrevZ = z = target->z + m_offY;
+			PrevZ = z = target->z + m_offY + target->GetBobOffset();
 			subsector = R_PointInSubsector(x, y);
 			Sector = subsector->sector;
 		}
