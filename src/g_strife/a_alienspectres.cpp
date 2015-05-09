@@ -82,7 +82,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_Spectre3Attack)
 
 	foo->velz = -12*FRACUNIT;
 	foo->target = self;
-	foo->health = -2;
+	foo->FriendPlayer = 0;
 	foo->tracer = self->target;
 
 	// [CW] Tell clients to spawn the actor.

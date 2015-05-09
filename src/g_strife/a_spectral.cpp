@@ -31,7 +31,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpectralLightningTail)
 	AActor *foo = Spawn("SpectralLightningHTail", self->x - self->velx, self->y - self->vely, self->z, ALLOW_REPLACE);
 
 	foo->angle = self->angle;
-	foo->health = self->health;
+	foo->FriendPlayer = self->FriendPlayer;
 }
 
 DEFINE_ACTION_FUNCTION(AActor, A_SpectralBigBallLightning)
@@ -77,7 +77,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpectralLightning)
 
 	flash->target = self->target;
 	flash->velz = -18*FRACUNIT;
-	flash->health = self->health;
+	flash->FriendPlayer = self->FriendPlayer;
 
 	flash = Spawn(NAME_SpectralLightningV2, self->x, self->y, ONCEILINGZ, ALLOW_REPLACE);
 
@@ -88,7 +88,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpectralLightning)
 
 	flash->target = self->target;
 	flash->velz = -18*FRACUNIT;
-	flash->health = self->health;
+	flash->FriendPlayer = self->FriendPlayer;
 
 	// [CW] Tell clients to spawn the missile.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

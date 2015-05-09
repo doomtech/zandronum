@@ -1257,12 +1257,12 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			{
 				if (player != NULL)
 				{
-					if (!deathmatch && inflictor->health == -1)
+					if (!deathmatch && inflictor->FriendPlayer > 0)
 						return;
 				}
 				else if (target->flags4 & MF4_SPECTRAL)
 				{
-					if (inflictor->health == -2 && !target->IsHostile(inflictor))
+					if (inflictor->FriendPlayer == 0 && !target->IsHostile(inflictor))
 						return;
 				}
 			}
@@ -1710,7 +1710,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	
 	if (!(target->flags5 & MF5_NOPAIN) && (inflictor == NULL || !(inflictor->flags5 & MF5_PAINLESS)) &&
-		!G_SkillProperty(SKILLP_NoPain) && !(target->flags & MF_SKULLFLY))
+		(target->player != NULL || !G_SkillProperty(SKILLP_NoPain)) && !(target->flags & MF_SKULLFLY))
 	{
 		pc = target->GetClass()->ActorInfo->PainChances;
 		painchance = target->PainChance;

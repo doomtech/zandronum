@@ -389,11 +389,6 @@ static void DoAttack (AActor *self, bool domelee, bool domissile,
 			{
 				missile->tracer=self->target;
 			}
-			// set the health value so that the missile works properly
-			if (missile->flags4&MF4_SPECTRAL)
-			{
-				missile->health=-2;
-			}
 			bool bSucces = P_CheckMissileSpawn(missile);
 
 			// [BC] If we're the server, tell clients to spawn the missile.
@@ -1182,10 +1177,17 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 					// automatic handling of seeker missiles
 					missile->tracer=self->target;
 				}
-				// set the health value so that the missile works properly
+				// we must redo the spectral check here because the owner is set after spawning so the FriendPlayer value may be wrong
 				if (missile->flags4&MF4_SPECTRAL)
 				{
-					missile->health=-2;
+					if (missile->target != NULL && missile->target->player != NULL)
+					{
+						missile->FriendPlayer = int(missile->target->player - players) + 1;
+					}
+					else
+					{
+						missile->FriendPlayer = 0;
+					}
 				}
 
 				// [BB] The client did the spawning, so this has to be a client side only actor.
@@ -1389,11 +1391,6 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomComboAttack)
 			if (missile->flags2&MF2_SEEKERMISSILE)
 			{
 				missile->tracer=self->target;
-			}
-			// set the health value so that the missile works properly
-			if (missile->flags4&MF4_SPECTRAL)
-			{
-				missile->health=-2;
 			}
 			bool bSucces = P_CheckMissileSpawn(missile);
 

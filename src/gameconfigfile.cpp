@@ -87,7 +87,8 @@ FGameConfigFile::FGameConfigFile ()
 	FString user_docs, user_app_support, local_app_support;
 #endif
 	FString pathname;
-	
+
+	OkayToWrite = false;	// Do not allow saving of the config before DoGameSetup()
 	bMigrating = false;
 	bModSetup = false;
 	pathname = GetConfigPath (true);
@@ -455,6 +456,7 @@ void FGameConfigFile::DoGameSetup (const char *gamename)
 			}
 		}
 	}
+	OkayToWrite = true;
 }
 
 // Like DoGameSetup(), but for mod-specific cvars.
