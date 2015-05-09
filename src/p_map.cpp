@@ -3821,7 +3821,7 @@ bool P_BounceActor (AActor *mo, AActor *BlockingMobj, bool ontop)
 				if (abs(mo->velz) < (fixed_t)(mo->Mass * mo->GetGravity() / 64))
 					mo->velz = 0;
 			}
-			else if (mo->BounceFlags & BOUNCE_AutoOff)
+			else if (mo->BounceFlags & (BOUNCE_AutoOff|BOUNCE_AutoOffFloorOnly))
 			{
 				if (!(mo->flags & MF_NOGRAVITY) && (mo->velz < 3*FRACUNIT))
 					mo->BounceFlags &= ~BOUNCE_TypeMask;

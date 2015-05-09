@@ -1850,10 +1850,14 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 		if (abs(velz) < (fixed_t)(Mass * GetGravity() / 64))
 			velz = 0;
 	}
-	else if (plane.c > 0 && BounceFlags & BOUNCE_AutoOff)
-	{ // AutoOff only works when bouncing off a floor, not a ceiling.
-		if (!(flags & MF_NOGRAVITY) && (velz < 3*FRACUNIT))
-			BounceFlags &= ~BOUNCE_TypeMask;
+	else if (BounceFlags & (BOUNCE_AutoOff|BOUNCE_AutoOffFloorOnly))
+	{
+		if (plane.c > 0 || (BounceFlags & BOUNCE_AutoOff))
+		{
+			// AutoOff only works when bouncing off a floor, not a ceiling (or in compatibility mode.)
+			if (!(flags & MF_NOGRAVITY) && (velz < 3*FRACUNIT))
+				BounceFlags &= ~BOUNCE_TypeMask;
+		}
 	}
 	return false;
 }
@@ -2932,39 +2936,59 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 				mo->velz -= grav;
 			}
 		}
-		if (mo->waterlevel > 1 || (mo->waterlevel == 1 && mo->player == NULL))
+		if (mo->player == NULL)
 		{
-			fixed_t sinkspeed;
-
-			if ((mo->flags & MF_SPECIAL) && !(mo->flags3 & MF3_ISMONSTER))
-			{ // Pickup items don't sink if placed and drop slowly if dropped
-				sinkspeed = (mo->flags & MF_DROPPED) ? -WATER_SINK_SPEED / 8 : 0;
-			}
-			else
+			if (mo->waterlevel >= 1)
 			{
-				sinkspeed = -WATER_SINK_SPEED;
+				fixed_t sinkspeed;
 
-				// If it's not a player, scale sinkspeed by its mass, with
-				// 100 being equivalent to a player.
-				if (mo->player == NULL)
+				if ((mo->flags & MF_SPECIAL) && !(mo->flags3 & MF3_ISMONSTER))
+				{ // Pickup items don't sink if placed and drop slowly if dropped
+					sinkspeed = (mo->flags & MF_DROPPED) ? -WATER_SINK_SPEED / 8 : 0;
+				}
+				else
 				{
-					sinkspeed = Scale(sinkspeed, clamp(mo->Mass, 1, 4000), 100);
+					sinkspeed = -WATER_SINK_SPEED;
+
+					// If it's not a player, scale sinkspeed by its mass, with
+					// 100 being equivalent to a player.
+					if (mo->player == NULL)
+					{
+						sinkspeed = Scale(sinkspeed, clamp(mo->Mass, 1, 4000), 100);
+					}
+				}
+				if (mo->velz < sinkspeed)
+				{ // Dropping too fast, so slow down toward sinkspeed.
+					mo->velz -= MAX(sinkspeed*2, -FRACUNIT*8);
+					if (mo->velz > sinkspeed)
+					{
+						mo->velz = sinkspeed;
+					}
+				}
+				else if (mo->velz > sinkspeed)
+				{ // Dropping too slow/going up, so trend toward sinkspeed.
+					mo->velz = startvelz + MAX(sinkspeed/3, -FRACUNIT*8);
+					if (mo->velz < sinkspeed)
+					{
+						mo->velz = sinkspeed;
+					}
 				}
 			}
-			if (mo->velz < sinkspeed)
-			{ // Dropping too fast, so slow down toward sinkspeed.
-				mo->velz -= MAX(sinkspeed*2, -FRACUNIT*8);
-				if (mo->velz > sinkspeed)
-				{
-					mo->velz = sinkspeed;
-				}
-			}
-			else if (mo->velz > sinkspeed)
-			{ // Dropping too slow/going up, so trend toward sinkspeed.
-				mo->velz = startvelz + MAX(sinkspeed/3, -FRACUNIT*8);
+		}
+		else
+		{
+			if (mo->waterlevel > 1)
+			{
+				fixed_t sinkspeed = -WATER_SINK_SPEED;
+
 				if (mo->velz < sinkspeed)
 				{
-					mo->velz = sinkspeed;
+					mo->velz = (startvelz < sinkspeed) ? startvelz : sinkspeed;
+				}
+				else
+				{
+					mo->velz = startvelz + ((mo->velz - startvelz) >>
+						(mo->waterlevel == 1 ? WATER_SINK_SMALL_FACTOR : WATER_SINK_FACTOR));
 				}
 			}
 		}
