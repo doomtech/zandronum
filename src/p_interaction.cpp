@@ -206,7 +206,7 @@ void SexMessage (const char *from, char *to, int gender, const char *victim, con
 // ClientObituary: Show a message when a player dies
 //
 // [BC] Allow passing in of the MOD so clients can use this function too.
-void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath)
+void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgflags, FName MeansOfDeath)
 {
 	FName	mod;
 	const char *message;
@@ -328,7 +328,7 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 				{
 					message = inflictor->GetClass()->Meta.GetMetaString (AMETA_Obituary);
 				}
-				if (message == NULL && attacker->player->ReadyWeapon != NULL)
+				if (message == NULL && (dmgflags & DMG_PLAYERATTACK) && attacker->player->ReadyWeapon != NULL)
 				{
 					message = attacker->player->ReadyWeapon->GetClass()->Meta.GetMetaString (AMETA_Obituary);
 				}
@@ -342,6 +342,10 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 					if (messagename != NULL)
 						message = GStrings(messagename);
 				}
+				if (message == NULL)
+				{
+					message = attacker->GetClass()->Meta.GetMetaString (AMETA_Obituary);
+				}
 			}
 		}
 	}
@@ -349,7 +353,7 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 
 	if (message != NULL && message[0] == '$') 
 	{
-		message=GStrings[message+1];
+		message = GStrings[message+1];
 	}
 
 	if (message == NULL)
@@ -380,7 +384,7 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 //
 EXTERN_CVAR (Int, fraglimit)
 
-void AActor::Die (AActor *source, AActor *inflictor)
+void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 {
 	// [BB] Potentially get rid of some corpses. This isn't necessarily client-only.
 	//CLIENT_RemoveMonsterCorpses();
@@ -406,7 +410,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 					realthis->health = realgibhealth -1; // if morphed was gibbed, so must original be (where allowed)
 				}
 			}
-			realthis->Die(source, inflictor);
+			realthis->Die(source, inflictor, dmgflags);
 		}
 		return;
 	}
@@ -925,7 +929,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 	// [RH] Death messages
 	if (( player ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-		ClientObituary (this, inflictor, source, MeansOfDeath);
+		ClientObituary (this, inflictor, source, dmgflags, MeansOfDeath);
 
 }
 
@@ -1128,6 +1132,12 @@ void ApplyCoopDamagefactor(int &damage, AActor *source)
 		damage = int(damage * sv_coop_damagefactor);
 }
 
+static inline bool MustForcePain(AActor *target, AActor *inflictor)
+{
+	return (!(target->flags5 & MF5_NOPAIN) && inflictor != NULL &&
+		(inflictor->flags6 & MF6_FORCEPAIN) && !(inflictor->flags5 & MF5_PAINLESS));
+}
+
 void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage, FName mod, int flags)
 {
 	unsigned ang;
@@ -1270,8 +1280,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			source->Inventory->ModifyDamage(olddam, mod, damage, false);
 			if (olddam != damage && damage <= 0)
 			{ // Still allow FORCEPAIN
-				if (!(target->flags5 & MF5_NOPAIN) && inflictor != NULL &&
-					(inflictor->flags6 & MF6_FORCEPAIN) && !(inflictor->flags5 & MF5_PAINLESS))
+				if (MustForcePain(target, inflictor))
 				{
 					goto dopain;
 				}
@@ -1285,8 +1294,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			target->Inventory->ModifyDamage(olddam, mod, damage, true);
 			if (olddam != damage && damage <= 0)
 			{ // Still allow FORCEPAIN
-				if (!(target->flags5 & MF5_NOPAIN) && inflictor != NULL &&
-					(inflictor->flags6 & MF6_FORCEPAIN) && !(inflictor->flags5 & MF5_PAINLESS))
+				if (MustForcePain(target, inflictor))
 				{
 					goto dopain;
 				}
@@ -1316,8 +1324,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			}
 			if (damage <= 0)
 			{ // Still allow FORCEPAIN
-				if (!(target->flags5 & MF5_NOPAIN) && inflictor != NULL &&
-					(inflictor->flags6 & MF6_FORCEPAIN) && !(inflictor->flags5 & MF5_PAINLESS))
+				if (MustForcePain(target, inflictor))
 				{
 					goto dopain;
 				}
@@ -1679,7 +1686,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			target->Die (source, inflictor);
+			target->Die (source, inflictor, flags);
 		}
 		return;
 	}

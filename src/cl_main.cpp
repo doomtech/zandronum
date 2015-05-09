@@ -121,7 +121,7 @@
 //void	ChangeSpy (bool forward);
 int		D_PlayerClassToInt (const char *classname);
 bool	P_OldAdjustFloorCeil (AActor *thing);
-void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
+void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgflags, FName MeansOfDeath);
 void	P_CrouchMove(player_t * player, int direction);
 extern	bool	SpawningMapThing;
 extern FILE *Logfile;
@@ -4523,7 +4523,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].mo->DamageType = DamageType;
 
 	// Kill the player.
-	players[ulPlayer].mo->Die( pSource, pInflictor );
+	players[ulPlayer].mo->Die( pSource, pInflictor, 0 );
 
 	// [BB] Set the attacker, necessary to let the death view follow the killer.
 	players[ulPlayer].attacker = pSource;
@@ -4587,7 +4587,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, print the obituary string.
-	ClientObituary( players[ulPlayer].mo, pInflictor, pSource, MOD );
+	ClientObituary( players[ulPlayer].mo, pInflictor, pSource, ( ulSourcePlayer < MAXPLAYERS ) ? DMG_PLAYERATTACK : 0, MOD );
 
 	// [BB] Restore the weapon the player actually is using now.
 	if ( ( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].ReadyWeapon != pSavedReadyWeapon ) )

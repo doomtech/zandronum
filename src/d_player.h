@@ -139,7 +139,7 @@ public:
 	};
 
 	void BeginPlay ();
-	void Die (AActor *source, AActor *inflictor);
+	void Die (AActor *source, AActor *inflictor, int dmgflags);
 
 	int			crouchsprite;
 	int			MaxHealth;

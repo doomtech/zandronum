@@ -1459,7 +1459,7 @@ void A_FireBulletsHelper ( AActor *self,
 		if (!(Flags & FBF_NORANDOM))
 			damage *= ((pr_cwbullet()%3)+1);
 
-		P_LineAttack(self, bangle, Range, bslope, damage, NAME_None, PuffType);
+		P_LineAttack(self, bangle, Range, bslope, damage, NAME_Hitscan, PuffType);
 	}
 	else 
 	{
@@ -1484,7 +1484,7 @@ void A_FireBulletsHelper ( AActor *self,
 			if (!(Flags & FBF_NORANDOM))
 				damage *= ((pr_cwbullet()%3)+1);
 
-			P_LineAttack(self, angle, Range, slope, damage, NAME_None, PuffType);
+			P_LineAttack(self, angle, Range, slope, damage, NAME_Hitscan, PuffType);
 		}
 	}
 }
@@ -1816,7 +1816,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
-	P_LineAttack (self, angle, Range, pitch, Damage, NAME_None, PuffType, true, &linetarget);
+	P_LineAttack (self, angle, Range, pitch, Damage, NAME_Melee, PuffType, true, &linetarget);
 
 	// turn to face target
 	if (linetarget)

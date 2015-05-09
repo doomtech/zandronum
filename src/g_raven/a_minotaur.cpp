@@ -106,9 +106,9 @@ void AMinotaurFriend::Serialize (FArchive &arc)
 	arc << StartTime;
 }
 
-void AMinotaurFriend::Die (AActor *source, AActor *inflictor)
+void AMinotaurFriend::Die (AActor *source, AActor *inflictor, int dmgflags)
 {
-	Super::Die (source, inflictor);
+	Super::Die (source, inflictor, dmgflags);
 
 	// [BC] Don't do this in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

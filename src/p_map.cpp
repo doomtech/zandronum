@@ -4372,6 +4372,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	bool killPuff = false;
 	AActor *puff = NULL;
 	int flags = ismeleeattack? PF_MELEERANGE : 0;
+	int pflag = 0;
 
 	if (victim != NULL)
 	{
@@ -4392,6 +4393,12 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	if (t1->player != NULL)
 	{
 		shootz += FixedMul (t1->player->mo->AttackZOffset, t1->player->crouchfactor);
+		if (damageType == NAME_Melee || damageType == NAME_Hitscan)
+		{
+			// this is coming from a weapon attack function which needs to transfer information to the obituary code,
+			// We need to preserve this info from the damage type because the actual damage type can get overridden by the puff
+			pflag = DMG_PLAYERATTACK;
+		}
 	}
 	else
 	{
@@ -4406,9 +4413,9 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST)) ||
 		(puffDefaults && (puffDefaults->flags2 & MF2_THRUGHOST));
 
-	// if the puff uses a non-standard damage type this will override default and melee damage type.
+	// if the puff uses a non-standard damage type this will override default, hitscan and melee damage type.
 	// All other explicitly passed damage types (currenty only MDK) will be preserved.
-	if ((damageType == NAME_None || damageType == NAME_Melee) && puffDefaults->DamageType != NAME_None)
+	if ((damageType == NAME_None || damageType == NAME_Melee || damageType == NAME_Hitscan) && puffDefaults->DamageType != NAME_None)
 	{
 		damageType = puffDefaults->DamageType;
 	}
@@ -4638,9 +4645,9 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// Note: The puff may not yet be spawned here so we must check the class defaults, not the actor.
 			if (damage || (puffDefaults->flags6 & MF6_FORCEPAIN))
 			{
-				int dmgflags = DMG_INFLICTOR_IS_PUFF;
+				int dmgflags = DMG_INFLICTOR_IS_PUFF | pflag;
 				// Allow MF5_PIERCEARMOR on a weapon as well.
-				if (t1->player != NULL && t1->player->ReadyWeapon != NULL &&
+				if (t1->player != NULL && (dmgflags & DMG_PLAYERATTACK) && t1->player->ReadyWeapon != NULL &&
 					t1->player->ReadyWeapon->flags5 & MF5_PIERCEARMOR)
 				{
 					dmgflags |= DMG_NO_ARMOR;

@@ -1680,14 +1680,14 @@ void APlayerPawn::ActivateMorphWeapon ()
 //
 //===========================================================================
 
-void APlayerPawn::Die (AActor *source, AActor *inflictor)
+void APlayerPawn::Die (AActor *source, AActor *inflictor, int dmgflags)
 {
 	// [BB] Drop any important items the player may be carrying before handling
 	// any other part of the death logic.
 	if ( !NETWORK_InClientMode() )
 		DropImportantItems ( false, source );
 
-	Super::Die (source, inflictor);
+	Super::Die (source, inflictor, dmgflags);
 
 	if (player != NULL && player->mo == this) player->bonuscount = 0;
 
@@ -1700,7 +1700,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 	if (player != NULL && player->mo != this)
 	{ // Make the real player die, too
-		player->mo->Die ( source, inflictor );
+		player->mo->Die (source, inflictor, dmgflags);
 		return;
 	}
 	// [BC] There was an "else" here that was completely unnecessary.

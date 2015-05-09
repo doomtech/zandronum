@@ -30,6 +30,7 @@ Actor PlayerPawn : Actor native
 	Player.MugShotMaxHealth 0
 	Player.FlechetteType "ArtiPoisonBag3"
 	Player.MaxSkinSizeFactor 3.44, 1.68 // [TP]
+	Obituary "$OB_MPDEFAULT"
 }
 
 Actor PlayerChunk : PlayerPawn native
