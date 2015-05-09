@@ -4382,8 +4382,12 @@ void AActor::Tick ()
 						|| ((onmo->activationtype & THINGSPEC_MissileTrigger) && (flags & MF_MISSILE))
 						) && (level.maptime > onmo->lastbump)) // Leave the bumper enough time to go away
 					{
-						if (P_ActivateThingSpecial(onmo, this))
-							onmo->lastbump = level.maptime + TICRATE;
+						// [BB]
+						//if (player == NULL || !(player->cheats & CF_PREDICTING))
+						{
+							if (P_ActivateThingSpecial(onmo, this))
+								onmo->lastbump = level.maptime + TICRATE;
+						}
 					}
 					if (velz != 0 && (BounceFlags & BOUNCE_Actors))
 					{

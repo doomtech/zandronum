@@ -223,6 +223,7 @@ extern int sfx_empty;
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
 TArray<sfxinfo_t> S_sfx (128);
+TMap<int, FString> HexenMusic;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -889,6 +890,7 @@ static void S_ClearSoundData()
 	DefPlayerClassName = "";
 	MusicAliases.Clear();
 	MidiDevices.Clear();
+	HexenMusic.Clear();
 }
 
 //==========================================================================
@@ -1087,16 +1089,14 @@ static void S_AddSNDINFO (int lump)
 
 			case SI_Map: {
 				// Hexen-style $MAP command
-				level_info_t *info;
-				char temp[16];
+				int mapnum;
 
-				sc.MustGetNumber ();
-				mysnprintf (temp, countof(temp), "MAP%02d", sc.Number);
-				info = FindLevelInfo (temp);
-				sc.MustGetString ();
-				if (info->mapname[0] && (!(info->flags2 & LEVEL2_MUSICDEFINED)))
+				sc.MustGetNumber();
+				mapnum = sc.Number;
+				sc.MustGetString();
+				if (mapnum != 0)
 				{
-					info->Music = sc.String;
+					HexenMusic[mapnum] = sc.String;
 				}
 				}
 				break;
