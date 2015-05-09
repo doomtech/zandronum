@@ -1064,6 +1064,7 @@ void DoClearInv (AActor *actor)
 				ABasicArmor *barmor = static_cast<ABasicArmor *> (inv);
 				barmor->SavePercent = 0;
 				barmor->Amount = 0;
+				invp = &inv->Inventory;
 			}
 			else
 			{
