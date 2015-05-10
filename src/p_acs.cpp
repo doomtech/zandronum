@@ -108,6 +108,7 @@ FRandom pr_acs ("ACS");
 #define HUDMSG_COLORSTRING			(0x40000000)
 #define HUDMSG_ADDBLEND				(0x20000000)
 #define HUDMSG_ALPHA				(0x10000000)
+#define HUDMSG_NOWRAP				(0x08000000)
 
 // HUD message layers; these are not flags
 #define HUDMSG_LAYER_SHIFT			12
@@ -3195,6 +3196,15 @@ void DLevelScript::Serialize (FArchive &arc)
 		arc << activefont;
 
 	arc << hudwidth << hudheight;
+	if (SaveVersion >= 3960)
+	{
+		arc << ClipRectLeft << ClipRectTop << ClipRectWidth << ClipRectHeight
+			<< WrapWidth;
+	}
+	else
+	{
+		ClipRectLeft = ClipRectTop = ClipRectWidth = ClipRectHeight = WrapWidth = 0;
+	}
 }
 
 DLevelScript::DLevelScript ()
@@ -4602,6 +4612,8 @@ enum EACSFunctions
 	ACSF_Sqrt,
 	ACSF_FixedSqrt,
 	ACSF_VectorLength,
+	ACSF_SetHUDClipRect,
+	ACSF_SetHUDWrapWidth,
 
 	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
 	ACSF_GetUserCVar, // [BB] Not supported yet.
@@ -4650,8 +4662,8 @@ enum EACSFunctions
 	ACSF_GetDBEntries,
 
 	// ZDaemon
-	ACSF_GetTeamScore = 19620,
-	ACSF_SetTeamScore,
+	ACSF_GetTeamScore = 19620,	// (int team)
+	ACSF_SetTeamScore,			// (int team, int value)
 };
 
 int DLevelScript::SideFromID(int id, int side)
@@ -5329,11 +5341,9 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 
 		case ACSF_UniqueTID:
 			return P_FindUniqueTID(argCount > 0 ? args[0] : 0, (argCount > 1 && args[1] >= 0) ? args[1] : 0);
-			break;
 
 		case ACSF_IsTIDUsed:
 			return P_IsTIDUsed(args[0]);
-			break;
 
 		case ACSF_Sqrt:
 			return xs_FloorToInt(sqrt(double(args[0])));
@@ -5343,6 +5353,18 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 
 		case ACSF_VectorLength:
 			return FLOAT2FIXED(TVector2<double>(FIXED2DBL(args[0]), FIXED2DBL(args[1])).Length());
+
+		case ACSF_SetHUDClipRect:
+			ClipRectLeft = argCount > 0 ? args[0] : 0;
+			ClipRectTop = argCount > 1 ? args[1] : 0;
+			ClipRectWidth = argCount > 2 ? args[2] : 0;
+			ClipRectHeight = argCount > 3 ? args[3] : 0;
+			WrapWidth = argCount > 4 ? args[4] : 0;
+			break;
+
+		case ACSF_SetHUDWrapWidth:
+			WrapWidth = argCount > 0 ? args[0] : 0;
+			break;
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:
@@ -7683,7 +7705,16 @@ scriptwait:
 						}
 						break;
 					}
+					msg->SetClipRect(ClipRectLeft, ClipRectTop, ClipRectWidth, ClipRectHeight);
+					if (WrapWidth != 0)
+					{
+						msg->SetWrapWidth(WrapWidth);
+					}
 					msg->SetVisibility((type & HUDMSG_VISIBILITY_MASK) >> HUDMSG_VISIBILITY_SHIFT);
+					if (type & HUDMSG_NOWRAP)
+					{
+						msg->SetNoWrap(true);
+					}
 					if (type & HUDMSG_ALPHA)
 					{
 						msg->SetAlpha(alpha);
@@ -9607,7 +9638,9 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 	activefontname = "SmallFont";
 
 	hudwidth = hudheight = 0;
+	ClipRectLeft = ClipRectTop = ClipRectWidth = ClipRectHeight = WrapWidth = 0;
 	state = SCRIPT_Running;
+
 	// Hexen waited one second before executing any open scripts. I didn't realize
 	// this when I wrote my ACS implementation. Now that I know, it's still best to
 	// run them right away because there are several map properties that can't be

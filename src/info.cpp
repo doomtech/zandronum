@@ -58,7 +58,7 @@ extern void LoadActors ();
 extern void InitBotStuff();
 extern void ClearStrifeTypes();
 
-FRandom FState::pr_statetics;
+FRandom FState::pr_statetics("StateTics");
 
 //==========================================================================
 //

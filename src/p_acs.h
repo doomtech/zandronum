@@ -860,6 +860,8 @@ protected:
 	bool			backSide;
 	FFont			*activefont;
 	int				hudwidth, hudheight;
+	int				ClipRectLeft, ClipRectTop, ClipRectWidth, ClipRectHeight;
+	int				WrapWidth;
 	FBehavior	    *activeBehavior;
 	FString			activefontname; // [TP]
 
