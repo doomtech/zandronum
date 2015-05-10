@@ -7275,7 +7275,7 @@ scriptwait:
 			if (activationline != NULL)
 			{
 				activationline->special = 0;
-				DPrintf("Cleared line special on line %d\n", activationline - lines);
+				DPrintf("Cleared line special on line %d\n", (int)(activationline - lines));
 			}
 			break;
 

@@ -734,8 +734,8 @@ public:
 /*360*/	PCD_CALLSTACK,			// from Eternity
 		PCD_SCRIPTWAITNAMED,
 		PCD_TRANSLATIONRANGE3,
-
 		PCD_GOTOSTACK,
+
 		// [BB] We need to fix the number for the new commands!
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
