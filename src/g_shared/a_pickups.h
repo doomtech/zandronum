@@ -132,7 +132,8 @@ enum
 	IF_NOATTENPICKUPSOUND = 1<<17,	// Play pickup sound with ATTN_NONE
 	IF_PERSISTENTPOWER	= 1<<18,	// Powerup is kept when travelling between levels
 	IF_RESTRICTABSOLUTELY = 1<<19,	// RestrictedTo and ForbiddenTo do not allow pickup in any form by other classes
-	IF_FORCERESPAWNINSURVIVAL = 1<<20,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
+	IF_NEVERRESPAWN		= 1<<20,	// Never, ever respawns
+	IF_FORCERESPAWNINSURVIVAL = 1<<21,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
 };
 
 

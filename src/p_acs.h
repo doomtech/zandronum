@@ -738,7 +738,7 @@ public:
 		// [CW] Begin team additions.
 		PCD_GETTEAMPLAYERCOUNT,
 		// [CW] End team additions.
-/*361*/	PCODE_COMMAND_COUNT
+/*363*/	PCODE_COMMAND_COUNT
 	};
 
 	// Some constants used by ACS scripts
