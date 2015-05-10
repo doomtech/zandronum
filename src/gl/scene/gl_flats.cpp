@@ -331,7 +331,7 @@ void GLFlat::DrawSubsectors(int pass, bool istrans)
 void GLFlat::Draw(int pass)
 {
 	int i;
-	int rel = extralight*gl_weaponlight;
+	int rel = getExtraLight();
 
 #ifdef _MSC_VER
 #ifdef _DEBUG

@@ -34,6 +34,29 @@ uniform sampler2D tex;
 vec4 Process(vec4 color);
 
 
+varying float lightlevel;
+
+#ifdef SOFTLIGHT
+// Doom lighting equation ripped from EDGE.
+// Big thanks to EDGE developers for making the only port
+// that actually replicates software renderer's lighting in OpenGL.
+// Float version.
+// Basically replace int with float and divide all constants by 31.
+float R_DoomLightingEquation(float light, float dist)
+{
+	/* L in the range 0 to 63 */
+	float L = light * 63.0/31.0;
+
+	float min_L = clamp(36.0/31.0 - L, 0.0, 1.0);
+
+	float scale = 1.0 / dist;
+	float index = (59.0/31.0 - L) - (scale * 192.0/31.0 - 192.0/31.0);
+
+	/* result is colormap index (0 bright .. 31 dark) */
+	return clamp(index, min_L, 1.0);
+}
+#endif
+
 //===========================================================================
 //
 // Desaturate a color
@@ -59,14 +82,17 @@ vec4 desaturate(vec4 texel)
 vec4 getLightColor(float fogdist, float fogfactor)
 {
 	vec4 color = gl_Color;
-
+	#ifdef SOFTLIGHT
+		float newlightlevel = 1.0 - R_DoomLightingEquation(lightlevel, gl_FragCoord.z);
+		color.rgb *= vec3(newlightlevel);
+	#endif
 	#ifndef NO_FOG
 	//
 	// apply light diminishing	
 	//
 	if (fogenabled > 0)
 	{
-		#if !defined(NO_SM4) || defined(DOOMLIGHT)
+		#if (!defined(NO_SM4) || defined(DOOMLIGHT)) && !defined SOFTLIGHT
 			// special lighting mode 'Doom' not available on older cards for performance reasons.
 			if (fogdist < fogparm.y) 
 			{

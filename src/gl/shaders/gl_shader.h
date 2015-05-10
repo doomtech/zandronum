@@ -9,6 +9,7 @@ extern bool gl_shaderactive;
 
 const int VATTR_GLOWDISTANCE = 15;
 const int VATTR_FOGPARAMS = 14;
+const int VATTR_LIGHTLEVEL = 13; // Korshun.
 
 //==========================================================================
 //
@@ -100,7 +101,7 @@ class FShaderContainer
 
 	FName Name;
 
-	enum { NUM_SHADERS = 8 };
+	enum { NUM_SHADERS = 16 };
 
 	FShader *shader[NUM_SHADERS];
 	FShader *shader_cm;	// the shader for fullscreen colormaps

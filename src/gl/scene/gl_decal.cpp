@@ -176,7 +176,7 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 	else
 	{
 		light = lightlevel;
-		rel = rellight + extralight * gl_weaponlight;
+		rel = rellight + getExtraLight();
 	}
 	
 	int r = RPART(decal->AlphaColor);
@@ -197,7 +197,14 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 		loadAlpha = true;
 		p.colormap=CM_SHADE;
 
-		gl_GetLightColor(light, rel, &p, &red, &green, &blue);
+		if (glset.lightmode != 8)
+		{
+			gl_GetLightColor(light, rel, &p, &red, &green, &blue);
+		}
+		else
+		{
+			gl_GetLightColor(lightlevel, rellight, &p, &red, &green, &blue);
+		}
 		
 		if (gl_lights && GLRenderer->mLightCount && !gl_fixedcolormap && gl_light_sprites)
 		{
@@ -205,9 +212,24 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 			fixed_t x, y;
 			decal->GetXY(seg->sidedef, x, y);
 			gl_GetSpriteLight(NULL, x, y, zpos, sub, Colormap.colormap-CM_DESAT0, result, line, side == line->sidedef[0]? 0:1);
-			red = clamp<float>(result[0]+red, 0, 1.0f);
-			green = clamp<float>(result[1]+green, 0, 1.0f);
-			blue = clamp<float>(result[2]+blue, 0, 1.0f);
+			if (glset.lightmode != 8)
+			{
+				red = clamp<float>(result[0]+red, 0, 1.0f);
+				green = clamp<float>(result[1]+green, 0, 1.0f);
+				blue = clamp<float>(result[2]+blue, 0, 1.0f);
+			}
+			else
+			{
+				// Korshun: the closest formula I could make up without more shader arguments. :/
+				// Because using more shader arguments just for such a small thing would be not so good...
+				//float dlightlevel = result[0]*77 + result[1]*143 + result[2]*35;
+				float l = gl_CalcLightLevel(light, rel, false) / 255.0;
+				//float l = lightlevel / 255.0;
+
+				red   = clamp<float>(result[0]+   red * max(l, 0.5), 0, 1.0f);
+				green = clamp<float>(result[1]+ green * max(l, 0.5), 0, 1.0f);
+				blue  = clamp<float>(result[2]+  blue * max(l, 0.5), 0, 1.0f);
+			}
 		}
 
 		BYTE R = xs_RoundToInt(r * red);
@@ -350,10 +372,18 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 	if (loadAlpha)
 	{
 		gl.Color4f(red, green, blue, a);
+
+		if (glset.lightmode == 8)
+		{
+			if (gl_fixedcolormap)
+				gl.VertexAttrib1f(VATTR_LIGHTLEVEL, 1.0);
+			else
+				gl.VertexAttrib1f(VATTR_LIGHTLEVEL, gl_CalcLightLevel(light, rel, false) / 255.0);
+		}
 	}
 	else
 	{
-		gl_SetColor(light, rel, &p, a);
+		gl_SetColor(light, rel, &p, a, extralight); // Korshun.
 	}
 
 	PalEntry fc = gl_RenderState.GetFogColor();

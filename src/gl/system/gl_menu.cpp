@@ -85,7 +85,7 @@ void gl_SetupMenu()
 			for(int i = (*opt)->mValues.Size()-1; i>=0; i--)
 			{
 				// Delete 'Doom' lighting mode
-				if ((*opt)->mValues[i].Value == 2.0)
+				if ((*opt)->mValues[i].Value == 2.0 || (*opt)->mValues[i].Value == 8.0)
 				{
 					(*opt)->mValues.Delete(i);
 				}
@@ -106,7 +106,7 @@ void gl_SetupMenu()
 		}
 
 		// disable features that don't work without shaders.
-		if (gl_lightmode == 2) gl_lightmode = 3;
+		if (gl_lightmode == 2 || gl_lightmode == 8) gl_lightmode = 3;
 		if (gl_fogmode == 2) gl_fogmode = 1;
 		if (gl_dynlight_shader) gl_dynlight_shader = false;
 	}

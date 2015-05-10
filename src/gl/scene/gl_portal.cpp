@@ -985,7 +985,7 @@ void GLHorizonPortal::DrawContents()
 	}
 	else 
 	{
-		int rel = extralight * gl_weaponlight;
+		int rel = getExtraLight();
 		gl_SetColor(origin->lightlevel, rel, &origin->colormap, 1.0f);
 		gl_SetFog(origin->lightlevel, rel, &origin->colormap, false);
 	}

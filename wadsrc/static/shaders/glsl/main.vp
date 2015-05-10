@@ -8,8 +8,17 @@
 	attribute vec2 glowdistance;
 #endif
 
+#ifdef SOFTLIGHT
+	attribute float lightlevel_in;
+	varying float lightlevel;
+#endif
+
 void main()
 {
+	#ifdef SOFTLIGHT
+		lightlevel = lightlevel_in;
+	#endif
+
 	#ifndef NO_SM4
 		// Yes, I know... But using a texture matrix here saves me from the hassle of tracking its state across shaders. ;)
 		vec4 worldcoord = gl_TextureMatrix[7] * gl_Vertex;

@@ -68,6 +68,8 @@ EXTERN_CVAR (Float, vid_brightness)
 EXTERN_CVAR (Float, vid_contrast)
 EXTERN_CVAR (Bool, vid_vsync)
 
+CVAR(Bool, gl_aalines, false, CVAR_ARCHIVE)
+
 FGLRenderer *GLRenderer;
 
 void gl_SetupMenu();
@@ -397,8 +399,19 @@ bool OpenGLFrameBuffer::Begin2D(bool)
 		(GLdouble) 1.0 
 		);
 	gl.Disable(GL_DEPTH_TEST);
-	gl.Disable(GL_MULTISAMPLE);
-	if (GLRenderer != NULL) GLRenderer->Begin2D();
+
+	// Korshun: ENABLE AUTOMAP ANTIALIASING!!!
+	if (gl_aalines)
+		gl.Enable(GL_LINE_SMOOTH);
+	else
+	{
+		gl.Disable(GL_MULTISAMPLE);
+		gl.Disable(GL_LINE_SMOOTH);
+		glLineWidth(1.0);
+	}
+
+	if (GLRenderer != NULL)
+			GLRenderer->Begin2D();
 	return true;
 }
 

@@ -66,6 +66,7 @@ OptionValue "LightingModes"
 	2, "Doom"
 	3, "Dark"
 	4, "Legacy"
+	8, "Software"
 }
 
 OptionValue "Precision"
@@ -172,6 +173,8 @@ OptionMenu "GLPrefOptions"
 	Title "OPENGL PREFERENCES"
 	Option "Sector light mode",			gl_lightmode,					"LightingModes"
 	Option "Fog mode",					gl_fogmode,						"FogMode"
+	Option "Fog forces fullbright",		gl_brightfog,					"YesNo"
+	Slider "Weapon light strength",		gl_weaponlight,					0,32, 2
 	Option "Environment map on mirrors",gl_mirror_envmap,				"OnOff"
 	Option "Enhanced night vision mode",gl_enhanced_nightvision,		"OnOff"
 	Option "ENV shows stealth monsters",gl_enhanced_nv_stealth,			"EnhancedStealth"

@@ -300,7 +300,7 @@ void GLWall::RenderFogBoundary()
 		// with shaders this can be done properly
 		if (gl.shadermodel == 4 || (gl.shadermodel == 3 && gl_fog_shader))
 		{
-			int rel = rellight + (extralight * gl_weaponlight);
+			int rel = rellight + getExtraLight();
 			gl_SetFog(lightlevel, rel, &Colormap, false);
 			gl_RenderState.SetEffect(EFF_FOGBOUNDARY);
 			gl_RenderState.EnableAlphaTest(false);
@@ -333,6 +333,7 @@ void GLWall::RenderFogBoundary()
 			gl_RenderState.AlphaFunc(GL_GREATER,0);
 			gl.DepthFunc(GL_LEQUAL);
 			gl.Color4f(fc[0],fc[1],fc[2], fogd1);
+			if (glset.lightmode == 8) gl.VertexAttrib1f(VATTR_LIGHTLEVEL, 1.0); // Korshun.
 
 			flags &= ~GLWF_GLOW;
 			RenderWall(4,fc);
@@ -367,7 +368,7 @@ void GLWall::RenderMirrorSurface()
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 	gl_RenderState.AlphaFunc(GL_GREATER,0);
 	gl.DepthFunc(GL_LEQUAL);
-	gl_SetFog(lightlevel, extralight*gl_weaponlight, &Colormap, true);
+	gl_SetFog(lightlevel, getExtraLight(), &Colormap, true);
 
 	FMaterial * pat=FMaterial::ValidateTexture(GLRenderer->mirrortexture);
 	pat->BindPatch(Colormap.colormap, 0);
@@ -424,7 +425,7 @@ void GLWall::RenderTranslucentWall()
 		if (flags&GLWF_FOGGY) gl_RenderState.EnableBrightmap(false);
 		gl_RenderState.EnableGlow(!!(flags & GLWF_GLOW));
 		gltexture->Bind(Colormap.colormap, flags, 0);
-		extra = (extralight * gl_weaponlight);
+		extra = getExtraLight();
 	}
 	else 
 	{
@@ -484,7 +485,7 @@ void GLWall::Draw(int pass)
 		SetupLights();
 		// fall through
 	case GLPASS_PLAIN:			// Single-pass rendering
-		rel = rellight + (extralight * gl_weaponlight);
+		rel = rellight + getExtraLight();
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
 		if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, rel, &Colormap, false);
 		else gl_SetFog(255, 0, NULL, false);
@@ -498,7 +499,7 @@ void GLWall::Draw(int pass)
 
 	case GLPASS_BASE:			// Base pass for non-masked polygons (all opaque geometry)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
-		rel = rellight + (extralight * gl_weaponlight);
+		rel = rellight + getExtraLight();
 		gl_SetColor(lightlevel, rel, &Colormap,1.0f);
 		if (!(flags&GLWF_FOGGY)) 
 		{
@@ -560,7 +561,7 @@ void GLWall::Draw(int pass)
 		{
 			if (pass==GLPASS_DECALS) 
 			{
-				gl_SetFog(lightlevel, rellight + extralight*gl_weaponlight, &Colormap, false);
+				gl_SetFog(lightlevel, rellight + getExtraLight(), &Colormap, false);
 			}
 			DoDrawDecals();
 		}

@@ -70,6 +70,7 @@ long gl_frameMS;
 long gl_frameCount;
 
 EXTERN_CVAR(Int, gl_lightmode)
+EXTERN_CVAR(Bool, gl_brightfog)
 
 CUSTOM_CVAR(Float, maxviewpitch, 90.f, CVAR_ARCHIVE|CVAR_SERVERINFO)
 {
@@ -235,6 +236,7 @@ struct FGLROptions : public FOptionalMapinfoData
 	int			outsidefogdensity;
 	int			skyfog;
 	int			lightmode;
+	int			brightfog;
 	SBYTE		nocoloredspritelighting;
 	SBYTE		notexturefill;
 	FVector3	skyrotatevector;
@@ -247,6 +249,14 @@ DEFINE_MAP_OPTION(fogdensity, false)
 	parse.ParseAssign();
 	parse.sc.MustGetNumber();
 	opt->fogdensity = parse.sc.Number;
+}
+
+DEFINE_MAP_OPTION(brightfog, false)
+{
+	FGLROptions *opt = info->GetOptData<FGLROptions>("gl_renderer");
+	parse.ParseAssign();
+	parse.sc.MustGetNumber();
+	opt->brightfog = parse.sc.Number;
 }
 
 DEFINE_MAP_OPTION(outsidefogdensity, false)
@@ -333,6 +343,11 @@ DEFINE_MAP_OPTION(skyrotate2, false)
 	opt->skyrotatevector2.MakeUnit();
 }
 
+boolean IsLightmodeValid()
+{
+	return (glset.map_lightmode >= 0 && glset.map_lightmode <= 4) || glset.map_lightmode == 8;
+}
+
 void InitGLRMapinfoData()
 {
 	FGLROptions *opt = level.info->GetOptData<FGLROptions>("gl_renderer", false);
@@ -341,6 +356,7 @@ void InitGLRMapinfoData()
 	{
 		gl_SetFogParams(opt->fogdensity, level.info->outsidefog, opt->outsidefogdensity, opt->skyfog);
 		glset.map_lightmode = opt->lightmode;
+		glset.map_brightfog = opt->brightfog;
 		glset.map_nocoloredspritelighting = opt->nocoloredspritelighting;
 		glset.map_notexturefill = opt->notexturefill;
 		glset.skyrotatevector = opt->skyrotatevector;
@@ -351,6 +367,7 @@ void InitGLRMapinfoData()
 	{
 		gl_SetFogParams(0, level.info->outsidefog, 0, 0);
 		glset.map_lightmode = -1;
+		glset.map_brightfog = -1;
 		glset.map_nocoloredspritelighting = -1;
 		glset.map_notexturefill = -1;
 		glset.skyrotatevector = FVector3(0,0,1);
@@ -358,23 +375,27 @@ void InitGLRMapinfoData()
 	}
 
 	// [SP/BB] Don't access gl_lightmode directly.
-	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_GetLightMode();
+	if (!IsLightmodeValid()) glset.lightmode = gl_GetLightMode();
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
 	if (glset.map_notexturefill == -1) glset.notexturefill = gl_notexturefill;
 	else glset.notexturefill = !!glset.map_notexturefill;
+	if (glset.map_brightfog == -1) glset.brightfog = gl_brightfog;
+	else glset.brightfog = !!glset.map_brightfog;
 }
 
 CCMD(gl_resetmap)
 {
 	// [SP/BB] Don't access gl_lightmode directly.
-	if (glset.map_lightmode < 0 || glset.map_lightmode > 4) glset.lightmode = gl_GetLightMode();
+	if (!IsLightmodeValid()) glset.lightmode = gl_GetLightMode();
 	else glset.lightmode = glset.map_lightmode;
 	if (glset.map_nocoloredspritelighting == -1) glset.nocoloredspritelighting = gl_nocoloredspritelighting;
 	else glset.nocoloredspritelighting = !!glset.map_nocoloredspritelighting;
 	if (glset.map_notexturefill == -1) glset.notexturefill = gl_notexturefill;
 	else glset.notexturefill = !!glset.map_notexturefill;
+	if (glset.map_brightfog == -1) glset.brightfog = gl_brightfog;
+	else glset.brightfog = !!glset.map_brightfog;
 }
 
 

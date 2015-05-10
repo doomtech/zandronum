@@ -49,6 +49,7 @@
 #include "sc_man.h"
 #include "cmdlib.h"
 
+#include "gl/data/gl_data.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/system/gl_cvars.h"
@@ -141,6 +142,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		gl.BindAttribLocation(hShader, VATTR_GLOWDISTANCE, "glowdistance");
 		gl.BindAttribLocation(hShader, VATTR_FOGPARAMS, "fogparams");
+		gl.BindAttribLocation(hShader, VATTR_LIGHTLEVEL, "lightlevel_in"); // Korshun.
 
 		gl.LinkProgram(hShader);
 
@@ -236,7 +238,15 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 		"#define NO_GLOW\n#define NO_DESATURATE\n#define DYNLIGHT\n",
 		"#define NO_DESATURATE\n#define DYNLIGHT\n",
 		"#define NO_GLOW\n#define DYNLIGHT\n",
-		"\n#define DYNLIGHT\n"
+		"\n#define DYNLIGHT\n",
+		"#define NO_GLOW\n#define NO_DESATURATE\n#define SOFTLIGHT\n",
+		"#define NO_DESATURATE\n#define SOFTLIGHT\n",
+		"#define NO_GLOW\n#define SOFTLIGHT\n",
+		"\n#define SOFTLIGHT\n",
+		"#define NO_GLOW\n#define NO_DESATURATE\n#define DYNLIGHT\n#define SOFTLIGHT\n",
+		"#define NO_DESATURATE\n#define DYNLIGHT\n#define SOFTLIGHT\n",
+		"#define NO_GLOW\n#define DYNLIGHT\n#define SOFTLIGHT\n",
+		"\n#define DYNLIGHT\n#define SOFTLIGHT\n"
 	};
 
 	const char * shaderdesc[] = {
@@ -248,6 +258,14 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 		"::glow+dynlight",
 		"::desaturate+dynlight",
 		"::glow+desaturate+dynlight",
+		"::softlight",
+		"::glow+softlight",
+		"::desaturate+softlight",
+		"::glow+desaturate+softlight",
+		"::default+dynlight+softlight",
+		"::glow+dynlight+softlight",
+		"::desaturate+dynlight+softlight",
+		"::glow+desaturate+dynlight+softlight",
 	};
 
 	FString name;
@@ -356,7 +374,7 @@ FShader *FShaderContainer::Bind(int cm, bool glowing, float Speed, bool lights)
 	else
 	{
 		bool desat = cm>=CM_DESAT1 && cm<=CM_DESAT31;
-		sh = shader[glowing + 2*desat + 4*lights];
+		sh = shader[glowing + 2*desat + 4*lights + (glset.lightmode & 8)];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{

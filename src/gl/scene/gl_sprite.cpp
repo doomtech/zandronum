@@ -117,7 +117,7 @@ void GLSprite::Draw(int pass)
 
 
 	bool additivefog = false;
-	int rel = extralight*gl_weaponlight;
+	int rel = getExtraLight();
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
@@ -688,9 +688,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
-	fullbright = 
-		(thing->renderflags & RF_FULLBRIGHT) &&
-		(!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright);
+	fullbright = (thing->flags5 & MF5_BRIGHT) ||
+		((thing->renderflags & RF_FULLBRIGHT) && (!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bBrightmapDisablesFullbright));
 
 	lightlevel=fullbright? 255 : 
 		gl_ClampLight(rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 

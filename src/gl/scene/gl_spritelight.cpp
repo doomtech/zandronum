@@ -147,7 +147,7 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 							  PalEntry ThingColor, bool weapon)
 {
 	float r,g,b;
-	float result[3];
+	float result[4]; // Korshun.
 
 	gl_GetLightColor(lightlevel, rellight, cm, &r, &g, &b, weapon);
 	if (!gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->colormap : 0, result))
@@ -156,6 +156,7 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 		g *= ThingColor.g/255.f;
 		b *= ThingColor.b/255.f;
 		gl.Color4f(r, g, b, alpha);
+		if (glset.lightmode == 8) gl.VertexAttrib1f(VATTR_LIGHTLEVEL, gl_CalcLightLevel(lightlevel, rellight, weapon) / 255.0f); // Korshun.
 		return lightlevel;
 	}
 	else
@@ -172,7 +173,8 @@ static int gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subs
 		g *= ThingColor.g/255.f;
 		b *= ThingColor.b/255.f;
 
-		gl.Color4f(r, g, b, alpha);
+		gl.Color4f(r, g, b, alpha);		
+		if (glset.lightmode == 8) gl.VertexAttrib1f(VATTR_LIGHTLEVEL, 1.0); // Korshun.
 
 		if (dlightlevel == 0) return 0;
 

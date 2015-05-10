@@ -10,10 +10,12 @@ struct GLRenderSettings
 	SBYTE lightmode;
 	bool nocoloredspritelighting;
 	bool notexturefill;
+	bool brightfog;
 
 	SBYTE map_lightmode;
 	SBYTE map_nocoloredspritelighting;
 	SBYTE map_notexturefill;
+	SBYTE map_brightfog;
 
 	FVector3 skyrotatevector;
 	FVector3 skyrotatevector2;
@@ -24,6 +26,15 @@ extern GLRenderSettings glset;
 
 #include "r_defs.h"
 #include "a_sharedglobal.h"
+#include "c_cvars.h"
+
+extern int extralight;
+EXTERN_CVAR(Int, gl_weaponlight);
+
+inline	int getExtraLight()
+{
+	return extralight * gl_weaponlight; // ((glset.lightmode == 8)? 16:8);
+}
 
 void gl_RecalcVertexHeights(vertex_t * v);
 FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang, bool *mirror);
