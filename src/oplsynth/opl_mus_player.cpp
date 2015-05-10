@@ -16,14 +16,14 @@
 
 #define IMF_RATE				700.0
 
-EXTERN_CVAR (Bool, opl_onechip)
+EXTERN_CVAR (Int, opl_numchips)
 
 OPLmusicBlock::OPLmusicBlock()
 {
 	scoredata = NULL;
 	NextTickIn = 0;
 	LastOffset = 0;
-	TwoChips = !opl_onechip;
+	NumChips = MIN(*opl_numchips, 2);
 	Looping = false;
 	IsStereo = false;
 	io = NULL;
@@ -37,10 +37,9 @@ OPLmusicBlock::~OPLmusicBlock()
 
 void OPLmusicBlock::ResetChips ()
 {
-	TwoChips = !opl_onechip;
 	ChipAccess.Enter();
 	io->OPLdeinit ();
-	io->OPLinit (TwoChips + 1, IsStereo);
+	NumChips = io->OPLinit(MIN(*opl_numchips, 2), IsStereo);
 	ChipAccess.Leave();
 }
 
@@ -77,7 +76,7 @@ fail:		delete[] scoredata;
 		memcpy(scoredata, &musiccache[0], len);
 	}
 
-	if (io->OPLinit (TwoChips + 1))
+	if (0 == (NumChips = io->OPLinit(NumChips)))
 	{
 		goto fail;
 	}
@@ -236,11 +235,14 @@ bool OPLmusicBlock::ServiceStream (void *buff, int numbytes)
 		double ticky = NextTickIn;
 		int tick_in = int(NextTickIn);
 		int samplesleft = MIN(numsamples, tick_in);
+		size_t i;
 
 		if (samplesleft > 0)
 		{
-			YM3812UpdateOne (io->chips[0], samples1, samplesleft);
-			YM3812UpdateOne (io->chips[1], samples1, samplesleft);
+			for (i = 0; i < io->NumChips; ++i)
+			{
+				io->chips[i]->Update(samples1, samplesleft);
+			}
 			OffsetSamples(samples1, samplesleft << int(IsStereo));
 			assert(NextTickIn == ticky);
 			NextTickIn -= samplesleft;
@@ -259,8 +261,10 @@ bool OPLmusicBlock::ServiceStream (void *buff, int numbytes)
 				{
 					if (numsamples > 0)
 					{
-						YM3812UpdateOne (io->chips[0], samples1, numsamples);
-						YM3812UpdateOne (io->chips[1], samples1, numsamples);
+						for (i = 0; i < io->NumChips; ++i)
+						{
+							io->chips[i]->Update(samples1, samplesleft);
+						}
 						OffsetSamples(samples1, numsamples << int(IsStereo));
 					}
 					res = false;
@@ -406,7 +410,7 @@ int OPLmusicFile::PlayTick ()
 				break;
 
 			default:	// It's something to stuff into the OPL chip
-				if (WhichChip == 0 || TwoChips)
+				if (WhichChip < NumChips)
 				{
 					io->OPLwriteReg(WhichChip, reg, data);
 				}
@@ -449,7 +453,7 @@ int OPLmusicFile::PlayTick ()
 			{
 				data = *score++;
 			}
-			if (WhichChip == 0 || TwoChips)
+			if (WhichChip < NumChips)
 			{
 				io->OPLwriteReg(WhichChip, reg, data);
 			}
@@ -480,7 +484,7 @@ int OPLmusicFile::PlayTick ()
 				{
 					return (data + 1) << 8;
 				}
-				else if (code < to_reg_size && (which = 0 || TwoChips))
+				else if (code < to_reg_size && which < NumChips)
 				{
 					io->OPLwriteReg(which, to_reg[code], data);
 				}
@@ -522,14 +526,14 @@ OPLmusicFile::OPLmusicFile(const OPLmusicFile *source, const char *filename)
 	SamplesPerTick = source->SamplesPerTick;
 	RawPlayer = source->RawPlayer;
 	score = source->score;
-	TwoChips = source->TwoChips;
+	NumChips = source->NumChips;
 	WhichChip = 0;
 	if (io != NULL)
 	{
 		delete io;
 	}
 	io = new DiskWriterIO(filename);
-	io->OPLinit(TwoChips + 1);
+	NumChips = io->OPLinit(NumChips);
 	Restart();
 }
 

@@ -141,7 +141,8 @@ struct OP2instrEntry {
 /* From MLOPL_IO.CPP */
 #define OPL2CHANNELS	9
 #define OPL3CHANNELS	18
-#define MAXCHANNELS		18
+#define MAXOPL2CHIPS	8
+#define MAXCHANNELS		(OPL2CHANNELS * MAXOPL2CHIPS)
 
 
 /* Channel Flags: */
@@ -183,8 +184,9 @@ struct OPLio {
 	virtual void	SetClockRate(double samples_per_tick);
 	virtual void	WriteDelay(int ticks);
 
+	class OPLEmul *chips[MAXOPL2CHIPS];
 	uint OPLchannels;
-	void *chips[2];
+	uint NumChips;
 };
 
 struct DiskWriterIO : public OPLio
