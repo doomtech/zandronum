@@ -305,6 +305,7 @@ void GLSprite::Draw(int pass)
 		Colormap.FadeColor = backupfade;
 
 	gl_RenderState.EnableTexture(true);
+	gl_RenderState.SetDynLight(0,0,0);
 }
 
 

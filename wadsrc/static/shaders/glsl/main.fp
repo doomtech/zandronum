@@ -6,7 +6,7 @@
 //#extension GL_EXT_gpu_shader4 : enable
 
 uniform ivec3 lightrange;
-#ifdef MAXLIGHTS128
+#ifndef MAXLIGHTS128
 uniform vec4 lights[256];
 #else
 uniform vec4 lights[128];
@@ -18,6 +18,7 @@ uniform vec4 lights[128];
 
 uniform int fogenabled;
 uniform vec4 fogcolor;
+uniform vec3 dlightcolor;
 uniform vec3 camerapos;
 varying vec4 pixelpos;
 varying vec4 fogparm;
@@ -84,7 +85,7 @@ vec4 getLightColor(float fogdist, float fogfactor)
 	vec4 color = gl_Color;
 	#ifdef SOFTLIGHT
 		float newlightlevel = 1.0 - R_DoomLightingEquation(lightlevel, gl_FragCoord.z);
-		color.rgb *= vec3(newlightlevel);
+		color.rgb *= clamp(vec3(newlightlevel) + dlightcolor, 0.0, 1.0);
 	#endif
 	#ifndef NO_FOG
 	//

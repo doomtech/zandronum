@@ -220,15 +220,7 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 			}
 			else
 			{
-				// Korshun: the closest formula I could make up without more shader arguments. :/
-				// Because using more shader arguments just for such a small thing would be not so good...
-				//float dlightlevel = result[0]*77 + result[1]*143 + result[2]*35;
-				float l = gl_CalcLightLevel(light, rel, false) / 255.0;
-				//float l = lightlevel / 255.0;
-
-				red   = clamp<float>(result[0]+   red * max(l, 0.5), 0, 1.0f);
-				green = clamp<float>(result[1]+ green * max(l, 0.5), 0, 1.0f);
-				blue  = clamp<float>(result[2]+  blue * max(l, 0.5), 0, 1.0f);
+				gl_RenderState.SetDynLight(result[0], result[1], result[2]);
 			}
 		}
 
@@ -409,6 +401,7 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 	gl.End();
 	rendered_decals++;
 	gl_RenderState.SetFog(fc,-1);
+	gl_RenderState.SetDynLight(0,0,0);
 }
 
 //==========================================================================

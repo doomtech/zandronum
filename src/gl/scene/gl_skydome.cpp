@@ -550,6 +550,11 @@ void GLSkyPortal::DrawContents()
 	int CM_Index;
 	PalEntry FadeColor(0,0,0,0);
 
+	// We have no use for Doom lighting special handling here, so disable it for this function.
+	int oldlightmode = glset.lightmode;
+	if (glset.lightmode == 8) glset.lightmode = 2;
+
+
 	if (gl_fixedcolormap) 
 	{
 		CM_Index=gl_fixedcolormap<CM_FIRSTSPECIALCOLORMAP + SpecialColormaps.Size()? gl_fixedcolormap:CM_DEFAULT;
@@ -616,5 +621,6 @@ void GLSkyPortal::DrawContents()
 		}
 	}
 	gl.PopMatrix();
+	glset.lightmode = oldlightmode;
 }
 

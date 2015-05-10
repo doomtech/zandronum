@@ -39,6 +39,7 @@
 */
 
 #include "gl/system/gl_system.h"
+#include "gl/data/gl_data.h"
 #include "gl/system/gl_cvars.h"
 #include "gl/shaders/gl_shader.h"
 #include "gl/renderer/gl_renderer.h"
@@ -238,6 +239,10 @@ bool FRenderState::ApplyShader()
 		{
 			gl.Uniform3iv(activeShader->lightrange_index, 1, mNumLights);
 			gl.Uniform4fv(activeShader->lights_index, mNumLights[2], mLightData);
+		}
+		if (glset.lightmode == 8)
+		{
+			gl.Uniform3fv(activeShader->dlightcolor_index, 1, mDynLight);
 		}
 
 		return true;

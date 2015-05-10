@@ -92,6 +92,7 @@ class FRenderState
 	bool mBrightmapEnabled;
 	int mSpecialEffect;
 	int mTextureMode;
+	float mDynLight[3];
 	float mLightParms[2];
 	int mNumLights[3];
 	float *mLightData;
@@ -181,6 +182,13 @@ public:
 	{
 		mGlowTop.Set(t[0], t[1], t[2], t[3]);
 		mGlowBottom.Set(b[0], b[1], b[2], b[3]);
+	}
+
+	void SetDynLight(float r,float g, float b)
+	{
+		mDynLight[0] = r;
+		mDynLight[1] = g;
+		mDynLight[2] = b;
 	}
 
 	void SetFog(PalEntry c, float d)

@@ -13,8 +13,6 @@ const int VATTR_LIGHTLEVEL = 13; // Korshun.
 
 //==========================================================================
 //
-// set brightness map and glowstatus
-// Change will only take effect when the texture is rebound!
 //
 //==========================================================================
 
@@ -38,6 +36,7 @@ class FShader
 	int lightrange_index;
 	int fogcolor_index;
 	int lights_index;
+	int dlightcolor_index;
 
 	int glowbottomcolor_index;
 	int glowtopcolor_index;
@@ -72,6 +71,7 @@ public:
 		lightrange_index = -1;
 		fogcolor_index = -1;
 		lights_index = -1;
+		dlightcolor_index = -1;
 
 	}
 
