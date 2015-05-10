@@ -107,6 +107,7 @@ FRandom pr_acs ("ACS");
 #define HUDMSG_LOG					(0x80000000)
 #define HUDMSG_COLORSTRING			(0x40000000)
 #define HUDMSG_ADDBLEND				(0x20000000)
+#define HUDMSG_ALPHA				(0x10000000)
 
 // HUD message layers; these are not flags
 #define HUDMSG_LAYER_SHIFT			12
@@ -7669,7 +7670,10 @@ scriptwait:
 						break;
 					}
 					msg->SetVisibility((type & HUDMSG_VISIBILITY_MASK) >> HUDMSG_VISIBILITY_SHIFT);
-					msg->SetAlpha(alpha);
+					if (type & HUDMSG_ALPHA)
+					{
+						msg->SetAlpha(alpha);
+					}
 					if (type & HUDMSG_ADDBLEND)
 					{
 						msg->SetRenderStyle(STYLE_Add);
@@ -8738,6 +8742,25 @@ scriptwait:
 					SERVERCOMMANDS_CreateTranslation( translationindex, start, end, r1, g1, b1, r2, g2, b2 );
 					SERVER_AddEditedTranslation( translationindex, start, end, r1, g1, b1, r2, g2, b2 );
 				}
+			}
+			break;
+
+		case PCD_TRANSLATIONRANGE3:
+			{ // translation using desaturation
+				int start = STACK(8);
+				int end = STACK(7);
+				fixed_t r1 = STACK(6);
+				fixed_t g1 = STACK(5);
+				fixed_t b1 = STACK(4);
+				fixed_t r2 = STACK(3);
+				fixed_t g2 = STACK(2);
+				fixed_t b2 = STACK(1);
+				sp -= 8;
+
+				if (translation != NULL)
+					translation->AddDesaturation(start, end,
+						FIXED2DBL(r1), FIXED2DBL(g1), FIXED2DBL(b1),
+						FIXED2DBL(r2), FIXED2DBL(g2), FIXED2DBL(b2));
 			}
 			break;
 

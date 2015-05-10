@@ -731,6 +731,7 @@ public:
 		PCD_PUSHFUNCTION,		// from Eternity
 /*360*/	PCD_CALLSTACK,			// from Eternity
 		PCD_SCRIPTWAITNAMED,
+		PCD_TRANSLATIONRANGE3,
 
 		PCD_GOTOSTACK,
 		// [BB] We need to fix the number for the new commands!
