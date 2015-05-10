@@ -1315,37 +1315,67 @@ static void call_wallscan(int x1, int x2, short *uwal, short *dwal, fixed_t *swa
 
 void wallscan_np2(int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t *lwal, fixed_t yrepeat, fixed_t top, fixed_t bot, bool mask)
 {
-	short *up = uwal;
-
-	if (r_np2)
+	if (!r_np2)
+	{
+		call_wallscan(x1, x2, uwal, dwal, swal, lwal, yrepeat, mask);
+	}
+	else
 	{
 		short most1[MAXWIDTH], most2[MAXWIDTH], most3[MAXWIDTH];
-		short *down;
+		short *up, *down;
 		fixed_t texheight = rw_pic->GetHeight() << FRACBITS;
 		fixed_t scaledtexheight = FixedDiv(texheight, yrepeat);
-		fixed_t partition = top - (top - FixedDiv(dc_texturemid, yrepeat) - viewz) % scaledtexheight;
+		fixed_t partition;
 
-		down = most1;
-
-		dc_texturemid = FixedMul(partition - viewz, yrepeat) + texheight;
-		while (partition > bot)
-		{
-			int j = OWallMost(most3, partition - viewz);
-			if (j != 3)
+		if (yrepeat >= 0)
+		{ // normal orientation: draw strips from top to bottom
+			partition = top - (top - FixedDiv(dc_texturemid, yrepeat) - viewz) % scaledtexheight;
+			up = uwal;
+			down = most1;
+			dc_texturemid = FixedMul(partition - viewz, yrepeat) + texheight;
+			while (partition > bot)
 			{
-				for (int j = x1; j <= x2; ++j)
+				int j = OWallMost(most3, partition - viewz);
+				if (j != 3)
 				{
-					down[j] = clamp (most3[j], up[j], dwal[j]);
+					for (int j = x1; j <= x2; ++j)
+					{
+						down[j] = clamp(most3[j], up[j], dwal[j]);
+					}
+					call_wallscan(x1, x2, up, down, swal, lwal, yrepeat, mask);
+					up = down;
+					down = (down == most1) ? most2 : most1;
 				}
-				call_wallscan(x1, x2, up, down, swal, lwal, yrepeat, mask);
-				up = down;
-				down = (down == most1) ? most2 : most1;
-			}
-			partition -= scaledtexheight;
-			dc_texturemid -= texheight;
- 		}
+				partition -= scaledtexheight;
+				dc_texturemid -= texheight;
+ 			}
+			call_wallscan(x1, x2, up, dwal, swal, lwal, yrepeat, mask);
+		}
+		else
+		{ // upside down: draw strips from bottom to top
+			partition = bot - (bot - FixedDiv(dc_texturemid, yrepeat) - viewz) % scaledtexheight;
+			up = most1;
+			down = dwal;
+			dc_texturemid = FixedMul(partition - viewz, yrepeat) + texheight;
+			while (partition < top)
+			{
+				int j = OWallMost(most3, partition - viewz);
+				if (j != 12)
+				{
+					for (int j = x1; j <= x2; ++j)
+					{
+						up[j] = clamp(most3[j], uwal[j], down[j]);
+					}
+					call_wallscan(x1, x2, up, down, swal, lwal, yrepeat, mask);
+					down = up;
+					up = (up == most1) ? most2 : most1;
+				}
+				partition -= scaledtexheight;
+				dc_texturemid -= texheight;
+ 			}
+			call_wallscan(x1, x2, uwal, down, swal, lwal, yrepeat, mask);
+		}
 	}
-	call_wallscan(x1, x2, up, dwal, swal, lwal, yrepeat, mask);
 }
 
 static void wallscan_np2_ds(drawseg_t *ds, int x1, int x2, short *uwal, short *dwal, fixed_t *swal, fixed_t *lwal, fixed_t yrepeat)
@@ -1840,6 +1870,10 @@ void R_RenderSegLoop ()
 			{
 				rw_offset = rw_offset_mid;
 			}
+			if (xscale < 0)
+			{
+				rw_offset = -rw_offset;
+			}
 			if (rw_pic->GetHeight() != 1 << rw_pic->HeightBits)
 			{
 				wallscan_np2(x1, x2-1, walltop, wallbottom, swall, lwall, yscale, MAX(rw_frontcz1, rw_frontcz2), MIN(rw_frontfz1, rw_frontfz2), false);
@@ -1878,6 +1912,10 @@ void R_RenderSegLoop ()
 				else
 				{
 					rw_offset = rw_offset_top;
+				}
+				if (xscale < 0)
+				{
+					rw_offset = -rw_offset;
 				}
 				if (rw_pic->GetHeight() != 1 << rw_pic->HeightBits)
 				{
@@ -1920,6 +1958,10 @@ void R_RenderSegLoop ()
 				else
 				{
 					rw_offset = rw_offset_bottom;
+				}
+				if (xscale < 0)
+				{
+					rw_offset = -rw_offset;
 				}
 				if (rw_pic->GetHeight() != 1 << rw_pic->HeightBits)
 				{
@@ -1971,16 +2013,31 @@ void R_NewWall (bool needlights)
 				rw_midtexturescalex = sidedef->GetTextureXScale(side_t::mid);
 				rw_midtexturescaley = sidedef->GetTextureYScale(side_t::mid);
 				yrepeat = FixedMul(midtexture->yScale, rw_midtexturescaley);
-				if (linedef->flags & ML_DONTPEGBOTTOM)
-				{ // bottom of texture at bottom
-					rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::floor) - viewz, yrepeat) + (midtexture->GetHeight() << FRACBITS);
+				if (yrepeat >= 0)
+				{ // normal orientation
+					if (linedef->flags & ML_DONTPEGBOTTOM)
+					{ // bottom of texture at bottom
+						rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::floor) - viewz, yrepeat) + (midtexture->GetHeight() << FRACBITS);
+					}
+					else
+					{ // top of texture at top
+						rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat);
+						if (rowoffset < 0 && midtexture != NULL)
+						{
+							rowoffset += midtexture->GetHeight() << FRACBITS;
+						}
+					}
 				}
 				else
-				{ // top of texture at top
-					rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat);
-					if (rowoffset < 0 && midtexture != NULL)
-					{
-						rowoffset += midtexture->GetHeight() << FRACBITS;
+				{ // upside down
+					rowoffset = -rowoffset;
+					if (linedef->flags & ML_DONTPEGBOTTOM)
+					{ // top of texture at bottom
+						rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::floor) - viewz, yrepeat);
+					}
+					else
+					{ // bottom of texture at top
+						rw_midtexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat) + (midtexture->GetHeight() << FRACBITS);
 					}
 				}
 				if (midtexture->bWorldPanning)
@@ -2118,17 +2175,32 @@ void R_NewWall (bool needlights)
 			rw_toptexturescalex = sidedef->GetTextureXScale(side_t::top);
 			rw_toptexturescaley = sidedef->GetTextureYScale(side_t::top);
 			yrepeat = FixedMul(toptexture->yScale, rw_toptexturescaley);
-			if (linedef->flags & ML_DONTPEGTOP)
-			{ // top of texture at top
-				rw_toptexturemid = MulScale16 (frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat);
-				if (rowoffset < 0 && toptexture != NULL)
-				{
-					rowoffset += toptexture->GetHeight() << FRACBITS;
+			if (yrepeat >= 0)
+			{ // normal orientation
+				if (linedef->flags & ML_DONTPEGTOP)
+				{ // top of texture at top
+					rw_toptexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat);
+					if (rowoffset < 0 && toptexture != NULL)
+					{
+						rowoffset += toptexture->GetHeight() << FRACBITS;
+					}
+				}
+				else
+				{ // bottom of texture at bottom
+					rw_toptexturemid = MulScale16(backsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat) + (toptexture->GetHeight() << FRACBITS);
 				}
 			}
 			else
-			{ // bottom of texture at bottom
-				rw_toptexturemid = MulScale16(backsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat) + (toptexture->GetHeight() << FRACBITS);
+			{ // upside down
+				rowoffset = -rowoffset;
+				if (linedef->flags & ML_DONTPEGTOP)
+				{ // bottom of texture at top
+					rw_toptexturemid = MulScale16(frontsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat) + (toptexture->GetHeight() << FRACBITS);
+				}
+				else
+				{ // top of texture at bottom
+					rw_toptexturemid = MulScale16(backsector->GetPlaneTexZ(sector_t::ceiling) - viewz, yrepeat);
+				}
 			}
 			if (toptexture->bWorldPanning)
 			{
@@ -2148,25 +2220,40 @@ void R_NewWall (bool needlights)
 			rw_bottomtexturescalex = sidedef->GetTextureXScale(side_t::bottom);
 			rw_bottomtexturescaley = sidedef->GetTextureYScale(side_t::bottom);
 			yrepeat = FixedMul(bottomtexture->yScale, rw_bottomtexturescaley);
-			if (linedef->flags & ML_DONTPEGBOTTOM)
-			{ // bottom of texture at bottom
-				rw_bottomtexturemid = rw_frontlowertop;
+			if (yrepeat >= 0)
+			{ // normal orientation
+				if (linedef->flags & ML_DONTPEGBOTTOM)
+				{ // bottom of texture at bottom
+					rw_bottomtexturemid = MulScale16(rw_frontlowertop - viewz, yrepeat);
+				}
+				else
+				{ // top of texture at top
+					rw_bottomtexturemid = MulScale16(backsector->GetPlaneTexZ(sector_t::floor) - viewz, yrepeat);
+					if (rowoffset < 0 && bottomtexture != NULL)
+					{
+						rowoffset += bottomtexture->GetHeight() << FRACBITS;
+					}
+				}
 			}
 			else
-			{ // top of texture at top
-				rw_bottomtexturemid = backsector->GetPlaneTexZ(sector_t::floor);
-				if (rowoffset < 0 && bottomtexture != NULL)
-				{
-					rowoffset += bottomtexture->GetHeight() << FRACBITS;
+			{ // upside down
+				rowoffset = -rowoffset;
+				if (linedef->flags & ML_DONTPEGBOTTOM)
+				{ // top of texture at bottom
+					rw_bottomtexturemid = MulScale16(rw_frontlowertop - viewz, yrepeat);
+				}
+				else
+				{ // bottom of texture at top
+					rw_bottomtexturemid = MulScale16(backsector->GetPlaneTexZ(sector_t::floor) - viewz, yrepeat) + (bottomtexture->GetHeight() << FRACBITS);
 				}
 			}
 			if (bottomtexture->bWorldPanning)
 			{
-				rw_bottomtexturemid = MulScale16(rw_bottomtexturemid - viewz + rowoffset, yrepeat);
+				rw_bottomtexturemid += MulScale16(rowoffset, yrepeat);
 			}
 			else
 			{
-				rw_bottomtexturemid = MulScale16(rw_bottomtexturemid - viewz, yrepeat) + rowoffset;
+				rw_bottomtexturemid += rowoffset;
 			}
 		}
 	}

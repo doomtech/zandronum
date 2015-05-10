@@ -1627,9 +1627,10 @@ void AM_drawSubsectors()
 	angle_t rotation;
 	sector_t tempsec;
 	int floorlight, ceilinglight;
+	fixed_t scalex, scaley;
 	double originx, originy;
 	FDynamicColormap *colormap;
-
+	mpoint_t originpt;
 
 	for (int i = 0; i < numsubsectors; ++i)
 	{
@@ -1658,26 +1659,16 @@ void AM_drawSubsectors()
 		// For lighting and texture determination
 		sector_t *sec = Renderer->FakeFlat (subsectors[i].render_sector, &tempsec, &floorlight,	&ceilinglight, false);
 		// Find texture origin.
-		mpoint_t originpt = { -sec->GetXOffset(sector_t::floor) >> FRACTOMAPBITS,
-							  sec->GetYOffset(sector_t::floor) >> FRACTOMAPBITS };
+		originpt.x = -sec->GetXOffset(sector_t::floor) >> FRACTOMAPBITS;
+		originpt.y = sec->GetYOffset(sector_t::floor) >> FRACTOMAPBITS;
 		rotation = 0 - sec->GetAngle(sector_t::floor);
-		// Apply the floor's rotation to the texture origin.
-		if (rotation != 0)
-		{
-			AM_rotate(&originpt.x, &originpt.y, rotation);
-		}
-		// Apply the automap's rotation to the texture origin.
-		if (am_rotate == 1 || (am_rotate == 2 && viewactive))
-		{
-			rotation += ANG90 - players[consoleplayer].camera->angle;
-			AM_rotatePoint(&originpt.x, &originpt.y);
-		}
-		originx = f_x + ((originpt.x - m_x) * scale / float(1 << 24));
-		originy = f_y + (f_h - (originpt.y - m_y) * scale / float(1 << 24));
 		// Coloring for the polygon
 		colormap = sec->ColorMap;
 
 		FTextureID maptex = sec->GetTexture(sector_t::floor);
+
+		scalex = sec->GetXScale(sector_t::floor);
+		scaley = sec->GetYScale(sector_t::floor);
 
 #ifdef _3DFLOORS
 
@@ -1714,6 +1705,7 @@ void AM_drawSubsectors()
 				F3DFloor *rover = sec->e->XFloor.ffloors[i];
 				if (!(rover->flags & FF_EXISTS)) continue;
 				if (rover->flags & FF_FOG) continue;
+				if (!(rover->flags & FF_RENDERPLANES)) continue;
 				if (rover->alpha == 0) continue;
 				double roverz = rover->top.plane->ZatPoint(secx, secy);
 				// Ignore 3D floors that are above or below the sector itself:
@@ -1725,6 +1717,13 @@ void AM_drawSubsectors()
 				{
 					maptex = *(rover->top.texture);
 					floorplane = rover->top.plane;
+					sector_t *model = rover->top.model;
+					int selector = (rover->flags & FF_INVERTPLANES) ? sector_t::floor : sector_t::ceiling;
+					rotation = 0 - model->GetAngle(selector);
+					scalex = model->GetXScale(selector);
+					scaley = model->GetYScale(selector);
+					originpt.x = -model->GetXOffset(selector) >> FRACTOMAPBITS;
+					originpt.y = model->GetYOffset(selector) >> FRACTOMAPBITS;
 					break;
 				}
 			}
@@ -1734,6 +1733,19 @@ void AM_drawSubsectors()
 			colormap = light->extra_colormap;
 		}
 #endif
+		originx = f_x + ((originpt.x - m_x) * scale / float(1 << 24));
+		originy = f_y + (f_h - (originpt.y - m_y) * scale / float(1 << 24));
+		// Apply the floor's rotation to the texture origin.
+		if (rotation != 0)
+		{
+			AM_rotate(&originpt.x, &originpt.y, rotation);
+		}
+		// Apply the automap's rotation to the texture origin.
+		if (am_rotate == 1 || (am_rotate == 2 && viewactive))
+		{
+			rotation += ANG90 - players[consoleplayer].camera->angle;
+			AM_rotatePoint(&originpt.x, &originpt.y);
+		}
 
 		// If this subsector has not actually been seen yet (because you are cheating
 		// to see it on the map), tint and desaturate it.
@@ -1756,8 +1768,8 @@ void AM_drawSubsectors()
 			screen->FillSimplePoly(TexMan(maptex),
 				&points[0], points.Size(),
 				originx, originy,
-				scale / (FIXED2FLOAT(sec->GetXScale(sector_t::floor)) * float(1 << MAPBITS)),
-				scale / (FIXED2FLOAT(sec->GetYScale(sector_t::floor)) * float(1 << MAPBITS)),
+				scale / (FIXED2DBL(scalex) * float(1 << MAPBITS)),
+				scale / (FIXED2DBL(scaley) * float(1 << MAPBITS)),
 				rotation,
 				colormap,
 				floorlight
