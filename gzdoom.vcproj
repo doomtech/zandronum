@@ -2948,6 +2948,18 @@
 					RelativePath=".\src\oplsynth\opl_mus_player.h"
 					>
 				</File>
+				<Filter
+					Name="DOSBox"
+					>
+					<File
+						RelativePath=".\src\oplsynth\dosbox\opl.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\oplsynth\dosbox\opl.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Timidity"

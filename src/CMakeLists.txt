@@ -690,11 +690,6 @@ else( NO_ASM )
 		ADD_ASM_FILE( asm_ia32 tmap2 )
 		ADD_ASM_FILE( asm_ia32 tmap3 )
 	endif( X64 )
-	if( WIN32 )
-		if( NOT X64 )
-			ADD_ASM_FILE( win32 wrappers )
-		endif( NOT X64 )
-	endif( WIN32 )
 endif( NO_ASM )
 
 get_target_property( LEMON_EXE lemon LOCATION )
@@ -1110,6 +1105,7 @@ add_executable( zdoom WIN32
 	oplsynth/music_opldumper_mididevice.cpp
 	oplsynth/music_opl_mididevice.cpp
 	oplsynth/opl_mus_player.cpp
+	oplsynth/dosbox/opl.cpp
 	resourcefiles/ancientzip.cpp
 	resourcefiles/file_7z.cpp
 	resourcefiles/file_grp.cpp
