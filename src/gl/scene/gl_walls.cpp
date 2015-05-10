@@ -762,7 +762,7 @@ void GLWall::DoTexture(int _type,seg_t * seg, int peg,
 
 	float floatceilingref = FIXED2FLOAT(ceilingrefheight) + 
 							FIXED2FLOAT(tci.RowOffset(seg->sidedef->GetTextureYOffset(texpos))) +
-							FIXED2FLOAT((peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0));
+							FIXED2FLOAT((peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)*tci.mScaleY-lh-v_offset:0));
 
 	if (!SetWallCoordinates(seg, &tci, floatceilingref, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
