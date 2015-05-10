@@ -1,4 +1,9 @@
 
+// Changing this constant gives resuluts very similar to changing r_visibility.
+// Default is 232, it seems to give exactly the same light bands as software renderer.
+#define DOOMLIGHTFACTOR 232.0
+
+
 #ifdef DYNLIGHT
 
 // ATI does not like this inside an #ifdef so it will be prepended by the compiling code inside the .EXE now.
@@ -50,8 +55,12 @@ float R_DoomLightingEquation(float light, float dist)
 
 	float min_L = clamp(36.0/31.0 - L, 0.0, 1.0);
 
+	// Fix objects getting totally black when close.
+	if (dist < 0.0001)
+		dist = 0.0001;
+
 	float scale = 1.0 / dist;
-	float index = (59.0/31.0 - L) - (scale * 192.0/31.0 - 192.0/31.0);
+	float index = (59.0/31.0 - L) - (scale * DOOMLIGHTFACTOR/31.0 - DOOMLIGHTFACTOR/31.0);
 
 	/* result is colormap index (0 bright .. 31 dark) */
 	return clamp(index, min_L, 1.0);

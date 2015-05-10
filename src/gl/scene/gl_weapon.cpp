@@ -187,11 +187,6 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
 		mViewActor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
 
-	// hack alert! Rather than changing everything in the underlying lighting code let's just temporarily change
-	// light mode here to draw the weapon sprite.
-	int oldlightmode = glset.lightmode;
-	if (glset.lightmode == 8) glset.lightmode = 2;
-
 	P_BobWeapon (player, &player->psprites[ps_weapon], &ofsx, &ofsy);
 
 	// check for fullbright
@@ -346,6 +341,12 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		// normal sprite and fullbright flash.
 		if (glset.lightmode != 8) lightlevel = (2*lightlevel+255)/3;
 	}
+	
+	// hack alert! Rather than changing everything in the underlying lighting code let's just temporarily change
+	// light mode here to draw the weapon sprite.
+	int oldlightmode = glset.lightmode;
+	if (glset.lightmode == 8) glset.lightmode = 2;
+	
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 	{
 		if (psp->state) 

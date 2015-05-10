@@ -299,11 +299,24 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 			try
 			{
 				FString str;
-				if (i>3)
+				if ((i&4) != 0)
 				{
+					if (gl.maxuniforms < 1024 || gl.shadermodel != 4)
+					{
+						shader[i] = NULL;
+						continue;
+					}
 					// this can't be in the shader code due to ATI strangeness.
 					str = "#version 120\n#extension GL_EXT_gpu_shader4 : enable\n";
 					if (gl.MaxLights() == 128) str += "#define MAXLIGHTS128\n";
+				}
+				if ((i&8) == 0)
+				{
+					if (gl.shadermodel != 4)
+					{
+						shader[i] = NULL;
+						continue;
+					}
 				}
 				str += shaderdefines[i];
 				shader[i] = new FShader;
@@ -317,11 +330,6 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 			{
 				shader[i] = NULL;
 				I_Error("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
-			}
-			if (i==3 && gl.maxuniforms < 1024)
-			{
-				shader[4] = shader[5] = shader[6] = shader[7] = 0;
-				break;
 			}
 		}
 	}

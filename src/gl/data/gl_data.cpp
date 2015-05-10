@@ -343,7 +343,7 @@ DEFINE_MAP_OPTION(skyrotate2, false)
 	opt->skyrotatevector2.MakeUnit();
 }
 
-boolean IsLightmodeValid()
+bool IsLightmodeValid()
 {
 	return (glset.map_lightmode >= 0 && glset.map_lightmode <= 4) || glset.map_lightmode == 8;
 }

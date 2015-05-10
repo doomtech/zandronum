@@ -446,8 +446,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// don't draw the thing that's used as camera (for viewshifts during quakes!)
 	if (thing==GLRenderer->mViewActor) return;
 
- 	// invisible things
-	if (thing->sprite==0) return;
+	// Don't waste time projecting sprites that are definitely not visible.
+	if (thing == NULL || thing->sprite == 0 || !thing->IsVisibleToPlayer())
+	{
+		return;
+	}
 
 	if (thing->renderflags & RF_INVISIBLE || !thing->RenderStyle.IsVisible(thing->alpha)) 
 	{
