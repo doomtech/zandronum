@@ -18,7 +18,7 @@ void gl_GetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblend
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
 
 int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon);
-PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor);
+PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor, bool force = false);
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor=0xffffff, bool weapon=false);

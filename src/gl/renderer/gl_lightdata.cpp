@@ -249,11 +249,11 @@ int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon)
 //
 //==========================================================================
 
-PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor)
+PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor, bool force)
 {
 	int r,g,b;
 
-	if (glset.lightmode == 8)
+	if (glset.lightmode == 8 && !force)
 	{
 		return pe;
 	}
