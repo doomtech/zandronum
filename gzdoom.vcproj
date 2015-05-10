@@ -2941,6 +2941,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\oplsynth\OPL3.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\oplsynth\opl_mus_player.cpp"
 					>
 				</File>
