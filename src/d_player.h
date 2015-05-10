@@ -654,7 +654,7 @@ void	PLAYER_RemoveFriends( const ULONG ulPlayer );
 void	PLAYER_LeavesGame( const ULONG ulPlayer );
 void	PLAYER_ClearEnemySoundFields( const ULONG ulPlayer );
 
-void P_CheckPlayerSprites();
+void P_CheckPlayerSprite(AActor *mo, unsigned &spritenum, fixed_t &scalex, fixed_t &scaley);
 
 inline void AActor::SetFriendPlayer(player_t *player)
 {

@@ -382,8 +382,6 @@ void AActor::Serialize (FArchive &arc)
 				state->sprite == GetDefaultByType (player->cls)->SpawnState->sprite)
 			{ // Give player back the skin
 				sprite = skins[player->userinfo.skin].sprite;
-				scaleX = skins[player->userinfo.skin].ScaleX;
-				scaleY = skins[player->userinfo.skin].ScaleY;
 			}
 			if (Speed == 0)
 			{
@@ -3725,8 +3723,8 @@ bool AActor::Slam (AActor *thing)
 		if (!(flags2 & MF2_DORMANT))
 		{
 			int dam = GetMissileDamage (7, 1);
-			P_DamageMobj (thing, this, this, dam, NAME_Melee);
-			P_TraceBleed (dam, thing, this);
+			int newdam = P_DamageMobj (thing, this, this, dam, NAME_Melee);
+			P_TraceBleed (newdam > 0 ? newdam : dam, thing, this);
 			// The charging monster may have died by the target's actions here.
 			if (health > 0)
 			{
@@ -5463,8 +5461,6 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 	if (!(mobj->flags4 & MF4_NOSKIN))
 	{
 		mobj->sprite = skins[lSkin].sprite;
-		mobj->scaleX = skins[lSkin].ScaleX;
-		mobj->scaleY = skins[lSkin].ScaleY;
 	}
 
 	p->DesiredFOV = p->FOV = 90.f;

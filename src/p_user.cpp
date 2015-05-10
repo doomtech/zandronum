@@ -2250,104 +2250,80 @@ DEFINE_ACTION_FUNCTION(AActor, A_CheckPlayerDone)
 //
 // P_CheckPlayerSprites
 //
-// Here's the place where crouching sprites are handled
-// This must be called each frame before rendering
+// Here's the place where crouching sprites are handled.
+// R_ProjectSprite() calls this for any players.
 //
 //===========================================================================
 
-void P_CheckPlayerSprites()
+void P_CheckPlayerSprite(AActor *actor, unsigned &spritenum, fixed_t &scalex, fixed_t &scaley)
 {
 	LONG	lSkin;
 
-	for(int i=0; i<MAXPLAYERS; i++)
+	player_t *player = actor->player;
+
+	int crouchspriteno;
+
+	// [BC] Because of cl_skins, we might not necessarily use the player's
+	// desired skin.
+	lSkin = player->userinfo.skin;
+
+	// [BB] MF4_NOSKIN should force the player to have the base skin too, the same is true for morphed players.
+	if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))) || (actor->flags4 & MF4_NOSKIN) || player->morphTics )
+		lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
+
+	// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
+	if ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) )
 	{
-		player_t * player = &players[i];
-		APlayerPawn * mo = player->mo;
-
-		if (playeringame[i] && mo != NULL)
+		LONG lDesiredSkin = R_FindSkin( player->ReadyWeapon->PreferredSkin.GetChars(), player->CurrentPlayerClass );
+		if ( lDesiredSkin != lSkin )
 		{
-			int crouchspriteno;
-			fixed_t defscaleY = mo->GetDefault()->scaleY;
-			fixed_t defscaleX = mo->GetDefault()->scaleX;
-			
-			// [BC] Because of cl_skins, we might not necessarily use the player's
-			// desired skin.
-			lSkin = player->userinfo.skin;
+			lSkin = lDesiredSkin;
+			spritenum = skins[lSkin].sprite;
+		}
+	}
+	// [BB] No longer using a weapon with a preferred skin, reset the sprite.
+	else if ( ( spritenum != skins[lSkin].sprite ) && ( spritenum != skins[lSkin].crouchsprite )
+			&& ( spritenum != actor->state->sprite ) )
+	{
+		spritenum = skins[lSkin].sprite;
+	}
 
-			// [BB] MF4_NOSKIN should force the player to have the base skin too, the same is true for morphed players.
-			if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))) || (player->mo->flags4 & MF4_NOSKIN) || player->morphTics )
-				lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
+	// [BB] PreferredSkin overrides NOSKIN.
+	if (lSkin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) )
+	{
+		// Convert from default scale to skin scale.
+		fixed_t defscaleY = actor->GetDefault()->scaleY;
+		fixed_t defscaleX = actor->GetDefault()->scaleX;
+		scaley = Scale(scaley, skins[lSkin].ScaleY, defscaleY);
+		scalex = Scale(scalex, skins[lSkin].ScaleX, defscaleX);
+	}
 
-			// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
-			if ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) )
-			{
-				LONG lDesiredSkin = R_FindSkin( player->ReadyWeapon->PreferredSkin.GetChars(), player->CurrentPlayerClass );
-				if ( lDesiredSkin != lSkin )
-				{
-					lSkin = lDesiredSkin;
-					mo->sprite = skins[lSkin].sprite;
-				}
-			}
-			// [BB] No longer using a weapon with a preferred skin, reset the sprite.
-			else if ( ( mo->sprite != skins[lSkin].sprite ) && ( mo->sprite != skins[lSkin].crouchsprite )
-					&& ( mo->sprite != mo->state->sprite ) )
-			{
-				mo->sprite = skins[lSkin].sprite;
-			}
+	// Set the crouch sprite?
+	if (player->crouchfactor < FRACUNIT*3/4)
+	{
+		if (spritenum == actor->SpawnState->sprite || spritenum == player->mo->crouchsprite) 
+		{
+			crouchspriteno = player->mo->crouchsprite;
+		}
+		// [BB] PreferredSkin overrides NOSKIN.
+		else if ( ( !(actor->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) &&
+				(spritenum == skins[lSkin].sprite ||
+				 spritenum == skins[lSkin].crouchsprite))
+		{
+			crouchspriteno = skins[lSkin].crouchsprite;
+		}
+		else
+		{ // no sprite -> squash the existing one
+			crouchspriteno = -1;
+		}
 
-			// [BB] PreferredSkin overrides NOSKIN.
-			if (lSkin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) )
-			{
-				defscaleY = skins[lSkin].ScaleY;
-				defscaleX = skins[lSkin].ScaleX;
-			}
-			
-			// Set the crouch sprite
-			if (player->crouchfactor < FRACUNIT*3/4)
-			{
-				if (mo->sprite == mo->SpawnState->sprite || mo->sprite == mo->crouchsprite) 
-				{
-					crouchspriteno = mo->crouchsprite;
-				}
-				// [BB] PreferredSkin overrides NOSKIN.
-				else if ( ( !(player->mo->flags4 & MF4_NOSKIN) || ( player->ReadyWeapon && ( player->ReadyWeapon->PreferredSkin != NAME_None ) ) ) &&
-						(mo->sprite == skins[lSkin].sprite ||
-						 mo->sprite == skins[lSkin].crouchsprite))
-				{
-					crouchspriteno = skins[lSkin].crouchsprite;
-				}
-				else
-				{
-					// no sprite -> squash the existing one
-					crouchspriteno = -1;
-				}
-
-				if (crouchspriteno > 0) 
-				{
-					mo->sprite = crouchspriteno;
-					mo->scaleY = defscaleY;
-				}
-				else if (player->playerstate != PST_DEAD)
-				{
-					mo->scaleY = player->crouchfactor < FRACUNIT*3/4 ? defscaleY/2 : defscaleY;
-				}
-			}
-			else	// Set the normal sprite
-			{
-				if (mo->sprite != 0)
-				{
-					if (mo->sprite == mo->crouchsprite)
-					{
-						mo->sprite = mo->SpawnState->sprite;
-					}
-					else if (mo->sprite != 0 && mo->sprite == skins[lSkin].crouchsprite)
-					{
-						mo->sprite = skins[lSkin].sprite;
-					}
-				}
-				mo->scaleY = defscaleY;
-			}
-			mo->scaleX = defscaleX;
+		if (crouchspriteno > 0) 
+		{
+			spritenum = crouchspriteno;
+		}
+		else if (player->playerstate != PST_DEAD && player->crouchfactor < FRACUNIT*3/4)
+		{
+			scaley /= 2;
 		}
 	}
 }

@@ -237,8 +237,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_SerpentMeleeAttack)
 	if (self->CheckMeleeRange ())
 	{
 		int damage = pr_serpentmeattack.HitDice (5);
-		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
-		P_TraceBleed (damage, self->target, self);
+		int newdam = P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 		S_Sound (self, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM);
 
 		// [BB] If we're the server, tell the clients to play the sound.

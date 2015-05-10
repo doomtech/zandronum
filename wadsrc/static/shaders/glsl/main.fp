@@ -1,5 +1,5 @@
 
-// Changing this constant gives resuluts very similar to changing r_visibility.
+// Changing this constant gives results very similar to changing r_visibility.
 // Default is 232, it seems to give exactly the same light bands as software renderer.
 #define DOOMLIGHTFACTOR 232.0
 

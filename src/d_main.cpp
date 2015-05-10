@@ -953,7 +953,6 @@ drawfullconsole:
 				}
 				screen->SetBlendingRect(viewwindowx, viewwindowy,
 					viewwindowx + viewwidth, viewwindowy + viewheight);
-				P_CheckPlayerSprites();
 				// [BB] Zandronum handles prediction differently.
 				//P_PredictPlayer(&players[consoleplayer]);
 				// [BB] This check shouldn't be necessary, but should completely prevent

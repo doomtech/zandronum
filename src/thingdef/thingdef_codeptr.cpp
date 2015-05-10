@@ -371,8 +371,8 @@ static void DoAttack (AActor *self, bool domelee, bool domissile,
 				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
 		}
 
-		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
-		P_TraceBleed (damage, self->target, self);
+		int newdam = P_DamageMobj (self->target, self, self, damage, NAME_Melee);
+		P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
 	else if (domissile && MissileType != NULL)
 	{
@@ -1365,8 +1365,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMeleeAttack)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
 		}
-		P_DamageMobj (self->target, self, self, damage, DamageType);
-		if (bleed) P_TraceBleed (damage, self->target, self);
+		int newdam = P_DamageMobj (self->target, self, self, damage, DamageType);
+		if (bleed) P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
 	else
 	{
@@ -1420,8 +1420,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomComboAttack)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
 		}
-		P_DamageMobj (self->target, self, self, damage, DamageType);
-		if (bleed) P_TraceBleed (damage, self->target, self);
+		int newdam = P_DamageMobj (self->target, self, self, damage, DamageType);
+		if (bleed) P_TraceBleed (newdam > 0 ? newdam : damage, self->target, self);
 	}
 	else if (ti) 
 	{
@@ -3611,7 +3611,8 @@ enum JLOS_flags
 	JLOSF_TARGETLOS=128,
 	JLOSF_FLIPFOV=256,
 	JLOSF_ALLYNOJUMP=512,
-	JLOSF_COMBATANTONLY=1024
+	JLOSF_COMBATANTONLY=1024,
+	JLOSF_NOAUTOAIM=2048,
 };
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInLOS)
@@ -3657,7 +3658,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_JumpIfTargetInLOS)
 	else
 	{
 		// Does the player aim at something that can be shot?
-		P_BulletSlope(self, &target);
+		P_AimLineAttack(self, self->angle, MISSILERANGE, &target, (flags & JLOSF_NOAUTOAIM) ? ANGLE_1/2 : 0);
 		
 		if (!target) return;
 
@@ -4872,11 +4873,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_WolfAttack)
 			damage >>= 2;
 		if (damage)
 		{
-			P_DamageMobj(self->target, self, self, damage, mod, DMG_THRUSTLESS);
+			int newdam = P_DamageMobj(self->target, self, self, damage, mod, DMG_THRUSTLESS);
 			if (spawnblood)
 			{
-				P_SpawnBlood(dx, dy, dz, angle, damage, self->target);
-				P_TraceBleed(damage, self->target, R_PointToAngle2(self->x, self->y, dx, dy), 0);
+				P_SpawnBlood(dx, dy, dz, angle, newdam > 0 ? newdam : damage, self->target);
+				P_TraceBleed(newdam > 0 ? newdam : damage, self->target, R_PointToAngle2(self->x, self->y, dx, dy), 0);
 			}
 		}
 	}

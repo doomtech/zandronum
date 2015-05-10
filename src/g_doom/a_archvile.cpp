@@ -151,8 +151,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_VileAttack)
 		return;
 
 	S_Sound (self, CHAN_WEAPON, snd, 1, ATTN_NORM);
-	P_TraceBleed (dmg, target);
-	P_DamageMobj (target, self, self, dmg, NAME_None);
+	int newdam = P_DamageMobj (target, self, self, dmg, NAME_None);
+	P_TraceBleed (newdam > 0 ? newdam : dmg, target);
 		
 	// [BC] Tell clients to play the arch-vile sound on their end.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

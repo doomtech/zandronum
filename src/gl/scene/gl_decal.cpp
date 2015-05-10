@@ -375,7 +375,14 @@ void GLWall::DrawDecal(DBaseDecal *decal)
 	}
 	else
 	{
-		gl_SetColor(light, rel, &p, a, extralight); // Korshun.
+		if (glset.lightmode == 8)
+		{
+			gl_SetColor(light, rel, &p, a, extralight); // Korshun.
+		}
+		else
+		{
+			gl_SetColor(light, rel, &p, a);
+		}
 	}
 
 	PalEntry fc = gl_RenderState.GetFogColor();

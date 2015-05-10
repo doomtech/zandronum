@@ -1577,7 +1577,8 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 	}
 
 	//return;
-	if (!backsector || !(seg->linedef->flags&ML_TWOSIDED)) // one sided
+	// [GZ] 3D middle textures are necessarily two-sided, even if they lack the explicit two-sided flag
+	if (!backsector || !(seg->linedef->flags&(ML_TWOSIDED|ML_3DMIDTEX))) // one sided
 	{
 		// sector's sky
 		SkyNormal(frontsector,v1,v2);
