@@ -8,6 +8,7 @@
 #include <sys/ucontext.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 
 // Solaris doesn't have SA_ONESHOT
 // According to the Linux header this is the same.
