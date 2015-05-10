@@ -78,17 +78,15 @@ DEFINE_ACTION_FUNCTION(AActor, A_PotteryExplode)
 		return;
 	}
 
-	if (self->args[0]>=0 && self->args[0]<=255 && SpawnableThings[self->args[0]])
-	{ // Spawn an item
+	// Spawn an item?
+	const PClass *type = P_GetSpawnableType(self->args[0]);
+	if (type != NULL)
+	{
 		if (!((level.flags2 & LEVEL2_NOMONSTERS) || (dmflags & DF_NO_MONSTERS))
-		|| !(GetDefaultByType (SpawnableThings[self->args[0]])->flags3 & MF3_ISMONSTER))
+		|| !(GetDefaultByType (type)->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]
-			AActor	*pActor;
-
-			pActor = Spawn (SpawnableThings[self->args[0]],
-				self->x, self->y, self->z, ALLOW_REPLACE);
-
+			AActor	*pActor = Spawn (type, self->x, self->y, self->z, ALLOW_REPLACE);
 
 			// [BC] If we're the server, spawn the thing.
 			if (( pActor ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -304,20 +302,18 @@ DEFINE_ACTION_FUNCTION(AActor, A_SoAExplode)
 			mo->vely = pr_soaexplode.Random2()<<(FRACBITS-6);
 		}
 	}
-	if (self->args[0]>=0 && self->args[0]<=255 && SpawnableThings[self->args[0]])
-	{ // Spawn an item
+	// Spawn an item?
+	const PClass *type = P_GetSpawnableType(self->args[0]);
+	if (type != NULL)
+	{
 		if (!((level.flags2 & LEVEL2_NOMONSTERS) || (dmflags & DF_NO_MONSTERS))
-		|| !(GetDefaultByType (SpawnableThings[self->args[0]])->flags3 & MF3_ISMONSTER))
+		|| !(GetDefaultByType (type)->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
-				AActor	*pActor;
-
-				pActor = Spawn (SpawnableThings[self->args[0]],
-					self->x, self->y, self->z, ALLOW_REPLACE);
-
+				AActor	*pActor = Spawn (type, self->x, self->y, self->z, ALLOW_REPLACE);
 
 				// [BC] If we're the server, spawn the thing.
 				if (( pActor ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))

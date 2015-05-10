@@ -160,8 +160,7 @@ void P_CheckFakeFloorTriggers (AActor *mo, fixed_t oldz, bool oldz_has_viewheigh
 //
 // [RH] P_THINGS
 //
-#define MAX_SPAWNABLES	(256)
-extern const PClass *SpawnableThings[MAX_SPAWNABLES];
+extern TMap<int, const PClass *> SpawnableThings;
 
 bool	P_Thing_Spawn (int tid, AActor *source, int type, angle_t angle, bool fog, int newtid);
 bool	P_Thing_Projectile (int tid, AActor *source, int type, const char * type_name, angle_t angle,
@@ -173,7 +172,7 @@ int		P_Thing_Damage (int tid, AActor *whofor0, int amount, FName type);
 void	P_Thing_SetVelocity(AActor *actor, fixed_t vx, fixed_t vy, fixed_t vz, bool add, bool setbob);
 void P_RemoveThing(AActor * actor);
 bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck = false); // [BB] Added bIgnorePositionCheck.
-
+const PClass *P_GetSpawnableType(int spawnnum);
 
 //
 // P_MAPUTL

@@ -54,8 +54,8 @@
 #include "cl_demo.h"
 #include "cooperative.h"
 
-// List of spawnable things for the Thing_Spawn and Thing_Projectile specials.
-const PClass *SpawnableThings[MAX_SPAWNABLES];
+// Set of spawnable things for the Thing_Spawn and Thing_Projectile specials.
+TMap<int, const PClass *> SpawnableThings;
 
 static FRandom pr_leadtarget ("LeadTarget");
 
@@ -66,10 +66,9 @@ bool P_Thing_Spawn (int tid, AActor *source, int type, angle_t angle, bool fog, 
 	AActor *spot, *mobj;
 	FActorIterator iterator (tid);
 
-	if (type >= MAX_SPAWNABLES)
-		return false;
+	kind = P_GetSpawnableType(type);
 
-	if ( (kind = SpawnableThings[type]) == NULL)
+	if (kind == NULL)
 		return false;
 
 	// Handle decorate replacements.
@@ -252,18 +251,16 @@ bool P_Thing_Projectile (int tid, AActor *source, int type, const char *type_nam
 
 	if (type_name == NULL)
 	{
-		if (type >= MAX_SPAWNABLES)
-			return false;
-
-		if ((kind = SpawnableThings[type]) == NULL)
-			return false;
+		kind = P_GetSpawnableType(type);
 	}
 	else
 	{
-		if ((kind = PClass::FindClass(type_name)) == NULL || kind->ActorInfo == NULL)
-			return false;
+		kind = PClass::FindClass(type_name);
 	}
-
+	if (kind == NULL || kind->ActorInfo == NULL)
+	{
+		return false;
+	}
 
 	// Handle decorate replacements.
 	kind = kind->GetReplacement();
@@ -637,17 +634,53 @@ bool P_Thing_Raise(AActor *thing, bool bIgnorePositionCheck)
 	return true;
 }
 
+const PClass *P_GetSpawnableType(int spawnnum)
+{
+	if (spawnnum < 0)
+	{ // A named arg from a UDMF map
+		FName spawnname = FName(ENamedName(-spawnnum));
+		if (spawnname.IsValidName())
+		{
+			return PClass::FindClass(spawnname);
+		}
+	}
+	else
+	{ // A numbered arg from a Hexen or UDMF map
+		const PClass **type = SpawnableThings.CheckKey(spawnnum);
+		if (type != NULL)
+		{
+			return *type;
+		}
+	}
+	return NULL;
+}
+
+typedef TMap<int, const PClass *>::Pair SpawnablePair;
+
+static int STACK_ARGS SpawnableSort(const void *a, const void *b)
+{
+	return (*((SpawnablePair **)a))->Key - (*((SpawnablePair **)b))->Key;
+}
 
 CCMD (dumpspawnables)
 {
-	int i;
+	TMapIterator<int, const PClass *> it(SpawnableThings);
+	SpawnablePair *pair, **allpairs;
+	int i = 0;
 
-	for (i = 0; i < MAX_SPAWNABLES; i++)
+	// Sort into numerical order, since their arrangement in the map can
+	// be in an unspecified order.
+	allpairs = new TMap<int, const PClass *>::Pair *[SpawnableThings.CountUsed()];
+	while (it.NextPair(pair))
 	{
-		if (SpawnableThings[i] != NULL)
-		{
-			Printf ("%d %s\n", i, SpawnableThings[i]->TypeName.GetChars());
-		}
+		allpairs[i++] = pair;
 	}
+	qsort(allpairs, i, sizeof(*allpairs), SpawnableSort);
+	for (int j = 0; j < i; ++j)
+	{
+		pair = allpairs[j];
+		Printf ("%d %s\n", pair->Key, pair->Value->TypeName.GetChars());
+	}
+	delete[] allpairs;
 }
 

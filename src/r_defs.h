@@ -1052,7 +1052,7 @@ struct line_t
 	slopetype_t	slopetype;	// To aid move clipping.
 	sector_t	*frontsector, *backsector;
 	int 		validcount;	// if == validcount, already checked
-	int		locknumber;	// [Dusk] lock number for special
+	int			locknumber;	// [Dusk] lock number for special
 	// [BC] Have any of this line's textures been changed during the course of the level?
 	// [EP] TODO: remove the 'ul' prefix from this variable, it isn't ULONG anymore
 	unsigned int ulTexChangeFlags;

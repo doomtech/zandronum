@@ -145,7 +145,7 @@ void FActorInfo::StaticInit ()
 
 void FActorInfo::StaticSetActorNums ()
 {
-	memset (SpawnableThings, 0, sizeof(SpawnableThings));
+	SpawnableThings.Clear();
 	DoomEdMap.Empty ();
 
 	for (unsigned int i = 0; i < PClass::m_RuntimeActors.Size(); ++i)
@@ -166,7 +166,7 @@ void FActorInfo::RegisterIDs ()
 
 	if (GameFilter == GAME_Any || (GameFilter & gameinfo.gametype))
 	{
-		if (SpawnID != 0)
+		if (SpawnID > 0)
 		{
 			SpawnableThings[SpawnID] = cls;
 			if (cls != Class) 
