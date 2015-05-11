@@ -2257,6 +2257,7 @@ static void P_SpawnScrollers(void)
 			if ( NETWORK_InClientMode( ) )
 				break;
 
+			l->special = special;	// Restore the special, for compat_useblocking's benefit.
 			s = int(lines[i].sidedef[0] - sides);
 			new DScroller (DScroller::sc_side, l->args[0] * (FRACUNIT/64), 0,
 						   -1, s, accel, SCROLLTYPE(l->args[1]));
@@ -2268,6 +2269,7 @@ static void P_SpawnScrollers(void)
 			if ( NETWORK_InClientMode( ) )
 				break;
 
+			l->special = special;
 			s = int(lines[i].sidedef[0] - sides);
 			new DScroller (DScroller::sc_side, l->args[0] * (-FRACUNIT/64), 0,
 						   -1, s, accel, SCROLLTYPE(l->args[1]));
@@ -2279,6 +2281,7 @@ static void P_SpawnScrollers(void)
 			if ( NETWORK_InClientMode( ) )
 				break;
 
+			l->special = special;
 			s = int(lines[i].sidedef[0] - sides);
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (FRACUNIT/64),
 						   -1, s, accel, SCROLLTYPE(l->args[1]));
@@ -2290,6 +2293,7 @@ static void P_SpawnScrollers(void)
 			if ( NETWORK_InClientMode( ) )
 				break;
 
+			l->special = special;
 			s = int(lines[i].sidedef[0] - sides);
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (-FRACUNIT/64),
 						   -1, s, accel, SCROLLTYPE(l->args[1]));
