@@ -4183,7 +4183,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		players[consoleplayer].camera = players[consoleplayer].mo;
 */
 	// setup gun psprite
-	P_SetupPsprites (pPlayer);
+	P_SetupPsprites (pPlayer, false);
 
 	// If this console player is looking through this player's eyes, attach the status
 	// bar to this player.

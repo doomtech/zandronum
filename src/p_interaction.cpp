@@ -1996,6 +1996,10 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	AActor *target;
 	AActor *inflictor;
 
+	if (player == NULL)
+	{
+		return;
+	}
 	target = player->mo;
 	inflictor = source;
 	if (target->health <= 0)
@@ -2007,14 +2011,11 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	{ // target is invulnerable
 		return;
 	}
-	if (player)
-	{
-		// Take half damage in trainer mode
-		damage = FixedMul(damage, G_SkillProperty(SKILLP_DamageFactor));
+	// Take half damage in trainer mode
+	damage = FixedMul(damage, G_SkillProperty(SKILLP_DamageFactor));
 
 		// [TIHan/Spleen] Apply factor for damage dealt to players by monsters.
 		ApplyCoopDamagefactor(damage, source);
-	}
 	// Handle passive damage modifiers (e.g. PowerProtection)
 	if (target->Inventory != NULL)
 	{

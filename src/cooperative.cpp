@@ -187,7 +187,7 @@ void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const boo
 	// [BB] Every start except for the last, has to spawn a voodoo doll.
 	for ( ULONG ulIdx = 0; ulIdx < AllStartsOfPlayer[ulPlayer].Size() - 1; ulIdx++ )
 	{
-		APlayerPawn *pDoll = P_SpawnPlayer ( &(AllStartsOfPlayer[ulPlayer][ulIdx]), false, ulPlayer );
+		APlayerPawn *pDoll = P_SpawnPlayer ( &(AllStartsOfPlayer[ulPlayer][ulIdx]), ulPlayer );
 		// [BB] Mark the voodoo doll as spawned by the map.
 		// P_SpawnPlayer won't spawn anything for a player not in game, therefore we need to check if pDoll is NULL.
 		if ( pDoll )

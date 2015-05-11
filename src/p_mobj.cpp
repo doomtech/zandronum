@@ -5279,7 +5279,7 @@ void AActor::AdjustFloorClip ()
 EXTERN_CVAR (Bool, chasedemo)
 extern bool demonew;
 
-APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int playernum, bool tempplayer)
+APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 {
 	player_t *p;
 	APlayerPawn *mobj, *oldactor;
@@ -5298,7 +5298,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 	p = &players[playernum];
 
 	// [BB] Make sure that the player only uses a class available to his team.
-	if ( tempplayer == false )
+	if ( !(flags & SPF_TEMPPLAYER) )
 		TEAM_EnsurePlayerHasValidClass ( p );
 
 	// [BB] We may not filter coop inventory if the player changed the player class.
@@ -5406,7 +5406,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 		// [BB] The server may not start handing out the inventory yet, see further down.
 		G_PlayerReborn (playernum, ( NETWORK_GetState( ) != NETSTATE_SERVER ) );
 	}
-	else if (oldactor != NULL && oldactor->player == p && !tempplayer)
+	else if (oldactor != NULL && oldactor->player == p && !(flags & SPF_TEMPPLAYER))
 	{
 		// Move the voodoo doll's inventory to the new player.
 		mobj->ObtainInventory (oldactor);
@@ -5533,7 +5533,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 	// Tell clients about the respawning player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		if ( bClientUpdate )
+		if ( flags & SPF_CLIENTUPDATE )
 			SERVERCOMMANDS_SpawnPlayer( playernum, state );
 
 		// [BB] We may only start handing out the inventory when the player is already spawned on the clients.
@@ -5551,7 +5551,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 		}
 
 		// [Dusk] If we are sharing keys, give this player the keys that have been found.
-		if (( bClientUpdate ) &&
+		if (( flags & SPF_CLIENTUPDATE ) &&
 			( zadmflags & ZADF_SHARE_KEYS ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( state == PST_ENTER || state == PST_ENTERNOINVENTORY ))
@@ -5561,11 +5561,9 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 	}
 
 	// setup gun psprite
-	if (!tempplayer)
-	{
-		// This can also start a script so don't do it for
-		// the dummy player.
-		P_SetupPsprites (p);
+	if (!(flags & SPF_TEMPPLAYER))
+	{ // This can also start a script so don't do it for the dummy player.
+		P_SetupPsprites (p, !!(flags & SPF_WEAPONFULLYUP));
 	}
 
 	if (deathmatch)
@@ -5628,7 +5626,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 	// [BB] Don't spawn fog for temp players.
 	// [EP] Don't spawn fog for facing west spawners offline, if compatflag is on.
 	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) &&
-		( p->bDeadSpectator == false ) && ( p->bSpectating == false ) && ( tempplayer == false ) &&
+		( p->bDeadSpectator == false ) && ( p->bSpectating == false ) && !(flags & SPF_TEMPPLAYER ) &&
 		( !( zacompatflags & ZACOMPATF_SILENT_WEST_SPAWNS ) || mobj->angle != ANGLE_180 ))
 	{
 		unsigned an = mobj->angle >> ANGLETOFINESHIFT;
@@ -5656,7 +5654,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, bool bClientUpdate, int player
 		}
 	}
 	// [BC] Do script stuff
-	if (!tempplayer)
+	if (!(flags & SPF_TEMPPLAYER))
 	{
 		if (state == PST_ENTER || state == PST_ENTERNOINVENTORY || (state == PST_LIVE && !savegamerestore))
 		{
@@ -5965,7 +5963,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		// if (!deathmatch && !(level.flags2 & LEVEL2_RANDOMPLAYERSTARTS))
 		// [BC] Need to maintain this method so that we get voodoo dolls, which some doomers are used to.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE && ( deathmatch == false ) && ( teamgame == false ))
-			return P_SpawnPlayer(&start, false, pnum);
+			return P_SpawnPlayer(&start, pnum, (level.flags2 & LEVEL2_PRERAISEWEAPON) ? SPF_WEAPONFULLYUP : 0);
 		return NULL;
 	}
 

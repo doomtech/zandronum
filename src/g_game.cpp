@@ -2457,7 +2457,7 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 	if ( spot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( spot, bClientUpdate, playernum );
+	AActor *mo = P_SpawnPlayer( spot, playernum, bClientUpdate ? SPF_CLIENTUPDATE : 0 );
 	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
@@ -2520,7 +2520,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer );
+	AActor *mo = P_SpawnPlayer( pSpot, ulPlayer, bClientUpdate ? SPF_CLIENTUPDATE : 0 );
 	if (mo != NULL)
 	{
 		P_PlayerStartStomp(mo);
@@ -2550,7 +2550,7 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer );
+	AActor *mo = P_SpawnPlayer( pSpot, ulPlayer, bClientUpdate ? SPF_CLIENTUPDATE : 0 );
 	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
@@ -2560,7 +2560,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	// [BB] Don't do this, if we want to randomize starts.
 	if (( sv_randomcoopstarts == false ) && ( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
-		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, ulPlayer, bTempPlayer );
+		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], ulPlayer, ( bTempPlayer ? SPF_TEMPPLAYER : 0 ) | ( bClientUpdate ? SPF_CLIENTUPDATE : 0 ) );
 		if (mo != NULL) P_PlayerStartStomp(mo);
 		return;
 	}
@@ -2572,7 +2572,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, ulPlayer, bTempPlayer );
+	AActor *mo = P_SpawnPlayer( pSpot, ulPlayer, ( bTempPlayer ? SPF_TEMPPLAYER : 0 ) | ( bClientUpdate ? SPF_CLIENTUPDATE : 0 ) );
 }
 
 //
