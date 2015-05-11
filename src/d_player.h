@@ -229,7 +229,6 @@ typedef enum
 	CF_TOTALLYFROZEN	= 1 << 12,		// [RH] All players can do is press +use
 	// [BC] We don't use CF_PREDICTING in ST.
 	//CF_PREDICTING		= 1 << 13,		// [RH] Player movement is being predicted
-	CF_WEAPONREADY		= 1 << 14,		// [RH] Weapon is in the ready state and can fire its primary attack
 	CF_DRAIN			= 1 << 16,		// Player owns a drain powerup
 	CF_HIGHJUMP			= 1 << 18,		// more Skulltag flags. Implementation not guaranteed though. ;)
 	CF_REFLECTION		= 1 << 19,
@@ -238,12 +237,7 @@ typedef enum
 	CF_EXTREMELYDEAD	= 1 << 22,		// [RH] Reliably let the status bar know about extreme deaths.
 	CF_INFINITEAMMO		= 1 << 23,		// Player owns an infinite ammo artifact
 
-	CF_WEAPONBOBBING	= 1 << 24,		// [HW] Bob weapon while the player is moving
-	CF_WEAPONREADYALT	= 1 << 25,		// Weapon can fire its secondary attack
-	CF_WEAPONSWITCHOK	= 1 << 26,		// It is okay to switch away from this weapon
 	CF_BUDDHA			= 1 << 27,		// [SP] Buddha mode - take damage, but don't die
-	CF_WEAPONRELOADOK   = 1 << 28,      // [XA] Okay to reload this weapon.
-	CF_WEAPONZOOMOK     = 1 << 29,      // [XA] Okay to use weapon zoom function.
 	CF_NOCLIP2			= 1 << 30,		// [RH] More Quake-like noclip
 
 	// [BC] Rune effects.
@@ -261,6 +255,17 @@ typedef enum
 	CF2_TERMINATORARTIFACT	= 1 << 1,
 	CF2_SPREAD			= 1 << 2,
 } cheat2_t;
+
+enum
+{
+	WF_WEAPONREADY		= 1 << 0,		// [RH] Weapon is in the ready state and can fire its primary attack
+	WF_WEAPONBOBBING	= 1 << 1,		// [HW] Bob weapon while the player is moving
+	WF_WEAPONREADYALT	= 1 << 2,		// Weapon can fire its secondary attack
+	WF_WEAPONSWITCHOK	= 1 << 3,		// It is okay to switch away from this weapon
+	WF_WEAPONRELOADOK	= 1 << 5,		// [XA] Okay to reload this weapon.
+	WF_WEAPONZOOMOK		= 1 << 6,		// [XA] Okay to use weapon zoom function.
+};	
+
 
 #define WPIECE1		1
 #define WPIECE2		2
@@ -367,6 +372,7 @@ public:
 	bool		backpack;
 	
 	int			fragcount;				// [RH] Cumulative frags for this player
+	BYTE		WeaponState;
 
 	AWeapon	   *ReadyWeapon;
 	AWeapon	   *PendingWeapon;			// WP_NOCHANGE if not changing
