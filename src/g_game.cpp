@@ -195,7 +195,6 @@ CVAR(Bool, demo_compress, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 FString			demoname;
 bool 			demorecording;
 bool 			demoplayback;
-bool 			netdemo;
 bool			demonew;				// [RH] Only used around G_InitNew for demos
 int				demover;
 BYTE*			demobuffer;
@@ -5221,7 +5220,6 @@ bool G_CheckDemoStatus (void)
 
 		P_SetupWeapons_ntohton();
 		demoplayback = false;
-		netdemo = false;
 //		netgame = false;
 //		multiplayer = false;
 		singletics = false;

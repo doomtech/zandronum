@@ -137,7 +137,6 @@ extern bool timingdemo;
 int starttime;
 
 
-extern bool netdemo;
 extern FString BackupSaveName;
 
 bool savegamerestore;
@@ -273,7 +272,6 @@ void G_NewInit ()
 	// [BC] Server doesn't have a screen.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		SB_state = screen->GetPageCount ();
-	netdemo = false;
 	if (demoplayback)
 	{
 		C_RestoreCVars ();

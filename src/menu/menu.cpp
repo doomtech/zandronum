@@ -413,7 +413,7 @@ void M_SetMenu(FName menu, int param)
 	if (desc != NULL)
 	{
 		// [BB] netgame -> ( NETWORK_GetState( ) != NETSTATE_SINGLE )
-		if ((*desc)->mNetgameMessage.IsNotEmpty() && ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
+		if ((*desc)->mNetgameMessage.IsNotEmpty() && ( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !demoplayback)
 		{
 			M_StartMessage((*desc)->mNetgameMessage, 1);
 			return;
