@@ -7705,27 +7705,31 @@ scriptwait:
 						}
 						break;
 					}
-					msg->SetClipRect(ClipRectLeft, ClipRectTop, ClipRectWidth, ClipRectHeight);
-					if (WrapWidth != 0)
-					{
-						msg->SetWrapWidth(WrapWidth);
-					}
-					msg->SetVisibility((type & HUDMSG_VISIBILITY_MASK) >> HUDMSG_VISIBILITY_SHIFT);
-					if (type & HUDMSG_NOWRAP)
-					{
-						msg->SetNoWrap(true);
-					}
-					if (type & HUDMSG_ALPHA)
-					{
-						msg->SetAlpha(alpha);
-					}
-					if (type & HUDMSG_ADDBLEND)
-					{
-						msg->SetRenderStyle(STYLE_Add);
-					}
+					// [BB] The server didn't create msg, so we can't manipulate it like this.
+					// Most of the things below will need extra network handling.
 					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+					{
+						msg->SetClipRect(ClipRectLeft, ClipRectTop, ClipRectWidth, ClipRectHeight);
+						if (WrapWidth != 0)
+						{
+							msg->SetWrapWidth(WrapWidth);
+						}
+						msg->SetVisibility((type & HUDMSG_VISIBILITY_MASK) >> HUDMSG_VISIBILITY_SHIFT);
+						if (type & HUDMSG_NOWRAP)
+						{
+							msg->SetNoWrap(true);
+						}
+						if (type & HUDMSG_ALPHA)
+						{
+							msg->SetAlpha(alpha);
+						}
+						if (type & HUDMSG_ADDBLEND)
+						{
+							msg->SetRenderStyle(STYLE_Add);
+						}
 						StatusBar->AttachMessage (msg, id ? 0xff000000|id : 0,
 							(type & HUDMSG_LAYER_MASK) >> HUDMSG_LAYER_SHIFT);
+					}
 					if (type & HUDMSG_LOG)
 					{
 						static const char bar[] = TEXTCOLOR_ORANGE "\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
