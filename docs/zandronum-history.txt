@@ -15,7 +15,7 @@
 3.0
 ---
 
-*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 4055 / GZDoom SVN revision 1512. [Torr Samaho]
+*+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 4057 / GZDoom SVN revision 1513. [Torr Samaho]
 !	- Removed the internal server browser. It was only useful for debugging purposes anyway and the CCMDs querymaster and dumpserverlist are sufficient for this. [Torr Samaho]
 
 
