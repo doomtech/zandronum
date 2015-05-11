@@ -3543,6 +3543,8 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int 
 				//	SERVERCOMMANDS_SetWeaponAmmoGive( mo );
 				if (inv->SpecialDropAction (source))
 				{
+					// The special action indicates that the item should not spawn
+					inv->Destroy();
 					return NULL;
 				}
 				return inv;
