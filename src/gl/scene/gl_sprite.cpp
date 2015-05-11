@@ -453,7 +453,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		return;
 	}
 
-	unsigned spritenum = thing->sprite;
+	int spritenum = thing->sprite;
 	fixed_t spritescaleX = thing->scaleX;
 	fixed_t spritescaleY = thing->scaleY;
 	if (thing->player != NULL)
