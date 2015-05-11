@@ -165,8 +165,11 @@ void AScriptedMarine::Tick ()
 //
 //============================================================================
 
-DEFINE_ACTION_FUNCTION(AActor, A_M_Refire)
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_M_Refire)
 {
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_BOOL(ignoremissile, 0);
+
 	// [BC] Let the server do this.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -191,7 +194,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_M_Refire)
 		self->SetState (self->state + 1);
 		return;
 	}
-	if ((self->MissileState == NULL && !self->CheckMeleeRange ()) ||
+	if (((ignoremissile || self->MissileState == NULL) && !self->CheckMeleeRange ()) ||
 		!P_CheckSight (self, self->target) ||
 		pr_m_refire() < 4)	// Small chance of stopping even when target not dead
 	{

@@ -453,13 +453,21 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		return;
 	}
 
+	unsigned spritenum = thing->sprite;
+	fixed_t spritescaleX = thing->scaleX;
+	fixed_t spritescaleY = thing->scaleY;
+	if (thing->player != NULL)
+	{
+		P_CheckPlayerSprite(thing, spritenum, spritescaleX, spritescaleY);
+	}
+
 	if (thing->renderflags & RF_INVISIBLE || !thing->RenderStyle.IsVisible(thing->alpha)) 
 	{
 		if (!(thing->flags & MF_STEALTH) || !gl_fixedcolormap || !gl_enhanced_nightvision)
 			return; 
 	}
 
-	// If this thing is in a map section that's not in view it can't possible be visible
+	// If this thing is in a map section that's not in view it can't possibly be visible
 	if (!(currentmapsection[thing->subsector->mapsection>>3] & (1 << (thing->subsector->mapsection & 7)))) return;
 
 	// [BB] If the actor is supposed to be invisible to the player, skip it here.
@@ -471,13 +479,13 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	fixed_t thingy = thing->PrevY + FixedMul (r_TicFrac, thing->y - thing->PrevY);
 	fixed_t thingz = thing->PrevZ + FixedMul (r_TicFrac, thing->z - thing->PrevZ);
 
-	// too close to the camera. This doesn't look good if it is a sprite.
+	// Too close to the camera. This doesn't look good if it is a sprite.
 	if (P_AproxDistance(thingx-viewx, thingy-viewy)<2*FRACUNIT)
 	{
 		// exclude vertically moving objects from this check.
 		if (!(thing->velx==0 && thing->vely==0 && thing->velz!=0))
 		{
-			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame, false))
+			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), spritenum, thing->frame, false))
 			{
 				return;
 			}
@@ -513,13 +521,13 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	z = FIXED2FLOAT(thingz-thing->floorclip);
 	y = FIXED2FLOAT(thingy);
 	
-	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame, !!(thing->flags & MF_DROPPED));
+	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), spritenum, thing->frame, !!(thing->flags & MF_DROPPED));
 	if (!modelframe)
 	{
 		angle_t ang = R_PointToAngle(thingx, thingy);
 
 		bool mirror;
-		FTextureID patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle, &mirror);
+		FTextureID patch = gl_GetSpriteFrame(spritenum, thing->frame, -1, ang - thing->angle, &mirror);
 		if (!patch.isValid()) return;
 		gltexture=FMaterial::ValidateTexture(patch, false);
 		if (!gltexture) return;
@@ -559,7 +567,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			}
 		}
 
-		r.Scale(FIXED2FLOAT(thing->scaleX),FIXED2FLOAT(thing->scaleY));
+		r.Scale(FIXED2FLOAT(spritescaleX),FIXED2FLOAT(spritescaleY));
 
 		float rightfac=-r.left;
 		float leftfac=rightfac-r.width;
@@ -567,7 +575,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		z1=z-r.top;
 		z2=z1-r.height;
 
-		float spriteheight = FIXED2FLOAT(thing->scaleY) * gltexture->GetScaledHeightFloat(GLUSE_SPRITE);
+		float spriteheight = FIXED2FLOAT(spritescaleY) * gltexture->GetScaledHeightFloat(GLUSE_SPRITE);
 		
 		// Tests show that this doesn't look good for many decorations and corpses
 		if (spriteheight>0 && gl_spriteclip>0)
