@@ -129,12 +129,13 @@ FRandom pr_acs ("ACS");
 
 struct CallReturn
 {
-	CallReturn(int pc, ScriptFunction *func, FBehavior *module, SDWORD *locals, bool discard)
+	CallReturn(int pc, ScriptFunction *func, FBehavior *module, SDWORD *locals, bool discard, unsigned int runaway)
 		: ReturnFunction(func),
 		  ReturnModule(module),
 		  ReturnLocals(locals),
 		  ReturnAddress(pc),
-		  bDiscardResult(discard)
+		  bDiscardResult(discard),
+		  EntryInstrCount(runaway)
 	{}
 
 	ScriptFunction *ReturnFunction;
@@ -142,6 +143,7 @@ struct CallReturn
 	SDWORD *ReturnLocals;
 	int ReturnAddress;
 	int bDiscardResult;
+	unsigned int EntryInstrCount;
 };
 
 static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
@@ -1902,7 +1904,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	LumpNum = lumpnum;
 	memset (MapVarStore, 0, sizeof(MapVarStore));
 	ModuleName[0] = 0;
-
+	FunctionProfileData = NULL;
 	// Now that everything is set up, record this module as being among the loaded modules.
 	// We need to do this before resolving any imports, because an import might (indirectly)
 	// need to resolve exports in this module. The only things that can be exported are
@@ -2034,6 +2036,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 		{
 			NumFunctions = LittleLong(((DWORD *)Functions)[1]) / 8;
 			Functions += 8;
+			FunctionProfileData = new ACSProfileInfo[NumFunctions];
 		}
 
 		// Load JUMP points
@@ -2340,6 +2343,11 @@ FBehavior::~FBehavior ()
 		}
 		delete[] ArrayStore;
 		ArrayStore = NULL;
+	}
+	if (FunctionProfileData != NULL)
+	{
+		delete[] FunctionProfileData;
+		FunctionProfileData = NULL;
 	}
 	if (Data != NULL)
 	{
@@ -3204,6 +3212,14 @@ void DLevelScript::Serialize (FArchive &arc)
 	else
 	{
 		ClipRectLeft = ClipRectTop = ClipRectWidth = ClipRectHeight = WrapWidth = 0;
+	}
+	if (SaveVersion >= 4058)
+	{
+		arc << InModuleScriptNumber;
+	}
+	else
+	{ // Don't worry about locating profiling info for old saves.
+		InModuleScriptNumber = -1;
 	}
 }
 
@@ -5937,7 +5953,7 @@ int DLevelScript::RunScript ()
 	int sp = 0;
 	int *pc = this->pc;
 	ACSFormat fmt = activeBehavior->GetFormat();
-	int runaway = 0;	// used to prevent infinite loops
+	unsigned int runaway = 0;	// used to prevent infinite loops
 	int pcd;
 	FString work;
 	const char *lookup;
@@ -6247,7 +6263,7 @@ int DLevelScript::RunScript ()
 				}
 				sp += i;
 				::new(&Stack[sp]) CallReturn(activeBehavior->PC2Ofs(pc), activeFunction,
-					activeBehavior, mylocals, pcd == PCD_CALLDISCARD);
+					activeBehavior, mylocals, pcd == PCD_CALLDISCARD, runaway);
 				sp += (sizeof(CallReturn) + sizeof(int) - 1) / sizeof(int);
 				pc = module->Ofs2PC (func->Address);
 				activeFunction = func;
@@ -6276,6 +6292,7 @@ int DLevelScript::RunScript ()
 				}
 				sp -= sizeof(CallReturn)/sizeof(int);
 				retsp = &Stack[sp];
+				activeBehavior->GetFunctionProfileData(activeFunction)->AddRun(runaway - ret->EntryInstrCount);
 				sp = int(locals - Stack);
 				pc = ret->ReturnModule->Ofs2PC(ret->ReturnAddress);
 				activeFunction = ret->ReturnFunction;
@@ -9556,6 +9573,11 @@ scriptwait:
  		}
  	}
 
+	if (runaway != 0 && InModuleScriptNumber >= 0)
+	{
+		activeBehavior->GetScriptPtr(InModuleScriptNumber)->ProfileData.AddRun(runaway);
+	}
+
 	if (state == SCRIPT_DivideBy0)
 	{
 		Printf ("Divide by zero in %s\n", ScriptPresentation(script).GetChars());
@@ -9631,6 +9653,7 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 		localvars[i] = args[i];
 	}
 	pc = module->GetScriptAddress(code);
+	InModuleScriptNumber = module->GetScriptIndex(code);
 	activator = who;
 	activationline = where;
 	backSide = flags & ACS_BACKSIDE;
@@ -9900,6 +9923,264 @@ void DACSThinker::DumpScriptStatus ()
 		Printf("%s: %s\n", ScriptPresentation(script->script).GetChars(), stateNames[script->state]);
 		script = script->next;
 	}
+}
+
+// Profiling support --------------------------------------------------------
+
+ACSProfileInfo::ACSProfileInfo()
+{
+	Reset();
+}
+
+void ACSProfileInfo::Reset()
+{
+	TotalInstr = 0;
+	NumRuns = 0;
+	MinInstrPerRun = UINT_MAX;
+	MaxInstrPerRun = 0;
+}
+
+void ACSProfileInfo::AddRun(unsigned int num_instr)
+{
+	TotalInstr += num_instr;
+	NumRuns++;
+	if (num_instr < MinInstrPerRun)
+	{
+		MinInstrPerRun = num_instr;
+	}
+	if (num_instr > MaxInstrPerRun)
+	{
+		MaxInstrPerRun = num_instr;
+	}
+}
+
+void ArrangeScriptProfiles(TArray<ProfileCollector> &profiles)
+{
+	for (unsigned int mod_num = 0; mod_num < FBehavior::StaticModules.Size(); ++mod_num)
+	{
+		FBehavior *module = FBehavior::StaticModules[mod_num];
+		ProfileCollector prof;
+		prof.Module = module;
+		for (int i = 0; i < module->NumScripts; ++i)
+		{
+			prof.Index = i;
+			prof.ProfileData = &module->Scripts[i].ProfileData;
+			profiles.Push(prof);
+		}
+	}
+}
+
+void ArrangeFunctionProfiles(TArray<ProfileCollector> &profiles)
+{
+	for (unsigned int mod_num = 0; mod_num < FBehavior::StaticModules.Size(); ++mod_num)
+	{
+		FBehavior *module = FBehavior::StaticModules[mod_num];
+		ProfileCollector prof;
+		prof.Module = module;
+		for (int i = 0; i < module->NumFunctions; ++i)
+		{
+			ScriptFunction *func = (ScriptFunction *)module->Functions + i;
+			if (func->ImportNum == 0)
+			{
+				prof.Index = i;
+				prof.ProfileData = module->FunctionProfileData + i;
+				profiles.Push(prof);
+			}
+		}
+	}
+}
+
+void ClearProfiles(TArray<ProfileCollector> &profiles)
+{
+	for (unsigned int i = 0; i < profiles.Size(); ++i)
+	{
+		profiles[i].ProfileData->Reset();
+	}
+}
+
+static int STACK_ARGS sort_by_total_instr(const void *a_, const void *b_)
+{
+	const ProfileCollector *a = (const ProfileCollector *)a_;
+	const ProfileCollector *b = (const ProfileCollector *)b_;
+
+	assert(a != NULL && a->ProfileData != NULL);
+	assert(b != NULL && b->ProfileData != NULL);
+	return (int)(b->ProfileData->TotalInstr - a->ProfileData->TotalInstr);
+}
+
+static int STACK_ARGS sort_by_min(const void *a_, const void *b_)
+{
+	const ProfileCollector *a = (const ProfileCollector *)a_;
+	const ProfileCollector *b = (const ProfileCollector *)b_;
+
+	return b->ProfileData->MinInstrPerRun - a->ProfileData->MinInstrPerRun;
+}
+
+static int STACK_ARGS sort_by_max(const void *a_, const void *b_)
+{
+	const ProfileCollector *a = (const ProfileCollector *)a_;
+	const ProfileCollector *b = (const ProfileCollector *)b_;
+
+	return b->ProfileData->MaxInstrPerRun - a->ProfileData->MaxInstrPerRun;
+}
+
+static int STACK_ARGS sort_by_avg(const void *a_, const void *b_)
+{
+	const ProfileCollector *a = (const ProfileCollector *)a_;
+	const ProfileCollector *b = (const ProfileCollector *)b_;
+
+	int a_avg = a->ProfileData->NumRuns == 0 ? 0 : int(a->ProfileData->TotalInstr / a->ProfileData->NumRuns);
+	int b_avg = b->ProfileData->NumRuns == 0 ? 0 : int(b->ProfileData->TotalInstr / b->ProfileData->NumRuns);
+	return b_avg - a_avg;
+}
+
+static int STACK_ARGS sort_by_runs(const void *a_, const void *b_)
+{
+	const ProfileCollector *a = (const ProfileCollector *)a_;
+	const ProfileCollector *b = (const ProfileCollector *)b_;
+
+	return b->ProfileData->NumRuns - a->ProfileData->NumRuns;
+}
+
+static void ShowProfileData(TArray<ProfileCollector> &profiles, long ilimit,
+	int (STACK_ARGS *sorter)(const void *, const void *), bool functions)
+{
+	static const char *const typelabels[2] = { "script", "function" };
+
+	if (profiles.Size() == 0)
+	{
+		return;
+	}
+
+	unsigned int limit;
+	char modname[13];
+	char scriptname[21];
+
+	qsort(&profiles[0], profiles.Size(), sizeof(ProfileCollector), sorter);
+
+	if (ilimit > 0)
+	{
+		Printf(TEXTCOLOR_ORANGE "Top %ld %ss:\n", ilimit, typelabels[functions]);
+		limit = (unsigned int)ilimit;
+	}
+	else
+	{
+		Printf(TEXTCOLOR_ORANGE "All %ss:\n", typelabels[functions]);
+		limit = UINT_MAX;
+	}
+
+	Printf(TEXTCOLOR_YELLOW "Module       %-20s      Total    Runs     Avg     Min     Max\n", typelabels[functions]);
+	Printf(TEXTCOLOR_YELLOW "------------ -------------------- ---------- ------- ------- ------- -------\n");
+	for (unsigned int i = 0; i < limit && i < profiles.Size(); ++i)
+	{
+		ProfileCollector *prof = &profiles[i];
+		if (prof->ProfileData->NumRuns == 0)
+		{ // Don't list ones that haven't run.
+			continue;
+		}
+
+		// Module name
+		mysnprintf(modname, sizeof(modname), prof->Module->GetModuleName());
+
+		// Script/function name
+		if (functions)
+		{
+			DWORD *fnames = (DWORD *)prof->Module->FindChunk(MAKE_ID('F','N','A','M'));
+			if (prof->Index >= 0 && prof->Index < (int)LittleLong(fnames[2]))
+			{
+				mysnprintf(scriptname, sizeof(scriptname), "%s",
+					(char *)(fnames + 2) + LittleLong(fnames[3+prof->Index]));
+			}
+			else
+			{
+				mysnprintf(scriptname, sizeof(scriptname), "Function %d", prof->Index);
+			}
+		}
+		else
+		{
+			mysnprintf(scriptname, sizeof(scriptname), "%s",
+				ScriptPresentation(prof->Module->GetScriptPtr(prof->Index)->Number).GetChars() + 7);
+		}
+		Printf("%-12s %-20s%11llu%8u%8u%8u%8u\n",
+			modname, scriptname,
+			prof->ProfileData->TotalInstr,
+			prof->ProfileData->NumRuns,
+			unsigned(prof->ProfileData->TotalInstr / prof->ProfileData->NumRuns),
+			prof->ProfileData->MinInstrPerRun,
+			prof->ProfileData->MaxInstrPerRun
+			);
+	}
+}
+
+CCMD(acsprofile)
+{
+	static int (STACK_ARGS *sort_funcs[])(const void*, const void *) =
+	{
+		sort_by_total_instr,
+		sort_by_min,
+		sort_by_max,
+		sort_by_avg,
+		sort_by_runs
+	};
+	static const char *sort_names[] = { "total", "min", "max", "avg", "runs" };
+	static const BYTE sort_match_len[] = {   1,     2,     2,     1,      1 };
+
+	TArray<ProfileCollector> ScriptProfiles, FuncProfiles;
+	long limit = 10;
+	int (STACK_ARGS *sorter)(const void *, const void *) = sort_by_total_instr;
+
+	assert(countof(sort_names) == countof(sort_match_len));
+
+	ArrangeScriptProfiles(ScriptProfiles);
+	ArrangeFunctionProfiles(FuncProfiles);
+
+	if (argv.argc() > 1)
+	{
+		// `acsprofile clear` will zero all profiling information collected so far.
+		if (stricmp(argv[1], "clear") == 0)
+		{
+			ClearProfiles(ScriptProfiles);
+			ClearProfiles(FuncProfiles);
+			return;
+		}
+		for (int i = 1; i < argv.argc(); ++i)
+		{
+			// If it's a number, set the display limit.
+			char *endptr;
+			long num = strtol(argv[i], &endptr, 0);
+			if (endptr != argv[i])
+			{
+				limit = num;
+				continue;
+			}
+			// If it's a name, set the sort method. We accept partial matches for
+			// options that are shorter than the sort name.
+			size_t optlen = strlen(argv[i]);
+			int j;
+			for (j = 0; j < countof(sort_names); ++j)
+			{
+				if (optlen < sort_match_len[j] || optlen > strlen(sort_names[j]))
+				{ // Too short or long to match.
+					continue;
+				}
+				if (strnicmp(argv[i], sort_names[j], optlen) == 0)
+				{
+					sorter = sort_funcs[j];
+					break;
+				}
+			}
+			if (j == countof(sort_names))
+			{
+				Printf("Unknown option '%s'\n", argv[i]);
+				Printf("acsprofile clear : Reset profiling information\n");
+				Printf("acsprofile [total|min|max|avg|runs] [<limit>]\n");
+				return;
+			}
+		}
+	}
+
+	ShowProfileData(ScriptProfiles, limit, sorter, false);
+	ShowProfileData(FuncProfiles, limit, sorter, true);
 }
 
 

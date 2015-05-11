@@ -127,6 +127,25 @@ void P_WriteACSVars(FILE*);
 void P_ClearACSVars(bool);
 void P_SerializeACSScriptNumber(FArchive &arc, int &scriptnum, bool was2byte);
 
+struct ACSProfileInfo
+{
+	unsigned long long TotalInstr;
+	unsigned int NumRuns;
+	unsigned int MinInstrPerRun;
+	unsigned int MaxInstrPerRun;
+
+	ACSProfileInfo();
+	void AddRun(unsigned int num_instr);
+	void Reset();
+};
+
+struct ProfileCollector
+{
+	ACSProfileInfo *ProfileData;
+	class FBehavior *Module;
+	int Index;
+};
+
 // The in-memory version
 struct ScriptPtr
 {
@@ -136,6 +155,8 @@ struct ScriptPtr
 	BYTE ArgCount;
 	WORD VarCount;
 	WORD Flags;
+
+	ACSProfileInfo ProfileData;
 };
 
 // The present ZDoom version
@@ -298,9 +319,16 @@ public:
 	int FindMapArray (const char *arrayname) const;
 	int GetLibraryID () const { return LibraryID; }
 	int *GetScriptAddress (const ScriptPtr *ptr) const { return (int *)(ptr->Address + Data); }
+	int GetScriptIndex (const ScriptPtr *ptr) const { ptrdiff_t index = ptr - Scripts; return index >= NumScripts ? -1 : (int)index; }
+
+	ScriptPtr *GetScriptPtr(int index) const { return index >= 0 && index < NumScripts ? &Scripts[index] : NULL; }
+	int GetLumpNum() const { return LumpNum; }
+	const char *GetModuleName() const { return ModuleName; }
+	ACSProfileInfo *GetFunctionProfileData(int index) { return index >= 0 && index < NumFunctions ? &FunctionProfileData[index] : NULL; }
+	ACSProfileInfo *GetFunctionProfileData(ScriptFunction *func) { return GetFunctionProfileData((int)(func - (ScriptFunction *)Functions)); }
 
 	const char *LookupString (DWORD index) const;
-
+	
 	SDWORD *MapVars[NUM_MAPVARS];
 
 	static FBehavior *StaticLoadModule (int lumpnum, FileReader * fr=NULL, int len=0);
@@ -331,6 +359,7 @@ private:
 	ScriptPtr *Scripts;
 	int NumScripts;
 	BYTE *Functions;
+	ACSProfileInfo *FunctionProfileData;
 	int NumFunctions;
 	ArrayInfo *ArrayStore;
 	int NumArrays;
@@ -357,6 +386,9 @@ private:
 	void MarkMapVarStrings() const;
 	void LockMapVarStrings() const;
 	void UnlockMapVarStrings() const;
+
+	friend void ArrangeScriptProfiles(TArray<ProfileCollector> &profiles);
+	friend void ArrangeFunctionProfiles(TArray<ProfileCollector> &profiles);
 
 };
 
@@ -863,6 +895,7 @@ protected:
 	int				ClipRectLeft, ClipRectTop, ClipRectWidth, ClipRectHeight;
 	int				WrapWidth;
 	FBehavior	    *activeBehavior;
+	int				InModuleScriptNumber;
 	FString			activefontname; // [TP]
 
 	void Link ();
