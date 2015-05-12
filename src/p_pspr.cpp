@@ -803,21 +803,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_ReFire)
 void A_ReFire(AActor *self, FState *state)
 {
 	player_t *player = self->player;
+	bool pending;
 
 	if (NULL == player)
 	{
 		return;
 	}
-	if ((player->cmd.ucmd.buttons&BT_ATTACK)
-		&& !player->ReadyWeapon->bAltFire
-		&& player->PendingWeapon == WP_NOCHANGE && player->health)
+	pending = player->PendingWeapon == WP_NOCHANGE && (player->WeaponState & WF_WEAPONSWITCHOK);
+	if ((player->cmd.ucmd.buttons & BT_ATTACK)
+		&& !player->ReadyWeapon->bAltFire && !pending && player->health > 0)
 	{
 		player->refire++;
 		P_FireWeapon (player, state);
 	}
-	else if ((player->cmd.ucmd.buttons&BT_ALTATTACK)
-		&& player->ReadyWeapon->bAltFire
-		&& player->PendingWeapon == WP_NOCHANGE && player->health)
+	else if ((player->cmd.ucmd.buttons & BT_ALTATTACK)
+		&& player->ReadyWeapon->bAltFire && !pending && player->health > 0)
 	{
 		player->refire++;
 		P_FireWeaponAlt (player, state);
@@ -904,10 +904,6 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Lower)
 		P_SetPsprite (player,  ps_weapon, NULL);
 		return;
 	}
-/*	if (player->PendingWeapon != WP_NOCHANGE)
-	{ // [RH] Make sure we're actually changing weapons.
-		player->ReadyWeapon = player->PendingWeapon;
-	} */
 	// [RH] Clear the flash state. Only needed for Strife.
 	P_SetPsprite (player, ps_flash, NULL);
 	P_BringUpWeapon (player);
@@ -1213,10 +1209,7 @@ void P_MovePsprites (player_t *player)
 		}
 		player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
 		player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
-		if (player->WeaponState & WF_WEAPONSWITCHOK)
-		{
-			P_CheckWeaponSwitch (player);
-		}
+		P_CheckWeaponSwitch (player);
 		if (player->WeaponState & (WF_WEAPONREADY | WF_WEAPONREADYALT))
 		{
 			P_CheckWeaponFire (player);

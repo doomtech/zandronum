@@ -3960,6 +3960,10 @@ void P_SetupLevel (char *lumpname, int position)
 			level.maptype = MAPTYPE_UDMF;
 		}
 		CheckCompatibility(map);
+		if (ib_compatflags & BCOMPATF_REBUILDNODES)
+		{
+			ForceNodeBuild = true;
+		}
 		/* [BB] ST doesn't do this.
 		T_LoadScripts(map);
 		*/
