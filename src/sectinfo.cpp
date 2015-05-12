@@ -125,7 +125,7 @@ void SECTINFO_Parse(int lump)
 			sc.MustGetToken(TK_Identifier);
 			//If you define a SectInfo for a map not defined by mapinfo interesting results may occur.
 			//This is because it will set the sectinfo for the defaultmap.
-			mapinfo = FindLevelInfo(sc.String);
+			mapinfo = FindLevelInfo(sc.String, false);
 			sc.MustGetToken(']');
 		}
 		else if(mapinfo != NULL)

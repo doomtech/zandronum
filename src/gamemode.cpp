@@ -471,7 +471,7 @@ bool GAMEMODE_IsLobbyMap( void )
 bool GAMEMODE_IsLobbyMap( const char* mapname )
 {
 	// [BB] The level is not loaded yet, so we can't use level.flags2 directly.
-	const level_info_t *levelinfo = FindLevelInfo( mapname );
+	const level_info_t *levelinfo = FindLevelInfo( mapname, false );
 
 	if (levelinfo == NULL)
 	{
