@@ -218,9 +218,9 @@ void GLSprite::Draw(int pass)
 	if (!modelframe)
 	{
 		// [BB] Billboard stuff
-		const bool drawWithXYBillboard = ( (particle && gl_billboard_particles) || !(actor && actor->renderflags & RF_FORCEYBILLBOARD)
+		const bool drawWithXYBillboard = ( (particle && gl_billboard_particles) || (!(actor && actor->renderflags & RF_FORCEYBILLBOARD)
 		                                   //&& GLRenderer->mViewActor != NULL
-		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
+		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD ))) );
 		gl_RenderState.Apply();
 		gl.Begin(GL_TRIANGLE_STRIP);
 		if ( drawWithXYBillboard )
