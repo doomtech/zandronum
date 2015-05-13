@@ -739,7 +739,7 @@ void M_ClearMenus ()
 		DMenu::CurrentMenu->Destroy();
 		DMenu::CurrentMenu = NULL;
 	}
-	BorderNeedRefresh = screen->GetPageCount ();
+	V_SetBorderNeedRefresh();
 	menuactive = MENU_Off;
 }
 

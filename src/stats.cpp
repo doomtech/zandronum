@@ -102,7 +102,7 @@ void FStat::ToggleStat ()
 		return;
 
 	m_Active = !m_Active;
-	SB_state = StatusBar == NULL ? 0 : screen->GetPageCount ();
+	ST_SetNeedRefresh();
 }
 
 void FStat::PrintStat ()
@@ -137,13 +137,9 @@ void FStat::PrintStat ()
 			}
 		}
 	}
-	// [BC] The server doesn't actually load any fonts.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	if (count)
 	{
-		if (count)
-		{
-			SB_state = screen->GetPageCount ();
-		}
+		ST_SetNeedRefresh();
 	}
 }
 

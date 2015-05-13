@@ -41,6 +41,7 @@
 #include "farchive.h"
 #include "r_renderer.h"
 #include "r_sky.h"
+#include "sbar.h"
 
 #include "m_cheat.h"
 #include "i_system.h"
@@ -1089,7 +1090,7 @@ void AM_Stop ()
 {
 	automapactive = false;
 	stopped = true;
-	BorderNeedRefresh = screen->GetPageCount ();
+	V_SetBorderNeedRefresh();
 	viewactive = true;
 }
 
@@ -1196,7 +1197,7 @@ void AM_ToggleMap ()
 	if ( CLIENTDEMO_IsPlaying( ) && !automapactive && ( ( players[consoleplayer].camera == NULL ) || ( !viewactive ) ) )
 		return;
 
-	SB_state = screen->GetPageCount ();
+	ST_SetNeedRefresh();
 	if (!automapactive)
 	{
 		AM_Start ();
@@ -1207,7 +1208,7 @@ void AM_ToggleMap ()
 		if (am_overlay==1 && viewactive)
 		{
 			viewactive = false;
-			SB_state = screen->GetPageCount ();
+			ST_SetNeedRefresh();
 		}
 		else
 		{

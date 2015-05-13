@@ -269,9 +269,7 @@ void G_NewInit ()
 	int i;
 
 	G_ClearSnapshots ();
-	// [BC] Server doesn't have a screen.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		SB_state = screen->GetPageCount ();
+	ST_SetNeedRefresh();
 	if (demoplayback)
 	{
 		C_RestoreCVars ();
@@ -543,8 +541,15 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	else
 		viewactive = false;
 
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		BorderNeedRefresh = screen->GetPageCount ();
+	V_SetBorderNeedRefresh();
+
+	/* [BB] Zandronum treats bots differently.
+	//Added by MC: Initialize bots.
+	if (!deathmatch)
+	{
+		bglobal.Init ();
+	}
+	*/
 
 	if (mapname != level.mapname)
 	{
@@ -1508,7 +1513,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	}
 
 	// For each player, if they are viewing through a player, make sure it is themselves.
-	for (int ii = 0; i < MAXPLAYERS; ++i)
+	for (int ii = 0; ii < MAXPLAYERS; ++ii)
 	{
 		if (playeringame[ii] && (players[ii].camera == NULL || players[ii].camera->player != NULL))
 		{

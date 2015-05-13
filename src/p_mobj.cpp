@@ -6213,8 +6213,9 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 	// and just made some fixes to make it less buggy.
 	// [BC]
 	ULONG	ulState = STATE_SPAWN;
-
-	z += pr_spawnpuff.Random2 () << 10;
+	
+	if (!(flags & PF_NORANDOMZ))
+		z += pr_spawnpuff.Random2 () << 10;
 
 	puff = Spawn (pufftype, x, y, z, ALLOW_REPLACE);
 	if (puff == NULL) return NULL;

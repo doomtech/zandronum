@@ -4387,7 +4387,7 @@ static bool CheckForSpectral (FTraceResults &res)
 //==========================================================================
 
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
-				   int pitch, int damage, FName damageType, const PClass *pufftype, bool ismeleeattack, AActor **victim)
+				   int pitch, int damage, FName damageType, const PClass *pufftype, int flags, AActor **victim)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
 	// [CK] And also predicted puffs and blood decals.
@@ -4404,8 +4404,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	bool hitGhosts;
 	bool killPuff = false;
 	AActor *puff = NULL;
-	int flags = ismeleeattack? PF_MELEERANGE : 0;
 	int pflag = 0;
+	int puffFlags = (flags & LAF_ISMELEEATTACK)? PF_MELEERANGE : 0;
+	if (flags & LAF_NORANDOMPUFFZ)
+		puffFlags |= PF_NORANDOMZ;
 
 	if (victim != NULL)
 	{
@@ -4485,7 +4487,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		}
 		if (puffDefaults->flags3 & MF3_ALWAYSPUFF)
 		{ // Spawn the puff anyway
-			puff = P_SpawnPuff (t1, pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2, flags);
+			puff = P_SpawnPuff (t1, pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2, puffFlags);
 
 			// [CK] We don't want this function returning an actor if it's a
 			// client predicting. The client would be done regardless.
@@ -4513,7 +4515,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 					fixed_t closer = trace.Distance - 4*FRACUNIT;
 					puff = P_SpawnPuff (t1, pufftype, t1->x + FixedMul (vx, closer),
 						t1->y + FixedMul (vy, closer),
-						shootz + FixedMul (vz, closer), angle - ANG90, 0, flags);
+						shootz + FixedMul (vz, closer), angle - ANG90, 0, puffFlags);
 				}
 			}
 
@@ -4610,10 +4612,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				&& ( NETWORK_InClientMode( ) == false || CLIENT_ShouldPredictPuffs( ) ) )
 			{
 				if (!(trace.Actor->flags & MF_NOBLOOD))
-					flags |= PF_HITTHINGBLEED;
+					puffFlags |= PF_HITTHINGBLEED;
 
 				// We must pass the unreplaced puff type here 
-				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING);
+				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags|PF_HITTHING);
 			}
 
 			// [CK] The client by this point has predicted their desired
@@ -4652,7 +4654,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 					// regardless of whether it is displayed or not.
 					// [BB] In case the puff has a custom obituary, the clients need to spawn it too.
 					const bool bTellClientToSpawn = pufftype && ( pufftype->Meta.GetMetaString (AMETA_Obituary) != NULL );
-					puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING|PF_TEMPORARY, bTellClientToSpawn );
+					puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags|PF_HITTHING|PF_TEMPORARY, bTellClientToSpawn );
 					killPuff = true;
 				}
 				newdam = P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
@@ -4713,7 +4715,7 @@ damagedone:	// [TP] The client returns here now that the damage has been dealt.
 
 			if (puff == NULL)
 			{ // Spawn puff just to get a mass for the splash
-				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, flags|PF_HITTHING|PF_TEMPORARY, false);
+				puff = P_SpawnPuff (t1, pufftype, hitx, hity, hitz, angle - ANG180, 2, puffFlags|PF_HITTHING|PF_TEMPORARY, false);
 				killPuff = true;
 			}
 			SpawnDeepSplash (t1, trace, puff, vx, vy, vz, shootz, trace.Crossed3DWater != NULL);
@@ -4737,7 +4739,7 @@ damagedone:	// [TP] The client returns here now that the damage has been dealt.
 }
 
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
-				   int pitch, int damage, FName damageType, FName pufftype, bool ismeleeattack, AActor **victim)
+				   int pitch, int damage, FName damageType, FName pufftype, int flags, AActor **victim)
 {
 	const PClass * type = PClass::FindClass(pufftype);
 	if (victim != NULL)
@@ -4750,7 +4752,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 	else
 	{
-		return P_LineAttack(t1, angle, distance, pitch, damage, damageType, type, ismeleeattack, victim);
+		return P_LineAttack(t1, angle, distance, pitch, damage, damageType, type, flags, victim);
 	}
 	return NULL;
 }
@@ -5052,6 +5054,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			fixed_t x, y, z;
 			bool spawnpuff;
 		bool bleed = false;
+
 		int puffflags = PF_HITTHING;
 
 			x = x1 + FixedMul (RailHits[i].Distance, vx);

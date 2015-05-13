@@ -95,8 +95,7 @@ void cht_DoCheat (player_t *player, int cheat)
 			msg = GStrings("STSTR_DQDON");
 		else
 			msg = GStrings("STSTR_DQDOFF");
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			SB_state = screen->GetPageCount ();
+		ST_SetNeedRefresh();
 		break;
 
 	case CHT_BUDDHA:

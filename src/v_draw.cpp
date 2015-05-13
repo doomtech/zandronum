@@ -53,6 +53,7 @@
 #include "gi.h"
 #include "g_level.h"
 #include "st_stuff.h"
+#include "sbar.h"
 
 #include "i_system.h"
 #include "i_video.h"
@@ -1414,8 +1415,32 @@ bool DCanvas::ClipBox (int &x, int &y, int &w, int &h, const BYTE *&src, const i
 	return false;
 }
 
+//==========================================================================
+//
+// V_SetBorderNeedRefresh
+//
+// Flag the border as in need of updating. (Probably because something that
+// was on top of it has changed.
+//
+//==========================================================================
+
+void V_SetBorderNeedRefresh()
+{
+	if (screen != NULL)
+	{
+		BorderNeedRefresh = screen->GetPageCount();
+	}
+}
+
+//==========================================================================
+//
+// V_DrawFrame
+//
 // Draw a frame around the specified area using the view border
 // frame graphics. The border is drawn outside the area, not in it.
+//
+//==========================================================================
+
 void V_DrawFrame (int left, int top, int width, int height)
 {
 	FTexture *p;
@@ -1448,7 +1473,7 @@ void V_DrawFrame (int left, int top, int width, int height)
 
 //==========================================================================
 //
-//
+// V_DrawBorder
 //
 //==========================================================================
 
@@ -1492,7 +1517,7 @@ static void V_DrawViewBorder (void)
 	// Will draw borders around itself, too.
 	if (SCREENWIDTH > 320)
 	{
-		SB_state = screen->GetPageCount ();
+		ST_SetNeedRefresh();
 	}
 
 	if (viewwidth == SCREENWIDTH)
