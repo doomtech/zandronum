@@ -1008,15 +1008,15 @@ static void R_DrawSkyStriped (visplane_t *pl)
 CVAR (Bool, tilt, false, 0);
 //CVAR (Int, pa, 0, 0)
 
-void R_DrawPlanes ()
+int R_DrawPlanes ()
 {
 	visplane_t *pl;
 	int i;
-	int vpcount;
+	int vpcount = 0;
 
 	ds_color = 3;
 
-	for (i = vpcount = 0; i < MAXVISPLANES; i++)
+	for (i = 0; i < MAXVISPLANES; i++)
 	{
 		for (pl = visplanes[i]; pl; pl = pl->next)
 		{
@@ -1030,6 +1030,7 @@ void R_DrawPlanes ()
 			}
 		}
 	}
+	return vpcount;
 }
 
 // kg3D - draw all visplanes with "height"
@@ -1335,13 +1336,12 @@ void R_DrawSkyBoxes ()
 
 	for (*freehead = visplanes[MAXVISPLANES], visplanes[MAXVISPLANES] = NULL; *freehead; )
 		freehead = &(*freehead)->next;
-
 }
 
 ADD_STAT(skyboxes)
 {
 	FString out;
-	out.Format (out, "%d skybox planes", numskyboxes);
+	out.Format ("%d skybox planes", numskyboxes);
 	return out;
 }
 
