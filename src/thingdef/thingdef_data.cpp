@@ -322,12 +322,12 @@ static FFlagDef InventoryFlags[] =
 	DEFINE_FLAG(IF, PERSISTENTPOWER, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, RESTRICTABSOLUTELY, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, NEVERRESPAWN, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, NOSCREENFLASH, AInventory, ItemFlags),
 	// [BB] New ST flags.
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 
 	DEFINE_DEPRECATED_FLAG(PICKUPFLASH),
-	DEFINE_DEPRECATED_FLAG(INTERHUBSTRIP),
-};
+	DEFINE_DEPRECATED_FLAG(INTERHUBSTRIP),};
 
 static FFlagDef WeaponFlags[] =
 {
@@ -362,12 +362,19 @@ static FFlagDef PlayerPawnFlags[] =
 	DEFINE_FLAG(PPF, CANSUPERMORPH, APlayerPawn, PlayerFlags),
 };
 
+static FFlagDef PowerSpeedFlags[] =
+{
+	// PowerSpeed flags
+	DEFINE_FLAG(PSF, NOTRAIL, APowerSpeed, SpeedFlags),
+};
+
 static const struct FFlagList { const PClass *Type; FFlagDef *Defs; int NumDefs; } FlagLists[] =
 {
 	{ RUNTIME_CLASS(AActor), 		ActorFlags,		countof(ActorFlags) },
 	{ RUNTIME_CLASS(AInventory), 	InventoryFlags,	countof(InventoryFlags) },
 	{ RUNTIME_CLASS(AWeapon), 		WeaponFlags,	countof(WeaponFlags) },
 	{ RUNTIME_CLASS(APlayerPawn),	PlayerPawnFlags,countof(PlayerPawnFlags) },
+	{ RUNTIME_CLASS(APowerSpeed),	PowerSpeedFlags,countof(PowerSpeedFlags) },
 };
 #define NUM_FLAG_LISTS (countof(FlagLists))
 

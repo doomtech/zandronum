@@ -133,7 +133,8 @@ enum
 	IF_PERSISTENTPOWER	= 1<<18,	// Powerup is kept when travelling between levels
 	IF_RESTRICTABSOLUTELY = 1<<19,	// RestrictedTo and ForbiddenTo do not allow pickup in any form by other classes
 	IF_NEVERRESPAWN		= 1<<20,	// Never, ever respawns
-	IF_FORCERESPAWNINSURVIVAL = 1<<21,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
+	IF_NOSCREENFLASH	= 1<<21,	// No pickup flash on the player's screen
+	IF_FORCERESPAWNINSURVIVAL = 1<<22,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
 };
 
 
