@@ -1434,7 +1434,7 @@ void RP_Subsector (subsector_t *sub)
 					frontsector->ceiling_yscale,
 					frontsector->ceiling_angle + frontsector->base_ceiling_angle,
 					frontsector->sky,
-					frontsector->CeilingSkyBox
+					frontsector->CeilingSkyBox,
 					) : NULL;*/
 
 	basecolormap = frontsector->ColorMap;
