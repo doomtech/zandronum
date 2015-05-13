@@ -17,6 +17,9 @@
 
 static FRandom pr_morphmonst ("MorphMonster");
 
+void EndAllPowerupEffects(AInventory *item);
+void InitAllPowerupEffects(AInventory *item);
+
 //---------------------------------------------------------------------------
 //
 // FUNC P_MorphPlayer
