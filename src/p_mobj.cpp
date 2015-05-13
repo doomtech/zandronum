@@ -7281,7 +7281,6 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 				break;
 			}
 		} while (linetarget == NULL && --i >= 0);
-	}
 
 		if (linetarget == NULL)
 		{
@@ -7290,6 +7289,7 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 			{
 				pitch = 0;
 			}
+		}
 	}
 	if (pLineTarget) *pLineTarget = linetarget;
 

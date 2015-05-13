@@ -68,6 +68,7 @@
 #include "g_shared/a_specialspot.h"
 #include "actorptrselect.h"
 #include "m_bbox.h"
+#include "r_data/r_translate.h"
 // [BB] new #includes.
 #include "deathmatch.h"
 #include "cl_main.h"
@@ -2274,6 +2275,7 @@ enum SIX_Flags
 	SIXF_TRANSFERAMBUSHFLAG=256,
 	SIXF_TRANSFERPITCH=512,
 	SIXF_TRANSFERPOINTERS=1024,
+	SIXF_USEBLOODCOLOR=2048,
 };
 
 
@@ -2284,9 +2286,18 @@ static bool InitSpawnedItem(AActor *self, AActor *mo, int flags)
 	{
 		AActor * originator = self;
 
-		if ((flags & SIXF_TRANSFERTRANSLATION) && !(mo->flags2 & MF2_DONTTRANSLATE))
+		if (!(mo->flags2 & MF2_DONTTRANSLATE))
 		{
-			mo->Translation = self->Translation;
+			if (flags & SIXF_TRANSFERTRANSLATION)
+			{
+				mo->Translation = self->Translation;
+			}
+			else if (flags & SIXF_USEBLOODCOLOR)
+			{
+				// [XA] Use the spawning actor's BloodColor to translate the newly-spawned object.
+				PalEntry bloodcolor = self->GetBloodColor();
+				mo->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
+			}
 		}
 		if (flags & SIXF_TRANSFERPOINTERS)
 		{
@@ -5330,4 +5341,18 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetTics)
 	ACTION_PARAM_INT(tics_to_set, 0);
 
 	self->tics = tics_to_set;
+}
+
+//==========================================================================
+//
+// A_SetDamageType
+//
+//==========================================================================
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetDamageType)
+{
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_NAME(damagetype, 0);
+
+	self->DamageType = damagetype;
 }
