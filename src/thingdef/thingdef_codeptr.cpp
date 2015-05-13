@@ -1270,6 +1270,7 @@ enum CBA_Flags
 	CBAF_NORANDOM = 2,
 	CBAF_EXPLICITANGLE = 4,
 	CBAF_NOPITCH = 8,
+	CBAF_NORANDOMPUFFZ = 16,
 };
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
@@ -1288,6 +1289,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 	int i;
 	int bangle;
 	int bslope = 0;
+	int laflags = (Flags & CBAF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
 
 	if (self->target || (Flags & CBAF_AIMFACING))
 	{
@@ -1325,7 +1327,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomBulletAttack)
 			if (!(Flags & CBAF_NORANDOM))
 				damage *= ((pr_cabullet()%3)+1);
 
-			P_LineAttack(self, angle, Range, slope, damage, NAME_Hitscan, pufftype);
+			P_LineAttack(self, angle, Range, slope, damage, NAME_Hitscan, pufftype, laflags);
 		}
     }
 }
@@ -1479,6 +1481,7 @@ enum FB_Flags
 	FBF_EXPLICITANGLE = 4,
 	FBF_NOPITCH = 8,
 	FBF_NOFLASH = 16,
+	FBF_NORANDOMPUFFZ = 32,
 };
 
 // [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
@@ -1492,7 +1495,8 @@ void A_FireBulletsHelper ( AActor *self,
 						   const PClass * PuffType,
 						   const angle_t Spread_XY,
 						   const angle_t Spread_Z,
-						   const int Flags )
+						   const int Flags,
+						   const int laflags )
 {
 	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
 	{
@@ -1501,7 +1505,7 @@ void A_FireBulletsHelper ( AActor *self,
 		if (!(Flags & FBF_NORANDOM))
 			damage *= ((pr_cwbullet()%3)+1);
 
-		P_LineAttack(self, bangle, Range, bslope, damage, NAME_Hitscan, PuffType);
+		P_LineAttack(self, bangle, Range, bslope, damage, NAME_Hitscan, PuffType, laflags);
 	}
 	else 
 	{
@@ -1526,7 +1530,7 @@ void A_FireBulletsHelper ( AActor *self,
 			if (!(Flags & FBF_NORANDOM))
 				damage *= ((pr_cwbullet()%3)+1);
 
-			P_LineAttack(self, angle, Range, slope, damage, NAME_Hitscan, PuffType);
+			P_LineAttack(self, angle, Range, slope, damage, NAME_Hitscan, PuffType, laflags);
 		}
 	}
 }
@@ -1551,6 +1555,7 @@ void A_CustomFireBullets( AActor *self,
 	//int i;
 	int bangle;
 	int bslope = 0;
+	int laflags = (Flags & FBF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
 
 	if ((Flags & FBF_USEAMMO) && weapon)
 	{
@@ -1601,12 +1606,12 @@ void A_CustomFireBullets( AActor *self,
 		return;
 	}
 
-	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
+	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z, Flags, laflags );
 
 	if ( self->player->cheats2 & CF2_SPREAD )
 	{
-		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
-		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags );
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags, laflags );
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z, Flags, laflags );
 	}
 
 	// [BB] Even with the online hitscan decal hack (and clientside puffs), a client has to stop here.
@@ -1805,6 +1810,7 @@ enum
 	CPF_USEAMMO = 1,
 	CPF_DAGGER = 2,
 	CPF_PULLIN = 4,
+	CPF_NORANDOMPUFFZ = 8,
 };
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
@@ -1857,8 +1863,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	}
 
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
+	int puffFlags = LAF_ISMELEEATTACK | (flags & CPF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
 
-	P_LineAttack (self, angle, Range, pitch, Damage, NAME_Melee, PuffType, true, &linetarget);
+	P_LineAttack (self, angle, Range, pitch, Damage, NAME_Melee, PuffType, puffFlags, &linetarget);
 
 	// turn to face target
 	if (linetarget)
