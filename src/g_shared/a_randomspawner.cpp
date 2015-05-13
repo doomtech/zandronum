@@ -34,6 +34,7 @@ class ARandomSpawner : public AActor
 		FDropItem *di;   // di will be our drop item list iterator
 		FDropItem *drop; // while drop stays as the reference point.
 		int n=0;
+		bool nomonsters = (dmflags & DF_NO_MONSTERS) || (level.flags2 & LEVEL2_NOMONSTERS);
 
 		Super::BeginPlay();
 		// [BB] This is server-side.
@@ -51,10 +52,18 @@ class ARandomSpawner : public AActor
 			{
 				if (di->Name != NAME_None)
 				{
-					if (di->amount < 0) di->amount = 1; // default value is -1, we need a positive value.
-					n += di->amount; // this is how we can weight the list.
+					if (!nomonsters || !(GetDefaultByType(PClass::FindClass(di->Name))->flags3 & MF3_ISMONSTER))
+					{
+						if (di->amount < 0) di->amount = 1; // default value is -1, we need a positive value.
+						n += di->amount; // this is how we can weight the list.
+					}
 					di = di->Next;
 				}
+			}
+			if (n == 0)
+			{ // Nothing left to spawn. They must have all been monsters, and monsters are disabled.
+				Destroy();
+				return;
 			}
 			// Then we reset the iterator to the start position...
 			di = drop;
@@ -65,15 +74,22 @@ class ARandomSpawner : public AActor
 			{
 				if (di->Name != NAME_None)
 				{
-					n -= di->amount;
-					if ((di->Next != NULL) && (n > -1)) di = di->Next; else n = -1;
+					if (!nomonsters || !(GetDefaultByType(PClass::FindClass(di->Name))->flags3 & MF3_ISMONSTER))
+					{
+						n -= di->amount;
+						if ((di->Next != NULL) && (n > -1))
+							di = di->Next;
+						else
+							n = -1;
+					}
 				}
 			}
 			// So now we can spawn the dropped item.
 			if (bouncecount >= MAX_RANDOMSPAWNERS_RECURSION)	// Prevents infinite recursions
 			{
 				Spawn("Unknown", x, y, z, NO_REPLACE);		// Show that there's a problem.
-				Destroy(); return;
+				Destroy();
+				return;
 			}
 			else if (pr_randomspawn() <= di->probability)	// prob 255 = always spawn, prob 0 = never spawn.
 			{
@@ -189,9 +205,11 @@ class ARandomSpawner : public AActor
 			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
 				newmobj->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 		}
-		if (boss) this->tracer = newmobj;
+		if (boss)
+			this->tracer = newmobj;
 		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-		else HideOrDestroyIfSafe();	// "else" because a boss-replacing spawner must wait until it can call A_BossDeath.
+		else	// "else" because a boss-replacing spawner must wait until it can call A_BossDeath.
+			HideOrDestroyIfSafe();
 
 		// [BB] Workaround to ensure that the spawner is properly reset in GAME_ResetMap.
 		this->ulSTFlags |= STFL_POSITIONCHANGED;
