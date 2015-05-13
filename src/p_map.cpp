@@ -1051,7 +1051,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		if (!(tm.thing->flags & MF_MISSILE) ||
 			!(tm.thing->flags2 & MF2_RIP) ||
 			(thing->flags5 & MF5_DONTRIP) ||
-			(tm.thing->flags6 & MF6_NOBOSSRIP) && (thing->flags2 & MF2_BOSS))
+			((tm.thing->flags6 & MF6_NOBOSSRIP) && (thing->flags2 & MF2_BOSS)))
 		{
 			if (tm.thing->flags3 & thing->flags3 & MF3_DONTOVERLAP)
 			{ // Some things prefer not to overlap each other, if possible
@@ -5975,7 +5975,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 					if (!(flags & RADF_NODAMAGE) && !(bombspot->flags3 & MF3_BLOODLESSIMPACT))
 						P_TraceBleed (newdam > 0 ? newdam : damage, thing, bombspot);
 
-					if (!(flags & RADF_NODAMAGE) || !(bombspot->flags2 & MF2_NODMGTHRUST))
+					if ((flags & RADF_NODAMAGE) || !(bombspot->flags2 & MF2_NODMGTHRUST))
 					{
 						if (bombsource == NULL || !(bombsource->flags2 & MF2_NODMGTHRUST))
 						{

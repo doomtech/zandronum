@@ -272,11 +272,11 @@ player_t::player_t()
   CurrentPlayerClass(0),
   backpack(0),
   fragcount(0),
+  WeaponState(0),
   ReadyWeapon(0),
   PendingWeapon(0),
   cheats(0),
   cheats2(0), // [BB]
-  WeaponState(0),
   timefreezer(0),
   refire(0),
   killcount(0),

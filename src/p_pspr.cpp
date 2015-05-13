@@ -196,13 +196,11 @@ void P_BringUpWeapon (player_t *player)
 
 	if (player->PendingWeapon == WP_NOCHANGE)
 	{
-		// [BB] There is nothing the player could bring up. This may happen on the server, since players are
-		// spawned with no weapon out (the server waits for the client to select the weapon).
-		if ( player->ReadyWeapon == NULL )
-			return;
-
-		player->psprites[ps_weapon].sy = WEAPONTOP;
-		P_SetPsprite (player, ps_weapon, player->ReadyWeapon->GetReadyState());
+		if (player->ReadyWeapon != NULL)
+		{
+			player->psprites[ps_weapon].sy = WEAPONTOP;
+			P_SetPsprite (player, ps_weapon, player->ReadyWeapon->GetReadyState());
+		}
 		return;
 	}
 
@@ -543,12 +541,22 @@ void P_BobWeapon (player_t *player, pspdef_t *psp, fixed_t *x, fixed_t *y)
 //
 //============================================================================
 
-void DoReadyWeaponToSwitch (AActor *self)
+void DoReadyWeaponToSwitch (AActor *self, bool switchable)
 {
 	// Prepare for switching action.
 	player_t *player;
 	if (self && (player = self->player))
-		player->WeaponState |= WF_WEAPONSWITCHOK;
+	{
+		if (switchable)
+		{
+			player->WeaponState |= WF_WEAPONSWITCHOK | WF_REFIRESWITCHOK;
+		}
+		else
+		{
+			// WF_WEAPONSWITCHOK is automatically cleared every tic by P_SetPsprite().
+			player->WeaponState &= ~WF_REFIRESWITCHOK;
+		}
+	}
 }
 
 void DoReadyWeaponDisableSwitch (AActor *self, INTBOOL disable)
@@ -560,6 +568,7 @@ void DoReadyWeaponDisableSwitch (AActor *self, INTBOOL disable)
 		if (disable)
 		{
 			player->WeaponState |= WF_DISABLESWITCH;
+			player->WeaponState &= ~WF_REFIRESWITCHOK;
 		}
 		else
 		{
@@ -659,7 +668,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AInventory, A_WeaponReady)
 	ACTION_PARAM_START(1);
 	ACTION_PARAM_INT(paramflags, 0);
 
-	if (!(paramflags & WRF_NoSwitch))				DoReadyWeaponToSwitch(self);
+													DoReadyWeaponToSwitch(self, !(paramflags & WRF_NoSwitch));
 	if ((paramflags & WRF_NoFire) != WRF_NoFire)	DoReadyWeaponToFire(self, !(paramflags & WRF_NoPrimary), !(paramflags & WRF_NoSecondary));
 	if (!(paramflags & WRF_NoBob))					DoReadyWeaponToBob(self);
 	if ((paramflags & WRF_AllowReload))				DoReadyWeaponToReload(self);
@@ -809,7 +818,7 @@ void A_ReFire(AActor *self, FState *state)
 	{
 		return;
 	}
-	pending = player->PendingWeapon == WP_NOCHANGE && (player->WeaponState & WF_WEAPONSWITCHOK);
+	pending = player->PendingWeapon != WP_NOCHANGE && (player->WeaponState & WF_REFIRESWITCHOK);
 	if ((player->cmd.ucmd.buttons & BT_ATTACK)
 		&& !player->ReadyWeapon->bAltFire && !pending && player->health > 0)
 	{
