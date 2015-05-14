@@ -868,7 +868,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePlasma)
 //
 // [RH] A_FireRailgun
 //
-static void FireRailgun(AActor *self, int RailOffset)
+static void FireRailgun(AActor *self, int offset_xy)
 {
 	int damage;
 	player_t *player;
@@ -909,7 +909,7 @@ static void FireRailgun(AActor *self, int RailOffset)
 	}
 
 	// [BB] This also handles color and spread.
-	P_RailAttackWithPossibleSpread (self, damage, RailOffset);
+	P_RailAttackWithPossibleSpread (self, damage, offset_xy);
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDRAILGUN, BOTEVENT_ENEMY_FIREDRAILGUN, BOTEVENT_PLAYER_FIREDRAILGUN );

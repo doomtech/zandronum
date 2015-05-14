@@ -4974,7 +4974,7 @@ static bool ProcessNoPierceRailHit (FTraceResults &res)
 //
 //
 //==========================================================================
-void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, int railflags, const PClass *puffclass, angle_t angleoffset, angle_t pitchoffset, fixed_t distance, int duration, float sparsity, float drift, const PClass *spawnclass)
+void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, int color1, int color2, float maxdiff, int railflags, const PClass *puffclass, angle_t angleoffset, angle_t pitchoffset, fixed_t distance, int duration, float sparsity, float drift, const PClass *spawnclass)
 {
 	fixed_t vx, vy, vz;
 	angle_t angle, pitch;
@@ -4998,7 +4998,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	x1 = source->x;
 	y1 = source->y;
 
-	shootz = source->z - source->floorclip + (source->height >> 1);
+	shootz = source->z - source->floorclip + (source->height >> 1) + offset_z;
 
 	if (!(railflags & RAF_CENTERZ))
 	{
@@ -5013,8 +5013,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	}
 
 	angle = ((source->angle + angleoffset) - ANG90) >> ANGLETOFINESHIFT;
-	x1 += offset*finecosine[angle];
-	y1 += offset*finesine[angle];
+	x1 += offset_xy * finecosine[angle];
+	y1 += offset_xy * finesine[angle];
 
 	RailHits.Clear ();
 	start.X = FIXED2FLOAT(x1);
@@ -5176,7 +5176,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	}
 }
 
-void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, int railflags, const PClass *puffclass, angle_t angleoffset, angle_t pitchoffset, fixed_t distance, int duration, float sparsity, float drift, const PClass *spawnclass)
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset_xy, fixed_t offset_z, int color1, int color2, float maxdiff, int railflags, const PClass *puffclass, angle_t angleoffset, angle_t pitchoffset, fixed_t distance, int duration, float sparsity, float drift, const PClass *spawnclass)
 {
 	// [BB] Sanity check.
 	if ( source == NULL )
@@ -5211,7 +5211,7 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 	// [BB] Recall ulConsecutiveRailgunHits from before the attack to handle medals.
 	const ULONG ulConsecutiveRailgunHitsBefore = ( source->player ) ? source->player->ulConsecutiveRailgunHits : 0;
 
-	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
+	P_RailAttack (source, damage, offset_xy, offset_z, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
 
 	// [BB] Apply spread and handle the Railgun medals.
 	if (NULL != source->player )
@@ -5223,11 +5223,11 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			SavedActorAngle = source->angle;
 
 			source->angle += ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
+			P_RailAttack (source, damage, offset_xy, offset_z, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
 			source->angle = SavedActorAngle;
 
 			source->angle -= ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
+			P_RailAttack (source, damage, offset_xy, offset_z, lOuterColor, lInnerColor, maxdiff, railflags, puffclass, angleoffset, pitchoffset, distance, duration, sparsity, drift, spawnclass );
 			source->angle = SavedActorAngle;
 		}
 
@@ -5846,7 +5846,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 	AActor *thing;
 
 	if (flags & RADF_SOURCEISSPOT)
-	{ // The source is actually the same as the spot, even if that wasn't what we receized.
+	{ // The source is actually the same as the spot, even if that wasn't what we received.
 		bombsource = bombspot;
 	}
 
@@ -5936,14 +5936,15 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 			}
 			points *= thing->GetClass()->Meta.GetMetaFixed(AMETA_RDFactor, FRACUNIT)/(double)FRACUNIT;
 
-			if (points > 0.f && P_CheckSight (thing, bombspot, SF_IGNOREVISIBILITY|SF_IGNOREWATERBOUNDARY))
+			// points and bombdamage should be the same sign
+			if ((points * bombdamage) > 0 && P_CheckSight (thing, bombspot, SF_IGNOREVISIBILITY|SF_IGNOREWATERBOUNDARY))
 			{ // OK to damage; target is in direct path
 				double velz;
 				double thrust;
 				// [BB] We need to store these values for ZACOMPATF_OLD_EXPLOSION_THRUST.
 				const fixed_t origmomx = thing->velx;
 				const fixed_t origmomy = thing->vely;
-				int damage = (int)points;
+				int damage = abs((int)points);
 				int newdam = damage;
 
 				// [BC] Damage is server side.
