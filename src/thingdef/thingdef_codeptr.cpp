@@ -3338,11 +3338,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_KillSiblings)
 			return;
 	}
 
-	while ( (mo = it.Next()) )
+	if (self->master != NULL)
 	{
-		if (mo->master == self->master && mo != self)
+		while ( (mo = it.Next()) )
 		{
-			P_DamageMobj(mo, self, self, mo->health, damagetype, DMG_NO_ARMOR | DMG_NO_FACTOR);
+			if (mo->master == self->master && mo != self)
+			{
+				P_DamageMobj(mo, self, self, mo->health, damagetype, DMG_NO_ARMOR | DMG_NO_FACTOR);
+			}
 		}
 	}
 }
@@ -4254,18 +4257,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_DamageSiblings)
 	ACTION_PARAM_INT(amount, 0);
 	ACTION_PARAM_NAME(DamageType, 1);
 
-	while ( (mo = it.Next()) )
+	if (self->master != NULL)
 	{
-		if (mo->master == self->master && mo != self)
+		while ( (mo = it.Next()) )
 		{
-			if (amount > 0)
+			if (mo->master == self->master && mo != self)
 			{
-				P_DamageMobj(mo, self, self, amount, DamageType, DMG_NO_ARMOR);
-			}
-			else if (amount < 0)
-			{
-				amount = -amount;
-				P_GiveBody(mo, amount);
+				if (amount > 0)
+				{
+					P_DamageMobj(mo, self, self, amount, DamageType, DMG_NO_ARMOR);
+				}
+				else if (amount < 0)
+				{
+					amount = -amount;
+					P_GiveBody(mo, amount);
+				}
 			}
 		}
 	}
@@ -4523,10 +4529,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckFlag)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RemoveMaster)
 {
-   if (self->master != NULL)
-   {
-      P_RemoveThing(self->master);
-   }
+	if (self->master != NULL)
+	{
+		P_RemoveThing(self->master);
+	}
 }
 
 //===========================================================================
@@ -4536,18 +4542,18 @@ DEFINE_ACTION_FUNCTION(AActor, A_RemoveMaster)
 //===========================================================================
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RemoveChildren)
 {
-   TThinkerIterator<AActor> it;
-   AActor * mo;
-   ACTION_PARAM_START(1);
-   ACTION_PARAM_BOOL(removeall,0);
+	TThinkerIterator<AActor> it;
+	AActor *mo;
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_BOOL(removeall,0);
 
-   while ( (mo = it.Next()) )
-   {
-      if ( ( mo->master == self ) && ( ( mo->health <= 0 ) || removeall) )
-      {
-		P_RemoveThing(mo);
-      }
-   }
+	while ((mo = it.Next()) != NULL)
+	{
+		if (mo->master == self && (mo->health <= 0 || removeall))
+		{
+			P_RemoveThing(mo);
+		}
+	}
 }
 
 //===========================================================================
@@ -4557,18 +4563,21 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RemoveChildren)
 //===========================================================================
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RemoveSiblings)
 {
-   TThinkerIterator<AActor> it;
-   AActor * mo;
-   ACTION_PARAM_START(1);
-   ACTION_PARAM_BOOL(removeall,0);
+	TThinkerIterator<AActor> it;
+	AActor *mo;
+	ACTION_PARAM_START(1);
+	ACTION_PARAM_BOOL(removeall,0);
 
-   while ( (mo = it.Next()) )
-   {
-      if ( ( mo->master == self->master ) && ( mo != self ) && ( ( mo->health <= 0 ) || removeall) )
-      {
-		P_RemoveThing(mo);
-      }
-   }
+	if (self->master != NULL)
+	{
+		while ((mo = it.Next()) != NULL)
+		{
+			if (mo->master == self->master && mo != self && (mo->health <= 0 || removeall))
+			{
+				P_RemoveThing(mo);
+			}
+		}
+	}
 }
 
 //===========================================================================
@@ -4578,10 +4587,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RemoveSiblings)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseMaster)
 {
-   if (self->master != NULL)
-   {
-      P_Thing_Raise(self->master);
-   }
+	if (self->master != NULL)
+	{
+		P_Thing_Raise(self->master);
+	}
 }
 
 //===========================================================================
@@ -4591,16 +4600,16 @@ DEFINE_ACTION_FUNCTION(AActor, A_RaiseMaster)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseChildren)
 {
-   TThinkerIterator<AActor> it;
-   AActor * mo;
+	TThinkerIterator<AActor> it;
+	AActor *mo;
 
-   while ((mo = it.Next()))
-   {
-      if ( mo->master == self )
-      {
-		P_Thing_Raise(mo);
-      }
-   }
+	while ((mo = it.Next()) != NULL)
+	{
+		if (mo->master == self)
+		{
+			P_Thing_Raise(mo);
+		}
+	}
 }
 
 //===========================================================================
@@ -4610,16 +4619,19 @@ DEFINE_ACTION_FUNCTION(AActor, A_RaiseChildren)
 //===========================================================================
 DEFINE_ACTION_FUNCTION(AActor, A_RaiseSiblings)
 {
-   TThinkerIterator<AActor> it;
-   AActor * mo;
+	TThinkerIterator<AActor> it;
+	AActor *mo;
 
-   while ( (mo = it.Next()) )
-   {
-      if ( ( mo->master == self->master ) && ( mo != self ) )
-      {
-		P_Thing_Raise(mo);
-      }
-   }
+	if (self->master != NULL)
+	{
+		while ((mo = it.Next()) != NULL)
+		{
+			if (mo->master == self->master && mo != self)
+			{
+				P_Thing_Raise(mo);
+			}
+		}
+	}
 }
 
 //===========================================================================

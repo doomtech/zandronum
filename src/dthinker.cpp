@@ -451,7 +451,7 @@ int DThinker::TickThinkers (FThinkerList *list, FThinkerList *dest)
 		NextToThink = node->NextThinker;
 		if (node->ObjectFlags & OF_JustSpawned)
 		{
-			node->ObjectFlags &= ~OF_JustSpawned;
+			// Leave OF_JustSpawn set until after Tick() so the ticker can check it.
 			if (dest != NULL)
 			{ // Move thinker from this list to the destination list
 				node->Remove();
@@ -472,8 +472,9 @@ int DThinker::TickThinkers (FThinkerList *list, FThinkerList *dest)
 				( node->IsKindOf( RUNTIME_CLASS( AActor )) == false ) ||
 				( static_cast<AActor *>( node ) != players[consoleplayer].mo ))
 			{
-				node->Tick ();
+				node->Tick();
 			}
+			node->ObjectFlags &= ~OF_JustSpawned;
 			GC::CheckGC();
 		}
 		node = NextToThink;

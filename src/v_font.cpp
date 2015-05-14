@@ -914,6 +914,7 @@ FFont::FFont (int lump)
 	Chars = NULL;
 	PatchRemap = NULL;
 	Name = NULL;
+	Cursor = '_';
 }
 
 //==========================================================================
