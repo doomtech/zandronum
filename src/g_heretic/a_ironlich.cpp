@@ -147,7 +147,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichAttack)
 				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 					SERVERCOMMANDS_SpawnMissile( fire );
 
-				P_CheckMissileSpawn (fire);
+				P_CheckMissileSpawn (fire, self->radius);
 			}
 		}
 	}
@@ -223,7 +223,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_LichIceImpact)
 		shard->velx = FixedMul (shard->Speed, finecosine[angle]);
 		shard->vely = FixedMul (shard->Speed, finesine[angle]);
 		shard->velz = -FRACUNIT*6/10;
-		P_CheckMissileSpawn (shard);
+		P_CheckMissileSpawn (shard, self->radius);
 	}
 }
 

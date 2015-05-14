@@ -649,5 +649,5 @@ AActor *P_SpawnKoraxMissile (fixed_t x, fixed_t y, fixed_t z,
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnMissile( th );
 
-	return (P_CheckMissileSpawn(th) ? th : NULL);
+	return (P_CheckMissileSpawn(th, source->radius) ? th : NULL);
 }

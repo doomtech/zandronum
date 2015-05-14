@@ -389,7 +389,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile,
 			{
 				missile->tracer=self->target;
 			}
-			bool bSucces = P_CheckMissileSpawn(missile);
+			bool bSucces = P_CheckMissileSpawn(missile, self->radius);
 
 			// [BC] If we're the server, tell clients to spawn the missile.
 			if ( bSucces && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
@@ -1241,7 +1241,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 					missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 
 				// [BB] Save whether the spawn was successfull.
-				bool bSucces = P_CheckMissileSpawn(missile);
+				bool bSucces = P_CheckMissileSpawn(missile, self->radius);
 
 				if ( bSucces )
 				{
@@ -1439,7 +1439,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomComboAttack)
 			{
 				missile->tracer=self->target;
 			}
-			bool bSucces = P_CheckMissileSpawn(missile);
+			bool bSucces = P_CheckMissileSpawn(missile, self->radius);
 
 			// [BB] If we're the server, tell clients to spawn this missile.
 			if ( bSucces && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
@@ -2650,13 +2650,13 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ThrowGrenade)
 		bo->vely = xy_vely + z_vely + (self->vely >> 1);
 		bo->velz = xy_velz + z_velz;
 
-		bo->target= self;
+		bo->target = self;
 
 		// [BC] Tell clients to spawn this missile.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnMissileExact( bo );
 
-		P_CheckMissileSpawn (bo);
+		P_CheckMissileSpawn (bo, self->radius);
 	} 
 	else ACTION_SET_RESULT(false);
 }

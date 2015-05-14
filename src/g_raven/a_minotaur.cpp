@@ -553,7 +553,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MntrFloorFire)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnThing( mo );
 
-	P_CheckMissileSpawn (mo);
+	P_CheckMissileSpawn (mo, self->radius);
 }
 
 //---------------------------------------------------------------------------

@@ -610,7 +610,7 @@ void FireMacePL1B (AActor *actor)
 		}
 	}
 
-	P_CheckMissileSpawn (ball);
+	P_CheckMissileSpawn (ball, actor->radius);
 }
 
 //----------------------------------------------------------------------------
@@ -861,7 +861,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact2)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnMissileExact( tiny );
 
-		P_CheckMissileSpawn (tiny);
+		P_CheckMissileSpawn (tiny, self->radius);
 
 		tiny = Spawn("MaceFX3", self->x, self->y, self->z, ALLOW_REPLACE);
 		angle = self->angle-ANG90;
@@ -876,7 +876,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MaceBallImpact2)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnMissileExact( tiny );
 
-		P_CheckMissileSpawn (tiny);
+		P_CheckMissileSpawn (tiny, self->radius);
 	}
 	else
 	{ // Explode
@@ -1267,7 +1267,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SpawnRippers)
 		angle >>= ANGLETOFINESHIFT;
 		ripper->velx = FixedMul (ripper->Speed, finecosine[angle]);
 		ripper->vely = FixedMul (ripper->Speed, finesine[angle]);
-		P_CheckMissileSpawn (ripper);
+		P_CheckMissileSpawn (ripper, self->radius);
 	}
 }
 
@@ -1629,7 +1629,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_SkullRodStorm)
 	mo->velx = 1; // Force collision detection
 	mo->velz = -mo->Speed;
 	mo->special2 = self->special2; // Transfer player number
-	P_CheckMissileSpawn (mo);
+	P_CheckMissileSpawn (mo, self->radius);
 	if (self->special1 != -1 && !S_IsActorPlayingSomething (self, CHAN_BODY, -1))
 	{
 		S_Sound (self, CHAN_BODY|CHAN_LOOP, self->special1, 1, ATTN_NORM);
@@ -1946,7 +1946,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePhoenixPL2)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnMissile( mo );
 
-	P_CheckMissileSpawn (mo);
+	P_CheckMissileSpawn (mo, self->radius);
 }
 
 //----------------------------------------------------------------------------
