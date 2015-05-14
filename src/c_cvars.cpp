@@ -1282,52 +1282,56 @@ static int STACK_ARGS sortcvars (const void *a, const void *b)
 
 void FilterCompactCVars (TArray<FBaseCVar *> &cvars, DWORD filter)
 {
-	FBaseCVar *cvar = CVars;
-	while (cvar)
+	// Accumulate all cvars that match the filter flags.
+	for (FBaseCVar *cvar = CVars; cvar != NULL; cvar = cvar->m_Next)
 	{
 		if ((cvar->Flags & filter) && !(cvar->Flags & CVAR_IGNORE))
-			cvars.Push (cvar);
-		cvar = cvar->m_Next;
+			cvars.Push(cvar);
 	}
-	if (cvars.Size () > 0)
+	// Now sort them, so they're in a deterministic order and not whatever
+	// order the linker put them in.
+	if (cvars.Size() > 0)
 	{
-		cvars.ShrinkToFit ();
-		qsort (&cvars[0], cvars.Size(), sizeof(FBaseCVar *), sortcvars);
+		qsort(&cvars[0], cvars.Size(), sizeof(FBaseCVar *), sortcvars);
 	}
 }
 
 void C_WriteCVars (BYTE **demo_p, DWORD filter, bool compact)
 {
-	FBaseCVar *cvar = CVars;
-	BYTE *ptr = *demo_p;
+	FString dump = C_GetMassCVarString(filter, compact);
+	size_t dumplen = dump.Len() + 1;	// include terminating \0
+	memcpy(*demo_p, dump.GetChars(), dumplen);
+	*demo_p += dumplen;
+}
+
+FString C_GetMassCVarString (DWORD filter, bool compact)
+{
+	FBaseCVar *cvar;
+	FString dump;
 
 	if (compact)
 	{
 		TArray<FBaseCVar *> cvars;
-		ptr += sprintf ((char *)ptr, "\\\\%ux", filter);
-		FilterCompactCVars (cvars, filter);
+		dump.AppendFormat("\\\\%ux", filter);
+		FilterCompactCVars(cvars, filter);
 		while (cvars.Pop (cvar))
 		{
-			UCVarValue val = cvar->GetGenericRep (CVAR_String);
-			ptr += sprintf ((char *)ptr, "\\%s", val.String);
+			UCVarValue val = cvar->GetGenericRep(CVAR_String);
+			dump << '\\' << val.String;
 		}
 	}
 	else
 	{
-		cvar = CVars;
-		while (cvar)
+		for (cvar = CVars; cvar != NULL; cvar = cvar->m_Next)
 		{
 			if ((cvar->Flags & filter) && !(cvar->Flags & (CVAR_NOSAVE|CVAR_IGNORE)))
 			{
-				UCVarValue val = cvar->GetGenericRep (CVAR_String);
-				ptr += sprintf ((char *)ptr, "\\%s\\%s",
-					cvar->GetName (), val.String);
+				UCVarValue val = cvar->GetGenericRep(CVAR_String);
+				dump << '\\' << cvar->GetName() << '\\' << val.String;
 			}
-			cvar = cvar->m_Next;
 		}
 	}
-
-	*demo_p = ptr + 1;
+	return dump;
 }
 
 void C_ReadCVars (BYTE **demo_p)
@@ -1398,58 +1402,42 @@ void C_ReadCVars (BYTE **demo_p)
 	*demo_p += strlen (*((char **)demo_p)) + 1;
 }
 
-static struct backup_s
+struct FCVarBackup
 {
-	char *name, *string;
-} CVarBackups[MAX_DEMOCVARS];
-
-static int numbackedup = 0;
+	FString Name, String;
+};
+static TArray<FCVarBackup> CVarBackups;
 
 void C_BackupCVars (void)
 {
-	struct backup_s *backup = CVarBackups;
-	FBaseCVar *cvar = CVars;
+	assert(CVarBackups.Size() == 0);
+	CVarBackups.Clear();
 
-	while (cvar)
+	FCVarBackup backup;
+
+	for (FBaseCVar *cvar = CVars; cvar != NULL; cvar = cvar->m_Next)
 	{
-		if ((cvar->Flags & (CVAR_SERVERINFO|CVAR_DEMOSAVE))
-			&& !(cvar->Flags & CVAR_LATCH))
+		if ((cvar->Flags & (CVAR_SERVERINFO|CVAR_DEMOSAVE)) && !(cvar->Flags & CVAR_LATCH))
 		{
-			if (backup == &CVarBackups[MAX_DEMOCVARS])
-				I_Error ("C_BackupDemoCVars: Too many cvars to save (%d)", MAX_DEMOCVARS);
-			backup->name = copystring (cvar->GetName());
-			backup->string = copystring (cvar->GetGenericRep (CVAR_String).String);
-			backup++;
+			backup.Name = cvar->GetName();
+			backup.String = cvar->GetGenericRep(CVAR_String).String;
+			CVarBackups.Push(backup);
 		}
-		cvar = cvar->m_Next;
 	}
-	numbackedup = int(backup - CVarBackups);
 }
 
 void C_RestoreCVars (void)
 {
-	struct backup_s *backup = CVarBackups;
-	int i;
-
-	for (i = numbackedup; i; i--, backup++)
+	for (unsigned int i = 0; i < CVarBackups.Size(); ++i)
 	{
-		cvar_set (backup->name, backup->string);
+		cvar_set(CVarBackups[i].Name, CVarBackups[i].String);
 	}
 	C_ForgetCVars();
 }
 
 void C_ForgetCVars (void)
 {
-	struct backup_s *backup = CVarBackups;
-	int i;
-
-	for (i = numbackedup; i; i--, backup++)
-	{
-		delete[] backup->name;
-		delete[] backup->string;
-		backup->name = backup->string = NULL;
-	}
-	numbackedup = 0;
+	CVarBackups.Clear();
 }
 
 FBaseCVar *FindCVar (const char *var_name, FBaseCVar **prev)
