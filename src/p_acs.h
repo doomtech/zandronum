@@ -268,6 +268,7 @@ enum
 	APROP_Stamina       = 34,
 	APROP_Height		= 35,
 	APROP_Radius		= 36,
+	APROP_ReactionTime  = 37,
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

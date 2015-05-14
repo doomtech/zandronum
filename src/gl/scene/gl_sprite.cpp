@@ -520,6 +520,13 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	x = FIXED2FLOAT(thingx);
 	z = FIXED2FLOAT(thingz-thing->floorclip);
 	y = FIXED2FLOAT(thingy);
+
+	// [RH] Make floatbobbing a renderer-only effect.
+	if (thing->flags2 & MF2_FLOATBOB)
+	{
+		float fz = FIXED2FLOAT(thing->GetBobOffset(r_TicFrac));
+		z += fz;
+	}
 	
 	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), spritenum, thing->frame, !!(thing->flags & MF_DROPPED));
 	if (!modelframe)
@@ -674,16 +681,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		x1=x-viewvecY*leftfac;
 		x2=x-viewvecY*rightfac;
 		y1=y+viewvecX*leftfac;
-		y2=y+viewvecX*rightfac;
-		
-		// [RH] Make floatbobbing a renderer-only effect.
-		if (thing->flags2 & MF2_FLOATBOB)
-		{
-			float fz = FIXED2FLOAT(thing->GetBobOffset(r_TicFrac));
-			z1 += fz;
-			z2 += fz;
-		}
-		
+		y2=y+viewvecX*rightfac;		
 	}
 	else 
 	{

@@ -53,21 +53,9 @@ void ASkyViewpoint::PostBeginPlay ()
 {
 	Super::PostBeginPlay ();
 
-	if (tid == 0)
+	if (tid == 0 && level.DefaultSkybox == NULL)
 	{
-		int i;
-
-		for (i = 0; i <numsectors; i++)
-		{
-			if (sectors[i].FloorSkyBox == NULL)
-			{
-				sectors[i].FloorSkyBox = this;
-			}
-			if (sectors[i].CeilingSkyBox == NULL)
-			{
-				sectors[i].CeilingSkyBox = this;
-			}
-		}
+		level.DefaultSkybox = this;
 	}
 }
 
@@ -90,6 +78,10 @@ void ASkyViewpoint::Destroy ()
 		{
 			sectors[i].CeilingSkyBox = NULL;
 		}
+	}
+	if (level.DefaultSkybox == this)
+	{
+		level.DefaultSkybox = NULL;
 	}
 	Super::Destroy();
 }
