@@ -85,7 +85,7 @@ typedef struct
 //	PROTOTYPES
 
 void				SERVER_SAVE_Construct( void );
-PLAYERSAVEDINFO_t	*SERVER_SAVE_GetSavedInfo( char *pszPlayerName, NETADDRESS_s Address );
+PLAYERSAVEDINFO_t	*SERVER_SAVE_GetSavedInfo( const char *pszPlayerName, NETADDRESS_s Address );
 void				SERVER_SAVE_ClearList( void );
 void				SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo );
 

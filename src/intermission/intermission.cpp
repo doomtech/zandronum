@@ -596,7 +596,7 @@ void DIntermissionScreenCast::Drawer ()
 		if (!(mDefaults->flags4 & MF4_NOSKIN) &&
 			mDefaults->SpawnState != NULL && caststate->sprite == mDefaults->SpawnState->sprite &&
 			mClass->IsDescendantOf(RUNTIME_CLASS(APlayerPawn)) &&
-			( skins.Size() > static_cast<unsigned int> ( players[consoleplayer].userinfo.skin ) ) ) // [BB] Adapted the skins check
+			( skins.Size() > static_cast<unsigned int> ( players[consoleplayer].userinfo.GetSkin() ) ) ) // [BB] Adapted the skins check
 		{
 			// Only use the skin sprite if this class has not been removed from the
 			// PlayerClasses list.
@@ -604,7 +604,7 @@ void DIntermissionScreenCast::Drawer ()
 			{
 				if (PlayerClasses[i].Type == mClass)
 				{
-					castsprite = skins[players[consoleplayer].userinfo.skin].sprite;
+					castsprite = skins[players[consoleplayer].userinfo.GetSkin()].sprite;
 				}
 			}
 		}

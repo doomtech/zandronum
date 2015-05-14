@@ -567,7 +567,7 @@ void BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot )
 //	lExpectedStackPosition = pBot->m_ScriptData.lStackPosition - g_BotCommands[Command].lNumArgs;
 
 	if ( botdebug_commands )
-		Printf( "bot %s command: %s\n", pBot->GetPlayer( )->userinfo.netname, g_BotCommands[Command].pszName );
+		Printf( "bot %s command: %s\n", pBot->GetPlayer( )->userinfo.GetName(), g_BotCommands[Command].pszName );
 	g_BotCommands[Command].pvFunction( pBot );
 
 //	if ( pBot->m_ScriptData.lStackPosition != lExpectedStackPosition )
@@ -637,32 +637,32 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 
 			if (( strnicmp( pszInString + 1, "player_damagedby", strlen( "player_damagedby" )) == 0 ) && ( pBot->m_ulLastPlayerDamagedBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulLastPlayerDamagedBy].userinfo.netname );
-				pszOutString += strlen ( players[pBot->m_ulLastPlayerDamagedBy].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
+				pszOutString += strlen ( players[pBot->m_ulLastPlayerDamagedBy].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_damagedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_enemy", strlen( "player_enemy" )) == 0 ) && ( pBot->m_ulPlayerEnemy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerEnemy].userinfo.netname );
-				pszOutString += strlen( players[pBot->m_ulPlayerEnemy].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
+				pszOutString += strlen( players[pBot->m_ulPlayerEnemy].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_enemy" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killedby", strlen( "player_killedby" )) == 0 ) && ( pBot->m_ulPlayerKilledBy != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilledBy].userinfo.netname );
-				pszOutString += strlen( players[pBot->m_ulPlayerKilledBy].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
+				pszOutString += strlen( players[pBot->m_ulPlayerKilledBy].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_killedby" );
 			}
 			else if (( strnicmp( pszInString + 1, "player_killed", strlen( "player_killed" )) == 0 ) && ( pBot->m_ulPlayerKilled != MAXPLAYERS ))
 			{
-				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilled].userinfo.netname );
-				pszOutString += strlen( players[pBot->m_ulPlayerKilled].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[pBot->m_ulPlayerKilled].userinfo.GetName() );
+				pszOutString += strlen( players[pBot->m_ulPlayerKilled].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_killed" );
@@ -681,8 +681,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.netname );
-				pszOutString += strlen( players[ulBestPlayer].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.GetName() );
+				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_inlead" );
@@ -701,8 +701,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 						ulBestPlayer = ulIdx;
 				}
 
-				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.netname );
-				pszOutString += strlen( players[ulBestPlayer].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[ulBestPlayer].userinfo.GetName() );
+				pszOutString += strlen( players[ulBestPlayer].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_lastplace" );
@@ -731,8 +731,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 					while (( ulPlayer == static_cast<unsigned> ( pBot->GetPlayer( ) - players )) || ( playeringame[ulPlayer] == false ));
 				}
 				
-				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.netname );
-				pszOutString += strlen( players[ulPlayer].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.GetName() );
+				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_random_notself" );
@@ -747,8 +747,8 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 				}
 				while ( playeringame[ulPlayer] == false );
 				
-				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.netname );
-				pszOutString += strlen( players[ulPlayer].userinfo.netname );
+				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.GetName() );
+				pszOutString += strlen( players[ulPlayer].userinfo.GetName() );
 				pszOutString += strlen( "\\c-" );
 
 				pszInString += strlen( "player_random" );
@@ -2371,7 +2371,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		PLAYER_SetTeam( pBot->GetPlayer( ), TEAM_ChooseBestTeamForPlayer( ), true );
 
-	Printf( "%s \\c-joined the game.\n", pBot->GetPlayer( )->userinfo.netname );
+	Printf( "%s \\c-joined the game.\n", pBot->GetPlayer( )->userinfo.GetName() );
 }
 
 //*****************************************************************************
@@ -2558,8 +2558,8 @@ static void botcmd_GetPlayerName( CSkullBot *pBot )
 	if (( lPlayer < 0 ) || ( lPlayer >= MAXPLAYERS ))
 		I_Error( "botcmd_GetPlayerName: Invalid player index, %d", static_cast<int> (lPlayer) );
 
-	if ( strlen( players[lPlayer].userinfo.netname ) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, "%s", players[lPlayer].userinfo.netname );
+	if ( strlen( players[lPlayer].userinfo.GetName() ) < BOTCMD_RETURNSTRING_SIZE )
+		sprintf( g_szReturnString, "%s", players[lPlayer].userinfo.GetName() );
 	else
 		g_szReturnString[0] = 0;
 }

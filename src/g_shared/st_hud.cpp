@@ -159,7 +159,7 @@ void DrawHUD_CoopInfo()
 		const bool drawLeft = ( playersDrawn % 2 == 0 );
 
 		// [BB] Draw player name.
-		drawString = players[i].userinfo.netname;
+		drawString = players[i].userinfo.GetName();
 		V_ColorizeString( drawString );
 		EColorRange nameColor = CR_GREY;
 		// [BB] If the player is on a team, use the team's text color.

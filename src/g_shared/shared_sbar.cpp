@@ -537,7 +537,7 @@ void DBaseStatusBar::ShowPlayerName ()
 	EColorRange color;
 
 	color = (CPlayer == &players[consoleplayer]) ? CR_GOLD : CR_GREEN;
-	AttachMessage (new DHUDMessageFadeOut (SmallFont, CPlayer->userinfo.netname,
+	AttachMessage (new DHUDMessageFadeOut (SmallFont, CPlayer->userinfo.GetName(),
 		1.5f, 0.92f, 0, 0, color, 2.f, 0.35f), MAKE_ID('P','N','A','M'));
 }
 
@@ -1800,7 +1800,7 @@ void DBaseStatusBar::DrawTargetName ()
 			strcpy(szDiplomacyStatus, "\\cqAlly");
 
 		// [BB] Be sure not to use szString as destination and as part of the argument!
-		sprintf(szString, "%s\\n%s", pTargetPlayer->userinfo.netname, szDiplomacyStatus);
+		sprintf(szString, "%s\\n%s", pTargetPlayer->userinfo.GetName(), szDiplomacyStatus);
 		V_ColorizeString(szString);
 
 		pMsg = new DHUDMessageFadeOut( SmallFont, szString,

@@ -196,7 +196,7 @@ void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 	unsigned int team = toucher->ulTeam;
 
 	PointOwners[point] = team;
-	Printf ( "%s\\c- has taken control of %s\n", toucher->userinfo.netname, (*level.info->SectorInfo.PointNames[point]).GetChars() );
+	Printf ( "%s\\c- has taken control of %s\n", toucher->userinfo.GetName(), (*level.info->SectorInfo.PointNames[point]).GetChars() );
 	for(unsigned int i = 0;i < level.info->SectorInfo.Points[point]->Size();i++)
 	{
 		unsigned int secnum = (*level.info->SectorInfo.Points[point])[i];

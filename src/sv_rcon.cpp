@@ -309,7 +309,7 @@ static void server_WriteUpdateInfo( BYTESTREAM_s *pByteStream, int iUpdateType )
 			{
 				FString		fsName;
 
-				fsName.Format( "%s", players[i].userinfo.netname );
+				fsName.Format( "%s", players[i].userinfo.GetName() );
 				V_RemoveColorCodes( fsName );
 				NETWORK_WriteString( pByteStream, fsName );
 			}

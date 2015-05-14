@@ -252,9 +252,9 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 		{
 			// [K6/BB] The server should let the clients know who exited the level.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_Printf( PRINT_HIGH, "%s \\c-exited the level.\n", self->player->userinfo.netname);
+				SERVER_Printf( PRINT_HIGH, "%s \\c-exited the level.\n", self->player->userinfo.GetName());
 			else
-				Printf ("%s \\c-exited the level.\n", self->player->userinfo.netname);
+				Printf ("%s \\c-exited the level.\n", self->player->userinfo.GetName());
 		}
 	}
 	return true;
@@ -960,7 +960,7 @@ void P_UpdateSpecials ()
 						if (( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) && ( players[consoleplayer].mo->CheckLocalView( lWinner )))
 							sprintf( szString, "YOU WIN!" );
 						else
-							sprintf( szString, "%s \\c-WINS!", players[lWinner].userinfo.netname );
+							sprintf( szString, "%s \\c-WINS!", players[lWinner].userinfo.GetName() );
 					}
 					V_ColorizeString( szString );
 

@@ -778,7 +778,7 @@ FString strbin1 (const char *start)
 //
 //==========================================================================
 
-void CleanseString(char *str)
+char *CleanseString(char *str)
 {
 	char *escape = strrchr(str, TEXTCOLOR_ESCAPE);
 	if (escape != NULL)
@@ -796,6 +796,7 @@ void CleanseString(char *str)
 			}
 		}
 	}
+	return str;
 }
 
 //==========================================================================

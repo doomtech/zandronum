@@ -286,7 +286,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
 
-		sprintf( szString, "%s \\c-WINS!", players[ulPlayer].userinfo.netname );
+		sprintf( szString, "%s \\c-WINS!", players[ulPlayer].userinfo.GetName() );
 		V_ColorizeString( szString );
 
 		// Display "%s WINS!" HUD message.

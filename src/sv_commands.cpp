@@ -106,10 +106,10 @@ class ClientIterator {
 			return false;
 		}
 
-		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_0 ) && ( players[_current].userinfo.ulConnectionType != 0 ) )
+		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_0 ) && ( players[_current].userinfo.GetConnectionType() != 0 ) )
 			return false;
 
-		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.ulConnectionType != 1 ) )
+		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.GetConnectionType() != 1 ) )
 			return false;
 
 		return true;
@@ -534,7 +534,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	command.addLong( players[ulPlayer].mo->y );
 	command.addLong( players[ulPlayer].mo->z );
 	command.addShort( players[ulPlayer].CurrentPlayerClass );
-	// command.addByte( players[ulPlayer].userinfo.PlayerClass );
+	// command.addByte( players[ulPlayer].userinfo.GetPlayerClassNum() );
 
 	if ( bMorph )
 		command.addShort( usActorNetworkIndex );
@@ -800,32 +800,32 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 	command.addShort( ulUserInfoFlags );
 
 	if ( ulUserInfoFlags & USERINFO_NAME )
-		command.addString( players[ulPlayer].userinfo.netname );
+		command.addString( players[ulPlayer].userinfo.GetName() );
 
 	if ( ulUserInfoFlags & USERINFO_GENDER )
-		command.addByte( players[ulPlayer].userinfo.gender );
+		command.addByte( players[ulPlayer].userinfo.GetGender() );
 
 	if ( ulUserInfoFlags & USERINFO_COLOR )
-		command.addLong( players[ulPlayer].userinfo.color );
+		command.addLong( players[ulPlayer].userinfo.GetColor() );
 
 	if ( ulUserInfoFlags & USERINFO_RAILCOLOR )
-		command.addByte( players[ulPlayer].userinfo.lRailgunTrailColor );
+		command.addByte( players[ulPlayer].userinfo.GetRailColor() );
 
 	if ( ulUserInfoFlags & USERINFO_SKIN )
 		command.addString( SERVER_GetClient( ulPlayer )->szSkin );
 
 	if ( ulUserInfoFlags & USERINFO_HANDICAP )
-		command.addByte( players[ulPlayer].userinfo.lHandicap );
+		command.addByte( players[ulPlayer].userinfo.GetHandicap() );
 
 	if ( ulUserInfoFlags & USERINFO_TICSPERUPDATE )
-		command.addByte( players[ulPlayer].userinfo.ulTicsPerUpdate );
+		command.addByte( players[ulPlayer].userinfo.GetTicsPerUpdate() );
 
 	if ( ulUserInfoFlags & USERINFO_CONNECTIONTYPE )
-		command.addByte( players[ulPlayer].userinfo.ulConnectionType );
+		command.addByte( players[ulPlayer].userinfo.GetConnectionType() );
 
 	// [CK] We use a bitfield now.
 	if ( ulUserInfoFlags & USERINFO_CLIENTFLAGS )
-		command.addByte( players[ulPlayer].userinfo.clientFlags );
+		command.addByte( players[ulPlayer].userinfo.GetClientFlags() );
 
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }

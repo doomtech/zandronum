@@ -224,7 +224,7 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgf
 	if (self->player == NULL || self->player->mo != self || !show_obituaries)
 		return;
 
-	gender = self->player->userinfo.gender;
+	gender = self->player->userinfo.GetGender();
 
 	// Treat voodoo dolls as unknown deaths
 	if (inflictor && inflictor->player && inflictor->player->mo != inflictor)
@@ -307,7 +307,7 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgf
 			// [BC] We'll do this elsewhere.
 //			attacker->player->fragcount -= 2;
 			self = attacker;
-			gender = self->player->userinfo.gender;
+			gender = self->player->userinfo.GetGender();
 			mysnprintf (gendermessage, countof(gendermessage), "OB_FRIENDLY%c", '1' + (pr_obituary() & 3));
 			message = GStrings(gendermessage);
 		}
@@ -364,18 +364,18 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, int dmgf
 
 	// [BC] Stop the color codes after we display a name in the obituary string.
 	if ( attacker && attacker->player )
-		sprintf( szAttacker, "%s\\c-", attacker->player->userinfo.netname );
+		sprintf( szAttacker, "%s\\c-", attacker->player->userinfo.GetName() );
 	else
 		szAttacker[0] = 0;
 
 	if ( self && self->player )
-		sprintf( szVictim, "%s\\c-", self->player->userinfo.netname );
+		sprintf( szVictim, "%s\\c-", self->player->userinfo.GetName() );
 	else
 		szVictim[0] = 0;
 
 	SexMessage (message, gendermessage, gender,
-		szVictim[0] ? szVictim : self->player->userinfo.netname,
-		szAttacker[0] ? szAttacker : attacker->player->userinfo.netname);
+		szVictim[0] ? szVictim : self->player->userinfo.GetName(),
+		szAttacker[0] ? szAttacker : attacker->player->userinfo.GetName());
 	Printf (PRINT_MEDIUM, "%s\n", gendermessage);
 }
 
@@ -611,7 +611,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						if ( teamplay && ( source->player->bOnTeam ))
 							SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", TEAM_GetName( source->player->ulTeam ));
 						else
-							SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", source->player->userinfo.netname );
+							SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", source->player->userinfo.GetName() );
 					}
 					else
 					{
@@ -619,7 +619,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						if ( teamplay && ( source->player->bOnTeam ))
 							Printf( "%s \\c-wins!\n", TEAM_GetName( source->player->ulTeam ));
 						else
-							Printf( "%s \\c-wins!\n", source->player->userinfo.netname );
+							Printf( "%s \\c-wins!\n", source->player->userinfo.GetName() );
 
 						if (( duel == false ) && ( source->player - players == consoleplayer ))
 							ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -649,7 +649,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						else if (( teamplay ) && ( source->player->bOnTeam ))
 							sprintf( szString, "\\c%c%s wins!\n", V_GetColorChar( TEAM_GetTextColor( source->player->ulTeam )), TEAM_GetName( source->player->ulTeam ));
 						else
-							sprintf( szString, "%s \\cGWINS!", players[source->player - players].userinfo.netname );
+							sprintf( szString, "%s \\cGWINS!", players[source->player - players].userinfo.GetName() );
 						V_ColorizeString( szString );
 
 						if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -912,7 +912,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						SCOREBOARD_DisplayFraggedMessage( source->player );
 					
 					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
-						G15_ShowLargeFragMessage( source->player->userinfo.netname, false );
+						G15_ShowLargeFragMessage( source->player->userinfo.GetName(), false );
 				}
 
 				// Display a large "You fragged <name>!" message in the middle of the screen.
@@ -922,7 +922,7 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						SCOREBOARD_DisplayFragMessage( player );
 					
 					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
-						G15_ShowLargeFragMessage( player->userinfo.netname, true );
+						G15_ShowLargeFragMessage( player->userinfo.GetName(), true );
 				}
 			}
 		}
@@ -2257,12 +2257,12 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVER_Printf( PRINT_HIGH, "Pointlimit hit.\n" );
-				SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", pPlayer->userinfo.netname );
+				SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", pPlayer->userinfo.GetName() );
 			}
 			else
 			{
 				Printf( "Pointlimit hit.\n" );
-				Printf( "%s \\c-wins!\n", pPlayer->userinfo.netname );
+				Printf( "%s \\c-wins!\n", pPlayer->userinfo.GetName() );
 
 				if ( pPlayer->mo->CheckLocalView( consoleplayer ))
 					ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -2272,7 +2272,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 			if (( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) && ( pPlayer->mo->CheckLocalView( consoleplayer )))
 				sprintf( szString, "YOU WIN!" );
 			else
-				sprintf( szString, "%s \\c-WINS!", pPlayer->userinfo.netname );
+				sprintf( szString, "%s \\c-WINS!", pPlayer->userinfo.GetName() );
 			V_ColorizeString( szString );
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -2408,7 +2408,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		// Player has changed his team! Tell clients.
 		if ( bBroadcastChange )
 		{
-			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\c%c%s \\c-team.\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( ulTeam ) ), TEAM_GetName( ulTeam )); 
+			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\c%c%s \\c-team.\n", pPlayer->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( ulTeam ) ), TEAM_GetName( ulTeam )); 
 		}		
 	}
 
@@ -2503,9 +2503,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 				{
 					// Send out a message saying this player joined the spectators.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+						SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
 					else
-						Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+						Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
 				}
 
 				// This player no longer has a team affiliation.
@@ -2615,9 +2615,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		{
 			// Send out a message saying this player joined the spectators.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+				SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
 			else
-				Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+				Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.GetName() );
 		}
 	}
 
@@ -2804,7 +2804,7 @@ void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 void PLAYER_GetName( player_t *pPlayer, char *pszOutBuf )
 {
 	// Build the buffer, which has a "remove color code" tag at the end of it.
-	sprintf( pszOutBuf, "%s\\c-", pPlayer->userinfo.netname );
+	sprintf( pszOutBuf, "%s\\c-", pPlayer->userinfo.GetName() );
 }
 
 //*****************************************************************************
@@ -3020,7 +3020,7 @@ bool PLAYER_Taunt( player_t *pPlayer )
 LONG PLAYER_GetRailgunColor( player_t *pPlayer )
 {
 	// Determine the railgun trail's color.
-	switch ( pPlayer->userinfo.lRailgunTrailColor )
+	switch ( pPlayer->userinfo.GetRailColor() )
 	{
 	case RAILCOLOR_BLUE:
 	default:

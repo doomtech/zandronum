@@ -354,7 +354,8 @@ player_t::player_t()
   bUnarmed( false )
 {
 	memset (&cmd, 0, sizeof(cmd));
-	memset (&userinfo, 0, sizeof(userinfo));
+	// [BB]
+	userinfo.Reset();
 	memset (psprites, 0, sizeof(psprites));
 
 	// [BC] Initialize additonal ST properties.
@@ -935,7 +936,7 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 void APlayerPawn::CheckWeaponSwitch(const PClass *ammotype)
 {
 	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && // [BC] Let clients decide if they want to switch weapons.
-		( player->userinfo.switchonpickup > 0 ) &&
+		( player->userinfo.GetSwitchOnPickup() > 0 ) &&
 		player->PendingWeapon == WP_NOCHANGE && 
 		(player->ReadyWeapon == NULL ||
 		 (player->ReadyWeapon->WeaponFlags & WIF_WIMPY_WEAPON)))
@@ -1124,15 +1125,15 @@ const char *APlayerPawn::GetSoundClass() const
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	if (( cl_skins == 1 ) || (( cl_skins >= 2 ) &&
 		( player != NULL ) &&
-		( player->userinfo.skin < static_cast<signed> (skins.Size()) ) &&
-		( skins[player->userinfo.skin].bCheat == false )))
+		( player->userinfo.GetSkin() < static_cast<signed> (skins.Size()) ) &&
+		( skins[player->userinfo.GetSkin()].bCheat == false )))
 	{
 		if (player != NULL &&
 		(player->mo == NULL || !(player->mo->flags4 &MF4_NOSKIN)) &&
-			(unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
-			(size_t)player->userinfo.skin < skins.Size())
+			(unsigned int)player->userinfo.GetSkin() >= PlayerClasses.Size () &&
+			(size_t)player->userinfo.GetSkin() < skins.Size())
 		{
-			return skins[player->userinfo.skin].name;
+			return skins[player->userinfo.GetSkin()].name;
 		}
 	}
 
@@ -1279,9 +1280,9 @@ void APlayerPawn::GiveDefaultInventory ()
 	player->lMaxHealthBonus = 0;
 
 	// [BC] If the user has chosen to handicap himself, do that now.
-	if (( deathmatch || teamgame || alwaysapplydmflags ) && player->userinfo.lHandicap )
+	if (( deathmatch || teamgame || alwaysapplydmflags ) && player->userinfo.GetHandicap() )
 	{
-		player->health -= player->userinfo.lHandicap;
+		player->health -= player->userinfo.GetHandicap();
 
 		// Don't allow player to be DOA.
 		if ( player->health <= 0 )
@@ -1537,7 +1538,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 			player->health = deh.MegasphereHealth;
 			player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "GreenArmor" ) );
-			player->health -= player->userinfo.lHandicap;
+			player->health -= player->userinfo.GetHandicap();
 
 			// Don't allow player to be DOA.
 			if ( player->health <= 0 )
@@ -1650,7 +1651,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 			player->health = deh.MegasphereHealth;
 			player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "SilverShield" ) );
-			player->health -= player->userinfo.lHandicap;
+			player->health -= player->userinfo.GetHandicap();
 
 			// Don't allow player to be DOA.
 			if ( player->health <= 0 )
@@ -2272,10 +2273,10 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 
 	// [BC] Because of cl_skins, we might not necessarily use the player's
 	// desired skin.
-	lSkin = player->userinfo.skin;
+	lSkin = player->userinfo.GetSkin();
 
 	// [BB] MF4_NOSKIN should force the player to have the base skin too, the same is true for morphed players.
-	if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))) || (actor->flags4 & MF4_NOSKIN) || player->morphTics )
+	if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.GetSkin()].bCheat ))) || (actor->flags4 & MF4_NOSKIN) || player->morphTics )
 		lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
 
 	// [BB] If the weapon has a PreferredSkin defined, make the player use it here.
@@ -2456,7 +2457,7 @@ void P_CalcHeight (player_t *player)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				player->bob = FixedMul( player->bob, 16384 );
 			else
-				player->bob = FixedMul (player->bob, player->userinfo.MoveBob);
+				player->bob = FixedMul (player->bob, player->userinfo.GetMoveBob());
 
 			// [BB] I've seen bob becoming negative for a high ping clients (250+) on low gravity servers (sv_gravity 200)
 			// when moving forward in the air for too long. Overflow problem? Nevertheless, setting negative values
@@ -2485,7 +2486,7 @@ void P_CalcHeight (player_t *player)
 			// [BC] We need to cap level.time, because if it gets too big, DivScale
 			// can crash.
 			angle = DivScale13 (level.time % 65536, 120*TICRATE/35) & FINEMASK;
-			bob = FixedMul (player->userinfo.StillBob, finesine[angle]);
+			bob = FixedMul (player->userinfo.GetStillBob(), finesine[angle]);
 		}
 		else
 		{
@@ -2968,7 +2969,7 @@ void P_DeathThink (player_t *player)
 
 	if ( level.time >= player->respawn_time )
 	{
-		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.clientFlags & CLIENTFLAGS_RESPAWNONFIRE ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
+		if (((( player->cmd.ucmd.buttons & BT_USE ) || ( ( player->userinfo.GetClientFlags() & CLIENTFLAGS_RESPAWNONFIRE ) && ( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
 			(( deathmatch || teamgame || alwaysapplydmflags ) &&
 			( dmflags & DF_FORCE_RESPAWN ))) && !(dmflags2 & DF2_NO_RESPAWN) )
 		{
@@ -2986,7 +2987,7 @@ void P_DeathThink (player_t *player)
 		}
 //		else if ( player->pSkullBot )
 //		{
-//			Printf( "WARNING! Bot %s dead and not hitting repawn in state %s!\n", player->userinfo.netname, player->pSkullBot->m_ScriptData.szStateName[player->pSkullBot->m_ScriptData.lCurrentStateIdx] );
+//			Printf( "WARNING! Bot %s dead and not hitting repawn in state %s!\n", player->userinfo.GetName(), player->pSkullBot->m_ScriptData.szStateName[player->pSkullBot->m_ScriptData.lCurrentStateIdx] );
 //		}
 	}
 /* [BB] For some reason Skulltag does this a little differently above. Todo: Unify this, to make merging ZDoom updates easier.
@@ -3046,13 +3047,13 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 
 	// [BB] In single player, allow the player to switch its class when changing from spectator to player.
 	if ( ( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) )
-		SinglePlayerClass[consoleplayer] = players[consoleplayer].userinfo.PlayerClass;
+		SinglePlayerClass[consoleplayer] = players[consoleplayer].userinfo.GetPlayerClassNum();
 
 	players[consoleplayer].playerstate = PST_ENTERNOINVENTORY;
 	players[consoleplayer].bSpectating = false;
 	players[consoleplayer].bDeadSpectator = false;
 	players[consoleplayer].camera = players[consoleplayer].mo;
-	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.netname );
+	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.GetName() );
 
 	// [BB] If players are supposed to be on teams, select one for the player now.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
@@ -3131,7 +3132,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		// Just print an error if a bot tried to spawn.
 		if ( player->pSkullBot )
 		{
-			Printf( "%s \\c-left: No player %td start\n", player->userinfo.netname, player - players + 1 );
+			Printf( "%s \\c-left: No player %td start\n", player->userinfo.GetName(), player - players + 1 );
 			BOTS_RemoveBot( player - players, false );
 			return;
 		}

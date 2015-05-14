@@ -499,9 +499,9 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 	// Create the console message.
 	if( ( bAssisted ) && ( ! bSelfAssisted ) )
-		sprintf(szString, "%s \\c-and %s\\c- scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
+		sprintf(szString, "%s \\c-and %s\\c- scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.GetName(), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 	else
-		sprintf(szString, "%s \\c-scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
+		sprintf(szString, "%s \\c-scored for the \\c%c%s \\c-team!\n", pPlayer->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
@@ -563,14 +563,14 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	}
 
 	// Create the "scored by / assisted by" message.
-	sprintf( szString, "\\c%cScored by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), pPlayer->userinfo.netname);
+	sprintf( szString, "\\c%cScored by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), pPlayer->userinfo.GetName());
 
 	if ( bAssisted )
 	{
 		if ( bSelfAssisted )
 			sprintf( szString + strlen ( szString ), "\\n\\c%c( Self-Assisted )", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ) );
 		else
-			sprintf( szString + strlen ( szString ), "\\n\\c%cAssisted by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
+			sprintf( szString + strlen ( szString ), "\\n\\c%cAssisted by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.GetName());
 	}
 	
 	V_ColorizeString( szString );
@@ -721,7 +721,7 @@ void TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ), ulTeamIdx );
-		SERVER_Printf( PRINT_MEDIUM, "%s \\c-lost the \\c%c%s \\c-%s.\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( ulTeamIdx)), TEAM_GetName( ulTeamIdx), ( skulltag ) ? "skull" : "flag" );
+		SERVER_Printf( PRINT_MEDIUM, "%s \\c-lost the \\c%c%s \\c-%s.\n", pPlayer->userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( ulTeamIdx)), TEAM_GetName( ulTeamIdx), ( skulltag ) ? "skull" : "flag" );
 		return;
 	}
 
@@ -1844,18 +1844,18 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 
 	// [BB] The random class is available to all players, P_SpawnPlayer needs to take 
 	// care of only selecting valid random classes.
-	if ( pPlayer->userinfo.PlayerClass == -1 )
+	if ( pPlayer->userinfo.GetPlayerClassNum() == -1 )
 		return;
 
 	// [BB] The additional checks prevent this from being done when there is only one class and while the map is loaded.
 	const bool forcerandom = ( sv_forcerandomclass && (PlayerClasses.Size () > 1) && ( gameaction == ga_nothing ) && PLAYER_IsValidPlayer ( static_cast<ULONG> ( pPlayer - players ) ) );
 
 	// [BB] The class is valid, nothing to do.
-	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) && ( ( forcerandom == false ) || ( pPlayer->userinfo.PlayerClass == -1 ) ) )
+	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.GetPlayerClassNum(), pPlayer ) && ( ( forcerandom == false ) || ( pPlayer->userinfo.GetPlayerClassNum() == -1 ) ) )
 		return;
 
 	// [BB] The current class is invalid, select a valid one.
-	pPlayer->userinfo.PlayerClass = forcerandom ? -1 : TEAM_FindValidClassForPlayer ( pPlayer );
+	pPlayer->userinfo.PlayerClassNumChanged ( forcerandom ? -1 : TEAM_FindValidClassForPlayer ( pPlayer ) );
 	// [BB] This should respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
 	pPlayer->playerstate = PST_REBORNNOINVENTORY;
@@ -2291,12 +2291,12 @@ CCMD( changeteam )
 		// Player was on a team, so tell everyone that he's changing teams.
 		if ( bOnTeam )
 		{
-			Printf( "%s \\c-defected to the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
+			Printf( "%s \\c-defected to the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
 		}
 		// Otherwise, tell everyone he's joining a team.
 		else
 		{
-			Printf( "%s \\c-joined the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
+			Printf( "%s \\c-joined the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.GetName(), V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
 		}
 
 		if ( players[consoleplayer].mo )

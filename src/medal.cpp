@@ -690,7 +690,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 			medalStatusString += "YOU HAVE NOT YET EARNED ANY MEDALS.";
 		else
 		{
-			medalStatusString += pPlayer->userinfo.netname;
+			medalStatusString += pPlayer->userinfo.GetName();
 			medalStatusString += " HAS NOT YET EARNED ANY MEDALS.";
 		}
 
@@ -719,7 +719,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 			medalStatusString += "YOU HAVE EARNED THE FOLLOWING MEDALS:";
 		else
 		{
-			medalStatusString += pPlayer->userinfo.netname;
+			medalStatusString += pPlayer->userinfo.GetName();
 			medalStatusString += " HAS EARNED THE FOLLOWING MEDALS:";
 		}
 

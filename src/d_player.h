@@ -281,6 +281,29 @@ enum
 // [BB] "+3" so that playernames can always be terminated by "\\c-"
 #define MAXPLAYERNAME	31+3
 
+// [GRB] Custom player classes
+enum
+{
+	PCF_NOMENU			= 1,	// Hide in new game menu
+};
+
+class FPlayerClass
+{
+public:
+	FPlayerClass ();
+	FPlayerClass (const FPlayerClass &other);
+	~FPlayerClass ();
+
+	bool CheckSkin (int skin);
+
+	const PClass *Type;
+	DWORD Flags;
+	TArray<int> Skins;
+};
+
+extern TArray<FPlayerClass> PlayerClasses;
+
+// User info (per-player copies of each CVAR_USERINFO cvar)
 enum
 {
 	GENDER_MALE,
@@ -288,34 +311,139 @@ enum
 	GENDER_NEUTER
 };
 
-struct userinfo_t
+struct userinfo_t : TMap<FName,FBaseCVar *>
 {
-	char		netname[MAXPLAYERNAME+1];
-	BYTE		team;
-	int			aimdist;
-	int			color;
-	int			colorset;
-	int			skin;
-	int			gender;
-	int			switchonpickup;
-	fixed_t		MoveBob, StillBob;
-	int			PlayerClass;
+	int GetAimDist() const
+	{
+		if (dmflags2 & DF2_NOAUTOAIM)
+		{
+			return 0;
+		}
 
-	int GetAimDist() const { return (dmflags2 & DF2_NOAUTOAIM)? 0 : aimdist; }
+		float aim = *static_cast<FFloatCVar *>(*CheckKey(NAME_Autoaim));
+		if (aim > 35 || aim < 0)
+		{
+			return ANGLE_1*35;
+		}
+		else
+		{
+			return xs_RoundToInt(fabs(aim * ANGLE_1));
+		}
+	}
+	const char *GetName() const
+	{
+		return *static_cast<FStringCVar *>(*CheckKey(NAME_Name));
+	}
+	int GetTeam() const
+	{
+		return *static_cast<FIntCVar *>(*CheckKey(NAME_Team));
+	}
+	int GetColorSet() const
+	{
+		// [BB] For now Zandronum doesn't let the player use the color sets.
+		//return *static_cast<FIntCVar *>(*CheckKey(NAME_ColorSet));
+		return -1;
+	}
+	uint32 GetColor() const
+	{
+		return *static_cast<FColorCVar *>(*CheckKey(NAME_Color));
+	}
+	// [BB] Changed to GetSwitchOnPickup
+	int GetSwitchOnPickup() const
+	{
+		return *static_cast<FBoolCVar *>(*CheckKey(NAME_SwitchOnPickup));
+	}
+	fixed_t GetMoveBob() const
+	{
+		return FLOAT2FIXED(*static_cast<FFloatCVar *>(*CheckKey(NAME_MoveBob)));
+	}
+	fixed_t GetStillBob() const
+	{
+		return FLOAT2FIXED(*static_cast<FFloatCVar *>(*CheckKey(NAME_StillBob)));
+	}
+	int GetPlayerClassNum() const
+	{
+		return *static_cast<FIntCVar *>(*CheckKey(NAME_PlayerClass));
+	}
+	const PClass *GetPlayerClassType() const
+	{
+		return PlayerClasses[GetPlayerClassNum()].Type;
+	}
+	int GetSkin() const
+	{
+		return *static_cast<FIntCVar *>(*CheckKey(NAME_Skin));
+	}
+	int GetGender() const
+	{
+		return *static_cast<FIntCVar *>(*CheckKey(NAME_Gender));
+	}
 
-	// [BC] New Skulltag userinfo settings.
-	LONG		lRailgunTrailColor;
-	LONG		lHandicap;
+	void Reset();
+	// [BB] Zandronum still uses its own team code.
+	//int TeamChanged(int team);
+	int SkinChanged(const char *skinname);
+	int SkinNumChanged(int skinnum);
+	int GenderChanged(const char *gendername);
+	int PlayerClassChanged(const char *classname);
+	int PlayerClassNumChanged(int classnum);
+	uint32 ColorChanged(const char *colorname);
+	uint32 ColorChanged(uint32 colorval);
+	int ColorSetChanged(int setnum);
 
-	// [BB] Let the user decide how often he wants the player positions to be updated.
-	ULONG		ulTicsPerUpdate;
-
-	// [BB] Let the user specify his connection type. This way we can try to save
-	// bandwidth on slow connections (possibly causing visual inaccuracies).
-	ULONG		ulConnectionType;
-
-	// [CK] Client flags for various booleans masked in a bitfield.
-	BYTE		clientFlags;
+	// [BB]
+	void NameChanged(const char *name);
+	int SwitchOnPickupChanged(int switchonpickup);
+	int GenderNumChanged(int gendernum);
+	int RailColorChanged(int railcolor);
+	int HandicapChanged(int handicap);
+	int TicsPerUpdateChanged(int ticsperupdate);
+	int ConnectionTypeChanged(int connectiontype);
+	int ClientFlagsChanged(int flags);
+	int GetRailColor() const 
+	{
+		if ( CheckKey(NAME_RailColor) != NULL )
+			return *static_cast<FIntCVar *>(*CheckKey(NAME_RailColor));
+		else {
+			Printf ( "Error: No RailColor key found!\n" );
+			return 0;
+		}
+	}
+	int GetHandicap() const
+	{
+		if ( CheckKey(NAME_Handicap) != NULL )
+			return *static_cast<FIntCVar *>(*CheckKey(NAME_Handicap));
+		else {
+			Printf ( "Error: No Handicap key found!\n" );
+			return 0;
+		}
+	}
+	int GetTicsPerUpdate() const
+	{
+		if ( CheckKey(NAME_CL_TicsPerUpdate) != NULL )
+			return *static_cast<FIntCVar *>(*CheckKey(NAME_CL_TicsPerUpdate));
+		else {
+			Printf ( "Error: No TicsPerUpdate key found!\n" );
+			return 0;
+		}
+	}
+	int GetConnectionType() const
+	{
+		if ( CheckKey(NAME_CL_ConnectionType) != NULL )
+			return *static_cast<FIntCVar *>(*CheckKey(NAME_CL_ConnectionType));
+		else {
+			Printf ( "Error: No ConnectionType key found!\n" );
+			return 0;
+		}
+	}
+	int GetClientFlags() const
+	{
+		if ( CheckKey(NAME_CL_ClientFlags) != NULL )
+			return *static_cast<FIntCVar *>(*CheckKey(NAME_CL_ClientFlags));
+		else {
+			Printf ( "Error: No ClientFlags key found!\n" );
+			return 0;
+		}
+	}
 };
 
 FArchive &operator<< (FArchive &arc, userinfo_t &info);
@@ -694,27 +822,5 @@ inline bool AActor::IsNoClip2() const
 #define CROUCHSPEED (FRACUNIT/12)
 
 bool P_IsPlayerTotallyFrozen(const player_t *player);
-
-// [GRB] Custom player classes
-enum
-{
-	PCF_NOMENU			= 1,	// Hide in new game menu
-};
-
-class FPlayerClass
-{
-public:
-	FPlayerClass ();
-	FPlayerClass (const FPlayerClass &other);
-	~FPlayerClass ();
-
-	bool CheckSkin (int skin);
-
-	const PClass *Type;
-	DWORD Flags;
-	TArray<int> Skins;
-};
-
-extern TArray<FPlayerClass> PlayerClasses;
 
 #endif // __D_PLAYER_H__

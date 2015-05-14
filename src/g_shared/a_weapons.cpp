@@ -386,7 +386,7 @@ void AWeapon::AttachToOwner (AActor *other)
 			//		(not sure how Zandronum behaves here in network game)
 			// Added code from Torr to fix NETSTATE_SINGLE_MULTIPLAYER
 			const bool dofpwo = (NETWORK_GetState() != NETSTATE_SERVER) &&
-				(Owner->player->userinfo.switchonpickup == 3) &&
+				(Owner->player->userinfo.GetSwitchOnPickup() == 3) &&
 				(Owner->player == &players[consoleplayer]);
 
 			// [BC] Decide which weapon to compare selection orders against.
@@ -398,7 +398,7 @@ void AWeapon::AttachToOwner (AActor *other)
 			// [ZZ] Changed code so it only treats switchonpickup == 2 as "always switch"
 			// [BC] Handle the "switchonpickup" userinfo cvar. If it's == 2, then
 			// we always want to switch our weapon when we pickup a new one.
-			if ( (Owner->player->userinfo.switchonpickup == 2) || ( zacompatflags & ZACOMPATF_OLD_WEAPON_SWITCH ) )
+			if ( (Owner->player->userinfo.GetSwitchOnPickup() == 2) || ( zacompatflags & ZACOMPATF_OLD_WEAPON_SWITCH ) )
 			{
 				// [Spleen] Weapon switching is done client-side unless it's a bot.
 				if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( Owner->player->bIsBot ) )
@@ -419,7 +419,7 @@ void AWeapon::AttachToOwner (AActor *other)
 			else if (( pCompareWeapon == NULL ) ||
 				// [ZZ] Added weapon order overriding by PWO settings
 				((dofpwo && PWO_CheckWeapons(pCompareWeapon, this)) ||
-				(!dofpwo && ( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder ))))
+				(!dofpwo && ( Owner->player->userinfo.GetSwitchOnPickup() == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder ))))
 			{
 				// [BB] Because of ST's special switchonpickup == 1 handling, we have to make sure here
 				// that we don't pick a powered up version, if we don't have a PowerWeaponLevel2 active.

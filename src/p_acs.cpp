@@ -7440,7 +7440,7 @@ scriptwait:
 				}
 				if (player)
 				{
-					work += player->userinfo.netname;
+					work += player->userinfo.GetName();
 				}
 				else if (activator)
 				{
@@ -9288,12 +9288,12 @@ scriptwait:
 				// [CW] PLAYERINFO_TEAM needs to use ulTeam rather than the one in userinfo_t.
 				case PLAYERINFO_TEAM:			STACK(2) = players[STACK( 2 )].ulTeam; break;
 				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->GetAimDist(); break;
-				case PLAYERINFO_COLOR:			STACK(2) = userinfo->color; break;
-				case PLAYERINFO_GENDER:			STACK(2) = userinfo->gender; break;
-				case PLAYERINFO_NEVERSWITCH:	STACK(2) = userinfo->switchonpickup; break;
-				case PLAYERINFO_MOVEBOB:		STACK(2) = userinfo->MoveBob; break;
-				case PLAYERINFO_STILLBOB:		STACK(2) = userinfo->StillBob; break;
-				case PLAYERINFO_PLAYERCLASS:	STACK(2) = userinfo->PlayerClass; break;
+				case PLAYERINFO_COLOR:			STACK(2) = userinfo->GetColor(); break;
+				case PLAYERINFO_GENDER:			STACK(2) = userinfo->GetGender(); break;
+				case PLAYERINFO_NEVERSWITCH:	STACK(2) = userinfo->GetSwitchOnPickup(); break;
+				case PLAYERINFO_MOVEBOB:		STACK(2) = userinfo->GetMoveBob(); break;
+				case PLAYERINFO_STILLBOB:		STACK(2) = userinfo->GetStillBob(); break;
+				case PLAYERINFO_PLAYERCLASS:	STACK(2) = userinfo->GetPlayerClassNum(); break;
 				case PLAYERINFO_DESIREDFOV:		STACK(2) = (int)pl->DesiredFOV; break;
 				case PLAYERINFO_FOV:			STACK(2) = (int)pl->FOV; break;
 				default:						STACK(2) = 0; break;
@@ -9806,7 +9806,7 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, cons
 				if (!(scriptdata->Flags & SCRIPTF_Net))
 				{
 					Printf(PRINT_BOLD, "%s tried to puke %s (\n",
-						who->player->userinfo.netname, ScriptPresentation(script).GetChars());
+						who->player->userinfo.GetName(), ScriptPresentation(script).GetChars());
 					for (int i = 0; i < argcount; ++i)
 					{
 						Printf(PRINT_BOLD, "%d%s", args[i], i == argcount-1 ? "" : ", ");

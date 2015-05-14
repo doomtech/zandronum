@@ -3607,9 +3607,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	memset( &pPlayer->cmd, 0, sizeof( pPlayer->cmd ));
 	if (( pPlayer - players ) != consoleplayer )
 	{
-		memset( &pPlayer->userinfo, 0, sizeof( pPlayer->userinfo ));
-		// [BB] For now Zandronum doesn't let the player use the color sets.
-		pPlayer->userinfo.colorset = -1;
+		pPlayer->userinfo.Reset();
 	}
 	memset( pPlayer->psprites, 0, sizeof( pPlayer->psprites ));
 
@@ -4099,7 +4097,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		PLAYER_ClearWeapon ( pPlayer );
 
 	// [GRB] Reset skin
-	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
+	pPlayer->userinfo.SkinNumChanged ( R_FindSkin (skins[pPlayer->userinfo.GetSkin()].name, pPlayer->CurrentPlayerClass) );
 
 	// [WS] Don't set custom skin color when the player is morphed.
 	// [BB] In team games (where we assume that all players are on a team), we allow the team color for morphed players.
@@ -4128,16 +4126,16 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 	else if ( cl_skins >= 2 )
 	{
-		if ( skins[pPlayer->userinfo.skin].bCheat )
+		if ( skins[pPlayer->userinfo.GetSkin()].bCheat )
 		{
 			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 			pActor->flags4 |= MF4_NOSKIN;
 		}
 		else
-			lSkin = pPlayer->userinfo.skin;
+			lSkin = pPlayer->userinfo.GetSkin();
 	}
 	else
-		lSkin = pPlayer->userinfo.skin;
+		lSkin = pPlayer->userinfo.GetSkin();
 
 	if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(skins.Size()) ))
 		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
@@ -4811,29 +4809,21 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	{
 		if ( strlen( szName ) > MAXPLAYERNAME )
 			szName[MAXPLAYERNAME] = '\0';
-		strcpy( pPlayer->userinfo.netname, szName );
-
-		// Remove % signs from names.
-		for ( ulIdx = 0; ulIdx < strlen( pPlayer->userinfo.netname ); ulIdx++ )
-		{
-			if ( pPlayer->userinfo.netname[ulIdx] == '%' )
-				pPlayer->userinfo.netname[ulIdx] = ' ';
-		}
+		pPlayer->userinfo.NameChanged ( szName );
 	}
 
 	// Other info.
-	// [BB] Make sure that the gender is valid.
 	if ( ulFlags & USERINFO_GENDER )
-		pPlayer->userinfo.gender = clamp ( static_cast<int>(lGender), 0, 2 );
+		pPlayer->userinfo.GenderNumChanged ( static_cast<int>(lGender) );
 	if ( ulFlags & USERINFO_COLOR )
-	    pPlayer->userinfo.color = lColor;
+	    pPlayer->userinfo.ColorChanged ( lColor );
 	if ( ulFlags & USERINFO_RAILCOLOR )
-		pPlayer->userinfo.lRailgunTrailColor = lRailgunTrailColor;
+		pPlayer->userinfo.RailColorChanged ( lRailgunTrailColor );
 
 	// Make sure the skin is valid.
 	if ( ulFlags & USERINFO_SKIN )
 	{
-		pPlayer->userinfo.skin = R_FindSkin( pszSkin, pPlayer->CurrentPlayerClass );
+		pPlayer->userinfo.SkinNumChanged ( R_FindSkin( pszSkin, pPlayer->CurrentPlayerClass ) );
 
 		// [BC] Handle cl_skins here.
 		if ( cl_skins <= 0 )
@@ -4844,17 +4834,17 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		}
 		else if ( cl_skins >= 2 )
 		{
-			if ( skins[pPlayer->userinfo.skin].bCheat )
+			if ( skins[pPlayer->userinfo.GetSkin()].bCheat )
 			{
 				lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 				if ( pPlayer->mo )
 					pPlayer->mo->flags4 |= MF4_NOSKIN;
 			}
 			else
-				lSkin = pPlayer->userinfo.skin;
+				lSkin = pPlayer->userinfo.GetSkin();
 		}
 		else
-			lSkin = pPlayer->userinfo.skin;
+			lSkin = pPlayer->userinfo.GetSkin();
 
 		if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(skins.Size()) ))
 			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
@@ -4869,23 +4859,17 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 
 	// Read in the player's handicap.
 	if ( ulFlags & USERINFO_HANDICAP )
-	{
-		pPlayer->userinfo.lHandicap = lHandicap;
-		if ( pPlayer->userinfo.lHandicap < 0 )
-			pPlayer->userinfo.lHandicap = 0;
-		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
-			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
-	}
+		pPlayer->userinfo.HandicapChanged ( lHandicap );
 
 	if ( ulFlags & USERINFO_TICSPERUPDATE )
-		pPlayer->userinfo.ulTicsPerUpdate = ulTicsPerUpdate;
+		pPlayer->userinfo.TicsPerUpdateChanged ( ulTicsPerUpdate );
 
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		pPlayer->userinfo.ulConnectionType = ulConnectionType;
+		pPlayer->userinfo.ConnectionTypeChanged ( ulConnectionType );
 
 	// [CK] We do compressed bitfields now.
 	if ( ulFlags & USERINFO_CLIENTFLAGS )
-		pPlayer->userinfo.clientFlags = clientFlags;
+		pPlayer->userinfo.ClientFlagsChanged ( clientFlags );
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( ulPlayer );
@@ -12368,7 +12352,7 @@ static void client_IgnorePlayer( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].bIgnoreChat = true;
 		players[ulPlayer].lIgnoreChatTicks = lTicks;
 
-		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.netname, players[ulPlayer].userinfo.gender == GENDER_MALE ? "his" : players[ulPlayer].userinfo.gender == GENDER_FEMALE ? "her" : "its" );
+		Printf( "%s\\c- will be ignored, because you're ignoring %s IP.\n", players[ulPlayer].userinfo.GetName(), players[ulPlayer].userinfo.GetGender() == GENDER_MALE ? "his" : players[ulPlayer].userinfo.GetGender() == GENDER_FEMALE ? "her" : "its" );
 	}
 }
 

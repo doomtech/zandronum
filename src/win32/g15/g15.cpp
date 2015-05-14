@@ -68,7 +68,7 @@
 	bool		G15_IsDeviceConnected( void );
 	void		G15_Deconstruct( void ) { }
 	void		G15_Printf( const char *pszString ) { }
-	void		G15_ShowLargeFragMessage( char *name, bool bWeFragged ) { }
+	void		G15_ShowLargeFragMessage( const char *name, bool bWeFragged ) { }
 #else
 
 #include "include/lcdwin32.h"
@@ -343,7 +343,7 @@ void G15_Printf( const char *pszString )
 
 //*****************************************************************************
 //
-void G15_ShowLargeFragMessage( char *name, bool bWeFragged )
+void G15_ShowLargeFragMessage( const char *name, bool bWeFragged )
 {
 	// Show the "you fragged!" / "you were fragged!" message.
 	g_ulMessageTicks = TICRATE * 2;

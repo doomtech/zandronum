@@ -515,7 +515,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			if ( playeringame[ulIdx] == false )
 				continue;
 
-			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, players[ulIdx].userinfo.netname );
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, players[ulIdx].userinfo.GetName() );
 			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].lPointCount );
 			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )

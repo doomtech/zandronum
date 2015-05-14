@@ -404,7 +404,7 @@ void SERVERBAN_BanPlayer( ULONG ulPlayer, const char *pszBanLength, const char *
 
 	// Removes the color codes from the player name, for the ban record.
 	char	szPlayerName[64];
-	sprintf( szPlayerName, "%s", players[ulPlayer].userinfo.netname );
+	sprintf( szPlayerName, "%s", players[ulPlayer].userinfo.GetName() );
 	V_RemoveColorCodes( szPlayerName );
 
 	// Add the ban and kick the player.
@@ -505,7 +505,7 @@ CCMD( getIP )
 	// Look up the player.
 	ULONG ulIdx = SERVER_GetPlayerIndexFromName( argv[1], true, false );
 	if ( SERVER_IsValidClient( ulIdx ))
-		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
+		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
 	else
 	{
 		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
@@ -536,9 +536,9 @@ CCMD( getIP_idx )
 		return;
 
 	if ( players[ulIdx].bIsBot )
-		Printf( "%s\\c- is a bot. ", players[ulIdx].userinfo.netname );
+		Printf( "%s\\c- is a bot. ", players[ulIdx].userinfo.GetName() );
 	else
-		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
+		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
 }
 
 //*****************************************************************************

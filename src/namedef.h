@@ -565,3 +565,23 @@ xx(Inter_Strife_Lose)
 xx(Inter_Strife_MAP03)
 xx(Inter_Strife_MAP10)
 xx(Multiplayer)
+
+// more stuff
+xx(ColorSet)
+// [BB] Changed to SwitchOnPickup
+xx(SwitchOnPickup)
+xx(MoveBob)
+xx(StillBob)
+xx(PlayerClass)
+xx(AutoAim)
+
+// [BB] Zandronum userinfo settings.
+xx(RailColor)
+xx(Handicap)
+// [BB] Let the user decide how often he wants the player positions to be updated.
+xx(CL_TicsPerUpdate)
+// [BB] Let the user specify his connection type. This way we can try to save
+// bandwidth on slow connections (possibly causing visual inaccuracies).
+xx(CL_ConnectionType)
+// [CK] Client flags for various booleans masked in a bitfield.
+xx(CL_ClientFlags)

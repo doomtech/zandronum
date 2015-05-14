@@ -111,7 +111,7 @@ int UNLAGGED_Gametic( player_t *player )
 	// gametic, since the loop is: 1) poll input 2) update world 3) render,
 	// which makes your client old by one gametic.
 	// [CK] If the client wants ping unlagged, use that.
-	int unlaggedGametic = ( players[playerNum].userinfo.clientFlags & CLIENTFLAGS_PING_UNLAGGED ) ?
+	int unlaggedGametic = ( players[playerNum].userinfo.GetClientFlags() & CLIENTFLAGS_PING_UNLAGGED ) ?
 							gametic - ( player->ulPing * TICRATE / 1000 ) :
 							pClient->lLastServerGametic + 1;
 
@@ -138,7 +138,7 @@ void UNLAGGED_Reconcile( AActor *actor )
 	//Only do anything if the actor to be reconciled is a player,
 	//it's on a server with unlagged on, and reconciliation is not being blocked
 	if ( !actor->player || (NETWORK_GetState() != NETSTATE_SERVER) || ( zadmflags & ZADF_NOUNLAGGED ) ||
-		 ( ( actor->player->userinfo.clientFlags & CLIENTFLAGS_UNLAGGED ) == 0 ) || ( reconciliationBlockers > 0 ) )
+		 ( ( actor->player->userinfo.GetClientFlags() & CLIENTFLAGS_UNLAGGED ) == 0 ) || ( reconciliationBlockers > 0 ) )
 		return;
 
 	//Something went wrong, reconciliation was attempted when the gamestate
@@ -350,7 +350,7 @@ bool UNLAGGED_DrawRailClientside ( AActor *attacker )
 		return false;
 
 	// [BB] Rails are only client side when unlagged is on.
-	if ( ( zadmflags & ZADF_NOUNLAGGED ) || ( ( attacker->player->userinfo.clientFlags & CLIENTFLAGS_UNLAGGED ) == 0 ) )
+	if ( ( zadmflags & ZADF_NOUNLAGGED ) || ( ( attacker->player->userinfo.GetClientFlags() & CLIENTFLAGS_UNLAGGED ) == 0 ) )
 		return false;
 
 	// [BB] A client should only draw rails for its own player.

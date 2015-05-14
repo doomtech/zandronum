@@ -381,7 +381,7 @@ void AActor::Serialize (FArchive &arc)
 				!(flags4 & MF4_NOSKIN) &&
 				state->sprite == GetDefaultByType (player->cls)->SpawnState->sprite)
 			{ // Give player back the skin
-				sprite = skins[player->userinfo.skin].sprite;
+				sprite = skins[player->userinfo.GetSkin()].sprite;
 			}
 			if (Speed == 0)
 			{
@@ -533,9 +533,9 @@ bool AActor::SetState (FState *newstate, bool nofunction)
 				// for Dehacked, I would move sprite changing out of the states
 				// altogether, since actors rarely change their sprites after
 				// spawning.
-					if (player != NULL && ( skins.Size() > static_cast<unsigned int> ( player->userinfo.skin ) ) ) // [BB] Adapted the skins check
+					if (player != NULL && ( skins.Size() > static_cast<unsigned int> ( player->userinfo.GetSkin() ) ) ) // [BB] Adapted the skins check
 					{
-						sprite = skins[player->userinfo.skin].sprite;
+						sprite = skins[player->userinfo.GetSkin()].sprite;
 					}
 					else if (newsprite != prevsprite)
 					{
@@ -1238,8 +1238,8 @@ bool AActor::IsVisibleToPlayer() const
 		return true;
  
 	// [BB] We continue to use our old team visibility check.
-	//if ( VisibleToTeam != 0 && teamplay &&
-	//	VisibleToTeam-1 != players[consoleplayer].userinfo.team )
+	//if (VisibleToTeam != 0 && teamplay &&
+	//	VisibleToTeam-1 != players[consoleplayer].userinfo.GetTeam())
 	if ( TEAM_IsActorVisibleToPlayer( this, players[consoleplayer].camera->player ) == false )
 		return false;
 
@@ -1397,11 +1397,12 @@ bool AActor::Grind(bool items)
 				// their own, they have to mark them as CLIENTSIDEONLY.
 				if( NETWORK_InClientMode( ) )
 					gib->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+
+				PalEntry bloodcolor = GetBloodColor();
+				if (bloodcolor != 0)
+					gib->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
 			}
 			S_Sound (this, CHAN_BODY, "misc/fallingsplat", 1, ATTN_IDLE);
-
-			PalEntry bloodcolor = GetBloodColor();
-			if (bloodcolor!=0) gib->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
 		}
 		if (flags & MF_ICECORPSE)
 		{
@@ -5312,10 +5313,10 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	// Thus we need to keep track of the old class.
 	const BYTE oldPlayerClass = p->CurrentPlayerClass;
 
-	// [BB] The (p->userinfo.PlayerClass != p->CurrentPlayerClass) check allows the player to change its class when respawning.
+	// [BB] The (p->userinfo.GetPlayerClassNum() != p->CurrentPlayerClass) check allows the player to change its class when respawning.
 	// We have to make sure though that the class is not changed when traveling from one map to the next, because a travelling
 	// player gets its inventory from the last map (which of course belongs to the previous class) after being spawned completely.
-	if (p->cls == NULL || ( (p->userinfo.PlayerClass != p->CurrentPlayerClass) && ( p->playerstate != PST_LIVE ) ) )
+	if (p->cls == NULL || ( (p->userinfo.GetPlayerClassNum() != p->CurrentPlayerClass) && ( p->playerstate != PST_LIVE ) ) )
 	{
 		// [GRB] Pick a class from player class list
 		if (PlayerClasses.Size () > 1)
@@ -5330,7 +5331,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 			}
 			else
 			{
-				type = p->userinfo.PlayerClass;
+				type = p->userinfo.GetPlayerClassNum();
 				if (type < 0)
 				{
 					// [BB] If the player is on a team, only a class valid for this team may be selected.
@@ -5421,8 +5422,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	}
 
 	// [GRB] Reset skin
-	p->userinfo.skin = R_FindSkin (skins[p->userinfo.skin].name, p->CurrentPlayerClass);
-
+	p->userinfo.SkinNumChanged(R_FindSkin (skins[p->userinfo.GetSkin()].name, p->CurrentPlayerClass));
 
 	if (!(mobj->flags2 & MF2_DONTTRANSLATE))
 	{
@@ -5451,16 +5451,16 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	}
 	else if ( cl_skins >= 2 )
 	{
-		if ( skins[p->userinfo.skin].bCheat )
+		if ( skins[p->userinfo.GetSkin()].bCheat )
 		{
 			lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 			mobj->flags4 |= MF4_NOSKIN;
 		}
 		else
-			lSkin = p->userinfo.skin;
+			lSkin = p->userinfo.GetSkin();
 	}
 	else
-		lSkin = p->userinfo.skin;
+		lSkin = p->userinfo.GetSkin();
 
 	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= skins.Size() ))
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
@@ -6317,7 +6317,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 					// [CK] If the player is the source, and the player fired a
 					// puff with +NONETID, and the player wants to predict puffs
 					// then we won't send them this command.
-					if ( ( activatorPlayerNumber == ulPlayer ) && ( puff->ulNetworkFlags & NETFL_NONETID ) && ( source->player->userinfo.clientFlags & CLIENTFLAGS_CLIENTSIDEPUFFS ) )
+					if ( ( activatorPlayerNumber == ulPlayer ) && ( puff->ulNetworkFlags & NETFL_NONETID ) && ( source->player->userinfo.GetClientFlags() & CLIENTFLAGS_CLIENTSIDEPUFFS ) )
 						continue;
 
 					SERVERCOMMANDS_SpawnThingNoNetID( puff, ulPlayer, SVCF_ONLYTHISCLIENT );

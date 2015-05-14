@@ -303,24 +303,24 @@ void CLIENTDEMO_WriteUserInfo( void )
 	// First, make sure we have enough space to write this command. If not, add
 	// more space.
 	clientdemo_CheckDemoBuffer( 18 +
-		(ULONG)strlen( players[consoleplayer].userinfo.netname ) +
-		(ULONG)strlen( skins[players[consoleplayer].userinfo.skin].name ) +
+		(ULONG)strlen( players[consoleplayer].userinfo.GetName() ) +
+		(ULONG)strlen( skins[players[consoleplayer].userinfo.GetSkin()].name ) +
 		(ULONG)strlen( PlayerClasses[players[consoleplayer].CurrentPlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName )));
 
 	// Write the header.
 	NETWORK_WriteByte( &g_ByteStream, CLD_USERINFO );
 
 	// Write the player's userinfo.
-	NETWORK_WriteString( &g_ByteStream, players[consoleplayer].userinfo.netname );
-	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.gender );
-	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.color );
-	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.aimdist );
-	NETWORK_WriteString( &g_ByteStream, skins[players[consoleplayer].userinfo.skin].name );
-	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.lRailgunTrailColor );
-	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.lHandicap );
-	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.ulTicsPerUpdate );
-	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.ulConnectionType );
-	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.clientFlags ); // [CK] List of booleans
+	NETWORK_WriteString( &g_ByteStream, players[consoleplayer].userinfo.GetName() );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.GetGender() );
+	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.GetColor() );
+	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.GetAimDist() );
+	NETWORK_WriteString( &g_ByteStream, skins[players[consoleplayer].userinfo.GetSkin()].name );
+	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.GetRailColor() );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.GetHandicap() );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.GetTicsPerUpdate() );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.GetConnectionType() );
+	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.GetClientFlags() ); // [CK] List of booleans
 	NETWORK_WriteString( &g_ByteStream, PlayerClasses[players[consoleplayer].CurrentPlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName ));
 }
 
@@ -328,18 +328,19 @@ void CLIENTDEMO_WriteUserInfo( void )
 //
 void CLIENTDEMO_ReadUserInfo( void )
 {
-	sprintf( players[consoleplayer].userinfo.netname, "%s", NETWORK_ReadString( &g_ByteStream ));
+	userinfo_t &info = players[consoleplayer].userinfo;
+	*static_cast<FStringCVar *>(info[NAME_Name]) =  NETWORK_ReadString( &g_ByteStream );
 	// [BB] Make sure that the gender is valid.
-	players[consoleplayer].userinfo.gender = clamp ( NETWORK_ReadByte( &g_ByteStream ), 0, 2 );
-	players[consoleplayer].userinfo.color = NETWORK_ReadLong( &g_ByteStream );
-	players[consoleplayer].userinfo.aimdist = NETWORK_ReadLong( &g_ByteStream );
-	players[consoleplayer].userinfo.skin = R_FindSkin( NETWORK_ReadString( &g_ByteStream ), players[consoleplayer].CurrentPlayerClass );
-	players[consoleplayer].userinfo.lRailgunTrailColor = NETWORK_ReadLong( &g_ByteStream );
-	players[consoleplayer].userinfo.lHandicap = NETWORK_ReadByte( &g_ByteStream );
-	players[consoleplayer].userinfo.ulTicsPerUpdate = NETWORK_ReadByte( &g_ByteStream );
-	players[consoleplayer].userinfo.ulConnectionType = NETWORK_ReadByte( &g_ByteStream );
-	players[consoleplayer].userinfo.clientFlags = NETWORK_ReadByte( &g_ByteStream ); // [CK] Client booleans
-	players[consoleplayer].userinfo.PlayerClass = D_PlayerClassToInt( NETWORK_ReadString( &g_ByteStream ));
+	*static_cast<FIntCVar *>(info[NAME_Gender]) = clamp ( NETWORK_ReadByte( &g_ByteStream ), 0, 2 );
+	info.ColorChanged( NETWORK_ReadLong( &g_ByteStream ) );
+	*static_cast<FFloatCVar *>(info[NAME_AutoAim]) = static_cast<float> ( NETWORK_ReadLong( &g_ByteStream ) ) / ANGLE_1 ;
+	*static_cast<FIntCVar *>(info[NAME_Skin]) = R_FindSkin( NETWORK_ReadString( &g_ByteStream ), players[consoleplayer].CurrentPlayerClass );
+	*static_cast<FIntCVar *>(info[NAME_RailColor]) = NETWORK_ReadLong( &g_ByteStream );
+	*static_cast<FIntCVar *>(info[NAME_Handicap]) = NETWORK_ReadByte( &g_ByteStream );
+	info.TicsPerUpdateChanged ( NETWORK_ReadByte( &g_ByteStream ) );
+	info.ConnectionTypeChanged ( NETWORK_ReadByte( &g_ByteStream ) );
+	info.ClientFlagsChanged ( NETWORK_ReadByte( &g_ByteStream ) ); // [CK] Client booleans
+	info.PlayerClassChanged ( NETWORK_ReadString( &g_ByteStream ));
 
 	R_BuildPlayerTranslation( consoleplayer );
 	if ( StatusBar )
@@ -352,9 +353,9 @@ void CLIENTDEMO_ReadUserInfo( void )
 			players[consoleplayer].mo->state->sprite ==
 			GetDefaultByType (players[consoleplayer].cls)->SpawnState->sprite)
 		{ // Only change the sprite if the player is using a standard one
-			players[consoleplayer].mo->sprite = skins[players[consoleplayer].userinfo.skin].sprite;
-			players[consoleplayer].mo->scaleX = skins[players[consoleplayer].userinfo.skin].ScaleX;
-			players[consoleplayer].mo->scaleY = skins[players[consoleplayer].userinfo.skin].ScaleY;
+			players[consoleplayer].mo->sprite = skins[players[consoleplayer].userinfo.GetSkin()].sprite;
+			players[consoleplayer].mo->scaleX = skins[players[consoleplayer].userinfo.GetSkin()].ScaleX;
+			players[consoleplayer].mo->scaleY = skins[players[consoleplayer].userinfo.GetSkin()].ScaleY;
 		}
 	}
 }

@@ -606,12 +606,12 @@ void PlayerIsGone (int netnode, int netconsole)
 	if (deathmatch)
 	{
 		Printf ("%s left the game with %d frags\n",
-					players[netconsole].userinfo.netname,
-					players[netconsole].fragcount);
+			players[netconsole].userinfo.GetName(),
+			players[netconsole].fragcount);
 	}
 	else
 	{
-		Printf ("%s left the game\n", players[netconsole].userinfo.netname);
+		Printf ("%s left the game\n", players[netconsole].userinfo.GetName());
 	}
 
 	// [RH] Revert each player to their own view if spying through the player who left
@@ -653,7 +653,7 @@ void PlayerIsGone (int netnode, int netconsole)
 			{
 				Net_Arbitrator = i;
 				players[i].settings_controller = true;
-				Printf ("%s is the new arbitrator\n", players[i].userinfo.netname);
+				Printf ("%s is the new arbitrator\n", players[i].userinfo.GetName());
 				break;
 			}
 		}
@@ -1382,7 +1382,7 @@ bool DoArbitrate (void *userdata)
 				data->playersdetected[0] |= 1 << netbuffer[1];
 
 				StartScreen->NetMessage ("Found %s (node %d, player %d)",
-						players[netbuffer[1]].userinfo.netname,
+						players[netbuffer[1]].userinfo.GetName(),
 						node, netbuffer[1]+1);
 			}
 		}
@@ -2417,7 +2417,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 			players[playernum].settings_controller = true;
 
 			if (consoleplayer == playernum || consoleplayer == Net_Arbitrator)
-				Printf ("%s has been added to the controller list.\n", players[playernum].userinfo.netname);
+				Printf ("%s has been added to the controller list.\n", players[playernum].userinfo.GetName());
 		}
 		break;
 
@@ -2427,7 +2427,7 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 			players[playernum].settings_controller = false;
 
 			if (consoleplayer == playernum || consoleplayer == Net_Arbitrator)
-				Printf ("%s has been removed from the controller list.\n", players[playernum].userinfo.netname);
+				Printf ("%s has been removed from the controller list.\n", players[playernum].userinfo.GetName());
 		}
 		break;
 
@@ -2678,7 +2678,7 @@ CCMD (pings)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 			Printf ("% 4d %s\n", /*[BB] currrecvtime[i] - lastrecvtime[i]*/ static_cast<int>( players[i].ulPing ),
-					players[i].userinfo.netname);
+					players[i].userinfo.GetName());
 }
 /* [BB] ST has no need for this.
 //==========================================================================
@@ -2700,13 +2700,13 @@ static void Network_Controller (int playernum, bool add)
 
 	if (players[playernum].settings_controller && add)
 	{
-		Printf ("%s is already on the setting controller list.\n", players[playernum].userinfo.netname);
+		Printf ("%s is already on the setting controller list.\n", players[playernum].userinfo.GetName());
 		return;
 	}
 
 	if (!players[playernum].settings_controller && !add)
 	{
-		Printf ("%s is not on the setting controller list.\n", players[playernum].userinfo.netname);
+		Printf ("%s is not on the setting controller list.\n", players[playernum].userinfo.GetName());
 		return;
 	}
 
@@ -2805,7 +2805,7 @@ CCMD (net_listcontrollers)
 
 		if (players[i].settings_controller)
 		{
-			Printf ("- %s\n", players[i].userinfo.netname);
+			Printf ("- %s\n", players[i].userinfo.GetName());
 		}
 	}
 }

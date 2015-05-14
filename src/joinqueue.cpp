@@ -147,10 +147,10 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 			if ( lWinner != -1 )
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", players[lWinner].userinfo.netname );
+					SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
 				else
 				{
-					Printf( "%s \\c-wins!\n", players[lWinner].userinfo.netname );
+					Printf( "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
 
 					if ( lWinner == consoleplayer )
 						ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -311,9 +311,9 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 			else
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_Printf( PRINT_HIGH, "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.netname );
+					SERVER_Printf( PRINT_HIGH, "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.GetName() );
 				else
-					Printf( "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.netname );
+					Printf( "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.GetName() );
 			}
 
 			JOINQUEUE_RemovePlayerAtPosition ( ulIdx );
@@ -423,7 +423,7 @@ void JOINQUEUE_PrintQueue( void )
 		{
 			player_t* pPlayer = &players[ulIdx];
 			bQueueEmpty = false;
-			Printf ( "%02lu - %s", ulIdx + 1, pPlayer->userinfo.netname );
+			Printf ( "%02lu - %s", ulIdx + 1, pPlayer->userinfo.GetName() );
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 				Printf ( " - %s", TEAM_CheckIfValid ( g_lJoinQueue[ulIdx].ulTeam ) ? TEAM_GetName ( g_lJoinQueue[ulIdx].ulTeam ) : "auto team selection" );
 			Printf ( "\n" );

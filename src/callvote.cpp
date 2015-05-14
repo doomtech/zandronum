@@ -229,9 +229,9 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 	{
 		FString	ReasonBlurb = ( g_VoteReason.Len( )) ? ( ", reason: \"" + g_VoteReason + "\"" ) : "";
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			Printf( "%s\\c- (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
+			Printf( "%s\\c- (%s) has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 		else
-			Printf( "%s\\c- has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.netname, g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
+			Printf( "%s\\c- has called a vote (\"%s\"%s).\n", players[ulPlayer].userinfo.GetName(), g_VoteCommand.GetChars(), ReasonBlurb.GetChars() );
 	}
 
 	g_VoteState = VOTESTATE_INVOTE;
@@ -326,9 +326,9 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+		Printf( "%s\\c- (%s) votes \"yes\".\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
 	else
-		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.netname );
+		Printf( "%s\\c- votes \"yes\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -427,9 +427,9 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 
 	// Display the message in the console.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
+		Printf( "%s\\c- (%s) votes \"no\".\n", players[ulPlayer].userinfo.GetName(), NETWORK_AddressToString( SERVER_GetClient( ulPlayer )->Address ));
 	else
-		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.netname );
+		Printf( "%s\\c- votes \"no\".\n", players[ulPlayer].userinfo.GetName() );
 
 	// Nothing more to do here for clients.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||

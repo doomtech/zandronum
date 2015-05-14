@@ -176,10 +176,10 @@ void LASTMANSTANDING_Tick( void )
 				if ( lWinner != -1 )
 				{
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", players[lWinner].userinfo.netname );
+						SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
 					else
 					{
-						Printf( "%s \\c-wins!\n", players[lWinner].userinfo.netname );
+						Printf( "%s \\c-wins!\n", players[lWinner].userinfo.GetName() );
 
 						if ( lWinner == consoleplayer )
 							ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -488,7 +488,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 		else if ( ulWinner == MAXPLAYERS )
 			sprintf( szString, "\\cdDRAW GAME!" );
 		else
-			sprintf( szString, "%s \\c-WINS!", players[ulWinner].userinfo.netname );
+			sprintf( szString, "%s \\c-WINS!", players[ulWinner].userinfo.GetName() );
 		V_ColorizeString( szString );
 
 		// Display "%s WINS!" HUD message.
