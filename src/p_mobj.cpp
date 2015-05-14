@@ -1327,7 +1327,7 @@ bool AActor::Grind(bool items)
 		// ZDoom behavior differs from standard as crushed corpses cannot be raised.
 		// The reason for the change was originally because of a problem with players,
 		// see rh_log entry for February 21, 1999. Don't know if it is still relevant.
-		if (state == NULL 												// Only use the default crushed state if:
+		if (state == NULL 									// Only use the default crushed state if:
 			&& !(flags & MF_NOBLOOD)						// 1. the monster bleeeds,
 			&& (i_compatflags & COMPATF_CORPSEGIBS)			// 2. the compat setting is on,
 			&& player == NULL)								// 3. and the thing isn't a player.
@@ -1426,25 +1426,6 @@ bool AActor::Grind(bool items)
 		{
 			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
 			HideOrDestroyIfSafe ();
-		}
-		return false;		// keep checking
-	}
-
-	// crunch dropped items
-	if (flags & MF_DROPPED)
-	{
-		if (items) // Destroy (); // Only destroy dropped items if wanted
-		{
-			// [BC] If we're the server, tell clients to destroy this item.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DestroyThing( this );
-
-			// [BC] Don't destroy items in client mode; the server will tell us to.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			{
-				// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
-				this->HideOrDestroyIfSafe ();
-			}
 		}
 		return false;		// keep checking
 	}

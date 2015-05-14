@@ -586,6 +586,42 @@ void AInventory::BeginPlay ()
 
 //===========================================================================
 //
+// AInventory :: Grind
+//
+//===========================================================================
+
+bool AInventory::Grind(bool items)
+{
+	// Does this grind request even care about items?
+	if (!items)
+	{
+		return false;
+	}
+	// Dropped items are normally destroyed by crushers. Set the DONTGIB flag,
+	// and they'll act like corpses with it set and be immune to crushers.
+	if (flags & MF_DROPPED)
+	{
+		if (!(flags3 & MF3_DONTGIB))
+		{
+			// [BC] If we're the server, tell clients to destroy this item.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( this );
+
+			// [BC] Don't destroy items in client mode; the server will tell us to.
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			{
+				// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+				this->HideOrDestroyIfSafe ();
+			}
+		}
+		return false;
+	}
+	// Non-dropped items call the super method for compatibility.
+	return Super::Grind(items);
+}
+
+//===========================================================================
+//
 // AInventory :: DoEffect
 //
 // Handles any effect an item might apply to its owner
