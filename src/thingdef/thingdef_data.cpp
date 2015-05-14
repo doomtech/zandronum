@@ -55,10 +55,10 @@ static TArray<FVariableInfo*> variables;
 //==========================================================================
 
 // [RH] Keep GCC quiet by not using offsetof on Actor types.
-#define DEFINE_FLAG(prefix, name, type, variable) { prefix##_##name, #name, (int)(size_t)&((type*)1)->variable - 1 }
-#define DEFINE_FLAG2(symbol, name, type, variable) { symbol, #name, (int)(size_t)&((type*)1)->variable - 1 }
-#define DEFINE_DEPRECATED_FLAG(name) { DEPF_##name, #name, -1 }
-#define DEFINE_DUMMY_FLAG(name) { DEPF_UNUSED, #name, -1 }
+#define DEFINE_FLAG(prefix, name, type, variable) { prefix##_##name, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
+#define DEFINE_FLAG2(symbol, name, type, variable) { symbol, #name, (int)(size_t)&((type*)1)->variable - 1, sizeof(((type *)0)->variable) }
+#define DEFINE_DEPRECATED_FLAG(name) { DEPF_##name, #name, -1, 0 }
+#define DEFINE_DUMMY_FLAG(name) { DEPF_UNUSED, #name, -1, 0 }
 
 static FFlagDef ActorFlags[]=
 {
@@ -275,6 +275,7 @@ static FFlagDef ActorFlags[]=
 	DEFINE_FLAG2(BOUNCE_ExplodeOnWater, EXPLODEONWATER, AActor, BounceFlags),
 	DEFINE_FLAG2(BOUNCE_MBF, MBFBOUNCER, AActor, BounceFlags),
 	DEFINE_FLAG2(BOUNCE_AutoOffFloorOnly, BOUNCEAUTOOFFFLOORONLY, AActor, BounceFlags),
+	DEFINE_FLAG2(BOUNCE_UseBounceState, USEBOUNCESTATE, AActor, BounceFlags),
 
 	// Deprecated flags. Handling must be performed in HandleDeprecatedFlags
 	DEFINE_DEPRECATED_FLAG(FIREDAMAGE),
