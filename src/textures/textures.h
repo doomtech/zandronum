@@ -218,6 +218,7 @@ public:
 		TEX_FontChar,
 		TEX_Override,	// For patches between TX_START/TX_END
 		TEX_Autopage,	// Automap background - used to enable the use of FAutomapTexture
+		TEX_SkinGraphic,
 		TEX_Null,
 		TEX_FirstDefined,
 	};
@@ -433,6 +434,7 @@ public:
 		TEXMAN_TryAny = 1,
 		TEXMAN_Overridable = 2,
 		TEXMAN_ReturnFirst = 4,
+		TEXMAN_AllowSkins = 8
 	};
 
 	FTextureID CheckForTexture (const char *name, int usetype, BITFIELD flags=TEXMAN_TryAny);
