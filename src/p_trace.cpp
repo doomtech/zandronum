@@ -50,7 +50,8 @@ struct FTraceInfo
 	sector_t *CurSector;
 	fixed_t MaxDist;
 	fixed_t EnterDist;
-	bool (*TraceCallback)(FTraceResults &res);
+	ETraceStatus (*TraceCallback)(FTraceResults &res, void *data);
+	void *TraceCallbackData;
 	DWORD TraceFlags;
 	int inshootthrough;
 
@@ -73,7 +74,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 			fixed_t vx, fixed_t vy, fixed_t vz, fixed_t maxDist,
 			DWORD actorMask, DWORD wallMask, AActor *ignore,
 			FTraceResults &res,
-			DWORD flags, bool (*callback)(FTraceResults &res))
+			DWORD flags, ETraceStatus (*callback)(FTraceResults &res, void *), void *callbackdata)
 {
 	int ptflags;
 	FTraceInfo inf;
@@ -93,6 +94,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 	inf.MaxDist = maxDist;
 	inf.EnterDist = 0;
 	inf.TraceCallback = callback;
+	inf.TraceCallbackData = callbackdata;
 	inf.TraceFlags = flags;
 	inf.Results = &res;
 	inf.inshootthrough = true;
@@ -511,7 +513,13 @@ cont:
 
 			if (TraceCallback != NULL)
 			{
-				if (!TraceCallback (*Results)) return false;
+				switch (TraceCallback(*Results, TraceCallbackData))
+				{
+				case TRACE_Stop:	return false;
+				case TRACE_Abort:	Results->HitType = TRACE_HitNone; return false;
+				case TRACE_Skip:	Results->HitType = TRACE_HitNone; break;
+				default:			break;
+				}
 			}
 			else
 			{
@@ -520,8 +528,7 @@ cont:
 		}
 
 		// Encountered an actor
-		if (!(in->d.thing->flags & ActorMask) ||
-			in->d.thing == IgnoreThis)
+		if (!(in->d.thing->flags & ActorMask) || in->d.thing == IgnoreThis)
 		{
 			continue;
 		}
@@ -588,13 +595,19 @@ cont:
 			// the trace hit a 3D-floor before the thing.
 			// Calculate an intersection and abort.
 			Results->Sector = &sectors[CurSector->sectornum];
-			if (!CheckSectorPlane(CurSector, Results->HitType==TRACE_HitFloor))
+			if (!CheckSectorPlane(CurSector, Results->HitType == TRACE_HitFloor))
 			{
-				Results->HitType=TRACE_HitNone;
+				Results->HitType = TRACE_HitNone;
 			}
 			if (TraceCallback != NULL)
 			{
-				return TraceCallback (*Results);
+				switch (TraceCallback(*Results, TraceCallbackData))
+				{
+				case TRACE_Continue: return true;
+				case TRACE_Stop:	 return false;
+				case TRACE_Abort:	 Results->HitType = TRACE_HitNone; return false;
+				case TRACE_Skip:	 Results->HitType = TRACE_HitNone; return true;
+				}
 			}
 			else
 			{
@@ -613,7 +626,13 @@ cont1:
 
 		if (TraceCallback != NULL)
 		{
-			if (!TraceCallback (*Results)) return false;
+			switch (TraceCallback(*Results, TraceCallbackData))
+			{
+			case TRACE_Stop:	return false;
+			case TRACE_Abort:	Results->HitType = TRACE_HitNone; return false;
+			case TRACE_Skip:	Results->HitType = TRACE_HitNone; break;
+			default:			break;
+			}
 		}
 		else
 		{
