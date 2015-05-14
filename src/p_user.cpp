@@ -2685,7 +2685,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 	{
 		if (player->mo->waterlevel >= 2)
 		{
-			player->mo->velz = 4*FRACUNIT;
+			player->mo->velz = FixedMul(4*FRACUNIT, player->mo->Speed);
 		}
 		else if (player->mo->flags2 & MF2_FLY)
 		{
