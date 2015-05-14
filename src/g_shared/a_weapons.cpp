@@ -75,6 +75,10 @@ void AWeapon::Serialize (FArchive &arc)
 		}
 	arc << FOVScale
 		<< Crosshair;
+	if (SaveVersion >= 4203)
+	{
+		arc << MinSelAmmo1 << MinSelAmmo2;
+	}
 }
 
 //===========================================================================
