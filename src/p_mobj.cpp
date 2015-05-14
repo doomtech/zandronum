@@ -4425,10 +4425,7 @@ void AActor::Tick ()
 	// cycle through states, calling action functions at transitions
 	if (tics != -1)
 	{
-		tics--;
-				
-		// you can cycle through multiple states in a tic
-		// [RH] Use <= 0 instead of == 0 so that spawnstates
+		// [RH] Use tics <= 0 instead of == 0 so that spawnstates
 		// of 0 tics work as expected.
 		if (tics <= 0)
 		{
@@ -4449,6 +4446,8 @@ void AActor::Tick ()
 			if (!SetState (state->GetNextState()))
 				return; 		// freed itself
 		}
+
+		tics--;
 	}
 	else
 	{
@@ -5079,6 +5078,13 @@ void AActor::PostBeginPlay ()
 		Renderer->StateChanged(this);
 	}
 	PrevAngle = angle;
+
+	// [BL] Run zero-delay spawn states now so that we don't create a tic later
+	if(tics == 0 && state)
+	{
+		if (!SetState (state->GetNextState()))
+			return; 		// freed itself
+	}
 }
 
 void AActor::MarkPrecacheSounds() const

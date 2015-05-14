@@ -51,8 +51,8 @@ unsigned int GetRevisionNumber();
 #define VERSIONSTR DOTVERSIONSTR
 
 #define ZDVER_STRING "2.6.1"
-#define ZD_SVN_REVISION_STRING "4225"
-#define ZD_SVN_REVISION_NUMBER 4225
+#define ZD_SVN_REVISION_STRING "4234"
+#define ZD_SVN_REVISION_NUMBER 4234
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING

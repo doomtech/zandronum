@@ -599,7 +599,7 @@ void APlayerPawn::BeginPlay ()
 
 void APlayerPawn::Tick()
 {
-	if (player != NULL && player->mo == this && player->morphTics == 0 && player->playerstate != PST_DEAD)
+	if (player != NULL && player->mo == this && player->CanCrouch() && player->playerstate != PST_DEAD)
 	{
 		// [BC] Make the player flat, so he can travel under doors and such.
 		if ( player->bSpectating )
@@ -2632,7 +2632,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		sm = FixedMul (sm, player->mo->Speed);
 
 		// When crouching, speed and bobbing have to be reduced
-		if (player->morphTics == 0 && player->crouchfactor != FRACUNIT)
+		if (player->CanCrouch() && player->crouchfactor != FRACUNIT)
 		{
 			fm = FixedMul(fm, player->crouchfactor);
 			sm = FixedMul(sm, player->crouchfactor);
@@ -3401,8 +3401,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	// [BB] Also, don't do this while predicting.
 	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( (( player - players ) == consoleplayer ) && ( CLIENT_PREDICT_IsPredicting( ) == false ) ))
 	{
-		if ((player->morphTics == 0 || player->mo->PlayerFlags & PPF_CROUCHABLEMORPH)
-			&& player->health > 0 && level.IsCrouchingAllowed())
+		if (player->CanCrouch() && player->health > 0 && level.IsCrouchingAllowed())
 		{
 			if (!totallyfrozen)
 			{

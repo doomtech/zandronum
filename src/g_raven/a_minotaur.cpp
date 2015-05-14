@@ -784,7 +784,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_MinotaurChase)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingFrame( self, self->FindState ("Spawn") );
 
-		self1->SetState (self1->FindState ("Spawn"));
+		self1->SetIdle();
 		return;
 	}
 
