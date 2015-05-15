@@ -2161,7 +2161,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	if ( ulFlags & USERINFO_COLOR )
 		pPlayer->userinfo.ColorChanged ( NETWORK_ReadLong( pByteStream ) );
 	if ( ulFlags & USERINFO_AIMDISTANCE )
-		*static_cast<FFloatCVar *>(pPlayer->userinfo[NAME_AutoAim]) = static_cast<float> ( NETWORK_ReadLong( pByteStream ) ) / ANGLE_1 ;
+		*static_cast<FFloatCVar *>(pPlayer->userinfo[NAME_Autoaim]) = static_cast<float> ( NETWORK_ReadLong( pByteStream ) ) / ANGLE_1 ;
 
 	// Read in the player's skin, and make sure it's valid.
 	if ( ulFlags & USERINFO_SKIN )

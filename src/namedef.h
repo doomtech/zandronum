@@ -573,7 +573,6 @@ xx(SwitchOnPickup)
 xx(MoveBob)
 xx(StillBob)
 xx(PlayerClass)
-xx(AutoAim)
 
 // [BB] Zandronum userinfo settings.
 xx(RailColor)
