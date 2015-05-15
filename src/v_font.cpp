@@ -297,7 +297,7 @@ static int stripaccent(int code)
 		return 'D' + (code & 0x20);
 	if (acode == 0xD1)						// N with tilde
 		return 'N' + (code & 0x20);
-	if (acode >= 0xD2 && acode <= 0xD6 ||	// O with accents
+	if ((acode >= 0xD2 && acode <= 0xD6) ||	// O with accents
 		acode == 0xD8)						// O with stroke
 		return 'O' + (code & 0x20);
 	if (acode >= 0xD9 && acode <= 0xDC)		// U with accents
@@ -651,6 +651,7 @@ int FFont::SimpleTranslation (BYTE *colorsused, BYTE *translation, BYTE *reverse
 	qsort (reverse+1, j-1, 1, compare);
 
 	*luminosity = new double[j];
+	(*luminosity)[0] = 0.0; // [BL] Prevent uninitalized memory
 	max = 0.0;
 	min = 100000000.0;
 	for (i = 1; i < j; i++)

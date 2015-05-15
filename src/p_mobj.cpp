@@ -1239,7 +1239,7 @@ bool AActor::IsVisibleToPlayer() const
  
 	// [BB] We continue to use our old team visibility check.
 	//if (VisibleToTeam != 0 && teamplay &&
-	//	VisibleToTeam-1 != players[consoleplayer].userinfo.GetTeam())
+	//	(signed)(VisibleToTeam-1) != players[consoleplayer].userinfo.GetTeam())
 	if ( TEAM_IsActorVisibleToPlayer( this, players[consoleplayer].camera->player ) == false )
 		return false;
 
