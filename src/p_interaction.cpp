@@ -88,7 +88,7 @@ void SERVERCONSOLE_UpdateScoreboard( void );
 static FRandom pr_obituary ("Obituary");
 static FRandom pr_botrespawn ("BotRespawn");
 static FRandom pr_killmobj ("ActorDie");
-static FRandom pr_damagemobj ("ActorTakeDamage");
+FRandom pr_damagemobj ("ActorTakeDamage");
 static FRandom pr_lightning ("LightningDamage");
 static FRandom pr_poison ("PoisonDamage");
 static FRandom pr_switcher ("SwitchTarget");
