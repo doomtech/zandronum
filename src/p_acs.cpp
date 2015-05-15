@@ -4644,7 +4644,6 @@ enum EACSFunctions
 	ACSF_SetCVarString,
 	ACSF_GetUserCVarString,
 	ACSF_SetUserCVarString,
-
 	ACSF_LineAttack,
 	ACSF_PlaySound,
 	ACSF_StopSound,
@@ -5430,24 +5429,6 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			}
 			break;
 
-		// [BL] Skulltag function
-		case ACSF_AnnouncerSound:
-			if (args[1] == 0)
-			{
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]));
-			}
-			else
-			{
-				// Local announcement, needs player to activate.
-				if (activator == NULL || activator->player == NULL)
-					break;
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]), activator->player - players, SVCF_ONLYTHISCLIENT);
-			}
-			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
-			return 0;
-
 		//[RC] A bullet firing function for ACS. Thanks to DavidPH.
 		case ACSF_LineAttack:
 			{
@@ -5610,6 +5591,24 @@ doplaysound:			if (!looping)
             {
 				return GlobalACSStrings.AddString(activator->player->ReadyWeapon->GetClass()->TypeName.GetChars(), stack, stackdepth);
             }
+
+		// [BL] Skulltag function
+		case ACSF_AnnouncerSound:
+			if (args[1] == 0)
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]));
+			}
+			else
+			{
+				// Local announcement, needs player to activate.
+				if (activator == NULL || activator->player == NULL)
+					break;
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_AnnouncerSound(FBehavior::StaticLookupString(args[0]), activator->player - players, SVCF_ONLYTHISCLIENT);
+			}
+			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
+			return 0;
 
 		// [BB]
 		case ACSF_ResetMap:
