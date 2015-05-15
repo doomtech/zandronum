@@ -231,27 +231,6 @@ enum
 
 const char *GenderNames[3] = { "male", "female", "other" };
 
-static const char *UserInfoStrings[] =
-{
-	"name",
-	"autoaim",
-	"color",
-	"skin",
-	//"team",
-	"gender",
-	"switchonpickup",
-	"railcolor",
-	"handicap",
-	"movebob",
-	"stillbob",
-	"playerclass",
-	"colorset",
-
-	// [Spleen] The player's unlagged preference.
-	"unlagged",
-	NULL
-};
-
 // Replace \ with %/ and % with %%
 FString D_EscapeUserInfo (const char *str)
 {
@@ -601,7 +580,7 @@ void D_SetupUserInfo ()
 
 	for (FBaseCVar *cvar = CVars; cvar != NULL; cvar = cvar->GetNext())
 	{
-		if (cvar->GetFlags() & CVAR_USERINFO)
+		if ((cvar->GetFlags() & (CVAR_USERINFO|CVAR_IGNORE)) == CVAR_USERINFO)
 		{
 			FBaseCVar **newcvar;
 			FName cvarname(cvar->GetName());
@@ -647,7 +626,7 @@ void userinfo_t::Reset()
 	// Create userinfo vars for this player, initialized to their defaults.
 	for (FBaseCVar *cvar = CVars; cvar != NULL; cvar = cvar->GetNext())
 	{
-		if (cvar->GetFlags() & CVAR_USERINFO)
+		if ((cvar->GetFlags() & (CVAR_USERINFO|CVAR_IGNORE)) == CVAR_USERINFO)
 		{
 			ECVarType type;
 			FName cvarname(cvar->GetName());
@@ -661,7 +640,7 @@ void userinfo_t::Reset()
 			case NAME_PlayerClass:	type = CVAR_Int; break;
 			default:				type = cvar->GetRealType(); break;
 			}
-			newcvar = C_CreateCVar(NULL, type, 0);
+			newcvar = C_CreateCVar(NULL, type, cvar->GetFlags() & CVAR_MOD);
 			newcvar->SetGenericRepDefault(cvar->GetGenericRepDefault(CVAR_String), CVAR_String);
 			Insert(cvarname, newcvar);
 		}

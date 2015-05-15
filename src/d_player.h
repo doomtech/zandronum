@@ -512,6 +512,7 @@ public:
 	int			cheats2;				// [BB] More bit flags
 	int			timefreezer;			// Player has an active time freezer
 	short		refire;					// refired shots are less accurate
+	bool		waiting;
 	int			killcount, itemcount, secretcount;		// for intermission
 	int			damagecount, bonuscount;// for screen flashing
 	int			hazardcount;			// for delayed Strife damage

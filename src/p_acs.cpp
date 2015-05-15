@@ -4637,10 +4637,10 @@ enum EACSFunctions
 	ACSF_VectorLength,
 	ACSF_SetHUDClipRect,
 	ACSF_SetHUDWrapWidth,
+	ACSF_SetCVar,
+	ACSF_GetUserCVar,
+	ACSF_SetUserCVar,
 
-	ACSF_SetCVar = 53, // [BB] Backported from ZDoom
-	ACSF_GetUserCVar, // [BB] Not supported yet.
-	ACSF_SetUserCVar, // [BB] Not supported yet.
 	ACSF_GetCVarString,
 	ACSF_SetCVarString,
 	ACSF_GetUserCVarString, // [BB] Not supported yet.
@@ -4842,7 +4842,6 @@ static int DoGetCVar(FBaseCVar *cvar, bool is_string, const SDWORD *stack, int s
 	}
 }
 
-/* [BB] Zandronum doesn't have user CVars yet.
 static int GetUserCVar(int playernum, const char *cvarname, bool is_string, const SDWORD *stack, int stackdepth)
 {
 	if ((unsigned)playernum >= MAXPLAYERS || !playeringame[playernum])
@@ -4857,7 +4856,6 @@ static int GetUserCVar(int playernum, const char *cvarname, bool is_string, cons
 	}
 	return DoGetCVar(cvar, is_string, stack, stackdepth);
 }
-*/
 
 static int GetCVar(AActor *activator, const char *cvarname, bool is_string, const SDWORD *stack, int stackdepth)
 {
@@ -4869,7 +4867,6 @@ static int GetCVar(AActor *activator, const char *cvarname, bool is_string, cons
 	}
 	else
 	{
-		/* [BB] Zandronum doesn't have user CVars yet.
 		// For userinfo cvars, redirect to GetUserCVar
 		if (cvar->GetFlags() & CVAR_USERINFO)
 		{
@@ -4879,12 +4876,10 @@ static int GetCVar(AActor *activator, const char *cvarname, bool is_string, cons
 			}
 			return GetUserCVar(int(activator->player - players), cvarname, is_string, stack, stackdepth);
 		}
-		*/
 		return DoGetCVar(cvar, is_string, stack, stackdepth);
 	}
 }
 
-/* [BB] Zandronum doesn't have user CVars yet.
 static int SetUserCVar(int playernum, const char *cvarname, int value, bool is_string)
 {
 	if ((unsigned)playernum >= MAXPLAYERS || !playeringame[playernum])
@@ -4914,7 +4909,6 @@ static int SetUserCVar(int playernum, const char *cvarname, int value, bool is_s
 
 	return 1;
 }
-*/
 
 static int SetCVar(AActor *activator, const char *cvarname, int value, bool is_string)
 {
@@ -5389,6 +5383,27 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			WrapWidth = argCount > 0 ? args[0] : 0;
 			break;
 
+		case ACSF_GetUserCVar:
+			if (argCount == 2)
+			{
+				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), false, stack, stackdepth);
+			}
+			break;
+
+		case ACSF_SetUserCVar:
+			if (argCount == 3)
+			{
+				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], false);
+			}
+			break;
+
+		case ACSF_SetCVar:
+			if (argCount == 2)
+			{
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], false);
+			}
+			break;
+
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:
 			if (args[1] == 0)
@@ -5414,13 +5429,6 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			}
 			break;
 
-		case ACSF_SetCVar:
-			if (argCount == 2)
-			{
-				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], false);
-			}
-			break;
-
 		case ACSF_SetCVarString:
 			if (argCount == 2)
 			{
@@ -5429,24 +5437,10 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			break;
 
 /* [BB] Zandronum doesn't have user CVars yet.
-		case ACSF_GetUserCVar:
-			if (argCount == 2)
-			{
-				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), false, stack, stackdepth);
-			}
-			break;
-
 		case ACSF_GetUserCVarString:
 			if (argCount == 2)
 			{
 				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), true, stack, stackdepth);
-			}
-			break;
-
-		case ACSF_SetUserCVar:
-			if (argCount == 3)
-			{
-				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], false);
 			}
 			break;
 

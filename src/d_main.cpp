@@ -1824,12 +1824,12 @@ void ParseCVarInfo()
 	// clutter up the cvar space when not playing mods with custom cvars.
 	if (addedcvars)
 	{
-		// [BB] This DoModSetup call was backported and its argument will need to adjusted when the ZDoom base is upgraded.
-		GameConfig->DoModSetup (GameNames[gameinfo.gametype]);
+		GameConfig->DoModSetup (gameinfo.ConfigName);
 	}
 }
 
 //==========================================================================
+//
 //
 // D_AddFile
 //
@@ -2788,7 +2788,7 @@ void D_DoomMain (void)
 		allwads.Clear();
 		allwads.ShrinkToFit();
 		SetMapxxFlag();
-		
+
 		// Now that wads are loaded, define mod-specific cvars.
 		ParseCVarInfo();
 

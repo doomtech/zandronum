@@ -431,6 +431,7 @@ private:
 	bool RepositionCoords (int &x, int &y, int xo, int yo, const int w, const int h) const;
 	void DrawMessages (int layer, int bottom);
 	void DrawTargetName( );
+	void DrawWaiting () const;
 
 	TObjPtr<DHUDMessage> Messages[NUM_HUDMSGLAYERS];
 	bool ShowLog;
