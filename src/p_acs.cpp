@@ -4640,11 +4640,11 @@ enum EACSFunctions
 	ACSF_SetCVar,
 	ACSF_GetUserCVar,
 	ACSF_SetUserCVar,
-
 	ACSF_GetCVarString,
 	ACSF_SetCVarString,
-	ACSF_GetUserCVarString, // [BB] Not supported yet.
-	ACSF_SetUserCVarString, // [BB] Not supported yet.
+	ACSF_GetUserCVarString,
+	ACSF_SetUserCVarString,
+
 	ACSF_LineAttack,
 	ACSF_PlaySound,
 	ACSF_StopSound,
@@ -4918,7 +4918,6 @@ static int SetCVar(AActor *activator, const char *cvarname, int value, bool is_s
 	{
 		return 0;
 	}
-	/* [BB] Zandronum doesn't have user CVars yet.
 	// For userinfo cvars, redirect to SetUserCVar
 	if (cvar->GetFlags() & CVAR_USERINFO)
 	{
@@ -4928,7 +4927,6 @@ static int SetCVar(AActor *activator, const char *cvarname, int value, bool is_s
 		}
 		return SetUserCVar(int(activator->player - players), cvarname, value, is_string);
 	}
-	*/
 	DoSetCVar(cvar, value, is_string);
 	return 1;
 }
@@ -5383,10 +5381,38 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			WrapWidth = argCount > 0 ? args[0] : 0;
 			break;
 
+		case ACSF_GetCVarString:
+			if (argCount == 1)
+			{
+				return GetCVar(activator, FBehavior::StaticLookupString(args[0]), true, stack, stackdepth);
+			}
+			break;
+
+		case ACSF_SetCVar:
+			if (argCount == 2)
+			{
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], false);
+			}
+			break;
+
+		case ACSF_SetCVarString:
+			if (argCount == 2)
+			{
+				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], true);
+			}
+			break;
+
 		case ACSF_GetUserCVar:
 			if (argCount == 2)
 			{
 				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), false, stack, stackdepth);
+			}
+			break;
+
+		case ACSF_GetUserCVarString:
+			if (argCount == 2)
+			{
+				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), true, stack, stackdepth);
 			}
 			break;
 
@@ -5397,10 +5423,10 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			}
 			break;
 
-		case ACSF_SetCVar:
-			if (argCount == 2)
+		case ACSF_SetUserCVarString:
+			if (argCount == 3)
 			{
-				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], false);
+				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], true);
 			}
 			break;
 
@@ -5421,36 +5447,6 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			}
 			ANNOUNCER_PlayEntry(cl_announcer, FBehavior::StaticLookupString(args[0]));
 			return 0;
-
-		case ACSF_GetCVarString:
-			if (argCount == 1)
-			{
-				return GetCVar(activator, FBehavior::StaticLookupString(args[0]), true, stack, stackdepth);
-			}
-			break;
-
-		case ACSF_SetCVarString:
-			if (argCount == 2)
-			{
-				return SetCVar(activator, FBehavior::StaticLookupString(args[0]), args[1], true);
-			}
-			break;
-
-/* [BB] Zandronum doesn't have user CVars yet.
-		case ACSF_GetUserCVarString:
-			if (argCount == 2)
-			{
-				return GetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), true, stack, stackdepth);
-			}
-			break;
-
-		case ACSF_SetUserCVarString:
-			if (argCount == 3)
-			{
-				return SetUserCVar(args[0], FBehavior::StaticLookupString(args[1]), args[2], true);
-			}
-			break;
-*/
 
 		//[RC] A bullet firing function for ACS. Thanks to DavidPH.
 		case ACSF_LineAttack:
