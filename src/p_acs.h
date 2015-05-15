@@ -327,9 +327,8 @@ public:
 	const char *GetModuleName() const { return ModuleName; }
 	ACSProfileInfo *GetFunctionProfileData(int index) { return index >= 0 && index < NumFunctions ? &FunctionProfileData[index] : NULL; }
 	ACSProfileInfo *GetFunctionProfileData(ScriptFunction *func) { return GetFunctionProfileData((int)(func - (ScriptFunction *)Functions)); }
-
 	const char *LookupString (DWORD index) const;
-	
+
 	SDWORD *MapVars[NUM_MAPVARS];
 
 	static FBehavior *StaticLoadModule (int lumpnum, FileReader * fr=NULL, int len=0);
@@ -384,6 +383,7 @@ private:
 
 	void SerializeVars (FArchive &arc);
 	void SerializeVarSet (FArchive &arc, SDWORD *vars, int max);
+
 	void MarkMapVarStrings() const;
 	void LockMapVarStrings() const;
 	void UnlockMapVarStrings() const;

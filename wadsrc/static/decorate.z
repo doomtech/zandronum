@@ -2,6 +2,7 @@ ACTOR DynamicLight native
 {
 	Height 0
 	Radius 0.1
+	FloatBobPhase 0
 	+NOBLOCKMAP
 	+NOGRAVITY
 	+FIXMAPTHINGPOS
@@ -37,7 +38,7 @@ ACTOR PointLightFlickerRandom : PointLight 9804
 	DynamicLight.Type "RandomFlicker"
 }
 
-// MISSILEMORE and MISSILEEVENMORE are used by the lights for additive and subtractive lighrs
+// MISSILEMORE and MISSILEEVENMORE are used by the lights for additive and subtractive lights
 
 ACTOR PointLightAdditive : PointLight 9810
 {
