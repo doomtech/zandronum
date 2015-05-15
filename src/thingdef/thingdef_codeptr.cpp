@@ -1594,8 +1594,10 @@ void A_CustomFireBullets( AActor *self,
 	// [BB] Client's should only play weapon sounds, if they are looking through the eyes of the player
 	// firing the sound. Otherwise the sound is played because of the SERVERCOMMANDS_WeaponSound command.
 	// We always have to play our own sounds though.
-	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode ( player ) )
+	if ( (weapon != NULL) && NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode ( player ) )
+	{
 		S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+	}
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.

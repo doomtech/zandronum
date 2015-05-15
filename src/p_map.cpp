@@ -2278,7 +2278,15 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 					// If moving down, cancel vertical component of the velocity
 					if (thing->velz < 0)
 					{
-						thing->velz = 0;
+						// If it's a bouncer, let it bounce off its new floor, too.
+						if (thing->BounceFlags & BOUNCE_Floors)
+						{
+							thing->FloorBounceMissile (tm.floorsector->floorplane);
+						}
+						else
+						{
+							thing->velz = 0;
+						}
 					}
 				}
 			}
@@ -4468,9 +4476,10 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		(t1->player->ReadyWeapon->flags2 & MF2_THRUGHOST)) ||
 		(puffDefaults && (puffDefaults->flags2 & MF2_THRUGHOST));
 
-	// if the puff uses a non-standard damage type this will override default, hitscan and melee damage type.
+	// if the puff uses a non-standard damage type, this will override default, hitscan and melee damage type.
 	// All other explicitly passed damage types (currenty only MDK) will be preserved.
-	if ((damageType == NAME_None || damageType == NAME_Melee || damageType == NAME_Hitscan) && puffDefaults->DamageType != NAME_None)
+	if ((damageType == NAME_None || damageType == NAME_Melee || damageType == NAME_Hitscan) &&
+		puffDefaults != NULL && puffDefaults->DamageType != NAME_None)
 	{
 		damageType = puffDefaults->DamageType;
 	}
@@ -4505,7 +4514,7 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SoundActor( t1, CHAN_WEAPON, S_GetName( puffDefaults->ActiveSound ), 1, ATTN_NORM );
 		}
-		if (puffDefaults->flags3 & MF3_ALWAYSPUFF)
+		if (puffDefaults != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF)
 		{ // Spawn the puff anyway
 			puff = P_SpawnPuff (t1, pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2, puffFlags);
 
