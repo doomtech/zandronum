@@ -560,6 +560,7 @@ void CreatePath(const char *fn)
 		}
 		if (mkdir(copy, 0755) == -1)
 		{ // failed
+			free(copy);
 			return;
 		}
 exists:	if (p != NULL)
