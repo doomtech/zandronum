@@ -381,7 +381,10 @@ void P_RunEffects ()
 		{
 			for ( ULONG t = 0; t < teams.Size(); t++ )
 			{
-				int color = ColorMatcher.Pick( RPART( teams[t].lPlayerColor ), GPART( teams[t].lPlayerColor ), BPART( teams[t].lPlayerColor ) );
+				const int r = RPART( teams[t].lPlayerColor );
+				const int g = GPART( teams[t].lPlayerColor );
+				const int b = BPART( teams[t].lPlayerColor );
+				const int color = (MAKERGB( r, g, b ) | (ColorMatcher.Pick( r, g, b ) << 24));
 				for ( ULONG i = 0; i < teams[t].TeamStarts.Size( ); i++ )
 				{
 					GenerateShowSpawnFountain( teams[t].TeamStarts[i], color, pnum );
