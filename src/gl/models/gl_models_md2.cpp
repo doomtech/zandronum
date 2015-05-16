@@ -220,18 +220,24 @@ FDMDModel::~FDMDModel()
 	int i;
 
 	// clean up
-	for (i=0;i<info.numSkins;i++)
+	if (skins != NULL)
 	{
-		if (skins[i]!=NULL) delete skins[i];
+		for (i=0;i<info.numSkins;i++)
+		{
+			if (skins[i]!=NULL) delete skins[i];
+		}
+		delete [] skins;
 	}
-	delete [] skins;
 
-	for (i=0;i<info.numFrames;i++)
+	if (frames != NULL)
 	{
-		delete [] frames[i].vertices;
-		delete [] frames[i].normals;
+		for (i=0;i<info.numFrames;i++)
+		{
+			delete [] frames[i].vertices;
+			delete [] frames[i].normals;
+		}
+		delete [] frames;
 	}
-	delete [] frames;
 
 	for(i = 0; i < info.numLODs; i++)
 	{
@@ -445,6 +451,11 @@ bool FMD2Model::Load(const char * path, int, const char * buffer, int length)
 	if (info.offsetFrames + info.frameSize * info.numFrames > length)
 	{
 		Printf("LoadModel: Model '%s' file too short\n", path);
+		return false;
+	}
+	if (lodInfo[0].numGlCommands <= 0)
+	{
+		Printf("LoadModel: Model '%s' invalid NumGLCommands\n", path);
 		return false;
 	}
 

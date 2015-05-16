@@ -137,7 +137,14 @@ protected:
 	static void RenderGLCommands(void *glCommands, unsigned int numVertices,FModelVertex * vertices);
 
 public:
-	FDMDModel() { loaded = false; }
+	FDMDModel() 
+	{ 
+		loaded = false; 
+		frames = NULL;
+		skins = NULL;
+		lods[0].glCommands = NULL;
+		info.numLODs = 0;
+	}
 	virtual ~FDMDModel();
 
 	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
