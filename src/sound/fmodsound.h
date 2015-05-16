@@ -34,6 +34,9 @@ public:
 	// Stops a sound channel.
 	void StopChannel (FISoundChannel *chan);
 
+	// Changes a channel's volume.
+	void ChannelVolume (FISoundChannel *chan, float volume);
+
 	// Marks a channel's start time without actually playing it.
 	void MarkStartTime (FISoundChannel *chan);
 
