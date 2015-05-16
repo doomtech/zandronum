@@ -50,9 +50,9 @@ unsigned int GetRevisionNumber();
 #define DOTVERSIONSTR GAMEVER_STRING "-alpha"
 #define VERSIONSTR DOTVERSIONSTR
 
-#define ZDVER_STRING "2.6.1"
-#define ZD_SVN_REVISION_STRING "4335"
-#define ZD_SVN_REVISION_NUMBER 4335
+#define ZDVER_STRING "2.7.0"
+#define ZD_SVN_REVISION_STRING "4341"
+#define ZD_SVN_REVISION_NUMBER 4341
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
