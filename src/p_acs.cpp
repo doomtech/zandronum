@@ -4586,6 +4586,38 @@ int DLevelScript::DoClassifyActor(int tid)
 	return classify;
 }
 
+enum
+{
+	SOUND_See,
+	SOUND_Attack,
+	SOUND_Pain,
+	SOUND_Death,
+	SOUND_Active,
+	SOUND_Use,
+	SOUND_Bounce,
+	SOUND_WallBounce,
+	SOUND_CrushPain,
+	SOUND_Howl,
+};
+
+static FSoundID GetActorSound(const AActor *actor, int soundtype)
+{
+	switch (soundtype)
+	{
+	case SOUND_See:			return actor->SeeSound;
+	case SOUND_Attack:		return actor->AttackSound;
+	case SOUND_Pain:		return actor->PainSound;
+	case SOUND_Death:		return actor->DeathSound;
+	case SOUND_Active:		return actor->ActiveSound;
+	case SOUND_Use:			return actor->UseSound;
+	case SOUND_Bounce:		return actor->BounceSound;
+	case SOUND_WallBounce:	return actor->WallBounceSound;
+	case SOUND_CrushPain:	return actor->CrushPainSound;
+	case SOUND_Howl:		return actor->GetClass()->Meta.GetMetaInt(AMETA_HowlSound);
+	default:				return 0;
+	}
+}
+
 enum EACSFunctions
 {
 	ACSF_GetLineUDMFInt=1,
@@ -4657,7 +4689,8 @@ enum EACSFunctions
 	ACSF_StrMid,
 	ACSF_GetActorClass,
 	ACSF_GetWeapon,
-
+	ACSF_SoundVolume,
+	ACSF_PlayActorSound,
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
 	ACSF_PlayerIsSpectator,
@@ -5440,7 +5473,7 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 				int	damage			= args[3];
 				FName pufftype		= argCount > 4 && args[4]? FName(FBehavior::StaticLookupString(args[4])) : NAME_BulletPuff;
 				FName damagetype	= argCount > 5 && args[5]? FName(FBehavior::StaticLookupString(args[5])) : NAME_None;
-				fixed_t	range		= argCount > 6 && args[6]? args[6] : 0x7FFFFFFF;
+				fixed_t	range		= argCount > 6 && args[6]? args[6] : MISSILERANGE;
 
 				if (args[0] == 0)
 				{
@@ -5460,15 +5493,24 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 			break;
 
 		case ACSF_PlaySound:
+		case ACSF_PlayActorSound:
 			// PlaySound(tid, "SoundName", channel, volume, looping, attenuation)
 			{
-				const char *lookup = FBehavior::StaticLookupString(args[1]);
-				if (lookup != NULL)
+				FSoundID sid;
+
+				if (funcIndex == ACSF_PlaySound)
+				{
+					const char *lookup = FBehavior::StaticLookupString(args[1]);
+					if (lookup != NULL)
+					{
+						sid = lookup;
+					}
+				}
+				if (sid != 0 || funcIndex == ACSF_PlayActorSound)
 				{
 					FActorIterator it(args[0]);
 					AActor *spot;
 
-					FSoundID sid(lookup);
 					int chan = argCount > 2 ? args[2] : CHAN_BODY;
 					float vol = argCount > 3 ? FIXED2FLOAT(args[3]) : 1.f;
 					INTBOOL looping = argCount > 4 ? args[4] : false;
@@ -5481,13 +5523,20 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 					}
 					while ((spot = it.Next()) != NULL)
 					{
-doplaysound:			if (!looping)
+doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						{
-							S_Sound(spot, chan, sid, vol, atten);
+							sid = GetActorSound(spot, args[1]);
 						}
-						else if (!S_IsActorPlayingSomething(spot, chan, sid))
+						if (sid != 0)
 						{
-							S_Sound(spot, chan | CHAN_LOOP, sid, vol, atten);
+							if (!looping)
+							{
+								S_Sound(spot, chan, sid, vol, atten);
+							}
+							else if (!S_IsActorPlayingSomething(spot, chan, sid))
+							{
+								S_Sound(spot, chan | CHAN_LOOP, sid, vol, atten);
+							}
 						}
 					}
 				}
@@ -5510,6 +5559,29 @@ doplaysound:			if (!looping)
 					while ((spot = it.Next()) != NULL)
 					{
 						S_StopSound(spot, chan);
+					}
+				}
+			}
+			break;
+
+		case ACSF_SoundVolume:
+			// SoundVolume(int tid, int channel, fixed volume)
+			{
+				int chan = args[1];
+				float volume = FIXED2FLOAT(args[2]);
+
+				if (args[0] == 0)
+				{
+					S_ChangeSoundVolume(activator, chan, volume);
+				}
+				else
+				{
+					FActorIterator it(args[0]);
+					AActor *spot;
+
+					while ((spot = it.Next()) != NULL)
+					{
+						S_ChangeSoundVolume(spot, chan, volume);
 					}
 				}
 			}
