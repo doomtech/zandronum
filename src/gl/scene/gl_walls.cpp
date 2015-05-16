@@ -762,7 +762,7 @@ void GLWall::DoTexture(int _type,seg_t * seg, int peg,
 
 	float floatceilingref = FIXED2FLOAT(ceilingrefheight) + 
 							FIXED2FLOAT(tci.RowOffset(seg->sidedef->GetTextureYOffset(texpos))) +
-							FIXED2FLOAT((peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)*tci.mScaleY-lh-v_offset:0));
+							FIXED2FLOAT((peg ? (gltexture->TextureHeight(GLUSE_TEXTURE)<<FRACBITS)*tci.mTempScaleY-lh-v_offset:0));
 
 	if (!SetWallCoordinates(seg, &tci, floatceilingref, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
@@ -1430,7 +1430,7 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 			InverseFloors(seg, frontsector, topleft, topright, bottomleft, bottomright);
 	}
 }
-
+	
 //==========================================================================
 //
 // 
@@ -1448,7 +1448,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==1095)
+	if (seg->linedef-lines==2570)
 		__asm nop
 #endif
 #endif

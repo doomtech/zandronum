@@ -97,6 +97,7 @@ struct vertex_t
 	{
 		x = y = 0;
 		fx = fy = 0;
+		angletime = 0;
 		viewangle = 0;
 		dirty = true;
 		numheights = numsectors = 0;
