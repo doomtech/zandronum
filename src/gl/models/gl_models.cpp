@@ -358,7 +358,7 @@ void gl_InitModels()
 						smf.models[index] = FindModel(path.GetChars(), sc.String);
 						if (!smf.models[index])
 						{
-							Printf("%s: model not found\n", sc.String);
+							Printf("%s: model not found in %s\n", sc.String, path.GetChars());
 						}
 					}
 					else if (sc.Compare("scale"))
@@ -560,6 +560,10 @@ void gl_InitModels()
 							SpriteModelFrames.Push(smf);
 							map[c]=1;
 						}
+					}
+					else
+					{
+						sc.ScriptMessage("Unrecognized string \"%s\"", sc.String);
 					}
 				}
 			}
