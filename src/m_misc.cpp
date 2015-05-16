@@ -386,7 +386,7 @@ FString GetUserFile (const char *file)
 		// This can be removed after a release or two
 		// Transfer the old zdoom directory to the new location
 		bool moved = false;
-		FString oldpath = NicePath("~/.zdoom/");
+		FString oldpath = NicePath("~/." GAMENAMELOWERCASE "/");
 		if (stat (oldpath, &extrainfo) != -1)
 		{
 			if (rename(oldpath, path) == -1)
