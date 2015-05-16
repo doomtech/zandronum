@@ -4697,6 +4697,7 @@ enum EACSFunctions
 	ACSF_SoundVolume,
 	ACSF_PlayActorSound,
 	ACSF_SpawnDecal,
+	ACSF_CheckFont,
 
 	// [BB] Skulltag functions
 	ACSF_ResetMap = 100,
@@ -5719,6 +5720,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				return count;
 			}
 			break;
+
+		case ACSF_CheckFont:
+			// bool CheckFont(str fontname)
+			return V_GetFont(FBehavior::StaticLookupString(args[0])) != NULL;
 
 		// [BL] Skulltag function
 		case ACSF_AnnouncerSound:

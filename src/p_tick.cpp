@@ -156,7 +156,6 @@ void P_Ticker (void)
 		{
 			P_ThinkParticles ();	// [RH] make the particles think
 		}
-		StatusBar->Tick ();		// [RH] moved this here
 	}
 
 	// Predict the console player's position.
@@ -353,6 +352,9 @@ void P_Ticker (void)
 	if ( CLIENTDEMO_IsInFreeSpectateMode() )
 		CLIENTDEMO_FreeSpectatorPlayerThink();
 
+	// [BB] The server has no status bar.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		StatusBar->Tick ();		// [RH] moved this here
 	level.Tick ();			// [RH] let the level tick
 
 	// [BB] Some things like AMovingCamera rely on the AActor tid in the PostBeginPlay functions,
