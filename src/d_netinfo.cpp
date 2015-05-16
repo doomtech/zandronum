@@ -1003,16 +1003,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		Net_WriteString (foo);
 	}
 
-	// [BB] D_SetupUserInfo has to be executed in any case, if we are
-	// not the server. If we for example are not connected to a server,
-	// change our name in the console and connect to a server then,
-	// we won't tell the new name to the server.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		if ( gamestate != GS_STARTUP )
-			D_SetupUserInfo( );
-	}
-
 	// Send updated userinfo to the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
 	{

@@ -224,6 +224,7 @@ void ASTAR_ClearNodes( void )
 		g_aPaths[ulIdx].paVisualizations = NULL;
 	}
 
+	g_lNodeListSize = 0;
 	g_bIsInitialized = false;
 }
 

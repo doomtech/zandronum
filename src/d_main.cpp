@@ -3222,6 +3222,9 @@ void D_DoomMain (void)
 			S_Shutdown();					// free all channels and delete playlist
 			C_ClearAliases();				// CCMDs won't be reinitialized so these need to be deleted here
 
+			// [BB]
+			NETWORK_Destruct();
+
 			GC::FullGC();					// perform one final garbage collection before deleting the class data
 			PClass::ClearRuntimeData();		// clear all runtime generated class data
 			restart++;
