@@ -485,11 +485,25 @@ int player_t::GetSpawnClass()
 
 void player_t::SendPitchLimits() const
 {
-	if (this - players == consoleplayer)
+	// [BB] The client has to set the pitch limits directly and for all players.
+	if ( NETWORK_InClientMode() == false )
 	{
-		Net_WriteByte(DEM_SETPITCHLIMIT);
-		Net_WriteByte(Renderer->GetMaxViewPitch(false));	// up
-		Net_WriteByte(Renderer->GetMaxViewPitch(true));		// down
+		if (this - players == consoleplayer)
+		{
+			Net_WriteByte(DEM_SETPITCHLIMIT);
+			Net_WriteByte(Renderer->GetMaxViewPitch(false));	// up
+			Net_WriteByte(Renderer->GetMaxViewPitch(true));		// down
+		}
+	}
+	else
+	{
+		// [BB] The extra player for the free spectate mode doesn't have a valid player index.
+		const unsigned int playerIndex = this - players;
+		if ( playerIndex < MAXPLAYERS )
+		{
+			players[playerIndex].MinPitch = Renderer->GetMaxViewPitch(false) * -ANGLE_1;
+			players[playerIndex].MaxPitch = Renderer->GetMaxViewPitch(true) * ANGLE_1;
+		}
 	}
 }
 
