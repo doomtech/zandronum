@@ -1903,6 +1903,7 @@ void S_SetSoundPaused (int state)
 			{
 				GSnd->SetInactive(SoundRenderer::INACTIVE_Active);
 			}
+			// [BB] !netgame -> (NETWORK_GetState( ) == NETSTATE_SINGLE)
 			if ((NETWORK_GetState( ) == NETSTATE_SINGLE)
 #ifdef _DEBUG
 				&& !demoplayback
@@ -1924,6 +1925,7 @@ void S_SetSoundPaused (int state)
 					SoundRenderer::INACTIVE_Complete :
 					SoundRenderer::INACTIVE_Mute);
 			}
+			// [BB] !netgame -> (NETWORK_GetState( ) == NETSTATE_SINGLE)
 			if ((NETWORK_GetState( ) == NETSTATE_SINGLE)
 #ifdef _DEBUG
 				&& !demoplayback

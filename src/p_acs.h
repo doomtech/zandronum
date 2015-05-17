@@ -322,7 +322,6 @@ public:
 	int GetLibraryID () const { return LibraryID; }
 	int *GetScriptAddress (const ScriptPtr *ptr) const { return (int *)(ptr->Address + Data); }
 	int GetScriptIndex (const ScriptPtr *ptr) const { ptrdiff_t index = ptr - Scripts; return index >= NumScripts ? -1 : (int)index; }
-
 	ScriptPtr *GetScriptPtr(int index) const { return index >= 0 && index < NumScripts ? &Scripts[index] : NULL; }
 	int GetLumpNum() const { return LumpNum; }
 	const char *GetModuleName() const { return ModuleName; }
@@ -391,7 +390,6 @@ private:
 
 	friend void ArrangeScriptProfiles(TArray<ProfileCollector> &profiles);
 	friend void ArrangeFunctionProfiles(TArray<ProfileCollector> &profiles);
-
 };
 
 class DLevelScript : public DObject

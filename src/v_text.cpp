@@ -47,6 +47,7 @@
 #include "doomstat.h"
 #include "templates.h"
 
+// [BB] New #includes.
 #include "sv_main.h"
 
 //

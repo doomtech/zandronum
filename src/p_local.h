@@ -264,7 +264,6 @@ struct FLineOpening
 };
 
 void	P_LineOpening (FLineOpening &open, AActor *thing, const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0, int flags=0);
-//void	P_OldLineOpening (const line_t *linedef, fixed_t x, fixed_t y);
 
 class FBoundingBox;
 struct polyblock_t;
@@ -412,7 +411,6 @@ bool	P_TestMobjLocation (AActor *mobj);
 bool	P_TestMobjZ (AActor *mobj, bool quick=true, AActor **pOnmobj = NULL);
 bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bool actorsonly=false);
 bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, bool actorsonly=false);
-//bool	P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y);
 AActor	*P_CheckOnmobj (AActor *thing);
 void	P_FakeZMovement (AActor *mo);
 bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, int dropoff, const secplane_t * onfloor, FCheckPosition &tm, bool missileCheck = false);
@@ -440,7 +438,6 @@ void	P_ResetSightCounters (bool full);
 void	P_ResetSpawnCounters( void ); // [BC]
 bool	P_TalkFacing (AActor *player);
 void	P_UseLines (player_t* player);
-//void	P_UseItems (player_t* player);
 bool	P_UsePuzzleItem (AActor *actor, int itemType);
 
 enum

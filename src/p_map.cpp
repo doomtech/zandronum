@@ -889,83 +889,6 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 	return true;
 }
 
-// [BB] Not compatible with latest ZDoom changes and wasn't used.
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//static bool PIT_OldCheckLine(line_t *ld) // killough 3/26/98: make static
-//{
-//  if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
-//   || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
-//   || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
-//   || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP] )
-//    return true; // didn't hit it
-//
-//  if (P_BoxOnLineSide(tmbbox, ld) != -1)
-//    return true; // didn't hit it
-//
-//  // A line has been hit
-//
-//  // The moving thing's destination position will cross the given line.
-//  // If this should not be allowed, return false.
-//  // If the line is special, keep track of it
-//  // to process later if the move is proven ok.
-//  // NOTE: specials are NOT sorted by order,
-//  // so two special lines that are only 8 pixels apart
-//  // could be crossed in either order.
-//
-//  // killough 7/24/98: allow player to move out of 1s wall, to prevent sticking
-//  if (!ld->backsector) // one sided line
-//    {
-//      BlockingLine = ld;
-//      return tmunstuck && !untouched(ld) &&
-//	FixedMul(tmx-tmthing->x,ld->dy) > FixedMul(tmy-tmthing->y,ld->dx);
-//    }
-//
-//  // killough 8/10/98: allow bouncing objects to pass through as missiles
-//  if (!(tmthing->flags & (MF_MISSILE/* | MF_BOUNCES*/)))
-//    {
-//      if (ld->flags & ML_BLOCKING)           // explicitly blocking everything
-//	return tmunstuck && !untouched(ld);  // killough 8/1/98: allow escape
-//
-//      // killough 8/9/98: monster-blockers don't affect friends
-//      if (!(/*tmthing->flags & MF_FRIEND ||*/ tmthing->player)
-//	  && ld->flags & ML_BLOCKMONSTERS)
-//	return false; // block monsters only
-//    }
-//
-//  // set openrange, opentop, openbottom
-//  // these define a 'window' from one sector to another across this line
-//
-//  P_OldLineOpening (ld, tmthing->x, tmthing->y);
-//
-//  // adjust floor & ceiling heights
-//
-//  if (opentop < tmceilingz)
-//    {
-//      tmceilingz = opentop;
-//      ceilingline = ld;
-//      BlockingLine = ld;
-//    }
-//
-//  if (openbottom > tmfloorz)
-//    {
-//      tmfloorz = openbottom;
-//		tmfloorsector = openbottomsec;
-//      //floorline = ld;          // killough 8/1/98: remember floor linedef
-//      BlockingLine = ld;
-//    }
-//
-//  if (lowfloor < tmdropoffz)
-//    tmdropoffz = lowfloor;
-//
-//	// if contacted a special line, add it to the list
-//	if (ld->special)
-//	{
-//		spechit.Push (ld);
-//	}
-//
-//  return true;
-//}
-
 //==========================================================================
 //
 // PIT_CheckThing
@@ -1129,10 +1052,6 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	// Check for missile or non-solid MBF bouncer
 	if (tm.thing->flags & MF_MISSILE || ((tm.thing->BounceFlags & BOUNCE_MBF) && !(tm.thing->flags & MF_SOLID)))
 	{
-		// Server decides collision.
-//		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-//			return ( true );
-
 		// Check for a non-shootable mobj
 		if (thing->flags2 & MF2_NONSHOOTABLE)
 		{
@@ -1448,233 +1367,6 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	// return !(thing->flags & MF_SOLID);	// old code -- killough
 }
 
-// [BB] Not compatible with latest ZDoom changes and wasn't used.
-////*****************************************************************************
-////
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-//static bool PIT_OldCheckThing(AActor *thing) // killough 3/26/98: make static
-//{
-//  fixed_t blockdist;
-////  int damage;
-//
-//  // killough 11/98: add touchy things
-//  if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE)))
-//    return true;
-//
-//  blockdist = thing->radius + tmthing->radius;
-//
-//  if (abs(thing->x - tmx) >= blockdist || abs(thing->y - tmy) >= blockdist)
-//    return true; // didn't hit it
-//
-//  // killough 11/98:
-//  //
-//  // This test has less information content (it's almost always false), so it
-//  // should not be moved up to first, as it adds more overhead than it removes.
-//
-//  // don't clip against self
-//
-//  if (thing == tmthing)
-//    return true;
-//
-//  /* killough 11/98:
-//   *
-//   * TOUCHY flag, for mines or other objects which die on contact with solids.
-//   * If a solid object of a different type comes in contact with a touchy
-//   * thing, and the touchy thing is not the sole one moving relative to fixed
-//   * surroundings such as walls, then the touchy thing dies immediately.
-//   */
-///*
-//  if (thing->flags & MF_TOUCHY &&                  // touchy object
-//      tmthing->flags & MF_SOLID &&                 // solid object touches it
-//      thing->health > 0 &&                         // touchy object is alive
-//      (thing->intflags & MIF_ARMED ||              // Thing is an armed mine
-//       sentient(thing)) &&                         // ... or a sentient thing
-//      (thing->type != tmthing->type ||             // only different species
-//       thing->type == MT_PLAYER) &&                // ... or different players
-//      thing->z + thing->height >= tmthing->z &&    // touches vertically
-//      tmthing->z + tmthing->height >= thing->z &&
-//      (thing->type ^ MT_PAIN) |                    // PEs and lost souls
-//      (tmthing->type ^ MT_SKULL) &&                // are considered same
-//      (thing->type ^ MT_SKULL) |                   // (but Barons & Knights
-//      (tmthing->type ^ MT_PAIN))                   // are intentionally not)
-//    {
-//      P_DamageMobj(thing, NULL, NULL, thing->health);  // kill object
-//      return true;
-//    }
-//*/
-//  // check for skulls slamming into things
-///*
-//  if (tmthing->flags & MF_SKULLFLY)
-//    {
-//      // A flying skull is smacking something.
-//      // Determine damage amount, and the skull comes to a dead stop.
-//
-//      int damage = ((M_Random()%8)+1)*tmthing->info->damage;
-//
-//      P_DamageMobj (thing, tmthing, tmthing, damage);
-//
-//      tmthing->flags &= ~MF_SKULLFLY;
-//      tmthing->velx = tmthing->vely = tmthing->velz = 0;
-//
-//      P_SetMobjState (tmthing, tmthing->info->spawnstate);
-//
-//      return false;   // stop moving
-//    }
-//*/
-//  // missiles can hit other things
-//  // killough 8/10/98: bouncing non-solid things can hit other things too
-///*
-//  if (tmthing->flags & MF_MISSILE || (tmthing->flags & MF_BOUNCES &&
-//				      !(tmthing->flags & MF_SOLID)))
-//    {
-//      // see if it went over / under
-//
-//      if (tmthing->z > thing->z + thing->height)
-//	return true;    // overhead
-//
-//      if (tmthing->z+tmthing->height < thing->z)
-//	return true;    // underneath
-//
-//      if (tmthing->target && (tmthing->target->type == thing->type ||
-//	  (tmthing->target->type == MT_KNIGHT && thing->type == MT_BRUISER)||
-//	  (tmthing->target->type == MT_BRUISER && thing->type == MT_KNIGHT)))
-//      {
-//	if (thing == tmthing->target)
-//	  return true;                // Don't hit same species as originator.
-//	else
-//	  if (thing->type != MT_PLAYER)	// Explode, but do no damage.
-//	    return false;	        // Let players missile other players.
-//      }
-//      
-//      // killough 8/10/98: if moving thing is not a missile, no damage
-//      // is inflicted, and momentum is reduced if object hit is solid.
-//
-//      if (!(tmthing->flags & MF_MISSILE)) {
-//	if (!(thing->flags & MF_SOLID)) {
-//	    return true;
-//	} else {
-//	    tmthing->velx = -tmthing->velx;
-//	    tmthing->vely = -tmthing->vely;
-//	    if (!(tmthing->flags & MF_NOGRAVITY))
-//	      {
-//		tmthing->velx >>= 2;
-//		tmthing->vely >>= 2;
-//	      }
-//	    return false;
-//	}
-//      }
-//
-//      if (!(thing->flags & MF_SHOOTABLE))
-//	return !(thing->flags & MF_SOLID); // didn't do any damage
-//
-//      // damage / explode
-//
-//      damage = ((P_Random(pr_damage)%8)+1)*tmthing->info->damage;
-//      P_DamageMobj (thing, tmthing, tmthing->target, damage);
-//
-//      // don't traverse any more
-//      return false;
-//    }
-//*/
-//  // check for special pickup
-//
-//	if ((thing->flags & MF_SPECIAL) && (tmflags & MF_PICKUP))
-//	{ // Can be picked up by tmthing
-//
-//		// [BC] Server decides what items are touched.
-//		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-//			( CLIENTDEMO_IsPlaying( ) == false ))
-//		{
-//			P_TouchSpecialThing (thing, tmthing);	// can remove thing
-//		}
-//	}
-//
-//  // killough 3/16/98: Allow non-solid moving objects to move through solid
-//  // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
-//  // despite another solid thing being in the way.
-//  // killough 4/11/98: Treat no-clipping things as not blocking
-//
-//  return !((thing->flags & MF_SOLID && !(thing->flags & MF_NOCLIP))
-//           && (tmthing->flags & MF_SOLID || (1)));
-//
-//  // return !(thing->flags & MF_SOLID);   // old code -- killough
-//}
-//
-//
-// [BB] Not compatible with latest ZDoom changes and wasn't used.
-////*****************************************************************************
-////
-//// [BC] ugh old code for people who just have to have doom2.exe style movement.
-////bool P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y)
-//{
-//  	static TArray<AActor *> checkpbt;
-//
-//  int xl, xh, yl, yh, bx, by;
-//  subsector_t*  newsubsec;
-//
-//  tmthing = thing;
-//
-//  tmx = x;
-//  tmy = y;
-//
-//  tmbbox[BOXTOP] = y + tmthing->radius;
-//  tmbbox[BOXBOTTOM] = y - tmthing->radius;
-//  tmbbox[BOXRIGHT] = x + tmthing->radius;
-//  tmbbox[BOXLEFT] = x - tmthing->radius;
-//
-//  newsubsec = R_PointInSubsector (x,y);
-//  /*floorline = */ceilingline = BlockingLine = NULL; // killough 8/1/98
-//
-//  // Whether object can get out of a sticky situation:
-//  tmunstuck = thing->player &&          /* only players */
-//    thing->player->mo == thing &&       /* not voodoo dolls */
-//    /*mbf_features*/0; /* not under old demos */
-//
-//  // The base floor / ceiling is from the subsector
-//  // that contains the point.
-//  // Any contacted lines the step closer together
-//  // will adjust them.
-//
-//	tmfloorz = tmdropoffz = newsubsec->sector->floorplane.ZatPoint (x, y);
-//	tmceilingz = newsubsec->sector->ceilingplane.ZatPoint (x, y);
-//	validcount++;
-//	spechit.Clear( );
-//	checkpbt.Clear( );
-//
-//  if ( tmthing->flags & MF_NOCLIP )
-//    return true;
-//
-//  // Check things first, possibly picking things up.
-//  // The bounding box is extended by MAXRADIUS
-//  // because mobj_ts are grouped into mapblocks
-//  // based on their origin point, and can overlap
-//  // into adjacent blocks by up to MAXRADIUS units.
-//
-//  xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS)>>MAPBLOCKSHIFT;
-//  xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS)>>MAPBLOCKSHIFT;
-//  yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS)>>MAPBLOCKSHIFT;
-//  yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS)>>MAPBLOCKSHIFT;
-//
-//
-//  for (bx=xl ; bx<=xh ; bx++)
-//    for (by=yl ; by<=yh ; by++)
-//      if (!P_BlockThingsIterator(bx,by,PIT_OldCheckThing,checkpbt))
-//        return false;
-//
-//  // check lines
-//
-//  xl = (tmbbox[BOXLEFT] - bmaporgx)>>MAPBLOCKSHIFT;
-//  xh = (tmbbox[BOXRIGHT] - bmaporgx)>>MAPBLOCKSHIFT;
-//  yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
-//  yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
-//
-//  for (bx=xl ; bx<=xh ; bx++)
-//    for (by=yl ; by<=yh ; by++)
-//      if (!P_BlockLinesIterator (bx,by,PIT_OldCheckLine))
-//        return false; // doesn't fit
-//
-//  return true;
-//}
 
 
 /*
@@ -2318,7 +2010,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				{
 					floorz = MAX(thing->z, tm.floorz);
 				}
-
+				
 				if (floorz - tm.dropoffz > thing->MaxDropOffHeight &&
 					!(thing->flags2 & MF2_BLASTED)  && !missileCheck)
 				{ // Can't move over a dropoff unless it's been blasted
@@ -5498,84 +5190,6 @@ bool P_NoWayTraverse (AActor *usething, fixed_t endx, fixed_t endy)
 	return false;
 }
 
-//
-// PTR_UsethingTraverse
-//
-
-// [BB] Not compatible with the latest ZDoom changes, but do we really need this?
-//bool PTR_UsethingTraverse (intercept_t* in)
-//{
-//	AActor	 			*pUseTarget;
-//	fixed_t 			thingtoppitch;
-//	fixed_t 			thingbottompitch;
-//	fixed_t 			dist;
-//	fixed_t				usez;
-//
-//	usez = usething->z + (usething->height >> 1) + 8*FRACUNIT;
-//
-//	// [BC] I'm not sure... will pUseTarget always be valid?			
-//	pUseTarget = in->d.thing;
-//
-//	// Can't activate ourselves.
-//	if ( pUseTarget == usething )
-//		return ( true );
-//
-//	// Don't try to activate non-solid objects.
-//	if (( pUseTarget->flags & MF_SOLID ) == false )
-//		return ( true );
-//	
-//	// check angles to see if the thing can be aimed at
-//	dist = FixedMul (USERANGE, in->frac);
-//
-//	thingtoppitch = -(int)R_PointToAngle2( 0, usez, dist, pUseTarget->z + pUseTarget->height);
-//
-//	// Too far above the object.
-//	if ( thingtoppitch > aim.bottompitch )
-//		return ( true );
-//
-//	thingbottompitch = -(int)R_PointToAngle2( 0, usez, dist, pUseTarget->z );
-//
-//	// Too far below the object.
-//	if ( thingbottompitch < aim.toppitch )
-//		return ( true );
-//	
-//	// this thing can be hit!
-//	if ( thingtoppitch < aim.toppitch )
-//		thingtoppitch = aim.toppitch;
-//
-//	if ( thingbottompitch > aim.bottompitch )
-//		thingbottompitch = aim.bottompitch;
-//
-//	aimpitch = thingtoppitch/2 + thingbottompitch/2;
-//	linetarget = pUseTarget;
-//
-//	// Don't go any farther.
-//	return ( false );
-///*
-//	// check angles to see if the thing can be aimed at
-//	dist = FixedMul (USERANGE, in->frac);
-//	thingtopslope = FixedDiv (th->z+th->height - usez , dist);
-//
-////	if (thingtopslope < bottomslope)
-////		return true;
-//
-//	thingbottomslope = FixedDiv (th->z - usez, dist);
-//
-////	if (thingbottomslope > topslope)
-////		return true;
-//
-////	if (thingtopslope > topslope)
-////		thingtopslope = topslope;
-//	
-////	if (thingbottomslope < bottomslope)
-////		thingbottomslope = bottomslope;
-//
-//	linetarget = th;
-//
-//	return false;
-//*/
-//}
-
 //==========================================================================
 //
 // P_UseLines
@@ -6180,7 +5794,6 @@ void P_FindAboveIntersectors (AActor *actor)
 	if (!(actor->flags & MF_SOLID))
 		return;
 
-
 	AActor *thing;
 	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 	while ((thing = it.Next()))
@@ -6325,7 +5938,6 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 
 
 	if (!(thing && thing->Grind(true) && cpos)) return;
-
 	cpos->nofit = true;
 
 	if ((cpos->crushchange > 0) && !(level.maptime & 3))

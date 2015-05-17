@@ -873,9 +873,6 @@ void P_PlayerOnSpecialFlat (player_t *player, int floorType)
 //
 void P_UpdateSpecials ()
 {
-//	size_t j;
-//	int i;
-	
 	// LEVEL TIMER
 	// [BB] The gamemode decides whether the timelimit is used.
 	if ( GAMEMODE_IsTimelimitActive() )

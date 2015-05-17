@@ -926,7 +926,7 @@ static void R_DrawSky (visplane_t *pl)
 {
 	int x;
 
-	if (pl->minx > pl->maxx)
+ 	if (pl->minx > pl->maxx)
 		return;
 
 	dc_iscale = skyiscale;

@@ -121,7 +121,6 @@ extern void (*hcolfunc_post2) (int hx, int sx, int yl, int yh);
 extern void (STACK_ARGS *hcolfunc_post4) (int sx, int yl, int yh);
 
 
-subsector_t *R_PointInSubsector2 (fixed_t x, fixed_t y);
 void R_InitTextureMapping ();
 
 
@@ -145,5 +144,6 @@ extern fixed_t stacked_viewx, stacked_viewy, stacked_viewz;
 extern angle_t stacked_angle;
 
 extern void R_CopyStackedViewParameters();
+
 
 #endif // __R_MAIN_H__

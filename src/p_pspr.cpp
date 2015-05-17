@@ -249,7 +249,7 @@ void P_FireWeapon (player_t *player, FState *state)
 
 	// [SO] 9/2/02: People were able to do an awful lot of damage
 	// when they were observers...
-/*
+/* [BB] Zandronum doesn't use ZDoom's bot code.
 	if (!player->isbot && bot_observer)
 	{
 		return;
@@ -299,7 +299,7 @@ void P_FireWeaponAlt (player_t *player, FState *state)
 {
 	AWeapon *weapon;
 
-/*
+/* [BB] Zandronum doesn't use ZDoom's bot code.
 	// [SO] 9/2/02: People were able to do an awful lot of damage
 	// when they were observers...
 	if (!player->isbot && bot_observer)

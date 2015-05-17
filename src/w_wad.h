@@ -48,6 +48,7 @@ struct wadlump_t
 #define IWAD_ID		MAKE_ID('I','W','A','D')
 #define PWAD_ID		MAKE_ID('P','W','A','D')
 
+
 // [RH] Namespaces from BOOM.
 typedef enum {
 	ns_global = 0,

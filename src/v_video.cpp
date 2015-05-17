@@ -65,6 +65,7 @@
 #include "menu/menu.h"
 #include "r_data/voxels.h"
 
+
 FRenderer *Renderer;
 
 IMPLEMENT_ABSTRACT_CLASS (DCanvas)

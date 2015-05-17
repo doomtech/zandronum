@@ -547,8 +547,6 @@ void P_RunEffect (AActor *actor, int effects)
 		}
 	}
 	if ((effects & FX_GRENADE) && (cl_rockettrails & 1))
-	// [BB] Check this.
-	//if ((effects & FX_GRENADE) && (cl_grenadetrails))
 	{
 		// Grenade trail
 

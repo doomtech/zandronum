@@ -1017,7 +1017,7 @@ void P_LoadGLZSegs (FileReaderBase &data, int type)
 //
 //===========================================================================
 
-static void LoadZNodes(FileReaderBase &data, int glnodes)
+void LoadZNodes(FileReaderBase &data, int glnodes)
 {
 	// Read extra vertices added during node building
 	DWORD orgVerts, newVerts;
@@ -2660,6 +2660,7 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 		break;
 	}
 
+	// [BC/BB] Backup certain properties.
 	sd->SavedTopTexture = sd->GetTexture(side_t::top);
 	sd->SavedMidTexture = sd->GetTexture(side_t::mid);
 	sd->SavedBottomTexture = sd->GetTexture(side_t::bottom);

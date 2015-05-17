@@ -941,6 +941,7 @@ public:
 		}
 
 		// [CW] Freeze the game depending on MAPINFO options.
+		// [BB] !multiplayer -> (NETWORK_GetState( ) == NETSTATE_SINGLE)
 		if (ConversationPauseTic < gametic && (NETWORK_GetState( ) == NETSTATE_SINGLE) && !(level.flags2 & LEVEL2_CONV_SINGLE_UNFREEZE))
 		{
 			menuactive = MENU_On;

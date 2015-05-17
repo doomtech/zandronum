@@ -1,7 +1,6 @@
 #ifndef __SECTORE_H
 #define __SECTORE_H
 
-#include "v_palette.h"
 
 #define CenterSpot(sec) (vertex_t*)&(sec)->soundorg[0]
 
@@ -135,8 +134,6 @@ void P_RecalculateAttachedLights(sector_t *sector);
 
 lightlist_t * P_GetPlaneLight(sector_t * , secplane_t * plane, bool underside);
 void P_Spawn3DFloors( void );
-void P_RecalculateLights(sector_t *sector);
-void P_RecalculateAttachedLights(sector_t *sector);
 
 struct FLineOpening;
 

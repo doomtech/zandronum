@@ -481,6 +481,7 @@ void R_ExecuteSetViewSize ()
 //
 //==========================================================================
 
+// [BB] Zandronum uses 11 instead of 10 as default value.
 CUSTOM_CVAR (Int, screenblocks, 11, CVAR_ARCHIVE)
 {
 	if (self > 12)

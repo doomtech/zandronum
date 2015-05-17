@@ -1634,6 +1634,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\p_3dfloors.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_3dmidtex.h"
 				>
 			</File>
