@@ -1195,7 +1195,7 @@ void R_Subsector (subsector_t *sub)
 				floorplane = R_FindPlane(frontsector->floorplane,
 					frontsector->GetTexture(sector_t::floor),
 					floorlightlevel + r_actualextralight,				// killough 3/16/98
-					frontsector->GetAlpha(position),
+					frontsector->GetAlpha(sector_t::floor),
 					!!(fakeFloor->flags & FF_ADDITIVETRANS),
 					frontsector->GetXOffset(position),		// killough 3/7/98
 					frontsector->GetYOffset(position),		// killough 3/7/98
@@ -1232,7 +1232,6 @@ void R_Subsector (subsector_t *sub)
 				R_3D_NewClip();
 			}
 			fakeHeight = fakeFloor->bottom.plane->ZatPoint(frontsector->soundorg[0], frontsector->soundorg[1]);
-
 			if (fakeHeight > viewz &&
 				fakeHeight < frontsector->ceilingplane.ZatPoint(frontsector->soundorg[0], frontsector->soundorg[1]))
 			{
@@ -1261,7 +1260,7 @@ void R_Subsector (subsector_t *sub)
 				ceilingplane = R_FindPlane(frontsector->ceilingplane,		// killough 3/8/98
 					frontsector->GetTexture(sector_t::ceiling),
 					ceilinglightlevel + r_actualextralight,				// killough 4/11/98
-					frontsector->GetAlpha(position),
+					frontsector->GetAlpha(sector_t::ceiling),
 					!!(fakeFloor->flags & FF_ADDITIVETRANS),
 					frontsector->GetXOffset(position),		// killough 3/7/98
 					frontsector->GetYOffset(position),		// killough 3/7/98

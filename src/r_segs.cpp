@@ -277,26 +277,6 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 	basecolormap = sec->ColorMap;	// [RH] Set basecolormap
 
 	wallshade = ds->shade;
-
-	if (!(fake3D & FAKE3D_CLIPTOP))
-	{
-		sclipTop = sec->ceilingplane.ZatPoint(viewx, viewy);
-	}
-
-	if (fixedlightlev < 0)
-	{
-		for (i = frontsector->e->XFloor.lightlist.Size() - 1; i >= 0; i--)
-		{
-			if (sclipTop <= frontsector->e->XFloor.lightlist[i].plane.ZatPoint(viewx, viewy))
-			{
-				lightlist_t *lit = &frontsector->e->XFloor.lightlist[i];
-				basecolormap = lit->extra_colormap;
-				wallshade = LIGHT2SHADE(curline->sidedef->GetLightLevel(foggy, *lit->p_lightlevel, lit->lightsource == NULL) + r_actualextralight);
-				break;
-			}
-		}
-	}
-
 	rw_lightstep = ds->lightstep;
 	rw_light = ds->light + (x1 - ds->x1) * rw_lightstep;
 
@@ -1792,7 +1772,7 @@ void R_RenderSegLoop ()
 	{
 		for (x = x1; x < x2; ++x)
 		{
-			short top = (fakeFloor && fake3D & FAKE3D_FAKECEILING) ? fakeFloor->ceilingclip[x] : ceilingclip[x];
+			short top = (fakeFloor && fake3D & 2) ? fakeFloor->ceilingclip[x] : ceilingclip[x];
 			short bottom = MIN (walltop[x], floorclip[x]);
 			if (top < bottom)
 			{
@@ -1808,7 +1788,7 @@ void R_RenderSegLoop ()
 		for (x = x1; x < x2; ++x)
 		{
 			short top = MAX (wallbottom[x], ceilingclip[x]);
-			short bottom = (fakeFloor && fake3D & FAKE3D_FAKEFLOOR) ? fakeFloor->floorclip[x] : floorclip[x];
+			short bottom = (fakeFloor && fake3D & 1) ? fakeFloor->floorclip[x] : floorclip[x];
 			if (top < bottom)
 			{
 				assert (bottom <= viewheight);
@@ -1846,7 +1826,7 @@ void R_RenderSegLoop ()
 			memcpy (fakeFloor->ceilingclip+x1, wallupper+x1, (x2-x1)*sizeof(short));
 		}
 	}
-	if(fake3D & FAKE3D_FAKEMASK) return;
+	if(fake3D & 7) return;
 
 	// draw the wall tiers
 	if (midtexture)
@@ -2125,7 +2105,6 @@ void R_NewWall (bool needlights)
 				|| (sidedef->GetTexture(side_t::mid).isValid() &&
 					((linedef->flags & (ML_CLIP_MIDTEX|ML_WRAP_MIDTEX)) ||
 					 (sidedef->Flags & (WALLF_CLIP_MIDTEX|WALLF_WRAP_MIDTEX))))
-
 				;
 
 			markceiling = (frontsector->GetTexture(sector_t::ceiling) != skyflatnum ||
@@ -2162,7 +2141,6 @@ void R_NewWall (bool needlights)
 				|| (sidedef->GetTexture(side_t::mid).isValid() &&
 					((linedef->flags & (ML_CLIP_MIDTEX|ML_WRAP_MIDTEX)) ||
 					(sidedef->Flags & (WALLF_CLIP_MIDTEX|WALLF_WRAP_MIDTEX))))
-
 				);
 		}
 
@@ -2401,7 +2379,7 @@ void R_StoreWallRange (int start, int stop)
 	rw_stopx = stop;
 	ds_p->bFogBoundary = false;
 	ds_p->bFakeBoundary = false;
-	if(fake3D & FAKE3D_FAKEMASK) ds_p->fake = 1;
+	if(fake3D & 7) ds_p->fake = 1;
 	else ds_p->fake = 0;
 
 	// killough 1/6/98, 2/1/98: remove limit on openings
@@ -2463,7 +2441,6 @@ void R_StoreWallRange (int start, int stop)
 		}
 
 		if(!ds_p->fake && r_3dfloors && backsector->e && backsector->e->XFloor.ffloors.Size()) {
-			int i;
 			for(i = 0; i < (int)backsector->e->XFloor.ffloors.Size(); i++) {
 				F3DFloor *rover = backsector->e->XFloor.ffloors[i];
 				if(rover->flags & FF_RENDERSIDES && (!(rover->flags & FF_INVERTSIDES) || rover->flags & FF_ALLSIDES)) {
@@ -2473,7 +2450,6 @@ void R_StoreWallRange (int start, int stop)
 			}
 		}
 		if(!ds_p->fake && r_3dfloors && frontsector->e && frontsector->e->XFloor.ffloors.Size()) {
-			int i;
 			for(i = 0; i < (int)frontsector->e->XFloor.ffloors.Size(); i++) {
 				F3DFloor *rover = frontsector->e->XFloor.ffloors[i];
 				if(rover->flags & FF_RENDERSIDES && (rover->flags & FF_ALLSIDES || rover->flags & FF_INVERTSIDES)) {
@@ -2482,13 +2458,14 @@ void R_StoreWallRange (int start, int stop)
 				}
 			}
 		}
+		// kg3D - no for fakes
+		if(!ds_p->fake)
 		// allocate space for masked texture tables, if needed
 		// [RH] Don't just allocate the space; fill it in too.
 		if ((TexMan(sidedef->GetTexture(side_t::mid), true)->UseType != FTexture::TEX_Null || ds_p->bFakeBoundary || IsFogBoundary (frontsector, backsector)) &&
 			(rw_ceilstat != 12 || !sidedef->GetTexture(side_t::top).isValid()) &&
 			(rw_floorstat != 3 || !sidedef->GetTexture(side_t::bottom).isValid()) &&
-			(WallSZ1 >= TOO_CLOSE_Z && WallSZ2 >= TOO_CLOSE_Z) &&
-			!ds_p->fake)
+			(WallSZ1 >= TOO_CLOSE_Z && WallSZ2 >= TOO_CLOSE_Z))
 		{
 			fixed_t *swal;
 			fixed_t *lwal;
@@ -2598,7 +2575,7 @@ void R_StoreWallRange (int start, int stop)
 
 	R_RenderSegLoop ();
 
-	if(fake3D & FAKE3D_FAKEMASK) {
+	if(fake3D & 7) {
 		ds_p++;
 		return;
 	}
