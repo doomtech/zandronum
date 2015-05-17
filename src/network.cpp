@@ -832,7 +832,7 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 #ifdef unix
 	// [BB] The "gethostname -> gethostbyname" trick didn't reveal the local IP.
 	// Now we need to resort to something more complicated.
-	if ( stringToAddress == false );
+	if ( stringToAddress == false )
 	{
 #ifndef __FreeBSD__
 		unsigned char      *u;
