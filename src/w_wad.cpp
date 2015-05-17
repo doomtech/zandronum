@@ -299,7 +299,8 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo, bool bL
 	}
 
 	// [BC] Mark whether or not the wad was loaded automatically.
-	wadinfo->bLoadedAutomatically = bLoadedAutomatically;
+	if ( wadinfo )
+		wadinfo->bLoadedAutomatically = bLoadedAutomatically;
 
 	Printf (" adding %s", filename);
 	startlump = NumLumps;
@@ -1295,7 +1296,7 @@ bool FWadCollection::GetLoadedAutomatically( int wadnum ) const
 		return ( false );
 	}
 
-	return ( Files[wadnum]->GetReader()->bLoadedAutomatically );
+	return ( Files[wadnum]->GetReader() && Files[wadnum]->GetReader()->bLoadedAutomatically );
 }
 
 //==========================================================================
