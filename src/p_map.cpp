@@ -4653,13 +4653,9 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			if ( NETWORK_InClientMode( ) && cl_hitscandecalhack == false )
 				return NULL;
 
-			// [BB] Whatever the client is supposed to predict, it may not handle the
-			// damage, which is done below.
-			if ( NETWORK_InClientMode( ) )
-				goto damagedone;
-
 			// Allow puffs to inflict poison damage, so that hitscans can poison, too.
-			if (puffDefaults != NULL && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
+			// [EP] Skip this for clients.
+			if ( ( NETWORK_InClientMode( ) == false ) && puffDefaults != NULL && puffDefaults->PoisonDamage > 0 && puffDefaults->PoisonDuration != INT_MIN)
 			{
 				P_PoisonMobj(trace.Actor, puff ? puff : t1, t1, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod, puffDefaults->PoisonDamageType);
 			}
@@ -4667,7 +4663,8 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			// [GZ] If MF6_FORCEPAIN is set, we need to call P_DamageMobj even if damage is 0!
 			// Note: The puff may not yet be spawned here so we must check the class defaults, not the actor.
 			int newdam = damage;
-			if (damage || (puffDefaults != NULL && puffDefaults->flags6 & MF6_FORCEPAIN))
+			// [EP] Skip this for clients.
+			if ( ( NETWORK_InClientMode( ) == false ) && (damage || (puffDefaults != NULL && puffDefaults->flags6 & MF6_FORCEPAIN)))
 			{
 				int dmgflags = DMG_INFLICTOR_IS_PUFF | pflag;
 				// Allow MF5_PIERCEARMOR on a weapon as well.
@@ -4688,7 +4685,6 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				}
 				newdam = P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, dmgflags);
 			}
-damagedone:	// [TP] The client returns here now that the damage has been dealt.
 			if (!(puffDefaults != NULL && puffDefaults->flags3&MF3_BLOODLESSIMPACT))
 			{
 				// [CK] Do not perform if we are a client.
