@@ -1270,7 +1270,8 @@ CCMD(nextmap)
 	// [TL] Get the next map if available.
 	const char * next = G_GetExitMap( );	
 	
-	if ( next && strncmp(next, "enDSeQ", 6) )
+	// [BB] G_GetExitMap() can return an empty string.
+	if ( next && strncmp(next, "enDSeQ", 6) && ( strlen ( next ) > 0 ) )
 	{	
 		// Fuck that DEM shit!
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
