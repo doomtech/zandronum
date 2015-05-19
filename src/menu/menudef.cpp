@@ -49,6 +49,9 @@
 #include "i_music.h"
 #include "m_joy.h"
 #include "gi.h"
+// [TP] New #includes
+#include "announcer.h"
+#include "doomerrors.h"
 
 #include "optionmenuitems.h"
 
@@ -811,6 +814,109 @@ static void ParseOptionMenuBody(FScanner &sc, FOptionMenuDescriptor *desc)
 			FOptionMenuItem *it = new FOptionMenuScreenResolutionLine(sc.String);
 			desc->mItems.Push(it);
 		}
+		// [TP] -- Text input widget
+		else if ( sc.Compare( "TextField" ))
+		{
+			sc.MustGetString();
+			FString label = sc.String;
+			sc.MustGetStringName( "," );
+			sc.MustGetString();
+			FString cvar = sc.String;
+			FString check;
+			
+			if ( sc.CheckString( "," ))
+			{
+				sc.MustGetString();
+				check = sc.String;
+			}
+
+			FOptionMenuItem* it = new FOptionMenuTextField( label, cvar, check );
+			desc->mItems.Push( it );
+		}
+		// [TP] -- Number input widget
+		else if ( sc.Compare( "NumberField" ))
+		{
+			sc.MustGetString();
+			FString label = sc.String;
+			sc.MustGetStringName( "," );
+			sc.MustGetString();
+			FString cvar = sc.String;
+			float minimum = 0.0f;
+			float maximum = 100.0f;
+			float step = 1.0f;
+			FString check;
+
+			if ( sc.CheckString( "," ))
+			{
+				sc.MustGetFloat();
+				minimum = (float) sc.Float;
+				sc.MustGetStringName( "," );
+				sc.MustGetFloat();
+				maximum = (float) sc.Float;
+
+				if ( sc.CheckString( "," ))
+				{
+					sc.MustGetFloat();
+					step = (float) sc.Float;
+
+					if ( sc.CheckString( "," ))
+					{
+						sc.MustGetString();
+						check = sc.String;
+					}
+				}
+			}
+
+			FOptionMenuItem* it = new FOptionMenuNumberField( label, cvar,
+				minimum, maximum, step, check );
+			desc->mItems.Push( it );
+		}
+		// [TP] -- Player input widget
+		else if ( sc.Compare( "PlayerField" ))
+		{
+			sc.MustGetString();
+			FString label = sc.String;
+			sc.MustGetStringName( "," );
+			sc.MustGetString();
+			FString cvar = sc.String;
+			bool allowBots = true;
+			bool allowSelf = true;
+
+			while ( sc.CheckString( "," ))
+			{
+				static const char* attributeNames[] = { "nobots", "notself", NULL };
+				enum Attribute { NOBOTS, NOTSELF };
+				sc.MustGetToken( TK_Identifier );
+				Attribute attrib = static_cast<Attribute>( sc.MustMatchString( attributeNames ));
+
+				switch ( attrib )
+				{
+				case NOBOTS: allowBots = false; break;
+				case NOTSELF: allowSelf = false; break;
+				}
+			}
+
+			FOptionMenuItem* it = new FOptionMenuPlayerField ( label, cvar, allowBots, allowSelf );
+			desc->mItems.Push( it );
+		}
+		// [TP] -- Team chooser for the join menu
+		else if ( sc.Compare( "JoinMenuTeamOption" ))
+		{
+			FOptionMenuItem *it = new FOptionMenuTeamField;
+			desc->mItems.Push( it );
+		}
+		// [TP] Player class chooser for the join menu
+		else if ( sc.Compare( "JoinMenuPlayerClassOption" ))
+		{
+			FOptionMenuItem *it = new FOptionMenuPlayerClassField;
+			desc->mItems.Push( it );
+		}
+		// [TP] Flags the menu as multiplayer-only
+		else if ( sc.Compare ( "NetgameOnly" ))
+		{
+			desc->mNetgameOnly = true;
+		}
+		// [TP] --
 		else
 		{
 			sc.ScriptError("Unknown keyword '%s'", sc.String);
@@ -838,6 +944,7 @@ static void ParseOptionMenu(FScanner &sc)
 	desc->mScrollTop = DefaultOptionMenuSettings.mScrollTop;
 	desc->mIndent =  DefaultOptionMenuSettings.mIndent;
 	desc->mDontDim =  DefaultOptionMenuSettings.mDontDim;
+	desc->mNetgameOnly = false; // [TP]
 
 	ParseOptionMenuBody(sc, desc);
 	bool scratch = ReplaceMenu(sc, desc);
@@ -1246,6 +1353,103 @@ static void InitKeySections()
 
 //=============================================================================
 //
+// [BB/TP] Initializes a list of levels for use in the offline skirmish menu.
+//
+//==============================================================================
+
+static void InitLevelsList()
+{
+	FOptionValues** opt = OptionValues.CheckKey( "ZA_Levels" );
+	FOptionValues::Pair pair;
+
+	if ( opt == NULL )
+		return;
+
+	for ( unsigned int i = 0; i < wadlevelinfos.Size(); ++i )
+	{
+		// [TP] If the map cannot be opened, then it shouldn't be on the level list.
+		// This filters out maps that are declared in MAPINFO but aren't actually present,
+		// e.g. No Rest For the Living maps in the BFG edition.
+		MapData* mdata = NULL;
+
+		// [TP] The "THINGS not found in" error still seem prevalent so we need the try-catch
+		// block here as well.
+		try
+		{
+			if (( mdata = P_OpenMapData( wadlevelinfos[i].mapname )) != NULL )
+			{
+				level_info_t& info = wadlevelinfos[i];
+				pair.Value = i;
+				pair.Text.Format( "%s - %s", info.mapname, info.LookupLevelName().GetChars() );
+				( *opt )->mValues.Push( pair );
+			}
+		}
+		catch ( CRecoverableError& ) {}
+
+		delete mdata;
+	}
+}
+
+//=============================================================================
+//
+// [TP] Initializes a list of bots for use in the offline skirmish menu.
+//
+//==============================================================================
+
+static void InitBotsList()
+{
+	FOptionValues** opt = OptionValues.CheckKey( "ZA_Bots" );
+	FOptionValues::Pair pair;
+
+	if ( opt == NULL )
+		return;
+
+	// Add a no bot entry
+	pair.Value = -1.0;
+	pair.Text = "-";
+	( *opt )->mValues.Push( pair );
+
+	for ( unsigned int i = 0; i < MAX_BOTINFO; ++i )
+	{
+		if ( BOTINFO_GetRevealed( i ) == false )
+			continue;
+
+		pair.Value = double ( i );
+		pair.Text = BOTINFO_GetName( i );
+		( *opt )->mValues.Push( pair );
+	}
+}
+
+//=============================================================================
+//
+// [TP] Initializes a list of announcers
+//
+//==============================================================================
+
+static void InitAnnouncersList()
+{
+	FOptionValues** opt = OptionValues.CheckKey( "ZA_Announcers" );
+	FOptionValues::Pair pair;
+
+	if ( opt == NULL )
+		return;
+
+	// Add a no announcer entry
+	pair.Value = -1.0;
+	pair.Text = "None";
+	( *opt )->mValues.Push( pair );
+
+	// Add all announcers
+	for ( unsigned int i = 0; i < ANNOUNCER_GetNumProfiles(); ++i )
+	{
+		pair.Value = double ( i );
+		pair.Text = ANNOUNCER_GetName( i );
+		( *opt )->mValues.Push( pair );
+	}
+}
+
+//=============================================================================
+//
 // Special menus will be created once all engine data is loaded
 //
 //=============================================================================
@@ -1256,6 +1460,11 @@ void M_CreateMenus()
 	BuildPlayerclassMenu();
 	InitCrosshairsList();
 	InitKeySections();
+
+	// [TP] Zandronum additions
+	InitLevelsList();
+	InitBotsList();
+	InitAnnouncersList();
 
 	FOptionValues **opt = OptionValues.CheckKey(NAME_Mididevices);
 	if (opt != NULL) 

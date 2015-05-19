@@ -57,6 +57,7 @@
 #include "textures/textures.h"
 // [BB] New #includes.
 #include "chat.h"
+#include "d_netinf.h"
 
 //
 // Todo: Move these elsewhere
@@ -441,6 +442,13 @@ void M_SetMenu(FName menu, int param)
 			FOptionMenuDescriptor *ld = static_cast<FOptionMenuDescriptor*>(*desc);
 			const PClass *cls = ld->mClass == NULL? RUNTIME_CLASS(DOptionMenu) : ld->mClass;
 
+			// [TP]
+			if ( ld->mNetgameOnly && ( NETWORK_GetState() != NETSTATE_CLIENT ) )
+			{
+				M_StartMessage( "You must be in a netgame to use this.\n\npress a key.", 1 );
+				return;
+			}
+
 			DOptionMenu *newmenu = (DOptionMenu *)cls->CreateNew();
 			newmenu->Init(DMenu::CurrentMenu, ld);
 			M_ActivateMenu(newmenu);
@@ -739,6 +747,7 @@ void M_ClearMenus ()
 		DMenu::CurrentMenu->Destroy();
 		DMenu::CurrentMenu = NULL;
 	}
+	D_SendPendingUserinfoChanges(); // [TP]
 	V_SetBorderNeedRefresh();
 	menuactive = MENU_Off;
 }

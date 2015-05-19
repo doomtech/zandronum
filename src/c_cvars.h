@@ -134,6 +134,11 @@ public:
 
 	static void ListVars (const char *filter, bool plain);
 
+	// [TP] Gah
+	virtual bool IsFlagCVar() { return false; }
+	virtual bool IsMaskCVar() { return false; }
+	bool IsServerInfo();
+
 protected:
 	FBaseCVar () {}
 	virtual void DoSet (UCVarValue value, ECVarType type) = 0;
@@ -353,8 +358,10 @@ public:
 	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
 	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
 
-	inline FIntCVar const& GetValueVar() const { return ValueVar; } // [Dusk]
-	inline uint32 GetBitVal() const { return BitVal; } // [Dusk]
+	// [TP] More access functions
+	bool IsFlagCVar() { return true; }
+	inline FIntCVar* GetValueVar() const { return &ValueVar; }
+	inline uint32 GetBitVal() const { return BitVal; }
 
 	bool operator= (bool boolval)
 		{ UCVarValue val; val.Bool = boolval; SetGenericRep (val, CVAR_Bool); return boolval; }
@@ -386,6 +393,12 @@ public:
 
 	inline operator int () const { return (ValueVar & BitVal) >> BitNum; }
 	inline int operator *() const { return (ValueVar & BitVal) >> BitNum; }
+
+	// [TP] More access functions
+	bool IsMaskCVar() { return true; }
+	inline FIntCVar* GetValueVar() const { return &ValueVar; }
+	inline uint32 GetBitVal() const { return BitVal; }
+	inline int GetBitNum() const { return BitNum; }
 
 protected:
 	virtual void DoSet (UCVarValue value, ECVarType type);

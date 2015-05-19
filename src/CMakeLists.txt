@@ -1092,6 +1092,7 @@ add_executable( zdoom WIN32
 	menu/menudef.cpp
 	menu/menuinput.cpp
 	menu/messagebox.cpp
+	menu/multiplayermenu.cpp #ZA
 	menu/optionmenu.cpp
 	menu/playerdisplay.cpp
 	menu/playermenu.cpp

@@ -1250,9 +1250,7 @@ bool G_Responder (event_t *ev)
 		// [BB] This "eats" the key, therefore we must return true here.
 		if ( ( ev->type == EV_KeyDown ) && ( ev->data1 == KEY_SPACE ) && players[consoleplayer].bSpectating )
 		{
-			/* [BB] FIXME
 			M_JoinMenu();
-			*/
 			return true;
 		}
 	}
@@ -2725,7 +2723,46 @@ void G_DoReborn (int playernum, bool freshbot)
 	}
 }
 
+//*****************************************************************************
+//
+// Sets default dmflags based on gamemode
+//
+void GAME_SetDefaultDMFlags()
+{
+	int flags = dmflags;
+	int flags2 = dmflags2;
+
+	if ( deathmatch )
+	{
+		// Don't do "spawn farthest" for duels.
+		if ( duel )
+			flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
+		else
+			flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
+
+		flags2 |= DF2_YES_DOUBLEAMMO;
+	}
+	else if ( teamgame )
+	{
+		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
+		flags2 |= DF2_YES_DOUBLEAMMO;
+	}
+	else
+	{
+		flags &= ~DF_WEAPONS_STAY | ~DF_ITEMS_RESPAWN | ~DF_NO_MONSTERS | ~DF_NO_CROUCH;
+		flags2 &= ~DF2_YES_DOUBLEAMMO;
+	}
+
+	if ( dmflags != flags )
+		dmflags = flags;
+
+	if ( dmflags2 != flags2 )
+		dmflags2 = flags2;
+}
+
+//*****************************************************************************
 // Determine is a level is a deathmatch, CTF, etc. level by items that are placed on it.
+//
 void GAME_CheckMode( void )
 {
 	ULONG						ulFlags = (ULONG)dmflags;
@@ -2784,17 +2821,6 @@ void GAME_CheckMode( void )
 		deathmatch.ForceSet( Val, CVAR_Bool );
 		Val.Bool = false;
 		teamgame.ForceSet( Val, CVAR_Bool );
-
-		// Allow the server to use their own dmflags.
-		if ( sv_defaultdmflags )
-		{
-			// Don't do "spawn farthest" for duels.
-			if ( duel )
-				ulFlags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
-			else
-				ulFlags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
-			ulFlags2 |= DF2_YES_DOUBLEAMMO;
-		}
 	}
 
 	// We have team starts, but nothing else.
@@ -2807,13 +2833,6 @@ void GAME_CheckMode( void )
 		teamgame.ForceSet( Val, CVAR_Bool );
 		Val.Bool = false;
 		deathmatch.ForceSet( Val, CVAR_Bool );
-
-		// Allow the server to use their own dmflags.
-		if ( sv_defaultdmflags )
-		{
-			ulFlags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS | DF_NO_CROUCH;
-			ulFlags2 |= DF2_YES_DOUBLEAMMO;
-		}
 
 		// Furthermore, we can determine between a ST and CTF level by whether or not
 		// there are skulls or flags placed on the level.
@@ -2874,13 +2893,6 @@ void GAME_CheckMode( void )
 		deathmatch.ForceSet( Val, CVAR_Bool );
 		teamgame.ForceSet( Val, CVAR_Bool );
 
-		// Allow the server to use their own dmflags.
-		if ( sv_defaultdmflags )
-		{
-			ulFlags &= ~DF_WEAPONS_STAY | ~DF_ITEMS_RESPAWN | ~DF_NO_MONSTERS | ~DF_NO_CROUCH;
-			ulFlags2 &= ~DF2_YES_DOUBLEAMMO;
-		}
-
 		// If invasion starts are present, load the map in invasion mode.
 		if ( GenericInvasionStarts.Size( ) > 0 )
 		{
@@ -2911,12 +2923,10 @@ void GAME_CheckMode( void )
 	}
 
 	// In a campaign, just use whatever dmflags are assigned.
-	if ( CAMPAIGN_InCampaign( ) == false )
+	if ( sv_defaultdmflags && ( CAMPAIGN_InCampaign() == false ))
 	{
-		if ( static_cast<unsigned> (dmflags) != ulFlags )
-			dmflags = ulFlags;
-		if ( static_cast<unsigned> (dmflags2) != ulFlags2 )
-			dmflags2 = ulFlags2;
+		// Allow servers to use their own dmflags.
+		GAME_SetDefaultDMFlags();
 	}
 
 	// If there aren't any pickup, blue return, or red return scripts, then use the

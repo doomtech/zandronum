@@ -2977,6 +2977,13 @@ void D_DoomMain (void)
 		bglobal.wanted_botnum = bglobal.getspawned.Size();
 		*/
 
+		// [BC] Server doesn't use any status bar stuff.
+		// [BC] Now that all the skins have been loaded, parse the bot info.
+		// [TP] This needs to be done before the menus are initialized.
+		BOTS_Construct( );
+		BOTS_ParseBotInfo( );
+		GameConfig->ReadRevealedBotsAndSkins( );
+
 		Printf ("M_Init: Init menus.\n");
 		M_Init ();
 
@@ -3027,12 +3034,6 @@ void D_DoomMain (void)
 
 		// [BC] Initialize the browser module.
 		BROWSER_Construct( );
-
-		// [BC] Server doesn't use any status bar stuff.
-		// [BC] Now that all the skins have been loaded, parse the bot info.
-		BOTS_Construct( );
-		BOTS_ParseBotInfo( );
-		GameConfig->ReadRevealedBotsAndSkins( );
 
 		// [RH] Lock any cvars that should be locked now that we're
 		// about to begin the game.

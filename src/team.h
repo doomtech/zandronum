@@ -73,9 +73,6 @@ enum
 #define TEAM_MESSAGE_Y_AXIS		0.135f
 #define TEAM_MESSAGE_Y_AXIS_SUB 0.195f
 
-// [CW] The number of bot slots defined in the bot team setup menu.
-#define MAX_BOTTEAMSLOTS MAX_TEAMS * 5
-
 //*****************************************************************************
 //	PROTOTYPES
 

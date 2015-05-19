@@ -180,6 +180,10 @@ public:
 	{
 		bool grayed = mGrayCheck != NULL && !(mGrayCheck->GetGenericRep(CVAR_Bool).Bool);
 
+		// [TP] Also gray it if we cannot edit this cvar because of multiplayer.
+		if ( IsNetworkBlocked() )
+			grayed = true;
+
 		if (mCenter)
 		{
 			indent = (screen->GetWidth() / 2);
@@ -231,7 +235,9 @@ public:
 
 	bool Selectable()
 	{
-		return !(mGrayCheck != NULL && !(mGrayCheck->GetGenericRep(CVAR_Bool).Bool));
+		// [TP] We also need to check the base class's Selectable
+		return !(mGrayCheck != NULL && !(mGrayCheck->GetGenericRep(CVAR_Bool).Bool))
+			&& FOptionMenuItem::Selectable();
 	}
 };
 
@@ -253,6 +259,12 @@ public:
 		mCVar = FindCVar(mAction, NULL);
 	}
 
+	// [TP] Can the give item be selected?
+	virtual bool IsOptionSelectable ( double )
+	{
+		return true;
+	}
+
 	//=============================================================================
 	int GetSelection()
 	{
@@ -265,6 +277,10 @@ public:
 				UCVarValue cv = mCVar->GetGenericRep(CVAR_Float);
 				for(unsigned i = 0; i < (*opt)->mValues.Size(); i++)
 				{ 
+					// [TP]
+					if ( IsOptionSelectable(( *opt )->mValues[i].Value ) == false )
+						continue;
+
 					if (fabs(cv.Float - (*opt)->mValues[i].Value) < FLT_EPSILON)
 					{
 						Selection = i;
@@ -306,6 +322,12 @@ public:
 				(*opt)->mValues[Selection].TextValue.UnlockBuffer();
 			}
 		}
+	}
+
+	// [TP]
+	bool IsServerInfo()
+	{
+		return mCVar && mCVar->IsServerInfo();
 	}
 };
 
@@ -612,7 +634,8 @@ public:
 	//=============================================================================
 	int Draw(FOptionMenuDescriptor *desc, int y, int indent, bool selected)
 	{
-		drawLabel(indent, y, selected? OptionSettings.mFontColorSelection : OptionSettings.mFontColor);
+		// [TP] Support for graying
+		drawLabel(indent, y, selected? OptionSettings.mFontColorSelection : OptionSettings.mFontColor, Selectable() == false );
 		mDrawX = indent + CURSORSPACE;
 		DrawSlider (mDrawX, y, mMin, mMax, GetValue(), mShowValue, indent);
 		return indent;
@@ -713,6 +736,12 @@ public:
 			mCVar->SetGenericRep(value, CVAR_Float);
 		}
 	}
+
+	// [TP]
+	bool IsServerInfo()
+	{
+		return mCVar && mCVar->IsServerInfo();
+	}
 };
 
 //=============================================================================
@@ -808,6 +837,12 @@ public:
 			}
 		}
 		return false;
+	}
+
+	// [TP]
+	bool IsServerInfo()
+	{
+		return mCVar && mCVar->IsServerInfo();
 	}
 };
 
@@ -942,6 +977,409 @@ public:
 		return mMaxValid >= 0;
 	}
 };
+
+// -------------------------------------------------------------------------------------------------
+// [TP] Begin Zandronum-specific widgets
+//
+
+#include "team.h"
+
+//=============================================================================
+//
+// [TP] FOptionMenuFieldBase
+//
+// Base class for input fields
+//
+//=============================================================================
+
+class FOptionMenuFieldBase : public FOptionMenuItem
+{
+public:
+	FOptionMenuFieldBase ( const char* label, const char* menu, const char* graycheck ) :
+		FOptionMenuItem ( label, menu ),
+		mCVar ( FindCVar( mAction, NULL )),
+		mGrayCheck (( graycheck && strlen( graycheck )) ? FindCVar( graycheck, NULL ) : NULL ) {}
+
+	const char* GetCVarString()
+	{
+		if ( mCVar == NULL )
+			return "";
+
+		return mCVar->GetGenericRep( CVAR_String ).String;
+	}
+
+	virtual FString Represent()
+	{
+		return GetCVarString();
+	}
+
+	int Draw ( FOptionMenuDescriptor*, int y, int indent, bool selected )
+	{
+		bool grayed = mGrayCheck != NULL && !( mGrayCheck->GetGenericRep( CVAR_Bool ).Bool );
+		drawLabel( indent, y, selected ? OptionSettings.mFontColorSelection : OptionSettings.mFontColor, grayed );
+		int overlay = grayed? MAKEARGB( 96, 48, 0, 0 ) : 0;
+
+		screen->DrawText( SmallFont, OptionSettings.mFontColorValue, indent + CURSORSPACE, y,
+			Represent().GetChars(), DTA_CleanNoMove_1, true, DTA_ColorOverlay, overlay, TAG_DONE );
+		return indent;
+	}
+
+	bool GetString ( int i, char* s, int len )
+	{
+		if ( i == 0 )
+		{
+			strncpy( s, GetCVarString(), len );
+			s[len - 1] = '\0';
+			return true;
+		}
+
+		return false;
+	}
+
+	bool SetString ( int i, const char* s )
+	{
+		if ( i == 0 )
+		{
+			if ( mCVar )
+			{
+				UCVarValue vval;
+				vval.String = s;
+				mCVar->SetGenericRep( vval, CVAR_String );
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool IsServerInfo()
+	{
+		return mCVar && mCVar->IsServerInfo();
+	}
+
+protected:
+	// Action is a CVar in this class and derivatives.
+	FBaseCVar* mCVar;
+	FBaseCVar* mGrayCheck;
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuTextField
+//
+// A text input field widget, for use with string CVars.
+//
+//=============================================================================
+
+class FOptionMenuTextField : public FOptionMenuFieldBase
+{
+public:
+	FOptionMenuTextField ( const char *label, const char* menu, const char* graycheck ) :
+		FOptionMenuFieldBase ( label, menu, graycheck ),
+		mEntering ( false ) {}
+
+	FString Represent()
+	{
+		FString text = mEntering ? mEditName : GetCVarString();
+
+		if ( mEntering )
+			text += ( gameinfo.gametype & GAME_DoomStrifeChex ) ? '_' : '[';
+
+		return text;
+	}
+
+	bool MenuEvent ( int mkey, bool fromcontroller )
+	{
+		if ( mkey == MKEY_Enter )
+		{
+			S_Sound( CHAN_VOICE | CHAN_UI, "menu/choose", snd_menuvolume, ATTN_NONE );
+			strcpy( mEditName, GetCVarString() );
+			mEntering = true;
+			DMenu* input = new DTextEnterMenu ( DMenu::CurrentMenu, mEditName, sizeof mEditName, 2, fromcontroller );
+			M_ActivateMenu( input );
+			return true;
+		}
+		else if ( mkey == MKEY_Input )
+		{
+			if ( mCVar )
+			{
+				UCVarValue vval;
+				vval.String = mEditName;
+				mCVar->SetGenericRep( vval, CVAR_String );
+			}
+
+			mEntering = false;
+			return true;
+		}
+		else if ( mkey == MKEY_Abort )
+		{
+			mEntering = false;
+			return true;
+		}
+
+		return FOptionMenuItem::MenuEvent( mkey, fromcontroller );
+	}
+
+private:
+	bool mEntering;
+	char mEditName[128];
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuNumberField
+//
+// A numeric input field widget, for use with number CVars where sliders are inappropriate (i.e.
+// where the user is interested in the exact value specifically)
+//
+//=============================================================================
+
+class FOptionMenuNumberField : public FOptionMenuFieldBase
+{
+public:
+	FOptionMenuNumberField ( const char *label, const char* menu, float minimum, float maximum,
+		float step, const char* graycheck )
+		: FOptionMenuFieldBase ( label, menu, graycheck ),
+		mMinimum ( minimum ),
+		mMaximum ( maximum ),
+		mStep ( step )
+	{
+		if ( mMaximum <= mMinimum )
+			swapvalues( mMinimum, mMaximum );
+
+		if ( mStep <= 0 )
+			mStep = 1;
+	}
+
+	bool MenuEvent ( int mkey, bool fromcontroller )
+	{
+		if ( mCVar )
+		{
+			float value = mCVar->GetGenericRep( CVAR_Float ).Float;
+
+			if ( mkey == MKEY_Left )
+			{
+				value -= mStep;
+
+				if ( value < mMinimum )
+					value = mMaximum;
+			}
+			else if ( mkey == MKEY_Right || mkey == MKEY_Enter )
+			{
+				value += mStep;
+
+				if ( value > mMaximum )
+					value = mMinimum;
+			}
+			else
+				return FOptionMenuItem::MenuEvent( mkey, fromcontroller );
+
+			UCVarValue vval;
+			vval.Float = value;
+			mCVar->SetGenericRep( vval, CVAR_Float );
+			S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE );
+		}
+
+		return true;
+	}
+
+private:
+	float mMinimum;
+	float mMaximum;
+	float mStep;
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuCustomOptionField
+//
+// Base class for more specialized option fields.
+//
+//=============================================================================
+
+class FOptionMenuCustomOptionField : public FOptionMenuFieldBase
+{
+public:
+	FOptionMenuCustomOptionField ( const char* label, const char* menu ) :
+		FOptionMenuFieldBase ( label, menu, NULL ) {}
+
+	virtual bool IsValid ( int ) = 0;
+	virtual FString RepresentOption ( int ) = 0;
+	virtual int Maximum() = 0;
+
+	// [TP] Seeks the value forwards or backwards. Returns true if it was possible to find a new
+	// player. Can return false if there are no players (not in a game)
+	bool Seek ( bool forward )
+	{
+		if ( mCVar )
+		{
+			int step = forward ? 1 : -1;
+			int const startValue = mCVar->GetGenericRep( CVAR_Int ).Int;
+			int newValue = startValue;
+			int const end = Maximum();
+
+			do
+			{
+				newValue += step;
+
+				if ( newValue < 0 )
+					newValue = end - 1;
+
+				if ( newValue >= end )
+					newValue = 0;
+			}
+			while (( IsValid( newValue ) == false ) && ( newValue != startValue ));
+
+			if ( newValue == startValue )
+				return false;
+
+			UCVarValue vval;
+			vval.Int = newValue;
+			mCVar->SetGenericRep( vval, CVAR_Int );
+		}
+
+		return true;
+	}
+
+	bool MenuEvent ( int mkey, bool fromcontroller )
+	{
+		if ( mkey == MKEY_Left || mkey == MKEY_Right || mkey == MKEY_Enter )
+		{
+			if ( Seek( mkey != MKEY_Left ))
+				S_Sound( CHAN_VOICE | CHAN_UI, "menu/change", snd_menuvolume, ATTN_NONE );
+
+			return true;
+		}
+
+		return FOptionMenuItem::MenuEvent( mkey, fromcontroller );
+	}
+
+	FString Represent()
+	{
+		if ( mCVar )
+		{
+			int i = mCVar->GetGenericRep( CVAR_Int ).Int;
+
+			if ( IsValid( i ))
+				return RepresentOption( i );
+		}
+
+		return "Unknown";
+	}
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuPlayerField
+//
+// Selects a player. Cannot be a derivative of the Option widgets because it
+// needs to be able to skip non-existing players.
+//
+//=============================================================================
+
+class FOptionMenuPlayerField : public FOptionMenuCustomOptionField
+{
+	bool mAllowBots;
+	bool mAllowSelf;
+
+public:
+	FOptionMenuPlayerField ( const char* label, const char* menu, bool allowBots, bool allowSelf ) :
+		FOptionMenuCustomOptionField ( label, menu ),
+		mAllowBots ( allowBots ),
+		mAllowSelf ( allowSelf ) {}
+
+	bool IsValid ( int player )
+	{
+		if (( player < 0 )
+			|| ( player >= MAXPLAYERS )
+			|| ( playeringame[player] == false ))
+		{
+			return false;
+		}
+
+		if (( mAllowSelf == false ) && ( player == consoleplayer ))
+			return false;
+
+		return mAllowBots || ( players[player].bIsBot == false );
+	}
+
+	FString RepresentOption ( int playerId )
+	{
+		return players[playerId].userinfo.GetName();
+	}
+
+	int Maximum()
+	{
+		return MAXPLAYERS;
+	}
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuTeamField
+//
+// Selects a team (similar reasoning as with FOptionMenuPlayerField)
+//
+//=============================================================================
+
+class FOptionMenuTeamField : public FOptionMenuCustomOptionField
+{
+public:
+	FOptionMenuTeamField()
+		: FOptionMenuCustomOptionField ( "Team", "menu_jointeamidx" ) {}
+
+	bool IsValid ( int teamId )
+	{
+		return TEAM_CheckIfValid( teamId ) || ( unsigned ( teamId ) == teams.Size() );
+	}
+
+	FString RepresentOption ( int teamId )
+	{
+		return static_cast<unsigned>( teamId ) < teams.Size() ? teams[teamId].Name : "Random";
+	}
+
+	int Maximum()
+	{
+		return teams.Size() + 1;
+	}
+};
+
+//=============================================================================
+//
+// [TP] FOptionMenuPlayerClassField
+//
+// Selects a player class.
+//
+//=============================================================================
+
+EXTERN_CVAR( Int, menu_jointeamidx )
+
+class FOptionMenuPlayerClassField : public FOptionMenuCustomOptionField
+{
+public:
+	FOptionMenuPlayerClassField()
+		: FOptionMenuCustomOptionField ( "Class", "menu_joinclassidx" ) {}
+
+	bool IsValid ( int classId )
+	{
+		return TEAM_IsClassAllowedForTeam( classId, menu_jointeamidx );
+	}
+
+	int Maximum()
+	{
+		return PlayerClasses.Size();
+	}
+
+	FString RepresentOption ( int classId )
+	{
+		return GetPrintableDisplayName( PlayerClasses[classId].Type );
+	}
+};
+
+//
+// [TP] End of Zandronum-specific option menu widgets
+// -------------------------------------------------------------------------------------------------
 
 #ifndef NO_IMP
 CCMD(am_restorecolors)

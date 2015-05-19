@@ -215,7 +215,8 @@ OptionMenu "VideoOptions"
 	Title "DISPLAY OPTIONS"
 	
 	Submenu "OpenGL Options", 			"OpenGLOptions"
-	Submenu "Scoreboard Options", 		"ScoreboardOptions"
+	// [TP] Zandronum's scoreboard does not use these options
+	// Submenu "Scoreboard Options", 		"ScoreboardOptions"
 	StaticText " "
 	Slider "Screen size",				"screenblocks", 3.0, 12.0, 1.0, 0
 

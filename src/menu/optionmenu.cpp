@@ -480,6 +480,11 @@ int FOptionMenuItem::Draw(FOptionMenuDescriptor *desc, int y, int indent, bool s
 
 bool FOptionMenuItem::Selectable()
 {
+	// [TP] If we're in multiplayer and this item is blocked because of multiplayer, it cannot
+	// be selected.
+	if ( IsNetworkBlocked() )
+		return false;
+
 	return true;
 }
 
@@ -509,6 +514,12 @@ void FOptionMenuItem::drawLabel(int indent, int y, EColorRange color, bool graye
 	if (!mCentered) x = indent - w;
 	else x = (screen->GetWidth() - w) / 2;
 	screen->DrawText (SmallFont, color, x, y, label, DTA_CleanNoMove_1, true, DTA_ColorOverlay, overlay, TAG_DONE);
+}
+
+// [TP] Is this item blocked because of networking?
+bool FOptionMenuItem::IsNetworkBlocked()
+{
+	return NETWORK_InClientMode() && IsServerInfo();
 }
 
 
@@ -557,8 +568,11 @@ public:
 	{
 		Super::Drawer();
 
-		char text[64];
-		mysnprintf(text, 64, "dmflags = %d   dmflags2 = %d", *dmflags, *dmflags2);
+		// [TP] Added zadmflags, bumped size of 'text' from 64 to 128
+		// Note: If all three dmflags are very large, then this text does not fit on smaller
+		// resolutions. The text cannot be split in two because then it'll overlap with the title.
+		char text[128];
+		mysnprintf(text, 128, "dmflags = %d   dmflags2 = %d   zadmflags = %d", *dmflags, *dmflags2, *zadmflags);
 		screen->DrawText (SmallFont, OptionSettings.mFontColorValue,
 			(screen->GetWidth() - SmallFont->StringWidth (text) * CleanXfac_1) / 2, 0, text,
 			DTA_CleanNoMove_1, true, TAG_DONE);
@@ -579,8 +593,11 @@ public:
 	{
 		Super::Drawer();
 
-		char text[64];
-		mysnprintf(text, 64, "compatflags = %d  compatflags2 = %d", *compatflags, *compatflags2);
+		// [TP] Added zacompatflags, bumped size of 'text' from 64 to 128
+		// Note: If all three dmflags are very large, then this text does not fit on smaller
+		// resolutions. The text cannot be split in two because then it'll overlap with the title.
+		char text[128];
+		mysnprintf(text, 128, "compatflags = %d  compatflags2 = %d  zacompatflags = %d", *compatflags, *compatflags2, *zacompatflags);
 		screen->DrawText (SmallFont, OptionSettings.mFontColorValue,
 			(screen->GetWidth() - SmallFont->StringWidth (text) * CleanXfac_1) / 2, 0, text,
 			DTA_CleanNoMove_1, true, TAG_DONE);

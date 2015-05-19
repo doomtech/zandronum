@@ -44,6 +44,9 @@ void G_PlayerReborn (int player, bool bGiveInventory = true);
 // [BC] Determines the game type by map spots and other items placed on the level.
 void	GAME_CheckMode( void );
 
+// [TP] Sets default dmflags
+void	GAME_SetDefaultDMFlags();
+
 // [BB] Backup certain initial properties of the line necessary for a map reset.
 void	GAME_BackupLineProperties ( line_t *li );
 

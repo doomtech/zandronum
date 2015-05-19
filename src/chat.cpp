@@ -939,3 +939,25 @@ CCMD( unignore_idx )
 	chat_UnignorePlayer( argv, ulPlayer );
 }
 
+// [TP]
+CCMD( messagemode )
+{
+	if ( NETWORK_GetState() != NETSTATE_SERVER )
+	{
+		chat_SetChatMode( CHATMODE_GLOBAL );
+		C_HideConsole( );
+		chat_ClearChatMessage( );
+	}
+}
+
+// [TP]
+CCMD( messagemode2 )
+{
+	if ( NETWORK_GetState() != NETSTATE_SERVER )
+	{
+		chat_SetChatMode( CHATMODE_TEAM );
+		C_HideConsole( );
+		chat_ClearChatMessage( );
+	}
+}
+

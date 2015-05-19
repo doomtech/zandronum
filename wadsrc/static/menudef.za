@@ -1,0 +1,363 @@
+// =================================================================================================
+//
+// MULTIPLAYER OPTIONS
+//
+// =================================================================================================
+
+OptionValue ZA_AllowSkins
+{
+	0.0, "Off"
+	1.0, "On"
+	2.0, "No cheat skins"
+}
+
+OptionValue ZA_OverridePlayerColors
+{
+	0.0, "Never"
+	1.0, "FFA only"
+	2.0, "With 2 teams max"
+	3.0, "Always"
+}
+
+OptionMenu ZA_MultiplayerOptions
+{
+	Title "MULTIPLAYER OPTIONS"
+
+	SubMenu		"Offline Skirmish",			"ZA_SkirmishMenu"
+	SubMenu		"Network Options",			"ZA_NetworkOptions"
+	SubMenu		"Log in",					"ZA_LoginMenu"
+	StaticText	" "
+	Command		"Spectate",					"menu_spectate"
+	Command		"Switch teams",				"menu_changeteam"
+	Command		"Disconnect",				"menu_disconnect"
+	StaticText	" "
+	SubMenu		"Call a vote",				"ZA_CallVote"
+	SubMenu		"Ignore a player",			"ZA_IgnoreMenu"
+	StaticText	" "
+	Option		"Start as spectator",		"cl_startasspectator",		"YesNo"
+	TextField	"Server password",			"cl_password"
+	TextField	"Server join password",		"cl_joinpassword"
+	Option		"Reset frags at join",		"cl_dontrestorefrags",		"YesNo"
+	Option		"Hide country",				"cl_hidecountry",			"YesNo"
+	Option		"Respawn using attack key",	"cl_respawnonfire",			"YesNo"
+	StaticText	" "
+	Option		"Skins",					"cl_skins",					"ZA_AllowSkins"
+	Option		"Taunts",					"cl_taunts",				"OnOff"
+	Option		"Icons",					"cl_icons",					"OnOff"
+	Option		"Identify players",			"cl_identifytarget",		"OnOff"
+	Option		"Show spawn spots",			"cl_showspawns",			"YesNo"
+	Slider		"Spectator move speed",		"cl_spectatormove",			0.1, 5.0, 0.1
+	StaticText	" "
+	Option		"Override player colors",	"cl_overrideplayercolors",	"ZA_OverridePlayerColors"
+	ColorPicker	"Ally color",				"cl_allycolor"
+	ColorPicker	"Enemy color",				"cl_enemycolor"
+}
+
+// =================================================================================================
+//
+// NETWORK OPTIONS
+//
+// =================================================================================================
+
+OptionValue ZA_UnlagType
+{
+	0.0, "Gametic"
+	1.0, "Ping"
+}
+
+OptionValue ZA_UpdateRate
+{
+	1.0, "Fastest (every tick)"
+	2.0, "Medium (every second tick)"
+	3.0, "Slow (every third tick)"
+}
+
+OptionValue ZA_ConnectionType
+{
+	0.0, "DSL"
+	1.0, "56k / ISDN"
+}
+
+OptionMenu ZA_NetworkOptions
+{
+	Title "NETWORK OPTIONS"
+
+	Option		"Connection type",			"cl_connectiontype",		"ZA_ConnectionType"
+	Option		"Unlagged",					"cl_unlagged",				"OnOff"
+	Option		"Unlag Type",				"cl_ping_unlagged",			"ZA_UnlagType"
+	Option		"Update Rate",				"cl_ticsperupdate",			"ZA_UpdateRate"
+	Option		"Hitscan decals",			"cl_hitscandecalhack",		"OnOff"
+	Option		"Clientside puffs",			"cl_clientsidepuffs",		"OnOff"
+}
+
+// =================================================================================================
+//
+// OFFLINE SKIRMISH
+//
+// =================================================================================================
+
+OptionValue ZA_Gamemode
+{
+	0, "Cooperative"
+	1, "Survival Cooperative"
+	2, "Invasion"
+	3, "Deathmatch"
+	4, "Team Deathmatch"
+	5, "Duel"
+	6, "Terminator"
+	7, "Last Man Standing"
+	8, "Team Last Man Standing"
+	9, "Possession"
+	10, "Team Possession"
+	11, "Teamgame (ACS)"
+	12, "Capture The Flag"
+	13, "One Flag CTF"
+	14, "Skulltag"
+	15, "Domination"
+}
+
+OptionValue ZA_Modifier
+{
+	0, "None"
+	1, "Instagib"
+	2, "Buckshot"
+}
+
+OptionMenu ZA_SkirmishMenu
+{
+	Title		"SKIRMISH"
+	Option		"Level",				"menu_skirmishlevel",			"ZA_Levels"
+	Option		"Game Mode",			"menu_skirmishgamemode",		"ZA_Gamemode"
+	Option		"Modifier",				"menu_skirmishmodifier",		"ZA_Modifier"
+	StaticText	" "
+	NumberField	"Timelimit",			"timelimit"
+	NumberField	"Fraglimit",			"fraglimit"
+	NumberField	"Pointlimit",			"pointlimit"
+	NumberField	"Duellimit",			"duellimit"
+	NumberField	"Winlimit",				"winlimit"
+	NumberField	"Wavelimit",			"wavelimit", 0, 10
+	StaticText	" "
+	NumberField	"Skill",				"skill", 0, 4
+	NumberField	"Botskill",				"botskill", 0, 4
+	StaticText	" "
+	SubMenu		"Bot Setup",			"ZA_BotSetup"
+	StaticText	" "
+	Command		"Start Game!",			"menu_startskirmish"
+}
+
+// Gets filled in by the engine
+OptionMenu ZA_BotSetup
+{
+	Title "BOT SETUP"
+	Class "BotSetupMenu"
+	Indent 80
+}
+
+// =================================================================================================
+//
+// TEXT SCALING
+//
+// =================================================================================================
+
+OptionMenu ZA_TextScaling
+{
+	Title "TEXT SCALING"
+	Class "TextScalingMenu"
+
+	Option		"Enable text scaling",	"con_scaletext",				"OnOff"
+	Slider		"Text size scalar",		"menu_textsizescalar",			0, 24, 1
+	TextField	"Virtual width",		"con_virtualwidth", "con_scaletext"
+	TextField	"Virtual height",		"con_virtualheight", "con_scaletext"
+	Option		"Use screen ratio",		"con_scaletext_usescreenratio",	"YesNo", "con_scaletext"
+
+	StaticText "Sample text", 1
+	// Sample text is filled in by the engine
+}
+
+// =================================================================================================
+//
+// VOTING MENU
+//
+// =================================================================================================
+
+OptionValue ZA_VoteLimitTypes
+{
+	0, "Fraglimit"
+	1, "Timelimit"
+	2, "Winlimit"
+	3, "Duellimit"
+	4, "Pointlimit"
+}
+
+OptionMenu ZA_CallVote
+{
+	Title "CALL VOTE"
+	NetGameOnly
+
+	SubMenu		"Kick a player",		"ZA_CallKickVote"
+	SubMenu		"Change the map",		"ZA_CallMapVote"
+	SubMenu		"Change a limit",		"ZA_CallLimitVote"
+}
+
+OptionMenu ZA_CallKickVote
+{
+	Title		"KICK A PLAYER"
+
+	PlayerField	"Player",				"menu_callvoteplayer",			NoBots, NotSelf
+	Option		"Ban for 10 minutes",	"menu_callvoteban",				"YesNo"
+	StaticText " "
+	TextField	"Reason for kick",		"menu_callvotereason"
+	Command		"Vote!",				"menu_callkickvote"
+}
+
+OptionMenu ZA_CallMapVote
+{
+	Title		"CHANGE MAP"
+
+	Option		"Map",					"menu_callvotemap",				"ZA_Levels"
+	Option		"Intermission",			"menu_callvoteintermission",	"YesNo"
+	StaticText	" "
+	TextField	"Reason for change",	"menu_callvotereason"
+	Command		"Vote!",				"menu_callmapvote"
+}
+
+OptionMenu ZA_CallLimitVote
+{
+	Title		"CHANGE MAP"
+
+	Option		"Limit",				"menu_callvotelimit",			"ZA_VoteLimitTypes"
+	TextField	"New value",			"menu_callvotevalue"
+	StaticText	" "
+	TextField	"Reason for change",	"menu_callvotereason"
+	Command		"Vote!",				"menu_calllimitvote"
+}
+
+// =================================================================================================
+//
+// IGNORE A PLAYER MENU
+//
+// =================================================================================================
+
+OptionValue ZA_IgnoreDuration
+{
+	0, "Indefinitely"
+	10, "10 minutes"
+	20, "20 minutes"
+	30, "30 minutes"
+}
+
+OptionValue ZA_IgnoreAction
+{
+	0, "Ignore"
+	1, "Unignore"
+}
+
+OptionMenu ZA_IgnoreMenu
+{
+	Title "IGNORE A PLAYER"
+	NetGameOnly
+
+	PlayerField	"Player",				"menu_ignoreplayer",			NoBots, NotSelf
+	// [TP] Perhaps this could be a slider? But then we need to somehow make it display
+	// 0 as "indefinitely". Qt solved this (although with spinboxes) with a "special value"
+	// attribute which is displayed instead of the value when the value is at the minimum.
+	// Maybe something similar could be done here? This needs to be coordinated with ZDoom though.
+	Option		"Duration",				"menu_ignoreduration",			"ZA_IgnoreDuration"
+	StaticText	" "
+	Option		"Action",				"menu_ignoreaction",			"ZA_IgnoreAction"
+	Command		"Execute!",				"menu_ignore"
+}
+
+// =================================================================================================
+//
+// JOIN MENU
+//
+// =================================================================================================
+
+OptionMenu ZA_JoinMenu
+{
+	Title		"JOIN GAME"
+	Position 75
+
+	StaticText	"You are spectating.", 1
+	StaticText	" "
+	Command		"Join game",			"menu_joingame"
+	Command		"How to play",			"menu_help"
+}
+
+OptionMenu ZA_JoinTeamMenu
+{
+	Title		"JOIN TEAM"
+	Position 75
+
+	Command		"Auto-select",			"menu_autoselect"
+	StaticText	" "
+	JoinMenuTeamOption
+	Command		"Join game",			"menu_joingame"
+	StaticText	" "
+	Command		"How to play",			"menu_help"
+}
+
+OptionMenu ZA_SelectClassMenu
+{
+	Title		"PLAYER CLASS SELECTION"
+	Position 75
+
+	JoinMenuPlayerClassOption
+	Command		"Join game",			"menu_joingamewithclass"
+}
+
+// =================================================================================================
+//
+// WEAPON SETUP
+//
+// =================================================================================================
+
+OptionValue "ZA_RailgunColors"
+{
+	0, "Blue"
+	1, "Red"
+	2, "Yellow"
+	3, "Black"
+	4, "Silver"
+	5, "Gold"
+	6, "Green"
+	7, "White"
+	8, "Purple"
+	9, "Orange"
+	10, "Rainbow"
+}
+
+OptionValue ZA_SwitchOnPickup
+{
+	0, "Never"
+	1, "Only higher ranked"
+	2, "Always"
+//	3, "Use PWO"
+}
+
+OptionMenu ZA_WeaponSetup
+{
+	Title		"WEAPON SETUP"
+
+	Option		"Switch on pickup",		"switchonpickup",				"ZA_SwitchOnPickup"
+	Option		"Switch without ammo",	"cl_noammoswitch",				"YesNo"
+	Option		"Railgun color",		"railcolor",					"ZA_RailgunColors"
+}
+
+// =================================================================================================
+//
+// LOGIN MENU
+//
+// =================================================================================================
+
+OptionMenu ZA_LoginMenu
+{
+	NetGameOnly
+	Title "LOG IN"
+
+	TextField	"Username",				"menu_authusername"
+	TextField	"Password",				"menu_authpassword"
+	StaticText	" "
+	Command		"Log in",				"menu_login"
+}

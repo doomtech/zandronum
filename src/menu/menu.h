@@ -152,6 +152,7 @@ struct FOptionMenuDescriptor : public FMenuDescriptor
 	int mIndent;
 	int mPosition;
 	bool mDontDim;
+	bool mNetgameOnly; // [TP]
 
 	void CalcIndent();
 	FOptionMenuItem *GetItem(FName name);
@@ -162,6 +163,7 @@ struct FOptionMenuDescriptor : public FMenuDescriptor
 		mScrollTop = 0;
 		mIndent = 0;
 		mDontDim = 0;
+		mNetgameOnly = false; // [TP]
 	}
 
 };
@@ -558,6 +560,10 @@ public:
 	virtual bool Selectable();
 	virtual int GetIndent();
 	virtual bool MouseEvent(int type, int x, int y);
+
+	// [TP]
+	bool IsNetworkBlocked();
+	virtual bool IsServerInfo() { return false; }
 };	
 
 //=============================================================================
@@ -645,9 +651,13 @@ class DTextEnterMenu : public DMenu
 	int InputGridX;
 	int InputGridY;
 
+	// [TP]
+	bool AllowColors;
+
 public:
 
-	DTextEnterMenu(DMenu *parent, char *textbuffer, int maxlen, int sizemode, bool showgrid);
+	// [TP] Added allowcolors
+	DTextEnterMenu(DMenu *parent, char *textbuffer, int maxlen, int sizemode, bool showgrid, bool allowcolors = false);
 
 	void Drawer ();
 	bool MenuEvent (int mkey, bool fromcontroller);
@@ -679,6 +689,9 @@ void M_StartMessage(const char *message, int messagemode, FName action = NAME_No
 DMenu *StartPickerMenu(DMenu *parent, const char *name, FColorCVar *cvar);
 void M_RefreshModesList ();
 void M_InitVideoModesMenu ();
+
+// [TP]
+void M_JoinMenu();
 
 
 #endif

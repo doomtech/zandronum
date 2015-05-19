@@ -81,8 +81,9 @@ int D_PickRandomTeam ();
 class player_t;
 int D_GetFragCount (player_t *player);
 
-// [TP]
+// [TP] Zandronum functions
 void D_UpdatePlayerColors( ULONG ulPlayer = MAXPLAYERS );
 bool D_ShouldOverridePlayerColors();
+void D_SendPendingUserinfoChanges();
 
 #endif //__D_CLIENTINFO_H__

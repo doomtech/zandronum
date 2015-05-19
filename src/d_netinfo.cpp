@@ -65,6 +65,7 @@
 #include "deathmatch.h"
 #include "gamemode.h"
 #include "team.h"
+#include "menu/menu.h"
 
 static FRandom pr_pickteam ("PickRandomTeam");
 
@@ -101,6 +102,9 @@ CVAR (Int,		cl_ticsperupdate,			3,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		cl_connectiontype,			1,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [CK] Let the user control if they want clientside puffs or not.
 CVAR (Flag,		cl_clientsidepuffs,			cl_clientflags, CLIENTFLAGS_CLIENTSIDEPUFFS );
+
+// [TP] Userinfo changes yet to be sent.
+static DWORD PendingUserinfoChanges = 0;
 
 // [CK] CVARs that affect cl_clientflags
 CUSTOM_CVAR ( Int, cl_clientflags, CLIENTFLAGS_DEFAULT, CVAR_USERINFO | CVAR_ARCHIVE )
@@ -1003,13 +1007,24 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		Net_WriteString (foo);
 	}
 
+	// [TP] Send pending changes but only if we're not in a menu
+	if ( DMenu::CurrentMenu == NULL )
+		D_SendPendingUserinfoChanges();
+}
+
+void D_SendPendingUserinfoChanges()
+{
 	// Send updated userinfo to the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
+	if (( NETWORK_GetState() == NETSTATE_CLIENT )
+		&& ( CLIENT_GetConnectionState() >= CTS_REQUESTINGSNAPSHOT )
+		&& ( PendingUserinfoChanges != 0 ))
 	{
-		CLIENTCOMMANDS_UserInfo( ulUpdateFlags );
+		CLIENTCOMMANDS_UserInfo( PendingUserinfoChanges );
 
 		if ( CLIENTDEMO_IsRecording( ))
 			CLIENTDEMO_WriteUserInfo( );
+
+		PendingUserinfoChanges = 0;
 	}
 }
 

@@ -643,6 +643,18 @@ void FBaseCVar::DisableCallbacks ()
 	m_UseCallback = false;
 }
 
+// [TP]
+bool FBaseCVar::IsServerInfo()
+{
+	if ( IsFlagCVar() )
+		return static_cast<FFlagCVar*>( this )->GetValueVar()->IsServerInfo();
+
+	if ( IsMaskCVar() )
+		return static_cast<FMaskCVar*>( this )->GetValueVar()->IsServerInfo();
+
+	return !!( Flags & CVAR_SERVERINFO );
+}
+
 //
 // Boolean cvar implementation
 //

@@ -328,9 +328,17 @@ DefaultOptionMenu
 	}
 }
 
+// [TP] Zandronum additions, these get filled in by the engine
+OptionValue ZA_Levels {}
+OptionValue ZA_Bots {}
+OptionValue ZA_Announcers {}
+// [TP] --
+
 OptionMenu "OptionsMenu"
 {
 	Title "OPTIONS"
+	Submenu "Multiplayer Options",		"ZA_MultiplayerOptions" // [TP]
+	StaticText " " // [TP]
 	Submenu "Customize Controls",		"CustomizeControls"
 	Submenu "Mouse options",			"MouseOptions"
 	Submenu "Joystick options",			"JoystickOptions"
@@ -403,8 +411,10 @@ ListMenu "PlayerMenu"
 		PlayerDisplay 220, 80, "00 07 00", "40 53 40", 1, "PlayerDisplay"
 	}
 	
-	ValueText "Team", "Team"
-	ValueText "Color", "Color"
+	// [TP] Zandronum does not store team in userinfo
+	// ValueText "Team", "Team"
+	// [TP] For now Zandronum doesn't support colorsets either.
+	// ValueText "Color", "Color"
 	Linespacing 10
 	Slider "Red", "Red", 0, 255, 16
 	Slider "Green", "Green", 0, 255, 16
@@ -414,8 +424,11 @@ ListMenu "PlayerMenu"
 	ValueText "Skin", "Skin"
 	ValueText "Gender", "Gender", "Gender"
 	ValueText "Autoaim", "Autoaim", "Autoaim"
-	ValueText "Switch on pickup", "Switch", "OffOn"
+	Slider "Handicap", "Handicap", 0, 200, 5 // [TP]
+	// [TP] This is moved to weapon setup
+	// ValueText "Switch on pickup", "Switch", "OffOn"
 	ValueText "Always Run", "AlwaysRun", "OnOff"
+	TextItem "Weapon Setup", "w", "ZA_WeaponSetup" // [TP]
 	Class "PlayerMenu"
 }
 
@@ -457,6 +470,7 @@ OptionMenu "CustomizeControls"
 	Control 	"Run",					"+speed"
 	Control 	"Strafe",				"+strafe"
 	Control 	"Show Scoreboard",		"+showscores"
+	Control		"Show medals",			"+showmedals" // [TP]
 	StaticText 	""
 	StaticText 	"Chat", 1
 	Control 	"Say",					"messagemode"
@@ -484,12 +498,20 @@ OptionMenu "CustomizeControls"
 	Control 	"Drop item",			"invdrop"
 	Control		"Query item",			"invquery"
 	Control 	"Drop weapon",			"weapdrop"
+	// [TP] Voting controls
+	StaticText 	""
+	StaticText 	"Voting", 1
+	Control		"Vote yes",				"vote_yes"
+	Control		"Vote no",				"vote_no"
+	// [TP] --
 	StaticText 	""
 	StaticText 	"Other", 1
 	Control 	"Toggle automap",		"togglemap"
 	Control 	"Chasecam",				"chase"
 	Control 	"Coop spy",				"spynext"
 	Control 	"Screenshot",			"screenshot"
+	Control		"Spectate",				"spectate" // [TP]
+	Control		"Taunt",				"taunt" // [TP]
 	Control  	"Open console",			"toggleconsole"
 	StaticText 	""
 	StaticText 	"Strife Popup Screens", 1
@@ -746,6 +768,20 @@ OptionValue ZDoomStrife
 	1.0, "Strife"
 }
 
+// [TP]
+OptionValue ZA_VotingDisplay
+{
+	0, "Minimal"
+	1, "Fullscreen"
+}
+
+// [TP]
+OptionValue ZA_FullscreenHUD
+{
+	0, "Classic style"
+	1, "New style"
+}
+
 OptionMenu "HUDOptions"
 {
 	Title "HUD Options"
@@ -758,7 +794,11 @@ OptionMenu "HUDOptions"
 	ColorPicker "Crosshair color", 		"crosshaircolor"
 	Option "Crosshair shows health",	"crosshairhealth", "OnOff"
 	Option "Scale crosshair",			"crosshairscale", "OnOff"
+	Option "Voting display",			"cl_showfullscreenvote", "ZA_VotingDisplay"
+	Option "Fullscreen HUD",			"cl_stfullscreenhud", "ZA_FullscreenHUD"
 	StaticText " "
+	Option "Large frag messages",		"cl_showlargefragmessages",	"YesNo" // [TP]
+	Option "Draw coop info",			"cl_drawcoopinfo", "YesNo" // [TP]
 	Option "Display nametags",			"displaynametags", "DisplayTagsTypes"
 	Option "Nametag color",				"nametagcolor", "TextColors", "displaynametags"
 	Option "Stretch status bar",		"st_scale", "OnOff"
@@ -1048,14 +1088,34 @@ OptionValue MessageLevels
 	2.0, "Critical Messages"
 }
 
+// [TP]
+OptionValue ZA_ChatSound
+{
+	0, "Off"
+	1, "Default"
+	2, "Doom 1"
+	3, "Doom 2"
+}
+
+// [TP]
+OptionValue ZA_ColorInMessages
+{
+	0, "Off"
+	1, "On"
+	2, "Not in chat"
+}
+
 OptionMenu MessageOptions
 {
 	Title 	"MESSAGES"
+	SubMenu "Text scaling",				"ZA_TextScaling" // [TP]
 	Option "Show messages",				"show_messages", "OnOff"
 	Option "Show obituaries",			"show_obituaries", "OnOff"
+	Option "Chat sound",				"chat_sound", "ZA_ChatSound" // [TP]
 	Option "Scale text in high res", 	"con_scaletext", "ScaleValues"
 	Option "Minimum message level", 	"msg", "MessageLevels"
 	Option "Center messages",			"con_centernotify", "OnOff"
+	Option "Color in messages",			"con_colorinmessages", "ZA_ColorInMessages" // [TP]
 	StaticText " "
 	StaticText "Message Colors", 1
 	StaticText " "
@@ -1159,7 +1219,9 @@ OptionMenu GameplayOptions
 	Option "Allow crouch",			"sv_crouch", "JumpCrouch"
 	Option "Allow freelook",		"sv_nofreelook", "NoYes"
 	Option "Allow FOV",				"sv_nofov", "NoYes"
-	Option "Allow BFG aiming",		"sv_nobfgaim", "NoYes"
+	// [TP] Zandronum has this CVar under a different name
+	// Option "Allow BFG aiming",		"sv_nobfgaim", "NoYes"
+	Option "Allow BFG aiming",		"sv_bfgfreeaim", "YesNo"
 	Option "Allow automap",			"sv_noautomap", "NoYes"
 	Option "Automap allies",		"sv_noautomapallies", "NoYes"
 	Option "Allow spying",			"sv_disallowspying", "NoYes"
@@ -1167,6 +1229,16 @@ OptionMenu GameplayOptions
 	Option "Check ammo for weapon switch",	"sv_dontcheckammo", "NoYes"
 	Option "Icon's death kills its spawns",	"sv_killbossmonst", "YesNo"
 	Option "End sector counts for kill %",	"sv_nocountendmonst", "NoYes"
+	// [TP] Zandronum dmflags
+	Option "Allow player identification",	"sv_noidentifytarget", "NoYes"
+	Option "Unblock players",		"sv_unblockplayers", "YesNo"
+	Option "Unblock allies",		"sv_unblockallies", "YesNo"
+	Option "Rocket jumping",		"sv_norocketjumping", "NoYes"
+	Option "Award damage dealt",	"sv_awarddamageinsteadkills", "YesNo"
+	Option "Force OpenGL defaults",	"sv_forcegldefaults", "YesNo"
+	Option "Force translucency",	"sv_forcealpha", "YesNo"
+	Option "Full blood brightness",	"sv_maxbloodscalar", "YesNo"
+	// [TP] --
 
 	StaticText " "
 	StaticText "Deathmatch Settings",1
@@ -1179,14 +1251,23 @@ OptionMenu GameplayOptions
 	Option "Force respawn",			"sv_forcerespawn", "YesNo"
 	Option "Allow exit",			"sv_noexit", "NoYes"
 	Option "Barrels respawn",		"sv_barrelrespawn", "YesNo"
-	Option "Respawn protection",	"sv_respawnprotect", "YesNo"
+	// [TP] Zandronum has this CVar under a different name
+	// Option "Respawn protection",	"sv_respawnprotect", "YesNo"
+	Option "Respawn protection",	"sv_norespawninvul", "NoYes"
 	Option "Lose frag if fragged",	"sv_losefrag", "YesNo"
 	Option "Keep frags gained",		"sv_keepfrags", "YesNo"
 	Option "No team switching",		"sv_noteamswitch", "YesNo"
+	// [TP] Zandronum deathmatch settings
+	Option "Keep teams across levels", "sv_keepteams", "YesNo"
+	Option "Apply LMS spectator settings",	"sv_applylmsspectatorsettings", "YesNo"
+	Option "Medals",				"sv_nomedals", "NoYes"
+	// [TP] --
 
 	StaticText " "
 	StaticText "Cooperative Settings",1
 	Option "Spawn multi. weapons", 	"sv_noweaponspawn", "NoYes"
+	// [TP] Zandronum uses different names for these CVars
+	/*
 	Option "Lose entire inventory",	"sv_cooploseinventory", "YesNo"
 	Option "Keep keys",				"sv_cooplosekeys", "NoYes"
 	Option "Keep weapons",			"sv_cooploseweapons", "NoYes"
@@ -1194,7 +1275,20 @@ OptionMenu GameplayOptions
 	Option "Keep powerups",			"sv_cooplosepowerups", "NoYes"
 	Option "Keep ammo",				"sv_cooploseammo", "NoYes"
 	Option "Lose half ammo",		"sv_coophalveammo", "YesNo"
+	*/
+	Option "Lose entire inventory",	"sv_coop_loseinventory", "YesNo"
+	Option "Keep keys",				"sv_coop_losekeys", "NoYes"
+	Option "Keep weapons",			"sv_coop_loseweapons", "NoYes"
+	Option "Keep armor",			"sv_coop_losearmor", "NoYes"
+	Option "Keep powerups",			"sv_coop_losepowerups", "NoYes"
+	Option "Keep ammo",				"sv_coop_loseammo", "NoYes"
+	Option "Lose half ammo",		"sv_coop_halveammo", "YesNo"
 	Option "Spawn where died",		"sv_samespawnspot", "YesNo"
+	// [TP] Zandronum co-operative settings
+	Option "Spawn singleplayer actors", "sv_coop_spactorspawn", "YesNo"
+	Option "Share keys",			"sv_sharekeys", "YesNo"
+	Option "Allow coop info",		"sv_nocoopinfo", "NoYes"
+	// [TP] --
 	Class "GameplayMenu"
 }
 
@@ -1255,6 +1349,29 @@ OptionMenu "CompatibilityOptions"
 	Option "Ignore Y offsets on masked midtextures",	"compat_MASKEDMIDTEX", "YesNo"
 	Option "Cannot travel straight NSEW",				"compat_badangles", "YesNo"
 	Option "Use Doom's floor motion behavior",			"compat_floormove", "YesNo"
+
+	// [TP] Zandronum compatibility settings
+	Option "Limit air movement",						"compat_limited_airmovement", "YesNo"
+	Option "Item grab like vanilla",					"compat_plasmabump", "YesNo"
+	Option "Respawn instantly",							"compat_instantrespawn", "YesNo"
+	Option "No taunts",									"compat_disabletaunts", "YesNo"
+	Option "Use old intermission screens/music",		"compat_oldintermission", "YesNo"
+	Option "No stealth monsters",						"compat_disablestealthmonsters", "YesNo"
+	Option "Splash damage is infinitely tall",			"compat_oldradiusdmg", "YesNo"
+	Option "No crosshairs",								"compat_nocrosshair", "YesNo"
+	Option "Always switch weapons on pickup",			"compat_oldweaponswitch", "YesNo"
+	Option "NET scripts are client-side",				"compat_netscriptsareclientside", "YesNo"
+	Option "Clients send full button info",				"compat_clientssendfullbuttoninfo", "YesNo"
+	Option "Forbid the 'land' console command",			"compat_noland", "YesNo"
+	Option "Use the old pseudo-RNG",					"compat_oldrandom", "YesNo"
+	Option "Spheres float like in Skulltag",			"compat_nogravity_spheres", "YesNo"
+	Option "Player scripts resume after disconnect",	"compat_dont_stop_player_scripts_on_disconnect", "YesNo"
+	Option "Explosion thrust like old ZDoom versions",	"compat_explosionthrust", "YesNo"
+	Option "Dropped items pass through bridges",		"compat_bridgedrops", "YesNo"
+	Option "Vertical movement like old ZDoom versions",	"compat_oldzdoomzmovement", "YesNo"
+	Option "Weapons must be lowered fully",				"compat_fullweaponlower", "YesNo"
+	Option "Auto-aiming has vertical holes",			"compat_autoaim", "YesNo"
+	Option "West facing spawns are silent",				"compat_silentwestspawns", "YesNo"
 	
 	Class "CompatibilityMenu"
 }
@@ -1380,12 +1497,16 @@ OptionMenu SoundOptions
 	Slider "Sounds volume",		"snd_sfxvolume", 0, 1, 0.05
 	Slider "Menu volume",		"snd_menuvolume", 0, 1, 0.05
 	Slider "Music volume",		"snd_musicvolume", 0, 1, 0.05
+	Slider "Announcer volume",	"snd_announcervolume", 0, 1, 0.05 // [TP]
+	Option "Announcer",			"cl_announcer", "ZA_Announcers" // [TP]
 	Option "MIDI device",		"snd_mididevice", "MidiDevices"
 	StaticText " "
 	Option "Underwater reverb",	"snd_waterreverb", "OnOff"
 	Slider "Underwater cutoff",	"snd_waterlp", 0, 2000, 50, 0
 	Option "Randomize pitches",	"snd_pitched", "OnOff"
 	Slider "Sound channels",	"snd_channels", 8, 256, 8, 0
+	Option "Play connect sound", "cl_connectsound", "YesNo" // [TP]
+	Option "Multiple announcer sounds", "cl_allowmultipleannouncersounds", "YesNo" // [TP]
 	StaticText " "
 	Command "Restart sound",	"snd_reset"
 	StaticText " "
