@@ -29,6 +29,7 @@
 -	- Fixed: Trying to open a corrupt zip archive crashed the game (backported from ZDoom). [Torr Samaho]
 -	- Fixed: Players were kicked for excessive movement commands instead of simply ignoring the excessive commands. [Torr Samaho]
 -	- Fixed: clients were not informed of some actor flag modifications with A_ChangeFlag. [Edward-san]
+-	- Fixed: Trying to record client demos on some mods, e.g. duel32c_st.pk3, caused the client to error out. [Torr Samaho]
 !	- Make the crash log unique for SDL platforms by appending the timestamp to the file name. [Edward-san, Dusk]
 !	- The Linux executables now will be able to generate a core dump in case a crash happens. [Edward-san]
 

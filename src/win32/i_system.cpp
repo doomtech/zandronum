@@ -889,10 +889,6 @@ void STACK_ARGS I_Error(const char *error, ...)
 	myvsnprintf(errortext, MAX_ERRORTEXT, error, argptr);
 	va_end(argptr);
 
-	// [BB] Tell the server we're leaving the game.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( NULL );
-
 	throw CRecoverableError(errortext);
 }
 

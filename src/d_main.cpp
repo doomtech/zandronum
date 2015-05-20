@@ -1147,6 +1147,11 @@ void D_ErrorCleanup ()
 	BOTS_RemoveAllBots( false );
 
 	D_QuitNetGame ();
+
+	// [BB] Tell the server we're leaving the game.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_QuitNetworkGame( NULL );
+
 	if (demorecording || demoplayback)
 		G_CheckDemoStatus ();
 	// [BC] Support for client-side demos.

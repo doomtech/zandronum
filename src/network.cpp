@@ -1057,6 +1057,10 @@ FString NETWORK_MapCollectionChecksum( )
 		char* mname = wadlevelinfos[i].mapname;
 		FString sum;
 
+		// [BB] P_OpenMapData may throw an exception, so make sure that mname is a valid map.
+		if ( P_CheckIfMapExists ( mname ) == false )
+			continue;
+
 		MapData* mdata = P_OpenMapData( mname );
 		if ( !mdata )
 			continue;
