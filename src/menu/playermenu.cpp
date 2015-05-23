@@ -457,18 +457,19 @@ void FSliderItem::DrawSlider (int x, int y)
 	int range = mMaxrange - mMinrange;
 	int cur = mSelection - mMinrange;
 
-	x = (x - 160) * CleanXfac + screen->GetWidth() / 2;
-	y = (y - 100) * CleanYfac + screen->GetHeight() / 2;
+	// [BB] Using Skulltag's increased precision of CleanXfac/CleanYfac is wrong here.
+	x = (x - 160) * static_cast<int>(CleanXfac) + screen->GetWidth() / 2;
+	y = (y - 100) * static_cast<int>(CleanYfac) + screen->GetHeight() / 2;
 
 	screen->DrawText (ConFont, CR_WHITE, x, y,
 		"\x10\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x12",
-		DTA_CellX, 8 * CleanXfac,
-		DTA_CellY, 8 * CleanYfac,
+		DTA_CellX, 8 * static_cast<int>(CleanXfac),
+		DTA_CellY, 8 * static_cast<int>(CleanYfac),
 		TAG_DONE);
-	screen->DrawText (ConFont, CR_ORANGE, x + (5 + (int)((cur * 78) / range)) * CleanXfac, y,
+	screen->DrawText (ConFont, CR_ORANGE, x + (5 + (int)((cur * 78) / range)) * static_cast<int>(CleanXfac), y,
 		"\x13",
-		DTA_CellX, 8 * CleanXfac,
-		DTA_CellY, 8 * CleanYfac,
+		DTA_CellX, 8 * static_cast<int>(CleanXfac),
+		DTA_CellY, 8 * static_cast<int>(CleanYfac),
 		TAG_DONE);
 }
 
