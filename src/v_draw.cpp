@@ -67,7 +67,7 @@
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings
-float CleanXfac, CleanYfac;
+int CleanXfac, CleanYfac;
 
 // [RH] Effective screen sizes that the above scale values give you
 int CleanWidth, CleanHeight;
@@ -340,9 +340,6 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 	bool translationset = false;
 	bool virtBottom;
 
-	// [BC] Potentially flag the texture as being text so we can handle it differently.
-	bool	bIsText = false;
-
 	if (img == NULL || img->UseType == FTexture::TEX_Null)
 	{
 		va_end(tags);
@@ -440,11 +437,7 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 				parms->x = (parms->x - 160.0) * CleanXfac + (Width * 0.5);
 				parms->y = (parms->y - 100.0) * CleanYfac + (Height * 0.5);
 				parms->destwidth = parms->texwidth * CleanXfac;
-				// [BC] Text looks horrible when it's y-stretched.
-				if ( bIsText )
-					parms->destheight = parms->texheight * (int)CleanYfac;
-				else
-					parms->destheight = parms->texheight * CleanYfac;
+				parms->destheight = parms->texheight * CleanYfac;
 			}
 			break;
 
@@ -452,16 +445,8 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 			boolval = va_arg(tags, INTBOOL);
 			if (boolval)
 			{
-				if ( bIsText )
-					parms->destwidth = parms->texwidth * (int)CleanXfac;
-				else
-					parms->destwidth = parms->texwidth * CleanXfac;
-
-				// [BC] Text looks horrible when it's y-stretched.
-				if ( bIsText )
-					parms->destheight = parms->texheight * (int)CleanYfac;
-				else
-					parms->destheight = parms->texheight * CleanYfac;
+				parms->destwidth = parms->texwidth * CleanXfac;
+				parms->destheight = parms->texheight * CleanYfac;
 			}
 			break;
 
@@ -703,11 +688,6 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, double x, double y, DWORD tag
 
 		case DTA_ColormapStyle:
 			parms->colormapstyle = va_arg(tags, FColormapStyle *);
-			break;
-
-		// [BC] Is what we're drawing text? If so, handle it differently.
-		case DTA_IsText:
-			bIsText = !!va_arg( tags, INTBOOL );
 			break;
 
 		// [BB]

@@ -1040,10 +1040,9 @@ public:
 
 					x = (50 + 3 - 160) * CleanXfac + screen->GetWidth() / 2;
 					int yy = (y + fontheight/2 - 5 - 100) * CleanYfac + screen->GetHeight() / 2;
-				// [BB] Using Skulltag's increased precision of CleanXfac/CleanYfac is wrong here.
-				screen->DrawText (ConFont, CR_RED, x, yy, "\xd",
-					DTA_CellX, 8 * static_cast<int>(CleanXfac),
-					DTA_CellY, 8 * static_cast<int>(CleanYfac),
+					screen->DrawText (ConFont, color, x, yy, "\xd",
+						DTA_CellX, 8 * CleanXfac,
+						DTA_CellY, 8 * CleanYfac,
 						TAG_DONE);
 				}
 			}

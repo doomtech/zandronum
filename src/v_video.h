@@ -41,18 +41,15 @@
 #include "r_data/renderstyle.h"
 #include "c_cvars.h"
 
+// [BB] New #includes
 #include "network.h"
 
-// [BC] Make CleanX/Yfac floats in Skulltag.
-// [BB] This is at least needed to display the medals at the correct position.
-extern float CleanXfac, CleanYfac;
+extern int CleanWidth, CleanHeight, CleanXfac, CleanYfac;
 extern int CleanWidth_1, CleanHeight_1, CleanXfac_1, CleanYfac_1;
-extern int CleanWidth, CleanHeight;
 extern int DisplayWidth, DisplayHeight, DisplayBits;
 
 bool V_DoModeSetup (int width, int height, int bits);
-// [BB] Changed arguments to float.
-void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, float *cleanx, float *cleany, float *cx1=NULL, float *cx2=NULL);
+void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, int *cleanx, int *cleany, int *cx1=NULL, int *cx2=NULL);
 
 class FTexture;
 
@@ -128,8 +125,6 @@ enum
 	DTA_TextLen,		// stop after this many characters, even if \0 not hit
 	DTA_CellX,			// horizontal size of character cell
 	DTA_CellY,			// vertical size of character cell
-
-	DTA_IsText,			// [BC] Handle the drawing slightly differently for text.
 
 	// [BB] bool: Set DTA_VirtualWidth and DTA_VirtualHeight to con_virtualwidth and con_virtualheight respectively (not limited to text).
 	DTA_UseVirtualScreen,

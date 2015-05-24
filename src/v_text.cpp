@@ -97,8 +97,7 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 	const FRemapTable *range;
 	int			height;
 	int			forcedwidth = 0;
-	// [BB] Since CleanX/Yfac are floats in Skulltag, scalex/y also need to be floats.
-	float		scalex, scaley;
+	int			scalex, scaley;
 	int			kerning;
 	FTexture *pic;
 
@@ -163,7 +162,7 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 			{
 				scalex = CleanXfac_1;
 				scaley = CleanYfac_1;
-				maxwidth = Width - (Width % (int)scalex);
+				maxwidth = Width - (Width % scalex);
 			}
 			break;
 
@@ -173,7 +172,7 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 			{
 				scalex = CleanXfac;
 				scaley = CleanYfac;
-				maxwidth = Width - (Width % (int)scalex);
+				maxwidth = Width - (Width % scalex);
 			}
 			break;
 
@@ -202,12 +201,6 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 
 		case DTA_CellY:
 			height = va_arg (tags, int);
-			break;
-
-		// [BC] Is this text? If so, handle it slightly differently when we draw it.
-		case DTA_IsText:
-
-			va_arg( tags, int );
 			break;
 		}
 		tag = va_arg (tags, uint32);
@@ -246,9 +239,6 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 #else
 			tags = taglist;
 #endif
-			// [BC] Flag this as being text.
-			// [BB] Don't apply these text rules to the big font. This special handling of the big font formerly
-			// was done in DCanvas::ParseDrawTextureTags.
 			if (forcedwidth)
 			{
 				w = forcedwidth;
@@ -256,14 +246,12 @@ void DCanvas::DrawTextV(FFont *font, int normalcolor, int x, int y, const char *
 					DTA_Translation, range,
 					DTA_DestWidth, forcedwidth,
 					DTA_DestHeight, height,
-					DTA_IsText, (font == BigFont) ? false : true,
 					TAG_MORE, &tags);
 			}
 			else
 			{
 				DrawTexture (pic, cx, cy,
 					DTA_Translation, range,
-					DTA_IsText, (font == BigFont) ? false : true,
 					TAG_MORE, &tags);
 			}
 			va_end (tags);

@@ -999,11 +999,7 @@ public:
 	void ScreenSizeChanged()
 	{
 		Super::ScreenSizeChanged();
-		// [BB] Adjusted to Zandronum's cleanX/Y handling.
-		float cleanX, cleanY;
-		V_CalcCleanFacs(script->resW, script->resH, SCREENWIDTH, SCREENHEIGHT, &cleanX, &cleanY);
-		script->cleanX = static_cast<int>(cleanX);
-		script->cleanY = static_cast<int>(cleanY);
+		V_CalcCleanFacs(script->resW, script->resH, SCREENWIDTH, SCREENHEIGHT, &script->cleanX, &script->cleanY);
 	}
 
 	void Draw (EHudState state)

@@ -1315,7 +1315,7 @@ bool FNativeTexture::CheckWrapping(bool wrapping)
 
 CCMD(clean)
 {
-	Printf ("CleanXfac: %f\nCleanYfac: %f\n", CleanXfac, CleanYfac);
+	Printf ("CleanXfac: %d\nCleanYfac: %d\n", CleanXfac, CleanYfac);
 }
 
 //
@@ -1324,9 +1324,7 @@ CCMD(clean)
 bool V_DoModeSetup (int width, int height, int bits)
 {
 	DFrameBuffer *buff = I_SetMode (width, height, screen);
-
-	// [BB] Changed to float.
-	float cx1, cx2;
+	int cx1, cx2;
 
 	if (buff == NULL)
 	{
@@ -1345,11 +1343,8 @@ bool V_DoModeSetup (int width, int height, int bits)
 
 	CleanWidth = width / CleanXfac;
 	CleanHeight = height / CleanYfac;
-
-/* [RC] This triggers in 640x480 due to the "ugly vertical menu scaling" fix.
 	assert(CleanWidth >= 320);
 	assert(CleanHeight >= 200);
-*/
 
 	if (width < 800 || width >= 960)
 	{
@@ -1361,9 +1356,8 @@ bool V_DoModeSetup (int width, int height, int bits)
 		}
 		else
 		{
-			// [BB] Rounding down is necessary here.
-			CleanXfac_1 = MAX(int(floor(CleanXfac)) - 1, 1);
-			CleanYfac_1 = MAX(int(floor(CleanYfac)) - 1, 1);
+			CleanXfac_1 = MAX(CleanXfac - 1, 1);
+			CleanYfac_1 = MAX(CleanYfac - 1, 1);
 			// On larger screens this is not enough so make sure it's at most 3/4 of the screen's width
 			while (CleanXfac_1 * 320 > screen->GetWidth()*3/4 && CleanXfac_1 > 2)
 			{
@@ -1376,8 +1370,8 @@ bool V_DoModeSetup (int width, int height, int bits)
 	}
 	else // if the width is between 800 and 960 the ratio between the screensize and CleanXFac-1 becomes too large.
 	{
-		CleanXfac_1 = int(CleanXfac);
-		CleanYfac_1 = int(CleanYfac);
+		CleanXfac_1 = CleanXfac;
+		CleanYfac_1 = CleanYfac;
 		CleanWidth_1 = CleanWidth;
 		CleanHeight_1 = CleanHeight;
 	}
@@ -1395,14 +1389,12 @@ bool V_DoModeSetup (int width, int height, int bits)
 	return true;
 }
 
-// [BB] Changed arguments to float.
-void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, float *cleanx, float *cleany, float *_cx1, float *_cx2)
+void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int realheight, int *cleanx, int *cleany, int *_cx1, int *_cx2)
 {
 	int ratio;
 	int cwidth;
 	int cheight;
- 	// [BB] Changed to float.
-	float cx1, cy1, cx2, cy2;
+	int cx1, cy1, cx2, cy2;
 
 	ratio = CheckRatio(realwidth, realheight);
 	if (ratio & 4)
@@ -1417,10 +1409,10 @@ void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int real
 	}
 	// Use whichever pair of cwidth/cheight or width/height that produces less difference
 	// between CleanXfac and CleanYfac.
-	cx1 = MAX(cwidth / static_cast<float>(designwidth), 1.f);
-	cy1 = MAX(cheight / static_cast<float>(designheight), 1.f);
-	cx2 = MAX(realwidth / static_cast<float>(designwidth), 1.f);
-	cy2 = MAX(realheight / static_cast<float>(designheight), 1.f);
+	cx1 = MAX(cwidth / designwidth, 1);
+	cy1 = MAX(cheight / designheight, 1);
+	cx2 = MAX(realwidth / designwidth, 1);
+	cy2 = MAX(realheight / designheight, 1);
 	if (abs(cx1 - cy1) <= abs(cx2 - cy2))
 	{ // e.g. 640x360 looks better with this.
 		*cleanx = cx1;
@@ -1432,7 +1424,6 @@ void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int real
 		*cleany = cy2;
 	}
 
-/* [BB] This causes the ugly vertical menu scaling.
 	if (*cleanx > 1 && *cleany > 1 && *cleanx != *cleany)
 	{
 		if (*cleanx < *cleany)
@@ -1440,7 +1431,6 @@ void V_CalcCleanFacs (int designwidth, int designheight, int realwidth, int real
 		else
 			*cleanx = *cleany;
 	}
-*/
 	if (_cx1 != NULL)	*_cx1 = cx1;
 	if (_cx2 != NULL)	*_cx2 = cx2;
 }
