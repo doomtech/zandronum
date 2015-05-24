@@ -2884,12 +2884,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeIn)
 	ACTION_PARAM_FIXED(reduce, 0);
 
 	// [BB] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
-			return;
-	}
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
 
 	if (reduce == 0)
 	{
@@ -2927,12 +2923,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FadeOut)
 	ACTION_PARAM_BOOL(remove, 1);
 
 	// [BB] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
-			return;
-	}
+	if ( NETWORK_InClientModeAndActorNotClientHandled( self ) )
+		return;
 
 	if (reduce == 0)
 	{
