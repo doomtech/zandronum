@@ -1637,10 +1637,12 @@ int P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage,
 
 	// [BB] Save the damage the player has dealt to monsters here, it's only converted to points
 	// though if ZADF_AWARD_DAMAGE_INSTEAD_KILLS is set.
-	if ( source && source->player
-	     && ( target->player == false )
-	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-	     && ( CLIENTDEMO_IsPlaying( ) == false ))
+	// [TP] Only award damage dealt to monsters with COUNTKILL set.
+	if ( source != NULL
+		&& ( source->player != NULL )
+		&& ( target->player == NULL )
+		&& ( NETWORK_InClientMode() == false )
+		&& ( target->flags & MF_COUNTKILL ))
 	{
 		source->player->ulUnrewardedDamageDealt += MIN( (int)lOldTargetHealth, damage );
 	}
