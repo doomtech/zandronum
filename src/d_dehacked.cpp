@@ -185,7 +185,7 @@ DECLARE_ACTION_PARAMS(A_Saw)
 DECLARE_ACTION(A_FirePlasma)
 DECLARE_ACTION(A_FireBFG)
 DECLARE_ACTION(A_FireOldBFG)
-DECLARE_ACTION(A_FireRailgun)
+DECLARE_ACTION_PARAMS(A_FireRailgun) // [TP/BB] Added params
 
 // Default ammo use of the various weapon attacks
 static AmmoPerAttack AmmoPerAttacks[] = {
@@ -199,7 +199,7 @@ static AmmoPerAttack AmmoPerAttacks[] = {
 	{ AF_A_FirePlasma, 1},
 	{ AF_A_FireBFG, -1},	// uses deh.BFGCells
 	{ AF_A_FireOldBFG, 1},
-	{ AF_A_FireRailgun, 1},
+	{ AFP_A_FireRailgun, 1}, // [TP/BB] Added params
 	{ NULL, 0}
 };
 

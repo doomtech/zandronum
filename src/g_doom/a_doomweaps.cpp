@@ -867,8 +867,9 @@ DEFINE_ACTION_FUNCTION(AActor, A_FirePlasma)
 
 //
 // [RH] A_FireRailgun
+// [TP] Now takes a puff class
 //
-static void FireRailgun(AActor *self, int offset_xy)
+static void FireRailgun(AActor *self, int offset_xy, const PClass* puffType = NULL )
 {
 	int damage;
 	player_t *player;
@@ -909,15 +910,19 @@ static void FireRailgun(AActor *self, int offset_xy)
 	}
 
 	// [BB] This also handles color and spread.
-	P_RailAttackWithPossibleSpread (self, damage, offset_xy);
+	// [TP] Now takes a puff too.
+	P_RailAttackWithPossibleSpread (self, damage, offset_xy, 0, 0, 0, 0, 0, puffType );
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDRAILGUN, BOTEVENT_ENEMY_FIREDRAILGUN, BOTEVENT_PLAYER_FIREDRAILGUN );
 }
 
-DEFINE_ACTION_FUNCTION(AActor, A_FireRailgun)
+// [TP] This now takes a puff type to retain Skulltag's railgun's ability to pierce armor.
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireRailgun)
 {
-	FireRailgun(self, 0);
+	ACTION_PARAM_START( 1 )
+	ACTION_PARAM_CLASS( puffType, 0 );
+	FireRailgun(self, 0, puffType );
 }
 
 DEFINE_ACTION_FUNCTION(AActor, A_FireRailgunRight)

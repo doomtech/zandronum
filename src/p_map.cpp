@@ -4788,7 +4788,10 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 					P_PoisonMobj(hitactor, thepuff ? thepuff : source, source, puffDefaults->PoisonDamage, puffDefaults->PoisonDuration, puffDefaults->PoisonPeriod, puffDefaults->PoisonDamageType);
 				}
 				// [BC/BB] Support for instagib.
-				int newdam = P_DamageMobj(hitactor, thepuff? thepuff:source, source, instagib ? 999 : damage, damagetype, DMG_INFLICTOR_IS_PUFF);
+				if ( instagib )
+					damage = 999;
+
+				int newdam = P_DamageMobj(hitactor, thepuff? thepuff:source, source, damage, damagetype, DMG_INFLICTOR_IS_PUFF);
 				if (bleed)
 				{
 					P_SpawnBlood(x, y, z, (source->angle + angleoffset) - ANG180, newdam > 0 ? newdam : damage, hitactor);
