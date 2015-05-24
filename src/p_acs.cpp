@@ -8070,8 +8070,8 @@ scriptwait:
 				// save the current music setting for when new clients connect.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_SetMapMusic( (char *)lookup );
-					SERVER_SetMapMusic( lookup );
+					SERVERCOMMANDS_SetMapMusic( lookup, STACK( 1 ));
+					SERVER_SetMapMusic( lookup, STACK( 1 ));
 				}
 			}
 			sp -= 2;
@@ -8652,8 +8652,8 @@ scriptwait:
 			// new clients connect.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetMapMusic( (char *)FBehavior::StaticLookupString( STACK( 3 )));
-				SERVER_SetMapMusic( (char *)FBehavior::StaticLookupString( STACK( 3 )));
+				SERVERCOMMANDS_SetMapMusic( FBehavior::StaticLookupString( STACK( 3 )), STACK( 2 ) );
+				SERVER_SetMapMusic( FBehavior::StaticLookupString( STACK( 3 )), STACK( 2 ) );
 			}
 
 			S_ChangeMusic (FBehavior::StaticLookupString (STACK(3)), STACK(2));
@@ -8665,8 +8665,11 @@ scriptwait:
 			// [BC] Tell clients about this music change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetMapMusic( (char *)FBehavior::StaticLookupString (TAGSTR(uallong(pc[0]))));
-				SERVER_SetMapMusic( (char *)FBehavior::StaticLookupString (TAGSTR(uallong(pc[0]))));
+				const char* music =  FBehavior::StaticLookupString( TAGSTR(uallong(pc[0])) );
+				int order = uallong( pc[1] );
+
+				SERVERCOMMANDS_SetMapMusic( music, order );
+				SERVER_SetMapMusic( music, order );
 			}
 
 			S_ChangeMusic (FBehavior::StaticLookupString (TAGSTR(uallong(pc[0]))), uallong(pc[1]));
@@ -8679,7 +8682,10 @@ scriptwait:
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				if ( activator && activator->player )
-					SERVERCOMMANDS_SetMapMusic( (char *)FBehavior::StaticLookupString( STACK( 3 )), activator->player - players, SVCF_ONLYTHISCLIENT );
+				{
+					SERVERCOMMANDS_SetMapMusic( FBehavior::StaticLookupString( STACK( 3 )), STACK( 2 ),
+						activator->player - players, SVCF_ONLYTHISCLIENT );
+				}
 			}
 
 			if (activator == players[consoleplayer].mo)
@@ -8695,7 +8701,10 @@ scriptwait:
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				if ( activator && activator->player )
-					SERVERCOMMANDS_SetMapMusic( (char *)FBehavior::StaticLookupString( pc[0] ), activator->player - players, SVCF_ONLYTHISCLIENT );
+				{
+					SERVERCOMMANDS_SetMapMusic( FBehavior::StaticLookupString(TAGSTR(uallong(pc[0]))),
+						uallong( pc[1] ), activator->player - players, SVCF_ONLYTHISCLIENT );
+				}
 			}
 
 			if (activator == players[consoleplayer].mo)

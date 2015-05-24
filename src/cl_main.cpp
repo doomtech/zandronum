@@ -10307,8 +10307,11 @@ static void client_SetMapMusic( BYTESTREAM_s *pByteStream )
 	// Read in the music string.
 	pszMusicString = NETWORK_ReadString( pByteStream );
 
+	// [TP] Read in the music order.
+	int order = NETWORK_ReadByte( pByteStream );
+
 	// Change the music.
-	S_ChangeMusic( pszMusicString );
+	S_ChangeMusic( pszMusicString, order );
 }
 
 //*****************************************************************************
