@@ -726,10 +726,15 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	// [TP] Optional wads
 	if ( ulFlags & SQF_OPTIONAL_WADS )
 	{
-		int numIndices = NETWORK_ReadByte( pByteStream );
-
-		while ( numIndices-- )
+		for ( int i = NETWORK_ReadByte( pByteStream ); i > 0; --i )
 			NETWORK_ReadByte( pByteStream );
+	}
+
+	// [TP] Dehacked patches
+	if ( ulFlags & SQF_DEH )
+	{
+		for ( int i = NETWORK_ReadByte( pByteStream ); i > 0; --i )
+			NETWORK_ReadString( pByteStream );
 	}
 }
 
