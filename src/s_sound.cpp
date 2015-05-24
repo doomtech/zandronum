@@ -497,7 +497,7 @@ void S_Start ()
 			// [BC] If we're the server, save this music selection so we can tell clients
 			// what music to play when they connect.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVER_SetMapMusic( level.Music );
+				SERVER_SetMapMusic( level.Music, level.musicorder );
 		}
 	}
 }
@@ -2779,8 +2779,9 @@ CCMD (changemus)
 		// save the current music setting for when new clients connect.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_SetMapMusic( argv[1] );
-			SERVER_SetMapMusic( argv[1] );
+			int musicorder =  argv.argc() > 2 ? atoi (argv[2]) : 0;
+			SERVERCOMMANDS_SetMapMusic( argv[1], musicorder );
+			SERVER_SetMapMusic( argv[1], musicorder );
 		}
 	}
 }

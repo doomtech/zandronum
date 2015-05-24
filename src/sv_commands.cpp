@@ -3673,10 +3673,11 @@ void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ULONG ulFlags )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	NetCommand command ( SVC_SETMAPMUSIC );
 	command.addString ( pszMusic );
+	command.addByte ( track );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
 

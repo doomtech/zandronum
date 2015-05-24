@@ -224,6 +224,7 @@ static	char		g_szCurrentFont[16];
 
 // This is the music the loaded map is currently using.
 static	FString		g_MapMusic;
+static	int			g_MapMusicOrder;
 
 // Maximum packet size.
 static	ULONG		g_ulMaxPacketSize = 0;
@@ -1377,7 +1378,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 */
 	// Send the map music.
-	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), SERVER_GetMapMusicOrder( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the message of the day.
 	Val = sv_motd.GetGenericRep( CVAR_String );
@@ -3764,7 +3765,14 @@ ULONG SERVER_GetMaxPacketSize( void )
 //
 const char *SERVER_GetMapMusic( void )
 {
-	return ( g_MapMusic.GetChars() );
+	return g_MapMusic;
+}
+
+//*****************************************************************************
+//
+int SERVER_GetMapMusicOrder( void )
+{
+	return g_MapMusicOrder;
 }
 
 //*****************************************************************************
@@ -3782,12 +3790,14 @@ const FString& SERVER_GetMasterBanlistVerificationString( void )
 }
 //*****************************************************************************
 //
-void SERVER_SetMapMusic( const char *pszMusic )
+void SERVER_SetMapMusic( const char *pszMusic, int order )
 {
 	if ( pszMusic )
 		g_MapMusic = pszMusic;
 	else
 		g_MapMusic = "";
+
+	g_MapMusicOrder = order;
 }
 
 //*****************************************************************************
@@ -5918,7 +5928,7 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map music.
-	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), SERVER_GetMapMusicOrder( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If we're in a duel or LMS mode, tell him the state of the game mode.
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )

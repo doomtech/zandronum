@@ -3621,8 +3621,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	S_ChangeMusic( level.Music.GetChars(), level.musicorder );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVER_SetMapMusic( level.Music.GetChars() );
-		SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ));
+		SERVER_SetMapMusic( level.Music, level.musicorder );
+		SERVERCOMMANDS_SetMapMusic( level.Music, level.musicorder );
 	}
 
 	// [BB] TThinkerIterator<AActor> doesn't seem to like if we create new actors while
