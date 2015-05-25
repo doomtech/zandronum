@@ -1714,10 +1714,10 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	// Setup the player's userinfo based on the bot's botinfo.
 	// [BB] First clear the userinfo.
 	m_pPlayer->userinfo.Reset();
-	m_pPlayer->userinfo.NameChanged ( g_BotInfo[m_ulBotInfoIdx]->szName );
+	FString botname = g_BotInfo[m_ulBotInfoIdx]->szName;
+	V_ColorizeString( botname );
+	m_pPlayer->userinfo.NameChanged ( botname );
 
-	// [BB] CHECK: Do we need to do this?
-	//V_ColorizeString( m_pPlayer->userinfo.netname );
 	m_pPlayer->userinfo.ColorChanged ( V_GetColorFromString( NULL, g_BotInfo[m_ulBotInfoIdx]->szColor ) );
 	if ( g_BotInfo[m_ulBotInfoIdx]->szSkinName )
 	{
