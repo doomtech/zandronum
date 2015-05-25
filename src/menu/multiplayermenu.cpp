@@ -133,6 +133,8 @@ CVAR ( Int, menu_ignoreduration, 0, 0 )
 CVAR ( Bool, menu_ignoreaction, false, 0 )
 CVAR ( String, menu_authusername, 0, 0 )
 CVAR ( String, menu_authpassword, 0, 0 )
+CVAR ( Int, menu_skirmishskill, 0, 0 )
+CVAR ( Int, menu_skirmishbotskill, 0, 0 )
 
 CUSTOM_CVAR ( Int, menu_textsizescalar, 0, 0 )
 {
@@ -255,6 +257,15 @@ static void M_StartSkirmishGame()
 	CAMPAIGN_DisableCampaign( );
 	GAMEMODE_SetCurrentMode( mode );
 	GAMEMODE_SetModifier( modifier );
+
+	// [TP] Activate the desired skill levels
+	{
+		UCVarValue vval;
+		vval.Int = menu_skirmishskill;
+		gameskill.ForceSet( vval, CVAR_Int );
+		vval.Int = menu_skirmishbotskill;
+		botskill.ForceSet( vval, CVAR_Int );
+	}
 
 	// [TP] Set default dmflags so that the gameplay is okay. ZDoom changed the gameplay settings
 	// to set dmflags directly, so we cannot rely on that anymore.

@@ -137,8 +137,8 @@ OptionMenu ZA_SkirmishMenu
 	NumberField	"Winlimit",				"winlimit"
 	NumberField	"Wavelimit",			"wavelimit", 0, 10
 	StaticText	" "
-	NumberField	"Skill",				"skill", 0, 4
-	NumberField	"Botskill",				"botskill", 0, 4
+	NumberField	"Skill",				"menu_skirmishskill", 0, 4
+	NumberField	"Botskill",				"menu_skirmishbotskill", 0, 4
 	StaticText	" "
 	SubMenu		"Bot Setup",			"ZA_BotSetup"
 	StaticText	" "
