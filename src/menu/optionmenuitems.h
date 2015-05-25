@@ -983,6 +983,7 @@ public:
 //
 
 #include "team.h"
+#include "v_text.h"
 
 //=============================================================================
 //
@@ -1336,7 +1337,14 @@ public:
 
 	FString RepresentOption ( int teamId )
 	{
-		return static_cast<unsigned>( teamId ) < teams.Size() ? teams[teamId].Name : "Random";
+		if ( static_cast<unsigned>( teamId ) >= teams.Size() )
+			return "Random";
+
+		FString result = "\\c";
+		result += teams[teamId].TextColor;
+		result += teams[teamId].Name;
+		V_ColorizeString( result );
+		return result;
 	}
 
 	int Maximum()
