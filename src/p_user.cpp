@@ -1138,7 +1138,7 @@ const char *APlayerPawn::GetSoundClass() const
 {
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	if (( cl_skins == 1 ) || (( cl_skins >= 2 ) &&
-		( player != NULL ) &&
+		( player != NULL ) && ( player->mo == this ) && // [BB] Voodoo dolls don't have valid userinfo.
 		( player->userinfo.GetSkin() < static_cast<signed> (skins.Size()) ) &&
 		( skins[player->userinfo.GetSkin()].bCheat == false )))
 	{
