@@ -3335,7 +3335,8 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj)
 	{
 		grunted = false;
 		// Why should this number vary by gravity?
-		if (mo->health > 0 && mo->velz < -mo->player->mo->GruntSpeed)
+		// [BB] For unassigned voodoo dolls, mo->player->mo is NULL.
+		if (mo->player->mo && mo->health > 0 && mo->velz < -mo->player->mo->GruntSpeed)
 		{
 			S_Sound (mo, CHAN_VOICE, "*grunt", 1, ATTN_NORM);
 			grunted = true;
