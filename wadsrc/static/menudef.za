@@ -223,7 +223,7 @@ OptionMenu ZA_CallMapVote
 
 OptionMenu ZA_CallLimitVote
 {
-	Title		"CHANGE MAP"
+	Title		"CHANGE LIMIT"
 
 	Option		"Limit",				"menu_callvotelimit",			"ZA_VoteLimitTypes"
 	TextField	"New value",			"menu_callvotevalue"
