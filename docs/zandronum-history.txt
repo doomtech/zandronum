@@ -36,6 +36,7 @@
 -	- Fixed: clients lost some actor flag modifications done in a previous map after a changemap map change. [Edward-san]
 -	- Fixed: Players would be awarded damage dealt to non-COUNTKILL monsters if sv_awarddamageinsteadkills was set. [Dusk]
 -	- Fixed: Using alternative track orders with music formats with multiple tracks did not work online. [Dusk]
+-	- Fixed: "gl_cachenodes 1" could crash the server. [Torr Samaho]
 !	- Make the crash log unique for SDL platforms by appending the timestamp to the file name. [Edward-san, Dusk]
 !	- The Linux executables now will be able to generate a core dump in case a crash happens. [Edward-san]
 !	- Railgun attacks no longer always pierce armor. The Skulltag railgun in skulltag_actors.pk3 continues to do so, however, through use of +PIERCEARMOR. [Dusk]

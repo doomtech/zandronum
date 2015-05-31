@@ -988,7 +988,8 @@ bool gl_CheckNodes(MapData * map, bool rebuilt, int buildtime)
 	// Building nodes in debug is much slower so let's cache them only if gl_cachenodes is on
 	buildtime = 0;
 #endif
-	if (gl_cachenodes && buildtime/1000.f >= gl_cachetime)
+	// [BB] Reportedly, the server can crash in case "gl_cachenodes true".
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) && gl_cachenodes && buildtime/1000.f >= gl_cachetime)
 	{
 		DPrintf("Caching nodes\n");
 		CreateCachedNodes(map);
