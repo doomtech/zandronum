@@ -215,6 +215,8 @@ void APowerup::EndEffect ()
 	if (colormap != NOFIXEDCOLORMAP && Owner && Owner->player && Owner->player->fixedcolormap == colormap)
 	{ // only unset if the fixed colormap comes from this item
 		Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
+		// [BB] Also unset the colormap of the player's body.
+		Owner->lFixedColormap = NOFIXEDCOLORMAP;
 	}
 }
 
@@ -1546,11 +1548,6 @@ void APowerTimeFreezer::EndEffect()
 		// Also, turn the music back on.
 		S_ResumeSound(false);
 	}
-
-	// [BC/BB] Reset the player's view colormap, as well as the colormap that's applied to
-	// his body.
-	Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
-	Owner->lFixedColormap = NOFIXEDCOLORMAP;
 }
 
 // Damage powerup ------------------------------------------------------
