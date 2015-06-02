@@ -739,7 +739,7 @@ void DrawFullHUD_GameInformation()
 
 			// If they're not, then check to see if they're carrying the white flag in one
 			// flag CTF.
-			if ( pInventory == NULL )
+			if ( ( pInventory == NULL ) && CPlayer->mo )
 				pInventory = CPlayer->mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
 
 			// If the player is carrying any of these "flags", draw an indicator.
