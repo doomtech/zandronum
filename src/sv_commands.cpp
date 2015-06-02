@@ -526,7 +526,7 @@ void SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer )
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra, ULONG ulFlags, bool bMorph )
+void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra, ServerCommandFlags flags, bool bMorph )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -555,7 +555,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	if ( bMorph )
 		command.addShort( usActorNetworkIndex );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB]: If the player still has any cheats activated from the last level, tell
 	// him about it. Not doing this leads for example to jerky movement on client side
@@ -567,7 +567,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	ULONG ulPlayerAttackFlags = 0;
 
@@ -600,7 +600,7 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 	stubCommand.addByte( ulPlayer );
 	stubCommand.addByte( ulPlayerAttackFlags );
 
-	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
+	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 	{
 		if ( SERVER_IsPlayerVisible( *it, ulPlayer ))
 			fullCommand.sendCommandToOneClient( *it );
@@ -704,7 +704,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -713,7 +713,7 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 	command.addByte( ulPlayer );
 	command.addShort( players[ulPlayer].health );
 
-	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
+	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 	{
 		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
 			command.sendCommandToOneClient( *it );
@@ -722,7 +722,7 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
@@ -739,7 +739,7 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 	command.addShort( ulArmorPoints );
 	command.addString( pArmor->Icon.isValid() ? TexMan( pArmor->Icon )->Name : "" );
 
-	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
+	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 	{
 		if ( SERVER_IsPlayerAllowedToKnowHealth( *it, ulPlayer ))
 			command.sendCommandToOneClient( *it );
@@ -748,7 +748,7 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
@@ -759,17 +759,17 @@ void SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( ULONG ulPlayer, ULONG ulPl
 		if ( pInventory )
 		{
 			pInventory->Amount = players[ulPlayer].lMaxHealthBonus;
-			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, ulFlags );
+			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, flags );
 			pInventory->Destroy ();
 			pInventory = NULL;
 		}
 	}
-	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayerExtra, ulFlags );
+	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayerWithMo( ulPlayer ) == false )
 		return;
@@ -783,17 +783,17 @@ void SERVERCOMMANDS_SetPlayerArmorAndMaxArmorBonus( ULONG ulPlayer, ULONG ulPlay
 		if ( pInventory ) 
 		{
 			pInventory->Amount = pArmor->BonusCount;
-			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, ulFlags );
+			SERVERCOMMANDS_GiveInventory( ulPlayer, pInventory, ulPlayerExtra, flags );
 			pInventory->Destroy ();
 			pInventory = NULL;
 		}
 	}
-	SERVERCOMMANDS_SetPlayerArmor( ulPlayer, ulPlayerExtra, ulFlags );
+	SERVERCOMMANDS_SetPlayerArmor( ulPlayer, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -801,12 +801,12 @@ void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG
 	NetCommand command( SVC_SETPLAYERSTATE );
 	command.addByte( ulPlayer );
 	command.addByte( ulState );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -843,12 +843,12 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 	if ( ulUserInfoFlags & USERINFO_CLIENTFLAGS )
 		command.addByte( players[ulPlayer].userinfo.GetClientFlags() );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -856,12 +856,12 @@ void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 	NetCommand command ( SVC_SETPLAYERFRAGS );
 	command.addByte ( ulPlayer );
 	command.addShort ( players[ulPlayer].fragcount );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -869,7 +869,7 @@ void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 	NetCommand command( SVC_SETPLAYERPOINTS );
 	command.addByte( ulPlayer );
 	command.addShort( players[ulPlayer].lPointCount );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
