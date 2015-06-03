@@ -1455,8 +1455,9 @@ void A_CustomFireBullets( AActor *self,
 						  int NumberOfBullets,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
-						  int Flags,
-						  fixed_t Range,
+						  const char *AttackSound = NULL,
+						  int Flags = 1,
+						  fixed_t Range = 0,
 						  const bool pPlayAttacking = true ){
   	if ( self->player == NULL)
 		return;
@@ -1498,16 +1499,21 @@ void A_CustomFireBullets( AActor *self,
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( player )
-			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), S_GetName( weapon->AttackSound ), ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), AttackSound ? AttackSound : S_GetName( weapon->AttackSound ), ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 		else
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, AttackSound ? AttackSound : S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
 	}
 
 	// [BB] Client's should only play weapon sounds, if they are looking through the eyes of the player
 	// firing the sound. Otherwise the sound is played because of the SERVERCOMMANDS_WeaponSound command.
 	// We always have to play our own sounds though.
 	if ( NETWORK_IsConsolePlayerOrSpiedByConsolePlayerOrNotInClientMode ( player ) )
-		S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+	{
+		if ( AttackSound )
+			S_Sound (self, CHAN_WEAPON, AttackSound, 1, ATTN_NORM);
+		else
+			S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+	}
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
@@ -1585,7 +1591,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireBullets)
 
 	if (!self->player) return;
 
-	A_CustomFireBullets( self, Spread_XY, Spread_Z, NumberOfBullets, DamagePerBullet, PuffType, Flags, Range);
+	A_CustomFireBullets( self, Spread_XY, Spread_Z, NumberOfBullets, DamagePerBullet, PuffType, NULL, Flags, Range);
 }
 
 
