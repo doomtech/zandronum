@@ -1314,7 +1314,10 @@ OptionMenu "CompatibilityOptions"
 {
 	Title "COMPATIBILITY OPTIONS"
 	Option "Compatibility mode",						"compatmode", "CompatModes", "", 1
+
+	// [JDM] Separated ZDoom and Zandronum compatibility options
 	StaticText " "
+	StaticText "Vanilla/Boom Compatibility",1
 	Option "Find shortest textures like Doom",			"compat_SHORTTEX", "YesNo"
 	Option "Use buggier stair building",				"compat_stairs", "YesNo"
 	Option "Find neighboring light like Doom",			"compat_LIGHT", "YesNo"
@@ -1351,6 +1354,8 @@ OptionMenu "CompatibilityOptions"
 	Option "Use Doom's floor motion behavior",			"compat_floormove", "YesNo"
 
 	// [TP] Zandronum compatibility settings
+	StaticText " "
+	StaticText "Old Zan/ST/ZDoom Compatibility",1
 	Option "Limit air movement",						"compat_limited_airmovement", "YesNo"
 	Option "Item grab like vanilla",					"compat_plasmabump", "YesNo"
 	Option "Respawn instantly",							"compat_instantrespawn", "YesNo"
