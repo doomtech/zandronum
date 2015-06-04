@@ -3967,19 +3967,19 @@ void SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC2_LIGHTNING );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC2_CANCELFADE );
 	command.addByte ( ulPlayer );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -4611,7 +4611,7 @@ void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, fl
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -4619,12 +4619,12 @@ void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerE
 	NetCommand command ( SVC_GENERICCHEAT );
 	command.addByte ( ulPlayer );
 	command.addByte ( ulCheat );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG lFOV, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG lFOV, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ((!EnsureActorHasNetID (pCamera) ) ||
 		( pszTexture == NULL ))
@@ -4636,12 +4636,12 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 	command.addShort ( pCamera->lNetID );
 	command.addString ( pszTexture );
 	command.addByte ( lFOV );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	const bool bIsEdited = SERVER_IsTranslationEdited ( ulTranslation );
 
@@ -4652,12 +4652,12 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 	command.addByte ( ulEnd );
 	command.addByte ( ulPal1 );
 	command.addByte ( ulPal2 );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 
 }
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulR1, ULONG ulG1, ULONG ulB1, ULONG ulR2, ULONG ulG2, ULONG ulB2, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	const bool bIsEdited = SERVER_IsTranslationEdited ( ulTranslation );
 
@@ -4672,35 +4672,35 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 	command.addByte ( ulR2 );
 	command.addByte ( ulG2 );
 	command.addByte ( ulB2 );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ReplaceTextures( int iFromname, int iToname, int iTexFlags, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_ReplaceTextures( int iFromname, int iToname, int iTexFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_REPLACETEXTURES );
 	command.addLong ( iFromname );
 	command.addLong ( iToname );
 	command.addByte ( iTexFlags );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorLink( ULONG ulSector, int iArg1, int iArg2, int iArg3, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorLink( ULONG ulSector, int iArg1, int iArg2, int iArg3, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETSECTORLINK );
 	command.addShort ( ulSector );
 	command.addShort ( iArg1 );
 	command.addByte ( iArg2 );
 	command.addByte ( iArg3 );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int iAngle, AActor *pSource, int iAffectee, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int iAngle, AActor *pSource, int iAffectee, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	const int iLineNum = pLine ? static_cast<ULONG>( pLine - lines ) : -1;
 	const LONG lSourceNetID = pSource ? pSource->lNetID : -1;
@@ -4712,19 +4712,19 @@ void SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int i
 	command.addLong ( iAngle );
 	command.addShort ( lSourceNetID );
 	command.addShort ( iAffectee );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ulType, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_AdjustPusher( int iTag, int iMagnitude, int iAngle, ULONG ulType, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_ADJUSTPUSHER );
 	command.addShort ( iTag );
 	command.addLong ( iMagnitude );
 	command.addLong ( iAngle );
 	command.addByte ( ulType );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 
