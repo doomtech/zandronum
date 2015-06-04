@@ -1464,7 +1464,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerComma
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	USHORT		usActorNetworkIndex = 0;
 
@@ -1481,12 +1481,12 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 	command.addShort( pActor->y >> FRACBITS );
 	command.addShort( pActor->z >> FRACBITS );
 	command.addShort( usActorNetworkIndex );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	USHORT		usActorNetworkIndex = 0;
 
@@ -1496,7 +1496,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 	// If the actor doesn't have a network ID, it's better to send it ID-less.
 	if ( pActor->lNetID == -1 )
 	{
-		SERVERCOMMANDS_SpawnThingExactNoNetID( pActor, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SpawnThingExactNoNetID( pActor, ulPlayerExtra, flags );
 		return;
 	}
 
@@ -1508,12 +1508,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 	command.addLong( pActor->z );
 	command.addShort( usActorNetworkIndex );
 	command.addShort( pActor->lNetID );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	USHORT		usActorNetworkIndex = 0;
 
@@ -1527,18 +1527,18 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 	command.addLong( pActor->y );
 	command.addLong( pActor->z );
 	command.addShort( usActorNetworkIndex );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	// [BB] Only skip updates, if sent to all players.
-	if ( ulFlags == 0 )
+	if ( flags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
 	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
 		ulBits |= CM_NOLAST;
@@ -1590,22 +1590,22 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	if ( ulBits & CM_MOVEDIR )
 		command.addByte( pActor->movedir );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
-	if ( ulFlags == 0 )
+	if ( flags == 0 )
 		ActorNetPositionUpdated ( pActor, ulBits );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	// [BB] Only skip updates, if sent to all players.
-	if ( ulFlags == 0 )
+	if ( flags == 0 )
 		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
 	else // [WS] This will inform clients not to set their lastX/Y/Z with the new position.
 		ulBits |= CM_NOLAST;
@@ -1657,10 +1657,10 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 	if ( ulBits & CM_MOVEDIR )
 		command.addByte( pActor->movedir );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] Only mark something as updated, if it the update was sent to all players.
-	if ( ulFlags == 0 )
+	if ( flags == 0 )
 		ActorNetPositionUpdated ( pActor, ulBits );
 }
 
@@ -1707,7 +1707,7 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -1715,7 +1715,7 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState, ULONG ulPlayer
 	NetCommand command( SVC_SETTHINGSTATE );
 	command.addShort( pActor->lNetID );
 	command.addByte( ulState );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -1745,7 +1745,7 @@ void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -1753,12 +1753,12 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 	NetCommand command( SVC_SETTHINGANGLE );
 	command.addShort( pActor->lNetID );
 	command.addShort( pActor->angle >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -1766,12 +1766,12 @@ void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULO
 	NetCommand command( SVC_SETTHINGANGLEEXACT );
 	command.addShort( pActor->lNetID );
 	command.addLong( pActor->angle );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -1779,12 +1779,12 @@ void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULO
 	NetCommand command( SVC_SETTHINGWATERLEVEL );
 	command.addShort( pActor->lNetID );
 	command.addByte( pActor->waterlevel );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingFlags( AActor *pActor, FlagSet flagset, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingFlags( AActor *pActor, FlagSet flagset, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	ULONG	ulActorFlags;
 
@@ -1807,36 +1807,36 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, FlagSet flagset, ULONG ulPlay
 	command.addShort( pActor->lNetID );
 	command.addByte( flagset );
 	command.addLong( ulActorFlags );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_UpdateThingFlagsNotAtDefaults( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pActor->flags != pActor->GetDefault( )->flags )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS, ulPlayerExtra, flags );
 	}
 	if ( pActor->flags2 != pActor->GetDefault( )->flags2 )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS2, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS2, ulPlayerExtra, flags );
 	}
 	if ( pActor->flags3 != pActor->GetDefault( )->flags3 )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS3, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS3, ulPlayerExtra, flags );
 	}
 	if ( pActor->flags4 != pActor->GetDefault( )->flags4 )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS4, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS4, ulPlayerExtra, flags );
 	}
 	if ( pActor->flags5 != pActor->GetDefault( )->flags5 )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS5, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS5, ulPlayerExtra, flags );
 	}
 	if ( pActor->flags6 != pActor->GetDefault( )->flags6 )
 	{
-		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS6, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGS6, ulPlayerExtra, flags );
 	}
 	// [BB] ulSTFlags is intentionally left out here.
 }
@@ -2741,7 +2741,7 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlaye
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pMissile == NULL )
 		return;
@@ -2761,17 +2761,17 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 	else
 		command.addShort( -1 );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] It's possible that the angle can't be derived from the momentum
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ))
-		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pMissile == NULL )
 		return;
@@ -2791,12 +2791,12 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 	else
 		command.addShort( -1 );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 
 	// [BB] It's possible that the angle can't be derived from the momentum
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->velx, pMissile->vely ) )
-		SERVERCOMMANDS_SetThingAngleExact( pMissile, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingAngleExact( pMissile, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
