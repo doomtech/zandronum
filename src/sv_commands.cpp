@@ -151,12 +151,10 @@ public:
  */
 class NetCommand {
 	NETBUFFER_s	_buffer;
-	const int	_header;
 	bool		_unreliable;
 
 public:
-	NetCommand ( const int Header ) :
-		_header( Header ),
+	NetCommand ( const SVC Header ) :
 		_unreliable( false )
 	{
 		NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
@@ -164,9 +162,27 @@ public:
 		addInteger<BYTE>( Header );
 	}
 
+	NetCommand ( const SVC2 Header2 ) :
+		_unreliable( false )
+	{
+		NETWORK_InitBuffer( &_buffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
+		NETWORK_ClearBuffer( &_buffer );
+		addInteger<BYTE>( SVC_EXTENDEDCOMMAND );
+		addInteger<BYTE>( Header2 );
+	}
+
 	~NetCommand ( )
 	{
 		NETWORK_FreeBuffer ( &_buffer );
+	}
+
+	const char *getHeaderAsString() const
+	{
+		const SVC header = static_cast<SVC>( _buffer.pbData[0] );
+		if ( header != SVC_EXTENDEDCOMMAND )
+			return GetStringSVC( header );
+
+		return GetStringSVC2( static_cast<SVC2>( _buffer.pbData[1] ) );
 	}
 
 	template <typename IntType>
@@ -174,7 +190,7 @@ public:
 	{
 		if ( ( _buffer.ByteStream.pbStream + sizeof ( IntType ) ) > _buffer.ByteStream.pbStreamEnd )
 		{
-			Printf( "NetCommand::AddInteger: Overflow! Header: %d\n", _header );
+			Printf( "NetCommand::AddInteger: Overflow! Header: %s\n", getHeaderAsString() );
 			return;
 		}
 
@@ -217,7 +233,7 @@ public:
 
 		if ( len > MAX_NETWORK_STRING )
 		{
-			Printf( "NETWORK_WriteString: String exceeds %d characters! Header: %d\n", MAX_NETWORK_STRING , _header );
+			Printf( "NETWORK_WriteString: String exceeds %d characters! Header: %s\n", MAX_NETWORK_STRING , getHeaderAsString() );
 			return;
 		}
 
@@ -913,12 +929,12 @@ void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer )
 //*****************************************************************************
 // [RC] Notifies all players about a player's boolean flag.
 //
-void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, int iHeader, bool bValue, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, SVC header, bool bValue, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command( iHeader );
+	NetCommand command( header );
 	command.addByte( ulPlayer );
 	command.addByte( bValue );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -1932,8 +1948,7 @@ void SERVERCOMMANDS_SetThingSpecial( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETTHINGSPECIAL );
+	NetCommand command( SVC2_SETTHINGSPECIAL );
 	command.addShort( pActor->lNetID );
 	command.addShort( pActor->special );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -1985,8 +2000,7 @@ void SERVERCOMMANDS_SetThingReactionTime( AActor *pActor, ULONG ulPlayerExtra, U
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETTHINGREACTIONTIME );
+	NetCommand command( SVC2_SETTHINGREACTIONTIME );
 	command.addShort( pActor->lNetID );
 	command.addShort( pActor->reactiontime );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -3786,8 +3800,7 @@ void SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, UL
 	if ( pPowerup == NULL )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETPOWERUPBLENDCOLOR );
+	NetCommand command( SVC2_SETPOWERUPBLENDCOLOR );
 	command.addByte( ulPlayer );
 	command.addShort( pPowerup->GetClass( )->getActorNetworkIndex() );
 	command.addLong( pPowerup->BlendColor );
@@ -3807,8 +3820,7 @@ void SERVERCOMMANDS_GiveWeaponHolder( ULONG ulPlayer, AWeaponHolder *pHolder, UL
 	if ( pHolder->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_GIVEWEAPONHOLDER );
+	NetCommand command( SVC2_GIVEWEAPONHOLDER );
 	command.addByte( ulPlayer );
 	command.addShort( pHolder->PieceMask );
 	command.addShort( pHolder->PieceWeapon->getActorNetworkIndex() );
@@ -3855,8 +3867,7 @@ void SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, UL
 
 	FString iconTexName = TexMan( pInventory->Icon )->Name;
 
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SETINVENTORYICON );
+	NetCommand command ( SVC2_SETINVENTORYICON );
 	command.addByte ( ulPlayer );
 	command.addShort ( pInventory->GetClass()->getActorNetworkIndex() );
 	command.addString ( iconTexName.GetChars() );
@@ -3873,8 +3884,7 @@ void SERVERCOMMANDS_SetHexenArmorSlots( ULONG ulPlayer, AHexenArmor *aHXArmor, U
 	if ( aHXArmor == NULL )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETHEXENARMORSLOTS );
+	NetCommand command( SVC2_SETHEXENARMORSLOTS );
 	command.addByte( ulPlayer );
 	for (int i = 0; i <= 4; i++)
 		command.addLong( aHXArmor->Slots[i] );
@@ -3898,8 +3908,7 @@ void SERVERCOMMANDS_SetFastChaseStrafeCount( AActor *mobj, ULONG ulPlayerExtra, 
 	if ( !EnsureActorHasNetID (mobj) )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETFASTCHASESTRAFECOUNT );
+	NetCommand command( SVC2_SETFASTCHASESTRAFECOUNT );
 	command.addShort( mobj->lNetID );
 	command.addByte( mobj->FastChaseStrafeCount );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -3917,8 +3926,7 @@ void SERVERCOMMANDS_SetThingHealth( AActor* mobj, ULONG ulPlayerExtra, ULONG ulF
 	if ( !EnsureActorHasNetID (mobj) )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETTHINGHEALTH );
+	NetCommand command( SVC2_SETTHINGHEALTH );
 	command.addShort( mobj->lNetID );
 	command.addByte( mobj->health );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -3928,8 +3936,7 @@ void SERVERCOMMANDS_SetThingHealth( AActor* mobj, ULONG ulPlayerExtra, ULONG ulF
 //
 void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_FULLUPDATECOMPLETED );
+	NetCommand command ( SVC2_FULLUPDATECOMPLETED );
 	command.sendCommandToOneClient( ulClient );
 }
 
@@ -3937,8 +3944,7 @@ void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 //
 void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_RESETMAP );
+	NetCommand command( SVC2_RESETMAP );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -3946,8 +3952,7 @@ void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWeaponSelect )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SETIGNOREWEAPONSELECT );
+	NetCommand command ( SVC2_SETIGNOREWEAPONSELECT );
 	command.addByte ( bIgnoreWeaponSelect );
 	command.sendCommandToOneClient( ulClient );
 }
@@ -3956,8 +3961,7 @@ void SERVERCOMMANDS_SetIgnoreWeaponSelect( ULONG ulClient, const bool bIgnoreWea
 //
 void SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_CLEARCONSOLEPLAYERWEAPON );
+	NetCommand command ( SVC2_CLEARCONSOLEPLAYERWEAPON );
 	command.sendCommandToOneClient( ulClient );
 }
 
@@ -3965,8 +3969,7 @@ void SERVERCOMMANDS_ClearConsoleplayerWeapon( ULONG ulClient )
 //
 void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_LIGHTNING );
+	NetCommand command ( SVC2_LIGHTNING );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
 }
 
@@ -3974,8 +3977,7 @@ void SERVERCOMMANDS_Lightning( ULONG ulPlayerExtra, ULONG ulFlags )
 //
 void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_CANCELFADE );
+	NetCommand command ( SVC2_CANCELFADE );
 	command.addByte ( ulPlayer );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -3987,8 +3989,7 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_PLAYBOUNCESOUND );
+	NetCommand command ( SVC2_PLAYBOUNCESOUND );
 	command.addShort ( pActor->lNetID );
 	command.addByte ( bOnfloor );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -4482,8 +4483,7 @@ void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, bool PolyMode, ULONG ulPlay
 //
 void SERVERCOMMANDS_StopPolyobjSound( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_STOPPOLYOBJSOUND );
+	NetCommand command ( SVC2_STOPPOLYOBJSOUND );
 	command.addShort ( lPolyNum );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
 }
@@ -4735,8 +4735,7 @@ void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, 
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SETPLAYERHAZARDCOUNT );
+	NetCommand command ( SVC2_SETPLAYERHAZARDCOUNT );
 	command.addByte ( ulPlayer );
 	command.addShort ( players[ulPlayer].hazardcount );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -4747,8 +4746,7 @@ void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, 
 // [Dusk] Used in map resets to move a 3d midtexture moves without sector it's attached to.
 void SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ceiling, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SCROLL3DMIDTEX );
+	NetCommand command ( SVC2_SCROLL3DMIDTEX );
 	command.addByte ( sector - sectors );
 	command.addLong ( move );
 	command.addByte ( ceiling );
@@ -4761,8 +4759,7 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SETPLAYERLOGNUMBER );
+	NetCommand command ( SVC2_SETPLAYERLOGNUMBER );
 	command.addByte ( ulPlayer );
 	command.addShort ( Arg0 );
 	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
@@ -4772,8 +4769,7 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 //
 void SERVERCOMMANDS_SetCVar( const FBaseCVar &CVar, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SETCVAR );
+	NetCommand command( SVC2_SETCVAR );
 	command.addString( CVar.GetName() );
 	command.addString( CVar.GetGenericRep (CVAR_String).String );
 	command.sendCommandToClients( ulPlayerExtra, ulFlags );
@@ -4786,8 +4782,7 @@ void SERVERCOMMANDS_SRPUserStartAuthentication ( const ULONG ulClient )
 		return;
 
 	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SRP_USER_START_AUTHENTICATION );
+	NetCommand command ( SVC2_SRP_USER_START_AUTHENTICATION );
 	command.addString ( pClient->username.GetChars() );
 	command.sendCommandToClients ( ulClient, SVCF_ONLYTHISCLIENT );
 }
@@ -4799,8 +4794,7 @@ void SERVERCOMMANDS_SRPUserProcessChallenge ( const ULONG ulClient )
 		return;
 
 	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SRP_USER_PROCESS_CHALLENGE );
+	NetCommand command ( SVC2_SRP_USER_PROCESS_CHALLENGE );
 	command.addByte ( pClient->salt.Size() );
 	for ( unsigned int i = 0; i < pClient->salt.Size(); ++i )
 		command.addByte ( pClient->salt[i] );
@@ -4817,8 +4811,7 @@ void SERVERCOMMANDS_SRPUserVerifySession ( const ULONG ulClient )
 		return;
 
 	CLIENT_s *pClient = SERVER_GetClient ( ulClient );
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_SRP_USER_VERIFY_SESSION );
+	NetCommand command ( SVC2_SRP_USER_VERIFY_SESSION );
 	command.addShort ( pClient->bytesHAMK.Size() );
 	for ( unsigned int i = 0; i < pClient->bytesHAMK.Size(); ++i )
 		command.addByte ( pClient->bytesHAMK[i] );
@@ -4831,8 +4824,7 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	if ( !EnsureActorHasNetID (this) )
 		return;
 
-	NetCommand command( SVC_EXTENDEDCOMMAND );
-	command.addByte( SVC2_SYNCPATHFOLLOWER );
+	NetCommand command( SVC2_SYNCPATHFOLLOWER );
 	command.addShort( this->lNetID );
 	command.addShort( this->CurrNode ? this->CurrNode->lNetID : -1 );
 	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
