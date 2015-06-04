@@ -4471,26 +4471,26 @@ void SERVERCOMMANDS_SetPolyDoorSpeedRotation( LONG lPolyNum, LONG lSpeed, LONG l
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, bool PolyMode, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, bool PolyMode, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_PLAYPOLYOBJSOUND );
 	command.addShort ( lPolyNum );
 	command.addByte ( PolyMode );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_StopPolyobjSound( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_StopPolyobjSound( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC2_STOPPOLYOBJSOUND );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	FPolyObj	*pPoly;
 
@@ -4502,12 +4502,12 @@ void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 	command.addShort ( lPolyNum );
 	command.addLong ( pPoly->StartSpot.x );
 	command.addLong ( pPoly->StartSpot.y );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	FPolyObj	*pPoly;
 
@@ -4518,13 +4518,13 @@ void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 	NetCommand command ( SVC_SETPOLYOBJROTATION );
 	command.addShort ( lPolyNum );
 	command.addLong ( pPoly->angle );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration, LONG lTemorRadius, FSoundID Quakesound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration, LONG lTemorRadius, FSoundID Quakesound, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pCenter) )
 		return;
@@ -4537,14 +4537,14 @@ void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration
 	command.addShort ( lDuration );
 	command.addShort ( lTemorRadius );
 	command.addString ( pszQuakeSound );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )	
+	for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )	
 	{
 		LONG lPosition = JOINQUEUE_GetPositionInLine( *it );
 
@@ -4556,31 +4556,31 @@ void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAffectee, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAffectee, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DOSCROLLER );
 	command.addByte ( lType );
 	command.addLong ( lXSpeed );
 	command.addLong ( lYSpeed );
 	command.addShort ( lAffectee );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lTag, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lTag, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETSCROLLER );
 	command.addByte ( lType );
 	command.addLong ( lXSpeed );
 	command.addLong ( lYSpeed );
 	command.addShort ( lTag );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, LONG lWhere, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, LONG lWhere, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETWALLSCROLLER );
 	command.addLong ( lId );
@@ -4588,12 +4588,12 @@ void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, L
 	command.addLong ( lXSpeed );
 	command.addLong ( lYSpeed );
 	command.addLong ( lWhere );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DOFLASHFADER );
 	command.addFloat ( fR1 );
@@ -4606,7 +4606,7 @@ void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, fl
 	command.addFloat ( fA2 );
 	command.addFloat ( fTime );
 	command.addByte ( ulPlayer );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
