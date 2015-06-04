@@ -4866,7 +4866,7 @@ void P_RailAttack (AActor *source, int damage, int offset_xy, fixed_t offset_z, 
 	{
 		const ULONG ulPlayer = source->player ? static_cast<ULONG> ( source->player - players ) : MAXPLAYERS;
 		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, (railflags & RAF_SILENT), ulPlayer,
-			UNLAGGED_DrawRailClientside( source ) ? SVCF_SKIPTHISCLIENT : 0 );
+			UNLAGGED_DrawRailClientside( source ) ? SVCF_SKIPTHISCLIENT : ServerCommandFlags::FromInt( 0 ) );
 	}
 }
 

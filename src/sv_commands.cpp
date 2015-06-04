@@ -2836,7 +2836,7 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false || players[ulPlayer].ReadyWeapon == NULL )
 		return;
@@ -2844,12 +2844,12 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 	NetCommand command( SVC_WEAPONCHANGE );
 	command.addByte( ulPlayer );
 	command.addShort( players[ulPlayer].ReadyWeapon->GetClass()->getActorNetworkIndex() );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const FVector3 &End, LONG lColor1, LONG lColor2, float fMaxDiff, bool bSilent, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const FVector3 &End, LONG lColor1, LONG lColor2, float fMaxDiff, bool bSilent, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	// Evidently, to draw a railgun trail, there must be a source actor.
 	if ( !EnsureActorHasNetID (pSource) )
@@ -2867,13 +2867,13 @@ void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const
 	command.addLong( lColor2 );
 	command.addFloat( fMaxDiff );
 	command.addByte( bSilent );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2881,12 +2881,12 @@ void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, UL
 	NetCommand command( SVC_SETSECTORFLOORPLANE );
 	command.addShort( ulSector );
 	command.addShort( sectors[ulSector].floorplane.d >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2894,12 +2894,12 @@ void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, 
 	NetCommand command( SVC_SETSECTORCEILINGPLANE );
 	command.addShort( ulSector );
 	command.addShort( sectors[ulSector].ceilingplane.d >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2910,12 +2910,12 @@ void SERVERCOMMANDS_SetSectorFloorPlaneSlope( ULONG ulSector, ULONG ulPlayerExtr
 	command.addShort( sectors[ulSector].floorplane.b >> FRACBITS );
 	command.addShort( sectors[ulSector].floorplane.c >> FRACBITS );
 	command.addShort( sectors[ulSector].floorplane.ic >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2926,12 +2926,12 @@ void SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ULONG ulSector, ULONG ulPlayerEx
 	command.addShort( sectors[ulSector].ceilingplane.b >> FRACBITS );
 	command.addShort( sectors[ulSector].ceilingplane.c >> FRACBITS );
 	command.addShort( sectors[ulSector].ceilingplane.ic >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2939,12 +2939,12 @@ void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, UL
 	NetCommand command( SVC_SETSECTORLIGHTLEVEL );
 	command.addShort( ulSector );
 	command.addByte( sectors[ulSector].lightlevel );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2955,12 +2955,12 @@ void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ULONG u
 	command.addByte( sectors[ulSector].ColorMap->Color.g );
 	command.addByte( sectors[ulSector].ColorMap->Color.b );
 	command.addByte( sectors[ulSector].ColorMap->Desaturate );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorColorByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulDesaturate, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorColorByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulDesaturate, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC_SETSECTORCOLORBYTAG );
 	command.addShort( ulTag );
@@ -2968,12 +2968,12 @@ void SERVERCOMMANDS_SetSectorColorByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen
 	command.addByte( ulGreen );
 	command.addByte( ulBlue );
 	command.addByte( ulDesaturate );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -2983,24 +2983,24 @@ void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 	command.addByte( sectors[ulSector].ColorMap->Fade.r );
 	command.addByte( sectors[ulSector].ColorMap->Fade.g );
 	command.addByte( sectors[ulSector].ColorMap->Fade.b );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFadeByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFadeByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC_SETSECTORFADEBYTAG );
 	command.addShort( ulTag );
 	command.addByte( ulRed );
 	command.addByte( ulGreen );
 	command.addByte( ulBlue );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3009,12 +3009,12 @@ void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 	command.addShort( ulSector );
 	command.addString( TexMan( sectors[ulSector].GetTexture(sector_t::ceiling) )->Name );
 	command.addString( TexMan( sectors[ulSector].GetTexture(sector_t::floor) )->Name );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3025,12 +3025,12 @@ void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 	command.addShort( sectors[ulSector].GetYOffset(sector_t::ceiling, false) / FRACUNIT );
 	command.addShort( sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
 	command.addShort( sectors[ulSector].GetYOffset(sector_t::floor,false) / FRACUNIT );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3039,23 +3039,23 @@ void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULON
 	command.addShort( ulSector );
 	command.addShort(( sectors[ulSector].GetAngle(sector_t::ceiling,false) / ANGLE_1 ));
 	command.addShort(( sectors[ulSector].GetAngle(sector_t::floor,false) / ANGLE_1 ));
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorRotationByTag( ULONG ulTag, LONG lFloorRot, LONG lCeilingRot, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorRotationByTag( ULONG ulTag, LONG lFloorRot, LONG lCeilingRot, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC_SETSECTORROTATIONBYTAG );
 	command.addShort( ulTag );
 	command.addShort( lCeilingRot );
 	command.addShort( lFloorRot );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3066,12 +3066,12 @@ void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ULONG u
 	command.addShort( ( sectors[ulSector].GetYScale(sector_t::ceiling) / FRACBITS ));
 	command.addShort( ( sectors[ulSector].GetXScale(sector_t::floor) / FRACBITS ));
 	command.addShort( ( sectors[ulSector].GetYScale(sector_t::floor) / FRACBITS ));
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorSpecial( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorSpecial( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3079,12 +3079,12 @@ void SERVERCOMMANDS_SetSectorSpecial( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 	NetCommand command( SVC_SETSECTORSPECIAL );
 	command.addShort( ulSector );
 	command.addShort( sectors[ulSector].special );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3093,12 +3093,12 @@ void SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra, ULON
 	command.addShort( ulSector );
 	command.addLong( sectors[ulSector].friction );
 	command.addLong( sectors[ulSector].movefactor );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3109,12 +3109,12 @@ void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, 
 	command.addLong( sectors[ulSector].planes[sector_t::ceiling].xform.base_yoffs );
 	command.addLong( sectors[ulSector].planes[sector_t::floor].xform.base_angle );
 	command.addLong( sectors[ulSector].planes[sector_t::floor].xform.base_yoffs );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSector >= (ULONG)numsectors )
 		return;
@@ -3122,7 +3122,7 @@ void SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 	NetCommand command( SVC_SETSECTORGRAVITY );
 	command.addShort( ulSector );
 	command.addFloat( sectors[ulSector].gravity );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
