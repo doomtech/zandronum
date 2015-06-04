@@ -4363,69 +4363,69 @@ void SERVERCOMMANDS_DoWaggle( bool bCeiling, sector_t *pSector, LONG lOriginalDi
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DestroyWaggle( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DestroyWaggle( LONG lID, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DESTROYWAGGLE );
 	command.addShort ( lID );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_UpdateWaggle( LONG lID, LONG lAccumulator, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_UpdateWaggle( LONG lID, LONG lAccumulator, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC_UPDATEWAGGLE );
 	command.setUnreliable( true );
 	command.addShort( lID );
 	command.addLong( lAccumulator );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoRotatePoly( LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoRotatePoly( LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DOROTATEPOLY );
 	command.addLong ( lSpeed );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DestroyRotatePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DestroyRotatePoly( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DESTROYROTATEPOLY );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoMovePoly( LONG lXSpeed, LONG lYSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoMovePoly( LONG lXSpeed, LONG lYSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DOMOVEPOLY );
 	command.addLong ( lXSpeed );
 	command.addLong ( lYSpeed );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DestroyMovePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DestroyMovePoly( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DESTROYMOVEPOLY );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoPolyDoor( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoPolyDoor( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DOPOLYDOOR );
 	command.addByte ( lType );
@@ -4433,21 +4433,21 @@ void SERVERCOMMANDS_DoPolyDoor( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lSp
 	command.addLong ( lYSpeed );
 	command.addLong ( lSpeed );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DestroyPolyDoor( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DestroyPolyDoor( LONG lPolyNum, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_DESTROYPOLYDOOR );
 	command.addShort ( lPolyNum );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPolyDoorSpeedPosition( LONG lPolyNum, LONG lXSpeed, LONG lYSpeed, LONG lX, LONG lY, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPolyDoorSpeedPosition( LONG lPolyNum, LONG lXSpeed, LONG lYSpeed, LONG lX, LONG lY, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETPOLYDOORSPEEDPOSITION );
 	command.addShort ( lPolyNum );
@@ -4455,18 +4455,18 @@ void SERVERCOMMANDS_SetPolyDoorSpeedPosition( LONG lPolyNum, LONG lXSpeed, LONG 
 	command.addLong ( lYSpeed );
 	command.addLong ( lX );
 	command.addLong ( lY );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPolyDoorSpeedRotation( LONG lPolyNum, LONG lSpeed, LONG lAngle, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPolyDoorSpeedRotation( LONG lPolyNum, LONG lSpeed, LONG lAngle, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETPOLYDOORSPEEDROTATION );
 	command.addShort ( lPolyNum );
 	command.addLong ( lSpeed );
 	command.addLong ( lAngle );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
