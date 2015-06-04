@@ -259,22 +259,22 @@ void	SERVERCOMMANDS_DoSectorLightGlow2( ULONG ulSector, LONG lStart, LONG lEnd, 
 void	SERVERCOMMANDS_DoSectorLightPhased( ULONG ulSector, LONG lBaseLevel, LONG lPhase, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Line commands. These have something to do with lines.
-void	SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Side commands. These have something to do with lines.
-void	SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // ACS commands. These have something to do with ACS scripts.
-void	SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Sound commands. These play a sound.
-void	SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0, bool bRespectActorPlayingSomething = false );
-void	SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0, bool bRespectActorPlayingSomething = false );
+void	SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Sector sequence commands. These handle sector sound sequences.
 void	SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, const int Channel, const char *pszSequence, const int Modenum, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

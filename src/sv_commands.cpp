@@ -3265,7 +3265,7 @@ void SERVERCOMMANDS_DoSectorLightPhased( ULONG ulSector, LONG lBaseLevel, LONG l
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulLine >= (ULONG)numlines )
 		return;
@@ -3273,12 +3273,12 @@ void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFla
 	NetCommand command ( SVC_SETLINEALPHA );
 	command.addShort ( ulLine );
 	command.addLong ( lines[ulLine].Alpha );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulLine >= (ULONG)numlines )
 		return;
@@ -3294,7 +3294,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::top)]->Name : "-" );
 		command.addByte( 0 );
 		command.addByte( 0 );
-		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
 	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTMEDIUM )
@@ -3304,7 +3304,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::mid)]->Name : "-" );
 		command.addByte( 0 );
 		command.addByte( 1 );
-		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
 	if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTBOTTOM )
@@ -3314,7 +3314,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 		command.addString( lines[ulLine].sidedef[0]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[0]->GetTexture(side_t::bottom)]->Name : "-" );
 		command.addByte( 0 );
 		command.addByte( 2 );
-		command.sendCommandToClients( ulPlayerExtra, ulFlags );
+		command.sendCommandToClients( ulPlayerExtra, flags );
 	}
 
 	if ( lines[ulLine].sidedef[1] != NULL )
@@ -3326,7 +3326,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::top).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::top)]->Name : "-" );
 			command.addByte( 1 );
 			command.addByte( 0 );
-			command.sendCommandToClients( ulPlayerExtra, ulFlags );
+			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKMEDIUM )
@@ -3336,7 +3336,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::mid).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::mid)]->Name : "-" );
 			command.addByte( 1 );
 			command.addByte( 1 );
-			command.sendCommandToClients( ulPlayerExtra, ulFlags );
+			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKBOTTOM )
@@ -3346,26 +3346,26 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			command.addString( lines[ulLine].sidedef[1]->GetTexture(side_t::bottom).isValid() ? TexMan[lines[ulLine].sidedef[1]->GetTexture(side_t::bottom)]->Name : "-" );
 			command.addByte( 1 );
 			command.addByte( 2 );
-			command.sendCommandToClients( ulPlayerExtra, ulFlags );
+			command.sendCommandToClients( ulPlayerExtra, flags );
 		}
 	}
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPosition, const char *pszTexName, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETLINETEXTUREBYID );
 	command.addShort ( ulLineID );
 	command.addString ( pszTexName );
 	command.addByte ( ulSide );
 	command.addByte ( ulPosition );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulLine >= (ULONG)numlines )
 		return;
@@ -3373,13 +3373,13 @@ void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ULONG u
 	NetCommand command ( SVC_SETSOMELINEFLAGS );
 	command.addShort ( ulLine );
 	command.addLong ( lines[ulLine].flags & ( ML_BLOCKING | ML_BLOCKEVERYTHING | ML_RAILING | ML_BLOCK_PLAYERS | ML_ADDTRANS ));
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, int levelnum, bool bBackSide, int iArg0, int iArg1, int iArg2, bool bAlways, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	LONG lActivatorID = ( pActivator ? pActivator->lNetID : -1 );
 
@@ -3437,13 +3437,13 @@ void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 		}
 	}
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulSide >= (ULONG)numsides )
 		return;
@@ -3451,25 +3451,25 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 	NetCommand command ( SVC_SETSIDEFLAGS );
 	command.addShort ( ulSide );
 	command.addByte ( sides[ulSide].Flags );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SOUND );
 	command.addByte ( lChannel );
 	command.addString ( pszSound );
 	command.addByte ( LONG ( clamp( fVolume, 0.0f, 2.0f ) * 127 ) );
 	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags, bool bRespectActorPlayingSomething )
+void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ServerCommandFlags flags, bool bRespectActorPlayingSomething )
 {
 	if ( pActor == NULL )
 		return;
@@ -3477,7 +3477,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 	// [BB] If the actor doesn't have a NetID, we have to instruct the clients differently how to play the sound.
 	if ( pActor->lNetID == -1 )
 	{
-		SERVERCOMMANDS_SoundPoint( pActor->x, pActor->y, pActor->z, lChannel, pszSound, fVolume, fAttenuation, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SoundPoint( pActor->x, pActor->y, pActor->z, lChannel, pszSound, fVolume, fAttenuation, ulPlayerExtra, flags );
 		return;
 	}
 
@@ -3487,12 +3487,12 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 	command.addString( pszSound );
 	command.addByte( LONG ( clamp( fVolume, 0.0f, 2.0f ) * 127 ) );
 	command.addByte( NETWORK_AttenuationFloatToInt ( fAttenuation ));
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, float fAttenuation, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SOUNDPOINT );
 	command.addShort ( lX>>FRACBITS );
@@ -3502,16 +3502,16 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const 
 	command.addString ( pszSound );
 	command.addByte ( LONG ( clamp( fVolume, 0.0f, 2.0f ) * 127 ) );
 	command.addByte ( NETWORK_AttenuationFloatToInt ( fAttenuation ) );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_AnnouncerSound( const char *pszSound, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_ANNOUNCERSOUND );
 	command.addString ( pszSound );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
