@@ -93,23 +93,23 @@ EXTERN_CVAR( Float, sv_aircontrol )
  */
 class ClientIterator {
 	const ULONG _ulPlayerExtra;
-	const ULONG _ulFlags;
+	const ServerCommandFlags _flags;
 	ULONG _current;
 
 	bool isCurrentValid ( ) const {
 		if ( SERVER_IsValidClient( _current ) == false )
 			return false;
 
-		if ((( _ulFlags & SVCF_SKIPTHISCLIENT ) && ( _ulPlayerExtra == _current )) ||
-			(( _ulFlags & SVCF_ONLYTHISCLIENT ) && ( _ulPlayerExtra != _current )))
+		if ((( _flags & SVCF_SKIPTHISCLIENT ) && ( _ulPlayerExtra == _current )) ||
+			(( _flags & SVCF_ONLYTHISCLIENT ) && ( _ulPlayerExtra != _current )))
 		{
 			return false;
 		}
 
-		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_0 ) && ( players[_current].userinfo.GetConnectionType() != 0 ) )
+		if ( ( _flags & SVCF_ONLY_CONNECTIONTYPE_0 ) && ( players[_current].userinfo.GetConnectionType() != 0 ) )
 			return false;
 
-		if ( ( _ulFlags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.GetConnectionType() != 1 ) )
+		if ( ( _flags & SVCF_ONLY_CONNECTIONTYPE_1 ) && ( players[_current].userinfo.GetConnectionType() != 1 ) )
 			return false;
 
 		return true;
@@ -121,9 +121,9 @@ class ClientIterator {
 	}
 
 public:
-  ClientIterator ( const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 )
+  ClientIterator ( const ULONG ulPlayerExtra = MAXPLAYERS, const ServerCommandFlags flags = 0 )
 		: _ulPlayerExtra ( ulPlayerExtra ),
-			_ulFlags ( ulFlags ),
+			_flags ( flags ),
 			_current ( 0 )
 	{
 		incremntCurrentTillValid();
@@ -255,8 +255,8 @@ public:
 		return SERVER_GetClient( i )->PacketBuffer.ByteStream;
 	}
 
-	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 ) {
-		for ( ClientIterator it ( ulPlayerExtra, ulFlags ); it.notAtEnd(); ++it )
+	void sendCommandToClients ( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 ) {
+		for ( ClientIterator it ( ulPlayerExtra, flags ); it.notAtEnd(); ++it )
 			sendCommandToOneClient( *it );
 	}
 
