@@ -3644,67 +3644,67 @@ void SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra, ServerCommandFlags flags )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPNUMKILLEDMONSTERS );
 	command.addShort ( level.killed_monsters );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPNUMFOUNDITEMS );
 	command.addShort ( level.found_items );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPNUMFOUNDSECRETS );
 	command.addShort ( level.found_secrets );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPNUMTOTALMONSTERS );
 	command.addShort ( level.total_monsters );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPNUMTOTALITEMS );
 	command.addShort ( level.total_items );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPMUSIC );
 	command.addString ( pszMusic );
 	command.addByte ( track );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC_SETMAPSKY );
 	command.addString ( level.skypic1 );
 	command.addString ( level.skypic2 );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -3755,7 +3755,7 @@ void SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInven
 }
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -3768,12 +3768,12 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULO
 	command.addByte ( ulPlayer );
 	command.addString ( pszClassName );
 	command.addShort ( ulAmount );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -3787,12 +3787,12 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 	// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
 	command.addShort( pPowerup->Amount );
 	command.addShort( pPowerup->EffectTics );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 // [WS]
-void SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -3804,7 +3804,7 @@ void SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, UL
 	command.addByte( ulPlayer );
 	command.addShort( pPowerup->GetClass( )->getActorNetworkIndex() );
 	command.addLong( pPowerup->BlendColor );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************

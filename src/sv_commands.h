@@ -291,20 +291,20 @@ void	SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra = MAXPLA
 void	SERVERCOMMANDS_MapExit( LONG lPosition, const char *pszNextMap, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_MapAuthenticate( const char *pszMapName, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapMusic( const char *pszMusic, int track, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Inventory commands. These give the player inventory items, takes them away, etc.
 void	SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInventory *pItem );
-void	SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_SetPowerupBlendColor( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName, const char *pszPickupMessage, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DestroyAllInventory( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetInventoryIcon( ULONG ulPlayer, AInventory *pInventory, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
