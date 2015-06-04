@@ -874,7 +874,7 @@ void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, Server
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -882,12 +882,12 @@ void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 	NetCommand command( SVC_SETPLAYERWINS );
 	command.addByte( ulPlayer );
 	command.addByte( players[ulPlayer].ulWins );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -895,14 +895,14 @@ void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 	NetCommand command( SVC_SETPLAYERKILLCOUNT );
 	command.addByte( ulPlayer );
 	command.addShort( players[ulPlayer].killcount );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCHATSTATUS, players[ulPlayer].bChatting, ulPlayerExtra, ulFlags );
+	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCHATSTATUS, players[ulPlayer].bChatting, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -914,9 +914,9 @@ void SERVERCOMMANDS_SetPlayerLaggingStatus( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerConsoleStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerConsoleStatus( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCONSOLESTATUS, players[ulPlayer].bInConsole, ulPlayerExtra, ulFlags );
+	SERVERCOMMANDS_SetPlayerStatus( ulPlayer, SVC_SETPLAYERCONSOLESTATUS, players[ulPlayer].bInConsole, ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -929,7 +929,7 @@ void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer )
 //*****************************************************************************
 // [RC] Notifies all players about a player's boolean flag.
 //
-void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, SVC header, bool bValue, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, SVC header, bool bValue, ULONG ulPlayerExtra, ServerCommandFlags flags ) 
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -937,12 +937,12 @@ void SERVERCOMMANDS_SetPlayerStatus( ULONG ulPlayer, SVC header, bool bValue, UL
 	NetCommand command( header );
 	command.addByte( ulPlayer );
 	command.addByte( bValue );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -955,7 +955,7 @@ void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 	else
 		command.addByte( players[ulPlayer].ulTeam );
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -973,7 +973,7 @@ void SERVERCOMMANDS_SetPlayerCamera( ULONG ulPlayer, LONG lCameraNetID, bool bRe
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -981,12 +981,12 @@ void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, U
 	NetCommand command( SVC_SETPLAYERPOISONCOUNT );
 	command.addByte( ulPlayer );
 	command.addShort( players[ulPlayer].poisoncount );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pAmmo == NULL ) ||
@@ -999,12 +999,12 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 	command.addByte( ulPlayer );
 	command.addShort( pAmmo->GetClass( )->getActorNetworkIndex() );
 	command.addShort( pAmmo->MaxAmount );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -1012,12 +1012,12 @@ void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 	NetCommand command( SVC_SETPLAYERCHEATS );
 	command.addByte( ulPlayer );
 	command.addLong( players[ulPlayer].cheats );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	USHORT		usActorNetworkIndex = 0;
 
@@ -1038,7 +1038,7 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 	NetCommand command( SVC_SETPLAYERPENDINGWEAPON );
 	command.addByte( ulPlayer );
 	command.addShort( usActorNetworkIndex );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
