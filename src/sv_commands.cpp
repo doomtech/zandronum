@@ -3942,10 +3942,10 @@ void SERVERCOMMANDS_FullUpdateCompleted( ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_ResetMap( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC2_RESETMAP );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -3984,7 +3984,7 @@ void SERVERCOMMANDS_CancelFade( const ULONG ulPlayer, ULONG ulPlayerExtra, Serve
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
@@ -3992,7 +3992,7 @@ void SERVERCOMMANDS_PlayBounceSound( const AActor *pActor, const bool bOnfloor, 
 	NetCommand command ( SVC2_PLAYBOUNCESOUND );
 	command.addShort ( pActor->lNetID );
 	command.addByte ( bOnfloor );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -4744,17 +4744,17 @@ void SERVERCOMMANDS_SetPlayerHazardCount ( ULONG ulPlayer, ULONG ulPlayerExtra, 
 
 //*****************************************************************************
 // [Dusk] Used in map resets to move a 3d midtexture moves without sector it's attached to.
-void SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ceiling, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Scroll3dMidtexture ( sector_t* sector, fixed_t move, bool ceiling, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command ( SVC2_SCROLL3DMIDTEX );
 	command.addByte ( sector - sectors );
 	command.addLong ( move );
 	command.addByte ( ceiling );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
-void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -4762,17 +4762,17 @@ void SERVERCOMMANDS_SetPlayerLogNumber ( const ULONG ulPlayer, const int Arg0, U
 	NetCommand command ( SVC2_SETPLAYERLOGNUMBER );
 	command.addByte ( ulPlayer );
 	command.addShort ( Arg0 );
-	command.sendCommandToClients ( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetCVar( const FBaseCVar &CVar, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetCVar( const FBaseCVar &CVar, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC2_SETCVAR );
 	command.addString( CVar.GetName() );
 	command.addString( CVar.GetGenericRep (CVAR_String).String );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
