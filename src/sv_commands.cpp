@@ -2631,7 +2631,7 @@ void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	unsigned int NumPoints = DOMINATION_NumPoints();
 	unsigned int *PointOwners = DOMINATION_PointOwners();
@@ -2644,22 +2644,22 @@ void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ULONG ulFlags )
 		command.addByte( PointOwners[i] );
 	}
 
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetDominationPointOwnership( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetDominationPointOwnership( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC_SETDOMINATIONPOINTOWNER );
 	command.addByte( ulPoint );
 	command.addByte( ulPlayer );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
@@ -2668,12 +2668,12 @@ void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULO
 	command.addByte( ulTeam );
 	command.addShort( lFrags );
 	command.addByte( bAnnounce );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
@@ -2682,12 +2682,12 @@ void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULO
 	command.addByte( ulTeam );
 	command.addShort( lScore );
 	command.addByte( bAnnounce );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
@@ -2696,12 +2696,12 @@ void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG
 	command.addByte( ulTeam );
 	command.addShort( lWins );
 	command.addByte( bAnnounce );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	// [BB] Allow teams.Size( ) here, this handles the white flag.
 	if (( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size() ))
@@ -2710,12 +2710,12 @@ void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG
 	NetCommand command( SVC_SETTEAMRETURNTICKS );
 	command.addByte( ulTeam );
 	command.addShort( ulReturnTicks );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	// [BB] Allow teams.Size( ) here, this handles the white flag.
 	if (( TEAM_CheckIfValid ( ulTeam ) == false ) && ( ulTeam != teams.Size() ))
@@ -2723,12 +2723,12 @@ void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG u
 
 	NetCommand command( SVC_TEAMFLAGRETURNED );
 	command.addByte( ulTeam );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -2736,7 +2736,7 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlaye
 	NetCommand command( SVC_TEAMFLAGDROPPED );
 	command.addByte( ulPlayer );
 	command.addByte( ulTeam );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
@@ -2801,7 +2801,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, Se
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( !EnsureActorHasNetID (pMissile) )
 		return;
@@ -2817,13 +2817,13 @@ void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPla
 	command.addShort( pMissile->x >> FRACBITS );
 	command.addShort( pMissile->y >> FRACBITS );
 	command.addShort( pMissile->z >> FRACBITS );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -2831,7 +2831,7 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 	NetCommand command( SVC_WEAPONSOUND );
 	command.addByte( ulPlayer );
 	command.addString( pszSound );
-	command.sendCommandToClients( ulPlayerExtra, ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
 //*****************************************************************************
