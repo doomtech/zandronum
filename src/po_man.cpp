@@ -571,7 +571,6 @@ void DRotatePoly::Tick ()
 	else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		// [WS] The poly object is blocked, tell clients the rotation!
 	{
-		FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
 		SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj );
 	}
 }
@@ -681,7 +680,6 @@ void DMovePoly::Tick ()
 		else if ( NETWORK_GetState ( ) == NETSTATE_SERVER )
 			// [WS] The poly object is blocked, tell clients the position!
 		{
-			poly = PO_GetPolyobj (m_PolyObj);
 			SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj );
 		}
 	}
