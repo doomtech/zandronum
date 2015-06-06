@@ -555,7 +555,7 @@ void DRotatePoly::Tick ()
 
 			// [BC] Now that our destination has been reached, tell clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj, poly->angle );
+				SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj );
 
 			// [BC] Tell clients to stop the sound sequence, and destroy the rotate poly.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -572,7 +572,7 @@ void DRotatePoly::Tick ()
 		// [WS] The poly object is blocked, tell clients the rotation!
 	{
 		FPolyObj *poly = PO_GetPolyobj (m_PolyObj);
-		SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj, poly->angle );
+		SERVERCOMMANDS_SetPolyobjRotation( m_PolyObj );
 	}
 }
 
@@ -659,7 +659,7 @@ void DMovePoly::Tick ()
 
 				// [BC] Now that our destination has been reached, tell clients.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj, poly->StartSpot.x, poly->StartSpot.y );
+					SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj );
 
 				// [BC] Tell clients to stop the sound sequence, and destroy the move poly.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -682,7 +682,7 @@ void DMovePoly::Tick ()
 			// [WS] The poly object is blocked, tell clients the position!
 		{
 			poly = PO_GetPolyobj (m_PolyObj);
-			SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj, poly->StartSpot.x, poly->StartSpot.x );
+			SERVERCOMMANDS_SetPolyobjPosition( m_PolyObj );
 		}
 	}
 }
