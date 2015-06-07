@@ -937,12 +937,16 @@ void DPolyDoor::Tick ()
 		if (m_Dist <= 0 || poly->MovePolyobj (m_xSpeed, m_ySpeed))
 		{
 			// [WS] Inform clients that the door is closing.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER && m_TotalDist == m_Dist && m_Close )
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER && ( ( m_TotalDist == m_Dist && m_Close ) || poly->bBlocked ) )
+			{
+				// [EP] The door is not blocked anymore.
+				poly->bBlocked = false;
 				SERVERCOMMANDS_SetPolyDoorSpeedPosition( m_PolyObj,
 															m_xSpeed,
 															m_ySpeed,
 															poly->StartSpot.x,
 															poly->StartSpot.y );
+			}
 
 			absSpeed = abs (m_Speed);
 			m_Dist -= absSpeed;
@@ -984,6 +988,12 @@ void DPolyDoor::Tick ()
 		{
 			if (poly->crush || !m_Close)
 			{ // continue moving if the poly is a crusher, or is opening
+				// [EP] Something just blocked the movement, inform the clients.
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( m_Dist > 0 ) && ( poly->bBlocked == false ) )
+				{
+					poly->bBlocked = true;
+					SERVERCOMMANDS_SetPolyDoorSpeedPosition( m_PolyObj, 0, 0, poly->StartSpot.x, poly->StartSpot.y );
+				}
 				return;
 			}
 			else
