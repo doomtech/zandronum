@@ -150,46 +150,29 @@ void DFloor::Tick ()
 {
 	EResult res;
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
+	// [RH] Handle resetting stairs
+	if (m_Type == buildStair || m_Type == waitStair)
 	{
-		// [RH] Handle resetting stairs
-		if (m_Type == buildStair || m_Type == waitStair)
+		if (m_ResetCount)
 		{
-			if (m_ResetCount)
+			if (--m_ResetCount == 0)
 			{
-				if (--m_ResetCount == 0)
-				{
-					m_Type = resetStair;
-					m_Direction = (m_Direction > 0) ? -1 : 1;
-					m_FloorDestDist = m_OrgDist;
-
-					// [BC] If we're the server, send out a bunch of updates to clients.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					{
-						// Tell clients to change the floor type.
-						SERVERCOMMANDS_ChangeFloorType( m_lFloorID, m_Type );
-
-						// Tell clients to change the direction of the floor.
-						SERVERCOMMANDS_ChangeFloorDirection( m_lFloorID, m_Direction );
-
-						// Tell clients to change the dest. dist. of the floor.
-						SERVERCOMMANDS_ChangeFloorDestDist( m_lFloorID, m_FloorDestDist );
-					}
-				}
+				m_Type = resetStair;
+				m_Direction = (m_Direction > 0) ? -1 : 1;
+				m_FloorDestDist = m_OrgDist;
 			}
-			if (m_PauseTime)
+		}
+		if (m_PauseTime)
+		{
+			m_PauseTime--;
+			return;
+		}
+		else if (m_StepTime)
+		{
+			if (--m_StepTime == 0)
 			{
-				m_PauseTime--;
-				return;
-			}
-			else if (m_StepTime)
-			{
-				if (--m_StepTime == 0)
-				{
-					m_PauseTime = m_Delay;
-					m_StepTime = m_PerStepTime;
-				}
+				m_PauseTime = m_Delay;
+				m_StepTime = m_PerStepTime;
 			}
 		}
 	}
@@ -330,7 +313,10 @@ void DFloor::Tick ()
 
 void DFloor::UpdateToClient( ULONG ulClient )
 {
-	SERVERCOMMANDS_DoFloor( m_Type, m_Sector, m_Direction, m_Speed, m_FloorDestDist, m_Crush, m_Hexencrush, m_lFloorID, ulClient, SVCF_ONLYTHISCLIENT );
+	if ( ( m_Type != buildStair ) && ( m_Type != waitStair ) && ( m_Type != resetStair ) )
+		SERVERCOMMANDS_DoFloor( m_Type, m_Sector, m_Direction, m_Speed, m_FloorDestDist, m_Crush, m_Hexencrush, m_lFloorID, ulClient, SVCF_ONLYTHISCLIENT );
+	else
+		SERVERCOMMANDS_BuildStair( m_Type, m_Sector, m_Direction, m_Speed, m_FloorDestDist, m_Crush, m_Hexencrush, m_ResetCount, m_Delay, m_PauseTime, m_StepTime, m_PerStepTime, m_lFloorID, ulClient, SVCF_ONLYTHISCLIENT );
 	SERVERCOMMANDS_StartFloorSound( m_lFloorID );
 }
 
@@ -466,6 +452,46 @@ fixed_t DFloor::GetFloorDestDist( void )
 void DFloor::SetFloorDestDist( fixed_t FloorDestDist )
 {
 	m_FloorDestDist = FloorDestDist;
+}
+
+int DFloor::GetDelay( void )
+{
+	return m_Delay;
+}
+
+void DFloor::SetDelay( int Delay )
+{
+	m_Delay = Delay;
+}
+
+int DFloor::GetPauseTime( void )
+{
+	return m_PauseTime;
+}
+
+void DFloor::SetPauseTime( int PauseTime )
+{
+	m_PauseTime = PauseTime;
+}
+
+int DFloor::GetStepTime( void )
+{
+	return m_StepTime;
+}
+
+void DFloor::SetStepTime( int StepTime )
+{
+	m_StepTime = StepTime;
+}
+
+int DFloor::GetPerStepTime( void )
+{
+	return m_PerStepTime;
+}
+
+void DFloor::SetPerStepTime( int PerStepTime )
+{
+	m_PerStepTime = PerStepTime;
 }
 
 //==========================================================================
@@ -926,7 +952,7 @@ manual_stair:
 
 		// [BC] If we're the server, tell clients to create the floor.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
+			SERVERCOMMANDS_BuildStair( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_ResetCount, floor->m_Delay, floor->m_PauseTime, floor->m_StepTime, floor->m_PerStepTime, floor->m_lFloorID );
 
 		// Find next sector to raise
 		// 1. Find 2-sided line with same sector side[0] (lowest numbered)
@@ -1042,7 +1068,7 @@ manual_stair:
 				// [BC] If we're the server, tell clients to create the floor.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_DoFloor( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_lFloorID );
+					SERVERCOMMANDS_BuildStair( floor->m_Type, &sectors[secnum], floor->m_Direction, floor->m_Speed, floor->m_FloorDestDist, floor->m_Crush, floor->m_Hexencrush, floor->m_ResetCount, floor->m_Delay, floor->m_PauseTime, floor->m_StepTime, floor->m_PerStepTime, floor->m_lFloorID );
 					SERVERCOMMANDS_StartFloorSound( floor->m_lFloorID );
 				}
 			}

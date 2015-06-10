@@ -382,6 +382,7 @@ static	void	client_ChangeFloorDirection( BYTESTREAM_s *pByteStream );
 static	void	client_ChangeFloorType( BYTESTREAM_s *pByteStream );
 static	void	client_ChangeFloorDestDist( BYTESTREAM_s *pByteStream );
 static	void	client_StartFloorSound( BYTESTREAM_s *pByteStream );
+static	void	client_BuildStair( BYTESTREAM_s *pByteStream );
 
 // Ceiling commands.
 static	void	client_DoCeiling( BYTESTREAM_s *pByteStream );
@@ -2858,6 +2859,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// [EP]
 			case SVC2_STOPPOLYOBJSOUND:
 				client_StopPolyobjSound( pByteStream );
+				break;
+
+			// [EP]
+			case SVC2_BUILDSTAIR:
+				client_BuildStair( pByteStream );
 				break;
 
 			default:
@@ -11021,6 +11027,74 @@ static void client_StartFloorSound( BYTESTREAM_s *pByteStream )
 
 	// Finally, start playing the floor's sound sequence.
 	pFloor->StartFloorSound( );
+}
+
+//*****************************************************************************
+//
+static void client_BuildStair( BYTESTREAM_s *pByteStream )
+{
+	// Read in the type of floor.
+	int Type = NETWORK_ReadByte( pByteStream );
+
+	// Read in the sector ID.
+	int SectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the direction of the floor.
+	int Direction = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
+
+	// Read in the speed of the floor.
+	fixed_t Speed = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's destination height.
+	fixed_t FloorDestDist = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's crush.
+	int Crush = static_cast<SBYTE>( NETWORK_ReadByte( pByteStream ) );
+
+	// Read in the floor's crush type.
+	bool Hexencrush = NETWORK_ReadByte( pByteStream );
+
+	// Read in the floor's reset count.
+	int ResetCount = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's delay time.
+	int Delay = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's pause time.
+	int PauseTime = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's step time.
+	int StepTime = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's per step time.
+	int PerStepTime = NETWORK_ReadLong( pByteStream );
+
+	// Read in the floor's network ID.
+	int FloorID = NETWORK_ReadShort( pByteStream );
+
+	// Invalid sector.
+	if (( SectorID >= numsectors ) || ( SectorID < 0 ))
+		return;
+
+	sector_t *sector = &sectors[SectorID];
+
+	// If the sector already has activity, don't override it.
+	if ( sector->floordata )
+		return;
+
+	DFloor *floor = new DFloor( sector );
+	floor->SetType( (DFloor::EFloor)Type );
+	floor->SetCrush( Crush );
+	floor->SetHexencrush( Hexencrush );
+	floor->SetDirection( Direction );
+	floor->SetFloorDestDist( FloorDestDist );
+	floor->SetSpeed( Speed );
+	floor->SetResetCount( ResetCount );
+	floor->SetDelay( Delay );
+	floor->SetPauseTime( PauseTime );
+	floor->SetStepTime( StepTime );
+	floor->SetPerStepTime( PerStepTime );
+	floor->SetID( FloorID );
 }
 
 //*****************************************************************************

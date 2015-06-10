@@ -4128,6 +4128,34 @@ void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_BuildStair( DFloor::EFloor Type, sector_t *pSector, int Direction, fixed_t Speed, fixed_t FloorDestDist, int Crush, bool Hexencrush, int ResetCount, int Delay, int PauseTime, int StepTime, int PerStepTime, int ID, ULONG ulPlayerExtra, ULONG flags )
+{
+	int		SectorID;
+
+	SectorID = int( pSector - sectors );
+	if (( SectorID < 0 ) || ( SectorID >= numsectors ))
+		return;
+
+	NetCommand command ( SVC_EXTENDEDCOMMAND );
+	command.addByte ( SVC2_BUILDSTAIR );
+	command.addByte ( (int)Type );
+	command.addShort ( SectorID );
+	command.addByte ( clamp(Direction,-128,127) );
+	command.addLong ( Speed );
+	command.addLong ( FloorDestDist );
+	command.addByte ( clamp(Crush,-128,127) );
+	command.addByte ( Hexencrush );
+	command.addLong ( ResetCount );
+	command.addLong ( Delay );
+	command.addLong ( PauseTime );
+	command.addLong ( StepTime );
+	command.addLong ( PerStepTime );
+	command.addShort ( ID );
+	command.sendCommandToClients ( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG lDirection, LONG lBottomHeight, LONG lTopHeight, LONG lSpeed, LONG lCrush, bool Hexencrush, LONG lSilent, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )

@@ -1002,6 +1002,18 @@ public:
 	fixed_t	GetFloorDestDist( void );
 	void	SetFloorDestDist( fixed_t FloorDestDist );
 
+	int		GetDelay( void );
+	void	SetDelay( int Delay );
+
+	int		GetPauseTime( void );
+	void	SetPauseTime( int PauseTime );
+
+	int		GetStepTime( void );
+	void	SetStepTime( int StepTime );
+
+	int		GetPerStepTime( void );
+	void	SetPerStepTime( int PerStepTime );
+
 protected:
 	EFloor	 	m_Type;
 	int 		m_Crush;
