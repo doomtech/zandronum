@@ -45,6 +45,9 @@
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/renderer/gl_colormap.h"
 
+// [EP] New #includes.
+#include "gl/gl_functions.h"
+
 FRenderState gl_RenderState;
 int FStateAttr::ChangeCounter;
 
@@ -142,6 +145,9 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 
 bool FRenderState::ApplyShader()
 {
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_FOGMODE_IF_NECESSARY
+
 	bool useshaders = false;
 	FShader *activeShader = NULL;
 

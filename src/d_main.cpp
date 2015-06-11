@@ -451,11 +451,6 @@ CVAR (Flag, sv_coop_halveammo,		dmflags, DF_COOP_HALVE_AMMO);
 //
 //==========================================================================
 
-// [BB] Only necessary to handle ZADF_FORCE_GL_DEFAULTS.
-#ifndef NO_GL
-EXTERN_CVAR(Int, gl_lightmode)
-#endif
-
 CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 {
 	// [BC] If we're the server, tell clients that the dmflags changed.
@@ -504,13 +499,6 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 				cht_DoCheat (p, CHT_CHASECAM);
 		}
 	}
-
-#ifndef NO_GL
-	// [BB] This makes gl_lightmode handle ZADF_FORCE_GL_DEFAULTS.
-	// [BB] Don't do this on startup since gl.flags is not properly initialized yet.
-	if ( gamestate != GS_STARTUP )
-		gl_lightmode = gl_lightmode;
-#endif
 }
 
 CVAR (Flag, sv_weapondrop,			dmflags2, DF2_YES_WEAPONDROP);
@@ -546,6 +534,11 @@ CVAR (Flag, sv_shotgunstart,		dmflags2, DF2_COOP_SHOTGUNSTART);
 //
 //==========================================================================
 
+// [BB] Only necessary to handle ZADF_FORCE_GL_DEFAULTS.
+#ifndef NO_GL
+EXTERN_CVAR(Int, gl_lightmode)
+#endif
+
 CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO)
 {
 	// [Dusk] If we just turned sv_sharedkeys on, share keys now.
@@ -558,6 +551,13 @@ CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO)
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (int)self );
 		SERVERCOMMANDS_SetGameDMFlags( );
 	}
+
+#ifndef NO_GL
+	// [BB] This makes gl_lightmode handle ZADF_FORCE_GL_DEFAULTS.
+	// [BB] Don't do this on startup since gl.flags is not properly initialized yet.
+	if ( gamestate != GS_STARTUP )
+		gl_lightmode.Callback();
+#endif
 }
 
 CVAR (Flag, sv_noidentifytarget,			zadmflags, ZADF_NO_IDENTIFY_TARGET);

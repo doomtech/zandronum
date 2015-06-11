@@ -220,6 +220,9 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 
 int gl_CalcLightLevel(int lightlevel, int rellight, bool weapon)
 {
+	// [BB/EP] Take care of gl_light_ambient and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_light_ambient );
+
 	int light;
 
 	if (lightlevel == 0) return 0;
@@ -268,11 +271,6 @@ PalEntry gl_CalcLightColor(int light, PalEntry pe, int blendfactor)
 	return PalEntry(BYTE(r), BYTE(g), BYTE(b));
 }
 
-// [BB]
-int gl_GetLightMode () {
-	return ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 3 : gl_lightmode;
-}
-
 //==========================================================================
 //
 // Get current light color
@@ -280,11 +278,6 @@ int gl_GetLightMode () {
 //==========================================================================
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon)
 {
-	// [BB] This construction purposely overrides the CVAR gl_light_ambient with a local variable of the same name.
-	// This allows to implement ZADF_FORCE_GL_DEFAULTS without any further changes in this function.
-	const float gl_light_ambient_CVAR_value = gl_light_ambient;
-	const float gl_light_ambient = ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
-
 	float & r=*pred,& g=*pgreen,& b=*pblue;
 	int torch=0;
 
@@ -542,11 +535,7 @@ void gl_SetShaderLight(float level, float olight)
 
 void gl_SetFog(int lightlevel, int rellight, const FColormap *cmap, bool isadditive)
 {
-	// [BB] This construction purposely overrides the CVAR gl_light_ambient with a local variable of the same name.
-	// This allows to implement ZADF_FORCE_GL_DEFAULTS without any further changes in this function.
-	const float gl_light_ambient_CVAR_value = gl_light_ambient;
-	const float gl_light_ambient = ( zadmflags & ZADF_FORCE_GL_DEFAULTS ) ? 20.f : gl_light_ambient_CVAR_value;
-	// [BB] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	PalEntry fogcolor;

@@ -293,7 +293,7 @@ void GLWall::RenderWall(int textured, float * color2, ADynamicLight * light)
 
 void GLWall::RenderFogBoundary()
 {
-	// [BB] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
 	OVERRIDE_FOGMODE_IF_NECESSARY
 
 	if (gl_fogmode && gl_fixedcolormap == 0)

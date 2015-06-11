@@ -53,6 +53,9 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 
+// [EP] New #includes.
+#include "gl/gl_functions.h"
+
 // these will only have an effect on SM3 cards.
 // For SM4 they are always on and for SM2 always off
 CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
@@ -72,6 +75,11 @@ extern long gl_frameMS;
 
 bool FShader::Load(const char * name, const char * vert_prog_lump, const char * frag_prog_lump, const char * proc_prog_lump, const char * defines)
 {
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_FOGMODE_IF_NECESSARY
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_lightmode );
+
 	static char buffer[10000];
 	FString error;
 

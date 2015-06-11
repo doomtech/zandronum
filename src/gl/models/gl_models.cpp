@@ -55,8 +55,9 @@
 #include "gl/utility/gl_geometric.h"
 #include "gl/utility/gl_convert.h"
 
-// [BB] New #includes. 
+// [BB/EP] New #includes. 
 #include "r_main.h"
+#include "gl/gl_functions.h"
 
 static inline float GetTimeFloat()
 {
@@ -606,6 +607,9 @@ float gl_RollAgainstAngleHelper ( const AActor *actor )
 
 void gl_RenderModel(GLSprite * spr, int cm)
 {
+	// [BB/EP] Take care of gl_fogmode and ZADF_FORCE_GL_DEFAULTS.
+	OVERRIDE_FOGMODE_IF_NECESSARY
+
 	FSpriteModelFrame * smf = spr->modelframe;
 
 
