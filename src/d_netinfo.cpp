@@ -1006,6 +1006,8 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		Net_WriteString (foo);
 	}
 
+	PendingUserinfoChanges |= ulUpdateFlags;
+
 	// [TP] Send pending changes but only if we're not in a menu
 	if ( DMenu::CurrentMenu == NULL )
 		D_SendPendingUserinfoChanges();
