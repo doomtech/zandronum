@@ -4389,7 +4389,7 @@ void G_DoLoadGame ()
 	fclose (stdfile);
 
 	// [BB] The NetID list is not saved, so we have to rebuild it after loading a saved game.
-	ACTOR_RebuildNetIDList();
+	g_NetIDList.rebuild();
 
 	demoplayback = false;
 	usergame = true;

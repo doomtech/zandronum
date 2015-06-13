@@ -1296,24 +1296,85 @@ void PrintMiscActorInfo(AActor * query);
 
 #define S_FREETARGMOBJ	1
 
+//==========================================================================
+//
+// IDList
+//
+// Manages IDs to reference a certain type of objects over the network.
+// Since it still mimics the old Actor ID mechanism, 0 is never assigned as
+// ID.
+//
+// @author Benjamin Berkels
+//
+//==========================================================================
 
-// [BC] Network identification stuff for multiplayer.
-void	ACTOR_ClearNetIDList( );
-// [BB] Rebuild the global list of used / free NetIDs from scratch.
-void	ACTOR_RebuildNetIDList( void );
-
-#define	MAX_NETID				32768
-
-// List of all possible network ID's for an actor. Slot is true if it available for use.
-typedef struct
+template <typename T>
+class IDList
 {
-	// Is this node occupied, or free to be used by a new actor?
-	bool	bFree;
+public:
+	const static int MAX_NETID = 32768;
 
-	// If this node is occupied, this is the actor occupying it.
-	AActor	*pActor;
+private:
+	// List of all possible network ID's for an actor. Slot is true if it available for use.
+	typedef struct
+	{
+		// Is this node occupied, or free to be used by a new actor?
+		bool	bFree;
 
-} NETIDNODE_t;
+		// If this node is occupied, this is the actor occupying it.
+		T	*pActor;
 
-extern	NETIDNODE_t		g_NetIDList[MAX_NETID];
+	} IDNODE_t;
+
+	IDNODE_t _entries[MAX_NETID];
+	ULONG _firstFreeID;
+
+	inline bool isIndexValid ( const LONG lNetID ) const
+	{
+		return ( lNetID >= 0 ) && ( lNetID < MAX_NETID );
+	}
+public:
+	void clear ( );
+
+	// [BB] Rebuild the global list of used / free NetIDs from scratch.
+	void rebuild ( );
+
+	IDList ( )
+	{
+		clear ( );
+	}
+
+	void useID ( const LONG lNetID, T *pActor )
+	{
+		if ( isIndexValid ( lNetID ) )
+		{
+			_entries[lNetID].bFree = false;
+			_entries[lNetID].pActor = pActor;
+		}
+	}
+
+	void freeID ( const LONG lNetID )
+	{
+		if ( isIndexValid ( lNetID ) )
+		{
+			_entries[lNetID].bFree = true;
+			_entries[lNetID].pActor = NULL;
+		}
+	}
+
+	ULONG getNewID ( );
+
+	T* findPointerByID ( const LONG lNetID ) const
+	{
+		if ( isIndexValid ( lNetID ) == false )
+			return ( NULL );
+
+		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pActor ))
+			return ( _entries[lNetID].pActor );
+
+		return ( NULL );
+	}
+};
+
+extern	IDList<AActor> g_NetIDList;
 #endif // __P_MOBJ_H__

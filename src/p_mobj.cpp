@@ -134,7 +134,7 @@ static FRandom pr_multiclasschoice ("MultiClassChoice");
 static FRandom pr_rockettrail("RocketTrail");
 static FRandom pr_uniquetid("UniqueTID");
 
-/*static*/	NETIDNODE_t	g_NetIDList[MAX_NETID];
+/*static*/	IDList<AActor> g_NetIDList;
 static	ULONG		g_ulFirstFreeNetID = 1;
 
 static	LONG	g_lSpawnCount = 0;
@@ -4679,36 +4679,30 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 //
 //*****************************************************************************
 //
-void ACTOR_ClearNetIDList( void )
+template <typename T>
+void IDList<T>::clear( void )
 {
-	ULONG	ulIdx;
+	for ( ULONG ulIdx = 0; ulIdx < MAX_NETID; ulIdx++ )
+		freeID ( ulIdx );
 
-	for ( ulIdx = 0; ulIdx < MAX_NETID; ulIdx++ )
-	{
-		g_NetIDList[ulIdx].bFree = true;
-		g_NetIDList[ulIdx].pActor = NULL;
-	}
-
-	g_ulFirstFreeNetID = 1;
+	_firstFreeID = 1;
 }
 
 //*****************************************************************************
 //
-void ACTOR_RebuildNetIDList( void )
+template <typename T>
+void IDList<T>::rebuild( void )
 {
-	ACTOR_ClearNetIDList();
+	clear();
 
-	AActor *pActor;
+	T *pActor;
 
-	TThinkerIterator<AActor> it;
+	TThinkerIterator<T> it;
 
 	while ( (pActor = it.Next()) )
 	{
 		if (( pActor->lNetID > 0 ) && ( pActor->lNetID < MAX_NETID ))
-		{
-			g_NetIDList[pActor->lNetID].bFree = false;
-			g_NetIDList[pActor->lNetID].pActor = pActor;
-		}
+			useID ( pActor->lNetID, pActor );
 	}
 }
 
@@ -4716,20 +4710,19 @@ void ACTOR_RebuildNetIDList( void )
 //
 void CountActors ( ); // [BB]
 
-ULONG ACTOR_GetNewNetID( void )
+template <typename T>
+ULONG IDList<T>::getNewID( void )
 {
-	ULONG	ulID;
-
 	// Actor's network ID is the first availible net ID.
-	ulID = g_ulFirstFreeNetID;
+	ULONG ulID = _firstFreeID;
 
 	do
 	{
-		g_ulFirstFreeNetID++;
-		if ( g_ulFirstFreeNetID >= MAX_NETID )
-			g_ulFirstFreeNetID = 1;
+		_firstFreeID++;
+		if ( _firstFreeID >= MAX_NETID )
+			_firstFreeID = 1;
 
-		if ( g_ulFirstFreeNetID == ulID )
+		if ( _firstFreeID == ulID )
 		{
 			// [BB] In case there is no free netID, the server has to abort the current game.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -4743,10 +4736,12 @@ ULONG ACTOR_GetNewNetID( void )
 
 			return ( 0 );
 		}
-	} while ( g_NetIDList[g_ulFirstFreeNetID].bFree == false );
+	} while ( _entries[_firstFreeID].bFree == false );
 
 	return ( ulID );
 }
+
+template class IDList<AActor>;
 
 // [BB] AActor::FreeNetID
 //
@@ -4754,13 +4749,7 @@ ULONG ACTOR_GetNewNetID( void )
 
 void AActor::FreeNetID ()
 {
-	// [BB] Actors may have lNetID == -1. 
-	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
-	{
-		g_NetIDList[lNetID].bFree = true;
-		g_NetIDList[lNetID].pActor = NULL;
-	}
-
+	g_NetIDList.freeID ( lNetID );
 	lNetID = -1;
 }
 
@@ -4970,9 +4959,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) && ( ( actor->ulNetworkFlags & NETFL_SERVERSIDEONLY ) == false ) &&
 		( NETWORK_InClientMode() == false ))
 	{
-		actor->lNetID = ACTOR_GetNewNetID( );
-		g_NetIDList[actor->lNetID].pActor = actor;
-		g_NetIDList[actor->lNetID].bFree = false;
+		actor->lNetID = g_NetIDList.getNewID( );
+		g_NetIDList.useID ( actor->lNetID, actor );
 	}
 	else
 		actor->lNetID = -1;
@@ -5181,13 +5169,8 @@ bool AActor::IsActive( void )
 
 void AActor::Destroy ()
 {
-	// [BC] Free it's network ID.
-	// [BB] Actors may have lNetID == -1. 
-	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
-	{
-		g_NetIDList[lNetID].bFree = true;
-		g_NetIDList[lNetID].pActor = NULL;
-	}
+	// [BC/BB] Free it's network ID.
+	g_NetIDList.freeID ( lNetID );
 
 	lNetID = -1;
 
@@ -6282,9 +6265,8 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 		{
 			if ( puff->lNetID == -1 )
 			{
-				puff->lNetID = ACTOR_GetNewNetID( );
-				g_NetIDList[puff->lNetID].pActor = puff;
-				g_NetIDList[puff->lNetID].bFree = false;
+				puff->lNetID = g_NetIDList.getNewID( );
+				g_NetIDList.useID ( puff->lNetID , puff );
 			}
 
 			SERVERCOMMANDS_SpawnThing( puff );

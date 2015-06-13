@@ -3172,11 +3172,7 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	if ( pActor )
 	{
 		pActor->lNetID = lNetID;
-		if ( lNetID != -1 )
-		{
-			g_NetIDList[lNetID].bFree = false;
-			g_NetIDList[lNetID].pActor = pActor;
-		}
+		g_NetIDList.useID ( lNetID, pActor );
 
 		pActor->SpawnPoint[0] = X;
 		pActor->SpawnPoint[1] = Y;
@@ -3252,11 +3248,7 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	pActor->angle = R_PointToAngle2( 0, 0, MomX, MomY );
 
 	pActor->lNetID = lNetID;
-	if ( lNetID != -1 )
-	{
-		g_NetIDList[lNetID].bFree = false;
-		g_NetIDList[lNetID].pActor = pActor;
-	}
+	g_NetIDList.useID ( lNetID, pActor );
 
 	// Play the seesound if this missile has one.
 	if ( pActor->SeeSound )
@@ -3368,13 +3360,7 @@ void CLIENT_DisplayMOTD( void )
 //
 AActor *CLIENT_FindThingByNetID( LONG lNetID )
 {
-	if (( lNetID < 0 ) || ( lNetID >= 65536 ))
-		return ( NULL );
-
-	if (( g_NetIDList[lNetID].bFree == false ) && ( g_NetIDList[lNetID].pActor ))
-		return ( g_NetIDList[lNetID].pActor );
-
-    return ( NULL );
+    return ( g_NetIDList.findPointerByID ( lNetID ) );
 }
 
 //*****************************************************************************
@@ -3927,11 +3913,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if (( ulPlayer >= MAXPLAYERS ) || ( gamestate != GS_LEVEL ))
 		return;
 
+	AActor *pOldNetActor = g_NetIDList.findPointerByID ( lID );
 	// If there's already an actor with this net ID, kill it!
-	if ( g_NetIDList[lID].pActor != NULL )
+	if ( pOldNetActor != NULL )
 	{
 /*
-		if ( g_NetIDList[lID].pActor == players[consoleplayer].mo )
+		if ( pOldActor == players[consoleplayer].mo )
 		{
 #ifdef CLIENT_WARNING_MESSAGES
 			Printf( "client_SpawnPlayer: WARNING! Tried to delete console player's body!\n" );
@@ -3939,9 +3926,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			return;
 		}
 */
-		g_NetIDList[lID].pActor->Destroy( );
-		g_NetIDList[lID].pActor = NULL;
-		g_NetIDList[lID].bFree = true;
+		pOldNetActor->Destroy( );
+		g_NetIDList.freeID ( lID );
 	}
 
 	// [BB] Remember if we were already ignoring WeaponSelect commands. If so, the server
@@ -4048,11 +4034,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	// Set the network ID.
 	pPlayer->mo->lNetID = lID;
-	if ( lID != -1 )
-	{
-		g_NetIDList[lID].bFree = false;
-		g_NetIDList[lID].pActor = pPlayer->mo;
-	}
+	g_NetIDList.useID ( lID, pPlayer->mo );
 
 	// Set the spectator variables [after G_PlayerReborn so our data doesn't get lost] [BB] Why?.
 	// [BB] To properly handle that spectators don't get default inventory, we need to set this

@@ -1436,7 +1436,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				bSnapshotFound = true;
 		}
 		if ( bSnapshotFound == false )
-			ACTOR_ClearNetIDList( );
+			g_NetIDList.clear( );
 	}
 
 	P_SetupLevel (level.mapname, position);
@@ -1849,8 +1849,7 @@ void G_FinishTravel ()
 
 			// [BC]
 			pawn->lNetID = lSavedNetID;
-			g_NetIDList[pawn->lNetID].bFree = false;
-			g_NetIDList[pawn->lNetID].pActor = pawn;
+			g_NetIDList.useID ( pawn->lNetID, pawn );
 
 			for (inv = pawn->Inventory; inv != NULL; inv = inv->Inventory)
 			{
