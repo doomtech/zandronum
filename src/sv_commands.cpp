@@ -4140,8 +4140,7 @@ void SERVERCOMMANDS_BuildStair( DFloor::EFloor Type, sector_t *pSector, int Dire
 	if (( SectorID < 0 ) || ( SectorID >= numsectors ))
 		return;
 
-	NetCommand command ( SVC_EXTENDEDCOMMAND );
-	command.addByte ( SVC2_BUILDSTAIR );
+	NetCommand command ( SVC2_BUILDSTAIR );
 	command.addByte ( (int)Type );
 	command.addShort ( SectorID );
 	command.addByte ( clamp(Direction,-128,127) );
