@@ -90,9 +90,6 @@ static void MAPROTATION_CalcNextMap( void )
 	// [BB] The random selection is only necessary if there is more than one map.
 	if ( sv_randommaprotation && ( g_MapRotationEntries.size( ) > 1 ) )
 	{
-		// Mark the current map in the list as being used.
-		g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
-
 		// If all the maps have been played, make them all available again. 
 		{
 			bool bAllMapsPlayed = true;
@@ -132,6 +129,7 @@ static void MAPROTATION_CalcNextMap( void )
 void MAPROTATION_AdvanceMap( void )
 {
 	g_ulCurMapInList = g_ulNextMapInList;
+	g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 }
 
 //*****************************************************************************
@@ -172,6 +170,7 @@ void MAPROTATION_SetPositionToMap( const char *pszMapName )
 		}
 	}
 	g_ulNextMapInList = g_ulCurMapInList;
+	g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 }
 
 //*****************************************************************************
