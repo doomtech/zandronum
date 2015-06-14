@@ -1417,6 +1417,32 @@ CCMD(countactors)
 	CountActors ();
 }
 
+// [Cata] Executes cmd only if you are a spectator.
+CCMD (ifspectator)
+{
+	// [BB] This function can call arbitrary other functions, so it may not be used by ConsoleCommand.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
+	if ( argv.argc() <= 1 )
+	{
+		Printf ( "Usage: ifspectator <command>\n" );
+	}
+	else if ( players[consoleplayer].bDeadSpectator || players[consoleplayer].bSpectating )
+	{
+		FString cmdTotal;
+		for( int i = 1; i < argv.argc(); i++ )
+		{
+			cmdTotal += ' ';
+			cmdTotal += argv[i];
+		}
+
+		
+		AddCommandString(cmdTotal.LockBuffer());
+		cmdTotal.UnlockBuffer();
+	}
+}
+
 //-----------------------------------------------------------------------------
 //
 //
