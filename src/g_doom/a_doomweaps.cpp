@@ -107,6 +107,7 @@ void A_CustomFireBullets( AActor *self,
 						  int NumberOfBullets,
 						  int DamagePerBullet,
 						  const PClass * PuffType,
+						  const char *AttackSound = NULL,
 						  int Flags = 1,
 						  fixed_t Range = 0,
 						  const bool pPlayAttacking = true );
@@ -114,7 +115,7 @@ void A_CustomFireBullets( AActor *self,
 DEFINE_ACTION_FUNCTION(AActor, A_FirePistol)
 {
 	// [BB] A_FirePistol is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff"), true, 0, false );
+	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff"), "weapons/pistol", true, 0, false );
 	A_GunFlash ( self );
 /*
 	bool accurate;
@@ -344,7 +345,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 {
 	// [BB] A_FireShotgun is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5, PClass::FindClass("BulletPuff"), true, 0, false );
+	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5, PClass::FindClass("BulletPuff"), "weapons/shotgf", true, 0, false );
 	A_GunFlash ( self );
 /*
 	int i;
@@ -418,7 +419,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun)
 DEFINE_ACTION_FUNCTION(AActor, A_FireShotgun2)
 {
 	// [BB] A_FireShotgun2 is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5, PClass::FindClass("BulletPuff"), true, 0, false );
+	A_CustomFireBullets( self, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5, PClass::FindClass("BulletPuff"), "weapons/sshotf", true, 0, false );
 	A_GunFlash ( self );
 /*
 	int 		i;
@@ -622,7 +623,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_FireCGun)
 		}
 	}
 	// [BB] A_FireCGun is only kept to stay compatible with Dehacked.
-	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff") );
+	A_CustomFireBullets( self, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5, PClass::FindClass("BulletPuff"), "weapons/chngun" );
 //	A_GunFlash( self );
 /*
 	player_t *player;
