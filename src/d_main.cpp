@@ -2947,7 +2947,9 @@ void D_DoomMain (void)
 				// This causes the "Frags" bug. The following is just a workaround, the behavior of
 				// G_InitNew should be fixed.
 				char levelname[10];
-				sprintf( levelname, "%s", MAPROTATION_GetMap( 0 )->mapname );
+				// [K6] Start with a random map if we are using sv_randommaprotation.
+				sprintf( levelname, "%s", MAPROTATION_GetMap( sv_randommaprotation ? M_Random.Random( ) % MAPROTATION_GetNumEntries( ) : 0 )->mapname );
+				MAPROTATION_SetPositionToMap( levelname );
 				G_InitNew( levelname, false );
 				//G_InitNew( MAPROTATION_GetMapName( 0 ), false );
 			}
