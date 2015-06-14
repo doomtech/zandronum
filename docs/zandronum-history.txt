@@ -42,6 +42,7 @@
 -	- Fixed: Blocked sliding polyobjects were not handled properly online. [Edward-san]
 -	- Fixed: The delayed stairs building movers were not handled properly online. [Edward-san]
 -	- Fixed: Some dehacked weapon attack sounds could not work. [Edward-san]
+-	- Fixed some weapon sync issues related to the client movement buffer. [Torr Samaho]
 !	- Make the crash log unique for SDL platforms by appending the timestamp to the file name. [Edward-san, Dusk]
 !	- The Linux executables now will be able to generate a core dump in case a crash happens. [Edward-san]
 !	- Railgun attacks no longer always pierce armor. The Skulltag railgun in skulltag_actors.pk3 continues to do so, however, through use of +PIERCEARMOR. [Dusk]

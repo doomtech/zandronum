@@ -586,7 +586,8 @@ void SERVER_Tick( void )
 		// Recieve packets.
 		SERVER_GetPackets( );
 
-		// [BB] Process up to two movement commands for each client.
+		// [BB] Process up to one movement command for each client, since we already process
+		// the first movement command in each gametic immediately after receiving it.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( SERVER_IsValidClient( ulIdx ) == false )
@@ -594,7 +595,7 @@ void SERVER_Tick( void )
 
 			// [BB] Since the commands are in a priority queue, we process
 			// the commands based on their gametic, lowest first.
-			for ( unsigned int i = 0; i < MIN<unsigned int> ( g_aClients[ulIdx].MoveCMDs.size(), 2u ); ++i )
+			for ( unsigned int i = 0; i < MIN<unsigned int> ( g_aClients[ulIdx].MoveCMDs.size(), 1u ); ++i )
 			{
 				server_ProcessMoveCommand( g_aClients[ulIdx].MoveCMDs.top(), ulIdx );
 				g_aClients[ulIdx].MoveCMDs.pop();
@@ -4929,10 +4930,16 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	else
 		clientMoveCmd.usWeaponNetworkIndex = 0;
 
-	// Don't timeout.
-	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
-
-	g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
+	// [BB] We didn't process a command of this client during this tic yet,
+	// so process this one immediately. Otherwise, put it onto the buffer.
+	if ( g_aClients[g_lCurrentClient].ulLastCommandTic < gametic )
+	{
+		// Don't timeout.
+		g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
+		server_ProcessMoveCommand ( clientMoveCmd, g_lCurrentClient );
+	}
+	else
+		g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
 
 	return false;
 }
