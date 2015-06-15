@@ -389,7 +389,7 @@ void InitGLRMapinfoData()
 
 CCMD(gl_resetmap)
 {
-	// [BB/EP] Take care of gl_light_ambient and ZADF_FORCE_GL_DEFAULTS.
+	// [BB/EP] Take care of gl_lightmode and ZADF_FORCE_GL_DEFAULTS.
 	OVERRIDE_INT_GL_CVAR_IF_NECESSARY( gl_lightmode );
 
 	if (!IsLightmodeValid()) glset.lightmode = gl_lightmode;
