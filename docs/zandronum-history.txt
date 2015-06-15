@@ -48,7 +48,7 @@
 !	- Make the crash log unique for SDL platforms by appending the timestamp to the file name. [Edward-san, Dusk]
 !	- The Linux executables now will be able to generate a core dump in case a crash happens. [Edward-san]
 !	- Railgun attacks no longer always pierce armor. The Skulltag railgun in skulltag_actors.pk3 continues to do so, however, through use of +PIERCEARMOR. [Dusk]
-!	- A map is now marked as used when entered instead of when exited in the rotation list. [Leonard]
+!	- A map is now marked as used when entered instead of when exited in the rotation list. [Leonard, Torr Samaho]
 
 
 2.0
