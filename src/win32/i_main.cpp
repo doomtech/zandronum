@@ -918,6 +918,23 @@ void DoMain (HINSTANCE hInstance)
 		progdir.Truncate((long)strlen(program));
 		progdir.UnlockBuffer();
 
+		// [BB] To allow an external program to check our version, output this info to a file.
+		{
+			FString *args;
+			if ( Args->CheckParmList( "--version", &args) == 1 )
+			{
+				FILE *file = fopen( args[0].GetChars(), "w" );
+				if ( file == NULL )
+					return;
+				fputs( GetVersionStringRev(), file );
+				fputs( "\n", file );
+				fputs( GetGitDescription(), file );
+
+				fclose( file );
+				return;
+			}
+		}
+
 		// [BC] When hosting, spawn a console dialog box instead of creating a window.
 		if ( Args->CheckParm( "-host" ))
 		{
