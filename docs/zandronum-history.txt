@@ -17,6 +17,7 @@
 
 +	- The client movement buffer now can be toggled with the new CVAR sv_useticbuffer (default true, not archived). [Torr Samaho]
 -	- Fixed jittery movement of the consoleplayer caused by the client movement buffer. [Torr Samaho]
+-	- Fixed: Clients wrongly predicted the health of the consoleplayer. [Edward-san, Torr Samaho]
 
 
 2.1

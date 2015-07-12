@@ -3542,9 +3542,13 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				{
 					S_Sound( player->mo, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
 
-					// [BC] If we're the server, play the health sound.
+					// [BC] If we're the server, send out the health change, and play the
+					// health sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					{
+						SERVERCOMMANDS_SetPlayerHealth( player - players );
 						SERVERCOMMANDS_SoundActor( player->mo, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
+					}
 				}
 			}
 

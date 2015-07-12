@@ -245,10 +245,6 @@ bool P_GiveBody (AActor *actor, int num)
 			{
 				player->health = num;
 				actor->health = num;
-
-				// [EP] Update the new health value to the clients.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPlayerHealth( player - players );
 				return true;
 			}
 		}
@@ -262,10 +258,6 @@ bool P_GiveBody (AActor *actor, int num)
 					player->health = max;
 				}
 				actor->health = player->health;
-
-				// [EP] Update the new health value to the clients.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPlayerHealth( player - players );
 				return true;
 			}
 		}
@@ -1759,13 +1751,6 @@ bool AHealth::TryPickup (AActor *&other)
 			player->health = max;
 		}
 		player->mo->health = player->health;
-
-		// [EP] Update the new health value to the clients.
-#if ZD_SVN_REVISION_NUMBER >= 3438
-#error Recheck this code when zdoom r3438 will be backported!
-#endif
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerHealth( player - players );
 	}
 	else
 	{
@@ -1930,13 +1915,6 @@ bool AMaxHealth::TryPickup( AActor *&pOther )
 
 		// Make the player's body's health match the player's health.
 		pPlayer->mo->health = pPlayer->health;
-
-		// [EP] Update the new health value to the clients.
-#if ZD_SVN_REVISION_NUMBER >= 3438
-#error Recheck this code when zdoom r3438 will be backported!
-#endif
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( pPlayer - players );
 	}
 	else
 	{

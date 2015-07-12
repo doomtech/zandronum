@@ -1571,9 +1571,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		{
 			if ( P_GiveBody( source, MIN( (int)lOldTargetHealth, damage ) / 2 ))
 			{
-				// [BC] If we're the server, play the health sound.
+				// [BC] If we're the server, send out the health change, and play the
+				// health sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SetPlayerHealth( source->player - players );
 					SERVERCOMMANDS_SoundActor( source, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
+				}
 
 				S_Sound( source, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
 			}
