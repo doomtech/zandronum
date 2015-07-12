@@ -4930,16 +4930,19 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	else
 		clientMoveCmd.usWeaponNetworkIndex = 0;
 
+	// [BB] Put the command into the buffer.
+	g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
+
 	// [BB] We didn't process a command of this client during this tic yet,
-	// so process this one immediately. Otherwise, put it onto the buffer.
+	// so process one immediately. Taking this command out of the buffer instead
+	// of processing the new command immediately takes care of the sorting.
 	if ( g_aClients[g_lCurrentClient].ulLastCommandTic < gametic )
 	{
 		// Don't timeout.
 		g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
-		server_ProcessMoveCommand ( clientMoveCmd, g_lCurrentClient );
+		server_ProcessMoveCommand( g_aClients[g_lCurrentClient].MoveCMDs.top(), g_lCurrentClient );
+		g_aClients[g_lCurrentClient].MoveCMDs.pop();
 	}
-	else
-		g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
 
 	return false;
 }

@@ -12,6 +12,12 @@
 ===============================================================================================================
 
 
+2.1.1
+-----
+
+-	- Fixed jittery movement of the consoleplayer caused by the client movement buffer. [Torr Samaho]
+
+
 2.1
 ---
 
