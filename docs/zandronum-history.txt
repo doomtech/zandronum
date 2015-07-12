@@ -19,6 +19,7 @@
 -	- Fixed jittery player movement caused by the client movement buffer. [Torr Samaho]
 -	- Fixed: Clients wrongly predicted the health of the consoleplayer. [Edward-san, Torr Samaho]
 -	- Fixed: clients were not updated about the successful A_CustomPunch lifesteal attacks from a player. [Edward-san]
+-	- Fixed: clients were not updated about the successful A_Saw lifesteal attacks from a player. [Edward-san]
 
 
 2.1

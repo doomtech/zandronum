@@ -307,8 +307,15 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 		}
 	}
 
+	// [EP] Is the actor's health changed by the life steal?
+	const int prevhealth = self->health;
+
 	if (LifeSteal)
 		P_GiveBody (self, (damage * LifeSteal) >> FRACBITS);
+
+	// [EP] Inform the clients about the player health change if needed.
+	if ( ( NETWORK_GetState() == NETSTATE_SERVER ) && self->player && prevhealth != self->health )
+		SERVERCOMMANDS_SetPlayerHealth( self->player - players );
 
 	S_Sound (self, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 	// [BC] If we're the server, tell clients to play the saw sound.
