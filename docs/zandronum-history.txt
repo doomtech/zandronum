@@ -18,6 +18,7 @@
 +	- The client movement buffer now can be toggled with the new CVAR sv_useticbuffer (default true, not archived). [Torr Samaho]
 -	- Fixed jittery player movement caused by the client movement buffer. [Torr Samaho]
 -	- Fixed: Clients wrongly predicted the health of the consoleplayer. [Edward-san, Torr Samaho]
+-	- Fixed: clients were not updated about the successful A_CustomPunch lifesteal attacks from a player. [Edward-san]
 
 
 2.1
