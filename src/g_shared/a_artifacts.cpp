@@ -1754,9 +1754,14 @@ void APowerRegeneration::DoEffect()
 		{
 			S_Sound(Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
 
-			// [BC] If we're the server, play the health sound.
+			// [BC] If we're the server, send out the health change, and play the
+			// health sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				if ( Owner->player )
+					SERVERCOMMANDS_SetPlayerHealth( Owner->player - players );
 				SERVERCOMMANDS_SoundActor( Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+			}
 		}
 	}
 }
@@ -2588,9 +2593,14 @@ void ARuneRegeneration::DoEffect( )
 		{
 			S_Sound(Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
 
-			// [BC] If we're the server, play the health sound.
+			// [BC] If we're the server, send out the health change, and play the
+			// health sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				if ( Owner->player )
+					SERVERCOMMANDS_SetPlayerHealth( Owner->player - players );
 				SERVERCOMMANDS_SoundActor( Owner, CHAN_ITEM, "*regenerate", 1, ATTN_NORM );
+			}
 		}
 	}
 }
