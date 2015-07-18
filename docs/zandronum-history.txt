@@ -12,6 +12,12 @@
 ===============================================================================================================
 
 
+2.1.2
+-----
+
+-	- Fixed the remaining jitter and weapon sync problems caused by the client movement buffer. [Torr Samaho]
+
+
 2.1.1
 -----
 
