@@ -264,10 +264,6 @@ bool P_GiveBody (AActor *actor, int num, int max)
 			{
 				player->health = num;
 				actor->health = num;
-
-				// [EP] Update the new health value to the clients.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPlayerHealth( player - players );
 				return true;
 			}
 		}
@@ -281,10 +277,6 @@ bool P_GiveBody (AActor *actor, int num, int max)
 					player->health = max;
 				}
 				actor->health = player->health;
-
-				// [EP] Update the new health value to the clients.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetPlayerHealth( player - players );
 				return true;
 			}
 		}
@@ -1872,7 +1864,6 @@ const char *AHealth::PickupMessage ()
 bool AHealth::TryPickup (AActor *&other)
 {
 	PrevHealth = other->player != NULL ? other->player->health : other->health;
-
 	// P_GiveBody adds one new feature, applied only if it is possible to pick up negative health:
 	// Negative values are treated as positive percentages, ie Amount -100 means 100% health, ignoring max amount.
 	if (P_GiveBody(other, Amount, MaxAmount))
@@ -2032,13 +2023,6 @@ bool AMaxHealth::TryPickup( AActor *&pOther )
 
 		// Make the player's body's health match the player's health.
 		pPlayer->mo->health = pPlayer->health;
-
-		// [EP] Update the new health value to the clients.
-#if ZD_SVN_REVISION_NUMBER >= 3438
-#error Recheck this code when zdoom r3438 will be backported!
-#endif
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetPlayerHealthAndMaxHealthBonus( pPlayer - players );
 	}
 	else
 	{

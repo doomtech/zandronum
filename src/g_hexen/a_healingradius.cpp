@@ -91,6 +91,10 @@ bool AArtiHealingRadius::Use (bool pickup)
 			default:
 			//case NAME_Health:
 				gotsome = P_GiveBody (players[i].mo, 50 + (pr_healradius()%50));
+
+				// [Dusk] As the server, sync the new health count
+				if ( NETWORK_GetState () == NETSTATE_SERVER && gotsome )
+					SERVERCOMMANDS_SetPlayerHealth( i );
 				break;
 			}
 			if (gotsome)
