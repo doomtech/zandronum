@@ -199,6 +199,8 @@ class ClientCommand
 public:
 	ClientCommand () {};
 
+	virtual ~ClientCommand () {};
+
 	virtual bool process ( const ULONG ulClient ) const = 0;
 
 	virtual bool isMoveCmd ( ) const
