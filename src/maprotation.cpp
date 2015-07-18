@@ -129,7 +129,8 @@ static void MAPROTATION_CalcNextMap( void )
 void MAPROTATION_AdvanceMap( void )
 {
 	g_ulCurMapInList = g_ulNextMapInList;
-	g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
+	if ( g_ulCurMapInList < g_MapRotationEntries.size() )
+		g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 }
 
 //*****************************************************************************
@@ -166,11 +167,11 @@ void MAPROTATION_SetPositionToMap( const char *pszMapName )
 		if ( stricmp( g_MapRotationEntries[ulIdx].pMap->mapname, pszMapName ) == 0 )
 		{
 			g_ulCurMapInList = ulIdx;
+			g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 			break;
 		}
 	}
 	g_ulNextMapInList = g_ulCurMapInList;
-	g_MapRotationEntries[g_ulCurMapInList].bUsed = true;
 }
 
 //*****************************************************************************
