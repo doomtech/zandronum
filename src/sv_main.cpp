@@ -272,6 +272,7 @@ CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
 CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE ) // [K6]
 CVAR( Bool, sv_forcelogintojoin, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
+CVAR( Bool, sv_useticbuffer, true, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE|CVAR_NOSETBYACS )
 {
@@ -4930,16 +4931,19 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	else
 		clientMoveCmd.usWeaponNetworkIndex = 0;
 
+	// [BB] Put the command into the buffer.
+	g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
+
 	// [BB] We didn't process a command of this client during this tic yet,
-	// so process this one immediately. Otherwise, put it onto the buffer.
-	if ( g_aClients[g_lCurrentClient].ulLastCommandTic < gametic )
+	// so process one immediately. Taking this command out of the buffer instead
+	// of processing the new command immediately takes care of the sorting.
+	if ( ( g_aClients[g_lCurrentClient].ulLastCommandTic < gametic ) || ( sv_useticbuffer == false ) )
 	{
 		// Don't timeout.
 		g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
-		server_ProcessMoveCommand ( clientMoveCmd, g_lCurrentClient );
+		server_ProcessMoveCommand( g_aClients[g_lCurrentClient].MoveCMDs.top(), g_lCurrentClient );
+		g_aClients[g_lCurrentClient].MoveCMDs.pop();
 	}
-	else
-		g_aClients[g_lCurrentClient].MoveCMDs.push ( clientMoveCmd );
 
 	return false;
 }
