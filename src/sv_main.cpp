@@ -6317,18 +6317,18 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 //
 static bool server_Puke( BYTESTREAM_s *pByteStream )
 {
-	ULONG ulScript = NETWORK_ReadShort( pByteStream );
+	ULONG ulScript = NETWORK_ReadLong( pByteStream );
 	ULONG ulArgn = NETWORK_ReadByte( pByteStream );
 
-	// [BB] Valid clients don't send more than three args.
-	if ( ulArgn > 3 )
+	// [BB] Valid clients don't send more than four args.
+	if ( ulArgn > 4 )
 	{
 		SERVER_KickPlayer( g_lCurrentClient, "Sent a malformed packet!" );
 		return true;
 	}
 
-	int arg[3] = { 0, 0, 0 };
-	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx)
+	int arg[4] = { 0, 0, 0, 0 };
+	for ( ULONG ulIdx = 0; ulIdx < ulArgn; ++ulIdx )
 		arg[ulIdx] = NETWORK_ReadLong ( pByteStream );
 	bool bAlways = !!NETWORK_ReadByte( pByteStream );
 
@@ -6345,7 +6345,7 @@ static bool server_Puke( BYTESTREAM_s *pByteStream )
 
 	// [BB] Execute the script as if it was invoked by the puke command.
 	P_StartScript (players[g_lCurrentClient].mo, NULL, ulScript, level.mapname,
-		arg, 3, ( bAlways ? ACS_ALWAYS : 0 ) | ACS_NET );
+		arg, 4, ( bAlways ? ACS_ALWAYS : 0 ) | ACS_NET );
 
 	return ( false );
 }

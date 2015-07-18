@@ -554,21 +554,22 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_Puke ( LONG lScript, int args[3] )
+void CLIENTCOMMANDS_Puke ( int script, int args[4], bool always )
 {
-	// [Dusk] Calculate argn from args.
-	int argn = ( args[2] != 0 ) ? 3 :
+	// [TP] Calculate argn from args.
+	int argn = ( args[3] != 0 ) ? 4 :
+	           ( args[2] != 0 ) ? 3 :
 	           ( args[1] != 0 ) ? 2 :
 	           ( args[0] != 0 ) ? 1 : 0;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_PUKE );
-	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) ? -lScript : lScript );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, script );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, argn );
 
-	for ( int Idx = 0; Idx < argn; ++Idx )
-		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, args[Idx] );
+	for ( int i = 0; i < argn; ++i )
+		NETWORK_WriteLong ( &CLIENT_GetLocalBuffer( )->ByteStream, args[i] );
 
-	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, (lScript < 0) );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, always );
 }
 
 //*****************************************************************************

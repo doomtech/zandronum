@@ -687,6 +687,37 @@ CCMD (logfile)
 		StartLogging( argv[1] );
 }
 
+// [TP] CCMD(puke)'s online handling encapsulated into a function.
+// Returns true if the function eats the script call.
+static bool CheckOnlinePuke ( int script, int args[4], bool always )
+{
+	if ( NETWORK_InClientMode() == false && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
+		return false;
+
+	// [BB] The check if the client is allowed to puke a CLIENTSIDE script
+	// is done in P_StartScript, no need to check here.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) || ACS_IsScriptClientSide ( script ) )
+	{
+		P_StartScript( players[consoleplayer].mo, NULL, script, level.mapname,
+			args, 4, ( (script < 0 ) ? ACS_ALWAYS : 0 ) | ACS_NET );
+
+		// [BB] If the server (and not any ACS script via ConsoleCommand) calls puke, let the clients know.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ACS_IsCalledFromConsoleCommand( ) == false ) )
+		{
+			SERVER_Printf( PRINT_HIGH, "The Server host or an RCON user is possibly cheating "
+				"by calling \"puke %s %d %d %d %d\"\n",
+				FBehavior::RepresentScript( script ).GetChars(),
+				args[0], args[1], args[2], args[3] );
+		}
+	}
+	else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ACS_IsScriptPukeable ( script ) )
+	{
+		CLIENTCOMMANDS_Puke ( script, args, always );
+	}
+
+	return true;
+}
+
 CCMD (puke)
 {
 	int argc = argv.argc();
@@ -711,44 +742,24 @@ CCMD (puke)
 			arg[i] = atoi (argv[2+i]);
 		}
 
-		if ( NETWORK_InClientMode() ||
-			( NETWORK_GetState( ) == NETSTATE_SERVER ))
-		{
-			ULONG ulScript = (script < 0) ? -script : script;
-			// [BB] The check if the client is allowed to puke a CLIENTSIDE script
-			// is done in P_StartScript, no need to check here.
-			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				|| ACS_IsScriptClientSide ( ulScript ) )
-			{
-				P_StartScript (players[consoleplayer].mo, NULL, ulScript, level.mapname,
-					arg, argn, ( (script < 0 ) ? ACS_ALWAYS : 0 ) | ACS_NET );
+		// [TP] Check online handling
+		if ( CheckOnlinePuke( abs( script ), arg, script < 0 ) )
+			return;
 
-				// [BB] If the server (and not any ACS script via ConsoleCommand) calls puke, let the clients know.
-				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ACS_IsCalledFromConsoleCommand( ) == false ) )
-					SERVER_Printf( PRINT_HIGH, "The Server host or an RCON user is possibly cheating by calling \"puke %d %d %d %d\"\n", script, arg[0], arg[1], arg[2] );
-			}
-			else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ACS_IsScriptPukeable ( ulScript ) )
-			{
-				CLIENTCOMMANDS_Puke ( script, arg );
-			}
+		if (script > 0)
+		{
+			Net_WriteByte (DEM_RUNSCRIPT);
+			Net_WriteWord (script);
 		}
 		else
 		{
-			if (script > 0)
-			{
-				Net_WriteByte (DEM_RUNSCRIPT);
-				Net_WriteWord (script);
-			}
-			else
-			{
-				Net_WriteByte (DEM_RUNSCRIPT2);
-				Net_WriteWord (-script);
-			}
-			Net_WriteByte (argn);
-			for (i = 0; i < argn; ++i)
-			{
-				Net_WriteLong (arg[i]);
-			}
+			Net_WriteByte (DEM_RUNSCRIPT2);
+			Net_WriteWord (-script);
+		}
+		Net_WriteByte (argn);
+		for (i = 0; i < argn; ++i)
+		{
+			Net_WriteLong (arg[i]);
 		}
 	}
 }
@@ -781,6 +792,11 @@ CCMD (pukename)
 				arg[i] = atoi(argv[argstart + i]);
 			}
 		}
+
+		// [TP] Check online handling
+		if ( CheckOnlinePuke( -FName( argv[1] ), arg, always ) )
+			return;
+
 		Net_WriteByte(DEM_RUNNAMEDSCRIPT);
 		Net_WriteString(argv[1]);
 		Net_WriteByte(argn | (always << 7));

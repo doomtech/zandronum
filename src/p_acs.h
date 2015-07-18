@@ -347,6 +347,9 @@ public:
 	static void StaticStopMyScripts (AActor *actor);
 	static int StaticCountTypedScripts( WORD type );
 
+	// [TP]
+	static FString RepresentScript ( int script );
+
 private:
 	struct ArrayInfo;
 

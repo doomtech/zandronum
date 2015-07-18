@@ -16,6 +16,7 @@
 ---
 
 *+	- Updated Zandronum's (G)ZDoom base to ZDoom SVN revision 4342 / GZDoom SVN revision 1600. [Torr Samaho]
++	- Added NamedRequestScriptPuke, named variant of RequestScriptPuke. The two functions can now take 1-5 parameters, thus supporting 4 script arguments. [Dusk]
 !	- Removed the internal server browser. It was only useful for debugging purposes anyway and the CCMDs querymaster and dumpserverlist are sufficient for this. [Torr Samaho]
 
 

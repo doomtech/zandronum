@@ -1460,59 +1460,76 @@ static int GetTeamProperty (unsigned int team, int prop, const SDWORD *stack, in
 	return 0;
 }
 
-
-//============================================================================
+// ================================================================================================
 //
-// [Dusk] RequestScriptPuke
+// [TP] FBehavior :: RepresentScript
+//
+// Returns a string representation of the given script number.
+//
+// ================================================================================================
+
+FString FBehavior::RepresentScript ( int script )
+{
+	FString result;
+
+	if ( script >= 0 )
+		result.Format( "%d", script );
+	else
+		result.Format( "\"%s\"", FName (( ENamedName ) -script ).GetChars() );
+
+	return result;
+}
+
+// ================================================================================================
+//
+// [TP] RequestScriptPuke
 //
 // Requests execution of a NET script on the server.
 //
-//============================================================================
-static int RequestScriptPuke ( FBehavior* module, AActor* activator, SDWORD* args )
-{
-	// [Dusk] Run a script over the network
-	const SDWORD& script = args[0];
-	const SDWORD& arg0 = args[1];
-	const SDWORD& arg1 = args[2];
-	const SDWORD& arg2 = args[3];
-	const ScriptPtr* scriptdata = FBehavior::StaticFindScript (args[0], module);
+// ================================================================================================
 
-	// [Dusk] Don't do anything on the server.
+static int RequestScriptPuke ( FBehavior* module, int script, int* args, int argCount )
+{
+	const ScriptPtr* scriptdata = FBehavior::StaticFindScript (script, module);
+	FString rep = FBehavior::RepresentScript( script );
+
+	// [TP] Don't do anything on the server.
 	if ( NETWORK_GetState() == NETSTATE_SERVER )
 	{
-		Printf( "RequestScriptPuke: Attempted to call script %d on the server. Only use "
-			"RequestScriptPuke in CLIENTSIDE scripts.\n", script );
+		Printf( "RequestScriptPuke can only be invoked from CLIENTSIDE scripts "
+			"(attempted to call script %s).\n", rep.GetChars() );
 		return 0;
 	}
 
 	if (( scriptdata->Flags & SCRIPTF_Net ) == 0 )
 	{
-		// [Dusk] If the script is not NET, print a warn and don't run any scripts.
-		Printf( "RequestScriptPuke: Cannot run server-side non-NET script %d "
-			"from the client.\n", script );
+		// [TP] If the script is not NET, print a warn and don't run any scripts.
+		Printf( "RequestScriptPuke: Script %s must be NET but isn't.", rep.GetChars() );
 		return 0;
 	}
 
-	// [Dusk] This is no-op with demos
+	// [TP] This is no-op with demos
 	if ( CLIENTDEMO_IsPlaying() )
 		return 1;
 
-	// [Dusk] If we're offline we can just run the script. Unfortunately we cannot check for the
-	// script being CLIENTSIDE here.
-	if (( NETWORK_GetState() == NETSTATE_SINGLE ) || ( NETWORK_GetState() == NETSTATE_SINGLE_MULTIPLAYER ))
+	// [TP] If we're offline we can just run the script.
+	if (( NETWORK_GetState() == NETSTATE_SINGLE )
+		|| ( NETWORK_GetState() == NETSTATE_SINGLE_MULTIPLAYER ))
 	{
-		int arg[3] = { arg0, arg1, arg2 };
-		AActor* newactivator = NETWORK_GetState() == NETSTATE_SERVER ? activator : players[consoleplayer].mo;
-		P_StartScript ( newactivator, NULL, script, NULL, arg, 3,
+		P_StartScript ( players[consoleplayer].mo, NULL, script, NULL, args, argCount,
 			ACS_ALWAYS | ACS_NET );
 		return 1;
 	}
 
-	// [Dusk]
-	int scriptargs[3] = { arg0, arg1, arg2 };
-	DPrintf( "RequestScriptPuke: Requesting puke of script %d (%d, %d, %d)\n",
-		script, arg0, arg1, arg2 );
-	CLIENTCOMMANDS_Puke( -script, scriptargs );
+	// [TP]
+	int scriptArgs[4] = { 0, 0, 0, 0 };
+
+	for ( int i = 0; i < MIN( argCount, 4 ); ++i )
+		scriptArgs[i] = args[i];
+
+	DPrintf( "RequestScriptPuke: Requesting puke of script %s (%d, %d, %d, %d)\n",
+		rep.GetChars(), args[0], args[1], args[2], args[3] );
+	CLIENTCOMMANDS_Puke( script, scriptArgs, true );
 	return 1;
 }
 
@@ -4726,6 +4743,7 @@ enum EACSFunctions
 	ACSF_BeginDBTransaction,
 	ACSF_EndDBTransaction,
 	ACSF_GetDBEntries,
+	ACSF_NamedRequestScriptPuke,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -5958,8 +5976,16 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetDBEntryRank:
 			return DATABASE_GetEntryRank ( FBehavior::StaticLookupString(args[0]), FBehavior::StaticLookupString(args[1]), !!(args[2]) );
 
+		// [TP]
 		case ACSF_RequestScriptPuke:
-			return RequestScriptPuke( activeBehavior, activator, args );
+			return RequestScriptPuke( activeBehavior, args[0], &args[1], argCount - 1 );
+
+		// [TP]
+		case ACSF_NamedRequestScriptPuke:
+			{
+				FName scriptName = FBehavior::StaticLookupString( args[0] );
+				return RequestScriptPuke( activeBehavior, -scriptName, &args[1], argCount - 1 );
+			}
 
 		case ACSF_BeginDBTransaction:
 			DATABASE_BeginTransaction();
