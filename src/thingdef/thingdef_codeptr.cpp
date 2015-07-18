@@ -1864,6 +1864,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	// turn to face target
 	if (linetarget)
 	{
+
+		// [EP] Is the actor's health changed by the life steal?
+		const int prevhealth = self->health;
+
 		if (LifeSteal)
 			P_GiveBody (self, (Damage * LifeSteal) >> FRACBITS);
 
@@ -1885,6 +1889,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 		{
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM );
 			SERVERCOMMANDS_SetThingAngleExact( self );
+			if ( self->player && prevhealth != self->health )
+				SERVERCOMMANDS_SetPlayerHealth( self->player - players );
 		}
 	}
 }
